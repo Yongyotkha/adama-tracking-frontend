@@ -15,19 +15,12 @@ export default function Login() {
   const { login } = useContext(AuthContext);
   const [messageApi, contextHolder] = message.useMessage();
 
-  const successMsg = (content) => {
+  const showMsg = (type, content) => {
     messageApi.open({
-      type: "success",
+      type,
       content,
     });
   };
-  const errorMsg = (content) => {
-    messageApi.open({
-      type: "error",
-      content,
-    });
-  };
-
 
   const onFinish = (values) => {
     login(username, password, setLoading)
@@ -37,7 +30,7 @@ export default function Login() {
         }
       })
       .catch((error) => {
-        errorMsg(error.response?.data?.data?.message);
+        showMsg("error", error.response?.data?.data?.message);
       });
   };
 
