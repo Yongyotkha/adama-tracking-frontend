@@ -21,6 +21,13 @@ export const AuthProvider = ({ children }) => {
   const [userInfo, setUserInfo] = useState(null);
   const [token, setToken] = useState(null);
 
+  let loading = false;
+
+  const notifyLoadingState = (callback, state) => {
+    loading = state;
+    if (callback) callback(loading);
+  };
+
   // ตรวจสอบ Local Storage เมื่อเริ่มต้น
   useEffect(() => {
     const storedUser = localStorage.getItem("users");
@@ -34,32 +41,41 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = async (username, password) => {
+  const login = async (username, password, onLoadingChange = null) => {
     try {
+      notifyLoadingState(onLoadingChange, true);
       const response = await axiosInstance.post(`${endPoint}/login`, {
         username,
         password,
       });
-      const userData = response.data.data;
-      const accessToken = response.data.data.token;
-      setIsLoggedIn(true);
-      setUserInfo(userData);
-      setToken(accessToken);
-      localStorage.setItem("users", JSON.stringify(userData)); // เก็บข้อมูลผู้ใช้ใน Local Storage
-      localStorage.setItem("accessToken", accessToken); // เก็บข้อมูลผู้ใช้ใน Local Storage
+      if (response) {
+        const userData = response.data.data;
+        const accessToken = response.data.data.token;
+        setIsLoggedIn(true);
+        setUserInfo(userData);
+        setToken(accessToken);
+        localStorage.setItem("users", JSON.stringify(userData));
+        localStorage.setItem("accessToken", accessToken);
+
+        return response.data;
+      }
     } catch (error) {
-      console.error("Login failed", error);
+      throw error;
+    } finally {
+      notifyLoadingState(onLoadingChange, false); // แจ้งว่า loading เสร็จแล้ว
     }
   };
 
   const logout = () => {
-    setIsLoggedIn(false);
-    setUserInfo(null);
-    setToken(null);
-    localStorage.removeItem("users"); // ลบข้อมูลผู้ใช้จาก Local Storage
-    localStorage.removeItem("accessToken"); // ลบข้อมูลผู้ใช้จาก Local Storage
+    if (isLoggedIn) {
+      setIsLoggedIn(false);
+      setUserInfo(null);
+      setToken(null);
+      localStorage.removeItem("users");
+      localStorage.removeItem("accessToken");
 
-    navigate("/login");
+      navigate("/login");
+    }
   };
 
   return (

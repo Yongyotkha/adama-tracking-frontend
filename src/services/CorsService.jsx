@@ -14,24 +14,23 @@ export const axiosInstance = axios.create({
   timeout: 30000,
 });
 
-let loading = false; // สร้างตัวแปร loading ภายใน service
+let loading = false;
 
-// สร้างฟังก์ชันสำหรับแจ้งการเปลี่ยนสถานะ loading ไปที่ component
 const notifyLoadingState = (callback, state) => {
   loading = state;
-  if (callback) callback(loading); // เรียก callback เพื่ออัปเดต state ใน component
+  if (callback) callback(loading);
 };
 
 const useServiceAPI = {
   get: async (url, params = {}, onLoadingChange = null) => {
+    const { logout } = useContext(AuthContext);
     try {
-      notifyLoadingState(onLoadingChange, true); // แจ้งว่าเริ่ม loading
+      notifyLoadingState(onLoadingChange, true);
       const response = await axiosInstance.get(url, { params });
       return response; // คืนค่า response กลับไปที่ component
     } catch (error) {
       // 401 Unauthorized
       if (error.status == 401) {
-        const { logout } = useContext(AuthContext);
         logout();
       }
       throw error;
@@ -41,6 +40,7 @@ const useServiceAPI = {
   },
 
   post: async (url, data, onLoadingChange = null) => {
+    const { logout } = useContext(AuthContext);
     try {
       notifyLoadingState(onLoadingChange, true);
       const response = await axiosInstance.post(url, data);
@@ -48,7 +48,6 @@ const useServiceAPI = {
     } catch (error) {
       // 401 Unauthorized
       if (error.status == 401) {
-        const { logout } = useContext(AuthContext);
         logout();
       }
       throw error;
@@ -58,6 +57,7 @@ const useServiceAPI = {
   },
 
   put: async (url, data, onLoadingChange = null) => {
+    const { logout } = useContext(AuthContext);
     try {
       notifyLoadingState(onLoadingChange, true);
       const response = await axiosInstance.put(url, data);
@@ -65,7 +65,6 @@ const useServiceAPI = {
     } catch (error) {
       // 401 Unauthorized
       if (error.status == 401) {
-        const { logout } = useContext(AuthContext);
         logout();
       }
       throw error;
@@ -75,6 +74,7 @@ const useServiceAPI = {
   },
 
   delete: async (url, onLoadingChange = null) => {
+    const { logout } = useContext(AuthContext);
     try {
       notifyLoadingState(onLoadingChange, true);
       const response = await axiosInstance.delete(url);
@@ -82,7 +82,6 @@ const useServiceAPI = {
     } catch (error) {
       // 401 Unauthorized
       if (error.status == 401) {
-        const { logout } = useContext(AuthContext);
         logout();
       }
       throw error;
