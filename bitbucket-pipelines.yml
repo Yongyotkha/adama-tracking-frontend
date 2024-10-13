@@ -1,0 +1,61 @@
+#  Template AWS Cloudformation deploy
+
+#  This template allows you to deploy your configuration as code using AWS CloudFormation.
+#  The workflow allows validate, linting and security scans on feature branches (as well as master).
+#  The AWS cloudformation template will be validated and deployed after the code is merged to master.
+
+# Prerequisites: $AWS_ACCESS_KEY_ID, $AWS_SECRET_ACCESS_KEY, $AWS_DEFAULT_REGION setup in the Repository variables and Deployment variables.
+# For advanced cases, please, follow examples from the pipe's README https://bitbucket.org/atlassian/aws-cloudformation-deploy/src/master/README.md
+# You can find AWS Cloudformation template example for creating AWS S3 Bucket in the template.yaml file. 
+# You can modify and use it to deploy any of your configuration as code. https://aws.amazon.com/cloudformation/resources/templates/
+
+
+image: atlassian/default-image:3
+
+# Workflow Configuration
+
+pipelines:
+  default:
+    - parallel:
+      - step:
+          name: Validate with AWS
+          image: amazon/aws-cli:2.3.3
+          script:
+            # More details https://docs.aws.amazon.com/cli/latest/reference/cloudformation/validate-template.html
+            - aws cloudformation validate-template --template-body file://template.yaml
+      - step:
+          name: Lint the template
+          image: python:3.8
+          script:
+            - pip install cfn-lint
+            # Validate CloudFormation yaml/json templates https://github.com/aws-cloudformation/cfn-python-lint
+            - cfn-lint -I template.yaml
+  branches:
+    master:
+      - parallel:
+        - step:
+            name: Validate with AWS
+            image: amazon/aws-cli:2.3.3
+            script:
+              - aws cloudformation validate-template --template-body file://template.yaml
+        - step:
+            name: Security Scan
+            script:
+              # Run a security scan for sensitive data.
+              # See more security tools at https://bitbucket.org/product/features/pipelines/integrations?&category=security
+              - pipe: atlassian/git-secrets-scan:0.5.1
+      - step:
+          name: Deploy to Production
+          deployment: Production
+          trigger: manual
+          script:
+            # Deploy your configuration as code using AWS CloudFormation.
+            # See more details https://bitbucket.org/atlassian/aws-cloudformation-deploy
+            - pipe: atlassian/aws-cloudformation-deploy:0.12.0
+              variables:
+                AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+                AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+                AWS_DEFAULT_REGION: 'us-east-1'
+                STACK_NAME: 'my-stack-name'
+                TEMPLATE: 'template.yaml'
+                WAIT: 'true'
