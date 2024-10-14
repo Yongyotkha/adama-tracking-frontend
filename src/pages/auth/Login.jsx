@@ -1,10 +1,11 @@
 import React, { useContext, useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
-import { Button, Checkbox, Form, Input, message } from "antd";
+
+import { Checkbox, Form, Input, message } from "antd";
+import Button from "../../components/button/Button";
 import LoginLayout from "../../layouts/LoginLayout";
 import Logo from "../../components/logo/Logo";
-import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -26,7 +27,8 @@ export default function Login() {
     login(username, password, setLoading)
       .then((response) => {
         if (response.result) {
-          navigate("/");
+          const phoneNumber = response.data.user.phone_number;
+          navigate("/verify-otp?phone_number=" + phoneNumber);
         }
       })
       .catch((error) => {
@@ -90,9 +92,13 @@ export default function Login() {
           </Form.Item>
 
           <Form.Item wrapperCol={{ offset: 4, span: 18 }}>
-            <Button type="primary" htmlType="submit" disabled={loading}>
-              Submit
-            </Button>
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="flex w-full justify-center rounded-md bg-gray-100 text-green-600 hover:bg-gray-200 hover:text-green-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              text="Login"
+              disabled={loading}
+            ></Button>
           </Form.Item>
         </Form>
       </LoginLayout>

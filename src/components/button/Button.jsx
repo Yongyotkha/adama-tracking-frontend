@@ -1,11 +1,9 @@
 import React from "react";
 
-export default function Button({ className, onClick }) {
+export default function Button({ className, text, onClick }) {
   return (
     <div>
-      <button className={`btn ${className}`} onClick={onClick}>
-        Button
-      </button>
+      <button className={className}>{text}</button>
     </div>
   );
 }

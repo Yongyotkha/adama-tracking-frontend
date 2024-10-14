@@ -23,14 +23,14 @@ const notifyLoadingState = (callback, state) => {
 
 const useServiceAPI = {
   get: async (url, params = {}, onLoadingChange = null) => {
-    const { logout } = useContext(AuthContext);
     try {
       notifyLoadingState(onLoadingChange, true);
       const response = await axiosInstance.get(url, { params });
-      return response; // คืนค่า response กลับไปที่ component
+      return response.data; // คืนค่า response กลับไปที่ component
     } catch (error) {
       // 401 Unauthorized
       if (error.status == 401) {
+        const { logout } = useContext(AuthContext);
         logout();
       }
       throw error;
@@ -40,14 +40,14 @@ const useServiceAPI = {
   },
 
   post: async (url, data, onLoadingChange = null) => {
-    const { logout } = useContext(AuthContext);
     try {
       notifyLoadingState(onLoadingChange, true);
       const response = await axiosInstance.post(url, data);
-      return response;
+      return response.data;
     } catch (error) {
       // 401 Unauthorized
       if (error.status == 401) {
+        const { logout } = useContext(AuthContext);
         logout();
       }
       throw error;
@@ -57,14 +57,14 @@ const useServiceAPI = {
   },
 
   put: async (url, data, onLoadingChange = null) => {
-    const { logout } = useContext(AuthContext);
     try {
       notifyLoadingState(onLoadingChange, true);
       const response = await axiosInstance.put(url, data);
-      return response;
+      return response.data;
     } catch (error) {
       // 401 Unauthorized
       if (error.status == 401) {
+        const { logout } = useContext(AuthContext);
         logout();
       }
       throw error;
@@ -74,14 +74,14 @@ const useServiceAPI = {
   },
 
   delete: async (url, onLoadingChange = null) => {
-    const { logout } = useContext(AuthContext);
     try {
       notifyLoadingState(onLoadingChange, true);
       const response = await axiosInstance.delete(url);
-      return response;
+      return response.data;
     } catch (error) {
       // 401 Unauthorized
       if (error.status == 401) {
+        const { logout } = useContext(AuthContext);
         logout();
       }
       throw error;

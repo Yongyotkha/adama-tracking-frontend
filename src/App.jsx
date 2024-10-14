@@ -8,6 +8,7 @@ import Example from "./pages/example/Example";
 import Error from "./pages/error/Error";
 import Login from "./pages/auth/Login";
 import Users from "./pages/users/Users";
+import Verify from "./pages/auth/Verify";
 
 const App = () => {
   return (
@@ -16,6 +17,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Welcome />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/verify-otp" element={<Verify />} />
           <Route path="/users" element={<Users />} />
           <Route path="/example" element={<Example />} />
           <Route path="*" element={<Error />} />

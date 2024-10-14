@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import { paths } from "../../services/CorsPath";
 import useServiceAPI from "../../services/corsService";
@@ -17,6 +17,8 @@ export default function Users() {
         setUserInfo(response.data);
       })
       .catch((error) => {
+        console.log(error.message);
+        
         setError(error.message);
       });
   }, []);
@@ -25,7 +27,7 @@ export default function Users() {
     <div>
       <h1>รายชื่อผู้ใช้งานทั้งหมด: </h1>
       <ul>
-        {userInfo.data?.map((data) => (
+        {userInfo?.map((data) => (
           <li key={data.id}>{data.username}</li>
         ))}
       </ul>
