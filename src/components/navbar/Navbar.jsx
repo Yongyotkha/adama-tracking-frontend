@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { Menu, Dropdown, Carousel } from 'antd';
-import './Navbar.css';
-import Logo from '../logo/Logo';
+import React, { useState } from "react";
+import { Menu, Dropdown, Carousel } from "antd";
+import "./Navbar.css";
+import Logo from "../logo/Logo";
 
-const Navbar = ({ logo, menuItems, userMenuItems }) => {
+const Navbar = ({ menuItems, userMenuItems }) => {
   const [openDropdown, setOpenDropdown] = useState(null);
 
   const handleDropdownOpenChange = (key, open) => {
@@ -12,13 +12,9 @@ const Navbar = ({ logo, menuItems, userMenuItems }) => {
 
   const CustomDropdownMenu = ({ items }) => (
     <Menu
-      items={items.map(item => ({
+      items={items.map((item) => ({
         key: item.key,
-        label: (
-          <span style={{ color: '#978B87' }}>
-            {item.label}
-          </span>
-        ),
+        label: <span style={{ color: "#978B87" }}>{item.label}</span>,
       }))}
       className="relative bg-white bg-right bg-no-repeat bg-contain p-4 rounded-md w-[300px] text-[#978B87]"
       style={{ backgroundImage: "url('/img/dropdown-bg.png')" }}
@@ -29,21 +25,29 @@ const Navbar = ({ logo, menuItems, userMenuItems }) => {
     const menuItems = items.map((item) => ({
       key: item.key,
       label: (
-        <div className="flex items-center gap-[10px]" style={{ color: '#978B87' }}>
+        <div
+          className="flex items-center gap-[10px]"
+          style={{ color: "#978B87" }}
+        >
           {item.icon ? (
             item.icon // Use Ant Design icon if available
           ) : (
-            <img src={item.src} alt={`${item.label} Icon`} className="w-5 h-5 mr-2" /> // Fallback to image if no icon
+            <img
+              src={item.src}
+              alt={`${item.label} Icon`}
+              className="w-5 h-5 mr-2"
+            /> // Fallback to image if no icon
           )}
-          <span style={{ color: '#978B87' }}>
-            {item.label}
-          </span>
+          <span style={{ color: "#978B87" }}>{item.label}</span>
         </div>
       ),
     }));
 
     return (
-      <Menu items={menuItems} className="relative bg-white bg-right bg-no-repeat bg-contain p-4 rounded-md text-[#978B87]" />
+      <Menu
+        items={menuItems}
+        className="relative bg-white bg-right bg-no-repeat bg-contain p-4 rounded-md text-[#978B87]"
+      />
     );
   };
 
@@ -75,20 +79,33 @@ const Navbar = ({ logo, menuItems, userMenuItems }) => {
                 <Dropdown
                   key={index}
                   overlay={<CustomDropdownMenu items={item.dropdownItems} />}
-                  onOpenChange={(open) => handleDropdownOpenChange(item.label, open)}
+                  onOpenChange={(open) =>
+                    handleDropdownOpenChange(item.label, open)
+                  }
                 >
                   <div
                     className={`py-5 text-center text-white flex items-center justify-center h-full menu-item`}
                   >
-                    <img src={item.icon} alt={`${item.label} Icon`} className="mr-2 w-6 h-6" />
+                    <img
+                      src={item.icon}
+                      alt={`${item.label} Icon`}
+                      className="mr-2 w-6 h-6"
+                    />
                     {item.label}
                   </div>
                 </Dropdown>
               );
             } else {
               return (
-                <div key={index} className="py-5 text-center text-white flex items-center justify-center h-full menu-item">
-                  <img src={item.icon} alt={`${item.label} Icon`} className="mr-2 w-6 h-6" />
+                <div
+                  key={index}
+                  className="py-5 text-center text-white flex items-center justify-center h-full menu-item"
+                >
+                  <img
+                    src={item.icon}
+                    alt={`${item.label} Icon`}
+                    className="mr-2 w-6 h-6"
+                  />
                   {item.label}
                 </div>
               );
@@ -102,7 +119,11 @@ const Navbar = ({ logo, menuItems, userMenuItems }) => {
         <span className="text-white hidden md:block">Chayanon</span>
 
         {/* Dropdown on Avatar Click */}
-        <Dropdown overlay={<CustomDropdownMenuProfile items={userMenuItems} />} trigger={['click', 'hover']} placement="bottomRight">
+        <Dropdown
+          overlay={<CustomDropdownMenuProfile items={userMenuItems} />}
+          trigger={["click", "hover"]}
+          placement="bottomRight"
+        >
           <img
             src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTSKbCFe_QYSVH-4FpaszXvakr2Eti9eAJpQ&s"
             alt="User Avatar"
