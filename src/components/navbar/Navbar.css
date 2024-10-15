@@ -1,0 +1,18 @@
+/* Navbar.css */
+button.slick-arrow.slick-next {
+    right: -20px;
+}
+button.slick-arrow.slick-prev {
+    left: -20px;
+}
+
+.menu-item {
+    display: flex !important;
+    cursor: pointer; /* Ensures all items have a pointer cursor */
+    transition: background-color 0.3s ease, font-weight 0.3s ease; /* Smooth transition */
+}
+
+.menu-item:hover {
+    background-color: #00783f; /* Changes background on hover */
+    font-weight: 600; /* Changes text to bold on hover */
+}

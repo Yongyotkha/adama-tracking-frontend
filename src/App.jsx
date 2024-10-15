@@ -9,8 +9,10 @@ import Error from "./pages/error/Error";
 import Login from "./pages/auth/Login";
 import Users from "./pages/users/Users";
 import Verify from "./pages/auth/Verify";
+import Wiki from "./pages/wiki/Wiki";
 
 const App = () => {
+    
   return (
     <Router>
       <AuthProvider>
@@ -21,6 +23,7 @@ const App = () => {
           <Route path="/users" element={<Users />} />
           <Route path="/example" element={<Example />} />
           <Route path="*" element={<Error />} />
+          <Route path="/wiki" element={<Wiki />} />
         </Routes>
       </AuthProvider>
     </Router>
