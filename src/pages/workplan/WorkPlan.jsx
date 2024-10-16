@@ -22,18 +22,51 @@ export default function WorkPlan() {
 
   const columns = [
     {
-      title: "Name",
+      title: "Years",
+      width: 100,
       dataIndex: "name",
+      key: "name",
+      fixed: "left",
     },
     {
-      title: "Age",
-      dataIndex: "age",
+      title: "Work Plan (THB)",
+      width: 100,
+      dataIndex: "name",
+      key: "name",
+      fixed: "left",
     },
     {
-      title: "Address",
-      dataIndex: "address",
+      title: "Last modified",
+      width: 100,
+      dataIndex: "name",
+      key: "name",
+      fixed: "left",
+    },
+    {
+      title: "Status",
+      width: 100,
+      dataIndex: "name",
+      key: "name",
+      fixed: "left",
+    },
+    {
+      title: "Action",
+      width: 100,
+      dataIndex: "name",
+      key: "name",
+      fixed: "left",
     },
   ];
+
+  // Define the data source for the table
+  const dataSource = Array.from({
+    length: 46,
+  }).map((_, i) => ({
+    key: i,
+    name: `Edward King ${i}`,
+    age: 32,
+    address: `London, Park Lane no. ${i}`,
+  }));
 
   return (
     <>
@@ -45,9 +78,8 @@ export default function WorkPlan() {
           years={years}
           statuses={statuses}
         />
-
         <BoxPrimary>
-          <TableComponent columns={columns} />
+          <TableComponent columns={columns} dataSource={dataSource} />
         </BoxPrimary>
       </MainLayout>
     </>

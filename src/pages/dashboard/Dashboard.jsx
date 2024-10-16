@@ -24,8 +24,7 @@ export default function Dashboard() {
         loading={loading}
         childrenStyle={'flex flex-col m-5'}
       >
-        {/* <Logo width="w-[20%]" /> */}
-        {/* Filter Component */}
+
         <Filter
           onSearch={handleSearch}
           onClear={handleClear}

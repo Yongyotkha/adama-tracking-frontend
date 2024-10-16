@@ -16,18 +16,18 @@ import TableComponent from "../../components/table/TableComponent";
 const Wiki = () => {
   const [loading, setLoading] = useState(false);
 
-   const columns = [
+  const columns = [
     {
-      title: 'Name',
-      dataIndex: 'name',
+      title: "Name",
+      dataIndex: "name",
     },
     {
-      title: 'Age',
-      dataIndex: 'age',
+      title: "Age",
+      dataIndex: "age",
     },
     {
-      title: 'Address',
-      dataIndex: 'address',
+      title: "Address",
+      dataIndex: "address",
     },
   ];
 
@@ -56,6 +56,16 @@ const Wiki = () => {
       label: "Danger item",
     },
   ];
+
+  // Define the data source for the table
+  const dataSource = Array.from({
+    length: 46,
+  }).map((_, i) => ({
+    key: i,
+    name: `Edward King ${i}`,
+    age: 32,
+    address: `London, Park Lane no. ${i}`,
+  }));
 
   // Mock years and statuses for the filter component
   const years = [2021, 2022, 2023];
@@ -119,7 +129,7 @@ const Wiki = () => {
         {/* Ant Design Table Component */}
         <span>Table Component + BoxPrimary</span>
         <BoxPrimary>
-          <TableComponent columns={columns}/>
+          <TableComponent columns={columns} dataSource={dataSource} />
         </BoxPrimary>
       </MainLayout>
     </>

@@ -1,19 +1,8 @@
 import React, { useState } from "react";
 import { Table } from "antd";
 
-const TableComponent = ({columns = []}) => {
+const TableComponent = ({ columns, dataSource, pageSize }) => {
   // Define the table columns
- 
-
-  // Define the data source for the table
-  const dataSource = Array.from({
-    length: 46,
-  }).map((_, i) => ({
-    key: i,
-    name: `Edward King ${i}`,
-    age: 32,
-    address: `London, Park Lane no. ${i}`,
-  }));
 
   // Handle row selection
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -62,7 +51,7 @@ const TableComponent = ({columns = []}) => {
       // rowSelection={rowSelection}
       columns={columns}
       dataSource={dataSource}
-      pagination={{ pageSize: 10 }} // Pagination to handle large data
+      pagination={{ pageSize: pageSize ?? 10 }}
     />
   );
 };
