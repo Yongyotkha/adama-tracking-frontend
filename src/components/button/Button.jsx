@@ -15,7 +15,7 @@ const DynamicButton = ({
       onClick={onClick}
       disabled={disabled}
       icon={icon}
-      style={{ fontFamily: "BrownLLHeb", ...style }}
+      style={{ ...style }}
     >
       {iconSrc && (
         <span>

@@ -79,7 +79,7 @@ export default function WorkPlan() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <div>Work Plan</div>
+        <div className="title-page">Work Plan</div>
         <Filter
           onSearch={handleSearch}
           onClear={handleClear}
