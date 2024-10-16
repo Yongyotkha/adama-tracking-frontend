@@ -73,7 +73,8 @@ const Wiki = () => {
 
   return (
     <>
-      <MainLayout loading={loading}>
+      <MainLayout loading={loading}
+      childrenStyle={"flex flex-col mx-5 gap-3"}>
         {/* Filter Component */}
         <span>Filter</span>
         <Filter

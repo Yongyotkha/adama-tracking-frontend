@@ -52,8 +52,8 @@ export default function WorkPlan() {
     {
       title: "Action",
       width: 100,
-      dataIndex: "name",
-      key: "name",
+      dataIndex: "action",
+      key: "action",
       fixed: "left",
     },
   ];
@@ -64,7 +64,7 @@ export default function WorkPlan() {
   }).map((_, i) => ({
     key: i,
     name: `Edward King ${i}`,
-    age: 32,
+    action: 32,
     address: `London, Park Lane no. ${i}`,
   }));
 
