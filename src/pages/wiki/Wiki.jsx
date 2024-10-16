@@ -5,7 +5,6 @@ import DynamicButton from "../../components/button/Button";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import Filter from "../../components/filter/Filter"; // Import the Filter component
 import { EditOutlined, EyeOutlined, LogoutOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button } from "antd";
 
 const Wiki = () => {
   const dropdownHoverItems = [
@@ -91,23 +90,27 @@ const Wiki = () => {
   return (
     <>
       {/* Navbar Component with dynamic props */}
+      <span>NAVBAR</span>
       <Navbar menuItems={menuItems} userMenuItems={userMenuItems} />
-      <hr className="my-4" />
+      <hr className="my-5" />
 
       {/* Filter Component */}
+      <span>Filter</span>
       <Filter
         onSearch={handleSearch}
         onClear={handleClear}
         years={years}
         statuses={statuses}
       />
-      <hr className="my-4" />
-      
+      <hr className="my-5" />
+
       {/* Dynamic BoxPrimary component with custom content */}
+      <span>BoxPrimary</span>
       <BoxPrimary />
-      <hr className="my-4" />
+      <hr className="my-5" />
 
       {/* Dynamic Button with Ant Design icon */}
+      <span>DynamicButton 1</span>
       <DynamicButton
         text="Add New Item"
         icon={<PlusOutlined />} // Ant Design icon
@@ -115,8 +118,10 @@ const Wiki = () => {
         type="primary"
         onClick={() => alert("Ant Design Icon Button Clicked!")}
       />
+      <hr className="my-5" />
 
       {/* Dynamic Button with image icon */}
+      <span>DynamicButton 2 (Style)</span>
       <DynamicButton
         text="View Report"
         iconSrc="/img/icons/expenses.png" // Custom image icon
@@ -124,7 +129,9 @@ const Wiki = () => {
         type="default"
         onClick={() => alert("Image Icon Button Clicked!")}
         variant="solid"
+        style={{ color: '#000000' }} // Correct style format
       />
+
 
       {/* Dynamic Dropdown Hover Component */}
       <DropdownHover

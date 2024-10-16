@@ -76,14 +76,14 @@ const Filter = ({ onSearch, onClear, years, statuses }) => {
             <DynamicButton
               text="Search"
               icon={<SearchOutlined />}
-              className="bg-[#00783F] hover:bg-[#009845] text-white px-4 py-2 rounded"
+              className="bg-[#00783F] hover:bg-[#009845] text-white px-4 py-3 rounded"
               onClick={handleSearch}
               type='text'
             />
             <DynamicButton
               text="Clear"
               icon={<DeleteOutlined />}
-              className="bg-gray-400 text-white px-4 py-2 rounded"
+              className="bg-gray-400 text-white px-4 py-3 rounded"
               onClick={handleClear}
             />
           </div>

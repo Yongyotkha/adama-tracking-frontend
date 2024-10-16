@@ -13,7 +13,7 @@ const DynamicButton = ({
 }) => {
   return (
     <AntButton
-      className={`cursor-pointer text-center ${className}`}
+      className={`cursor-pointer text-center py-5 ${className}`}
       onClick={onClick}
       type={type}
       disabled={disabled}
