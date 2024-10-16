@@ -129,7 +129,11 @@ const Wiki = () => {
         {/* Ant Design Table Component */}
         <span>Table Component + BoxPrimary</span>
         <BoxPrimary>
-          <TableComponent columns={columns} dataSource={dataSource} />
+          <TableComponent
+            columns={columns}
+            dataSource={dataSource}
+            title="List of Users" // Dynamic title for the table
+          />
         </BoxPrimary>
       </MainLayout>
     </>

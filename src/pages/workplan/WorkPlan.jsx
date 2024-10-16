@@ -70,7 +70,7 @@ export default function WorkPlan() {
 
   return (
     <>
-      <MainLayout loading={loading} childrenStyle={"flex flex-col mx-5 gap-3"}>
+      <MainLayout loading={loading} childrenStyle={"flex flex-col gap-3"}>
         <div>Work Plan</div>
         <Filter
           onSearch={handleSearch}

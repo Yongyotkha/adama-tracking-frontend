@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import { Table } from "antd";
 
-const TableComponent = ({ columns, dataSource, pageSize }) => {
-  // Define the table columns
-
+const TableComponent = ({ columns, dataSource, pageSize, title }) => {
   // Handle row selection
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
 
@@ -45,13 +43,18 @@ const TableComponent = ({ columns, dataSource, pageSize }) => {
     ],
   };
 
-  // Render the table
+  // Render the table with dynamic title
   return (
     <Table
-      // rowSelection={rowSelection}
+      title={() => (
+        <b style={{ color: "#00783F", fontSize: "20px" }}>{title}</b>
+      )} // Display the dynamic title with custom styles
       columns={columns}
       dataSource={dataSource}
       pagination={{ pageSize: pageSize ?? 10 }}
+      scroll={{
+        x: 1000,
+      }}
     />
   );
 };

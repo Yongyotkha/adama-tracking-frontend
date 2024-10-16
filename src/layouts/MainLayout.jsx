@@ -69,7 +69,7 @@ export default function MainLayout({ children, loading, childrenStyle }) {
       <Spin tip="Loading" size="large" fullscreen="true" spinning={loading} />
       <div className="max-w-screen flex flex-col h-screen">
         <Navbar menuItems={menuItems} userMenuItems={userMenuItems} />
-        <div className={` ${childrenStyle}`}>{children}</div>
+        <div className={`p-3 ${childrenStyle}`}>{children}</div>
       </div>
     </>
   );
