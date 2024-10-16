@@ -11,6 +11,7 @@ import Users from "./pages/users/Users";
 import Verify from "./pages/auth/Verify";
 import Wiki from "./pages/wiki/Wiki";
 import Dashboard from "./pages/dashboard/Dashboard";
+import WorkPlan from "./pages/workplan/WorkPlan";
 
 const App = () => {
   return (
@@ -21,7 +22,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/verify-otp" element={<Verify />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/users" element={<Users />} />
+          <Route path="/sale-plane/work-plan" element={<WorkPlan />} />
           <Route path="*" element={<Error />} />
           <Route path="/wiki" element={<Wiki />} />
         </Routes>
