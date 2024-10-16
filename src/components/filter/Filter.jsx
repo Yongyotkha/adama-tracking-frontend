@@ -7,16 +7,16 @@ import "./Filter.css";
 const { Option } = Select;
 
 const Filter = ({ onSearch, onClear, years, statuses }) => {
-  const [year, setYear] = useState(null);
-  const [status, setStatus] = useState(null);
+  const [year, setYear] = useState("");
+  const [status, setStatus] = useState("");
 
   const handleSearch = () => {
     onSearch({ year, status });
   };
 
   const handleClear = () => {
-    setYear(null);
-    setStatus(null);
+    setYear("");
+    setStatus("");
     onClear();
   };
 
@@ -43,7 +43,7 @@ const Filter = ({ onSearch, onClear, years, statuses }) => {
                 placeholder="All"
                 className="w-full"
               >
-                <Option value={null}>All</Option>
+                <Option value="">All</Option> {/* Use empty string instead of null */}
                 {years.map((y) => (
                   <Option key={y} value={y}>
                     {y}
@@ -61,7 +61,7 @@ const Filter = ({ onSearch, onClear, years, statuses }) => {
                 placeholder="All"
                 className="w-full"
               >
-                <Option value={null}>All</Option>
+                <Option value="">All</Option> {/* Use empty string instead of null */}
                 {statuses.map((s) => (
                   <Option key={s} value={s}>
                     {s}
