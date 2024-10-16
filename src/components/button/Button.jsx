@@ -1,24 +1,21 @@
-import React from 'react';
-import { Button as AntButton } from 'antd';
+import React from "react";
 
 const DynamicButton = ({
-  text = "Click Me",
+  text,
   icon,
   onClick,
-  className = '',
-  type = 'primary',
-  disabled = false,
+  className,
+  disabled,
   iconSrc,
-  style = {},
+  style,
 }) => {
   return (
-    <AntButton
-      className={`cursor-pointer text-center py-5 ${className}`}
+    <button
+      className={`cursor-pointer text-center ${className}`}
       onClick={onClick}
-      type={type}
       disabled={disabled}
       icon={icon}
-      style={{ fontFamily: 'BrownLLHeb', ...style }}
+      style={{ fontFamily: "BrownLLHeb", ...style }}
     >
       {iconSrc && (
         <span>
@@ -30,7 +27,7 @@ const DynamicButton = ({
         </span>
       )}
       {text}
-    </AntButton>
+    </button>
   );
 };
 
