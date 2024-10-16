@@ -3,7 +3,7 @@ import { Dropdown } from 'antd';
 
 const DropdownHover = ({ items, triggerText = 'Hover me', className = '' }) => (
 	<Dropdown
-		className={`cursor-pointer m-2 max-w-fit ${className}`} // Add the className prop here
+		className={`cursor-pointer m-2 max-w-fit ${className}`}
 		menu={{
 			items,
 		}}
