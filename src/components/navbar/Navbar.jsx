@@ -64,7 +64,7 @@ const Navbar = ({ menuItems, userMenuItems }) => {
   };
 
   return (
-    <nav className="bg-green-600 flex items-center justify-between px-4 relative w-full">
+    <nav className="bg-[#009845] flex items-center justify-between px-4 relative w-full shadow-[0_4px_4px_0px_rgba(0,0,0,0.25)]">
       {/* Left Section with Logo */}
       <div className="flex items-center justify-start w-1/6">
         <Logo width="w-[150px]" />

@@ -33,7 +33,7 @@ const Filter = ({ onSearch, onClear, years, statuses }) => {
       showArrow: false, // Removing arrow icon
       children: (
         <>
-          <div className="grid grid-cols-2 gap-4 p-4">
+          <div className="grid grid-cols-3 gap-4 p-4">
             {/* Year Filter */}
             <div>
               <label className="block text-gray-700">Year</label>
