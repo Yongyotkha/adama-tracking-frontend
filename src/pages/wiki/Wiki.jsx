@@ -92,7 +92,6 @@ const Wiki = () => {
     <>
       {/* Navbar Component with dynamic props */}
       <Navbar menuItems={menuItems} userMenuItems={userMenuItems} />
-
       <hr className="my-4" />
 
       {/* Filter Component */}
@@ -102,15 +101,11 @@ const Wiki = () => {
         years={years}
         statuses={statuses}
       />
-
+      <hr className="my-4" />
+      
       {/* Dynamic BoxPrimary component with custom content */}
-      <BoxPrimary>
-        <h4>Overall Target</h4>
-        <div className="flex items-center justify-between bg-gray-100 p-2 rounded-lg">
-          <span>391,750,000</span>
-          <span>THB</span>
-        </div>
-      </BoxPrimary>
+      <BoxPrimary />
+      <hr className="my-4" />
 
       {/* Dynamic Button with Ant Design icon */}
       <DynamicButton
@@ -138,10 +133,6 @@ const Wiki = () => {
         className="bg-blue-500 text-white rounded-lg p-3"
       />
 
-      <div>
-        <h1 style={{ fontFamily: 'BrownLLHeb', fontWeight: 'bold' }}>This is a heading with the BrownLLHeb Bold font</h1>
-        <p style={{ fontFamily: 'BrownLLHeb', fontStyle: 'italic' }}>This is a paragraph with the BrownLLHeb Italic font</p>
-      </div>
     </>
   );
 };
