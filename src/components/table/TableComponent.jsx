@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Table } from "antd";
+import "./TableComponent.css";
 
 const TableComponent = ({ columns, dataSource, pageSize, title }) => {
   // Handle row selection
@@ -47,7 +48,7 @@ const TableComponent = ({ columns, dataSource, pageSize, title }) => {
   return (
     <Table
       title={() => (
-        <b style={{ color: "#00783F", fontSize: "20px" }}>{title}</b>
+        <div style={{ color: "#00783F", fontSize: "20px" }} className="pb-3 font-semibold">{title}</div>
       )} // Display the dynamic title with custom styles
       columns={columns}
       dataSource={dataSource}
