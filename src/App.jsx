@@ -12,6 +12,7 @@ import Verify from "./pages/auth/Verify";
 import Wiki from "./pages/wiki/Wiki";
 import Dashboard from "./pages/dashboard/Dashboard";
 import WorkPlan from "./pages/workplan/WorkPlan";
+import WorkPlanCreate from "./pages/workplan/Create";
 
 const App = () => {
   return (
@@ -23,6 +24,7 @@ const App = () => {
           <Route path="/verify-otp" element={<Verify />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/sale-plan/work-plan" element={<WorkPlan />} />
+          <Route path="/sale-plan/work-plan/create" element={<WorkPlanCreate />} />
           <Route path="*" element={<Error />} />
           <Route path="/wiki" element={<Wiki />} />
         </Routes>

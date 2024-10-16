@@ -53,7 +53,7 @@ const TableComponent = ({ columns, dataSource, pageSize, title, footer }) => {
       scroll={{
         x: 1000,
       }}
-      footer={footer ? () => <div>{footer}</div> : null} // Dynamic footer if provided
+      footer={footer ? () => footer : null} // Dynamic footer if provided
     />
   );
 };
