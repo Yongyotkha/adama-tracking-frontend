@@ -22,6 +22,7 @@ export default function Dashboard() {
     <>
       <MainLayout
         loading={loading}
+        childrenStyle={'flex flex-col m-5'}
       >
         {/* <Logo width="w-[20%]" /> */}
         {/* Filter Component */}
@@ -31,7 +32,6 @@ export default function Dashboard() {
           years={years}
           statuses={statuses}
         />
-        <hr className="my-4" />
       </MainLayout>
 
 

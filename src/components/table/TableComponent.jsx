@@ -1,22 +1,9 @@
-import React, { useState } from 'react';
-import { Table } from 'antd';
+import React, { useState } from "react";
+import { Table } from "antd";
 
-const TableComponent = () => {
+const TableComponent = ({columns = []}) => {
   // Define the table columns
-  const columns = [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-    },
-    {
-      title: 'Age',
-      dataIndex: 'age',
-    },
-    {
-      title: 'Address',
-      dataIndex: 'address',
-    },
-  ];
+ 
 
   // Define the data source for the table
   const dataSource = Array.from({
@@ -32,7 +19,7 @@ const TableComponent = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
 
   const onSelectChange = (newSelectedRowKeys) => {
-    console.log('selectedRowKeys changed: ', newSelectedRowKeys);
+    console.log("selectedRowKeys changed: ", newSelectedRowKeys);
     setSelectedRowKeys(newSelectedRowKeys);
   };
 
@@ -45,8 +32,8 @@ const TableComponent = () => {
       Table.SELECTION_INVERT,
       Table.SELECTION_NONE,
       {
-        key: 'odd',
-        text: 'Select Odd Row',
+        key: "odd",
+        text: "Select Odd Row",
         onSelect: (changeableRowKeys) => {
           let newSelectedRowKeys = [];
           newSelectedRowKeys = changeableRowKeys.filter((_, index) => {
@@ -56,8 +43,8 @@ const TableComponent = () => {
         },
       },
       {
-        key: 'even',
-        text: 'Select Even Row',
+        key: "even",
+        text: "Select Even Row",
         onSelect: (changeableRowKeys) => {
           let newSelectedRowKeys = [];
           newSelectedRowKeys = changeableRowKeys.filter((_, index) => {
@@ -72,7 +59,7 @@ const TableComponent = () => {
   // Render the table
   return (
     <Table
-      rowSelection={rowSelection}
+      // rowSelection={rowSelection}
       columns={columns}
       dataSource={dataSource}
       pagination={{ pageSize: 10 }} // Pagination to handle large data

@@ -16,6 +16,21 @@ import TableComponent from "../../components/table/TableComponent";
 const Wiki = () => {
   const [loading, setLoading] = useState(false);
 
+   const columns = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+    },
+    {
+      title: 'Age',
+      dataIndex: 'age',
+    },
+    {
+      title: 'Address',
+      dataIndex: 'address',
+    },
+  ];
+
   // Filter Handle Search
   const handleSearch = (filter) => {
     console.log("Search filters applied:", filter);
@@ -104,7 +119,7 @@ const Wiki = () => {
         {/* Ant Design Table Component */}
         <span>Table Component + BoxPrimary</span>
         <BoxPrimary>
-          <TableComponent />
+          <TableComponent columns={columns}/>
         </BoxPrimary>
       </MainLayout>
     </>

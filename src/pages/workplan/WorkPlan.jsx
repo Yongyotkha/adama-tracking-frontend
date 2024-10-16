@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import Logo from "../../components/logo/Logo";
 import Filter from "../../components/filter/Filter";
+import BoxPrimary from "../../components/box_primary/BoxPrimary";
+import TableComponent from "../../components/table/TableComponent";
 
 export default function WorkPlan() {
   const [loading, setLoading] = useState(false);
@@ -18,11 +20,24 @@ export default function WorkPlan() {
     console.log("Filters cleared");
   };
 
+  const columns = [
+    {
+      title: "Name",
+      dataIndex: "name",
+    },
+    {
+      title: "Age",
+      dataIndex: "age",
+    },
+    {
+      title: "Address",
+      dataIndex: "address",
+    },
+  ];
+
   return (
     <>
-      <MainLayout loading={loading}
-      childrenStyle={'m-5'}
-       >
+      <MainLayout loading={loading} childrenStyle={"flex flex-col mx-5 gap-3"}>
         <div>Work Plan</div>
         <Filter
           onSearch={handleSearch}
@@ -30,6 +45,10 @@ export default function WorkPlan() {
           years={years}
           statuses={statuses}
         />
+
+        <BoxPrimary>
+          <TableComponent columns={columns} />
+        </BoxPrimary>
       </MainLayout>
     </>
   );

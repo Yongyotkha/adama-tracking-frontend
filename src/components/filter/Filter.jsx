@@ -98,8 +98,7 @@ const Filter = ({ onSearch, onClear, years, statuses }) => {
   ];
 
   return (
-    // Applying the className `m-3` to the Collapse component
-    <Collapse defaultActiveKey={['1']} items={items}/>
+    <Collapse defaultActiveKey={['1']} items={items} />
   );
 };
 
