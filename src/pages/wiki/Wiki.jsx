@@ -1,7 +1,8 @@
 import React from "react";
 import Navbar from "../../components/navbar/Navbar";
 import DropdownHover from "../../components/dropdown/DropdownHover";
-import DynamicButton from "../../components/button/Button"; // Importing the Dynamic Button
+import DynamicButton from "../../components/button/Button";
+import BoxPrimary from "../../components/box_primary/BoxPrimary"; // Import the BoxPrimary component
 import { PlusOutlined } from "@ant-design/icons";
 
 const Wiki = () => {
@@ -80,21 +81,29 @@ const Wiki = () => {
 
       <hr className="my-4" />
 
-      {/* Dynamic Button with Ant Design icon and custom style */}
+      {/* Dynamic BoxPrimary component with custom content */}
+      <BoxPrimary>
+        <h4>Overall Target</h4>
+        <div className="flex items-center justify-between bg-gray-100 p-2 rounded-lg">
+          <span>391,750,000</span>
+          <span>THB</span>
+        </div>
+      </BoxPrimary>
+
+      {/* Dynamic Button with Ant Design icon */}
       <DynamicButton
         text="Add New Item"
-        icon={<PlusOutlined />} // Passing Ant Design icon
-        className="bg-primary-500 text-white rounded-lg p-2"
+        icon={<PlusOutlined />}
+        className="bg-blue-500 text-white rounded-lg p-2"
         type="primary"
         onClick={() => alert("Ant Design Icon Button Clicked!")}
       />
 
-      {/* Dynamic Button with image icon and different style */}
+      {/* Dynamic Button with image icon */}
       <DynamicButton
         text="View Report"
-        iconSrc="/img/icons/expenses.png" // Passing image source
-        className="rounded-lg p-2"
-        style={{ backgroundColor: "#16A34A", color: "#fff" }} // Custom inline style
+        iconSrc="/img/icons/expenses.png"
+        className="bg-green-500 text-white rounded-lg p-2"
         type="default"
         onClick={() => alert("Image Icon Button Clicked!")}
       />

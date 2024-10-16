@@ -13,7 +13,7 @@ const DynamicButton = ({
 }) => {
   return (
     <AntButton
-      className={`cursor-pointer ${className}`} // Apply Tailwind or other custom classes
+      className={`cursor-pointer my-3 ${className}`} // Apply Tailwind or other custom classes
       onClick={onClick}
       type={type} // Allows you to pass button types like 'primary', 'default', etc.
       disabled={disabled}
