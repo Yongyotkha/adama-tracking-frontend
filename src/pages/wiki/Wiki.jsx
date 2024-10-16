@@ -114,25 +114,31 @@ const Wiki = () => {
       <DynamicButton
         text="Add New Item"
         icon={<PlusOutlined />} // Ant Design icon
-        className="bg-blue-500 hover:bg-[#009845] text-white rounded-lg p-2"
+        className="text-white rounded-lg p-2"
         type="primary"
         onClick={() => alert("Ant Design Icon Button Clicked!")}
+        style={{
+          backgroundColor: '#00783F', // Default background color
+        }}
       />
+
       <hr className="my-5" />
 
       {/* Dynamic Button with image icon */}
-      <span>DynamicButton 2 (Style)</span>
+      <span>DynamicButton 2 (Style + iconSrc)</span>
       <DynamicButton
         text="View Report"
         iconSrc="/img/icons/expenses.png" // Custom image icon
         className="bg-green-500 text-white rounded-lg p-2"
-        type="default"
+        type="primary"
         onClick={() => alert("Image Icon Button Clicked!")}
         variant="solid"
-        style={{ color: '#000000' }} // Correct style format
+        style={{ color: '#000000', backgroundColor: '#00783F', }} // Correct style format
       />
+      <hr className="my-5" />
 
 
+      <span>Dynamic Dropdown Hover</span>
       {/* Dynamic Dropdown Hover Component */}
       <DropdownHover
         items={dropdownHoverItems}

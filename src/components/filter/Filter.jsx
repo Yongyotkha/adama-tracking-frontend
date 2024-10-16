@@ -76,15 +76,20 @@ const Filter = ({ onSearch, onClear, years, statuses }) => {
             <DynamicButton
               text="Search"
               icon={<SearchOutlined />}
-              className="bg-[#7DB41E] hover:bg-[#009845] text-white px-4 py-3 rounded"
+              className="text-white px-4 py-3 rounded"
               onClick={handleSearch}
-              type='default'
+              style={{
+                backgroundColor: '#7DB41E', // Default background color
+              }}
             />
             <DynamicButton
               text="Clear"
               icon={<DeleteOutlined />}
-              className="bg-gray-400 text-white px-4 py-3 rounded"
+              className="text-white px-4 py-3 rounded"
               onClick={handleClear}
+              style={{
+                backgroundColor: '#B6AEAB', // Default background color
+              }}
             />
           </div>
         </>

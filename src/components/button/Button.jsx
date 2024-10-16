@@ -6,7 +6,7 @@ const DynamicButton = ({
   icon,
   onClick,
   className = '',
-  type = 'default',
+  type = 'primary',
   disabled = false,
   iconSrc,
   style = {},
