@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Input } from "antd"; // Import Ant Design's Input component
+import { Input, Table } from "antd";
 import Navbar from "../../components/navbar/Navbar";
 import DropdownHover from "../../components/dropdown/DropdownHover";
 import DynamicButton from "../../components/button/Button";
@@ -7,41 +7,151 @@ import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import Filter from "../../components/filter/Filter";
 import { PlusOutlined } from "@ant-design/icons";
 import MainLayout from "../../layouts/MainLayout";
-import TableComponent from "../../components/table/TableComponent";
 
 const Wiki = () => {
   const [loading, setLoading] = useState(false);
 
+  // Define the custom columns for the table
   const columns = [
     {
-      title: "Name",
-      dataIndex: "name",
+      title: "Product Name",
+      dataIndex: "productName",
+      key: "productName",
     },
     {
-      title: "Age",
-      dataIndex: "age",
+      title: "Pack Size",
+      dataIndex: "packSize",
+      key: "packSize",
     },
     {
-      title: "Address",
-      dataIndex: "address",
+      title: "Original Plan",
+      dataIndex: "originalPlan",
+      key: "originalPlan",
+    },
+    {
+      title: "Value (THB)",
+      dataIndex: "valueTHB",
+      key: "valueTHB",
+    },
+    {
+      title: "Qty (KG)",
+      dataIndex: "qtyKG1",
+      key: "qtyKG1",
+    },
+    {
+      title: "Value (THB)",
+      dataIndex: "valueTHB1",
+      key: "valueTHB1",
+    },
+    {
+      title: "Qty (KG)",
+      dataIndex: "qtyKG2",
+      key: "qtyKG2",
+    },
+    {
+      title: "Value (THB)",
+      dataIndex: "valueTHB2",
+      key: "valueTHB2",
     },
   ];
 
-  // Define the data source for the table
-  const dataSource = Array.from({
-    length: 46,
-  }).map((_, i) => ({
-    key: i,
-    name: `Edward King ${i}`,
-    age: 32,
-    address: `London, Park Lane no. ${i}`,
-  }));
+  // Define the data source for the table based on the image
+  const dataSource = [
+    {
+      key: 1,
+      productName: "Ossinate 15%SL",
+      packSize: "1Kg.",
+      originalPlan: 30000,
+      valueTHB: "7,500,000",
+      qtyKG1: 8000,
+      valueTHB1: "30,000",
+      qtyKG2: 7000,
+      valueTHB2: "2,000,000",
+    },
+    {
+      key: 2,
+      productName: "Apopo 20%SE",
+      packSize: "1Lt.",
+      originalPlan: 80000,
+      valueTHB: "28,000,000",
+      qtyKG1: 20000,
+      valueTHB1: "80,000",
+      qtyKG2: 15000,
+      valueTHB2: "5,250,000",
+    },
+    {
+      key: 3,
+      productName: "Atramex 90WG",
+      packSize: "5Kg.",
+      originalPlan: 170000,
+      valueTHB: "76,500,000",
+      qtyKG1: 30000,
+      valueTHB1: "170,000",
+      qtyKG2: 20000,
+      valueTHB2: "22,500,000",
+    },
+    {
+      key: 4,
+      productName: "Baloirc 320EC",
+      packSize: "0.5Lt.",
+      originalPlan: 5000,
+      valueTHB: "750,000",
+      qtyKG1: 1000,
+      valueTHB1: "5,000",
+      qtyKG2: 0,
+      valueTHB2: "0",
+    },
+    {
+      key: 5,
+      productName: "Bla-S",
+      packSize: "0.25Lt.",
+      originalPlan: 280000,
+      valueTHB: "70,000,000",
+      qtyKG1: 87000,
+      valueTHB1: "280,000",
+      qtyKG2: 20000,
+      valueTHB2: "5,000,000",
+    },
+    {
+      key: 6,
+      productName: "Bumper P",
+      packSize: "0.5Lt.",
+      originalPlan: 2000,
+      valueTHB: "500,000",
+      qtyKG1: 400,
+      valueTHB1: "2,000",
+      qtyKG2: 100,
+      valueTHB2: "50,000",
+    },
+    // Add more rows similarly based on your actual data
+  ];
 
-  // Calculate totals for the footer
-  const totalValue1 = dataSource.length * 1000; // Example calculation for the first total
-  const totalValue2 = dataSource.length * 2000; // Example calculation for the second total
-  const totalValue3 = dataSource.length * 3000; // Example calculation for the third total
-  const totalValue4 = dataSource.length * 4000; // Example calculation for the fourth total
+  // Calculate totals for the footer (replace with actual calculations)
+  const totalValue1 = 50750000; // Example total value
+  const totalValue2 = 63325000; // Example total value
+  const totalValue3 = 26525000; // Example total value
+  const totalValue4 = 64650000; // Example total value
+
+  // Footer Table styling
+  const footerTable = (
+    <div className="flex flex-wrap justify-between items-center">
+      <span className="font-bold text-white">Total (THB):</span>
+      <div className="flex flex-wrap gap-2 justify-end">
+        <span className="flex justify-end items-center bg-white py-1 px-2 rounded w-36 text-right">
+          {totalValue1.toLocaleString()}
+        </span>
+        <span className="flex justify-end items-center bg-white py-1 px-2 rounded w-36 text-right">
+          {totalValue2.toLocaleString()}
+        </span>
+        <span className="flex justify-end items-center bg-white py-1 px-2 rounded w-36 text-right">
+          {totalValue3.toLocaleString()}
+        </span>
+        <span className="flex justify-end items-center bg-white py-1 px-2 rounded w-36 text-right">
+          {totalValue4.toLocaleString()}
+        </span>
+      </div>
+    </div>
+  );
 
   const dropdownHoverItems = [
     {
@@ -70,10 +180,6 @@ const Wiki = () => {
     console.log("Filters cleared");
   };
 
-  // Mock years and statuses for the filter component
-  const years = [2021, 2022, 2023];
-  const statuses = ["Active", "Inactive", "Pending"];
-
   return (
     <MainLayout loading={loading}>
       {/* Filter Component */}
@@ -81,8 +187,8 @@ const Wiki = () => {
       <Filter
         onSearch={handleSearch}
         onClear={handleClear}
-        years={years}
-        statuses={statuses}
+        years={[2021, 2022, 2023]}
+        statuses={["Active", "Inactive", "Pending"]}
       />
       <hr className="my-5" />
 
@@ -131,37 +237,13 @@ const Wiki = () => {
       {/* Ant Design Table Component */}
       <span>Table Component + BoxPrimary</span>
       <BoxPrimary>
-        <TableComponent
+        <div className="text-[#00783F] text-2xl pb-3">Sale By Territory</div>
+        <Table
           columns={columns}
           dataSource={dataSource}
-          title="List of Users"
-          footer={
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontWeight: "bold" }}>Total (THB):</span>
-              <div style={{ display: "flex", gap: "10px" }}>
-                <Input
-                  value={totalValue1.toLocaleString()}
-                  disabled
-                  style={{ width: 150, textAlign: "right" }}
-                />
-                <Input
-                  value={totalValue2.toLocaleString()}
-                  disabled
-                  style={{ width: 150, textAlign: "right" }}
-                />
-                <Input
-                  value={totalValue3.toLocaleString()}
-                  disabled
-                  style={{ width: 150, textAlign: "right" }}
-                />
-                <Input
-                  value={totalValue4.toLocaleString()}
-                  disabled
-                  style={{ width: 150, textAlign: "right" }}
-                />
-              </div>
-            </div>
-          } // Dynamic footer with calculated totals and aligned inputs
+          pagination={false}
+          scroll={{ x: 1000 }}
+          footer={() => footerTable}
         />
       </BoxPrimary>
     </MainLayout>

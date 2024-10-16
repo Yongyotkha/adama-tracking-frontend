@@ -47,9 +47,6 @@ const TableComponent = ({ columns, dataSource, pageSize, title, footer }) => {
   // Render the table with dynamic title and footer
   return (
     <Table
-      title={() => (
-        <div style={{ color: "#00783F", fontSize: "20px" }} className="font-semibold">{title}</div>
-      )}
       columns={columns}
       dataSource={dataSource}
       pagination={{ pageSize: pageSize ?? 10 }}
