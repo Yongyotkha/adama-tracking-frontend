@@ -2,3 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+    font-family: "BrownLLHeb";
+    src: url("/font/BrownLLHeb/BrownLLHebTT-Regular.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "BrownLLHeb";
+    src: url("/font/BrownLLHeb/BrownLLHebTT-Bold.ttf") format("truetype");
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "BrownLLHeb";
+    src: url("/font/BrownLLHeb/BrownLLHebTT-Italic.ttf") format("truetype");
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "BrownLLHeb";
+    src: url("/font/BrownLLHeb/BrownLLHebTT-BoldItalic.ttf") format("truetype");
+    font-weight: bold;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "BrownLLHeb";
+    src: url("/font/BrownLLHeb/BrownLLHebTT-Light.ttf") format("truetype");
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "BrownLLHeb";
+    src: url("/font/BrownLLHeb/BrownLLHebTT-LightItalic.ttf") format("truetype");
+    font-weight: 300;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "BrownLLHeb";
+    src: url("/font/BrownLLHeb/BrownLLHebTT-Thin.ttf") format("truetype");
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "BrownLLHeb";
+    src: url("/font/BrownLLHeb/BrownLLHebTT-ThinItalic.ttf") format("truetype");
+    font-weight: 100;
+    font-style: italic;
+}
+
+* {
+    font-family: "BrownLLHeb", sans-serif;
+}
