@@ -75,7 +75,7 @@ const Filter = ({ onSearch, onClear, years, statuses }) => {
           <div className="flex justify-end gap-4 px-4">
             <DynamicButton
               text="Search"
-              icon={<SearchOutlined />}
+              iconSrc="/img/icons/expenses.png"
               className="text-white px-4 py-3 rounded"
               onClick={handleSearch}
               style={{
@@ -84,7 +84,7 @@ const Filter = ({ onSearch, onClear, years, statuses }) => {
             />
             <DynamicButton
               text="Clear"
-              icon={<DeleteOutlined />}
+              iconSrc="/img/icons/expenses.png"
               className="text-white px-4 py-3 rounded"
               onClick={handleClear}
               style={{

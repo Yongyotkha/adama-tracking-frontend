@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Table } from "antd";
 import "./TableComponent.css";
 
-const TableComponent = ({ columns, dataSource, pageSize, title }) => {
+const TableComponent = ({ columns, dataSource, pageSize, title, footer }) => {
   // Handle row selection
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
 
@@ -44,18 +44,19 @@ const TableComponent = ({ columns, dataSource, pageSize, title }) => {
     ],
   };
 
-  // Render the table with dynamic title
+  // Render the table with dynamic title and footer
   return (
     <Table
       title={() => (
-        <div style={{ color: "#00783F", fontSize: "20px" }} className="pb-3 font-semibold">{title}</div>
-      )} // Display the dynamic title with custom styles
+        <div style={{ color: "#00783F", fontSize: "20px" }} className="font-semibold">{title}</div>
+      )}
       columns={columns}
       dataSource={dataSource}
       pagination={{ pageSize: pageSize ?? 10 }}
       scroll={{
         x: 1000,
       }}
+      footer={footer ? () => <div>{footer}</div> : null} // Dynamic footer if provided
     />
   );
 };
