@@ -9,7 +9,6 @@ import {
 } from "@ant-design/icons";
 import Navbar from "../components/navbar/Navbar";
 export default function MainLayout({ children, loading, childrenStyle }) {
-  
   const menuItems = [
     {
       label: "Dashboard",
@@ -68,7 +67,7 @@ export default function MainLayout({ children, loading, childrenStyle }) {
   return (
     <>
       <Spin tip="Loading" size="large" fullscreen="true" spinning={loading} />
-      <div className="w-screen flex flex-col h-screen">
+      <div className="max-w-screen flex flex-col h-screen">
         <Navbar menuItems={menuItems} userMenuItems={userMenuItems} />
         <div className={` ${childrenStyle}`}>{children}</div>
       </div>
