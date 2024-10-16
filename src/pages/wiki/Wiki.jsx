@@ -99,6 +99,8 @@ const Wiki = () => {
           triggerText="Dynamic Hover Menu"
           className="bg-blue-500 text-white rounded-lg p-3"
         />
+        <hr className="my-5" />
+
         {/* Ant Design Table Component */}
         <span>Table Component</span>
         <TableComponent />
