@@ -71,7 +71,7 @@ const Navbar = ({ menuItems, userMenuItems }) => {
       </div>
 
       {/* Middle Section with Menu inside Carousel */}
-      <div className="relative px-5 w-4/6 max-w-2xl">
+      <div className="relative px-5 w-4/6 max-w-3xl">
         <Carousel arrows infinite={false} {...carouselSettings}>
           {menuItems.map((item, index) => {
             if (item.dropdownMenu) {

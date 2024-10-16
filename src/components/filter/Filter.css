@@ -1,0 +1,14 @@
+.filter-header {
+  background-color: #00783F;
+  color: white;
+  padding: 16px;
+  border-radius: 5px 5px 0 0;
+}
+
+.panel-border {
+  border: 1px solid #00783F;
+  border-radius: 5px;
+}
+.ant-collapse-header {
+  padding: 0 !important;
+}

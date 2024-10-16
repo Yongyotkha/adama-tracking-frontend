@@ -4,24 +4,31 @@ import { Button as AntButton } from 'antd';
 const DynamicButton = ({
   text = "Click Me",
   icon,
-  iconSrc,
   onClick,
   className = '',
   type = 'default',
   disabled = false,
-  style = {}, // New prop for inline styles
+  iconSrc,
+  style = {},
 }) => {
   return (
     <AntButton
-      className={`cursor-pointer my-3 ${className}`} // Apply Tailwind or other custom classes
+      className={`cursor-pointer text-center ${className}`}
       onClick={onClick}
-      type={type} // Allows you to pass button types like 'primary', 'default', etc.
+      type={type}
       disabled={disabled}
-      icon={icon ? icon : null} // If an Ant Design icon is passed, it will be used
-      style={{ fontFamily: 'BrownLLHeb', ...style }} // Apply dynamic inline styles
+      icon={icon}
+      style={{ fontFamily: 'BrownLLHeb', ...style }}
     >
-      {/* Render image icon if iconSrc is provided */}
-      {iconSrc && <img src={iconSrc} alt="button icon" className="inline-block w-5 h-5 mr-2" />}
+      {iconSrc && (
+        <span>
+          <img
+            src={iconSrc}
+            alt="button icon"
+            className="inline-block w-5 h-5 mr-2"
+          />
+        </span>
+      )}
       {text}
     </AntButton>
   );
