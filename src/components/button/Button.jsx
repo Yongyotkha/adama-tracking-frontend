@@ -1,9 +1,30 @@
-import React from "react";
+import React from 'react';
+import { Button as AntButton } from 'antd';
 
-export default function Button({ className, text, onClick }) {
+const DynamicButton = ({
+  text = "Click Me",
+  icon,
+  iconSrc,
+  onClick,
+  className = '',
+  type = 'default',
+  disabled = false,
+  style = {}, // New prop for inline styles
+}) => {
   return (
-    <div>
-      <button className={`border-2 p-2 m-2 rounded-lg ${className}`}>{text}</button>
-    </div>
+    <AntButton
+      className={`cursor-pointer ${className}`} // Apply Tailwind or other custom classes
+      onClick={onClick}
+      type={type} // Allows you to pass button types like 'primary', 'default', etc.
+      disabled={disabled}
+      icon={icon ? icon : null} // If an Ant Design icon is passed, it will be used
+      style={style} // Apply dynamic inline styles
+    >
+      {/* Render image icon if iconSrc is provided */}
+      {iconSrc && <img src={iconSrc} alt="button icon" className="inline-block w-5 h-5 mr-2" />}
+      {text}
+    </AntButton>
   );
-}
+};
+
+export default DynamicButton;

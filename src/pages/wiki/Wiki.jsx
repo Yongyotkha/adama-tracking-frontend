@@ -1,14 +1,8 @@
 import React from "react";
-import { Button } from "antd";
 import Navbar from "../../components/navbar/Navbar";
 import DropdownHover from "../../components/dropdown/DropdownHover";
-import {
-  EditOutlined,
-  EyeOutlined,
-  LogoutOutlined,
-  PlusOutlined,
-  SmileOutlined,
-} from "@ant-design/icons";
+import DynamicButton from "../../components/button/Button"; // Importing the Dynamic Button
+import { PlusOutlined } from "@ant-design/icons";
 
 const Wiki = () => {
   const dropdownHoverItems = [
@@ -29,11 +23,7 @@ const Wiki = () => {
   ];
 
   const menuItems = [
-    {
-      label: "Dashboard",
-      icon: "/img/icons/dashboard.png",
-      dropdownMenu: false,
-    },
+    { label: "Dashboard", icon: "/img/icons/dashboard.png", dropdownMenu: false },
     { label: "Customer", icon: "/img/icons/customer.png", dropdownMenu: false },
     {
       label: "Sale Plan",
@@ -69,18 +59,17 @@ const Wiki = () => {
     {
       key: "2",
       label: "Edit",
-      icon: <EditOutlined style={{ fontSize: "18px" }} />,
+      icon: <PlusOutlined style={{ fontSize: "18px" }} />,
     },
     {
       key: "3",
       label: "View",
-      icon: <EyeOutlined style={{ fontSize: "18px" }} />,
-      src: "/img/icons/view.png",
-    }, // Fallback to image if needed
+      icon: <PlusOutlined style={{ fontSize: "18px" }} />,
+    },
     {
       key: "4",
       label: "Logout",
-      icon: <LogoutOutlined style={{ fontSize: "18px" }} />,
+      icon: <PlusOutlined style={{ fontSize: "18px" }} />,
     },
   ];
 
@@ -91,14 +80,30 @@ const Wiki = () => {
 
       <hr className="my-4" />
 
-      {/* Button Component */}
-      <Button>BTN</Button>
+      {/* Dynamic Button with Ant Design icon and custom style */}
+      <DynamicButton
+        text="Add New Item"
+        icon={<PlusOutlined />} // Passing Ant Design icon
+        className="bg-primary-500 text-white rounded-lg p-2"
+        type="primary"
+        onClick={() => alert("Ant Design Icon Button Clicked!")}
+      />
 
+      {/* Dynamic Button with image icon and different style */}
+      <DynamicButton
+        text="View Report"
+        iconSrc="/img/icons/expenses.png" // Passing image source
+        className="rounded-lg p-2"
+        style={{ backgroundColor: "#16A34A", color: "#fff" }} // Custom inline style
+        type="default"
+        onClick={() => alert("Image Icon Button Clicked!")}
+      />
 
       {/* Dynamic Dropdown Hover Component */}
       <DropdownHover
         items={dropdownHoverItems}
         triggerText="Dynamic Hover Menu"
+        className="bg-blue-500 text-white rounded-lg p-3"
       />
     </>
   );
