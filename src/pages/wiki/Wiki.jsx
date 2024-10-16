@@ -4,7 +4,12 @@ import DropdownHover from "../../components/dropdown/DropdownHover";
 import DynamicButton from "../../components/button/Button";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import Filter from "../../components/filter/Filter"; // Import the Filter component
-import { EditOutlined, EyeOutlined, LogoutOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  EditOutlined,
+  EyeOutlined,
+  LogoutOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 import MainLayout from "../../layouts/MainLayout";
 import TableComponent from "../../components/table/TableComponent";
 
@@ -41,13 +46,9 @@ const Wiki = () => {
   const years = [2021, 2022, 2023];
   const statuses = ["Active", "Inactive", "Pending"];
 
-
-
   return (
     <>
-      <MainLayout
-        loading={loading}
-      >
+      <MainLayout loading={loading}>
         {/* Filter Component */}
         <span>Filter</span>
         <Filter
@@ -56,11 +57,6 @@ const Wiki = () => {
           years={years}
           statuses={statuses}
         />
-        <hr className="my-5" />
-
-        {/* Dynamic BoxPrimary component with custom content */}
-        <span>BoxPrimary</span>
-        <BoxPrimary />
         <hr className="my-5" />
 
         {/* Dynamic Button with Ant Design icon */}
@@ -72,7 +68,7 @@ const Wiki = () => {
           type="primary"
           onClick={() => alert("Ant Design Icon Button Clicked!")}
           style={{
-            backgroundColor: '#00783F', // Default background color
+            backgroundColor: "#00783F", // Default background color
           }}
         />
 
@@ -87,10 +83,9 @@ const Wiki = () => {
           type="primary"
           onClick={() => alert("Image Icon Button Clicked!")}
           variant="solid"
-          style={{ color: '#000000', backgroundColor: '#00783F', }} // Correct style format
+          style={{ color: "#000000", backgroundColor: "#00783F" }} // Correct style format
         />
         <hr className="my-5" />
-
 
         {/* Dynamic Dropdown Hover Component */}
         <span>Dynamic Dropdown Hover</span>
@@ -99,11 +94,19 @@ const Wiki = () => {
           triggerText="Dynamic Hover Menu"
           className="bg-blue-500 text-white rounded-lg p-3"
         />
-        {/* Ant Design Table Component */}
-        <span>Table Component</span>
-        <TableComponent />
-      </MainLayout >
+        <hr className="my-5" />
 
+        {/* Dynamic BoxPrimary component with custom content */}
+        <span>BoxPrimary</span>
+        <BoxPrimary></BoxPrimary>
+        <hr className="my-5" />
+
+        {/* Ant Design Table Component */}
+        <span>Table Component + BoxPrimary</span>
+        <BoxPrimary>
+          <TableComponent />
+        </BoxPrimary>
+      </MainLayout>
     </>
   );
 };
