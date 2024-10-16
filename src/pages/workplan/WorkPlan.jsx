@@ -4,6 +4,7 @@ import Logo from "../../components/logo/Logo";
 import Filter from "../../components/filter/Filter";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import TableComponent from "../../components/table/TableComponent";
+import DynamicButton from "../../components/button/Button";
 
 export default function WorkPlan() {
   const [loading, setLoading] = useState(false);
@@ -64,7 +65,14 @@ export default function WorkPlan() {
   }).map((_, i) => ({
     key: i,
     name: `Edward King ${i}`,
-    action: 32,
+    action: (
+      <DynamicButton
+        iconSrc="/img/icons/action.png"
+        className=""
+        onClick={() => alert("Image Icon Button Clicked!")}
+        style={{ color: "#000000" }} // Correct style format
+      />
+    ),
     address: `London, Park Lane no. ${i}`,
   }));
 
