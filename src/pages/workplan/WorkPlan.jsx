@@ -7,42 +7,43 @@ import TableComponent from "../../components/table/TableComponent";
 import DynamicButton from "../../components/button/Button";
 import { Button, Dropdown } from "antd";
 import { MoreOutlined } from "@ant-design/icons";
+import BadgeStatus from "../../components/badge/BadgeStatus";
 
 export default function WorkPlan() {
   const [loading, setLoading] = useState(false);
 
   const filters = [
     {
-      key: 'year',
-      type: 'select',
-      label: 'Year',
+      key: "year",
+      type: "select",
+      label: "Year",
       options: [
-        { value: 2021, label: '2021' },
-        { value: 2022, label: '2022' },
-        { value: 2023, label: '2023' },
+        { value: 2021, label: "2021" },
+        { value: 2022, label: "2022" },
+        { value: 2023, label: "2023" },
       ],
     },
     {
-      key: 'status',
-      type: 'select',
-      label: 'Status',
+      key: "status",
+      type: "select",
+      label: "Status",
       options: [
-        { value: 'Active', label: 'Active' },
-        { value: 'Inactive', label: 'Inactive' },
-        { value: 'Pending', label: 'Pending' },
+        { value: "Active", label: "Active" },
+        { value: "Inactive", label: "Inactive" },
+        { value: "Pending", label: "Pending" },
       ],
     },
     {
-      key: 'productName',
-      type: 'text',
-      label: 'Product Name',
-      placeholder: 'Enter product name',
+      key: "productName",
+      type: "text",
+      label: "Product Name",
+      placeholder: "Enter product name",
     },
     {
-      key: 'quantity',
-      type: 'number',
-      label: 'Quantity',
-      placeholder: 'Enter quantity',
+      key: "quantity",
+      type: "number",
+      label: "Quantity",
+      placeholder: "Enter quantity",
     },
   ];
 
@@ -54,36 +55,36 @@ export default function WorkPlan() {
     console.log("Filters cleared");
   };
 
-  const columns = [
+  const header = [
     {
       title: "Years",
       width: 100,
       dataIndex: "year",
-      fixed: "left",
+      align: "left",
     },
     {
       title: "Work Plan (THB)",
       width: 100,
       dataIndex: "workPlan",
-      fixed: "left",
+      align: "left",
     },
     {
       title: "Last modified",
       width: 100,
       dataIndex: "lastModified",
-      fixed: "left",
+      align: "left",
     },
     {
       title: "Status",
       width: 100,
       dataIndex: "status",
-      fixed: "left",
+      align: "left",
     },
     {
       title: "Action",
       width: 100,
       dataIndex: "action",
-      fixed: "left",
+      align: "left",
     },
   ];
 
@@ -103,10 +104,7 @@ export default function WorkPlan() {
     {
       key: "2",
       label: (
-        <a
-          rel="noopener noreferrer"
-          href="/sale-plan/work-plan/create?edit"
-        >
+        <a rel="noopener noreferrer" href="/sale-plan/work-plan/edit">
           edit
         </a>
       ),
@@ -134,7 +132,9 @@ export default function WorkPlan() {
           </a>
         </Dropdown>
       ),
-      status: "Create Plan",
+      status: (
+        <BadgeStatus text="Complete" bgColor="#00783F" textColor="#FFFFFF" />
+      ),
       lastModified: "2024-01-01 11:11",
     },
     {
@@ -157,7 +157,9 @@ export default function WorkPlan() {
           </a>
         </Dropdown>
       ),
-      status: "Create Plan",
+      status: (
+        <BadgeStatus text="Complete" bgColor="#00783F" textColor="#FFFFFF" />
+      ),
       lastModified: "2024-01-01 11:11",
     },
   ];
@@ -166,11 +168,15 @@ export default function WorkPlan() {
     <>
       <MainLayout loading={loading} childrenStyle={""}>
         <div className="title-page">Work Plan</div>
-        
-        <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
+
+        <Filter
+          onSearch={handleSearch}
+          onClear={handleClear}
+          filters={filters}
+        />
 
         <BoxPrimary>
-          <TableComponent columns={columns} dataSource={dataSource} />
+          <TableComponent header={header} dataSource={dataSource} />
         </BoxPrimary>
       </MainLayout>
     </>

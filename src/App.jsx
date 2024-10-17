@@ -10,7 +10,8 @@ import Verify from "./pages/auth/Verify";
 import Wiki from "./pages/wiki/Wiki";
 import Dashboard from "./pages/dashboard/Dashboard";
 import WorkPlan from "./pages/workplan/WorkPlan";
-import WorkPlanCreate from "./pages/workplan/Create";
+import WorkPlanCreate from "./pages/workplan/WorkPlanCreate";
+import WorkPlanCreateStepTwo from "./pages/workplan/WorkPlanCreateStepTwo";
 import { ConfigProvider } from "antd";
 
 const App = () => {
@@ -27,6 +28,10 @@ const App = () => {
           <Route
             path="/sale-plan/work-plan/create"
             element={<WorkPlanCreate />}
+          />
+          <Route
+            path="/sale-plan/work-plan/create-2"
+            element={<WorkPlanCreateStepTwo />}
           />
           <Route path="*" element={<Error />} />
           <Route path="/wiki" element={<Wiki />} />

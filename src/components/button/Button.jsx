@@ -2,7 +2,6 @@ import React from "react";
 
 const DynamicButton = ({
   text,
-  icon,
   onClick,
   className,
   disabled,
@@ -14,7 +13,6 @@ const DynamicButton = ({
       className={`cursor-pointer text-center font-light text-sm rounded-[5px] ${className} max-w-fit`}
       onClick={onClick}
       disabled={disabled}
-      icon={icon}
       style={{ ...style }}
     >
       {iconSrc && (

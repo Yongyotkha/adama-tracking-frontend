@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Menu, Dropdown, Carousel } from "antd";
+import { Menu, Dropdown, Carousel, Button } from "antd";
 import "./Navbar.css";
 import Logo from "../logo/Logo";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +11,6 @@ import {
 } from "@ant-design/icons";
 
 const Navbar = () => {
-  const [openDropdown, setOpenDropdown] = useState(null);
   const navigate = useNavigate(); // เริ่มต้นการนำทาง
 
   const menuItems = [
@@ -25,7 +24,7 @@ const Navbar = () => {
       label: "Customer",
       icon: "/img/icons/customer.png",
       dropdownMenu: false,
-      path: "/customers", // Adjust this if you have a customer page 
+      path: "/customers", // Adjust this if you have a customer page
     },
     {
       label: "Sale Plan",
@@ -40,12 +39,12 @@ const Navbar = () => {
         {
           key: "2",
           label: "Rolling Forecast",
-          path: "sale-plan/rolling-forecast" // Adjust if needed 
+          path: "sale-plan/rolling-forecast", // Adjust if needed
         },
         {
           key: "3",
           label: "Quarter",
-          path: "sale-plan/quarter" // Adjust if needed
+          path: "sale-plan/quarter", // Adjust if needed
         },
       ],
     },
@@ -53,13 +52,13 @@ const Navbar = () => {
       label: "Activity",
       icon: "/img/icons/activity.png",
       dropdownMenu: false,
-      path: "/activities" // Adjust if needed
+      path: "/activities", // Adjust if needed
     },
     {
       label: "Expenses",
       icon: "/img/icons/expenses.png",
       dropdownMenu: false,
-      path: "/expenses" // Adjust if needed
+      path: "/expenses", // Adjust if needed
     },
     {
       label: "Report",
@@ -75,7 +74,7 @@ const Navbar = () => {
       label: "Setting",
       icon: "/img/icons/setting.png",
       dropdownMenu: false,
-      path: "/settings" // Adjust if needed
+      path: "/settings", // Adjust if needed
     },
   ];
 
@@ -106,10 +105,6 @@ const Navbar = () => {
     },
   ];
 
-  const handleDropdownOpenChange = (key, open) => {
-    setOpenDropdown(open ? key : null);
-  };
-
   const CustomDropdownMenu = ({ items }) => {
     return (
       <Menu
@@ -133,15 +128,15 @@ const Navbar = () => {
   };
 
   const CustomDropdownMenuProfile = ({ items }) => {
-    const navigate = useNavigate(); // Ensure navigate is available in this context
+    const navigate = useNavigate();
 
-    const menuItems = items.map((item) => ({
+    const menuProfileItems = items.map((item) => ({
       key: item.key,
       label: (
         <div
           className="flex items-center gap-[10px] cursor-pointer"
           style={{ color: "#978B87" }}
-          onClick={() => navigate(item.path)} // Navigate to the correct path
+          onClick={() => navigate(item.path)}
         >
           {item.icon ? (
             item.icon
@@ -159,7 +154,7 @@ const Navbar = () => {
 
     return (
       <Menu
-        items={menuItems}
+        items={menuProfileItems}
         className="relative bg-white bg-right bg-no-repeat bg-contain p-4 rounded-md text-[#978B87]"
       />
     );
@@ -179,12 +174,10 @@ const Navbar = () => {
 
   return (
     <nav className="bg-[#009845] flex items-center justify-between px-4 relative w-full shadow-[0_4px_4px_0px_rgba(0,0,0,0.25)]">
-      {/* Left Section with Logo */}
       <div className="flex items-center justify-start w-1/6">
         <Logo width="w-[150px]" />
       </div>
 
-      {/* Middle Section with Menu inside Carousel */}
       <div className="relative px-5 w-4/6 max-w-3xl">
         <Carousel arrows infinite={false} {...carouselSettings}>
           {menuItems.map((item, index) => {
@@ -193,13 +186,8 @@ const Navbar = () => {
                 <Dropdown
                   key={index}
                   overlay={<CustomDropdownMenu items={item.dropdownItems} />}
-                  onOpenChange={(open) =>
-                    handleDropdownOpenChange(item.label, open)
-                  }
                 >
-                  <div
-                    className="py-5 text-center text-white flex items-center justify-center h-full menu-item"
-                  >
+                  <div className="py-5 text-center text-white flex items-center justify-center h-full menu-item">
                     <img
                       src={item.icon}
                       alt={`${item.label} Icon`}
