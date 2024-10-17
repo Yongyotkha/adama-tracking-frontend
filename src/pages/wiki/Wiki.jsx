@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import BadgeStatus from "../../components/badge/BadgeStatus"; // Import the new BadgeStatus component
 import DropdownHover from "../../components/dropdown/DropdownHover";
 import DynamicButton from "../../components/button/Button";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
@@ -90,6 +91,11 @@ const Wiki = () => {
       <BoxPrimary></BoxPrimary>
       <hr className="my-5" />
 
+      {/* Dynamic BadgeStatus component */}
+      <span>BadgeStatus (Dynamic colors)</span>
+      <BadgeStatus text="Active" bgColor="#00783F" textColor="#FFFFFF" />
+      <BadgeStatus text="Inactive" bgColor="#FF0000" textColor="#FFFFFF" />
+      <BadgeStatus text="Pending" bgColor="#FFA500" textColor="#FFFFFF" />
     </MainLayout>
   );
 };

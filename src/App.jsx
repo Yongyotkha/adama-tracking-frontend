@@ -21,7 +21,7 @@ const App = () => {
     <Router>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<Welcome />} />
+          <Route path="/" element={<WorkPlan />} />
           <Route path="/login" element={<Login />} />
           <Route path="/verify-otp" element={<Verify />} />
           <Route path="/dashboard" element={<Dashboard />} />
