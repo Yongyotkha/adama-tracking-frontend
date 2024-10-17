@@ -3,27 +3,104 @@ import { Menu, Dropdown, Carousel } from "antd";
 import "./Navbar.css";
 import Logo from "../logo/Logo";
 import { useNavigate } from "react-router-dom";
-
-const Navbar = ({ menuItems, userMenuItems }) => {
+import {
+  EditOutlined,
+  EyeOutlined,
+  LogoutOutlined,
+  PlusOutlined,
+  SmileOutlined,
+} from "@ant-design/icons";
+const Navbar = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
+  const navigate = useNavigate(); // เริ่มต้นการนำทาง
+
+  const menuItems = [
+    {
+      label: "Dashboard",
+      icon: "/img/icons/dashboard.png",
+      dropdownMenu: false,
+    },
+    { label: "Customer", icon: "/img/icons/customer.png", dropdownMenu: false },
+    {
+      label: "Sale Plan",
+      icon: "/img/icons/sale-plan.png",
+      dropdownMenu: true,
+      dropdownItems: [
+        {
+          key: "1",
+          label: "Work Plan",
+          path: "sale-plan/work-plan",
+        },
+        { key: "2", label: "Rolling Forecast" },
+        { key: "3", label: "Quarter" },
+      ],
+    },
+    { label: "Activity", icon: "/img/icons/activity.png", dropdownMenu: false },
+    { label: "Expenses", icon: "/img/icons/expenses.png", dropdownMenu: false },
+    {
+      label: "Report",
+      icon: "/img/icons/report.png",
+      dropdownMenu: true,
+      dropdownItems: [
+        { key: "1", label: "Monthly Report" },
+        { key: "2", label: "Quarterly Report" },
+        { key: "3", label: "Yearly Report" },
+      ],
+    },
+    { label: "Setting", icon: "/img/icons/setting.png", dropdownMenu: false },
+  ];
+
+  const userMenuItems = [
+    {
+      key: "1",
+      label: "Create",
+      icon: <PlusOutlined style={{ fontSize: "18px" }} />,
+    },
+    {
+      key: "2",
+      label: "Edit",
+      icon: <EditOutlined style={{ fontSize: "18px" }} />,
+    },
+    {
+      key: "3",
+      label: "View",
+      icon: <EyeOutlined style={{ fontSize: "18px" }} />,
+      src: "/img/icons/view.png",
+    },
+    {
+      key: "4",
+      label: "Logout",
+      icon: <LogoutOutlined style={{ fontSize: "18px" }} />,
+    },
+  ];
 
   const handleDropdownOpenChange = (key, open) => {
     setOpenDropdown(open ? key : null);
   };
 
-  const CustomDropdownMenu = ({ items }) => (
-    <Menu
-      items={items.map((item) => ({
-        key: item.key,
-        label: <span style={{ color: "#978B87" }}>{item.label}</span>,
-      }))}
-      className="relative bg-white bg-right bg-no-repeat bg-contain p-4 rounded-md w-[300px] text-[#978B87]"
-      style={{ backgroundImage: "url('/img/dropdown-bg.png')" }}
-    />
-  );
+  const CustomDropdownMenu = ({ items }) => {
+    return (
+      <Menu
+        onClick={({ key }) => {
+          console.log(key);
+          const item = items.find((item) => item.key === key);
+          if (item.onClick) {
+            item.onClick();
+          } else {
+            navigate(`/${item.path}`);
+          }
+        }}
+        items={items.map((item) => ({
+          key: item.key,
+          label: <span style={{ color: "#978B87" }}>{item.label}</span>,
+        }))}
+        className="relative bg-white bg-right bg-no-repeat bg-contain p-4 rounded-md w-[300px] text-[#978B87]"
+        style={{ backgroundImage: "url('/img/dropdown-bg.png')" }}
+      />
+    );
+  };
 
   const CustomDropdownMenuProfile = ({ items }) => {
-    const navigate = useNavigate();
     const menuItems = items.map((item) => ({
       key: item.key,
       label: (
@@ -32,7 +109,7 @@ const Navbar = ({ menuItems, userMenuItems }) => {
           style={{ color: "#978B87" }}
         >
           {item.icon ? (
-            item.icon // Use Ant Design icon if available
+            item.icon
           ) : (
             <img
               src={item.src}
@@ -47,20 +124,8 @@ const Navbar = ({ menuItems, userMenuItems }) => {
 
     return (
       <Menu
-        onClick={({ key }) => {
-          const item = items.find((item) => item.key === key);
-          if (item.onClick) {
-            item.onClick(); 
-          } else {
-            navigate(`/${item.label.toLowerCase().replace(/\s+/g, "-")}`); 
-          }
-        }}
-        items={items.map((item) => ({
-          key: item.key,
-          label: <span style={{ color: "#978B87" }}>{item.label}</span>,
-        }))}
-        className="relative bg-white bg-right bg-no-repeat bg-contain p-4 rounded-md w-[300px] text-[#978B87]"
-        style={{ backgroundImage: "url('/img/dropdown-bg.png')" }}
+        items={menuItems}
+        className="relative bg-white bg-right bg-no-repeat bg-contain p-4 rounded-md text-[#978B87]"
       />
     );
   };
@@ -128,11 +193,9 @@ const Navbar = ({ menuItems, userMenuItems }) => {
         </Carousel>
       </div>
 
-      {/* Right Section with User */}
       <div className="flex items-center w-1/6 justify-end">
         <span className="text-white hidden md:block">Chayanon</span>
 
-        {/* Dropdown on Avatar Click */}
         <Dropdown
           overlay={<CustomDropdownMenuProfile items={userMenuItems} />}
           trigger={["click", "hover"]}

@@ -3,8 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import "./App.css";
 import "antd/dist/reset.css";
-import Welcome from "./pages/welcome/Welcome";
-
 import Error from "./pages/error/Error";
 import Login from "./pages/auth/Login";
 import Users from "./pages/users/Users";
@@ -21,10 +19,10 @@ const App = () => {
     <Router>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<WorkPlan />} />
+          {/* <Route path="/" element={<Welcome />} /> */}
           <Route path="/login" element={<Login />} />
           <Route path="/verify-otp" element={<Verify />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/" element={<Dashboard />} />
           <Route path="/sale-plan/work-plan" element={<WorkPlan />} />
           <Route
             path="/sale-plan/work-plan/create"
