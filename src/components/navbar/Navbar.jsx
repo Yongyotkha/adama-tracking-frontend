@@ -8,8 +8,8 @@ import {
   EyeOutlined,
   LogoutOutlined,
   PlusOutlined,
-  SmileOutlined,
 } from "@ant-design/icons";
+
 const Navbar = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const navigate = useNavigate(); // เริ่มต้นการนำทาง
@@ -78,7 +78,6 @@ const Navbar = () => {
       path: "/settings" // Adjust if needed
     },
   ];
-
 
   const userMenuItems = [
     {
