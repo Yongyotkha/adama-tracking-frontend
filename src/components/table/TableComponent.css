@@ -17,3 +17,6 @@
   background: #00783F !important;
   color: white !important;
 } */
+.ant-pagination-item-active a {
+  color: white !important;
+} 
