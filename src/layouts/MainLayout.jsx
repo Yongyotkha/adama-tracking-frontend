@@ -21,7 +21,11 @@ export default function MainLayout({ children, loading, childrenStyle }) {
       icon: "/img/icons/sale-plan.png",
       dropdownMenu: true,
       dropdownItems: [
-        { key: "1", label: "Work Plan" },
+        {
+          key: "1",
+          label: "Work Plan",
+          onClick: () => navigate("/sale-plan/work-plan"),
+        },
         { key: "2", label: "Rolling Forecast" },
         { key: "3", label: "Quarter" },
       ],
@@ -69,7 +73,9 @@ export default function MainLayout({ children, loading, childrenStyle }) {
       <Spin tip="Loading" size="large" fullscreen="true" spinning={loading} />
       <div className="max-w-screen flex flex-col h-screen">
         <Navbar menuItems={menuItems} userMenuItems={userMenuItems} />
-        <div className={`flex flex-col gap-3 p-3 ${childrenStyle}`}>{children}</div>
+        <div className={`flex flex-col gap-3 p-3 ${childrenStyle}`}>
+          {children}
+        </div>
       </div>
     </>
   );

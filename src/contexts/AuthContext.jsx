@@ -8,8 +8,8 @@ import React, {
   useLayoutEffect,
 } from "react";
 
-import { endPoint, paths } from "../services/CorsPath";
-import { axiosInstance } from "../services/corsService";
+import { endPoint, paths } from "../services/CorsPath.jsx";
+import { axiosInstance } from "../services/CorsService.jsx";
 
 export const AuthContext = createContext();
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Table } from "antd";
+import { ConfigProvider, Table } from "antd";
 import "./TableComponent.css";
 
 const TableComponent = ({ columns, dataSource, pageSize, title, footer }) => {
@@ -11,7 +11,6 @@ const TableComponent = ({ columns, dataSource, pageSize, title, footer }) => {
     setSelectedRowKeys(newSelectedRowKeys);
   };
 
-  // Row selection configuration
   const rowSelection = {
     selectedRowKeys,
     onChange: onSelectChange,
@@ -44,17 +43,36 @@ const TableComponent = ({ columns, dataSource, pageSize, title, footer }) => {
     ],
   };
 
-  // Render the table with dynamic title and footer
   return (
-    <Table
-      columns={columns}
-      dataSource={dataSource}
-      pagination={{ pageSize: pageSize ?? 10 }}
-      scroll={{
-        x: 1000,
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: '#009845',   
+          fontWeightStrong: 600,    
+        },
+        components: {
+          Table: {
+            headerBg: "#00783F",
+            headerColor: "white",
+          },
+          Pagination: {
+            itemActiveBg: '#009845', 
+            itemActiveColor: '#fff', 
+            itemActiveBorderColor: '#009845', 
+          },
+        },
       }}
-      footer={footer ? () => footer : null} // Dynamic footer if provided
-    />
+    >
+      <Table
+        columns={columns}
+        dataSource={dataSource}
+        pagination={{ pageSize: pageSize ?? 10 }}
+        scroll={{
+          x: 1000,
+        }}
+        footer={footer ? () => footer : null} 
+      />
+    </ConfigProvider>
   );
 };
 

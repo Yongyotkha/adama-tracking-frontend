@@ -60,9 +60,9 @@ export default function WorkPlan() {
       key: "1",
       label: (
         <a
-          target="_blank"
+          // target="_blank"
           rel="noopener noreferrer"
-          href="https://www.antgroup.com"
+          href="/sale-plan/work-plan/create"
         >
           create
         </a>

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Menu, Dropdown, Carousel } from "antd";
 import "./Navbar.css";
 import Logo from "../logo/Logo";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = ({ menuItems, userMenuItems }) => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -22,6 +23,7 @@ const Navbar = ({ menuItems, userMenuItems }) => {
   );
 
   const CustomDropdownMenuProfile = ({ items }) => {
+    const navigate = useNavigate();
     const menuItems = items.map((item) => ({
       key: item.key,
       label: (
@@ -45,8 +47,20 @@ const Navbar = ({ menuItems, userMenuItems }) => {
 
     return (
       <Menu
-        items={menuItems}
-        className="relative bg-white bg-right bg-no-repeat bg-contain p-4 rounded-md text-[#978B87]"
+        onClick={({ key }) => {
+          const item = items.find((item) => item.key === key);
+          if (item.onClick) {
+            item.onClick(); 
+          } else {
+            navigate(`/${item.label.toLowerCase().replace(/\s+/g, "-")}`); 
+          }
+        }}
+        items={items.map((item) => ({
+          key: item.key,
+          label: <span style={{ color: "#978B87" }}>{item.label}</span>,
+        }))}
+        className="relative bg-white bg-right bg-no-repeat bg-contain p-4 rounded-md w-[300px] text-[#978B87]"
+        style={{ backgroundImage: "url('/img/dropdown-bg.png')" }}
       />
     );
   };

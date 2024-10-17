@@ -13,8 +13,10 @@ import Wiki from "./pages/wiki/Wiki";
 import Dashboard from "./pages/dashboard/Dashboard";
 import WorkPlan from "./pages/workplan/WorkPlan";
 import WorkPlanCreate from "./pages/workplan/Create";
+import { ConfigProvider } from "antd";
 
 const App = () => {
+ 
   return (
     <Router>
       <AuthProvider>
@@ -24,7 +26,10 @@ const App = () => {
           <Route path="/verify-otp" element={<Verify />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/sale-plan/work-plan" element={<WorkPlan />} />
-          <Route path="/sale-plan/work-plan/create" element={<WorkPlanCreate />} />
+          <Route
+            path="/sale-plan/work-plan/create"
+            element={<WorkPlanCreate />}
+          />
           <Route path="*" element={<Error />} />
           <Route path="/wiki" element={<Wiki />} />
         </Routes>
