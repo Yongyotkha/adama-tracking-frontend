@@ -1,22 +1,28 @@
 import React, { useState } from 'react';
-import { Select, Collapse } from 'antd';
+import { Select, Collapse, Input } from 'antd';
 import DynamicButton from '../button/Button'; // Import the button component
-import { DeleteOutlined, SearchOutlined } from "@ant-design/icons";
 import "./Filter.css";
 
 const { Option } = Select;
 
-const Filter = ({ onSearch, onClear, years, statuses }) => {
-  const [year, setYear] = useState("");
-  const [status, setStatus] = useState("");
+const Filter = ({ onSearch, onClear, filters }) => {
+  // Using a state object to store dynamic values of different filter types
+  const [filterValues, setFilterValues] = useState({});
+
+  // Handle input change based on the dynamic filter types
+  const handleFilterChange = (filterKey, value) => {
+    setFilterValues((prevValues) => ({
+      ...prevValues,
+      [filterKey]: value,
+    }));
+  };
 
   const handleSearch = () => {
-    onSearch({ year, status });
+    onSearch(filterValues);
   };
 
   const handleClear = () => {
-    setYear("");
-    setStatus("");
+    setFilterValues({});
     onClear();
   };
 
@@ -34,41 +40,45 @@ const Filter = ({ onSearch, onClear, years, statuses }) => {
       children: (
         <>
           <div className="grid grid-cols-3 gap-4 p-4">
-            {/* Year Filter */}
-            <div>
-              <label className="block text-gray-700">Year</label>
-              <Select
-                value={year}
-                onChange={(value) => setYear(value)}
-                placeholder="All"
-                className="w-full"
-              >
-                <Option value="">All</Option> {/* Use empty string instead of null */}
-                {years.map((y) => (
-                  <Option key={y} value={y}>
-                    {y}
-                  </Option>
-                ))}
-              </Select>
-            </div>
-
-            {/* Status Filter */}
-            <div>
-              <label className="block text-gray-700">Status</label>
-              <Select
-                value={status}
-                onChange={(value) => setStatus(value)}
-                placeholder="All"
-                className="w-full"
-              >
-                <Option value="">All</Option> {/* Use empty string instead of null */}
-                {statuses.map((s) => (
-                  <Option key={s} value={s}>
-                    {s}
-                  </Option>
-                ))}
-              </Select>
-            </div>
+            {filters.map((filter) => (
+              <div key={filter.key}>
+                <label className="block text-gray-700">{filter.label}</label>
+                {/* Render different types of input based on the type */}
+                {filter.type === 'select' && (
+                  <Select
+                    value={filterValues[filter.key] || ''}
+                    onChange={(value) => handleFilterChange(filter.key, value)}
+                    placeholder={filter.placeholder || 'Select'}
+                    className="w-full"
+                  >
+                    <Option value="">{filter.placeholder || 'All'}</Option>
+                    {filter.options.map((option) => (
+                      <Option key={option.value} value={option.value}>
+                        {option.label}
+                      </Option>
+                    ))}
+                  </Select>
+                )}
+                {filter.type === 'text' && (
+                  <Input
+                    value={filterValues[filter.key] || ''}
+                    onChange={(e) => handleFilterChange(filter.key, e.target.value)}
+                    placeholder={filter.placeholder || 'Enter value'}
+                    className="w-full"
+                  />
+                )}
+                {filter.type === 'number' && (
+                  <Input
+                    type="number"
+                    value={filterValues[filter.key] || ''}
+                    onChange={(e) => handleFilterChange(filter.key, e.target.value)}
+                    placeholder={filter.placeholder || 'Enter number'}
+                    className="w-full"
+                  />
+                )}
+                {/* Add more input types as needed */}
+              </div>
+            ))}
           </div>
 
           {/* Buttons */}
@@ -97,9 +107,7 @@ const Filter = ({ onSearch, onClear, years, statuses }) => {
     },
   ];
 
-  return (
-    <Collapse defaultActiveKey={['1']} items={items} />
-  );
+  return <Collapse defaultActiveKey={['1']} items={items} />;
 };
 
 export default Filter;

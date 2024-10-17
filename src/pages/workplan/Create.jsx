@@ -1,12 +1,8 @@
 import React, { useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import Logo from "../../components/logo/Logo";
 import Filter from "../../components/filter/Filter";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import TableComponent from "../../components/table/TableComponent";
-import DynamicButton from "../../components/button/Button";
-import { Button, Dropdown } from "antd";
-import { MoreOutlined } from "@ant-design/icons";
 
 export default function WorkPlan() {
   const [loading, setLoading] = useState(false);
@@ -146,7 +142,7 @@ export default function WorkPlan() {
   // Footer Table styling
   const footerTable = (
     <div className="flex flex-wrap justify-between items-center">
-      <span className="font-bold text-white">Total (THB)</span>
+      <span className="font-bold">Total (THB)</span>
       <div className="flex flex-wrap gap-2 justify-end">
         <span className="flex justify-end items-center bg-white py-1 px-2 rounded w-36 text-right">
           {totalValue1.toLocaleString()}
