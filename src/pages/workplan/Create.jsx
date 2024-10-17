@@ -1,22 +1,11 @@
 import React, { useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import Filter from "../../components/filter/Filter";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import TableComponent from "../../components/table/TableComponent";
+import DynamicButton from "../../components/button/Button";
 
 export default function WorkPlan() {
   const [loading, setLoading] = useState(false);
-
-  const years = [2021, 2022, 2023];
-  const statuses = ["Active", "Inactive", "Pending"];
-
-  const handleSearch = (filter) => {
-    console.log("Search filters applied:", filter);
-  };
-
-  const handleClear = () => {
-    console.log("Filters cleared");
-  };
 
   // Define the custom columns for the table
   const columns = [
@@ -164,21 +153,34 @@ export default function WorkPlan() {
     <>
       <MainLayout loading={loading} childrenStyle={""}>
         <div className="title-page">Create Work Plan</div>
-        <Filter
-          onSearch={handleSearch}
-          onClear={handleClear}
-          years={years}
-          statuses={statuses}
-        />
+
         <BoxPrimary>
-          <div className="text-[#00783F] text-2xl pb-3">Sale By Territory</div>
+          <div className="text-[#00783F] text-2xl pb-3">Work Plan</div>
           <TableComponent
             columns={columns}
             dataSource={dataSource}
-            scroll={{ x: 1000 }}
             footer={footerTable}
           />
         </BoxPrimary>
+
+        <div className="flex justify-end space-x-4">
+          <DynamicButton
+            text="Back"
+            className="bg-green-500 text-white rounded-lg p-2"
+            type="primary"
+            onClick={() => alert("Image Icon Button Clicked!")}
+            variant="solid"
+            style={{ color: "#ffff", backgroundColor: "#B6AEAB" }}
+          />
+          <DynamicButton
+            text="Save and Next"
+            className="bg-green-500 text-white rounded-lg p-2"
+            type="primary"
+            onClick={() => alert("Image Icon Button Clicked!")}
+            variant="solid"
+            style={{ color: "#ffff", backgroundColor: "#00783F" }}
+          />
+        </div>
       </MainLayout>
     </>
   );

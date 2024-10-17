@@ -85,7 +85,7 @@ const Filter = ({ onSearch, onClear, filters }) => {
           <div className="flex justify-end gap-4 px-4">
             <DynamicButton
               text="Search"
-              iconSrc="/img/icons/expenses.png"
+              iconSrc="/img/icons/search.png"
               className="text-white px-4 py-3 rounded"
               onClick={handleSearch}
               style={{
@@ -94,7 +94,7 @@ const Filter = ({ onSearch, onClear, filters }) => {
             />
             <DynamicButton
               text="Clear"
-              iconSrc="/img/icons/expenses.png"
+              iconSrc="/img/icons/trash.png"
               className="text-white px-4 py-3 rounded"
               onClick={handleClear}
               style={{

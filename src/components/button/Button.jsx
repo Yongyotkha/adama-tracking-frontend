@@ -11,7 +11,7 @@ const DynamicButton = ({
 }) => {
   return (
     <button
-      className={`cursor-pointer text-center rounded-[5px] ${className} max-w-fit`}
+      className={`cursor-pointer text-center font-light text-sm rounded-[5px] ${className} max-w-fit`}
       onClick={onClick}
       disabled={disabled}
       icon={icon}
