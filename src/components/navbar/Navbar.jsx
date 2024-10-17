@@ -19,8 +19,14 @@ const Navbar = () => {
       label: "Dashboard",
       icon: "/img/icons/dashboard.png",
       dropdownMenu: false,
+      path: "/", // Navigates to Dashboard
     },
-    { label: "Customer", icon: "/img/icons/customer.png", dropdownMenu: false },
+    {
+      label: "Customer",
+      icon: "/img/icons/customer.png",
+      dropdownMenu: false,
+      path: "/customers", // Adjust this if you have a customer page 
+    },
     {
       label: "Sale Plan",
       icon: "/img/icons/sale-plan.png",
@@ -29,26 +35,50 @@ const Navbar = () => {
         {
           key: "1",
           label: "Work Plan",
-          path: "sale-plan/work-plan",
+          path: "sale-plan/work-plan", // Correct path for Work Plan
         },
-        { key: "2", label: "Rolling Forecast" },
-        { key: "3", label: "Quarter" },
+        {
+          key: "2",
+          label: "Rolling Forecast",
+          path: "sale-plan/rolling-forecast" // Adjust if needed 
+        },
+        {
+          key: "3",
+          label: "Quarter",
+          path: "sale-plan/quarter" // Adjust if needed
+        },
       ],
     },
-    { label: "Activity", icon: "/img/icons/activity.png", dropdownMenu: false },
-    { label: "Expenses", icon: "/img/icons/expenses.png", dropdownMenu: false },
+    {
+      label: "Activity",
+      icon: "/img/icons/activity.png",
+      dropdownMenu: false,
+      path: "/activities" // Adjust if needed
+    },
+    {
+      label: "Expenses",
+      icon: "/img/icons/expenses.png",
+      dropdownMenu: false,
+      path: "/expenses" // Adjust if needed
+    },
     {
       label: "Report",
       icon: "/img/icons/report.png",
       dropdownMenu: true,
       dropdownItems: [
-        { key: "1", label: "Monthly Report" },
-        { key: "2", label: "Quarterly Report" },
-        { key: "3", label: "Yearly Report" },
+        { key: "1", label: "Monthly Report", path: "report/monthly" },
+        { key: "2", label: "Quarterly Report", path: "report/quarterly" },
+        { key: "3", label: "Yearly Report", path: "report/yearly" },
       ],
     },
-    { label: "Setting", icon: "/img/icons/setting.png", dropdownMenu: false },
+    {
+      label: "Setting",
+      icon: "/img/icons/setting.png",
+      dropdownMenu: false,
+      path: "/settings" // Adjust if needed
+    },
   ];
+
 
   const userMenuItems = [
     {
@@ -163,7 +193,7 @@ const Navbar = () => {
                   }
                 >
                   <div
-                    className={`py-5 text-center text-white flex items-center justify-center h-full menu-item`}
+                    className="py-5 text-center text-white flex items-center justify-center h-full menu-item"
                   >
                     <img
                       src={item.icon}
@@ -178,7 +208,8 @@ const Navbar = () => {
               return (
                 <div
                   key={index}
-                  className="py-5 text-center text-white flex items-center justify-center h-full menu-item"
+                  className="py-5 text-center text-white flex items-center justify-center h-full menu-item cursor-pointer"
+                  onClick={() => navigate(item.path)} // Navigates to the correct path
                 >
                   <img
                     src={item.icon}
