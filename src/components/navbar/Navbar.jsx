@@ -85,22 +85,25 @@ const Navbar = () => {
       key: "1",
       label: "Create",
       icon: <PlusOutlined style={{ fontSize: "18px" }} />,
+      path: "/profile/create", // Adjust this to the actual route you want
     },
     {
       key: "2",
       label: "Edit",
       icon: <EditOutlined style={{ fontSize: "18px" }} />,
+      path: "/profile/edit", // Adjust this to the actual route you want
     },
     {
       key: "3",
       label: "View",
       icon: <EyeOutlined style={{ fontSize: "18px" }} />,
-      src: "/img/icons/view.png",
+      path: "/profile/view", // Adjust this to the actual route you want
     },
     {
       key: "4",
       label: "Logout",
       icon: <LogoutOutlined style={{ fontSize: "18px" }} />,
+      path: "/logout", // Adjust this to the actual route or logout logic
     },
   ];
 
@@ -131,12 +134,15 @@ const Navbar = () => {
   };
 
   const CustomDropdownMenuProfile = ({ items }) => {
+    const navigate = useNavigate(); // Ensure navigate is available in this context
+
     const menuItems = items.map((item) => ({
       key: item.key,
       label: (
         <div
-          className="flex items-center gap-[10px]"
+          className="flex items-center gap-[10px] cursor-pointer"
           style={{ color: "#978B87" }}
+          onClick={() => navigate(item.path)} // Navigate to the correct path
         >
           {item.icon ? (
             item.icon
@@ -145,7 +151,7 @@ const Navbar = () => {
               src={item.src}
               alt={`${item.label} Icon`}
               className="w-5 h-5 mr-2"
-            /> // Fallback to image if no icon
+            />
           )}
           <span style={{ color: "#978B87" }}>{item.label}</span>
         </div>

@@ -104,9 +104,8 @@ export default function WorkPlan() {
       key: "2",
       label: (
         <a
-          target="_blank"
           rel="noopener noreferrer"
-          href="https://www.aliyun.com"
+          href="/sale-plan/work-plan/create?edit"
         >
           edit
         </a>
