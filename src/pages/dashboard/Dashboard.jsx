@@ -52,7 +52,6 @@ export default function Dashboard() {
     <>
       <MainLayout
         loading={loading}
-        childrenStyle={'flex flex-col m-5'}
       >
 
         <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
