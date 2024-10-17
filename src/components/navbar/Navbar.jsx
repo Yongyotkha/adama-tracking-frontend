@@ -66,7 +66,7 @@ const Navbar = () => {
       label: "View",
       icon: <EyeOutlined style={{ fontSize: "18px" }} />,
       src: "/img/icons/view.png",
-    }, // Fallback to image if needed
+    },
     {
       key: "4",
       label: "Logout",
@@ -109,7 +109,7 @@ const Navbar = () => {
           style={{ color: "#978B87" }}
         >
           {item.icon ? (
-            item.icon // Use Ant Design icon if available
+            item.icon
           ) : (
             <img
               src={item.src}
