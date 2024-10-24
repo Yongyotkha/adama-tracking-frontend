@@ -47,19 +47,12 @@ export default function Login() {
       >
         {contextHolder}
 
-        {/* Logo at the Top */}
+        <div className="w-full max-w-lg mt-auto p-3">
 
-        {/* Form */}
-        <div className="w-full max-w-lg mt-auto">
+          {/* Logo at the Top */}
           <Logo width="w-[100%]" className="mb-10" />
+
           <Form
-            // name="basic"
-            // labelCol={{ span: 7 }}
-            // wrapperCol={{ span: 20 }}
-            // initialValues={{ remember: true }}
-            // onFinish={onFinish}
-            // onFinishFailed={onFinishFailed}
-            // autoComplete="off"
             name="basic"
             labelCol={{ span: 7 }}
             wrapperCol={{ span: 30 }}
@@ -128,7 +121,7 @@ export default function Login() {
         </div>
 
         {/* Footer */}
-        <div className="mt-auto text-center text-white">
+        <div className="mt-auto text-center text-white pb-3">
           <p>Copyright © ADAMA</p>
         </div>
       </LoginLayout>
