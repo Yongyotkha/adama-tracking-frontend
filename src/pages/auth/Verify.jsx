@@ -2,10 +2,8 @@ import React, { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useServiceAPI from "../../services/corsService";
 import { paths } from "../../services/CorsPath";
-
 import { Form, Input, message, Row, Col } from "antd";
-import LoginLayout from "../../layouts/LoginLayout";
-import Logo from "../../components/logo/Logo";
+import MessageLayout from "../../layouts/MessageLayout";
 import Button from "../../components/button/Button";
 
 export default function Verify() {
@@ -15,7 +13,7 @@ export default function Verify() {
 
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [isResendDisabled, setResendDisabled] = useState(true);
-  const [timeLeft, setTimeLeft] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(30); // 5 minutes
   const [btnVerify, setBtnVerify] = useState("Verify");
 
   const [messageApi, contextHolder] = message.useMessage();
@@ -68,7 +66,7 @@ export default function Verify() {
   // Resend OTP function
   const handleResend = () => {
     setResendDisabled(true);
-    setTimeLeft(60);
+    setTimeLeft(30);
     // Mock resend function, replace with real API call if needed
     showMsg("info", "OTP code has been resent!");
   };
@@ -80,24 +78,29 @@ export default function Verify() {
       return () => clearTimeout(timer);
     } else {
       setResendDisabled(false);
-      setBtnVerify("Resend");
     }
-  }, [timeLeft, btnVerify]);
+  }, [timeLeft]);
+
+  // Convert timeLeft to minutes and seconds format (MM:SS)
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
 
   return (
     <>
-      <LoginLayout
+      <MessageLayout
         loading={loading}
         childrenStyle="flex justify-center items-center  flex-col gap-3 h-full"
       >
         {contextHolder}
-        <Logo width="w-[20%]" />
-        <div>
-          <span className="text-white">Listen • Learn • Delivery</span>
-        </div>
+        <p className="text-[#00783F] text-lg font-bold">OTP Verification</p>
+        <p className="text-[#978B87]">Enter the OTP sent to</p>
+        <p className="text-[#00783F] text-lg font-bold">+66801xxxx67</p>
         <Form
           name="otpVerification"
-          labelCol={{ span: 7 }}
+          labelCol={{ span: 8 }}
           wrapperCol={{ span: 20 }}
           style={{ maxWidth: 700 }}
           onFinish={onFinish}
@@ -110,50 +113,72 @@ export default function Verify() {
                   id={`otp-input-${index}`}
                   maxLength={1}
                   value={digit}
-                  type="number"
+                  type="tel"
                   onChange={(e) => handleChange(index, e)}
+                  className={`
+                    ${digit ? 'text-white bg-[#7DB41E]' : 'text-black bg-white'} 
+                    hover:bg-[#7DB41E] 
+                    focus:bg-[#7DB41E] focus:text-white
+                    border-none
+                  `}
                   style={{
-                    width: "60px",
-                    height: "60px",
+                    width: "50px",
+                    height: "50px",
                     fontSize: "24px",
                     textAlign: "center",
+                    transition: "background-color 0.3s ease", // Optional smooth transition
                   }}
                   placeholder="0"
                 />
               </Col>
             ))}
           </Row>
-          <Form.Item wrapperCol={{ offset: 4, span: 18 }}>
-            <p
-              className="flex-auto text-gray-100"
-              style={{ textAlign: "center" }}
-            >
-              Ref number: SAR79L Enter OTP code within 5 minutes.
+          <div>
+            <p className="text-center mb-3 text-[#978B87]">
+              Referral Code XRE0FC Please enter OTP
+              <br />
+              within 5 minutes.
             </p>
-            <p
-              className="flex-auto text-gray-100"
-              style={{ textAlign: "center" }}
-            >
-              Resend code in {isResendDisabled ? `${timeLeft} seconds` : "Now"}
+            <p className="text-center mb-3 text-[#978B87]">
+              {isResendDisabled ? formatTime(timeLeft) : ""}
             </p>
+          </div>
+
+          {/* This section will only appear when the timer reaches zero */}
+          {!isResendDisabled && (
+            <div className="text-center py-5">
+              <p className="text-center mb-3 text-[#978B87]">
+                Didn't you receive any code?
+              </p>
+              <Button
+                type="link"
+                text='RESEND OTP'
+                onClick={handleResend}
+                className='text-[#F5B317] font-bold'
+              />
+            </div>
+          )}
+
+          <div className="mb-40">
             <Button
               type="primary"
-              className="flex w-full justify-center rounded-md bg-gray-100 text-green-600 hover:bg-gray-200 hover:text-green-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              className="flex w-full justify-center rounded-sm bg-[#00783F] text-white hover:bg-[#00783F] hover:text-green-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-full max-w-full mb-3"
               htmlType="submit"
-              text={btnVerify}
+              text="Verify"
               disabled={loading}
-            ></Button>
-          </Form.Item>
-          <Form.Item wrapperCol={{ offset: 4, span: 18 }}>
-            {/* <Button
-              type="link"
-              text="Resend"
-              onClick={handleResend}
-              disabled={isResendDisabled}
-            ></Button> */}
-          </Form.Item>
+            />
+
+            <Button
+              type="primary"
+              className="flex w-full justify-center rounded-sm bg-white text-[#00783F] hover:bg-white hover:text-gray-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-full max-w-full mb-3"
+              htmlType="button"
+              text="Cancel"
+              disabled={loading}
+              onClick={() => navigate("/")} // Navigate back on cancel
+            />
+          </div>
         </Form>
-      </LoginLayout>
+      </MessageLayout>
     </>
   );
 }

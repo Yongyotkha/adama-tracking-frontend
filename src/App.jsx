@@ -7,6 +7,7 @@ import Error from "./pages/error/Error";
 import Login from "./pages/auth/Login";
 import Users from "./pages/users/Users";
 import Verify from "./pages/auth/Verify";
+import ForgotPassword from "./pages/auth/ForgotPassword";
 import Wiki from "./pages/wiki/Wiki";
 import Dashboard from "./pages/dashboard/Dashboard";
 import WorkPlan from "./pages/workplan/WorkPlan";
@@ -23,6 +24,7 @@ const App = () => {
           {/* <Route path="/" element={<Welcome />} /> */}
           <Route path="/login" element={<Login />} />
           <Route path="/verify-otp" element={<Verify />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/" element={<Dashboard />} />
           <Route path="/sale-plan/work-plan" element={<WorkPlan />} />
           <Route

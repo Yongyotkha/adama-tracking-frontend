@@ -5,7 +5,6 @@ import { Checkbox, Form, Input, message } from "antd";
 import Button from "../../components/button/Button";
 import LoginLayout from "../../layouts/LoginLayout";
 import Logo from "../../components/logo/Logo";
-
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -107,7 +106,7 @@ export default function Login() {
               <Button
                 type="primary"
                 htmlType="submit"
-                className="flex w-full justify-center rounded-md bg-[#00783F] text-white hover:bg-[#00783F] hover:text-green-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-full max-w-full"
+                className="flex w-full justify-center rounded-sm bg-[#00783F] text-white hover:bg-[#00783F] hover:text-green-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-full max-w-full"
                 text="Login"
                 disabled={loading}
               ></Button>
