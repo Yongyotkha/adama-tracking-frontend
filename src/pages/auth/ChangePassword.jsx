@@ -58,7 +58,6 @@ export default function Verify() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-
         <Input.Password
           placeholder="Confirm Password"
           className={`p-2 rounded-md border mb-4 ${allGreen ? "border-green-500" : isPasswordMatch || !confirmPassword ? "border-gray-300" : "border-red-500"
@@ -74,18 +73,18 @@ export default function Verify() {
           {passwordStrength.results.map((condition, index) => (
             <li
               key={index}
-              className={`${condition.isMet ? "text-green-500" : "text-red-500"
-                }`}
+              className={`${condition.isMet ? "text-green-500" : "text-red-500"}`}
             >
               {condition.text}
             </li>
           ))}
-          <li
-            className={`${passwordStrength.isStrong ? "text-green-500" : "text-red-500"
-              }`}
-          >
-            Password Strength: {passwordStrength.isStrong ? "Strong" : "Weak"}
-          </li>
+          {password.length > 0 && (
+            <li
+              className={`${passwordStrength.isStrong ? "text-green-500" : "text-red-500"}`}
+            >
+              Password Strength: {passwordStrength.isStrong ? "Strong" : "Weak"}
+            </li>
+          )}
         </ul>
 
         <div className="mb-40">
