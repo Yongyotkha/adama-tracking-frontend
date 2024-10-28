@@ -29,6 +29,7 @@ export default function Verify() {
   };
 
   const passwordStrength = checkPasswordStrength(password);
+  const isPasswordMatch = password && confirmPassword && password === confirmPassword;
 
   return (
     <MessageLayout
@@ -54,14 +55,23 @@ export default function Verify() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+        
         <Input.Password
           placeholder="Confirm Password"
-          className="p-2 rounded-md border border-gray-300 mb-8"
+          className={`p-2 rounded-md border mb-1 ${
+            isPasswordMatch || !confirmPassword ? "border-gray-300" : "border-red-500"
+          }`}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
 
-        <ul className="list-disc pl-5 mb-4">
+        {!isPasswordMatch && confirmPassword && (
+          <p className="text-red-500 text-sm mt-1">
+            Passwords do not match
+          </p>
+        )}
+
+        <ul className="list-disc pl-5 my-4">
           {passwordStrength.results.map((condition, index) => (
             <li
               key={index}
