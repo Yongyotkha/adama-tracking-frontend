@@ -92,12 +92,12 @@ export default function Verify() {
     <>
       <MessageLayout
         loading={loading}
-        childrenStyle="flex justify-center items-center  flex-col gap-3 h-full"
+        childrenStyle="flex justify-center items-center flex-col gap-3 h-full max-w-xs p-4 m-auto"
       >
         {contextHolder}
-        <p className="text-[#00783F] text-lg font-bold">OTP Verification</p>
+        <p className="text-[#00783F] text-xl font-bold">OTP Verification</p>
         <p className="text-[#978B87]">Enter the OTP sent to</p>
-        <p className="text-[#00783F] text-lg font-bold">+66801xxxx67</p>
+        <p className="text-[#00783F] text-xl font-bold">+66801xxxx67</p>
         <Form
           name="otpVerification"
           labelCol={{ span: 8 }}
@@ -174,7 +174,7 @@ export default function Verify() {
               htmlType="button"
               text="Cancel"
               disabled={loading}
-              onClick={() => navigate("/")} // Navigate back on cancel
+              onClick={() => navigate("/login")} // Navigate back on cancel
             />
           </div>
         </Form>
