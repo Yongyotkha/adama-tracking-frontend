@@ -52,7 +52,7 @@ export default function Verify() {
 
         <Input.Password
           placeholder="New Password"
-          className={`p-2 rounded-md border mb-4 mt-4 ${passwordStrength.isStrong ? "border-green-500" : "border-red-500"
+          className={`p-2 rounded-md border mb-4 mt-4 ${passwordStrength.isStrong ? "border-green-500" : ""
             }`}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
