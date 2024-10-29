@@ -10,9 +10,9 @@ export default function WorkPlan() {
     <>
       <MainLayout
         loading={loading}
-        childrenStyle="flex flex-col justify-center items-center h-screen"
+        childrenStyle="flex flex-col justify-center items-center h-screen m-auto"
       >
-        <img src="/img/503-Page-Service-unavailable.png" alt="503 Page Service unavailable" className="w-[50%] mb-6" />
+        <img src="/img/503-Page-Service-unavailable.png" alt="503 Page Service unavailable" className="mb-6" />
 
         <div className="text-[39px] text-[#00783F] font-bold text-center mb-6">
           Page Not Found

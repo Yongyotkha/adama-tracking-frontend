@@ -10,9 +10,9 @@ export default function WorkPlan() {
     <>
       <MainLayout
         loading={loading}
-        childrenStyle="flex flex-col justify-center items-center h-screen"
+        childrenStyle="flex flex-col justify-center items-center h-screen m-auto"
       >
-        <img src="/img/404-Page-Not-Found.png" alt="404 Page Not Found" className="w-[50%] mb-6" />
+        <img src="/img/404-Page-Not-Found.png" alt="404 Page Not Found" className="mb-6" />
 
         <div className="text-[39px] text-[#00783F] font-bold text-center mb-6">
           Page Not Found
