@@ -17,6 +17,10 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import WorkPlan from "./pages/workplan/WorkPlan";
 import WorkPlanCreate from "./pages/workplan/WorkPlanCreate";
 import WorkPlanCreateStepTwo from "./pages/workplan/WorkPlanCreateStepTwo";
+import SettingRole from "./pages/settings/SettingRole";
+import SettingUser from "./pages/settings/SettingUser";
+import SettingSale from "./pages/settings/SettingSale";
+import SettingProduct from "./pages/settings/SettingProduct";
 import { ConfigProvider } from "antd";
 
 const App = () => {
@@ -40,6 +44,11 @@ const App = () => {
             path="/sale-plan/work-plan/create-2"
             element={<WorkPlanCreateStepTwo />}
           />
+          <Route path="/setting/role" element={<SettingRole />} />
+          <Route path="/setting/user" element={<SettingUser />} />
+          <Route path="/setting/sale" element={<SettingSale />} />
+          <Route path="/setting/product" element={<SettingProduct />} />
+
           <Route path="/error/403" element={<Error403 />} />
           <Route path="*" element={<Error404 />} />
           <Route path="/error/500" element={<Error500 />} />

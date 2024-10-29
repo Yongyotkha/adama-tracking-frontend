@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { Menu, Dropdown, Carousel, Button } from "antd";
+import React, { useState, useEffect, useRef } from "react";
+import { Menu, Dropdown, Carousel } from "antd";
 import "./Navbar.css";
 import Logo from "../logo/Logo";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   EditOutlined,
   EyeOutlined,
@@ -12,6 +12,9 @@ import {
 
 const Navbar = () => {
   const navigate = useNavigate(); // เริ่มต้นการนำทาง
+  const location = useLocation();
+  const carouselRef = useRef(null); // Create a reference for the carousel
+  const [activeIndex, setActiveIndex] = useState(0); // Track active index
 
   const menuItems = [
     {
@@ -73,9 +76,15 @@ const Navbar = () => {
     {
       label: "Setting",
       icon: "/img/icons/setting.png",
-      dropdownMenu: false,
-      path: "/settings", // Adjust if needed
+      dropdownMenu: true,
+      dropdownItems: [
+        { key: "1", label: "Manage Roles", path: "setting/role" },
+        { key: "2", label: "Manage Users", path: "setting/user" },
+        { key: "3", label: "Sale Management", path: "setting/sale" },
+        { key: "4", label: "Product Management", path: "setting/product" },
+      ],
     },
+
   ];
 
   const userMenuItems = [
@@ -109,7 +118,6 @@ const Navbar = () => {
     return (
       <Menu
         onClick={({ key }) => {
-          console.log(key);
           const item = items.find((item) => item.key === key);
           if (item.onClick) {
             item.onClick();
@@ -119,14 +127,24 @@ const Navbar = () => {
         }}
         items={items.map((item) => ({
           key: item.key,
-          label: <span style={{ color: "#978B87" }}>{item.label}</span>,
+          label: (
+            <span
+              className={`${
+                location.pathname.startsWith(`/${item.path}`)
+                  ? "pointer-events-none font-bold"
+                  : ""
+              } text-[#978B87]`} // add padding, rounded corners, and block display for consistent styling
+            >
+              {item.label}
+            </span>
+          ),
         }))}
         className="relative bg-white bg-right bg-no-repeat bg-contain p-4 rounded-md w-[300px] text-[#978B87]"
         style={{ backgroundImage: "url('/img/dropdown-bg.png')" }}
       />
     );
   };
-
+  
   const CustomDropdownMenuProfile = ({ items }) => {
     const navigate = useNavigate();
 
@@ -134,8 +152,7 @@ const Navbar = () => {
       key: item.key,
       label: (
         <div
-          className="flex items-center gap-[10px] cursor-pointer"
-          style={{ color: "#978B87" }}
+          className="flex items-center gap-[10px] cursor-pointer text-[#978B87]"
           onClick={() => navigate(item.path)}
         >
           {item.icon ? (
@@ -147,7 +164,7 @@ const Navbar = () => {
               className="w-5 h-5 mr-2"
             />
           )}
-          <span style={{ color: "#978B87" }}>{item.label}</span>
+          <span className="text-[#978B87]">{item.label}</span>
         </div>
       ),
     }));
@@ -160,11 +177,28 @@ const Navbar = () => {
     );
   };
 
-  // Carousel Settings
+  const isActivePath = (path, subPaths = []) => {
+    // Check if the current path matches the exact path or any sub-paths
+    return location.pathname === path || subPaths.some((subPath) => location.pathname.startsWith(`/${subPath}`));
+  };
+
+  const handleNavigate = (path, index) => {
+    setActiveIndex(index); // Set active index when navigating
+    navigate(path);
+  };
+
+  useEffect(() => {
+    if (carouselRef.current) {
+      // Slide the carousel to the active menu item
+      carouselRef.current.goTo(activeIndex);
+    }
+  }, [activeIndex]);
+
   const carouselSettings = {
     dots: false,
     speed: 500,
     slidesToShow: 6,
+    ref: carouselRef, // Attach ref to carousel
     responsive: [
       { breakpoint: 1200, settings: { slidesToShow: 4 } },
       { breakpoint: 1024, settings: { slidesToShow: 3 } },
@@ -181,13 +215,20 @@ const Navbar = () => {
       <div className="relative px-5 w-4/6 max-w-3xl">
         <Carousel arrows infinite={false} {...carouselSettings}>
           {menuItems.map((item, index) => {
+            const isActive = item.dropdownMenu
+              ? isActivePath(item.path, item.dropdownItems.map((subItem) => subItem.path))
+              : isActivePath(item.path);
+
             if (item.dropdownMenu) {
               return (
                 <Dropdown
                   key={index}
                   overlay={<CustomDropdownMenu items={item.dropdownItems} />}
                 >
-                  <div className="py-5 text-center text-white flex items-center justify-center h-full menu-item">
+                  <div
+                    className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
+                      }`}
+                  >
                     <img
                       src={item.icon}
                       alt={`${item.label} Icon`}
@@ -201,8 +242,9 @@ const Navbar = () => {
               return (
                 <div
                   key={index}
-                  className="py-5 text-center text-white flex items-center justify-center h-full menu-item cursor-pointer"
-                  onClick={() => navigate(item.path)} // Navigates to the correct path
+                  className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
+                    } cursor-pointer`}
+                    onClick={() => handleNavigate(item.path, index)}
                 >
                   <img
                     src={item.icon}

@@ -6,15 +6,13 @@ const DynamicButton = ({
   className,
   disabled,
   iconSrc,
-  style,
 }) => {
   return (
     // Static max-width = fit-content when change USE Style
     <button
-      className={`cursor-pointer text-center font-light text-sm rounded-[5px] ${className} max-w-fit`}
+      className={`cursor-pointer text-center font-light text-sm rounded-[5px] max-w-fit ${className}`}
       onClick={onClick}
       disabled={disabled}
-      style={{ ...style }}
     >
       {iconSrc && (
         <span>

@@ -12,7 +12,4 @@ button.slick-arrow.slick-prev {
     transition: background-color 0.3s ease, font-weight 0.3s ease; /* Smooth transition */
 }
 
-.menu-item:hover {
-    background-color: #00783f; /* Changes background on hover */
-    font-weight: 600; /* Changes text to bold on hover */
-}
+
