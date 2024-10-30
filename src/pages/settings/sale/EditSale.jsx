@@ -89,12 +89,12 @@ export default function EditSale() {
           <DynamicButton
             text="Back"
             className="bg-[#B6AEAB] min-w-[96px] text-[#ffff] rounded-sm p-2"
-            path='/setting/product'
+            path='/setting/sale'
           />
           <DynamicButton
             text="Update"
             className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
-            path='/setting/product'
+            path='/setting/sale'
           />
         </div>
       </MainLayout>
