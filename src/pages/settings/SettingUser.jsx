@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import Logo from "../../components/logo/Logo";
 import Filter from "../../components/filter/Filter";
-
+import TableComponent from "../../components/table/TableComponent";
+import Button from "../../components/button/Button";
+import { Dropdown } from "antd";
+import BadgeStatus from "../../components/badge/BadgeStatus";
 export default function Dashboard() {
   const [loading, setLoading] = useState(false);
 
@@ -48,6 +50,116 @@ export default function Dashboard() {
     console.log("Filters cleared");
   };
 
+  // Data in Table 
+  const header = [
+    {
+      title: "Years",
+      width: 100,
+      dataIndex: "year",
+      align: "left",
+    },
+    {
+      title: "Work Plan (THB)",
+      width: 100,
+      dataIndex: "workPlan",
+      align: "left",
+    },
+    {
+      title: "Last modified",
+      width: 100,
+      dataIndex: "lastModified",
+      align: "left",
+    },
+    {
+      title: "Status",
+      width: 100,
+      dataIndex: "status",
+      align: "left",
+    },
+    {
+      title: "Action",
+      width: 100,
+      dataIndex: "action",
+      align: "left",
+    },
+  ];
+
+  const items = [
+    {
+      key: "1",
+      label: (
+        <a
+          // target="_blank"
+          rel="noopener noreferrer"
+          href="/sale-plan/work-plan/create"
+        >
+          create
+        </a>
+      ),
+    },
+    {
+      key: "2",
+      label: (
+        <a rel="noopener noreferrer" href="/sale-plan/work-plan/edit">
+          edit
+        </a>
+      ),
+    },
+  ];
+
+  const dataSource = [
+    {
+      key: 1,
+      workPlan: 0,
+      year: "2024",
+      action: (
+        <Dropdown
+          menu={{
+            items,
+          }}
+          placement="bottom"
+        >
+          <a onClick={(e) => e.preventDefault()}>
+            <img
+              src="/img/icons/action.png"
+              alt="button icon"
+              className="inline-block w-5 h-5 mr-2"
+            />
+          </a>
+        </Dropdown>
+      ),
+      status: (
+        <BadgeStatus text="Complete" bgColor="#00783F" textColor="#FFFFFF" />
+      ),
+      lastModified: "2024-01-01 11:11",
+    },
+    {
+      key: 2,
+      workPlan: 1000000,
+      year: "2023",
+      action: (
+        <Dropdown
+          menu={{
+            items,
+          }}
+          placement="bottom"
+        >
+          <a onClick={(e) => e.preventDefault()}>
+            <img
+              src="/img/icons/action.png"
+              alt="button icon"
+              className="inline-block w-5 h-5 mr-2"
+            />
+          </a>
+        </Dropdown>
+      ),
+      status: (
+        <BadgeStatus text="Complete" bgColor="#00783F" textColor="#FFFFFF" />
+      ),
+      lastModified: "2024-01-01 11:11",
+    },
+  ];
+
   return (
     <>
       <MainLayout
@@ -56,6 +168,7 @@ export default function Dashboard() {
         <div className="title-page">Manage Users</div>
 
         <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
+        <TableComponent header={header} dataSource={dataSource} />
 
       </MainLayout>
 
