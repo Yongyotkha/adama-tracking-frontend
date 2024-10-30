@@ -22,9 +22,9 @@ import SettingSale from "./pages/settings/SettingSale";
 import SettingProduct from "./pages/settings/SettingProduct";
 import { ConfigProvider } from "antd";
 import CreateUser from "./pages/settings/user/CreateUser";
+import WorkPlanAreaCreate from "./pages/workplan/WorkPlanAreaCreate";
 
 const App = () => {
-
   return (
     <Router>
       <AuthProvider>
@@ -55,6 +55,14 @@ const App = () => {
           <Route path="/error/500" element={<Error500 />} />
           <Route path="/error/503" element={<Error503 />} />
           <Route path="/wiki" element={<Wiki />} />
+
+          {/* SHOW USER PATH */}
+
+          <Route
+            path="/sale-plan/work-plan/sale-area-create"
+            element={<WorkPlanAreaCreate />}
+          />
+  
         </Routes>
       </AuthProvider>
     </Router>

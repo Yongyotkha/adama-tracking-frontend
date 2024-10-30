@@ -14,49 +14,153 @@ export default function WorkPlanCreateStepTwo() {
   const [dataSourceProduct, setDataSourceProduct] = useState([]);
 
   useEffect(() => {
+    const initialData = [
+      {
+        key: "1",
+        name: "Sale Plane(THB)",
+        area1: 205250000,
+        area2: 186500000,
+      },
+    ];
+
+    const initialDataProduct = [
+      {
+        key: "1",
+        productName: "Ossinate 15%SL",
+        packSize: "1Kg.",
+        originalQty: 50000,
+        value: 12500000,
+        unitPrice: 250,
+        qtyArea1: 50000,
+        valueArea1: 12500000,
+        qtyArea2: 50000,
+        valueArea2: 12500000,
+      },
+      {
+        key: "2",
+        productName: "Apopo 20%SE",
+        packSize: "1Lt.",
+        originalQty: 120000,
+        unitPrice: 350,
+        value: 42000000,
+        qtyArea1: 50000,
+        valueArea1: 12500000,
+        qtyArea2: 50000,
+        valueArea2: 12500000,
+      },
+      {
+        key: "3",
+        productName: "Atrannex 90WG",
+        packSize: "5Kg.",
+        originalQty: 320000,
+        unitPrice: 450,
+        value: 144000000,
+        qtyArea1: 50000,
+        valueArea1: 12500000,
+        qtyArea2: 50000,
+        valueArea2: 12500000,
+      },
+      {
+        key: "4",
+        productName: "Baloric 320EC",
+        packSize: "0.5Lt.",
+        originalQty: 12000,
+        unitPrice: 150,
+        value: 1800000,
+        qtyArea1: 50000,
+        valueArea1: 12500000,
+        qtyArea2: 50000,
+        valueArea2: 12500000,
+      },
+      {
+        key: "5",
+        productName: "Bla-S",
+        packSize: "0.25Lt.",
+        originalQty: 600000,
+        unitPrice: 250,
+        value: 150000000,
+        qtyArea1: 50000,
+        valueArea1: 12500000,
+        qtyArea2: 50000,
+        valueArea2: 12500000,
+      },
+      {
+        key: "6",
+        productName: "Bumper P",
+        packSize: "0.5Lt.",
+        originalQty: 4300,
+        unitPrice: 250,
+        value: 1075000,
+        qtyArea1: 50000,
+        valueArea1: 12500000,
+        qtyArea2: 50000,
+        valueArea2: 12500000,
+      },
+      {
+        key: "7",
+        productName: "Custodia",
+        packSize: "1Lt.",
+        originalQty: 43500,
+        unitPrice: 250,
+        value: 10875000,
+        qtyArea1: 50000,
+        valueArea1: 12500000,
+        qtyArea2: 50000,
+        valueArea2: 12500000,
+      },
+      {
+        key: "8",
+        productName: "Damatin 5%WG",
+        packSize: "20Lt.",
+        originalQty: 30000,
+        unitPrice: 250,
+        value: 7500000,
+        qtyArea1: 50000,
+        valueArea1: 12500000,
+        qtyArea2: 50000,
+        valueArea2: 12500000,
+      },
+      {
+        key: "9",
+        productName: "Durivo 63SC",
+        packSize: "1Lt.",
+        originalQty: 45000,
+        unitPrice: 250,
+        value: 11250000,
+        qtyArea1: 50000,
+        valueArea1: 12500000,
+        qtyArea2: 50000,
+        valueArea2: 12500000,
+      },
+      {
+        key: "10",
+        productName: "Hamper 300SC",
+        packSize: "1Lt.",
+        originalQty: 43000,
+        unitPrice: 250,
+        value: 10750000,
+        qtyArea1: 50000,
+        valueArea1: 12500000,
+        qtyArea2: 50000,
+        valueArea2: 12500000,
+      },
+    ];
+
     setDataSource(initialData);
-  }, []);
-  useEffect(() => {
     setDataSourceProduct(initialDataProduct);
   }, []);
-
-
-  const initialData = [
-    {
-      key: "1",
-      name: "Sale Plane(THB)",
-      area1: 205250000,
-      area2: 186500000,
-    },
-  ];
-
-  const initialDataProduct = [
-    {
-      key: "1",
-      name: "Sale Plane(THB)",
-      area1: 205250000,
-      area2: 186500000,
-    },
-    {
-      key: "2",
-      name: "Sale Plane(THB)",
-      area1: 205250000,
-      area2: 186500000,
-    },
-  ];
-
-
 
   const header = [
     {
       title: "Area Sale Manager Name",
       dataIndex: "name",
-      key: "name",
+      key: "1",
     },
     {
       title: "Veerasak Likitmanchai (Area1)",
       dataIndex: "area1",
-      key: "area1",
+      key: "2",
+      width: 400,
       render: (text, record) => (
         <InputNumber
           className="w-full"
@@ -73,7 +177,8 @@ export default function WorkPlanCreateStepTwo() {
     {
       title: "Cheerayut Inthong (Area2)",
       dataIndex: "area2",
-      key: "area2",
+      key: "3",
+      width: 400,
       render: (text, record) => (
         <InputNumber
           className="w-full"
@@ -88,21 +193,23 @@ export default function WorkPlanCreateStepTwo() {
       ),
     },
   ];
+
   const headerProduct = [
     {
       title: "Product Name",
-      dataIndex: "name",
-      key: "name",
+      dataIndex: "productName",
+      key: "1",
     },
     {
       title: "Pack Size",
-      dataIndex: "name",
-      key: "name",
+      dataIndex: "packSize",
+      key: "2",
     },
     {
       title: "Original Plan",
-      dataIndex: "area1",
-      key: "area1",
+      dataIndex: "originalQty",
+      key: "3",
+      width: 200,
       render: (text, record) => (
         <InputNumber
           className="w-full"
@@ -118,8 +225,9 @@ export default function WorkPlanCreateStepTwo() {
     },
     {
       title: "Value (ฺTHB)",
-      dataIndex: "area2",
-      key: "area2",
+      dataIndex: "value",
+      key: "4",
+      width: 200,
       render: (text, record) => (
         <InputNumber
           className="w-full"
@@ -135,25 +243,9 @@ export default function WorkPlanCreateStepTwo() {
     },
     {
       title: "Qty (KG)",
-      dataIndex: "area2",
-      key: "area2",
-      render: (text, record) => (
-        <InputNumber
-          className="w-full"
-          min={0}
-          value={text}
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
-          onChange={(value) => handleQtyChange(value, record.key)}
-          disabled={true}
-        />
-      ),
-    },
-    {
-      title: "Original Plan",
-      dataIndex: "area1",
-      key: "area1",
+      dataIndex: "qtyArea1",
+      key: "5",
+      width: 200,
       render: (text, record) => (
         <InputNumber
           className="w-full"
@@ -169,8 +261,9 @@ export default function WorkPlanCreateStepTwo() {
     },
     {
       title: "Value (ฺTHB)",
-      dataIndex: "area2",
-      key: "area2",
+      dataIndex: "valueArea1",
+      key: "6",
+      width: 200,
       render: (text, record) => (
         <InputNumber
           className="w-full"
@@ -186,8 +279,9 @@ export default function WorkPlanCreateStepTwo() {
     },
     {
       title: "Qty (KG)",
-      dataIndex: "area2",
-      key: "area2",
+      dataIndex: "qtyArea2",
+      key: "7",
+      width: 200,
       render: (text, record) => (
         <InputNumber
           className="w-full"
@@ -201,7 +295,24 @@ export default function WorkPlanCreateStepTwo() {
         />
       ),
     },
-   
+    {
+      title: "Value (ฺTHB)",
+      dataIndex: "valueArea2",
+      key: "8",
+      width: 200,
+      render: (text, record) => (
+        <InputNumber
+          className="w-full"
+          min={0}
+          value={text}
+          formatter={(value) =>
+            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
+          onChange={(value) => handleQtyChange(value, record.key)}
+          disabled={true}
+        />
+      ),
+    },
   ];
 
   const handleQtyChange = (value, key) => {
@@ -240,19 +351,22 @@ export default function WorkPlanCreateStepTwo() {
           <DynamicButton
             text="Back"
             className="bg-[#B6AEAB] text-[#ffff] rounded-lg p-2"
-            // onClick={() => alert("Image Icon Button Clicked!")}
+            onClick={() =>
+              navigate("/sale-plan/work-plan/create", {
+                state: { data: {} },
+              })
+            }
           />
           <DynamicButton
-            text="Back"
-            className="bg-[#B6AEAB] text-[#ffff] rounded-lg p-2"
-            // onClick={() => alert("Image Icon Button Clicked!")}
+            text="Save Draft"
+            className="bg-[#F89E18] text-[#ffff] rounded-lg p-2"
+            onClick={() => navigate("/sale-plan/work-plan")}
           />
+
           <DynamicButton
             text="Save and Next"
             className="bg-[#00783F] text-[#ffff] rounded-lg p-2"
-            onClick={() => {
-              navigate(link, { state: { data: option.editId } });
-            }}
+            onClick={() => navigate("/sale-plan/work-plan")}
           />
         </div>
       </MainLayout>

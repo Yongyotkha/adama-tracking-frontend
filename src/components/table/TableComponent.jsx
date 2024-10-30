@@ -2,7 +2,14 @@ import React, { useState } from "react";
 import { ConfigProvider, Table } from "antd";
 import "./TableComponent.css";
 
-const TableComponent = ({ header, dataSource, pageSize, footer , pagination }) => {
+const TableComponent = ({
+  header,
+  dataSource,
+  pageSize,
+  footer,
+  pagination,
+  scroll,
+}) => {
   return (
     <ConfigProvider
       theme={{
@@ -26,9 +33,12 @@ const TableComponent = ({ header, dataSource, pageSize, footer , pagination }) =
       <Table
         columns={header}
         dataSource={dataSource}
-        pagination={pagination == false ? pagination : { pageSize: pageSize ?? 10 }}
+        pagination={
+          pagination == false ? pagination : { pageSize: pageSize ?? 10 }
+        }
         scroll={{
-          x: 1000,
+          x: scroll ? "max-content" : 1000,
+          // x: 'max-content',
         }}
         footer={footer ? () => footer : null}
       />
