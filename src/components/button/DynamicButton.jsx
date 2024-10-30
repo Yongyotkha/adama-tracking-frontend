@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const DynamicButton = ({
   text,
@@ -6,11 +7,22 @@ const DynamicButton = ({
   className,
   disabled,
   iconSrc,
+  path,
 }) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (path) {
+      navigate(path);
+    } else if (onClick) {
+      onClick();
+    }
+  };
+
   return (
     <button
       className={`cursor-pointer text-center font-light text-sm rounded-[5px] ${className}`}
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled}
     >
       {iconSrc && (

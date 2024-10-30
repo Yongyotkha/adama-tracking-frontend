@@ -13,41 +13,50 @@ export default function SettingUser() {
   const [dataSource, setDataSource] = useState([]);
   const navigate = useNavigate();
 
-
   const filters = [
     {
-      key: "year",
+      key: "name",
       type: "select",
-      label: "Year",
+      label: "Name",
       options: [
-        { value: 2021, label: "2021" },
-        { value: 2022, label: "2022" },
-        { value: 2023, label: "2023" },
+        { value: "", label: "All" },
+        { value: "John Doe", label: "John Doe" },
+        { value: "Jane Smith", label: "Jane Smith" },
+        // Add more names as options if needed
       ],
     },
     {
-      key: "status",
-      type: "select",
-      label: "Status",
-      options: [
-        { value: "Active", label: "Active" },
-        { value: "Inactive", label: "Inactive" },
-        { value: "Pending", label: "Pending" },
-      ],
-    },
-    {
-      key: "productName",
+      key: "contact_number",
       type: "text",
-      label: "Product Name",
-      placeholder: "Enter product name",
+      label: "Contact Number",
+      placeholder: "All",
     },
     {
-      key: "quantity",
-      type: "number",
-      label: "Quantity",
-      placeholder: "Enter quantity",
+      key: "position",
+      type: "select",
+      label: "Position",
+      options: [
+        { value: "", label: "All" },
+        { value: "Manager", label: "Manager" },
+        { value: "Sales Assistant", label: "Sales Assistant" },
+        { value: "Director", label: "Director" },
+        // Add more positions as needed
+      ],
+    },
+    {
+      key: "role",
+      type: "select",
+      label: "Role",
+      options: [
+        { value: "", label: "All" },
+        { value: "Admin", label: "Admin" },
+        { value: "User", label: "User" },
+        { value: "Viewer", label: "Viewer" },
+        // Add more roles as needed
+      ],
     },
   ];
+  
   const handleSearch = (filter) => {
     console.log("Search filters applied:", filter);
   };
@@ -113,8 +122,13 @@ export default function SettingUser() {
     {
       key: "1",
       label: (
-        <a rel="noopener noreferrer" href="/sale-plan/work-plan/edit">
-          edit
+        <a rel="noopener noreferrer" href="/setting/user/edit" className="flex gap-1" >
+          <img
+            src="/img/icons/edit.png"
+            alt="button icon"
+            className="inline-block h-5"
+          />
+          <span className="text-[#978B87]">Edit</span>
         </a>
       ),
     },
@@ -140,14 +154,14 @@ export default function SettingUser() {
             </a>
           </Dropdown>
         ),
-        name:"Chayanon Tunyateerapong ",
+        name: "Chayanon Tunyateerapong ",
         status: (
           <BadgeStatus text="Active" bgColor="#00783F" textColor="#FFFFFF" />
         ),
-        contact_number:"0818590775",
-        email:"chayanon.tunyateerapong@adama.com",
-        position:"Industrial Business Sales Director",
-        role:"All Sales Module",
+        contact_number: "0818590775",
+        email: "chayanon.tunyateerapong@adama.com",
+        position: "Industrial Business Sales Director",
+        role: "All Sales Module",
       },
     ];
 
@@ -159,7 +173,8 @@ export default function SettingUser() {
       <MainLayout loading={loading}>
         <div className="flex items-center justify-between">
           <div className="title-page">Manage Users</div>
-          <ActionButton mode="create" text="Create" onClick={(e) => navigate("/setting/user/create")}/>
+          <ActionButton mode="sync" text="Sync SAP" onClick='' className="ms-auto me-2" />
+          <ActionButton mode="create" text="Create" onClick={(e) => navigate("/setting/user/create")} />
         </div>
 
         <Filter
