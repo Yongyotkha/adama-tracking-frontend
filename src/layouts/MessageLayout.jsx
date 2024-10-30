@@ -1,7 +1,7 @@
 import React from "react";
 import { Spin } from "antd";
 
-export default function LoginLayout({ children, loading, childrenStyle }) {
+export default function MessageLayout({ children, loading, childrenStyle }) {
   return (
     <>
       <Spin tip="Loading" size="large" fullscreen="true" spinning={loading} />

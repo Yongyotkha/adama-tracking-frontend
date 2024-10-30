@@ -3,7 +3,7 @@ import MainLayout from "../../layouts/MainLayout";
 import Logo from "../../components/logo/Logo";
 import Filter from "../../components/filter/Filter";
 
-export default function Dashboard() {
+export default function SettingRole() {
   const [loading, setLoading] = useState(false);
 
   const filters = [

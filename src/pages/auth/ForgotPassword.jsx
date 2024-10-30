@@ -5,7 +5,7 @@ import Button from "../../components/button/Button";
 import { Input } from "antd";
 
 
-export default function Verify() {
+export default function ForgotPassword() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 

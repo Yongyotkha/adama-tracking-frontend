@@ -5,7 +5,8 @@ import TableComponent from "../../components/table/TableComponent";
 import Button from "../../components/button/Button";
 import { Dropdown } from "antd";
 import BadgeStatus from "../../components/badge/BadgeStatus";
-export default function Dashboard() {
+
+export default function SettingUser() {
   const [loading, setLoading] = useState(false);
 
   const filters = [

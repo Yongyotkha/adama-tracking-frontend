@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "../../components/button/Button";
 import { Input } from "antd";
 
-export default function Verify() {
+export default function ChangePassword() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState("");
