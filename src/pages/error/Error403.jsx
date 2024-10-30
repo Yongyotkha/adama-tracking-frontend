@@ -3,7 +3,7 @@ import MainLayout from "../../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/button/Button";
 
-export default function WorkPlan() {
+export default function Error403() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   return (
