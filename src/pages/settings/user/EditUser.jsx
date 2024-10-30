@@ -19,19 +19,19 @@ export default function EditUser() {
   };
 
   const formFields = [
-    { label: "Name (EN)", name: "name_en", type: "text", required: true },
-    { label: "Name (TH)", name: "name_th", type: "text", required: true },
-    { label: "Sales Employee Code", name: "employee_code", type: "text", required: true },
-    { label: "Contact Number", name: "contact_number", type: "tel", required: true },
-    { label: "Email", name: "email", type: "email", required: false },
-    { label: "Address", name: "address", type: "text", required: false },
-    { label: "Department", name: "department", type: "select", required: false, options: ["Sales Team", "Marketing Team", "Support Team"] },
-    { label: "Territory", name: "territory", type: "text", required: false },
-    { label: "Area", name: "area", type: "text", required: false },
-    { label: "Date of Joining", name: "date_of_joining", type: "date", required: false },
-    { label: "Status", name: "status", type: "select", required: false, options: ["Active", "Inactive"] },
-    { label: "Position", name: "position", type: "select", required: true, options: ["Sales Assistant", "Manager", "Team Lead"] },
-    { label: "Role", name: "role", type: "select", required: true, options: ["Individual Module", "Admin Module", "Viewer"] }
+    { label: "Name (EN)", name: "name_en", type: "text", required: true, col: 6, value: "John Doe" },
+    { label: "Name (TH)", name: "name_th", type: "text", required: true, col: 6, value: "จอห์น โด" },
+    { label: "Sales Employee Code", name: "employee_code", type: "text", required: true, col: 6, disabled: true, value: "SM123" },
+    { label: "Contact Number", name: "contact_number", type: "tel", required: true, col: 6, value: "0812345678" },
+    { label: "Email", name: "email", type: "email", required: false, col: 6, value: "john.doe@example.com" },
+    { label: "Address", name: "address", type: "text", required: false, col: 6, value: "123 Main St, Bangkok" },
+    { label: "Department", name: "department", type: "select", required: false, col: 6, options: ["Sales Team", "Marketing Team", "Support Team"], value: "Sales Team" },
+    { label: "Territory", name: "territory", type: "text", required: false, col: 6, value: "North" },
+    { label: "Area", name: "area", type: "text", required: false, col: 6, value: "Zone 1" },
+    { label: "Date of Joining", name: "date_of_joining", type: "date", required: false, col: 6, value: null },
+    { label: "Status", name: "status", type: "select", required: false, col: 6, options: ["Active", "Inactive"], value: "Active" },
+    { label: "Position", name: "position", type: "select", required: true, col: 6, options: ["Sales Assistant", "Manager", "Team Lead"], value: "Manager" },
+    { label: "Role", name: "role", type: "select", required: true, col: 6, options: ["Individual Module", "Admin Module", "Viewer"], value: "Admin Module" },
   ];
   
   return (

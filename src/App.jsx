@@ -19,7 +19,8 @@ import WorkPlanCreateStepTwo from "./pages/workplan/WorkPlanCreateStepTwo";
 import SettingRole from "./pages/settings/SettingRole";
 import SettingUser from "./pages/settings/user/SettingUser";
 import SettingSale from "./pages/settings/SettingSale";
-import SettingProduct from "./pages/settings/SettingProduct";
+import SettingProduct from "./pages/settings/product/SettingProduct";
+import EditProduct from "./pages/settings/product/EditProduct";
 import { ConfigProvider } from "antd";
 import CreateUser from "./pages/settings/user/CreateUser";
 import EditUser from "./pages/settings/user/EditUser";
@@ -30,12 +31,16 @@ const App = () => {
     <Router>
       <AuthProvider>
         <Routes>
+
+          {/* Auth Route */}
           {/* <Route path="/" element={<Welcome />} /> */}
           <Route path="/login" element={<Login />} />
           <Route path="/verify-otp" element={<Verify />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/change-password" element={<ChangePassword />} />
           <Route path="/" element={<Dashboard />} />
+
+          {/* Sale Plan Route */}
           <Route path="/sale-plan/work-plan" element={<WorkPlan />} />
           <Route
             path="/sale-plan/work-plan/create"
@@ -45,18 +50,23 @@ const App = () => {
             path="/sale-plan/work-plan/create-2"
             element={<WorkPlanCreateStepTwo />}
           />
+
+          {/* Setting Route */}
           <Route path="/setting/role" element={<SettingRole />} />
           <Route path="/setting/user" element={<SettingUser />} />
           <Route path="/setting/user/create" element={<CreateUser />} />
           <Route path="/setting/user/edit" element={<EditUser />} />
           <Route path="/setting/sale" element={<SettingSale />} />
           <Route path="/setting/product" element={<SettingProduct />} />
+          <Route path="/setting/product/edit" element={<EditProduct />} />
 
+          {/* Error Route */}
           <Route path="/error/403" element={<Error403 />} />
           <Route path="*" element={<Error404 />} />
           <Route path="/error/500" element={<Error500 />} />
           <Route path="/error/503" element={<Error503 />} />
           <Route path="/wiki" element={<Wiki />} />
+
         </Routes>
       </AuthProvider>
     </Router>

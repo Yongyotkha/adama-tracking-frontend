@@ -7,7 +7,7 @@ const { Option } = Select;
 
 export default function FormUser({ fields }) {
   const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState("/img/profile.jpg"); // Default image when no image is selected
+  const [imagePreview, setImagePreview] = useState("/img/Image-not-found.png"); // Default image when no image is selected
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -47,10 +47,10 @@ export default function FormUser({ fields }) {
           {/* Render other fields dynamically */}
           {fields.map((field, index) => (
             <Col 
-              xs={24}    // 1 column for extra-small screens (<576px)
-              sm={12}    // 2 columns for small screens (≥576px)
-              md={8}     // 3 columns for medium screens (≥768px)
-              lg={6}     // 4 columns for large screens (≥992px)
+              xs={24}    
+              sm={field.col || 12} 
+              md={field.col || 8}  
+              lg={field.col || 6}  
               key={index}
             >
               <Form.Item
@@ -59,15 +59,21 @@ export default function FormUser({ fields }) {
                 rules={[
                   { required: field.required, message: `Please enter ${field.label.toLowerCase()}` }
                 ]}
+                initialValue={field.value}
               >
                 {field.type === "text" || field.type === "email" || field.type === "tel" || field.type === "number" ? (
-                  <Input type={field.type} placeholder={`Enter ${field.label.toLowerCase()}`} />
+                  <Input
+                    type={field.type}
+                    placeholder={`Enter ${field.label.toLowerCase()}`}
+                    disabled={field.disabled}
+                    value={field.value}
+                  />
                 ) : field.type === "date" ? (
-                  <DatePicker style={{ width: "100%" }} />
+                  <DatePicker style={{ width: "100%" }} disabled={field.disabled} />
                 ) : field.type === "select" ? (
-                  <Select placeholder={`Select ${field.label.toLowerCase()}`}>
+                  <Select placeholder={`Select ${field.label.toLowerCase()}`} disabled={field.disabled} value={field.value}>
                     {field.options.map((option, idx) => (
-                      <Option key={idx} value={option.toLowerCase()}>{option}</Option>
+                      <Option key={idx} value={option}>{option}</Option>
                     ))}
                   </Select>
                 ) : null}
