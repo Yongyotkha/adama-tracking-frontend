@@ -5,6 +5,7 @@ import TableComponent from "../../components/table/TableComponent";
 import DynamicButton from "../../components/button/DynamicButton";
 import { Input, InputNumber } from "antd";
 import { useNavigate } from "react-router-dom";
+import ActionButton from "../../components/button/ActionButton";
 
 export default function WorkPlanCreate() {
   const navigate = useNavigate();
@@ -112,7 +113,7 @@ export default function WorkPlanCreate() {
       title: "Qty (KG)",
       dataIndex: "qty",
       key: "qty",
-      
+
       render: (text, record) => (
         <InputNumber
           className="w-full"
@@ -168,18 +169,21 @@ export default function WorkPlanCreate() {
         </BoxPrimary>
 
         <div className="flex justify-end space-x-4">
-          <DynamicButton
+          <ActionButton
             text="Back"
-            className="bg-[#B6AEAB] text-[#ffff] rounded-lg p-2"
+            mode="back"
             onClick={() => {
-              navigate('/sale-plan/work-plan');
+              navigate("/sale-plan/work-plan");
             }}
           />
-          <DynamicButton
+          <ActionButton
             text="Save and Next"
+            mode="save"
             className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
             onClick={() => {
-              navigate('/sale-plan/work-plan/create-2', { state: { data: null } });
+              navigate("/sale-plan/work-plan/create-2", {
+                state: { data: null },
+              });
             }}
           />
         </div>

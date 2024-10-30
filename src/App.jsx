@@ -65,7 +65,6 @@ const App = () => {
           <Route path="/wiki" element={<Wiki />} />
 
           {/* SHOW USER PATH */}
-
           <Route path="/sale-plan/work-plan/sale-area-create" element={<WorkPlanAreaCreate />} />
 
         </Routes>
