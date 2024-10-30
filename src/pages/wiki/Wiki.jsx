@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import BadgeStatus from "../../components/badge/BadgeStatus"; // Import the new BadgeStatus component
 import DropdownHover from "../../components/dropdown/DropdownHover";
-import DynamicButton from "../../components/button/Button";
+import DynamicButton from "../../components/button/DynamicButton";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import Filter from "../../components/filter/Filter";
 import { PlusOutlined } from "@ant-design/icons";

@@ -8,7 +8,6 @@ const DynamicButton = ({
   iconSrc,
 }) => {
   return (
-    // Static max-width = fit-content when change USE Style
     <button
       className={`cursor-pointer text-center font-light text-sm rounded-[5px] ${className}`}
       onClick={onClick}

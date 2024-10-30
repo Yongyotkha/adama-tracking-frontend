@@ -8,7 +8,6 @@ import Error404 from "./pages/error/Error404";
 import Error500 from "./pages/error/Error500";
 import Error503 from "./pages/error/Error503";
 import Login from "./pages/auth/Login";
-import Users from "./pages/users/Users";
 import Verify from "./pages/auth/Verify";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ChangePassword from "./pages/auth/ChangePassword";
@@ -18,10 +17,11 @@ import WorkPlan from "./pages/workplan/WorkPlan";
 import WorkPlanCreate from "./pages/workplan/WorkPlanCreate";
 import WorkPlanCreateStepTwo from "./pages/workplan/WorkPlanCreateStepTwo";
 import SettingRole from "./pages/settings/SettingRole";
-import SettingUser from "./pages/settings/SettingUser";
+import SettingUser from "./pages/settings/user/SettingUser";
 import SettingSale from "./pages/settings/SettingSale";
 import SettingProduct from "./pages/settings/SettingProduct";
 import { ConfigProvider } from "antd";
+import CreateUser from "./pages/settings/user/CreateUser";
 
 const App = () => {
 
@@ -46,6 +46,7 @@ const App = () => {
           />
           <Route path="/setting/role" element={<SettingRole />} />
           <Route path="/setting/user" element={<SettingUser />} />
+          <Route path="/setting/user/create" element={<CreateUser />} />
           <Route path="/setting/sale" element={<SettingSale />} />
           <Route path="/setting/product" element={<SettingProduct />} />
 

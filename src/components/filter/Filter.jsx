@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Select, Collapse, Input } from 'antd';
-import DynamicButton from '../button/Button'; // Import the button component
+import React, { useState } from "react";
+import { Select, Collapse, Input } from "antd";
+
 import "./Filter.css";
+import DynamicButton from "../button/DynamicButton";
 
 const { Option } = Select;
 
@@ -28,11 +29,15 @@ const Filter = ({ onSearch, onClear, filters }) => {
 
   const items = [
     {
-      key: '1',
+      key: "1",
       label: (
         <div className="filter-header flex items-center gap-2">
           {/* Replacing the icon with the image */}
-          <img src="/img/icons/filter.png" alt="Filter Icon" className="w-5 h-5" />
+          <img
+            src="/img/icons/filter.png"
+            alt="Filter Icon"
+            className="w-5 h-5"
+          />
           <span className="text-lg">Filter</span>
         </div>
       ),
@@ -44,14 +49,14 @@ const Filter = ({ onSearch, onClear, filters }) => {
               <div key={filter.key}>
                 <label className="block text-gray-700">{filter.label}</label>
                 {/* Render different types of input based on the type */}
-                {filter.type === 'select' && (
+                {filter.type === "select" && (
                   <Select
-                    value={filterValues[filter.key] || ''}
+                    value={filterValues[filter.key] || ""}
                     onChange={(value) => handleFilterChange(filter.key, value)}
-                    placeholder={filter.placeholder || 'Select'}
+                    placeholder={filter.placeholder || "Select"}
                     className="w-full"
                   >
-                    <Option value="">{filter.placeholder || 'All'}</Option>
+                    <Option value="">{filter.placeholder || "All"}</Option>
                     {filter.options.map((option) => (
                       <Option key={option.value} value={option.value}>
                         {option.label}
@@ -59,20 +64,24 @@ const Filter = ({ onSearch, onClear, filters }) => {
                     ))}
                   </Select>
                 )}
-                {filter.type === 'text' && (
+                {filter.type === "text" && (
                   <Input
-                    value={filterValues[filter.key] || ''}
-                    onChange={(e) => handleFilterChange(filter.key, e.target.value)}
-                    placeholder={filter.placeholder || 'Enter value'}
+                    value={filterValues[filter.key] || ""}
+                    onChange={(e) =>
+                      handleFilterChange(filter.key, e.target.value)
+                    }
+                    placeholder={filter.placeholder || "Enter value"}
                     className="w-full"
                   />
                 )}
-                {filter.type === 'number' && (
+                {filter.type === "number" && (
                   <Input
                     type="number"
-                    value={filterValues[filter.key] || ''}
-                    onChange={(e) => handleFilterChange(filter.key, e.target.value)}
-                    placeholder={filter.placeholder || 'Enter number'}
+                    value={filterValues[filter.key] || ""}
+                    onChange={(e) =>
+                      handleFilterChange(filter.key, e.target.value)
+                    }
+                    placeholder={filter.placeholder || "Enter number"}
                     className="w-full"
                   />
                 )}
@@ -86,20 +95,14 @@ const Filter = ({ onSearch, onClear, filters }) => {
             <DynamicButton
               text="Search"
               iconSrc="/img/icons/search.png"
-              className="text-white px-4 py-3 rounded"
+              className="text-white px-4 py-3 rounded bg-[#7DB41E]"
               onClick={handleSearch}
-              style={{
-                backgroundColor: '#7DB41E', // Default background color
-              }}
             />
             <DynamicButton
               text="Clear"
               iconSrc="/img/icons/trash.png"
-              className="text-white px-4 py-3 rounded"
+              className="text-white px-4 py-3 rounded bg-[#B6AEAB]"
               onClick={handleClear}
-              style={{
-                backgroundColor: '#B6AEAB', // Default background color
-              }}
             />
           </div>
         </>
@@ -107,7 +110,7 @@ const Filter = ({ onSearch, onClear, filters }) => {
     },
   ];
 
-  return <Collapse defaultActiveKey={['1']} items={items} />;
+  return <Collapse defaultActiveKey={["1"]} items={items} />;
 };
 
 export default Filter;

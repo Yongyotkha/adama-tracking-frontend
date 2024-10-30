@@ -2,9 +2,9 @@ import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
 import { Checkbox, Form, Input, message } from "antd";
-import Button from "../../components/button/Button";
 import LoginLayout from "../../layouts/LoginLayout";
 import Logo from "../../components/logo/Logo";
+import DynamicButton from "../../components/button/DynamicButton";
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -103,13 +103,13 @@ export default function Login() {
 
             {/* Login Button */}
             <Form.Item>
-              <Button
+              <DynamicButton
                 type="primary"
                 htmlType="submit"
                 className="flex w-full justify-center rounded-sm bg-[#00783F] text-white hover:bg-[#00783F] hover:text-green-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-full max-w-full"
                 text="Login"
                 disabled={loading}
-              ></Button>
+              />
             </Form.Item>
 
             <div className="flex justify-center text-white">

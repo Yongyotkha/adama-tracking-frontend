@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import TableComponent from "../../components/table/TableComponent";
-import DynamicButton from "../../components/button/Button";
+import DynamicButton from "../../components/button/DynamicButton";
 import { Input, InputNumber } from "antd";
 import { useNavigate } from "react-router-dom";
 

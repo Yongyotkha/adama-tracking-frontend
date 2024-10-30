@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
-import Button from "../../components/button/Button";
+
+import DynamicButton from "../../components/button/DynamicButton";
 
 export default function Error500() {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export default function Error500() {
           Page Not Found
         </div>
 
-        <Button
+        <DynamicButton
           type="primary"
           className="w-full flex justify-center rounded-sm bg-[#00783F] text-white hover:bg-[#00783F] hover:text-green-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           htmlType="button"

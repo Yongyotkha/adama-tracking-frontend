@@ -1,12 +1,9 @@
 import React, { useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import Logo from "../../components/logo/Logo";
 import Filter from "../../components/filter/Filter";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import TableComponent from "../../components/table/TableComponent";
-import DynamicButton from "../../components/button/Button";
-import { Button, Dropdown } from "antd";
-import { MoreOutlined } from "@ant-design/icons";
+import { Dropdown } from "antd";
 import BadgeStatus from "../../components/badge/BadgeStatus";
 
 export default function WorkPlan() {

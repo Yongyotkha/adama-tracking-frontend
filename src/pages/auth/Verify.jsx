@@ -4,7 +4,8 @@ import useServiceAPI from "../../services/corsService";
 import { paths } from "../../services/CorsPath";
 import { Form, Input, message, Row, Col } from "antd";
 import MessageLayout from "../../layouts/MessageLayout";
-import Button from "../../components/button/Button";
+import DynamicButton from "../../components/button/DynamicButton";
+
 
 export default function Verify() {
   const [error, setError] = useState(null);
@@ -150,7 +151,7 @@ export default function Verify() {
               <p className="text-center mb-3 text-[#978B87]">
                 Didn't you receive any code?
               </p>
-              <Button
+              <DynamicButton
                 type="link"
                 text='RESEND OTP'
                 onClick={handleResend}
@@ -160,7 +161,7 @@ export default function Verify() {
           )}
 
           <div className="mb-40">
-            <Button
+            <DynamicButton
               type="primary"
               className="flex w-full justify-center rounded-sm bg-[#00783F] text-white hover:bg-[#00783F] hover:text-green-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-full max-w-full mb-3"
               htmlType="submit"
@@ -168,7 +169,7 @@ export default function Verify() {
               disabled={loading}
             />
 
-            <Button
+            <DynamicButton
               type="primary"
               className="flex w-full justify-center rounded-sm bg-white text-[#00783F] hover:bg-white hover:text-gray-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-full max-w-full mb-3"
               htmlType="button"

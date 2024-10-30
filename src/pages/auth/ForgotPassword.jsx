@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import MessageLayout from "../../layouts/MessageLayout";
 import { useNavigate } from "react-router-dom";
-import Button from "../../components/button/Button";
 import { Input } from "antd";
+import DynamicButton from "../../components/button/DynamicButton";
 
 
 export default function ForgotPassword() {
@@ -35,7 +35,7 @@ export default function ForgotPassword() {
             className="p-2 my-4 rounded-md border border-gray-300"
           />
           <div className="mb-40 mt-4">
-            <Button
+            <DynamicButton
               type="primary"
               className="flex w-full justify-center rounded-sm bg-[#00783F] text-white hover:bg-[#00783F] hover:text-green-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-full max-w-full mb-3"
               htmlType="submit"
@@ -43,7 +43,7 @@ export default function ForgotPassword() {
               disabled={loading}
             />
 
-            <Button
+            <DynamicButton
               type="primary"
               className="flex w-full justify-center rounded-sm bg-white text-[#00783F] hover:bg-white hover:text-gray-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-full max-w-full mb-3"
               htmlType="button"
