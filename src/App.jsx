@@ -22,6 +22,7 @@ import SettingSale from "./pages/settings/SettingSale";
 import SettingProduct from "./pages/settings/SettingProduct";
 import { ConfigProvider } from "antd";
 import CreateUser from "./pages/settings/user/CreateUser";
+import EditUser from "./pages/settings/user/EditUser";
 
 const App = () => {
 
@@ -47,6 +48,7 @@ const App = () => {
           <Route path="/setting/role" element={<SettingRole />} />
           <Route path="/setting/user" element={<SettingUser />} />
           <Route path="/setting/user/create" element={<CreateUser />} />
+          <Route path="/setting/user/edit" element={<EditUser />} />
           <Route path="/setting/sale" element={<SettingSale />} />
           <Route path="/setting/product" element={<SettingProduct />} />
 

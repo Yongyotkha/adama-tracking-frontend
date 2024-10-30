@@ -95,13 +95,13 @@ const Filter = ({ onSearch, onClear, filters }) => {
             <DynamicButton
               text="Search"
               iconSrc="/img/icons/search.png"
-              className="text-white px-4 py-3 rounded bg-[#7DB41E]"
+              className="text-white px-4 py-3 rounded-[4px] bg-[#7DB41E]"
               onClick={handleSearch}
             />
             <DynamicButton
               text="Clear"
               iconSrc="/img/icons/trash.png"
-              className="text-white px-4 py-3 rounded bg-[#B6AEAB]"
+              className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
               onClick={handleClear}
             />
           </div>

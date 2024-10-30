@@ -268,7 +268,7 @@ const Navbar = () => {
           placement="bottomRight"
         >
           <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTSKbCFe_QYSVH-4FpaszXvakr2Eti9eAJpQ&s"
+            src="/img/profile.jpg"
             alt="User Avatar"
             className="rounded-full h-10 w-10 mx-2 cursor-pointer"
           />

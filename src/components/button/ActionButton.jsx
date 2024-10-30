@@ -1,11 +1,12 @@
 import React from "react";
 
-const ActionButton = ({ onClick, disabled, mode, text }) => {
+const ActionButton = ({ onClick, disabled, mode, text ,className = '' }) => {
   return (
     <>
       {mode == "create" && (
+
         <button
-          className={`flex text-[#FFFFFF] text-sm rounded-[5px] bg-[#7DB41E] gap-2 p-1 px-2 items-center`}
+          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#7DB41E] gap-2 p-1 px-2 items-center`}
           onClick={onClick}
           disabled={disabled}
         >
@@ -13,7 +14,24 @@ const ActionButton = ({ onClick, disabled, mode, text }) => {
             <img
               src="/img/icons/plus.png"
               alt="button icon"
-              className="inline-block w-4 h-4"
+              className="inline-block h-4"
+            />
+          </div>
+          <div>{text}</div>
+        </button>
+      )}
+
+      {mode == "sync" && (
+        <button
+          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#F89E18] gap-2 p-1 px-2 items-center ${className}`}
+          onClick={onClick}
+          disabled={disabled}
+        >
+          <div>
+            <img
+              src="/img/icons/sync.png"
+              alt="button icon"
+              className="inline-block h-5"
             />
           </div>
           <div>{text}</div>
@@ -25,6 +43,7 @@ const ActionButton = ({ onClick, disabled, mode, text }) => {
           <div></div>
         </>
       )}
+
     </>
   );
 };

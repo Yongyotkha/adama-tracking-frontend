@@ -170,12 +170,12 @@ export default function WorkPlanCreate() {
         <div className="flex justify-end space-x-4">
           <DynamicButton
             text="Back"
-            className="bg-[#B6AEAB] text-[#ffff] rounded-lg p-2"
+            className="bg-[#B6AEAB] min-w-[96px] text-[#ffff] rounded-sm p-2"
             // onClick={() => alert("Image Icon Button Clicked!")}
           />
           <DynamicButton
             text="Save and Next"
-            className="bg-[#00783F] text-[#ffff] rounded-lg p-2"
+            className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
             onClick={() => {
               navigate('/sale-plan/work-plan/create-2', { state: { data: null } });
             }}
