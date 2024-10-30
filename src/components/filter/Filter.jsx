@@ -1,16 +1,13 @@
 import React, { useState } from "react";
-import { Select, Collapse, Input } from "antd";
-
+import { Select, Collapse, Input, Row, Col } from "antd";
 import "./Filter.css";
 import DynamicButton from "../button/DynamicButton";
 
 const { Option } = Select;
 
 const Filter = ({ onSearch, onClear, filters }) => {
-  // Using a state object to store dynamic values of different filter types
   const [filterValues, setFilterValues] = useState({});
 
-  // Handle input change based on the dynamic filter types
   const handleFilterChange = (filterKey, value) => {
     setFilterValues((prevValues) => ({
       ...prevValues,
@@ -32,7 +29,6 @@ const Filter = ({ onSearch, onClear, filters }) => {
       key: "1",
       label: (
         <div className="filter-header flex items-center gap-2">
-          {/* Replacing the icon with the image */}
           <img
             src="/img/icons/filter.png"
             alt="Filter Icon"
@@ -41,14 +37,19 @@ const Filter = ({ onSearch, onClear, filters }) => {
           <span className="text-lg">Filter</span>
         </div>
       ),
-      showArrow: false, // Removing arrow icon
+      showArrow: false,
       children: (
         <>
-          <div className="grid grid-cols-3 gap-4 p-4">
+          <Row gutter={16} className="p-4">
             {filters.map((filter) => (
-              <div key={filter.key}>
+              <Col className="mb-3"
+                key={filter.key}
+                xs={24}    // 1 column for extra-small screens (<576px)
+                sm={12}    // 2 columns for small screens (≥576px)
+                md={8}     // 3 columns for medium screens (≥768px)
+                lg={6}     // 4 columns for large screens (≥992px)
+              >
                 <label className="block text-gray-700">{filter.label}</label>
-                {/* Render different types of input based on the type */}
                 {filter.type === "select" && (
                   <Select
                     value={filterValues[filter.key] || ""}
@@ -85,12 +86,10 @@ const Filter = ({ onSearch, onClear, filters }) => {
                     className="w-full"
                   />
                 )}
-                {/* Add more input types as needed */}
-              </div>
+              </Col>
             ))}
-          </div>
+          </Row>
 
-          {/* Buttons */}
           <div className="flex justify-end gap-4 px-4">
             <DynamicButton
               text="Search"
