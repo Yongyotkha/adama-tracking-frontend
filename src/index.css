@@ -68,3 +68,7 @@
   font-size: 25px;
   padding-top: 10px;
 }
+
+.ant-modal-content {
+  border-top: 10px solid #00783F !important;
+}

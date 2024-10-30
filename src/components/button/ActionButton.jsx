@@ -1,6 +1,6 @@
 import React from "react";
 
-const ActionButton = ({ onClick, disabled, mode, text ,className = '' }) => {
+const ActionButton = ({ onClick, disabled, mode, text, className = '' }) => {
   return (
     <>
       {mode == "create" && (
@@ -39,9 +39,20 @@ const ActionButton = ({ onClick, disabled, mode, text ,className = '' }) => {
       )}
 
       {mode == "add" && (
-        <>
-          <div></div>
-        </>
+        <button
+          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#009845] gap-2 p-1 px-2 items-center`}
+          onClick={onClick}
+          disabled={disabled}
+        >
+          <div>
+            <img
+              src="/img/icons/plus.png"
+              alt="button icon"
+              className="inline-block h-4"
+            />
+          </div>
+          <div>{text}</div>
+        </button>
       )}
 
     </>

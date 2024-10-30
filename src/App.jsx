@@ -16,15 +16,16 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import WorkPlan from "./pages/workplan/WorkPlan";
 import WorkPlanCreate from "./pages/workplan/WorkPlanCreate";
 import WorkPlanCreateStepTwo from "./pages/workplan/WorkPlanCreateStepTwo";
-import SettingRole from "./pages/settings/SettingRole";
+import SettingRole from "./pages/settings/role/SettingRole";
 import SettingUser from "./pages/settings/user/SettingUser";
-import SettingSale from "./pages/settings/SettingSale";
+import CreateUser from "./pages/settings/user/CreateUser";
+import EditUser from "./pages/settings/user/EditUser";
+import SettingSale from "./pages/settings/sale/SettingSale";
+import CreateSale from "./pages/settings/sale/CreateSale";
+import EditSale from "./pages/settings/sale/EditSale";
 import SettingProduct from "./pages/settings/product/SettingProduct";
 import EditProduct from "./pages/settings/product/EditProduct";
-import { ConfigProvider } from "antd";
-import CreateUser from "./pages/settings/user/CreateUser";
 import WorkPlanAreaCreate from "./pages/workplan/WorkPlanAreaCreate";
-import EditUser from "./pages/settings/user/EditUser";
 
 const App = () => {
   return (
@@ -42,14 +43,8 @@ const App = () => {
 
           {/* Sale Plan Route */}
           <Route path="/sale-plan/work-plan" element={<WorkPlan />} />
-          <Route
-            path="/sale-plan/work-plan/create"
-            element={<WorkPlanCreate />}
-          />
-          <Route
-            path="/sale-plan/work-plan/create-2"
-            element={<WorkPlanCreateStepTwo />}
-          />
+          <Route path="/sale-plan/work-plan/create" element={<WorkPlanCreate />} />
+          <Route path="/sale-plan/work-plan/create-2" element={<WorkPlanCreateStepTwo />} />
 
           {/* Setting Route */}
           <Route path="/setting/role" element={<SettingRole />} />
@@ -57,6 +52,8 @@ const App = () => {
           <Route path="/setting/user/create" element={<CreateUser />} />
           <Route path="/setting/user/edit" element={<EditUser />} />
           <Route path="/setting/sale" element={<SettingSale />} />
+          <Route path="/setting/sale/create" element={<CreateSale />} />
+          <Route path="/setting/sale/edit" element={<EditSale />} />
           <Route path="/setting/product" element={<SettingProduct />} />
           <Route path="/setting/product/edit" element={<EditProduct />} />
 
@@ -69,11 +66,8 @@ const App = () => {
 
           {/* SHOW USER PATH */}
 
-          <Route
-            path="/sale-plan/work-plan/sale-area-create"
-            element={<WorkPlanAreaCreate />}
-          />
-  
+          <Route path="/sale-plan/work-plan/sale-area-create" element={<WorkPlanAreaCreate />} />
+
         </Routes>
       </AuthProvider>
     </Router>

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import MainLayout from "../../layouts/MainLayout";
-import Logo from "../../components/logo/Logo";
-import Filter from "../../components/filter/Filter";
+import MainLayout from "../../../layouts/MainLayout";
+import Logo from "../../../components/logo/Logo";
+import Filter from "../../../components/filter/Filter";
 
 export default function SettingRole() {
   const [loading, setLoading] = useState(false);

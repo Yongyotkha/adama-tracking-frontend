@@ -36,7 +36,7 @@ export default function EditUser() {
   
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Create User</div>
+      <div className="title-page">Edit User</div>
       
       <FormUser fields={formFields} />
 
