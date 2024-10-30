@@ -16,38 +16,48 @@ export default function SettingUser() {
 
   const filters = [
     {
-      key: "year",
+      key: "name",
       type: "select",
-      label: "Year",
+      label: "Name",
       options: [
-        { value: 2021, label: "2021" },
-        { value: 2022, label: "2022" },
-        { value: 2023, label: "2023" },
+        { value: "", label: "All" },
+        { value: "John Doe", label: "John Doe" },
+        { value: "Jane Smith", label: "Jane Smith" },
+        // Add more names as options if needed
       ],
     },
     {
-      key: "status",
-      type: "select",
-      label: "Status",
-      options: [
-        { value: "Active", label: "Active" },
-        { value: "Inactive", label: "Inactive" },
-        { value: "Pending", label: "Pending" },
-      ],
-    },
-    {
-      key: "productName",
+      key: "contact_number",
       type: "text",
-      label: "Product Name",
-      placeholder: "Enter product name",
+      label: "Contact Number",
+      placeholder: "All",
     },
     {
-      key: "quantity",
-      type: "number",
-      label: "Quantity",
-      placeholder: "Enter quantity",
+      key: "position",
+      type: "select",
+      label: "Position",
+      options: [
+        { value: "", label: "All" },
+        { value: "Manager", label: "Manager" },
+        { value: "Sales Assistant", label: "Sales Assistant" },
+        { value: "Director", label: "Director" },
+        // Add more positions as needed
+      ],
+    },
+    {
+      key: "role",
+      type: "select",
+      label: "Role",
+      options: [
+        { value: "", label: "All" },
+        { value: "Admin", label: "Admin" },
+        { value: "User", label: "User" },
+        { value: "Viewer", label: "Viewer" },
+        // Add more roles as needed
+      ],
     },
   ];
+  
   const handleSearch = (filter) => {
     console.log("Search filters applied:", filter);
   };
