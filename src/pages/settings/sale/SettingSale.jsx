@@ -88,8 +88,21 @@ export default function SettingSale() {
     { key: 7, name: "Nitchapan Akkaraketsawad", territory: "Upper Central", position: "Sales Executive" },
     { key: 8, name: "Manus Nakkhum", territory: "Central", position: "Sales Executive" },
   ];
-  
 
+  const saleTeamSA = [
+    { key: 1, name: "Passakorn Kong-In", territory: "Right North", position: "Sales Assistant" },
+    { key: 2, name: "Thanakit Kongkrapan", territory: "West", position: "Sales Assistant" },
+    { key: 3, name: "Tanadol Kaewyai", territory: "Central", position: "Sales Assistant" },
+    { key: 4, name: "Chinnawat Bunmakaew", territory: "South", position: "Sales Assistant" },
+  ];
+
+  const saleTeamBD = [
+    { key: 1, name: "Tossaphon Suphaksitthikorn", territory: "Left North", position: "Business Development Executive" },
+    { key: 2, name: "Panudech Srithong", territory: "Left Lower North", position: "Business Development Executive" },
+    { key: 3, name: "Sarawut Nisap", territory: "Lower North", position: "Business Development Executive" },
+    { key: 4, name: "Wisisak Prakobsin", territory: "Central Left North", position: "Business Development Executive" },
+  ];
+  
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
     {
@@ -246,7 +259,7 @@ export default function SettingSale() {
         isVisible={isBDModalVisible}
         onClose={handleCloseBDModal}
         header={territoryColumns}
-        dataSource={territoryData}
+        dataSource={saleTeamBD}
         width="1200px" // Customize the width to make it extra-large
       />
 
@@ -255,7 +268,7 @@ export default function SettingSale() {
         isVisible={isSAModalVisible}
         onClose={handleCloseSAModal}
         header={territoryColumns}
-        dataSource={territoryData}
+        dataSource={saleTeamSA}
         width="1200px" // Customize the width to make it extra-large
       />
     </MainLayout>

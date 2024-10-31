@@ -28,7 +28,6 @@ export default function EditProduct() {
     { label: "Net Price", name: "net_price", type: "text", required: false, col: 6, disabled: true, value: "440.63" },
   ];
 
-
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Edit Product</div>
