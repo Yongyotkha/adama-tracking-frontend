@@ -8,6 +8,7 @@ import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
 import { useNavigate } from "react-router-dom";
 import DynamicModal from "../../../components/modal/DynamicModal";
+import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 
 export default function SettingSale() {
   const [loading, setLoading] = useState(false);
@@ -80,19 +81,49 @@ export default function SettingSale() {
   ];
 
   const territoryData = [
-    { key: 1, name: "Kornkan Induang", territory: "Left North", position: "Sales Executive" },
-    { key: 2, name: "Phaisan Jethuen", territory: "Left Lower North", position: "Sales Executive" },
+    {
+      key: 1,
+      name: "Kornkan Induang",
+      territory: "Left North",
+      position: "Sales Executive",
+    },
+    {
+      key: 2,
+      name: "Phaisan Jethuen",
+      territory: "Left Lower North",
+      position: "Sales Executive",
+    },
     // Additional data...
   ];
 
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
-    { title: "Sale Head Name", width: 200, dataIndex: "sale_head_name", align: "left" },
-    { title: "Sale Area Name", width: 200, dataIndex: "sale_area_name", align: "left" },
+    {
+      title: "Sale Head Name",
+      width: 200,
+      dataIndex: "sale_head_name",
+      align: "left",
+    },
+    {
+      title: "Sale Area Name",
+      width: 200,
+      dataIndex: "sale_area_name",
+      align: "left",
+    },
     { title: "Area", width: 100, dataIndex: "area", align: "left" },
     { title: "Sale", width: 100, dataIndex: "sale", align: "center" },
-    { title: "Business Development", width: 150, dataIndex: "business_dev", align: "center" },
-    { title: "Sale Assistant", width: 150, dataIndex: "sale_assistant", align: "center" },
+    {
+      title: "Business Development",
+      width: 150,
+      dataIndex: "business_dev",
+      align: "center",
+    },
+    {
+      title: "Sale Assistant",
+      width: 150,
+      dataIndex: "sale_assistant",
+      align: "center",
+    },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
@@ -100,19 +131,19 @@ export default function SettingSale() {
     {
       key: "1",
       label: (
-        <a rel="noopener noreferrer" href="/setting/sale/edit" className="flex gap-1">
-          <img src="/img/icons/edit.png" alt="Edit icon" className="inline-block h-4" />
-          <span className="text-[#978B87]">Edit</span>
-        </a>
+        <ItemDropDown
+          mode="edit"
+          onClick={(e) => navigate("/setting/sale/edit")}
+        />
       ),
     },
     {
       key: "2",
       label: (
-        <a rel="noopener noreferrer" href="#" className="flex gap-1">
-          <img src="/img/icons/delete.png" alt="Delete icon" className="inline-block h-4" />
-          <span className="text-[#978B87]">Delete</span>
-        </a>
+        <ItemDropDown
+          mode="delete"
+          // onClick={(e) => navigate("/setting/sale/edit")}
+        />
       ),
     },
   ];
@@ -124,16 +155,38 @@ export default function SettingSale() {
         sale_head_name: "Chayanon Tunyateerapong",
         sale_area_name: "Veerasak Likitmanchai",
         area: "Area1",
-        sale: <BadgeStatus text="8" bgColor="#FFB020" textColor="#FFFFFF" onClick={handleShowTerritoryModal} />,
-        business_dev: <BadgeStatus text="4" bgColor="#FFB020" textColor="#FFFFFF" onClick={handleShowBDModal} />,
-        sale_assistant: <BadgeStatus text="4" bgColor="#FFB020" textColor="#FFFFFF" onClick={handleShowSAModal} />,
+        sale: (
+          <BadgeStatus
+            text="8"
+            bgColor="#FFB020"
+            textColor="#FFFFFF"
+            onClick={handleShowTerritoryModal}
+          />
+        ),
+        business_dev: (
+          <BadgeStatus
+            text="4"
+            bgColor="#FFB020"
+            textColor="#FFFFFF"
+            onClick={handleShowBDModal}
+          />
+        ),
+        sale_assistant: (
+          <BadgeStatus
+            text="4"
+            bgColor="#FFB020"
+            textColor="#FFFFFF"
+            onClick={handleShowSAModal}
+          />
+        ),
         action: (
-          <Dropdown
-            menu={{ items: actionItems }}
-            placement="bottom"
-          >
+          <Dropdown menu={{ items: actionItems }} placement="bottom">
             <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+              <img
+                src="/img/icons/action.png"
+                alt="Actions icon"
+                className="inline-block w-5 h-5"
+              />
             </a>
           </Dropdown>
         ),
@@ -144,15 +197,20 @@ export default function SettingSale() {
         sale_area_name: "Cheerayut Inthong",
         area: "Area2",
         sale: <BadgeStatus text="7" bgColor="#FFB020" textColor="#FFFFFF" />,
-        business_dev: <BadgeStatus text="7" bgColor="#FFB020" textColor="#FFFFFF" />,
-        sale_assistant: <BadgeStatus text="7" bgColor="#FFB020" textColor="#FFFFFF" />,
+        business_dev: (
+          <BadgeStatus text="7" bgColor="#FFB020" textColor="#FFFFFF" />
+        ),
+        sale_assistant: (
+          <BadgeStatus text="7" bgColor="#FFB020" textColor="#FFFFFF" />
+        ),
         action: (
-          <Dropdown
-            menu={{ items: actionItems }}
-            placement="bottom"
-          >
+          <Dropdown menu={{ items: actionItems }} placement="bottom">
             <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+              <img
+                src="/img/icons/action.png"
+                alt="Actions icon"
+                className="inline-block w-5 h-5"
+              />
             </a>
           </Dropdown>
         ),
@@ -166,7 +224,11 @@ export default function SettingSale() {
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Sale Management</div>
-        <ActionButton mode="create" text="Create" onClick={(e) => navigate("/setting/sale/create")} />
+        <ActionButton
+          mode="create"
+          text="Create"
+          onClick={(e) => navigate("/setting/sale/create")}
+        />
       </div>
 
       <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
