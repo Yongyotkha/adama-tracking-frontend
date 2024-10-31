@@ -3,7 +3,7 @@ import MainLayout from "../../layouts/MainLayout";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import TableComponent from "../../components/table/TableComponent";
 import DynamicButton from "../../components/button/DynamicButton";
-import { Input, InputNumber } from "antd";
+import { Input, InputNumber, Table } from "antd";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../components/button/ActionButton";
 
@@ -11,6 +11,7 @@ export default function WorkPlanCreate() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [sumValue, setSumValue] = useState([]);
 
   useEffect(() => {
     const initialData = [
@@ -153,6 +154,10 @@ export default function WorkPlanCreate() {
     setDataSource(newData);
   };
 
+  useEffect(() => {
+    console.log(dataSource);
+  }, [dataSource]);
+
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
@@ -164,7 +169,27 @@ export default function WorkPlanCreate() {
             header={header}
             dataSource={dataSource}
             pagination={false}
-            // footer={footerTable}
+            footer={() => (
+              <Table.Summary fixed>
+                <Table.Summary.Row className="bg-[#978B87]">
+                  <Table.Summary.Cell index={0} colSpan={3}>
+                    Total (THB)
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell>
+                    <InputNumber
+                      className="w-full"
+                      disabled
+                      // value={index}
+                      min={0}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      style={{ backgroundColor: "white" }}
+                    />
+                  </Table.Summary.Cell>
+                </Table.Summary.Row>
+              </Table.Summary>
+            )}
           />
         </BoxPrimary>
 

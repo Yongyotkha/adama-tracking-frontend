@@ -412,6 +412,270 @@ export default function WorkPlanSaleCreate() {
         },
       ],
     },
+    {
+      title: "Jan",
+      children: [
+        {
+          title: "Value (THB)",
+          dataIndex: "valueTHB_Jan",
+          key: "valueTHB_Jan",
+          width: 150,
+          render: (text, record) => (
+            <InputNumber
+              className="w-full"
+              min={0}
+              value={text}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              onChange={(value) => handleQtyChange(value, record.key)}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      title: "Feb",
+      children: [
+        {
+          title: "Value (THB)",
+          dataIndex: "valueTHB_Feb",
+          key: "valueTHB_Feb",
+          width: 150,
+          render: (text, record) => (
+            <InputNumber
+              className="w-full"
+              min={0}
+              value={text}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              onChange={(value) => handleQtyChange(value, record.key)}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      title: "Mar",
+      children: [
+        {
+          title: "Value (THB)",
+          dataIndex: "valueTHB_Mar",
+          key: "valueTHB_Mar",
+          width: 150,
+          render: (text, record) => (
+            <InputNumber
+              className="w-full"
+              min={0}
+              value={text}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              onChange={(value) => handleQtyChange(value, record.key)}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      title: "Apr",
+      children: [
+        {
+          title: "Value (THB)",
+          dataIndex: "valueTHB_Apr",
+          key: "valueTHB_Apr",
+          width: 150,
+          render: (text, record) => (
+            <InputNumber
+              className="w-full"
+              min={0}
+              value={text}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              onChange={(value) => handleQtyChange(value, record.key)}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      title: "May",
+      children: [
+        {
+          title: "Value (THB)",
+          dataIndex: "valueTHB_May",
+          key: "valueTHB_May",
+          width: 150,
+          render: (text, record) => (
+            <InputNumber
+              className="w-full"
+              min={0}
+              value={text}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              onChange={(value) => handleQtyChange(value, record.key)}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      title: "Jun",
+      children: [
+        {
+          title: "Value (THB)",
+          dataIndex: "valueTHB_Jun",
+          key: "valueTHB_Jun",
+          width: 150,
+          render: (text, record) => (
+            <InputNumber
+              className="w-full"
+              min={0}
+              value={text}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              onChange={(value) => handleQtyChange(value, record.key)}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      title: "Jul",
+      children: [
+        {
+          title: "Value (THB)",
+          dataIndex: "valueTHB_Jul",
+          key: "valueTHB_Jul",
+          width: 150,
+          render: (text, record) => (
+            <InputNumber
+              className="w-full"
+              min={0}
+              value={text}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              onChange={(value) => handleQtyChange(value, record.key)}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      title: "Aug",
+      children: [
+        {
+          title: "Value (THB)",
+          dataIndex: "valueTHB_Aug",
+          key: "valueTHB_Aug",
+          width: 150,
+          render: (text, record) => (
+            <InputNumber
+              className="w-full"
+              min={0}
+              value={text}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              onChange={(value) => handleQtyChange(value, record.key)}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      title: "Sep",
+      children: [
+        {
+          title: "Value (THB)",
+          dataIndex: "valueTHB_Sep",
+          key: "valueTHB_Sep",
+          width: 150,
+          render: (text, record) => (
+            <InputNumber
+              className="w-full"
+              min={0}
+              value={text}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              onChange={(value) => handleQtyChange(value, record.key)}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      title: "Oct",
+      children: [
+        {
+          title: "Value (THB)",
+          dataIndex: "valueTHB_Oct",
+          key: "valueTHB_Oct",
+          width: 150,
+          render: (text, record) => (
+            <InputNumber
+              className="w-full"
+              min={0}
+              value={text}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              onChange={(value) => handleQtyChange(value, record.key)}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      title: "Nov",
+      children: [
+        {
+          title: "Value (THB)",
+          dataIndex: "valueTHB_Nov",
+          key: "valueTHB_Nov",
+          width: 150,
+          render: (text, record) => (
+            <InputNumber
+              className="w-full"
+              min={0}
+              value={text}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              onChange={(value) => handleQtyChange(value, record.key)}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      title: "Dec",
+      children: [
+        {
+          title: "Value (THB)",
+          dataIndex: "valueTHB_Dec",
+          key: "valueTHB_Dec",
+          width: 150,
+          render: (text, record) => (
+            <InputNumber
+              className="w-full"
+              min={0}
+              value={text}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              onChange={(value) => handleQtyChange(value, record.key)}
+            />
+          ),
+        },
+      ],
+    },
   ];
 
   const columns = applyTopLevelAndSpecificChildrenStyles(baseColumns);
@@ -445,6 +709,20 @@ export default function WorkPlanSaleCreate() {
                     Total (THB)
                   </Table.Summary.Cell>
 
+                  {months.map((_, index) => (
+                    <Table.Summary.Cell key={index} colSpan={1}>
+                      <InputNumber
+                        className="w-full"
+                        disabled
+                        value={index}
+                        min={0}
+                        formatter={(value) =>
+                          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        style={{ backgroundColor: "white" }}
+                      />
+                    </Table.Summary.Cell>
+                  ))}
                   {months.map((_, index) => (
                     <Table.Summary.Cell key={index} colSpan={1}>
                       <InputNumber
