@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Select, Input } from "antd";
 import MainLayout from "../../../layouts/MainLayout";
@@ -6,6 +6,7 @@ import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import ActionButton from "../../../components/button/ActionButton";
 import TableExpand from "../../../components/table/TableExpand";
 import DynamicModal from "../../../components/modal/DynamicModal"; // Adjust path if needed
+import DynamicButton from "../../../components/button/DynamicButton";
 
 const { Option } = Select;
 
@@ -57,36 +58,73 @@ export default function EditSale() {
     },
   ];
 
-  const header = [
-    {
-      title: "No",
-      width: 50,
-      dataIndex: "key",
-      align: "left",
-    },
+  // Define the main table columns
+  const columns = [
     {
       title: "Name",
-      width: 100,
       dataIndex: "name",
-      align: "left",
+      key: "name",
+      width: 150,
     },
     {
       title: "Position",
-      width: 100,
       dataIndex: "position",
-      align: "left",
+      key: "position",
+      width: 200,
     },
     {
       title: "Territory",
-      width: 100,
       dataIndex: "territory",
-      align: "left",
+      key: "territory",
+      width: 150,
     },
     {
       title: "Action",
+      key: "action",
       width: 100,
-      dataIndex: "action",
-      align: "left",
+      render: (_, record) => (
+        <div className="flex items-center space-x-2">
+          {/* <DynamicButton iconSrc="/img/icons/create.png"  onClick={() => handleEdit(record)} /> */}
+          <DynamicButton iconSrc="/img/icons/create.png" onClick={handleOpenModal} />
+          <DynamicButton iconSrc="/img/icons/delete.png" onClick={() => handleDelete(record)} />
+        </div>
+      ),
+    },
+  ];
+
+  // Define the nested table columns
+  const nestedColumns = [
+    {
+      title: "No",
+      dataIndex: "no",
+      key: "no",
+      width: 80,
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+      width: 150,
+    },
+    {
+      title: "Position",
+      dataIndex: "position",
+      key: "position",
+      width: 200,
+    },
+    {
+      title: "Territory",
+      dataIndex: "territory",
+      key: "territory",
+      width: 150,
+    },
+    {
+      title: "Action",
+      key: "action",
+      width: 100,
+      render: (_, nestedRecord) => (
+        <DynamicButton iconSrc="/img/icons/delete.png" onClick={() => handleDelete(nestedRecord.key)} />
+      ),
     },
   ];
 
@@ -101,7 +139,15 @@ export default function EditSale() {
   const handleAddSelectedRows = (selectedRows) => {
     setSelectedSalesData((prev) => [...prev, ...selectedRows]);
   };
-  
+
+  const handleEdit = (record) => {
+    console.log("Edit", record);
+  };
+
+  const handleDelete = (record) => {
+    console.log("Delete", record);
+  };
+
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Edit Sale Management</div>
@@ -146,7 +192,9 @@ export default function EditSale() {
           <span className="text-[#00783F]">Sale Team</span>
           <ActionButton mode="add" text="Add" onClick={handleOpenModal} />
         </div>
-        <TableExpand data={salesData} header={header} /> {/* Pass header as prop */}
+
+        <TableExpand data={salesData} columns={columns} nestedColumns={nestedColumns} /> {/* Pass columns and nestedColumns as props */}
+
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
@@ -158,12 +206,18 @@ export default function EditSale() {
         title="Add Sale Territory"
         isVisible={isModalVisible}
         onClose={handleCloseModal}
-        header={header}
+        header={[
+          { title: "No", dataIndex: "no", key: "no", width: 50 },
+          { title: "Name", dataIndex: "name", key: "name", width: 150 },
+          { title: "Territory", dataIndex: "territory", key: "territory", width: 150 },
+          { title: "Position", dataIndex: "position", key: "position", width: 150 }
+        ]}
         dataSource={salesData}
         width="1200px"
         onAddSelected={handleAddSelectedRows}
         type="add"
       />
+
     </MainLayout>
   );
 }

@@ -6,3 +6,6 @@
   background-color: #B9B9B9 !important;
   color: #5F504D !important;
 }
+.ant-table-expanded-row .nested-table {
+  padding: 0 !important;
+}

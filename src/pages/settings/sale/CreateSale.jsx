@@ -6,6 +6,7 @@ import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import ActionButton from "../../../components/button/ActionButton";
 import TableExpand from "../../../components/table/TableExpand";
 import DynamicModal from "../../../components/modal/DynamicModal"; // Adjust path if needed
+import DynamicButton from "../../../components/button/DynamicButton";
 
 const { Option } = Select;
 
@@ -57,18 +58,74 @@ export default function CreateSale() {
     },
   ];
 
-  // Columns and data for the modal table
-  const territoryColumns = [
-    { title: "No", dataIndex: "no", key: "no" },
-    { title: "Name", dataIndex: "name", key: "name" },
-    { title: "Territory", dataIndex: "territory", key: "territory" },
-    { title: "Position", dataIndex: "position", key: "position" },
+  // Define the main table columns
+  const columns = [
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+      width: 150,
+    },
+    {
+      title: "Position",
+      dataIndex: "position",
+      key: "position",
+      width: 200,
+    },
+    {
+      title: "Territory",
+      dataIndex: "territory",
+      key: "territory",
+      width: 150,
+    },
+    {
+      title: "Action",
+      key: "action",
+      width: 100,
+      render: (_, record) => (
+        <div className="flex items-center space-x-2">
+          {/* <DynamicButton iconSrc="/img/icons/create.png"  onClick={() => handleEdit(record)} /> */}
+          <DynamicButton iconSrc="/img/icons/create.png" onClick={handleOpenModal} />
+          <DynamicButton iconSrc="/img/icons/delete.png" onClick={() => handleDelete(record)} />
+        </div>
+      ),
+    },
   ];
 
-  const territoryData = [
-    { key: "1", no: 1, name: "Kornkan Induang", position: "Sales Executive", territory: "Left North" },
-    { key: "2", no: 2, name: "Phaisan Jethuen", position: "Sales Executive", territory: "Left Lower North" },
-    // Add more data as needed
+  // Define the nested table columns
+  const nestedColumns = [
+    {
+      title: "No",
+      dataIndex: "no",
+      key: "no",
+      width: 80,
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+      width: 150,
+    },
+    {
+      title: "Position",
+      dataIndex: "position",
+      key: "position",
+      width: 200,
+    },
+    {
+      title: "Territory",
+      dataIndex: "territory",
+      key: "territory",
+      width: 150,
+    },
+    {
+      title: "Action",
+      key: "action",
+      width: 100,
+      render: (_, nestedRecord) => (
+        <DynamicButton iconSrc="/img/icons/delete.png" onClick={() => handleDelete(nestedRecord.key)} />
+      ),
+    },
   ];
 
   const handleOpenModal = () => {
@@ -82,13 +139,20 @@ export default function CreateSale() {
   const handleAddSelectedRows = (selectedRows) => {
     setSelectedSalesData((prev) => [...prev, ...selectedRows]);
   };
-  
+
+  const handleEdit = (record) => {
+    console.log("Edit", record);
+  };
+
+  const handleDelete = (record) => {
+    console.log("Delete", record);
+  };
+
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Create Sale Management</div>
 
       <BoxPrimary>
-        {/* Sale Head (Select) / Sale Area (Select) / Area (text:disable) */}
         <div className="grid gap-4 mb-4 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1">
           <div>
             <label className="block mb-1 text-sm text-gray-600">Sale Head</label>
@@ -128,7 +192,9 @@ export default function CreateSale() {
           <span className="text-[#00783F]">Sale Team</span>
           <ActionButton mode="add" text="Add" onClick={handleOpenModal} />
         </div>
-        <TableExpand data={salesData} />
+
+        <TableExpand data={salesData} columns={columns} nestedColumns={nestedColumns} /> {/* Pass columns and nestedColumns as props */}
+
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
@@ -136,17 +202,22 @@ export default function CreateSale() {
         <ActionButton mode="update" text="Update" onClick={() => navigate("/setting/sale")} />
       </div>
 
-      {/* Dynamic Modal Instance */}
       <DynamicModal
         title="Add Sale Territory"
         isVisible={isModalVisible}
         onClose={handleCloseModal}
-        header={territoryColumns}
-        dataSource={territoryData}
+        header={[
+          { title: "No", dataIndex: "no", key: "no", width: 50 },
+          { title: "Name", dataIndex: "name", key: "name", width: 150 },
+          { title: "Territory", dataIndex: "territory", key: "territory", width: 150 },
+          { title: "Position", dataIndex: "position", key: "position", width: 150 }
+        ]}
+        dataSource={salesData}
         width="1200px"
-        onAddSelected={handleAddSelectedRows} // Pass function to handle selected rows
-        type="add" // Set type to "add" to enable checkbox and Add button
+        onAddSelected={handleAddSelectedRows}
+        type="add"
       />
+
     </MainLayout>
   );
 }
