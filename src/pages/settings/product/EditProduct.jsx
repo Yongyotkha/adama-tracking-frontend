@@ -22,8 +22,8 @@ export default function EditProduct() {
     { label: "AI and content", name: "ai_content", type: "text", required: false, col: 12, disabled: true, value: "Azoxystrobin + propiconazole 7.5+12.5% SE" },
     { label: "Product Type", name: "product_type", type: "select", required: true, col: 6, options: ["Special", "Commodity", "3rd Party", "SAS"], value: "Special" },
     { label: "Product Group", name: "product_group", type: "select", required: true, col: 6, options: ["Gold", "Silver", "Bronz"], value: "Gold" },
-    { label: "Packing list", name: "packing_list", type: "text", required: false, col: 6, disabled: true, value: "0.5 ltX20" },
     { label: "Category", name: "category", type: "text", required: false, col: 6, disabled: true, value: "FUN" },
+    { label: "Packing list", name: "packing_list", type: "text", required: false, col: 6, disabled: true, value: "0.5 ltX20" },
     { label: "Packing unit size (lt,kg)", name: "packing_unit_size", type: "text", required: false, col: 6, disabled: true, value: "0.5" },
     { label: "Net Price", name: "net_price", type: "text", required: false, col: 6, disabled: true, value: "440.63" },
   ];
@@ -62,7 +62,7 @@ export default function EditProduct() {
           path='/setting/product'
         />
         <DynamicButton
-          text="Save"
+          text="Update"
           className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
           path='/setting/product'
         />

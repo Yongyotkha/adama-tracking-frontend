@@ -199,7 +199,7 @@ export default function CreateSale() {
 
       <div className="flex justify-end space-x-4">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/setting/sale")} />
-        <ActionButton mode="update" text="Update" onClick={() => navigate("/setting/sale")} />
+        <ActionButton mode="save" text="Save" onClick={() => navigate("/setting/sale")} />
       </div>
 
       <DynamicModal
