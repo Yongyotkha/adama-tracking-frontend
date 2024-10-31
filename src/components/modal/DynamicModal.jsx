@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Modal, Input } from "antd";
+import { SearchOutlined } from "@ant-design/icons"; // Import search icon
 import DynamicButton from "../button/DynamicButton";
 import TableComponent from "../table/TableComponent";
-import TableCheckbox from "../table/TableCheckbox"; // Import TableCheckbox
+import TableCheckbox from "../table/TableCheckbox";
 
 const DynamicModal = ({
   title,
@@ -10,7 +11,7 @@ const DynamicModal = ({
   onClose,
   header,
   dataSource,
-  pageSize = 5,
+  pageSize = 10,
   width = "1200px",
   onAddSelected,
   type, // New prop to control modal type
@@ -44,7 +45,7 @@ const DynamicModal = ({
 
   return (
     <Modal
-      title={title}
+      title={<div className="text-[#978B87] text-lg font-normal">{title}</div>}
       open={isVisible}
       onCancel={onClose}
       width={width}
@@ -53,23 +54,27 @@ const DynamicModal = ({
           key="close"
           text="Close"
           onClick={onClose}
-          className="bg-[#B6AEAB] text-white rounded-sm p-2"
+          className="text-[#FFFFFF] text-sm rounded-sm bg-[#B6AEAB] p-2 min-w-[96px]"
         />,
         type === "add" && (
           <DynamicButton
             key="add"
             text="Add"
             onClick={handleAdd}
-            className="bg-[#009845] text-white rounded-sm p-2 ms-3"
+            className="text-[#FFFFFF] text-sm rounded-sm bg-[#00783F] p-2 min-w-[96px] ms-3"
           />
         ),
       ]}
     >
-      <Input
-        placeholder="Search..."
-        onChange={handleSearch}
-        style={{ marginBottom: 16 }}
-      />
+      <div className="mb-4 flex justify-end">
+        <Input
+          placeholder="Search..."
+          prefix={<SearchOutlined className="text-gray-500" />}
+          onChange={handleSearch}
+          className="w-[200px]" // Limit width to 200px with Tailwind
+        />
+      </div>
+
       {type === "add" ? (
         <TableCheckbox
           header={header}

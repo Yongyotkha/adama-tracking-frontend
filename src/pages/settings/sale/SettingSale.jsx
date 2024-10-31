@@ -255,7 +255,7 @@ export default function SettingSale() {
       />
 
       <DynamicModal
-        title="Sale Team (Business Development)"
+        title="Sale Team"
         isVisible={isBDModalVisible}
         onClose={handleCloseBDModal}
         header={territoryColumns}
@@ -264,7 +264,7 @@ export default function SettingSale() {
       />
 
       <DynamicModal
-        title="Sale Team (Sale Assistant)"
+        title="Sale Team"
         isVisible={isSAModalVisible}
         onClose={handleCloseSAModal}
         header={territoryColumns}

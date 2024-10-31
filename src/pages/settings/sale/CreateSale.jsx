@@ -12,7 +12,8 @@ const { Option } = Select;
 
 export default function CreateSale() {
   const [loading, setLoading] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
+  const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
   const [selectedSalesData, setSelectedSalesData] = useState([]); // Store selected rows
   const navigate = useNavigate();
 
@@ -58,6 +59,31 @@ export default function CreateSale() {
     },
   ];
 
+  const salesDataTerritory = [
+    { key: "1", no: 1, name: "Kornkan Induang", position: "Sales Executive", territory: "Left North" },
+    { key: "2", no: 2, name: "Phaisan Jethuen", position: "Sales Executive", territory: "Left Lower North" },
+    { key: "3", no: 3, name: "Manupong Wongpuang", position: "Sales Executive", territory: "Lower North" },
+    { key: "4", no: 4, name: "Kriangkrai Kraikeaw", position: "Sales Executive", territory: "Central Left North" },
+    { key: "5", no: 5, name: "Charoenpong Khunawatcharakun", position: "Sales Executive", territory: "Central Right North" },
+    { key: "6", no: 6, name: "Amorn Sriworakul", position: "Sales Executive", territory: "Right Lower North" },
+    { key: "7", no: 7, name: "Nitchapan Akkaraketsawad", position: "Sales Executive", territory: "Upper Central" },
+    { key: "8", no: 8, name: "Manus Nakkhum", position: "Sales Executive", territory: "Central" },
+    // Add more entries if needed
+  ];
+
+  const salesDataTeam = [
+    { key: "1", no: 1, name: "Passakorn Kong-In", position: "Sales Assistant", territory: "Right North" },
+    { key: "2", no: 2, name: "Tossaphon Suphaksitthikorn", position: "Business Development Executive", territory: "Right Lower North" },
+    { key: "3", no: 3, name: "Panudech Srithong", position: "Business Development Executive", territory: "Upper Central" },
+    { key: "4", no: 4, name: "Sarawut Nisap", position: "Business Development Executive", territory: "Central" },
+    { key: "5", no: 5, name: "Tanadol Kaewyai", position: "Sales Assistant", territory: "Central" },
+    { key: "6", no: 6, name: "Thanakit Kongkrapan", position: "Sales Assistant", territory: "West" },
+    { key: "7", no: 7, name: "Wisisak Prakobsin", position: "Business Development Executive", territory: "South" },
+    { key: "8", no: 8, name: "Chinnawat Bunmakaew", position: "Sales Assistant", territory: "South" },
+    // Add more entries if needed
+  ];
+  
+
   // Define the main table columns
   const columns = [
     {
@@ -84,8 +110,7 @@ export default function CreateSale() {
       width: 100,
       render: (_, record) => (
         <div className="flex items-center space-x-2">
-          {/* <DynamicButton iconSrc="/img/icons/create.png"  onClick={() => handleEdit(record)} /> */}
-          <DynamicButton iconSrc="/img/icons/create.png" onClick={handleOpenModal} />
+          <DynamicButton iconSrc="/img/icons/create.png" onClick={handleOpenTeamModal} />
           <DynamicButton iconSrc="/img/icons/delete.png" onClick={() => handleDelete(record)} />
         </div>
       ),
@@ -94,30 +119,10 @@ export default function CreateSale() {
 
   // Define the nested table columns
   const nestedColumns = [
-    {
-      title: "No",
-      dataIndex: "no",
-      key: "no",
-      width: 80,
-    },
-    {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-      width: 150,
-    },
-    {
-      title: "Position",
-      dataIndex: "position",
-      key: "position",
-      width: 200,
-    },
-    {
-      title: "Territory",
-      dataIndex: "territory",
-      key: "territory",
-      width: 150,
-    },
+    { title: "No", dataIndex: "no", key: "no", width: 80 },
+    { title: "Name", dataIndex: "name", key: "name", width: 150 },
+    { title: "Position", dataIndex: "position", key: "position", width: 200 },
+    { title: "Territory", dataIndex: "territory", key: "territory", width: 150 },
     {
       title: "Action",
       key: "action",
@@ -128,20 +133,24 @@ export default function CreateSale() {
     },
   ];
 
-  const handleOpenModal = () => {
-    setIsModalVisible(true);
+  const handleOpenTerritoryModal = () => {
+    setIsTerritoryModalVisible(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalVisible(false);
+  const handleOpenTeamModal = () => {
+    setIsTeamModalVisible(true);
+  };
+
+  const handleCloseTerritoryModal = () => {
+    setIsTerritoryModalVisible(false);
+  };
+
+  const handleCloseTeamModal = () => {
+    setIsTeamModalVisible(false);
   };
 
   const handleAddSelectedRows = (selectedRows) => {
     setSelectedSalesData((prev) => [...prev, ...selectedRows]);
-  };
-
-  const handleEdit = (record) => {
-    console.log("Edit", record);
   };
 
   const handleDelete = (record) => {
@@ -156,44 +165,34 @@ export default function CreateSale() {
         <div className="grid gap-4 mb-4 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1">
           <div>
             <label className="block mb-1 text-sm text-gray-600">Sale Head</label>
-            <Select
-              defaultValue="Chayanon Tunyateerapong"
-              className="w-full"
-              placeholder="Select Sale Head"
-            >
+            <Select defaultValue="Chayanon Tunyateerapong" className="w-full" placeholder="Select Sale Head">
               <Option value="chayanon">Chayanon Tunyateerapong</Option>
               <Option value="another">Another Person</Option>
             </Select>
           </div>
           <div>
             <label className="block mb-1 text-sm text-gray-600">Sale Area</label>
-            <Select
-              defaultValue="Veerasak Likitmanchai"
-              className="w-full"
-              placeholder="Select Sale Area"
-            >
+            <Select defaultValue="Veerasak Likitmanchai" className="w-full" placeholder="Select Sale Area">
               <Option value="veerasak">Veerasak Likitmanchai</Option>
               <Option value="another_area">Another Area</Option>
             </Select>
           </div>
           <div>
             <label className="block mb-1 text-sm text-gray-600">Area</label>
-            <Input
-              defaultValue="Area 1"
-              disabled
-              className="w-full"
-            />
+            <Input defaultValue="Area 1" disabled className="w-full" />
           </div>
         </div>
       </BoxPrimary>
 
       <BoxPrimary>
         <div className="flex justify-between space-x-4 mb-3">
-          <span className="text-[#00783F]">Sale Team</span>
-          <ActionButton mode="add" text="Add" onClick={handleOpenModal} />
+          <span className="text-[#00783F] text-lg">Sale Team</span>
+          <div className="flex space-x-2">
+            <ActionButton mode="add" text="Add" onClick={handleOpenTerritoryModal} />
+          </div>
         </div>
 
-        <TableExpand data={salesData} columns={columns} nestedColumns={nestedColumns} /> {/* Pass columns and nestedColumns as props */}
+        <TableExpand data={salesData} columns={columns} nestedColumns={nestedColumns} />
 
       </BoxPrimary>
 
@@ -202,22 +201,39 @@ export default function CreateSale() {
         <ActionButton mode="save" text="Save" onClick={() => navigate("/setting/sale")} />
       </div>
 
+      {/* Modal for Add Sale Territory */}
       <DynamicModal
         title="Add Sale Territory"
-        isVisible={isModalVisible}
-        onClose={handleCloseModal}
+        isVisible={isTerritoryModalVisible}
+        onClose={handleCloseTerritoryModal}
         header={[
           { title: "No", dataIndex: "no", key: "no", width: 50 },
           { title: "Name", dataIndex: "name", key: "name", width: 150 },
           { title: "Territory", dataIndex: "territory", key: "territory", width: 150 },
-          { title: "Position", dataIndex: "position", key: "position", width: 150 }
+          { title: "Position", dataIndex: "position", key: "position", width: 150 },
         ]}
-        dataSource={salesData}
+        dataSource={salesDataTerritory}
         width="1200px"
         onAddSelected={handleAddSelectedRows}
         type="add"
       />
 
+      {/* Modal for Add Sale Team */}
+      <DynamicModal
+        title="Add Sale Team"
+        isVisible={isTeamModalVisible}
+        onClose={handleCloseTeamModal}
+        header={[
+          { title: "No", dataIndex: "no", key: "no", width: 50 },
+          { title: "Name", dataIndex: "name", key: "name", width: 150 },
+          { title: "Territory", dataIndex: "territory", key: "territory", width: 150 },
+          { title: "Position", dataIndex: "position", key: "position", width: 150 },
+        ]}
+        dataSource={salesDataTeam}
+        width="1200px"
+        onAddSelected={handleAddSelectedRows}
+        type="add"
+      />
     </MainLayout>
   );
 }
