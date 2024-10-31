@@ -3,9 +3,10 @@ import MainLayout from "../../layouts/MainLayout";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import TableComponent from "../../components/table/TableComponent";
 import DynamicButton from "../../components/button/DynamicButton";
-import { Input, InputNumber } from "antd";
+import { Input, InputNumber, Table } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import ActionButton from "../../components/button/ActionButton";
+import TableCustomComponent from "../../components/table/TableCustomComponent";
 
 export default function WorkPlanCreateStepTwo() {
   const location = useLocation();
@@ -16,321 +17,249 @@ export default function WorkPlanCreateStepTwo() {
 
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [dataSource, setDataSource] = useState([]);
+  const [dataSource, setDataSource] = useState(location.state.data.dataSource);
   const [overall, setOverall] = useState(location.state.data?.totalValue);
-  const [dataSourceProduct, setDataSourceProduct] = useState([]);
 
-  useEffect(() => {
-    const initialData = [
-      {
-        key: "1",
-        name: "Sale Plane(THB)",
-        area1: 205250000,
-        area2: 186500000,
-      },
-    ];
+  const applyTopLevelAndSpecificChildrenStyles = (columns) =>
+    columns.map((col, index) => {
+      const backgroundColor = index % 2 === 0 ? "#00783F" : "#009845"; // Alternating color for top-level columns
+      const textColor = "white";
 
-    const initialDataProduct = [
-      {
-        key: "1",
-        productName: "Ossinate 15%SL",
-        packSize: "1Kg.",
-        originalQty: 50000,
-        value: 12500000,
-        unitPrice: 250,
-        qtyArea1: 50000,
-        valueArea1: 12500000,
-        qtyArea2: 50000,
-        valueArea2: 12500000,
-      },
-      {
-        key: "2",
-        productName: "Apopo 20%SE",
-        packSize: "1Lt.",
-        originalQty: 120000,
-        unitPrice: 350,
-        value: 42000000,
-        qtyArea1: 50000,
-        valueArea1: 12500000,
-        qtyArea2: 50000,
-        valueArea2: 12500000,
-      },
-      {
-        key: "3",
-        productName: "Atrannex 90WG",
-        packSize: "5Kg.",
-        originalQty: 320000,
-        unitPrice: 450,
-        value: 144000000,
-        qtyArea1: 50000,
-        valueArea1: 12500000,
-        qtyArea2: 50000,
-        valueArea2: 12500000,
-      },
-      {
-        key: "4",
-        productName: "Baloric 320EC",
-        packSize: "0.5Lt.",
-        originalQty: 12000,
-        unitPrice: 150,
-        value: 1800000,
-        qtyArea1: 50000,
-        valueArea1: 12500000,
-        qtyArea2: 50000,
-        valueArea2: 12500000,
-      },
-      {
-        key: "5",
-        productName: "Bla-S",
-        packSize: "0.25Lt.",
-        originalQty: 600000,
-        unitPrice: 250,
-        value: 150000000,
-        qtyArea1: 50000,
-        valueArea1: 12500000,
-        qtyArea2: 50000,
-        valueArea2: 12500000,
-      },
-      {
-        key: "6",
-        productName: "Bumper P",
-        packSize: "0.5Lt.",
-        originalQty: 4300,
-        unitPrice: 250,
-        value: 1075000,
-        qtyArea1: 50000,
-        valueArea1: 12500000,
-        qtyArea2: 50000,
-        valueArea2: 12500000,
-      },
-      {
-        key: "7",
-        productName: "Custodia",
-        packSize: "1Lt.",
-        originalQty: 43500,
-        unitPrice: 250,
-        value: 10875000,
-        qtyArea1: 50000,
-        valueArea1: 12500000,
-        qtyArea2: 50000,
-        valueArea2: 12500000,
-      },
-      {
-        key: "8",
-        productName: "Damatin 5%WG",
-        packSize: "20Lt.",
-        originalQty: 30000,
-        unitPrice: 250,
-        value: 7500000,
-        qtyArea1: 50000,
-        valueArea1: 12500000,
-        qtyArea2: 50000,
-        valueArea2: 12500000,
-      },
-      {
-        key: "9",
-        productName: "Durivo 63SC",
-        packSize: "1Lt.",
-        originalQty: 45000,
-        unitPrice: 250,
-        value: 11250000,
-        qtyArea1: 50000,
-        valueArea1: 12500000,
-        qtyArea2: 50000,
-        valueArea2: 12500000,
-      },
-      {
-        key: "10",
-        productName: "Hamper 300SC",
-        packSize: "1Lt.",
-        originalQty: 43000,
-        unitPrice: 250,
-        value: 10750000,
-        qtyArea1: 50000,
-        valueArea1: 12500000,
-        qtyArea2: 50000,
-        valueArea2: 12500000,
-      },
-    ];
+      const styleChildren = (children, parentBgColor) =>
+        children.map((child) => {
+          const isFirstLevelChild = child.key === "firstChilden";
+          const isLastLevelChild = child.dataIndex;
 
-    setDataSource(initialData);
-    setDataSourceProduct(initialDataProduct);
-  }, []);
+          if (!isFirstLevelChild && child.children && !isLastLevelChild) {
+            return {
+              ...child,
+              children: styleChildren(child.children, parentBgColor),
+            };
+          }
 
-  const header = [
+          return {
+            ...child,
+            onHeaderCell: () => ({
+              style: {
+                backgroundColor: isFirstLevelChild
+                  ? "#CBC5C3"
+                  : isLastLevelChild
+                  ? parentBgColor
+                  : null,
+                color: isLastLevelChild ? textColor : "black",
+                fontWeight: "bold",
+                textAlign: "left",
+              },
+            }),
+            ...(child.children
+              ? { children: styleChildren(child.children, parentBgColor) }
+              : {}),
+          };
+        });
+
+      return {
+        ...col,
+        onHeaderCell: () => ({
+          style: {
+            backgroundColor,
+            color: textColor,
+            fontWeight: "bold",
+            textAlign: "left",
+          },
+        }),
+        ...(col.children
+          ? { children: styleChildren(col.children, backgroundColor) }
+          : {}),
+      };
+    });
+
+  const baseColumns = [
+    // default column
     {
-      title: "Area Sale Manager Name",
-      dataIndex: "name",
-      key: "1",
+      title: "Sale Territory Name",
+      children: [
+        {
+          title: "Sale Plan (THB)",
+          key: "secondChilden",
+          onHeaderCell: () => ({
+            style: {
+              backgroundColor: "white",
+              fontWeight: "bold",
+              textAlign: "left",
+            },
+          }),
+          children: [
+            {
+              title: "Product Name",
+              dataIndex: "productName",
+              key: "0",
+              fixed: "left",
+              width: 200,
+            },
+            {
+              title: "Pack Size",
+              dataIndex: "packSize",
+              key: "1",
+              width: 200,
+              fixed: "left",
+            },
+            {
+              title: "Original Plan",
+              dataIndex: "qty",
+              key: "2",
+              width: 200,
+              fixed: "left",
+              render: (text, record) => (
+                <InputNumber
+                  className="w-full"
+                  disabled
+                  min={0}
+                  value={text}
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  onChange={(value) => handleQtyChange(value, record.key)}
+                />
+              ),
+            },
+            {
+              title: "Value (THB)",
+              dataIndex: "value",
+              key: "3",
+              width: 200,
+              fixed: "left",
+              render: (text, record) => (
+                <InputNumber
+                  disabled
+                  className="w-full"
+                  min={0}
+                  value={text}
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  onChange={(value) => handleQtyChange(value, record.key)}
+                />
+              ),
+            },
+          ],
+        },
+      ],
     },
+
+    // api
     {
       title: "Veerasak Likitmanchai (Area1)",
-      dataIndex: "area1",
-      key: "2",
-      width: 400,
-      render: (text, record) => (
-        <InputNumber
-          className="w-full"
-          min={0}
-          value={text}
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
-          onChange={(value) => handleQtyChange(value, record.key)}
-          disabled={true}
-        />
-      ),
+      children: [
+        {
+          title: (
+            <InputNumber
+              className="w-full"
+              disabled
+              min={0}
+              // value={text}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+            />
+          ),
+          children: [
+            {
+              title: "Qty (KG)",
+              dataIndex: "qty_area1",
+              key: "0",
+              width: 200,
+              render: (text, record) => (
+                <InputNumber
+                  className="w-full"
+                  min={0}
+                  value={text}
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  onChange={(value) => handleQtyChange(value, record.key)}
+                />
+              ),
+            },
+            {
+              title: "Value (THB)",
+              dataIndex: "value_area1",
+              key: "1",
+              width: 200,
+              render: (text, record) => (
+                <InputNumber
+                  disabled
+                  className="w-full"
+                  min={0}
+                  value={text}
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  onChange={(value) => handleQtyChange(value, record.key)}
+                />
+              ),
+            },
+          ],
+        },
+      ],
     },
     {
       title: "Cheerayut Inthong (Area2)",
-      dataIndex: "area2",
-      key: "3",
-      width: 400,
-      render: (text, record) => (
-        <InputNumber
-          className="w-full"
-          min={0}
-          value={text}
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
-          onChange={(value) => handleQtyChange(value, record.key)}
-          disabled={true}
-        />
-      ),
+      children: [
+        {
+          title: (
+            <InputNumber
+              className="w-full"
+              disabled
+              min={0}
+              // value={text}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+            />
+          ),
+          children: [
+            {
+              title: "Qty (KG)",
+              dataIndex: "qty_area2",
+              key: "0",
+              width: 200,
+              render: (text, record) => (
+                <InputNumber
+                  className="w-full"
+                  min={0}
+                  value={text}
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  onChange={(value) => handleQtyChange(value, record.key)}
+                />
+              ),
+            },
+            {
+              title: "Value (THB)",
+              dataIndex: "value_area2",
+              key: "1",
+              width: 200,
+              render: (text, record) => (
+                <InputNumber
+                  disabled
+                  className="w-full"
+                  min={0}
+                  value={text}
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  onChange={(value) => handleQtyChange(value, record.key)}
+                />
+              ),
+            },
+          ],
+        },
+      ],
     },
   ];
 
-  const headerProduct = [
-    {
-      title: "Product Name",
-      dataIndex: "productName",
-      key: "1",
-    },
-    {
-      title: "Pack Size",
-      dataIndex: "packSize",
-      key: "2",
-    },
-    {
-      title: "Original Plan",
-      dataIndex: "originalQty",
-      key: "3",
-      width: 200,
-      render: (text, record) => (
-        <InputNumber
-          className="w-full"
-          min={0}
-          value={text}
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
-          onChange={(value) => handleQtyChange(value, record.key)}
-          disabled={true}
-        />
-      ),
-    },
-    {
-      title: "Value (ฺTHB)",
-      dataIndex: "value",
-      key: "4",
-      width: 200,
-      render: (text, record) => (
-        <InputNumber
-          className="w-full"
-          min={0}
-          value={text}
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
-          onChange={(value) => handleQtyChange(value, record.key)}
-          disabled={true}
-        />
-      ),
-    },
-    {
-      title: "Qty (KG)",
-      dataIndex: "qtyArea1",
-      key: "5",
-      width: 200,
-      render: (text, record) => (
-        <InputNumber
-          className="w-full"
-          min={0}
-          value={text}
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
-          onChange={(value) => handleQtyChange(value, record.key)}
-          disabled={true}
-        />
-      ),
-    },
-    {
-      title: "Value (ฺTHB)",
-      dataIndex: "valueArea1",
-      key: "6",
-      width: 200,
-      render: (text, record) => (
-        <InputNumber
-          className="w-full"
-          min={0}
-          value={text}
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
-          onChange={(value) => handleQtyChange(value, record.key)}
-          disabled={true}
-        />
-      ),
-    },
-    {
-      title: "Qty (KG)",
-      dataIndex: "qtyArea2",
-      key: "7",
-      width: 200,
-      render: (text, record) => (
-        <InputNumber
-          className="w-full"
-          min={0}
-          value={text}
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
-          onChange={(value) => handleQtyChange(value, record.key)}
-          disabled={true}
-        />
-      ),
-    },
-    {
-      title: "Value (ฺTHB)",
-      dataIndex: "valueArea2",
-      key: "8",
-      width: 200,
-      render: (text, record) => (
-        <InputNumber
-          className="w-full"
-          min={0}
-          value={text}
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
-          onChange={(value) => handleQtyChange(value, record.key)}
-          disabled={true}
-        />
-      ),
-    },
-  ];
-
-  const handleQtyChange = (value, key) => {
-    const newData = dataSource.map((item) => {
-      if (item.key === key) {
-        return { ...item, qty: value, value: value * item.unitPrice };
-      }
-      return item;
-    });
-    setDataSource(newData);
-  };
+  const columns = applyTopLevelAndSpecificChildrenStyles(baseColumns);
 
   return (
     <>
@@ -357,18 +286,56 @@ export default function WorkPlanCreateStepTwo() {
 
         <BoxPrimary>
           <div className="text-[#00783F] text-2xl pb-3">Work Plan</div>
-          <TableComponent
-            header={header}
+          <TableCustomComponent
+            header={columns}
             dataSource={dataSource}
             pagination={false}
-            // footer={footerTable}
-          />
-
-          <TableComponent
-            header={headerProduct}
-            dataSource={dataSourceProduct}
-            pagination={false}
-            // footer={footerTable}
+            scroll={true}
+            footer={() => (
+              <Table.Summary fixed>
+                <Table.Summary.Row className="bg-[#978B87]">
+                  <Table.Summary.Cell index={0} colSpan={2}>
+                    Total (THB)
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell colSpan={2}>
+                    <InputNumber
+                      className="w-full"
+                      disabled
+                      value={overall}
+                      min={0}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      style={{ backgroundColor: "white" }}
+                    />
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell colSpan={2}>
+                    <InputNumber
+                      className="w-full"
+                      disabled
+                      // value={index}
+                      min={0}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      style={{ backgroundColor: "white" }}
+                    />
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell colSpan={2}>
+                    <InputNumber
+                      className="w-full"
+                      disabled
+                      // value={index}
+                      min={0}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      style={{ backgroundColor: "white" }}
+                    />
+                  </Table.Summary.Cell>
+                </Table.Summary.Row>
+              </Table.Summary>
+            )}
           />
         </BoxPrimary>
 
