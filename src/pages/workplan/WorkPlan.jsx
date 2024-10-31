@@ -176,6 +176,16 @@ export default function WorkPlan() {
         />
       ),
     },
+    {
+      key: "4",
+      label: (
+        <ItemDropDown
+          mode="edit"
+          text={"SaleCraete"}
+          onClick={(e) => navigate("/sale-plan/work-plan/sale-create")}
+        />
+      ),
+    },
   ];
 
   return (
