@@ -20,7 +20,7 @@ const TableCustomComponent = ({
         components: {
           Table: {
             // headerBg: "#00783F",
-            // headerColor: "white",
+            headerColor: "#5F504D",
           },
           Pagination: {
             itemActiveBg: "#009845",

@@ -5,21 +5,30 @@ import DynamicButton from "../../components/button/DynamicButton";
 import { Input, InputNumber } from "antd";
 import { useNavigate } from "react-router-dom";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
+import ActionButton from "../../components/button/ActionButton";
 
 export default function WorkPlanAreaCreate() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-
   const [dataSource, setDataSource] = useState([]);
 
   useEffect(() => {
     const data = [
       {
         key: "1",
-        productName: "Product A",
-        packSize: "Small",
-        originalPlan: "100",
-        valueTHB: "2000",
+        productName: "Ossinate 15%SL",
+        packSize: "1Kg.",
+        originalPlan: "30000",
+        valueTHB: "7500000",
+        originalPlanManupong: "150",
+        valueTHBManupong: "2500",
+      },
+      {
+        key: "2",
+        productName: "Apopo 20%SE",
+        packSize: "1Lt.",
+        originalPlan: "80000",
+        valueTHB: "280000000",
         originalPlanManupong: "150",
         valueTHBManupong: "2500",
       },
@@ -27,22 +36,77 @@ export default function WorkPlanAreaCreate() {
     setDataSource(data);
   }, []);
 
-  const columns = [
+  const applyTopLevelAndSpecificChildrenStyles = (columns) =>
+    columns.map((col, index) => {
+      const backgroundColor = index % 2 === 0 ? "#00783F" : "#009845"; // Alternating color for top-level columns
+      const textColor = "white";
+
+      const styleChildren = (children, parentBgColor) =>
+        children.map((child) => {
+          const isFirstLevelChild = child.key === "firstChilden";
+          const isLastLevelChild = child.dataIndex;
+
+          if (!isFirstLevelChild && child.children && !isLastLevelChild) {
+            return {
+              ...child,
+              children: styleChildren(child.children, parentBgColor),
+            };
+          }
+
+          return {
+            ...child,
+            onHeaderCell: () => ({
+              style: {
+                backgroundColor: isFirstLevelChild
+                  ? "#CBC5C3"
+                  : isLastLevelChild
+                  ? parentBgColor
+                  : null,
+                color: isLastLevelChild ? textColor : "black",
+                fontWeight: "bold",
+                textAlign: "left",
+              },
+            }),
+            ...(child.children
+              ? { children: styleChildren(child.children, parentBgColor) }
+              : {}),
+          };
+        });
+
+      return {
+        ...col,
+        onHeaderCell: () => ({
+          style: {
+            backgroundColor,
+            color: textColor,
+            fontWeight: "bold",
+            textAlign: "left",
+          },
+        }),
+        ...(col.children
+          ? { children: styleChildren(col.children, backgroundColor) }
+          : {}),
+      };
+    });
+
+  const baseColumns = [
     {
       title: "Sale Territory Name",
-      onHeaderCell: () => ({
-        style: {
-          backgroundColor: "#00783F",
-          color: "white",
-          fontWeight: "bold",
-        },
-      }),
       children: [
         {
           title: "Territory",
+          key: "firstChilden",
           children: [
             {
               title: "Sale Plan (THB)",
+              key: "secondChilden",
+              onHeaderCell: () => ({
+                style: {
+                  backgroundColor: "white",
+                  fontWeight: "bold",
+                  textAlign: "left",
+                },
+              }),
               children: [
                 {
                   title: "Product Name",
@@ -64,6 +128,18 @@ export default function WorkPlanAreaCreate() {
                   key: "originalPlan",
                   width: 200,
                   fixed: "left",
+                  render: (text, record) => (
+                    <InputNumber
+                      className="w-full"
+                      disabled
+                      min={0}
+                      value={text}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      onChange={(value) => handleQtyChange(value, record.key)}
+                    />
+                  ),
                 },
                 {
                   title: "Value (THB)",
@@ -71,6 +147,18 @@ export default function WorkPlanAreaCreate() {
                   key: "valueTHB",
                   width: 200,
                   fixed: "left",
+                  render: (text, record) => (
+                    <InputNumber
+                      disabled
+                      className="w-full"
+                      min={0}
+                      value={text}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      onChange={(value) => handleQtyChange(value, record.key)}
+                    />
+                  ),
                 },
               ],
             },
@@ -83,21 +171,56 @@ export default function WorkPlanAreaCreate() {
       children: [
         {
           title: "Lower North",
+          key: "firstChilden",
           children: [
             {
-              title: <Input placeholder="Input" />,
+              title: (
+                <InputNumber
+                  className="w-full"
+                  disabled
+                  min={0}
+                  // value={text}
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                />
+              ),
+              key: "secondChilden",
+
               children: [
                 {
                   title: "Original Plan",
                   dataIndex: "originalPlanManupong",
                   key: "originalPlanManupong",
                   width: 200,
+                  render: (text, record) => (
+                    <InputNumber
+                      className="w-full"
+                      min={0}
+                      value={text}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      onChange={(value) => handleQtyChange(value, record.key)}
+                    />
+                  ),
                 },
                 {
                   title: "Value (THB)",
                   dataIndex: "valueTHBManupong",
                   key: "valueTHBManupong",
                   width: 200,
+                  render: (text, record) => (
+                    <InputNumber
+                      className="w-full"
+                      min={0}
+                      value={text}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      onChange={(value) => handleQtyChange(value, record.key)}
+                    />
+                  ),
                 },
               ],
             },
@@ -110,21 +233,56 @@ export default function WorkPlanAreaCreate() {
       children: [
         {
           title: "Lower North",
+          key: "firstChilden",
           children: [
             {
-              title: <Input placeholder="Input" />,
+              title: (
+                <InputNumber
+                  className="w-full"
+                  disabled
+                  min={0}
+                  // value={text}
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                />
+              ),
+              key: "secondChilden",
+
               children: [
                 {
                   title: "Original Plan",
                   dataIndex: "originalPlanManupong",
                   key: "originalPlanManupong",
                   width: 200,
+                  render: (text, record) => (
+                    <InputNumber
+                      className="w-full"
+                      min={0}
+                      value={text}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      onChange={(value) => handleQtyChange(value, record.key)}
+                    />
+                  ),
                 },
                 {
                   title: "Value (THB)",
                   dataIndex: "valueTHBManupong",
                   key: "valueTHBManupong",
                   width: 200,
+                  render: (text, record) => (
+                    <InputNumber
+                      className="w-full"
+                      min={0}
+                      value={text}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      onChange={(value) => handleQtyChange(value, record.key)}
+                    />
+                  ),
                 },
               ],
             },
@@ -137,21 +295,56 @@ export default function WorkPlanAreaCreate() {
       children: [
         {
           title: "Lower North",
+          key: "firstChilden",
           children: [
             {
-              title: <Input placeholder="Input" />,
+              title: (
+                <InputNumber
+                  className="w-full"
+                  disabled
+                  min={0}
+                  // value={text}
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                />
+              ),
+              key: "secondChilden",
+
               children: [
                 {
                   title: "Original Plan",
                   dataIndex: "originalPlanManupong",
                   key: "originalPlanManupong",
                   width: 200,
+                  render: (text, record) => (
+                    <InputNumber
+                      className="w-full"
+                      min={0}
+                      value={text}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      onChange={(value) => handleQtyChange(value, record.key)}
+                    />
+                  ),
                 },
                 {
                   title: "Value (THB)",
                   dataIndex: "valueTHBManupong",
                   key: "valueTHBManupong",
                   width: 200,
+                  render: (text, record) => (
+                    <InputNumber
+                      className="w-full"
+                      min={0}
+                      value={text}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      onChange={(value) => handleQtyChange(value, record.key)}
+                    />
+                  ),
                 },
               ],
             },
@@ -164,21 +357,56 @@ export default function WorkPlanAreaCreate() {
       children: [
         {
           title: "Lower North",
+          key: "firstChilden",
           children: [
             {
-              title: <Input placeholder="Input" />,
+              title: (
+                <InputNumber
+                  className="w-full"
+                  disabled
+                  min={0}
+                  // value={text}
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                />
+              ),
+              key: "secondChilden",
+
               children: [
                 {
                   title: "Original Plan",
                   dataIndex: "originalPlanManupong",
                   key: "originalPlanManupong",
                   width: 200,
+                  render: (text, record) => (
+                    <InputNumber
+                      className="w-full"
+                      min={0}
+                      value={text}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      onChange={(value) => handleQtyChange(value, record.key)}
+                    />
+                  ),
                 },
                 {
                   title: "Value (THB)",
                   dataIndex: "valueTHBManupong",
                   key: "valueTHBManupong",
                   width: 200,
+                  render: (text, record) => (
+                    <InputNumber
+                      className="w-full"
+                      min={0}
+                      value={text}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      onChange={(value) => handleQtyChange(value, record.key)}
+                    />
+                  ),
                 },
               ],
             },
@@ -187,6 +415,8 @@ export default function WorkPlanAreaCreate() {
       ],
     },
   ];
+
+  const columns = applyTopLevelAndSpecificChildrenStyles(baseColumns);
 
   return (
     <>
@@ -216,24 +446,22 @@ export default function WorkPlanAreaCreate() {
         </BoxPrimary>
 
         <div className="flex justify-end space-x-4">
-          <DynamicButton
+          <ActionButton
             text="Back"
-            className="bg-[#B6AEAB] text-[#ffff] rounded-lg p-2"
-            onClick={() =>
-              navigate("/sale-plan/work-plan/create", {
-                state: { data: {} },
-              })
-            }
+            mode="back"
+            onClick={() => {
+              navigate("/sale-plan/work-plan/create");
+            }}
           />
-          <DynamicButton
+          <ActionButton
             text="Save Draft"
-            className="bg-[#F89E18] text-[#ffff] rounded-lg p-2"
+            mode="saveDraft"
             onClick={() => navigate("/sale-plan/work-plan")}
           />
 
-          <DynamicButton
+          <ActionButton
             text="Save and Next"
-            className="bg-[#00783F] text-[#ffff] rounded-lg p-2"
+            mode="save"
             onClick={() => navigate("/sale-plan/work-plan")}
           />
         </div>
