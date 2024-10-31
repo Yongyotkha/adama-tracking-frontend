@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { ConfigProvider, Table, Button } from "antd";
+import { ConfigProvider, Table } from "antd";
 import "./TableExpand.css";
 import DynamicButton from "../button/DynamicButton";
 
-const TableExpand = ({ data }) => {
+const TableExpand = ({ data, columns, nestedColumns }) => {
   const [expandedRowKeys, setExpandedRowKeys] = useState([]);
 
   const handleExpand = (record) => {
@@ -12,85 +12,12 @@ const TableExpand = ({ data }) => {
     );
   };
 
-  const columns = [
-    {
-      title: "No",
-      dataIndex: "no",
-      key: "no",
-      width: 80,
-    },
-    {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-      width: 150,
-    },
-    {
-      title: "Position",
-      dataIndex: "position",
-      key: "position",
-      width: 200,
-    },
-    {
-      title: "Territory",
-      dataIndex: "territory",
-      key: "territory",
-      width: 150,
-    },
-    {
-      title: "Action",
-      key: "action",
-      width: 100,
-      render: (_, record) => (
-        <div className="flex items-center space-x-2">
-          <DynamicButton iconSrc="/img/icons/create.png" />
-          <DynamicButton iconSrc="/img/icons/delete.png" />
-        </div>
-      ),
-    },
-  ];
-
   const handleDelete = (key) => {
     // Implement delete functionality here
   };
 
-  const expandedRowRender = (record) => {
-    const nestedColumns = [
-      {
-        title: "No",
-        dataIndex: "no",
-        key: "no",
-        width: 80,
-      },
-      {
-        title: "Name",
-        dataIndex: "name",
-        key: "name",
-        width: 150,
-      },
-      {
-        title: "Position",
-        dataIndex: "position",
-        key: "position",
-        width: 200,
-      },
-      {
-        title: "Territory",
-        dataIndex: "territory",
-        key: "territory",
-        width: 150,
-      },
-      {
-        title: "Action",
-        key: "action",
-        width: 100,
-        render: (_, nestedRecord) => (
-          <DynamicButton iconSrc="/img/icons/delete.png" onClick={() => handleDelete(nestedRecord.key)} />
-        ),
-      },
-    ];
-
-    return (
+  const expandedRowRender = (record) => (
+    <div className="m-0 p-0"> {/* Set margin to 0 */}
       <Table
         columns={nestedColumns}
         dataSource={record.nestedData} // Use the nestedData field from the parent row
@@ -99,8 +26,8 @@ const TableExpand = ({ data }) => {
         scroll={{ x: "max-content" }}
         className="nested-table"
       />
-    );
-  };
+    </div>
+  );
 
   return (
     <ConfigProvider
@@ -136,14 +63,14 @@ const TableExpand = ({ data }) => {
               <img
                 src="/img/icons/collapse.png"
                 alt="collapse"
-                style={{ cursor: "pointer", width: 16, height: 16 }}
+                className="cursor-pointer w-6 h-6" // Tailwind classes for 24px width and height
                 onClick={(e) => onExpand(record, e)}
               />
             ) : (
               <img
                 src="/img/icons/expand.png"
                 alt="expand"
-                style={{ cursor: "pointer", width: 16, height: 16 }}
+                className="cursor-pointer w-6 h-6" // Tailwind classes for 24px width and height
                 onClick={(e) => onExpand(record, e)}
               />
             ),

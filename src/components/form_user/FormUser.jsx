@@ -63,6 +63,7 @@ export default function FormUser({ fields }) {
                   },
                 ]}
                 initialValue={field.value}
+                className="mb-3"
               >
                 {field.type === "text" ||
                 field.type === "email" ||

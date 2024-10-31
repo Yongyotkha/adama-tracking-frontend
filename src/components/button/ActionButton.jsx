@@ -39,7 +39,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "" }) => {
 
       {mode == "add" && (
         <button
-          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#009845] gap-2 p-1 px-2 items-center`}
+          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#009845] gap-2 p-2 py-1 items-center min-w-[80px] justify-center`}
           onClick={onClick}
           disabled={disabled}
         >
