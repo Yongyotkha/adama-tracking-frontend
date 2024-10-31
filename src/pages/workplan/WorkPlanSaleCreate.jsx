@@ -64,7 +64,7 @@ export default function WorkPlanSaleCreate() {
                   : null,
                 color: isLastLevelChild ? textColor : "black",
                 fontWeight: "bold",
-                textAlign: "left",
+                textAlign: "center",
               },
             }),
             ...(child.children
@@ -80,7 +80,7 @@ export default function WorkPlanSaleCreate() {
             backgroundColor,
             color: textColor,
             fontWeight: "bold",
-            textAlign: "left",
+            textAlign: "center",
           },
         }),
         ...(col.children
@@ -470,13 +470,13 @@ export default function WorkPlanSaleCreate() {
             text="Back"
             mode="back"
             onClick={() => {
-              navigate("/sale-plan/work-plan/create");
+              navigate("/sale-plan/work-plan/sale-");
             }}
           />
           <ActionButton
             text="Save and Next"
             mode="save"
-            onClick={() => navigate("/sale-plan/work-plan")}
+            onClick={() => navigate("/sale-plan/work-plan/sale-by-crop")}
           />
         </div>
       </MainLayout>
