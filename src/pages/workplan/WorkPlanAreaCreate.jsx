@@ -371,7 +371,6 @@ export default function WorkPlanAreaCreate() {
                 />
               ),
               key: "secondChilden",
-
               children: [
                 {
                   title: "Original Plan",
@@ -442,10 +441,13 @@ export default function WorkPlanAreaCreate() {
             pagination={false}
             scroll={true}
             footer={() => (
+              // วนลูปตาม array ที่ส่งชื่อ sale มา
               <Table.Summary fixed>
-                <Table.Summary.Row>
-                  <Table.Summary.Cell index={0} colSpan={4}>Total (THB)</Table.Summary.Cell>
-                  <Table.Summary.Cell index={4} colSpan={2}>
+                <Table.Summary.Row className="bg-[#978B87]">
+                  <Table.Summary.Cell index={0} colSpan={4}>
+                    Total (THB)
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell colSpan={2}>
                     <InputNumber
                       className="w-full"
                       disabled
@@ -453,6 +455,40 @@ export default function WorkPlanAreaCreate() {
                       formatter={(value) =>
                         `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                       }
+                      style={{ backgroundColor: "white" }}
+                    />
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell colSpan={2}>
+                    <InputNumber
+                      className="w-full"
+                      disabled
+                      min={0}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      style={{ backgroundColor: "white" }}
+                    />
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell colSpan={2}>
+                    <InputNumber
+                      className="w-full"
+                      disabled
+                      min={0}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      style={{ backgroundColor: "white" }}
+                    />
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell colSpan={2}>
+                    <InputNumber
+                      className="w-full"
+                      disabled
+                      min={0}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      style={{ backgroundColor: "white" }}
                     />
                   </Table.Summary.Cell>
                 </Table.Summary.Row>

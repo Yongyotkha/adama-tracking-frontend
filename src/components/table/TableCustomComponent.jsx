@@ -19,7 +19,6 @@ const TableCustomComponent = ({
         },
         components: {
           Table: {
-            // headerBg: "#00783F",
             headerColor: "#5F504D",
           },
           Pagination: {
@@ -41,6 +40,7 @@ const TableCustomComponent = ({
         }}
         // footer={footer ? () => footer : null}
         summary={footer}
+
       />
     </ConfigProvider>
   );
