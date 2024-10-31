@@ -6,10 +6,12 @@ import TableComponent from "../../components/table/TableComponent";
 import { Dropdown } from "antd";
 import BadgeStatus from "../../components/badge/BadgeStatus";
 import ItemDropDown from "../../components/dropdown/ItemDropDown";
+import { useNavigate } from "react-router-dom";
 
 export default function WorkPlan() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const dataSource = [
@@ -147,19 +149,31 @@ export default function WorkPlan() {
     {
       key: "1",
       label: (
-        <ItemDropDown text={"Create"} link={"/sale-plan/work-plan/create"} />
+        <ItemDropDown
+          mode="edit"
+          text={"Create"}
+          onClick={(e) => navigate("/sale-plan/work-plan/create")}
+        />
       ),
     },
     {
       key: "2",
       label: (
-        <ItemDropDown text={"Edit"} link={"/sale-plan/work-plan/edit"} />
+        <ItemDropDown
+          mode="edit"
+          text={"Edit"}
+          onClick={(e) => navigate("/sale-plan/work-plan/edit")}
+        />
       ),
     },
     {
       key: "3",
       label: (
-        <ItemDropDown text={"AreaCraete"} link={"/sale-plan/work-plan/sale-area-create"} />
+        <ItemDropDown
+          mode="edit"
+          text={"AreaCraete"}
+          onClick={(e) => navigate("/sale-plan/work-plan/sale-area-create")}
+        />
       ),
     },
   ];
