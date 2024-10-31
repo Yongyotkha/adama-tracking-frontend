@@ -23,7 +23,6 @@ export default function SettingSale() {
       type: "select",
       label: "Sale Head Name",
       options: [
-        { value: "", label: "All" },
         { value: "Chayanon Tunyateerapong", label: "Chayanon Tunyateerapong" },
         { value: "John Doe", label: "John Doe" },
       ],
@@ -33,7 +32,6 @@ export default function SettingSale() {
       type: "select",
       label: "Sale Area Name",
       options: [
-        { value: "", label: "All" },
         { value: "Veerasak Likitmanchai", label: "Veerasak Likitmanchai" },
         { value: "Cheerayut Inthong", label: "Cheerayut Inthong" },
       ],
