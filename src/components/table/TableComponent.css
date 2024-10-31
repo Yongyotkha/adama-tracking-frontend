@@ -1,22 +1,11 @@
-/* .ant-table-title {
-  padding: 0 !important;
-} */
-/* .ant-table-footer {
-  background: #978B87 !important;
-} */
-/* .ant-pagination-item-active {
-  font-weight: 600;
-  background-color: #009845 !important;
-  border-color: #009845 !important;
-  color: white !important;
-} */
-/* .ant-pagination-item-active a {
-  color: white !important;
-} */
-/* th.ant-table-cell {
-  background: #00783F !important;
-  color: white !important;
-} */
 .ant-pagination-item-active a {
   color: white !important;
+}
+.ant-table-cell::before {
+  content: none !important;
+}
+
+:where(.css-dev-only-do-not-override-1hft8ot).ant-table-wrapper .ant-table-thead > tr > th,
+:where(.css-dev-only-do-not-override-1hft8ot).ant-table-wrapper .ant-table-thead > tr > td {
+    border-bottom: none !important; /* Override the border-bottom */
 }
