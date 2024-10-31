@@ -53,7 +53,7 @@ export default function EditSale() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Create Sale Management</div>
+      <div className="title-page">Edit Sale Management</div>
 
       <BoxPrimary>
         <div className="flex justify-between space-x-4 mb-3">

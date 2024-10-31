@@ -12,7 +12,6 @@ export default function CreateSale() {
   const salesData = [
     {
       key: "1",
-      no: 1,
       name: "Sarawut Nisap",
       position: "Business Development Executive",
       territory: "Central",
@@ -28,7 +27,6 @@ export default function CreateSale() {
     },
     {
       key: "2",
-      no: 2,
       name: "Tanadol Kaewyai",
       position: "Sales Assistant",
       territory: "Central",

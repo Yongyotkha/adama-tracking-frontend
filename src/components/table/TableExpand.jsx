@@ -14,12 +14,6 @@ const TableExpand = ({ data }) => {
 
   const columns = [
     {
-      title: "No",
-      dataIndex: "no",
-      key: "no",
-      width: 80,
-    },
-    {
       title: "Name",
       dataIndex: "name",
       key: "name",
@@ -60,7 +54,7 @@ const TableExpand = ({ data }) => {
         title: "No",
         dataIndex: "no",
         key: "no",
-        width: 80,
+        width: 50,
       },
       {
         title: "Name",
@@ -136,14 +130,14 @@ const TableExpand = ({ data }) => {
               <img
                 src="/img/icons/collapse.png"
                 alt="collapse"
-                style={{ cursor: "pointer", width: 16, height: 16 }}
+                className="cursor-pointer w-6 h-6" // Tailwind classes for 24px width and height
                 onClick={(e) => onExpand(record, e)}
               />
             ) : (
               <img
                 src="/img/icons/expand.png"
                 alt="expand"
-                style={{ cursor: "pointer", width: 16, height: 16 }}
+                className="cursor-pointer w-6 h-6" // Tailwind classes for 24px width and height
                 onClick={(e) => onExpand(record, e)}
               />
             ),
