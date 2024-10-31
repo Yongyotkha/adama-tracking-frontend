@@ -46,22 +46,28 @@ export default function FormUser({ fields }) {
         <Row gutter={16} align="middle">
           {/* Render other fields dynamically */}
           {fields.map((field, index) => (
-            <Col 
-              xs={24}    
-              sm={field.col || 12} 
-              md={field.col || 8}  
-              lg={field.col || 6}  
+            <Col
+              xs={24}
+              sm={field.col || 12}
+              md={field.col || 8}
+              lg={field.col || 6}
               key={index}
             >
               <Form.Item
                 label={field.label}
                 name={field.name}
                 rules={[
-                  { required: field.required, message: `Please enter ${field.label.toLowerCase()}` }
+                  {
+                    required: field.required,
+                    message: `Please enter ${field.label.toLowerCase()}`,
+                  },
                 ]}
                 initialValue={field.value}
               >
-                {field.type === "text" || field.type === "email" || field.type === "tel" || field.type === "number" ? (
+                {field.type === "text" ||
+                field.type === "email" ||
+                field.type === "tel" ||
+                field.type === "number" ? (
                   <Input
                     type={field.type}
                     placeholder={`Enter ${field.label.toLowerCase()}`}
@@ -69,11 +75,20 @@ export default function FormUser({ fields }) {
                     value={field.value}
                   />
                 ) : field.type === "date" ? (
-                  <DatePicker style={{ width: "100%" }} disabled={field.disabled} />
+                  <DatePicker
+                    style={{ width: "100%" }}
+                    disabled={field.disabled}
+                  />
                 ) : field.type === "select" ? (
-                  <Select placeholder={`Select ${field.label.toLowerCase()}`} disabled={field.disabled} value={field.value}>
+                  <Select
+                    placeholder={`Select ${field.label.toLowerCase()}`}
+                    disabled={field.disabled}
+                    value={field.value}
+                  >
                     {field.options.map((option, idx) => (
-                      <Option key={idx} value={option}>{option}</Option>
+                      <Option key={idx} value={option}>
+                        {option}
+                      </Option>
                     ))}
                   </Select>
                 ) : null}

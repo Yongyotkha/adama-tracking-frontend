@@ -5,6 +5,7 @@ import TableComponent from "../../components/table/TableComponent";
 import DynamicButton from "../../components/button/DynamicButton";
 import { Input, InputNumber } from "antd";
 import { useNavigate } from "react-router-dom";
+import ActionButton from "../../components/button/ActionButton";
 
 export default function WorkPlanCreateStepTwo() {
   const navigate = useNavigate();
@@ -348,24 +349,22 @@ export default function WorkPlanCreateStepTwo() {
         </BoxPrimary>
 
         <div className="flex justify-end space-x-4">
-          <DynamicButton
+          <ActionButton
             text="Back"
-            className="bg-[#B6AEAB] text-[#ffff] rounded-lg p-2"
-            onClick={() =>
-              navigate("/sale-plan/work-plan/create", {
-                state: { data: {} },
-              })
-            }
+            mode="back"
+            onClick={() => {
+              navigate("/sale-plan/work-plan/create");
+            }}
           />
-          <DynamicButton
+          <ActionButton
             text="Save Draft"
-            className="bg-[#F89E18] text-[#ffff] rounded-lg p-2"
+            mode="saveDraft"
             onClick={() => navigate("/sale-plan/work-plan")}
           />
 
-          <DynamicButton
+          <ActionButton
             text="Save and Next"
-            className="bg-[#00783F] text-[#ffff] rounded-lg p-2"
+            mode="save"
             onClick={() => navigate("/sale-plan/work-plan")}
           />
         </div>

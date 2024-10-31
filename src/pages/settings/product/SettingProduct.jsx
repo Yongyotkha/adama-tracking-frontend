@@ -1,20 +1,31 @@
 import React, { useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
-import { Dropdown, Modal } from "antd";
+import { Dropdown } from "antd";
 import ActionButton from "../../../components/button/ActionButton";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
 import DynamicButton from "../../../components/button/DynamicButton";
+import DynamicModal from "../../../components/modal/DynamicModal";
 
 export default function SettingProduct() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-  const [isCropModalVisible, setIsCropModalVisible] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+    title: "",
+    isVisible: false,
+    header: [],
+    dataSource: [],
+  });
 
   const filters = [
-    { key: "product_code", type: "text", label: "Product Code", placeholder: "All" },
+    {
+      key: "product_code",
+      type: "text",
+      label: "Product Code",
+      placeholder: "All",
+    },
     {
       key: "product_type",
       type: "select",
@@ -38,7 +49,12 @@ export default function SettingProduct() {
         { value: "Bronz", label: "Bronz" },
       ],
     },
-    { key: "product_name", type: "text", label: "Product Name", placeholder: "All" },
+    {
+      key: "product_name",
+      type: "text",
+      label: "Product Name",
+      placeholder: "All",
+    },
   ];
 
   const handleSearch = (filter) => {
@@ -49,12 +65,17 @@ export default function SettingProduct() {
     console.log("Filters cleared");
   };
 
-  const handleShowCropModal = () => {
-    setIsCropModalVisible(true);
+  const showModal = (title, header, dataSource) => {
+    setModalConfig({
+      title,
+      isVisible: true,
+      header,
+      dataSource,
+    });
   };
 
-  const handleCloseCropModal = () => {
-    setIsCropModalVisible(false);
+  const handleCloseModal = () => {
+    setModalConfig({ ...modalConfig, isVisible: false });
   };
 
   const cropColumns = [
@@ -70,14 +91,49 @@ export default function SettingProduct() {
 
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "left" },
-    { title: "Product Code", width: 150, dataIndex: "product_code", align: "left" },
-    { title: "Product Type", width: 150, dataIndex: "product_type", align: "left" },
-    { title: "Product Group", width: 150, dataIndex: "product_group", align: "left" },
+    {
+      title: "Product Code",
+      width: 150,
+      dataIndex: "product_code",
+      align: "left",
+    },
+    {
+      title: "Product Type",
+      width: 150,
+      dataIndex: "product_type",
+      align: "left",
+    },
+    {
+      title: "Product Group",
+      width: 150,
+      dataIndex: "product_group",
+      align: "left",
+    },
     { title: "Category", width: 100, dataIndex: "category", align: "left" },
-    { title: "Product Name", width: 200, dataIndex: "product_name", align: "left" },
-    { title: "Baht/lt,kg", width: 100, dataIndex: "baht_per_lt_kg", align: "right" },
-    { title: "Baht/unit", width: 100, dataIndex: "baht_per_unit", align: "right" },
-    { title: "Sub Dealer", width: 100, dataIndex: "sub_dealer", align: "right" },
+    {
+      title: "Product Name",
+      width: 200,
+      dataIndex: "product_name",
+      align: "left",
+    },
+    {
+      title: "Baht/lt,kg",
+      width: 100,
+      dataIndex: "baht_per_lt_kg",
+      align: "right",
+    },
+    {
+      title: "Baht/unit",
+      width: 100,
+      dataIndex: "baht_per_unit",
+      align: "right",
+    },
+    {
+      title: "Sub Dealer",
+      width: 100,
+      dataIndex: "sub_dealer",
+      align: "right",
+    },
     { title: "Farmer", width: 100, dataIndex: "farmer", align: "right" },
     { title: "Crop", width: 100, dataIndex: "crop", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
@@ -87,8 +143,16 @@ export default function SettingProduct() {
     {
       key: "1",
       label: (
-        <a rel="noopener noreferrer" href="/setting/product/edit" className="flex gap-1">
-          <img src="/img/icons/edit.png" alt="Edit icon" className="inline-block h-4" />
+        <a
+          rel="noopener noreferrer"
+          href="/setting/product/edit"
+          className="flex gap-1"
+        >
+          <img
+            src="/img/icons/edit.png"
+            alt="Edit icon"
+            className="inline-block h-4"
+          />
           <span className="text-[#978B87]">Edit</span>
         </a>
       ),
@@ -97,7 +161,11 @@ export default function SettingProduct() {
       key: "2",
       label: (
         <a rel="noopener noreferrer" href="#" className="flex gap-1">
-          <img src="/img/icons/delete.png" alt="Delete icon" className="inline-block h-4" />
+          <img
+            src="/img/icons/delete.png"
+            alt="Delete icon"
+            className="inline-block h-4"
+          />
           <span className="text-[#978B87]">Delete</span>
         </a>
       ),
@@ -117,19 +185,27 @@ export default function SettingProduct() {
         baht_per_unit: "470.00",
         sub_dealer: "450.00",
         farmer: "500.00",
-        crop: <BadgeStatus text="1" bgColor="#FFB020" textColor="#FFFFFF" onClick={handleShowCropModal} />,
+        crop: (
+          <BadgeStatus
+            text="3"
+            bgColor="#FFB020"
+            textColor="#FFFFFF"
+            onClick={() => showModal("Crop", cropColumns, cropData)}
+          />
+        ),
         action: (
-          <Dropdown
-            menu={{ items: actionItems }}
-            placement="bottom"
-          >
+          <Dropdown menu={{ items: actionItems }} placement="bottom">
             <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+              <img
+                src="/img/icons/action.png"
+                alt="Actions icon"
+                className="inline-block w-5 h-5"
+              />
             </a>
           </Dropdown>
         ),
       },
-      // Add more rows as needed to match the structure
+      // Add more rows as needed
     ];
 
     setDataSource(dataSource);
@@ -139,31 +215,31 @@ export default function SettingProduct() {
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Product Management</div>
-        <ActionButton mode="sync" text="Sync SAP" onClick={() => console.log("Sync SAP clicked")} className="ms-auto me-2" />
+        <ActionButton
+          mode="sync"
+          text="Sync SAP"
+          onClick={() => console.log("Sync SAP clicked")}
+          className="ms-auto me-2"
+        />
       </div>
 
-      <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
+      <Filter
+        onSearch={handleSearch}
+        onClear={handleClear}
+        filters={filters}
+      />
 
       <BoxPrimary>
         <TableComponent header={header} dataSource={dataSource} />
       </BoxPrimary>
 
-      <Modal
-        title="Crop"
-        open={isCropModalVisible}
-        onCancel={handleCloseCropModal}
-        footer={[
-          <DynamicButton
-            text="Close"
-            key="close"
-            onClick={handleCloseCropModal}
-            className="bg-[#B6AEAB] text-white rounded-sm p-2"
-          />,
-        ]}
-      >
-        <TableComponent header={cropColumns} dataSource={cropData} />
-      </Modal>
-
+      <DynamicModal
+        title={modalConfig.title}
+        isVisible={modalConfig.isVisible}
+        onClose={handleCloseModal}
+        header={modalConfig.header}
+        dataSource={modalConfig.dataSource}
+      />
     </MainLayout>
   );
 }

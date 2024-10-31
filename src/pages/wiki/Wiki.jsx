@@ -1,14 +1,21 @@
 import React, { useState } from "react";
-import BadgeStatus from "../../components/badge/BadgeStatus"; // Import the new BadgeStatus component
+import BadgeStatus from "../../components/badge/BadgeStatus";
 import DropdownHover from "../../components/dropdown/DropdownHover";
 import DynamicButton from "../../components/button/DynamicButton";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import Filter from "../../components/filter/Filter";
+import DynamicModal from "../../components/modal/DynamicModal";
 import { PlusOutlined } from "@ant-design/icons";
 import MainLayout from "../../layouts/MainLayout";
 
 const Wiki = () => {
   const [loading, setLoading] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+    title: "",
+    isVisible: false,
+    header: [],
+    dataSource: []
+  });
 
   const dropdownHoverItems = [
     {
@@ -62,19 +69,43 @@ const Wiki = () => {
     },
   ];
 
-  // Filter Handle Search
   const handleSearch = (filter) => {
     console.log("Search filters applied:", filter);
   };
 
-  // Filter Handle Clear
   const handleClear = () => {
     console.log("Filters cleared");
   };
 
+  // Sample data for modal table
+  const modalHeader = [
+    { title: "No", dataIndex: "key", key: "key", width: 50 },
+    { title: "Name", dataIndex: "name", key: "name" },
+    { title: "Status", dataIndex: "status", key: "status" }
+  ];
+
+  const modalDataSource = [
+    { key: 1, name: "Item 1", status: "Active" },
+    { key: 2, name: "Item 2", status: "Inactive" },
+    { key: 3, name: "Item 3", status: "Pending" },
+  ];
+
+  // Function to open modal with dynamic content
+  const openDynamicModal = (title) => {
+    setModalConfig({
+      title: title,
+      isVisible: true,
+      header: modalHeader,
+      dataSource: modalDataSource
+    });
+  };
+
+  const handleCloseModal = () => {
+    setModalConfig({ ...modalConfig, isVisible: false });
+  };
+
   return (
     <MainLayout loading={loading}>
-
       {/* Filter Component */}
       <span>Filter</span>
       <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
@@ -87,12 +118,11 @@ const Wiki = () => {
         icon={<PlusOutlined />}
         className="text-white rounded-lg p-2"
         type="primary"
-        onClick={() => alert("Ant Design Icon Button Clicked!")}
+        onClick={() => openDynamicModal("Add New Item Modal")}
         style={{
           backgroundColor: "#00783F",
         }}
       />
-
       <hr className="my-5" />
 
       {/* Dynamic Button with image icon */}
@@ -102,7 +132,6 @@ const Wiki = () => {
         iconSrc="/img/icons/expenses.png"
         className="bg-green-500 text-white rounded-lg p-2"
         type="primary"
-        onClick={() => alert("Image Icon Button Clicked!")}
         variant="solid"
         style={{ color: "#000000", backgroundColor: "#00783F" }}
       />
@@ -114,6 +143,7 @@ const Wiki = () => {
         items={dropdownHoverItems}
         triggerText="Dynamic Hover Menu"
         className="bg-blue-500 text-white rounded-lg p-3"
+        onClick={() => openDynamicModal("Dynamic Hover Menu Modal")}
       />
       <hr className="my-5" />
 
@@ -124,9 +154,42 @@ const Wiki = () => {
 
       {/* Dynamic BadgeStatus component */}
       <span>BadgeStatus (Dynamic colors)</span>
-      <BadgeStatus text="Active" bgColor="#00783F" textColor="#FFFFFF" />
-      <BadgeStatus text="Inactive" bgColor="#FF0000" textColor="#FFFFFF" />
-      <BadgeStatus text="Pending" bgColor="#FFA500" textColor="#FFFFFF" />
+      <BadgeStatus
+        text="Active"
+        bgColor="#00783F"
+        textColor="#FFFFFF"
+      />
+      <BadgeStatus
+        text="Inactive"
+        bgColor="#FF0000"
+        textColor="#FFFFFF"
+      />
+      <BadgeStatus
+        text="Pending"
+        bgColor="#FFA500"
+        textColor="#FFFFFF"
+      />
+
+      <span>BadgeStatus (Dynamic colors + Modal)</span>
+
+      <BadgeStatus
+        text="Active Modal"
+        bgColor="#00783F"
+        textColor="#FFFFFF"
+        onClick={() => openDynamicModal("Active Status Modal")}
+      />
+
+      <div onClick={() => openDynamicModal("Active Status Modal")}>Modal onClick</div>
+
+      {/* Dynamic Modal */}
+      <DynamicModal
+        title={modalConfig.title}
+        isVisible={modalConfig.isVisible}
+        onClose={handleCloseModal}
+        header={modalConfig.header}
+        dataSource={modalConfig.dataSource}
+        width="500px" // Default 1200px
+      />
     </MainLayout>
   );
 };
