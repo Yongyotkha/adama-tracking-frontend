@@ -24,7 +24,6 @@ export default function SettingSale() {
       type: "select",
       label: "Sale Head Name",
       options: [
-        { value: "", label: "All" },
         { value: "Chayanon Tunyateerapong", label: "Chayanon Tunyateerapong" },
         { value: "John Doe", label: "John Doe" },
       ],
@@ -34,7 +33,6 @@ export default function SettingSale() {
       type: "select",
       label: "Sale Area Name",
       options: [
-        { value: "", label: "All" },
         { value: "Veerasak Likitmanchai", label: "Veerasak Likitmanchai" },
         { value: "Cheerayut Inthong", label: "Cheerayut Inthong" },
       ],
@@ -81,20 +79,16 @@ export default function SettingSale() {
   ];
 
   const territoryData = [
-    {
-      key: 1,
-      name: "Kornkan Induang",
-      territory: "Left North",
-      position: "Sales Executive",
-    },
-    {
-      key: 2,
-      name: "Phaisan Jethuen",
-      territory: "Left Lower North",
-      position: "Sales Executive",
-    },
-    // Additional data...
+    { key: 1, name: "Kornkan Induang", territory: "Left North", position: "Sales Executive" },
+    { key: 2, name: "Phaisan Jethuen", territory: "Left Lower North", position: "Sales Executive" },
+    { key: 3, name: "Manupong Wongpuang", territory: "Lower North", position: "Sales Executive" },
+    { key: 4, name: "Kriangkrai Kraikeaw", territory: "Central Left North", position: "Sales Executive" },
+    { key: 5, name: "Charoenpong Khunawatcharakun", territory: "Central Right North", position: "Sales Executive" },
+    { key: 6, name: "Amorn Sriworakul", territory: "Right Lower North", position: "Sales Executive" },
+    { key: 7, name: "Nitchapan Akkaraketsawad", territory: "Upper Central", position: "Sales Executive" },
+    { key: 8, name: "Manus Nakkhum", territory: "Central", position: "Sales Executive" },
   ];
+  
 
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },

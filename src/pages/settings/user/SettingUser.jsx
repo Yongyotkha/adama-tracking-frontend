@@ -19,7 +19,6 @@ export default function SettingUser() {
       type: "select",
       label: "Name",
       options: [
-        { value: "", label: "All" },
         { value: "John Doe", label: "John Doe" },
         { value: "Jane Smith", label: "Jane Smith" },
         // Add more names as options if needed
@@ -36,7 +35,6 @@ export default function SettingUser() {
       type: "select",
       label: "Position",
       options: [
-        { value: "", label: "All" },
         { value: "Manager", label: "Manager" },
         { value: "Sales Assistant", label: "Sales Assistant" },
         { value: "Director", label: "Director" },
@@ -48,7 +46,6 @@ export default function SettingUser() {
       type: "select",
       label: "Role",
       options: [
-        { value: "", label: "All" },
         { value: "Admin", label: "Admin" },
         { value: "User", label: "User" },
         { value: "Viewer", label: "Viewer" },

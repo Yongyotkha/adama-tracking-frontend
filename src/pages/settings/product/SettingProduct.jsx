@@ -31,7 +31,6 @@ export default function SettingProduct() {
       type: "select",
       label: "Product Type",
       options: [
-        { value: "", label: "All" },
         { value: "Special", label: "Special" },
         { value: "Commodity", label: "Commodity" },
         { value: "3rd Party", label: "3rd Party" },
@@ -43,7 +42,6 @@ export default function SettingProduct() {
       type: "select",
       label: "Product Group",
       options: [
-        { value: "", label: "All" },
         { value: "Gold", label: "Gold" },
         { value: "Silver", label: "Silver" },
         { value: "Bronz", label: "Bronz" },
