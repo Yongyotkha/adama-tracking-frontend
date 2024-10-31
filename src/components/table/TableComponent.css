@@ -5,7 +5,21 @@
   content: none !important;
 }
 
-:where(.css-dev-only-do-not-override-1hft8ot).ant-table-wrapper .ant-table-thead > tr > th,
-:where(.css-dev-only-do-not-override-1hft8ot).ant-table-wrapper .ant-table-thead > tr > td {
-    border-bottom: none !important; /* Override the border-bottom */
+:where(.css-dev-only-do-not-override-1hft8ot).ant-table-wrapper
+  .ant-table-thead
+  > tr
+  > th,
+:where(.css-dev-only-do-not-override-1hft8ot).ant-table-wrapper
+  .ant-table-thead
+  > tr
+  > td {
+  border-bottom: none !important; /* Override the border-bottom */
+}
+
+:where(.css-dev-only-do-not-override-1hft8ot).ant-table-wrapper
+  .ant-table-summary
+  > tr
+  > td {
+  background-color: #978b87 !important;
+  color:white;
 }

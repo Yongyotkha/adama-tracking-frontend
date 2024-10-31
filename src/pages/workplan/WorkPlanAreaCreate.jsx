@@ -512,7 +512,7 @@ export default function WorkPlanAreaCreate() {
           />
 
           <ActionButton
-            text="Save and Next"
+            text="Save"
             mode="save"
             onClick={() => navigate("/sale-plan/work-plan")}
           />

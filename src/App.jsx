@@ -27,6 +27,7 @@ import SettingProduct from "./pages/settings/product/SettingProduct";
 import EditProduct from "./pages/settings/product/EditProduct";
 import WorkPlanAreaCreate from "./pages/workplan/WorkPlanAreaCreate";
 import WorkPlanSaleCreate from "./pages/workplan/WorkPlanSaleCreate";
+import WorkPlanSaleByCrop from "./pages/workplan/WorkPlanSaleByCrop";
 
 const App = () => {
   return (
@@ -68,6 +69,7 @@ const App = () => {
           {/* SHOW USER PATH */}
           <Route path="/sale-plan/work-plan/sale-area-create" element={<WorkPlanAreaCreate />} />
           <Route path="/sale-plan/work-plan/sale-create" element={<WorkPlanSaleCreate />} />
+          <Route path="/sale-plan/work-plan/sale-by-crop" element={<WorkPlanSaleByCrop />} />
 
         </Routes>
       </AuthProvider>
