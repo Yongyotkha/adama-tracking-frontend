@@ -1,101 +1,72 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import DynamicButton from "../../../components/button/DynamicButton";
 import ActionButton from "../../../components/button/ActionButton";
-import Filter from "../../../components/filter/Filter";
+import TableExpand from "../../../components/table/TableExpand";
 
 export default function EditSale() {
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-
-  const filters = [
+  const salesData = [
     {
-      key: "name",
-      type: "select",
-      label: "Name",
-      options: [
-        { value: "John Doe", label: "John Doe" },
-        { value: "Jane Smith", label: "Jane Smith" },
-        // Add more names as options if needed
+      key: "1",
+      no: 1,
+      name: "Sarawut Nisap",
+      position: "Business Development Executive",
+      territory: "Central",
+      nestedData: [
+        {
+          key: "1-1",
+          no: 1,
+          name: "Passakorn Kong-In",
+          position: "Sales Assistant",
+          territory: "Right North",
+        },
       ],
     },
     {
-      key: "contact_number",
-      type: "text",
-      label: "Contact Number",
-      placeholder: "All",
-    },
-    {
-      key: "position",
-      type: "select",
-      label: "Position",
-      options: [
-        { value: "Manager", label: "Manager" },
-        { value: "Sales Assistant", label: "Sales Assistant" },
-        { value: "Director", label: "Director" },
-        // Add more positions as needed
-      ],
-    },
-    {
-      key: "role",
-      type: "select",
-      label: "Role",
-      options: [
-        { value: "Admin", label: "Admin" },
-        { value: "User", label: "User" },
-        { value: "Viewer", label: "Viewer" },
-        // Add more roles as needed
+      key: "2",
+      no: 2,
+      name: "Tanadol Kaewyai",
+      position: "Sales Assistant",
+      territory: "Central",
+      nestedData: [
+        {
+          key: "2-1",
+          no: 1,
+          name: "Ratchada Saensuk",
+          position: "Junior Sales Assistant",
+          territory: "Left North",
+        },
+        {
+          key: "2-2",
+          no: 2,
+          name: "Somchai Pracha",
+          position: "Senior Sales Assistant",
+          territory: "Left South",
+        },
       ],
     },
   ];
 
-  const handleSearch = (filter) => {
-    console.log("Search filters applied:", filter);
-  };
-
-  const handleClear = () => {
-    console.log("Filters cleared");
-  };
-
   return (
-    <>
-      <MainLayout
-        loading={loading}
-      >
-        <div className="title-page">Edit Sale Management</div>
-        
-        <Filter
-          onSearch={handleSearch}
-          onClear={handleClear}
-          filters={filters}
-        />
+    <MainLayout loading={loading}>
+      <div className="title-page">Create Sale Management</div>
 
-        <BoxPrimary>
-          Sale Head
-        </BoxPrimary>
-
-        <BoxPrimary>
-          <div className="flex justify-between space-x-4">
-            Sale Team
-            <ActionButton mode="add" text="Add" onClick={(e) => navigate("/setting/user/create")} />
-          </div>
-        </BoxPrimary>
-
-        <div className="flex justify-end space-x-4">
-          <DynamicButton
-            text="Back"
-            className="bg-[#B6AEAB] min-w-[96px] text-[#ffff] rounded-sm p-2"
-            path='/setting/sale'
-          />
-          <DynamicButton
-            text="Update"
-            className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
-            path='/setting/sale'
-          />
+      <BoxPrimary>
+        <div className="flex justify-between space-x-4 mb-3">
+          <span className="text-[#00783F]">Sale Team</span>
+          <ActionButton mode="add" text="Add" onClick={(e) => navigate("/setting/user/create")} />
         </div>
-      </MainLayout>
+        <TableExpand data={salesData} />
+      </BoxPrimary>
 
-    </>
+      <div className="flex justify-end space-x-4">
+        <ActionButton mode="back" text="Back" onClick={(e) => navigate("/setting/sale")} />
+        <ActionButton mode="update" text="Update" onClick={(e) => navigate("/setting/sale")} />
+      </div>
+    </MainLayout>
   );
 }
