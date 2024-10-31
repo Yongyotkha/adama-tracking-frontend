@@ -24,7 +24,7 @@ export default function Error403() {
           htmlType="button"
           text="Back"
           disabled={loading}
-          onClick={() => navigate("/login")}
+          onClick={() => navigate("/")}
           style={{ 'max-width': "260px" }}
 
           />
