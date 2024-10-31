@@ -26,6 +26,7 @@ import EditSale from "./pages/settings/sale/EditSale";
 import SettingProduct from "./pages/settings/product/SettingProduct";
 import EditProduct from "./pages/settings/product/EditProduct";
 import WorkPlanAreaCreate from "./pages/workplan/WorkPlanAreaCreate";
+import WorkPlanSaleCreate from "./pages/workplan/WorkPlanSaleCreate";
 
 const App = () => {
   return (
@@ -66,6 +67,7 @@ const App = () => {
 
           {/* SHOW USER PATH */}
           <Route path="/sale-plan/work-plan/sale-area-create" element={<WorkPlanAreaCreate />} />
+          <Route path="/sale-plan/work-plan/sale-create" element={<WorkPlanSaleCreate />} />
 
         </Routes>
       </AuthProvider>

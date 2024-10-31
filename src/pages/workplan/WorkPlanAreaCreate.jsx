@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
-import DynamicButton from "../../components/button/DynamicButton";
-import { Input, InputNumber } from "antd";
+import { Input, InputNumber, Table } from "antd";
 import { useNavigate } from "react-router-dom";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
 import ActionButton from "../../components/button/ActionButton";
@@ -442,6 +441,23 @@ export default function WorkPlanAreaCreate() {
             dataSource={dataSource}
             pagination={false}
             scroll={true}
+            footer={() => (
+              <Table.Summary fixed>
+                <Table.Summary.Row>
+                  <Table.Summary.Cell index={0} colSpan={4}>Total (THB)</Table.Summary.Cell>
+                  <Table.Summary.Cell index={4} colSpan={2}>
+                    <InputNumber
+                      className="w-full"
+                      disabled
+                      min={0}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                    />
+                  </Table.Summary.Cell>
+                </Table.Summary.Row>
+              </Table.Summary>
+            )}
           />
         </BoxPrimary>
 
