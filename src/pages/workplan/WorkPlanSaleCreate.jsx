@@ -425,6 +425,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               min={0}
               value={text}
+              disabled
               formatter={(value) =>
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
@@ -447,6 +448,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               min={0}
               value={text}
+              disabled
               formatter={(value) =>
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
@@ -469,6 +471,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               min={0}
               value={text}
+              disabled
               formatter={(value) =>
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
@@ -491,6 +494,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               min={0}
               value={text}
+              disabled
               formatter={(value) =>
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
@@ -513,6 +517,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               min={0}
               value={text}
+              disabled
               formatter={(value) =>
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
@@ -535,6 +540,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               min={0}
               value={text}
+              disabled
               formatter={(value) =>
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
@@ -557,6 +563,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               min={0}
               value={text}
+              disabled
               formatter={(value) =>
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
@@ -579,6 +586,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               min={0}
               value={text}
+              disabled
               formatter={(value) =>
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
@@ -601,6 +609,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               min={0}
               value={text}
+              disabled
               formatter={(value) =>
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
@@ -623,6 +632,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               min={0}
               value={text}
+              disabled
               formatter={(value) =>
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
@@ -645,6 +655,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               min={0}
               value={text}
+              disabled
               formatter={(value) =>
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
@@ -667,6 +678,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               min={0}
               value={text}
+              disabled
               formatter={(value) =>
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }

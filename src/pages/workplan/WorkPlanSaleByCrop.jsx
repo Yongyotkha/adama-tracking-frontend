@@ -192,6 +192,37 @@ export default function WorkPlanSaleByCrop() {
           />
         ),
       })),
+      ...apiDataHeader.map((header, index) => ({
+        title: (
+          <div className="flex flex-col gap-0 items-center">
+            <span>{header}</span>
+            <span>(THB)</span>
+          </div>
+        ),
+        onHeaderCell: () => ({
+          style: {
+            backgroundColor: "#00783F",
+            color: "white",
+            fontWeight: "bold",
+            textAlign: "left",
+          },
+        }),
+        dataIndex: `${header.toLowerCase()}qty`,
+        key: `qty_${index + 4}`,
+        width: 150,
+        render: (text, record) => (
+          <InputNumber
+            className="w-full"
+            disabled
+            min={0}
+            value={text}
+            formatter={(value) =>
+              `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            }
+            onChange={(value) => handleQtyChange(value, record.key)}
+          />
+        ),
+      })),
     ];
     setHeaderSource(columns);
     setDataSource(data);
@@ -244,6 +275,20 @@ export default function WorkPlanSaleByCrop() {
                       key={index}
                       colSpan={1}
                     ></Table.Summary.Cell>
+                  ))}
+                  {headerList?.map((_, index) => (
+                    <Table.Summary.Cell key={index} colSpan={1}>
+                      <InputNumber
+                        className="w-full"
+                        disabled
+                        value={index}
+                        min={0}
+                        formatter={(value) =>
+                          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        style={{ backgroundColor: "white" }}
+                      />
+                    </Table.Summary.Cell>
                   ))}
                   {headerList?.map((_, index) => (
                     <Table.Summary.Cell key={index} colSpan={1}>

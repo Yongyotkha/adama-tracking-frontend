@@ -188,7 +188,7 @@ export default function WorkPlanAreaCreate() {
 
               children: [
                 {
-                  title: "Original Plan",
+                  title: "Qty (KG)",
                   dataIndex: "originalPlanManupong",
                   key: "originalPlanManupong",
                   width: 200,
@@ -228,10 +228,10 @@ export default function WorkPlanAreaCreate() {
       ],
     },
     {
-      title: "Manupong Wongpuang",
+      title: "Phaisan Jethuen",
       children: [
         {
-          title: "Lower North",
+          title: "Left Lower North",
           key: "firstChilden",
           children: [
             {
@@ -250,7 +250,7 @@ export default function WorkPlanAreaCreate() {
 
               children: [
                 {
-                  title: "Original Plan",
+                  title: "Qty (KG)",
                   dataIndex: "originalPlanManupong",
                   key: "originalPlanManupong",
                   width: 200,
@@ -290,10 +290,10 @@ export default function WorkPlanAreaCreate() {
       ],
     },
     {
-      title: "Manupong Wongpuang",
+      title: "Kornkan Induang",
       children: [
         {
-          title: "Lower North",
+          title: "Left North",
           key: "firstChilden",
           children: [
             {
@@ -312,7 +312,7 @@ export default function WorkPlanAreaCreate() {
 
               children: [
                 {
-                  title: "Original Plan",
+                  title: "Qty (KG)",
                   dataIndex: "originalPlanManupong",
                   key: "originalPlanManupong",
                   width: 200,
@@ -352,10 +352,10 @@ export default function WorkPlanAreaCreate() {
       ],
     },
     {
-      title: "Manupong Wongpuang",
+      title: "Kriangkrai Kraikeaw",
       children: [
         {
-          title: "Lower North",
+          title: "Central Left North",
           key: "firstChilden",
           children: [
             {
@@ -371,9 +371,10 @@ export default function WorkPlanAreaCreate() {
                 />
               ),
               key: "secondChilden",
+
               children: [
                 {
-                  title: "Original Plan",
+                  title: "Qty (KG)",
                   dataIndex: "originalPlanManupong",
                   key: "originalPlanManupong",
                   width: 200,
@@ -412,6 +413,7 @@ export default function WorkPlanAreaCreate() {
         },
       ],
     },
+    
   ];
 
   const columns = applyTopLevelAndSpecificChildrenStyles(baseColumns);
