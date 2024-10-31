@@ -4,14 +4,20 @@ import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import TableComponent from "../../components/table/TableComponent";
 import DynamicButton from "../../components/button/DynamicButton";
 import { Input, InputNumber } from "antd";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import ActionButton from "../../components/button/ActionButton";
 
 export default function WorkPlanCreateStepTwo() {
+  const location = useLocation();
+
+  useEffect(() => {
+    console.log(location.state.data);
+  }, []);
+
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-
   const [dataSource, setDataSource] = useState([]);
+  const [overall, setOverall] = useState(location.state.data?.totalValue);
   const [dataSourceProduct, setDataSourceProduct] = useState([]);
 
   useEffect(() => {
@@ -330,6 +336,24 @@ export default function WorkPlanCreateStepTwo() {
     <>
       <MainLayout loading={loading} childrenStyle={""}>
         <div className="title-page">Create Work Plan</div>
+
+        <BoxPrimary>
+          <div className="flex flex-col gap-2">
+            <div>Overall Target</div>
+            <div className="w-[25%]">
+              <InputNumber
+                className="w-full"
+                min={0}
+                value={overall}
+                formatter={(value) =>
+                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                disabled
+                suffix="THB"
+              />
+            </div>
+          </div>
+        </BoxPrimary>
 
         <BoxPrimary>
           <div className="text-[#00783F] text-2xl pb-3">Work Plan</div>
