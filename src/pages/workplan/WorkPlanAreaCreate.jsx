@@ -159,7 +159,7 @@ export default function WorkPlanAreaCreate() {
       dataIndex: "name",
       key: "1",
       width: 600,
-      
+
       render: (text, record, index) =>
         index == 0 ? <div> Territory</div> : text,
     },
@@ -255,14 +255,14 @@ export default function WorkPlanAreaCreate() {
       dataIndex: "productName",
       key: "1",
       width: 400,
-      fixed: 'left',
+      fixed: "left",
     },
     {
       title: "Pack Size",
       dataIndex: "packSize",
       key: "2",
       width: 200,
-      fixed: 'left',
+      fixed: "left",
     },
     {
       title: "Original Plan",
@@ -402,21 +402,22 @@ export default function WorkPlanAreaCreate() {
           <div className="text-[#00783F] text-2xl pb-3">
             Sale Territory Name
           </div>
-          <TableComponent
-            header={header}
-            dataSource={dataSource}
-            pagination={false}
-            // footer={footerTable}
-            scroll={true}
-          />
-
-          <TableComponent
-            header={headerProduct}
-            dataSource={dataSourceProduct}
-            scroll={true}
-            pagination={false}
-            // footer={footerTable}
-          />
+          <div className="overflow-x-auto w-full">
+            <table className="w-full">
+              <TableComponent
+                header={header}
+                dataSource={dataSource}
+                pagination={false}
+                scroll={true}
+              />
+              <TableComponent
+                header={headerProduct}
+                dataSource={dataSourceProduct}
+                pagination={false}
+                scroll={true}
+              />
+            </table>
+          </div>
         </BoxPrimary>
 
         <div className="flex justify-end space-x-4">
