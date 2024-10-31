@@ -139,7 +139,7 @@ export default function EditUser() {
 
       <div className="flex justify-end space-x-4">
         <ActionButton text="Back" mode="back" onClick={handleBack} />
-        <ActionButton text="Save" mode="save" onClick={handleSave} />
+        <ActionButton text="Update" mode="update" onClick={handleSave} />
       </div>
     </MainLayout>
   );
