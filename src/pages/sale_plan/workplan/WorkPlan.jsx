@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import MainLayout from "../../layouts/MainLayout";
-import Filter from "../../components/filter/Filter";
-import BoxPrimary from "../../components/box_primary/BoxPrimary";
-import TableComponent from "../../components/table/TableComponent";
+import MainLayout from "../../../layouts/MainLayout";
+import Filter from "../../../components/filter/Filter";
+import BoxPrimary from "../../../components/box_primary/BoxPrimary";
+import TableComponent from "../../../components/table/TableComponent";
 import { Dropdown } from "antd";
-import BadgeStatus from "../../components/badge/BadgeStatus";
-import ItemDropDown from "../../components/dropdown/ItemDropDown";
+import BadgeStatus from "../../../components/badge/BadgeStatus";
+import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import { useNavigate } from "react-router-dom";
 
 export default function WorkPlan() {

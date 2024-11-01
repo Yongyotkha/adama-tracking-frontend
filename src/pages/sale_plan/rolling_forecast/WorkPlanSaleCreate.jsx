@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import MainLayout from "../../layouts/MainLayout";
-import BoxPrimary from "../../components/box_primary/BoxPrimary";
+import MainLayout from "../../../layouts/MainLayout";
+import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import { Input, InputNumber, Table } from "antd";
 import { useNavigate } from "react-router-dom";
-import TableCustomComponent from "../../components/table/TableCustomComponent";
-import ActionButton from "../../components/button/ActionButton";
+import TableCustomComponent from "../../../components/table/TableCustomComponent";
+import ActionButton from "../../../components/button/ActionButton";
 
 export default function WorkPlanSaleCreate() {
   const navigate = useNavigate();

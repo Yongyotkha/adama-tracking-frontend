@@ -13,9 +13,9 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ChangePassword from "./pages/auth/ChangePassword";
 import Wiki from "./pages/wiki/Wiki";
 import Dashboard from "./pages/dashboard/Dashboard";
-import WorkPlan from "./pages/workplan/WorkPlan";
-import WorkPlanCreate from "./pages/workplan/WorkPlanCreate";
-import WorkPlanCreateStepTwo from "./pages/workplan/WorkPlanCreateStepTwo";
+import WorkPlan from "./pages/sale_plan/workplan/WorkPlan";
+import WorkPlanCreate from "./pages/sale_plan/workplan/WorkPlanCreate";
+import WorkPlanCreateStepTwo from "./pages/sale_plan/workplan/WorkPlanCreateStepTwo";
 import SettingRole from "./pages/settings/role/SettingRole";
 import SettingUser from "./pages/settings/user/SettingUser";
 import CreateUser from "./pages/settings/user/CreateUser";
@@ -25,9 +25,13 @@ import CreateSale from "./pages/settings/sale/CreateSale";
 import EditSale from "./pages/settings/sale/EditSale";
 import SettingProduct from "./pages/settings/product/SettingProduct";
 import EditProduct from "./pages/settings/product/EditProduct";
-import WorkPlanAreaCreate from "./pages/workplan/WorkPlanAreaCreate";
-import WorkPlanSaleCreate from "./pages/workplan/WorkPlanSaleCreate";
-import WorkPlanSaleByCrop from "./pages/workplan/WorkPlanSaleByCrop";
+import SettingPromotion from "./pages/settings/promotion/SettingPromotion";
+import CreatePromotion from "./pages/settings/promotion/CreatePromotion";
+import EditPromotion from "./pages/settings/promotion/EditPromotion";
+import WorkPlanAreaCreate from "./pages/sale_plan/workplan/WorkPlanAreaCreate";
+import WorkPlanSaleCreate from "./pages/sale_plan/workplan/WorkPlanSaleCreate";
+import WorkPlanSaleByCrop from "./pages/sale_plan/workplan/WorkPlanSaleByCrop";
+import RollingForecast from "./pages/sale_plan/rolling_forecast/RollingForecast";
 
 const App = () => {
   return (
@@ -48,6 +52,9 @@ const App = () => {
           <Route path="/sale-plan/work-plan/create" element={<WorkPlanCreate />} />
           <Route path="/sale-plan/work-plan/create-2" element={<WorkPlanCreateStepTwo />} />
 
+          <Route path="/sale-plan/rolling-forecast" element={<RollingForecast />} />
+
+          
           {/* Setting Route */}
           <Route path="/setting/role" element={<SettingRole />} />
           <Route path="/setting/user" element={<SettingUser />} />
@@ -58,6 +65,9 @@ const App = () => {
           <Route path="/setting/sale/edit" element={<EditSale />} />
           <Route path="/setting/product" element={<SettingProduct />} />
           <Route path="/setting/product/edit" element={<EditProduct />} />
+          <Route path="/setting/promotion" element={<SettingPromotion />} />
+          <Route path="/setting/promotion/create" element={<CreatePromotion />} />
+          <Route path="/setting/promotion/edit" element={<EditPromotion />} />
 
           {/* Error Route */}
           <Route path="/error/403" element={<Error403 />} />

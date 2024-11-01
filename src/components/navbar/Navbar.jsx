@@ -82,6 +82,7 @@ const Navbar = () => {
         { key: "2", label: "Manage Users", path: "setting/user" },
         { key: "3", label: "Sale Management", path: "setting/sale" },
         { key: "4", label: "Product Management", path: "setting/product" },
+        { key: "5", label: "Promotion Management", path: "setting/promotion" },
       ],
     },
 

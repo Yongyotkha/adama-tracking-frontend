@@ -30,6 +30,7 @@ const TableCustomComponent = ({
       }}
     >
       <Table
+        className="custom-scrollbar"
         columns={header}
         dataSource={dataSource}
         pagination={

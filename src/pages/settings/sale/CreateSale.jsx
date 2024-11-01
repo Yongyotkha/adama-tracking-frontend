@@ -83,7 +83,6 @@ export default function CreateSale() {
     // Add more entries if needed
   ];
   
-
   // Define the main table columns
   const columns = [
     {

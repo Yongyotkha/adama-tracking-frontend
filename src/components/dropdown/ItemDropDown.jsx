@@ -24,6 +24,17 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
           <span className="text-[#978B87]">{text || "Delete"}</span>
         </a>
       )}
+
+      {mode == "view" && (
+        <a rel="noopener noreferrer" className="flex gap-1">
+          <img
+            src="/img/icons/view.png"
+            alt="Delete icon"
+            className="inline-block h-4"
+          />
+          <span className="text-[#978B87]">{text || "View"}</span>
+        </a>
+      )}
     </>
   );
 }

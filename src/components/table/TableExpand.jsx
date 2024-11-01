@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { ConfigProvider, Table } from "antd";
 import "./TableExpand.css";
-import DynamicButton from "../button/DynamicButton";
 
 const TableExpand = ({ data, columns, nestedColumns }) => {
   const [expandedRowKeys, setExpandedRowKeys] = useState([]);
