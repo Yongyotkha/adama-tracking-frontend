@@ -8,7 +8,7 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
           <img
             src="/img/icons/edit.png"
             alt="Edit icon"
-            className="inline-block h-4"
+            className="inline-block h-4 m-auto"
           />
           <span className="text-[#978B87]">{text || "Edit"}</span>
         </a>
@@ -19,7 +19,7 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
           <img
             src="/img/icons/delete.png"
             alt="Delete icon"
-            className="inline-block h-4"
+            className="inline-block h-4 m-auto"
           />
           <span className="text-[#978B87]">{text || "Delete"}</span>
         </a>
@@ -30,7 +30,7 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
           <img
             src="/img/icons/view.png"
             alt="Delete icon"
-            className="inline-block h-4"
+            className="inline-block h-4 m-auto"
           />
           <span className="text-[#978B87]">{text || "View"}</span>
         </a>
