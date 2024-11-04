@@ -24,12 +24,6 @@ const Navbar = () => {
       path: "/", // Navigates to Dashboard
     },
     {
-      label: "Customer",
-      icon: "/img/icons/customer.png",
-      dropdownMenu: false,
-      path: "/customers", // Adjust this if you have a customer page
-    },
-    {
       label: "Sale Plan",
       icon: "/img/icons/sale-plan.png",
       dropdownMenu: true,
@@ -37,31 +31,116 @@ const Navbar = () => {
         {
           key: "1",
           label: "Work Plan",
-          path: "sale-plan/work-plan", // Correct path for Work Plan
+          path: "sale-plan/work-plan",
         },
         {
           key: "2",
           label: "Rolling Forecast",
-          path: "sale-plan/rolling-forecast", // Adjust if needed
+          path: "sale-plan/rolling-forecast",
         },
         {
           key: "3",
           label: "Quarter",
-          path: "sale-plan/quarter", // Adjust if needed
+          path: "sale-plan/quarter",
         },
       ],
     },
     {
       label: "Activity",
       icon: "/img/icons/activity.png",
-      dropdownMenu: false,
-      path: "/activities", // Adjust if needed
+      path: "/activity",
+      dropdownMenu: true,
+      dropdownItems: [
+        {
+          key: "1",
+          label: "Activity Plan",
+          path: "/activity",
+        },
+        {
+          key: "2",
+          label: "Calendar",
+          path: "/activity",
+        },
+        {
+          key: "3",
+          label: "Activity List",
+          path: "/activity",
+        },
+        {
+          key: "4",
+          label: "Mapping",
+          path: "/activity",
+        },
+      ],
+    },
+    {
+      label: "Order",
+      icon: "/img/icons/activity.png",
+      path: "/order",
+      dropdownMenu: true,
+      dropdownItems: [
+        {
+          key: "1",
+          label: "Order List",
+          path: "/order/",
+        },
+        {
+          key: "2",
+          label: "Order Waiting List",
+          path: "/order/",
+        },
+        {
+          key: "3",
+          label: "Claim List",
+          path: "/order/",
+        },
+      ],
     },
     {
       label: "Expenses",
       icon: "/img/icons/expenses.png",
-      dropdownMenu: false,
-      path: "/expenses", // Adjust if needed
+      path: "/expenses",
+      dropdownMenu: true,
+      dropdownItems: [
+        {
+          key: "1",
+          label: "Advance",
+          path: "/expenses",
+        },
+        {
+          key: "2",
+          label: "Clearing",
+          path: "/expenses",
+        },
+        {
+          key: "3",
+          label: "Traveling",
+          path: "/expenses",
+        },
+        {
+          key: "4",
+          label: "Material",
+          path: "/expenses",
+        },
+      ],
+    },
+    {
+      label: "Customer",
+      icon: "/img/icons/customer.png",
+      path: "/customers", // Adjust this if you have a customer page
+      dropdownMenu: true,
+      dropdownItems: [
+        {
+          key: "1",
+          label: "Dealer",
+          path: "/customers",
+        },
+        {
+          key: "2",
+          label: "Sub Dealer",
+          path: "/customers",
+        },
+      ],
     },
     {
       label: "Report",
@@ -130,11 +209,10 @@ const Navbar = () => {
           key: item.key,
           label: (
             <span
-              className={`${
-                location.pathname.startsWith(`/${item.path}`)
-                  ? "pointer-events-none font-bold"
-                  : ""
-              } text-[#978B87]`} // add padding, rounded corners, and block display for consistent styling
+              className={`${location.pathname.startsWith(`/${item.path}`)
+                ? "pointer-events-none font-bold"
+                : ""
+                } text-[#978B87]`} // add padding, rounded corners, and block display for consistent styling
             >
               {item.label}
             </span>
@@ -145,7 +223,7 @@ const Navbar = () => {
       />
     );
   };
-  
+
   const CustomDropdownMenuProfile = ({ items }) => {
     const navigate = useNavigate();
 
@@ -245,7 +323,7 @@ const Navbar = () => {
                   key={index}
                   className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
                     } cursor-pointer`}
-                    onClick={() => handleNavigate(item.path, index)}
+                  onClick={() => handleNavigate(item.path, index)}
                 >
                   <img
                     src={item.icon}
