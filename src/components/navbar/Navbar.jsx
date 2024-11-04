@@ -21,7 +21,7 @@ const Navbar = () => {
       label: "Dashboard",
       icon: "/img/icons/dashboard.png",
       dropdownMenu: false,
-      path: "/", // Navigates to Dashboard
+      path: "", // Navigates to Dashboard
     },
     {
       label: "Sale Plan",
@@ -48,97 +48,97 @@ const Navbar = () => {
     {
       label: "Activity",
       icon: "/img/icons/activity.png",
-      path: "/activity",
+      path: "activity",
       dropdownMenu: true,
       dropdownItems: [
         {
           key: "1",
           label: "Activity Plan",
-          path: "/activity",
+          path: "activity",
         },
         {
           key: "2",
           label: "Calendar",
-          path: "/activity",
+          path: "activity",
         },
         {
           key: "3",
           label: "Activity List",
-          path: "/activity",
+          path: "activity",
         },
         {
           key: "4",
           label: "Mapping",
-          path: "/activity",
+          path: "activity",
         },
       ],
     },
     {
       label: "Order",
       icon: "/img/icons/activity.png",
-      path: "/order",
+      path: "order",
       dropdownMenu: true,
       dropdownItems: [
         {
           key: "1",
           label: "Order List",
-          path: "/order/",
+          path: "order/list",
         },
         {
           key: "2",
           label: "Order Waiting List",
-          path: "/order/",
+          path: "order/waiting-list",
         },
         {
           key: "3",
           label: "Claim List",
-          path: "/order/",
+          path: "order/claim-list",
         },
       ],
     },
     {
       label: "Expenses",
       icon: "/img/icons/expenses.png",
-      path: "/expenses",
+      path: "expenses",
       dropdownMenu: true,
       dropdownItems: [
         {
           key: "1",
           label: "Advance",
-          path: "/expenses",
+          path: "expenses",
         },
         {
           key: "2",
           label: "Clearing",
-          path: "/expenses",
+          path: "expenses",
         },
         {
           key: "3",
           label: "Traveling",
-          path: "/expenses",
+          path: "expenses",
         },
         {
           key: "4",
           label: "Material",
-          path: "/expenses",
+          path: "expenses",
         },
       ],
     },
     {
       label: "Customer",
       icon: "/img/icons/customer.png",
-      path: "/customers", // Adjust this if you have a customer page
+      path: "customers", // Adjust this if you have a customer page
       dropdownMenu: true,
       dropdownItems: [
         {
           key: "1",
           label: "Dealer",
-          path: "/customers",
+          path: "customers",
         },
         {
           key: "2",
           label: "Sub Dealer",
-          path: "/customers",
+          path: "customers",
         },
       ],
     },
@@ -164,7 +164,6 @@ const Navbar = () => {
         { key: "5", label: "Promotion Management", path: "setting/promotion" },
       ],
     },
-
   ];
 
   const userMenuItems = [
@@ -172,25 +171,25 @@ const Navbar = () => {
       key: "1",
       label: "Create",
       icon: <PlusOutlined style={{ fontSize: "18px" }} />,
-      path: "/profile/create", // Adjust this to the actual route you want
+      path: "profile/create", // Adjust this to the actual route you want
     },
     {
       key: "2",
       label: "Edit",
       icon: <EditOutlined style={{ fontSize: "18px" }} />,
-      path: "/profile/edit", // Adjust this to the actual route you want
+      path: "profile/edit", // Adjust this to the actual route you want
     },
     {
       key: "3",
       label: "View",
       icon: <EyeOutlined style={{ fontSize: "18px" }} />,
-      path: "/profile/view", // Adjust this to the actual route you want
+      path: "profile/view", // Adjust this to the actual route you want
     },
     {
       key: "4",
       label: "Logout",
       icon: <LogoutOutlined style={{ fontSize: "18px" }} />,
-      path: "/logout", // Adjust this to the actual route or logout logic
+      path: "logout", // Adjust this to the actual route or logout logic
     },
   ];
 

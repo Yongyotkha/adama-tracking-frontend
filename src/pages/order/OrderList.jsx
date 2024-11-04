@@ -17,10 +17,33 @@ export default function OrderList() {
 
   const filters = [
     {
-      key: "name",
+      key: "sale",
       type: "text",
-      label: "Name",
+      label: "Sale",
       placeholder: "All",
+    },
+    {
+      key: "dealer",
+      type: "text",
+      label: "Dealer",
+      placeholder: "All",
+    },
+    {
+      key: "order_no",
+      type: "text",
+      label: "Order No",
+      placeholder: "Order No",
+    },
+    {
+      key: "status",
+      type: 'select',
+      label: "Status",
+      placeholder: "All",
+      options: [
+        { value: 'Active', label: 'Active' },
+        { value: 'Inactive', label: 'Inactive' },
+        { value: 'Pending', label: 'Pending' },
+      ],
     },
   ];
 
@@ -33,222 +56,80 @@ export default function OrderList() {
   };
 
   const header = [
-    { title: "No", width: 50, dataIndex: "key", align: "left" },
-    { title: "Name", width: 200, dataIndex: "name", align: "left" },
-    { title: "Description", width: 300, dataIndex: "description", align: "left" },
+    { title: "No", width: 50, dataIndex: "key", align: "center" },
+    { title: "Order No", width: 150, dataIndex: "orderNo", align: "left" },
+    { title: "Sale", width: 200, dataIndex: "sale", align: "left" },
+    { title: "Dealer", width: 200, dataIndex: "dealer", align: "left" },
     { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
-    { title: "Status", width: 100, dataIndex: "status", align: "center" },
+    { title: "Order Date", width: 150, dataIndex: "orderDate", align: "center" },
+    { title: "Pay Overdue", width: 150, dataIndex: "payOverdue", align: "center" },
+    { title: "Status", width: 150, dataIndex: "status", align: "center" },
+    { title: "Create By", width: 150, dataIndex: "createdBy", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
   const actionItems = [
-    {
-      key: "1",
-      label: (
-        <ItemDropDown
-          mode="edit"
-          onClick={(e) => navigate("/setting/promotion/edit")}
-        />
-      ),
-    },
-    {
-      key: "2",
-      label: (
-        <ItemDropDown mode="delete" />
-      ),
-    },
+    { key: "2", label: <ItemDropDown mode="view" onClick={() => console.log("View clicked")} /> },
+  ];
+
+  const actionItemsPending = [
+    { key: "1", label: <ItemDropDown mode="edit" onClick={(e) => navigate("/order/edit")} /> },
+    { key: "2", label: <ItemDropDown mode="view" onClick={() => console.log("View clicked")} /> },
+    { key: "3", label: <ItemDropDown mode="delete" onClick={() => console.log("Delete clicked")} /> },
   ];
 
   useEffect(() => {
     const dataSource = [
       {
         key: 1,
-        name: "Cooler Box M11 - กระติกน้ำ คละสี",
-        description: "Cooler Box M11 - กระติกน้ำ คละสี",
-        value: "0",
-        status: (
-          <BadgeStatus
-            text="Active"
-            bgColor="#009845"
-            textColor="#FFFFFF"
-          />
-        ),
+        orderNo: "20240002",
+        sale: "Manupong Wongpuang",
+        dealer: "Chaifar",
+        value: "9,150.00",
+        orderDate: "2024-01-01",
+        payOverdue: <BadgeStatus text="Paid" bgColor="#009845" textColor="#FFFFFF" />,
+        status: <BadgeStatus text="Completed" bgColor="#009845" textColor="#FFFFFF" />,
+        createdBy: "Manupong",
         action: (
           <Dropdown menu={{ items: actionItems }} placement="bottom">
             <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
+              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
             </a>
           </Dropdown>
         ),
       },
       {
         key: 2,
-        name: "Adama Bag (กระเป๋าผ้าสีเขียบนอมด์)",
-        description: "Adama Bag (กระเป๋าผ้าสีเขียบนอมด์)",
-        value: "0",
-        status: (
-          <BadgeStatus
-            text="Active"
-            bgColor="#009845"
-            textColor="#FFFFFF"
-          />
-        ),
+        orderNo: "20240001",
+        sale: "Manupong Wongpuang",
+        dealer: "Ponsri",
+        value: "9,150.00",
+        orderDate: "2024-01-01",
+        payOverdue: <BadgeStatus text="Overdue" bgColor="#00A0DF" textColor="#FFFFFF" />,
+        status: <BadgeStatus text="Completed" bgColor="#009845" textColor="#FFFFFF" />,
+        createdBy: "Manupong",
         action: (
           <Dropdown menu={{ items: actionItems }} placement="bottom">
             <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
+              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
             </a>
           </Dropdown>
         ),
       },
       {
-        key: 3,
-        name: "เสื้อยืดแขนยาว - นาโพลิค",
-        description: "เสื้อยืดแขนยาว - นาโพลิค",
-        value: "0",
-        status: (
-          <BadgeStatus
-            text="Active"
-            bgColor="#009845"
-            textColor="#FFFFFF"
-          />
-        ),
+        key: 2,
+        orderNo: "20240001",
+        sale: "Manupong Wongpuang",
+        dealer: "Ponsri",
+        value: "9,150.00",
+        orderDate: "2024-01-01",
+        payOverdue: <BadgeStatus text="Pending" bgColor="#978B87" textColor="#FFFFFF" />,
+        status: <BadgeStatus text="Waiting for Approve " bgColor="#F89E18" textColor="#FFFFFF" />,
+        createdBy: "Manupong",
         action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
+          <Dropdown menu={{ items: actionItemsPending }} placement="bottom">
             <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 4,
-        name: "เสื้อเชิ้ตยีนส์แขนยาว - อานา",
-        description: "เสื้อเชิ้ตยีนส์แขนยาว - อานา",
-        value: "0",
-        status: (
-          <BadgeStatus
-            text="Active"
-            bgColor="#009845"
-            textColor="#FFFFFF"
-          />
-        ),
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 5,
-        name: "เสื้อยืดคอกลมแขนยาว - เมโซรี่",
-        description: "เสื้อยืดคอกลมแขนยาว - เมโซรี่",
-        value: "0",
-        status: (
-          <BadgeStatus
-            text="Active"
-            bgColor="#009845"
-            textColor="#FFFFFF"
-          />
-        ),
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 6,
-        name: "เสื้อยืดคอกลมแขนยาว - โรยอน โกลด์ (สีเทา)",
-        description: "เสื้อยืดคอกลมแขนยาว - โรยอน โกลด์ (สีเทา)",
-        value: "0",
-        status: (
-          <BadgeStatus
-            text="Active"
-            bgColor="#009845"
-            textColor="#FFFFFF"
-          />
-        ),
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 7,
-        name: "แก้วน้ำใส อานา",
-        description: "แก้วน้ำใส อานา",
-        value: "0",
-        status: (
-          <BadgeStatus
-            text="Active"
-            bgColor="#009845"
-            textColor="#FFFFFF"
-          />
-        ),
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 8,
-        name: "หมวกนักเผด็จสายทหาร - พลักอำร่า",
-        description: "หมวกนักเผด็จสายทหาร - พลักอำร่า",
-        value: "0",
-        status: (
-          <BadgeStatus
-            text="Active"
-            bgColor="#009845"
-            textColor="#FFFFFF"
-          />
-        ),
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
+              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
             </a>
           </Dropdown>
         ),
@@ -262,8 +143,8 @@ export default function OrderList() {
     <MainLayout loading={loading}>
 
       <div className="flex items-center justify-between">
-        <div className="title-page">Promotion Management</div>
-        <ActionButton mode="create" text="Create" onClick={(e) => navigate("/setting/promotion/create")} />
+        <div className="title-page">Order List</div>
+        <ActionButton mode="create" text="Create" onClick={(e) => navigate("/order/create")} />
       </div>
 
       <Filter

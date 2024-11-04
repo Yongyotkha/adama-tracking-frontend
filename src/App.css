@@ -2,5 +2,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Anuphan:wght@100..700&display=swap');
 * {
     /* font-family: "Athiti", sans-serif; */
-    font-family: "Anuphan", sans-serif;
+    font-family: "Anuphan", sans-serif !important;
+}
+.ant-form-item-label>label {
+  font-size: 16px;
+}
+.delete-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  width: 100%;
 }

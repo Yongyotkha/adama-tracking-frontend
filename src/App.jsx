@@ -32,7 +32,9 @@ import WorkPlanAreaCreate from "./pages/sale_plan/workplan/WorkPlanAreaCreate";
 import WorkPlanSaleCreate from "./pages/sale_plan/workplan/WorkPlanSaleCreate";
 import WorkPlanSaleByCrop from "./pages/sale_plan/workplan/WorkPlanSaleByCrop";
 import RollingForecast from "./pages/sale_plan/rolling_forecast/RollingForecast";
-
+import OrderList from "./pages/order/OrderList";
+import CreateOrder from "./pages/order/CreateOrder";
+import EditOrder from "./pages/order/EditOrder";
 const App = () => {
   return (
     <Router>
@@ -54,6 +56,11 @@ const App = () => {
 
           <Route path="/sale-plan/rolling-forecast" element={<RollingForecast />} />
 
+          
+          {/* Order Route */}
+          <Route path="/order/list" element={<OrderList />} />
+          <Route path="/order/create" element={<CreateOrder />} />
+          <Route path="/order/edit" element={<EditOrder />} />
           
           {/* Setting Route */}
           <Route path="/setting/role" element={<SettingRole />} />

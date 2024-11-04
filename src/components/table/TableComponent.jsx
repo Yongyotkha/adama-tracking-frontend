@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// TableComponent.js
+import React from "react";
 import { ConfigProvider, Table } from "antd";
 import "./TableComponent.css";
 
@@ -34,14 +35,12 @@ const TableComponent = ({
         columns={header}
         dataSource={dataSource}
         pagination={
-          pagination == false ? pagination : { pageSize: pageSize ?? 10 }
+          pagination === false ? pagination : { pageSize: pageSize ?? 10 }
         }
         scroll={{
           x: scroll ? "max-content" : 1000,
-          // x: 'max-content',
         }}
-        summary={footer}
-
+        summary={footer} // Use the footer prop here for summary rows
       />
     </ConfigProvider>
   );
