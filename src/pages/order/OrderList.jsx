@@ -69,12 +69,11 @@ export default function OrderList() {
   ];
 
   const actionItems = [
-    { key: "2", label: <ItemDropDown mode="view" onClick={() => console.log("View clicked")} /> },
+    { key: "1", label: <ItemDropDown mode="view" link="/order/detail" /> },
   ];
-
   const actionItemsPending = [
-    { key: "1", label: <ItemDropDown mode="edit" onClick={(e) => navigate("/order/edit")} /> },
-    { key: "2", label: <ItemDropDown mode="view" onClick={() => console.log("View clicked")} /> },
+    { key: "1", label: <ItemDropDown mode="edit" link="/order/edit" /> },
+    { key: "2", label: <ItemDropDown mode="view" link="/order/detail" /> },
     { key: "3", label: <ItemDropDown mode="delete" onClick={() => console.log("Delete clicked")} /> },
   ];
 

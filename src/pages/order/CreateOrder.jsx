@@ -233,16 +233,15 @@ export default function CreateOrder() {
         />
       </BoxPrimary>
 
-      <BoxPrimary>
-        <div className="text-[16px] mb-3">Remark</div>
+      <BoxPrimary title='Remark'>
         <div className="mb-3 flex justify-end">
           <Input placeholder="Remark" />
         </div>
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/setting/promotion")} />
-        <ActionButton mode="save" text="Confirm" onClick={() => navigate("/setting/promotion")} />
+        <ActionButton mode="back" text="Back" onClick={() => navigate("/order/list")} />
+        <ActionButton mode="save" text="Confirm" onClick={() => navigate("/order/list")} />
       </div>
     </MainLayout>
   );

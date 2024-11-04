@@ -35,6 +35,9 @@ import RollingForecast from "./pages/sale_plan/rolling_forecast/RollingForecast"
 import OrderList from "./pages/order/OrderList";
 import CreateOrder from "./pages/order/CreateOrder";
 import EditOrder from "./pages/order/EditOrder";
+import OrderDetail from "./pages/order/OrderDetail";
+import OrderWaitingList from "./pages/order/OrderWaitingList";
+
 const App = () => {
   return (
     <Router>
@@ -59,8 +62,10 @@ const App = () => {
           
           {/* Order Route */}
           <Route path="/order/list" element={<OrderList />} />
+          <Route path="/order/waiting-list" element={<OrderWaitingList />} />
           <Route path="/order/create" element={<CreateOrder />} />
           <Route path="/order/edit" element={<EditOrder />} />
+          <Route path="/order/detail" element={<OrderDetail />} />
           
           {/* Setting Route */}
           <Route path="/setting/role" element={<SettingRole />} />

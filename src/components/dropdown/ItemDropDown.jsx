@@ -4,7 +4,7 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
   return (
     <>
       {mode == "edit" && (
-        <a rel="noopener noreferrer" onClick={onClick} className="flex gap-1">
+        <a rel="noopener noreferrer" href={link} onClick={onClick} className="flex gap-1">
           <img
             src="/img/icons/edit.png"
             alt="Edit icon"
@@ -15,7 +15,7 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
       )}
 
       {mode == "delete" && (
-        <a rel="noopener noreferrer" className="flex gap-1">
+        <a rel="noopener noreferrer" href={link} onClick={onClick} className="flex gap-1">
           <img
             src="/img/icons/delete.png"
             alt="Delete icon"
@@ -26,7 +26,7 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
       )}
 
       {mode == "view" && (
-        <a rel="noopener noreferrer" className="flex gap-1">
+        <a rel="noopener noreferrer" href={link} onClick={onClick} className="flex gap-1">
           <img
             src="/img/icons/view.png"
             alt="Delete icon"
