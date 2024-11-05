@@ -127,18 +127,17 @@ const Navbar = () => {
     {
       label: "Customer",
       icon: "/img/icons/customer.png",
-      path: "customers", // Adjust this if you have a customer page
       dropdownMenu: true,
       dropdownItems: [
         {
           key: "1",
           label: "Dealer",
-          path: "customers",
+          path: "dealer",
         },
         {
           key: "2",
           label: "Sub Dealer",
-          path: "customers",
+          path: "sub-dealer",
         },
       ],
     },

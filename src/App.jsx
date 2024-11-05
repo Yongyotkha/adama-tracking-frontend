@@ -37,6 +37,11 @@ import CreateOrder from "./pages/order/CreateOrder";
 import EditOrder from "./pages/order/EditOrder";
 import OrderDetail from "./pages/order/OrderDetail";
 import OrderWaitingList from "./pages/order/OrderWaitingList";
+import Dealer from "./pages/customer/dealer/DealerList";
+import EditInformation from "./pages/customer/dealer/EditInformation";
+import SubDealer from "./pages/customer/sub_dealer/SubDealerList";
+import CreateSubDealer from "./pages/customer/sub_dealer/CreateSubDealer";
+import EditSubDealer from "./pages/customer/sub_dealer/EditSubDealer";
 
 const App = () => {
   return (
@@ -59,14 +64,20 @@ const App = () => {
 
           <Route path="/sale-plan/rolling-forecast" element={<RollingForecast />} />
 
-          
           {/* Order Route */}
           <Route path="/order/list" element={<OrderList />} />
           <Route path="/order/waiting-list" element={<OrderWaitingList />} />
           <Route path="/order/create" element={<CreateOrder />} />
           <Route path="/order/edit" element={<EditOrder />} />
           <Route path="/order/detail" element={<OrderDetail />} />
-          
+
+          {/* Dealer Route */}
+          <Route path="/dealer" element={<Dealer />} />
+          <Route path="/dealer/edit-info" element={<EditInformation />} />
+          <Route path="/sub-dealer" element={<SubDealer />} />
+          <Route path="/sub-dealer/create" element={<CreateSubDealer />} />
+          <Route path="/sub-dealer/edit" element={<EditSubDealer />} />
+
           {/* Setting Route */}
           <Route path="/setting/role" element={<SettingRole />} />
           <Route path="/setting/user" element={<SettingUser />} />
