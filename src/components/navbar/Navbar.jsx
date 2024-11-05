@@ -21,7 +21,7 @@ const Navbar = () => {
       label: "Dashboard",
       icon: "/img/icons/dashboard.png",
       dropdownMenu: false,
-      path: "", // Navigates to Dashboard
+      path: "/", // Navigates to Dashboard
     },
     {
       label: "Sale Plan",
@@ -170,19 +170,19 @@ const Navbar = () => {
       key: "1",
       label: "Create",
       icon: <PlusOutlined style={{ fontSize: "18px" }} />,
-      path: "profile/create", // Adjust this to the actual route you want
+      path: "/setting/user/create", // Adjust this to the actual route you want
     },
     {
       key: "2",
       label: "Edit",
       icon: <EditOutlined style={{ fontSize: "18px" }} />,
-      path: "profile/edit", // Adjust this to the actual route you want
+      path: "/setting/user/edit", // Adjust this to the actual route you want
     },
     {
       key: "3",
       label: "View",
       icon: <EyeOutlined style={{ fontSize: "18px" }} />,
-      path: "profile/view", // Adjust this to the actual route you want
+      path: "/setting/user", // Adjust this to the actual route you want
     },
     {
       key: "4",

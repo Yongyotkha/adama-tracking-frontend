@@ -8,7 +8,7 @@ const BoxPrimary = ({ title, children, className = '' }) => {
         boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)", // Optional for a subtle shadow
       }}
     >
-      {title && <div className="text-[#00783F] text-lg mb-3">{title}</div>}
+      {title && <div className="text-[#00783F] text-lg font-semibold mb-3">{title}</div>}
       {children}
     </div>
   );

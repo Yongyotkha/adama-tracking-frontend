@@ -21,7 +21,7 @@ export default function EditPromotion() {
     <MainLayout loading={loading}>
       <div className="title-page">Edit Promotion</div>
 
-      <FormUser fields={formFields} />
+      <FormUser profile="/img/profile.jpg" fields={formFields} />
 
       <div className="flex justify-end space-x-4">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/setting/promotion")} />

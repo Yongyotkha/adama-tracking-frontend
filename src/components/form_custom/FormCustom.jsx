@@ -1,14 +1,28 @@
 import React from "react";
 import { Form, Input, DatePicker, Select, Col, Row } from "antd";
 import BoxPrimary from "../box_primary/BoxPrimary";
-import moment from "moment";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+
+dayjs.extend(customParseFormat);
 
 const { Option } = Select;
 
-export default function FormCustom({ fields }) {
+export default function FormCustom({ fields, title }) {
+  // Prepare initial values for the form fields
+  const initialValues = fields.reduce((values, field) => {
+    values[field.name] = field.type === "date"
+      ? field.value
+        ? dayjs(field.value, "YYYY-MM-DD")
+        : dayjs() // Default to today's date if no date provided
+      : field.value;
+    return values;
+  }, {});
+
   return (
     <BoxPrimary>
-      <Form layout="vertical">
+      {title && <div className="text-[#00783F] text-lg font-semibold mb-3">{title}</div>}
+      <Form layout="vertical" initialValues={initialValues}>
         <Row gutter={16} align="middle">
           {/* Render fields dynamically */}
           {fields.map((field, index) => (
@@ -28,11 +42,6 @@ export default function FormCustom({ fields }) {
                     message: `Please enter ${field.label.toLowerCase()}`,
                   },
                 ]}
-                initialValue={
-                  field.type === "date" && field.value
-                    ? moment(field.value, "YYYY-MM-DD") // Format date correctly for DatePicker
-                    : field.value
-                }
                 className="mb-3"
               >
                 {field.type === "text" ||
@@ -48,15 +57,13 @@ export default function FormCustom({ fields }) {
                   <DatePicker
                     style={{ width: "100%" }}
                     disabled={field.disabled}
-                    defaultValue={
-                      field.value ? moment(field.value, "YYYY-MM-DD") : null
-                    }
+                    format="YYYY-MM-DD"
+                    defaultValue={field.value ? dayjs(field.value, "YYYY-MM-DD") : dayjs()}
                   />
                 ) : field.type === "select" ? (
                   <Select
                     placeholder={`Select ${field.label.toLowerCase()}`}
                     disabled={field.disabled}
-                    defaultValue={field.value}
                   >
                     {field.options.map((option, idx) => (
                       <Option key={idx} value={option}>

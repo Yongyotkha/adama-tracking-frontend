@@ -135,7 +135,7 @@ export default function EditUser() {
     <MainLayout loading={loading}>
       <div className="title-page">Edit User</div>
 
-      <FormUser fields={formFields} />
+      <FormUser profile="/img/profile.jpg" fields={formFields} />
 
       <div className="flex justify-end space-x-4">
         <ActionButton text="Back" mode="back" onClick={handleBack} />

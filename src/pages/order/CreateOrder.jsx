@@ -46,7 +46,7 @@ export default function CreateOrder() {
   const formFields = [
     { label: "Name", name: "name", type: "select", options: ["Active", "Inactive"], disabled: false, required: false, value: "Select" },
     { label: "Order No", name: "order_no", type: "text", disabled: true, required: false, value: "Generate Auto" },
-    { label: "Date", name: "order_date", type: "date", disabled: true, required: false, value: "2024-01-01" },
+    { label: "Date", name: "order_date", type: "date", disabled: true, required: false, value: "" },
   ];
 
   const handleSearch = (e) => {

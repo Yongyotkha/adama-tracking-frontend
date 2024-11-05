@@ -118,7 +118,7 @@ export default function CreateUser() {
       type: "date",
       required: false,
       col: 6,
-      value: null,
+      value: '',
     },
     {
       label: "Status",

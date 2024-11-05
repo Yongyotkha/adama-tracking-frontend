@@ -9,6 +9,7 @@ const { Option } = Select;
 
 export default function EditProduct() {
   const [loading, setLoading] = useState(false);
+  
   // Mock crop data for the multi-select dropdown
   const cropOptions = [
     "Rice", "Wheat", "Corn", "Soybean", "Cotton", "Barley", "Sugarcane", "Potato", "Tomato", "Lettuce"
@@ -32,7 +33,7 @@ export default function EditProduct() {
     <MainLayout loading={loading}>
       <div className="title-page">Edit Product</div>
 
-      <FormUser fields={formFields} />
+      <FormUser profile="/img/profile.jpg" fields={formFields} />
 
       <BoxPrimary>
       <Form layout="vertical">
