@@ -69,7 +69,21 @@ export default function FormUser({ fields, title, profile }) {
                 className="mb-3"
               >
                 {field.type === "text" || field.type === "email" || field.type === "tel" || field.type === "number" ? (
-                  <Input type={field.type} placeholder={`Enter ${field.label.toLowerCase()}`} disabled={field.disabled} />
+                  <Input
+                    type={field.type}
+                    placeholder={`Enter ${field.label.toLowerCase()}`}
+                    disabled={field.disabled}
+                    prefix={
+                      field.iconPosition === "left" && field.logoSrc ? (
+                        <img src={field.logoSrc} alt="icon" className="inline-block h-4" />
+                      ) : null
+                    }
+                    suffix={
+                      field.iconPosition === "right" && field.logoSrc ? (
+                        <img src={field.logoSrc} alt="icon" className="inline-block h-4" />
+                      ) : null
+                    }
+                  />
                 ) : field.type === "date" ? (
                   <DatePicker
                     style={{ width: "100%" }}
@@ -81,7 +95,11 @@ export default function FormUser({ fields, title, profile }) {
                 ) : field.type === "time" ? (
                   <TimePicker format="HH:mm" style={{ width: "100%" }} disabled={field.disabled} />
                 ) : field.type === "select" ? (
-                  <Select placeholder={`Select ${field.label.toLowerCase()}`} disabled={field.disabled}>
+                  <Select
+                    placeholder={`Select ${field.label.toLowerCase()}`}
+                    disabled={field.disabled}
+                    allowClear // Allows clearing the selection to show the placeholder again
+                  >
                     {field.options.map((option, idx) => (
                       <Option key={idx} value={option}>
                         {option}
@@ -94,6 +112,7 @@ export default function FormUser({ fields, title, profile }) {
           ))}
         </Row>
       </Form>
+
     </BoxPrimary>
   );
 }

@@ -198,8 +198,7 @@ export default function EditOrder() {
 
       <FormCustom fields={formFields} />
 
-      <BoxPrimary>
-        <div className="text-[16px] mb-3">Product</div>
+      <BoxPrimary title="Product">
         <div className="mb-3 flex justify-end">
           <Input
             placeholder="Search..."
@@ -220,7 +219,7 @@ export default function EditOrder() {
 
       <BoxPrimary>
         <div className="flex justify-between space-x-4 mb-3">
-          <span className="text-[#00783F] text-lg">Gift</span>
+          <span className="text-[#00783F] text-lg font-semibold">Gift</span>
           <div className="flex space-x-2">
             <ActionButton mode="add" text="Add" onClick={handleAddGiftRow} />
           </div>

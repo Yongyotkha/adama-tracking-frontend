@@ -132,12 +132,12 @@ const Navbar = () => {
         {
           key: "1",
           label: "Dealer",
-          path: "dealer",
+          path: "customer/dealer",
         },
         {
           key: "2",
           label: "Sub Dealer",
-          path: "sub-dealer",
+          path: "customer/sub-dealer",
         },
       ],
     },

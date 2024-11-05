@@ -11,10 +11,10 @@ export default function CreatePromotion() {
   useEffect(() => { }, []);
 
   const formFields = [
-    { label: "Name", name: "name", type: "text", required: false, col: 12,  value: "303710131300" },
-    { label: "Description ", name: "description", type: "text", required: false, col: 12,  value: "Cooler Box M11 - กระติกน้ำ คละสี" },
-    { label: "Value (THB)", name: "value_thb", type: "text", required: false, col: 6, options: ["Special", "Commodity", "3rd Party", "SAS"], value: "Special" },
-    { label: "Status", name: "status", type: "select", required: false, col: 6, options: ["Active", "Inactive"], value: "Active" },
+    { label: "Name", name: "name", type: "text", required: false, col: 12, },
+    { label: "Description ", name: "description", type: "text", required: false, col: 12, },
+    { label: "Value (THB)", name: "value_thb", type: "text", required: false, col: 6, options: ["Special", "Commodity", "3rd Party", "SAS"], },
+    { label: "Status", name: "status", type: "select", required: false, col: 6, options: ["Active", "Inactive"], },
   ];
 
   return (

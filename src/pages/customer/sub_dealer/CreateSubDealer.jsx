@@ -13,16 +13,16 @@ export default function CreateSubDealer() {
   const navigate = useNavigate();
 
   const formFields = [
-    { label: "Shop Name", name: "shop_name", type: "text", required: false, col: 6, value: "เพื่อนชาวนา" },
-    { label: "Mobile Phone", name: "mobile_phone", type: "text", required: false, col: 6, value: "036-442474" },
-    { label: "Address", name: "address", type: "text", required: false, col: 12, value: "55 หมู่ 5 ต.โคกสำโรง อ.โคกสำโรง จ.ลพบุรี 15120" },
-    { label: "Office Hours", name: "office_hours", type: "text", required: false, col: 6, value: "Monday - Sunday" },
-    { label: "Start Time", name: "start_time", type: "time", required: false, col: 6, value: "07:00" },
-    { label: "End Time", name: "end_time", type: "time", required: false, col: 6, value: "18:00" },
-    { label: "Business Size", name: "business_size", type: "select", options: ["Small", "Medium", "Large"], required: false, col: 6, value: "Business Size" },
+    { label: "Shop Name", name: "shop_name", type: "text", required: false, col: 6, value: "" },
+    { label: "Mobile Phone", name: "mobile_phone", type: "text", required: false, col: 6, value: "" },
+    { label: "Address", name: "address", type: "text", required: false, col: 12, value: "" },
+    { label: "Office Hours", name: "office_hours", type: "text", required: false, col: 6, value: "" , logoSrc: "/img/icons/calendar.png", iconPosition: "right" },
+    { label: "Start Time", name: "start_time", type: "time", required: false, col: 6, value: "" },
+    { label: "End Time", name: "end_time", type: "time", required: false, col: 6, value: "" },
+    { label: "Business Size", name: "business_size", type: "select", options: ["Small", "Medium", "Large"], required: false, col: 6, value: null },
     { label: "Email", name: "email", type: "email", required: false, col: 6, value: "" },
-    { label: "Outlet Location", name: "outlet_location", type: "text", required: false, col: 6, value: "Location" },
-    { label: "T-Shirt Size", name: "tshirt_size", type: "text", required: false, col: 6, value: "M" },
+    { label: "Outlet Location", name: "outlet_location", type: "text", required: false, col: 6, value: "" , logoSrc: "/img/icons/location.png", iconPosition: "right"},
+    { label: "T-Shirt Size", name: "tshirt_size", type: "text", required: false, col: 6, value: "" },
     { label: "Anniversary", name: "anniversary", type: "date", required: false, col: 6, value: "" },
     { label: "Remark", name: "remark", type: "text", required: false, col: 24, value: "" },
   ];
@@ -152,8 +152,8 @@ export default function CreateSubDealer() {
 
       {/* Action Buttons */}
       <div className="flex justify-end space-x-4 mt-6">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/sub-dealer")} />
-        <ActionButton mode="save" text="Save" onClick={() => navigate("/sub-dealer")} />
+        <ActionButton mode="back" text="Back" onClick={() => navigate("/customer/sub-dealer")} />
+        <ActionButton htmlType="submit" mode="save" text="Save" onClick={() => navigate("/customer/sub-dealer")} />
       </div>
     </MainLayout>
   );

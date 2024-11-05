@@ -55,7 +55,7 @@ export default function SubDealerList() {
   };
 
   const actionItems = [
-    { key: "1", label: <ItemDropDown mode="edit" link="/sub-dealer/edit" /> },
+    { key: "1", label: <ItemDropDown mode="edit" link="/customer/sub-dealer/edit" /> },
   ];
 
   const header = [
@@ -125,7 +125,7 @@ export default function SubDealerList() {
 
       <div className="flex items-center justify-between">
         <div className="title-page">Sub Dealer</div>
-        <ActionButton mode="create" text="Create" onClick={(e) => navigate("/sub-dealer/create")} />
+        <ActionButton mode="create" text="Create" onClick={(e) => navigate("/customer/sub-dealer/create")} />
       </div>
 
       <Filter

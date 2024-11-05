@@ -16,12 +16,12 @@ export default function EditSubDealer() {
     { label: "Shop Name", name: "shop_name", type: "text", required: false, col: 6, value: "เพื่อนชาวนา" },
     { label: "Mobile Phone", name: "mobile_phone", type: "text", required: false, col: 6, value: "036-442474" },
     { label: "Address", name: "address", type: "text", required: false, col: 12, value: "55 หมู่ 5 ต.โคกสำโรง อ.โคกสำโรง จ.ลพบุรี 15120" },
-    { label: "Office Hours", name: "office_hours", type: "text", required: false, col: 6, value: "Monday - Sunday" },
-    { label: "Start Time", name: "start_time", type: "time", required: false, col: 6, value: "07:00" },
-    { label: "End Time", name: "end_time", type: "time", required: false, col: 6, value: "18:00" },
+    { label: "Office Hours", name: "office_hours", type: "text", required: false, col: 6, value: "Monday - Sunday" , logoSrc: "/img/icons/calendar.png", iconPosition: "right" },
+    { label: "Start Time", name: "start_time", type: "time", required: false, col: 3, value: "07:00" },
+    { label: "End Time", name: "end_time", type: "time", required: false, col: 3, value: "18:00" },
     { label: "Business Size", name: "business_size", type: "select", options: ["Small", "Medium", "Large"], required: false, col: 6, value: "Business Size" },
     { label: "Email", name: "email", type: "email", required: false, col: 6, value: "" },
-    { label: "Outlet Location", name: "outlet_location", type: "text", required: false, col: 6, value: "Location" },
+    { label: "Outlet Location", name: "outlet_location", type: "text", required: false, col: 12, value: "Location", logoSrc: "/img/icons/location.png", iconPosition: "right" },
     { label: "T-Shirt Size", name: "tshirt_size", type: "text", required: false, col: 6, value: "M" },
     { label: "Anniversary", name: "anniversary", type: "date", required: false, col: 6, value: "" },
     { label: "Remark", name: "remark", type: "text", required: false, col: 24, value: "" },
@@ -155,9 +155,9 @@ export default function EditSubDealer() {
 
       {/* Action Buttons */}
       <div className="flex justify-end space-x-4 mt-6">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/sub-dealer")} />
-        <ActionButton mode="update" text="Update" onClick={() => navigate("/sub-dealer")} />
-      </div>
+        <ActionButton mode="back" text="Back" onClick={() => navigate("/customer/sub-dealer")} />
+        <ActionButton htmlType="submit" mode="update" text="Update" onClick={() => navigate("/customer/sub-dealer")} />
+        </div>
     </MainLayout>
   );
 }

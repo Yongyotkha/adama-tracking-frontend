@@ -185,7 +185,7 @@ export default function CreateSale() {
 
       <BoxPrimary>
         <div className="flex justify-between space-x-4 mb-3">
-          <span className="text-[#00783F] text-lg">Sale Team</span>
+          <span className="text-[#00783F] text-lg font-semibold">Sale Team</span>
           <div className="flex space-x-2">
             <ActionButton mode="add" text="Add" onClick={handleOpenTerritoryModal} />
           </div>

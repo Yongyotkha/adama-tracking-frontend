@@ -26,7 +26,6 @@ export default function CreateUser() {
       type: "text",
       required: true,
       col: 6,
-      value: "John Doe",
     },
     {
       label: "Name (TH)",
@@ -34,7 +33,6 @@ export default function CreateUser() {
       type: "text",
       required: true,
       col: 6,
-      value: "จอห์น โด",
     },
     {
       label: "Sales Employee Code",
@@ -43,7 +41,6 @@ export default function CreateUser() {
       required: true,
       col: 6,
       disabled: true,
-      value: "SM123",
     },
     {
       label: "Contact Number",
@@ -51,7 +48,6 @@ export default function CreateUser() {
       type: "tel",
       required: true,
       col: 6,
-      value: "0812345678",
     },
     {
       label: "Email",
@@ -59,7 +55,6 @@ export default function CreateUser() {
       type: "email",
       required: false,
       col: 6,
-      value: "john.doe@example.com",
     },
     {
       label: "Address",
@@ -67,7 +62,6 @@ export default function CreateUser() {
       type: "text",
       required: false,
       col: 12,
-      value: "123 Main St, Bangkok",
     },
     {
       label: "Position",
@@ -76,7 +70,6 @@ export default function CreateUser() {
       required: true,
       col: 6,
       options: ["Sales Assistant", "Manager", "Team Lead"],
-      value: "Manager",
     },
     {
       label: "Department",
@@ -85,7 +78,6 @@ export default function CreateUser() {
       required: false,
       col: 6,
       options: ["Sales Team", "Marketing Team", "Support Team"],
-      value: "Sales Team",
     },
     {
       label: "Territory",
@@ -93,7 +85,6 @@ export default function CreateUser() {
       type: "text",
       required: false,
       col: 6,
-      value: "North",
     },
     {
       label: "Area",
@@ -101,7 +92,6 @@ export default function CreateUser() {
       type: "text",
       required: false,
       col: 6,
-      value: "Zone 1",
     },
     {
       label: "Role",
@@ -110,7 +100,6 @@ export default function CreateUser() {
       required: true,
       col: 6,
       options: ["Individual Module", "Admin Module", "Viewer"],
-      value: "Admin Module",
     },
     {
       label: "Date of Joining",
@@ -118,7 +107,6 @@ export default function CreateUser() {
       type: "date",
       required: false,
       col: 6,
-      value: '',
     },
     {
       label: "Status",
@@ -127,7 +115,6 @@ export default function CreateUser() {
       required: false,
       col: 6,
       options: ["Active", "Inactive"],
-      value: "Active",
     },
   ];
 

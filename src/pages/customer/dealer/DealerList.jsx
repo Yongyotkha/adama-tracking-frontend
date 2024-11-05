@@ -61,7 +61,7 @@ export default function DealerList() {
 
 
   const actionItems = [
-    { key: "1", label: <ItemDropDown mode="edit" link="/dealer/edit-info" /> },
+    { key: "1", label: <ItemDropDown mode="edit" link="/customer/dealer/edit-info" /> },
   ];
 
   useEffect(() => {

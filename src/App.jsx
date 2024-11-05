@@ -72,11 +72,11 @@ const App = () => {
           <Route path="/order/detail" element={<OrderDetail />} />
 
           {/* Dealer Route */}
-          <Route path="/dealer" element={<Dealer />} />
-          <Route path="/dealer/edit-info" element={<EditInformation />} />
-          <Route path="/sub-dealer" element={<SubDealer />} />
-          <Route path="/sub-dealer/create" element={<CreateSubDealer />} />
-          <Route path="/sub-dealer/edit" element={<EditSubDealer />} />
+          <Route path="/customer/dealer" element={<Dealer />} />
+          <Route path="/customer/dealer/edit-info" element={<EditInformation />} />
+          <Route path="/customer/sub-dealer" element={<SubDealer />} />
+          <Route path="/customer/sub-dealer/create" element={<CreateSubDealer />} />
+          <Route path="/customer/sub-dealer/edit" element={<EditSubDealer />} />
 
           {/* Setting Route */}
           <Route path="/setting/role" element={<SettingRole />} />
