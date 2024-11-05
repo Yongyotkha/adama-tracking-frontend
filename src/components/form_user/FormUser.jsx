@@ -74,13 +74,13 @@ export default function FormUser({ fields, title, profile }) {
                     placeholder={`Enter ${field.label.toLowerCase()}`}
                     disabled={field.disabled}
                     prefix={
-                      field.iconPosition === "left" && field.logoSrc ? (
-                        <img src={field.logoSrc} alt="icon" className="inline-block h-4" />
+                      field.iconPosition === "left" && field.iconSrc ? (
+                        <img src={field.iconSrc} alt="icon" className="inline-block h-4" />
                       ) : null
                     }
                     suffix={
-                      field.iconPosition === "right" && field.logoSrc ? (
-                        <img src={field.logoSrc} alt="icon" className="inline-block h-4" />
+                      field.iconPosition === "right" && field.iconSrc ? (
+                        <img src={field.iconSrc} alt="icon" className="inline-block h-4" />
                       ) : null
                     }
                   />
