@@ -105,22 +105,32 @@ const Navbar = () => {
         {
           key: "1",
           label: "Advance",
-          path: "expenses",
+          path: "expenses/advance",
         },
         {
           key: "2",
           label: "Clearing",
-          path: "expenses",
+          path: "expenses/clearing",
         },
         {
           key: "3",
           label: "Traveling",
-          path: "expenses",
+          path: "expenses/traveling",
         },
         {
           key: "4",
           label: "Material",
-          path: "expenses",
+          path: "expenses/material",
+        },
+        {
+          key: "5",
+          label: "Simple",
+          path: "expenses/simple",
+        },
+        {
+          key: "6",
+          label: "Product Claim",
+          path: "expenses/product-claim",
         },
       ],
     },
@@ -208,9 +218,9 @@ const Navbar = () => {
           label: (
             <span
               className={`${location.pathname.startsWith(`/${item.path}`)
-                ? "pointer-events-none font-bold"
-                : ""
-                } text-[#978B87]`} // add padding, rounded corners, and block display for consistent styling
+                ? "pointer-events-none font-bold text-[#009845]"
+                : "text-[#978B87]"
+                } `} // add padding, rounded corners, and block display for consistent styling
             >
               {item.label}
             </span>

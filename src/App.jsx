@@ -42,6 +42,16 @@ import EditInformation from "./pages/customer/dealer/EditInformation";
 import SubDealer from "./pages/customer/sub_dealer/SubDealerList";
 import CreateSubDealer from "./pages/customer/sub_dealer/CreateSubDealer";
 import EditSubDealer from "./pages/customer/sub_dealer/EditSubDealer";
+import AdvanceExpense from "./pages/expenses/advance/AdvanceExpense";
+import CreateAdvanceExpense from "./pages/expenses/advance/CreateAdvanceExpense";
+import EditAdvanceExpense from "./pages/expenses/advance/EditAdvanceExpense";
+import ViewAdvanceExpense from "./pages/expenses/advance/ViewAdvanceExpense";
+import ProductClaim from "./pages/expenses/product_claim/ProductClaim";
+import CreateClaimRequest from "./pages/expenses/product_claim/CreateClaimRequest";
+import EditClaimRequest from "./pages/expenses/product_claim/EditClaimRequest";
+import Traveling from "./pages/expenses/traveling/Traveling";
+import CreateTraveling from "./pages/expenses/traveling/CreateTraveling";
+import EditTraveling from "./pages/expenses/traveling/EditTraveling";
 
 const App = () => {
   return (
@@ -71,7 +81,19 @@ const App = () => {
           <Route path="/order/edit" element={<EditOrder />} />
           <Route path="/order/detail" element={<OrderDetail />} />
 
-          {/* Dealer Route */}
+          {/* Order Route */}
+          <Route path="/expenses/advance" element={<AdvanceExpense />} />
+          <Route path="/expenses/advance/create" element={<CreateAdvanceExpense />} />
+          <Route path="/expenses/advance/edit" element={<EditAdvanceExpense />} />
+          <Route path="/expenses/advance/view" element={<ViewAdvanceExpense />} />
+          <Route path="/expenses/product-claim" element={<ProductClaim />} />
+          <Route path="/expenses/product-claim/create" element={<CreateClaimRequest />} />
+          <Route path="/expenses/product-claim/edit" element={<EditClaimRequest />} />
+          <Route path="/expenses/traveling" element={<Traveling />} />
+          <Route path="/expenses/traveling/create" element={<CreateTraveling />} />
+          <Route path="/expenses/traveling/edit" element={<EditTraveling />} />
+
+          {/* Customer Route */}
           <Route path="/customer/dealer" element={<Dealer />} />
           <Route path="/customer/dealer/edit-info" element={<EditInformation />} />
           <Route path="/customer/sub-dealer" element={<SubDealer />} />
