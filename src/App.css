@@ -1,16 +1,33 @@
-@import url('https://fonts.googleapis.com/css2?family=Athiti:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Anuphan:wght@100..700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Athiti:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Anuphan:wght@100..700&display=swap");
 * {
     /* font-family: "Athiti", sans-serif; */
     font-family: "Anuphan", sans-serif !important;
 }
-.ant-form-item-label>label {
-  font-size: 16px;
+.ant-form-item-label > label {
+    font-size: 16px;
 }
 .delete-button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    width: 100%;
+}
+
+.ql-toolbar.ql-snow {
+    border: 1px solid #cbc5c3;
+    padding: 8px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+}
+
+.ql-container {
+    border: 1px solid #cbc5c3 !important;
+    border-radius: 8px;
+}
+
+.ql-container.ql-snow.ql-disabled {
+    background-color: #f5f3f3;
+    color: #cbc5c3;
 }

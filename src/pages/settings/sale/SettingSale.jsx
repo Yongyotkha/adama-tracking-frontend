@@ -102,7 +102,7 @@ export default function SettingSale() {
     { key: 3, name: "Sarawut Nisap", territory: "Lower North", position: "Business Development Executive" },
     { key: 4, name: "Wisisak Prakobsin", territory: "Central Left North", position: "Business Development Executive" },
   ];
-  
+
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
     {
@@ -149,7 +149,7 @@ export default function SettingSale() {
       label: (
         <ItemDropDown
           mode="delete"
-          // onClick={(e) => navigate("/setting/sale/edit")}
+        // onClick={(e) => navigate("/setting/sale/edit")}
         />
       ),
     },

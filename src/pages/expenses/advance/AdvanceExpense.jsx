@@ -124,9 +124,12 @@ export default function AdvanceExpense() {
 
   return (
     <MainLayout loading={loading}>
-
-      <div className="title-page">Advance Expense</div>
-
+      <div className="flex items-center justify-between">
+        <div className="title-page">Advance Expense</div>
+        <ActionButton mode="create" text="Create"
+          onClick={(e) => navigate("/expenses/advance/create")}
+        />
+      </div>
       <Filter
         onSearch={handleSearch}
         onClear={handleClear}

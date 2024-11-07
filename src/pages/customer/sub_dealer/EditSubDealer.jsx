@@ -16,7 +16,7 @@ export default function EditSubDealer() {
     { label: "Shop Name", name: "shop_name", type: "text", required: false, col: 6, value: "เพื่อนชาวนา" },
     { label: "Mobile Phone", name: "mobile_phone", type: "text", required: false, col: 6, value: "036-442474" },
     { label: "Address", name: "address", type: "text", required: false, col: 12, value: "55 หมู่ 5 ต.โคกสำโรง อ.โคกสำโรง จ.ลพบุรี 15120" },
-    { label: "Office Hours", name: "office_hours", type: "text", required: false, col: 6, value: "Monday - Sunday" , iconSrc: "/img/icons/calendar.png", iconPosition: "right" },
+    { label: "Office Hours", name: "office_hours", type: "multiple", options: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], required: false, col: 6, value: ['Monday'] , iconSrc: "/img/icons/calendar.png", iconPosition: "right" },
     { label: "Start Time", name: "start_time", type: "time", required: false, col: 3, value: "07:00" },
     { label: "End Time", name: "end_time", type: "time", required: false, col: 3, value: "18:00" },
     { label: "Business Size", name: "business_size", type: "select", options: ["Small", "Medium", "Large"], required: false, col: 6, value: "Business Size" },

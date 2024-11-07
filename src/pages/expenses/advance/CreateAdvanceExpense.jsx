@@ -1,166 +1,163 @@
 import React, { useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
-import { Input, DatePicker, Col, Row } from "antd";
+import { Form, Input, Col, Row, Select } from "antd";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import FormUser from "../../../components/form_user/FormUser";
+import FormCustom from "../../../components/form_custom/FormCustom";
+import TableComponent from "../../../components/table/TableComponent";
+
+const { Option } = Select;
 
 export default function CreateAdvanceExpense() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [formCustom] = Form.useForm();
+  const [customerForm] = Form.useForm();
+
+  const handleUpdate = async () => {
+    try {
+      const formCustomData = await formCustom.validateFields();
+      const customerData = await customerForm.validateFields();
+
+      const combinedData = {
+        ...formCustomData,
+        ...customerData
+      };
+
+      console.log("Combined Form Data:", combinedData);
+      navigate("/expenses/advance");
+    } catch (error) {
+      console.error("Validation failed:", error);
+    }
+  };
 
   const formFields = [
-    { label: "Dealer Name (EN)", name: "dealer_name_en", type: "text", disabled: true, required: false, col: 6, value: "Somporn Panich Chemi Kaset Ltd.Part." },
-    { label: "Dealer Name (TH)", name: "dealer_name_th", type: "text", disabled: true, required: false, col: 6, value: "ห้างหุ้นส่วนจำกัดสมพรพานิชเคมีเกษตร" },
-    { label: "Dealer Code", name: "dealer_code", type: "text", disabled: true, required: false, col: 6, value: "321001" },
-    { label: "Tax ID", name: "tax_id", type: "text", disabled: true, required: false, col: 6, value: "0163556000660" },
-    { label: "Contact Number", name: "contact_number", type: "text", disabled: true, required: false, col: 6, value: "0163556000660" },
-    { label: "Address", name: "address", type: "text", disabled: true, required: false, col: 12, value: "55 หมู่ 5 ต.โคกสำโรง อ.โคกสำโรง จ.ลพบุรี 15120" },
-    { label: "Group Code", name: "group_code", type: "select", options: ["FMK Customers"], disabled: true, required: false, col: 6, value: "FMK Customers" },
-    { label: "Date of Anniversary", name: "date_of_anniversary", type: "date", disabled: true, required: false, col: 6, value: "2024-01-01" },
-    { label: "Date of Joining", name: "date_of_joining", type: "date", disabled: true, required: false, col: 6, value: "2024-01-01" },
+    { label: "Activity Reference", name: "activity_reference", type: "text", disabled: true, required: false, col: 24, value: "202400000000001" },
+    { label: "Activity Type", name: "activity_type", type: "select", options: ["FMT"], disabled: false, required: true, col: 6, value: "FMT" },
+    { label: "Shop", name: "shop", type: "select", options: ["Chaifar"], disabled: false, required: true, col: 6, value: "Chaifar" },
+    { label: "Crop", name: "crop", type: "select", options: ["Rice"], disabled: false, required: true, col: 6, value: "Rice" },
+    { label: "Date", name: "date", type: "date", disabled: false, required: true, col: 6, value: "2024-01-01" },
+    { label: "Start Time", name: "start_time", type: "time", disabled: false, required: true, col: 6, value: "09:00" },
+    { label: "End Time", name: "end_time", type: "time", disabled: false, required: true, col: 6, value: "11:00" },
+    { label: "Location", name: "location", type: "text", disabled: true, required: false, col: 12, value: "2/80 ถนนพาดาวรี ต.ท่าอิฐ อ.เมืองอุดรธานี จ.อุดรธานี" },
+    { label: "Description", name: "description", type: "text-editor", disabled: false, required: false, col: 24, placeholder: "Add description", value: "" }
   ];
+
+  const dataSource = [
+    {
+      key: "1",
+      no: "1",
+      sku: "3027200113",
+      productName: "Bumper P",
+      unit: "0.5 ltX20",
+      pricePerUnit: "575.00",
+      quantity: 10,
+      foc: 1,
+      subTotal: "115,000.00",
+    },
+    {
+      key: "2",
+      no: "2",
+      sku: "207920011520",
+      productName: "Memory 300EC",
+      unit: "1lt X20",
+      pricePerUnit: "340.00",
+      quantity: 10,
+      foc: 1,
+      subTotal: "68,000.00",
+    },
+  ];
+
+  const header = [
+    { title: "No", dataIndex: "no", key: "no" },
+    { title: "SKU", dataIndex: "sku", key: "sku" },
+    { title: "Product Name", dataIndex: "productName", key: "productName" },
+    { title: "Unit", dataIndex: "unit", key: "unit" },
+    { title: "THB/Unit", dataIndex: "pricePerUnit", key: "pricePerUnit" },
+    { title: <div className="text-center">QTY (ctn)</div>, dataIndex: "quantity", key: "quantity" },
+    { title: "FOC (ctn)", dataIndex: "foc", key: "foc" },
+    { title: "Sub Total (THB)", dataIndex: "subTotal", key: "subTotal" },
+  ];
+
+  const footerOrderList = (currentData) => (
+    <tr className="bg-[#978B87]">
+      <td colSpan={8} className="text-right pr-2 text-white">
+        Item : {dataSource.length} &nbsp; QTY (ctn): {dataSource.reduce((total, item) => total + item.quantity, 0)} &nbsp;
+        Total : {dataSource.reduce((total, item) => total + parseFloat(item.subTotal.replace(/,/g, "")), 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+      </td>
+    </tr>
+  );
 
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Create Advance Expense</div>
 
-      {/* Company Info Section */}
-      <FormUser profile="/img/profile.jpg" title="Company Info" fields={formFields} />
+      <FormCustom fields={formFields} form={formCustom} />
 
-      {/* Bank Account Sections */}
-      <BoxPrimary>
-        <div className="text-[#00783F] text-md">Bank Account 1</div>
-        <Row className="my-3" gutter={[16, 16]}>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Account Title" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Account Number" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Bank Name" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Bank Branch" />
-          </Col>
-        </Row>
-
-        <div className="text-[#00783F] text-md">Bank Account 2</div>
-        <Row className="my-3" gutter={[16, 16]}>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Account Title" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Account Number" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Bank Name" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Bank Branch" />
-          </Col>
-        </Row>
+      <BoxPrimary title="Sale Plan">
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pageSize={10}
+          footer={footerOrderList}
+          pagination={false}
+        />
       </BoxPrimary>
 
-      {/* Contact Person Section */}
       <BoxPrimary>
-        <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-lg font-semibold">Contact Person</span>
-          <ActionButton mode="add" text="Add" onClick={() => { }} />
-        </div>
-        <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-md">Person 1</span>
-        </div>
-        <Row gutter={[16, 16]} className="mb-6">
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Name (EN)" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Name (TH)" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Nickname" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <DatePicker className="w-full" placeholder="Date of Birth" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="T-Shirt Size" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Relationship" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Duty" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Tel 1" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Tel 2" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Contact Number" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Email" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Line ID" />
-          </Col>
-        </Row>
-
-        <hr />
-
-        <div className="mt-4">
-          <span className="text-[#00783F] text-md">Person 2</span>
-        </div>
-        <Row gutter={[16, 16]} className="mt-4">
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Name (EN)" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Name (TH)" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Nickname" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <DatePicker className="w-full" placeholder="Date of Birth" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="T-Shirt Size" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Relationship" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Duty" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Tel 1" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Tel 2" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Contact Number" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Email" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Line ID" />
-          </Col>
-        </Row>
+        <span className="text-[#00783F] text-lg font-semibold mb-3">Customer</span>
+        <Form
+          layout="vertical"
+          form={customerForm}
+          initialValues={{
+            supportCustomerName: "Chaifar",
+            address: "2/80 ถนนพาดาวรี ต.ท่าอิฐ อ.เมืองอุดรธานี จ.อุดรธานี",
+            perception: "Good"
+          }}
+        >
+          <Row gutter={[16, 16]} className="mt-3">
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Form.Item label="Support Customer Name" name="supportCustomerName">
+                <Input disabled />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Form.Item label="Place of Owner" name="placeOfOwner">
+                <Input placeholder="-" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={12}>
+              <Form.Item label="Address" name="address">
+                <Input disabled />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Form.Item label="Phone Number" name="phoneNumber">
+                <Input placeholder="Enter phone number" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Form.Item label="Place of GPS" name="placeOfGPS">
+                <Input placeholder="Enter GPS location" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Form.Item label="Perception" name="perception">
+                <Select>
+                  <Option value="Good">Good</Option>
+                  <Option value="Average">Average</Option>
+                  <Option value="Poor">Poor</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
       </BoxPrimary>
 
-      {/* Action Buttons */}
       <div className="flex justify-end space-x-4 mt-6">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/customer/dealer")} />
-        <ActionButton mode="update" text="Update" onClick={() => navigate("/customer/dealer")} />
+        <ActionButton mode="back" text="Back" onClick={() => navigate("/expenses/advance")} />
+        <ActionButton mode="update" text="Update" onClick={handleUpdate} />
       </div>
     </MainLayout>
   );

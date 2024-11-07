@@ -16,7 +16,17 @@ export default function CreateSubDealer() {
     { label: "Shop Name", name: "shop_name", type: "text", required: false, col: 6, value: "" },
     { label: "Mobile Phone", name: "mobile_phone", type: "text", required: false, col: 6, value: "" },
     { label: "Address", name: "address", type: "text", required: false, col: 12, value: "" },
-    { label: "Office Hours", name: "office_hours", type: "text", required: false, col: 6, value: "" , iconSrc: "/img/icons/calendar.png", iconPosition: "right" },
+    {
+      label: "Office Hours",
+      name: "office_hours",
+      type: "multiple",
+      options: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+      required: false,
+      col: 6,
+      value: null,
+      iconSrc: "/img/icons/calendar.png",
+      iconPosition: "right"
+    },
     { label: "Start Time", name: "start_time", type: "time", required: false, col: 6, value: "" },
     { label: "End Time", name: "end_time", type: "time", required: false, col: 6, value: "" },
     { label: "Business Size", name: "business_size", type: "select", options: ["Small", "Medium", "Large"], required: false, col: 6, value: null },
@@ -39,7 +49,7 @@ export default function CreateSubDealer() {
 
       {/* Company Info Section */}
       <FormUser title="Personal Info" fields={formFields} />
-
+      
       <BoxPrimary>
         <Form layout="vertical">
           <Form.Item label="Crop" name="crop">

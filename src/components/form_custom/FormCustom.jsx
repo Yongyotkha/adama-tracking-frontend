@@ -1,30 +1,44 @@
 import React from "react";
-import { Form, Input, DatePicker, Select, Col, Row } from "antd";
+import { Form, Input, DatePicker, Select, Col, Row, TimePicker } from "antd";
 import BoxPrimary from "../box_primary/BoxPrimary";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 
 dayjs.extend(customParseFormat);
 
 const { Option } = Select;
 
-export default function FormCustom({ fields, title }) {
-  // Prepare initial values for the form fields
+const toolbarOptions = [
+  [{ 'font': [] }, { 'size': [] }],
+  [{ 'header': [1, 2, 3, false] }],
+  ['bold', 'italic', 'underline', 'strike', { 'color': [] }, { 'background': [] }],
+  [{ 'script': 'sub' }, { 'script': 'super' }],
+  [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+  [{ 'indent': '-1' }, { 'indent': '+1' }],
+  [{ 'align': [] }],
+  ['link', 'image'],
+  ['clean']
+];
+
+export default function FormCustom({ fields, form, title }) {
   const initialValues = fields.reduce((values, field) => {
-    values[field.name] = field.type === "date"
-      ? field.value
-        ? dayjs(field.value, "YYYY-MM-DD")
-        : dayjs() // Default to today's date if no date provided
-      : field.value;
+    if (field.type === "date") {
+      values[field.name] = field.value ? dayjs(field.value, "YYYY-MM-DD") : null;
+    } else if (field.type === "time") {
+      values[field.name] = field.value ? dayjs(field.value, "HH:mm") : null;
+    } else {
+      values[field.name] = field.value;
+    }
     return values;
   }, {});
 
   return (
     <BoxPrimary>
       {title && <div className="text-[#00783F] text-lg font-semibold mb-3">{title}</div>}
-      <Form layout="vertical" initialValues={initialValues}>
+      <Form layout="vertical" form={form} initialValues={initialValues}>
         <Row gutter={16} align="middle">
-          {/* Render fields dynamically */}
           {fields.map((field, index) => (
             <Col
               xs={24}
@@ -58,7 +72,12 @@ export default function FormCustom({ fields, title }) {
                     style={{ width: "100%" }}
                     disabled={field.disabled}
                     format="YYYY-MM-DD"
-                    defaultValue={field.value ? dayjs(field.value, "YYYY-MM-DD") : dayjs()}
+                  />
+                ) : field.type === "time" ? (
+                  <TimePicker
+                    format="HH:mm"
+                    style={{ width: "100%" }}
+                    disabled={field.disabled}
                   />
                 ) : field.type === "select" ? (
                   <Select
@@ -71,6 +90,14 @@ export default function FormCustom({ fields, title }) {
                       </Option>
                     ))}
                   </Select>
+                ) : field.type === "text-editor" ? (
+                  <ReactQuill
+                    theme="snow"
+                    value={field.value}
+                    placeholder={`Enter ${field.label.toLowerCase()}`}
+                    readOnly={field.disabled}
+                    modules={{ toolbar: toolbarOptions }}
+                  />
                 ) : null}
               </Form.Item>
             </Col>

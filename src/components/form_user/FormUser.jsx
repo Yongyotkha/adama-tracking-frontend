@@ -11,11 +11,11 @@ const dateFormat = 'YYYY-MM-DD';
 
 export default function FormUser({ fields, title, profile }) {
   const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(profile || "/img/Image-not-found.png"); // Use profile image if provided
+  const [imagePreview, setImagePreview] = useState(profile || "/img/Image-not-found.png");
 
   const initialValues = fields.reduce((values, field) => {
     if (field.type === "date") {
-      values[field.name] = field.value ? dayjs(field.value, dateFormat) : dayjs(); // Set today's date if no date provided
+      values[field.name] = field.value ? dayjs(field.value, dateFormat) : dayjs();
     } else if (field.type === "time" && field.value) {
       values[field.name] = dayjs(field.value, "HH:mm");
     } else {
@@ -28,7 +28,7 @@ export default function FormUser({ fields, title, profile }) {
     const file = e.target.files[0];
     if (file) {
       setImage(file);
-      setImagePreview(URL.createObjectURL(file)); // Update preview with selected image
+      setImagePreview(URL.createObjectURL(file));
     }
   };
 
@@ -65,7 +65,7 @@ export default function FormUser({ fields, title, profile }) {
               <Form.Item
                 label={field.label}
                 name={field.name}
-                rules={[{ required: field.required, message: `Please enter ${field.label.toLowerCase()}` }]}
+                rules={[{ required: field.required, message: `Please select ${field.label.toLowerCase()}` }]}
                 className="mb-3"
               >
                 {field.type === "text" || field.type === "email" || field.type === "tel" || field.type === "number" ? (
@@ -90,7 +90,6 @@ export default function FormUser({ fields, title, profile }) {
                     disabled={field.disabled}
                     placeholder="Select Date"
                     format={dateFormat}
-                    defaultValue={dayjs(field.value, dateFormat)}
                   />
                 ) : field.type === "time" ? (
                   <TimePicker format="HH:mm" style={{ width: "100%" }} disabled={field.disabled} />
@@ -98,7 +97,28 @@ export default function FormUser({ fields, title, profile }) {
                   <Select
                     placeholder={`Select ${field.label.toLowerCase()}`}
                     disabled={field.disabled}
-                    allowClear // Allows clearing the selection to show the placeholder again
+                    allowClear
+                  >
+                    {field.options.map((option, idx) => (
+                      <Option key={idx} value={option}>
+                        {option}
+                      </Option>
+                    ))}
+                  </Select>
+                ) : field.type === "multiple" ? (
+                  <Select
+                    mode="multiple"
+                    placeholder={`Select ${field.label.toLowerCase()}`}
+                    allowClear
+                    suffixIcon={
+                      field.iconSrc ? (
+                        <img src={field.iconSrc} alt="icon" className="inline-block h-4" />
+                      ) : null
+                    }
+                    style={{ width: "100%" }}
+                    onChange={(value) => {
+                      console.log("Selected Office Hours:", value);
+                    }}
                   >
                     {field.options.map((option, idx) => (
                       <Option key={idx} value={option}>
@@ -112,7 +132,6 @@ export default function FormUser({ fields, title, profile }) {
           ))}
         </Row>
       </Form>
-
     </BoxPrimary>
   );
 }
