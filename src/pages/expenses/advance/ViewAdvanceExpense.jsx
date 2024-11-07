@@ -159,8 +159,8 @@ export default function ViewAdvanceExpense() {
 
       {/* Action Buttons */}
       <div className="flex justify-end space-x-4 mt-6">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/customer/dealer")} />
-        <ActionButton mode="update" text="Update" onClick={() => navigate("/customer/dealer")} />
+        <ActionButton mode="back" text="Back" onClick={() => navigate("/expenses/advance")} />
+        <ActionButton mode="update" text="Update" onClick={() => navigate("/expenses/advance")} />
       </div>
     </MainLayout>
   );

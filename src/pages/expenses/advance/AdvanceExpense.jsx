@@ -17,28 +17,41 @@ export default function AdvanceExpense() {
 
   const filters = [
     {
-      key: "dealer",
+      key: "customer",
       type: "select",
-      label: "Dealer",
+      label: "Customer",
       placeholder: "All",
       options: [
-        { value: 'Monggutthong Ltd.', label: 'Monggutthong Ltd.' },
-        { value: 'Bangbuathong Panich Co.,Ltd.', label: 'Bangbuathong Panich Co.,Ltd.' },
+        { value: 'Chaifar', label: 'Chaifar' },
+        { value: 'OtherCustomer', label: 'OtherCustomer' },
       ],
     },
     {
-      key: "status",
-      type: 'select',
-      label: "Status",
+      key: "expense_no",
+      type: "text",
+      label: "Expense No",
       placeholder: "All",
-      options: [
-        { value: 'Active', label: 'Active' },
-        { value: 'Inactive', label: 'Inactive' },
-        { value: 'Pending', label: 'Pending' },
-      ],
+    },
+    {
+      key: "activity_reference",
+      type: "text",
+      label: "Activity Reference",
+      placeholder: "All",
+    },
+    {
+      key: "type_of_meeting",
+      type: "text",
+      label: "Type of Meeting",
+      placeholder: "All",
+    },
+    {
+      key: "date",
+      type: "date",
+      label: "Date",
+      placeholder: "YYYY-MM-DD",
     },
   ];
-
+  
   const handleSearch = (filter) => {
     console.log("Search filters applied:", filter);
   };
@@ -48,33 +61,32 @@ export default function AdvanceExpense() {
   };
 
   const header = [
-    { title: "No", width: 50, dataIndex: "key", align: "center" },
-    { title: "Code", width: 100, dataIndex: "code", align: "left" },
-    { title: "Dealer Name", width: 200, dataIndex: "dealerName", align: "left" },
-    { title: "Address", width: 300, dataIndex: "address", align: "left" },
-    { title: "Contact Name", width: 200, dataIndex: "contactName", align: "left" },
-    { title: "Mobile Phone", width: 150, dataIndex: "mobilePhone", align: "center" },
-    { title: "Group Code", width: 150, dataIndex: "groupCode", align: "center" },
-    { title: "Status", width: 100, dataIndex: "status", align: "center" },
-    { title: "Action", width: 100, dataIndex: "action", align: "center" },
+    { title: "No", dataIndex: "key", align: "center" },
+    { title: "Customer", dataIndex: "customer", align: "left" },
+    { title: "Expense No", dataIndex: "expenseNo", align: "left" },
+    { title: "Activity Reference", dataIndex: "activityReference", align: "left" },
+    { title: "Type of Meeting", dataIndex: "typeOfMeeting", align: "center" },
+    { title: "Date", dataIndex: "date", align: "center" },
+    { title: "Status", dataIndex: "status", align: "center" },
+    { title: "Action", dataIndex: "action", align: "center" },
   ];
 
-
   const actionItems = [
-    { key: "1", label: <ItemDropDown mode="edit" link="/customer/dealer/edit-info" /> },
+    { key: "1", label: <ItemDropDown mode="edit" link="/expenses/advance/edit" /> },
+    { key: "2", label: <ItemDropDown mode="view" link="/expenses/advance/view" /> },
+    { key: "3", label: <ItemDropDown mode="delete" link="#" /> },
   ];
 
   useEffect(() => {
     const dataSource = [
       {
         key: 1,
-        code: "365004",
-        dealerName: "Monggutthong Ltd.",
-        address: "89/1 หมู่ 4 ต.สพรรณบุรี-บางบัวทอง ต.สนามชัย อ.เมือง จ.สพรรณบุรี 72000",
-        contactName: "Mr. Charuen Sinsuantang",
-        mobilePhone: "-",
-        groupCode: "FMK Customers",
-        status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
+        customer: "Chaifar",
+        expenseNo: "20240002",
+        activityReference: "2024000000000001",
+        typeOfMeeting: "FMT",
+        date: "2024-01-01",
+        status: <BadgeStatus text="Convert" bgColor="#00A0DF" textColor="#FFFFFF" />,
         action: (
           <Dropdown menu={{ items: actionItems }} placement="bottom">
             <a onClick={(e) => e.preventDefault()}>
@@ -85,30 +97,12 @@ export default function AdvanceExpense() {
       },
       {
         key: 2,
-        code: "335001",
-        dealerName: "Bangbuathong Panich Co.,Ltd.",
-        address: "15/2-5 หมู่ 13 ถ.บางบัวทอง-สุพรรณบุรี ต.บางบัวทอง อ.บางบัวทอง จ.นนทบุรี",
-        contactName: "Mr. Thanyanop Watthananit",
-        mobilePhone: "081-852-1841",
-        groupCode: "FMK Customers",
-        status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 3,
-        code: "321005",
-        dealerName: "Agricare Co.,Ltd.",
-        address: "88 หมู่ที่ 1 ต.หนองบัว อ.พัฒนานิคม จ.ลพบุรี",
-        contactName: "Somsak Sumatechotimatha",
-        mobilePhone: "081-994-4747",
-        groupCode: "FMK Customers",
-        status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
+        customer: "Chaifar",
+        expenseNo: "20240001",
+        activityReference: "2024000000000002",
+        typeOfMeeting: "FMT",
+        date: "2024-01-01",
+        status: <BadgeStatus text="Convert" bgColor="#00A0DF" textColor="#FFFFFF" />,
         action: (
           <Dropdown menu={{ items: actionItems }} placement="bottom">
             <a onClick={(e) => e.preventDefault()}>
@@ -126,20 +120,12 @@ export default function AdvanceExpense() {
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Advance Expense</div>
-        <ActionButton mode="create" text="Create"
-          onClick={(e) => navigate("/expenses/advance/create")}
-        />
+        <ActionButton mode="create" text="Create" onClick={() => navigate("/expenses/advance/create")} />
       </div>
-      <Filter
-        onSearch={handleSearch}
-        onClear={handleClear}
-        filters={filters}
-      />
-
+      <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
       <BoxPrimary>
         <TableComponent header={header} dataSource={dataSource} />
       </BoxPrimary>
-
     </MainLayout>
   );
 }

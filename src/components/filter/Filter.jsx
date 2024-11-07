@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Select, Collapse, Input, Row, Col } from "antd";
+import { Select, Collapse, Input, Row, Col, DatePicker } from "antd";
 import "./Filter.css";
 import DynamicButton from "../button/DynamicButton";
+import dayjs from "dayjs";
 
 const { Option } = Select;
 
@@ -84,6 +85,17 @@ const Filter = ({ onSearch, onClear, filters }) => {
                     }
                     placeholder={filter.placeholder || "Enter number"}
                     className="w-full"
+                  />
+                )}
+                {filter.type === "date" && (
+                  <DatePicker
+                    value={filterValues[filter.key] ? dayjs(filterValues[filter.key]) : null}
+                    onChange={(date, dateString) =>
+                      handleFilterChange(filter.key, dateString)
+                    }
+                    placeholder={filter.placeholder || "Select date"}
+                    className="w-full"
+                    format="YYYY-MM-DD"
                   />
                 )}
               </Col>

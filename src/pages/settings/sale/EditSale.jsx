@@ -137,12 +137,12 @@ export default function EditSale() {
     setIsTerritoryModalVisible(true);
   };
 
-  const handleOpenTeamModal = () => {
-    setIsTeamModalVisible(true);
-  };
-
   const handleCloseTerritoryModal = () => {
     setIsTerritoryModalVisible(false);
+  };
+  
+  const handleOpenTeamModal = () => {
+    setIsTeamModalVisible(true);
   };
 
   const handleCloseTeamModal = () => {
