@@ -53,11 +53,12 @@ export default function Verify() {
   // Handle OTP input change
   const handleChange = (index, event) => {
     const value = event.target.value;
-    if (value.length <= 1) {
+    const reg = /^[0-9]*$/; // Regex to allow only numbers
+    if (reg.test(value) && value.length <= 1) {
       const newOtp = [...otp];
       newOtp[index] = value;
       setOtp(newOtp);
-      // Move focus to the next input
+      // Move focus to the next input if value exists
       if (value && index < otp.length - 1) {
         document.getElementById(`otp-input-${index + 1}`).focus();
       }
@@ -114,8 +115,9 @@ export default function Verify() {
                   id={`otp-input-${index}`}
                   maxLength={1}
                   value={digit}
-                  type="tel"
                   onChange={(e) => handleChange(index, e)}
+                  inputMode="numeric" // Ensures numeric keyboard on mobile
+                  pattern="[0-9]*" // Restricts input to numbers only
                   className={`
                     ${digit ? 'text-white bg-[#7DB41E]' : 'text-black bg-white'} 
                     hover:bg-[#7DB41E] 
@@ -127,7 +129,7 @@ export default function Verify() {
                     height: "50px",
                     fontSize: "24px",
                     textAlign: "center",
-                    transition: "background-color 0.3s ease", // Optional smooth transition
+                    transition: "background-color 0.3s ease",
                   }}
                   placeholder="0"
                 />
