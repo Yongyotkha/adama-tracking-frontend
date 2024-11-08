@@ -33,6 +33,18 @@
 }
 
 /* In your global CSS or Tailwind file */
+
+.custom-tabs .ant-tabs-tab {
+  height: 56px;
+  min-width: 96px;
+  display: flex;
+  justify-content: center;
+}
+
+.custom-tabs .ant-tabs-tab .tab-title {
+    @apply text-[#5F504D]; /* Tailwind utility classes for active tab */
+}
+
 .custom-tabs .ant-tabs-tab-active .tab-title {
     @apply text-white font-semibold; /* Tailwind utility classes for active tab */
 }
@@ -46,7 +58,10 @@
 }
 
 .custom-tabs .ant-tabs-tab:hover .tab-title {
-    @apply text-green-500; /* Hover effect for tabs */
+    @apply text-[#009845]; /* Hover effect for tabs */
+}
+.custom-tabs .ant-tabs-tab-active:hover .tab-title {
+    @apply text-white; /* Hover effect for tabs */
 }
 
 .custom-tabs .ant-tabs-nav::before {
@@ -57,4 +72,8 @@
     position: absolute;
     background: transparent;
     pointer-events: none;
+}
+
+.custom-tabs .ant-tabs-tab + .ant-tabs-tab {
+    margin: 0 0 0 0;
 }

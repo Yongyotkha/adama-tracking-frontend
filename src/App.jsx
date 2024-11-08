@@ -52,6 +52,9 @@ import EditClaimRequest from "./pages/expenses/product_claim/EditClaimRequest";
 import Traveling from "./pages/expenses/traveling/Traveling";
 import CreateTraveling from "./pages/expenses/traveling/CreateTraveling";
 import EditTraveling from "./pages/expenses/traveling/EditTraveling";
+import ClearingExpense from "./pages/expenses/clearing/ClearingExpense";
+import CreateClearing from "./pages/expenses/clearing/CreateClearingExpense";
+import EditClearing from "./pages/expenses/clearing/EditClearingExpense";
 
 const App = () => {
   return (
@@ -81,7 +84,7 @@ const App = () => {
           <Route path="/order/edit" element={<EditOrder />} />
           <Route path="/order/detail" element={<OrderDetail />} />
 
-          {/* Order Route */}
+          {/* Expenses Route */}
           <Route path="/expenses/advance" element={<AdvanceExpense />} />
           <Route path="/expenses/advance/create" element={<CreateAdvanceExpense />} />
           <Route path="/expenses/advance/edit" element={<EditAdvanceExpense />} />
@@ -92,6 +95,9 @@ const App = () => {
           <Route path="/expenses/traveling" element={<Traveling />} />
           <Route path="/expenses/traveling/create" element={<CreateTraveling />} />
           <Route path="/expenses/traveling/edit" element={<EditTraveling />} />
+          <Route path="/expenses/clearing" element={<ClearingExpense />} />
+          <Route path="/expenses/clearing/create" element={<CreateClearing />} />
+          <Route path="/expenses/clearing/edit" element={<EditClearing />} />
 
           {/* Customer Route */}
           <Route path="/customer/dealer" element={<Dealer />} />
