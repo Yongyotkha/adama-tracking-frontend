@@ -322,9 +322,9 @@ export default function CreateAdvanceExpense() {
         <ActionButton mode="update" text="Save" onClick={handleUpdate} />
       </div>
 
-      {/* Modal for Add Sale Team */}
+      {/* Modal for Add Participant */}
       <DynamicModal
-        title="Add Sale Team"
+        title="Add Participant"
         isVisible={isTeamModalVisible}
         onClose={handleCloseTeamModal}
         header={[
