@@ -25,9 +25,9 @@ const DynamicModal = ({
 
   const filteredData = dataSource.filter(
     (item) =>
-      item.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.territory.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.position.toLowerCase().includes(searchText.toLowerCase())
+      item.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+      item.territory?.toLowerCase().includes(searchText.toLowerCase()) ||
+      item.position?.toLowerCase().includes(searchText.toLowerCase())
   );
 
   const rowSelection = {

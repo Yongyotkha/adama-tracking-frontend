@@ -261,12 +261,12 @@ export default function CreateClearingExpense() {
           <Row gutter={[16, 16]} className="mt-3">
             <Col xs={24} sm={12} md={12} lg={6}>
               <Form.Item className="mb-3" label="Actual exp" name="actual_exp">
-                <Input placeholder="0" />
+                <Input placeholder="0" disabled />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12} md={12} lg={6}>
               <Form.Item className="mb-3" label="Actual sale" name="actual_sale">
-                <Input placeholder="0" />
+                <Input placeholder="0" disabled />
               </Form.Item>
             </Col>
           </Row>
