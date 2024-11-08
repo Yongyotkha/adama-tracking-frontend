@@ -6,11 +6,13 @@ import FormCustom from "../../../components/form_custom/FormCustom";
 import TableComponent from "../../../components/table/TableComponent";
 import ActionButton from "../../../components/button/ActionButton";
 import FileUploadComponent from "../../../components/file_upload/FileUploadComponent";
+import { useNavigate } from "react-router-dom";
 
 const { Option } = Select;
 
 export default function ViewAdvanceExpense() {
   const [loading] = useState(false);
+  const navigate = useNavigate();
 
   const formFields = [
     { label: "Activity Reference", name: "activity_reference", type: "text", disabled: true, required: false, col: 24, value: "202400000000001" },
@@ -198,6 +200,11 @@ export default function ViewAdvanceExpense() {
           pagination={false}
         />
       </BoxPrimary>
+
+      <div className="flex justify-end space-x-4 mt-6">
+        <ActionButton mode="back" text="Back" onClick={() => navigate("/expenses/advance")} />
+      </div>
+
     </MainLayout>
   );
 }

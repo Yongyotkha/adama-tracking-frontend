@@ -31,3 +31,30 @@
     background-color: #f5f3f3;
     color: #cbc5c3;
 }
+
+/* In your global CSS or Tailwind file */
+.custom-tabs .ant-tabs-tab-active .tab-title {
+    @apply text-white font-semibold; /* Tailwind utility classes for active tab */
+}
+
+.custom-tabs .ant-tabs-tab-active {
+    background-color: #009845;
+}
+
+.custom-tabs .ant-tabs-tab {
+    @apply px-4 py-2 rounded-lg; /* Basic styling for tabs */
+}
+
+.custom-tabs .ant-tabs-tab:hover .tab-title {
+    @apply text-green-500; /* Hover effect for tabs */
+}
+
+.custom-tabs .ant-tabs-nav::before {
+    content: none; /* Remove default underline */
+}
+
+.custom-tabs .ant-tabs-ink-bar {
+    position: absolute;
+    background: transparent;
+    pointer-events: none;
+}
