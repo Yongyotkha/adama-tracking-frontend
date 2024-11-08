@@ -7,10 +7,14 @@ import BadgeStatus from "../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import ActionButton from "../../../components/button/ActionButton";
 import { useNavigate } from "react-router-dom";
+import useServiceAPI from "../../../services/corsService";
+import { paths } from "../../../services/CorsPath";
 
 export default function SettingUser() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
   const filters = [
@@ -53,13 +57,17 @@ export default function SettingUser() {
       ],
     },
   ];
-  
+
   const handleSearch = (filter) => {
-    console.log("Search filters applied:", filter);
+    // console.log("Search filters applied:", filter);
+    // const filtered = users.filter((user) =>
+    //   user.name.toLowerCase().includes(search.toLowerCase())
+    // );
+    // setFilteredUsers(filtered);
   };
 
   const handleClear = () => {
-    console.log("Filters cleared");
+    // console.log("Filters cleared");
   };
 
   // Data in Table
@@ -119,7 +127,11 @@ export default function SettingUser() {
     {
       key: "1",
       label: (
-        <a rel="noopener noreferrer" href="/setting/user/edit" className="flex gap-1" >
+        <a
+          rel="noopener noreferrer"
+          href="/setting/user/edit"
+          className="flex gap-1"
+        >
           <img
             src="/img/icons/edit.png"
             alt="button icon"
@@ -131,47 +143,76 @@ export default function SettingUser() {
     },
   ];
 
+  // Fetch Data
   useEffect(() => {
-    let dataSource = [
-      {
-        key: 1,
-        action: (
-          <Dropdown
-            menu={{
-              items,
-            }}
-            placement="bottom"
-          >
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="button icon"
-                className="inline-block w-5 h-5 mr-2"
+    const body = {};
+    useServiceAPI
+      .get(paths.pathMasterUsers, body, setLoading)
+      .then((response) => {
+        if (response.status == 200) {
+          const newDataSource = response.data.map((data, index) => ({
+            key: index + 1,
+            action: (
+              <Dropdown
+                menu={{
+                  items,
+                }}
+                placement="bottom"
+              >
+                <a onClick={(e) => e.preventDefault()}>
+                  <img
+                    src="/img/icons/action.png"
+                    alt="button icon"
+                    className="inline-block w-5 h-5 mr-2"
+                  />
+                </a>
+              </Dropdown>
+            ),
+            name: data.name_en,
+            status: (
+              <BadgeStatus
+                text={data.use_flag}
+                bgColor="#00783F"
+                textColor="#FFFFFF"
               />
-            </a>
-          </Dropdown>
-        ),
-        name: "Chayanon Tunyateerapong ",
-        status: (
-          <BadgeStatus text="Active" bgColor="#00783F" textColor="#FFFFFF" />
-        ),
-        contact_number: "0818590775",
-        email: "chayanon.tunyateerapong@adama.com",
-        position: "Industrial Business Sales Director",
-        role: "All Sales Module",
-      },
-    ];
+            ),
+            contact_number: data.username,
+            email: data.email,
+            position: data.position_name,
+            role: data.role_name,
+          }));
 
-    setDataSource(dataSource);
+          setDataSource(newDataSource);
+          setFilteredUsers(response.data);
+        }
+      })
+      .catch((error) => {
+        console.log(error.message);
+        setError(error.message);
+        if (error.status == 422) {
+          showMsg("error", error.message);
+        } else {
+          showMsg("error", "เกิดข้อผิดพลาด");
+        }
+      });
   }, []);
-
+  
   return (
     <>
       <MainLayout loading={loading}>
         <div className="flex items-center justify-between">
           <div className="title-page">Manage Users</div>
-          <ActionButton mode="sync" text="Sync SAP" onClick='' className="ms-auto me-2" />
-          <ActionButton mode="create" text="Create" onClick={(e) => navigate("/setting/user/create")} />
+          <ActionButton
+            mode="sync"
+            text="Sync SAP"
+            onClick=""
+            className="ms-auto me-2"
+          />
+          <ActionButton
+            mode="create"
+            text="Create"
+            onClick={(e) => navigate("/setting/user/create")}
+          />
         </div>
 
         <Filter
