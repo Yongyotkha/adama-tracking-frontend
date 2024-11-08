@@ -72,8 +72,7 @@ export default function ClearingExpense() {
   ];
 
   const actionItems = [
-    { key: "1", label: <ItemDropDown mode="edit" link="/expenses/advance/edit" /> },
-    { key: "2", label: <ItemDropDown mode="view" link="/expenses/advance/view" /> },
+    { key: "1", label: <ItemDropDown mode="edit" link="/expenses/clearing/edit" /> },
     { key: "3", label: <ItemDropDown mode="delete" link="#" /> },
   ];
 
@@ -120,7 +119,7 @@ export default function ClearingExpense() {
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Clearing Expense</div>
-        <ActionButton mode="create" text="Create" onClick={() => navigate("/expenses/advance/create")} />
+        <ActionButton mode="create" text="Create" onClick={() => navigate("/expenses/clearing/create")} />
       </div>
       <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
       <BoxPrimary>

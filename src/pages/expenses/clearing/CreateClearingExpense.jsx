@@ -74,7 +74,7 @@ export default function CreateClearingExpense() {
       };
 
       console.log("Combined Form Data:", combinedData);
-      navigate("/expenses/advance");
+      navigate("/expenses/clearing");
     } catch (error) {
       console.error("Validation failed:", error);
     }
@@ -318,7 +318,7 @@ export default function CreateClearingExpense() {
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4 mt-6">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/expenses/advance")} />
+        <ActionButton mode="back" text="Back" onClick={() => navigate("/expenses/clearing")} />
         <ActionButton mode="update" text="Save" onClick={handleUpdate} />
       </div>
 
