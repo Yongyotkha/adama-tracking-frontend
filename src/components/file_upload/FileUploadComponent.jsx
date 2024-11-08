@@ -10,7 +10,7 @@ const getBase64 = (file) =>
   });
 
 // eslint-disable-next-line react/display-name
-const FileUploadComponent = forwardRef(({ dataFile = [] }, ref) => {
+const FileUploadComponent = forwardRef(({ dataFile = [], mode = "edit" }, ref) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
   const [fileList, setFileList] = useState(dataFile); // Initialize with dataFile prop
@@ -51,7 +51,9 @@ const FileUploadComponent = forwardRef(({ dataFile = [] }, ref) => {
         fileList={fileList}
         onPreview={handlePreview}
         onChange={handleChange}
-        showUploadList={{ showRemoveIcon: true }}
+        showUploadList={{
+          showRemoveIcon: mode !== "view", // Disable delete button if mode is "view"
+        }}
         openFileDialogOnClick={false} // Prevent default click behavior on upload area
       />
 

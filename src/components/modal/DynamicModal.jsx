@@ -14,7 +14,7 @@ const DynamicModal = ({
   pageSize = 10,
   width = "1200px",
   onAddSelected,
-  type, // New prop to control modal type
+  type,
 }) => {
   const [searchText, setSearchText] = useState("");
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -33,7 +33,7 @@ const DynamicModal = ({
   const rowSelection = {
     selectedRowKeys,
     onChange: (selectedKeys) => {
-      setSelectedRowKeys(selectedKeys); // Update selected row keys
+      setSelectedRowKeys(selectedKeys);
     },
   };
 
@@ -71,7 +71,7 @@ const DynamicModal = ({
           placeholder="Search..."
           prefix={<SearchOutlined className="text-gray-500" />}
           onChange={handleSearch}
-          className="w-[200px]" // Limit width to 200px with Tailwind
+          className="w-[200px]"
         />
       </div>
 
@@ -94,5 +94,6 @@ const DynamicModal = ({
     </Modal>
   );
 };
+
 
 export default DynamicModal;

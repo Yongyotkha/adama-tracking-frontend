@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
-import { Form, Input, Col, Row, Select, Table } from "antd";
+import { Form, Input, Col, Row, Select } from "antd";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import FormCustom from "../../../components/form_custom/FormCustom";
@@ -15,36 +15,12 @@ const { Option } = Select;
 export default function CreateAdvanceExpense() {
   const [loading, setLoading] = useState(false);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
-  const [selectedSalesData, setSelectedSalesData] = useState([]); // Store selected rows
   const navigate = useNavigate();
-
-  const salesData = [
-    { key: "1", no: 1, name: "Passakorn Kong-In", position: "Sales Assistant", territory: "Right North" },
-    { key: "2", no: 2, name: "Tossaphon Suphaksitthikorn", position: "Business Development Executive", territory: "Right Lower North" },
-    { key: "3", no: 3, name: "Panudech Srithong", position: "Business Development Executive", territory: "Upper Central" },
-    { key: "4", no: 4, name: "Sarawut Nisap", position: "Business Development Executive", territory: "Central" },
-    { key: "5", no: 5, name: "Tanadol Kaewyai", position: "Sales Assistant", territory: "Central" },
-    { key: "6", no: 6, name: "Thanakit Kongkrapan", position: "Sales Assistant", territory: "West" },
-    { key: "7", no: 7, name: "Wisisak Prakobsin", position: "Business Development Executive", territory: "South" },
-    { key: "8", no: 8, name: "Chinnawat Bunmakaew", position: "Sales Assistant", territory: "South" },
-    // Add more entries if needed
-  ];
-
-  const handleOpenTeamModal = () => {
-    setIsTeamModalVisible(true);
-  };
-
-  const handleCloseTeamModal = () => {
-    setIsTeamModalVisible(false);
-  };
-
-  const handleAddSelectedRows = (selectedRows) => {
-    setSelectedSalesData((prev) => [...prev, ...selectedRows]);
-  };
 
   const [formCustom] = Form.useForm();
   const [customerForm] = Form.useForm();
-  const [expenseForm] = Form.useForm(); // New form instance for Expense
+  const [expenseForm] = Form.useForm();
+  const [participantForm] = Form.useForm();
 
   const fileUploadRef = useRef(null); // Reference for FileUploadComponent
 
@@ -88,11 +64,13 @@ export default function CreateAdvanceExpense() {
       const formCustomData = await formCustom.validateFields();
       const customerData = await customerForm.validateFields();
       const expenseData = await expenseForm.validateFields();
+      const participantData = await participantForm.validateFields();
 
       const combinedData = {
         ...formCustomData,
         ...customerData,
-        ...expenseData
+        ...expenseData,
+        ...participantData
       };
 
       console.log("Combined Form Data:", combinedData);
@@ -170,6 +148,36 @@ export default function CreateAdvanceExpense() {
       ),
     },
   ];
+
+  let counter = 1;
+  const salesData = [
+    { key: `sales-${counter++}`, no: 1, name: "Kornkan Induang", position: "Sales Executive", territory: "Left North" },
+    { key: `sales-${counter++}`, no: 2, name: "Phaisan Jethuen", position: "Sales Executive", territory: "Left Lower North" },
+    { key: `sales-${counter++}`, no: 3, name: "Manupong Wongpuang", position: "Sales Executive", territory: "Lower North" },
+    { key: `sales-${counter++}`, no: 4, name: "Kriangkrai Kraikeaw", position: "Sales Executive", territory: "Central Left North" },
+    { key: `sales-${counter++}`, no: 5, name: "Charoenpong Khunawatcharakun", position: "Sales Executive", territory: "Central Right North" },
+    { key: `sales-${counter++}`, no: 6, name: "Amorn Sriworakul", position: "Sales Executive", territory: "Right Lower North" },
+    { key: `sales-${counter++}`, no: 7, name: "Nitchapan Akkaraketsawad", position: "Sales Executive", territory: "Upper Central" },
+    { key: `sales-${counter++}`, no: 8, name: "Manus Nakkhum", position: "Sales Executive", territory: "Central" },
+  ];
+
+  const handleOpenTeamModal = () => {
+    setIsTeamModalVisible(true);
+  };
+
+  const handleCloseTeamModal = () => {
+    setIsTeamModalVisible(false);
+  };
+
+  const handleAddSelectedRows = (selectedRows) => {
+    setParticipants((prev) => {
+      // Filter out any selected rows that already exist in participants based on their key
+      const newRows = selectedRows.filter(
+        (row) => !prev.some((participant) => participant.key === row.key)
+      );
+      return [...prev, ...newRows];
+    });
+  };
 
   const removeParticipant = (key) => {
     setParticipants(participants.filter(item => item.key !== key));
@@ -282,20 +290,20 @@ export default function CreateAdvanceExpense() {
 
         <Form
           layout="vertical"
-          form={expenseForm} // Use the new expenseForm instance here
+          form={participantForm}
           initialValues={{
-            actual_exp: "0",
-            actual_sale: "0"
+            estimate_participant: "0",
+            actual_participant: "0"
           }}
         >
           <Row gutter={[16, 16]} className="mt-3">
             <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Actual exp" name="actual_exp">
+              <Form.Item className="mb-3" label="Estimate Participant " name="actual_exp">
                 <Input placeholder="0" />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Actual sale" name="actual_sale">
+              <Form.Item className="mb-3" label="Actual Participant" name="actual_sale">
                 <Input placeholder="0" />
               </Form.Item>
             </Col>

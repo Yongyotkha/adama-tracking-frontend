@@ -1,167 +1,203 @@
 import React, { useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
-import { useNavigate } from "react-router-dom";
-import { Input, DatePicker, Col, Row } from "antd";
-import ActionButton from "../../../components/button/ActionButton";
+import { Form, Input, Col, Row, Select } from "antd";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import FormUser from "../../../components/form_user/FormUser";
+import FormCustom from "../../../components/form_custom/FormCustom";
+import TableComponent from "../../../components/table/TableComponent";
+import ActionButton from "../../../components/button/ActionButton";
+import FileUploadComponent from "../../../components/file_upload/FileUploadComponent";
+
+const { Option } = Select;
 
 export default function ViewAdvanceExpense() {
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const [loading] = useState(false);
 
   const formFields = [
-    { label: "Dealer Name (EN)", name: "dealer_name_en", type: "text", disabled: true, required: false, col: 6, value: "Somporn Panich Chemi Kaset Ltd.Part." },
-    { label: "Dealer Name (TH)", name: "dealer_name_th", type: "text", disabled: true, required: false, col: 6, value: "ห้างหุ้นส่วนจำกัดสมพรพานิชเคมีเกษตร" },
-    { label: "Dealer Code", name: "dealer_code", type: "text", disabled: true, required: false, col: 6, value: "321001" },
-    { label: "Tax ID", name: "tax_id", type: "text", disabled: true, required: false, col: 6, value: "0163556000660" },
-    { label: "Contact Number", name: "contact_number", type: "text", disabled: true, required: false, col: 6, value: "0163556000660" },
-    { label: "Address", name: "address", type: "text", disabled: true, required: false, col: 12, value: "55 หมู่ 5 ต.โคกสำโรง อ.โคกสำโรง จ.ลพบุรี 15120" },
-    { label: "Group Code", name: "group_code", type: "select", options: ["FMK Customers"], disabled: true, required: false, col: 6, value: "FMK Customers" },
-    { label: "Date of Anniversary", name: "date_of_anniversary", type: "date", disabled: true, required: false, col: 6, value: "2024-01-01" },
-    { label: "Date of Joining", name: "date_of_joining", type: "date", disabled: true, required: false, col: 6, value: "2024-01-01" },
+    { label: "Activity Reference", name: "activity_reference", type: "text", disabled: true, required: false, col: 24, value: "202400000000001" },
+    { label: "Activity Type", name: "activity_type", type: "select", options: ["FMT"], disabled: true, required: true, col: 6, value: "FMT" },
+    { label: "Shop", name: "shop", type: "select", options: ["Chaifar"], disabled: true, required: true, col: 6, value: "Chaifar" },
+    { label: "Crop", name: "crop", type: "select", options: ["Rice"], disabled: true, required: true, col: 6, value: "Rice" },
+    { label: "Date", name: "date", type: "date", disabled: true, required: true, col: 6, value: "2024-01-01" },
+    { label: "Start Time", name: "start_time", type: "time", disabled: true, required: true, col: 6, value: "09:00" },
+    { label: "End Time", name: "end_time", type: "time", disabled: true, required: true, col: 6, value: "11:00" },
+    { label: "Location", name: "location", type: "text", disabled: true, required: false, col: 12, value: "2/80 ถนนพาดาวรี ต.ท่าอิฐ อ.เมืองอุดรธานี จ.อุดรธานี" },
+    { label: "Description", name: "description", type: "text-editor", disabled: true, required: false, col: 24, placeholder: "Add description", value: "" }
   ];
+
+  const header = [
+    { title: "Product Name", dataIndex: "productName", key: "productName", align: "left" },
+    { title: "Pack Size", dataIndex: "packSize", key: "packSize", align: "center" },
+    { title: "Estimate Sale (KG/LT)", dataIndex: "estimateSale", key: "estimateSale", align: "center" },
+    { title: "Actual Sale (KG/LT)", dataIndex: "actualSale", key: "actualSale", align: "center" },
+  ];
+
+  const dataSource = [
+    { key: "1", productName: "Ossinate 15%SL", packSize: "1Kg.", estimateSale: "0", actualSale: "0" },
+    { key: "2", productName: "Apopo 20%SE", packSize: "1Lt.", estimateSale: "0", actualSale: "0" },
+    { key: "3", productName: "Atranex 90WG", packSize: "5Kg.", estimateSale: "0", actualSale: "0" },
+    { key: "4", productName: "Baloric 320EC", packSize: "0.5Lt.", estimateSale: "0", actualSale: "0" },
+  ];
+
+  const footerOrderList = () => (
+    <tr className="bg-[#978B87]">
+      <td colSpan={2} className="text-left pr-2 text-white">Total (THB)</td>
+      <td colSpan={1} className="text-center">
+        <Input placeholder="0" disabled />
+      </td>
+      <td colSpan={1} className="text-center">
+        <Input placeholder="0" disabled />
+      </td>
+    </tr>
+  );
+
+  const participants = [
+    { key: '1', no: 1, name: 'Kornkan Induang', position: 'Sales Executive', department: 'Sales Team', territory: 'Left North', permission: 'Individual and BD/Assist' },
+    { key: '2', no: 2, name: 'Phaisan Jethuen', position: 'Sales Executive', department: 'Sales Team', territory: 'Left Lower North', permission: 'Individual and BD/Assist' },
+    { key: '3', no: 3, name: 'Manupong Wongpuang', position: 'Sales Executive', department: 'Sales Team', territory: 'Lower North', permission: 'Individual and BD/Assist' },
+    { key: '4', no: 4, name: 'Kriangkrai Kraikeaw', position: 'Sales Executive', department: 'Sales Team', territory: 'Central Left North', permission: 'Individual and BD/Assist' },
+    { key: '5', no: 5, name: 'Charoenpong Khunawatcharakun', position: 'Sales Executive', department: 'Sales Team', territory: 'Central Right North', permission: 'Individual and BD/Assist' },
+  ];
+
+  const participantColumns = [
+    { title: 'No', dataIndex: 'no', key: 'no', align: 'center' },
+    { title: 'Name', dataIndex: 'name', key: 'name' },
+    { title: 'Position', dataIndex: 'position', key: 'position' },
+    { title: 'Department', dataIndex: 'department', key: 'department' },
+    { title: 'Territory', dataIndex: 'territory', key: 'territory' },
+    { title: 'Permission', dataIndex: 'permission', key: 'permission' },
+  ];
+
+  const [fileList, setFileList] = useState([
+    {
+      uid: '-1',
+      name: 'image.png',
+      status: 'done',
+      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
+    },
+    {
+      uid: '-2',
+      name: 'image.png',
+      status: 'done',
+      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
+    },
+    {
+      uid: '-3',
+      name: 'image.png',
+      status: 'done',
+      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
+    },
+    {
+      uid: '-4',
+      name: 'image.png',
+      status: 'done',
+      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
+    },
+  ]);
 
   return (
     <MainLayout loading={loading}>
       <div className="title-page">View Advance Expense</div>
 
-      {/* Company Info Section */}
-      <FormUser profile="/img/profile.jpg" title="Company Info" fields={formFields} />
+      <FormCustom fields={formFields} />
 
-      {/* Bank Account Sections */}
-      <BoxPrimary>
-        <div className="text-[#00783F] text-md">Bank Account 1</div>
-        <Row className="my-3" gutter={[16, 16]}>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Account Title" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Account Number" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Bank Name" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Bank Branch" />
-          </Col>
-        </Row>
-
-        <div className="text-[#00783F] text-md">Bank Account 2</div>
-        <Row className="my-3" gutter={[16, 16]}>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Account Title" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Account Number" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Bank Name" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Bank Branch" />
-          </Col>
-        </Row>
+      <BoxPrimary title="Sale Plan">
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pageSize={10}
+          footer={footerOrderList}
+          pagination={false}
+        />
       </BoxPrimary>
 
-      {/* Contact Person Section */}
       <BoxPrimary>
-        <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-lg font-semibold">Contact Person</span>
-          <ActionButton mode="add" text="Add" onClick={() => { }} />
-        </div>
-        <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-md">Person 1</span>
-        </div>
-        <Row gutter={[16, 16]} className="mb-6">
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Name (EN)" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Name (TH)" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Nickname" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <DatePicker className="w-full" placeholder="Date of Birth" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="T-Shirt Size" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Relationship" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Duty" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Tel 1" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Tel 2" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Contact Number" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Email" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Line ID" />
-          </Col>
-        </Row>
-
-        <hr />
-
-        <div className="mt-4">
-          <span className="text-[#00783F] text-md">Person 2</span>
-        </div>
-        <Row gutter={[16, 16]} className="mt-4">
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Name (EN)" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Name (TH)" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Nickname" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <DatePicker className="w-full" placeholder="Date of Birth" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="T-Shirt Size" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Relationship" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Duty" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Tel 1" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Tel 2" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Contact Number" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Email" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Line ID" />
-          </Col>
-        </Row>
+        <span className="text-[#00783F] text-lg font-semibold mb-3">Customer</span>
+        <Form layout="vertical" initialValues={{
+          supportCustomerName: "Chaifar",
+          address: "2/80 ถนนพาดาวรี ต.ท่าอิฐ อ.เมืองอุดรธานี จ.อุดรธานี",
+          perception: "Good"
+        }}>
+          <Row gutter={[16, 16]} className="mt-3">
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Form.Item className="mb-3" label="Support Customer Name">
+                <Input value="Chaifar" disabled />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Form.Item className="mb-3" label="Place of Owner">
+                <Input value="-" disabled />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={12}>
+              <Form.Item className="mb-3" label="Address">
+                <Input value="2/80 ถนนพาดาวรี ต.ท่าอิฐ อ.เมืองอุดรธานี จ.อุดรธานี" disabled />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Form.Item className="mb-3" label="Phone Number">
+                <Input value="-" disabled />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Form.Item className="mb-3" label="Place of GPS">
+                <Input value="-" disabled />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Form.Item className="mb-3" label="Perception">
+                <Select value="Good" disabled>
+                  <Option value="Good">Good</Option>
+                  <Option value="Average">Average</Option>
+                  <Option value="Poor">Poor</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
       </BoxPrimary>
 
-      {/* Action Buttons */}
-      <div className="flex justify-end space-x-4 mt-6">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/expenses/advance")} />
-        <ActionButton mode="update" text="Update" onClick={() => navigate("/expenses/advance")} />
-      </div>
+      <BoxPrimary title="Expense">
+        <Form layout="vertical">
+          <Row gutter={[16, 16]} className="mt-3">
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Form.Item className="mb-3" label="Actual exp">
+                <Input value="0" disabled />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Form.Item className="mb-3" label="Actual sale">
+                <Input value="0" disabled />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </BoxPrimary>
+
+      <BoxPrimary title='File'>
+        <FileUploadComponent dataFile={fileList} mode="view" />
+      </BoxPrimary>
+
+      <BoxPrimary title="Participant">
+        <Form layout="vertical">
+          <Row gutter={[16, 16]} className="mt-3">
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Form.Item className="mb-3" label="Estimate Participant ">
+                <Input value="0" disabled />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Form.Item className="mb-3" label="Actual Participant">
+                <Input value="0" disabled />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+        <TableComponent
+          header={participantColumns}
+          dataSource={participants}
+          pagination={false}
+        />
+      </BoxPrimary>
     </MainLayout>
   );
 }
