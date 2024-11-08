@@ -265,8 +265,10 @@ const Navbar = () => {
   };
 
   const isActivePath = (path, subPaths = []) => {
-    // Check if the current path matches the exact path or any sub-paths
-    return location.pathname === path || subPaths.some((subPath) => location.pathname.startsWith(`/${subPath}`));
+    return (
+      location.pathname === path ||
+      subPaths.some((subPath) => location.pathname.startsWith(`/${subPath}`))
+    );
   };
 
   const handleNavigate = (path, index) => {
@@ -275,17 +277,26 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    if (carouselRef.current) {
-      // Slide the carousel to the active menu item
-      carouselRef.current.goTo(activeIndex);
+    // Update the active index based on the current path
+    const currentIndex = menuItems.findIndex((item) =>
+      item.dropdownMenu
+        ? isActivePath(item.path, item.dropdownItems.map((subItem) => subItem.path))
+        : isActivePath(item.path)
+    );
+    setActiveIndex(currentIndex >= 0 ? currentIndex : 0);
+
+    // Slide the carousel to the active menu item
+    if (carouselRef.current && currentIndex >= 0) {
+      carouselRef.current.goTo(currentIndex, false); // Slide to active index
     }
-  }, [activeIndex]);
+  }, [location.pathname]);
 
   const carouselSettings = {
     dots: false,
     speed: 500,
     slidesToShow: 6,
-    ref: carouselRef, // Attach ref to carousel
+    slidesToScroll: Math.min(menuItems.length),
+    ref: carouselRef,
     responsive: [
       { breakpoint: 1200, settings: { slidesToShow: 4 } },
       { breakpoint: 1024, settings: { slidesToShow: 3 } },
