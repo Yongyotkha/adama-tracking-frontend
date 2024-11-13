@@ -6,9 +6,12 @@ import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import { Input } from "antd";
 import TableComponent from "../../../components/table/TableComponent";
+import DynamicModal from "../../../components/modal/DynamicModal";
+import AddOrderModal from "../../../components/modal/AddOrderModal";
 
 export default function CreateClaimRequest() {
   const [loading, setLoading] = useState(false);
+  const [isAddOrderModalVisible, setIsAddOrderModalVisible] = useState(false);
   const navigate = useNavigate();
 
   // State for Order List table data
@@ -68,8 +71,8 @@ export default function CreateClaimRequest() {
             inputMode="numeric"
             min={0}
             value={record.quantity}
-            onChange={(value) => handleQuantityChange(record.key, value)}
-            className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 min-w-[60px]"
+            onChange={(e) => handleQuantityChange(record.key, parseInt(e.target.value) || 0)}
+            className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 min-w-24"
           />
           <img src="/img/icons/expand.png" alt="+" className="cursor-pointer w-6 h-6" onClick={() => handleQuantityChange(record.key, record.quantity + 1)} />
         </div>
@@ -135,15 +138,29 @@ export default function CreateClaimRequest() {
     </tr>
   );
 
+  const handleShowAddOrderModal = () => {
+    setIsAddOrderModalVisible(true);
+  };
+
+  const handleCloseAddOrderModal = () => {
+    setIsAddOrderModalVisible(false);
+  };
+
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Create Claim Request</div>
+      <div className="flex justify-between">
+        <div className="title-page">Create Claim Request</div>
+      </div>
 
       {/* Form Section */}
       <FormCustom fields={formFields} />
 
       {/* Order List Section */}
-      <BoxPrimary title="Order List">
+      <BoxPrimary>
+        <div className="flex justify-between mb-4">
+          <span className="text-[#00783F] text-lg font-semibold">Order List</span>
+          <ActionButton mode="add" text="Add" onClick={handleShowAddOrderModal} />
+        </div>
         <TableComponent
           header={header}
           dataSource={dataSource}
@@ -158,6 +175,13 @@ export default function CreateClaimRequest() {
           <Input.TextArea placeholder="Remark" rows={3} />
         </div>
       </BoxPrimary>
+
+      <AddOrderModal
+        title="Add Order"
+        isVisible={isAddOrderModalVisible}
+        onClose={handleCloseAddOrderModal}
+        width="1200px" // Customize the width to make it extra-large.
+      />
 
       {/* Action Buttons */}
       <div className="flex justify-end space-x-4">

@@ -1,5 +1,5 @@
 import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
-import { Image, Upload, message } from 'antd';
+import { Image, Upload, message, App } from 'antd';
 
 const getBase64 = (file) =>
   new Promise((resolve, reject) => {
@@ -44,9 +44,9 @@ const FileUploadComponent = forwardRef(({ dataFile = [], mode = "edit" }, ref) =
   }));
 
   return (
-    <>
+    <App> {/* Wrap component content with App for message support */}
       <Upload
-        action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload"
+        action="https://adama-api.mtsc.co.th/upload"
         listType="picture-card"
         fileList={fileList}
         onPreview={handlePreview}
@@ -91,7 +91,7 @@ const FileUploadComponent = forwardRef(({ dataFile = [], mode = "edit" }, ref) =
           src={previewImage}
         />
       )}
-    </>
+    </App>
   );
 });
 

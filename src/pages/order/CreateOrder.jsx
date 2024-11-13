@@ -20,10 +20,10 @@ export default function CreateOrder() {
       sku: "3027200113",
       productName: "Bumper P",
       unit: "0.5 ltX20",
-      pricePerUnit: "575.00",
-      quantity: 10,
+      pricePerUnit: '575.50',
+      quantity: 0,
       foc: 1,
-      subTotal: "115,000.00",
+      subTotal: '115000',
     },
     {
       key: "2",
@@ -31,10 +31,10 @@ export default function CreateOrder() {
       sku: "207920011520",
       productName: "Memory 300EC",
       unit: "1lt X20",
-      pricePerUnit: "340.00",
-      quantity: 10,
+      pricePerUnit: '340',
+      quantity: 0,
       foc: 1,
-      subTotal: "68,000.00",
+      subTotal: '68000',
     },
   ]);
 
@@ -57,8 +57,9 @@ export default function CreateOrder() {
     setDataSource((prevData) =>
       prevData.map((item) => {
         if (item.key === key) {
-          const quantity = Math.max(0, newQuantity); // Prevents negative quantities
-          return { ...item, quantity };
+          const quantity = Math.max(0, newQuantity); // Prevent negative quantities
+          const subTotal = (quantity * parseFloat(item.pricePerUnit.replace(/,/g, ""))).toFixed(2); // Calculate new subTotal
+          return { ...item, quantity, subTotal };
         }
         return item;
       })
@@ -89,13 +90,16 @@ export default function CreateOrder() {
     { title: "SKU", dataIndex: "sku", key: "sku" },
     { title: "Product Name", dataIndex: "productName", key: "productName" },
     { title: "Unit", dataIndex: "unit", key: "unit" },
-    { title: "THB/Unit", dataIndex: "pricePerUnit", key: "pricePerUnit" },
+    {
+      title: "THB/Unit", dataIndex: "pricePerUnit", key: "pricePerUnit",
+      render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+    },
     {
       title: <div className="text-center">QTY (ctn)</div>,
       dataIndex: "quantity",
       key: "quantity",
       render: (_, record) => (
-        <div className="quantity-control flex justify-between items-center">
+        <div className="quantity-control flex justify-center items-center">
           <img
             src="/img/icons/collapse.png"
             alt="decrease"
@@ -107,7 +111,7 @@ export default function CreateOrder() {
             min={0}
             value={record.quantity}
             onChange={(e) => handleQuantityChange(record.key, parseInt(e.target.value) || 0)}
-            className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-16"
+            className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 min-w-24"
           />
           <img
             src="/img/icons/expand.png"
@@ -119,7 +123,12 @@ export default function CreateOrder() {
       ),
     },
     { title: "FOC (ctn)", dataIndex: "foc", key: "foc" },
-    { title: "Sub Total (THB)", dataIndex: "subTotal", key: "subTotal" },
+    {
+      title: "Sub Total (THB)",
+      dataIndex: "subTotal",
+      key: "subTotal",
+      render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+    },
     {
       title: <div className="text-center">Action</div>, key: "action", render: (_, record) =>
         <button className="delete-button flex justify-center mx-auto">
@@ -164,9 +173,10 @@ export default function CreateOrder() {
       render: (_, record) => (
         <Input
           value={record.quantity}
-          type="number"
+          type="numberic"
           min={1}
           onChange={(e) => handleGiftInputChange(record.key, "quantity", parseInt(e.target.value) || 1)}
+          className="text-center"
         />
       )
     },
@@ -184,7 +194,8 @@ export default function CreateOrder() {
   const footerOrderList = () => (
     <tr className="bg-[#978B87]">
       <td colSpan={9} className="text-right pr-2 text-white">
-        Item: {dataSource.length} &nbsp; QTY (ctn): {dataSource.reduce((total, item) => total + item.quantity, 0)}
+        Item: {dataSource.length} &nbsp; QTY (ctn): {dataSource.reduce((total, item) => total + item.quantity, 0)} &nbsp;
+        Total: {dataSource.reduce((total, item) => total + parseFloat(item.subTotal || 0), 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
       </td>
     </tr>
   );
