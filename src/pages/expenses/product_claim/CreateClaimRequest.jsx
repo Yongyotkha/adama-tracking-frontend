@@ -1,159 +1,168 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
+import FormCustom from "../../../components/form_custom/FormCustom";
 import { useNavigate } from "react-router-dom";
-import { Input, DatePicker, Col, Row, Select, Form } from "antd";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import FormUser from "../../../components/form_user/FormUser";
-
-const { Option } = Select;
+import { Input } from "antd";
+import TableComponent from "../../../components/table/TableComponent";
 
 export default function CreateClaimRequest() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // State for Order List table data
+  const [dataSource, setDataSource] = useState([
+    {
+      key: "1",
+      no: "1",
+      sku: "3027200113",
+      productName: "Bumper P",
+      lotNo: "BGS0109",
+      reason: "Damaged item",
+      quantity: 2,
+    },
+    {
+      key: "2",
+      no: "2",
+      sku: "207920011520",
+      productName: "Memory 300EC",
+      lotNo: "BGS0163",
+      reason: "Damaged item",
+      quantity: 1,
+    },
+  ]);
+
   const formFields = [
-    { label: "Shop Name", name: "shop_name", type: "text", required: false, col: 6, value: "" },
-    { label: "Mobile Phone", name: "mobile_phone", type: "text", required: false, col: 6, value: "" },
-    { label: "Address", name: "address", type: "text", required: false, col: 12, value: "" },
-    { label: "Office Hours", name: "office_hours", type: "text", required: false, col: 6, value: "" , iconSrc: "/img/icons/calendar.png", iconPosition: "right" },
-    { label: "Start Time", name: "start_time", type: "time", required: false, col: 6, value: "" },
-    { label: "End Time", name: "end_time", type: "time", required: false, col: 6, value: "" },
-    { label: "Business Size", name: "business_size", type: "select", options: ["Small", "Medium", "Large"], required: false, col: 6, value: null },
-    { label: "Email", name: "email", type: "email", required: false, col: 6, value: "" },
-    { label: "Outlet Location", name: "outlet_location", type: "text", required: false, col: 6, value: "" , iconSrc: "/img/icons/location.png", iconPosition: "right"},
-    { label: "T-Shirt Size", name: "tshirt_size", type: "text", required: false, col: 6, value: "" },
-    { label: "Anniversary", name: "anniversary", type: "date", required: false, col: 6, value: "" },
-    { label: "Remark", name: "remark", type: "text", required: false, col: 24, value: "" },
+    { label: "Dealer", name: "dealer", type: "select", options: ["Dealer 1", "Dealer 2"], disabled: false, required: true, value: "Select" },
+    { label: "By Sale", name: "by_sale", type: "select", options: ["Sale 1", "Sale 2"], disabled: false, required: true, value: "Select" },
+    { label: "Claim No", name: "claim_no", type: "text", disabled: true, required: false, value: "Generate Auto" },
+    { label: "Create Date", name: "create_date", type: "date", disabled: false, required: true, value: "" },
   ];
 
-  // Mock crop data for the multi-select dropdown
-  const cropOptions = [
-    "Rice", "Wheat", "Corn", "Soybean", "Cotton", "Barley", "Sugarcane", "Potato", "Tomato", "Lettuce"
+  const handleQuantityChange = (key, newQuantity) => {
+    setDataSource((prevData) =>
+      prevData.map((item) => {
+        if (item.key === key) {
+          return { ...item, quantity: newQuantity > 0 ? newQuantity : 0 };
+        }
+        return item;
+      })
+    );
+  };
+
+  const header = [
+    { title: "No", dataIndex: "no", key: "no", align: "center" },
+    { title: "SKU", dataIndex: "sku", key: "sku", align: "center" },
+    { title: "Product Name", dataIndex: "productName", key: "productName", align: "center" },
+    { title: "Lot No", dataIndex: "lotNo", key: "lotNo", align: "center" },
+    { title: "Reason", dataIndex: "reason", key: "reason", align: "center" },
+    {
+      title: <div className="text-center">QTY (ctn)</div>,
+      dataIndex: "quantity",
+      key: "quantity",
+      render: (_, record) => (
+        <div className="quantity-control flex justify-between items-center">
+          <img src="/img/icons/collapse.png" alt="+" className="cursor-pointer w-6 h-6" onClick={() => handleQuantityChange(record.key, record.quantity - 1)} />
+          <Input
+            inputMode="numeric"
+            min={0}
+            value={record.quantity}
+            onChange={(value) => handleQuantityChange(record.key, value)}
+            className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 min-w-[60px]"
+          />
+          <img src="/img/icons/expand.png" alt="+" className="cursor-pointer w-6 h-6" onClick={() => handleQuantityChange(record.key, record.quantity + 1)} />
+        </div>
+      ),
+    },
+    {
+      title: <div className="text-center">Label</div>,
+      key: "label",
+      render: () => (
+        <button className="view-button flex justify-center mx-auto">
+          <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
+        </button>
+      ),
+    },
+    {
+      title: <div className="text-center">Product</div>,
+      key: "product",
+      render: () => (
+        <button className="view-button flex justify-center mx-auto">
+          <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
+        </button>
+      ),
+    },
+    {
+      title: <div className="text-center">Overall</div>,
+      key: "overall",
+      render: () => (
+        <button className="view-button flex justify-center mx-auto">
+          <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
+        </button>
+      ),
+    },
+    {
+      title: <div className="text-center">Other</div>,
+      key: "other",
+      render: () => (
+        <button className="view-button flex justify-center mx-auto">
+          <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
+        </button>
+      ),
+    },
+    {
+      title: <div className="text-center">Action</div>,
+      key: "action",
+      render: (_, record) => (
+        <button className="delete-button flex justify-center mx-auto">
+          <img
+            src="/img/icons/delete.png"
+            alt="delete"
+            className="cursor-pointer w-6 h-6"
+            onClick={() => setDataSource(dataSource.filter((item) => item.key !== record.key))}
+          />
+        </button>
+      ),
+    },
   ];
-  useEffect(() => { }, []);
+
+  const footerOrderList = () => (
+    <tr className="bg-[#978B87]">
+      <td colSpan={11} className="text-right pr-2 text-white">
+        Item: {dataSource.length} &nbsp; QTY (ctn): {dataSource.reduce((total, item) => total + item.quantity, 0)}
+      </td>
+    </tr>
+  );
 
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Create Claim Request</div>
 
-      {/* Company Info Section */}
-      <FormUser title="Personal Info" fields={formFields} />
+      {/* Form Section */}
+      <FormCustom fields={formFields} />
 
-      <BoxPrimary>
-        <Form layout="vertical">
-          <Form.Item label="Crop" name="crop">
-            <Select
-              mode="multiple"
-              showSearch
-              placeholder="Select Crop(s)"
-              optionFilterProp="children"
-              className="w-full"
-            >
-              {cropOptions.map((crop) => (
-                <Option key={crop} value={crop}>
-                  {crop}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-        </Form>
+      {/* Order List Section */}
+      <BoxPrimary title="Order List">
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pageSize={10}
+          footer={footerOrderList}
+        />
       </BoxPrimary>
 
-      {/* Contact Person Section */}
-      <BoxPrimary>
-        <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-lg font-semibold">Contact Person</span>
-          <ActionButton mode="add" text="Add" onClick={() => { }} />
+      {/* Remark Section */}
+      <BoxPrimary title="Remark">
+        <div className="mb-3 flex justify-end">
+          <Input.TextArea placeholder="Remark" rows={3} />
         </div>
-
-        <span className="text-[#00783F] text-md">Person 1</span>
-        <Row gutter={[16, 16]} className="mt-3">
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Name (EN)" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Name (TH)" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Nickname" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <DatePicker className="w-full" placeholder="Date of Birth" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="T-Shirt Size" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Relationship" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Duty" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Tel 1" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Tel 2" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Contact Number" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Email" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Line ID" />
-          </Col>
-        </Row>
-        <hr className="my-4" />
-
-        <span className="text-[#00783F] text-md">Person 2</span>
-        <Row gutter={[16, 16]} className="mt-3">
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Name (EN)" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Name (TH)" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Nickname" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <DatePicker className="w-full" placeholder="Date of Birth" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="T-Shirt Size" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Relationship" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Duty" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Tel 1" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Tel 2" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Contact Number" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Email" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Line ID" />
-          </Col>
-        </Row>
-        <hr className="my-4" />
       </BoxPrimary>
 
       {/* Action Buttons */}
-      <div className="flex justify-end space-x-4 mt-6">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/customer/sub-dealer")} />
-        <ActionButton htmlType="submit" mode="save" text="Save" onClick={() => navigate("/customer/sub-dealer")} />
+      <div className="flex justify-end space-x-4">
+        <ActionButton mode="back" text="Back" onClick={() => navigate("/expenses/product-claim")} />
+        <ActionButton mode="save" text="Save" onClick={() => navigate("/expenses/product-claim")} />
       </div>
     </MainLayout>
   );

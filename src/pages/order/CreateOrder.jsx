@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import FormCustom from "../../components/form_custom/FormCustom";
 import { useNavigate } from "react-router-dom";
@@ -53,12 +53,12 @@ export default function CreateOrder() {
     console.log("Search term:", e.target.value);
   };
 
-  const handleQuantityChange = (key, change) => {
+  const handleQuantityChange = (key, newQuantity) => {
     setDataSource((prevData) =>
       prevData.map((item) => {
         if (item.key === key) {
-          const newQuantity = item.quantity + change;
-          return { ...item, quantity: newQuantity > 0 ? newQuantity : 0 };
+          const quantity = Math.max(0, newQuantity); // Prevents negative quantities
+          return { ...item, quantity };
         }
         return item;
       })
@@ -98,16 +98,22 @@ export default function CreateOrder() {
         <div className="quantity-control flex justify-between items-center">
           <img
             src="/img/icons/collapse.png"
-            alt="collapse"
+            alt="decrease"
             className="cursor-pointer w-6 h-6"
-            onClick={() => handleQuantityChange(record.key, -1)}
+            onClick={() => handleQuantityChange(record.key, record.quantity - 1)}
           />
-          <span className="border border-solid border-[#00783F] min-w-[96px] text-center rounded block text-[#00783F] p-1">{record.quantity}</span>
+          <Input
+            inputMode="numeric"
+            min={0}
+            value={record.quantity}
+            onChange={(e) => handleQuantityChange(record.key, parseInt(e.target.value) || 0)}
+            className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-16"
+          />
           <img
             src="/img/icons/expand.png"
-            alt="expand"
+            alt="increase"
             className="cursor-pointer w-6 h-6"
-            onClick={() => handleQuantityChange(record.key, 1)}
+            onClick={() => handleQuantityChange(record.key, record.quantity + 1)}
           />
         </div>
       ),
@@ -121,7 +127,7 @@ export default function CreateOrder() {
             src="/img/icons/delete.png"
             alt="delete"
             className="cursor-pointer w-6 h-6"
-            onClick={() => ''}
+            onClick={() => setDataSource(dataSource.filter((item) => item.key !== record.key))}
           />
         </button>
     },
@@ -160,7 +166,7 @@ export default function CreateOrder() {
           value={record.quantity}
           type="number"
           min={1}
-          onChange={(e) => handleGiftInputChange(record.key, "quantity", e.target.value)}
+          onChange={(e) => handleGiftInputChange(record.key, "quantity", parseInt(e.target.value) || 1)}
         />
       )
     },
@@ -175,11 +181,10 @@ export default function CreateOrder() {
     }
   ];
 
-  const footerOrderList = (currentData) => (
+  const footerOrderList = () => (
     <tr className="bg-[#978B87]">
       <td colSpan={9} className="text-right pr-2 text-white">
-        Item : {dataSource.length} &nbsp; QTY (ctn): {dataSource.reduce((total, item) => total + item.quantity, 0)} &nbsp;
-        Total : {dataSource.reduce((total, item) => total + parseFloat(item.subTotal.replace(/,/g, "")), 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+        Item: {dataSource.length} &nbsp; QTY (ctn): {dataSource.reduce((total, item) => total + item.quantity, 0)}
       </td>
     </tr>
   );
@@ -187,7 +192,7 @@ export default function CreateOrder() {
   const footerGift = () => (
     <tr className="bg-[#978B87]">
       <td colSpan={5} className="text-right pr-2 text-white">
-        Item : {dataSourceGift.length} &nbsp; QTY : {dataSourceGift.reduce((total, item) => total + parseInt(item.quantity || 0), 0)}
+        Item: {dataSourceGift.length} &nbsp; QTY : {dataSourceGift.reduce((total, item) => total + parseInt(item.quantity || 0), 0)}
       </td>
     </tr>
   );
