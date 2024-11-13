@@ -11,11 +11,10 @@ import useServiceAPI from "../../../services/corsService";
 import { paths } from "../../../services/CorsPath";
 
 export default function SettingUser() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
-  const [search, setSearch] = useState("");
-  const navigate = useNavigate();
 
   const filters = [
     {
@@ -23,8 +22,8 @@ export default function SettingUser() {
       type: "select",
       label: "Name",
       options: [
-        { value: "John Doe", label: "John Doe" },
-        { value: "Jane Smith", label: "Jane Smith" },
+        // { value: "John Doe", label: "John Doe" },
+        // { value: "Jane Smith", label: "Jane Smith" },
         // Add more names as options if needed
       ],
     },
@@ -39,9 +38,9 @@ export default function SettingUser() {
       type: "select",
       label: "Position",
       options: [
-        { value: "Manager", label: "Manager" },
-        { value: "Sales Assistant", label: "Sales Assistant" },
-        { value: "Director", label: "Director" },
+        // { value: "Manager", label: "Manager" },
+        // { value: "Sales Assistant", label: "Sales Assistant" },
+        // { value: "Director", label: "Director" },
         // Add more positions as needed
       ],
     },
@@ -50,9 +49,9 @@ export default function SettingUser() {
       type: "select",
       label: "Role",
       options: [
-        { value: "Admin", label: "Admin" },
-        { value: "User", label: "User" },
-        { value: "Viewer", label: "Viewer" },
+        // { value: "Admin", label: "Admin" },
+        // { value: "User", label: "User" },
+        // { value: "Viewer", label: "Viewer" },
         // Add more roles as needed
       ],
     },
@@ -60,14 +59,32 @@ export default function SettingUser() {
 
   const handleSearch = (filter) => {
     // console.log("Search filters applied:", filter);
-    // const filtered = users.filter((user) =>
-    //   user.name.toLowerCase().includes(search.toLowerCase())
-    // );
-    // setFilteredUsers(filtered);
+    const filtered = dataSource.filter((user) => {
+      const matchesName =
+        !filter.name ||
+        user.name.toLowerCase().includes(filter.name.toLowerCase());
+      const matchesContactNumber =
+        !filter.contact_number ||
+        user.contact_number.includes(filter.contact_number);
+      const matchesPosition =
+        !filter.position || user.position === filter.position;
+      const matchesRole = !filter.role || user.role === filter.role;
+
+      return (
+        matchesName && matchesContactNumber && matchesPosition && matchesRole
+      );
+    });
+
+    setFilteredUsers(filtered);
   };
 
   const handleClear = () => {
     // console.log("Filters cleared");
+    // Reset search fields
+    // setSearch("");
+
+    // Reset filtered data to show all users
+    setFilteredUsers(dataSource);
   };
 
   // Data in Table
@@ -129,7 +146,7 @@ export default function SettingUser() {
       label: (
         <a
           rel="noopener noreferrer"
-          href="/setting/user/edit"
+          href="/setting/user/edit/"
           className="flex gap-1"
         >
           <img
@@ -143,7 +160,7 @@ export default function SettingUser() {
     },
   ];
 
-  // Fetch Data
+  // Fetch Data -> Table
   useEffect(() => {
     const body = {};
     useServiceAPI
@@ -183,7 +200,7 @@ export default function SettingUser() {
           }));
 
           setDataSource(newDataSource);
-          setFilteredUsers(response.data);
+          setFilteredUsers(newDataSource);
         }
       })
       .catch((error) => {
@@ -196,7 +213,7 @@ export default function SettingUser() {
         }
       });
   }, []);
-  
+
   return (
     <>
       <MainLayout loading={loading}>
@@ -222,7 +239,7 @@ export default function SettingUser() {
         />
 
         <BoxPrimary>
-          <TableComponent header={header} dataSource={dataSource} />
+          <TableComponent header={header} dataSource={filteredUsers} />
         </BoxPrimary>
       </MainLayout>
     </>
