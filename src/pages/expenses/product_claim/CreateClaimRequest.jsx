@@ -6,7 +6,6 @@ import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import { Input } from "antd";
 import TableComponent from "../../../components/table/TableComponent";
-import DynamicModal from "../../../components/modal/DynamicModal";
 import AddOrderModal from "../../../components/modal/AddOrderModal";
 
 export default function CreateClaimRequest() {

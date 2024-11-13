@@ -1,5 +1,6 @@
 import React from "react";
-import { Form, Input, DatePicker, Select, Col, Row, TimePicker } from "antd";
+import { DatePicker, Form, Input, Select, Col, Row, TimePicker } from "antd";
+const { MonthPicker } = DatePicker;
 import BoxPrimary from "../box_primary/BoxPrimary";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -26,6 +27,8 @@ export default function FormCustom({ fields, form, title }) {
   const initialValues = fields.reduce((values, field) => {
     if (field.type === "date") {
       values[field.name] = field.value ? dayjs(field.value, "YYYY-MM-DD") : null;
+    } else if (field.type === "month") {
+      values[field.name] = field.value ? dayjs(field.value, "YYYY-MM") : null;
     } else if (field.type === "time") {
       values[field.name] = field.value ? dayjs(field.value, "HH:mm") : null;
     } else {
@@ -72,6 +75,12 @@ export default function FormCustom({ fields, form, title }) {
                     style={{ width: "100%" }}
                     disabled={field.disabled}
                     format="YYYY-MM-DD"
+                  />
+                ) : field.type === "month" ? (
+                  <MonthPicker
+                    style={{ width: "100%" }}
+                    disabled={field.disabled}
+                    format="YYYY-MM"
                   />
                 ) : field.type === "time" ? (
                   <TimePicker

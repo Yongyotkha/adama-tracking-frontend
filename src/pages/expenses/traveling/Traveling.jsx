@@ -15,37 +15,16 @@ export default function Traveling() {
 
   const navigate = useNavigate();
 
+  // Filter configuration
   const filters = [
-    {
-      key: "sub_dealer",
-      type: "text",
-      label: "Sub Dealer",
-      placeholder: "All",
-    },
-    {
-      key: "contact_name",
-      type: "text",
-      label: "Contact Name",
-      placeholder: "All",
-    },
-    {
-      key: "phone",
-      type: "text",
-      label: "Phone",
-      placeholder: "Phone",
-    },
-    {
-      key: "status",
-      type: 'select',
-      label: "Status",
-      placeholder: "All",
-      options: [
-        { value: 'Active', label: 'Active' },
-        { value: 'Inactive', label: 'Inactive' },
-        { value: 'Pending', label: 'Pending' },
-      ],
-    },
+    { key: "customer", type: "select", label: "Customer", placeholder: "All", options: [] },
+    { key: "expense_no", type: "text", label: "Expense No", placeholder: "All" },
+    { key: "activity_ref", type: "text", label: "Activity Reference", placeholder: "All" },
+    { key: "type_of_meeting", type: "select", label: "Type of Meeting", placeholder: "All", options: [] },
+    { key: "date", type: "date", label: "Date", placeholder: "Select Date.." },
   ];
+
+  // Handlers for filter actions
   const handleSearch = (filter) => {
     console.log("Search filters applied:", filter);
   };
@@ -54,31 +33,34 @@ export default function Traveling() {
     console.log("Filters cleared");
   };
 
+  // Dropdown actions
   const actionItems = [
-    { key: "1", label: <ItemDropDown mode="edit" link="/customer/sub-dealer/edit" /> },
+    { key: "1", label: <ItemDropDown mode="edit" link="/expenses/traveling/edit" /> },
+    { key: "2", label: <ItemDropDown mode="view" link="/expenses/traveling/view" /> },
+    { key: "3", label: <ItemDropDown mode="delete" /> },
   ];
 
+  // Table header configuration
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
-    { title: "Sub Dealer Name", width: 200, dataIndex: "subDealerName", align: "left" },
-    { title: "Contact Name", width: 200, dataIndex: "contactName", align: "left" },
-    { title: "Address", width: 300, dataIndex: "address", align: "left" },
-    { title: "Phone", width: 150, dataIndex: "phone", align: "center" },
+    { title: "Year", width: 100, dataIndex: "year", align: "center" },
+    { title: "Month", width: 150, dataIndex: "month", align: "left" },
+    { title: "Date", width: 150, dataIndex: "date", align: "center" },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
-  
+
   useEffect(() => {
+    // Example data for the table
     const dataSource = [
       {
         key: 1,
-        subDealerName: "เพื่อนชาวนา",
-        contactName: "นางสาวกรกชสุดา นิตรสัมพันธ์",
-        address: "เลขที่ 71 หมู่1 ต.สาลี อ.บางปลาม้า จ.สุพรรณบุรี",
-        phone: "081-639 9745",
-        status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
+        year: "2024",
+        month: "October",
+        date: "2024-01-01",
+        status: <BadgeStatus text="Completed" bgColor="#009845" textColor="#FFFFFF" />,
         action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
+          <Dropdown menu={{ items: actionItems }} placement="bottomRight">
             <a onClick={(e) => e.preventDefault()}>
               <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
             </a>
@@ -87,28 +69,12 @@ export default function Traveling() {
       },
       {
         key: 2,
-        subDealerName: "ดอนโพธิ์ทอง",
-        contactName: "นางสาวประภาพรรณ ปลั่งพานิช",
-        address: "เลขที่ 216 หมู่1 ต.ดอนโพธิ์ทอง อ.เมือง จ.สุพรรณบุรี",
-        phone: "081-1922292",
-        status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
+        year: "2024",
+        month: "September",
+        date: "2024-01-01",
+        status: <BadgeStatus text="Completed" bgColor="#009845" textColor="#FFFFFF" />,
         action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 3,
-        subDealerName: "จุ้ยพันธุ์ข้าว",
-        contactName: "นางสาวนิตา นำประเสริฐสุข",
-        address: "เลขที่ 17 หมู่2 ต.ตลิ่งชัน อ.เมือง จ.สุพรรณบุรี",
-        phone: "080-9963214",
-        status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
+          <Dropdown menu={{ items: actionItems }} placement="bottomRight">
             <a onClick={(e) => e.preventDefault()}>
               <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
             </a>
@@ -122,22 +88,16 @@ export default function Traveling() {
 
   return (
     <MainLayout loading={loading}>
-
       <div className="flex items-center justify-between">
         <div className="title-page">Traveling</div>
-        <ActionButton mode="create" text="Create" onClick={(e) => navigate("/customer/sub-dealer/create")} />
+        <ActionButton mode="create" text="Create" onClick={() => navigate("/expenses/traveling/create")} />
       </div>
 
-      <Filter
-        onSearch={handleSearch}
-        onClear={handleClear}
-        filters={filters}
-      />
+      <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
 
       <BoxPrimary>
         <TableComponent header={header} dataSource={dataSource} />
       </BoxPrimary>
-
     </MainLayout>
   );
 }

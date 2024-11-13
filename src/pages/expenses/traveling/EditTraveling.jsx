@@ -1,163 +1,153 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { Input } from "antd";
 import MainLayout from "../../../layouts/MainLayout";
+import FormCustom from "../../../components/form_custom/FormCustom";
 import { useNavigate } from "react-router-dom";
-import { Input, DatePicker, Col, Row, Select, Form } from "antd";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import FormUser from "../../../components/form_user/FormUser";
-
-const { Option } = Select;
+import TableComponent from "../../../components/table/TableComponent";
+import NumericInput from "../../../components/numeric_input/NumericInput";
 
 export default function EditTraveling() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Table data source
+  const [dataSource, setDataSource] = useState([
+    {
+      key: "1",
+      date: "01-08-2024",
+      from: "กรุงเทพ",
+      to: "สิงห์บุรี",
+      mileage: "0",
+      petrol: "0",
+      cashPetrol: "1260",
+      hotel: "0",
+      allowance: "400",
+      tollFee: "0",
+      entertain: "0",
+      others: "0",
+      total: "1660",
+      remark: "ไป-กลับ กทม สิงบุรี ลงแปลง อ้อย",
+    },
+    {
+      key: "2",
+      date: "01-08-2024",
+      from: "กรุงเทพ",
+      to: "สิงห์บุรี",
+      mileage: "0",
+      petrol: "0",
+      cashPetrol: "3200",
+      hotel: "0",
+      allowance: "1200",
+      tollFee: "0",
+      entertain: "0",
+      others: "0",
+      total: "4400",
+      remark: "ไป-กลับ กทม สิงบุรี ลงแปลง อ้อย",
+    },
+  ]);
+
+  // Form fields at the top
   const formFields = [
-    { label: "Shop Name", name: "shop_name", type: "text", required: false, col: 6, value: "เพื่อนชาวนา" },
-    { label: "Mobile Phone", name: "mobile_phone", type: "text", required: false, col: 6, value: "036-442474" },
-    { label: "Address", name: "address", type: "text", required: false, col: 12, value: "55 หมู่ 5 ต.โคกสำโรง อ.โคกสำโรง จ.ลพบุรี 15120" },
-    { label: "Office Hours", name: "office_hours", type: "text", required: false, col: 6, value: "Monday - Sunday" , iconSrc: "/img/icons/calendar.png", iconPosition: "right" },
-    { label: "Start Time", name: "start_time", type: "time", required: false, col: 3, value: "07:00" },
-    { label: "End Time", name: "end_time", type: "time", required: false, col: 3, value: "18:00" },
-    { label: "Business Size", name: "business_size", type: "select", options: ["Small", "Medium", "Large"], required: false, col: 6, value: "Business Size" },
-    { label: "Email", name: "email", type: "email", required: false, col: 6, value: "" },
-    { label: "Outlet Location", name: "outlet_location", type: "text", required: false, col: 12, value: "Location", iconSrc: "/img/icons/location.png", iconPosition: "right" },
-    { label: "T-Shirt Size", name: "tshirt_size", type: "text", required: false, col: 6, value: "M" },
-    { label: "Anniversary", name: "anniversary", type: "date", required: false, col: 6, value: "" },
-    { label: "Remark", name: "remark", type: "text", required: false, col: 24, value: "" },
+    { label: "Month", name: "Month", type: "month", disabled: false, required: true, col: 6, value: "2024-08" },
+    { label: "Date", name: "date", type: "date", disabled: false, required: true, col: 6, value: "2024-01-01" },
   ];
 
-  // Mock crop data for the multi-select dropdown
-  const cropOptions = [
-    "Rice", "Wheat", "Corn", "Soybean", "Cotton", "Barley", "Sugarcane", "Potato", "Tomato", "Lettuce"
+  // Table headers for the Traveling section
+  const header = [
+    {
+      title: <span className="text-nowrap">Date</span>, dataIndex: "date", key: "date", // Set specific width
+      render: (value, record) => (
+        <Input value={value} style={{ width: 120 }} onChange={(e) => updateField(record.key, 'date', e.target.value)} />
+      )
+    },
+    { title: <span className="text-nowrap">Traveling From</span>, dataIndex: "from", key: "from" },
+    { title: <span className="text-nowrap">To</span>, dataIndex: "to", key: "to" },
+    { title: <span className="text-nowrap">Mileage</span>, dataIndex: "mileage", key: "mileage", render: (value, record) => <NumericInput style={{ width: 100 }} value={value} onChange={(val) => updateField(record.key, 'mileage', val)} /> },
+    { title: <span className="text-nowrap">Petrol</span>, dataIndex: "petrol", key: "petrol", render: (value, record) => <NumericInput style={{ width: 100 }} value={value} onChange={(val) => updateField(record.key, 'petrol', val)} /> },
+    { title: <span className="text-nowrap">Cash Petrol</span>, dataIndex: "cashPetrol", key: "cashPetrol", render: (value, record) => <NumericInput style={{ width: 100 }} value={value} onChange={(val) => updateField(record.key, 'cashPetrol', val)} /> },
+    { title: <span className="text-nowrap">Hotel</span>, dataIndex: "hotel", key: "hotel", render: (value, record) => <NumericInput style={{ width: 100 }} value={value} onChange={(val) => updateField(record.key, 'hotel', val)} /> },
+    { title: <span className="text-nowrap">Allowance</span>, dataIndex: "allowance", key: "allowance", render: (value, record) => <NumericInput style={{ width: 100 }} value={value} onChange={(val) => updateField(record.key, 'allowance', val)} /> },
+    { title: <span className="text-nowrap">Toll Fee</span>, dataIndex: "tollFee", key: "tollFee", render: (value, record) => <NumericInput style={{ width: 100 }} value={value} onChange={(val) => updateField(record.key, 'tollFee', val)} /> },
+    { title: <span className="text-nowrap">Entertain</span>, dataIndex: "entertain", key: "entertain", render: (value, record) => <NumericInput style={{ width: 100 }} value={value} onChange={(val) => updateField(record.key, 'entertain', val)} /> },
+    { title: <span className="text-nowrap">Others</span>, dataIndex: "others", key: "others", render: (value, record) => <NumericInput style={{ width: 100 }} value={value} onChange={(val) => updateField(record.key, 'others', val)} /> },
+    { title: <span className="text-nowrap">Total</span>, dataIndex: "total", key: "total", render: (value, record) => <NumericInput style={{ width: 100 }} value={value} onChange={(val) => updateField(record.key, 'total', val)} readOnly /> },
+    { title: <span className="text-nowrap">Remark</span>, dataIndex: "remark", key: "remark", render: (text) => <Input style={{ width: 250 }} defaultValue={text} /> },
   ];
 
-  // Default crops to be pre-selected
-  const defaultSelectedCrops = ["Rice", "Corn", "Soybean"];
+  // Function to update field in dataSource
+  const updateField = (key, field, value) => {
+    setDataSource((prevData) =>
+      prevData.map((item) => (item.key === key ? { ...item, [field]: value } : item))
+    );
+  };
+
+  // Total Footer
+  const footerOrderList = () => (
+    <tr className="bg-[#978B87] text-white text-start">
+      <td colSpan={4}>Total (THB)</td>
+      <td><Input defaultValue='0' readOnly /></td>
+      <td><Input defaultValue='1260' readOnly /></td>
+      <td><Input defaultValue='0' readOnly /></td>
+      <td><Input defaultValue='400' readOnly /></td>
+      <td><Input defaultValue='0' readOnly /></td>
+      <td><Input defaultValue='0' readOnly /></td>
+      <td><Input defaultValue='0' readOnly /></td>
+      <td><Input defaultValue='1660' readOnly /></td>
+      <td></td>
+    </tr>
+  );
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Edit Traveling Expense</div>
+      <div className="flex justify-between">
+        <div className="title-page">Edit Traveling Expense</div>
+      </div>
 
-      {/* Company Info Section */}
-      <FormUser profile="/img/profile.jpg" title="Personal Info" fields={formFields} />
+      {/* Form Section */}
+      <FormCustom fields={formFields} />
 
-      <BoxPrimary>
-        <Form layout="vertical">
-          <Form.Item label="Crop" name="crop">
-            <Select
-              mode="multiple"
-              showSearch
-              placeholder="Select Crop(s)"
-              optionFilterProp="children"
-              className="w-full"
-              defaultValue={defaultSelectedCrops}
-            >
-              {cropOptions.map((crop) => (
-                <Option key={crop} value={crop}>
-                  {crop}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-        </Form>
-      </BoxPrimary>
-
-      {/* Contact Person Section */}
+      {/* Traveling Section */}
       <BoxPrimary>
         <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-lg font-semibold">Contact Person</span>
-          <ActionButton mode="add" text="Add" onClick={() => { }} />
+          <span className="text-[#00783F] text-lg font-semibold">Traveling</span>
         </div>
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pageSize={10}
+          footer={footerOrderList}
+        />
+      </BoxPrimary>
 
-        <span className="text-[#00783F] text-md">Person 1</span>
-        <Row gutter={[16, 16]} className="mt-3">
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Name (EN)" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Name (TH)" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Nickname" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <DatePicker className="w-full" placeholder="Date of Birth" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="T-Shirt Size" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Relationship" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Duty" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Tel 1" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Tel 2" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Contact Number" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Email" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Line ID" />
-          </Col>
-        </Row>
-        <hr className="my-4" />
+      {/* Total Expense Summary */}
+      <BoxPrimary>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex justify-end">Total Advanced:</div>
+          <NumericInput value="26080" disabled />
 
-        <span className="text-[#00783F] text-md">Person 2</span>
-        <Row gutter={[16, 16]} className="mt-3">
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Name (EN)" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Name (TH)" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Nickname" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <DatePicker className="w-full" placeholder="Date of Birth" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="T-Shirt Size" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Relationship" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Duty" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Tel 1" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Tel 2" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Contact Number" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Email" />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Line ID" />
-          </Col>
-        </Row>
-        <hr className="my-4" />
+          <div className="flex justify-end">Total Expenses:</div>
+          <NumericInput value="26080" disabled />
+
+          <div className="flex justify-end">Return to Company:</div>
+          <NumericInput value="0" disabled />
+
+          <div className="flex justify-end">Return to Staff:</div>
+          <NumericInput value="26080" disabled />
+        </div>
+      </BoxPrimary>
+
+      {/* Remark Section */}
+      <BoxPrimary title="Remark">
+        <Input.TextArea placeholder="Remark" rows={3} />
       </BoxPrimary>
 
       {/* Action Buttons */}
-      <div className="flex justify-end space-x-4 mt-6">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/customer/sub-dealer")} />
-        <ActionButton htmlType="submit" mode="update" text="Update" onClick={() => navigate("/customer/sub-dealer")} />
-        </div>
+      <div className="flex justify-end space-x-4">
+        <ActionButton mode="back" text="Back" onClick={() => navigate("/expenses/traveling")} />
+        <ActionButton mode="save" text="Save" onClick={() => navigate("/expenses/traveling")} />
+      </div>
     </MainLayout>
   );
 }

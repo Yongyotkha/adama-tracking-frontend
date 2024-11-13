@@ -14,12 +14,12 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
   });
 
   // Initialize empty file list for Other section
-  const [fileList, setFileList] = useState([]);
+  const [otherList, setOtherList] = useState([]);
 
   // Log fileList length every time it changes
   useEffect(() => {
-    console.log("Current fileList length:", fileList.length);
-  }, [fileList]);
+    console.log("Current fileList length:", otherList);
+  }, [otherList]);
 
   // Reference for FileUploadComponent
   const fileUploadRef = useRef(null);
@@ -33,7 +33,7 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
 
   // Update fileList state when files are selected for Other section
   const handleOtherUploadChange = ({ fileList }) => {
-    setFileList(fileList);
+    setOtherList(fileList);
   };
 
   const handleUploadChange = (key) => ({ fileList }) => {
@@ -79,7 +79,7 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
         <DynamicButton
           key="add"
           text="Add"
-          onClick={() => handleAdd(fileList)} // Send updated fileList on add
+          onClick={() => handleAdd(otherList)} // Send updated fileList on add
           className="text-[#FFFFFF] text-sm rounded-sm bg-[#00783F] p-2 min-w-[96px] ms-3"
         />,
       ]}
@@ -141,9 +141,7 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
           <div className="flex flex-col">
             <label className="text-sm text-gray-700 mb-2">Other</label>
             <div className="flex flex-col items-start w-full border border-dashed p-4 rounded-lg">
-              {/* Conditionally render placeholder text */}
-
-              <FileUploadComponent ref={fileUploadRef} dataFile={fileList} onChange={handleOtherUploadChange} />
+              <FileUploadComponent ref={fileUploadRef} dataFile={otherList} onChange={handleOtherUploadChange} />
               <p className="text-center text-[16px] mt-2 text-[#978B87] w-full min-h-[42px]">Choose a file JPEG, PNG</p>
               <Button variant="filled" icon={<UploadOutlined />} onClick={handleUploadClick} className="my-2 mx-auto bg-[#009845] hover:bg-[#009845] text-white">
                 Upload Files
