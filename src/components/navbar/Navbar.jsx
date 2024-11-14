@@ -54,22 +54,22 @@ const Navbar = () => {
         {
           key: "1",
           label: "Activity Plan",
-          path: "activity",
+          path: "activity/plan",
         },
         {
           key: "2",
           label: "Calendar",
-          path: "activity",
+          path: "activity/calendar",
         },
         {
           key: "3",
           label: "Activity List",
-          path: "activity",
+          path: "activity/list",
         },
         {
           key: "4",
           label: "Mapping",
-          path: "activity",
+          path: "activity/mapping",
         },
       ],
     },

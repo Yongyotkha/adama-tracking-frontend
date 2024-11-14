@@ -55,6 +55,9 @@ import EditTraveling from "./pages/expenses/traveling/EditTraveling";
 import ClearingExpense from "./pages/expenses/clearing/ClearingExpense";
 import CreateClearing from "./pages/expenses/clearing/CreateClearingExpense";
 import EditClearing from "./pages/expenses/clearing/EditClearingExpense";
+import ActivityList from "./pages/activity/ActivityList";
+import CreateActivity from "./pages/activity/CreateActivity";
+import EditActivity from "./pages/activity/EditActivity";
 
 const App = () => {
   return (
@@ -74,8 +77,12 @@ const App = () => {
           <Route path="/sale-plan/work-plan" element={<WorkPlan />} />
           <Route path="/sale-plan/work-plan/create" element={<WorkPlanCreate />} />
           <Route path="/sale-plan/work-plan/create-2" element={<WorkPlanCreateStepTwo />} />
-
           <Route path="/sale-plan/rolling-forecast" element={<RollingForecast />} />
+
+          {/* Activity Route */}
+          <Route path="/activity/list" element={<ActivityList />} />
+          <Route path="/activity/create" element={<CreateActivity />} />
+          <Route path="/activity/edit" element={<EditActivity />} />
 
           {/* Order Route */}
           <Route path="/order/list" element={<OrderList />} />
