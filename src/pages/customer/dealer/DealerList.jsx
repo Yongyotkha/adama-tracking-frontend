@@ -8,6 +8,8 @@ import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
 import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
+import useServiceAPI from "../../../services/corsService";
+import { paths } from "../../../services/CorsPath";
 
 export default function DealerList() {
   const [loading, setLoading] = useState(false);
@@ -64,63 +66,103 @@ export default function DealerList() {
     { key: "1", label: <ItemDropDown mode="edit" link="/customer/dealer/edit-info" /> },
   ];
 
-  useEffect(() => {
-    const dataSource = [
-      {
-        key: 1,
-        code: "365004",
-        dealerName: "Monggutthong Ltd.",
-        address: "89/1 หมู่ 4 ต.สพรรณบุรี-บางบัวทอง ต.สนามชัย อ.เมือง จ.สพรรณบุรี 72000",
-        contactName: "Mr. Charuen Sinsuantang",
-        mobilePhone: "-",
-        groupCode: "FMK Customers",
-        status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 2,
-        code: "335001",
-        dealerName: "Bangbuathong Panich Co.,Ltd.",
-        address: "15/2-5 หมู่ 13 ถ.บางบัวทอง-สุพรรณบุรี ต.บางบัวทอง อ.บางบัวทอง จ.นนทบุรี",
-        contactName: "Mr. Thanyanop Watthananit",
-        mobilePhone: "081-852-1841",
-        groupCode: "FMK Customers",
-        status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 3,
-        code: "321005",
-        dealerName: "Agricare Co.,Ltd.",
-        address: "88 หมู่ที่ 1 ต.หนองบัว อ.พัฒนานิคม จ.ลพบุรี",
-        contactName: "Somsak Sumatechotimatha",
-        mobilePhone: "081-994-4747",
-        groupCode: "FMK Customers",
-        status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      },
-    ];
+  // useEffect(() => {
+  //   const dataSource = [
+  //     {
+  //       key: 1,
+  //       code: "365004",
+  //       dealerName: "Monggutthong Ltd.",
+  //       address: "89/1 หมู่ 4 ต.สพรรณบุรี-บางบัวทอง ต.สนามชัย อ.เมือง จ.สพรรณบุรี 72000",
+  //       contactName: "Mr. Charuen Sinsuantang",
+  //       mobilePhone: "-",
+  //       groupCode: "FMK Customers",
+  //       status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //     {
+  //       key: 2,
+  //       code: "335001",
+  //       dealerName: "Bangbuathong Panich Co.,Ltd.",
+  //       address: "15/2-5 หมู่ 13 ถ.บางบัวทอง-สุพรรณบุรี ต.บางบัวทอง อ.บางบัวทอง จ.นนทบุรี",
+  //       contactName: "Mr. Thanyanop Watthananit",
+  //       mobilePhone: "081-852-1841",
+  //       groupCode: "FMK Customers",
+  //       status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //     {
+  //       key: 3,
+  //       code: "321005",
+  //       dealerName: "Agricare Co.,Ltd.",
+  //       address: "88 หมู่ที่ 1 ต.หนองบัว อ.พัฒนานิคม จ.ลพบุรี",
+  //       contactName: "Somsak Sumatechotimatha",
+  //       mobilePhone: "081-994-4747",
+  //       groupCode: "FMK Customers",
+  //       status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //   ];
 
-    setDataSource(dataSource);
+  //   setDataSource(dataSource);
+  // }, []);
+
+  useEffect(() => {
+    const body = { platform: "web" };
+    useServiceAPI
+      .get(paths.pathCustomerDealer, body, setLoading)
+      .then((response) => {
+        if (response.status == 200) {
+          const newDataSource = response.data.map((data, index) => ({
+            key: index + 1,
+            code: data.dealer_code,
+            dealerName: data.dealer_name_en,
+            address: data.address,
+            contactName: data.contacts[0] ? data.contacts[0].name_en : "N/A",
+            mobilePhone: data.contact_number,
+            groupCode: data.group_code,
+            status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
+            action: (
+              <Dropdown menu={{ items: actionItems }} placement="bottom">
+                <a onClick={(e) => e.preventDefault()}>
+                  <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+                </a>
+              </Dropdown>
+            ),
+
+          }));
+
+          setDataSource(newDataSource);
+        }
+      })
+      .catch((error) => {
+        console.log(error.message);
+        setError(error.message);
+        if (error.status == 422) {
+          showMsg("error", error.message);
+        } else {
+          showMsg("error", "เกิดข้อผิดพลาด");
+        }
+      });
   }, []);
+
 
   return (
     <MainLayout loading={loading}>

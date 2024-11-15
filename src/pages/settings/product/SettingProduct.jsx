@@ -8,6 +8,8 @@ import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
 import DynamicButton from "../../../components/button/DynamicButton";
 import DynamicModal from "../../../components/modal/DynamicModal";
+import useServiceAPI from "../../../services/corsService";
+import { paths } from "../../../services/CorsPath";
 
 export default function SettingProduct() {
   const [loading, setLoading] = useState(false);
@@ -170,44 +172,105 @@ export default function SettingProduct() {
     },
   ];
 
-  useEffect(() => {
-    const dataSource = [
-      {
-        key: 1,
-        product_code: "303710131300",
-        product_type: "Special",
-        product_group: "Gold",
-        category: "FUN",
-        product_name: "Apopo 20%SE",
-        baht_per_lt_kg: "940.00",
-        baht_per_unit: "470.00",
-        sub_dealer: "450.00",
-        farmer: "500.00",
-        crop: (
-          <BadgeStatus
-            text="3"
-            bgColor="#FFB020"
-            textColor="#FFFFFF"
-            onClick={() => showModal("Crop", cropColumns, cropData)}
-          />
-        ),
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      },
-      // Add more rows as needed
-    ];
+  // useEffect(() => {
+  //   const dataSource = [
+  //     {
+  //       key: 1,
+  //       product_code: "303710131300",
+  //       product_type: "Special",
+  //       product_group: "Gold",
+  //       category: "FUN",
+  //       product_name: "Apopo 20%SE",
+  //       baht_per_lt_kg: "940.00",
+  //       baht_per_unit: "470.00",
+  //       sub_dealer: "450.00",
+  //       farmer: "500.00",
+  //       crop: (
+  //         <BadgeStatus
+  //           text="3"
+  //           bgColor="#FFB020"
+  //           textColor="#FFFFFF"
+  //           onClick={() => showModal("Crop", cropColumns, cropData)}
+  //         />
+  //       ),
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img
+  //               src="/img/icons/action.png"
+  //               alt="Actions icon"
+  //               className="inline-block w-5 h-5"
+  //             />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //     // Add more rows as needed
+  //   ];
 
-    setDataSource(dataSource);
+  //   setDataSource(dataSource);
+  // }, []);
+
+
+  useEffect(() => {
+    const body = { platform: "web" };
+    console.log(body); 
+    useServiceAPI
+      .get(paths.pathMasterProduct, body)
+      .then((response) => {
+        if (response.status === 200) {
+          const newDataSource = response.data.map((data, index) => ({
+            key: index + 1,
+            product_code: data.product_code,
+            product_type: data.product_type,
+            product_group: data.product_group,
+            category: data.product_category,
+            product_name: data.product_name,
+            baht_per_lt_kg: data.bath_ltkg,
+            baht_per_unit: data.net_price,
+            sub_dealer: data.bath_unit,
+            farmer: data.farmer,
+            action: (
+              <Dropdown menu={{ items: actionItems }} placement="bottom">
+                <a onClick={(e) => e.preventDefault()}>
+                  <img
+                    src="/img/icons/action.png"
+                    alt="Actions icon"
+                    className="inline-block w-5 h-5"
+                  />
+                </a>
+              </Dropdown>
+            ),
+            crop: (
+              <BadgeStatus
+                text="3"
+                bgColor="#FFB020"
+                textColor="#FFFFFF"
+                onClick={() => showModal("Crop", cropColumns, cropData)}
+              />
+            ),
+
+          }));
+  
+          setDataSource(newDataSource);
+        }
+      })
+      .catch((error) => {
+        console.log(error.message);
+        setError(error.message);
+        if (error.status === 422) {
+          showMsg("error", error.message);
+        } else {
+          showMsg("error", "เกิดข้อผิดพลาด");
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
+
+
+
 
   return (
     <MainLayout loading={loading}>

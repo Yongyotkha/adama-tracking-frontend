@@ -8,6 +8,8 @@ import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
 import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
+import useServiceAPI from "../../../services/corsService";
+import { paths } from "../../../services/CorsPath";
 
 export default function SubDealerList() {
   const [loading, setLoading] = useState(false);
@@ -68,57 +70,96 @@ export default function SubDealerList() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
   
-  useEffect(() => {
-    const dataSource = [
-      {
-        key: 1,
-        subDealerName: "เพื่อนชาวนา",
-        contactName: "นางสาวกรกชสุดา นิตรสัมพันธ์",
-        address: "เลขที่ 71 หมู่1 ต.สาลี อ.บางปลาม้า จ.สุพรรณบุรี",
-        phone: "081-639 9745",
-        status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 2,
-        subDealerName: "ดอนโพธิ์ทอง",
-        contactName: "นางสาวประภาพรรณ ปลั่งพานิช",
-        address: "เลขที่ 216 หมู่1 ต.ดอนโพธิ์ทอง อ.เมือง จ.สุพรรณบุรี",
-        phone: "081-1922292",
-        status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 3,
-        subDealerName: "จุ้ยพันธุ์ข้าว",
-        contactName: "นางสาวนิตา นำประเสริฐสุข",
-        address: "เลขที่ 17 หมู่2 ต.ตลิ่งชัน อ.เมือง จ.สุพรรณบุรี",
-        phone: "080-9963214",
-        status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      },
-    ];
+  // useEffect(() => {
+  //   const dataSource = [
+  //     {
+  //       key: 1,
+  //       subDealerName: "เพื่อนชาวนา",
+  //       contactName: "นางสาวกรกชสุดา นิตรสัมพันธ์",
+  //       address: "เลขที่ 71 หมู่1 ต.สาลี อ.บางปลาม้า จ.สุพรรณบุรี",
+  //       phone: "081-639 9745",
+  //       status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //     {
+  //       key: 2,
+  //       subDealerName: "ดอนโพธิ์ทอง",
+  //       contactName: "นางสาวประภาพรรณ ปลั่งพานิช",
+  //       address: "เลขที่ 216 หมู่1 ต.ดอนโพธิ์ทอง อ.เมือง จ.สุพรรณบุรี",
+  //       phone: "081-1922292",
+  //       status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //     {
+  //       key: 3,
+  //       subDealerName: "จุ้ยพันธุ์ข้าว",
+  //       contactName: "นางสาวนิตา นำประเสริฐสุข",
+  //       address: "เลขที่ 17 หมู่2 ต.ตลิ่งชัน อ.เมือง จ.สุพรรณบุรี",
+  //       phone: "080-9963214",
+  //       status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //   ];
   
-    setDataSource(dataSource);
+  //   setDataSource(dataSource);
+  // }, []);
+
+  useEffect(() => {
+    const body = { platform: "web" };
+    useServiceAPI
+      .get(paths.pathCustomerSubDealer, body, setLoading)
+      .then((response) => {
+        if (response.status == 200) {
+          const newDataSource = response.data.map((data, index) => ({
+            key: index + 1,
+            subDealerName: data.shop_name,
+            contactName: data.contacts[0] ? data.contacts[0].name_th : "N/A",  
+            address: data.address,
+            phone: data.mobile_phone,
+            status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
+            action: (
+              <Dropdown menu={{ items: actionItems }} placement="bottom">
+                <a onClick={(e) => e.preventDefault()}>
+                  <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+                </a>
+              </Dropdown>
+            ),
+
+          }));
+
+          setDataSource(newDataSource);
+        }
+      })
+      .catch((error) => {
+        console.log(error.message);
+        setError(error.message);
+        if (error.status == 422) {
+          showMsg("error", error.message);
+        } else {
+          showMsg("error", "เกิดข้อผิดพลาด");
+        }
+      });
   }, []);
+
+
 
   return (
     <MainLayout loading={loading}>
