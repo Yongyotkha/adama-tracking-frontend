@@ -8,6 +8,8 @@ import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
 import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
+import useServiceAPI from "../../../services/corsService";
+import { paths } from "../../../services/CorsPath";
 
 export default function SettingPromotion() {
   const [loading, setLoading] = useState(false);
@@ -59,204 +61,256 @@ export default function SettingPromotion() {
     },
   ];
 
-  useEffect(() => {
-    const dataSource = [
-      {
-        key: 1,
-        name: "Cooler Box M11 - กระติกน้ำ คละสี",
-        description: "Cooler Box M11 - กระติกน้ำ คละสี",
-        value: "0",
-        status: (
-          <BadgeStatus
-            text="Active"
-            bgColor="#009845"
-            textColor="#FFFFFF"
-          />
-        ),
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 2,
-        name: "Adama Bag (กระเป๋าผ้าสีเขียบนอมด์)",
-        description: "Adama Bag (กระเป๋าผ้าสีเขียบนอมด์)",
-        value: "0",
-        status: (
-          <BadgeStatus
-            text="Active"
-            bgColor="#009845"
-            textColor="#FFFFFF"
-          />
-        ),
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 3,
-        name: "เสื้อยืดแขนยาว - นาโพลิค",
-        description: "เสื้อยืดแขนยาว - นาโพลิค",
-        value: "0",
-        status: (
-          <BadgeStatus
-            text="Active"
-            bgColor="#009845"
-            textColor="#FFFFFF"
-          />
-        ),
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 4,
-        name: "เสื้อเชิ้ตยีนส์แขนยาว - อานา",
-        description: "เสื้อเชิ้ตยีนส์แขนยาว - อานา",
-        value: "0",
-        status: (
-          <BadgeStatus
-            text="Active"
-            bgColor="#009845"
-            textColor="#FFFFFF"
-          />
-        ),
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 5,
-        name: "เสื้อยืดคอกลมแขนยาว - เมโซรี่",
-        description: "เสื้อยืดคอกลมแขนยาว - เมโซรี่",
-        value: "0",
-        status: (
-          <BadgeStatus
-            text="Active"
-            bgColor="#009845"
-            textColor="#FFFFFF"
-          />
-        ),
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 6,
-        name: "เสื้อยืดคอกลมแขนยาว - โรยอน โกลด์ (สีเทา)",
-        description: "เสื้อยืดคอกลมแขนยาว - โรยอน โกลด์ (สีเทา)",
-        value: "0",
-        status: (
-          <BadgeStatus
-            text="Active"
-            bgColor="#009845"
-            textColor="#FFFFFF"
-          />
-        ),
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 7,
-        name: "แก้วน้ำใส อานา",
-        description: "แก้วน้ำใส อานา",
-        value: "0",
-        status: (
-          <BadgeStatus
-            text="Active"
-            bgColor="#009845"
-            textColor="#FFFFFF"
-          />
-        ),
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 8,
-        name: "หมวกนักเผด็จสายทหาร - พลักอำร่า",
-        description: "หมวกนักเผด็จสายทหาร - พลักอำร่า",
-        value: "0",
-        status: (
-          <BadgeStatus
-            text="Active"
-            bgColor="#009845"
-            textColor="#FFFFFF"
-          />
-        ),
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      },
-    ];
+  // useEffect(() => {
+  //   const dataSource = [
+  //     {
+  //       key: 1,
+  //       name: "Cooler Box M11 - กระติกน้ำ คละสี",
+  //       description: "Cooler Box M11 - กระติกน้ำ คละสี",
+  //       value: "0",
+  //       status: (
+  //         <BadgeStatus
+  //           text="Active"
+  //           bgColor="#009845"
+  //           textColor="#FFFFFF"
+  //         />
+  //       ),
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img
+  //               src="/img/icons/action.png"
+  //               alt="Actions icon"
+  //               className="inline-block w-5 h-5"
+  //             />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //     {
+  //       key: 2,
+  //       name: "Adama Bag (กระเป๋าผ้าสีเขียบนอมด์)",
+  //       description: "Adama Bag (กระเป๋าผ้าสีเขียบนอมด์)",
+  //       value: "0",
+  //       status: (
+  //         <BadgeStatus
+  //           text="Active"
+  //           bgColor="#009845"
+  //           textColor="#FFFFFF"
+  //         />
+  //       ),
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img
+  //               src="/img/icons/action.png"
+  //               alt="Actions icon"
+  //               className="inline-block w-5 h-5"
+  //             />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //     {
+  //       key: 3,
+  //       name: "เสื้อยืดแขนยาว - นาโพลิค",
+  //       description: "เสื้อยืดแขนยาว - นาโพลิค",
+  //       value: "0",
+  //       status: (
+  //         <BadgeStatus
+  //           text="Active"
+  //           bgColor="#009845"
+  //           textColor="#FFFFFF"
+  //         />
+  //       ),
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img
+  //               src="/img/icons/action.png"
+  //               alt="Actions icon"
+  //               className="inline-block w-5 h-5"
+  //             />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //     {
+  //       key: 4,
+  //       name: "เสื้อเชิ้ตยีนส์แขนยาว - อานา",
+  //       description: "เสื้อเชิ้ตยีนส์แขนยาว - อานา",
+  //       value: "0",
+  //       status: (
+  //         <BadgeStatus
+  //           text="Active"
+  //           bgColor="#009845"
+  //           textColor="#FFFFFF"
+  //         />
+  //       ),
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img
+  //               src="/img/icons/action.png"
+  //               alt="Actions icon"
+  //               className="inline-block w-5 h-5"
+  //             />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //     {
+  //       key: 5,
+  //       name: "เสื้อยืดคอกลมแขนยาว - เมโซรี่",
+  //       description: "เสื้อยืดคอกลมแขนยาว - เมโซรี่",
+  //       value: "0",
+  //       status: (
+  //         <BadgeStatus
+  //           text="Active"
+  //           bgColor="#009845"
+  //           textColor="#FFFFFF"
+  //         />
+  //       ),
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img
+  //               src="/img/icons/action.png"
+  //               alt="Actions icon"
+  //               className="inline-block w-5 h-5"
+  //             />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //     {
+  //       key: 6,
+  //       name: "เสื้อยืดคอกลมแขนยาว - โรยอน โกลด์ (สีเทา)",
+  //       description: "เสื้อยืดคอกลมแขนยาว - โรยอน โกลด์ (สีเทา)",
+  //       value: "0",
+  //       status: (
+  //         <BadgeStatus
+  //           text="Active"
+  //           bgColor="#009845"
+  //           textColor="#FFFFFF"
+  //         />
+  //       ),
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img
+  //               src="/img/icons/action.png"
+  //               alt="Actions icon"
+  //               className="inline-block w-5 h-5"
+  //             />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //     {
+  //       key: 7,
+  //       name: "แก้วน้ำใส อานา",
+  //       description: "แก้วน้ำใส อานา",
+  //       value: "0",
+  //       status: (
+  //         <BadgeStatus
+  //           text="Active"
+  //           bgColor="#009845"
+  //           textColor="#FFFFFF"
+  //         />
+  //       ),
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img
+  //               src="/img/icons/action.png"
+  //               alt="Actions icon"
+  //               className="inline-block w-5 h-5"
+  //             />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //     {
+  //       key: 8,
+  //       name: "หมวกนักเผด็จสายทหาร - พลักอำร่า",
+  //       description: "หมวกนักเผด็จสายทหาร - พลักอำร่า",
+  //       value: "0",
+  //       status: (
+  //         <BadgeStatus
+  //           text="Active"
+  //           bgColor="#009845"
+  //           textColor="#FFFFFF"
+  //         />
+  //       ),
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img
+  //               src="/img/icons/action.png"
+  //               alt="Actions icon"
+  //               className="inline-block w-5 h-5"
+  //             />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //   ];
 
-    setDataSource(dataSource);
+  //   setDataSource(dataSource);
+  // }, []);
+
+  useEffect(() => {
+    const body = { platform: "web" };
+    useServiceAPI
+      .get(paths.pathMasterPromotion, body)
+      .then((response) => {
+        if (response.status === 200) {
+          const newDataSource = response.data.map((data, index) => ({
+            key: index + 1,
+            name: data.name,
+            description: data.description,
+            value:data.value,
+            status: (
+              <BadgeStatus
+                text="Active"
+                bgColor="#009845"
+                textColor="#FFFFFF"
+              />
+            ),
+            action: (
+              <Dropdown menu={{ items: actionItems }} placement="bottom">
+                <a onClick={(e) => e.preventDefault()}>
+                  <img
+                    src="/img/icons/action.png"
+                    alt="Actions icon"
+                    className="inline-block w-5 h-5"
+                  />
+                </a>
+              </Dropdown>
+            ),
+
+          }));
+  
+          setDataSource(newDataSource);
+        }
+      })
+      .catch((error) => {
+        console.log(error.message);
+        setError(error.message);
+        if (error.status === 422) {
+          showMsg("error", error.message);
+        } else {
+          showMsg("error", "เกิดข้อผิดพลาด");
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
+
+
+
 
   return (
     <MainLayout loading={loading}>

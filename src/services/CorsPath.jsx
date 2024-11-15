@@ -7,4 +7,10 @@ export const endPoint = "https://adama-api.mtsc.co.th/api";
 export const paths = {
   pathMasterUsers: "users",
   pathVerifyOtp: "verify-otp",
+  pathMasterSale: "sale-management/list",
+  pathMasterProduct: "products-management/list",
+  pathMasterPromotion: "promotion-management/list",
+
+
+   
 };

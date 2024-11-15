@@ -9,6 +9,8 @@ import TableComponent from "../../../components/table/TableComponent";
 import { useNavigate } from "react-router-dom";
 import DynamicModal from "../../../components/modal/DynamicModal";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
+import useServiceAPI from "../../../services/corsService";
+import { paths } from "../../../services/CorsPath";
 
 export default function SettingSale() {
   const [loading, setLoading] = useState(false);
@@ -155,77 +157,147 @@ export default function SettingSale() {
     },
   ];
 
-  useEffect(() => {
-    const dataSource = [
-      {
-        key: 1,
-        sale_head_name: "Chayanon Tunyateerapong",
-        sale_area_name: "Veerasak Likitmanchai",
-        area: "Area1",
-        sale: (
-          <BadgeStatus
-            text="8"
-            bgColor="#FFB020"
-            textColor="#FFFFFF"
-            onClick={handleShowTerritoryModal}
-          />
-        ),
-        business_dev: (
-          <BadgeStatus
-            text="4"
-            bgColor="#FFB020"
-            textColor="#FFFFFF"
-            onClick={handleShowBDModal}
-          />
-        ),
-        sale_assistant: (
-          <BadgeStatus
-            text="4"
-            bgColor="#FFB020"
-            textColor="#FFFFFF"
-            onClick={handleShowSAModal}
-          />
-        ),
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 2,
-        sale_head_name: "Chayanon Tunyateerapong",
-        sale_area_name: "Cheerayut Inthong",
-        area: "Area2",
-        sale: <BadgeStatus text="7" bgColor="#FFB020" textColor="#FFFFFF" />,
-        business_dev: (
-          <BadgeStatus text="7" bgColor="#FFB020" textColor="#FFFFFF" />
-        ),
-        sale_assistant: (
-          <BadgeStatus text="7" bgColor="#FFB020" textColor="#FFFFFF" />
-        ),
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="Actions icon"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      },
-    ];
+  // useEffect(() => {
+  //   const dataSource = [
+  //     {
+  //       key: 1,
+  //       sale_head_name: "Chayanon Tunyateerapong",
+  //       sale_area_name: "Veerasak Likitmanchai",
+  //       area: "Area1",
+  //       sale: (
+  //         <BadgeStatus
+  //           text="8"
+  //           bgColor="#FFB020"
+  //           textColor="#FFFFFF"
+  //           onClick={handleShowTerritoryModal}
+  //         />
+  //       ),
+  //       business_dev: (
+  //         <BadgeStatus
+  //           text="4"
+  //           bgColor="#FFB020"
+  //           textColor="#FFFFFF"
+  //           onClick={handleShowBDModal}
+  //         />
+  //       ),
+  //       sale_assistant: (
+  //         <BadgeStatus
+  //           text="4"
+  //           bgColor="#FFB020"
+  //           textColor="#FFFFFF"
+  //           onClick={handleShowSAModal}
+  //         />
+  //       ),
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img
+  //               src="/img/icons/action.png"
+  //               alt="Actions icon"
+  //               className="inline-block w-5 h-5"
+  //             />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //     {
+  //       key: 2,
+  //       sale_head_name: "Chayanon Tunyateerapong",
+  //       sale_area_name: "Cheerayut Inthong",
+  //       area: "Area2",
+  //       sale: <BadgeStatus text="7" bgColor="#FFB020" textColor="#FFFFFF" />,
+  //       business_dev: (
+  //         <BadgeStatus text="7" bgColor="#FFB020" textColor="#FFFFFF" />
+  //       ),
+  //       sale_assistant: (
+  //         <BadgeStatus text="7" bgColor="#FFB020" textColor="#FFFFFF" />
+  //       ),
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img
+  //               src="/img/icons/action.png"
+  //               alt="Actions icon"
+  //               className="inline-block w-5 h-5"
+  //             />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //   ];
 
-    setDataSource(dataSource);
+  //   setDataSource(dataSource);
+  // }, []);
+
+////
+
+  useEffect(() => {
+    const body = { platform: "web" };
+    useServiceAPI
+      .get(paths.pathMasterSale, body)
+      .then((response) => {
+        if (response.status === 200) {
+          const newDataSource = response.data.map((data, index) => ({
+            key: index + 1,
+            sale_head_name: data.sa_head_name,
+            sale_area_name: data.sa_area_name,
+            area: data.area_name,
+            sale_assistant: (
+              <BadgeStatus
+                text="4"
+                bgColor="#FFB020"
+                textColor="#FFFFFF"
+                onClick={handleShowSAModal}
+              />
+            ),
+            sale: (
+              <BadgeStatus
+                text="8"
+                bgColor="#FFB020"
+                textColor="#FFFFFF"
+                onClick={handleShowTerritoryModal}
+              />
+            ),
+            business_dev: (
+              <BadgeStatus
+                text="4"
+                bgColor="#FFB020"
+                textColor="#FFFFFF"
+                onClick={handleShowBDModal}
+              />
+            ),
+            action: (
+              <Dropdown menu={{ items: actionItems }} placement="bottom">
+                <a onClick={(e) => e.preventDefault()}>
+                  <img
+                    src="/img/icons/action.png"
+                    alt="Actions icon"
+                    className="inline-block w-5 h-5"
+                  />
+                </a>
+              </Dropdown>
+            ),
+
+
+          }));
+  
+          setDataSource(newDataSource);
+        }
+      })
+      .catch((error) => {
+        console.log(error.message);
+        setError(error.message);
+        if (error.status === 422) {
+          showMsg("error", error.message);
+        } else {
+          showMsg("error", "เกิดข้อผิดพลาด");
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
+
 
   return (
     <MainLayout loading={loading}>
