@@ -10,6 +10,8 @@ export const paths = {
   pathMasterSale: "sale-management/list",
   pathMasterProduct: "products-management/list",
   pathMasterPromotion: "promotion-management/list",
+  pathCustomerDealer: "sale-customer-dealer/list",
+  pathCustomerSubDealer: "sale-customer-subdealer/list",
 
 
    
