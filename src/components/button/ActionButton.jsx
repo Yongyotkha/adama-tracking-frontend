@@ -5,7 +5,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "" }) => {
     <>
       {mode == "create" && (
         <button
-          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#7DB41E] gap-2 p-1 px-2 items-center`}
+          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#7DB41E] gap-2 p-1 px-2 items-center ${className}`}
           onClick={onClick}
           disabled={disabled}
         >
@@ -39,7 +39,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "" }) => {
 
       {mode == "add" && (
         <button
-          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#009845] gap-2 p-2 py-1 items-center min-w-[80px] justify-center`}
+          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#009845] gap-2 p-2 py-1 items-center ${className} min-w-[80px] justify-center`}
           onClick={onClick}
           disabled={disabled}
         >
@@ -56,7 +56,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "" }) => {
 
       {mode == ("back" || "close") && (
         <button
-          className={`flex text-[#FFFFFF] text-sm rounded-sm bg-[#B6AEAB] gap-2 p-2 items-center min-w-[96px] justify-center`}
+          className={`flex text-[#FFFFFF] text-sm rounded-sm bg-[#B6AEAB] gap-2 p-2 items-center ${className} min-w-[96px] justify-center`}
           onClick={onClick}
           disabled={disabled}
         >
@@ -66,7 +66,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "" }) => {
 
       {mode == "save" && (
         <button
-          className={`flex text-[#FFFFFF] text-sm rounded-sm bg-[#00783F] gap-2 p-2 items-center min-w-[96px] justify-center`}
+          className={`flex text-[#FFFFFF] text-sm rounded-sm bg-[#00783F] gap-2 p-2 items-center ${className} min-w-[96px] justify-center`}
           onClick={onClick}
           disabled={disabled}
         >
@@ -76,7 +76,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "" }) => {
 
       {mode == "update" && (
         <button
-          className={`flex text-[#FFFFFF] text-sm rounded-sm bg-[#00783F] gap-2 p-2 items-center min-w-[96px] justify-center`}
+          className={`flex text-[#FFFFFF] text-sm rounded-sm bg-[#00783F] gap-2 p-2 items-center ${className} min-w-[96px] justify-center`}
           onClick={onClick}
           disabled={disabled}
         >
@@ -86,7 +86,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "" }) => {
 
       {mode == "saveDraft" && (
         <button
-          className={`flex text-[#FFFFFF] text-sm rounded-sm bg-[#F89E18] gap-2 p-2 items-center min-w-[96px] justify-center`}
+          className={`flex text-[#FFFFFF] text-sm rounded-sm bg-[#F89E18] gap-2 p-2 items-center ${className} min-w-[96px] justify-center`}
           onClick={onClick}
           disabled={disabled}
         >

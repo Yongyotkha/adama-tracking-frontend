@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import FormCustom from "../../components/form_custom/FormCustom";
 import { useNavigate } from "react-router-dom";
@@ -20,10 +20,10 @@ export default function CreateOrder() {
       sku: "3027200113",
       productName: "Bumper P",
       unit: "0.5 ltX20",
-      pricePerUnit: "575.00",
-      quantity: 10,
+      pricePerUnit: '575.50',
+      quantity: 0,
       foc: 1,
-      subTotal: "115,000.00",
+      subTotal: '115000',
     },
     {
       key: "2",
@@ -31,10 +31,10 @@ export default function CreateOrder() {
       sku: "207920011520",
       productName: "Memory 300EC",
       unit: "1lt X20",
-      pricePerUnit: "340.00",
-      quantity: 10,
+      pricePerUnit: '340',
+      quantity: 0,
       foc: 1,
-      subTotal: "68,000.00",
+      subTotal: '68000',
     },
   ]);
 
@@ -53,12 +53,13 @@ export default function CreateOrder() {
     console.log("Search term:", e.target.value);
   };
 
-  const handleQuantityChange = (key, change) => {
+  const handleQuantityChange = (key, newQuantity) => {
     setDataSource((prevData) =>
       prevData.map((item) => {
         if (item.key === key) {
-          const newQuantity = item.quantity + change;
-          return { ...item, quantity: newQuantity > 0 ? newQuantity : 0 };
+          const quantity = Math.max(0, newQuantity); // Prevent negative quantities
+          const subTotal = (quantity * parseFloat(item.pricePerUnit.replace(/,/g, ""))).toFixed(2); // Calculate new subTotal
+          return { ...item, quantity, subTotal };
         }
         return item;
       })
@@ -89,31 +90,45 @@ export default function CreateOrder() {
     { title: "SKU", dataIndex: "sku", key: "sku" },
     { title: "Product Name", dataIndex: "productName", key: "productName" },
     { title: "Unit", dataIndex: "unit", key: "unit" },
-    { title: "THB/Unit", dataIndex: "pricePerUnit", key: "pricePerUnit" },
+    {
+      title: "THB/Unit", dataIndex: "pricePerUnit", key: "pricePerUnit",
+      render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+    },
     {
       title: <div className="text-center">QTY (ctn)</div>,
       dataIndex: "quantity",
       key: "quantity",
       render: (_, record) => (
-        <div className="quantity-control flex justify-between items-center">
+        <div className="quantity-control flex justify-center items-center">
           <img
             src="/img/icons/collapse.png"
-            alt="collapse"
+            alt="decrease"
             className="cursor-pointer w-6 h-6"
-            onClick={() => handleQuantityChange(record.key, -1)}
+            onClick={() => handleQuantityChange(record.key, record.quantity - 1)}
           />
-          <span className="border border-solid border-[#00783F] min-w-[96px] text-center rounded block text-[#00783F] p-1">{record.quantity}</span>
+          <Input
+            inputMode="numeric"
+            min={0}
+            value={record.quantity}
+            onChange={(e) => handleQuantityChange(record.key, parseInt(e.target.value) || 0)}
+            className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 min-w-24"
+          />
           <img
             src="/img/icons/expand.png"
-            alt="expand"
+            alt="increase"
             className="cursor-pointer w-6 h-6"
-            onClick={() => handleQuantityChange(record.key, 1)}
+            onClick={() => handleQuantityChange(record.key, record.quantity + 1)}
           />
         </div>
       ),
     },
     { title: "FOC (ctn)", dataIndex: "foc", key: "foc" },
-    { title: "Sub Total (THB)", dataIndex: "subTotal", key: "subTotal" },
+    {
+      title: "Sub Total (THB)",
+      dataIndex: "subTotal",
+      key: "subTotal",
+      render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+    },
     {
       title: <div className="text-center">Action</div>, key: "action", render: (_, record) =>
         <button className="delete-button flex justify-center mx-auto">
@@ -121,7 +136,7 @@ export default function CreateOrder() {
             src="/img/icons/delete.png"
             alt="delete"
             className="cursor-pointer w-6 h-6"
-            onClick={() => ''}
+            onClick={() => setDataSource(dataSource.filter((item) => item.key !== record.key))}
           />
         </button>
     },
@@ -158,9 +173,10 @@ export default function CreateOrder() {
       render: (_, record) => (
         <Input
           value={record.quantity}
-          type="number"
+          type="numberic"
           min={1}
-          onChange={(e) => handleGiftInputChange(record.key, "quantity", e.target.value)}
+          onChange={(e) => handleGiftInputChange(record.key, "quantity", parseInt(e.target.value) || 1)}
+          className="text-center"
         />
       )
     },
@@ -175,11 +191,11 @@ export default function CreateOrder() {
     }
   ];
 
-  const footerOrderList = (currentData) => (
+  const footerOrderList = () => (
     <tr className="bg-[#978B87]">
       <td colSpan={9} className="text-right pr-2 text-white">
-        Item : {dataSource.length} &nbsp; QTY (ctn): {dataSource.reduce((total, item) => total + item.quantity, 0)} &nbsp;
-        Total : {dataSource.reduce((total, item) => total + parseFloat(item.subTotal.replace(/,/g, "")), 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+        Item: {dataSource.length} &nbsp; QTY (ctn): {dataSource.reduce((total, item) => total + item.quantity, 0)} &nbsp;
+        Total: {dataSource.reduce((total, item) => total + parseFloat(item.subTotal || 0), 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
       </td>
     </tr>
   );
@@ -187,7 +203,7 @@ export default function CreateOrder() {
   const footerGift = () => (
     <tr className="bg-[#978B87]">
       <td colSpan={5} className="text-right pr-2 text-white">
-        Item : {dataSourceGift.length} &nbsp; QTY : {dataSourceGift.reduce((total, item) => total + parseInt(item.quantity || 0), 0)}
+        Item: {dataSourceGift.length} &nbsp; QTY : {dataSourceGift.reduce((total, item) => total + parseInt(item.quantity || 0), 0)}
       </td>
     </tr>
   );
