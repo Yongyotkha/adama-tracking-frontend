@@ -180,7 +180,7 @@ export default function RollingForecast() {
         <ItemDropDown
           mode="edit"
           text="Edit"
-          onClick={() => navigate("/sale-plan/work-plan/create")}
+          // onClick={() => navigate("/sale-plan/work-plan/create")}
         />
       ),
     },

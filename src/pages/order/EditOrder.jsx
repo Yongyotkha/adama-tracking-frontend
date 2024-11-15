@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import FormCustom from "../../components/form_custom/FormCustom";
 import { useNavigate } from "react-router-dom";
@@ -20,10 +20,10 @@ export default function EditOrder() {
       sku: "3027200113",
       productName: "Bumper P",
       unit: "0.5 ltX20",
-      pricePerUnit: "575.00",
-      quantity: 10,
+      pricePerUnit: '575.50',
+      quantity: 0,
       foc: 1,
-      subTotal: "115,000.00",
+      subTotal: '115000',
     },
     {
       key: "2",
@@ -31,57 +31,76 @@ export default function EditOrder() {
       sku: "207920011520",
       productName: "Memory 300EC",
       unit: "1lt X20",
-      pricePerUnit: "340.00",
-      quantity: 10,
-      foc: 1,
-      subTotal: "68,000.00",
+      pricePerUnit: '340',
+      quantity: 0,
+      foc: 2,
+      subTotal: '68000',
     },
   ]);
 
-  // State for Gift table data
-  const [dataSourceGift, setDataSourceGift] = useState([
-    { key: "1", no: "1", productName: "", unit: "", quantity: 1 }
+  // State for Other table data
+  const [dataSourceOther, setDataSourceOther] = useState([
+    { key: "1", no: "1", productName: "", unit: "", quantity: 1, value: 10000 },
+    { key: "2", no: "2", productName: "", unit: "", quantity: 1, value: 20000 }
   ]);
 
   const formFields = [
-    { label: "Name", name: "name", type: "select", options: ["Active", "Inactive"], disabled: false, required: false, value: "Select" },
+    { label: "Sale", name: "sale", type: "select", options: ["Chayanon Tunyateerapong", "Chaiyapat"], disabled: false, required: false, value: "Select" },
+    { label: "Dealer", name: "dealer", type: "select", options: ["Kornkan Induang", "	Phaisan Jethuen"], disabled: false, required: false, value: "Select" },
     { label: "Order No", name: "order_no", type: "text", disabled: true, required: false, value: "Generate Auto" },
-    { label: "Date", name: "order_date", type: "date", disabled: true, required: false, value: "2024-01-01" },
+    { label: "Date", name: "order_date", type: "date", disabled: true, required: false, value: "" },
   ];
 
   const handleSearch = (e) => {
     console.log("Search term:", e.target.value);
   };
 
-  const handleQuantityChange = (key, change) => {
+  const handleQuantityChange = (key, newQuantity) => {
     setDataSource((prevData) =>
       prevData.map((item) => {
         if (item.key === key) {
-          const newQuantity = item.quantity + change;
-          return { ...item, quantity: newQuantity > 0 ? newQuantity : 0 };
+          const quantity = Math.max(0, newQuantity); // Prevent negative quantities
+          const subTotal = (quantity * parseFloat(item.pricePerUnit.replace(/,/g, ""))).toFixed(2); // Calculate new subTotal
+          return { ...item, quantity, subTotal };
         }
         return item;
       })
     );
   };
 
-  const handleAddGiftRow = () => {
+  const handleQuantityChangeOther = (key, newQuantity) => {
+    const baseUnitPrice = 10000; // Base price for calculation, assuming 10,000 per unit
+  
+    setDataSourceOther((prevData) =>
+      prevData.map((item) => {
+        if (item.key === key) {
+          const quantity = Math.max(1, newQuantity); // Prevent quantity less than 1
+          const value = quantity * baseUnitPrice; // Calculate new value based on quantity
+          return { ...item, quantity, value };
+        }
+        return item;
+      })
+    );
+  };
+  
+  const handleAddOtherRow = () => {
     const newRow = {
-      key: (dataSourceGift.length + 1).toString(),
-      no: (dataSourceGift.length + 1).toString(),
+      key: (dataSourceOther.length + 1).toString(),
+      no: (dataSourceOther.length + 1).toString(),
       productName: "",
       unit: "",
-      quantity: 1
+      quantity: 1,
+      value: '10000',
     };
-    setDataSourceGift([...dataSourceGift, newRow]);
+    setDataSourceOther([...dataSourceOther, newRow]);
   };
 
-  const handleDeleteGiftRow = (key) => {
-    setDataSourceGift(dataSourceGift.filter(item => item.key !== key));
+  const handleDeleteOtherRow = (key) => {
+    setDataSourceOther(dataSourceOther.filter(item => item.key !== key));
   };
 
-  const handleGiftInputChange = (key, field, value) => {
-    setDataSourceGift(dataSourceGift.map(item => item.key === key ? { ...item, [field]: value } : item));
+  const handleOtherInputChange = (key, field, value) => {
+    setDataSourceOther(dataSourceOther.map(item => item.key === key ? { ...item, [field]: value } : item));
   };
 
   const header = [
@@ -89,31 +108,45 @@ export default function EditOrder() {
     { title: "SKU", dataIndex: "sku", key: "sku" },
     { title: "Product Name", dataIndex: "productName", key: "productName" },
     { title: "Unit", dataIndex: "unit", key: "unit" },
-    { title: "THB/Unit", dataIndex: "pricePerUnit", key: "pricePerUnit" },
+    {
+      title: "THB/Unit", dataIndex: "pricePerUnit", key: "pricePerUnit",
+      render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+    },
     {
       title: <div className="text-center">QTY (ctn)</div>,
       dataIndex: "quantity",
       key: "quantity",
       render: (_, record) => (
-        <div className="quantity-control flex justify-between items-center">
+        <div className="quantity-control flex justify-center items-center">
           <img
             src="/img/icons/collapse.png"
-            alt="collapse"
+            alt="decrease"
             className="cursor-pointer w-6 h-6"
-            onClick={() => handleQuantityChange(record.key, -1)}
+            onClick={() => handleQuantityChange(record.key, record.quantity - 1)}
           />
-          <span className="border border-solid border-[#00783F] min-w-[96px] text-center rounded block text-[#00783F] p-1">{record.quantity}</span>
+          <Input
+            inputMode="numeric"
+            min={0}
+            value={record.quantity}
+            onChange={(e) => handleQuantityChange(record.key, parseInt(e.target.value) || 0)}
+            className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
+          />
           <img
             src="/img/icons/expand.png"
-            alt="expand"
+            alt="increase"
             className="cursor-pointer w-6 h-6"
-            onClick={() => handleQuantityChange(record.key, 1)}
+            onClick={() => handleQuantityChange(record.key, record.quantity + 1)}
           />
         </div>
       ),
     },
     { title: "FOC (ctn)", dataIndex: "foc", key: "foc" },
-    { title: "Sub Total (THB)", dataIndex: "subTotal", key: "subTotal" },
+    {
+      title: "Sub Total (THB)",
+      dataIndex: "subTotal",
+      key: "subTotal",
+      render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+    },
     {
       title: <div className="text-center">Action</div>, key: "action", render: (_, record) =>
         <button className="delete-button flex justify-center mx-auto">
@@ -121,13 +154,13 @@ export default function EditOrder() {
             src="/img/icons/delete.png"
             alt="delete"
             className="cursor-pointer w-6 h-6"
-            onClick={() => ''}
+            onClick={() => setDataSource(dataSource.filter((item) => item.key !== record.key))}
           />
         </button>
     },
   ];
 
-  const headerGift = [
+  const headerOther = [
     { title: "No", dataIndex: "no", key: "no" },
     {
       title: "Product Name",
@@ -136,7 +169,7 @@ export default function EditOrder() {
       render: (_, record) => (
         <Input
           value={record.productName}
-          onChange={(e) => handleGiftInputChange(record.key, "productName", e.target.value)}
+          onChange={(e) => handleOtherInputChange(record.key, "productName", e.target.value)}
         />
       )
     },
@@ -147,7 +180,7 @@ export default function EditOrder() {
       render: (_, record) => (
         <Input
           value={record.unit}
-          onChange={(e) => handleGiftInputChange(record.key, "unit", e.target.value)}
+          onChange={(e) => handleOtherInputChange(record.key, "unit", e.target.value)}
         />
       )
     },
@@ -156,41 +189,70 @@ export default function EditOrder() {
       dataIndex: "quantity",
       key: "quantity",
       render: (_, record) => (
-        <Input
-          value={record.quantity}
-          type="number"
-          min={1}
-          onChange={(e) => handleGiftInputChange(record.key, "quantity", e.target.value)}
-        />
-      )
+        <div className="quantity-control flex justify-center items-center">
+          <img
+            src="/img/icons/collapse.png"
+            alt="decrease"
+            className="cursor-pointer w-6 h-6"
+            onClick={() => handleQuantityChangeOther(record.key, record.quantity - 1)}
+          />
+          <Input
+            inputMode="numeric"
+            min={1}
+            value={record.quantity}
+            onChange={(e) => handleQuantityChangeOther(record.key, parseInt(e.target.value) || 1)}
+            className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
+          />
+          <img
+            src="/img/icons/expand.png"
+            alt="increase"
+            className="cursor-pointer w-6 h-6"
+            onClick={() => handleQuantityChangeOther(record.key, record.quantity + 1)}
+          />
+        </div>
+      ),
+    },
+    {
+      title: "Value (THB)",
+      dataIndex: "value",
+      key: "value",
+      render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 })
     },
     {
       title: <div className="text-center">Action</div>,
       key: "action",
       render: (_, record) => (
-        <button onClick={() => handleDeleteGiftRow(record.key)} className="delete-button">
+        <button onClick={() => handleDeleteOtherRow(record.key)} className="delete-button">
           <img src="/img/icons/delete.png" alt="delete" className="cursor-pointer w-6 h-6" />
         </button>
       )
     }
   ];
 
-  const footerOrderList = (currentData) => (
+  const footerOrderList = () => {
+    const totalQuantity = dataSource.reduce((total, item) => total + item.quantity, 0);
+    const totalFOC = dataSource.reduce((total, item) => total + item.foc, 0);
+    const totalAmount = dataSource.reduce((total, item) => total + parseFloat(item.subTotal || 0), 0);
+  
+    return (
+      <tr className="bg-[#978B87]">
+        <td colSpan={9} className="text-right pr-2 text-white">
+          Item: {dataSource.length} &nbsp; QTY (ctn): {totalQuantity}+{totalFOC} &nbsp;
+          Total: {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+        </td>
+      </tr>
+    );
+  };
+
+  const footerOther = () => (
     <tr className="bg-[#978B87]">
-      <td colSpan={9} className="text-right pr-2 text-white">
-        Item : {dataSource.length} &nbsp; QTY (ctn): {dataSource.reduce((total, item) => total + item.quantity, 0)} &nbsp;
-        Total : {dataSource.reduce((total, item) => total + parseFloat(item.subTotal.replace(/,/g, "")), 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+      <td colSpan={6} className="text-right pr-2 text-white">
+        Item: {dataSourceOther.length} &nbsp; QTY: {dataSourceOther.reduce((total, item) => total + item.quantity, 0)} &nbsp;
+        Total: {dataSourceOther.reduce((total, item) => total + parseFloat(item.value.replace(/,/g, "")), 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
       </td>
     </tr>
   );
 
-  const footerGift = () => (
-    <tr className="bg-[#978B87]">
-      <td colSpan={5} className="text-right pr-2 text-white">
-        Item : {dataSourceGift.length} &nbsp; QTY : {dataSourceGift.reduce((total, item) => total + parseInt(item.quantity || 0), 0)}
-      </td>
-    </tr>
-  );
 
   return (
     <MainLayout loading={loading}>
@@ -201,7 +263,7 @@ export default function EditOrder() {
       <BoxPrimary title="Product">
         <div className="mb-3 flex justify-end">
           <Input
-            placeholder="Search..."
+            placeholder="Search Product..."
             prefix={<SearchOutlined className="text-gray-500" />}
             onChange={handleSearch}
           />
@@ -219,28 +281,28 @@ export default function EditOrder() {
 
       <BoxPrimary>
         <div className="flex justify-between space-x-4 mb-3">
-          <span className="text-[#00783F] text-lg font-semibold">Gift</span>
+          <span className="text-[#00783F] text-lg font-semibold">Other</span>
           <div className="flex space-x-2">
-            <ActionButton mode="add" text="Add" onClick={handleAddGiftRow} />
+            <ActionButton mode="add" text="Add" onClick={handleAddOtherRow} />
           </div>
         </div>
         <TableComponent
-          header={headerGift}
-          dataSource={dataSourceGift}
+          header={headerOther}
+          dataSource={dataSourceOther}
           pageSize={10}
-          footer={footerGift}
+          footer={footerOther}
         />
       </BoxPrimary>
 
       <BoxPrimary title='Remark'>
         <div className="mb-3 flex justify-end">
-          <Input placeholder="Remark" />
+          <Input.TextArea placeholder="Remark" rows={2} />
         </div>
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
-      <ActionButton mode="back" text="Back" onClick={() => navigate("/order/list")} />
-      <ActionButton mode="save" text="Confirm" onClick={() => navigate("/order/list")} />
+        <ActionButton mode="back" text="Back" onClick={() => navigate("/order/list")} />
+        <ActionButton mode="save" text="Confirm" onClick={() => navigate("/order/list")} />
       </div>
     </MainLayout>
   );

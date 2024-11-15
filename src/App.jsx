@@ -58,6 +58,8 @@ import EditClearing from "./pages/expenses/clearing/EditClearingExpense";
 import ActivityList from "./pages/activity/ActivityList";
 import CreateActivity from "./pages/activity/CreateActivity";
 import EditActivity from "./pages/activity/EditActivity";
+import ViewOrder from "./pages/order/ViewOrder";
+import ViewOrderWaiting from "./pages/order/ViewOrderWaiting";
 
 const App = () => {
   return (
@@ -86,10 +88,12 @@ const App = () => {
 
           {/* Order Route */}
           <Route path="/order/list" element={<OrderList />} />
-          <Route path="/order/waiting-list" element={<OrderWaitingList />} />
           <Route path="/order/create" element={<CreateOrder />} />
           <Route path="/order/edit" element={<EditOrder />} />
           <Route path="/order/detail" element={<OrderDetail />} />
+          <Route path="/order/view" element={<ViewOrder />} />
+          <Route path="/order-waiting/list" element={<OrderWaitingList />} />
+          <Route path="/order-waiting/view" element={<ViewOrderWaiting />} />
 
           {/* Expenses Route */}
           <Route path="/expenses/advance" element={<AdvanceExpense />} />

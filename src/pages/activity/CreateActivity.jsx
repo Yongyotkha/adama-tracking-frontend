@@ -88,7 +88,7 @@ export default function CreateActivity() {
     { label: "Date", name: "date", type: "date", disabled: false, required: true, col: 6, value: "2024-01-01" },
     { label: "Start Time", name: "start_time", type: "time", disabled: false, required: true, col: 6, value: "09:00" },
     { label: "End Time", name: "end_time", type: "time", disabled: false, required: true, col: 6, value: "11:00" },
-    { label: "Location", name: "location", type: "text", disabled: true, required: false, col: 12, value: "2/80 ถนนพาดาวรี ต.ท่าอิฐ อ.เมืองอุดรธานี จ.อุดรธานี" },
+    { label: "Location", name: "location", type: "text", disabled: false, required: false, col: 12, value: "2/80 ถนนพาดาวรี ต.ท่าอิฐ อ.เมืองอุดรธานี จ.อุดรธานี", iconSrc: "/img/icons/location.png", iconPosition: "left" },
     { label: "Description", name: "description", type: "text-editor", disabled: false, required: false, col: 24, placeholder: "Add description", value: "" }
   ];
 
@@ -96,12 +96,12 @@ export default function CreateActivity() {
     { title: "Product Name", dataIndex: "productName", key: "productName", align: "left" },
     { title: "Pack Size", dataIndex: "packSize", key: "packSize", align: "center" },
     {
-      title: "Estimate Sale (KG/LT)", dataIndex: "estimateSale", key: "estimateSale", align: "center", render: (_, record) => (
+      title: "Estimate Sale (Kg/Lt)", dataIndex: "estimateSale", key: "estimateSale", align: "center", render: (_, record) => (
         <Input placeholder="0" defaultValue={record.estimateSale} />
       )
     },
     {
-      title: "Actual Sale (KG/LT)", dataIndex: "actualSale", key: "actualSale", align: "center", render: (_, record) => (
+      title: "Actual Sale (Kg/Lt)", dataIndex: "actualSale", key: "actualSale", align: "center", render: (_, record) => (
         <Input placeholder="0" defaultValue={record.actualSale} />
       )
     },
@@ -185,10 +185,18 @@ export default function CreateActivity() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Create Activity</div>
+      <div className="flex items-center justify-between">
+        <div className="title-page">Create Activity</div>
+        <ActionButton mode="create" text="Add Advance Expense" onClick='' />
+        {/* <ActionButton mode="hide" text="Add Advance Expense" onClick='' /> */}
+      </div>
 
       <FormCustom fields={formFields} form={formCustom} />
 
+      <div className="flex items-center justify-between">
+        <div className="title-page">Advance Expense</div>
+        <ActionButton mode="hide" text="Hide Advance Expense" onClick='' />
+      </div>
       <BoxPrimary title="Sale Plan">
         <TableComponent
           header={header}
@@ -318,7 +326,7 @@ export default function CreateActivity() {
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4 mt-6">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/expenses/advance")} />
+        <ActionButton mode="back" text="Back" onClick={() => navigate("/activity/list")} />
         <ActionButton mode="update" text="Save" onClick={handleUpdate} />
       </div>
 

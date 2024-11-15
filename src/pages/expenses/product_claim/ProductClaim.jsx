@@ -97,7 +97,8 @@ export default function ProductClaim() {
         claimNo: "20241000003",
         claimDate: "2024-01-01",
         dealerName: "Chaifar",
-        product: <BadgeStatus text="2" bgColor="#F89E18" textColor="#FFFFFF" onClick={handleShowProductModal} />, // Badge to represent product count
+        // product: <BadgeStatus text="2" bgColor="#F89E18" textColor="#FFFFFF" onClick={handleShowProductModal} />, // Badge to represent product count
+        product: <BadgeStatus text="2" bgColor="#F89E18" textColor="#FFFFFF" />, // Badge to represent product count
         status: <BadgeStatus text="Wait for Approve" bgColor="#F89E18" textColor="#FFFFFF" />,
         action: (
           <Dropdown menu={{ items: actionItems }} placement="bottomRight">

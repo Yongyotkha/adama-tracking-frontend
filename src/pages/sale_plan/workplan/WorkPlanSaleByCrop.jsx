@@ -319,7 +319,7 @@ export default function WorkPlanSaleByCrop() {
             }}
           />
           <ActionButton
-            text="Save"
+            text="Save and Next"
             mode="save"
             onClick={() => navigate("/sale-plan/work-plan")}
           />

@@ -87,12 +87,7 @@ const Navbar = () => {
         {
           key: "2",
           label: "Order Waiting List",
-          path: "order/waiting-list",
-        },
-        {
-          key: "3",
-          label: "Claim List",
-          path: "order/claim-list",
+          path: "order-waiting/list",
         },
       ],
     },

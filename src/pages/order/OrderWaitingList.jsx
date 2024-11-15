@@ -68,12 +68,7 @@ export default function OrderWaitingList() {
   ];
 
   const actionItems = [
-    { key: "1", label: <ItemDropDown mode="view" link="/order/detail" /> },
-  ];
-  const actionItemsPending = [
-    { key: "1", label: <ItemDropDown mode="edit" link="/order/edit" /> },
-    { key: "2", label: <ItemDropDown mode="view" link="/order/detail" /> },
-    { key: "3", label: <ItemDropDown mode="delete" onClick={() => console.log("Delete clicked")} /> },
+    { key: "1", label: <ItemDropDown mode="view" link="/order-waiting/view" /> },
   ];
 
   useEffect(() => {
@@ -122,7 +117,7 @@ export default function OrderWaitingList() {
         status: <BadgeStatus text="Waiting for Approve " bgColor="#F89E18" textColor="#FFFFFF" />,
         createdBy: "Manupong",
         action: (
-          <Dropdown menu={{ items: actionItemsPending }} placement="bottom">
+          <Dropdown menu={{ items: actionItems }} placement="bottom">
             <a onClick={(e) => e.preventDefault()}>
               <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
             </a>
@@ -139,7 +134,6 @@ export default function OrderWaitingList() {
 
       <div className="flex items-center justify-between">
         <div className="title-page">Order Waiting List</div>
-        <ActionButton mode="create" text="Create" onClick={(e) => navigate("/order/create")} />
       </div>
 
       <Filter

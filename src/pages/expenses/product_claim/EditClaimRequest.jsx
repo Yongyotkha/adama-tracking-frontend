@@ -171,7 +171,7 @@ export default function EditClaimRequest() {
       {/* Remark Section */}
       <BoxPrimary title="Remark">
         <div className="mb-3 flex justify-end">
-          <Input.TextArea placeholder="Remark" rows={3} />
+          <Input.TextArea placeholder="Remark" rows={2} />
         </div>
       </BoxPrimary>
 

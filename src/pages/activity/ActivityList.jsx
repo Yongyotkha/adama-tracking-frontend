@@ -15,39 +15,38 @@ export default function ActivityList() {
   const [dataSource, setDataSource] = useState([]);
   const [isProductModalVisible, setIsProductModalVisible] = useState(false);
   const navigate = useNavigate();
-  
+
   const filters = [
     {
-      key: "claim_no",
+      key: "activity_no",
       type: "text",
-      label: "Claim No",
-      placeholder: "Claim No",
+      label: "Activity No",
+      placeholder: "Activity No",
     },
     {
-      key: "claim_date",
-      type: "date",
-      label: "Claim Date",
-      placeholder: "YYYY-MM-DD",
-    },
-    {
-      key: "dealer_name",
-      type: "text",
-      label: "Dealer Name",
-      placeholder: "All",
-    },
-    {
-      key: "status",
+      key: "activity_type",
       type: 'select',
-      label: "Status",
+      label: "Activity Type",
       placeholder: "All",
       options: [
-        { value: 'Wait for Approve', label: 'Wait for Approve' },
-        { value: 'Approved', label: 'Approved' },
-        { value: 'Rejected', label: 'Rejected' },
+        { value: 'Demo Plot', label: 'Demo Plot' },
+        { value: 'Field Visit', label: 'Field Visit' },
+        // Add other activity types as needed
       ],
     },
+    {
+      key: "shop",
+      type: "text",
+      label: "Shop",
+      placeholder: "All",
+    },
+    {
+      key: "Date",
+      type: 'date',
+      label: "Date",
+    },
   ];
-  
+
   const handleSearch = (filter) => {
     console.log("Search filters applied:", filter);
   };
@@ -78,27 +77,29 @@ export default function ActivityList() {
 
   const actionItems = [
     { key: "1", label: <ItemDropDown mode="edit" link="/activity/edit" /> },
+    { key: "2", label: <ItemDropDown mode="delete" link="#" /> },
   ];
 
   const header = [
-    { title: "No", width: 50, dataIndex: "key", align: "center" },
-    { title: "Claim No", width: 150, dataIndex: "claimNo", align: "center" },
-    { title: "Claim Date", width: 150, dataIndex: "claimDate", align: "center" },
-    { title: "Dealer Name", width: 200, dataIndex: "dealerName", align: "left" },
-    { title: "Product", width: 100, dataIndex: "product", align: "center" },
-    { title: "Status", width: 150, dataIndex: "status", align: "center" },
+    { title: "Activity No", width: 150, dataIndex: "activityNo", align: "start" },
+    { title: "Activity Type", width: 150, dataIndex: "activityType", align: "start" },
+    { title: "Shop", width: 150, dataIndex: "shop", align: "start" },
+    { title: "Key Product", width: 100, dataIndex: "keyProduct", align: "start" },
+    { title: "Date", width: 150, dataIndex: "date", align: "start" },
+    { title: "Time", width: 100, dataIndex: "time", align: "start", className: "text-nowrap" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
-  
+
   useEffect(() => {
     const dataSource = [
       {
         key: 1,
-        claimNo: "20241000003",
-        claimDate: "2024-01-01",
-        dealerName: "Chaifar",
-        product: <BadgeStatus text="2" bgColor="#F89E18" textColor="#FFFFFF" onClick={handleShowProductModal} />, // Badge to represent product count
-        status: <BadgeStatus text="Wait for Approve" bgColor="#F89E18" textColor="#FFFFFF" />,
+        activityNo: "202400000000003",
+        activityType: "Demo Plot",
+        shop: "จัดสนาม",
+        keyProduct: "-", // If there's no specific product, you can use "-" as shown in the design
+        date: "2024-02-01",
+        time: "09:00 AM - 11:00 AM",
         action: (
           <Dropdown menu={{ items: actionItems }} placement="bottomRight">
             <a onClick={(e) => e.preventDefault()}>
@@ -109,11 +110,12 @@ export default function ActivityList() {
       },
       {
         key: 2,
-        claimNo: "20241000002",
-        claimDate: "2024-01-01",
-        dealerName: "Chaifar",
-        product: <BadgeStatus text="1" bgColor="#F89E18" textColor="#FFFFFF" />,
-        status: <BadgeStatus text="Wait for Approve" bgColor="#F89E18" textColor="#FFFFFF" />,
+        activityNo: "202400000000002",
+        activityType: "Demo Plot",
+        shop: "จัดสนาม",
+        keyProduct: "-",
+        date: "2024-01-05",
+        time: "09:00 AM - 11:00 AM",
         action: (
           <Dropdown menu={{ items: actionItems }} placement="bottomRight">
             <a onClick={(e) => e.preventDefault()}>
@@ -124,11 +126,12 @@ export default function ActivityList() {
       },
       {
         key: 3,
-        claimNo: "20241000001",
-        claimDate: "2024-01-01",
-        dealerName: "Chaifar",
-        product: <BadgeStatus text="1" bgColor="#F89E18" textColor="#FFFFFF" />,
-        status: <BadgeStatus text="Wait for Approve" bgColor="#F89E18" textColor="#FFFFFF" />,
+        activityNo: "202400000000001",
+        activityType: "Demo Plot",
+        shop: "จัดสนาม",
+        keyProduct: "-",
+        date: "2024-01-01",
+        time: "09:00 AM - 11:00 AM",
         action: (
           <Dropdown menu={{ items: actionItems }} placement="bottomRight">
             <a onClick={(e) => e.preventDefault()}>
@@ -138,7 +141,7 @@ export default function ActivityList() {
         ),
       },
     ];
-  
+
     setDataSource(dataSource);
   }, []);
 

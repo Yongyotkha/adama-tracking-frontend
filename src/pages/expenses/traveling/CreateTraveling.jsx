@@ -48,7 +48,45 @@ export default function CreateTraveling() {
     },
   ]);
 
-  // Form fields at the top
+  // Function to add a new row
+  const addRow = () => {
+    const newRow = {
+      key: `${dataSource.length + 1}`,
+      date: "",
+      from: "",
+      to: "",
+      mileage: "0",
+      petrol: "0",
+      cashPetrol: "0",
+      hotel: "0",
+      allowance: "0",
+      tollFee: "0",
+      entertain: "0",
+      others: "0",
+      total: "0",
+      remark: "",
+    };
+    setDataSource([...dataSource, newRow]);
+  };
+
+  // Update individual cell values
+  const updateField = (key, field, value) => {
+    setDataSource((prevData) =>
+      prevData.map((item) =>
+        item.key === key ? { ...item, [field]: value, total: calculateTotal(item) } : item
+      )
+    );
+  };
+
+  // Calculate total for each row
+  const calculateTotal = (item) =>
+    ["mileage", "petrol", "cashPetrol", "hotel", "allowance", "tollFee", "entertain", "others"]
+      .reduce((acc, field) => acc + parseFloat(item[field] || 0), 0);
+
+  // Calculate total for the footer
+  const calculateFooterTotal = (field) =>
+    dataSource.reduce((acc, item) => acc + parseFloat(item[field] || 0), 0);
+
   const formFields = [
     { label: "Month", name: "Month", type: "month", disabled: false, required: true, col: 6, value: "2024-08" },
     { label: "Date", name: "date", type: "date", disabled: false, required: true, col: 6, value: "2024-01-01" },
@@ -57,44 +95,173 @@ export default function CreateTraveling() {
   // Table headers for the Traveling section
   const header = [
     {
-      title: <span className="text-nowrap">Date</span>, dataIndex: "date", key: "date", // Set specific width
+      title: <span className="text-nowrap">Date</span>,
+      dataIndex: "date",
+      key: "date",
       render: (value, record) => (
-        <Input value={value} style={{ width: 120 }} onChange={(e) => updateField(record.key, 'date', e.target.value)} />
-      )
+        <Input
+          value={value}
+          style={{ width: 120 }}
+          onChange={(e) => updateField(record.key, 'date', e.target.value)}
+        />
+      ),
     },
-    { title: <span className="text-nowrap">Traveling From</span>, dataIndex: "from", key: "from" },
-    { title: <span className="text-nowrap">To</span>, dataIndex: "to", key: "to" },
-    { title: <span className="text-nowrap">Mileage</span>, dataIndex: "mileage", key: "mileage", render: (value, record) => <NumericInput style={{ width: 100 }} value={value} onChange={(val) => updateField(record.key, 'mileage', val)} /> },
-    { title: <span className="text-nowrap">Petrol</span>, dataIndex: "petrol", key: "petrol", render: (value, record) => <NumericInput style={{ width: 100 }} value={value} onChange={(val) => updateField(record.key, 'petrol', val)} /> },
-    { title: <span className="text-nowrap">Cash Petrol</span>, dataIndex: "cashPetrol", key: "cashPetrol", render: (value, record) => <NumericInput style={{ width: 100 }} value={value} onChange={(val) => updateField(record.key, 'cashPetrol', val)} /> },
-    { title: <span className="text-nowrap">Hotel</span>, dataIndex: "hotel", key: "hotel", render: (value, record) => <NumericInput style={{ width: 100 }} value={value} onChange={(val) => updateField(record.key, 'hotel', val)} /> },
-    { title: <span className="text-nowrap">Allowance</span>, dataIndex: "allowance", key: "allowance", render: (value, record) => <NumericInput style={{ width: 100 }} value={value} onChange={(val) => updateField(record.key, 'allowance', val)} /> },
-    { title: <span className="text-nowrap">Toll Fee</span>, dataIndex: "tollFee", key: "tollFee", render: (value, record) => <NumericInput style={{ width: 100 }} value={value} onChange={(val) => updateField(record.key, 'tollFee', val)} /> },
-    { title: <span className="text-nowrap">Entertain</span>, dataIndex: "entertain", key: "entertain", render: (value, record) => <NumericInput style={{ width: 100 }} value={value} onChange={(val) => updateField(record.key, 'entertain', val)} /> },
-    { title: <span className="text-nowrap">Others</span>, dataIndex: "others", key: "others", render: (value, record) => <NumericInput style={{ width: 100 }} value={value} onChange={(val) => updateField(record.key, 'others', val)} /> },
-    { title: <span className="text-nowrap">Total</span>, dataIndex: "total", key: "total", render: (value, record) => <NumericInput style={{ width: 100 }} value={value} onChange={(val) => updateField(record.key, 'total', val)} readOnly /> },
-    { title: <span className="text-nowrap">Remark</span>, dataIndex: "remark", key: "remark", render: (text) => <Input style={{ width: 250 }} defaultValue={text} /> },
+    {
+      title: <span className="text-nowrap">Traveling From</span>,
+      dataIndex: "from",
+      key: "from",
+      render: (value, record) => (
+        <Input
+          value={value}
+          style={{ width: 120 }}
+          onChange={(e) => updateField(record.key, 'from', e.target.value)}
+        />
+      ),
+    },
+    {
+      title: <span className="text-nowrap">To</span>,
+      dataIndex: "to",
+      key: "to",
+      render: (value, record) => (
+        <Input
+          value={value}
+          style={{ width: 120 }}
+          onChange={(e) => updateField(record.key, 'to', e.target.value)}
+        />
+      ),
+    },
+    {
+      title: <span className="text-nowrap">Mileage</span>,
+      dataIndex: "mileage",
+      key: "mileage",
+      render: (value, record) => (
+        <NumericInput
+          style={{ width: 100 }}
+          value={value}
+          onChange={(val) => updateField(record.key, 'mileage', val)}
+        />
+      ),
+    },
+    {
+      title: <span className="text-nowrap">Petrol</span>,
+      dataIndex: "petrol",
+      key: "petrol",
+      render: (value, record) => (
+        <NumericInput
+          style={{ width: 100 }}
+          value={value}
+          onChange={(val) => updateField(record.key, 'petrol', val)}
+        />
+      ),
+    },
+    {
+      title: <span className="text-nowrap">Cash Petrol</span>,
+      dataIndex: "cashPetrol",
+      key: "cashPetrol",
+      render: (value, record) => (
+        <NumericInput
+          style={{ width: 100 }}
+          value={value}
+          onChange={(val) => updateField(record.key, 'cashPetrol', val)}
+        />
+      ),
+    },
+    {
+      title: <span className="text-nowrap">Hotel</span>,
+      dataIndex: "hotel",
+      key: "hotel",
+      render: (value, record) => (
+        <NumericInput
+          style={{ width: 100 }}
+          value={value}
+          onChange={(val) => updateField(record.key, 'hotel', val)}
+        />
+      ),
+    },
+    {
+      title: <span className="text-nowrap">Allowance</span>,
+      dataIndex: "allowance",
+      key: "allowance",
+      render: (value, record) => (
+        <NumericInput
+          style={{ width: 100 }}
+          value={value}
+          onChange={(val) => updateField(record.key, 'allowance', val)}
+        />
+      ),
+    },
+    {
+      title: <span className="text-nowrap">Toll Fee</span>,
+      dataIndex: "tollFee",
+      key: "tollFee",
+      render: (value, record) => (
+        <NumericInput
+          style={{ width: 100 }}
+          value={value}
+          onChange={(val) => updateField(record.key, 'tollFee', val)}
+        />
+      ),
+    },
+    {
+      title: <span className="text-nowrap">Entertain</span>,
+      dataIndex: "entertain",
+      key: "entertain",
+      render: (value, record) => (
+        <NumericInput
+          style={{ width: 100 }}
+          value={value}
+          onChange={(val) => updateField(record.key, 'entertain', val)}
+        />
+      ),
+    },
+    {
+      title: <span className="text-nowrap">Others</span>,
+      dataIndex: "others",
+      key: "others",
+      render: (value, record) => (
+        <NumericInput
+          style={{ width: 100 }}
+          value={value}
+          onChange={(val) => updateField(record.key, 'others', val)}
+        />
+      ),
+    },
+    {
+      title: <span className="text-nowrap">Total</span>,
+      dataIndex: "total",
+      key: "total",
+      render: (value, record) => (
+        <NumericInput
+          style={{ width: 100 }}
+          value={value}
+          onChange={(val) => updateField(record.key, 'total', val)}
+          readOnly
+        />
+      ),
+    },
+    {
+      title: <span className="text-nowrap">Remark</span>,
+      dataIndex: "remark",
+      key: "remark",
+      render: (text) => (
+        <Input style={{ width: 250 }} defaultValue={text} />
+      ),
+    },
   ];
+  
 
-  // Function to update field in dataSource
-  const updateField = (key, field, value) => {
-    setDataSource((prevData) =>
-      prevData.map((item) => (item.key === key ? { ...item, [field]: value } : item))
-    );
-  };
-
-  // Total Footer
   const footerOrderList = () => (
     <tr className="bg-[#978B87] text-white text-start">
-      <td colSpan={4}>Total (THB)</td>
-      <td><Input defaultValue='0' readOnly /></td>
-      <td><Input defaultValue='1260' readOnly /></td>
-      <td><Input defaultValue='0' readOnly /></td>
-      <td><Input defaultValue='400' readOnly /></td>
-      <td><Input defaultValue='0' readOnly /></td>
-      <td><Input defaultValue='0' readOnly /></td>
-      <td><Input defaultValue='0' readOnly /></td>
-      <td><Input defaultValue='1660' readOnly /></td>
+      <td colSpan={3}>Total (THB)</td>
+      <td><Input value={calculateFooterTotal("mileage")} readOnly /></td>
+      <td><Input value={calculateFooterTotal("petrol")} readOnly /></td>
+      <td><Input value={calculateFooterTotal("cashPetrol")} readOnly /></td>
+      <td><Input value={calculateFooterTotal("hotel")} readOnly /></td>
+      <td><Input value={calculateFooterTotal("allowance")} readOnly /></td>
+      <td><Input value={calculateFooterTotal("tollFee")} readOnly /></td>
+      <td><Input value={calculateFooterTotal("entertain")} readOnly /></td>
+      <td><Input value={calculateFooterTotal("others")} readOnly /></td>
+      <td><Input value={calculateFooterTotal("total")} readOnly /></td>
       <td></td>
     </tr>
   );
@@ -112,6 +279,7 @@ export default function CreateTraveling() {
       <BoxPrimary>
         <div className="flex justify-between mb-4">
           <span className="text-[#00783F] text-lg font-semibold">Traveling</span>
+          <ActionButton mode="add" text="Add" onClick={addRow} />
         </div>
         <TableComponent
           header={header}
@@ -140,7 +308,7 @@ export default function CreateTraveling() {
 
       {/* Remark Section */}
       <BoxPrimary title="Remark">
-        <Input.TextArea placeholder="Remark" rows={3} />
+        <Input.TextArea placeholder="Remark" rows={2} />
       </BoxPrimary>
 
       {/* Action Buttons */}

@@ -69,7 +69,7 @@ export default function OrderList() {
   ];
 
   const actionItems = [
-    { key: "1", label: <ItemDropDown mode="view" link="/order/detail" /> },
+    { key: "1", label: <ItemDropDown mode="view" link="/order/view" /> },
   ];
   const actionItemsPending = [
     { key: "1", label: <ItemDropDown mode="edit" link="/order/edit" /> },

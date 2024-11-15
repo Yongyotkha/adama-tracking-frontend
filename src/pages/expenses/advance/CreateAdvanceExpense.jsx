@@ -81,14 +81,14 @@ export default function CreateAdvanceExpense() {
   };
 
   const formFields = [
-    { label: "Activity Reference", name: "activity_reference", type: "text", disabled: true, required: false, col: 24, value: "202400000000001" },
+    { label: "Activity Reference", name: "activity_reference", type: "text", required: false, col: 24, value: "202400000000001", iconSrc: "/img/icons/search-table.png", iconPosition: "left" },
     { label: "Activity Type", name: "activity_type", type: "select", options: ["FMT"], disabled: false, required: true, col: 6, value: "FMT" },
     { label: "Shop", name: "shop", type: "select", options: ["Chaifar"], disabled: false, required: true, col: 6, value: "Chaifar" },
     { label: "Crop", name: "crop", type: "select", options: ["Rice"], disabled: false, required: true, col: 6, value: "Rice" },
     { label: "Date", name: "date", type: "date", disabled: false, required: true, col: 6, value: "2024-01-01" },
     { label: "Start Time", name: "start_time", type: "time", disabled: false, required: true, col: 6, value: "09:00" },
     { label: "End Time", name: "end_time", type: "time", disabled: false, required: true, col: 6, value: "11:00" },
-    { label: "Location", name: "location", type: "text", disabled: true, required: false, col: 12, value: "2/80 ถนนพาดาวรี ต.ท่าอิฐ อ.เมืองอุดรธานี จ.อุดรธานี" },
+    { label: "Location", name: "location", type: "text", disabled: false, required: false, col: 12, value: "2/80 ถนนพาดาวรี ต.ท่าอิฐ อ.เมืองอุดรธานี จ.อุดรธานี", iconSrc: "/img/icons/location.png", iconPosition: "left" },
     { label: "Description", name: "description", type: "text-editor", disabled: false, required: false, col: 24, placeholder: "Add description", value: "" }
   ];
 
@@ -96,13 +96,13 @@ export default function CreateAdvanceExpense() {
     { title: "Product Name", dataIndex: "productName", key: "productName", align: "left" },
     { title: "Pack Size", dataIndex: "packSize", key: "packSize", align: "center" },
     {
-      title: "Estimate Sale (KG/LT)", dataIndex: "estimateSale", key: "estimateSale", align: "center", render: (_, record) => (
+      title: "Estimate Sale (Kg/Lt)", dataIndex: "estimateSale", key: "estimateSale", align: "center", render: (_, record) => (
         <Input placeholder="0" defaultValue={record.estimateSale} />
       )
     },
     {
-      title: "Actual Sale (KG/LT)", dataIndex: "actualSale", key: "actualSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.actualSale} />
+      title: "Actual Sale (Kg/Lt)", dataIndex: "actualSale", key: "actualSale", align: "center", render: (_, record) => (
+        <Input placeholder="0" disabled defaultValue={record.actualSale} />
       )
     },
   ];
@@ -118,10 +118,10 @@ export default function CreateAdvanceExpense() {
     <tr className="bg-[#978B87]">
       <td colSpan={2} className="text-left pr-2 text-white">Total (THB)</td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" />
+        <Input placeholder="0" readOnly className="border-0" />
       </td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" />
+        <Input placeholder="0" readOnly className="border-0" />
       </td>
     </tr>
   );

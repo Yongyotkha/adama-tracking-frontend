@@ -125,7 +125,7 @@ export default function OrderDetail() {
       </BoxPrimary>
 
       <BoxPrimary title="Remark">
-        <Input placeholder="Remark" value="Remark" disabled className="bg-gray-100" />
+        <Input.TextArea placeholder="Remark" value="Remark" disabled className="bg-gray-100" />
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4 mt-4">
