@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { Menu, Dropdown, Carousel } from "antd";
 import "./Navbar.css";
 import Logo from "../logo/Logo";
 import { useNavigate, useLocation } from "react-router-dom";
+import { AuthContext } from "../../contexts/AuthContext";
 import {
   EditOutlined,
   EyeOutlined,
@@ -15,6 +16,10 @@ const Navbar = () => {
   const location = useLocation();
   const carouselRef = useRef(null); // Create a reference for the carousel
   const [activeIndex, setActiveIndex] = useState(0); // Track active index
+
+  const { userInfo, logout } = useContext(AuthContext);
+
+  console.log(userInfo.name_th);
 
   const menuItems = [
     {
@@ -170,6 +175,37 @@ const Navbar = () => {
     },
   ];
 
+  const CustomDropdownMenu = ({ items }) => {
+    return (
+      <Menu
+        onClick={({ key }) => {
+          const item = items.find((item) => item.key === key);
+          if (item.onClick) {
+            item.onClick();
+          } else {
+            navigate(`/${item.path}`);
+          }
+        }}
+        items={items.map((item) => ({
+          key: item.key,
+          label: (
+            <span
+              className={`${
+                location.pathname.startsWith(`/${item.path}`)
+                  ? "pointer-events-none font-bold text-[#009845]"
+                  : "text-[#978B87]"
+              } py-1`} // add padding, rounded corners, and block display for consistent styling
+            >
+              {item.label}
+            </span>
+          ),
+        }))}
+        className="relative bg-white bg-right bg-no-repeat bg-contain p-4 rounded-md w-[300px] text-[#978B87]"
+        style={{ backgroundImage: "url('/img/dropdown-bg.png')" }}
+      />
+    );
+  };
+
   const userMenuItems = [
     {
       key: "1",
@@ -197,36 +233,6 @@ const Navbar = () => {
     },
   ];
 
-  const CustomDropdownMenu = ({ items }) => {
-    return (
-      <Menu
-        onClick={({ key }) => {
-          const item = items.find((item) => item.key === key);
-          if (item.onClick) {
-            item.onClick();
-          } else {
-            navigate(`/${item.path}`);
-          }
-        }}
-        items={items.map((item) => ({
-          key: item.key,
-          label: (
-            <span
-              className={`${location.pathname.startsWith(`/${item.path}`)
-                ? "pointer-events-none font-bold text-[#009845]"
-                : "text-[#978B87]"
-                } py-1`} // add padding, rounded corners, and block display for consistent styling
-            >
-              {item.label}
-            </span>
-          ),
-        }))}
-        className="relative bg-white bg-right bg-no-repeat bg-contain p-4 rounded-md w-[300px] text-[#978B87]"
-        style={{ backgroundImage: "url('/img/dropdown-bg.png')" }}
-      />
-    );
-  };
-
   const CustomDropdownMenuProfile = ({ items }) => {
     const navigate = useNavigate();
 
@@ -235,7 +241,13 @@ const Navbar = () => {
       label: (
         <div
           className="flex items-center gap-[10px] cursor-pointer text-[#978B87]"
-          onClick={() => navigate(item.path)}
+          onClick={() => {
+            if (item.path == "logout") {
+              logout();
+            } else {
+              navigate(item.path);
+            }
+          }}
         >
           {item.icon ? (
             item.icon
@@ -275,7 +287,10 @@ const Navbar = () => {
     // Update the active index based on the current path
     const currentIndex = menuItems.findIndex((item) =>
       item.dropdownMenu
-        ? isActivePath(item.path, item.dropdownItems.map((subItem) => subItem.path))
+        ? isActivePath(
+            item.path,
+            item.dropdownItems.map((subItem) => subItem.path)
+          )
         : isActivePath(item.path)
     );
     setActiveIndex(currentIndex >= 0 ? currentIndex : 0);
@@ -309,7 +324,10 @@ const Navbar = () => {
         <Carousel arrows infinite={false} {...carouselSettings}>
           {menuItems.map((item, index) => {
             const isActive = item.dropdownMenu
-              ? isActivePath(item.path, item.dropdownItems.map((subItem) => subItem.path))
+              ? isActivePath(
+                  item.path,
+                  item.dropdownItems.map((subItem) => subItem.path)
+                )
               : isActivePath(item.path);
 
             if (item.dropdownMenu) {
@@ -319,8 +337,9 @@ const Navbar = () => {
                   overlay={<CustomDropdownMenu items={item.dropdownItems} />}
                 >
                   <div
-                    className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
-                      }`}
+                    className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${
+                      isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
+                    }`}
                   >
                     <img
                       src={item.icon}
@@ -335,8 +354,9 @@ const Navbar = () => {
               return (
                 <div
                   key={index}
-                  className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
-                    } cursor-pointer`}
+                  className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${
+                    isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
+                  } cursor-pointer`}
                   onClick={() => handleNavigate(item.path, index)}
                 >
                   <img
@@ -353,7 +373,7 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center w-1/6 justify-end">
-        <span className="text-white hidden md:block">Chayanon</span>
+        <span className="text-white hidden md:block">{userInfo.name_th}</span>
 
         <Dropdown
           overlay={<CustomDropdownMenuProfile items={userMenuItems} />}

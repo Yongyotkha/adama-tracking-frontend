@@ -14,12 +14,12 @@ import { axiosInstance } from "../services/CorsService.jsx";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const location = useLocation();
   const navigate = useNavigate();
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userInfo, setUserInfo] = useState(null);
-  const [token, setToken] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    localStorage.getItem("users") ? true : false
+  );
+  const [userInfo, setUserInfo] = useState(localStorage.getItem("users"));
 
   let loading = false;
 
@@ -34,7 +34,6 @@ export const AuthProvider = ({ children }) => {
     const storedToken = localStorage.getItem("accessToken");
     if (storedUser && storedToken) {
       setUserInfo(JSON.parse(storedUser));
-      setToken(storedToken);
       setIsLoggedIn(true);
     } else {
       logout();
@@ -49,11 +48,11 @@ export const AuthProvider = ({ children }) => {
         password,
       });
       if (response) {
-        const userData = response.data.data;
+        const userData = response.data.data.user;
         const accessToken = response.data.data.token;
         setIsLoggedIn(true);
         setUserInfo(userData);
-        setToken(accessToken);
+
         localStorage.setItem("users", JSON.stringify(userData));
         localStorage.setItem("accessToken", accessToken);
 
@@ -67,15 +66,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    if (isLoggedIn) {
-      setIsLoggedIn(false);
-      setUserInfo(null);
-      setToken(null);
-      localStorage.removeItem("users");
-      localStorage.removeItem("accessToken");
+    // if (isLoggedIn) {
+    setIsLoggedIn(false);
+    setUserInfo(null);
 
-      navigate("/login");
-    }
+    localStorage.removeItem("users");
+    localStorage.removeItem("accessToken");
+    console.log(123);
+    navigate("/login");
+    // }
   };
 
   return (

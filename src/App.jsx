@@ -60,6 +60,8 @@ import CreateActivity from "./pages/activity/CreateActivity";
 import EditActivity from "./pages/activity/EditActivity";
 import ViewOrder from "./pages/order/ViewOrder";
 import ViewOrderWaiting from "./pages/order/ViewOrderWaiting";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+
 
 const App = () => {
   return (
@@ -67,15 +69,17 @@ const App = () => {
       <AuthProvider>
         <Routes>
 
-          {/* Auth Route */}
-          {/* <Route path="/" element={<Welcome />} /> */}
+          {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/verify-otp" element={<Verify />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/change-password" element={<ChangePassword />} />
-          <Route path="/" element={<Dashboard />} />
 
+
+
+          {/* Protected Routes */}
           {/* Sale Plan Route */}
+          <Route path="/" element={ <Dashboard />} />
           <Route path="/sale-plan/work-plan" element={<WorkPlan />} />
           <Route path="/sale-plan/work-plan/create" element={<WorkPlanCreate />} />
           <Route path="/sale-plan/work-plan/create-2" element={<WorkPlanCreateStepTwo />} />
