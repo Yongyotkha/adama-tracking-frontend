@@ -1,5 +1,6 @@
 import axios from "axios";
 import { endPoint } from "./CorsPath";
+import { useLocation } from "react-router-dom";
 
 // Set config defaults
 export const axiosInstance = axios.create({
@@ -11,7 +12,6 @@ export const axiosInstance = axios.create({
   timeout: 30000,
 });
 
-// Add Interceptor for Authorization
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
@@ -20,21 +20,34 @@ axiosInstance.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
-);
-
-// Handle 401 Unauthorized
-axiosInstance.interceptors.response.use(
-  (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      localStorage.removeItem("users");
-      localStorage.removeItem("accessToken");
-      window.location.href = "/login";
-    }
-    return Promise.reject(error);
+    Promise.reject(error);
   }
 );
+
+const handleUnauthorized = (pathname) => {
+  if (pathname !== "/login") {
+    localStorage.removeItem("users");
+    localStorage.removeItem("accessToken");
+    window.location.href = "/login";
+  }
+};
+
+export const useAxiosWithInterceptor = () => {
+  const location = useLocation();
+
+  axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response && error.response.status === 401) {
+        handleUnauthorized(location.pathname);
+      }
+      return Promise.reject(error);
+    }
+  );
+
+  return axiosInstance;
+};
 
 let loading = false;
 
@@ -53,6 +66,10 @@ const handleRequest = async (method, url, dataOrParams, onLoadingChange) => {
     });
     return response.data;
   } catch (error) {
+    if (error.response && error.response.status === 401) {
+      handleUnauthorized(location.pathname);
+    }
+
     throw error;
   } finally {
     notifyLoadingState(onLoadingChange, false);

@@ -10,12 +10,14 @@ import React, {
 
 import { endPoint, paths } from "../services/CorsPath.jsx";
 import { axiosInstance } from "../services/CorsService.jsx";
+import { message } from "antd";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
+  const [messageApi, contextHolder] = message.useMessage(); // เพิ่ม messageApi
   const [isLoggedIn, setIsLoggedIn] = useState(
     localStorage.getItem("users") ? true : false
   );
@@ -26,6 +28,13 @@ export const AuthProvider = ({ children }) => {
   const notifyLoadingState = (callback, state) => {
     loading = state;
     if (callback) callback(loading);
+  };
+
+  const showMsg = (type, content) => {
+    messageApi.open({
+      type,
+      content,
+    });
   };
 
   // ตรวจสอบ Local Storage เมื่อเริ่มต้น
@@ -47,6 +56,8 @@ export const AuthProvider = ({ children }) => {
         username,
         password,
       });
+      // console.log(response);
+
       if (response) {
         const userData = response.data.data.user;
         const accessToken = response.data.data.token;
@@ -56,8 +67,10 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("users", JSON.stringify(userData));
         localStorage.setItem("accessToken", accessToken);
 
+
         return response.data;
       }
+
     } catch (error) {
       throw error;
     } finally {
@@ -72,13 +85,23 @@ export const AuthProvider = ({ children }) => {
 
     localStorage.removeItem("users");
     localStorage.removeItem("accessToken");
-    console.log(123);
+    console.log('เข้าฟังก์ชัน logout');
     navigate("/login");
+
     // }
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, userInfo, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        userInfo,
+        login,
+        logout,
+        showMsg,
+      }}
+    >
+      {contextHolder}
       {children}
     </AuthContext.Provider>
   );

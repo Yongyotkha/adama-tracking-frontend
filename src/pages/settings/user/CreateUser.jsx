@@ -1,17 +1,156 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Form } from "antd";
 import MainLayout from "../../../layouts/MainLayout";
 import FormUser from "../../../components/form_user/FormUser";
 import ActionButton from "../../../components/button/ActionButton";
 import { useNavigate } from "react-router-dom";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function CreateUser() {
   const [loading, setLoading] = useState(false);
+  const [position, setPosition] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [territory, setTerritory] = useState([]);
+  const [areas, setAreas] = useState([]);
+  const [roles, setRoles] = useState([]);
   const navigate = useNavigate();
   const [form] = Form.useForm();
+  const { showMsg } = useContext(AuthContext);
 
   const handleBack = () => {
     navigate("/setting/user");
+  };
+
+  useEffect(() => {
+    masterPosition();
+    masterDepartments();
+    masterTerritory();
+    masterAreas();
+    masterRoles();
+  }, []);
+
+  const masterPosition = () => {
+    useServiceAPI
+      .get(paths.pathMasterPosition, {
+        platform: "web",
+      })
+      .then((response) => {
+        if (response.status == 200) {
+          setPosition(response.data);
+        }
+      })
+      .catch((error) => {
+        if (error.status == 422) {
+          showMsg("error", error.message);
+        } else {
+          showMsg("error", "เกิดข้อผิดพลาด");
+        }
+      });
+  };
+
+  const masterDepartments = () => {
+    useServiceAPI
+      .get(paths.pathMasterDepartments, {
+        platform: "web",
+      })
+      .then((response) => {
+        if (response.status == 200) {
+
+          const updatedDepartments = response.data.map((department) => {
+            const { department_name, ...rest } = department;
+            return {
+              ...rest,
+              name: department_name,
+            };
+          });
+
+          setDepartments(updatedDepartments);
+        }
+      })
+      .catch((error) => {
+        if (error.status == 422) {
+          showMsg("error", error.message);
+        } else {
+          showMsg("error", "เกิดข้อผิดพลาด");
+        }
+      });
+  };
+
+  const masterTerritory = () => {
+    useServiceAPI
+      .get(paths.pathMasterTerritory, {
+        platform: "web",
+      })
+      .then((response) => {
+        if (response.status == 200) {
+          const updatedTerritories = response.data.map((territory) => {
+            const { territory_name, ...rest } = territory;
+            return {
+              ...rest,
+              name: territory_name,
+            };
+          });
+
+          setTerritory(updatedTerritories);
+        }
+      })
+      .catch((error) => {
+        if (error.status == 422) {
+          showMsg("error", error.message);
+        } else {
+          showMsg("error", "เกิดข้อผิดพลาด");
+        }
+      });
+  };
+
+  const masterAreas = () => {
+    useServiceAPI
+      .get(paths.pathMasterAreas, {
+        platform: "web",
+      })
+      .then((response) => {
+        if (response.status == 200) {
+          const updatedAreas = response.data.map((Areas) => {
+            const { area_name, ...rest } = Areas;
+            return {
+              ...rest,
+              name: area_name,
+            };
+          });
+
+          setAreas(updatedAreas);
+        }
+      })
+      .catch((error) => {
+        if (error.status == 422) {
+          showMsg("error", error.message);
+        } else {
+          showMsg("error", "เกิดข้อผิดพลาด");
+        }
+      });
+  };
+  
+  const masterRoles = () => {
+    useServiceAPI
+      .get(paths.pathMasterRoles, {
+        platform: "web",
+      })
+      .then((response) => {
+        if (response.status == 200) {
+       
+
+          setRoles(response.data);
+        }
+      })
+      .catch((error) => {
+        if (error.status == 422) {
+          showMsg("error", error.message);
+        } else {
+          showMsg("error", "เกิดข้อผิดพลาด");
+        }
+      });
   };
 
   const handleSave = () => {
@@ -26,6 +165,7 @@ export default function CreateUser() {
         console.error("Validation Failed:", errorInfo);
       });
   };
+  
   const formFields = [
     {
       label: "Name (EN)",
@@ -76,7 +216,7 @@ export default function CreateUser() {
       type: "select",
       required: true,
       col: 6,
-      options: ["Sales Assistant", "Manager", "Team Lead"],
+      options: position,
     },
     {
       label: "Department",
@@ -84,21 +224,23 @@ export default function CreateUser() {
       type: "select",
       required: false,
       col: 6,
-      options: ["Sales Team", "Marketing Team", "Support Team"],
+      options: departments,
     },
     {
       label: "Territory",
       name: "territory",
-      type: "text",
+      type: "select",
       required: false,
       col: 6,
+      options: territory,
     },
     {
       label: "Area",
       name: "area",
-      type: "text",
+      type: "select",
       required: false,
       col: 6,
+      options: areas,
     },
     {
       label: "Role",
@@ -106,7 +248,7 @@ export default function CreateUser() {
       type: "select",
       required: true,
       col: 6,
-      options: ["Individual Module", "Admin Module", "Viewer"],
+      options: roles,
     },
     {
       label: "Date of Joining",
@@ -121,7 +263,7 @@ export default function CreateUser() {
       type: "select",
       required: false,
       col: 6,
-      options: ["Active", "Inactive"],
+      options: position,
     },
   ];
 

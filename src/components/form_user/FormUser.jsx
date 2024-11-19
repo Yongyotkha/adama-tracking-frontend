@@ -22,7 +22,7 @@ export default function FormUser({ fields, title, profile, form }) {
       values[field.name] = field.value || null;
     }
     return values;
-  }, {});
+  }, { profilePicture: null });
 
   useEffect(() => {
     form.setFieldsValue(initialValues);
@@ -33,6 +33,12 @@ export default function FormUser({ fields, title, profile, form }) {
     if (file) {
       setImage(file);
       setImagePreview(URL.createObjectURL(file));
+
+      // อัปเดตค่าในฟอร์ม
+      form.setFieldsValue({
+        ...form.getFieldsValue(),
+        profilePicture: file,
+      });
     }
   };
 
@@ -83,9 +89,9 @@ export default function FormUser({ fields, title, profile, form }) {
                     placeholder={`Select ${field.label.toLowerCase()}`}
                     allowClear
                   >
-                    {field.options.map((option, idx) => (
-                      <Option key={idx} value={option}>
-                        {option}
+                    {field?.options?.map((option, idx) => (
+                      <Option key={idx} value={option.id}>
+                        {option.name}
                       </Option>
                     ))}
                   </Select>

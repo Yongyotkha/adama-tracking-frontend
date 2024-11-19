@@ -5,6 +5,7 @@ export const endPoint = "https://adama-api.mtsc.co.th/api";
 // export const endPoint = "http://localhost:8080/api";
 
 export const paths = {
+
   pathMasterUsers: "users",
   pathVerifyOtp: "verify-otp",
   pathMasterSale: "sale-management/list",
@@ -13,6 +14,14 @@ export const paths = {
   pathCustomerDealer: "sale-customer-dealer/list",
   pathCustomerSubDealer: "sale-customer-subdealer/list",
 
+
+  // Master
+  pathMasterPosition: "master/position",
+  pathMasterDepartments: "master/departments",
+  pathMasterTerritory: "master/territory",
+  pathMasterAreas: "master/areas",
+  pathMasterRoles: "master/roles",
+  pathMasterCrop: "master/crop",
 
    
 };

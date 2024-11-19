@@ -11,15 +11,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const { login } = useContext(AuthContext);
-  const [messageApi, contextHolder] = message.useMessage();
-
-  const showMsg = (type, content) => {
-    messageApi.open({
-      type,
-      content,
-    });
-  };
+  const { login, showMsg } = useContext(AuthContext);
 
   const onFinish = (values) => {
     login(username, password, setLoading)
@@ -44,10 +36,7 @@ export default function Login() {
         loading={loading}
         childrenStyle="flex justify-center items-center flex-col gap-6 h-full"
       >
-        {contextHolder}
-
         <div className="w-full max-w-lg mt-auto p-3">
-
           {/* Logo at the Top */}
           <Logo width="w-[100%]" className="mb-10" />
 
@@ -60,12 +49,13 @@ export default function Login() {
             onFinish={onFinish}
             onFinishFailed={onFinishFailed}
             autoComplete="off"
-
           >
             {/* Username Field */}
             <Form.Item
               name="username"
-              rules={[{ required: true, message: "Please input your phone number!" }]}
+              rules={[
+                { required: true, message: "Please input your phone number!" },
+              ]}
             >
               <Input
                 value={username}
@@ -78,7 +68,9 @@ export default function Login() {
             {/* Password Field */}
             <Form.Item
               name="password"
-              rules={[{ required: true, message: "Please input your password!" }]}
+              rules={[
+                { required: true, message: "Please input your password!" },
+              ]}
             >
               <Input.Password
                 placeholder="Password"
@@ -90,12 +82,25 @@ export default function Login() {
 
             <div className="flex justify-between mb-4">
               {/* Remember Me and Forgot Password */}
-              <Form.Item name="remember" valuePropName="checked" className="text-nowrap mb-0">
-                <Checkbox className="text-white hover:text-[#00783F]">Remember me</Checkbox>
+              <Form.Item
+                name="remember"
+                valuePropName="checked"
+                className="text-nowrap mb-0"
+              >
+                <Checkbox className="text-white hover:text-[#00783F]">
+                  Remember me
+                </Checkbox>
               </Form.Item>
 
-              <Form.Item name="remember" valuePropName="checked" className="text-nowrap mb-0">
-                <a href="/forgot-password" className="text-white hover:text-[#00783F]">
+              <Form.Item
+                name="remember"
+                valuePropName="checked"
+                className="text-nowrap mb-0"
+              >
+                <a
+                  href="/forgot-password"
+                  className="text-white hover:text-[#00783F]"
+                >
                   Forgot Password?
                 </a>
               </Form.Item>
@@ -115,7 +120,6 @@ export default function Login() {
             <div className="flex justify-center text-white">
               <p>Listen • Learn • Deliver</p>
             </div>
-
           </Form>
         </div>
 
