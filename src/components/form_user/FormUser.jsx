@@ -11,18 +11,25 @@ const dateFormat = "YYYY-MM-DD";
 
 export default function FormUser({ fields, title, profile, form }) {
   const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(profile || "/img/Image-not-found.png");
+  const [imagePreview, setImagePreview] = useState(
+    profile || "/img/Image-not-found.png"
+  );
 
-  const initialValues = fields.reduce((values, field) => {
-    if (field.type === "date") {
-      values[field.name] = field.value ? dayjs(field.value, dateFormat) : null;
-    } else if (field.type === "time" && field.value) {
-      values[field.name] = dayjs(field.value, "HH:mm");
-    } else {
-      values[field.name] = field.value || null;
-    }
-    return values;
-  }, { profilePicture: null });
+  const initialValues = fields.reduce(
+    (values, field) => {
+      if (field.type === "date") {
+        values[field.name] = field.value
+          ? dayjs(field.value, dateFormat)
+          : null;
+      } else if (field.type === "time" && field.value) {
+        values[field.name] = dayjs(field.value, "HH:mm");
+      } else {
+        values[field.name] = field.value || null;
+      }
+      return values;
+    },
+    { profilePicture: null }
+  );
 
   useEffect(() => {
     form.setFieldsValue(initialValues);
@@ -30,21 +37,24 @@ export default function FormUser({ fields, title, profile, form }) {
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
+    if (file && file.type.startsWith("image/")) {
       setImage(file);
       setImagePreview(URL.createObjectURL(file));
 
-      // อัปเดตค่าในฟอร์ม
       form.setFieldsValue({
         ...form.getFieldsValue(),
         profilePicture: file,
       });
+    } else {
+      showMsg("error", "โปรดเลือกไฟล์รูปภาพที่ถูกต้อง");
     }
   };
 
   return (
     <BoxPrimary>
-      {title && <div className="text-[#00783F] text-lg font-semibold mb-3">{title}</div>}
+      {title && (
+        <div className="text-[#00783F] text-lg font-semibold mb-3">{title}</div>
+      )}
       <Form form={form} layout="vertical">
         <div className="image-upload-container flex items-center gap-3 mb-4">
           <img
@@ -68,11 +78,16 @@ export default function FormUser({ fields, title, profile, form }) {
                 label={field.label}
                 name={field.name}
                 rules={[
-                  { required: field.required, message: `Please input ${field.label.toLowerCase()}` },
+                  {
+                    required: field.required,
+                    message: `Please input ${field.label.toLowerCase()}`,
+                  },
                 ]}
                 className="mb-3"
               >
-                {field.type === "text" || field.type === "email" || field.type === "tel" ? (
+                {field.type === "text" ||
+                field.type === "email" ||
+                field.type === "tel" ? (
                   <Input
                     type={field.type}
                     placeholder={`Enter ${field.label.toLowerCase()}`}
