@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Form, Input, DatePicker, TimePicker, Select, Col, Row, Button } from "antd";
+import React, { useEffect, useState } from "react";
+import { Form, Input, DatePicker, TimePicker, Select, Col, Row } from "antd";
 import BoxPrimary from "../box_primary/BoxPrimary";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -7,22 +7,26 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 dayjs.extend(customParseFormat);
 
 const { Option } = Select;
-const dateFormat = 'YYYY-MM-DD';
+const dateFormat = "YYYY-MM-DD";
 
-export default function FormUser({ fields, title, profile }) {
+export default function FormUser({ fields, title, profile, form }) {
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(profile || "/img/Image-not-found.png");
 
   const initialValues = fields.reduce((values, field) => {
     if (field.type === "date") {
-      values[field.name] = field.value ? dayjs(field.value, dateFormat) : dayjs();
+      values[field.name] = field.value ? dayjs(field.value, dateFormat) : null;
     } else if (field.type === "time" && field.value) {
       values[field.name] = dayjs(field.value, "HH:mm");
     } else {
-      values[field.name] = field.value;
+      values[field.name] = field.value || null;
     }
     return values;
   }, {});
+
+  useEffect(() => {
+    form.setFieldsValue(initialValues);
+  }, [initialValues, form]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -35,7 +39,7 @@ export default function FormUser({ fields, title, profile }) {
   return (
     <BoxPrimary>
       {title && <div className="text-[#00783F] text-lg font-semibold mb-3">{title}</div>}
-      <Form layout="vertical" initialValues={initialValues}>
+      <Form form={form} layout="vertical">
         <div className="image-upload-container flex items-center gap-3 mb-4">
           <img
             src={imagePreview}
@@ -50,75 +54,34 @@ export default function FormUser({ fields, title, profile }) {
             style={{ display: "none" }}
             id="imageUpload"
           />
-          <Button
-            icon={imagePreview !== "/img/Image-not-found.png" ? <EditOutlined /> : <PlusOutlined />}
-            onClick={() => document.getElementById("imageUpload").click()}
-            className="text-[#00783F] border-[#00783F]"
-          >
-            {imagePreview !== "/img/Image-not-found.png" ? "Edit Photo" : "Add Photo"}
-          </Button>
         </div>
-
         <Row gutter={[16, 16]} align="middle">
           {fields.map((field, index) => (
             <Col xs={24} sm={12} md={8} lg={field.col || 6} key={index}>
               <Form.Item
                 label={field.label}
                 name={field.name}
-                rules={[{ required: field.required, message: `Please select ${field.label.toLowerCase()}` }]}
+                rules={[
+                  { required: field.required, message: `Please input ${field.label.toLowerCase()}` },
+                ]}
                 className="mb-3"
               >
-                {field.type === "text" || field.type === "email" || field.type === "tel" || field.type === "number" ? (
+                {field.type === "text" || field.type === "email" || field.type === "tel" ? (
                   <Input
                     type={field.type}
                     placeholder={`Enter ${field.label.toLowerCase()}`}
                     disabled={field.disabled}
-                    prefix={
-                      field.iconPosition === "left" && field.iconSrc ? (
-                        <img src={field.iconSrc} alt="icon" className="inline-block h-4" />
-                      ) : null
-                    }
-                    suffix={
-                      field.iconPosition === "right" && field.iconSrc ? (
-                        <img src={field.iconSrc} alt="icon" className="inline-block h-4" />
-                      ) : null
-                    }
                   />
                 ) : field.type === "date" ? (
                   <DatePicker
                     style={{ width: "100%" }}
-                    disabled={field.disabled}
                     placeholder="Select Date"
                     format={dateFormat}
                   />
-                ) : field.type === "time" ? (
-                  <TimePicker format="HH:mm" style={{ width: "100%" }} disabled={field.disabled} />
                 ) : field.type === "select" ? (
                   <Select
                     placeholder={`Select ${field.label.toLowerCase()}`}
-                    disabled={field.disabled}
                     allowClear
-                  >
-                    {field.options.map((option, idx) => (
-                      <Option key={idx} value={option}>
-                        {option}
-                      </Option>
-                    ))}
-                  </Select>
-                ) : field.type === "multiple" ? (
-                  <Select
-                    mode="multiple"
-                    placeholder={`Select ${field.label.toLowerCase()}`}
-                    allowClear
-                    suffixIcon={
-                      field.iconSrc ? (
-                        <img src={field.iconSrc} alt="icon" className="inline-block h-4" />
-                      ) : null
-                    }
-                    style={{ width: "100%" }}
-                    onChange={(value) => {
-                      console.log("Selected Office Hours:", value);
-                    }}
                   >
                     {field.options.map((option, idx) => (
                       <Option key={idx} value={option}>

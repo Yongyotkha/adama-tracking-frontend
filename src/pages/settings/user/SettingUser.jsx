@@ -57,33 +57,9 @@ export default function SettingUser() {
     },
   ];
 
-  const handleSearch = (filter) => {
-    // console.log("Search filters applied:", filter);
-    const filtered = dataSource.filter((user) => {
-      const matchesName =
-        !filter.name ||
-        user.name.toLowerCase().includes(filter.name.toLowerCase());
-      const matchesContactNumber =
-        !filter.contact_number ||
-        user.contact_number.includes(filter.contact_number);
-      const matchesPosition =
-        !filter.position || user.position === filter.position;
-      const matchesRole = !filter.role || user.role === filter.role;
 
-      return (
-        matchesName && matchesContactNumber && matchesPosition && matchesRole
-      );
-    });
-
-    setFilteredUsers(filtered);
-  };
 
   const handleClear = () => {
-    // console.log("Filters cleared");
-    // Reset search fields
-    // setSearch("");
-
-    // Reset filtered data to show all users
     setFilteredUsers(dataSource);
   };
 
@@ -162,9 +138,8 @@ export default function SettingUser() {
 
   // Fetch Data -> Table
   useEffect(() => {
-    const body = {};
     useServiceAPI
-      .get(paths.pathMasterUsers, body, setLoading)
+      .get(paths.pathMasterUsers, {}, setLoading)
       .then((response) => {
         if (response.status == 200) {
           const newDataSource = response.data.map((data, index) => ({

@@ -10,14 +10,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "" }) => {
           onClick={onClick}
           disabled={disabled}
         >
-          {/* <div>
-            <img
-              src="/img/icons/plus.png"
-              alt="button icon"
-              className="inline-block h-4"
-            />
-          </div> */}
-          <PlusOutlined className="inline-block text-[16px]" /> {/* Ant Design icon */}
+          <PlusOutlined className="inline-block text-[16px]" />
           <div>{text}</div>
         </button>
       )}
@@ -45,15 +38,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "" }) => {
           onClick={onClick}
           disabled={disabled}
         >
-          {/* <div>
-            <img
-              src="/img/icons/plus.png"
-              alt="button icon"
-              className="inline-block h-4"
-            />
-          </div> */}
-          <PlusOutlined className="inline-block text-[16px]" /> {/* Ant Design icon */}
-
+          <PlusOutlined className="inline-block text-[16px]" />
           <div>{text}</div>
         </button>
       )}

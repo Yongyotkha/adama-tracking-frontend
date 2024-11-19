@@ -1,24 +1,31 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { Form } from "antd";
 import MainLayout from "../../../layouts/MainLayout";
 import FormUser from "../../../components/form_user/FormUser";
-import DynamicButton from "../../../components/button/DynamicButton";
-import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
+import { useNavigate } from "react-router-dom";
 
 export default function CreateUser() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {}, []);
+  const [form] = Form.useForm();
 
   const handleBack = () => {
     navigate("/setting/user");
   };
 
   const handleSave = () => {
-    navigate("/setting/user");
+    form
+      .validateFields()
+      .then((values) => {
+        console.log("Form Values:", values);
+        // ส่งข้อมูลไปยัง API
+        // Example: axios.post('/api/users', values)
+      })
+      .catch((errorInfo) => {
+        console.error("Validation Failed:", errorInfo);
+      });
   };
-
   const formFields = [
     {
       label: "Name (EN)",
@@ -38,7 +45,7 @@ export default function CreateUser() {
       label: "Sales Employee Code",
       name: "employee_code",
       type: "text",
-      required: true,
+      // required: true,
       col: 6,
       disabled: true,
     },
@@ -121,9 +128,8 @@ export default function CreateUser() {
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Create User</div>
-
-      <FormUser fields={formFields} />
-      <div className="flex justify-end space-x-4">
+      <FormUser fields={formFields} form={form} />
+      <div className="flex justify-end space-x-4 mt-4">
         <ActionButton text="Back" mode="back" onClick={handleBack} />
         <ActionButton text="Save" mode="save" onClick={handleSave} />
       </div>
