@@ -19,8 +19,6 @@ const Navbar = () => {
 
   const { userInfo, logout } = useContext(AuthContext);
 
-  console.log(userInfo.name_th);
-
   const menuItems = [
     {
       label: "Dashboard",
@@ -373,7 +371,7 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center w-1/6 justify-end">
-        <span className="text-white hidden md:block">{userInfo.name_th}</span>
+        <span className="text-white hidden md:block">{userInfo?.name_th}</span>
 
         <Dropdown
           overlay={<CustomDropdownMenuProfile items={userMenuItems} />}
