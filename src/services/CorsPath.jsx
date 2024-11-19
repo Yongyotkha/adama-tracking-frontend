@@ -23,5 +23,8 @@ export const paths = {
   pathMasterRoles: "master/roles",
   pathMasterCrop: "master/crop",
 
+  // create user
+  pathRegister: "register",
+
    
 };
