@@ -7,7 +7,7 @@ import { Input, InputNumber, Table } from "antd";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 
-export default function WorkPlanCreate() {
+export default function EditWorkPlan() {
   const initialData = [
     {
       key: "1",
@@ -162,9 +162,9 @@ export default function WorkPlanCreate() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <div className="title-page">Create Work Plan</div>
+        <div className="title-page">Edit Work Plan</div>
         <BoxPrimary>
-          <div className="text-[#00783F] text-2xl pb-3">Work Plan</div>
+          <div className="text-[#00783F] text-xl pb-5">Work Plan</div>
           <TableComponent
             header={header}
             dataSource={dataSource}

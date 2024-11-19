@@ -164,7 +164,7 @@ export default function WorkPlanCreate() {
       <MainLayout loading={loading} childrenStyle={""}>
         <div className="title-page">Create Work Plan</div>
         <BoxPrimary>
-          <div className="text-[#00783F] text-2xl pb-3">Work Plan</div>
+          <div className="text-[#00783F] text-xl pb-5">Work Plan</div>
           <TableComponent
             header={header}
             dataSource={dataSource}
@@ -173,7 +173,7 @@ export default function WorkPlanCreate() {
               <Table.Summary fixed>
                 <Table.Summary.Row className="bg-[#978B87]">
                   <Table.Summary.Cell index={0} colSpan={3}>
-                    Total (THB)
+                    <span className="text-white">Total (THB)</span>
                   </Table.Summary.Cell>
                   <Table.Summary.Cell>
                     <InputNumber

@@ -101,6 +101,52 @@ export default function RollingForecast() {
     console.log("Filters cleared");
   };
 
+  const dropdownItems = [
+    {
+      key: "1",
+      label: (
+        <ItemDropDown
+          mode="edit"
+          text="Edit"
+          onClick={() => navigate("/sale-plan/work-plan/edit")}
+        />
+      ),
+    },
+    {
+      key: "2",
+      label: (
+        <ItemDropDown
+          mode="view"
+          text="View"
+          onClick={() => navigate("/sale-plan/work-plan")}
+        />
+      ),
+    },
+  ];
+
+  const sub_items = [
+    {
+      key: "1",
+      label: (
+        <ItemDropDown
+          mode="edit"
+          text="Edit"
+          onClick={() => navigate("/sale-plan/rolling-forecast/edit")}
+        />
+      ),
+    },
+    {
+      key: "2",
+      label: (
+        <ItemDropDown
+          mode="view"
+          text="View"
+          onClick={() => navigate("/sale-plan/rolling-forecast")}
+        />
+      ),
+    },
+  ];
+
   const columns = [
     { title: "Year", dataIndex: "year", key: "year", width: 100 },
     { title: "Work Plan (THB)", dataIndex: "workPlan", key: "workPlan", width: 150 },
@@ -150,51 +196,7 @@ export default function RollingForecast() {
     },
   ];
 
-  const dropdownItems = [
-    {
-      key: "1",
-      label: (
-        <ItemDropDown
-          mode="edit"
-          text="Edit"
-          onClick={() => navigate("edit")}
-        />
-      ),
-    },
-    {
-      key: "2",
-      label: (
-        <ItemDropDown
-          mode="view"
-          text="View"
-          onClick={() => navigate("/sale-plan/work-plan/edit")}
-        />
-      ),
-    },
-  ];
 
-  const sub_items = [
-    {
-      key: "1",
-      label: (
-        <ItemDropDown
-          mode="edit"
-          text="Edit"
-          // onClick={() => navigate("/sale-plan/work-plan/create")}
-        />
-      ),
-    },
-    {
-      key: "2",
-      label: (
-        <ItemDropDown
-          mode="view"
-          text="View"
-          onClick={() => navigate("/sale-plan/work-plan/edit")}
-        />
-      ),
-    },
-  ];
 
   return (
     <MainLayout loading={loading} childrenStyle="">

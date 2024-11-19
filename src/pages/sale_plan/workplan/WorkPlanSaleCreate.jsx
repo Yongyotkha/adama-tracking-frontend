@@ -707,7 +707,7 @@ export default function WorkPlanSaleCreate() {
         </BoxPrimary>
 
         <BoxPrimary>
-          <div className="text-[#00783F] text-2xl pb-3">Monthly Sale Plan</div>
+          <div className="text-[#00783F] text-xl pb-5">Monthly Sale Plan</div>
 
           <TableCustomComponent
             header={columns}

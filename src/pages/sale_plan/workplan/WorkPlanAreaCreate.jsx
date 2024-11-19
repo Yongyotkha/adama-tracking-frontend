@@ -59,8 +59,8 @@ export default function WorkPlanAreaCreate() {
                 backgroundColor: isFirstLevelChild
                   ? "#CBC5C3"
                   : isLastLevelChild
-                  ? parentBgColor
-                  : null,
+                    ? parentBgColor
+                    : null,
                 color: isLastLevelChild ? textColor : "black",
                 fontWeight: "bold",
                 textAlign: "left",
@@ -90,7 +90,7 @@ export default function WorkPlanAreaCreate() {
 
   const baseColumns = [
     {
-      title: "Sale Territory Name",
+      title: "Sale By Territory",
       children: [
         {
           title: "Territory",
@@ -413,7 +413,7 @@ export default function WorkPlanAreaCreate() {
         },
       ],
     },
-    
+
   ];
 
   const columns = applyTopLevelAndSpecificChildrenStyles(baseColumns);
@@ -433,8 +433,8 @@ export default function WorkPlanAreaCreate() {
         </BoxPrimary>
 
         <BoxPrimary>
-          <div className="text-[#00783F] text-2xl pb-3">
-            Sale Territory Name
+          <div className="text-[#00783F] text-xl pb-5">
+            Sale By Territory
           </div>
 
           <TableCustomComponent

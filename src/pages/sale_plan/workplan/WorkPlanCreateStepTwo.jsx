@@ -76,7 +76,7 @@ export default function WorkPlanCreateStepTwo() {
   const baseColumns = [
     // default column
     {
-      title: "Sale Territory Name",
+      title: "Sale By Territory",
       children: [
         {
           title: "Sale Plan (THB)",
@@ -148,7 +148,7 @@ export default function WorkPlanCreateStepTwo() {
 
     // api
     {
-      title: "Veerasak Likitmanchai (Area1)",
+      title: "Veerasak Likitmanchai",
       children: [
         {
           title: (
@@ -203,7 +203,7 @@ export default function WorkPlanCreateStepTwo() {
       ],
     },
     {
-      title: "Cheerayut Inthong (Area2)",
+      title: "Cheerayut Inthong",
       children: [
         {
           title: (
@@ -285,7 +285,7 @@ export default function WorkPlanCreateStepTwo() {
         </BoxPrimary>
 
         <BoxPrimary>
-          <div className="text-[#00783F] text-2xl pb-3">Work Plan</div>
+          <div className="text-[#00783F] text-xl pb-5">Work Plan</div>
           <TableCustomComponent
             header={columns}
             dataSource={dataSource}

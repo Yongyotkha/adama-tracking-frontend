@@ -90,18 +90,18 @@ export default function WorkPlan() {
         { value: "Pending", label: "Pending" },
       ],
     },
-    {
-      key: "productName",
-      type: "text",
-      label: "Product Name",
-      placeholder: "Enter product name",
-    },
-    {
-      key: "quantity",
-      type: "number",
-      label: "Quantity",
-      placeholder: "Enter quantity",
-    },
+    // {
+    //   key: "productName",
+    //   type: "text",
+    //   label: "Product Name",
+    //   placeholder: "Enter product name",
+    // },
+    // {
+    //   key: "quantity",
+    //   type: "number",
+    //   label: "Quantity",
+    //   placeholder: "Enter quantity",
+    // },
   ];
 
   const handleSearch = (filter) => {

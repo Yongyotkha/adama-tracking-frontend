@@ -61,6 +61,9 @@ import EditActivity from "./pages/activity/EditActivity";
 import ViewOrder from "./pages/order/ViewOrder";
 import ViewOrderWaiting from "./pages/order/ViewOrderWaiting";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import WorkPlanSaleByDealer from "./pages/sale_plan/workplan/WorkPlanSaleByDealer";
+import EditWorkPlan from "./pages/sale_plan/workplan/EditWorkPlan";
+import EditRollingForecast from "./pages/sale_plan/rolling_forecast/EditRollingForecast";
 
 
 const App = () => {
@@ -82,8 +85,10 @@ const App = () => {
           <Route path="/" element={ <Dashboard />} />
           <Route path="/sale-plan/work-plan" element={<WorkPlan />} />
           <Route path="/sale-plan/work-plan/create" element={<WorkPlanCreate />} />
+          <Route path="/sale-plan/work-plan/edit" element={<EditWorkPlan />} />
           <Route path="/sale-plan/work-plan/create-2" element={<WorkPlanCreateStepTwo />} />
           <Route path="/sale-plan/rolling-forecast" element={<RollingForecast />} />
+          <Route path="/sale-plan/rolling-forecast/edit" element={<EditRollingForecast />} />
 
           {/* Activity Route */}
           <Route path="/activity/list" element={<ActivityList />} />
@@ -146,6 +151,7 @@ const App = () => {
           <Route path="/sale-plan/work-plan/sale-area-create" element={<WorkPlanAreaCreate />} />
           <Route path="/sale-plan/work-plan/sale-create" element={<WorkPlanSaleCreate />} />
           <Route path="/sale-plan/work-plan/sale-by-crop" element={<WorkPlanSaleByCrop />} />
+          <Route path="/sale-plan/work-plan/sale-by-dealer" element={<WorkPlanSaleByDealer />} />
 
         </Routes>
       </AuthProvider>

@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import TableCustomComponent from "../../../components/table/TableCustomComponent";
 import ActionButton from "../../../components/button/ActionButton";
 
-export default function WorkPlanSaleByCrop() {
+export default function WorkPlanSaleByDealer() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
@@ -232,7 +232,7 @@ export default function WorkPlanSaleByCrop() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <div className="title-page">Sale By Crop</div>
+        <div className="title-page">Sale By Dealer</div>
 
         <BoxPrimary>
           <div className="flex flex-col gap-2">
@@ -244,7 +244,7 @@ export default function WorkPlanSaleByCrop() {
         </BoxPrimary>
 
         <BoxPrimary>
-          <div className="text-[#00783F] text-2xl pb-3">Crop List</div>
+          <div className="text-[#00783F] text-xl pb-5">Crop List</div>
 
           <TableCustomComponent
             header={headerSource}
@@ -319,7 +319,7 @@ export default function WorkPlanSaleByCrop() {
             }}
           />
           <ActionButton
-            text="Save"
+            text="Save and Next"
             mode="save"
             onClick={() => navigate("/sale-plan/work-plan")}
           />

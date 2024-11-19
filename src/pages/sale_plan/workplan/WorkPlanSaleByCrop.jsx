@@ -244,7 +244,7 @@ export default function WorkPlanSaleByCrop() {
         </BoxPrimary>
 
         <BoxPrimary>
-          <div className="text-[#00783F] text-2xl pb-3">Crop List</div>
+          <div className="text-[#00783F] text-xl pb-5">Crop List</div>
 
           <TableCustomComponent
             header={headerSource}
@@ -321,7 +321,7 @@ export default function WorkPlanSaleByCrop() {
           <ActionButton
             text="Save and Next"
             mode="save"
-            onClick={() => navigate("/sale-plan/work-plan")}
+            onClick={() => navigate("/sale-plan/work-plan/sale-by-dealer")}
           />
         </div>
       </MainLayout>
