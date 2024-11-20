@@ -63,9 +63,10 @@ export default function CreateUser() {
         console.log("Form Values:", values);
 
         useServiceAPI
-          .post(paths.pathMasterUsers, {}, setLoading)
+          .post(paths.pathRegister, {}, setLoading)
           .then((response) => {
             if (response.status == 200) {
+              
             }
           })
           .catch((error) => {
