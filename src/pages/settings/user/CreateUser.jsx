@@ -29,11 +29,11 @@ export default function CreateUser() {
       try {
         const [positions, departments, territories, areas, roles] =
           await Promise.all([
-            useServiceAPI.get(paths.pathMasterPosition, { platform: "web" }),
-            useServiceAPI.get(paths.pathMasterDepartments, { platform: "web" }),
-            useServiceAPI.get(paths.pathMasterTerritory, { platform: "web" }),
-            useServiceAPI.get(paths.pathMasterAreas, { platform: "web" }),
-            useServiceAPI.get(paths.pathMasterRoles, { platform: "web" }),
+            useServiceAPI.get(paths.pathMasterPosition, {}),
+            useServiceAPI.get(paths.pathMasterDepartments, {}),
+            useServiceAPI.get(paths.pathMasterTerritory, {}),
+            useServiceAPI.get(paths.pathMasterAreas, {}),
+            useServiceAPI.get(paths.pathMasterRoles, {}),
           ]);
 
         setPosition(positions.data);

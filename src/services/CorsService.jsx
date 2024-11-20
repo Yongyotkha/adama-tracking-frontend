@@ -59,11 +59,19 @@ const notifyLoadingState = (callback, state) => {
 const handleRequest = async (method, url, dataOrParams, onLoadingChange) => {
   try {
     notifyLoadingState(onLoadingChange, true);
+
+    // เพิ่ม platform: "web" ลงใน params หรือ data
+    const requestData =
+      method === "get"
+        ? { ...dataOrParams, platform: "web" }
+        : { ...dataOrParams, platform: "web" };
+
     const response = await axiosInstance({
       method,
       url,
-      ...(method === "get" ? { params: dataOrParams } : { data: dataOrParams }),
+      ...(method === "get" ? { params: requestData } : { data: requestData }),
     });
+
     return response.data;
   } catch (error) {
     if (error.response && error.response.status === 401) {
