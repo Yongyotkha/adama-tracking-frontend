@@ -21,9 +21,28 @@ export default function WorkPlan() {
         year: "2024",
         action: (
           <Dropdown
-            menu={{
-              items,
-            }}
+          menu={{
+            items:[{
+              key: "1",
+              label: (
+                <ItemDropDown
+                  mode="edit"
+                  text={"Create"}
+                  onClick={(e) => navigate("/sale-plan/work-plan/create")}
+                />
+              ),
+            },
+            {
+              key: "2",
+              label: (
+                <ItemDropDown
+                  mode="edit"
+                  text={"Edit"}
+                  onClick={(e) => navigate("/sale-plan/work-plan/edit")}
+                />
+              ),
+            },],
+          }}
             placement="bottom"
           >
             <a onClick={(e) => e.preventDefault()}>
@@ -47,7 +66,26 @@ export default function WorkPlan() {
         action: (
           <Dropdown
             menu={{
-              items,
+              items:[{
+                key: "1",
+                label: (
+                  <ItemDropDown
+                    mode="edit"
+                    text={"Create"}
+                    onClick={(e) => navigate("/sale-plan/work-plan/create")}
+                  />
+                ),
+              },
+              {
+                key: "2",
+                label: (
+                  <ItemDropDown
+                    mode="edit"
+                    text={"Edit"}
+                    onClick={(e) => navigate("/sale-plan/work-plan/edit")}
+                  />
+                ),
+              },],
             }}
             placement="bottom"
           >

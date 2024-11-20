@@ -158,9 +158,9 @@ export default function SettingUser() {
 
   // Fetch Data -> Table
   useEffect(() => {
-    const body = {};
+   
     useServiceAPI
-      .get(paths.pathMasterUsers, body, setLoading)
+      .get(paths.pathMasterUsers, {}, setLoading)
       .then((response) => {
         if (response.status == 200) {
           const newDataSource = response.data.map((data, index) => ({
@@ -200,8 +200,6 @@ export default function SettingUser() {
         }
       })
       .catch((error) => {
-        console.log(error.message);
-        setError(error.message);
         if (error.status == 422) {
           showMsg("error", error.message);
         } else {

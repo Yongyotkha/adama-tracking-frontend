@@ -43,7 +43,8 @@ export default function CreateUser() {
         setTerritory(
           territories.data.map((t) => ({ ...t, name: t.territory_name }))
         );
-        setAreas(areas.data.map((a) => ({ ...a, name: a.area_name })));
+        // setAreas(areas.data.map((a) => ({ ...a, name: a.area_name })));
+        setAreas(areas.data);
         setRoles(roles.data);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -60,8 +61,22 @@ export default function CreateUser() {
       .validateFields()
       .then((values) => {
         console.log("Form Values:", values);
-        // ส่งข้อมูลไปยัง API
-        // Example: axios.post('/api/users', values)
+
+        useServiceAPI
+          .post(paths.pathMasterUsers, {}, setLoading)
+          .then((response) => {
+            if (response.status == 200) {
+            }
+          })
+          .catch((error) => {
+            if (error.status == 422) {
+              showMsg("error", error.message);
+            } else {
+              showMsg("error", "เกิดข้อผิดพลาด");
+            }
+          });
+
+
       })
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
@@ -165,7 +180,10 @@ export default function CreateUser() {
       type: "select",
       required: false,
       col: 6,
-      options: position,
+      options: [
+        { name: "Active", id: 1 },
+        { name: "Inactive", id: 0 },
+      ],
     },
   ];
 
