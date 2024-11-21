@@ -56,7 +56,6 @@ export const AuthProvider = ({ children }) => {
         username,
         password,
       });
-      // console.log(response);
 
       if (response) {
         const userData = response.data.data.user;

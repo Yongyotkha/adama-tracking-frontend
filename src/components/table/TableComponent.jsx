@@ -10,6 +10,8 @@ const TableComponent = ({
   footer,
   pagination,
   scroll,
+  loading,
+  onChange
 }) => {
   return (
     <ConfigProvider
@@ -34,13 +36,15 @@ const TableComponent = ({
       <Table
         columns={header}
         dataSource={dataSource}
+        loading={loading}
         pagination={
-          pagination === false ? pagination : { pageSize: pageSize ?? 10 }
+          pagination
         }
         scroll={{
           x: scroll ? "max-content" : 1000,
         }}
-        summary={footer} // Use the footer prop here for summary rows
+        summary={footer} 
+        onChange={onChange}
       />
     </ConfigProvider>
   );

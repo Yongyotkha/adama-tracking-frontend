@@ -12,20 +12,163 @@ import { paths } from "../../../services/CorsPath";
 
 export default function SettingUser() {
   const navigate = useNavigate();
+  const [roles, setRoles] = useState([]);
+  const [position, setPosition] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [tableParams, setTableParams] = useState({
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+    filters: {},
+    sortOrder: null,
+    sortField: null,
+  });
+
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [positions, roles] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterPosition, {}),
+          useServiceAPI.get(paths.pathMasterRoles, {}),
+        ]);
+
+        setPosition(positions.data);
+        setRoles(roles.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, []);
+
+  const fetchData = async () => {
+    setTableLoading(true);
+    const { current, pageSize } = tableParams.pagination;
+    const filters = tableParams.filters || {};
+    const sortOrder = tableParams.sortOrder || "asc";
+    const sortField = tableParams.sortField || "name_en";
+
+    const requestData = {
+      keyword: filters.keyword || "",
+      user_id: filters.user_id || "",
+      contact_number: filters.contact_number || "",
+      position_id: filters.position || "",
+      role_id: filters.role || "",
+      use_flag: filters.use_flag || "",
+      orderby_column: sortField,
+      orderby: sortOrder,
+      page_length: current,
+      page_size: pageSize,
+    };
+
+    try {
+      const response = await useServiceAPI.get(
+        paths.pathMasterUsers,
+        requestData
+      );
+
+      if (response.status === 200) {
+        const { data, records_filtered } = response.data;
+
+        const newDataSource = data.map((user, index) => ({
+          key: index + 1 + (current - 1) * pageSize,
+          action: (
+            <Dropdown
+              menu={{
+                items: user.action.map((actionItem, actionIndex) => ({
+                  key: actionIndex,
+                  label: (
+                    <a
+                      rel="noopener noreferrer"
+                      href={actionItem.action_url || "#"}
+                      className="flex gap-1"
+                    >
+                      <img
+                        src={actionItem.action_icon || "/img/icons/edit.png"}
+                        alt="button icon"
+                        className="inline-block h-5"
+                      />
+
+                      <span className="text-[#978B87]">
+                        {actionItem.action}
+                      </span>
+                    </a>
+                  ),
+                })),
+              }}
+              placement="bottom"
+            >
+              <a onClick={(e) => e.preventDefault()}>
+                <img
+                  src="/img/icons/action.png"
+                  alt="button icon"
+                  className="inline-block w-5 h-5 mr-2"
+                />
+              </a>
+            </Dropdown>
+          ),
+          name: user.name_en,
+          status: (
+            <BadgeStatus
+              text={user.status_name}
+              bgColor={user.status_bg_color}
+              textColor={user.status_color}
+            />
+          ),
+          contact_number: user.username,
+          email: user.email,
+          position: user.position_name,
+          role: user.role_name,
+        }));
+
+        setDataSource(newDataSource);
+        setTableParams({
+          ...tableParams,
+          pagination: {
+            ...tableParams.pagination,
+            total: records_filtered,
+          },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    tableParams.sortOrder,
+    tableParams.sortField,
+    JSON.stringify(tableParams.filters),
+  ]);
+
+  const handleTableChange = (pagination, filters, sorter) => {
+    setTableParams({
+      pagination,
+      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortField: sorter.field,
+    });
+  };
 
   const filters = [
     {
       key: "name",
       type: "select",
       label: "Name",
-      options: [
-        // { value: "John Doe", label: "John Doe" },
-        // { value: "Jane Smith", label: "Jane Smith" },
-        // Add more names as options if needed
-      ],
+      options: [],
     },
     {
       key: "contact_number",
@@ -37,53 +180,30 @@ export default function SettingUser() {
       key: "position",
       type: "select",
       label: "Position",
-      options: [
-        // { value: "Manager", label: "Manager" },
-        // { value: "Sales Assistant", label: "Sales Assistant" },
-        // { value: "Director", label: "Director" },
-        // Add more positions as needed
-      ],
+      options: position,
     },
     {
       key: "role",
       type: "select",
       label: "Role",
-      options: [
-        // { value: "Admin", label: "Admin" },
-        // { value: "User", label: "User" },
-        // { value: "Viewer", label: "Viewer" },
-        // Add more roles as needed
-      ],
+      options: roles,
     },
   ];
 
-  const handleSearch = (filter) => {
-    // console.log("Search filters applied:", filter);
-    const filtered = dataSource.filter((user) => {
-      const matchesName =
-        !filter.name ||
-        user.name.toLowerCase().includes(filter.name.toLowerCase());
-      const matchesContactNumber =
-        !filter.contact_number ||
-        user.contact_number.includes(filter.contact_number);
-      const matchesPosition =
-        !filter.position || user.position === filter.position;
-      const matchesRole = !filter.role || user.role === filter.role;
-
-      return (
-        matchesName && matchesContactNumber && matchesPosition && matchesRole
-      );
+  const handleSearch = (filters) => {
+    setTableParams({
+      ...tableParams,
+      filters,
     });
-
-    setFilteredUsers(filtered);
   };
 
   const handleClear = () => {
- 
-    setFilteredUsers(dataSource);
+    setTableParams({
+      ...tableParams,
+      filters: {},
+    });
   };
-
-  // Data in Table
+  
   const header = [
     {
       title: "No",
@@ -135,79 +255,6 @@ export default function SettingUser() {
     },
   ];
 
-  // Action Option
-  const items = [
-    {
-      key: "1",
-      label: (
-        <a
-          rel="noopener noreferrer"
-          href="/setting/user/edit/"
-          className="flex gap-1"
-        >
-          <img
-            src="/img/icons/edit.png"
-            alt="button icon"
-            className="inline-block h-5"
-          />
-          <span className="text-[#978B87]">Edit</span>
-        </a>
-      ),
-    },
-  ];
-
-  // Fetch Data -> Table
-  useEffect(() => {
-   
-    useServiceAPI
-      .get(paths.pathMasterUsers, {}, setLoading)
-      .then((response) => {
-        if (response.status == 200) {
-          const newDataSource = response.data.map((data, index) => ({
-            key: index + 1,
-            action: (
-              <Dropdown
-                menu={{
-                  items,
-                }}
-                placement="bottom"
-              >
-                <a onClick={(e) => e.preventDefault()}>
-                  <img
-                    src="/img/icons/action.png"
-                    alt="button icon"
-                    className="inline-block w-5 h-5 mr-2"
-                  />
-                </a>
-              </Dropdown>
-            ),
-            name: data.name_en,
-            status: (
-              <BadgeStatus
-                text={data.use_flag}
-                bgColor="#00783F"
-                textColor="#FFFFFF"
-              />
-            ),
-            contact_number: data.username,
-            email: data.email,
-            position: data.position_name,
-            role: data.role_name,
-          }));
-
-          setDataSource(newDataSource);
-          setFilteredUsers(newDataSource);
-        }
-      })
-      .catch((error) => {
-        if (error.status == 422) {
-          showMsg("error", error.message);
-        } else {
-          showMsg("error", "เกิดข้อผิดพลาด");
-        }
-      });
-  }, []);
-
   return (
     <>
       <MainLayout loading={loading}>
@@ -233,7 +280,13 @@ export default function SettingUser() {
         />
 
         <BoxPrimary>
-          <TableComponent header={header} dataSource={filteredUsers} />
+          <TableComponent
+            header={header}
+            dataSource={dataSource}
+            pagination={tableParams.pagination}
+            loading={tableLoading}
+            onChange={handleTableChange}
+          />
         </BoxPrimary>
       </MainLayout>
     </>

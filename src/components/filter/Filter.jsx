@@ -43,12 +43,13 @@ const Filter = ({ onSearch, onClear, filters }) => {
         <>
           <Row gutter={16} className="p-4">
             {filters.map((filter) => (
-              <Col className="mb-3"
+              <Col
+                className="mb-3"
                 key={filter.key}
-                xs={24}    // 1 column for extra-small screens (<576px)
-                sm={12}    // 2 columns for small screens (≥576px)
-                md={8}     // 3 columns for medium screens (≥768px)
-                lg={6}     // 4 columns for large screens (≥992px)
+                xs={24} // 1 column for extra-small screens (<576px)
+                sm={12} // 2 columns for small screens (≥576px)
+                md={8} // 3 columns for medium screens (≥768px)
+                lg={6} // 4 columns for large screens (≥992px)
               >
                 <label className="block text-gray-700">{filter.label}</label>
                 {filter.type === "select" && (
@@ -59,9 +60,9 @@ const Filter = ({ onSearch, onClear, filters }) => {
                     className="w-full"
                   >
                     <Option value="">{filter.placeholder || "All"}</Option>
-                    {filter.options.map((option) => (
-                      <Option key={option.value} value={option.value}>
-                        {option.label}
+                    {filter.options.map((option, key) => (
+                      <Option key={key} value={option.id}>
+                        {option.name}
                       </Option>
                     ))}
                   </Select>
@@ -89,7 +90,11 @@ const Filter = ({ onSearch, onClear, filters }) => {
                 )}
                 {filter.type === "date" && (
                   <DatePicker
-                    value={filterValues[filter.key] ? dayjs(filterValues[filter.key]) : null}
+                    value={
+                      filterValues[filter.key]
+                        ? dayjs(filterValues[filter.key])
+                        : null
+                    }
                     onChange={(date, dateString) =>
                       handleFilterChange(filter.key, dateString)
                     }
