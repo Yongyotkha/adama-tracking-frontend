@@ -64,6 +64,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import WorkPlanSaleByDealer from "./pages/sale_plan/workplan/WorkPlanSaleByDealer";
 import EditWorkPlan from "./pages/sale_plan/workplan/EditWorkPlan";
 import EditRollingForecast from "./pages/sale_plan/rolling_forecast/EditRollingForecast";
+import FirstChangePassword from "./pages/auth/FirstChangePassword";
 
 
 const App = () => {
@@ -77,7 +78,7 @@ const App = () => {
           <Route path="/verify-otp" element={<Verify />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/change-password" element={<ChangePassword />} />
-
+          <Route path="/first-change-password" element={<FirstChangePassword />} />
 
 
           {/* Protected Routes */}
