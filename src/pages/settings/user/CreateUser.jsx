@@ -37,12 +37,8 @@ export default function CreateUser() {
           ]);
 
         setPosition(positions.data);
-        setDepartments(
-          departments.data.map((d) => ({ ...d, name: d.department_name }))
-        );
-        setTerritory(
-          territories.data.map((t) => ({ ...t, name: t.territory_name }))
-        );
+        setDepartments(departments.data);
+        setTerritory(territories.data);
         // setAreas(areas.data.map((a) => ({ ...a, name: a.area_name })));
         setAreas(areas.data);
         setRoles(roles.data);
@@ -66,7 +62,6 @@ export default function CreateUser() {
           .post(paths.pathRegister, {}, setLoading)
           .then((response) => {
             if (response.status == 200) {
-              
             }
           })
           .catch((error) => {
@@ -76,8 +71,6 @@ export default function CreateUser() {
               showMsg("error", "เกิดข้อผิดพลาด");
             }
           });
-
-
       })
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
