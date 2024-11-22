@@ -30,10 +30,14 @@ export const AuthProvider = ({ children }) => {
     if (callback) callback(loading);
   };
 
-  const showMsg = (type, content) => {
-    messageApi.open({
-      type,
-      content,
+  const showMsg = (type, content, duration = 2) => {
+    return new Promise((resolve) => {
+      messageApi.open({
+        type,
+        content,
+        onClose: resolve, // เรียก resolve เมื่อข้อความปิด
+        duration: duration, // กำหนดระยะเวลาแสดงข้อความ (2 วินาที)
+      });
     });
   };
 
@@ -66,10 +70,8 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("users", JSON.stringify(userData));
         localStorage.setItem("accessToken", accessToken);
 
-
         return response.data;
       }
-
     } catch (error) {
       throw error;
     } finally {
@@ -84,7 +86,7 @@ export const AuthProvider = ({ children }) => {
 
     localStorage.removeItem("users");
     localStorage.removeItem("accessToken");
-    console.log('เข้าฟังก์ชัน logout');
+    console.log("เข้าฟังก์ชัน logout");
     navigate("/login");
 
     // }

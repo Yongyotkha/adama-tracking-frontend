@@ -1,52 +1,72 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Form, Input, DatePicker, TimePicker, Select, Col, Row } from "antd";
 import BoxPrimary from "../box_primary/BoxPrimary";
-import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import { AuthContext } from "../../contexts/AuthContext";
+import { paths } from "../../services/CorsPath";
+import useServiceAPI from "../../services/CorsService";
 dayjs.extend(customParseFormat);
 
 const { Option } = Select;
-const dateFormat = "YYYY-MM-DD";
 
 export default function FormUser({ fields, title, profile, form }) {
-  const [image, setImage] = useState(null);
+  const { showMsg } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
+  const dateFormat = "YYYY-MM-DD";
+
   const [imagePreview, setImagePreview] = useState(
     profile || "/img/Image-not-found.png"
   );
 
-  const initialValues = fields.reduce(
-    (values, field) => {
-      if (field.type === "date") {
-        values[field.name] = field.value
-          ? dayjs(field.value, dateFormat)
-          : null;
-      } else if (field.type === "time" && field.value) {
-        values[field.name] = dayjs(field.value, "HH:mm");
-      } else {
-        values[field.name] = field.value || null;
-      }
-      return values;
-    },
-    { profilePicture: null }
+
+  const [initialValues, setInitialValues] = useState(() =>
+    fields.reduce(
+      (values, field) => {
+        if (field.type === "date") {
+          values[field.name] = field.value
+            ? dayjs(field.value, dateFormat)
+            : null;
+        } else if (field.type === "time" && field.value) {
+          values[field.name] = dayjs(field.value, "HH:mm");
+        } else {
+          values[field.name] = field.value || null;
+        }
+
+        if (field.type === "select") {
+          values[field.name] =
+            field.options?.find((opt) => opt.selected)?.id || null;
+        }
+        return values;
+      },
+      { profile: profile || null } 
+    )
   );
 
   useEffect(() => {
     form.setFieldsValue(initialValues);
   }, [initialValues, form]);
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
-    if (file && file.type.startsWith("image/")) {
-      setImage(file);
-      setImagePreview(URL.createObjectURL(file));
+    setImagePreview(URL.createObjectURL(file)); // แสดงตัวอย่างรูปภาพ
 
+    const formData = new FormData();
+    formData.append("file", file); // File input
+    formData.append("mode", "profile");
+
+    try {
+      const response = await useServiceAPI.post(
+        paths.pathUpload,
+        formData,
+        setLoading
+      );
       form.setFieldsValue({
-        ...form.getFieldsValue(),
-        profilePicture: file,
+        profile: response.data.file_url,
       });
-    } else {
-      showMsg("error", "โปรดเลือกไฟล์รูปภาพที่ถูกต้อง");
+    } catch (error) {
+      console.error("Error uploading form data:", error);
+      showMsg("error", "เกิดข้อผิดพลาด");
     }
   };
 
@@ -55,22 +75,7 @@ export default function FormUser({ fields, title, profile, form }) {
       {title && (
         <div className="text-[#00783F] text-lg font-semibold mb-3">{title}</div>
       )}
-      <Form form={form} layout="vertical">
-        <div className="image-upload-container flex items-center gap-3 mb-4">
-          <img
-            src={imagePreview}
-            alt="Profile"
-            onClick={() => document.getElementById("imageUpload").click()}
-            className="w-24 h-24 rounded-full object-cover mb-2 cursor-pointer shadow-lg"
-          />
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            style={{ display: "none" }}
-            id="imageUpload"
-          />
-        </div>
+      <Form form={form} layout="vertical" initialValues={initialValues}>
         <Row gutter={[16, 16]} align="middle">
           {fields.map((field, index) => (
             <Col xs={24} sm={12} md={8} lg={field.col || 6} key={index}>
@@ -103,13 +108,36 @@ export default function FormUser({ fields, title, profile, form }) {
                   <Select
                     placeholder={`Select ${field.label.toLowerCase()}`}
                     allowClear
+                    options={field.options.map((option) => ({
+                      label: option.name,
+                      value: option.id,
+                    }))}
                   >
-                    {field?.options?.map((option, idx) => (
+                    {/* {field?.options?.map((option, idx) => (
                       <Option key={idx} value={option.id}>
                         {option.name}
                       </Option>
-                    ))}
+                    ))} */}
                   </Select>
+                ) : field.type === "picture" || field.type === "image" ? (
+                  <div className="image-upload-container flex items-center gap-3">
+                    <img
+                      src={imagePreview}
+                      alt="Profile"
+                      onClick={() =>
+                        document.getElementById(`imageUpload-${index}`).click()
+                      }
+                      className="w-24 h-24 rounded-full object-cover cursor-pointer shadow-lg"
+                    />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      style={{ display: "none" }}
+                      id={`imageUpload-${index}`}
+                      name={field.name}
+                    />
+                  </div>
                 ) : null}
               </Form.Item>
             </Col>

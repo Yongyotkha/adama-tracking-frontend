@@ -9,6 +9,7 @@ import ActionButton from "../../../components/button/ActionButton";
 import { useNavigate } from "react-router-dom";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 
 export default function SettingUser() {
   const navigate = useNavigate();
@@ -48,6 +49,8 @@ export default function SettingUser() {
     getMaster();
   }, []);
 
+
+  ////////////////////////////////////////////// table ///////////////////////////////////////////////
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -84,23 +87,7 @@ export default function SettingUser() {
               menu={{
                 items: user.action.map((actionItem, actionIndex) => ({
                   key: actionIndex,
-                  label: (
-                    <a
-                      rel="noopener noreferrer"
-                      href={actionItem.action_url || "#"}
-                      className="flex gap-1"
-                    >
-                      <img
-                        src={actionItem.action_icon || "/img/icons/edit.png"}
-                        alt="button icon"
-                        className="inline-block h-5"
-                      />
-
-                      <span className="text-[#978B87]">
-                        {actionItem.action}
-                      </span>
-                    </a>
-                  ),
+                  label: <ItemDropDown mode={actionItem.action.toLowerCase()} />,
                 })),
               }}
               placement="bottom"
@@ -165,10 +152,10 @@ export default function SettingUser() {
 
   const filters = [
     {
-      key: "name",
-      type: "select",
+      key: "keyword",
+      type: "text",
       label: "Name",
-      options: [],
+
     },
     {
       key: "contact_number",
@@ -203,7 +190,7 @@ export default function SettingUser() {
       filters: {},
     });
   };
-  
+  ///////////////////////////////////////////// table ///////////////////////////////////////////////
   const header = [
     {
       title: "No",

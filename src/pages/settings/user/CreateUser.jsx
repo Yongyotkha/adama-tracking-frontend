@@ -4,9 +4,10 @@ import MainLayout from "../../../layouts/MainLayout";
 import FormUser from "../../../components/form_user/FormUser";
 import ActionButton from "../../../components/button/ActionButton";
 import { useNavigate } from "react-router-dom";
-import useServiceAPI from "../../../services/CorsService";
-import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
+import { paths } from "../../../services/CorsPath";
+import useServiceAPI from "../../../services/CorsService";
+import dayjs from "dayjs";
 
 export default function CreateUser() {
   const [loading, setLoading] = useState(false);
@@ -56,15 +57,25 @@ export default function CreateUser() {
     form
       .validateFields()
       .then((values) => {
+        if (values.date_of_joining) {
+          values.date_of_joining = dayjs(values.date_of_joining).format(
+            "YYYY-MM-DD"
+          );
+        }
         console.log("Form Values:", values);
 
         useServiceAPI
-          .post(paths.pathRegister, {}, setLoading)
+          .post(paths.pathRegister, values, setLoading)
           .then((response) => {
-            if (response.status == 200) {
+            if (response.status == 201) {
+              console.log(response.data.message);
+              showMsg("success", response.data.message).then(() => {
+                navigate("/setting/user"); // นำทางไปยังหน้าล็อกอิน
+              });
             }
           })
           .catch((error) => {
+            console.log(error);
             if (error.status == 422) {
               showMsg("error", error.message);
             } else {
@@ -78,6 +89,13 @@ export default function CreateUser() {
   };
 
   const formFields = [
+    {
+      label: "",
+      name: "profile",
+      type: "picture", // เพิ่มรูปภาพในลูป
+      required: false,
+      col: 24,
+    },
     {
       label: "Name (EN)",
       name: "name_en",
@@ -94,17 +112,17 @@ export default function CreateUser() {
     },
     {
       label: "Sales Employee Code",
-      name: "employee_code",
+      name: "sales_emp_code",
       type: "text",
-      // required: true,
+      required: true,
       col: 6,
-      disabled: true,
+      // disabled: true,
     },
     {
       label: "Contact Number",
       name: "contact_number",
       type: "tel",
-      required: true,
+      required: false,
       col: 6,
     },
     {
@@ -123,7 +141,7 @@ export default function CreateUser() {
     },
     {
       label: "Position",
-      name: "position",
+      name: "position_id",
       type: "select",
       required: true,
       col: 6,
@@ -131,7 +149,7 @@ export default function CreateUser() {
     },
     {
       label: "Department",
-      name: "department",
+      name: "department_id",
       type: "select",
       required: false,
       col: 6,
@@ -139,7 +157,7 @@ export default function CreateUser() {
     },
     {
       label: "Territory",
-      name: "territory",
+      name: "territory_id",
       type: "select",
       required: false,
       col: 6,
@@ -147,7 +165,7 @@ export default function CreateUser() {
     },
     {
       label: "Area",
-      name: "area",
+      name: "area_id",
       type: "select",
       required: false,
       col: 6,
@@ -155,7 +173,7 @@ export default function CreateUser() {
     },
     {
       label: "Role",
-      name: "role",
+      name: "role_id",
       type: "select",
       required: true,
       col: 6,
@@ -170,13 +188,13 @@ export default function CreateUser() {
     },
     {
       label: "Status",
-      name: "status",
+      name: "use_flag",
       type: "select",
       required: false,
       col: 6,
       options: [
-        { name: "Active", id: 1 },
-        { name: "Inactive", id: 0 },
+        { name: "Active", id: 1, selected: true },
+        { name: "Inactive", id: 0, selected: false },
       ],
     },
   ];

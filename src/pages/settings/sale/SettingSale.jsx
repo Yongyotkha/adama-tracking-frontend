@@ -9,68 +9,158 @@ import TableComponent from "../../../components/table/TableComponent";
 import { useNavigate } from "react-router-dom";
 import DynamicModal from "../../../components/modal/DynamicModal";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
-import useServiceAPI from "../../../services/corsService";
+import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 
 export default function SettingSale() {
   const [loading, setLoading] = useState(false);
-  const [dataSource, setDataSource] = useState([]);
   const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
   const [isBDModalVisible, setIsBDModalVisible] = useState(false);
   const [isSAModalVisible, setIsSAModalVisible] = useState(false);
   const navigate = useNavigate();
+
+  const [dataSource, setDataSource] = useState([]);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [tableParams, setTableParams] = useState({
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+    filters: {},
+    sortOrder: null,
+    sortField: null,
+  });
 
   const filters = [
     {
       key: "sale_head_name",
       type: "select",
       label: "Sale Head Name",
-      options: [
-        { value: "Chayanon Tunyateerapong", label: "Chayanon Tunyateerapong" },
-        { value: "John Doe", label: "John Doe" },
-      ],
+      options: [],
     },
     {
       key: "sale_area_name",
       type: "select",
       label: "Sale Area Name",
-      options: [
-        { value: "Veerasak Likitmanchai", label: "Veerasak Likitmanchai" },
-        { value: "Cheerayut Inthong", label: "Cheerayut Inthong" },
-      ],
+      options: [],
     },
   ];
 
-  const handleSearch = (filter) => {
-    console.log("Search filters applied:", filter);
+  const fetchData = async () => {
+    setTableLoading(true);
+    const { current, pageSize } = tableParams.pagination;
+    const filters = tableParams.filters || {};
+    // const sortOrder = tableParams.sortOrder || "asc";
+    // const sortField = tableParams.sortField || "name_en";
+
+    const requestData = {
+      keyword: filters.keyword || "",
+      user_id: filters.user_id || "",
+      contact_number: filters.contact_number || "",
+      // orderby_column: sortField,
+      // orderby: sortOrder,
+      page_length: current,
+      page_size: pageSize,
+    };
+
+    try {
+      const response = await useServiceAPI.get(
+        paths.pathMasterSale,
+        requestData
+      );
+
+      if (response.status === 200) {
+        const { data, records_filtered } = response.data;
+    
+        const newDataSource = data.map((data, index) => ({
+          key: index + 1,
+          sale_head_name: data.sa_head_name,
+          sale_area_name: data.sa_area_name,
+          area: data.area_name,
+          sale_assistant: (
+            <BadgeStatus
+              text="4"
+              bgColor="#FFB020"
+              textColor="#FFFFFF"
+              onClick={() => setIsSAModalVisible(true)}
+            />
+          ),
+          sale: (
+            <BadgeStatus
+              text="8"
+              bgColor="#FFB020"
+              textColor="#FFFFFF"
+              onClick={() => setIsTerritoryModalVisible(true)}
+            />
+          ),
+          business_dev: (
+            <BadgeStatus
+              text="4"
+              bgColor="#FFB020"
+              textColor="#FFFFFF"
+              onClick={() => setIsBDModalVisible(true)}
+            />
+          ),
+          action: (
+            <Dropdown menu={{ items: actionItems }} placement="bottom">
+              <a onClick={(e) => e.preventDefault()}>
+                <img
+                  src="/img/icons/action.png"
+                  alt="Actions icon"
+                  className="inline-block w-5 h-5"
+                />
+              </a>
+            </Dropdown>
+          ),
+        }));
+
+        setDataSource(newDataSource);
+        setTableParams({
+          ...tableParams,
+          pagination: {
+            ...tableParams.pagination,
+            total: records_filtered,
+          },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    // tableParams.sortOrder,
+    // tableParams.sortField,
+    JSON.stringify(tableParams.filters),
+  ]);
+
+  const handleTableChange = (pagination, filters, sorter) => {
+    setTableParams({
+      pagination,
+      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+      // sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      // sortField: sorter.field,
+    });
+  };
+
+  const handleSearch = (filters) => {
+    setTableParams({
+      ...tableParams,
+      filters,
+    });
   };
 
   const handleClear = () => {
-    console.log("Filters cleared");
-  };
-
-  const handleShowTerritoryModal = () => {
-    setIsTerritoryModalVisible(true);
-  };
-
-  const handleShowBDModal = () => {
-    setIsBDModalVisible(true);
-  };
-
-  const handleShowSAModal = () => {
-    setIsSAModalVisible(true);
-  };
-
-  const handleCloseTerritoryModal = () => {
-    setIsTerritoryModalVisible(false);
-  };
-
-  const handleCloseBDModal = () => {
-    setIsBDModalVisible(false);
-  };
-
-  const handleCloseSAModal = () => {
-    setIsSAModalVisible(false);
+    setTableParams({
+      ...tableParams,
+      filters: {},
+    });
   };
 
   const territoryColumns = [
@@ -81,28 +171,108 @@ export default function SettingSale() {
   ];
 
   const territoryData = [
-    { key: 1, name: "Kornkan Induang", territory: "Left North", position: "Sales Executive" },
-    { key: 2, name: "Phaisan Jethuen", territory: "Left Lower North", position: "Sales Executive" },
-    { key: 3, name: "Manupong Wongpuang", territory: "Lower North", position: "Sales Executive" },
-    { key: 4, name: "Kriangkrai Kraikeaw", territory: "Central Left North", position: "Sales Executive" },
-    { key: 5, name: "Charoenpong Khunawatcharakun", territory: "Central Right North", position: "Sales Executive" },
-    { key: 6, name: "Amorn Sriworakul", territory: "Right Lower North", position: "Sales Executive" },
-    { key: 7, name: "Nitchapan Akkaraketsawad", territory: "Upper Central", position: "Sales Executive" },
-    { key: 8, name: "Manus Nakkhum", territory: "Central", position: "Sales Executive" },
+    {
+      key: 1,
+      name: "Kornkan Induang",
+      territory: "Left North",
+      position: "Sales Executive",
+    },
+    {
+      key: 2,
+      name: "Phaisan Jethuen",
+      territory: "Left Lower North",
+      position: "Sales Executive",
+    },
+    {
+      key: 3,
+      name: "Manupong Wongpuang",
+      territory: "Lower North",
+      position: "Sales Executive",
+    },
+    {
+      key: 4,
+      name: "Kriangkrai Kraikeaw",
+      territory: "Central Left North",
+      position: "Sales Executive",
+    },
+    {
+      key: 5,
+      name: "Charoenpong Khunawatcharakun",
+      territory: "Central Right North",
+      position: "Sales Executive",
+    },
+    {
+      key: 6,
+      name: "Amorn Sriworakul",
+      territory: "Right Lower North",
+      position: "Sales Executive",
+    },
+    {
+      key: 7,
+      name: "Nitchapan Akkaraketsawad",
+      territory: "Upper Central",
+      position: "Sales Executive",
+    },
+    {
+      key: 8,
+      name: "Manus Nakkhum",
+      territory: "Central",
+      position: "Sales Executive",
+    },
   ];
 
   const saleTeamSA = [
-    { key: 1, name: "Passakorn Kong-In", territory: "Right North", position: "Sales Assistant" },
-    { key: 2, name: "Thanakit Kongkrapan", territory: "West", position: "Sales Assistant" },
-    { key: 3, name: "Tanadol Kaewyai", territory: "Central", position: "Sales Assistant" },
-    { key: 4, name: "Chinnawat Bunmakaew", territory: "South", position: "Sales Assistant" },
+    {
+      key: 1,
+      name: "Passakorn Kong-In",
+      territory: "Right North",
+      position: "Sales Assistant",
+    },
+    {
+      key: 2,
+      name: "Thanakit Kongkrapan",
+      territory: "West",
+      position: "Sales Assistant",
+    },
+    {
+      key: 3,
+      name: "Tanadol Kaewyai",
+      territory: "Central",
+      position: "Sales Assistant",
+    },
+    {
+      key: 4,
+      name: "Chinnawat Bunmakaew",
+      territory: "South",
+      position: "Sales Assistant",
+    },
   ];
 
   const saleTeamBD = [
-    { key: 1, name: "Tossaphon Suphaksitthikorn", territory: "Left North", position: "Business Development Executive" },
-    { key: 2, name: "Panudech Srithong", territory: "Left Lower North", position: "Business Development Executive" },
-    { key: 3, name: "Sarawut Nisap", territory: "Lower North", position: "Business Development Executive" },
-    { key: 4, name: "Wisisak Prakobsin", territory: "Central Left North", position: "Business Development Executive" },
+    {
+      key: 1,
+      name: "Tossaphon Suphaksitthikorn",
+      territory: "Left North",
+      position: "Business Development Executive",
+    },
+    {
+      key: 2,
+      name: "Panudech Srithong",
+      territory: "Left Lower North",
+      position: "Business Development Executive",
+    },
+    {
+      key: 3,
+      name: "Sarawut Nisap",
+      territory: "Lower North",
+      position: "Business Development Executive",
+    },
+    {
+      key: 4,
+      name: "Wisisak Prakobsin",
+      territory: "Central Left North",
+      position: "Business Development Executive",
+    },
   ];
 
   const header = [
@@ -136,168 +306,7 @@ export default function SettingSale() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-  const actionItems = [
-    {
-      key: "1",
-      label: (
-        <ItemDropDown
-          mode="edit"
-          onClick={(e) => navigate("/setting/sale/edit")}
-        />
-      ),
-    },
-    {
-      key: "2",
-      label: (
-        <ItemDropDown
-          mode="delete"
-        // onClick={(e) => navigate("/setting/sale/edit")}
-        />
-      ),
-    },
-  ];
-
-  // useEffect(() => {
-  //   const dataSource = [
-  //     {
-  //       key: 1,
-  //       sale_head_name: "Chayanon Tunyateerapong",
-  //       sale_area_name: "Veerasak Likitmanchai",
-  //       area: "Area1",
-  //       sale: (
-  //         <BadgeStatus
-  //           text="8"
-  //           bgColor="#FFB020"
-  //           textColor="#FFFFFF"
-  //           onClick={handleShowTerritoryModal}
-  //         />
-  //       ),
-  //       business_dev: (
-  //         <BadgeStatus
-  //           text="4"
-  //           bgColor="#FFB020"
-  //           textColor="#FFFFFF"
-  //           onClick={handleShowBDModal}
-  //         />
-  //       ),
-  //       sale_assistant: (
-  //         <BadgeStatus
-  //           text="4"
-  //           bgColor="#FFB020"
-  //           textColor="#FFFFFF"
-  //           onClick={handleShowSAModal}
-  //         />
-  //       ),
-  //       action: (
-  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
-  //           <a onClick={(e) => e.preventDefault()}>
-  //             <img
-  //               src="/img/icons/action.png"
-  //               alt="Actions icon"
-  //               className="inline-block w-5 h-5"
-  //             />
-  //           </a>
-  //         </Dropdown>
-  //       ),
-  //     },
-  //     {
-  //       key: 2,
-  //       sale_head_name: "Chayanon Tunyateerapong",
-  //       sale_area_name: "Cheerayut Inthong",
-  //       area: "Area2",
-  //       sale: <BadgeStatus text="7" bgColor="#FFB020" textColor="#FFFFFF" />,
-  //       business_dev: (
-  //         <BadgeStatus text="7" bgColor="#FFB020" textColor="#FFFFFF" />
-  //       ),
-  //       sale_assistant: (
-  //         <BadgeStatus text="7" bgColor="#FFB020" textColor="#FFFFFF" />
-  //       ),
-  //       action: (
-  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
-  //           <a onClick={(e) => e.preventDefault()}>
-  //             <img
-  //               src="/img/icons/action.png"
-  //               alt="Actions icon"
-  //               className="inline-block w-5 h-5"
-  //             />
-  //           </a>
-  //         </Dropdown>
-  //       ),
-  //     },
-  //   ];
-
-  //   setDataSource(dataSource);
-  // }, []);
-
-////
-
-  useEffect(() => {
-    const body = { platform: "web" };
-    useServiceAPI
-      .get(paths.pathMasterSale, body)
-      .then((response) => {
-        if (response.status === 200) {
-          const newDataSource = response.data.map((data, index) => ({
-            key: index + 1,
-            sale_head_name: data.sa_head_name,
-            sale_area_name: data.sa_area_name,
-            area: data.area_name,
-            sale_assistant: (
-              <BadgeStatus
-                text="4"
-                bgColor="#FFB020"
-                textColor="#FFFFFF"
-                onClick={handleShowSAModal}
-              />
-            ),
-            sale: (
-              <BadgeStatus
-                text="8"
-                bgColor="#FFB020"
-                textColor="#FFFFFF"
-                onClick={handleShowTerritoryModal}
-              />
-            ),
-            business_dev: (
-              <BadgeStatus
-                text="4"
-                bgColor="#FFB020"
-                textColor="#FFFFFF"
-                onClick={handleShowBDModal}
-              />
-            ),
-            action: (
-              <Dropdown menu={{ items: actionItems }} placement="bottom">
-                <a onClick={(e) => e.preventDefault()}>
-                  <img
-                    src="/img/icons/action.png"
-                    alt="Actions icon"
-                    className="inline-block w-5 h-5"
-                  />
-                </a>
-              </Dropdown>
-            ),
-
-
-          }));
-  
-          setDataSource(newDataSource);
-        }
-      })
-      .catch((error) => {
-        console.log(error.message);
-        setError(error.message);
-        if (error.status === 422) {
-          showMsg("error", error.message);
-        } else {
-          showMsg("error", "เกิดข้อผิดพลาด");
-        }
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
-
+ 
 
   return (
     <MainLayout loading={loading}>
@@ -313,35 +322,41 @@ export default function SettingSale() {
       <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
 
       <BoxPrimary>
-        <TableComponent header={header} dataSource={dataSource} />
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pagination={tableParams.pagination}
+          loading={tableLoading}
+          onChange={handleTableChange}
+        />
       </BoxPrimary>
 
       {/* Dynamic Modal Instances */}
       <DynamicModal
         title="Sale Territory"
         isVisible={isTerritoryModalVisible}
-        onClose={handleCloseTerritoryModal}
+        onClose={() => setIsTerritoryModalVisible(false)}
         header={territoryColumns}
         dataSource={territoryData}
-        width="1200px" // Customize the width to make it extra-large
+        width="1200px"
       />
 
       <DynamicModal
         title="Sale Team"
         isVisible={isBDModalVisible}
-        onClose={handleCloseBDModal}
+        onClose={() => setIsBDModalVisible(false)}
         header={territoryColumns}
         dataSource={saleTeamBD}
-        width="1200px" // Customize the width to make it extra-large
+        width="1200px"
       />
 
       <DynamicModal
         title="Sale Team"
         isVisible={isSAModalVisible}
-        onClose={handleCloseSAModal}
+        onClose={() => setIsSAModalVisible(false)}
         header={territoryColumns}
         dataSource={saleTeamSA}
-        width="1200px" // Customize the width to make it extra-large
+        width="1200px"
       />
     </MainLayout>
   );

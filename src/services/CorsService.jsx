@@ -60,17 +60,24 @@ const handleRequest = async (method, url, dataOrParams, onLoadingChange) => {
   try {
     notifyLoadingState(onLoadingChange, true);
 
-    // เพิ่ม platform: "web" ลงใน params หรือ data
-    const requestData =
-      method === "get"
-        ? { ...dataOrParams, platform: "web" }
-        : { ...dataOrParams, platform: "web" };
-
-    const response = await axiosInstance({
+    let requestData = dataOrParams;
+    let config = {
       method,
       url,
-      ...(method === "get" ? { params: requestData } : { data: requestData }),
-    });
+    };
+
+    // Check if the payload is FormData
+    if (dataOrParams instanceof FormData) {
+      requestData.append("platform", "web"); // Add platform field directly to FormData
+      config.data = requestData;
+      config.headers = { "Content-Type": "multipart/form-data" }; // Override default Content-Type
+    } else if (method === "get") {
+      config.params = { ...dataOrParams, platform: "web" }; // For GET requests
+    } else {
+      config.data = { ...dataOrParams, platform: "web" };
+    }
+
+    const response = await axiosInstance(config);
 
     return response.data;
   } catch (error) {
