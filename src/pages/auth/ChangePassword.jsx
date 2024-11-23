@@ -1,15 +1,18 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import MessageLayout from "../../layouts/MessageLayout";
 import { useNavigate } from "react-router-dom";
-
+import useServiceAPI from "../../services/CorsService";
 import { Input } from "antd";
 import DynamicButton from "../../components/button/DynamicButton";
+import { paths } from "../../services/CorsPath";
+import { AuthContext } from "../../contexts/AuthContext";
 
 export default function ChangePassword() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const { showMsg } = useContext(AuthContext);
 
   const checkPasswordStrength = (password) => {
     const conditions = [
@@ -30,8 +33,41 @@ export default function ChangePassword() {
   };
 
   const passwordStrength = checkPasswordStrength(password);
-  const isPasswordMatch = password && confirmPassword && password === confirmPassword;
+  const isPasswordMatch =
+    password && confirmPassword && password === confirmPassword;
   const allGreen = passwordStrength.isStrong && isPasswordMatch;
+
+  const handleSave = () => {
+    if (allGreen) {
+      useServiceAPI
+        .post(
+          paths.pathSetNewPassword,
+          {
+            new_password: password,
+            new_confirm_password: confirmPassword,
+          },
+          setLoading
+        )
+        .then((response) => {
+          console.log(response.message);
+          if (response.status == 200) {
+            showMsg("success", response.message,1).then(() => {
+              navigate("/"); 
+            });
+          }
+        })
+        .catch((error) => {
+          console.log(error.message);
+          if (error.status == 422) {
+            showMsg("error", "กรุณาระบุ Password ให้ครบถ้วน");
+          } else {
+            showMsg("error", "เกิดข้อผิดพลาด");
+          }
+        });
+    } else {
+      showMsg("error", "กรุณาทำเงื่อนไขให้ครบถ้วน");
+    }
+  };
 
   return (
     <MessageLayout
@@ -53,16 +89,26 @@ export default function ChangePassword() {
 
         <Input.Password
           placeholder="New Password"
-          className={`p-2 rounded-md border mb-4 mt-4 ${password.length > 0 && !passwordStrength.isStrong ? "border-red-500" : passwordStrength.isStrong ? "border-green-500" : "border-gray-300"
-            }`}
+          className={`p-2 rounded-md border mb-4 mt-4 ${
+            password.length > 0 && !passwordStrength.isStrong
+              ? "border-red-500"
+              : passwordStrength.isStrong
+              ? "border-green-500"
+              : "border-gray-300"
+          }`}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
 
         <Input.Password
           placeholder="Confirm Password"
-          className={`p-2 rounded-md border mb-4 ${allGreen ? "border-green-500" : isPasswordMatch || !confirmPassword ? "border-gray-300" : "border-red-500"
-            }`}
+          className={`p-2 rounded-md border mb-4 ${
+            allGreen
+              ? "border-green-500"
+              : isPasswordMatch || !confirmPassword
+              ? "border-gray-300"
+              : "border-red-500"
+          }`}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
@@ -74,14 +120,18 @@ export default function ChangePassword() {
           {passwordStrength.results.map((condition, index) => (
             <li
               key={index}
-              className={`${condition.isMet ? "text-green-500" : "text-red-500"}`}
+              className={`${
+                condition.isMet ? "text-green-500" : "text-red-500"
+              }`}
             >
               {condition.text}
             </li>
           ))}
           {password.length > 0 && (
             <li
-              className={`${passwordStrength.isStrong ? "text-green-500" : "text-red-500"}`}
+              className={`${
+                passwordStrength.isStrong ? "text-green-500" : "text-red-500"
+              }`}
             >
               Password Strength: {passwordStrength.isStrong ? "Strong" : "Weak"}
             </li>
@@ -95,6 +145,7 @@ export default function ChangePassword() {
             htmlType="submit"
             text="Save"
             disabled={loading}
+            onClick={handleSave}
           />
 
           <DynamicButton

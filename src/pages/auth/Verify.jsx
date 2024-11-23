@@ -1,47 +1,45 @@
 import React, { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import useServiceAPI from "../../services/corsService";
+import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { Form, Input, message, Row, Col } from "antd";
 import MessageLayout from "../../layouts/MessageLayout";
 import DynamicButton from "../../components/button/DynamicButton";
-
+import { AuthContext } from "../../contexts/AuthContext";
 
 export default function Verify() {
-  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const [otp, setOtp] = useState(["", "", "", ""]);
-  const [isResendDisabled, setResendDisabled] = useState(true);
-  const [timeLeft, setTimeLeft] = useState(30); // 5 minutes
+  const [timeLeft, setTimeLeft] = useState(3); // 5 minutes
+  const [otpInfo, setOtpInfo] = useState(""); // 5 minutes
   const [btnVerify, setBtnVerify] = useState("Verify");
-
-  const [messageApi, contextHolder] = message.useMessage();
-
-  const showMsg = (type, content) => {
-    messageApi.open({
-      type,
-      content,
-    });
-  };
+  const { userInfo, showMsg } = useContext(AuthContext);
 
   const onFinish = () => {
     const otpCode = otp.join("");
-    const body = {
-      otpCode: otpCode,
-    };
+
     useServiceAPI
-      .get(paths.pathVerifyOtp, body, setLoading)
+      .post(
+        paths.pathOtpVerify,
+        {
+          messageId: otpInfo.message_id,
+          otp: otpCode,
+        },
+        setLoading
+      )
       .then((response) => {
         if (response.status == 200) {
-          showMsg("success", response.data.message);
-          navigate("/");
+          if (userInfo.is_change_password) {
+            navigate("/change-password");
+          } else {
+            navigate("/");
+          }
         }
       })
       .catch((error) => {
         console.log(error.message);
-        setError(error.message);
         if (error.status == 422) {
           showMsg("error", "กรุณาระบุ OTP ให้ครบถ้วน");
         } else {
@@ -67,9 +65,7 @@ export default function Verify() {
 
   // Resend OTP function
   const handleResend = () => {
-    setResendDisabled(true);
-    setTimeLeft(30);
-    // Mock resend function, replace with real API call if needed
+    callOtpPhone();
     showMsg("info", "OTP code has been resent!");
   };
 
@@ -78,8 +74,6 @@ export default function Verify() {
     if (timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
-    } else {
-      setResendDisabled(false);
     }
   }, [timeLeft]);
 
@@ -87,8 +81,40 @@ export default function Verify() {
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+      2,
+      "0"
+    )}`;
   };
+
+  const callOtpPhone = () => {
+    useServiceAPI
+      .post(
+        paths.pathOtpCall,
+        { phone_number: userInfo.phone_number_otp },
+        setLoading
+      )
+      .then((response) => {
+        if (response.status == 200) {
+          console.log(response);
+          setTimeLeft(300);
+          setOtpInfo(response.data.data);
+          // showMsg("success", response.data.message);
+        }
+      })
+      .catch((error) => {
+        console.log(error.message);
+        if (error.status == 422) {
+          showMsg("error", "กรุณาระบุ OTP ให้ครบถ้วน");
+        } else {
+          showMsg("error", "เกิดข้อผิดพลาด");
+        }
+      });
+  };
+
+  useEffect(() => {
+    // callOtpPhone();
+  }, []);
 
   return (
     <>
@@ -96,10 +122,11 @@ export default function Verify() {
         loading={loading}
         childrenStyle="flex justify-center items-center flex-col gap-3 h-full max-w-xs p-4 m-auto"
       >
-        {contextHolder}
         <p className="text-[#00783F] text-xl font-bold">OTP Verification</p>
         <p className="text-[#978B87]">Enter the OTP sent to</p>
-        <p className="text-[#00783F] text-xl font-bold">+66801xxxx67</p>
+        <p className="text-[#00783F] text-xl font-bold">
+          {userInfo.phone_number_display}
+        </p>
         <Form
           name="otpVerification"
           labelCol={{ span: 8 }}
@@ -119,7 +146,9 @@ export default function Verify() {
                   inputMode="numeric" // Ensures numeric keyboard on mobile
                   pattern="[0-9]*" // Restricts input to numbers only
                   className={`
-                    ${digit ? 'text-white bg-[#7DB41E]' : 'text-black bg-white'} 
+                    ${
+                      digit ? "text-white bg-[#7DB41E]" : "text-black bg-white"
+                    } 
                     hover:bg-[#7DB41E] 
                     focus:bg-[#7DB41E] focus:text-white
                     border-none
@@ -136,28 +165,31 @@ export default function Verify() {
               </Col>
             ))}
           </Row>
-          <div>
-            <p className="text-center mb-3 text-[#978B87]">
-              Referral Code XRE0FC Please enter OTP
-              <br />
-              within 5 minutes.
-            </p>
-            <p className="text-center mb-3 text-[#978B87]">
-              {isResendDisabled ? formatTime(timeLeft) : ""}
-            </p>
-          </div>
+
+          {timeLeft !== 0 && (
+            <div>
+              <p className="text-center mb-3 text-[#978B87]">
+                Referral Code {otpInfo.otp_ref_no} Please enter OTP
+                <br />
+                within 5 minutes.
+              </p>
+              <p className="text-center mb-3 text-[#978B87]">
+                {formatTime(timeLeft)}
+              </p>
+            </div>
+          )}
 
           {/* This section will only appear when the timer reaches zero */}
-          {!isResendDisabled && (
+          {!timeLeft && (
             <div className="text-center py-5">
               <p className="text-center mb-3 text-[#978B87]">
                 Didn't you receive any code?
               </p>
               <DynamicButton
                 type="link"
-                text='RESEND OTP'
+                text="RESEND OTP"
                 onClick={handleResend}
-                className='text-[#F5B317] font-bold'
+                className="text-[#F5B317] font-bold"
               />
             </div>
           )}

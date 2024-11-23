@@ -17,8 +17,13 @@ export default function Login() {
     login(username, password, setLoading)
       .then((response) => {
         if (response.result) {
-          const phoneNumber = response.data.user.phone_number;
-          navigate("/verify-otp?phone_number=" + phoneNumber);
+          if (response.data.user.is_otp) {
+            navigate("/verify-otp");
+          } else if (response.data.user.is_change_password) {
+            navigate("/change-password");
+          } else {
+            navigate("/");
+          }
         }
       })
       .catch((error) => {
@@ -111,7 +116,7 @@ export default function Login() {
               <DynamicButton
                 type="primary"
                 htmlType="submit"
-                className="flex w-full justify-center rounded-sm bg-[#00783F] text-white hover:bg-[#00783F] hover:text-green-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-full max-w-full"
+                className="flex justify-center rounded-sm bg-[#00783F] text-white hover:bg-[#00783F] hover:text-green-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-full max-w-full"
                 text="Login"
                 disabled={loading}
               />

@@ -5,6 +5,9 @@ export const endPoint = "https://adama-api.mtsc.co.th/api";
 export const paths = {
   // Login
   pathVerifyOtp: "verify-otp",
+  pathOtpCall: "otp/call",
+  pathOtpVerify: "otp/verify",
+  pathSetNewPassword: "set-newpassword",
   pathCustomerDealer: "sale-customer-dealer/list",
   pathCustomerSubDealer: "sale-customer-subdealer/list",
 

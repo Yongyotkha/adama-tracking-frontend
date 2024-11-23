@@ -80,7 +80,6 @@ const App = () => {
           <Route path="/change-password" element={<ChangePassword />} />
           <Route path="/first-change-password" element={<FirstChangePassword />} />
 
-
           {/* Protected Routes */}
           {/* Sale Plan Route */}
           <Route path="/" element={ <Dashboard />} />
