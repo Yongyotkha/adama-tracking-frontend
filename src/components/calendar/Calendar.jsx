@@ -72,6 +72,70 @@ const Calendar = ({ events }) => {
     );
   };
 
+  const renderWeeklyCalendar = () => {
+    const startOfWeek = new Date(
+      currentDate.setDate(currentDate.getDate() - currentDate.getDay())
+    );
+
+    return (
+      <div className="grid grid-cols-8">
+        {/* Header Row */}
+        <div className="border p-2 font-bold text-center bg-gray-200">Time</div>
+        {weekdays.map((day, index) => {
+          const date = new Date(startOfWeek);
+          date.setDate(date.getDate() + index);
+          const formattedDate = date.toISOString().split("T")[0];
+
+          return (
+            <div
+              key={day}
+              className="border p-2 font-bold text-center bg-gray-200"
+            >
+              {day} <br />
+              {date.toLocaleDateString("en-US", { day: "numeric" })}
+            </div>
+          );
+        })}
+
+        {/* Time Slots */}
+        {Array.from({ length: 9 }, (_, i) => 9 + i).map((hour) => (
+          <React.Fragment key={hour}>
+            {/* Time Column */}
+            <div className="border-t border-r p-2 text-center bg-gray-100">
+              {hour}:00
+            </div>
+            {/* Events for each day */}
+            {weekdays.map((day, index) => {
+              const date = new Date(startOfWeek);
+              date.setDate(date.getDate() + index);
+              const formattedDate = date.toISOString().split("T")[0];
+              const eventsForDay = events.filter(
+                (event) => event.date === formattedDate && event.time.startsWith(`${hour}`)
+              );
+
+              return (
+                <div
+                  key={`${day}-${hour}`}
+                  className="border-t border-r p-2 min-h-[60px] bg-white"
+                >
+                  {eventsForDay.map((event, idx) => (
+                    <div
+                      key={idx}
+                      className="p-1 mb-1 text-sm text-white rounded"
+                      style={{ backgroundColor: event.color }}
+                    >
+                      {event.title}
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="grid grid-rows-[auto,1fr] h-screen">
       {/* Header */}
@@ -98,7 +162,6 @@ const Calendar = ({ events }) => {
                 Month
               </button>
             </div>
-
             {/* Month Selector */}
             <div className="flex items-center gap-2">
               <button
@@ -119,10 +182,9 @@ const Calendar = ({ events }) => {
             </div>
           </div>
 
-          {/* Center Controls: Current Year */}
-          <div className="text-lg font-bold text-green-600">
-            {months[currentDate.getMonth()] + " " + currentDate.getFullYear()}
-          </div>
+        <span className="text-lg font-bold text-green-600">
+            {months[currentDate.getMonth()]} {currentDate.getFullYear()}
+        </span>
 
           {/* Dropdowns */}
           <div className="flex items-center gap-4">
@@ -175,83 +237,73 @@ const Calendar = ({ events }) => {
               })}
             </div>
           ) : (
-            <div>Weekly View</div> // Replace with Weekly logic if needed
+            renderWeeklyCalendar()
           )}
         </div>
 
         {/* Right Side: Event Details */}
         <div className="col-span-4 p-4 bg-gray-100 rounded shadow">
-  {selectedDate ? (
-    <>
-      <h3 className="text-lg font-bold text-green-600 mb-4">
-        {new Date(selectedDate).toLocaleDateString("en-US", {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-        })}
-      </h3>
-      <div className="space-y-4">
-        {events
-          .filter((event) => event.date === selectedDate)
-          .map((event, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between p-4 bg-white rounded-lg shadow"
-            >
-              {/* Left Section */}
-              <div className="flex items-start gap-4">
-                <div
-                  className={`w-10 h-10 flex items-center justify-center rounded-full text-white`}
-                  style={{ backgroundColor: event.color }}
-                >
-                  <span className="text-xl font-bold">{event.icon || "⭐"}</span>
-                </div>
-                <div>
-                  {/* Event Title */}
-                  <h4 className="text-md font-bold text-gray-800">
-                    {event.title}
-                  </h4>
-                  {/* Event Location */}
-                  <p className="text-sm text-gray-600">
-                    Location: {event.location}
-                  </p>
-                  {/* Attendees */}
-                  <div className="flex items-center gap-2 mt-2">
-                    <div className="flex -space-x-2">
-                      {event.attendees.slice(0, 3).map((attendee, idx) => (
-                        <img
-                          key={idx}
-                          src={attendee.avatar}
-                          alt={attendee.name}
-                          className="w-6 h-6 rounded-full border-2 border-white"
-                        />
-                      ))}
+          {selectedDate ? (
+            <>
+              <h3 className="text-lg font-bold text-green-600 mb-4">
+                {new Date(selectedDate).toLocaleDateString("en-US", {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                })}
+              </h3>
+              <div className="space-y-4">
+                {events
+                  .filter((event) => event.date === selectedDate)
+                  .map((event, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-4 bg-white rounded-lg shadow"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div
+                          className={`w-10 h-10 flex items-center justify-center rounded-full text-white`}
+                          style={{ backgroundColor: event.color }}
+                        >
+                          <span className="text-xl font-bold">{event.icon || "⭐"}</span>
+                        </div>
+                        <div>
+                          <h4 className="text-md font-bold text-gray-800">{event.title}</h4>
+                          <p className="text-sm text-gray-600">Location: {event.location}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <div className="flex -space-x-2">
+                              {event.attendees.slice(0, 3).map((attendee, idx) => (
+                                <img
+                                  key={idx}
+                                  src={attendee.avatar}
+                                  alt={attendee.name}
+                                  className="w-6 h-6 rounded-full border-2 border-white"
+                                />
+                              ))}
+                            </div>
+                            {event.attendees.length > 3 && (
+                              <span className="text-xs font-bold text-gray-600">
+                                +{event.attendees.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <span className="px-3 py-1 border rounded-full text-sm text-gray-600">
+                          {event.time}
+                        </span>
+                      </div>
                     </div>
-                    {event.attendees.length > 3 && (
-                      <span className="text-xs font-bold text-gray-600">
-                        +{event.attendees.length - 3}
-                      </span>
-                    )}
-                  </div>
-                </div>
+                  ))}
               </div>
-              {/* Right Section (Time) */}
-              <div>
-                <span className="px-3 py-1 border rounded-full text-sm text-gray-600">
-                  {event.time}
-                </span>
-              </div>
+            </>
+          ) : (
+            <div className="text-center text-gray-500">
+              <p>Select a date to view events.</p>
             </div>
-          ))}
-      </div>
-    </>
-  ) : (
-    <div className="text-center text-gray-500">
-      <p>Select a date to view events.</p>
-    </div>
-  )}
-</div>
-
+          )}
+        </div>
       </main>
     </div>
   );
