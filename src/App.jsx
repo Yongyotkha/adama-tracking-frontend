@@ -68,6 +68,7 @@ import ActivityList from "./pages/activity/ActivityList";
 import CreateActivity from "./pages/activity/CreateActivity";
 import EditActivity from "./pages/activity/EditActivity";
 import ActivityPlanList from "./pages/activity/activity_plan/ActivityPlanList";
+import Calendar from "./pages/activity/calendar/Calendar";
 // END ------------- Activity ------------- END
 
 
@@ -99,8 +100,8 @@ const App = () => {
           <Route path="/activity/list" element={<ActivityList />} />
           <Route path="/activity/create" element={<CreateActivity />} />
           <Route path="/activity/edit" element={<EditActivity />} />
-
           <Route path="/activity/plan/list" element={<ActivityPlanList />} />
+          <Route path="/activity/calendar" element={<Calendar />} />
 
           {/* Order Route */}
           <Route path="/order/list" element={<OrderList />} />

@@ -6,7 +6,7 @@ import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
 import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
-import CalendarActivityApp from "../../../components/calendar/calendarActivity";
+import CalendarActivityApp from "../../../components/calendar/CalendarActivity";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import TableExpand from "../../../components/table/TableExpand";
 
