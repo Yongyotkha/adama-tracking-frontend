@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import CalendarActivityApp from "../../../components/calendar/calendarActivity";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
+import TableExpand from "../../../components/table/TableExpand";
 
 export default function ActivityPlanList() {
     const [loading, setLoading] = useState(false);
@@ -50,9 +51,15 @@ export default function ActivityPlanList() {
     };
 
     const actionItems = [
-        { key: "1", label: <ItemDropDown mode="edit" link="/activity/edit" /> },
-        { key: "2", label: <ItemDropDown mode="delete" link="#" /> },
+        { key: "1", label: <ItemDropDown mode="create" link="/activity/create" /> },
+        { key: "2", label: <ItemDropDown mode="edit" link="/activity/edit" /> },
+        { key: "3", label: <ItemDropDown mode="delete" link="#" /> },
     ];
+
+    const actionSubItems = [
+        { key: "1", label: <ItemDropDown mode="edit" link="/activity/edit" /> },
+    ];
+
 
     const header = [
         { title: "Dealer", width: 150, dataIndex: "dealer", align: "start" },
@@ -71,12 +78,28 @@ export default function ActivityPlanList() {
                 lastModifiled: "2024-02-01",
                 status: <BadgeStatus text="Waiting for create" bgColor="#F89E18" textColor="#FFFFFF" />,
                 action: (
-                <Dropdown menu={{ items: actionItems }} placement="bottomRight">
-                    <a onClick={(e) => e.preventDefault()}>
-                    <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-                    </a>
-                </Dropdown>
+                    <Dropdown menu={{ items: actionItems }} placement="bottomRight">
+                        <a onClick={(e) => e.preventDefault()}>
+                        <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+                        </a>
+                    </Dropdown>
                 ),
+                nestedData: [
+                    {
+                        key: "1-1",
+                        no: "1",
+                        subDealer: "On Shop",
+                        value: "10,150,000",
+                        status: <BadgeStatus text="Edit Activity" bgColor="#F89E18" textColor="#FFFFFF" />,
+                        action: (
+                            <Dropdown menu={{ items: actionSubItems }} placement="bottomRight">
+                                <a onClick={(e) => e.preventDefault()}>
+                                <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+                                </a>
+                            </Dropdown>
+                        ),
+                    },
+                ],
             },
             {
                 key: 2,
@@ -85,11 +108,11 @@ export default function ActivityPlanList() {
                 lastModifiled: "2024-02-01",
                 status: <BadgeStatus text="Completed" bgColor="#009845" textColor="#FFFFFF" />,
                 action: (
-                <Dropdown menu={{ items: actionItems }} placement="bottomRight">
-                    <a onClick={(e) => e.preventDefault()}>
-                    <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-                    </a>
-                </Dropdown>
+                    <Dropdown menu={{ items: actionItems }} placement="bottomRight">
+                        <a onClick={(e) => e.preventDefault()}>
+                        <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+                        </a>
+                    </Dropdown>
                 ),
             },
             {
@@ -99,17 +122,25 @@ export default function ActivityPlanList() {
                 lastModifiled: "2024-02-01",
                 status: <BadgeStatus text="Completed" bgColor="#009845" textColor="#FFFFFF" />,
                 action: (
-                <Dropdown menu={{ items: actionItems }} placement="bottomRight">
-                    <a onClick={(e) => e.preventDefault()}>
-                    <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-                    </a>
-                </Dropdown>
+                    <Dropdown menu={{ items: actionItems }} placement="bottomRight">
+                        <a onClick={(e) => e.preventDefault()}>
+                        <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+                        </a>
+                    </Dropdown>
                 ),
             },
         ];
 
         setDataSource(dataSource);
     }, []);
+
+    const nestedColumns = [
+        { title: "No", width: 50, dataIndex: "no", align: "start" },
+        { title: "Sub Dealer", width: 150, dataIndex: "subDealer", align: "start" },
+        { title: "Value (THB)", width: 150, dataIndex: "value", align: "start" },
+        { title: "Status", width: 100, dataIndex: "status", align: "start" },
+        { title: "Action", width: 100, dataIndex: "action", align: "center" },
+    ];
 
     // Example events passed via props
     const events = {
@@ -146,7 +177,7 @@ export default function ActivityPlanList() {
             />
 
             <BoxPrimary>
-                <TableComponent header={header} dataSource={dataSource} />
+                <TableExpand data={dataSource} columns={header} nestedColumns={nestedColumns} />
             </BoxPrimary>
         </MainLayout>
     );
