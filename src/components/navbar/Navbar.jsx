@@ -57,7 +57,7 @@ const Navbar = () => {
         {
           key: "1",
           label: "Activity Plan",
-          path: "activity/plan",
+          path: "activity/plan/list",
         },
         {
           key: "2",

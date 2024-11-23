@@ -55,9 +55,6 @@ import EditTraveling from "./pages/expenses/traveling/EditTraveling";
 import ClearingExpense from "./pages/expenses/clearing/ClearingExpense";
 import CreateClearing from "./pages/expenses/clearing/CreateClearingExpense";
 import EditClearing from "./pages/expenses/clearing/EditClearingExpense";
-import ActivityList from "./pages/activity/ActivityList";
-import CreateActivity from "./pages/activity/CreateActivity";
-import EditActivity from "./pages/activity/EditActivity";
 import ViewOrder from "./pages/order/ViewOrder";
 import ViewOrderWaiting from "./pages/order/ViewOrderWaiting";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -65,6 +62,14 @@ import WorkPlanSaleByDealer from "./pages/sale_plan/workplan/WorkPlanSaleByDeale
 import EditWorkPlan from "./pages/sale_plan/workplan/EditWorkPlan";
 import EditRollingForecast from "./pages/sale_plan/rolling_forecast/EditRollingForecast";
 import FirstChangePassword from "./pages/auth/FirstChangePassword";
+
+// START ------------- Activity ------------- START
+import ActivityList from "./pages/activity/ActivityList";
+import CreateActivity from "./pages/activity/CreateActivity";
+import EditActivity from "./pages/activity/EditActivity";
+import ActivityPlanList from "./pages/activity/activity_plan/ActivityPlanList";
+import Calendar from "./pages/activity/calendar/Calendar";
+// END ------------- Activity ------------- END
 
 
 const App = () => {
@@ -94,6 +99,8 @@ const App = () => {
           <Route path="/activity/list" element={<ActivityList />} />
           <Route path="/activity/create" element={<CreateActivity />} />
           <Route path="/activity/edit" element={<EditActivity />} />
+          <Route path="/activity/plan/list" element={<ActivityPlanList />} />
+          <Route path="/activity/calendar" element={<Calendar />} />
 
           {/* Order Route */}
           <Route path="/order/list" element={<OrderList />} />
