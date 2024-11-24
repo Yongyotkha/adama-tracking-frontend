@@ -4,92 +4,37 @@ import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
 import DynamicButton from "../../../components/button/DynamicButton";
 import { Input, InputNumber, Table } from "antd";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
 
 export default function WorkPlanCreate() {
-  const initialData = [
-    {
-      key: "1",
-      productName: "Ossinate 15%SL",
-      packSize: "1Kg.",
-      qty: 50000,
-      unitPrice: 250,
-      value: 12500000,
-    },
-    {
-      key: "2",
-      productName: "Apopo 20%SE",
-      packSize: "1Lt.",
-      qty: 120000,
-      unitPrice: 350,
-      value: 42000000,
-    },
-    {
-      key: "3",
-      productName: "Atrannex 90WG",
-      packSize: "5Kg.",
-      qty: 320000,
-      unitPrice: 450,
-      value: 144000000,
-    },
-    {
-      key: "4",
-      productName: "Baloric 320EC",
-      packSize: "0.5Lt.",
-      qty: 12000,
-      unitPrice: 150,
-      value: 1800000,
-    },
-    {
-      key: "5",
-      productName: "Bla-S",
-      packSize: "0.25Lt.",
-      qty: 600000,
-      unitPrice: 250,
-      value: 150000000,
-    },
-    {
-      key: "6",
-      productName: "Bumper P",
-      packSize: "0.5Lt.",
-      qty: 4300,
-      unitPrice: 250,
-      value: 1075000,
-    },
-    {
-      key: "7",
-      productName: "Custodia",
-      packSize: "1Lt.",
-      qty: 43500,
-      unitPrice: 250,
-      value: 10875000,
-    },
-    {
-      key: "8",
-      productName: "Damatin 5%WG",
-      packSize: "20Lt.",
-      qty: 30000,
-      unitPrice: 250,
-      value: 7500000,
-    },
-    {
-      key: "9",
-      productName: "Durivo 63SC",
-      packSize: "1Lt.",
-      qty: 45000,
-      unitPrice: 250,
-      value: 11250000,
-    },
-    {
-      key: "10",
-      productName: "Hamper 300SC",
-      packSize: "1Lt.",
-      qty: 43000,
-      unitPrice: 250,
-      value: 10750000,
-    },
-  ];
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [dataSource, setDataSource] = useState([]);
+  const [totalValue, setTotalValue] = useState(0);
+
+  useEffect(() => {
+    const total = dataSource.reduce((acc, item) => acc + parseFloat(item.value), 0);
+    setTotalValue(total);
+  }, []);
+
+  const handleQtyChange = (value, key) => {
+    let total = 0; // Initialize as a number
+    const newData = dataSource.map((item) => {
+      if (item.key === key) {
+        const newValue = value * item.unitPrice;
+        total += newValue; // Add the updated value to total
+        return { ...item, qty: value, value: parseFloat(newValue.toFixed(2)) };
+      }
+      total += parseFloat(item.value);
+      return item;
+    });
+    setTotalValue(total);
+    setDataSource(newData);
+  };
 
   const header = [
     {
@@ -136,27 +81,39 @@ export default function WorkPlanCreate() {
     },
   ];
 
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [dataSource, setDataSource] = useState(initialData);
-  const [totalValue, setTotalValue] = useState(0);
-
   useEffect(() => {
-    const total = dataSource.reduce((acc, item) => acc + item.value, 0);
-    setTotalValue(total);
+    useServiceAPI
+      .get(
+        paths.pathGetWorkPlanStep1,
+        { year_code: location.state.year_code },
+        setLoading
+      )
+      .then((response) => {
+        if (response.status == 200) {
+          console.log(response.data.data_items);
+          const newData = response.data.data_items.map((item) => ({
+            key: item.product_id,
+            productName: item.product_name,
+            packSize: item.pack_size,
+            qty: item.qty,
+            unitPrice: item.unit_convert_value,
+            value: item.value,
+          }));
+          setDataSource(newData);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        if (error.status == 422) {
+          showMsg("error", error.message);
+        } else {
+          showMsg("error", "เกิดข้อผิดพลาด");
+        }
+      });
   }, []);
 
-  const handleQtyChange = (value, key) => {
-    let total = 0;
-    const newData = dataSource.map((item) => {
-      if (item.key === key) {
-        return { ...item, qty: value, value: value * item.unitPrice };
-      }
-      total += item.value;
-      return item;
-    });
-    setTotalValue(total);
-    setDataSource(newData);
+  const handleSave = () => {
+    console.log(dataSource);
   };
 
   return (
@@ -205,16 +162,7 @@ export default function WorkPlanCreate() {
             text="Save and Next"
             mode="save"
             className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
-            onClick={() => {
-              navigate("/sale-plan/work-plan/create-2", {
-                state: {
-                  data: {
-                    totalValue,
-                    dataSource,
-                  },
-                },
-              });
-            }}
+            onClick={handleSave}
           />
         </div>
       </MainLayout>

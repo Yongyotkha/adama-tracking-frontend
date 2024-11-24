@@ -143,6 +143,8 @@ export default function SettingUser() {
   ]);
 
   const handleTableChange = (pagination, filters, sorter) => {
+    console.log(pagination)
+
     setTableParams({
       pagination,
       filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
