@@ -33,16 +33,17 @@ export default function OrderList() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [sale] = await Promise.all([
+        const [sale, status] = await Promise.all([
           useServiceAPI.get(paths.pathMasterSaleDropdown, {
             status: "all",
           }),
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {
-            status: "all",
+          useServiceAPI.get(paths.pathMasterStatus, {
+            status_type: "order",
           }),
         ]);
 
         setDataSale(sale.data);
+        setDataStatus(status.data);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -82,11 +83,7 @@ export default function OrderList() {
       type: "select",
       label: "Status",
       placeholder: "All",
-      options: [
-        { id: "Active", name: "Active" },
-        { id: "Inactive", name: "Inactive" },
-        { id: "Pending", name: "Pending" },
-      ],
+      options: dataStatus,
       moderef: false,
     },
   ];
@@ -139,12 +136,14 @@ export default function OrderList() {
     const filters = tableParams.filters || {};
     const sortOrder = tableParams.sortOrder || "asc";
     const sortField = tableParams.sortField || "document_number";
-
+    console.log(filters);
+    
     const requestData = {
       // keyword: filters.keyword || "",
-      // user_id: filters.user_id || "",
-      // contact_number: filters.contact_number || "",
-      // position_id: filters.position || "",
+      user_id: filters.sale || "",
+      dealer_id: filters.dealer || "",
+      keyword: filters.order_no || "",
+      trasaction_status_code: filters.status || "",
       page: "all",
       use_flag: filters.use_flag || "",
       orderby_column: sortField,
@@ -222,7 +221,7 @@ export default function OrderList() {
     JSON.stringify(tableParams.filters),
   ]);
 
-  const handleSearch = (filter) => {
+  const handleSearch = (filters) => {
     setTableParams({
       ...tableParams,
       filters,
@@ -237,8 +236,6 @@ export default function OrderList() {
   };
 
   const handleChange = (filter) => {
-    console.log(filter);
-    
     if (filter.sale) {
       const getMasterDealer = async () => {
         setLoading(true);
