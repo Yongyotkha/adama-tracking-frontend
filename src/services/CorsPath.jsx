@@ -19,8 +19,8 @@ export const paths = {
   pathMasterRoles: "master/roles",
   pathMasterCrop: "master/crop",
   pathMasterActivityType: "master/activity-type",
-  pathMasterDealerBySale: "master/dealer",
-  pathMasterSale: "master/sale",
+  pathMasterSaleDropdown: "master/sale",
+  pathMasterDealerDropdown: "master/dealer",
 
   // List
   // ! Issue: พี่ทำการเปลี่ยน Path ให้อ้างอิงนะ
@@ -41,4 +41,7 @@ export const paths = {
 
   //Activaty
   pathActivatyList: "/activity/list",
+
+  // Orders
+  pathGetOrderList: "order/list",
 };
