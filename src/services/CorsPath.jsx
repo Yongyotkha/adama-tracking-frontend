@@ -18,10 +18,10 @@ export const paths = {
   pathMasterAreas: "master/areas",
   pathMasterRoles: "master/roles",
   pathMasterCrop: "master/crop",
-
   pathMasterStatus: "master/status",
   pathMasterHeadofsale: "master/headofsale",
   pathMasterSalearea: "master/salearea",
+  pathMasterTime: "master/time",
 
   // List
   pathMasterSale: "sale-management/list",
@@ -34,7 +34,6 @@ export const paths = {
   pathMasterDealerDropdown: "master/dealer",
 
   // List
-  // ! Issue: พี่ทำการเปลี่ยน Path ให้อ้างอิงนะ
   pathSaleManagementList: "sale-management/list",
   pathProductManagementList: "products-management/list",
   pathPromotionManagementList: "promotion-management/list",
