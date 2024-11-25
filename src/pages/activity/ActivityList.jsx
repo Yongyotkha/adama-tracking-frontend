@@ -15,7 +15,7 @@ export default function ActivityList() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState(false);
   const [activityList, setActivityList] = useState([]);
-  const [saleLists, setSaleList] = useState([]);
+  const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const [tableParams, setTableParams] = useState({
@@ -50,7 +50,8 @@ export default function ActivityList() {
       type: 'select',
       label: "Sale",
       placeholder: "All",
-      options: saleLists,
+      options: saleList,
+      moderef: true,
     },
     {
       key: "shop",
@@ -78,6 +79,28 @@ export default function ActivityList() {
       ...tableParams,
       filters: {},
     });
+  };
+
+  const handleChange = (filter) => {
+    if (filter) {
+      const getMasterDealer = async () => {
+        try {
+          const [dealer] = await Promise.all([
+            useServiceAPI.get(paths.pathMasterDealerDropdown, {
+              user_id: filter.sale
+            }),
+          ]);
+  
+          setDealerList(dealer.data);
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        }
+      };
+  
+      getMasterDealer();
+    } else {
+      handleClear();
+    }
   };
 
   const handleShowProductModal = () => {
@@ -179,13 +202,15 @@ export default function ActivityList() {
       try {
         const [activityType, sale] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterSale, {}),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {
+            status: "all"
+          }),
         ]);
 
         setActivityList(activityType.data);
         setSaleList(sale.data);
       } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        
       } finally {
         setLoading(false);
       }
@@ -216,6 +241,7 @@ export default function ActivityList() {
       <Filter
         onSearch={handleSearch}
         onClear={handleClear}
+        onChange={handleChange}
         filters={filters}
       />
 

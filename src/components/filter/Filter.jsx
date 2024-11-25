@@ -6,15 +6,27 @@ import dayjs from "dayjs";
 
 const { Option } = Select;
 
-const Filter = ({ onSearch, onClear, filters }) => {
+const Filter = ({ onSearch, onClear, onChange, filters }) => {
   const [filterValues, setFilterValues] = useState({});
 
   const handleFilterChange = (filterKey, value) => {
-    setFilterValues((prevValues) => ({
-      ...prevValues,
-      [filterKey]: value,
-    }));
+    setFilterValues((prevValues) => {
+      const updatedValues = {
+        ...prevValues,
+        [filterKey]: value,
+      };
+      
+      // ใช้ updatedValues ทันทีสำหรับ onChange
+      filters.forEach((data) => {
+        if (data.moderef) {
+          onChange(updatedValues); // ใช้ค่าที่อัปเดต
+        }
+      });
+  
+      return updatedValues; // อัปเดต state
+    });
   };
+  
 
   const handleSearch = () => {
     onSearch(filterValues);
