@@ -1,6 +1,5 @@
-import { useEffect, useState, React} from "react";
+import { useEffect, useState, useRef } from "react";
 import { DatePicker, Form, Input, Select, Col, Row, TimePicker } from "antd";
-const { MonthPicker } = DatePicker;
 import BoxPrimary from "../box_primary/BoxPrimary";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -9,63 +8,65 @@ import "react-quill-new/dist/quill.snow.css";
 
 dayjs.extend(customParseFormat);
 
+const { MonthPicker } = DatePicker;
 const { Option } = Select;
 
 const toolbarOptions = [
-  [{ 'font': [] }, { 'size': [] }],
-  [{ 'header': [1, 2, 3, false] }],
-  ['bold', 'italic', 'underline', 'strike', { 'color': [] }, { 'background': [] }],
-  [{ 'script': 'sub' }, { 'script': 'super' }],
-  [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-  [{ 'indent': '-1' }, { 'indent': '+1' }],
-  [{ 'align': [] }],
-  ['link', 'image'],
-  ['clean']
+  [{ font: [] }, { size: [] }],
+  [{ header: [1, 2, 3, false] }],
+  ["bold", "italic", "underline", "strike", { color: [] }, { background: [] }],
+  [{ script: "sub" }, { script: "super" }],
+  [{ list: "ordered" }, { list: "bullet" }],
+  [{ indent: "-1" }, { indent: "+1" }],
+  [{ align: [] }],
+  ["link", "image"],
+  ["clean"],
 ];
 
-export default function FormCustom({ fields, form, title, onChange={} }) {
-  const [location, setLocation] = useState({ lat: null, long: null });
-  const [address, setAddress] = useState("");
+export default function FormCustom({ fields, form, title, onChange = {} }) {
+  const [formValues, setFormValues] = useState({});
+  const [location, setLocation] = useState({ lat: null, long: null, address: "" });
+  const isInitialSet = useRef(false); // ใช้เพื่อป้องกันการตั้งค่าซ้ำ
 
-  const initialValues = fields.reduce((values, field) => {
-    if (field.value !== undefined) {
-      if (field.type === "date") {
-        values[field.name] = field.value ? dayjs(field.value, "YYYY-MM-DD") : null;
-      } else if (field.type === "month") {
-        values[field.name] = field.value ? dayjs(field.value, "YYYY-MM") : null;
-      } else if (field.type === "time") {
-        values[field.name] = field.value ? dayjs(field.value, "HH:mm") : null;
-      } else if (field.type === "location") {
-        values[field.name] = address;
-        values.lat = location.lat;
-        values.long = location.long;
-      } else {
-        values[field.name] = field.value;
-      }
-    }
-
-    return values;
-  }, {});
-
-  const handleChange = (attribue, value) => {
-    fields.map((data, index) => {
-      if (data.moderef) {
-        onChange(attribue, value)
-      }
-    })
-  };
-
+  // ตั้งค่า initial values เมื่อ fields เปลี่ยน
   useEffect(() => {
-    fields.map((data, index) => {
-      if (data.type === 'location') {
+    const initialValues = fields.reduce((values, field) => {
+      if (field.value !== undefined) {
+        if (field.type === "date") {
+          values[field.name] = field.value ? dayjs(field.value, "YYYY-MM-DD") : null;
+        } else if (field.type === "month") {
+          values[field.name] = field.value ? dayjs(field.value, "YYYY-MM") : null;
+        } else if (field.type === "time") {
+          values[field.name] = field.value ? dayjs(field.value, "HH:mm") : null;
+        } else if (field.type === "location") {
+          values[field.name] = {
+            address: location.address,
+            lat: location.lat,
+            long: location.long,
+          };
+        } else {
+          values[field.name] = field.value;
+        }
+      }
+      return values;
+    }, {});
+
+    setFormValues(initialValues);
+
+    if (!isInitialSet.current && form) {
+      form.setFieldsValue(initialValues); // เซ็ตค่าเริ่มต้นให้ฟอร์มครั้งเดียว
+      isInitialSet.current = true;
+    }
+  }, [fields, form, location]);
+
+  // ดึงข้อมูล location เมื่อมีฟิลด์ location
+  useEffect(() => {
+    fields.forEach((field) => {
+      if (field.type === "location") {
         getLocation();
       }
-    })
-  }, []);
-
-  useEffect(() => {
-    form?.setFieldsValue(initialValues);
-  }, [form, initialValues]);
+    });
+  }, [fields]);
 
   const getLocation = () => {
     if (navigator.geolocation) {
@@ -73,29 +74,32 @@ export default function FormCustom({ fields, form, title, onChange={} }) {
         (position) => {
           const lat = position.coords.latitude;
           const long = position.coords.longitude;
-          setLocation({ lat, long });
           getAddress(lat, long);
+          setLocation((prev) => ({ ...prev, lat, long }));
         },
         (err) => {
-          setError(err.message);
+          console.error(err.message);
         }
       );
     } else {
-      setError("Geolocation is not supported by your browser.");
+      console.error("Geolocation is not supported by your browser.");
     }
   };
-  
+
   const getAddress = async (lat, long) => {
     const apiKey = "AIzaSyAF-YpYX1gu-kPeKxVdCTh9f_9nXXlZaPc";
     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${apiKey}`;
-  
+
     try {
       const response = await fetch(url);
       const data = await response.json();
       if (data.status === "OK") {
         const fetchedAddress = data.results[0]?.formatted_address || "Address not found";
-        setAddress(fetchedAddress);
-        form?.setFieldsValue({ address: fetchedAddress }); // อัปเดตค่าในฟอร์ม
+        setLocation((prev) => ({ ...prev, address: fetchedAddress }));
+        setFormValues((prev) => ({
+          ...prev,
+          location: { address: fetchedAddress, lat, long },
+        }));
       } else {
         console.error("Failed to fetch address");
       }
@@ -104,114 +108,124 @@ export default function FormCustom({ fields, form, title, onChange={} }) {
     }
   };
 
+  const handleChange = (attribute, value) => {
+    setFormValues((prev) => ({
+      ...prev,
+      [attribute]: value,
+    }));
+    form.setFieldsValue({ [attribute]: value }); // อัปเดตเฉพาะฟิลด์ที่เปลี่ยน
+    onChange(attribute, value);
+  };
+
   return (
     <BoxPrimary>
       {title && <div className="text-[#00783F] text-lg font-semibold mb-3">{title}</div>}
-      <Form layout="vertical" form={form} initialValues={initialValues}>
+      <Form layout="vertical" form={form}>
         <Row gutter={16} align="middle">
-          {fields
-            .filter((field) => field.value !== undefined) // Only render fields with a defined value
-            .map((field, index) => (
-              <Col
-                xs={24}
-                sm={field.col || 12}
-                md={field.col || 8}
-                lg={field.col || 6}
-                key={index}
+          {fields.map((field, index) => (
+            <Col
+              xs={24}
+              sm={field.col || 12}
+              md={field.col || 8}
+              lg={field.col || 6}
+              key={index}
+            >
+              <Form.Item
+                label={field.label}
+                name={field.name}
+                rules={[
+                  {
+                    required: field.required,
+                    message: `Please enter ${field.label.toLowerCase()}`,
+                  },
+                ]}
+                className="mb-3"
               >
-                <Form.Item
-                  label={field.label}
-                  name={field.name}
-                  rules={[
-                    {
-                      required: field.required,
-                      message: `Please enter ${field.label.toLowerCase()}`,
-                    },
-                  ]}
-                  className="mb-3"
-                >
-                  {field.type === "text" ||
-                  field.type === "email" ||
-                  field.type === "tel" ||
-                  field.type === "number" ? (
-                    <Input
-                      type={field.type}
-                      placeholder={`Enter ${field.label.toLowerCase()}`}
-                      disabled={field.disabled}
-                      prefix={
-                        field.iconPosition === "left" && field.iconSrc ? (
-                          <img src={field.iconSrc} alt="icon" className="inline-block h-4" />
-                        ) : null
-                      }
-                      suffix={
-                        field.iconPosition === "right" && field.iconSrc ? (
-                          <img src={field.iconSrc} alt="icon" className="inline-block h-4" />
-                        ) : null
-                      }
-                    />
-                  ) : field.type === "date" ? (
-                    <DatePicker
-                      style={{ width: "100%" }}
-                      disabled={field.disabled}
-                      format="YYYY-MM-DD"
-                    />
-                  ) : field.type === "month" ? (
-                    <MonthPicker
-                      style={{ width: "100%" }}
-                      disabled={field.disabled}
-                      format="YYYY-MM"
-                    />
-                  ) : field.type === "time" ? (
-                    <TimePicker
-                      format="HH:mm"
-                      style={{ width: "100%" }}
-                      disabled={field.disabled}
-                    />
-                  ) : field.type === "select" ? (
-                    <Select
-                      placeholder={`Select ${field.label.toLowerCase()}`}
-                      disabled={field.disabled}
-                      onChange={(value) => handleChange(field.name, value)}
-                    >
-                      {/* Default disabled option */}
-                      <option value="" disabled>
+                {field.type === "text" ||
+                field.type === "email" ||
+                field.type === "tel" ||
+                field.type === "number" ? (
+                  <Input
+                    type={field.type}
+                    placeholder={`Enter ${field.label.toLowerCase()}`}
+                    value={formValues[field.name] || ""}
+                    disabled={field.disabled}
+                    onChange={(e) => handleChange(field.name, e.target.value)}
+                  />
+                ) : field.type === "date" ? (
+                  <DatePicker
+                    style={{ width: "100%" }}
+                    disabled={field.disabled}
+                    value={formValues[field.name] || null}
+                    onChange={(date) => handleChange(field.name, date)}
+                    format="YYYY-MM-DD"
+                  />
+                ) : field.type === "month" ? (
+                  <MonthPicker
+                    style={{ width: "100%" }}
+                    disabled={field.disabled}
+                    value={formValues[field.name] || null}
+                    onChange={(date) => handleChange(field.name, date)}
+                    format="YYYY-MM"
+                  />
+                ) : field.type === "time" ? (
+                  <TimePicker
+                    style={{ width: "100%" }}
+                    disabled={field.disabled}
+                    value={formValues[field.name] || null}
+                    onChange={(time) => handleChange(field.name, time)}
+                    format="HH:mm"
+                  />
+                ) : field.type === "select" ? (
+                  <Select
+                    value={formValues[field.name] || undefined}
+                    onChange={(value) => handleChange(field.name, value)}
+                    placeholder={`Select ${field.label.toLowerCase()}`}
+                    disabled={field.disabled}
+                  >
+                    <Option key="" value="" disabled>
                         Please Select
-                      </option>
-
-                      {field.options.map((option, idx) => (
-                        <Option key={idx} value={option.id}>
-                          {option.name}
-                        </Option>
-                      ))}
-                    </Select>
-                  ) : field.type === "text-editor" ? (
-                    <ReactQuill
-                      theme="snow"
-                      value={field.value}
-                      placeholder={`Enter ${field.label.toLowerCase()}`}
-                      readOnly={field.disabled}
-                      modules={{ toolbar: toolbarOptions }}
-                    />
-                  ) : field.type === "location" ? (
+                    </Option>
+                    {field.options.map((option) => (
+                      <Option key={option.id} value={option.id}>
+                        {option.name}
+                      </Option>
+                    ))}
+                  </Select>
+                ) : field.type === "text-editor" ? (
+                  <ReactQuill
+                    theme="snow"
+                    value={formValues[field.name] || ""}
+                    placeholder={`Enter ${field.label.toLowerCase()}`}
+                    readOnly={field.disabled}
+                    modules={{ toolbar: toolbarOptions }}
+                    onChange={(value) => handleChange(field.name, value)}
+                  />
+                ) : field.type === "location" ? (
+                  <>
                     <Input
                       type="text"
-                      disabled={field.disabled}
-                      value={address || ""} // เพิ่ม value เพื่อแสดงค่า address
-                      prefix={
-                        field.iconPosition === "left" && field.iconSrc ? (
-                          <img src={field.iconSrc} alt="icon" className="inline-block h-4" />
-                        ) : null
-                      }
-                      suffix={
-                        field.iconPosition === "right" && field.iconSrc ? (
-                          <img src={field.iconSrc} alt="icon" className="inline-block h-4" />
-                        ) : null
-                      }
+                      placeholder="Address"
+                      value={location.address || ""}
+                      disabled
                     />
-                  ) : null}
-                </Form.Item>
-              </Col>
-            ))}
+                    <Input
+                      type="hidden"
+                      placeholder="Latitude"
+                      value={location.lat || ""}
+                      disabled
+                    />
+                    <Input
+                      type="hidden"
+                      placeholder="Longitude"
+                      value={location.long || ""}
+                      disabled
+                    />
+                  </>
+                ) : null}
+              </Form.Item>
+            </Col>
+          ))}
         </Row>
       </Form>
     </BoxPrimary>

@@ -22,8 +22,6 @@ export default function CreateActivity() {
   const [dealerList, setDealerList] = useState([]);
   const [cropList, setCropList] = useState([]);
   const [timeList, setTimeList] = useState([]);
-  const [selectedDealer, setSelectedDealer] = useState("");
-  const [selectedCrop, setSelectedCrop] = useState("");
   const navigate = useNavigate();
 
   const [formCustom] = Form.useForm();
@@ -93,8 +91,8 @@ export default function CreateActivity() {
     { label: "Activity Reference", name: "activity_reference", type: "text", disabled: true, required: false, col: 24, value: "202400000000001" },
     { label: "Activity Type", name: "activity_type", type: "select", options: activityList, disabled: false, required: true, col: 8, value: "" },
     { label: "Sale", name: "sale", type: "select", options: saleList, disabled: false, required: true, col: 8, value: "", moderef: true },
-    { label: "Shop", name: "shop", type: "select", options: dealerList, disabled: false, required: true, col: 8, value: selectedDealer, moderef: true },
-    { label: "Crop", name: "crop", type: "select", options: cropList, disabled: false, required: true, col: 6, value: selectedCrop },
+    { label: "Shop", name: "shop", type: "select", options: dealerList, disabled: false, required: true, col: 8, value: "", moderef: true },
+    { label: "Crop", name: "crop", type: "select", options: cropList, disabled: false, required: true, col: 6, value: "" },
     { label: "Date", name: "date", type: "date", disabled: false, required: true, col: 6, value: "2024-01-01" },
     { label: "Start Time", name: "start_time", type: "select", options:timeList, disabled: false, required: true, col: 6, value:""  },
     { label: "End Time", name: "end_time", type: "select", options:timeList, disabled: false, required: true, col: 6, value: "" },
@@ -132,10 +130,6 @@ export default function CreateActivity() {
     const getMasterSelect = async () => {
       try {
         if(attribue == 'sale'){
-          setDealerList([]);
-          setSelectedDealer("");
-          setCropList([]);
-          setSelectedCrop("");
           const [dealer] = await Promise.all([
             useServiceAPI.get(paths.pathMasterDealerDropdown, {
               user_id: value
@@ -143,8 +137,6 @@ export default function CreateActivity() {
           ]);
           setDealerList(dealer.data);
         }else if(attribue == 'shop'){
-          setCropList([]);
-          setSelectedCrop("");
           const [crop] = await Promise.all([
             useServiceAPI.get(paths.pathMasterCrop, {
               dealer_id: value
