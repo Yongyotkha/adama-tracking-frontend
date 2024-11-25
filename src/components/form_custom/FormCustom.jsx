@@ -23,7 +23,7 @@ const toolbarOptions = [
   ['clean']
 ];
 
-export default function FormCustom({ fields, form, title }) {
+export default function FormCustom({ fields, form, title, onChange }) {
   const initialValues = fields.reduce((values, field) => {
     if (field.value !== undefined) {
       if (field.type === "date") {
@@ -38,6 +38,14 @@ export default function FormCustom({ fields, form, title }) {
     }
     return values;
   }, {});
+
+  const handleChange = (value) => {
+    fields.map((data, index) => {
+      if (data.moderef) {
+        onChange(value)
+      }
+    })
+  };
 
   return (
     <BoxPrimary>
@@ -106,10 +114,11 @@ export default function FormCustom({ fields, form, title }) {
                     <Select
                       placeholder={`Select ${field.label.toLowerCase()}`}
                       disabled={field.disabled}
+                      onChange={(value) => handleChange(value)}
                     >
                       {field.options.map((option, idx) => (
-                        <Option key={idx} value={option}>
-                          {option}
+                        <Option key={idx} value={option.id}>
+                          {option.name}
                         </Option>
                       ))}
                     </Select>

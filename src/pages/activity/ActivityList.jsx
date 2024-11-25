@@ -148,6 +148,8 @@ export default function ActivityList() {
     const requestData = {
       keyword: filters.keyword || "",
       activity_type_id: filters.activity_type || "",
+      user_id: filters.sale || "",
+      dealer_id: filters.shop || "",
       page_length: current,
       page_size: pageSize,
     };
