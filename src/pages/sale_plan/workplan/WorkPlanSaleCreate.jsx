@@ -94,6 +94,14 @@ export default function WorkPlanSaleCreate() {
       };
     });
 
+  const handleQtyChange = (value, month, quarter, recordKey) => {
+    const updatedData = [...dataSource];
+    const recordIndex = updatedData.findIndex((item) => item.key === recordKey);
+    if (recordIndex > -1) {
+      updatedData[recordIndex][`qtyKG_${month}_${quarter}`] = value; // อัปเดตค่าของช่องที่เปลี่ยน
+      setDataSource(updatedData); // อัปเดต dataSource
+    }
+  };
   const baseColumns = [
     {
       title: "Quarter", // Row 1
@@ -182,11 +190,11 @@ export default function WorkPlanSaleCreate() {
               <Input
                 className="w-full text-end"
                 disabled
-                value={new Intl.NumberFormat("en-US").format(13862500)} // Format the number before passing to value
+                value={new Intl.NumberFormat("en-US").format(13862500)}
               />
             ),
             colSpan: 3,
-            children: months.map((month, monthIndex) => ({
+            children: months.map((month) => ({
               title: month,
               dataIndex: `valueTHB_${month}_${quarter}`,
               key: `valueTHB_${month}_${quarter}`,
@@ -196,6 +204,18 @@ export default function WorkPlanSaleCreate() {
                   title: "Qty (KG)",
                   dataIndex: `qtyKG_${month}_${quarter}`,
                   key: `qtyKG_${month}_${quarter}`,
+                  render: (text, record) => (
+                    <InputNumber
+                      className="w-full"
+                      min={0}
+                      value={text}
+                      formatter={(value) =>
+                        value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "0.00"
+                      }
+                      parser={(value) => value.replace(/\$\s?|(,*)/g, "")} // ลบสัญลักษณ์ที่ไม่ใช่ตัวเลขออก
+                      onChange={(value) => handleQtyChange(value, month, quarter, record.key)}
+                    />
+                  )
                 },
               ],
             })),
@@ -204,8 +224,6 @@ export default function WorkPlanSaleCreate() {
       };
     }),
   ];
-
-
 
   const columns = applyTopLevelAndSpecificChildrenStyles(baseColumns);
 
