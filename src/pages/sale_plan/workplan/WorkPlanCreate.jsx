@@ -17,7 +17,10 @@ export default function WorkPlanCreate() {
   const [totalValue, setTotalValue] = useState(0);
 
   useEffect(() => {
-    const total = dataSource.reduce((acc, item) => acc + parseFloat(item.value), 0);
+    const total = dataSource.reduce(
+      (acc, item) => acc + parseFloat(item.value),
+      0
+    );
     setTotalValue(total);
   }, []);
 
@@ -25,26 +28,26 @@ export default function WorkPlanCreate() {
     let total = 0; // Initialize as a number
     const newData = dataSource.map((item) => {
       if (item.key === key) {
-        const newValue = value * item.unitPrice;
-        total += newValue; // Add the updated value to total
+        const newValue = parseFloat(value) * parseFloat(item.unit_convert_value);
+        total += parseFloat(newValue); // Add the updated value to total
         return { ...item, qty: value, value: parseFloat(newValue.toFixed(2)) };
       }
       total += parseFloat(item.value);
       return item;
     });
-    setTotalValue(total);
+    setTotalValue(total.toFixed(2));
     setDataSource(newData);
   };
 
   const header = [
     {
       title: "Product Name",
-      dataIndex: "productName",
+      dataIndex: "product_name",
       key: "productName",
     },
     {
       title: "Pack Size",
-      dataIndex: "packSize",
+      dataIndex: "pack_size",
       key: "packSize",
     },
     {
@@ -84,7 +87,7 @@ export default function WorkPlanCreate() {
   useEffect(() => {
     useServiceAPI
       .get(
-        paths.pathGetWorkPlanStep1,
+        paths.pathWorkPlanStep1,
         { year_code: location.state.year_code },
         setLoading
       )
@@ -92,11 +95,13 @@ export default function WorkPlanCreate() {
         if (response.status == 200) {
           console.log(response.data.data_items);
           const newData = response.data.data_items.map((item) => ({
-            key: item.product_id,
-            productName: item.product_name,
-            packSize: item.pack_size,
+            key:item.product_id,
+            product_id: item.product_id,
+            product_code: item.product_code,
+            product_name: item.product_name,
+            pack_size: item.pack_size,
+            unit_convert_value: item.unit_convert_value,
             qty: item.qty,
-            unitPrice: item.unit_convert_value,
             value: item.value,
           }));
           setDataSource(newData);
@@ -112,8 +117,34 @@ export default function WorkPlanCreate() {
       });
   }, []);
 
-  const handleSave = () => {
-    console.log(dataSource);
+  const handleSave = (mode) => {
+    console.log(dataSource, totalValue, mode);
+
+    useServiceAPI
+      .post(
+        paths.pathWorkPlanStep1,
+        {
+          year_code: location.state.year_code,
+          action_code: mode,
+          data_overall_target: totalValue,
+          data_items: dataSource,
+        },
+        setLoading
+      )
+      .then((response) => {
+        if (response.status == 200) {
+          console.log(response);
+
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        if (error.status == 422) {
+          showMsg("error", error.message);
+        } else {
+          showMsg("error", "เกิดข้อผิดพลาด");
+        }
+      });
   };
 
   return (
@@ -158,11 +189,17 @@ export default function WorkPlanCreate() {
               navigate("/sale-plan/work-plan");
             }}
           />
+
+          <ActionButton
+            text="Save Draft"
+            mode="saveDraft"
+            onClick={() => handleSave("draft")}
+          />
           <ActionButton
             text="Save and Next"
             mode="save"
             className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
-            onClick={handleSave}
+            onClick={() => handleSave("save_and_next")}
           />
         </div>
       </MainLayout>

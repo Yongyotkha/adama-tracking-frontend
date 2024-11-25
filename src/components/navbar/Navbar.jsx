@@ -379,7 +379,7 @@ const Navbar = () => {
           placement="bottomRight"
         >
           <img
-            src="/img/profile.jpg"
+            src={userInfo?.profile_image}
             alt="User Avatar"
             className="rounded-full h-10 w-10 mx-2 cursor-pointer"
           />
