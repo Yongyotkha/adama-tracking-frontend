@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect, useState, React} from "react";
 import { DatePicker, Form, Input, Select, Col, Row, TimePicker } from "antd";
 const { MonthPicker } = DatePicker;
 import BoxPrimary from "../box_primary/BoxPrimary";
@@ -23,7 +23,10 @@ const toolbarOptions = [
   ['clean']
 ];
 
-export default function FormCustom({ fields, form, title, onChange }) {
+export default function FormCustom({ fields, form, title, onChange={} }) {
+  const [location, setLocation] = useState({ lat: null, long: null });
+  const [address, setAddress] = useState("");
+
   const initialValues = fields.reduce((values, field) => {
     if (field.value !== undefined) {
       if (field.type === "date") {
@@ -32,19 +35,73 @@ export default function FormCustom({ fields, form, title, onChange }) {
         values[field.name] = field.value ? dayjs(field.value, "YYYY-MM") : null;
       } else if (field.type === "time") {
         values[field.name] = field.value ? dayjs(field.value, "HH:mm") : null;
+      } else if (field.type === "location") {
+        values[field.name] = address;
+        values.lat = location.lat;
+        values.long = location.long;
       } else {
         values[field.name] = field.value;
       }
     }
+
     return values;
   }, {});
 
-  const handleChange = (value) => {
+  const handleChange = (attribue, value) => {
     fields.map((data, index) => {
       if (data.moderef) {
-        onChange(value)
+        onChange(attribue, value)
       }
     })
+  };
+
+  useEffect(() => {
+    fields.map((data, index) => {
+      if (data.type === 'location') {
+        getLocation();
+      }
+    })
+  }, []);
+
+  useEffect(() => {
+    form?.setFieldsValue(initialValues);
+  }, [form, initialValues]);
+
+  const getLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const long = position.coords.longitude;
+          setLocation({ lat, long });
+          getAddress(lat, long);
+        },
+        (err) => {
+          setError(err.message);
+        }
+      );
+    } else {
+      setError("Geolocation is not supported by your browser.");
+    }
+  };
+  
+  const getAddress = async (lat, long) => {
+    const apiKey = "AIzaSyAF-YpYX1gu-kPeKxVdCTh9f_9nXXlZaPc";
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${apiKey}`;
+  
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      if (data.status === "OK") {
+        const fetchedAddress = data.results[0]?.formatted_address || "Address not found";
+        setAddress(fetchedAddress);
+        form?.setFieldsValue({ address: fetchedAddress }); // อัปเดตค่าในฟอร์ม
+      } else {
+        console.error("Failed to fetch address");
+      }
+    } catch (err) {
+      console.error(err.message);
+    }
   };
 
   return (
@@ -114,8 +171,13 @@ export default function FormCustom({ fields, form, title, onChange }) {
                     <Select
                       placeholder={`Select ${field.label.toLowerCase()}`}
                       disabled={field.disabled}
-                      onChange={(value) => handleChange(value)}
+                      onChange={(value) => handleChange(field.name, value)}
                     >
+                      {/* Default disabled option */}
+                      <option value="" disabled>
+                        Please Select
+                      </option>
+
                       {field.options.map((option, idx) => (
                         <Option key={idx} value={option.id}>
                           {option.name}
@@ -129,6 +191,22 @@ export default function FormCustom({ fields, form, title, onChange }) {
                       placeholder={`Enter ${field.label.toLowerCase()}`}
                       readOnly={field.disabled}
                       modules={{ toolbar: toolbarOptions }}
+                    />
+                  ) : field.type === "location" ? (
+                    <Input
+                      type="text"
+                      disabled={field.disabled}
+                      value={address || ""} // เพิ่ม value เพื่อแสดงค่า address
+                      prefix={
+                        field.iconPosition === "left" && field.iconSrc ? (
+                          <img src={field.iconSrc} alt="icon" className="inline-block h-4" />
+                        ) : null
+                      }
+                      suffix={
+                        field.iconPosition === "right" && field.iconSrc ? (
+                          <img src={field.iconSrc} alt="icon" className="inline-block h-4" />
+                        ) : null
+                      }
                     />
                   ) : null}
                 </Form.Item>
