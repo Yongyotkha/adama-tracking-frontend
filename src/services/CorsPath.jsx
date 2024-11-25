@@ -15,6 +15,7 @@ export const paths = {
   pathMasterAreas: "master/areas",
   pathMasterRoles: "master/roles",
   pathMasterCrop: "master/crop",
+  pathMasterStatus: "master/status",
 
   // List
   pathMasterSale: "sale-management/list",
@@ -25,6 +26,12 @@ export const paths = {
   pathRegister: "register",
   pathMasterUsers: "users/list",
 
+  //promotion
+  pathPromotionlist: "promotion-management/list",
+  pathPromotiondetail: "promotion-management/detail",
+  pathPromotionupdate: "promotion-management/update",
+
+  
   // upload
   pathUpload: "upload/create",
 };

@@ -14,25 +14,18 @@ import { paths } from "../../../services/CorsPath";
 export default function SettingPromotion() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [tableParams, setTableParams] = useState({
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+    filters: {},
+    sortOrder: null,
+    sortField: null,
+  });
 
   const navigate = useNavigate();
-
-  const filters = [
-    {
-      key: "name",
-      type: "text",
-      label: "Name",
-      placeholder: "All",
-    },
-  ];
-
-  const handleSearch = (filter) => {
-    console.log("Search filters applied:", filter);
-  };
-
-  const handleClear = () => {
-    console.log("Filters cleared");
-  };
 
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "left" },
@@ -48,13 +41,22 @@ export default function SettingPromotion() {
       key: "1",
       label: (
         <ItemDropDown
+          mode="create"
+          onClick={(e) => navigate("/setting/promotion/create")}
+        />
+      ),
+    },
+    {
+      key: "2",
+      label: (
+        <ItemDropDown
           mode="edit"
           onClick={(e) => navigate("/setting/promotion/edit")}
         />
       ),
     },
     {
-      key: "2",
+      key: "3",
       label: (
         <ItemDropDown mode="delete" />
       ),
@@ -260,56 +262,179 @@ export default function SettingPromotion() {
   //   setDataSource(dataSource);
   // }, []);
 
-  useEffect(() => {
-    const body = { platform: "web" };
-    useServiceAPI
-      .get(paths.pathMasterPromotion, body)
-      .then((response) => {
-        if (response.status === 200) {
-          const newDataSource = response.data.map((data, index) => ({
-            key: index + 1,
-            name: data.name,
-            description: data.description,
-            value:data.value,
-            status: (
-              <BadgeStatus
-                text="Active"
-                bgColor="#009845"
-                textColor="#FFFFFF"
-              />
-            ),
-            action: (
-              <Dropdown menu={{ items: actionItems }} placement="bottom">
-                <a onClick={(e) => e.preventDefault()}>
-                  <img
-                    src="/img/icons/action.png"
-                    alt="Actions icon"
-                    className="inline-block w-5 h-5"
-                  />
-                </a>
-              </Dropdown>
-            ),
 
-          }));
+  // useEffect(() => {
+  //   fetchData();
+  //   const body = { platform: "web" };
+  //   useServiceAPI
+  //     .get(paths.pathMasterPromotion, body)
+  //     .then((response) => {
+  //       if (response.status === 200) {
+  //         const newDataSource = response.data.map((data, index) => ({
+  //           key: index + 1,
+  //           name: data.name,
+  //           description: data.description,
+  //           value:data.value,
+  //           status: (
+  //             <BadgeStatus
+  //               text="Active"
+  //               bgColor="#009845"
+  //               textColor="#FFFFFF"
+  //             />
+  //           ),
+  //           action: (
+  //             <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //               <a onClick={(e) => e.preventDefault()}>
+  //                 <img
+  //                   src="/img/icons/action.png"
+  //                   alt="Actions icon"
+  //                   className="inline-block w-5 h-5"
+  //                 />
+  //               </a>
+  //             </Dropdown>
+  //           ),
+
+  //         }));
   
-          setDataSource(newDataSource);
-        }
-      })
-      .catch((error) => {
-        console.log(error.message);
-        setError(error.message);
-        if (error.status === 422) {
-          showMsg("error", error.message);
-        } else {
-          showMsg("error", "เกิดข้อผิดพลาด");
-        }
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+  //         setDataSource(newDataSource);
+  //       }
+  //     })
+  //     .catch((error) => {
+  //       console.log(error.message);
+  //       setError(error.message);
+  //       if (error.status === 422) {
+  //         showMsg("error", error.message);
+  //       } else {
+  //         showMsg("error", "เกิดข้อผิดพลาด");
+  //       }
+  //     })
+  //     .finally(() => {
+  //       setLoading(false);
+  //     });
+  // }, []);
+  
+  const fetchData = async () => {
+    setTableLoading(true);
+    const { current, pageSize } = tableParams.pagination;
+    const filters = tableParams.filters || {};
+    const sortOrder = tableParams.sortOrder || "asc";
+    const sortField = tableParams.sortField || "name";
 
+    const requestData = {
+      // keyword: filters.keyword || "",
+      // user_id: filters.user_id || "",
+      // position_id: filters.position || "",
+      // role_id: filters.role || "",
+      // use_flag: filters.use_flag || "",
+      // orderby_column: sortField,
+      // orderby: sortOrder,
+      // name: filters.name || "",
+      page_length: current,
+      page_size: pageSize,
+    };
 
+    try {
+      const response = await useServiceAPI.get(
+        paths.pathPromotionlist,
+        requestData
+      );
+
+      if (response.status === 200) {
+        const { data, records_filtered } = response.data;    
+        console.log(response.data);
+            
+        const newDataSource = data.map((promotion, index) => ({
+          key: index + 1 + (current - 1) * pageSize,
+          action: (
+            <Dropdown
+              menu={{
+                items: promotion.action.map((actionItem, actionIndex) => ({
+                  key: actionIndex,
+                  label: <ItemDropDown mode={actionItem.action.toLowerCase()} 
+                  onClick={() => {
+                    navigate("/setting/promotion/edit", {
+                      state: {
+                        id: promotion.id,
+                      },
+                    });
+                  }}
+                  />,
+                })),
+              }}
+              placement="bottom"
+            >
+              <a onClick={(e) => e.preventDefault()}>
+                <img
+                  src="/img/icons/action.png"
+                  alt="button icon"
+                  className="inline-block w-5 h-5 mr-2"
+                  
+                />
+              </a>
+            </Dropdown>
+          ),
+          name: promotion.name,
+          description: promotion.description,
+          value: promotion.value,
+          status: (
+            <BadgeStatus
+              text={promotion.status_name}
+              bgColor={promotion.status_bg_color}
+              textColor={promotion.status_color}
+            />
+          ),
+
+        }));
+
+        setDataSource(newDataSource);
+        setTableParams({
+          ...tableParams,
+          pagination: {
+            ...tableParams.pagination,
+            total: records_filtered,
+          },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    tableParams.sortOrder,
+    tableParams.sortField,
+    JSON.stringify(tableParams.filters),
+  ]);
+
+  const filters = [
+    {
+      key: "name",
+      type: "text",
+      label: "Name",
+      placeholder: "All",
+    },
+  ];
+
+  const handleSearch = (filters) => {
+    setTableParams({
+      ...tableParams,
+      filters,
+    });
+  };
+
+  
+  const handleClear = () => {
+    setTableParams({
+      ...tableParams,
+      filters: {},
+    });
+  };
 
 
   return (
