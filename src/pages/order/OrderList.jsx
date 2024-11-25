@@ -1,32 +1,69 @@
 import React, { useEffect, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import Filter from "../../components/filter/Filter";
+import { useNavigate } from "react-router-dom";
 import { Dropdown } from "antd";
+import FilterByOrder from "../../components/filter/FilterByOrder";
 import ActionButton from "../../components/button/ActionButton";
 import BadgeStatus from "../../components/badge/BadgeStatus";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import TableComponent from "../../components/table/TableComponent";
-import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../components/dropdown/ItemDropDown";
+import useServiceAPI from "../../services/CorsService";
+import { paths } from "../../services/CorsPath";
 
 export default function OrderList() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [dataSale, setDataSale] = useState([]);
+  const [dataDealer, setDataDealer] = useState([]);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [tableParams, setTableParams] = useState({
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+    filters: {},
+    sortOrder: null,
+    sortField: null,
+  });
 
-  const navigate = useNavigate();
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [sale] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {
+            status: "all"
+          }),
+        ]);
+
+        setDataSale(sale.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, [])
 
   const filters = [
     {
       key: "sale",
-      type: "text",
+      type: "select",
       label: "Sale",
       placeholder: "All",
+      options: dataSale,
+      moderef: true,
     },
     {
       key: "dealer",
-      type: "text",
+      type: "select",
       label: "Dealer",
       placeholder: "All",
+      options: dataDealer,
     },
     {
       key: "order_no",
@@ -47,14 +84,6 @@ export default function OrderList() {
     },
   ];
 
-  const handleSearch = (filter) => {
-    console.log("Search filters applied:", filter);
-  };
-
-  const handleClear = () => {
-    console.log("Filters cleared");
-  };
-
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
     { title: "Order No", width: 150, dataIndex: "orderNo", align: "left" },
@@ -71,72 +100,125 @@ export default function OrderList() {
   const actionItems = [
     { key: "1", label: <ItemDropDown mode="view" link="/order/view" /> },
   ];
+
   const actionItemsPending = [
     { key: "1", label: <ItemDropDown mode="edit" link="/order/edit" /> },
     { key: "2", label: <ItemDropDown mode="view" link="/order/detail" /> },
     { key: "3", label: <ItemDropDown mode="delete" onClick={() => console.log("Delete clicked")} /> },
   ];
 
-  useEffect(() => {
-    const dataSource = [
-      {
-        key: 1,
-        orderNo: "20240002",
-        sale: "Manupong Wongpuang",
-        dealer: "Chaifar",
-        value: "9,150.00",
-        orderDate: "2024-01-01",
-        payOverdue: <BadgeStatus text="Paid" bgColor="#009845" textColor="#FFFFFF" />,
-        status: <BadgeStatus text="Completed" bgColor="#009845" textColor="#FFFFFF" />,
-        createdBy: "Manupong",
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 2,
-        orderNo: "20240001",
-        sale: "Manupong Wongpuang",
-        dealer: "Ponsri",
-        value: "9,150.00",
-        orderDate: "2024-01-01",
-        payOverdue: <BadgeStatus text="Overdue" bgColor="#00A0DF" textColor="#FFFFFF" />,
-        status: <BadgeStatus text="Completed" bgColor="#009845" textColor="#FFFFFF" />,
-        createdBy: "Manupong",
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 3,
-        orderNo: "20240001",
-        sale: "Manupong Wongpuang",
-        dealer: "Ponsri",
-        value: "9,150.00",
-        orderDate: "2024-01-01",
-        payOverdue: <BadgeStatus text="Pending" bgColor="#978B87" textColor="#FFFFFF" />,
-        status: <BadgeStatus text="Waiting for Approve " bgColor="#F89E18" textColor="#FFFFFF" />,
-        createdBy: "Manupong",
-        action: (
-          <Dropdown menu={{ items: actionItemsPending }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      },
-    ];
+  ////////////////////////////////////////////// table ///////////////////////////////////////////////
+  const fetchData = async () => {
+    setTableLoading(true);
+    const { current, pageSize } = tableParams.pagination;
+    const filters = tableParams.filters || {};
+    const sortOrder = tableParams.sortOrder || "asc";
+    const sortField = tableParams.sortField || "document_number";
 
-    setDataSource(dataSource);
-  }, []);
+    const requestData = {
+      // keyword: filters.keyword || "",
+      // user_id: filters.user_id || "",
+      // contact_number: filters.contact_number || "",
+      // position_id: filters.position || "",
+      page: "all",
+      use_flag: filters.use_flag || "",
+      orderby_column: sortField,
+      orderby: sortOrder,
+      page_length: current,
+      page_size: pageSize,
+    };
+
+    try {
+      const response = await useServiceAPI.get(
+        paths.pathGetOrderList,
+        requestData
+      );
+
+      if (response.status === 200) {
+        const { data, records_filtered } = response.data;
+        
+        const newDataSource = data.map((order, index) => ({
+          key: index + 1 + (current - 1) * pageSize,
+          orderNo: order.document_number,
+          sale: order.user_name,
+          dealer: order.dealer_name,
+          value: order.net_amount_display,
+          orderDate: order.document_date,
+          payOverdue: <BadgeStatus text="Paid" bgColor="#009845" textColor="#FFFFFF" />,
+          status: <BadgeStatus text="Completed" bgColor="#009845" textColor="#FFFFFF" />,
+          createdBy: order.updated_by,
+          action: (
+            <Dropdown menu={{ items: actionItems }} placement="bottom">
+              <a onClick={(e) => e.preventDefault()}>
+                <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+              </a>
+            </Dropdown>
+          ),
+        }));
+        setDataSource(newDataSource);
+        setTableParams({
+          ...tableParams,
+          pagination: {
+            ...tableParams.pagination,
+            total: records_filtered,
+          },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    tableParams.sortOrder,
+    tableParams.sortField,
+    JSON.stringify(tableParams.filters),
+  ]);
+
+  const handleSearch = (filter) => {
+    setTableParams({
+      ...tableParams,
+      filters,
+    });
+  };
+
+  const handleClear = () => {
+    setTableParams({
+      ...tableParams,
+      filters: {},
+    });
+  };
+
+  const handleChange = (filter) => {
+    if (filter) {
+      const getMasterDealer = async () => {
+        setLoading(true);
+        try {
+          const [dealer] = await Promise.all([
+            useServiceAPI.get(paths.pathMasterDealerDropdown, {
+              user_id: filter
+            }),
+          ]);
+  
+          setDataDealer(dealer.data);
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      getMasterDealer();
+    } else {
+      handleClear();
+    }
+  };
 
   return (
     <MainLayout loading={loading}>
@@ -146,9 +228,10 @@ export default function OrderList() {
         <ActionButton mode="create" text="Create" onClick={(e) => navigate("/order/create")} />
       </div>
 
-      <Filter
+      <FilterByOrder
         onSearch={handleSearch}
         onClear={handleClear}
+        onChange={handleChange}
         filters={filters}
       />
 

@@ -18,6 +18,8 @@ export const paths = {
   pathMasterAreas: "master/areas",
   pathMasterRoles: "master/roles",
   pathMasterCrop: "master/crop",
+  pathMasterSaleDropdown: "master/sale",
+  pathMasterDealerDropdown: "master/dealer",
 
   // List
   pathMasterSale: "sale-management/list",
@@ -34,4 +36,7 @@ export const paths = {
   //sale plan
   pathGetWorkPlanList: "work-plan/list",
   pathGetWorkPlanStep1: "work-plan/workplan_step1",
+
+  // Orders
+  pathGetOrderList: "order/list",
 };
