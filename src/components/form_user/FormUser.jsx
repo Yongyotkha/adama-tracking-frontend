@@ -52,7 +52,7 @@ export default function FormUser({ fields, title, profile, form }) {
       return acc;
     }, {});
   
-    form.setFieldsValue(initialValues);
+    form?.setFieldsValue(initialValues);
   }, [fields, form]);
 
 

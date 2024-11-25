@@ -19,6 +19,8 @@ export const paths = {
   pathMasterRoles: "master/roles",
   pathMasterCrop: "master/crop",
   pathMasterStatus: "master/status",
+  pathMasterHeadofsale: "master/headofsale",
+  pathMasterSalearea: "master/salearea",
 
   // List
   pathMasterSale: "sale-management/list",
@@ -33,8 +35,11 @@ export const paths = {
   pathPromotionlist: "promotion-management/list",
   pathPromotiondetail: "promotion-management/detail",
   pathPromotionupdate: "promotion-management/update",
+  pathPromotioncreate: "promotion-management/create",
 
-  
+  //Sale
+  pathSaleManagementlist: "sale-management/list",
+
   // upload
   pathUpload: "upload/create",
 

@@ -55,10 +55,38 @@ export default function EditPromotion() {
         const { data } = response;
   
         const updatedFields = [
-          { label: "Name", name: "name", type: "text", required: false, col: 12, value: data.name || "" },
-          { label: "Description", name: "description", type: "text", required: false, col: 12, value: data.description || "" },
-          { label: "Value (THB)", name: "value", type: "text", required: false, col: 6, value: data.value || "" },
-          { label: "Status", name: "status", type: "select", required: false, col: 6, options: position, value: data.use_flag === "1" ? "Active" : "Inactive" },
+          { 
+            label: "Name", 
+            name: "name", 
+            type: "text", 
+            required: false, 
+            col: 12, 
+            value: data.name || "" },
+          { 
+            label: "Description", 
+            name: "description", 
+            type: "text", 
+            required: false, 
+            col: 12, 
+            value: data.description || "" },
+          { 
+            label: "Value (THB)", 
+            name: "value", 
+            type: "text", 
+            required: false, 
+            col: 6, 
+            value: data.value || "" },
+          { 
+            label: "Status", 
+            name: "use_flag", 
+            type: "select", 
+            required: false, 
+            col: 6, 
+            options: [
+              { name: "Active", id: 1, selected: true },
+              { name: "Inactive", id: 0, selected: false },
+            ],
+            value: data.use_flag === "1" ? "Active" : "Inactive" },
           { label: "Remark", name: "remark", type: "text", required: false, col: 12, value: data.remark || "" },
         ];
   
