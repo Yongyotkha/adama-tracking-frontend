@@ -13,12 +13,13 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 
 export default function SettingSale() {
+  const navigate = useNavigate();
+  const [roles, setRoles] = useState([]);
+  const [position, setPosition] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
   const [isBDModalVisible, setIsBDModalVisible] = useState(false);
   const [isSAModalVisible, setIsSAModalVisible] = useState(false);
-  const navigate = useNavigate();
-
   const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const [tableParams, setTableParams] = useState({
@@ -36,13 +37,40 @@ export default function SettingSale() {
       key: "sale_head_name",
       type: "select",
       label: "Sale Head Name",
-      options: [],
+      options: position,
     },
     {
       key: "sale_area_name",
       type: "select",
       label: "Sale Area Name",
-      options: [],
+      options: roles,
+    },
+  ];
+
+  const actionItems = [
+    {
+      key: "1",
+      label: (
+        <ItemDropDown
+          mode="create"
+          onClick={(e) => navigate("/setting/sale/create")}
+        />
+      ),
+    },
+    {
+      key: "2",
+      label: (
+        <ItemDropDown
+          mode="edit"
+          onClick={(e) => navigate("/setting/sale/edit")}
+        />
+      ),
+    },
+    {
+      key: "3",
+      label: (
+        <ItemDropDown mode="delete" />
+      ),
     },
   ];
 
@@ -50,15 +78,8 @@ export default function SettingSale() {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
-    // const sortOrder = tableParams.sortOrder || "asc";
-    // const sortField = tableParams.sortField || "name_en";
 
     const requestData = {
-      keyword: filters.keyword || "",
-      user_id: filters.user_id || "",
-      contact_number: filters.contact_number || "",
-      // orderby_column: sortField,
-      // orderby: sortOrder,
       page_length: current,
       page_size: pageSize,
     };
@@ -74,30 +95,30 @@ export default function SettingSale() {
     
         const newDataSource = data.map((data, index) => ({
           key: index + 1,
-          sale_head_name: data.sa_head_name,
-          sale_area_name: data.sa_area_name,
+          sale_head_name: data.sale_head_name,
+          sale_area_name: data.sale_area_name,
           area: data.area_name,
           sale_assistant: (
             <BadgeStatus
-              text="4"
-              bgColor="#FFB020"
-              textColor="#FFFFFF"
+              text={data.sales_assistant_count}
+              bgColor={data.status_bg_color}
+              textColor={data.status_color}
               onClick={() => setIsSAModalVisible(true)}
             />
           ),
           sale: (
             <BadgeStatus
-              text="8"
-              bgColor="#FFB020"
-              textColor="#FFFFFF"
+              text={data.sale_count}
+              bgColor={data.status_bg_color}
+              textColor={data.status_color}
               onClick={() => setIsTerritoryModalVisible(true)}
             />
           ),
           business_dev: (
             <BadgeStatus
-              text="4"
-              bgColor="#FFB020"
-              textColor="#FFFFFF"
+              text={data.business_development_count} 
+              bgColor={data.status_bg_color}
+              textColor={data.status_color}
               onClick={() => setIsBDModalVisible(true)}
             />
           ),
@@ -135,10 +156,30 @@ export default function SettingSale() {
   }, [
     tableParams.pagination.current,
     tableParams.pagination.pageSize,
-    // tableParams.sortOrder,
-    // tableParams.sortField,
     JSON.stringify(tableParams.filters),
   ]);
+
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [positions, roles] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterHeadofsale, {}),
+          useServiceAPI.get(paths.pathMasterSalearea, {}),
+        ]);
+
+        setPosition(positions.data);
+        setRoles(roles.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, []);
+
 
   const handleTableChange = (pagination, filters, sorter) => {
     setTableParams({
@@ -276,7 +317,11 @@ export default function SettingSale() {
   ];
 
   const header = [
-    { title: "No", width: 50, dataIndex: "key", align: "center" },
+    { 
+      title: "No", 
+      width: 50, 
+      dataIndex: "key", 
+      align: "center" },
     {
       title: "Sale Head Name",
       width: 200,
@@ -303,7 +348,12 @@ export default function SettingSale() {
       dataIndex: "sale_assistant",
       align: "center",
     },
-    { title: "Action", width: 100, dataIndex: "action", align: "center" },
+    { 
+      title: "Action", 
+      width: 100, 
+      dataIndex: "action", 
+      align: "center" 
+    },
   ];
 
  

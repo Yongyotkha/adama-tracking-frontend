@@ -10,7 +10,7 @@ export default function WorkPlanSaleCreate() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-  const months = Array.from({ length: 12 });
+  const months = Array.from({ length: 6 });
 
   useEffect(() => {
     const data = [
@@ -46,6 +46,9 @@ export default function WorkPlanSaleCreate() {
           const isFirstLevelChild = child.key === "firstChilden";
           const isLastLevelChild = child.dataIndex;
 
+          // Check if the child has the specific title 'Qty (KG)'
+          const isQtyChild = child.title === "Qty (KG)";
+
           if (!isFirstLevelChild && child.children && !isLastLevelChild) {
             return {
               ...child,
@@ -59,10 +62,12 @@ export default function WorkPlanSaleCreate() {
               style: {
                 backgroundColor: isFirstLevelChild
                   ? "#CBC5C3"
-                  : isLastLevelChild
-                  ? parentBgColor
-                  : null,
-                color: isLastLevelChild ? textColor : "black",
+                  : isQtyChild
+                    ? parentBgColor // Use the parent's background color for 'Qty (KG)'
+                    : isLastLevelChild
+                      ? parentBgColor
+                      : null,
+                color: isLastLevelChild || isQtyChild ? textColor : "black",
                 fontWeight: "bold",
                 textAlign: "center",
               },
@@ -89,605 +94,135 @@ export default function WorkPlanSaleCreate() {
       };
     });
 
+  const handleQtyChange = (value, month, quarter, recordKey) => {
+    const updatedData = [...dataSource];
+    const recordIndex = updatedData.findIndex((item) => item.key === recordKey);
+    if (recordIndex > -1) {
+      updatedData[recordIndex][`qtyKG_${month}_${quarter}`] = value; // อัปเดตค่าของช่องที่เปลี่ยน
+      setDataSource(updatedData); // อัปเดต dataSource
+    }
+  };
   const baseColumns = [
     {
-      title: "Month",
+      title: "Quarter", // Row 1
       children: [
         {
-          title: "Product Name",
-          dataIndex: "productName",
-          key: "productName",
-          fixed: "left",
+          title: "Sale Plan (THB)", // Row 2
+          children: [
+            {
+              title: "Month", // Row 3
+              onHeaderCell: () => ({
+                style: {
+                  backgroundColor: "#00783F", // สีเขียวเข้ม
+                  color: "white", // สีตัวอักษร
+                  fontWeight: "bold",
+                  textAlign: "center",
+                },
+              }),
+              children: [
+                {
+                  title: "Product Name", // Row 4
+                  dataIndex: "productName",
+                  key: "productName",
+                  fixed: "left",
+                  width: 150,
+                },
+                {
+                  title: "Pack Size",
+                  dataIndex: "packSize",
+                  key: "packSize",
+                  width: 150,
+                  fixed: "left",
+                },
+                {
+                  title: "Original Plan (KG)",
+                  dataIndex: "originalPlan",
+                  key: "originalPlan",
+                  width: 150,
+                  fixed: "left",
+                  render: (text) => (
+                    <InputNumber
+                      className="w-full"
+                      disabled
+                      value={text}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                    />
+                  ),
+                },
+                {
+                  title: "Value (THB)",
+                  dataIndex: "valueTHB",
+                  key: "valueTHB",
+                  width: 150,
+                  fixed: "left",
+                  render: (text) => (
+                    <InputNumber
+                      className="w-full"
+                      disabled
+                      value={text}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                    />
+                  ),
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    ...[1, 2, 3, 4].map((quarter, index) => {
+      const months = [
+        ["Jan.", "Feb.", "Mar."],
+        ["Apr.", "May.", "Jun."],
+        ["Jul.", "Aug.", "Sep."],
+        ["Oct.", "Nov.", "Dec."],
+      ][index];
 
-          width: 150,
-        },
-        {
-          title: "Pack Size",
-          dataIndex: "packSize",
-          key: "packSize",
-          width: 150,
-          fixed: "left",
-        },
-        {
-          title: "Original Plan",
-          dataIndex: "originalPlan",
-          key: "originalPlan",
-          width: 150,
-          fixed: "left",
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              disabled
-              min={0}
-              value={text}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-        {
-          title: "Value (THB)",
-          dataIndex: "valueTHB",
-          key: "valueTHB",
-          width: 150,
-          fixed: "left",
-          render: (text, record) => (
-            <InputNumber
-              disabled
-              className="w-full"
-              min={0}
-              value={text}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Jan",
-      children: [
-        {
-          title: "Qty (KG)",
-          dataIndex: "valueTHB_Jan",
-          key: "valueTHB_Jan",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Feb",
-      children: [
-        {
-          title: "Qty (KG)",
-          dataIndex: "valueTHB_Feb",
-          key: "valueTHB_Feb",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Mar",
-      children: [
-        {
-          title: "Qty (KG)",
-          dataIndex: "valueTHB_Mar",
-          key: "valueTHB_Mar",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Apr",
-      children: [
-        {
-          title: "Qty (KG)",
-          dataIndex: "valueTHB_Apr",
-          key: "valueTHB_Apr",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "May",
-      children: [
-        {
-          title: "Qty (KG)",
-          dataIndex: "valueTHB_May",
-          key: "valueTHB_May",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Jun",
-      children: [
-        {
-          title: "Qty (KG)",
-          dataIndex: "valueTHB_Jun",
-          key: "valueTHB_Jun",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Jul",
-      children: [
-        {
-          title: "Qty (KG)",
-          dataIndex: "valueTHB_Jul",
-          key: "valueTHB_Jul",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Aug",
-      children: [
-        {
-          title: "Qty (KG)",
-          dataIndex: "valueTHB_Aug",
-          key: "valueTHB_Aug",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Sep",
-      children: [
-        {
-          title: "Qty (KG)",
-          dataIndex: "valueTHB_Sep",
-          key: "valueTHB_Sep",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Oct",
-      children: [
-        {
-          title: "Qty (KG)",
-          dataIndex: "valueTHB_Oct",
-          key: "valueTHB_Oct",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Nov",
-      children: [
-        {
-          title: "Qty (KG)",
-          dataIndex: "valueTHB_Nov",
-          key: "valueTHB_Nov",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Dec",
-      children: [
-        {
-          title: "Qty (KG)",
-          dataIndex: "valueTHB_Dec",
-          key: "valueTHB_Dec",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Jan",
-      children: [
-        {
-          title: "Value (THB)",
-          dataIndex: "valueTHB_Jan",
-          key: "valueTHB_Jan",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              disabled
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Feb",
-      children: [
-        {
-          title: "Value (THB)",
-          dataIndex: "valueTHB_Feb",
-          key: "valueTHB_Feb",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              disabled
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Mar",
-      children: [
-        {
-          title: "Value (THB)",
-          dataIndex: "valueTHB_Mar",
-          key: "valueTHB_Mar",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              disabled
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Apr",
-      children: [
-        {
-          title: "Value (THB)",
-          dataIndex: "valueTHB_Apr",
-          key: "valueTHB_Apr",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              disabled
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "May",
-      children: [
-        {
-          title: "Value (THB)",
-          dataIndex: "valueTHB_May",
-          key: "valueTHB_May",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              disabled
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Jun",
-      children: [
-        {
-          title: "Value (THB)",
-          dataIndex: "valueTHB_Jun",
-          key: "valueTHB_Jun",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              disabled
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Jul",
-      children: [
-        {
-          title: "Value (THB)",
-          dataIndex: "valueTHB_Jul",
-          key: "valueTHB_Jul",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              disabled
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Aug",
-      children: [
-        {
-          title: "Value (THB)",
-          dataIndex: "valueTHB_Aug",
-          key: "valueTHB_Aug",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              disabled
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Sep",
-      children: [
-        {
-          title: "Value (THB)",
-          dataIndex: "valueTHB_Sep",
-          key: "valueTHB_Sep",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              disabled
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Oct",
-      children: [
-        {
-          title: "Value (THB)",
-          dataIndex: "valueTHB_Oct",
-          key: "valueTHB_Oct",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              disabled
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Nov",
-      children: [
-        {
-          title: "Value (THB)",
-          dataIndex: "valueTHB_Nov",
-          key: "valueTHB_Nov",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              disabled
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
-    {
-      title: "Dec",
-      children: [
-        {
-          title: "Value (THB)",
-          dataIndex: "valueTHB_Dec",
-          key: "valueTHB_Dec",
-          width: 150,
-          render: (text, record) => (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={text}
-              disabled
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) => handleQtyChange(value, record.key)}
-            />
-          ),
-        },
-      ],
-    },
+      return {
+        title: `Quarter ${quarter}`,
+        children: [
+          {
+            title: (
+              <Input
+                className="w-full text-end"
+                disabled
+                value={new Intl.NumberFormat("en-US").format(13862500)}
+              />
+            ),
+            colSpan: 3,
+            children: months.map((month) => ({
+              title: month,
+              dataIndex: `valueTHB_${month}_${quarter}`,
+              key: `valueTHB_${month}_${quarter}`,
+              width: 100,
+              children: [
+                {
+                  title: "Qty (KG)",
+                  dataIndex: `qtyKG_${month}_${quarter}`,
+                  key: `qtyKG_${month}_${quarter}`,
+                  render: (text, record) => (
+                    <InputNumber
+                      className="w-full"
+                      min={0}
+                      value={text}
+                      formatter={(value) =>
+                        value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "0.00"
+                      }
+                      parser={(value) => value.replace(/\$\s?|(,*)/g, "")} // ลบสัญลักษณ์ที่ไม่ใช่ตัวเลขออก
+                      onChange={(value) => handleQtyChange(value, month, quarter, record.key)}
+                    />
+                  )
+                },
+              ],
+            })),
+          },
+        ],
+      };
+    }),
   ];
 
   const columns = applyTopLevelAndSpecificChildrenStyles(baseColumns);
@@ -707,7 +242,7 @@ export default function WorkPlanSaleCreate() {
         </BoxPrimary>
 
         <BoxPrimary>
-          <div className="text-[#00783F] text-xl pb-5">Monthly Sale Plan</div>
+          <div className="text-[#00783F] text-xl pb-5">Monthly Work Plan</div>
 
           <TableCustomComponent
             header={columns}

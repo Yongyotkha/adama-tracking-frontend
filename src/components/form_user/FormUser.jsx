@@ -43,9 +43,22 @@ export default function FormUser({ fields, title, profile, form }) {
     )
   );
 
+
   useEffect(() => {
-    form.setFieldsValue(initialValues);
-  }, [initialValues, form]);
+    const initialValues = fields.reduce((acc, field) => {
+      acc[field.name] = field.type === "date" 
+        ? field.value ? dayjs(field.value, dateFormat) : null 
+        : field.value || null;
+      return acc;
+    }, {});
+  
+    form?.setFieldsValue(initialValues);
+  }, [fields, form]);
+
+
+  // useEffect(() => {
+  //   form?.setFieldsValue(initialValues);
+  // }, [initialValues, form]);
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -61,7 +74,7 @@ export default function FormUser({ fields, title, profile, form }) {
         formData,
         setLoading
       );
-      form.setFieldsValue({
+      form?.setFieldsValue({
         profile: response.data.file_url,
       });
     } catch (error) {
