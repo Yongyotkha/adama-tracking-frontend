@@ -4,7 +4,7 @@ import FormCustom from "../../components/form_custom/FormCustom";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../components/button/ActionButton";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
-import { Input } from "antd";
+import { Input, Select } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import TableComponent from "../../components/table/TableComponent";
 import DynamicModal from "../../components/modal/DynamicModal";
@@ -18,6 +18,7 @@ export default function CreateOrder() {
   const [dataSource, setDataSource] = useState([]);
   const [dataSale, setDataSale] = useState([]);
   const [dataDealer, setDataDealer] = useState([]);
+  const [searchProductData, setSearchProductData] = useState([]);
 
   const [participants, setParticipants] = useState([
     { key: '1', no: 1, name: 'Kornkan Induang', position: 'Sales Executive', department: 'Sales Team', territory: 'Left North', permission: 'Individual and BD/Assist' },
@@ -73,6 +74,8 @@ export default function CreateOrder() {
       const newRows = selectedRows.filter(
         (row) => !prev.some((participant) => participant.key === row.key)
       );
+      console.log(selectedRows);
+      
       return [...prev, ...newRows];
     });
   };
@@ -80,32 +83,6 @@ export default function CreateOrder() {
   const removeParticipant = (key) => {
     setParticipants(participants.filter(item => item.key !== key));
   };
-
-  // State for Order List table data
-  // const [dataSource, setDataSource] = useState([
-  //   {
-  //     key: "1",
-  //     no: "1",
-  //     sku: "3027200113",
-  //     productName: "Bumper P",
-  //     unit: "0.5 ltX20",
-  //     pricePerUnit: '575.50',
-  //     quantity: 0,
-  //     foc: 1,
-  //     subTotal: '115000',
-  //   },
-  //   {
-  //     key: "2",
-  //     no: "2",
-  //     sku: "207920011520",
-  //     productName: "Memory 300EC",
-  //     unit: "1lt X20",
-  //     pricePerUnit: '340',
-  //     quantity: 0,
-  //     foc: 2,
-  //     subTotal: '68000',
-  //   },
-  // ]);
 
   // State for Other table data
   const [dataSourceOther, setDataSourceOther] = useState([
@@ -127,15 +104,17 @@ export default function CreateOrder() {
       options: dataSale, 
       disabled: false, 
       required: false, 
-      value: "Select" 
+      moderef: true,
+      value: "Select",
     },
     { 
       label: "Dealer", 
       name: "dealer", 
       type: "select", 
-      options: ["Kornkan Induang", "	Phaisan Jethuen"], 
+      options: dataDealer, 
       disabled: false, 
       required: false, 
+      moderef: false,
       value: "Select" 
     },
     { 
@@ -144,6 +123,7 @@ export default function CreateOrder() {
       type: "text", 
       disabled: true, 
       required: false, 
+      moderef: false,
       value: "Generate Auto" 
     },
     { 
@@ -152,12 +132,36 @@ export default function CreateOrder() {
       type: "date", 
       disabled: true, 
       required: false, 
+      moderef: false,
       value: "" 
     },
   ];
 
   const handleSearch = (e) => {
     console.log("Search term:", e.target.value);
+  };
+
+  const handleChange = (filter) => {
+    if (filter) {
+      const getMasterDealer = async () => {
+        setLoading(true);
+        try {
+          const [dealer] = await Promise.all([
+            useServiceAPI.get(paths.pathMasterDealerDropdown, {
+              user_id: filter,
+            }),
+          ]);
+
+          setDataDealer(dealer.data);
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      getMasterDealer();
+    }
   };
 
   const handleQuantityChange = (key, newQuantity) => {
@@ -344,20 +348,94 @@ export default function CreateOrder() {
     </tr>
   );
 
+  const onChangeProduct = (value) => {
+    // Set Empty
+    setSearchProductData([]);
+
+    const loadProductDetail = async () => {
+      setLoading(true);
+      try {
+        const [productDetail] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterProductDetail, {
+            product_id: value,
+          }),
+        ]);
+
+        // State for Order List table data
+        const data = productDetail.data
+        const newProductDataDetail = {
+          key: dataSource.length + 1,
+          no: dataSource.length + 1,
+          sku: data.product_code,
+          productName: data.product_name,
+          unit: data.packing_list,
+          pricePerUnit: data.bath_unit,
+          quantity: 0,
+          foc: data.product_campaign_foc,
+          subTotal: 0.00,
+        };
+
+        setDataSource([...dataSource, newProductDataDetail]);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProductDetail();
+  };
+
+  const onSearchProduct = (value) => {
+    if (value.length >= 3) {
+      const loadProducts = async () => {
+        setLoading(true);
+        try {
+          const [product] = await Promise.all([
+            useServiceAPI.get(paths.pathMasterProducts, {
+              keyword: value,
+            }),
+          ]);
+
+          const newProductData = [];
+          product.data.map((data, index) => {
+            newProductData.push({
+              value: data.id,
+              label: data.name
+            });
+          })
+
+          // Set Data
+          setSearchProductData(newProductData);
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      loadProducts();
+    }
+  };
 
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Create Order</div>
 
-      <FormCustom fields={formFields} />
+      <FormCustom fields={formFields} onChange={handleChange} />
 
       <BoxPrimary title="Product">
         <div className="mb-3 flex justify-end">
-          <Input
-            placeholder="Search Product..."
-            prefix={<SearchOutlined className="text-gray-500" />}
-            onChange={handleSearch}
-          />
+        <Select
+          showSearch
+          placeholder="Search Product"
+          optionFilterProp="label"
+          className="w-full"
+          value=""
+          onChange={onChangeProduct}
+          onSearch={onSearchProduct}
+          options={searchProductData}
+        />
         </div>
       </BoxPrimary>
 
