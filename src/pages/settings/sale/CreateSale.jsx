@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Select, Input } from "antd";
 import MainLayout from "../../../layouts/MainLayout";
@@ -7,6 +7,10 @@ import ActionButton from "../../../components/button/ActionButton";
 import TableExpand from "../../../components/table/TableExpand";
 import DynamicModal from "../../../components/modal/DynamicModal"; // Adjust path if needed
 import DynamicButton from "../../../components/button/DynamicButton";
+import { paths } from "../../../services/CorsPath";
+import useServiceAPI from "../../../services/corsService";
+import { Form } from "antd";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 const { Option } = Select;
 
@@ -16,6 +20,29 @@ export default function CreateSale() {
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
   const [selectedSalesData, setSelectedSalesData] = useState([]); // Store selected rows
   const navigate = useNavigate();
+  const { showMsg } = useContext(AuthContext);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        console.log(location.state.id);
+        await fetchPromotionDetails(location.state.id);
+  
+        // const [positions] = await Promise.all([
+        //   // useServiceAPI.get(paths.pathMasterStatus, {}),
+        //   useServiceAPI.get(`${paths.pathMasterStatus}?status_type=status`),
+        // ]);
+        
+        setPosition(positions.data);        
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      }
+    };
+  
+    fetchData();
+  }, []);
+  
+
 
   const salesData = [
     {

@@ -26,6 +26,7 @@ export const paths = {
   pathMasterSale: "sale-management/list",
   pathMasterProduct: "products-management/list",
   pathMasterPromotion: "promotion-management/list",
+  pathMasterSaledetailteam: "sale-management/sale-team/detail",
 
   // user
   pathRegister: "register",

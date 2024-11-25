@@ -78,15 +78,8 @@ export default function SettingSale() {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
-    // const sortOrder = tableParams.sortOrder || "asc";
-    // const sortField = tableParams.sortField || "name_en";
 
     const requestData = {
-      // keyword: filters.keyword || "",
-      // user_id: filters.user_id || "",
-      // contact_number: filters.contact_number || "",
-      // orderby_column: sortField,
-      // orderby: sortOrder,
       page_length: current,
       page_size: pageSize,
     };
