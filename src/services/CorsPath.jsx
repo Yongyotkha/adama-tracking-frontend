@@ -18,11 +18,15 @@ export const paths = {
   pathMasterAreas: "master/areas",
   pathMasterRoles: "master/roles",
   pathMasterCrop: "master/crop",
+  pathMasterActivityType: "master/activity-type",
+  pathMasterDealerBySale: "master/dealer",
+  pathMasterSale: "master/sale",
 
   // List
-  pathMasterSale: "sale-management/list",
-  pathMasterProduct: "products-management/list",
-  pathMasterPromotion: "promotion-management/list",
+  // ! Issue: พี่ทำการเปลี่ยน Path ให้อ้างอิงนะ
+  pathSaleManagementList: "sale-management/list",
+  pathProductManagementList: "products-management/list",
+  pathPromotionManagementList: "promotion-management/list",
 
   // user
   pathRegister: "register",
@@ -34,4 +38,7 @@ export const paths = {
   //sale plan
   pathGetWorkPlanList: "work-plan/list",
   pathGetWorkPlanStep1: "work-plan/workplan_step1",
+
+  //Activaty
+  pathActivatyList: "/activity/list",
 };
