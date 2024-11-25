@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import FormCustom from "../../components/form_custom/FormCustom";
 import { useNavigate } from "react-router-dom";
@@ -8,11 +8,16 @@ import { Input } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import TableComponent from "../../components/table/TableComponent";
 import DynamicModal from "../../components/modal/DynamicModal";
+import useServiceAPI from "../../services/CorsService";
+import { paths } from "../../services/CorsPath";
 
 export default function CreateOrder() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
-  const navigate = useNavigate();
+  const [dataSource, setDataSource] = useState([]);
+  const [dataSale, setDataSale] = useState([]);
+  const [dataDealer, setDataDealer] = useState([]);
 
   const [participants, setParticipants] = useState([
     { key: '1', no: 1, name: 'Kornkan Induang', position: 'Sales Executive', department: 'Sales Team', territory: 'Left North', permission: 'Individual and BD/Assist' },
@@ -32,6 +37,27 @@ export default function CreateOrder() {
     { key: `product-7`, no: 7, name: "แก้วน้ำใส อดามา", unit: "ใบ", value: 200 },
     { key: `product-8`, no: 8, name: "หมวกกันกีดลายอาหาร - พัลโก้ร่า", unit: "ใบ", value: 200 },
 ];
+
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [sale] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {
+            status: "all",
+          }),
+        ]);
+
+        setDataSale(sale.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, []);
 
   const handleOpenTeamModal = () => {
     setIsTeamModalVisible(true);
@@ -56,41 +82,78 @@ export default function CreateOrder() {
   };
 
   // State for Order List table data
-  const [dataSource, setDataSource] = useState([
-    {
-      key: "1",
-      no: "1",
-      sku: "3027200113",
-      productName: "Bumper P",
-      unit: "0.5 ltX20",
-      pricePerUnit: '575.50',
-      quantity: 0,
-      foc: 1,
-      subTotal: '115000',
-    },
-    {
-      key: "2",
-      no: "2",
-      sku: "207920011520",
-      productName: "Memory 300EC",
-      unit: "1lt X20",
-      pricePerUnit: '340',
-      quantity: 0,
-      foc: 2,
-      subTotal: '68000',
-    },
-  ]);
+  // const [dataSource, setDataSource] = useState([
+  //   {
+  //     key: "1",
+  //     no: "1",
+  //     sku: "3027200113",
+  //     productName: "Bumper P",
+  //     unit: "0.5 ltX20",
+  //     pricePerUnit: '575.50',
+  //     quantity: 0,
+  //     foc: 1,
+  //     subTotal: '115000',
+  //   },
+  //   {
+  //     key: "2",
+  //     no: "2",
+  //     sku: "207920011520",
+  //     productName: "Memory 300EC",
+  //     unit: "1lt X20",
+  //     pricePerUnit: '340',
+  //     quantity: 0,
+  //     foc: 2,
+  //     subTotal: '68000',
+  //   },
+  // ]);
 
   // State for Other table data
   const [dataSourceOther, setDataSourceOther] = useState([
-    { key: "1", no: "1", productName: "เสื้อเชิ๊ตยีนส์แขนยาว - อดามา", unit: 1, quantity: 1, value: '10000' }
+    { 
+      key: "1", 
+      no: "1", 
+      productName: "เสื้อเชิ๊ตยีนส์แขนยาว - อดามา", 
+      unit: 1, 
+      quantity: 1, 
+      value: '10000' 
+    }
   ]);
 
   const formFields = [
-    { label: "Sale", name: "sale", type: "select", options: ["Chayanon Tunyateerapong", "Chaiyapat"], disabled: false, required: false, value: "Select" },
-    { label: "Dealer", name: "dealer", type: "select", options: ["Kornkan Induang", "	Phaisan Jethuen"], disabled: false, required: false, value: "Select" },
-    { label: "Order No", name: "order_no", type: "text", disabled: true, required: false, value: "Generate Auto" },
-    { label: "Date", name: "order_date", type: "date", disabled: true, required: false, value: "" },
+    { 
+      label: "Sale", 
+      name: "sale", 
+      type: "select", 
+      options: dataSale, 
+      disabled: false, 
+      required: false, 
+      value: "Select" 
+    },
+    { 
+      label: "Dealer", 
+      name: "dealer", 
+      type: "select", 
+      options: ["Kornkan Induang", "	Phaisan Jethuen"], 
+      disabled: false, 
+      required: false, 
+      value: "Select" 
+    },
+    { 
+      label: "Order No", 
+      name: "order_no", 
+      type: "text", 
+      disabled: true, 
+      required: false, 
+      value: "Generate Auto" 
+    },
+    { 
+      label: "Date", 
+      name: "order_date", 
+      type: "date", 
+      disabled: true, 
+      required: false, 
+      value: "" 
+    },
   ];
 
   const handleSearch = (e) => {
