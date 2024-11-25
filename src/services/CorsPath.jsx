@@ -5,6 +5,9 @@ export const endPoint = "https://adama-api.mtsc.co.th/api";
 export const paths = {
   // Login
   pathVerifyOtp: "verify-otp",
+  pathOtpCall: "otp/call",
+  pathOtpVerify: "otp/verify",
+  pathSetNewPassword: "set-newpassword",
   pathCustomerDealer: "sale-customer-dealer/list",
   pathCustomerSubDealer: "sale-customer-subdealer/list",
 
@@ -21,7 +24,7 @@ export const paths = {
   pathMasterSale: "sale-management/list",
   pathMasterProduct: "products-management/list",
   pathMasterPromotion: "promotion-management/list",
-  
+
   // user
   pathRegister: "register",
   pathMasterUsers: "users/list",
@@ -34,4 +37,8 @@ export const paths = {
   
   // upload
   pathUpload: "upload/create",
+
+  //sale plan
+  pathGetWorkPlanList: "work-plan/list",
+  pathGetWorkPlanStep1: "work-plan/workplan_step1",
 };

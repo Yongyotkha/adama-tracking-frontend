@@ -55,9 +55,6 @@ import EditTraveling from "./pages/expenses/traveling/EditTraveling";
 import ClearingExpense from "./pages/expenses/clearing/ClearingExpense";
 import CreateClearing from "./pages/expenses/clearing/CreateClearingExpense";
 import EditClearing from "./pages/expenses/clearing/EditClearingExpense";
-import ActivityList from "./pages/activity/ActivityList";
-import CreateActivity from "./pages/activity/CreateActivity";
-import EditActivity from "./pages/activity/EditActivity";
 import ViewOrder from "./pages/order/ViewOrder";
 import ViewOrderWaiting from "./pages/order/ViewOrderWaiting";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -65,6 +62,14 @@ import WorkPlanSaleByDealer from "./pages/sale_plan/workplan/WorkPlanSaleByDeale
 import EditWorkPlan from "./pages/sale_plan/workplan/EditWorkPlan";
 import EditRollingForecast from "./pages/sale_plan/rolling_forecast/EditRollingForecast";
 import FirstChangePassword from "./pages/auth/FirstChangePassword";
+
+// START ------------- Activity ------------- START
+import ActivityList from "./pages/activity/ActivityList";
+import CreateActivity from "./pages/activity/CreateActivity";
+import EditActivity from "./pages/activity/EditActivity";
+import ActivityPlanList from "./pages/activity/activity_plan/ActivityPlanList";
+import Calendar from "./pages/activity/calendar/Calendar";
+// END ------------- Activity ------------- END
 
 
 const App = () => {
@@ -80,21 +85,28 @@ const App = () => {
           <Route path="/change-password" element={<ChangePassword />} />
           <Route path="/first-change-password" element={<FirstChangePassword />} />
 
-
           {/* Protected Routes */}
-          {/* Sale Plan Route */}
           <Route path="/" element={ <Dashboard />} />
+
+
+          {/* Sale Plan Route */}
           <Route path="/sale-plan/work-plan" element={<WorkPlan />} />
           <Route path="/sale-plan/work-plan/create" element={<WorkPlanCreate />} />
           <Route path="/sale-plan/work-plan/edit" element={<EditWorkPlan />} />
           <Route path="/sale-plan/work-plan/create-2" element={<WorkPlanCreateStepTwo />} />
           <Route path="/sale-plan/rolling-forecast" element={<RollingForecast />} />
           <Route path="/sale-plan/rolling-forecast/edit" element={<EditRollingForecast />} />
+          <Route path="/sale-plan/work-plan/sale-area-create" element={<WorkPlanAreaCreate />} />
+          <Route path="/sale-plan/work-plan/sale-create" element={<WorkPlanSaleCreate />} />
+          <Route path="/sale-plan/work-plan/sale-by-crop" element={<WorkPlanSaleByCrop />} />
+          <Route path="/sale-plan/work-plan/sale-by-dealer" element={<WorkPlanSaleByDealer />} />
 
           {/* Activity Route */}
           <Route path="/activity/list" element={<ActivityList />} />
           <Route path="/activity/create" element={<CreateActivity />} />
           <Route path="/activity/edit" element={<EditActivity />} />
+          <Route path="/activity/plan/list" element={<ActivityPlanList />} />
+          <Route path="/activity/calendar" element={<Calendar />} />
 
           {/* Order Route */}
           <Route path="/order/list" element={<OrderList />} />
@@ -148,11 +160,8 @@ const App = () => {
           <Route path="/error/503" element={<Error503 />} />
           <Route path="/wiki" element={<Wiki />} />
 
-          {/* SHOW USER PATH */}
-          <Route path="/sale-plan/work-plan/sale-area-create" element={<WorkPlanAreaCreate />} />
-          <Route path="/sale-plan/work-plan/sale-create" element={<WorkPlanSaleCreate />} />
-          <Route path="/sale-plan/work-plan/sale-by-crop" element={<WorkPlanSaleByCrop />} />
-          <Route path="/sale-plan/work-plan/sale-by-dealer" element={<WorkPlanSaleByDealer />} />
+
+
 
         </Routes>
       </AuthProvider>

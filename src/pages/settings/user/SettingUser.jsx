@@ -49,7 +49,6 @@ export default function SettingUser() {
     getMaster();
   }, []);
 
-
   ////////////////////////////////////////////// table ///////////////////////////////////////////////
   const fetchData = async () => {
     setTableLoading(true);
@@ -87,7 +86,9 @@ export default function SettingUser() {
               menu={{
                 items: user.action.map((actionItem, actionIndex) => ({
                   key: actionIndex,
-                  label: <ItemDropDown mode={actionItem.action.toLowerCase()} />,
+                  label: (
+                    <ItemDropDown mode={actionItem.action.toLowerCase()} />
+                  ),
                 })),
               }}
               placement="bottom"
@@ -142,6 +143,8 @@ export default function SettingUser() {
   ]);
 
   const handleTableChange = (pagination, filters, sorter) => {
+    console.log(pagination)
+
     setTableParams({
       pagination,
       filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
@@ -155,7 +158,6 @@ export default function SettingUser() {
       key: "keyword",
       type: "text",
       label: "Name",
-
     },
     {
       key: "contact_number",
@@ -250,7 +252,7 @@ export default function SettingUser() {
           <ActionButton
             mode="sync"
             text="Sync SAP"
-            onClick=""
+            // onClick=""
             className="ms-auto me-2"
           />
           <ActionButton

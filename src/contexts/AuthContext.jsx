@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(
     localStorage.getItem("users") ? true : false
   );
-  const [userInfo, setUserInfo] = useState(localStorage.getItem("users"));
+  const [userInfo, setUserInfo] = useState(JSON.parse(localStorage.getItem("users")));
 
   let loading = false;
 
@@ -64,11 +64,15 @@ export const AuthProvider = ({ children }) => {
       if (response) {
         const userData = response.data.data.user;
         const accessToken = response.data.data.token;
+        const expiredToken = response.data.data.token_expired_date;
         setIsLoggedIn(true);
         setUserInfo(userData);
 
+        console.log(response.data.data);
+
         localStorage.setItem("users", JSON.stringify(userData));
         localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("expiredToken", expiredToken);
 
         return response.data;
       }
@@ -86,6 +90,8 @@ export const AuthProvider = ({ children }) => {
 
     localStorage.removeItem("users");
     localStorage.removeItem("accessToken");
+    localStorage.removeItem("expiredToken");
+
     console.log("เข้าฟังก์ชัน logout");
     navigate("/login");
 

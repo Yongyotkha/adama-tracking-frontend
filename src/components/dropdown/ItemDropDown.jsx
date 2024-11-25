@@ -65,6 +65,21 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
           <span className="text-[#978B87]">{text || "history"}</span>
         </a>
       )}
+      {mode == "create" && (
+        <a
+          rel="noopener noreferrer"
+          href={link}
+          onClick={onClick}
+          className="flex gap-1"
+        >
+          <img
+            src="/img/icons/create.png"
+            alt="Create icon"
+            className="inline-block h-4 m-auto"
+          />
+          <span className="text-[#978B87]">{text || "create"}</span>
+        </a>
+      )}
     </>
   );
 }

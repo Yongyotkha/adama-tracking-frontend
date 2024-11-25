@@ -57,7 +57,7 @@ const Navbar = () => {
         {
           key: "1",
           label: "Activity Plan",
-          path: "activity/plan",
+          path: "activity/plan/list",
         },
         {
           key: "2",
@@ -371,7 +371,7 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center w-1/6 justify-end">
-        <span className="text-white hidden md:block">{userInfo?.name_th}</span>
+        <span className="text-white hidden md:block">{userInfo?.name}</span>
 
         <Dropdown
           overlay={<CustomDropdownMenuProfile items={userMenuItems} />}
