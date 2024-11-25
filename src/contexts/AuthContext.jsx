@@ -10,7 +10,7 @@ import React, {
 
 import { endPoint, paths } from "../services/CorsPath.jsx";
 import { axiosInstance } from "../services/CorsService.jsx";
-import { message } from "antd";
+import { message, notification } from "antd";
 
 export const AuthContext = createContext();
 
@@ -18,10 +18,14 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   const [messageApi, contextHolder] = message.useMessage(); // เพิ่ม messageApi
+  const [api, contextNotiHolder] = notification.useNotification();
+
   const [isLoggedIn, setIsLoggedIn] = useState(
     localStorage.getItem("users") ? true : false
   );
-  const [userInfo, setUserInfo] = useState(JSON.parse(localStorage.getItem("users")));
+  const [userInfo, setUserInfo] = useState(
+    JSON.parse(localStorage.getItem("users"))
+  );
 
   let loading = false;
 
@@ -30,13 +34,32 @@ export const AuthProvider = ({ children }) => {
     if (callback) callback(loading);
   };
 
-  const showMsg = (type, content, duration = 2) => {
+  const showMsg = (type, content, duration = 1) => {
     return new Promise((resolve) => {
       messageApi.open({
         type,
         content,
         onClose: resolve, // เรียก resolve เมื่อข้อความปิด
         duration: duration, // กำหนดระยะเวลาแสดงข้อความ (2 วินาที)
+      });
+    });
+  };
+
+  const showNotification = (type, title, line, duration = 1) => {
+    // type 'success' | 'info' | 'warning' | 'error';
+
+    const description = Array.isArray(line)
+    ? line.map((text) => `<span>${text}</span>`).join('<br>') // ใช้ HTML <br> เพื่อเว้นบรรทัด
+    : line;
+
+    return new Promise((resolve) => {
+      api[type]({
+        message: title,
+        description: <div dangerouslySetInnerHTML={{ __html: description }} />,
+        duration: duration,
+        showProgress: true,
+        pauseOnHover: false,
+        onClose: resolve,
       });
     });
   };
@@ -106,9 +129,11 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         showMsg,
+        showNotification,
       }}
     >
       {contextHolder}
+      {contextNotiHolder}
       {children}
     </AuthContext.Provider>
   );

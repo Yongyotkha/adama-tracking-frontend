@@ -15,7 +15,7 @@ export default function Verify() {
   const [timeLeft, setTimeLeft] = useState(3); // 5 minutes
   const [otpInfo, setOtpInfo] = useState(""); // 5 minutes
   const [btnVerify, setBtnVerify] = useState("Verify");
-  const { userInfo, showMsg } = useContext(AuthContext);
+  const { userInfo, showMsg,showNotification } = useContext(AuthContext);
 
   const onFinish = () => {
     const otpCode = otp.join("");
@@ -41,9 +41,9 @@ export default function Verify() {
       .catch((error) => {
         console.log(error.message);
         if (error.status == 422) {
-          showMsg("error", "กรุณาระบุ OTP ให้ครบถ้วน");
+          showNotification("error", "กรุณาระบุ OTP ให้ครบถ้วน");
         } else {
-          showMsg("error", "เกิดข้อผิดพลาด");
+          showNotification("error", "เกิดข้อผิดพลาด");
         }
       });
   };

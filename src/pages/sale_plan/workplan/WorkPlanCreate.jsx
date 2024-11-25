@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
@@ -8,13 +8,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function WorkPlanCreate() {
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [permission, setPermission] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
+  const { showMsg, showNotification } = useContext(AuthContext);
 
   useEffect(() => {
     const total = dataSource.reduce(
@@ -28,7 +31,8 @@ export default function WorkPlanCreate() {
     let total = 0; // Initialize as a number
     const newData = dataSource.map((item) => {
       if (item.key === key) {
-        const newValue = parseFloat(value) * parseFloat(item.unit_convert_value);
+        const newValue =
+          parseFloat(value) * parseFloat(item.unit_convert_value);
         total += parseFloat(newValue); // Add the updated value to total
         return { ...item, qty: value, value: parseFloat(newValue.toFixed(2)) };
       }
@@ -88,14 +92,14 @@ export default function WorkPlanCreate() {
     useServiceAPI
       .get(
         paths.pathWorkPlanStep1,
-        { year_code: location.state.year_code },
+        { year_code: location?.state?.year_code },
         setLoading
       )
       .then((response) => {
         if (response.status == 200) {
           console.log(response.data.data_items);
           const newData = response.data.data_items.map((item) => ({
-            key:item.product_id,
+            key: item.product_id,
             product_id: item.product_id,
             product_code: item.product_code,
             product_name: item.product_name,
@@ -105,14 +109,16 @@ export default function WorkPlanCreate() {
             value: item.value,
           }));
           setDataSource(newData);
+          setTotalValue(response.data.data_overall_target);
+          setPermission(response.data.permission);
         }
       })
       .catch((error) => {
         console.log(error);
         if (error.status == 422) {
-          showMsg("error", error.message);
+          showNotification("error", error.message);
         } else {
-          showMsg("error", "เกิดข้อผิดพลาด");
+          showNotification("error", "เกิดข้อผิดพลาด");
         }
       });
   }, []);
@@ -124,7 +130,7 @@ export default function WorkPlanCreate() {
       .post(
         paths.pathWorkPlanStep1,
         {
-          year_code: location.state.year_code,
+          year_code: location?.state?.year_code,
           action_code: mode,
           data_overall_target: totalValue,
           data_items: dataSource,
@@ -133,8 +139,31 @@ export default function WorkPlanCreate() {
       )
       .then((response) => {
         if (response.status == 200) {
-          console.log(response);
+          console.log(response.data);
 
+          if (mode == "draft") {
+            // navigate("/sale-plan/work-plan/create-2");
+
+            showNotification(
+              "success",
+              response.data.message,
+              response.data.message_line
+            ).then(() => {
+              navigate("/sale-plan/work-plan");
+            });
+          } else if (mode == "save_and_next") {
+            showNotification(
+              "success",
+              response.data.message,
+              response.data.message_line
+            ).then(() => {
+              navigate("/sale-plan/work-plan/create-2", {
+                state: {
+                  year_code: location?.state?.year_code,
+                },
+              });
+            });
+          }
         }
       })
       .catch((error) => {
@@ -189,18 +218,30 @@ export default function WorkPlanCreate() {
               navigate("/sale-plan/work-plan");
             }}
           />
+          {permission.btn_draft && (
+            <ActionButton
+              text="Save Draft"
+              mode="saveDraft"
+              onClick={() => handleSave("draft")}
+            />
+          )}
+          {permission.btn_draft && (
+            <ActionButton
+              text="Save and Next"
+              mode="save"
+              className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
+              onClick={() => handleSave("save_and_next")}
+            />
+          )}
 
-          <ActionButton
-            text="Save Draft"
-            mode="saveDraft"
-            onClick={() => handleSave("draft")}
-          />
-          <ActionButton
-            text="Save and Next"
-            mode="save"
-            className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
-            onClick={() => handleSave("save_and_next")}
-          />
+          {permission.btn_next && (
+            <ActionButton
+              text="Next"
+              mode="save"
+              className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
+              onClick={() => navigate("/sale-plan/work-plan/create-2")}
+            />
+          )}
         </div>
       </MainLayout>
     </>

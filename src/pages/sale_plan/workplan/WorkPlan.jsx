@@ -25,7 +25,6 @@ export default function WorkPlan() {
     sortField: null,
   });
 
-
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -88,7 +87,7 @@ export default function WorkPlan() {
               textColor={row.color}
             />
           ),
-          lastModified: "2024-01-01 11:11",
+          lastModified: row.updated_at,
         }));
 
         setDataSource(newDataSource);
@@ -150,7 +149,6 @@ export default function WorkPlan() {
   ];
 
   const handleSearch = (filters) => {
-    console.log(filters);
     setTableParams({
       ...tableParams,
       filters,

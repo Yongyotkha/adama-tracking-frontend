@@ -39,7 +39,6 @@ export const paths = {
   pathProductManagementList: "products-management/list",
   pathPromotionManagementList: "promotion-management/list",
 
-
   // user
   pathRegister: "register",
   pathMasterUsers: "users/list",
@@ -59,7 +58,7 @@ export const paths = {
   //sale plan
   pathGetWorkPlanList: "work-plan/list",
   pathWorkPlanStep1: "work-plan/workplan_step1",
-  pathGetWorkPlanStep1: "work-plan/workplan_step1",
+  pathWorkPlanStep2: "work-plan/workplan_step2",
 
   //Activaty
   pathActivatyList: "/activity/list",
