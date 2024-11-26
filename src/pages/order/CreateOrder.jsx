@@ -43,6 +43,7 @@ export default function CreateOrder() {
   // const getOtherProductData = [];
 
   useEffect(() => {
+    // Get Master
     const getMaster = async () => {
       setLoading(true);
       try {
@@ -63,6 +64,7 @@ export default function CreateOrder() {
     getMaster();
   }, []);
 
+  // Open Modal
   const handleOpenTeamModal = () => {
     // Set Empty
     setGetOtherProductData([]);
@@ -103,40 +105,60 @@ export default function CreateOrder() {
     setIsTeamModalVisible(true);
   };
 
+  // Close Modal
   const handleCloseTeamModal = () => {
     setIsTeamModalVisible(false);
   };
 
   const handleAddSelectedRows = (selectedRows) => {
-    // setGetOtherProductData((prev) => {
-    //   // Filter out any selected rows that already exist in participants based on their key
-    //   const newRows = selectedRows.filter(
-    //     (row) => !prev.some((participant) => participant.key === row.key)
-    //   );
+    setGetOtherProductData((prev) => {
+      const newRows = selectedRows.filter(
+        (row) => !prev.some((getOtherProductData) => getOtherProductData.key === row.key)
+      );
       
-    //   return [...prev, ...newRows];
-    // });
+      return [...prev, ...newRows];
+    });
     
     selectedRows.map((data, index) => {
-      console.log(data.key);
-    })
+      // State for Other table data
+      const loadOtherProductDetail = async () => {
+        setLoading(true);
+        try {
+          const [otherProduct] = await Promise.all([
+            useServiceAPI.get(paths.pathMasterPromotionDetail, {
+              promotion_id: data.key,
+            }),
+          ]);
+
+          // อัปเดต state
+          setDataSourceOther((prev) => [
+            ...prev,
+            {
+              key: prev.length + 1, // สร้าง key ใหม่
+              no: prev.length + 1, // สร้างเลขลำดับใหม่
+              productName: otherProduct.data.name,
+              unit: 1,
+              unitPrice: otherProduct.data.value,
+              quantity: 1,
+              value: otherProduct.data.value,
+            },
+          ]);
+          
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        } finally {
+          setLoading(false);
+        }
+      };
+      // Get Data
+      loadOtherProductDetail();
+    });
+
   };
 
   const removeParticipant = (key) => {
     setGetOtherProductData(getOtherProductData.filter(item => item.key !== key));
   };
-
-  // State for Other table data
-  // const [dataSourceOther, setDataSourceOther] = useState([
-  //   { 
-  //     key: "1", 
-  //     no: "1", 
-  //     productName: "เสื้อเชิ๊ตยีนส์แขนยาว - อดามา", 
-  //     unit: 1, 
-  //     quantity: 1, 
-  //     value: '10000' 
-  //   }
-  // ]);
 
   const formFields = [
     { 
@@ -224,7 +246,9 @@ export default function CreateOrder() {
       prevData.map((item) => {
         if (item.key === key) {
           const quantity = Math.max(1, newQuantity); // Prevent quantity less than 1
-          const value = (quantity * 10000).toLocaleString("en-US", { minimumFractionDigits: 2 }); // Calculate new value
+          const value = (quantity * parseFloat(item.unitPrice.replace(/,/g, ""))).toFixed(2); // Calculate new value
+          console.log(item.unitPrice);
+          
           return { ...item, quantity, value };
         }
         return item;
@@ -232,17 +256,17 @@ export default function CreateOrder() {
     );
   };
 
-  const handleAddOtherRow = () => {
-    const newRow = {
-      key: (dataSourceOther.length + 1).toString(),
-      no: (dataSourceOther.length + 1).toString(),
-      productName: "",
-      unit: "",
-      quantity: 1,
-      value: '10000',
-    };
-    setDataSourceOther([...dataSourceOther, newRow]);
-  };
+  // const handleAddOtherRow = () => {
+  //   const newRow = {
+  //     key: (dataSourceOther.length + 1).toString(),
+  //     no: (dataSourceOther.length + 1).toString(),
+  //     productName: "",
+  //     unit: "",
+  //     quantity: 1,
+  //     value: '10000',
+  //   };
+  //   setDataSourceOther([...dataSourceOther, newRow]);
+  // };
 
   const handleDeleteOtherRow = (key) => {
     setDataSourceOther(dataSourceOther.filter(item => item.key !== key));
