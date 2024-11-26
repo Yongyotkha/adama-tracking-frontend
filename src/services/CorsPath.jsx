@@ -18,9 +18,20 @@ export const paths = {
   pathMasterAreas: "master/areas",
   pathMasterRoles: "master/roles",
   pathMasterCrop: "master/crop",
+  pathMasterCrop: "master/crop",
+
   pathMasterStatus: "master/status",
   pathMasterHeadofsale: "master/headofsale",
+  pathMasterUserlist: "master/users/list",
   pathMasterSalearea: "master/salearea",
+  pathMasterYear: "master/years",
+
+  
+  // Sale
+  pathSaleManagementDetail: "sale-management/sale-team/detail",
+  pathSaleManagementCreate: "sale-management/sale-team/items/create",
+  pathSaleManagementDeleteSubItem: "sale-management/sale-team/items/delete",
+  pathSaleManagementDeleteSub: "sale-management/sale-team/delete",
 
   pathMasterTime: "master/time",
   pathMasterProducts: "master/product",
@@ -33,7 +44,6 @@ export const paths = {
   pathMasterSale: "sale-management/list",
   pathMasterProduct: "products-management/list",
   pathMasterPromotion: "promotion-management/list",
-  pathMasterSaledetailteam: "sale-management/sale-team/detail",
 
   pathMasterActivityType: "master/activity-type",
   pathMasterSaleDropdown: "master/sale",
@@ -47,7 +57,7 @@ export const paths = {
   // user
   pathRegister: "register",
   pathMasterUsers: "users/list",
-
+  pathMasterUsersEdit: "users/detail",
   //promotion
   pathPromotionlist: "promotion-management/list",
   pathPromotiondetail: "promotion-management/detail",
@@ -65,10 +75,12 @@ export const paths = {
   pathWorkPlanStep1: "work-plan/workplan_step1",
   pathWorkPlanStep2: "work-plan/workplan_step2",
 
+
   //Activaty
   pathActivatyList: "/activity/list",
   pathActivatyCreate: "/activity/create",
 
   // Orders
   pathGetOrderList: "order/list",
+  pathGetOrderCreate: "order/create",
 };

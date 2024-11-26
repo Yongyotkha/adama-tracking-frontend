@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import { Dropdown } from "antd";
@@ -11,9 +11,11 @@ import DynamicModal from "../../../components/modal/DynamicModal";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function SettingSale() {
   const navigate = useNavigate();
+  const { showMsg } = useContext(AuthContext);
   const [roles, setRoles] = useState([]);
   const [position, setPosition] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -21,6 +23,8 @@ export default function SettingSale() {
   const [isBDModalVisible, setIsBDModalVisible] = useState(false);
   const [isSAModalVisible, setIsSAModalVisible] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [userList, setUserList] = useState([]);
+
   const [tableLoading, setTableLoading] = useState(false);
   const [tableParams, setTableParams] = useState({
     pagination: {
@@ -31,6 +35,7 @@ export default function SettingSale() {
     sortOrder: null,
     sortField: null,
   });
+
 
   const filters = [
     {
@@ -47,13 +52,13 @@ export default function SettingSale() {
     },
   ];
 
-  const actionItems = [
+  const actionItems = (id) => [
     {
       key: "1",
       label: (
         <ItemDropDown
           mode="create"
-          onClick={(e) => navigate("/setting/sale/create")}
+          onClick={() => navigate("/setting/sale/create", { state: { id } })} 
         />
       ),
     },
@@ -62,17 +67,16 @@ export default function SettingSale() {
       label: (
         <ItemDropDown
           mode="edit"
-          onClick={(e) => navigate("/setting/sale/edit")}
+          onClick={() => navigate(`/setting/sale/edit/${id}`)} 
         />
       ),
     },
     {
       key: "3",
-      label: (
-        <ItemDropDown mode="delete" />
-      ),
+      label: <ItemDropDown mode="delete" />,
     },
   ];
+  
 
   const fetchData = async () => {
     setTableLoading(true);
@@ -103,7 +107,10 @@ export default function SettingSale() {
               text={data.sales_assistant_count}
               bgColor={data.status_bg_color}
               textColor={data.status_color}
-              onClick={() => setIsSAModalVisible(true)}
+              onClick={() => {
+                setIsSAModalVisible(true);
+                fetchUserList(data.area_id, data.sale_assistant_role_id); 
+              }}
             />
           ),
           sale: (
@@ -111,7 +118,11 @@ export default function SettingSale() {
               text={data.sale_count}
               bgColor={data.status_bg_color}
               textColor={data.status_color}
-              onClick={() => setIsTerritoryModalVisible(true)}
+              onClick={() => {
+                setIsTerritoryModalVisible(true);
+                fetchUserList(data.area_id, data.sale_role_id); 
+              }}
+              // onClick={() => setIsTerritoryModalVisible(true)}
             />
           ),
           business_dev: (
@@ -119,11 +130,16 @@ export default function SettingSale() {
               text={data.business_development_count} 
               bgColor={data.status_bg_color}
               textColor={data.status_color}
-              onClick={() => setIsBDModalVisible(true)}
+              onClick={() => {
+                setIsBDModalVisible(true);
+                fetchUserList(data.area_id, data.sale_business_development_id); 
+              }}
+              // onClick={() => setIsBDModalVisible(true)}
             />
           ),
+          
           action: (
-            <Dropdown menu={{ items: actionItems }} placement="bottom">
+            <Dropdown menu={{ items: actionItems(data.id) }} placement="bottom">
               <a onClick={(e) => e.preventDefault()}>
                 <img
                   src="/img/icons/action.png"
@@ -133,6 +149,7 @@ export default function SettingSale() {
               </a>
             </Dropdown>
           ),
+          
         }));
 
         setDataSource(newDataSource);
@@ -262,59 +279,96 @@ export default function SettingSale() {
     },
   ];
 
-  const saleTeamSA = [
-    {
-      key: 1,
-      name: "Passakorn Kong-In",
-      territory: "Right North",
-      position: "Sales Assistant",
-    },
-    {
-      key: 2,
-      name: "Thanakit Kongkrapan",
-      territory: "West",
-      position: "Sales Assistant",
-    },
-    {
-      key: 3,
-      name: "Tanadol Kaewyai",
-      territory: "Central",
-      position: "Sales Assistant",
-    },
-    {
-      key: 4,
-      name: "Chinnawat Bunmakaew",
-      territory: "South",
-      position: "Sales Assistant",
-    },
-  ];
+  // const saleTeamSA = [
+  //   {
+  //     key: 1,
+  //     name: "Passakorn Kong-In",
+  //     territory: "Right North",
+  //     position: "Sales Assistant",
+  //   },
+  //   {
+  //     key: 2,
+  //     name: "Thanakit Kongkrapan",
+  //     territory: "West",
+  //     position: "Sales Assistant",
+  //   },
+  //   {
+  //     key: 3,
+  //     name: "Tanadol Kaewyai",
+  //     territory: "Central",
+  //     position: "Sales Assistant",
+  //   },
+  //   {
+  //     key: 4,
+  //     name: "Chinnawat Bunmakaew",
+  //     territory: "South",
+  //     position: "Sales Assistant",
+  //   },
+  // ];
 
-  const saleTeamBD = [
-    {
-      key: 1,
-      name: "Tossaphon Suphaksitthikorn",
-      territory: "Left North",
-      position: "Business Development Executive",
-    },
-    {
-      key: 2,
-      name: "Panudech Srithong",
-      territory: "Left Lower North",
-      position: "Business Development Executive",
-    },
-    {
-      key: 3,
-      name: "Sarawut Nisap",
-      territory: "Lower North",
-      position: "Business Development Executive",
-    },
-    {
-      key: 4,
-      name: "Wisisak Prakobsin",
-      territory: "Central Left North",
-      position: "Business Development Executive",
-    },
-  ];
+  const fetchUserList = async (area_id, role_id, page_size = 20, page_length = 1) => {
+    setLoading(true);
+    const requestData = {
+      platform: "web",
+      area_id, 
+      role_id: [role_id], 
+      keyword: "", 
+      page_size, 
+      page_length,
+    };
+  
+    try {
+      const response = await useServiceAPI.get(
+        paths.pathMasterUserlist, 
+        requestData
+      );
+  
+      if (response.status === 200) {
+        const Test = response.data.data; 
+        const territoryData = Test.map((item, index) => ({
+            key: index +1,
+            name: item.name,
+            territory: item.territory_name,
+            position: item.position_name,
+        }));
+        setUserList(territoryData); 
+      }
+      
+    } catch (error) {
+      console.error("Error fetching user list:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
+  
+  // const saleTeamBD = [
+  //   {
+  //     key: 1,
+  //     name: "Tossaphon Suphaksitthikorn",
+  //     territory: "Left North",
+  //     position: "Business Development Executive",
+  //   },
+  //   {
+  //     key: 2,
+  //     name: "Panudech Srithong",
+  //     territory: "Left Lower North",
+  //     position: "Business Development Executive",
+  //   },
+  //   {
+  //     key: 3,
+  //     name: "Sarawut Nisap",
+  //     territory: "Lower North",
+  //     position: "Business Development Executive",
+  //   },
+  //   {
+  //     key: 4,
+  //     name: "Wisisak Prakobsin",
+  //     territory: "Central Left North",
+  //     position: "Business Development Executive",
+  //   },
+  // ];
 
   const header = [
     { 
@@ -356,8 +410,6 @@ export default function SettingSale() {
     },
   ];
 
- 
-
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -387,7 +439,7 @@ export default function SettingSale() {
         isVisible={isTerritoryModalVisible}
         onClose={() => setIsTerritoryModalVisible(false)}
         header={territoryColumns}
-        dataSource={territoryData}
+        dataSource={userList}
         width="1200px"
       />
 
@@ -396,7 +448,7 @@ export default function SettingSale() {
         isVisible={isBDModalVisible}
         onClose={() => setIsBDModalVisible(false)}
         header={territoryColumns}
-        dataSource={saleTeamBD}
+        dataSource={userList}
         width="1200px"
       />
 
@@ -405,7 +457,7 @@ export default function SettingSale() {
         isVisible={isSAModalVisible}
         onClose={() => setIsSAModalVisible(false)}
         header={territoryColumns}
-        dataSource={saleTeamSA}
+        dataSource={userList}
         width="1200px"
       />
     </MainLayout>
