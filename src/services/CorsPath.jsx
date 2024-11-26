@@ -64,6 +64,7 @@ export const paths = {
   pathWorkPlanStep1: "work-plan/workplan_step1",
   pathWorkPlanStep2: "work-plan/workplan_step2",
 
+
   //Activaty
   pathActivatyList: "/activity/list",
 
