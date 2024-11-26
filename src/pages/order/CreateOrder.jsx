@@ -4,7 +4,7 @@ import FormCustom from "../../components/form_custom/FormCustom";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../components/button/ActionButton";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
-import { Input, Select } from "antd";
+import { Form, Input, Select } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import TableComponent from "../../components/table/TableComponent";
 import DynamicModal from "../../components/modal/DynamicModal";
@@ -21,6 +21,9 @@ export default function CreateOrder() {
   const [dataSourceOther, setDataSourceOther] = useState([]);
   const [searchProductData, setSearchProductData] = useState([]);
   const [getOtherProductData, setGetOtherProductData] = useState([]);
+  const [inputRemark, setInputRemark] = useState("");
+
+  const [formCustom] = Form.useForm();
 
   // const [participants, setParticipants] = useState([
   //   { key: '1', no: 1, name: 'Kornkan Induang', position: 'Sales Executive', department: 'Sales Team', territory: 'Left North', permission: 'Individual and BD/Assist' },
@@ -107,6 +110,9 @@ export default function CreateOrder() {
 
   // Close Modal
   const handleCloseTeamModal = () => {
+    // Set Empty
+    setGetOtherProductData([]);
+
     setIsTeamModalVisible(false);
   };
 
@@ -169,7 +175,7 @@ export default function CreateOrder() {
       disabled: false, 
       required: false, 
       moderef: true,
-      value: "Select",
+      value: "",
     },
     { 
       label: "Dealer", 
@@ -179,7 +185,7 @@ export default function CreateOrder() {
       disabled: false, 
       required: false, 
       moderef: false,
-      value: "Select" 
+      value: "" 
     },
     { 
       label: "Order No", 
@@ -188,13 +194,13 @@ export default function CreateOrder() {
       disabled: true, 
       required: false, 
       moderef: false,
-      value: "Generate Auto" 
+      value: "" 
     },
     { 
       label: "Date", 
       name: "order_date", 
       type: "date", 
-      disabled: true, 
+      disabled: false, 
       required: false, 
       moderef: false,
       value: "" 
@@ -205,14 +211,14 @@ export default function CreateOrder() {
     console.log("Search term:", e.target.value);
   };
 
-  const handleChange = (filter) => {
-    if (filter) {
+  const handleChange = (filter, value) => {
+    if (filter == 'sale') {
       const getMasterDealer = async () => {
         setLoading(true);
         try {
           const [dealer] = await Promise.all([
             useServiceAPI.get(paths.pathMasterDealerDropdown, {
-              user_id: filter,
+              user_id: value,
             }),
           ]);
 
@@ -484,11 +490,38 @@ export default function CreateOrder() {
     }
   };
 
+  const handleSave = () => {
+    formCustom
+      .validateFields()
+      .then((values) => {
+        console.log(values);
+        const body = {
+          platform: "web",
+          document_date: "2024-11-22",
+          user_id: 22,
+          dealer_id: 2,
+          remark: "ส่งด่วน",
+        };
+        
+        // useServiceAPI
+        //   .post(paths.pathGetOrderCreate, values, setLoading)
+        //   .then((response) => {
+        //     // navigate("/activity/list");
+        //   })
+        //   .catch((error) => {
+        //     console.log(error);
+        //   });
+      })
+      .catch((errorInfo) => {
+        console.error("Validation Failed:", errorInfo);
+      });
+  };
+
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Create Order</div>
 
-      <FormCustom fields={formFields} onChange={handleChange} />
+      <FormCustom fields={formFields} form={formCustom} onChange={handleChange} />
 
       <BoxPrimary title="Product">
         <div className="mb-3 flex justify-end">
@@ -536,8 +569,12 @@ export default function CreateOrder() {
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/order/list")} />
-        <ActionButton mode="save" text="Confirm" onClick={() => navigate("/order/view")} />
+        {/* <ActionButton mode="back" text="Back" onClick={() => navigate("/order/list")} /> */}
+        {/* <ActionButton mode="save" text="Confirm" onClick={() => navigate("/order/view")} /> */}
+        
+        {/* <ActionButton mode="back" text="Back" onClick={() => navigate("/order/list")} /> */}
+        <ActionButton mode="save" text="Confirm" onClick={handleSave} />
+        
       </div>
 
 
