@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
-import DynamicButton from "../../../components/button/DynamicButton";
 import { Input, InputNumber, Table } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
@@ -71,7 +70,7 @@ export default function WorkPlanCreate() {
             `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
           onChange={(value) => handleQtyChange(value, record.key)}
-          disabled={permission.view}
+          disabled={!permission.edit}
         />
       ),
     },

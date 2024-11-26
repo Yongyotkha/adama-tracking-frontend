@@ -321,7 +321,7 @@ export default function WorkPlanCreateStepTwo() {
                             dataItem?.unit_convert_value || 1 // ส่ง unit_convert_value
                           )
                         }
-                        disabled={permission.view}
+                        disabled={!permission.edit}
                       />
                     );
                   },
