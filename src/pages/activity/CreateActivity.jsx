@@ -19,6 +19,7 @@ export default function CreateActivity() {
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
   const [activityList, setActivityList] = useState([]);
   const [saleList, setSaleList] = useState([]);
+  const [saleAllList, setSaleAllList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [cropList, setCropList] = useState([]);
   const [timeList, setTimeList] = useState([]);
@@ -97,6 +98,7 @@ export default function CreateActivity() {
     { label: "End Time", name: "time_end", type: "select", options:timeList, disabled: false, required: true, col: 6, value: "" },
     { label: "Location", name: "location_address", type: "location", disabled: true, required: false, col: 24, value: "", iconSrc: "/img/icons/location.png", iconPosition: "left" },
     { label: "Description", name: "description", type: "text-editor", disabled: false, required: false, col: 24, placeholder: "Add description", value: "" },
+    { label: "Assign", name: "assing_user_list", type: "select", mode: "multiple", options: saleAllList, disabled: false, required: true, col: 24, value: [] },
   ];
 
    // Master
@@ -104,16 +106,18 @@ export default function CreateActivity() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [activityType, sale, time] = await Promise.all([
+        const [activityType, sale, saleAll, time] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {
-            status: "all"
+            'status': 'all'
           }),
           useServiceAPI.get(paths.pathMasterTime, {}),
         ]);
 
         setActivityList(activityType.data);
         setSaleList(sale.data);
+        setSaleAllList(saleAll.data);
         setTimeList(time.data);
       } catch (error) {
         

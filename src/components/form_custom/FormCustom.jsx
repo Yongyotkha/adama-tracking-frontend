@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { ReloadOutlined } from "@ant-design/icons";
 import { DatePicker, Form, Input, Select, Col, Row, TimePicker } from "antd";
 import BoxPrimary from "../box_primary/BoxPrimary";
 import dayjs from "dayjs";
@@ -27,6 +28,7 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
   const [formValues, setFormValues] = useState({});
   const [location, setLocation] = useState({ lat: null, long: null, address: "" });
   const isInitialSet = useRef(false);
+  const [loading, setLoading] = useState(false); // เพิ่ม state สำหรับควบคุมการหมุน
 
   useEffect(() => {
     const initialValues = fields.reduce((values, field) => {
@@ -93,6 +95,8 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
   };
 
   const getAddress = async (lat, long) => {
+    console.log(lat, long);
+    
     const apiKey = "AIzaSyAF-YpYX1gu-kPeKxVdCTh9f_9nXXlZaPc";
     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${apiKey}`;
 
@@ -123,6 +127,15 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
     }));
     form.setFieldsValue({ [attribute]: value });
     onChange(attribute, value);
+  };
+
+  const handleReload = () => {
+    setLoading(true);
+    setTimeout(() => {
+      getLocation();
+      setLoading(false);
+    }, 2000); // ตั้งค่าความล่าช้าตามที่ต้องการ
+
   };
 
   return (
@@ -218,24 +231,65 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
                   />
                 ) : field.type === "location" ? (
                   <div>
-                    <Form.Item
-                      label="Address"
-                      name="location_address"
-                      rules={[
-                        {
-                          required: false,
-                          message: "Please enter the address",
-                        },
-                      ]}
-                    >
-                      <Input
-                        type="text"
-                        placeholder="Address"
-                        value={formValues["location_address"] || ""}
-                        onChange={(e) => handleChange("location_address", e.target.value)}
-                      />
-                    </Form.Item>
-                
+                    <div style={{ position: "relative" }}>
+                      <Form.Item
+                        label="Address"
+                        name="location_address"
+                        rules={[
+                          {
+                            required: false,
+                            message: "Please enter the address",
+                          },
+                        ]}
+                      >
+                        <input
+                          type="text"
+                          placeholder="Address"
+                          value={formValues["location_address"] || ""}
+                          onChange={(e) => handleChange("location_address", e.target.value)}
+                          style={{
+                            width: "100%",
+                            paddingRight: "50px",
+                            paddingLeft: "12px",
+                            border: "1px solid #d9d9d9",
+                            borderRadius: "4px",
+                            padding: "8px 12px",
+                            boxSizing: "border-box"
+                          }}
+                        />
+                      </Form.Item>
+                      <div
+                        onClick={handleReload}
+                        style={{
+                          position: "absolute",
+                          top: "74%",
+                          right: "10px",
+                          transform: "translateY(-50%)",
+                          cursor: "pointer",
+                          fontSize: "16px",
+                          color: "#d9d9d9",
+                        }}
+                      >
+                        <ReloadOutlined
+                          style={{
+                            fontSize: "18px",
+                            animation: loading ? "spin 1s linear infinite" : "none", // เปิด/ปิดการหมุน
+                          }}
+                        />
+                      </div>
+                      {/* CSS Keyframes */}
+                      <style>{`
+                        @keyframes spin {
+                          0% {
+                            transform: rotate(0deg);
+                          }
+                          100% {
+                            transform: rotate(360deg);
+                          }
+                        }
+                      `}</style>
+                    </div>
+
                     <Form.Item
                       name="location_latitude"
                       hidden
