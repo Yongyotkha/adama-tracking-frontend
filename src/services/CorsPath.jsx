@@ -18,16 +18,23 @@ export const paths = {
   pathMasterAreas: "master/areas",
   pathMasterRoles: "master/roles",
   pathMasterCrop: "master/crop",
+  pathMasterCrop: "master/crop",
 
   pathMasterStatus: "master/status",
   pathMasterHeadofsale: "master/headofsale",
+  pathMasterUserlist: "master/users/list",
   pathMasterSalearea: "master/salearea",
+
+  
+  // Sale
+  pathSaleManagementDetail: "sale-management/sale-team/detail",
+  pathSaleManagementCreate: "sale-management/sale-team/items/create",
+  pathSaleManagementDeleteSubItem: "sale-management/sale-team/items/delete",
 
   // List
   pathMasterSale: "sale-management/list",
   pathMasterProduct: "products-management/list",
   pathMasterPromotion: "promotion-management/list",
-  pathMasterSaledetailteam: "sale-management/sale-team/detail",
 
   pathMasterActivityType: "master/activity-type",
   pathMasterSaleDropdown: "master/sale",

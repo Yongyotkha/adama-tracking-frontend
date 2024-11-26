@@ -82,7 +82,8 @@ const handleRequest = async (method, url, dataOrParams, onLoadingChange) => {
     return response.data;
   } catch (error) {
     if (error.response && error.response.status === 401) {
-      handleUnauthorized(location.pathname);
+      // handleUnauthorized(location.pathname);
+      
     } 
 
     throw error;
@@ -98,8 +99,9 @@ const useServiceAPI = {
     handleRequest("post", url, data, onLoadingChange),
   put: (url, data, onLoadingChange = null) =>
     handleRequest("put", url, data, onLoadingChange),
-  delete: (url, onLoadingChange = null) =>
-    handleRequest("delete", url, null, onLoadingChange),
+  delete: (url, data = null, onLoadingChange = null) =>
+    handleRequest("delete", url, data, onLoadingChange),
+  
   isLoading: () => loading,
 };
 
