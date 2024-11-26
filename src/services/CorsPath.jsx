@@ -64,6 +64,7 @@ export const paths = {
 
   //Activaty
   pathActivatyList: "/activity/list",
+  pathActivatyCreate: "/activity/create",
 
   // Orders
   pathGetOrderList: "order/list",

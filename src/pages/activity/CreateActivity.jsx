@@ -28,7 +28,6 @@ export default function CreateActivity() {
   const [customerForm] = Form.useForm();
   const [expenseForm] = Form.useForm();
   const [participantForm] = Form.useForm();
-
   const fileUploadRef = useRef(null); // Reference for FileUploadComponent
 
   const handleUploadClick = () => {
@@ -89,14 +88,14 @@ export default function CreateActivity() {
 
   const formFields = [
     { label: "Activity Reference", name: "activity_reference", type: "text", disabled: true, required: false, col: 24, value: "202400000000001" },
-    { label: "Activity Type", name: "activity_type", type: "select", options: activityList, disabled: false, required: true, col: 8, value: "" },
-    { label: "Sale", name: "sale", type: "select", options: saleList, disabled: false, required: true, col: 8, value: "", moderef: true },
-    { label: "Shop", name: "shop", type: "select", options: dealerList, disabled: false, required: true, col: 8, value: "", moderef: true },
-    { label: "Crop", name: "crop", type: "select", options: cropList, disabled: false, required: true, col: 6, value: "" },
-    { label: "Date", name: "date", type: "date", disabled: false, required: true, col: 6, value: "2024-01-01" },
-    { label: "Start Time", name: "start_time", type: "select", options:timeList, disabled: false, required: true, col: 6, value:""  },
-    { label: "End Time", name: "end_time", type: "select", options:timeList, disabled: false, required: true, col: 6, value: "" },
-    { label: "Location", name: "location", type: "location", disabled: true, required: false, col: 24, value: "", iconSrc: "/img/icons/location.png", iconPosition: "left" },
+    { label: "Activity Type", name: "activity_type_id", type: "select", options: activityList, disabled: false, required: true, col: 8, value: "" },
+    { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: false, required: true, col: 8, value: "", moderef: true },
+    { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: false, required: true, col: 8, value: "", moderef: true },
+    { label: "Crop", name: "crop_id_list", type: "select", mode: "multiple", options: cropList, disabled: false, required: true, col: 6, value: [] },
+    { label: "Date", name: "document_date", type: "date", disabled: false, required: true, col: 6, value: "2024-01-01" },
+    { label: "Start Time", name: "time_start", type: "select", options:timeList, disabled: false, required: true, col: 6, value:""  },
+    { label: "End Time", name: "time_end", type: "select", options:timeList, disabled: false, required: true, col: 6, value: "" },
+    { label: "Location", name: "location_address", type: "location", disabled: true, required: false, col: 24, value: "", iconSrc: "/img/icons/location.png", iconPosition: "left" },
     { label: "Description", name: "description", type: "text-editor", disabled: false, required: false, col: 24, placeholder: "Add description", value: "" },
   ];
 
@@ -129,14 +128,14 @@ export default function CreateActivity() {
   const handleChange = (attribue, value) => {
     const getMasterSelect = async () => {
       try {
-        if(attribue == 'sale'){
+        if(attribue == 'user_id'){
           const [dealer] = await Promise.all([
             useServiceAPI.get(paths.pathMasterDealerDropdown, {
               user_id: value
             }),
           ]);
           setDealerList(dealer.data);
-        }else if(attribue == 'shop'){
+        }else if(attribue == 'dealer_id'){
           const [crop] = await Promise.all([
             useServiceAPI.get(paths.pathMasterCrop, {
               dealer_id: value
@@ -241,6 +240,24 @@ export default function CreateActivity() {
 
   const removeParticipant = (key) => {
     setParticipants(participants.filter(item => item.key !== key));
+  };
+
+  const handleSave = () => {
+    formCustom
+      .validateFields()
+      .then((values) => {
+        useServiceAPI
+          .post(paths.pathActivatyCreate, values, setLoading)
+          .then((response) => {
+            navigate("/activity/list");
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      })
+      .catch((errorInfo) => {
+        console.error("Validation Failed:", errorInfo);
+      });
   };
 
   return (
@@ -388,7 +405,7 @@ export default function CreateActivity() {
 
       <div className="flex justify-end space-x-4 mt-6">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/activity/list")} />
-        <ActionButton mode="update" text="Save" onClick={handleUpdate} />
+        <ActionButton mode="save" text="Save" onClick={handleSave} />
       </div>
 
       {/* Modal for Add Participant */}

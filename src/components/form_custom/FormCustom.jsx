@@ -26,9 +26,8 @@ const toolbarOptions = [
 export default function FormCustom({ fields, form, title, onChange = {} }) {
   const [formValues, setFormValues] = useState({});
   const [location, setLocation] = useState({ lat: null, long: null, address: "" });
-  const isInitialSet = useRef(false); // ใช้เพื่อป้องกันการตั้งค่าซ้ำ
+  const isInitialSet = useRef(false);
 
-  // ตั้งค่า initial values เมื่อ fields เปลี่ยน
   useEffect(() => {
     const initialValues = fields.reduce((values, field) => {
       if (field.value !== undefined) {
@@ -39,11 +38,9 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
         } else if (field.type === "time") {
           values[field.name] = field.value ? dayjs(field.value, "HH:mm") : null;
         } else if (field.type === "location") {
-          values[field.name] = {
-            address: location.address,
-            lat: location.lat,
-            long: location.long,
-          };
+          values["location_address"] = location.address;
+          values["location_latitude"] = location.lat;
+          values["location_longitude"] = location.long;
         } else {
           values[field.name] = field.value;
         }
@@ -54,12 +51,11 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
     setFormValues(initialValues);
 
     if (!isInitialSet.current && form) {
-      form.setFieldsValue(initialValues); // เซ็ตค่าเริ่มต้นให้ฟอร์มครั้งเดียว
+      form.setFieldsValue(initialValues);
       isInitialSet.current = true;
     }
   }, [fields, form, location]);
 
-  // ดึงข้อมูล location เมื่อมีฟิลด์ location
   useEffect(() => {
     fields.forEach((field) => {
       if (field.type === "location") {
@@ -67,6 +63,16 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
       }
     });
   }, [fields]);
+
+  useEffect(() => {
+    if (location.lat !== null && location.long !== null) {
+      form.setFieldsValue({
+        location_address: location.address,
+        location_latitude: location.lat,
+        location_longitude: location.long,
+      });
+    }
+  }, [location, form]);
 
   const getLocation = () => {
     if (navigator.geolocation) {
@@ -98,7 +104,9 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
         setLocation((prev) => ({ ...prev, address: fetchedAddress }));
         setFormValues((prev) => ({
           ...prev,
-          location: { address: fetchedAddress, lat, long },
+          location_address: fetchedAddress,
+          location_latitude: lat,
+          location_longitude: long,
         }));
       } else {
         console.error("Failed to fetch address");
@@ -113,7 +121,7 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
       ...prev,
       [attribute]: value,
     }));
-    form.setFieldsValue({ [attribute]: value }); // อัปเดตเฉพาะฟิลด์ที่เปลี่ยน
+    form.setFieldsValue({ [attribute]: value });
     onChange(attribute, value);
   };
 
@@ -144,6 +152,7 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
                 {field.type === "text" ||
                 field.type === "email" ||
                 field.type === "tel" ||
+                field.type === "hidden" ||
                 field.type === "number" ? (
                   <Input
                     type={field.type}
@@ -178,14 +187,20 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
                   />
                 ) : field.type === "select" ? (
                   <Select
-                    value={formValues[field.name] || undefined}
+                    mode={field.mode === 'multiple' ? 'multiple' : undefined}
+                    value={formValues[field.name] || []}
                     onChange={(value) => handleChange(field.name, value)}
                     placeholder={`Select ${field.label.toLowerCase()}`}
                     disabled={field.disabled}
                   >
-                    <Option key="" value="" disabled>
+                    {field.mode !== 'multiple' ? 
+                    (
+                      <Option key="" value="" disabled>
                         Please Select
-                    </Option>
+                      </Option>
+                    )
+                    : undefined}
+                    
                     {field.options.map((option) => (
                       <Option key={option.id} value={option.id}>
                         {option.name}
@@ -202,26 +217,49 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
                     onChange={(value) => handleChange(field.name, value)}
                   />
                 ) : field.type === "location" ? (
-                  <>
-                    <Input
-                      type="text"
-                      placeholder="Address"
-                      value={location.address || ""}
-                      disabled
-                    />
-                    <Input
-                      type="hidden"
-                      placeholder="Latitude"
-                      value={location.lat || ""}
-                      disabled
-                    />
-                    <Input
-                      type="hidden"
-                      placeholder="Longitude"
-                      value={location.long || ""}
-                      disabled
-                    />
-                  </>
+                  <div>
+                    <Form.Item
+                      label="Address"
+                      name="location_address"
+                      rules={[
+                        {
+                          required: false,
+                          message: "Please enter the address",
+                        },
+                      ]}
+                    >
+                      <Input
+                        type="text"
+                        placeholder="Address"
+                        value={formValues["location_address"] || ""}
+                        onChange={(e) => handleChange("location_address", e.target.value)}
+                      />
+                    </Form.Item>
+                
+                    <Form.Item
+                      name="location_latitude"
+                      hidden
+                    >
+                      <Input
+                        type="hidden"
+                        placeholder="Latitude"
+                        value={formValues["location_latitude"] || ""}
+                        disabled
+                      />
+                    </Form.Item>
+                
+                    <Form.Item
+                      name="location_longitude"
+                      hidden
+                    >
+                      <Input
+                        type="hidden"
+                        placeholder="Longitude"
+                        value={formValues["location_longitude"] || ""}
+                        disabled
+                      />
+                    </Form.Item>
+                  </div>
                 ) : null}
               </Form.Item>
             </Col>
