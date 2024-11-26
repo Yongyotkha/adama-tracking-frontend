@@ -122,11 +122,13 @@ export default function CreateOrder() {
             {
               key: prev.length + 1, // สร้าง key ใหม่
               no: prev.length + 1, // สร้างเลขลำดับใหม่
-              productName: otherProduct.data.name,
-              unit: 1,
-              unitPrice: otherProduct.data.value,
+              product_id: otherProduct.data.id,
+              product_code: "",
+              product_name: otherProduct.data.name,
+              product_unit: "",
+              product_unit_thb: otherProduct.data.value,
               quantity: 1,
-              value: otherProduct.data.value,
+              net_amount: otherProduct.data.value,
             },
           ]);
           
@@ -232,8 +234,8 @@ export default function CreateOrder() {
       prevData.map((item) => {
         if (item.key === key) {
           const quantity = Math.max(1, newQuantity); // Prevent quantity less than 1
-          const value = (quantity * parseFloat(item.unitPrice.replace(/,/g, ""))).toFixed(2); // Calculate new value
-          return { ...item, quantity, value };
+          const net_amount = (quantity * parseFloat(item.product_unit_thb.replace(/,/g, ""))).toFixed(2); // Calculate new value
+          return { ...item, quantity, net_amount };
         }
         return item;
       })
@@ -262,11 +264,11 @@ export default function CreateOrder() {
 
   const header = [
     { title: "No", dataIndex: "no", key: "no" },
-    { title: "SKU", dataIndex: "sku", key: "sku" },
-    { title: "Product Name", dataIndex: "productName", key: "productName" },
-    { title: "Unit", dataIndex: "unit", key: "unit" },
+    { title: "SKU", dataIndex: "product_code", key: "product_code" },
+    { title: "Product Name", dataIndex: "product_name", key: "product_name" },
+    { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
     {
-      title: "THB/Unit", dataIndex: "pricePerUnit", key: "pricePerUnit",
+      title: "THB/Unit", dataIndex: "product_unit_thb", key: "product_unit_thb",
       render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 }),
     },
     {
@@ -321,13 +323,13 @@ export default function CreateOrder() {
     { title: "No", dataIndex: "no", key: "no" },
     {
       title: "Product Name",
-      dataIndex: "productName",
-      key: "productName",
+      dataIndex: "product_name",
+      key: "product_name",
     },
     {
       title: "Unit",
-      dataIndex: "unit",
-      key: "unit",
+      dataIndex: "product_unit",
+      key: "product_unit",
     },
     {
       title: <div className="text-center">QTY</div>,
@@ -359,8 +361,8 @@ export default function CreateOrder() {
     },
     {
       title: "Value (THB)",
-      dataIndex: "value",
-      key: "value",
+      dataIndex: "net_amount",
+      key: "net_amount",
       render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 })
     },
     {
@@ -393,7 +395,7 @@ export default function CreateOrder() {
     <tr className="bg-[#978B87]">
       <td colSpan={6} className="text-right pr-2 text-white">
         Item: {dataSourceOther.length} &nbsp; QTY: {dataSourceOther.reduce((total, item) => total + item.quantity, 0)} &nbsp;
-        Total: {dataSourceOther.reduce((total, item) => total + parseFloat(item.value.replace(/,/g, "")), 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+        Total: {dataSourceOther.reduce((total, item) => total + parseFloat(item.net_amount.replace(/,/g, "")), 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
       </td>
     </tr>
   );
@@ -471,22 +473,25 @@ export default function CreateOrder() {
     }
   };
 
-  const handleSave = () => {
+  const handleNavigateToOrderView = () => {
     formCustom
       .validateFields()
       .then((values) => {
-        console.log(values);
         const body = {
-          document_date: "2024-11-22",
+          document_date: values.order_date,
           user_id: values.sale,
           dealer_id: values.dealer,
           remark: inputRemark,
           products: dataSource,
           others: dataSourceOther
         };
-        console.log(body);
-        
-        return;
+        // console.log(body);
+        navigate("/order/view", {
+          state: {
+            data: body
+          }
+        })
+        // return;
         // useServiceAPI
         //   .post(paths.pathGetOrderCreate, values, setLoading)
         //   .then((response) => {
@@ -553,12 +558,8 @@ export default function CreateOrder() {
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
-        {/* <ActionButton mode="back" text="Back" onClick={() => navigate("/order/list")} /> */}
-        {/* <ActionButton mode="save" text="Confirm" onClick={() => navigate("/order/view")} /> */}
-        
-        {/* <ActionButton mode="back" text="Back" onClick={() => navigate("/order/list")} /> */}
-        <ActionButton mode="save" text="Confirm" onClick={handleSave} />
-        
+        <ActionButton mode="back" text="Back" onClick={() => navigate("/order/list")} />
+        <ActionButton mode="save" text="Confirm" onClick={() => handleNavigateToOrderView()} />
       </div>
 
 

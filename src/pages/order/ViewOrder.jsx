@@ -4,63 +4,30 @@ import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import { Input } from "antd";
 import TableComponent from "../../components/table/TableComponent";
 import ActionButton from "../../components/button/ActionButton";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import FormCustom from "../../components/form_custom/FormCustom";
+import useServiceAPI from "../../services/CorsService";
+import { paths } from "../../services/CorsPath";
 
 export default function ViewOrder() {
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [loading, setLoading] = useState(false);
+  const [getDocumentDate, setGetDocumentDate] = useState(location.state.data.document_date);
+  const [getUserId, setGetUserId] = useState(location.state.data.user_id);
+  const [getDealerId, setGetDealerId] = useState(location.state.data.dealer_id);
+  const [getRemark, setGetRemark] = useState(location.state.data.remark);
 
-  const dataSource = [
-    {
-      key: "1",
-      no: "1",
-      sku: "3027200113",
-      productName: "Bumper P",
-      unit: "0.5 ltX20",
-      pricePerUnit: "575.00",
-      quantity: 10,
-      foc: 1,
-      subTotal: "115,000.00",
-    },
-    {
-      key: "2",
-      no: "2",
-      sku: "207920011520",
-      productName: "Memory 300EC",
-      unit: "1lt X20",
-      pricePerUnit: "340.00",
-      quantity: 10,
-      foc: 1,
-      subTotal: "68,000.00",
-    },
-  ];
-
-  const dataSourceOther = [
-    {
-      key: "1",
-      no: "1",
-      productName: "เสื้อเชิ้ตยีนส์แขนยาว - อดามา",
-      unit: "ตัว",
-      quantity: 10,
-      value: 10000,
-    },
-    {
-      key: "2",
-      no: "2",
-      productName: "เสื้อเชิ้ตยีนส์แขนยาว - อดามา",
-      unit: "ตัว",
-      quantity: 20,
-      value: 20000,
-    },
-  ];
+  // Set Data
+  const dataSource = location.state.data.products;
+  const dataSourceOther = location.state.data.others;
 
   const header = [
     { title: "No", dataIndex: "no", key: "no", width: 10 },
-    { title: "SKU", dataIndex: "sku", key: "sku" },
-    { title: "Product Name", dataIndex: "productName", key: "productName" },
-    { title: "Unit", dataIndex: "unit", key: "unit" },
-    { title: "THB/Unit", dataIndex: "pricePerUnit", key: "pricePerUnit" },
+    { title: "SKU", dataIndex: "product_code", key: "product_code" },
+    { title: "Product Name", dataIndex: "product_name", key: "product_name" },
+    { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
+    { title: "THB/Unit", dataIndex: "product_unit_thb", key: "product_unit_thb" },
     {
       title: <div className="text-center">QTY (ctn)</div>,
       dataIndex: "quantity",
@@ -83,8 +50,8 @@ export default function ViewOrder() {
     },
     {
       title: <div className="text-end">Sub Total (THB)</div>,
-      dataIndex: "subTotal",
-      key: "subTotal",
+      dataIndex: "net_amount",
+      key: "net_amount",
       render: (text) => (
         <div className="text-end">
           {parseFloat(text || 0).toLocaleString("en-US", {
@@ -97,13 +64,13 @@ export default function ViewOrder() {
 
   const headerOther = [
     { title: "No", dataIndex: "no", key: "no", width: 10 },
-    { title: "Name", dataIndex: "productName", key: "productName" },
-    { title: "Unit", dataIndex: "unit", key: "unit" },
+    { title: "Name", dataIndex: "product_name", key: "product_name" },
+    { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
     { title: "QTY", dataIndex: "quantity", key: "quantity" },
     {
       title: <div className="text-end">Value (THB)</div>,
-      dataIndex: "value",
-      key: "value",
+      dataIndex: "net_amount",
+      key: "net_amount",
       render: (text) => (
         <div className="text-end">
           {parseFloat(text || 0).toLocaleString("en-US", {
@@ -118,11 +85,12 @@ export default function ViewOrder() {
     <tr className="bg-[#978B87]">
       <td colSpan={8} className="text-right pr-2 text-white">
         Item : {dataSource.length} &nbsp;&nbsp; QTY (ctn):{" "}
-        {dataSource.reduce((total, item) => total + item.quantity, 0)} &nbsp;&nbsp;
-        Total :{" "}
+        {dataSource.reduce((total, item) => total + item.quantity, 0)}{" "}
+        &nbsp;&nbsp; Total :{" "}
         {dataSource
           .reduce(
-            (total, item) => total + parseFloat(item.subTotal.replace(/,/g, "")),
+            (total, item) =>
+              total + parseFloat(item.net_amount.replace(/,/g, "")),
             0
           )
           .toLocaleString("en-US", { minimumFractionDigits: 2 })}
@@ -140,22 +108,82 @@ export default function ViewOrder() {
         )}
         &nbsp;&nbsp; Total :{" "}
         {dataSourceOther
-          .reduce((total, item) => total + item.value, 0)
+          .reduce((total, item) => total + parseFloat(item.net_amount.replace(/,/g, "")), 0)
           .toLocaleString("en-US", { minimumFractionDigits: 2 })}
       </td>
     </tr>
   );
 
   const formFields = [
-    { label: "Sale", name: "sale", type: "text", disabled: true, value: "Manupong" },
-    { label: "Dealer", name: "dealer", type: "text", disabled: true, value: "Chaifar" },
-    { label: "Order No", name: "order_no", type: "text", disabled: true, value: "20240001" },
-    { label: "Date", name: "order_date", type: "date", disabled: true, value: "2024-01-01" },
+    { 
+      label: "Sale", 
+      name: "sale", 
+      type: "text", 
+      disabled: true, 
+      placeholder: "",
+      value: "" 
+    },
+    {
+      label: "Dealer",
+      name: "dealer",
+      type: "text",
+      disabled: true,
+      placeholder: "",
+      value: "",
+    },
+    {
+      label: "Order No",
+      name: "order_no",
+      type: "text",
+      disabled: true,
+      placeholder: "",
+      value: "",
+    },
+    {
+      label: "Date",
+      name: "order_date",
+      type: "date",
+      disabled: true,
+      placeholder: "",
+      value: "",
+    },
   ];
+
+  const handleSaveOrder = () => {
+    const body = {
+      document_date: getDocumentDate,
+      user_id: getUserId,
+      dealer_id: getDealerId,
+      remark: getRemark,
+      products: dataSource,
+      others: dataSourceOther
+    };
+    console.log(body);
+    
+    const saveOrder = async () => {
+      setLoading(true);
+      try {
+        const [response] = await Promise.all([
+          useServiceAPI.post(paths.pathGetOrderCreate, body),
+        ]);
+
+        // setDataSale(sale.data);
+        console.log(response);
+        
+      } catch (error) {
+        // showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        console.log(error);
+        
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    saveOrder();
+  };
 
   return (
     <MainLayout loading={loading}>
-
       <div className="title-page">View Order</div>
 
       <FormCustom fields={formFields} />
@@ -181,12 +209,25 @@ export default function ViewOrder() {
       </BoxPrimary>
 
       <BoxPrimary title="Remark">
-        <Input.TextArea placeholder="Remark" value="Remark" disabled className="bg-gray-100" />
+        <Input.TextArea
+          placeholder=""
+          value={getRemark}
+          disabled
+          className="bg-gray-100"
+        />
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4 mt-4">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/order/list")} />
-        <ActionButton mode="save" text="Order" onClick={() => navigate("/order/list")} />
+        <ActionButton
+          mode="back"
+          text="Back"
+          onClick={() => navigate("/order/list")}
+        />
+        <ActionButton
+          mode="save"
+          text="Order"
+          onClick={() => handleSaveOrder()}
+        />
       </div>
     </MainLayout>
   );
