@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import { Input } from "antd";
@@ -8,6 +8,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import FormCustom from "../../components/form_custom/FormCustom";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
+import { AuthContext } from "../../contexts/AuthContext";
 
 export default function ViewOrder() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function ViewOrder() {
   const [getUserId, setGetUserId] = useState(location.state.data.user_id);
   const [getDealerId, setGetDealerId] = useState(location.state.data.dealer_id);
   const [getRemark, setGetRemark] = useState(location.state.data.remark);
+  const { showMsg, showNotification } = useContext(AuthContext);
 
   // Set Data
   const dataSource = location.state.data.products;
@@ -149,9 +151,18 @@ export default function ViewOrder() {
     },
   ];
 
+  // Utility function สำหรับแปลงวันที่
+  const formatDate = (date) => {
+    if (!date || !date.$d) return ""; // ตรวจสอบว่ามี $d หรือไม่
+    const d = new Date(date.$d); // แปลง $d เป็น Date Object
+    return d.toISOString().split("T")[0]; // แปลงเป็น YYYY-MM-DD
+  };  
+
   const handleSaveOrder = () => {
+    // แปลงวันที่โดยใช้ฟังก์ชัน formatDate
+    const formattedDate = formatDate(getDocumentDate);
     const body = {
-      document_date: getDocumentDate,
+      document_date: formattedDate,
       user_id: getUserId,
       dealer_id: getDealerId,
       remark: getRemark,
@@ -167,8 +178,13 @@ export default function ViewOrder() {
           useServiceAPI.post(paths.pathGetOrderCreate, body),
         ]);
 
-        // setDataSale(sale.data);
-        console.log(response);
+        showNotification(
+          "success",
+          response.data.message,
+          response.data.message_line
+        ).then(() => {
+          navigate("/order/list");
+        });
         
       } catch (error) {
         // showMsg("error", error.message || "เกิดข้อผิดพลาด");
