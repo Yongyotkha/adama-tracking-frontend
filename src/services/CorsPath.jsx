@@ -27,6 +27,7 @@ export const paths = {
   pathMasterProductDetail: "master/product/detail",
 
   pathMasterPromotionList: "master/promotion",
+  pathMasterPromotionDetail: "master/promotion/detail",
 
   // List
   pathMasterSale: "sale-management/list",
@@ -67,6 +68,7 @@ export const paths = {
 
   //Activaty
   pathActivatyList: "/activity/list",
+  pathActivatyCreate: "/activity/create",
 
   // Orders
   pathGetOrderList: "order/list",

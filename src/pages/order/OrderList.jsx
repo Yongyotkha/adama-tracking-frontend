@@ -136,10 +136,8 @@ export default function OrderList() {
     const filters = tableParams.filters || {};
     const sortOrder = tableParams.sortOrder || "asc";
     const sortField = tableParams.sortField || "document_number";
-    console.log(filters);
-    
+
     const requestData = {
-      // keyword: filters.keyword || "",
       user_id: filters.sale || "",
       dealer_id: filters.dealer || "",
       keyword: filters.order_no || "",
