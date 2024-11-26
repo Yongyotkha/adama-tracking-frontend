@@ -233,7 +233,6 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
                   <div>
                     <div style={{ position: "relative" }}>
                       <Form.Item
-                        label="Address"
                         name="location_address"
                         rules={[
                           {
