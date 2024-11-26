@@ -18,26 +18,29 @@ export default function CreateOrder() {
   const [dataSource, setDataSource] = useState([]);
   const [dataSale, setDataSale] = useState([]);
   const [dataDealer, setDataDealer] = useState([]);
+  const [dataSourceOther, setDataSourceOther] = useState([]);
   const [searchProductData, setSearchProductData] = useState([]);
+  const [getOtherProductData, setGetOtherProductData] = useState([]);
 
-  const [participants, setParticipants] = useState([
-    { key: '1', no: 1, name: 'Kornkan Induang', position: 'Sales Executive', department: 'Sales Team', territory: 'Left North', permission: 'Individual and BD/Assist' },
-    { key: '2', no: 2, name: 'Phaisan Jethuen', position: 'Sales Executive', department: 'Sales Team', territory: 'Left Lower North', permission: 'Individual and BD/Assist' },
-    { key: '3', no: 3, name: 'Manupong Wongpuang', position: 'Sales Executive', department: 'Sales Team', territory: 'Lower North', permission: 'Individual and BD/Assist' },
-    { key: '4', no: 4, name: 'Kriangkrai Kraikaew', position: 'Sales Executive', department: 'Sales Team', territory: 'Central Left North', permission: 'Individual and BD/Assist' },
-    { key: '5', no: 5, name: 'Charoenpong Khunawatcharakun', position: 'Sales Executive', department: 'Sales Team', territory: 'Central Right North', permission: 'Individual and BD/Assist' },
-  ]);
+  // const [participants, setParticipants] = useState([
+  //   { key: '1', no: 1, name: 'Kornkan Induang', position: 'Sales Executive', department: 'Sales Team', territory: 'Left North', permission: 'Individual and BD/Assist' },
+  //   { key: '2', no: 2, name: 'Phaisan Jethuen', position: 'Sales Executive', department: 'Sales Team', territory: 'Left Lower North', permission: 'Individual and BD/Assist' },
+  //   { key: '3', no: 3, name: 'Manupong Wongpuang', position: 'Sales Executive', department: 'Sales Team', territory: 'Lower North', permission: 'Individual and BD/Assist' },
+  //   { key: '4', no: 4, name: 'Kriangkrai Kraikaew', position: 'Sales Executive', department: 'Sales Team', territory: 'Central Left North', permission: 'Individual and BD/Assist' },
+  //   { key: '5', no: 5, name: 'Charoenpong Khunawatcharakun', position: 'Sales Executive', department: 'Sales Team', territory: 'Central Right North', permission: 'Individual and BD/Assist' },
+  // ]);
 
-  const productData = [
-    { key: `product-1`, no: 1, name: "Cooler Box M11 - กระติกน้ำ คลาสสิค", unit: "ใบ", value: 200 },
-    { key: `product-2`, no: 2, name: "Adama Bag (กระเป๋าผ้าสปันบอนด์)", unit: "ใบ", value: 200 },
-    { key: `product-3`, no: 3, name: "เสื้อเชิ๊ตแขนยาว - นาโลริด", unit: "ตัว", value: 200 },
-    { key: `product-4`, no: 4, name: "เสื้อเชิ๊ตยีนส์แขนยาว - อดามา", unit: "ตัว", value: 200 },
-    { key: `product-5`, no: 5, name: "เสื้อยืดคอกลมแขนยาว - เมโนริ", unit: "ตัว", value: 200 },
-    { key: `product-6`, no: 6, name: "เสื้อยืดคอกลมแขนยาว - โรบอน โกลด์ (สีเทา)", unit: "ตัว", value: 200 },
-    { key: `product-7`, no: 7, name: "แก้วน้ำใส อดามา", unit: "ใบ", value: 200 },
-    { key: `product-8`, no: 8, name: "หมวกกันกีดลายอาหาร - พัลโก้ร่า", unit: "ใบ", value: 200 },
-];
+  // const productData = [
+  //     { key: `product-1`, no: 1, name: "Cooler Box M11 - กระติกน้ำ คลาสสิค", unit: "ใบ", value: 200 },
+  //     { key: `product-2`, no: 2, name: "Adama Bag (กระเป๋าผ้าสปันบอนด์)", unit: "ใบ", value: 200 },
+  //     { key: `product-3`, no: 3, name: "เสื้อเชิ๊ตแขนยาว - นาโลริด", unit: "ตัว", value: 200 },
+  //     { key: `product-4`, no: 4, name: "เสื้อเชิ๊ตยีนส์แขนยาว - อดามา", unit: "ตัว", value: 200 },
+  //     { key: `product-5`, no: 5, name: "เสื้อยืดคอกลมแขนยาว - เมโนริ", unit: "ตัว", value: 200 },
+  //     { key: `product-6`, no: 6, name: "เสื้อยืดคอกลมแขนยาว - โรบอน โกลด์ (สีเทา)", unit: "ตัว", value: 200 },
+  //     { key: `product-7`, no: 7, name: "แก้วน้ำใส อดามา", unit: "ใบ", value: 200 },
+  //     { key: `product-8`, no: 8, name: "หมวกกันกีดลายอาหาร - พัลโก้ร่า", unit: "ใบ", value: 200 },
+  // ];
+  // const getOtherProductData = [];
 
   useEffect(() => {
     const getMaster = async () => {
@@ -61,6 +64,42 @@ export default function CreateOrder() {
   }, []);
 
   const handleOpenTeamModal = () => {
+    // Set Empty
+    setGetOtherProductData([]);
+
+    const loadProductDetail = async () => {
+      setLoading(true);
+      try {
+        const [otherProduct] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterPromotionList, {
+            page_size: 10,
+            page_length: 1,
+          }),
+        ]);
+
+        // State for Order List table data
+        const productData = [];
+        otherProduct.data.data.map((data, index) => {
+          productData.push({ 
+            key: data.id, 
+            no: index + 1, 
+            name: data.name, 
+            unit: "", 
+            value: data.value 
+          });
+        })
+
+        setGetOtherProductData(productData);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Set
+    loadProductDetail();
+    // Open Modal
     setIsTeamModalVisible(true);
   };
 
@@ -69,32 +108,35 @@ export default function CreateOrder() {
   };
 
   const handleAddSelectedRows = (selectedRows) => {
-    setParticipants((prev) => {
-      // Filter out any selected rows that already exist in participants based on their key
-      const newRows = selectedRows.filter(
-        (row) => !prev.some((participant) => participant.key === row.key)
-      );
-      console.log(selectedRows);
+    // setGetOtherProductData((prev) => {
+    //   // Filter out any selected rows that already exist in participants based on their key
+    //   const newRows = selectedRows.filter(
+    //     (row) => !prev.some((participant) => participant.key === row.key)
+    //   );
       
-      return [...prev, ...newRows];
-    });
+    //   return [...prev, ...newRows];
+    // });
+    
+    selectedRows.map((data, index) => {
+      console.log(data.key);
+    })
   };
 
   const removeParticipant = (key) => {
-    setParticipants(participants.filter(item => item.key !== key));
+    setGetOtherProductData(getOtherProductData.filter(item => item.key !== key));
   };
 
   // State for Other table data
-  const [dataSourceOther, setDataSourceOther] = useState([
-    { 
-      key: "1", 
-      no: "1", 
-      productName: "เสื้อเชิ๊ตยีนส์แขนยาว - อดามา", 
-      unit: 1, 
-      quantity: 1, 
-      value: '10000' 
-    }
-  ]);
+  // const [dataSourceOther, setDataSourceOther] = useState([
+  //   { 
+  //     key: "1", 
+  //     no: "1", 
+  //     productName: "เสื้อเชิ๊ตยีนส์แขนยาว - อดามา", 
+  //     unit: 1, 
+  //     quantity: 1, 
+  //     value: '10000' 
+  //   }
+  // ]);
 
   const formFields = [
     { 
@@ -486,7 +528,7 @@ export default function CreateOrder() {
           { title: "Unit", dataIndex: "unit", key: "unit", width: 150 },
           { title: "Value (THB)", dataIndex: "value", key: "value", width: 150 },
         ]}
-        dataSource={productData}
+        dataSource={getOtherProductData}
         width="1200px"
         onAddSelected={handleAddSelectedRows}
         type="add"
