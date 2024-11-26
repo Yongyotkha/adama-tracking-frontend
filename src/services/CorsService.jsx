@@ -82,8 +82,7 @@ const handleRequest = async (method, url, dataOrParams, onLoadingChange) => {
     return response.data;
   } catch (error) {
     if (error.response && error.response.status === 401) {
-      // handleUnauthorized(location.pathname);
-      
+      handleUnauthorized(location.pathname);
     } 
 
     throw error;

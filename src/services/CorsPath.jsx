@@ -30,6 +30,8 @@ export const paths = {
   pathSaleManagementDetail: "sale-management/sale-team/detail",
   pathSaleManagementCreate: "sale-management/sale-team/items/create",
   pathSaleManagementDeleteSubItem: "sale-management/sale-team/items/delete",
+  pathSaleManagementDeleteSub: "sale-management/sale-team/delete",
+
   pathMasterTime: "master/time",
   pathMasterProducts: "master/product",
   pathMasterProductDetail: "master/product/detail",
@@ -53,7 +55,7 @@ export const paths = {
   // user
   pathRegister: "register",
   pathMasterUsers: "users/list",
-
+  pathMasterUsersEdit: "users/detail",
   //promotion
   pathPromotionlist: "promotion-management/list",
   pathPromotiondetail: "promotion-management/detail",

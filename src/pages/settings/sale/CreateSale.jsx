@@ -19,21 +19,28 @@ export default function CreateSale() {
   const [loading, setLoading] = useState(false);
   const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
-  const [selectedSalesData, setSelectedSalesData] = useState([]); // Store selected rows
+  const [selectedSalesData, setSelectedSalesData] = useState([]);
   const navigate = useNavigate();
-  const { showMsg } = useContext(AuthContext);
+  const { showMsg, showNotification } = useContext(AuthContext);
   const location = useLocation();
   // const id = location.state?.id; // รับค่า id จาก state
-  const [id, setId] = useState(location.state?.id); // Store selected rows
+  const [id, setId] = useState(location.state?.id);
   const [formFields, setFormFields] = useState([]);
   const [userList, setUserList] = useState([]);
   const [salesDataTeam, setSalesDataTeam] = useState([]);
   const [saleManagementHeaderId, setSaleManagementHeaderId] = useState(null);
   const [saleManagementId, setSaleManagementId] = useState(null);
+  const [saleHeads, setSaleHeads] = useState([]); // สำหรับ Sale Head
+  const [saleAreas, setSaleAreas] = useState([]); // สำหรับ Sale Area
+  const [selectedSaleHead, setSelectedSaleHead] = useState(null); // เก็บค่าที่เลือกจาก Sale Head
+  const [selectedSaleArea, setSelectedSaleArea] = useState(null); // เก็บค่าที่เลือกจาก Sale Area
+  const [defaultSaleHead, setDefaultSaleHead] = useState(null);
+  const [defaultSaleArea, setDefaultSaleArea] = useState(null);
 
   useEffect(() => {
-    
     fetchData();
+    fetchSaleHeads();
+    fetchSaleAreas();
   }, []);
 
   const fetchData = async () => {
@@ -52,9 +59,9 @@ export default function CreateSale() {
       if (response.status === 200) {
         const { data } = response;
         setSaleManagementId(id);
-        const transformedData = data.items.map((item) => ({
+        const transformedData = data.items.map((item, index) => ({
           key: item.sale_management_header_id,
-          no: item.sale_management_header_id,
+          no: index + 1,
           name: item.name,
           position: item.position_name,
           territory: item.territory_name,
@@ -73,14 +80,14 @@ export default function CreateSale() {
               />
               <DynamicButton
                 iconSrc="/img/icons/delete.png"
-                onClick={() => handleDelete(record)}
+                onClick={() => handleDelete(item.sale_management_header_id)}
               />
             </>
           ),
 
-          nestedData: item.sub_items.map((subItem) => ({
+          nestedData: item.sub_items.map((subItem, index) => ({
             key: subItem.sale_management_item_id,
-            no: subItem.sale_management_item_id,
+            no: index + 1,
             name: subItem.name,
             position: subItem.position_name,
             territory: subItem.territory_name,
@@ -89,7 +96,7 @@ export default function CreateSale() {
                 <DynamicButton
                   iconSrc="/img/icons/delete.png"
                   onClick={() =>
-                    handleDelete(subItem.sale_management_item_id)
+                    handleDeleteItem(subItem.sale_management_item_id)
                   }
                 />
               </>
@@ -99,18 +106,14 @@ export default function CreateSale() {
 
         setSelectedSalesData(transformedData);
       } else {
-        console.error(
-          "Failed to fetch promotion details:",
-          response.message
-        );
+        console.error("Failed to fetch promotion details:", response.message);
       }
     } catch (error) {
       console.error("Error fetching promotion details:", error);
     } finally {
       setLoading(false);
     }
-};
-
+  };
 
   const fetchUserList = async (page_size = 20, page_length = 1) => {
     setLoading(true);
@@ -317,25 +320,52 @@ export default function CreateSale() {
         requestData
       );
       if (response.status === 200) {
-        console.log(response);
         fetchData();
-        // console.log("Data saved successfully:", response.data);
-        showMsg("success", "Data saved successfully.");
+        showNotification(
+          "success",
+          response.data.message,
+          response.data.message_line
+        );
       } else {
         console.error("Failed to save data:", response.message);
-        showMsg("error", response.message || "Failed to save data.");
+        showNotification("error", response.message, response.message_line);
       }
     } catch (error) {
       console.error("Error saving data:", error);
-      showMsg("error", "An error occurred while saving data.");
+      showNotification("error", response.message, response.message_line);
     }
   };
 
-  // const handleDelete = (record) => {
-  //   console.log("Delete", record);
-  // };
-
   const handleDelete = async (record) => {
+    try {
+      const requestData = {
+        sale_management_header_id: record, // ส่ง ID ที่ต้องการลบ
+      };
+
+      const response = await useServiceAPI.delete(
+        paths.pathSaleManagementDeleteSub,
+        requestData
+      );
+
+      if (response.status === 200) {
+        fetchData();
+        showNotification(
+          "success",
+          response.data.message,
+          response.data.message_line
+        );
+      } else {
+        console.error("Failed to delete record:", response.message);
+        showNotification("error", response.message, response.message_line);
+      }
+    } catch (error) {
+      console.error("Error deleting record:", error);
+
+      showNotification("error", error.message, error.message_line);
+    }
+  };
+
+  const handleDeleteItem = async (record) => {
     try {
       const requestData = {
         sale_management_items_id: record, // ส่ง ID ที่ต้องการลบ
@@ -347,14 +377,67 @@ export default function CreateSale() {
       );
 
       if (response.status === 200) {
-        showMsg("success", "Record deleted successfully.");
+        fetchData();
+        // showMsg("success", "Record deleted successfully.");
+        showNotification(
+          "success",
+          response.data.message,
+          response.data.message_line
+        );
       } else {
         console.error("Failed to delete record:", response.message);
-        showMsg("error", response.message || "Failed to delete record.");
+        showNotification("error", response.message, response.message_line);
       }
     } catch (error) {
       console.error("Error deleting record:", error);
-      showMsg("error", "An error occurred while deleting the record.");
+
+      showNotification("error", error.message, error.message_line);
+    }
+  };
+
+  const fetchSaleHeads = async () => {
+    try {
+      const response = await useServiceAPI.get(paths.pathMasterHeadofsale);
+      if (response.status === 200) {
+        const saleHeadData = response.data.map((item) => ({
+          value: item.id, // สมมติว่ามี id ในข้อมูล
+          label: item.name, // สมมติว่ามี name ในข้อมูล
+        }));
+        setSaleHeads(saleHeadData);
+
+        // เซ็ตค่า default
+        if (response.data.length > 0) {
+          setDefaultSaleHead(response.data[0].id); // เลือกอันแรกเป็น default
+          setSelectedSaleHead(response.data[0].id); // เซ็ต selected value
+        }
+      } else {
+        console.error("Failed to fetch Sale Heads:", response.message);
+      }
+    } catch (error) {
+      console.error("Error fetching Sale Heads:", error);
+    }
+  };
+
+  const fetchSaleAreas = async () => {
+    try {
+      const response = await useServiceAPI.get(paths.pathMasterSalearea);
+      if (response.status === 200) {
+        const saleAreaData = response.data.map((item) => ({
+          value: item.id, // สมมติว่ามี id ในข้อมูล
+          label: item.name, // สมมติว่ามี name ในข้อมูล
+        }));
+        setSaleAreas(saleAreaData);
+
+        // เซ็ตค่า default
+        if (response.data.length > 0) {
+          setDefaultSaleArea(response.data[0].id); // เลือกอันแรกเป็น default
+          setSelectedSaleArea(response.data[0].id); // เซ็ต selected value
+        }
+      } else {
+        console.error("Failed to fetch Sale Areas:", response.message);
+      }
+    } catch (error) {
+      console.error("Error fetching Sale Areas:", error);
     }
   };
 
@@ -369,27 +452,39 @@ export default function CreateSale() {
               Sale Head
             </label>
             <Select
-              defaultValue="Chayanon Tunyateerapong"
+              value={selectedSaleHead}
+              defaultValue={defaultSaleHead}
               className="w-full"
               placeholder="Select Sale Head"
+              onChange={(value) => setSelectedSaleHead(value)}
             >
-              <Option value="chayanon">Chayanon Tunyateerapong</Option>
-              <Option value="another">Another Person</Option>
+              {saleHeads.map((head) => (
+                <Option key={head.value} value={head.value}>
+                  {head.label}
+                </Option>
+              ))}
             </Select>
           </div>
+
           <div>
             <label className="block mb-1 text-sm text-gray-600">
               Sale Area
             </label>
             <Select
-              defaultValue="Veerasak Likitmanchai"
+              value={selectedSaleArea}
+              defaultValue={defaultSaleArea}
               className="w-full"
               placeholder="Select Sale Area"
+              onChange={(value) => setSelectedSaleArea(value)}
             >
-              <Option value="veerasak">Veerasak Likitmanchai</Option>
-              <Option value="another_area">Another Area</Option>
+              {saleAreas.map((area) => (
+                <Option key={area.value} value={area.value}>
+                  {area.label}
+                </Option>
+              ))}
             </Select>
           </div>
+
           <div>
             <label className="block mb-1 text-sm text-gray-600">Area</label>
             <Input defaultValue="Area 1" disabled className="w-full" />
