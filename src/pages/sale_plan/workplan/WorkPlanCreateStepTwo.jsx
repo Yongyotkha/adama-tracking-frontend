@@ -10,6 +10,7 @@ import TableCustomComponent from "../../../components/table/TableCustomComponent
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
+import { debounce } from "lodash";
 
 export default function WorkPlanCreateStepTwo() {
   const location = useLocation();
@@ -18,10 +19,74 @@ export default function WorkPlanCreateStepTwo() {
   const [dataSource, setDataSource] = useState(
     location?.state?.data?.dataSource
   );
-  const [area, setArea] = useState([]);
+  const [areas, setAreas] = useState([]);
   const [permission, setPermission] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
-  const { showMsg, showNotification } = useContext(AuthContext);
+  const { showNotification } = useContext(AuthContext);
+
+  const [localQtyState, setLocalQtyState] = useState({});
+
+  const handleQtyChange = (area_id, product_id, newQty, unitConvertValue) => {
+    setLocalQtyState((prevState) => {
+      const updatedState = {
+        ...prevState,
+        [area_id]: {
+          ...(prevState[area_id] || {}),
+          [product_id]: newQty,
+        },
+      };
+
+      // ตรวจสอบว่า qty รวมของ product_id นี้ไม่เกิน dataSource.qty
+      const totalQty = Object.keys(updatedState)
+        .map((key) => updatedState[key][product_id] || 0)
+        .reduce((sum, qty) => sum + qty, 0);
+
+      const productData = dataSource.find(
+        (data) => data.product_id === product_id
+      );
+      if (totalQty > (productData?.qty || 0)) {
+        showNotification(
+          "error",
+          `Total quantity for ${productData.product_name} exceeds the limit.`
+        );
+        return prevState; // ไม่อัปเดต state ถ้าเกิน
+      }
+
+      // อัปเดต areas value (คำนวณ qty * unitConvertValue) และ sum value
+      const updatedAreas = areas.map((area) => {
+        if (area.area_id === area_id) {
+          const updatedDataItems = area.data_items.map((item) => {
+            if (item.product_id === product_id) {
+              return {
+                ...item,
+                qty: newQty,
+                value: (newQty * unitConvertValue).toFixed(2), // คำนวณ value
+              };
+            }
+            return item;
+          });
+
+          const totalValue = updatedDataItems
+            .reduce((sum, item) => sum + parseFloat(item.value || 0), 0)
+            .toFixed(2);
+
+          return {
+            ...area,
+            data_items: updatedDataItems,
+            amount_target: totalValue, // อัปเดต amount_target
+          };
+        }
+        return area;
+      });
+
+      setAreas(updatedAreas); // อัปเดต areas
+      return updatedState; // อัปเดต localQtyState
+    });
+  };
+
+  useEffect(() => {
+    console.log(areas);
+  }, [areas]);
 
   useEffect(() => {
     useServiceAPI
@@ -31,7 +96,7 @@ export default function WorkPlanCreateStepTwo() {
         setLoading
       )
       .then((response) => {
-        if (response.status == 200) {
+        if (response.status === 200) {
           console.log(response.data);
           const newData = response.data.original_data_items.map((item) => ({
             key: item.product_id,
@@ -44,25 +109,34 @@ export default function WorkPlanCreateStepTwo() {
             value: item.value,
           }));
           const newDataArea = response.data.data_areas.map((item) => ({
-            key: item.product_id,
-            product_id: item.product_id,
-            product_code: item.product_code,
-            product_name: item.product_name,
-            pack_size: item.pack_size,
-            unit_convert_value: item.unit_convert_value,
-            qty: item.qty,
-            value: item.value,
+            key: item.area_id,
+            area_id: item.area_id,
+            area_name: item.area_name,
+            sale_area_id: item.sale_area_id,
+            sale_area_name: item.sale_area_name,
+            amount_target: item.amount_target,
+            data_items: item.data_items,
           }));
 
+          // สร้างค่าเริ่มต้นสำหรับ localQtyState
+          const initialQtyState = newDataArea.reduce((acc, area) => {
+            acc[area.area_id] = area.data_items.reduce((itemAcc, item) => {
+              itemAcc[item.product_id] = parseFloat(item.qty || 0);
+              return itemAcc;
+            }, {});
+            return acc;
+          }, {});
+
+          setLocalQtyState(initialQtyState);
           setDataSource(newData);
-          setArea(newDataArea);
+          setAreas(newDataArea);
           setTotalValue(response.data.original_data_overall_target);
           setPermission(response.data.permission);
         }
       })
       .catch((error) => {
         console.log(error);
-        if (error.status == 422) {
+        if (error.status === 422) {
           showNotification("error", error.message);
         } else {
           showNotification("error", "เกิดข้อผิดพลาด");
@@ -124,17 +198,16 @@ export default function WorkPlanCreateStepTwo() {
     });
 
   const baseColumns = [
-    // Default column
     {
       title: "Area Sale Manager Name",
       children: [
         {
           title: "Position",
-          key: "defaultPosition",
+          key: "position",
           children: [
             {
               title: "Sale Plan (THB)",
-              key: "defaultSalePlan",
+              key: "sale_plan_thb",
               onHeaderCell: () => ({
                 style: {
                   backgroundColor: "white",
@@ -146,21 +219,21 @@ export default function WorkPlanCreateStepTwo() {
                 {
                   title: "Product Name",
                   dataIndex: "product_name",
-                  key: "productName",
+                  key: "product_name",
                   fixed: "left",
                   width: 200,
                 },
                 {
                   title: "Pack Size",
                   dataIndex: "pack_size",
-                  key: "packSize",
+                  key: "pack_size",
                   width: 200,
                   fixed: "left",
                 },
                 {
                   title: "Original Plan",
                   dataIndex: "qty",
-                  key: "originalPlan",
+                  key: "original_plan_qty",
                   width: 200,
                   fixed: "left",
                   render: (text, record) => (
@@ -172,14 +245,13 @@ export default function WorkPlanCreateStepTwo() {
                       formatter={(value) =>
                         `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                       }
-                      onChange={(value) => handleQtyChange(value, record.key)}
                     />
                   ),
                 },
                 {
                   title: "Value (THB)",
                   dataIndex: "value",
-                  key: "valueTHB",
+                  key: "value_thb",
                   width: 200,
                   fixed: "left",
                   render: (text, record) => (
@@ -191,7 +263,6 @@ export default function WorkPlanCreateStepTwo() {
                       formatter={(value) =>
                         `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                       }
-                      onChange={(value) => handleQtyChange(value, record.key)}
                     />
                   ),
                 },
@@ -201,13 +272,13 @@ export default function WorkPlanCreateStepTwo() {
         },
       ],
     },
-    // Dynamically mapped columns from `area`
-    ...area.map((item, index) => ({
-      title: item.sale_area_name, 
+
+    ...areas.map((item, index) => ({
+      title: item.sale_area_name,
       children: [
         {
-          title: item.area_name, 
-          key: `region-${index}`,
+          title: item.area_name,
+          key: `area_${item.area_id}`,
           children: [
             {
               title: (
@@ -215,46 +286,68 @@ export default function WorkPlanCreateStepTwo() {
                   className="w-full"
                   disabled
                   min={0}
+                  value={parseFloat(item.amount_target).toFixed(2)}
                   formatter={(value) =>
                     `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                   }
                 />
               ),
-              key: `inputNumber-${index}`,
+              key: `input_area_${index}`,
               children: [
                 {
                   title: "Qty (KG)",
-                  dataIndex: `originalPlan-${item.managerId}`, // Assuming `managerId` exists
-                  key: `originalPlan-${item.managerId}`,
+                  dataIndex: `qty_${item.area_id}`,
+                  key: `qty_${item.area_id}`,
                   width: 200,
-                  render: (text, record) => (
-                    <InputNumber
-                      className="w-full"
-                      min={0}
-                      value={text}
-                      formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      onChange={(value) => handleQtyChange(value, record.key)}
-                    />
-                  ),
+                  render: (_, record) => {
+                    const dataItem = item.data_items.find(
+                      (i) => i.product_id === record.product_id
+                    );
+                    return (
+                      <InputNumber
+                        className="w-full"
+                        min={0}
+                        value={
+                          localQtyState[item.area_id]?.[record.product_id] || 0
+                        }
+                        formatter={(value) =>
+                          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        onChange={(value) =>
+                          handleQtyChange(
+                            item.area_id,
+                            record.product_id,
+                            value,
+                            dataItem?.unit_convert_value || 1 // ส่ง unit_convert_value
+                          )
+                        }
+                        disabled={!permission.edit}
+                      />
+                    );
+                  },
                 },
                 {
                   title: "Value (THB)",
-                  dataIndex: `valueTHB-${item.managerId}`,
-                  key: `valueTHB-${item.managerId}`,
+                  dataIndex: `value_${item.area_id}`,
+                  key: `value_${item.area_id}`,
                   width: 200,
-                  render: (text, record) => (
-                    <InputNumber
-                      className="w-full"
-                      min={0}
-                      value={text}
-                      formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      onChange={(value) => handleQtyChange(value, record.key)}
-                    />
-                  ),
+                  render: (text, record) => {
+                    const dataItem = item.data_items.find(
+                      (i) => i.product_id === record.product_id
+                    );
+                    return (
+                      <InputNumber
+                        disabled
+                        className="w-full"
+                        value={
+                          dataItem ? parseFloat(dataItem.value).toFixed(2) : 0
+                        }
+                        formatter={(value) =>
+                          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                      />
+                    );
+                  },
                 },
               ],
             },
@@ -264,8 +357,43 @@ export default function WorkPlanCreateStepTwo() {
     })),
   ];
 
-
   const columns = applyTopLevelAndSpecificChildrenStyles(baseColumns);
+
+  const handleSave = (mode) => {
+    useServiceAPI
+      .post(
+        paths.pathWorkPlanStep2,
+        {
+          year_code: location?.state?.year_code,
+          action_code: mode,
+          data_areas: areas,
+        },
+        setLoading
+      )
+      .then((response) => {
+        if (response.status === 200) {
+          showNotification(
+            "success",
+            response.data.message,
+            response.data.message_line
+          ).then(() => {
+            navigate("/sale-plan/work-plan", {
+              state: {
+                year_code: location?.state?.year_code,
+              },
+            });
+          });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        if (error.status === 422) {
+          showNotification("error", error.message);
+        } else {
+          showNotification("error", "เกิดข้อผิดพลาด");
+        }
+      });
+  };
 
   return (
     <>
@@ -298,12 +426,12 @@ export default function WorkPlanCreateStepTwo() {
             pagination={false}
             scroll={true}
             footer={() => (
-              <Table.Summary fixed>
+              <Table.Summary>
                 <Table.Summary.Row className="bg-[#978B87]">
                   <Table.Summary.Cell index={0} colSpan={2}>
                     Total (THB)
                   </Table.Summary.Cell>
-                  <Table.Summary.Cell colSpan={2}>
+                  <Table.Summary.Cell index={2} colSpan={2}>
                     <InputNumber
                       className="w-full"
                       disabled
@@ -315,30 +443,20 @@ export default function WorkPlanCreateStepTwo() {
                       style={{ backgroundColor: "white" }}
                     />
                   </Table.Summary.Cell>
-                  <Table.Summary.Cell colSpan={2}>
-                    <InputNumber
-                      className="w-full"
-                      disabled
-                      // value={index}
-                      min={0}
-                      formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      style={{ backgroundColor: "white" }}
-                    />
-                  </Table.Summary.Cell>
-                  <Table.Summary.Cell colSpan={2}>
-                    <InputNumber
-                      className="w-full"
-                      disabled
-                      // value={index}
-                      min={0}
-                      formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      style={{ backgroundColor: "white" }}
-                    />
-                  </Table.Summary.Cell>
+
+                  {areas.map((area, index) => (
+                    <Table.Summary.Cell key={index} colSpan={2}>
+                      <InputNumber
+                        className="w-full"
+                        disabled
+                        value={parseFloat(area.amount_target || 0).toFixed(2)} // amount_target ของ area
+                        formatter={(value) =>
+                          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        style={{ backgroundColor: "white" }}
+                      />
+                    </Table.Summary.Cell>
+                  ))}
                 </Table.Summary.Row>
               </Table.Summary>
             )}
@@ -358,17 +476,21 @@ export default function WorkPlanCreateStepTwo() {
             }}
           />
 
-          <ActionButton
-            text="Save Draft"
-            mode="saveDraft"
-            onClick={() => navigate("/sale-plan/work-plan")}
-          />
+          {permission.btn_draft && (
+            <ActionButton
+              text="Save Draft"
+              mode="saveDraft"
+              onClick={() => handleSave("draft")}
+            />
+          )}
 
-          <ActionButton
-            text="Save and Next"
-            mode="save"
-            onClick={() => navigate("/sale-plan/work-plan")}
-          />
+          {permission.btn_save && (
+            <ActionButton
+              text="Save"
+              mode="save"
+              onClick={() => handleSave("save")}
+            />
+          )}
         </div>
       </MainLayout>
     </>

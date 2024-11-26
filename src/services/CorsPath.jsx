@@ -24,6 +24,7 @@ export const paths = {
   pathMasterHeadofsale: "master/headofsale",
   pathMasterUserlist: "master/users/list",
   pathMasterSalearea: "master/salearea",
+  pathMasterYear: "master/years",
 
   
   // Sale
@@ -37,6 +38,7 @@ export const paths = {
   pathMasterProductDetail: "master/product/detail",
 
   pathMasterPromotionList: "master/promotion",
+  pathMasterPromotionDetail: "master/promotion/detail",
 
   // List
   pathMasterSale: "sale-management/list",
@@ -73,10 +75,12 @@ export const paths = {
   pathWorkPlanStep1: "work-plan/workplan_step1",
   pathWorkPlanStep2: "work-plan/workplan_step2",
 
+
   //Activaty
   pathActivatyList: "/activity/list",
   pathActivatyCreate: "/activity/create",
 
   // Orders
   pathGetOrderList: "order/list",
+  pathGetOrderCreate: "order/create",
 };

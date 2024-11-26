@@ -4,7 +4,7 @@ import FormCustom from "../../components/form_custom/FormCustom";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../components/button/ActionButton";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
-import { Input, Select } from "antd";
+import { Form, Input, Select } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import TableComponent from "../../components/table/TableComponent";
 import DynamicModal from "../../components/modal/DynamicModal";
@@ -16,33 +16,17 @@ export default function CreateOrder() {
   const [loading, setLoading] = useState(false);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [dataSourceOther, setDataSourceOther] = useState([]);
   const [dataSale, setDataSale] = useState([]);
   const [dataDealer, setDataDealer] = useState([]);
-  const [dataSourceOther, setDataSourceOther] = useState([]);
   const [searchProductData, setSearchProductData] = useState([]);
   const [getOtherProductData, setGetOtherProductData] = useState([]);
+  const [inputRemark, setInputRemark] = useState("");
 
-  // const [participants, setParticipants] = useState([
-  //   { key: '1', no: 1, name: 'Kornkan Induang', position: 'Sales Executive', department: 'Sales Team', territory: 'Left North', permission: 'Individual and BD/Assist' },
-  //   { key: '2', no: 2, name: 'Phaisan Jethuen', position: 'Sales Executive', department: 'Sales Team', territory: 'Left Lower North', permission: 'Individual and BD/Assist' },
-  //   { key: '3', no: 3, name: 'Manupong Wongpuang', position: 'Sales Executive', department: 'Sales Team', territory: 'Lower North', permission: 'Individual and BD/Assist' },
-  //   { key: '4', no: 4, name: 'Kriangkrai Kraikaew', position: 'Sales Executive', department: 'Sales Team', territory: 'Central Left North', permission: 'Individual and BD/Assist' },
-  //   { key: '5', no: 5, name: 'Charoenpong Khunawatcharakun', position: 'Sales Executive', department: 'Sales Team', territory: 'Central Right North', permission: 'Individual and BD/Assist' },
-  // ]);
-
-  // const productData = [
-  //     { key: `product-1`, no: 1, name: "Cooler Box M11 - กระติกน้ำ คลาสสิค", unit: "ใบ", value: 200 },
-  //     { key: `product-2`, no: 2, name: "Adama Bag (กระเป๋าผ้าสปันบอนด์)", unit: "ใบ", value: 200 },
-  //     { key: `product-3`, no: 3, name: "เสื้อเชิ๊ตแขนยาว - นาโลริด", unit: "ตัว", value: 200 },
-  //     { key: `product-4`, no: 4, name: "เสื้อเชิ๊ตยีนส์แขนยาว - อดามา", unit: "ตัว", value: 200 },
-  //     { key: `product-5`, no: 5, name: "เสื้อยืดคอกลมแขนยาว - เมโนริ", unit: "ตัว", value: 200 },
-  //     { key: `product-6`, no: 6, name: "เสื้อยืดคอกลมแขนยาว - โรบอน โกลด์ (สีเทา)", unit: "ตัว", value: 200 },
-  //     { key: `product-7`, no: 7, name: "แก้วน้ำใส อดามา", unit: "ใบ", value: 200 },
-  //     { key: `product-8`, no: 8, name: "หมวกกันกีดลายอาหาร - พัลโก้ร่า", unit: "ใบ", value: 200 },
-  // ];
-  // const getOtherProductData = [];
+  const [formCustom] = Form.useForm();
 
   useEffect(() => {
+    // Get Master
     const getMaster = async () => {
       setLoading(true);
       try {
@@ -63,6 +47,7 @@ export default function CreateOrder() {
     getMaster();
   }, []);
 
+  // Open Modal
   const handleOpenTeamModal = () => {
     // Set Empty
     setGetOtherProductData([]);
@@ -103,40 +88,63 @@ export default function CreateOrder() {
     setIsTeamModalVisible(true);
   };
 
+  // Close Modal
   const handleCloseTeamModal = () => {
+    // Set Empty
+    setGetOtherProductData([]);
+
     setIsTeamModalVisible(false);
   };
 
   const handleAddSelectedRows = (selectedRows) => {
-    // setGetOtherProductData((prev) => {
-    //   // Filter out any selected rows that already exist in participants based on their key
-    //   const newRows = selectedRows.filter(
-    //     (row) => !prev.some((participant) => participant.key === row.key)
-    //   );
+    setGetOtherProductData((prev) => {
+      const newRows = selectedRows.filter(
+        (row) => !prev.some((getOtherProductData) => getOtherProductData.key === row.key)
+      );
       
-    //   return [...prev, ...newRows];
-    // });
+      return [...prev, ...newRows];
+    });
     
     selectedRows.map((data, index) => {
-      console.log(data.key);
-    })
+      // State for Other table data
+      const loadOtherProductDetail = async () => {
+        setLoading(true);
+        try {
+          const [otherProduct] = await Promise.all([
+            useServiceAPI.get(paths.pathMasterPromotionDetail, {
+              promotion_id: data.key,
+            }),
+          ]);
+
+          // อัปเดต state
+          setDataSourceOther((prev) => [
+            ...prev,
+            {
+              key: prev.length + 1, // สร้าง key ใหม่
+              no: prev.length + 1, // สร้างเลขลำดับใหม่
+              productName: otherProduct.data.name,
+              unit: 1,
+              unitPrice: otherProduct.data.value,
+              quantity: 1,
+              value: otherProduct.data.value,
+            },
+          ]);
+          
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        } finally {
+          setLoading(false);
+        }
+      };
+      // Get Data
+      loadOtherProductDetail();
+    });
+
   };
 
   const removeParticipant = (key) => {
     setGetOtherProductData(getOtherProductData.filter(item => item.key !== key));
   };
-
-  // State for Other table data
-  // const [dataSourceOther, setDataSourceOther] = useState([
-  //   { 
-  //     key: "1", 
-  //     no: "1", 
-  //     productName: "เสื้อเชิ๊ตยีนส์แขนยาว - อดามา", 
-  //     unit: 1, 
-  //     quantity: 1, 
-  //     value: '10000' 
-  //   }
-  // ]);
 
   const formFields = [
     { 
@@ -147,7 +155,7 @@ export default function CreateOrder() {
       disabled: false, 
       required: false, 
       moderef: true,
-      value: "Select",
+      value: "",
     },
     { 
       label: "Dealer", 
@@ -157,7 +165,7 @@ export default function CreateOrder() {
       disabled: false, 
       required: false, 
       moderef: false,
-      value: "Select" 
+      value: "" 
     },
     { 
       label: "Order No", 
@@ -166,13 +174,13 @@ export default function CreateOrder() {
       disabled: true, 
       required: false, 
       moderef: false,
-      value: "Generate Auto" 
+      value: "" 
     },
     { 
       label: "Date", 
       name: "order_date", 
       type: "date", 
-      disabled: true, 
+      disabled: false, 
       required: false, 
       moderef: false,
       value: "" 
@@ -183,14 +191,14 @@ export default function CreateOrder() {
     console.log("Search term:", e.target.value);
   };
 
-  const handleChange = (filter) => {
-    if (filter) {
+  const handleChange = (filter, value) => {
+    if (filter == 'sale') {
       const getMasterDealer = async () => {
         setLoading(true);
         try {
           const [dealer] = await Promise.all([
             useServiceAPI.get(paths.pathMasterDealerDropdown, {
-              user_id: filter,
+              user_id: value,
             }),
           ]);
 
@@ -211,8 +219,8 @@ export default function CreateOrder() {
       prevData.map((item) => {
         if (item.key === key) {
           const quantity = Math.max(0, newQuantity); // Prevent negative quantities
-          const subTotal = (quantity * parseFloat(item.pricePerUnit.replace(/,/g, ""))).toFixed(2); // Calculate new subTotal
-          return { ...item, quantity, subTotal };
+          const net_amount = (quantity * parseFloat(item.product_unit_thb.replace(/,/g, ""))).toFixed(2); // Calculate new net_amount
+          return { ...item, quantity, net_amount };
         }
         return item;
       })
@@ -224,7 +232,7 @@ export default function CreateOrder() {
       prevData.map((item) => {
         if (item.key === key) {
           const quantity = Math.max(1, newQuantity); // Prevent quantity less than 1
-          const value = (quantity * 10000).toLocaleString("en-US", { minimumFractionDigits: 2 }); // Calculate new value
+          const value = (quantity * parseFloat(item.unitPrice.replace(/,/g, ""))).toFixed(2); // Calculate new value
           return { ...item, quantity, value };
         }
         return item;
@@ -232,17 +240,17 @@ export default function CreateOrder() {
     );
   };
 
-  const handleAddOtherRow = () => {
-    const newRow = {
-      key: (dataSourceOther.length + 1).toString(),
-      no: (dataSourceOther.length + 1).toString(),
-      productName: "",
-      unit: "",
-      quantity: 1,
-      value: '10000',
-    };
-    setDataSourceOther([...dataSourceOther, newRow]);
-  };
+  // const handleAddOtherRow = () => {
+  //   const newRow = {
+  //     key: (dataSourceOther.length + 1).toString(),
+  //     no: (dataSourceOther.length + 1).toString(),
+  //     productName: "",
+  //     unit: "",
+  //     quantity: 1,
+  //     value: '10000',
+  //   };
+  //   setDataSourceOther([...dataSourceOther, newRow]);
+  // };
 
   const handleDeleteOtherRow = (key) => {
     setDataSourceOther(dataSourceOther.filter(item => item.key !== key));
@@ -292,8 +300,8 @@ export default function CreateOrder() {
     { title: "FOC (ctn)", dataIndex: "foc", key: "foc" },
     {
       title: "Sub Total (THB)",
-      dataIndex: "subTotal",
-      key: "subTotal",
+      dataIndex: "net_amount",
+      key: "net_amount",
       render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 }),
     },
     {
@@ -369,7 +377,7 @@ export default function CreateOrder() {
   const footerOrderList = () => {
     const totalQuantity = dataSource.reduce((total, item) => total + item.quantity, 0);
     const totalFOC = dataSource.reduce((total, item) => total + item.foc, 0);
-    const totalAmount = dataSource.reduce((total, item) => total + parseFloat(item.subTotal || 0), 0);
+    const totalAmount = dataSource.reduce((total, item) => total + parseFloat(item.net_amount || 0), 0);
 
     return (
       <tr className="bg-[#978B87]">
@@ -408,13 +416,16 @@ export default function CreateOrder() {
         const newProductDataDetail = {
           key: dataSource.length + 1,
           no: dataSource.length + 1,
-          sku: data.product_code,
-          productName: data.product_name,
-          unit: data.packing_list,
-          pricePerUnit: data.bath_unit,
+          product_id: data.id,
+          product_code: data.product_code,
+          product_name: data.product_name,
+          product_unit: data.packing_list,
+          product_unit_thb: data.bath_unit,
+          product_campaign_order_min_foc: data.product_campaign_order_min_foc,
+          product_campaign_foc: data.product_campaign_foc,
           quantity: 0,
           foc: data.product_campaign_foc,
-          subTotal: 0.00,
+          net_amount: 0.00,
         };
 
         setDataSource([...dataSource, newProductDataDetail]);
@@ -460,11 +471,41 @@ export default function CreateOrder() {
     }
   };
 
+  const handleSave = () => {
+    formCustom
+      .validateFields()
+      .then((values) => {
+        console.log(values);
+        const body = {
+          document_date: "2024-11-22",
+          user_id: values.sale,
+          dealer_id: values.dealer,
+          remark: inputRemark,
+          products: dataSource,
+          others: dataSourceOther
+        };
+        console.log(body);
+        
+        return;
+        // useServiceAPI
+        //   .post(paths.pathGetOrderCreate, values, setLoading)
+        //   .then((response) => {
+        //     // navigate("/activity/list");
+        //   })
+        //   .catch((error) => {
+        //     console.log(error);
+        //   });
+      })
+      .catch((errorInfo) => {
+        console.error("Validation Failed:", errorInfo);
+      });
+  };
+
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Create Order</div>
 
-      <FormCustom fields={formFields} onChange={handleChange} />
+      <FormCustom fields={formFields} form={formCustom} onChange={handleChange} />
 
       <BoxPrimary title="Product">
         <div className="mb-3 flex justify-end">
@@ -507,13 +548,17 @@ export default function CreateOrder() {
 
       <BoxPrimary title='Remark'>
         <div className="mb-3 flex justify-end">
-          <Input.TextArea placeholder="Remark" rows={2} />
+          <Input.TextArea placeholder="Remark" rows={2} onChange={(e) => setInputRemark(e.target.value)} />
         </div>
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/order/list")} />
-        <ActionButton mode="save" text="Confirm" onClick={() => navigate("/order/view")} />
+        {/* <ActionButton mode="back" text="Back" onClick={() => navigate("/order/list")} /> */}
+        {/* <ActionButton mode="save" text="Confirm" onClick={() => navigate("/order/view")} /> */}
+        
+        {/* <ActionButton mode="back" text="Back" onClick={() => navigate("/order/list")} /> */}
+        <ActionButton mode="save" text="Confirm" onClick={handleSave} />
+        
       </div>
 
 

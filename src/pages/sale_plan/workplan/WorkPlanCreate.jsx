@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
-import DynamicButton from "../../../components/button/DynamicButton";
 import { Input, InputNumber, Table } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
@@ -26,6 +25,9 @@ export default function WorkPlanCreate() {
     );
     setTotalValue(total);
   }, []);
+  useEffect(() => {
+    console.log(permission);
+  }, [permission]);
 
   const handleQtyChange = (value, key) => {
     let total = 0; // Initialize as a number
@@ -68,6 +70,7 @@ export default function WorkPlanCreate() {
             `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
           onChange={(value) => handleQtyChange(value, record.key)}
+          disabled={!permission.edit}
         />
       ),
     },
@@ -142,8 +145,6 @@ export default function WorkPlanCreate() {
           console.log(response.data);
 
           if (mode == "draft") {
-            // navigate("/sale-plan/work-plan/create-2");
-
             showNotification(
               "success",
               response.data.message,
@@ -169,9 +170,9 @@ export default function WorkPlanCreate() {
       .catch((error) => {
         console.log(error);
         if (error.status == 422) {
-          showMsg("error", error.message);
+          showNotification("error", error.message);
         } else {
-          showMsg("error", "เกิดข้อผิดพลาด");
+          showNotification("error", "เกิดข้อผิดพลาด");
         }
       });
   };
@@ -239,7 +240,13 @@ export default function WorkPlanCreate() {
               text="Next"
               mode="save"
               className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
-              onClick={() => navigate("/sale-plan/work-plan/create-2")}
+              onClick={() =>
+                navigate("/sale-plan/work-plan/create-2", {
+                  state: {
+                    year_code: location?.state?.year_code,
+                  },
+                })
+              }
             />
           )}
         </div>

@@ -38,11 +38,21 @@ const Navbar = () => {
         },
         {
           key: "2",
+          label: "Work Plan (Area)",
+          path: "sale-plan/work-plan/sale-area",
+        },
+        {
+          key: "3",
+          label: "Work Plan (Sale)",
+          path: "sale-plan/work-plan/sale",
+        },
+        {
+          key: "4",
           label: "Rolling Forecast",
           path: "sale-plan/rolling-forecast",
         },
         {
-          key: "3",
+          key: "5",
           label: "Quarter",
           path: "sale-plan/quarter",
         },

@@ -13,6 +13,8 @@ import { paths } from "../../../services/CorsPath";
 export default function WorkPlan() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState([]);
+  const [years, setYears] = useState([]);
   const [dataSource, setDataSource] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [tableParams, setTableParams] = useState({
@@ -25,6 +27,32 @@ export default function WorkPlan() {
     sortField: null,
   });
 
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [years, status] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterYear),
+          useServiceAPI.get(paths.pathMasterStatus, { status_type: 'work_plan' }),
+        ]);
+
+        console.log(years,status);
+
+        setYears(years.data);
+        setStatus(status.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, []);
+  useEffect(() => {
+    console.log(years, status);
+  }, [status, years]);
+
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -32,7 +60,8 @@ export default function WorkPlan() {
 
     const requestData = {
       keyword: filters.keyword || "",
-
+      year_code: filters.year_code || "",
+      status_code: filters.status_code || "",
       page_length: current,
       page_size: pageSize,
     };
@@ -130,21 +159,13 @@ export default function WorkPlan() {
       key: "year",
       type: "select",
       label: "Year",
-      options: [
-        { value: 2021, label: "2021" },
-        { value: 2022, label: "2022" },
-        { value: 2023, label: "2023" },
-      ],
+      options: years,
     },
     {
       key: "status",
       type: "select",
       label: "Status",
-      options: [
-        { value: "Active", label: "Active" },
-        { value: "Inactive", label: "Inactive" },
-        { value: "Pending", label: "Pending" },
-      ],
+      options: status,
     },
   ];
 
