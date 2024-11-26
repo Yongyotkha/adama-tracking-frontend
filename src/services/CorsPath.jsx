@@ -30,6 +30,11 @@ export const paths = {
   pathSaleManagementDetail: "sale-management/sale-team/detail",
   pathSaleManagementCreate: "sale-management/sale-team/items/create",
   pathSaleManagementDeleteSubItem: "sale-management/sale-team/items/delete",
+  pathMasterTime: "master/time",
+  pathMasterProducts: "master/product",
+  pathMasterProductDetail: "master/product/detail",
+
+  pathMasterPromotionList: "master/promotion",
 
   // List
   pathMasterSale: "sale-management/list",
@@ -41,11 +46,9 @@ export const paths = {
   pathMasterDealerDropdown: "master/dealer",
 
   // List
-  // ! Issue: พี่ทำการเปลี่ยน Path ให้อ้างอิงนะ
   pathSaleManagementList: "sale-management/list",
   pathProductManagementList: "products-management/list",
   pathPromotionManagementList: "promotion-management/list",
-
 
   // user
   pathRegister: "register",
@@ -65,10 +68,12 @@ export const paths = {
 
   //sale plan
   pathGetWorkPlanList: "work-plan/list",
-  pathGetWorkPlanStep1: "work-plan/workplan_step1",
+  pathWorkPlanStep1: "work-plan/workplan_step1",
+  pathWorkPlanStep2: "work-plan/workplan_step2",
 
   //Activaty
   pathActivatyList: "/activity/list",
+  pathActivatyCreate: "/activity/create",
 
   // Orders
   pathGetOrderList: "order/list",

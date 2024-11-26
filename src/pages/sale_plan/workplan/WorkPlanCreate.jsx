@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
@@ -8,16 +8,22 @@ import { useLocation, useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function WorkPlanCreate() {
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [permission, setPermission] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
+  const { showMsg, showNotification } = useContext(AuthContext);
 
   useEffect(() => {
-    const total = dataSource.reduce((acc, item) => acc + parseFloat(item.value), 0);
+    const total = dataSource.reduce(
+      (acc, item) => acc + parseFloat(item.value),
+      0
+    );
     setTotalValue(total);
   }, []);
 
@@ -25,26 +31,27 @@ export default function WorkPlanCreate() {
     let total = 0; // Initialize as a number
     const newData = dataSource.map((item) => {
       if (item.key === key) {
-        const newValue = value * item.unitPrice;
-        total += newValue; // Add the updated value to total
+        const newValue =
+          parseFloat(value) * parseFloat(item.unit_convert_value);
+        total += parseFloat(newValue); // Add the updated value to total
         return { ...item, qty: value, value: parseFloat(newValue.toFixed(2)) };
       }
       total += parseFloat(item.value);
       return item;
     });
-    setTotalValue(total);
+    setTotalValue(total.toFixed(2));
     setDataSource(newData);
   };
 
   const header = [
     {
       title: "Product Name",
-      dataIndex: "productName",
+      dataIndex: "product_name",
       key: "productName",
     },
     {
       title: "Pack Size",
-      dataIndex: "packSize",
+      dataIndex: "pack_size",
       key: "packSize",
     },
     {
@@ -84,8 +91,8 @@ export default function WorkPlanCreate() {
   useEffect(() => {
     useServiceAPI
       .get(
-        paths.pathGetWorkPlanStep1,
-        { year_code: location.state.year_code },
+        paths.pathWorkPlanStep1,
+        { year_code: location?.state?.year_code },
         setLoading
       )
       .then((response) => {
@@ -93,13 +100,70 @@ export default function WorkPlanCreate() {
           console.log(response.data.data_items);
           const newData = response.data.data_items.map((item) => ({
             key: item.product_id,
-            productName: item.product_name,
-            packSize: item.pack_size,
+            product_id: item.product_id,
+            product_code: item.product_code,
+            product_name: item.product_name,
+            pack_size: item.pack_size,
+            unit_convert_value: item.unit_convert_value,
             qty: item.qty,
-            unitPrice: item.unit_convert_value,
             value: item.value,
           }));
           setDataSource(newData);
+          setTotalValue(response.data.data_overall_target);
+          setPermission(response.data.permission);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        if (error.status == 422) {
+          showNotification("error", error.message);
+        } else {
+          showNotification("error", "เกิดข้อผิดพลาด");
+        }
+      });
+  }, []);
+
+  const handleSave = (mode) => {
+    console.log(dataSource, totalValue, mode);
+
+    useServiceAPI
+      .post(
+        paths.pathWorkPlanStep1,
+        {
+          year_code: location?.state?.year_code,
+          action_code: mode,
+          data_overall_target: totalValue,
+          data_items: dataSource,
+        },
+        setLoading
+      )
+      .then((response) => {
+        if (response.status == 200) {
+          console.log(response.data);
+
+          if (mode == "draft") {
+            // navigate("/sale-plan/work-plan/create-2");
+
+            showNotification(
+              "success",
+              response.data.message,
+              response.data.message_line
+            ).then(() => {
+              navigate("/sale-plan/work-plan");
+            });
+          } else if (mode == "save_and_next") {
+            showNotification(
+              "success",
+              response.data.message,
+              response.data.message_line
+            ).then(() => {
+              navigate("/sale-plan/work-plan/create-2", {
+                state: {
+                  year_code: location?.state?.year_code,
+                },
+              });
+            });
+          }
         }
       })
       .catch((error) => {
@@ -110,10 +174,6 @@ export default function WorkPlanCreate() {
           showMsg("error", "เกิดข้อผิดพลาด");
         }
       });
-  }, []);
-
-  const handleSave = () => {
-    console.log(dataSource);
   };
 
   return (
@@ -158,12 +218,30 @@ export default function WorkPlanCreate() {
               navigate("/sale-plan/work-plan");
             }}
           />
-          <ActionButton
-            text="Save and Next"
-            mode="save"
-            className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
-            onClick={handleSave}
-          />
+          {permission.btn_draft && (
+            <ActionButton
+              text="Save Draft"
+              mode="saveDraft"
+              onClick={() => handleSave("draft")}
+            />
+          )}
+          {permission.btn_draft && (
+            <ActionButton
+              text="Save and Next"
+              mode="save"
+              className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
+              onClick={() => handleSave("save_and_next")}
+            />
+          )}
+
+          {permission.btn_next && (
+            <ActionButton
+              text="Next"
+              mode="save"
+              className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
+              onClick={() => navigate("/sale-plan/work-plan/create-2")}
+            />
+          )}
         </div>
       </MainLayout>
     </>

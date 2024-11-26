@@ -17,6 +17,7 @@ export default function OrderList() {
   const [dataSource, setDataSource] = useState([]);
   const [dataSale, setDataSale] = useState([]);
   const [dataDealer, setDataDealer] = useState([]);
+  const [dataStatus, setDataStatus] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const [tableParams, setTableParams] = useState({
     pagination: {
@@ -32,13 +33,17 @@ export default function OrderList() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [sale] = await Promise.all([
+        const [sale, status] = await Promise.all([
           useServiceAPI.get(paths.pathMasterSaleDropdown, {
-            status: "all"
+            status: "all",
+          }),
+          useServiceAPI.get(paths.pathMasterStatus, {
+            status_type: "order",
           }),
         ]);
 
         setDataSale(sale.data);
+        setDataStatus(status.data);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -47,7 +52,7 @@ export default function OrderList() {
     };
 
     getMaster();
-  }, [])
+  }, []);
 
   const filters = [
     {
@@ -64,23 +69,22 @@ export default function OrderList() {
       label: "Dealer",
       placeholder: "All",
       options: dataDealer,
+      moderef: false,
     },
     {
       key: "order_no",
       type: "text",
       label: "Order No",
       placeholder: "Order No",
+      moderef: false,
     },
     {
       key: "status",
-      type: 'select',
+      type: "select",
       label: "Status",
       placeholder: "All",
-      options: [
-        { value: 'Active', label: 'Active' },
-        { value: 'Inactive', label: 'Inactive' },
-        { value: 'Pending', label: 'Pending' },
-      ],
+      options: dataStatus,
+      moderef: false,
     },
   ];
 
@@ -90,8 +94,18 @@ export default function OrderList() {
     { title: "Sale", width: 200, dataIndex: "sale", align: "left" },
     { title: "Dealer", width: 200, dataIndex: "dealer", align: "left" },
     { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
-    { title: "Order Date", width: 150, dataIndex: "orderDate", align: "center" },
-    { title: "Pay Overdue", width: 150, dataIndex: "payOverdue", align: "center" },
+    {
+      title: "Order Date",
+      width: 150,
+      dataIndex: "orderDate",
+      align: "center",
+    },
+    {
+      title: "Pay Overdue",
+      width: 150,
+      dataIndex: "payOverdue",
+      align: "center",
+    },
     { title: "Status", width: 150, dataIndex: "status", align: "center" },
     { title: "Create By", width: 150, dataIndex: "createdBy", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
@@ -104,7 +118,15 @@ export default function OrderList() {
   const actionItemsPending = [
     { key: "1", label: <ItemDropDown mode="edit" link="/order/edit" /> },
     { key: "2", label: <ItemDropDown mode="view" link="/order/detail" /> },
-    { key: "3", label: <ItemDropDown mode="delete" onClick={() => console.log("Delete clicked")} /> },
+    {
+      key: "3",
+      label: (
+        <ItemDropDown
+          mode="delete"
+          onClick={() => console.log("Delete clicked")}
+        />
+      ),
+    },
   ];
 
   ////////////////////////////////////////////// table ///////////////////////////////////////////////
@@ -117,9 +139,10 @@ export default function OrderList() {
 
     const requestData = {
       // keyword: filters.keyword || "",
-      // user_id: filters.user_id || "",
-      // contact_number: filters.contact_number || "",
-      // position_id: filters.position || "",
+      user_id: filters.sale || "",
+      dealer_id: filters.dealer || "",
+      keyword: filters.order_no || "",
+      trasaction_status_code: filters.status || "",
       page: "all",
       use_flag: filters.use_flag || "",
       orderby_column: sortField,
@@ -136,7 +159,7 @@ export default function OrderList() {
 
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
-        
+
         const newDataSource = data.map((order, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           orderNo: order.document_number,
@@ -144,13 +167,29 @@ export default function OrderList() {
           dealer: order.dealer_name,
           value: order.net_amount_display,
           orderDate: order.document_date,
-          payOverdue: <BadgeStatus text="Paid" bgColor="#009845" textColor="#FFFFFF" />,
-          status: <BadgeStatus text="Completed" bgColor="#009845" textColor="#FFFFFF" />,
+          payOverdue: (
+            <BadgeStatus
+              text={order.status_payment_name}
+              bgColor={order.status_payment_bg_color}
+              textColor={order.status_payment_color}
+            />
+          ),
+          status: (
+            <BadgeStatus
+              text={order.status_transaction_name}
+              bgColor={order.status_transaction_bg_color}
+              textColor={order.status_transaction_color}
+            />
+          ),
           createdBy: order.updated_by,
           action: (
             <Dropdown menu={{ items: actionItems }} placement="bottom">
               <a onClick={(e) => e.preventDefault()}>
-                <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+                <img
+                  src="/img/icons/action.png"
+                  alt="Actions icon"
+                  className="inline-block w-5 h-5"
+                />
               </a>
             </Dropdown>
           ),
@@ -181,7 +220,7 @@ export default function OrderList() {
     JSON.stringify(tableParams.filters),
   ]);
 
-  const handleSearch = (filter) => {
+  const handleSearch = (filters) => {
     setTableParams({
       ...tableParams,
       filters,
@@ -196,16 +235,16 @@ export default function OrderList() {
   };
 
   const handleChange = (filter) => {
-    if (filter) {
+    if (filter.sale) {
       const getMasterDealer = async () => {
         setLoading(true);
         try {
           const [dealer] = await Promise.all([
             useServiceAPI.get(paths.pathMasterDealerDropdown, {
-              user_id: filter
+              user_id: filter,
             }),
           ]);
-  
+
           setDataDealer(dealer.data);
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -213,7 +252,7 @@ export default function OrderList() {
           setLoading(false);
         }
       };
-  
+
       getMasterDealer();
     } else {
       handleClear();
@@ -222,10 +261,13 @@ export default function OrderList() {
 
   return (
     <MainLayout loading={loading}>
-
       <div className="flex items-center justify-between">
         <div className="title-page">Order List</div>
-        <ActionButton mode="create" text="Create" onClick={(e) => navigate("/order/create")} />
+        <ActionButton
+          mode="create"
+          text="Create"
+          onClick={(e) => navigate("/order/create")}
+        />
       </div>
 
       <FilterByOrder
@@ -238,7 +280,6 @@ export default function OrderList() {
       <BoxPrimary>
         <TableComponent header={header} dataSource={dataSource} />
       </BoxPrimary>
-
     </MainLayout>
   );
 }
