@@ -113,10 +113,9 @@ export default function EditPromotion() {
     form
       .validateFields()
       .then((values) => {
-        // Add the ID to the form values
         const dataToSend = {
           ...values,
-          id: location.state.id, // Add the id from location.state
+          id: location.state.id, 
         };
   
         useServiceAPI

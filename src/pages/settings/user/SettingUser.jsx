@@ -88,7 +88,17 @@ export default function SettingUser() {
                 items: user.action.map((actionItem, actionIndex) => ({
                   key: actionIndex,
                   label: (
-                    <ItemDropDown mode={actionItem.action.toLowerCase()} />
+                    <ItemDropDown mode={actionItem.action.toLowerCase()} 
+                    onClick={() => {
+                      navigate("/setting/user/edit", {
+                        state: {
+                          id: user.id,
+                        },
+                      });
+                    }}
+                    
+                    
+                    />
                   ),
                 })),
               }}
@@ -144,8 +154,6 @@ export default function SettingUser() {
   ]);
 
   const handleTableChange = (pagination, filters, sorter) => {
-    console.log(pagination)
-
     setTableParams({
       pagination,
       filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
