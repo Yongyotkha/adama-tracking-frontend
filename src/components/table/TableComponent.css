@@ -14,6 +14,8 @@
   > tr
   > td {
   border-bottom: none !important; /* Override the border-bottom */
+
+
 }
 
 :where(.css-dev-only-do-not-override-1hft8ot).ant-table-wrapper
@@ -21,5 +23,18 @@
   > tr
   > td {
   background-color: #978b87 !important;
-  color:white;
+  color: white;
+}
+
+:where(.css-dev-only-do-not-override-1rmgrdf).ant-table-wrapper
+  .ant-table-summary
+  > tr
+  > th,
+:where(.css-dev-only-do-not-override-1rmgrdf).ant-table-wrapper
+  .ant-table-summary
+  > tr
+  > td {
+  border-bottom: 1px solid #f0f0f0;
+  background-color: #978b87 !important;
+
 }
