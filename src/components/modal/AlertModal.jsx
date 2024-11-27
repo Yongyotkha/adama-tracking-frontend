@@ -20,6 +20,7 @@ const AlertModal = forwardRef(
         okButtonProps: okButtonProps,
         onOk: onOk || (() => console.log('OK')),
         onCancel: onCancel || (() => console.log('Cancel')),
+        centered: true,
       });
     };
 
