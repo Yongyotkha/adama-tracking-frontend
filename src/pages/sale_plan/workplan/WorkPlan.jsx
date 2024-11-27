@@ -6,13 +6,14 @@ import TableComponent from "../../../components/table/TableComponent";
 import { Dropdown } from "antd";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function WorkPlan() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState([]);
   const [years, setYears] = useState([]);
@@ -35,12 +36,13 @@ export default function WorkPlan() {
       try {
         const [years, status] = await Promise.all([
           useServiceAPI.get(paths.pathMasterYear),
-          useServiceAPI.get(paths.pathMasterStatus, { status_type: 'work_plan' }),
+          useServiceAPI.get(paths.pathMasterStatus, {
+            status_type: "work_plan",
+          }),
         ]);
 
         setYears(years.data);
         setStatus(status.data);
-    
       } catch (error) {
         showNotification("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -51,13 +53,12 @@ export default function WorkPlan() {
     getMaster();
   }, []);
 
-
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
 
-    console.log(filters,'filters');
+    console.log(filters, "filters");
 
     const requestData = {
       keyword: filters.keyword || "",
@@ -68,36 +69,54 @@ export default function WorkPlan() {
     };
 
     try {
-      const response = await useServiceAPI.get(
-        paths.pathGetWorkPlanList,
-        requestData
-      );
+      let path = paths.pathGetWorkPlanList;
+      let pathRole = "";
+      if (location.pathname == "/sale-plan/work-plan") {
+        path = paths.pathGetWorkPlanList;
+        pathRole = "head";
+      } else if (location.pathname == "/sale-plan/work-plan-area") {
+        path = paths.pathGetWorkPlanAreaList;
+        pathRole = "area";
+      } else if (location.pathname == "/sale-plan/work-plan-sale") {
+        path = paths.pathGetWorkPlanSaleList;
+        pathRole = "sale";
+      }
+
+      const response = await useServiceAPI.get(path, requestData);
 
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
 
         const newDataSource = data.map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-          workPlan: row.overall_target,
+          workPlan: pathRole == "area" ? row.amount_target : row.overall_target,
+          // workPlan: pathRole,
           year: row.year_name,
           action: (
             <Dropdown
               menu={{
-                items: row.action.map((actionItem, actionIndex) => ({
-                  key: actionIndex,
-                  label: (
-                    <ItemDropDown
-                      mode={actionItem.action.toLowerCase()}
-                      onClick={() =>
-                        navigate(actionItem.action_url, {
-                          state: {
-                            year_code: row.year_code,
-                          },
-                        })
-                      }
-                    />
-                  ),
-                })),
+                items: row.action.map((actionItem, actionIndex) => {
+                  // กำหนดค่า state ตาม pathRole
+                  const state = {
+                    year_code: row.year_code,
+                    ...(pathRole === "area" && {
+                      sale_area_id: row.sale_area_id,
+                    }),
+                    ...(pathRole === "sale" && { user_id: row.user_id }),
+                  };
+
+                  return {
+                    key: actionIndex,
+                    label: (
+                      <ItemDropDown
+                        mode={actionItem.action.toLowerCase()}
+                        onClick={() =>
+                          navigate(actionItem.action_url, { state })
+                        }
+                      />
+                    ),
+                  };
+                }),
               }}
               placement="bottom"
             >
@@ -110,6 +129,7 @@ export default function WorkPlan() {
               </a>
             </Dropdown>
           ),
+
           status: (
             <BadgeStatus
               text={row.status_name}
@@ -144,6 +164,7 @@ export default function WorkPlan() {
     tableParams.sortOrder,
     tableParams.sortField,
     JSON.stringify(tableParams.filters),
+    location.pathname,
   ]);
 
   const handleTableChange = (pagination, filters, sorter) => {

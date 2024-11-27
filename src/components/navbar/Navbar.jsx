@@ -39,12 +39,12 @@ const Navbar = () => {
         {
           key: "2",
           label: "Work Plan (Area)",
-          path: "sale-plan/work-plan/sale-area",
+          path: "sale-plan/work-plan-area",
         },
         {
           key: "3",
           label: "Work Plan (Sale)",
-          path: "sale-plan/work-plan/sale",
+          path: "sale-plan/work-plan-sale",
         },
         {
           key: "4",
@@ -199,7 +199,9 @@ const Navbar = () => {
           label: (
             <span
               className={`${
-                location.pathname.startsWith(`/${item.path}`)
+                // location.pathname.startsWith(`/${item.path}`)
+
+                location.pathname == "/" + item.path
                   ? "pointer-events-none font-bold text-[#009845]"
                   : "text-[#978B87]"
               } py-1`} // add padding, rounded corners, and block display for consistent styling
@@ -380,8 +382,11 @@ const Navbar = () => {
         </Carousel>
       </div>
 
-      <div className="flex items-center w-1/6 justify-end">
-        <span className="text-white hidden md:block">{userInfo?.name}</span>
+      <div className="flex items-center w-1/6 justify-end gap-3">
+        <div className="flex flex-col">
+          <span className="text-white hidden lg:block self-end text-nowrap">{userInfo?.name}</span>
+          <span className="text-white hidden lg:block self-end text-nowrap">{userInfo?.role_name}</span>
+        </div>
 
         <Dropdown
           overlay={<CustomDropdownMenuProfile items={userMenuItems} />}

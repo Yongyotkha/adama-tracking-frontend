@@ -91,6 +91,8 @@ const App = () => {
 
           {/* Sale Plan Route */}
           <Route path="/sale-plan/work-plan" element={<WorkPlan />} />
+          <Route path="/sale-plan/work-plan-area" element={<WorkPlan />} />
+          <Route path="/sale-plan/work-plan-sale" element={<WorkPlan />} />
           <Route path="/sale-plan/work-plan/create" element={<WorkPlanCreate />} />
           <Route path="/sale-plan/work-plan/edit" element={<EditWorkPlan />} />
           <Route path="/sale-plan/work-plan/create-2" element={<WorkPlanCreateStepTwo />} />

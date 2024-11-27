@@ -121,6 +121,11 @@ export const AuthProvider = ({ children }) => {
     // }
   };
 
+  const formatNumber = (number) => {
+    if (isNaN(number) || number == null) return "0.00";
+    return number.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -130,6 +135,7 @@ export const AuthProvider = ({ children }) => {
         logout,
         showMsg,
         showNotification,
+        formatNumber,
       }}
     >
       {contextHolder}
