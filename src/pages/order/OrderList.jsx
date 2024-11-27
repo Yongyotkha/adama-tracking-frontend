@@ -134,7 +134,7 @@ export default function OrderList() {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
-    const sortOrder = tableParams.sortOrder || "asc";
+    const sortOrder = tableParams.sortOrder || "desc";
     const sortField = tableParams.sortField || "document_number";
 
     const requestData = {
