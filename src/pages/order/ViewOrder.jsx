@@ -186,13 +186,6 @@ export default function ViewOrder() {
     </tr>
   );
   
-  // Utility function สำหรับแปลงวันที่
-  const formatDate = (date) => {
-    if (!date || !date.$d) return ""; // ตรวจสอบว่ามี $d หรือไม่
-    const d = new Date(date.$d); // แปลง $d เป็น Date Object
-    return d.toISOString().split("T")[0]; // แปลงเป็น YYYY-MM-DD
-  };
-
   return (
     <MainLayout loading={loading}>
       <div className="title-page">View Order</div>
