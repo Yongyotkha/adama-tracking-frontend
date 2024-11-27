@@ -2,7 +2,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Anuphan:wght@100..700&display=swap");
 * {
     /* font-family: "Athiti", sans-serif; */
-    font-family: "Anuphan", sans-serif !important;
+    /* font-family: "Anuphan", sans-serif !important; */
 }
 .ant-form-item-label > label {
     font-size: 16px;
@@ -99,4 +99,25 @@
     padding: 15px;
     padding-top: 0;
     margin-top: 0;
+}
+
+
+.ant-form-item-explain-error {
+  position: absolute;
+}
+
+.ant-form-item .ant-form-item-label >label.ant-form-item-required:not(.ant-form-item-required-mark-optional)::after {
+  display: inline-block;
+  margin-inline-end: 4px;
+  color: #ff4d4f;
+  font-size: 14px;
+  font-family: SimSun, sans-serif;
+  line-height: 1;
+  content: "*";
+  visibility: unset;
+}
+
+.ant-form-item .ant-form-item-label >label.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
+  visibility: hidden;
+  display: none !important;
 }

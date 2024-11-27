@@ -111,10 +111,6 @@ export default function OrderList() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-  const actionItems = [
-    { key: "1", label: <ItemDropDown mode="view" link="/order/view" /> },
-  ];
-
   const actionItemsPending = [
     { key: "1", label: <ItemDropDown mode="edit" link="/order/edit" /> },
     { key: "2", label: <ItemDropDown mode="view" link="/order/detail" /> },
@@ -182,12 +178,32 @@ export default function OrderList() {
           ),
           createdBy: order.updated_by,
           action: (
-            <Dropdown menu={{ items: actionItems }} placement="bottom">
+            <Dropdown
+              menu={{
+                items: order.action.map((actionItem, actionIndex) => ({
+                  key: actionIndex,
+                  label: (
+                    <ItemDropDown mode={actionItem.action.toLowerCase()} 
+                    onClick={() => {
+                      navigate("/order/view", {
+                        state: {
+                          document_number: order.document_number,
+                        },
+                      });
+                    }}
+                    
+                    
+                    />
+                  ),
+                })),
+              }}
+              placement="bottom"
+            >
               <a onClick={(e) => e.preventDefault()}>
                 <img
                   src="/img/icons/action.png"
-                  alt="Actions icon"
-                  className="inline-block w-5 h-5"
+                  alt="button icon"
+                  className="inline-block w-5 h-5 mr-2"
                 />
               </a>
             </Dropdown>

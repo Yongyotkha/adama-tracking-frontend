@@ -486,20 +486,11 @@ export default function CreateOrder() {
           others: dataSourceOther
         };
         // console.log(body);
-        navigate("/order/view", {
+        navigate("/order/detail", {
           state: {
             data: body
           }
         })
-        // return;
-        // useServiceAPI
-        //   .post(paths.pathGetOrderCreate, values, setLoading)
-        //   .then((response) => {
-        //     // navigate("/activity/list");
-        //   })
-        //   .catch((error) => {
-        //     console.log(error);
-        //   });
       })
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);

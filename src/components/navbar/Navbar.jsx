@@ -5,11 +5,26 @@ import Logo from "../logo/Logo";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
 import {
-  EditOutlined,
-  EyeOutlined,
   LogoutOutlined,
   PlusOutlined,
+  UserOutlined, 
 } from "@ant-design/icons";
+
+const useMediaQuery = (query) => {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+    const listener = () => setMatches(media.matches);
+    media.addEventListener("change", listener);
+    return () => media.removeEventListener("change", listener);
+  }, [matches, query]);
+
+  return matches;
+};
 
 const Navbar = () => {
   const navigate = useNavigate(); // เริ่มต้นการนำทาง
@@ -216,32 +231,35 @@ const Navbar = () => {
     );
   };
 
+  const isMediumScreen = useMediaQuery("(max-width: 1024px)");
+
   const userMenuItems = [
     {
       key: "1",
-      label: "Create",
-      icon: <PlusOutlined style={{ fontSize: "18px" }} />,
-      path: "/setting/user/create", // Adjust this to the actual route you want
+      label: "Profile",
+      icon: <UserOutlined style={{ fontSize: "18px" }} />,
+      path: "/setting/profile",
     },
     {
       key: "2",
-      label: "Edit",
-      icon: <EditOutlined style={{ fontSize: "18px" }} />,
-      path: "/setting/user/edit", // Adjust this to the actual route you want
-    },
-    {
-      key: "3",
-      label: "View",
-      icon: <EyeOutlined style={{ fontSize: "18px" }} />,
-      path: "/setting/user", // Adjust this to the actual route you want
-    },
-    {
-      key: "4",
       label: "Logout",
       icon: <LogoutOutlined style={{ fontSize: "18px" }} />,
-      path: "logout", // Adjust this to the actual route or logout logic
+      path: "logout",
     },
   ];
+
+  // Conditionally add the username item if the screen size is medium or larger
+  if (isMediumScreen) {
+    userMenuItems.unshift({
+      key: "0",
+      label: (
+        <span className="text-[#978B87] font-semibold pointer-event-none">
+          {userInfo?.name || "User Name"}
+        </span>
+      ),
+      path: "", // No navigation
+    });
+  }
 
   const CustomDropdownMenuProfile = ({ items }) => {
     const navigate = useNavigate();
@@ -252,26 +270,30 @@ const Navbar = () => {
         <div
           className="flex items-center gap-[10px] cursor-pointer text-[#978B87]"
           onClick={() => {
-            if (item.path == "logout") {
-              logout();
+            if (item.path === "logout") {
+              logout(); // Call the logout function
             } else {
-              navigate(item.path);
+              navigate(item.path); // Navigate to the item's path
             }
           }}
         >
+          {/* Render the icon dynamically based on whether it's a React component or an image */}
           {item.icon ? (
-            item.icon
-          ) : (
+            // If `icon` is defined (React component)
+            <span className="w-5 h-5">{item.icon}</span>
+          ) : item.src ? (
+            // If `src` is defined (image source)
             <img
               src={item.src}
               alt={`${item.label} Icon`}
-              className="w-5 h-5 mr-2"
+              className="w-5 h-5"
             />
-          )}
+          ) : null}
           <span className="text-[#978B87]">{item.label}</span>
         </div>
       ),
     }));
+
 
     return (
       <Menu
@@ -298,9 +320,9 @@ const Navbar = () => {
     const currentIndex = menuItems.findIndex((item) =>
       item.dropdownMenu
         ? isActivePath(
-            item.path,
-            item.dropdownItems.map((subItem) => subItem.path)
-          )
+          item.path,
+          item.dropdownItems.map((subItem) => subItem.path)
+        )
         : isActivePath(item.path)
     );
     setActiveIndex(currentIndex >= 0 ? currentIndex : 0);
@@ -315,12 +337,14 @@ const Navbar = () => {
     dots: false,
     speed: 500,
     slidesToShow: 6,
-    slidesToScroll: Math.min(menuItems.length),
+    slidesToScroll: 6,
     ref: carouselRef,
     responsive: [
-      { breakpoint: 1200, settings: { slidesToShow: 4 } },
-      { breakpoint: 1024, settings: { slidesToShow: 3 } },
-      { breakpoint: 600, settings: { slidesToShow: 1 } },
+      { breakpoint: 1200, settings: { slidesToShow: 5, slidesToScroll: 5 } },
+      { breakpoint: 1024, settings: { slidesToShow: 4, slidesToScroll: 4 } },
+      { breakpoint: 850, settings: { slidesToShow: 3, slidesToScroll: 3 } },
+      { breakpoint: 675, settings: { slidesToShow: 2, slidesToScroll: 2 } },
+      { breakpoint: 500, settings: { slidesToShow: 1, slidesToScroll: 1 } },
     ],
   };
 
@@ -330,14 +354,14 @@ const Navbar = () => {
         <Logo width="w-[150px]" />
       </div>
 
-      <div className="relative px-5 w-4/6 max-w-3xl">
+      <div className="relative px-[2rem] w-4/6 max-w-3xl">
         <Carousel arrows infinite={false} {...carouselSettings}>
           {menuItems.map((item, index) => {
             const isActive = item.dropdownMenu
               ? isActivePath(
-                  item.path,
-                  item.dropdownItems.map((subItem) => subItem.path)
-                )
+                item.path,
+                item.dropdownItems.map((subItem) => subItem.path)
+              )
               : isActivePath(item.path);
 
             if (item.dropdownMenu) {
@@ -347,9 +371,8 @@ const Navbar = () => {
                   overlay={<CustomDropdownMenu items={item.dropdownItems} />}
                 >
                   <div
-                    className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${
-                      isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
-                    }`}
+                    className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
+                      }`}
                   >
                     <img
                       src={item.icon}
@@ -364,9 +387,8 @@ const Navbar = () => {
               return (
                 <div
                   key={index}
-                  className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${
-                    isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
-                  } cursor-pointer`}
+                  className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
+                    } cursor-pointer`}
                   onClick={() => handleNavigate(item.path, index)}
                 >
                   <img
@@ -394,7 +416,7 @@ const Navbar = () => {
           placement="bottomRight"
         >
           <img
-            src={userInfo?.profile_image}
+            src={userInfo?.profile_image || '/img/icons/dashboard.png'} // Fallback image
             alt="User Avatar"
             className="rounded-full h-10 w-10 mx-2 cursor-pointer"
           />

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import BadgeStatus from "../../components/badge/BadgeStatus";
 import DropdownHover from "../../components/dropdown/DropdownHover";
 import DynamicButton from "../../components/button/DynamicButton";
@@ -7,6 +7,7 @@ import Filter from "../../components/filter/Filter";
 import DynamicModal from "../../components/modal/DynamicModal";
 import { PlusOutlined } from "@ant-design/icons";
 import MainLayout from "../../layouts/MainLayout";
+import AlertModal from "../../components/modal/AlertModal";
 
 const Wiki = () => {
   const [loading, setLoading] = useState(false);
@@ -104,6 +105,22 @@ const Wiki = () => {
     setModalConfig({ ...modalConfig, isVisible: false });
   };
 
+  const alertModalRef = useRef();
+
+  const handleOk = () => {
+    console.log(123);
+  };
+
+  const handleCancel = () => {
+    console.log("Modal canceled");
+  };
+
+  const handleShowAlertModal = () => {
+    if (alertModalRef.current) {
+      alertModalRef.current.showModal();
+    }
+  };
+
   return (
     <MainLayout loading={loading}>
       {/* Filter Component */}
@@ -190,6 +207,23 @@ const Wiki = () => {
         dataSource={modalConfig.dataSource}
         width="500px" // Default 1200px
       />
+      <div>
+        {/* Example Button Action Modal */}
+        <div onClick={handleShowAlertModal}>Show Alert Modal</div>
+
+        {/* AlertModal Component */}
+        <AlertModal
+          ref={alertModalRef}
+          title="Do you want to update?"
+          content="This action will apply updates."
+          okText="OK"
+          cancelText="Cancel"
+          okType="danger"
+          onOk={handleOk}
+          onCancel={handleCancel}
+        />
+      </div>
+
     </MainLayout>
   );
 };
