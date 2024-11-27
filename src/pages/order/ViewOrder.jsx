@@ -1,11 +1,12 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
-import { Input } from "antd";
+import { Form, Input } from "antd";
 import TableComponent from "../../components/table/TableComponent";
 import ActionButton from "../../components/button/ActionButton";
 import { useNavigate, useLocation } from "react-router-dom";
 import FormCustom from "../../components/form_custom/FormCustom";
+import FormUser from "../../components/form_user/FormUser";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -14,29 +15,94 @@ export default function ViewOrder() {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
-  const [getDocumentDate, setGetDocumentDate] = useState(location.state.data.document_date);
-  const [getUserId, setGetUserId] = useState(location.state.data.user_id);
-  const [getDealerId, setGetDealerId] = useState(location.state.data.dealer_id);
-  const [getRemark, setGetRemark] = useState(location.state.data.remark);
   const { showMsg, showNotification } = useContext(AuthContext);
+  const [dataSource, setDataSource] = useState([]);
+  const [dataSourceOther, setDataSourceOther] = useState([]);
+  const [getRemark, setGetRemark] = useState("");
+  const [documentNumber, setDocumentNumber] = useState(location.state.document_number);
+  const [dataOrderDetail, setDataOrderDetail] = useState([]);
+  const [formFields, setFormFields] = useState([]);
 
-  // Set Data
-  const dataSource = location.state.data.products;
-  const dataSourceOther = location.state.data.others;
+  const [formCustom] = Form.useForm();
+
+  // Get Data
+  useEffect(() => {
+    const loadDataOrderDetail = async () => {
+      setLoading(true);
+      try {
+        const [orderDetail] = await Promise.all([
+          useServiceAPI.get(paths.pathGetOrderDetail, {
+            document_number: documentNumber,
+          }),
+        ]);
+
+        setDataOrderDetail(orderDetail.data);
+        setDataSource(orderDetail.data.products);
+        setDataSourceOther(orderDetail.data.others);
+
+        // setFormFields(formFieldData);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDataOrderDetail();
+  }, [])
+  
+  const formFieldData = [
+    {
+      label: "Sale",
+      name: "sale",
+      type: "text",
+      disabled: true,
+      placeholder: dataOrderDetail.user_name,
+      value: dataOrderDetail.user_name,
+    },
+    {
+      label: "Dealer",
+      name: "dealer",
+      type: "text",
+      disabled: true,
+      placeholder: dataOrderDetail.dealer_name,
+      value: dataOrderDetail.dealer_name,
+    },
+    {
+      label: "Order No",
+      name: "order_no",
+      type: "text",
+      disabled: true,
+      placeholder: dataOrderDetail.document_number,
+      value: dataOrderDetail.document_number,
+    },
+    {
+      label: "Date",
+      name: "order_date",
+      type: "date",
+      disabled: true,
+      placeholder: "",
+      value: dataOrderDetail.document_date,
+    },
+  ];
 
   const header = [
-    { title: "No", dataIndex: "no", key: "no", width: 10 },
+    { title: "No", dataIndex: "document_item", key: "document_item", width: 10 },
     { title: "SKU", dataIndex: "product_code", key: "product_code" },
     { title: "Product Name", dataIndex: "product_name", key: "product_name" },
     { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
-    { title: "THB/Unit", dataIndex: "product_unit_thb", key: "product_unit_thb" },
+    {
+      title: "THB/Unit",
+      dataIndex: "product_unit_thb",
+      key: "product_unit_thb",
+    },
     {
       title: <div className="text-center">QTY (ctn)</div>,
       dataIndex: "quantity",
       key: "quantity",
       render: (text) => (
         <div className="text-center">
-          {parseFloat(text || 0).toLocaleString("en-US")}
+          {parseFloat(text || 0).toLocaleString("en-US").replace(/,/g, "")}
         </div>
       ),
     },
@@ -65,7 +131,7 @@ export default function ViewOrder() {
   ];
 
   const headerOther = [
-    { title: "No", dataIndex: "no", key: "no", width: 10 },
+    { title: "No", dataIndex: "document_item", key: "document_item", width: 10 },
     { title: "Name", dataIndex: "product_name", key: "product_name" },
     { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
     { title: "QTY", dataIndex: "quantity", key: "quantity" },
@@ -87,7 +153,7 @@ export default function ViewOrder() {
     <tr className="bg-[#978B87]">
       <td colSpan={8} className="text-right pr-2 text-white">
         Item : {dataSource.length} &nbsp;&nbsp; QTY (ctn):{" "}
-        {dataSource.reduce((total, item) => total + item.quantity, 0)}{" "}
+        {dataSource.reduce((total, item) => total + parseFloat(item.quantity.replace(/,/g, "")), 0)}{" "}
         &nbsp;&nbsp; Total :{" "}
         {dataSource
           .reduce(
@@ -110,99 +176,28 @@ export default function ViewOrder() {
         )}
         &nbsp;&nbsp; Total :{" "}
         {dataSourceOther
-          .reduce((total, item) => total + parseFloat(item.net_amount.replace(/,/g, "")), 0)
+          .reduce(
+            (total, item) =>
+              total + parseFloat(item.net_amount.replace(/,/g, "")),
+            0
+          )
           .toLocaleString("en-US", { minimumFractionDigits: 2 })}
       </td>
     </tr>
   );
-
-  const formFields = [
-    { 
-      label: "Sale", 
-      name: "sale", 
-      type: "text", 
-      disabled: true, 
-      placeholder: "",
-      value: "" 
-    },
-    {
-      label: "Dealer",
-      name: "dealer",
-      type: "text",
-      disabled: true,
-      placeholder: "",
-      value: "",
-    },
-    {
-      label: "Order No",
-      name: "order_no",
-      type: "text",
-      disabled: true,
-      placeholder: "",
-      value: "",
-    },
-    {
-      label: "Date",
-      name: "order_date",
-      type: "date",
-      disabled: true,
-      placeholder: "",
-      value: "",
-    },
-  ];
-
+  
   // Utility function สำหรับแปลงวันที่
   const formatDate = (date) => {
     if (!date || !date.$d) return ""; // ตรวจสอบว่ามี $d หรือไม่
     const d = new Date(date.$d); // แปลง $d เป็น Date Object
     return d.toISOString().split("T")[0]; // แปลงเป็น YYYY-MM-DD
-  };  
-
-  const handleSaveOrder = () => {
-    // แปลงวันที่โดยใช้ฟังก์ชัน formatDate
-    const formattedDate = formatDate(getDocumentDate);
-    const body = {
-      document_date: formattedDate,
-      user_id: getUserId,
-      dealer_id: getDealerId,
-      remark: getRemark,
-      products: dataSource,
-      others: dataSourceOther
-    };
-    console.log(body);
-    
-    const saveOrder = async () => {
-      setLoading(true);
-      try {
-        const [response] = await Promise.all([
-          useServiceAPI.post(paths.pathGetOrderCreate, body),
-        ]);
-
-        showNotification(
-          "success",
-          response.data.message,
-          response.data.message_line
-        ).then(() => {
-          navigate("/order/list");
-        });
-        
-      } catch (error) {
-        // showMsg("error", error.message || "เกิดข้อผิดพลาด");
-        console.log(error);
-        
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    saveOrder();
   };
 
   return (
     <MainLayout loading={loading}>
       <div className="title-page">View Order</div>
 
-      <FormCustom fields={formFields} />
+      <FormUser fields={formFieldData} form={formCustom} />
 
       <BoxPrimary title="Order List">
         <TableComponent
@@ -227,7 +222,7 @@ export default function ViewOrder() {
       <BoxPrimary title="Remark">
         <Input.TextArea
           placeholder=""
-          value={getRemark}
+          value={dataOrderDetail.ref_remark}
           disabled
           className="bg-gray-100"
         />
@@ -238,11 +233,6 @@ export default function ViewOrder() {
           mode="back"
           text="Back"
           onClick={() => navigate("/order/list")}
-        />
-        <ActionButton
-          mode="save"
-          text="Order"
-          onClick={() => handleSaveOrder()}
         />
       </div>
     </MainLayout>

@@ -83,4 +83,6 @@ export const paths = {
   // Orders
   pathGetOrderList: "order/list",
   pathGetOrderCreate: "order/create",
+  pathGetOrderDetail: "order/detail",
+
 };
