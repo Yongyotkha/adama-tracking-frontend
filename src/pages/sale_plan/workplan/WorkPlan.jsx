@@ -36,8 +36,6 @@ export default function WorkPlan() {
           useServiceAPI.get(paths.pathMasterStatus, { status_type: 'work_plan' }),
         ]);
 
-        console.log(years,status);
-
         setYears(years.data);
         setStatus(status.data);
       } catch (error) {
@@ -49,18 +47,18 @@ export default function WorkPlan() {
 
     getMaster();
   }, []);
-  useEffect(() => {
-    console.log(years, status);
-  }, [status, years]);
+
 
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
 
+    console.log(filters,'filters');
+
     const requestData = {
       keyword: filters.keyword || "",
-      year_code: filters.year_code || "",
+      year_code: filters.year || "",
       status_code: filters.status_code || "",
       page_length: current,
       page_size: pageSize,
