@@ -15,6 +15,23 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "" }) => {
         </button>
       )}
 
+      {mode === "edit" && (
+        <button
+          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#F89E18] gap-2 p-1 px-2 items-center ${className}`}
+          onClick={onClick}
+          disabled={disabled}
+        >
+          <div>
+            <img
+              src="/img/icons/edit-btn.png"
+              alt="button icon"
+              className="inline-block h-5"
+            />
+          </div>
+          <div>{text}</div>
+        </button>
+      )}
+
       {mode === "sync" && (
         <button
           className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#F89E18] gap-2 p-1 px-2 items-center ${className}`}

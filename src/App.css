@@ -2,7 +2,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Anuphan:wght@100..700&display=swap");
 * {
     /* font-family: "Athiti", sans-serif; */
-    font-family: "Anuphan", sans-serif !important;
+    /* font-family: "Anuphan", sans-serif !important; */
 }
 .ant-form-item-label > label {
     font-size: 16px;
@@ -99,4 +99,9 @@
     padding: 15px;
     padding-top: 0;
     margin-top: 0;
+}
+
+
+.ant-form-item-explain-error {
+  position: absolute;
 }
