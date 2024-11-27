@@ -5,10 +5,9 @@ import Logo from "../logo/Logo";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
 import {
-  EditOutlined,
-  EyeOutlined,
   LogoutOutlined,
   PlusOutlined,
+  UserOutlined, 
 } from "@ant-design/icons";
 
 const useMediaQuery = (query) => {
@@ -234,24 +233,12 @@ const Navbar = () => {
   const userMenuItems = [
     {
       key: "1",
-      label: "Create",
-      icon: <PlusOutlined style={{ fontSize: "18px" }} />,
-      path: "/setting/user/create",
+      label: "Profile",
+      icon: <UserOutlined style={{ fontSize: "18px" }} />,
+      path: "/setting/profile",
     },
     {
       key: "2",
-      label: "Edit",
-      icon: <EditOutlined style={{ fontSize: "18px" }} />,
-      path: "/setting/user/edit",
-    },
-    {
-      key: "3",
-      label: "View",
-      icon: <EyeOutlined style={{ fontSize: "18px" }} />,
-      path: "/setting/user",
-    },
-    {
-      key: "4",
       label: "Logout",
       icon: <LogoutOutlined style={{ fontSize: "18px" }} />,
       path: "logout",

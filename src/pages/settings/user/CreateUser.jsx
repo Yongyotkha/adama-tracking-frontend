@@ -205,31 +205,6 @@ export default function CreateUser() {
       <div className="title-page">Create User</div>
       <FormUser fields={formFields} form={form} />
 
-      <BoxPrimary>
-        <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">Change Password</div>
-          <ActionButton mode="edit" text="Edit" onClick='' />
-        </div>
-        <Form layout="vertical">
-          <Row gutter={[16, 16]} className="mt-3">
-            <Col xs={24} sm={12} md={12} lg={8}>
-              <Form.Item className="mb-3" label="Current password">
-                <Input value="0" disabled />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={8}>
-              <Form.Item className="mb-3" label="New password">
-                <Input value="0" disabled />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={8}>
-              <Form.Item className="mb-3" label="Confirm password">
-                <Input value="0" disabled />
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
-      </BoxPrimary>
       <div className="flex justify-end space-x-4 mt-4">
         <ActionButton text="Back" mode="back" onClick={handleBack} />
         <ActionButton text="Save" mode="save" onClick={handleSave} />
