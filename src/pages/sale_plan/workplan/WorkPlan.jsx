@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
@@ -9,6 +9,7 @@ import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import { useNavigate } from "react-router-dom";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function WorkPlan() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function WorkPlan() {
   const [years, setYears] = useState([]);
   const [dataSource, setDataSource] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
+  const { showMsg, showNotification } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -38,8 +40,9 @@ export default function WorkPlan() {
 
         setYears(years.data);
         setStatus(status.data);
+    
       } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        showNotification("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
         setLoading(false);
       }
@@ -59,7 +62,7 @@ export default function WorkPlan() {
     const requestData = {
       keyword: filters.keyword || "",
       year_code: filters.year || "",
-      status_code: filters.status_code || "",
+      status_code: filters.status || "",
       page_length: current,
       page_size: pageSize,
     };

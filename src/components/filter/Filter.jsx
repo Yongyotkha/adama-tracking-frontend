@@ -15,18 +15,17 @@ const Filter = ({ onSearch, onClear, onChange, filters }) => {
         ...prevValues,
         [filterKey]: value,
       };
-      
+
       // ใช้ updatedValues ทันทีสำหรับ onChange
       filters.forEach((data) => {
         if (data.moderef) {
           onChange(updatedValues); // ใช้ค่าที่อัปเดต
         }
       });
-  
+
       return updatedValues; // อัปเดต state
     });
   };
-  
 
   const handleSearch = () => {
     onSearch(filterValues);
@@ -73,7 +72,10 @@ const Filter = ({ onSearch, onClear, onChange, filters }) => {
                   >
                     <Option value="">{filter.placeholder || "All"}</Option>
                     {filter.options.map((option, key) => (
-                      <Option key={key} value={option.id}>
+                      <Option
+                        key={key}
+                        value={filter.key == "status" ? option.code : option.id}
+                      >
                         {option.name}
                       </Option>
                     ))}
