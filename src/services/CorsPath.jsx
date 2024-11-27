@@ -91,6 +91,7 @@ export const paths = {
   // Orders
   pathGetOrderList: "order/list",
   pathGetOrderCreate: "order/create",
+  pathGetOrderUpdate: "order/update",
   pathGetOrderDetail: "order/detail",
   pathGetOrderWaitingList: "order/list",
   pathGetOrderChangeStatus: "order/status",

@@ -189,10 +189,6 @@ export default function CreateOrder() {
     },
   ];
 
-  const handleSearch = (e) => {
-    console.log("Search term:", e.target.value);
-  };
-
   const handleChange = (filter, value) => {
     if (filter == 'sale') {
       const getMasterDealer = async () => {
@@ -552,7 +548,6 @@ export default function CreateOrder() {
         <ActionButton mode="back" text="Back" onClick={() => navigate("/order/list")} />
         <ActionButton mode="save" text="Confirm" onClick={() => handleNavigateToOrderView()} />
       </div>
-
 
       {/* Modal for Add Participant */}
       <DynamicModal

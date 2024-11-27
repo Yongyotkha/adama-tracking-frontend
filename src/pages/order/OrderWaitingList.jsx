@@ -160,22 +160,56 @@ export default function OrderWaitingList() {
           createdBy: order.updated_by,
           action: (
             <Dropdown
+              // menu={{
+              //   items: order.action.map((actionItem, actionIndex) => ({
+              //     key: actionIndex,
+              //     label: (
+              //       <ItemDropDown
+              //         mode={actionItem.action.toLowerCase()}
+              //         onClick={() => {
+              //           navigate("/order-waiting/view", {
+              //             state: {
+              //               document_number: order.document_number,
+              //             },
+              //           });
+              //         }}
+              //       />
+              //     ),
+              //   })),
+              // }}
               menu={{
-                items: order.action.map((actionItem, actionIndex) => ({
-                  key: actionIndex,
-                  label: (
-                    <ItemDropDown
-                      mode={actionItem.action.toLowerCase()}
-                      onClick={() => {
-                        navigate("/order-waiting/view", {
-                          state: {
-                            document_number: order.document_number,
-                          },
-                        });
-                      }}
-                    />
-                  ),
-                })),
+                items: [
+                  {
+                    key: 1,
+                    label: (
+                      <ItemDropDown
+                        mode="view"
+                        onClick={() => {
+                          navigate("/order-waiting/view", {
+                            state: {
+                              document_number: order.document_number,
+                            },
+                          });
+                        }}
+                      />
+                    ),
+                  },
+                  {
+                    key: 2,
+                    label: (
+                      <ItemDropDown
+                        mode="edit"
+                        onClick={() => {
+                          navigate("/order/edit", {
+                            state: {
+                              document_number: order.document_number,
+                            },
+                          });
+                        }}
+                      />
+                    ),
+                  },
+                ],
               }}
               placement="bottom"
             >
