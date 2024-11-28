@@ -11,10 +11,15 @@ import DynamicButton from "../../components/button/DynamicButton";
 import DynamicModal from "../../components/modal/DynamicModal";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
+import { useLocation } from "react-router-dom";
 
 const { Option } = Select;
 
 export default function CreateActivity() {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const mode = searchParams.get("mode");
+
   const [loading, setLoading] = useState(false);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
   const [activityList, setActivityList] = useState([]);
@@ -22,6 +27,7 @@ export default function CreateActivity() {
   const [saleAllList, setSaleAllList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [cropList, setCropList] = useState([]);
+  const [productCropList, setProductCropList] = useState([]);
   const [timeList, setTimeList] = useState([]);
   const navigate = useNavigate();
 
@@ -30,6 +36,8 @@ export default function CreateActivity() {
   const [expenseForm] = Form.useForm();
   const [participantForm] = Form.useForm();
   const fileUploadRef = useRef(null); // Reference for FileUploadComponent
+
+  const [isBtnExpenseActive, setIsBtnExpenseActive] = useState(false);
 
   const handleUploadClick = () => {
     // Call triggerUpload from FileUploadComponent
@@ -92,7 +100,7 @@ export default function CreateActivity() {
     { label: "Activity Type", name: "activity_type_id", type: "select", options: activityList, disabled: false, required: true, col: 8, value: "" },
     { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: false, required: true, col: 8, value: "", moderef: true },
     { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: false, required: true, col: 8, value: "", moderef: true },
-    { label: "Crop", name: "crop_id_list", type: "select", mode: "multiple", options: cropList, disabled: false, required: true, col: 6, value: [] },
+    { label: "Crop", name: "crop_id_list", type: "select", mode: "multiple", options: cropList, disabled: false, required: true, col: 6, value: [], moderef: true },
     { label: "Date", name: "document_date", type: "date", disabled: false, required: true, col: 6, value: "2024-01-01" },
     { label: "Start Time", name: "time_start", type: "select", options:timeList, disabled: false, required: true, col: 6, value:""  },
     { label: "End Time", name: "time_end", type: "select", options:timeList, disabled: false, required: true, col: 6, value: "" },
@@ -119,8 +127,6 @@ export default function CreateActivity() {
         setSaleList(sale.data);
         setSaleAllList(saleAll.data);
         setTimeList(time.data);
-      } catch (error) {
-        
       } finally {
         setLoading(false);
       }
@@ -146,7 +152,23 @@ export default function CreateActivity() {
             }),
           ]);
           setCropList(crop.data);
-        }
+        }else if(attribue == 'crop_id_list'){
+          if(isBtnExpenseActive){
+            const [productCrop] = await Promise.all([
+              useServiceAPI.get(paths.pathMasterProductByCrop, {
+                crop_list: value
+              }),
+            ]);
+  
+            let productCropList = [];
+            productCrop.data.forEach((element, key) => {
+              productCropList.push({
+                key: (key + 1), productName: element.product_name, packSize: element.packing_list, estimateSale: "0", actualSale: "0"
+              });
+            });
+            setProductCropList(productCropList);
+          }
+        } 
       } catch (error) {
         console.log(error);
       }
@@ -160,21 +182,14 @@ export default function CreateActivity() {
     { title: "Pack Size", dataIndex: "packSize", key: "packSize", align: "center" },
     {
       title: "Estimate Sale (Kg/Lt)", dataIndex: "estimateSale", key: "estimateSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.estimateSale} />
+        <Input placeholder="0" defaultValue={record.estimateSale}/>
       )
     },
     {
       title: "Actual Sale (Kg/Lt)", dataIndex: "actualSale", key: "actualSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.actualSale} />
+        <Input placeholder="0" defaultValue={record.actualSale}/>
       )
     },
-  ];
-
-  const dataSource = [
-    { key: "1", productName: "Ossinate 15%SL", packSize: "1Kg.", estimateSale: "0", actualSale: "0" },
-    { key: "2", productName: "Apopo 20%SE", packSize: "1Lt.", estimateSale: "0", actualSale: "0" },
-    { key: "3", productName: "Atranex 90WG", packSize: "5Kg.", estimateSale: "0", actualSale: "0" },
-    { key: "4", productName: "Baloric 320EC", packSize: "0.5Lt.", estimateSale: "0", actualSale: "0" },
   ];
 
   const footerOrderList = () => (
@@ -264,148 +279,160 @@ export default function CreateActivity() {
       });
   };
 
+  const showLayoutExpense = () => {
+    setIsBtnExpenseActive(isBtnExpenseActive ? false : true);
+  }
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Create Activity</div>
-        <ActionButton mode="create" text="Add Advance Expense" onClick='' />
+        {mode !== 'advance' ? (
+          !isBtnExpenseActive ? 
+          <ActionButton mode="create" text="Add Advance Expense" onClick={showLayoutExpense} />
+          :
+          <ActionButton mode="hide" text="Hide Advance Expense" onClick={showLayoutExpense} />
+        ) : null}
+        
         {/* <ActionButton mode="hide" text="Add Advance Expense" onClick='' /> */}
       </div>
 
       <FormCustom fields={formFields} form={formCustom} onChange={handleChange}/>
 
-      {/* TODO: ทำในส่วนของ Activity Infomation Basic ก่อน */}
-      {/* <div className="flex items-center justify-between">
-        <div className="title-page">Advance Expense</div>
-        <ActionButton mode="hide" text="Hide Advance Expense" onClick='' />
-      </div>
-      <BoxPrimary title="Sale Plan">
-        <TableComponent
-          header={header}
-          dataSource={dataSource}
-          pageSize={10}
-          footer={footerOrderList}
-          pagination={false}
-        />
-      </BoxPrimary>
+      {isBtnExpenseActive ? (
+        <>
+          <div className="flex items-center justify-between">
+            <div className="title-page">Advance Expense</div>
+          </div>
+          <BoxPrimary title="Sale Plan">
+            <TableComponent
+              header={header}
+              dataSource={productCropList}
+              pageSize={10}
+              footer={productCropList.length > 0 ? footerOrderList : null}
+              pagination={false}
+            />
+          </BoxPrimary>
 
-      <BoxPrimary>
-        <span className="text-[#00783F] text-lg font-semibold mb-3">Customer</span>
-        <Form
-          layout="vertical"
-          form={customerForm}
-          initialValues={{
-            supportCustomerName: "Chaifar",
-            address: "2/80 ถนนพาดาวรี ต.ท่าอิฐ อ.เมืองอุดรธานี จ.อุดรธานี",
-            perception: "Good"
-          }}
-        >
-          <Row gutter={[16, 16]} className="mt-3">
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Support Customer Name" name="supportCustomerName">
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Place of Owner" name="placeOfOwner">
-                <Input placeholder="-" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={12}>
-              <Form.Item className="mb-3" label="Address" name="address">
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Phone Number" name="phoneNumber">
-                <Input placeholder="Enter phone number" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Place of GPS" name="placeOfGPS">
-                <Input placeholder="Enter GPS location" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Perception" name="perception">
-                <Select>
-                  <Option value="Good">Good</Option>
-                  <Option value="Average">Average</Option>
-                  <Option value="Poor">Poor</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
-      </BoxPrimary>
+          <BoxPrimary>
+            <span className="text-[#00783F] text-lg font-semibold mb-3">Customer</span>
+            <Form
+              layout="vertical"
+              form={customerForm}
+              initialValues={{
+                supportCustomerName: "Chaifar",
+                address: "2/80 ถนนพาดาวรี ต.ท่าอิฐ อ.เมืองอุดรธานี จ.อุดรธานี",
+                perception: "Good"
+              }}
+            >
+              <Row gutter={[16, 16]} className="mt-3">
+                <Col xs={24} sm={12} md={12} lg={6}>
+                  <Form.Item className="mb-3" label="Support Customer Name" name="supportCustomerName">
+                    <Input />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={12} lg={6}>
+                  <Form.Item className="mb-3" label="Place of Owner" name="placeOfOwner">
+                    <Input placeholder="-" />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={12} lg={12}>
+                  <Form.Item className="mb-3" label="Address" name="address">
+                    <Input />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={12} lg={6}>
+                  <Form.Item className="mb-3" label="Phone Number" name="phoneNumber">
+                    <Input placeholder="Enter phone number" />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={12} lg={6}>
+                  <Form.Item className="mb-3" label="Place of GPS" name="placeOfGPS">
+                    <Input placeholder="Enter GPS location" />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={12} lg={6}>
+                  <Form.Item className="mb-3" label="Perception" name="perception">
+                    <Select>
+                      <Option value="Good">Good</Option>
+                      <Option value="Average">Average</Option>
+                      <Option value="Poor">Poor</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Form>
+          </BoxPrimary>
 
-      <BoxPrimary title='Expense'>
-        <Form
-          layout="vertical"
-          form={expenseForm} // Use the new expenseForm instance here
-          initialValues={{
-            actual_exp: "0",
-            actual_sale: "0"
-          }}
-        >
-          <Row gutter={[16, 16]} className="mt-3">
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Actual exp" name="actual_exp">
-                <Input placeholder="0" disabled />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Actual sale" name="actual_sale">
-                <Input placeholder="0" disabled />
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
-      </BoxPrimary>
+          <BoxPrimary title='Expense'>
+            <Form
+              layout="vertical"
+              form={expenseForm} // Use the new expenseForm instance here
+              initialValues={{
+                actual_exp: "0",
+                actual_sale: "0"
+              }}
+            >
+              <Row gutter={[16, 16]} className="mt-3">
+                <Col xs={24} sm={12} md={12} lg={6}>
+                  <Form.Item className="mb-3" label="Actual exp" name="actual_exp">
+                    <Input placeholder="0" disabled />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={12} lg={6}>
+                  <Form.Item className="mb-3" label="Actual sale" name="actual_sale">
+                    <Input placeholder="0" disabled />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Form>
+          </BoxPrimary>
 
-      <BoxPrimary>
-        <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
-          <ActionButton mode="add" text="Upload File" onClick={handleUploadClick} />
-        </div>
-        <FileUploadComponent ref={fileUploadRef} dataFile={fileList} />
-      </BoxPrimary> */}
+          <BoxPrimary>
+            <div className="flex items-center justify-between">
+              <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
+              <ActionButton mode="add" text="Upload File" onClick={handleUploadClick} />
+            </div>
+            <FileUploadComponent ref={fileUploadRef} dataFile={fileList} />
+          </BoxPrimary>
 
-      {/* Participant Section */}
-      {/* <BoxPrimary>
-        <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">Participant</div>
-          <ActionButton mode="add" text="Add" onClick={handleOpenTeamModal} />
-        </div>
+          {/* Participant Section */}
+          <BoxPrimary>
+            <div className="flex items-center justify-between">
+              <div className="text-[#00783F] text-lg font-semibold mb-3">Participant</div>
+              <ActionButton mode="add" text="Add" onClick={handleOpenTeamModal} />
+            </div>
 
-        <Form
-          layout="vertical"
-          form={participantForm}
-          initialValues={{
-            estimate_participant: "0",
-            actual_participant: "0"
-          }}
-        >
-          <Row gutter={[16, 16]} className="mt-3">
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Estimate Participant " name="actual_exp">
-                <Input placeholder="0" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Actual Participant" name="actual_sale">
-                <Input placeholder="0" />
-              </Form.Item>
-            </Col>
-          </Row>
+            <Form
+              layout="vertical"
+              form={participantForm}
+              initialValues={{
+                estimate_participant: "0",
+                actual_participant: "0"
+              }}
+            >
+              <Row gutter={[16, 16]} className="mt-3">
+                <Col xs={24} sm={12} md={12} lg={6}>
+                  <Form.Item className="mb-3" label="Estimate Participant " name="actual_exp">
+                    <Input placeholder="0" />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={12} lg={6}>
+                  <Form.Item className="mb-3" label="Actual Participant" name="actual_sale">
+                    <Input placeholder="0" />
+                  </Form.Item>
+                </Col>
+              </Row>
 
-          <TableComponent
-            header={participantColumns}
-            dataSource={participants}
-            pagination={false}
-          />
-        </Form>
-      </BoxPrimary> */}
+              <TableComponent
+                header={participantColumns}
+                dataSource={participants}
+                pagination={false}
+              />
+            </Form>
+          </BoxPrimary>
+        </>
+      ) : null}
 
       <div className="flex justify-end space-x-4 mt-6">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/activity/list")} />

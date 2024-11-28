@@ -20,6 +20,8 @@ export const paths = {
   pathMasterCrop: "master/crop",
   pathMasterProductTypes: "master/product-types",
   pathMasterProductGroups: "master/product-groups",
+  pathMasterProductByCrop: "master/product-by-crop",
+  pathMasterSaleAll: "master/sale-all/list",
 
   // pathMasterShop: "master/shop",
 
