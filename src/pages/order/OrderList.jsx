@@ -30,6 +30,7 @@ export default function OrderList() {
     sortField: null,
   });
 
+  // Get Master
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
@@ -112,19 +113,19 @@ export default function OrderList() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-  const actionItemsPending = [
-    { key: "1", label: <ItemDropDown mode="edit" link="/order/edit" /> },
-    { key: "2", label: <ItemDropDown mode="view" link="/order/detail" /> },
-    {
-      key: "3",
-      label: (
-        <ItemDropDown
-          mode="delete"
-          onClick={() => console.log("Delete clicked")}
-        />
-      ),
-    },
-  ];
+  // const actionItemsPending = [
+  //   { key: "1", label: <ItemDropDown mode="edit" link="/order/edit" /> },
+  //   { key: "2", label: <ItemDropDown mode="view" link="/order/detail" /> },
+  //   {
+  //     key: "3",
+  //     label: (
+  //       <ItemDropDown
+  //         mode="delete"
+  //         onClick={() => console.log("Delete clicked")}
+  //       />
+  //     ),
+  //   },
+  // ];
 
   ////////////////////////////////////////////// table ///////////////////////////////////////////////
   const fetchData = async () => {

@@ -92,7 +92,7 @@ const Calendar = ({ events, fetchEvents, loading }) => {
         {dateEvents.slice(0, 2).map((event, index) => (
           <div
             key={index}
-            className="flex items-center justify-between px-2 py-1 rounded text-white text-sm"
+            className="flex items-center justify-between px-2 py-1 rounded-[10px] text-white text-sm"
             style={{ backgroundColor: event.color }}
           >
             <span>{event.title}</span>
@@ -171,22 +171,20 @@ const Calendar = ({ events, fetchEvents, loading }) => {
 
   return (
     <div className="grid grid-rows-[auto,1fr] h-screen">
-      <header className="p-4 bg-gray-50 border-b">
+      <header className="p-4 bg-[#F5F3F3]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex gap-2">
               <button
-                className={`px-4 py-2 rounded ${
-                  view === "weekly" ? "bg-gray-500 text-white" : "bg-gray-200"
-                }`}
+                className={`px-4 py-2 rounded ${view === "weekly" ? "bg-gray-500 text-white" : "bg-gray-200"
+                  }`}
                 onClick={() => setView("weekly")}
               >
                 Weekly
               </button>
               <button
-                className={`px-4 py-2 rounded ${
-                  view === "month" ? "bg-green-600 text-white" : "bg-gray-200"
-                }`}
+                className={`px-4 py-2 rounded ${view === "month" ? "bg-green-600 text-white" : "bg-gray-200"
+                  }`}
                 onClick={() => setView("month")}
               >
                 Month
@@ -199,7 +197,7 @@ const Calendar = ({ events, fetchEvents, loading }) => {
               >
                 &lt;
               </button>
-              <span className="px-4 py-2 bg-gray-100 text-gray-700 rounded">
+              <span className="px-4 py-2 bg-white text-gray-700 rounded font-semibold">
                 {months[currentDate.getMonth()]}
               </span>
               <button
@@ -226,49 +224,98 @@ const Calendar = ({ events, fetchEvents, loading }) => {
               placeholder="Select a Shop"
               options={[{ label: "All", value: "all" }, ...shopOptions]}
               defaultValue="all"
-              disabled={!shopOptions.length}
+            // disabled={!shopOptions.length}
             />
           </div>
         </div>
       </header>
-      <main className="grid grid-cols-12 gap-4 p-4 bg-gray-50">
-        <div className="col-span-8">
+      <main className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-12 gap-4 bg-[#F5F3F3]">
+        <div className="col-span-1 md:col-span-2 lg:col-span-9 bg-[#F5F3F3]">
           {view === "month" ? (
-            <div className="grid grid-cols-7 gap-2">
-              {Array.from({ length: startDayOfWeek }).map((_, index) => (
-                <div
-                  key={`empty-${index}`}
-                  className="border p-2 bg-gray-100 min-h-[170px]"
-                />
-              ))}
-              {Array.from({ length: daysInMonth }).map((_, index) => {
-                const date = new Date(
-                  currentDate.getFullYear(),
-                  currentDate.getMonth(),
-                  index + 1
-                );
-
-                return (
-                  <div
-                    key={index}
-                    className="border p-2 rounded bg-gray-50 cursor-pointer flex flex-col items-center justify-start min-h-[170px] hover:bg-green-100 transition"
-                    onClick={() => handleDateClick(date.toISOString().split("T")[0])}
-                  >
-                    <div className="text-right font-bold w-full text-gray-700">
-                      {index + 1}
-                    </div>
-                    {renderEventsForDate(date.toISOString().split("T")[0])}
+            <div className="rounded-xl shadow-md border-t">
+              {/* Header of the calendar */}
+              <div className="grid grid-cols-7 bg-gray-100 text-gray-600 font-bold text-center py-2 rounded-t-xl">
+                {weekdays.map((day) => (
+                  <div key={day} className="p-2">
+                    {day}
                   </div>
-                );
-              })}
+                ))}
+              </div>
+
+              {/* Calendar grid */}
+              <div className="grid grid-cols-7 rounded-[20px]">
+                {/* Days from the previous month */}
+                {Array.from({ length: startDayOfWeek }).map((_, index) => {
+                  const date = new Date(
+                    currentDate.getFullYear(),
+                    currentDate.getMonth(),
+                    -startDayOfWeek + index + 1
+                  );
+                  return (
+                    <div
+                      key={`prev-${index}`}
+                      className="border p-2 bg-[#CBC5C3] text-gray-500 min-h-[170px]"
+                    >
+                      <div className="text-start font-bold">{date.getDate()}</div>
+                    </div>
+                  );
+                })}
+
+                {/* Days of the current month */}
+                {Array.from({ length: daysInMonth }).map((_, index) => {
+                  const date = new Date(
+                    currentDate.getFullYear(),
+                    currentDate.getMonth(),
+                    index + 1
+                  );
+                  const isActive = selectedDate === date.toISOString().split("T")[0];
+
+                  return (
+                    <div
+                      key={`current-${index}`}
+                      className={`border p-2 rounded cursor-pointer flex flex-col items-center justify-start min-h-[170px] transition ${isActive ? "bg-gray-100 border-green-600" : "bg-gray-50 hover:bg-green-100"
+                        }`}
+                      onClick={() => handleDateClick(date.toISOString().split("T")[0])}
+                    >
+                      <div
+                        className={`text-start font-bold w-full ${isActive ? "text-green-600" : "text-gray-700"
+                          }`}
+                      >
+                        {index + 1}
+                      </div>
+                      {renderEventsForDate(date.toISOString().split("T")[0])}
+                    </div>
+                  );
+                })}
+
+                {/* Fill up remaining cells to ensure 5 rows */}
+                {Array.from({
+                  length: Math.max(0, 35 - (startDayOfWeek + daysInMonth)),
+                }).map((_, index) => {
+                  const date = new Date(
+                    currentDate.getFullYear(),
+                    currentDate.getMonth() + 1,
+                    index + 1
+                  );
+                  return (
+                    <div
+                      key={`next-${index}`}
+                      className="border p-2 bg-[#CBC5C3] text-gray-500 min-h-[170px]"
+                    >
+                      <div className="text-start font-bold">{date.getDate()}</div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ) : (
             renderWeeklyCalendar()
           )}
+
         </div>
+
         {/* Right Side: Event Details */}
-        <div
-          className="col-span-4 p-4 bg-gray-100 rounded shadow border-t border-green-600"
+        <div className="col-span-1 md:col-span-1 lg:col-span-3 p-4 bg-white rounded-xl shadow border-t border-green-600 mb-5"
           style={{ borderTopWidth: "10px" }}
         >
           {selectedDate ? (
@@ -286,19 +333,21 @@ const Calendar = ({ events, fetchEvents, loading }) => {
                   .map((event, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-4 bg-white rounded-lg shadow"
+                      className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md"
                     >
                       <div className="flex items-start gap-4">
-                        <div
-                          className={`w-10 h-10 flex items-center justify-center rounded-full text-white`}
-                          style={{ backgroundColor: event.color }}
-                        >
-                          <span className="text-xl font-bold">{event.icon || "⭐"}</span>
-                        </div>
                         <div>
-                          <h4 className="text-md font-bold text-gray-800">{event.title}</h4>
-                          <p className="text-sm text-gray-600">
-                            Location: {event.location}
+                          <div className="flex justify-between">
+                            <div className={`h-10 flex items-center justify-center`}>
+                              <span className="text-xl font-bold rounded-full text-white me-2" style={{ backgroundColor: event.color }}>{event.icon || "⭐"}</span>
+                              <h4 className="text-md font-bold text-gray-800">{event.title}</h4>
+                            </div>
+                            <span className="px-3 py-1 border rounded-full text-sm text-gray-600 flex items-center">
+                              {event.time}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600 flex">
+                            <img src="/img/icons/location.png" className="h-6 w-6 me-2" alt="" /> {event.location}
                           </p>
                           <div className="flex items-center gap-2 mt-2">
                             <div className="flex -space-x-2">
@@ -318,11 +367,6 @@ const Calendar = ({ events, fetchEvents, loading }) => {
                             )}
                           </div>
                         </div>
-                      </div>
-                      <div>
-                        <span className="px-3 py-1 border rounded-full text-sm text-gray-600">
-                          {event.time}
-                        </span>
                       </div>
                     </div>
                   ))}

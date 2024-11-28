@@ -20,18 +20,24 @@ export const paths = {
   pathMasterCrop: "master/crop",
   pathMasterProductTypes: "master/product-types",
   pathMasterProductGroups: "master/product-groups",
+  pathMasterProductCategorys: "master/product-categorys",
+  
   pathMasterProductByCrop: "master/product-by-crop",
   pathMasterSaleAll: "master/sale-all/list",
   pathMasterDealerCustomer: "master/dealer/customer",
 
   // pathMasterShop: "master/shop",
-
   pathMasterStatus: "master/status",
   pathMasterHeadofsale: "master/headofsale",
   pathMasterUserlist: "master/users/list",
   pathMasterSalearea: "master/salearea",
   pathMasterMonths: "master/months",
   pathMasterYear: "master/years",
+
+  //Products
+  pathSaleManagementProductsList: "products-management/list",
+  pathSaleManagementProductsDetail: "products-management/detail",
+  pathSaleManagementProductsUpdate: "products-management/update",
   
   // Sale
   pathSaleManagementDetail: "sale-management/sale-team/detail",
@@ -88,11 +94,11 @@ export const paths = {
   //area plan
   pathGetWorkPlanAreaList: "/work-plan/area/list",
   pathWorkPlanAreaStep1: "/work-plan/area/workplan_step1",
-
-
+  
+  //sale plan
   pathGetWorkPlanSaleList: "/work-plan/sale/list",
-
-
+  pathWorkPlanSaleQuarter: "/work-plan/sale/quarter",
+  pathWorkPlanSaleCrop: "/work-plan/sale/crop",
 
   //Activity
   pathActivatyList: "/activity/list",
@@ -112,7 +118,7 @@ export const paths = {
   // Expense Traveling
   pathGetExpenseTravelingList: "expense/traveling/list",
   pathGetExpenseTravelingDetail: "expense/traveling/detail",
-  pathGetExpenseTravelingCreate: "expense/traveling/create",
-  pathGetExpenseTravelingUpdate: "expense/traveling/update",
+  pathGetExpenseTravelingCreate: "expense/traveling/detail",
+  pathGetExpenseTravelingUpdate: "expense/traveling/detail",
 
 };

@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
+import FilterByOrder from "../../../components/filter/FilterByOrder";
 import { Dropdown } from "antd";
 import ActionButton from "../../../components/button/ActionButton";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
@@ -10,36 +11,134 @@ import { useNavigate, useLocation } from "react-router-dom";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function Traveling() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
 
+  const [dataSale, setDataSale] = useState([]);
+  const [dataYear, setDataYear] = useState([]);
+  const [dataMonth, setDataMonth] = useState([]);
+  const { showMsg, showNotification } = useContext(AuthContext);
+
+  const [permission, setPermission] = useState([]);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [tableParams, setTableParams] = useState({
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+    filters: {},
+    sortOrder: null,
+    sortField: null,
+  });
+
+  // Get Master
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [sale, year, month] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {
+            status: "",
+          }),
+          useServiceAPI.get(paths.pathMasterYear, {}),
+          useServiceAPI.get(paths.pathMasterMonths, {}),
+        ]);
+
+        setDataSale(sale.data);
+        setDataYear(year.data);
+        setDataMonth(month.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, []);
+
   // Filter configuration
+  // const filters = [
+  //   {
+  //     key: "customer",
+  //     type: "select",
+  //     label: "Customer",
+  //     placeholder: "All",
+  //     options: [],
+  //   },
+  //   {
+  //     key: "expense_no",
+  //     type: "text",
+  //     label: "Expense No",
+  //     placeholder: "All",
+  //   },
+  //   {
+  //     key: "activity_ref",
+  //     type: "text",
+  //     label: "Activity Reference",
+  //     placeholder: "All",
+  //   },
+  //   {
+  //     key: "type_of_meeting",
+  //     type: "select",
+  //     label: "Type of Meeting",
+  //     placeholder: "All",
+  //     options: [],
+  //   },
+  //   {
+  //     key: "date",
+  //     type: "date",
+  //     label: "Date",
+  //     placeholder: "Select Date.."
+  //   },
+  // ];
   const filters = [
-    { key: "customer", type: "select", label: "Customer", placeholder: "All", options: [] },
-    { key: "expense_no", type: "text", label: "Expense No", placeholder: "All" },
-    { key: "activity_ref", type: "text", label: "Activity Reference", placeholder: "All" },
-    { key: "type_of_meeting", type: "select", label: "Type of Meeting", placeholder: "All", options: [] },
-    { key: "date", type: "date", label: "Date", placeholder: "Select Date.." },
+    {
+      label: "Sale",
+      name: "sale",
+      type: "select",
+      options: dataSale,
+      placeholder: "All",
+    },
+    {
+      label: "Year",
+      name: "year",
+      type: "select",
+      options: dataYear,
+      placeholder: "All",
+    },
+    {
+      label: "Month",
+      name: "month",
+      type: "select",
+      options: dataMonth,
+      placeholder: "All",
+    },
+    {
+      label: "Status",
+      name: "status",
+      type: "select",
+      options: [],
+      placeholder: "All",
+    },
   ];
-
-  // Handlers for filter actions
-  const handleSearch = (filter) => {
-    console.log("Search filters applied:", filter);
-  };
-
-  const handleClear = () => {
-    console.log("Filters cleared");
-  };
 
   // Dropdown actions
-  const actionItems = [
-    { key: "1", label: <ItemDropDown mode="edit" link="/expenses/traveling/edit" /> },
-    { key: "2", label: <ItemDropDown mode="view" link="/expenses/traveling/view" /> },
-    { key: "3", label: <ItemDropDown mode="delete" /> },
-  ];
+  // const actionItems = [
+  //   {
+  //     key: "1",
+  //     label: <ItemDropDown mode="edit" link="/expenses/traveling/edit" />,
+  //   },
+  //   {
+  //     key: "2",
+  //     label: <ItemDropDown mode="view" link="/expenses/traveling/view" />,
+  //   },
+  //   { key: "3", label: <ItemDropDown mode="delete" /> },
+  // ];
 
   // Table header configuration
   const header = [
@@ -51,50 +150,220 @@ export default function Traveling() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
+  // useEffect(() => {
+  //   // Example data for the table
+  //   const dataSource = [
+  //     {
+  //       key: 1,
+  //       year: "2024",
+  //       month: "October",
+  //       date: "2024-01-01",
+  //       status: <BadgeStatus text="Completed" bgColor="#009845" textColor="#FFFFFF" />,
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottomRight">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //     {
+  //       key: 2,
+  //       year: "2024",
+  //       month: "September",
+  //       date: "2024-01-01",
+  //       status: <BadgeStatus text="Completed" bgColor="#009845" textColor="#FFFFFF" />,
+  //       action: (
+  //         <Dropdown menu={{ items: actionItems }} placement="bottomRight">
+  //           <a onClick={(e) => e.preventDefault()}>
+  //             <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+  //           </a>
+  //         </Dropdown>
+  //       ),
+  //     },
+  //   ];
+
+  //   setDataSource(dataSource);
+  // }, []);
+
+  ////////////////////////////////////////////// table ///////////////////////////////////////////////
+  const fetchData = async () => {
+    setTableLoading(true);
+    const { current, pageSize } = tableParams.pagination;
+    const filters = tableParams.filters || {};
+    const sortOrder = tableParams.sortOrder || "desc";
+    const sortField = tableParams.sortField || "year";
+
+    const requestData = {
+      user_id: filters.sale || "",
+      dealer_id: filters.dealer || "",
+      keyword: filters.order_no || "",
+      trasaction_status_code: filters.status || "",
+      page: "all",
+      use_flag: filters.use_flag || "",
+      orderby_column: sortField,
+      orderby: sortOrder,
+      page_length: current,
+      page_size: pageSize,
+    };
+
+    try {
+      const response = await useServiceAPI.get(
+        paths.pathGetExpenseTravelingList,
+        requestData
+      );
+
+      if (response.status === 200) {
+        const { data, records_filtered } = response.data;
+        setPermission(response.data.permission);
+
+        const newDataSource = data.map((data, index) => ({
+          key: index + 1,
+          year: data.year,
+          month: data.month_name,
+          date: data.updated_at,
+          status: (
+            <BadgeStatus
+              text={data.transaction_status_name}
+              bgColor={data.transaction_status_bg_color}
+              textColor={data.transaction_status_color}
+            />
+          ),
+          // action: (
+          //   <Dropdown menu={{ items: actionItems }} placement="bottomRight">
+          //     <a onClick={(e) => e.preventDefault()}>
+          //       <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+          //     </a>
+          //   </Dropdown>
+          // ),
+          action: (
+            <Dropdown
+              // menu={{
+              //   items: order.action.map((actionItem, actionIndex) => ({
+              //     key: actionIndex,
+              //     label: (
+              //       <ItemDropDown mode={actionItem.action.toLowerCase()}
+              //       onClick={() => {
+              //         navigate("/order/view", {
+              //           state: {
+              //             document_number: order.document_number,
+              //           },
+              //         });
+              //       }}
+
+              //       />
+              //     ),
+              //   })),
+              // }}
+
+              menu={{
+                items: [
+                  {
+                    key: 1,
+                    label: (
+                      <ItemDropDown
+                        mode="view"
+                        onClick={() => {
+                          navigate("/expenses/traveling/view", {
+                            state: {
+                              year_code: data.year,
+                              month_code: data.month,
+                              user_id: data.user_id,
+                            },
+                          });
+                        }}
+                      />
+                    ),
+                  },
+                  {
+                    key: 2,
+                    label: (
+                      <ItemDropDown
+                        mode="edit"
+                        onClick={() => {
+                          navigate("/expenses/traveling/edit", {
+                            state: {
+                              year_code: data.year,
+                              month_code: data.month,
+                              user_id: data.user_id,
+                            },
+                          });
+                        }}
+                      />
+                    ),
+                  },
+                ],
+              }}
+              placement="bottom"
+            >
+              <a onClick={(e) => e.preventDefault()}>
+                <img
+                  src="/img/icons/action.png"
+                  alt="button icon"
+                  className="inline-block w-5 h-5 mr-2"
+                />
+              </a>
+            </Dropdown>
+          ),
+        }));
+        setDataSource(newDataSource);
+        setTableParams({
+          ...tableParams,
+          pagination: {
+            ...tableParams.pagination,
+            total: records_filtered,
+          },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Example data for the table
-    const dataSource = [
-      {
-        key: 1,
-        year: "2024",
-        month: "October",
-        date: "2024-01-01",
-        status: <BadgeStatus text="Completed" bgColor="#009845" textColor="#FFFFFF" />,
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottomRight">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 2,
-        year: "2024",
-        month: "September",
-        date: "2024-01-01",
-        status: <BadgeStatus text="Completed" bgColor="#009845" textColor="#FFFFFF" />,
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottomRight">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      },
-    ];
-  
-    setDataSource(dataSource);
-  }, []);
+    fetchData();
+  }, [
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    tableParams.sortOrder,
+    tableParams.sortField,
+    JSON.stringify(tableParams.filters),
+  ]);
+
+  const handleSearch = (filters) => {
+    setTableParams({
+      ...tableParams,
+      filters,
+    });
+  };
+
+  const handleClear = () => {
+    setTableParams({
+      ...tableParams,
+      filters: {},
+    });
+  };
 
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Traveling</div>
-        <ActionButton mode="create" text="Create" onClick={() => navigate("/expenses/traveling/create")} />
+        {permission.btn_create && (
+          <ActionButton
+            mode="create"
+            text="Create"
+            onClick={() => navigate("/expenses/traveling/create")}
+          />
+        )}
       </div>
 
-      <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
+      <FilterByOrder
+        onSearch={handleSearch}
+        onClear={handleClear}
+        filters={filters}
+      />
 
       <BoxPrimary>
         <TableComponent header={header} dataSource={dataSource} />

@@ -132,7 +132,7 @@ export default function FormUser({ fields, title, profile, form, onChange = {} }
                       label: option.name,
                       value: option.id,
                     }))}
-                    value={form.getFieldValue(field.name)} // Dynamically bind the value
+                    // value={form.getFieldValue(field.name)} // Dynamically bind the value
                     onChange={(value) => handleChange(field.name, value)}
                     // onChange={(value) => form.setFieldsValue({ [field.name]: value })} 
                   >

@@ -9,6 +9,7 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { debounce } from "lodash";
+import Title from "../../../components/title/Title";
 
 export default function WorkPlanAreaCreate() {
   const location = useLocation();
@@ -19,7 +20,7 @@ export default function WorkPlanAreaCreate() {
   const [permission, setPermission] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
   const { showNotification, formatNumber } = useContext(AuthContext);
-
+  const [yearName, setYearName] = useState([]);
   const [localQtyState, setLocalQtyState] = useState({});
 
   const handleQtyChange = (saleId, productId, newQty, unitConvertValue) => {
@@ -108,6 +109,7 @@ export default function WorkPlanAreaCreate() {
             return acc;
           }, {});
 
+          setYearName(response.data.year_name);
           setLocalQtyState(initialQtyState);
           setDataSource(newData);
           setSale(newDataSale);
@@ -368,9 +370,12 @@ export default function WorkPlanAreaCreate() {
         "warning",
         "Sale Value is less than Original Plan",
         [
-          `฿ ${formatNumber(
-            parseFloat(totalValue) - calculatedTotalAmountTarget
+          `Original Plan: ฿ ${formatNumber(totalValue)}`,
+          `Current Total: ฿ ${formatNumber(calculatedTotalAmountTarget)}`,
+          `Difference: ฿ ${formatNumber(
+            totalValue - calculatedTotalAmountTarget
           )}`,
+          
         ],
         3
       );
@@ -437,7 +442,7 @@ export default function WorkPlanAreaCreate() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <div className="title-page">Create Work Plan</div>
+      <Title prefix="Create Plan" showYear={yearName} />
 
         <BoxPrimary>
           <div className="flex flex-col gap-2">
