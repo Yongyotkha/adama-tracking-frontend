@@ -202,8 +202,8 @@ export default function SettingSale() {
     setTableParams({
       pagination,
       filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
-      // sortOrder: sorter.order === "descend" ? "desc" : "asc",
-      // sortField: sorter.field,
+      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortField: sorter.field,
     });
   };
 
