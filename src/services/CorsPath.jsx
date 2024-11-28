@@ -105,7 +105,7 @@ export const paths = {
   pathGetOrderChangeStatus: "order/status",
 
   // Expense Traveling
-  pathGetExpenseTraveling: "order/list",
-  pathGetExpenseTraveling: "order/list",
+  pathGetExpenseTravelingList: "order/list",
+  pathGetExpenseTravelingCreate: "order/create",
 
 };
