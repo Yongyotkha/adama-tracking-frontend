@@ -100,4 +100,8 @@ export const paths = {
   pathGetOrderWaitingList: "order/list",
   pathGetOrderChangeStatus: "order/status",
 
+  // Expense Traveling
+  pathGetExpenseTraveling: "order/list",
+  pathGetExpenseTraveling: "order/list",
+
 };
