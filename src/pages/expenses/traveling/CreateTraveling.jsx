@@ -1,16 +1,19 @@
-import React, { useState } from "react";
-import { Input } from "antd";
+import React, { useEffect, useState } from "react";
+import { Form, Input, Select } from "antd";
 import MainLayout from "../../../layouts/MainLayout";
 import FormCustom from "../../../components/form_custom/FormCustom";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
 import NumericInput from "../../../components/numeric_input/NumericInput";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
 
 export default function CreateTraveling() {
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  // const [dataSource, setDataSource] = useState([]);
 
   // Table data source
   const [dataSource, setDataSource] = useState([
@@ -249,7 +252,6 @@ export default function CreateTraveling() {
     },
   ];
   
-
   const footerOrderList = () => (
     <tr className="bg-[#978B87] text-white text-start">
       <td colSpan={3}>Total (THB)</td>
