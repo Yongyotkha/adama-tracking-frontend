@@ -315,7 +315,7 @@ const Calendar = ({ events, fetchEvents, loading }) => {
         </div>
 
         {/* Right Side: Event Details */}
-        <div className="col-span-1 md:col-span-1 lg:col-span-3 p-4 bg-white rounded-xl shadow border-t border-green-600"
+        <div className="col-span-1 md:col-span-1 lg:col-span-3 p-4 bg-white rounded-xl shadow border-t border-green-600 mb-5"
           style={{ borderTopWidth: "10px" }}
         >
           {selectedDate ? (
@@ -333,24 +333,21 @@ const Calendar = ({ events, fetchEvents, loading }) => {
                   .map((event, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-4 bg-white rounded-lg shadow"
+                      className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md"
                     >
                       <div className="flex items-start gap-4">
-                        <div
-                          className={`w-10 h-10 flex items-center justify-center rounded-full text-white`}
-                          style={{ backgroundColor: event.color }}
-                        >
-                          <span className="text-xl font-bold">{event.icon || "⭐"}</span>
-                        </div>
                         <div>
                           <div className="flex justify-between">
-                            <h4 className="text-md font-bold text-gray-800">{event.title}</h4>
-                            <span className="px-3 py-1 border rounded-full text-sm text-gray-600">
+                            <div className={`h-10 flex items-center justify-center`}>
+                              <span className="text-xl font-bold rounded-full text-white me-2" style={{ backgroundColor: event.color }}>{event.icon || "⭐"}</span>
+                              <h4 className="text-md font-bold text-gray-800">{event.title}</h4>
+                            </div>
+                            <span className="px-3 py-1 border rounded-full text-sm text-gray-600 flex items-center">
                               {event.time}
                             </span>
                           </div>
                           <p className="text-sm text-gray-600 flex">
-                            <img src="/img/icons/location.png" className="h-6 w-6" alt="" /> {event.location}
+                            <img src="/img/icons/location.png" className="h-6 w-6 me-2" alt="" /> {event.location}
                           </p>
                           <div className="flex items-center gap-2 mt-2">
                             <div className="flex -space-x-2">
