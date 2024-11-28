@@ -90,9 +90,6 @@ const App = () => {
           {/* Protected Routes */}
           <Route path="/" element={ <Dashboard />} />
 
-
-          {/* Sale Plan Route */}
-
           {/* Work Plan Route */}
           <Route path="/sale-plan/work-plan" element={<WorkPlan />} />
           <Route path="/sale-plan/work-plan-area" element={<WorkPlan />} />

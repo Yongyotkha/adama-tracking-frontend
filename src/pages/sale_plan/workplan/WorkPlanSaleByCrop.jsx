@@ -219,20 +219,34 @@ export default function WorkPlanSaleByCrop() {
       .then((response) => {
         if (response.status === 200) {
           const newLocalState = response.data.crop_items.reduce((acc, crop) => {
+            // Initialize crop_id object if it doesn't exist
+            if (!acc[crop.crop_id]) {
+              acc[crop.crop_id] = {};
+            }
+          
+            // Process data_items
             crop.data_items.forEach((item) => {
               const productId = item.product_id;
-              if (!acc[crop.crop_id]) {
-                acc[crop.crop_id] = {};
-              }
+          
+              const percentage = parseFloat(item.percentage || 0);
+              const qty = parseFloat(item.qty || 0);
+              const value = parseFloat(item.value || 0);
+          
+              // Assign product data to the crop_id
               acc[crop.crop_id][productId] = {
-                percentage: parseFloat(item.percentage || 0),
-                qty: parseFloat(item.qty || 0),
-                value: parseFloat(item.value || 0),
+                percentage,
+                qty,
+                value,
               };
             });
+          
+            // Assign amount_target to the crop_id
+            acc[crop.crop_id].amount_target = parseFloat(crop.amount_target || 0);
+          
             return acc;
           }, {});
-
+          
+          // Update the state
           setLocalQtyState(newLocalState);
 
           const newData = response.data.data_items.map((item) => ({
@@ -407,7 +421,7 @@ export default function WorkPlanSaleByCrop() {
                 response.data.message,
                 response.data.message_line
               ).then(() => {
-                navigate("/sale-plan/work-plan-sale/sale-by-crop", {
+                navigate("/sale-plan/work-plan-sale/sale-by-dealer", {
                   state: {
                     year_code: location?.state?.year_code,
                     user_id: location?.state?.user_id,
@@ -432,44 +446,7 @@ export default function WorkPlanSaleByCrop() {
       setLoading(false); // หยุดโหลดข้อมูลไม่ว่าจะสำเร็จหรือผิดพลาด
     }
 
-    // สร้าง payload
-    // const payload = {
-    //   year_code: location?.state?.year_code,
-    //   user_id: location?.state?.user_id,
-    //   action_code: mode,
-    //   crop_items: updatedCropData, // รวมข้อมูลตั้งต้นของ crop
-    // };
-
-    // setLoading(true);
-
-    // // เรียก API เพื่อบันทึกข้อมูล
-    // useServiceAPI
-    //   .post(paths.pathWorkPlanSaveCrop, payload, setLoading)
-    //   .then((response) => {
-    //     if (response.status === 200) {
-    //       showNotification(
-    //         "success",
-    //         response.data.message,
-    //         response.data.message_line
-    //       ).then(() => {
-    //         if (mode === "save") {
-    //           navigate("/sale-plan/work-plan/sale-by-dealer", {
-    //             state: {
-    //               year_code: location?.state?.year_code,
-    //               user_id: location?.state?.user_id,
-    //             },
-    //           });
-    //         }
-    //       });
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     console.error(error);
-    //     showNotification("error", "เกิดข้อผิดพลาด");
-    //   })
-    //   .finally(() => {
-    //     setLoading(false);
-    //   });
+    
   };
 
   return (
@@ -589,7 +566,7 @@ export default function WorkPlanSaleByCrop() {
               onClick={() => handleSave("draft")}
             />
           )}
-          {permission.btn_save && (
+          {permission.btn_save_and_next && (
             <ActionButton
               text="Save and Next"
               mode="save"
@@ -601,7 +578,7 @@ export default function WorkPlanSaleByCrop() {
               text="Next"
               mode="save"
               onClick={() =>
-                navigate("/sale-plan/work-plan/sale-by-dealer", {
+                navigate("/sale-plan/work-plan-sale/sale-by-dealer", {
                   state: {
                     year_code: location?.state?.year_code,
                     user_id: location?.state?.user_id,

@@ -100,6 +100,7 @@ export const paths = {
   pathGetWorkPlanSaleList: "/work-plan/sale/list",
   pathWorkPlanSaleQuarter: "/work-plan/sale/quarter",
   pathWorkPlanSaleCrop: "/work-plan/sale/crop",
+  pathWorkPlanSaleDealer: "/work-plan/sale/dealer",
 
   //Activity
   pathActivityList: "/activity/list",
