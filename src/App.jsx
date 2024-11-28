@@ -69,7 +69,7 @@ import ActivityList from "./pages/activity/ActivityList";
 import CreateActivity from "./pages/activity/CreateActivity";
 import EditActivity from "./pages/activity/EditActivity";
 import ActivityPlanList from "./pages/activity/activity_plan/ActivityPlanList";
-import Calendar from "./pages/activity/calendar/Calendar";
+import ActivityCalendar from "./pages/activity/calendar/ActivityCalendar";
 // END ------------- Activity ------------- END
 
 
@@ -109,7 +109,7 @@ const App = () => {
           <Route path="/activity/create" element={<CreateActivity />} />
           <Route path="/activity/edit" element={<EditActivity />} />
           <Route path="/activity/plan/list" element={<ActivityPlanList />} />
-          <Route path="/activity/calendar" element={<Calendar />} />
+          <Route path="/activity/calendar" element={<ActivityCalendar />} />
 
           {/* Order Route */}
           <Route path="/order/list" element={<OrderList />} />

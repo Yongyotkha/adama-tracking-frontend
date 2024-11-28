@@ -91,11 +91,13 @@ export const paths = {
 
 
 
-  //Activaty
+  //Activity
   pathActivatyList: "/activity/list",
   pathActivatyCreate: "/activity/create",
   pathActivatyDetail: "/activity/detail",
-
+  // Activity Calendar
+  pathActivatyCalendarList: "/activity/calendar/list",
+  
   // Orders
   pathGetOrderList: "order/list",
   pathGetOrderCreate: "order/create",

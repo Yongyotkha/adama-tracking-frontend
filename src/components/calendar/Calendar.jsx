@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 
-const Calendar = ({ events }) => {
-  const [view, setView] = useState("month"); // Default view: "month"
+const Calendar = ({ events, fetchEvents, loading }) => {
+  const [view, setView] = useState("month");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
 
   const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
   const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
   const daysInMonth = endOfMonth.getDate();
-  const startDayOfWeek = startOfMonth.getDay(); // Sunday: 0, Monday: 1, ...
+  const startDayOfWeek = startOfMonth.getDay();
 
   const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const months = [
@@ -17,16 +17,19 @@ const Calendar = ({ events }) => {
   ];
 
   const handlePrevMonth = () => {
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
-    );
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    setCurrentDate(newDate);
+    setSelectedDate(null); // Reset selected date
+    fetchEvents(newDate.getMonth() + 1, newDate.getFullYear()); // Fetch events for the new month
   };
 
   const handleNextMonth = () => {
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
-    );
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+    setCurrentDate(newDate);
+    setSelectedDate(null); // Reset selected date
+    fetchEvents(newDate.getMonth() + 1, newDate.getFullYear()); // Fetch events for the new month
   };
+
 
   const handleDateClick = (date) => {
     setSelectedDate(date);
@@ -146,17 +149,15 @@ const Calendar = ({ events }) => {
             {/* View Switch */}
             <div className="flex gap-2">
               <button
-                className={`px-4 py-2 rounded ${
-                  view === "weekly" ? "bg-gray-500 text-white" : "bg-gray-200"
-                }`}
+                className={`px-4 py-2 rounded ${view === "weekly" ? "bg-gray-500 text-white" : "bg-gray-200"
+                  }`}
                 onClick={() => setView("weekly")}
               >
                 Weekly
               </button>
               <button
-                className={`px-4 py-2 rounded ${
-                  view === "month" ? "bg-green-600 text-white" : "bg-gray-200"
-                }`}
+                className={`px-4 py-2 rounded ${view === "month" ? "bg-green-600 text-white" : "bg-gray-200"
+                  }`}
                 onClick={() => setView("month")}
               >
                 Month
@@ -182,9 +183,9 @@ const Calendar = ({ events }) => {
             </div>
           </div>
 
-        <span className="text-lg font-bold text-green-600">
+          <span className="text-lg font-bold text-green-600">
             {months[currentDate.getMonth()]} {currentDate.getFullYear()}
-        </span>
+          </span>
 
           {/* Dropdowns */}
           <div className="flex items-center gap-4">
@@ -242,7 +243,10 @@ const Calendar = ({ events }) => {
         </div>
 
         {/* Right Side: Event Details */}
-        <div className="col-span-4 p-4 bg-gray-100 rounded shadow">
+        <div
+          className="col-span-4 p-4 bg-gray-100 rounded shadow border-t border-green-600"
+          style={{ borderTopWidth: "10px" }}
+        >
           {selectedDate ? (
             <>
               <h3 className="text-lg font-bold text-green-600 mb-4">
@@ -269,7 +273,9 @@ const Calendar = ({ events }) => {
                         </div>
                         <div>
                           <h4 className="text-md font-bold text-gray-800">{event.title}</h4>
-                          <p className="text-sm text-gray-600">Location: {event.location}</p>
+                          <p className="text-sm text-gray-600">
+                            Location: {event.location}
+                          </p>
                           <div className="flex items-center gap-2 mt-2">
                             <div className="flex -space-x-2">
                               {event.attendees.slice(0, 3).map((attendee, idx) => (
@@ -300,10 +306,11 @@ const Calendar = ({ events }) => {
             </>
           ) : (
             <div className="text-center text-gray-500">
-              <p>Select a date to view events.</p>
+              <p>Please select a date to view details.</p>
             </div>
           )}
         </div>
+
       </main>
     </div>
   );
