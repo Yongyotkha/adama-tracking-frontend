@@ -165,6 +165,12 @@ export default function WorkPlanSaleByCrop() {
           min={0}
           value={localQtyState[cropItem.crop_id]?.[record.product_id]?.qty || 0}
           disabled
+          formatter={(value) =>
+            `${Number(value).toFixed(2)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
+          }
         />
       ),
     })),
@@ -194,6 +200,12 @@ export default function WorkPlanSaleByCrop() {
             localQtyState[cropItem.crop_id]?.[record.product_id]?.value || 0
           }
           disabled
+          formatter={(value) =>
+            `${Number(value).toFixed(2)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
+          }
         />
       ),
     })),
@@ -264,13 +276,13 @@ export default function WorkPlanSaleByCrop() {
 
   const handlePercentChange = (value, cropId, record) => {
     const { product_id, qty: totalQty, unit_convert_value } = record;
-
+  
     setLocalQtyState((prevState) => {
-      // คำนวณ `qty` และ `value`
+      // คำนวณ `qty` และ `value` สำหรับ cropId ที่เปลี่ยนแปลง
       const updatedQty = (value / 100) * totalQty;
       const updatedValue = updatedQty * (unit_convert_value || 1);
-
-      // อัปเดต `cropId` ใน `localQtyState`
+  
+      // อัปเดตข้อมูล `cropId` ที่เปลี่ยนแปลงใน `localQtyState`
       const updatedCropProducts = {
         ...prevState[cropId],
         [product_id]: {
@@ -279,26 +291,66 @@ export default function WorkPlanSaleByCrop() {
           value: updatedValue,
         },
       };
-
-      console.log(prevState[cropId][product_id]);
-
-      // คำนวณ `amount_target` ของ `cropId`
+  
+      // คำนวณ `totalPercent` ของทุก `cropId` ยกเว้น `cropId = 7`
+      const totalPercent = Object.keys(prevState).reduce((sum, currentCropId) => {
+        if (currentCropId === "7") return sum; // ไม่รวม `cropId = 7`
+        const cropData =
+          currentCropId === cropId
+            ? updatedCropProducts[product_id] // ใช้ค่าที่อัปเดตใหม่
+            : prevState[currentCropId]?.[product_id]; // ใช้ค่าจาก `prevState`
+        return sum + (cropData?.percent || 0);
+      }, 0);
+  
+      // หาก `totalPercent` เกิน 100% ให้แจ้งเตือนและไม่อัปเดต state
+      if (totalPercent > 100) {
+        showNotification(
+          "error",
+          `Total percent for Product ${product_id} across all crops (excluding CropId 7) cannot exceed 100%.`
+        );
+        return prevState;
+      }
+  
+      // คำนวณ `remainingPercent`
+      const remainingPercent = Math.max(100 - totalPercent, 0); // ไม่ให้ค่าเป็นลบ
+  
+      // อัปเดต `cropId = 7` สำหรับ `product_id`
+      const updatedCrop7Products = {
+        ...prevState["7"],
+        [product_id]: {
+          percent: remainingPercent,
+          qty: (remainingPercent / 100) * totalQty,
+          value: ((remainingPercent / 100) * totalQty) * (unit_convert_value || 1),
+        },
+      };
+  
+      // คำนวณ `amount_target` ของ `cropId` ที่เปลี่ยนแปลง
       const amountTarget = Object.values(updatedCropProducts).reduce(
         (sum, product) => sum + (product.value || 0),
         0
       );
-
+  
+      // คำนวณ `amount_target` ของ `cropId = 7`
+      const amountTargetCrop7 = Object.values(updatedCrop7Products).reduce(
+        (sum, product) => sum + (product.value || 0),
+        0
+      );
+  
       return {
         ...prevState,
         [cropId]: {
           ...updatedCropProducts,
           amount_target: amountTarget,
         },
+        "7": {
+          ...updatedCrop7Products,
+          amount_target: amountTargetCrop7,
+        },
       };
     });
-
-    // console.log(localQtyState);
   };
+  
+  
 
   const handleSave = (mode) => {
     const updatedCropData = crop.map((cropItem) => {

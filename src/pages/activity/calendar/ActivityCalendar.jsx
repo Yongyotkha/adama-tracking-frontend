@@ -39,6 +39,7 @@ export default function ActivityCalendar() {
           })),
         }));
         setEvents(formattedEvents);
+        // console.log(response);
       } else {
         console.error("Error fetching events:", response.message);
         setEvents([]);
@@ -62,16 +63,14 @@ export default function ActivityCalendar() {
         <ActionButton mode="create" text="Create" onClick={() => navigate("/activity/create")} />
       </div>
 
-      <div style={{ padding: "0px" }}>
-        <DynamicCalendar
-          events={events}
-          fetchEvents={(month, year) => {
-            setCurrentMonth(month);
-            setCurrentYear(year);
-          }}
-          loading={loading}
-        />
-      </div>
+      <DynamicCalendar
+        events={events}
+        fetchEvents={(month, year) => {
+          setCurrentMonth(month);
+          setCurrentYear(year);
+        }}
+        loading={loading}
+      />
     </MainLayout>
   );
 }
