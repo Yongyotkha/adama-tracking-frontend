@@ -259,7 +259,7 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
                         onClick={handleReload}
                         style={{
                           position: "absolute",
-                          top: "74%",
+                          top: "57%",
                           right: "10px",
                           transform: "translateY(-50%)",
                           cursor: "pointer",

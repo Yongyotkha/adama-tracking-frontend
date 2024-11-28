@@ -11,6 +11,7 @@ import { AuthContext } from "../../../contexts/AuthContext";
 import { useLocation } from "react-router-dom";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import { Col, Form, Input, Row } from "antd";
+import { values } from "lodash";
 
 export default function EditUser() {
   const [loading, setLoading] = useState(false);
@@ -23,12 +24,15 @@ export default function EditUser() {
   const [form] = Form.useForm();
   const { showMsg } = useContext(AuthContext);
   const location = useLocation();
+  const [profileImage, setProfileImage] = useState("");
+  const [userinfo, setUserInfo] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
         await fetchPromotionDetails(location.state.id);
+
         const [positions, departments, territories, areas, roles] =
           await Promise.all([
             useServiceAPI.get(paths.pathMasterPosition, {}),
@@ -41,9 +45,9 @@ export default function EditUser() {
         setPosition(positions.data);
         setDepartments(departments.data);
         setTerritory(territories.data);
-        // setAreas(areas.data.map((a) => ({ ...a, name: a.area_name })));
         setAreas(areas.data);
         setRoles(roles.data);
+        // setAreas(areas.data.map((a) => ({ ...a, name: a.area_name })));
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -60,145 +64,148 @@ export default function EditUser() {
       const response = await useServiceAPI.get(`${paths.pathMasterUsersDetail}/${id}`);
       if (response.status === 200) {
         const { data } = response;
-        console.log(data);
-        
-        const updatedFields = [
-          {
-            label: "Name (EN)",
-            name: "name_en",
-            type: "text",
-            required: true,
-            col: 6,
-            value: data.name_en,
-          },
-          {
-            label: "Name (TH)",
-            name: "name_th",
-            type: "text",
-            required: true,
-            col: 6,
-            value: data.name_th,
-          },
-          {
-            label: "Sales Employee Code",
-            name: "employee_code",
-            type: "text",
-            required: true,
-            col: 6,
-            disabled: true,
-            value: data.sales_emp_code
-          },
-          {
-            label: "Contact Number",
-            name: "contact_number",
-            type: "tel",
-            required: true,
-            col: 6,
-            value: data.phone_number
-          },
-          {
-            label: "Email",
-            name: "email",
-            type: "email",
-            required: false,
-            col: 6,
-            value: data.email
-          },
-          {
-            label: "Address",
-            name: "address",
-            type: "text",
-            required: false,
-            col: 12,
-            value: data.address
-          },
-          {
-            label: "Position",
-            name: "position_id",
-            type: "select",
-            required: true,
-            col: 6,
-            options: position,
-            value: parseInt(data.position_id, 10),
+        setProfileImage(data.profile_image);
+        setUserInfo(data);
 
-          },
-          {
-            label: "Department",
-            name: "department_id",
-            type: "select",
-            required: false,
-            col: 6,
-            options: departments,
-            value: parseInt(data.department_id, 10),
-
-          },
-          {
-            label: "Territory",
-            name: "territory_id",
-            type: "select",
-            required: false,
-            col: 6,
-            options: territory,
-            value: parseInt(data.territory_id, 10),
-          },
-          {
-            label: "Area",
-            name: "area_id",
-            type: "select",
-            required: false,
-            col: 6,
-            options: areas,
-            value: parseInt(data.area_id, 10),
-          },
-          {
-            label: "Role",
-            name: "role_id",
-            type: "select",
-            required: true,
-            col: 6,
-            options: roles,
-            value: parseInt(data.role_id, 10),
-          },
-          {
-            label: "Date of Joining",
-            name: "date_of_joining",
-            type: "date",
-            required: false,
-            col: 6,
-            value: null,
-          },
-          {
-            label: "Status",
-            name: "use_flag",
-            type: "select",
-            required: false,
-            col: 6,
-            options: [
-              { name: "Active", id: 1, selected: true },
-              { name: "Inactive", id: 0, selected: false },
-            ],
-            value: data.use_flag === 1 ? "Active" : "Inactive" 
-          },
-       
-        ];
-                
-        setFormFields(updatedFields);
-  
-        // Update form values directly
-        const initialValues = updatedFields.reduce((acc, field) => {
-          acc[field.name] = field.value;
-          return acc;
-        }, {});
-        form.setFieldsValue(initialValues);
       } else {
         console.error(response.message);
       }
-    } catch (error) {
+    } 
+    catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
     }
   };
+
+
+  const updatedFields = [
+    {
+      label: "Profile Image",
+      name: "profile", // ชื่อฟิลด์ในฟอร์ม
+      type: "picture", // ประเภทฟิลด์
+      required: false,
+      col: 24,
+      value: userinfo.profile_image, // ใช้ค่า profile_image จาก API
+    },
+    {
+      label: "Name (EN)",
+      name: "name_en",
+      type: "text",
+      required: true,
+      col: 6,
+      value: userinfo.name_en,
+    },
+    {
+      label: "Name (TH)",
+      name: "name_th",
+      type: "text",
+      required: true,
+      col: 6,
+      value: userinfo.name_th,
+    },
+    {
+      label: "Sales Employee Code",
+      name: "employee_code",
+      type: "text",
+      required: true,
+      col: 6,
+      disabled: true,
+      value: userinfo.sales_emp_code
+    },
+    {
+      label: "Contact Number",
+      name: "contact_number",
+      type: "tel",
+      required: true,
+      col: 6,
+      value: userinfo.phone_number
+    },
+    {
+      label: "Email",
+      name: "email",
+      type: "email",
+      required: false,
+      col: 6,
+      value: userinfo.email
+    },
+    {
+      label: "Address",
+      name: "address",
+      type: "text",
+      required: false,
+      col: 12,
+      value: userinfo.address
+    },
+    {
+      label: "Position",
+      name: "position_id",
+      type: "select",
+      required: true,
+      col: 6,
+      options: position,
+      value: parseInt(userinfo.position_id, 10),
+
+    },
+    {
+      label: "Department",
+      name: "department_id",
+      type: "select",
+      required: false,
+      col: 6,
+      options: departments,
+      value: parseInt(userinfo.department_id, 10),
+
+    },
+    {
+      label: "Territory",
+      name: "territory_id",
+      type: "select",
+      required: false,
+      col: 6,
+      options: territory,
+      value: parseInt(userinfo.territory_id, 10),
+    },
+    {
+      label: "Area",
+      name: "area_id",
+      type: "select",
+      required: false,
+      col: 6,
+      options: areas,
+      value: parseInt(userinfo.area_id, 10),
+    },
+    {
+      label: "Role",
+      name: "role_id",
+      type: "select",
+      required: true,
+      col: 6,
+      options: roles,
+      value: parseInt(userinfo.role_id, 10),
+    },
+    {
+      label: "Date of Joining",
+      name: "date_of_joining",
+      type: "date",
+      required: false,
+      col: 6,
+      value: null,
+    },
+    {
+      label: "Status",
+      name: "use_flag",
+      type: "select",
+      required: false,
+      col: 6,
+      options: [
+        { name: "Active", id: 1, selected: true },
+        { name: "Inactive", id: 0, selected: false },
+      ],
+      value: userinfo.use_flag === 1 ? "Active" : "Inactive" 
+    },
+ 
+  ];
 
   const handleBack = () => {
     navigate("/setting/user");
@@ -242,124 +249,23 @@ export default function EditUser() {
   };
   
 
-
-  const [formFields, setFormFields] = useState([]);
-
-  // const formFields = [
-  //   {
-  //     label: "Name (EN)",
-  //     name: "name_en",
-  //     type: "text",
-  //     required: true,
-  //     col: 6,
-  //   },
-  //   {
-  //     label: "Name (TH)",
-  //     name: "name_th",
-  //     type: "text",
-  //     required: true,
-  //     col: 6,
-  //   },
-  //   {
-  //     label: "Sales Employee Code",
-  //     name: "employee_code",
-  //     type: "text",
-  //     required: true,
-  //     col: 6,
-  //     disabled: true,
-  //   },
-  //   {
-  //     label: "Contact Number",
-  //     name: "contact_number",
-  //     type: "tel",
-  //     required: true,
-  //     col: 6,
-  //   },
-  //   {
-  //     label: "Email",
-  //     name: "email",
-  //     type: "email",
-  //     required: false,
-  //     col: 6,
-  //   },
-  //   {
-  //     label: "Address",
-  //     name: "address",
-  //     type: "text",
-  //     required: false,
-  //     col: 12,
-  //   },
-  //   {
-  //     label: "Position",
-  //     name: "position_id",
-  //     type: "select",
-  //     required: true,
-  //     col: 6,
-  //     options: position,
-  //   },
-  //   {
-  //     label: "Department",
-  //     name: "department_id",
-  //     type: "select",
-  //     required: false,
-  //     col: 6,
-  //     options: departments,
-  //   },
-  //   {
-  //     label: "Territory",
-  //     name: "territory_id",
-  //     type: "select",
-  //     required: false,
-  //     col: 6,
-  //     options: territory,
-  //   },
-  //   {
-  //     label: "Area",
-  //     name: "area_id",
-  //     type: "select",
-  //     required: false,
-  //     col: 6,
-  //     options: areas,
-  //   },
-  //   {
-  //     label: "Role",
-  //     name: "role_id",
-  //     type: "select",
-  //     required: true,
-  //     col: 6,
-  //     options: roles,
-  //   },
-  //   {
-  //     label: "Date of Joining",
-  //     name: "date_of_joining",
-  //     type: "date",
-  //     required: false,
-  //     col: 6,
-  //     value: null,
-  //   },
-  //   {
-  //     label: "Status",
-  //     name: "status",
-  //     type: "select",
-  //     required: false,
-  //     col: 6,
-  //     options: [
-  //       { name: "Active", id: 1, selected: true },
-  //       { name: "Inactive", id: 0, selected: false },
-  //     ],
-  //   },
-  // ];
-
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Edit User</div>
 
-      <FormUser profile="/img/profile.jpg" fields={formFields} form={form}/>
+      <FormUser 
+        profile={form.getFieldValue("profile")}
+        // profile="/img/profile.jpg" 
+        fields={updatedFields} 
+        form={form}
+      />
 
       <BoxPrimary>
         <div className="flex items-center justify-between">
           <div className="text-[#00783F] text-lg font-semibold mb-3">Change Password</div>
-          <ActionButton mode="edit" text="Edit" onClick='' />
+          {/* <ActionButton mode="edit" text="Edit" onClick='' /> */}
+          <ActionButton mode="edit" text="Edit" onClick={() => console.log("Edit button clicked")} />
+
         </div>
         <Form layout="vertical">
           <Row gutter={[16, 16]} className="mt-3">

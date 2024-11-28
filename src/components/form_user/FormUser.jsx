@@ -10,7 +10,7 @@ dayjs.extend(customParseFormat);
 
 const { Option } = Select;
 
-export default function FormUser({ fields, title, profile, form, onChange = {} }) {
+export default function FormUser({ fields, title, profile, form, onChange }) {
   const { showMsg } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [formValues, setFormValues] = useState({});

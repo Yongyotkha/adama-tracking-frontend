@@ -12,12 +12,14 @@ import DynamicModal from "../../components/modal/DynamicModal";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { useLocation } from "react-router-dom";
+import { ReloadOutlined } from "@ant-design/icons";
+import { convertLegacyProps } from "antd/es/button";
 
 const { Option } = Select;
 
 export default function CreateActivity() {
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
+  const locationParam = useLocation();
+  const searchParams = new URLSearchParams(locationParam.search);
   const mode = searchParams.get("mode");
 
   const [loading, setLoading] = useState(false);
@@ -37,6 +39,8 @@ export default function CreateActivity() {
   const [expenseForm] = Form.useForm();
   const [participantForm] = Form.useForm();
   const fileUploadRef = useRef(null); // Reference for FileUploadComponent
+  const [locationCustomer, setLocationCustomer] = useState([]);
+  const [dealerCustomer, setDealerCustomer] = useState([]);
 
   const [isBtnExpenseActive, setIsBtnExpenseActive] = useState(false);
 
@@ -147,28 +151,30 @@ export default function CreateActivity() {
           ]);
           setDealerList(dealer.data);
         }else if(attribue == 'dealer_id'){
-          const [crop] = await Promise.all([
+          const [crop, dealerCustomerData] = await Promise.all([
             useServiceAPI.get(paths.pathMasterCrop, {
               dealer_id: value
             }),
+            useServiceAPI.get(paths.pathMasterDealerCustomer, {
+              delaer_id: value
+            }),
           ]);
           setCropList(crop.data);
+          setDealerCustomer(dealerCustomerData.data);
         }else if(attribue == 'crop_id_list'){
-          if(isBtnExpenseActive){
-            const [productCrop] = await Promise.all([
-              useServiceAPI.get(paths.pathMasterProductByCrop, {
-                crop_list: value
-              }),
-            ]);
-  
-            let productCropList = [];
-            productCrop.data.forEach((element, key) => {
-              productCropList.push({
-                key: (key + 1), productName: element.product_name, packSize: element.packing_list, estimateSale: "0", actualSale: "0"
-              });
+          const [productCrop] = await Promise.all([
+            useServiceAPI.get(paths.pathMasterProductByCrop, {
+              crop_list: value
+            }),
+          ]);
+
+          let productCropList = [];
+          productCrop.data.forEach((element, key) => {
+            productCropList.push({
+              key: (key + 1), productName: element.product_name, packSize: element.packing_list, estimateSale: "0", actualSale: "0"
             });
-            setProductCropList(productCropList);
-          }
+          });
+          setProductCropList(productCropList);
         } 
       } catch (error) {
         console.log(error);
@@ -205,13 +211,7 @@ export default function CreateActivity() {
     </tr>
   );
 
-  const [participants, setParticipants] = useState([
-    { key: '1', no: 1, name: 'Kornkan Induang', position: 'Sales Executive', department: 'Sales Team', territory: 'Left North', permission: 'Individual and BD/Assist' },
-    { key: '2', no: 2, name: 'Phaisan Jethuen', position: 'Sales Executive', department: 'Sales Team', territory: 'Left Lower North', permission: 'Individual and BD/Assist' },
-    { key: '3', no: 3, name: 'Manupong Wongpuang', position: 'Sales Executive', department: 'Sales Team', territory: 'Lower North', permission: 'Individual and BD/Assist' },
-    { key: '4', no: 4, name: 'Kriangkrai Kraikaew', position: 'Sales Executive', department: 'Sales Team', territory: 'Central Left North', permission: 'Individual and BD/Assist' },
-    { key: '5', no: 5, name: 'Charoenpong Khunawatcharakun', position: 'Sales Executive', department: 'Sales Team', territory: 'Central Right North', permission: 'Individual and BD/Assist' },
-  ]);
+  const [participants, setParticipants] = useState([]);
 
   const participantColumns = [
     { title: 'No', dataIndex: 'no', key: 'no', align: 'center' },
@@ -248,7 +248,8 @@ export default function CreateActivity() {
     participant.data.data.forEach((element, key) => {
       const count = key+1;
       participantData.push({
-        key: `sales-${count}`, no: count, name: element.name, position: element.position_name, territory: element.territory_name
+        key: `sales-${count}`, no: count, name: element.name, position: element.position_name, 
+        department: element.department_name, territory: element.territory_name, permission: element.permission_name
       });
     });
     
@@ -265,7 +266,15 @@ export default function CreateActivity() {
       const newRows = selectedRows.filter(
         (row) => !prev.some((participant) => participant.key === row.key)
       );
-      return [...prev, ...newRows];
+      
+      // Merge existing participants with new rows
+      const updatedParticipants = [...prev, ...newRows];
+      
+      // Reassign the "no" property to ensure it starts from 1 and increments
+      return updatedParticipants.map((participant, index) => ({
+        ...participant,
+        no: index + 1, // Update "no" based on the new index
+      }));
     });
   };
 
@@ -294,6 +303,71 @@ export default function CreateActivity() {
   const showLayoutExpense = () => {
     setIsBtnExpenseActive(isBtnExpenseActive ? false : true);
   }
+
+  //Location Customer
+  useEffect(() => {
+    getLocation();
+  }, []);
+
+  useEffect(() => {
+    if (locationCustomer.lat && locationCustomer.long) {
+      // เรียก getAddress เมื่อ lat และ long มีค่า
+      getAddress(locationCustomer.lat, locationCustomer.long);
+    }
+  }, [locationCustomer.lat, locationCustomer.long]);
+
+  const getLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const long = position.coords.longitude;
+          
+          getAddress(lat, long);
+        },
+        (err) => {
+          // console.error(err.message);
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by your browser.");
+    }
+  };
+
+  const getAddress = async (lat, long) => {
+    const apiKey = "AIzaSyAF-YpYX1gu-kPeKxVdCTh9f_9nXXlZaPc";
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${apiKey}`;
+  
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      if (data.status === "OK") {
+        const fetchedAddress = data.results[0]?.formatted_address || "Address not found";
+        setLocationCustomer((prev) => ({
+          ...prev,
+          address: fetchedAddress,
+          lat: lat,
+          long: long,
+        })); 
+            
+      } else {
+        console.error("Failed to fetch address");
+      }
+    } catch (err) {
+      console.error("Error fetching address:", err);
+    }
+  };
+  
+  
+
+  const handleReload = () => {
+    setLoading(true);
+    setTimeout(() => {
+      getLocation();
+      setLoading(false);
+    }, 2000); // ตั้งค่าความล่าช้าตามที่ต้องการ
+
+  };
 
   return (
     <MainLayout loading={loading}>
@@ -332,35 +406,30 @@ export default function CreateActivity() {
               layout="vertical"
               form={customerForm}
               initialValues={{
-                supportCustomerName: "Chaifar",
-                address: "2/80 ถนนพาดาวรี ต.ท่าอิฐ อ.เมืองอุดรธานี จ.อุดรธานี",
-                perception: "Good"
+                supportCustomerName: dealerCustomer.customer_name,
+                address: dealerCustomer.customer_address,
+                placeOfOwner: dealerCustomer.customer_place_of_owner,
+                phoneNumber: dealerCustomer.customer_phone_number,
+                Perception: "Good",
+                location_customer_address: locationCustomer.address,
+                location_customer_latitude: locationCustomer.lat,
+                location_customer_longitude: locationCustomer.long
               }}
             >
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Support Customer Name" name="supportCustomerName">
-                    <Input />
+                    <Input disabled="true"/>
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Place of Owner" name="placeOfOwner">
-                    <Input placeholder="-" />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12} md={12} lg={12}>
-                  <Form.Item className="mb-3" label="Address" name="address">
-                    <Input />
+                    <Input placeholder="-" disabled="true"/>
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Phone Number" name="phoneNumber">
-                    <Input placeholder="Enter phone number" />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item className="mb-3" label="Place of GPS" name="placeOfGPS">
-                    <Input placeholder="Enter GPS location" />
+                    <Input placeholder="Enter phone number" disabled="true"/>
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
@@ -372,6 +441,93 @@ export default function CreateActivity() {
                     </Select>
                   </Form.Item>
                 </Col>
+                <Col xs={24} sm={24} md={24} lg={24}>
+                  <Form.Item className="mb-3" label="Address" name="address">
+                    <Input disabled="true"/>
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={24} md={24} lg={24}>
+                  <div>
+                      <div style={{ position: "relative" }}>
+                      <Form.Item
+                        name="location_customer_address"
+                        label="Place of GPS"
+                      >
+                        <Input
+                          placeholder="Address"
+                          value={locationCustomer.address || ""}
+                          key={locationCustomer.address} // เพิ่ม key เพื่อบังคับให้รีเฟรช
+                          readOnly
+                          style={{
+                            width: "100%",
+                            paddingRight: "50px",
+                            paddingLeft: "12px",
+                            border: "1px solid #d9d9d9",
+                            borderRadius: "4px",
+                            padding: "8px 12px",
+                            boxSizing: "border-box",
+                          }}
+                        />
+                      </Form.Item>
+
+
+                        <div
+                          onClick={handleReload}
+                          style={{
+                            position: "absolute",
+                            top: "76%",
+                            right: "10px",
+                            transform: "translateY(-50%)",
+                            cursor: "pointer",
+                            fontSize: "16px",
+                            color: "#d9d9d9",
+                          }}
+                        >
+                          <ReloadOutlined
+                            style={{
+                              fontSize: "18px",
+                              animation: loading ? "spin 1s linear infinite" : "none", // เปิด/ปิดการหมุน
+                            }}
+                          />
+                        </div>
+                        {/* CSS Keyframes */}
+                        <style>{`
+                          @keyframes spin {
+                            0% {
+                              transform: rotate(0deg);
+                            }
+                            100% {
+                              transform: rotate(360deg);
+                            }
+                          }
+                        `}</style>
+                      </div>
+
+                      <Form.Item
+                        name="location_customer_latitude"
+                        hidden
+                      >
+                        <Input
+                          type="hidden"
+                          placeholder="Latitude"
+                          value={locationCustomer.lat || ""}
+                          disabled="true"
+                        />
+                      </Form.Item>
+                  
+                      <Form.Item
+                        name="location_customer_longitude"
+                        hidden
+                      >
+                        <Input
+                          type="hidden"
+                          placeholder="Longitude"
+                          value={locationCustomer.long || ""}
+                          disabled="true"
+                        />
+                      </Form.Item>
+                    </div>
+                  </Col>
               </Row>
             </Form>
           </BoxPrimary>
