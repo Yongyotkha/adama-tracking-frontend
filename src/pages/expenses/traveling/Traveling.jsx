@@ -103,6 +103,7 @@ export default function Traveling() {
       type: "select",
       options: dataSale,
       placeholder: "All",
+      moderef: false,
     },
     {
       label: "Year",
@@ -110,6 +111,7 @@ export default function Traveling() {
       type: "select",
       options: dataYear,
       placeholder: "All",
+      moderef: false,
     },
     {
       label: "Month",
@@ -117,6 +119,7 @@ export default function Traveling() {
       type: "select",
       options: dataMonth,
       placeholder: "All",
+      moderef: false,
     },
     {
       label: "Status",
@@ -124,6 +127,7 @@ export default function Traveling() {
       type: "select",
       options: [],
       placeholder: "All",
+      moderef: false,
     },
   ];
 
@@ -196,9 +200,9 @@ export default function Traveling() {
 
     const requestData = {
       user_id: filters.sale || "",
-      dealer_id: filters.dealer || "",
-      keyword: filters.order_no || "",
-      trasaction_status_code: filters.status || "",
+      year: filters.year || "",
+      month: filters.month || "",
+      status: filters.status || "",
       page: "all",
       use_flag: filters.use_flag || "",
       orderby_column: sortField,
@@ -346,6 +350,31 @@ export default function Traveling() {
     });
   };
 
+  const handleChange = (filter) => {
+    // if (filter.sale) {
+    //   const getMasterDealer = async () => {
+    //     setLoading(true);
+    //     try {
+    //       const [dealer] = await Promise.all([
+    //         useServiceAPI.get(paths.pathMasterDealerDropdown, {
+    //           user_id: filter,
+    //         }),
+    //       ]);
+
+    //       setDataDealer(dealer.data);
+    //     } catch (error) {
+    //       showMsg("error", error.message || "เกิดข้อผิดพลาด");
+    //     } finally {
+    //       setLoading(false);
+    //     }
+    //   };
+
+    //   getMasterDealer();
+    // } else {
+    //   handleClear();
+    // }
+  };
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -362,6 +391,7 @@ export default function Traveling() {
       <FilterByOrder
         onSearch={handleSearch}
         onClear={handleClear}
+        onChange={handleChange}
         filters={filters}
       />
 
