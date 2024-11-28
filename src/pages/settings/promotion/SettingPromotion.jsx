@@ -322,13 +322,6 @@ export default function SettingPromotion() {
 
     const requestData = {
       keyword: filters.keyword || "",
-      // user_id: filters.user_id || "",
-      // position_id: filters.position || "",
-      // role_id: filters.role || "",
-      // use_flag: filters.use_flag || "",
-      // orderby_column: sortField,
-      // orderby: sortOrder,
-      // name: filters.name || "",
       page_length: current,
       page_size: pageSize,
     };
@@ -373,7 +366,8 @@ export default function SettingPromotion() {
           ),
           name: promotion.name,
           description: promotion.description,
-          value: promotion.value,
+          // value: promotion.value,
+          value: promotion.value === ".00" ? "0.00" : promotion.value,
           status: (
             <BadgeStatus
               text={promotion.status_name}
@@ -459,7 +453,13 @@ export default function SettingPromotion() {
       />
 
       <BoxPrimary>
-        <TableComponent header={header} dataSource={dataSource} />
+        <TableComponent 
+          header={header} 
+          dataSource={dataSource} 
+          pagination={tableParams.pagination}
+          loading={tableLoading}
+          onChange={handleTableChange}
+        />
       </BoxPrimary>
 
     </MainLayout>

@@ -75,7 +75,8 @@ export default function EditPromotion() {
             type: "text", 
             required: true, 
             col: 6, 
-            value: data.value || "" },
+            value: data.value ===  ".00" ? "0.00" : data.value 
+          },
           { 
             label: "Status", 
             name: "use_flag", 

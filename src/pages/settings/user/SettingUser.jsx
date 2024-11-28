@@ -57,7 +57,6 @@ export default function SettingUser() {
     const sortOrder = tableParams.sortOrder || "asc";
     const sortField = tableParams.sortField || "name_en";
 
-    console.log(tableParams);
     const requestData = {
       keyword: filters.keyword || "",
       user_id: filters.user_id || "",
@@ -201,6 +200,7 @@ export default function SettingUser() {
       filters: {},
     });
   };
+  
   ///////////////////////////////////////////// table ///////////////////////////////////////////////
   const header = [
     {

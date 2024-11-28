@@ -20,17 +20,23 @@ export const paths = {
   pathMasterCrop: "master/crop",
   pathMasterProductTypes: "master/product-types",
   pathMasterProductGroups: "master/product-groups",
+  pathMasterProductCategorys: "master/product-categorys",
+  
   pathMasterProductByCrop: "master/product-by-crop",
   pathMasterSaleAll: "master/sale-all/list",
 
   // pathMasterShop: "master/shop",
-
   pathMasterStatus: "master/status",
   pathMasterHeadofsale: "master/headofsale",
   pathMasterUserlist: "master/users/list",
   pathMasterSalearea: "master/salearea",
   pathMasterMonths: "master/months",
   pathMasterYear: "master/years",
+
+  //Products
+  pathSaleManagementProductsList: "products-management/list",
+  pathSaleManagementProductsDetail: "products-management/detail",
+  pathSaleManagementProductsUpdate: "products-management/update",
   
   // Sale
   pathSaleManagementDetail: "sale-management/sale-team/detail",
