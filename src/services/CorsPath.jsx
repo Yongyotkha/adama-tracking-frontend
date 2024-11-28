@@ -93,11 +93,13 @@ export const paths = {
 
 
 
-  //Activaty
+  //Activity
   pathActivatyList: "/activity/list",
   pathActivatyCreate: "/activity/create",
   pathActivatyDetail: "/activity/detail",
-
+  // Activity Calendar
+  pathActivatyCalendarList: "/activity/calendar/list",
+  
   // Orders
   pathGetOrderList: "order/list",
   pathGetOrderCreate: "order/create",
@@ -107,7 +109,7 @@ export const paths = {
   pathGetOrderChangeStatus: "order/status",
 
   // Expense Traveling
-  pathGetExpenseTraveling: "order/list",
-  pathGetExpenseTraveling: "order/list",
+  pathGetExpenseTravelingList: "order/list",
+  pathGetExpenseTravelingCreate: "order/create",
 
 };
