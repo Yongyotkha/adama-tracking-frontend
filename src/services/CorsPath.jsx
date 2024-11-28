@@ -29,8 +29,8 @@ export const paths = {
   pathMasterHeadofsale: "master/headofsale",
   pathMasterUserlist: "master/users/list",
   pathMasterSalearea: "master/salearea",
+  pathMasterMonths: "master/months",
   pathMasterYear: "master/years",
-
   
   // Sale
   pathSaleManagementDetail: "sale-management/sale-team/detail",
@@ -109,7 +109,9 @@ export const paths = {
   pathGetOrderChangeStatus: "order/status",
 
   // Expense Traveling
-  pathGetExpenseTravelingList: "order/list",
-  pathGetExpenseTravelingCreate: "order/create",
+  pathGetExpenseTravelingList: "expense/traveling/list",
+  pathGetExpenseTravelingDetail: "expense/traveling/detail",
+  pathGetExpenseTravelingCreate: "expense/traveling/create",
+  pathGetExpenseTravelingUpdate: "expense/traveling/update",
 
 };
