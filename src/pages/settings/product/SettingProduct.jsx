@@ -37,8 +37,8 @@ export default function SettingProduct() {
       setLoading(true);
       try {
         const [positions, roles] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterPosition, {}),
-          useServiceAPI.get(paths.pathMasterRoles, {}),
+          useServiceAPI.get(paths.pathMasterProductTypes, {}),
+          useServiceAPI.get(paths.pathMasterProductGroups, {}),
         ]);
 
         setPosition(positions.data);
@@ -56,7 +56,7 @@ export default function SettingProduct() {
 
   const filters = [
     {
-      key: "product_code",
+      key: "keyword",
       type: "text",
       label: "Product Code",
       placeholder: "All",
@@ -69,7 +69,7 @@ export default function SettingProduct() {
 
     },
     {
-      key: "product_group",
+      key: "category_id",
       type: "select",
       label: "Product Group",
       options: roles,

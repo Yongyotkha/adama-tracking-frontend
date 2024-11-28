@@ -18,6 +18,9 @@ export const paths = {
   pathMasterAreas: "master/areas",
   pathMasterRoles: "master/roles",
   pathMasterCrop: "master/crop",
+  pathMasterProductTypes: "master/product-types",
+  pathMasterProductGroups: "master/product-groups",
+
   // pathMasterShop: "master/shop",
 
   pathMasterStatus: "master/status",

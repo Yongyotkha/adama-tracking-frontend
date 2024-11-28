@@ -4,16 +4,13 @@ import FormUser from "../../../components/form_user/FormUser";
 import DynamicButton from "../../../components/button/DynamicButton";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
-<<<<<<< HEAD
-import { Form } from "antd";
+// import { Form } from "antd";
 import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { useLocation } from "react-router-dom";
-=======
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import { Col, Form, Input, Row } from "antd";
->>>>>>> main
 
 export default function EditUser() {
   const [loading, setLoading] = useState(false);
@@ -27,7 +24,6 @@ export default function EditUser() {
   const { showMsg } = useContext(AuthContext);
   const location = useLocation();
 
-<<<<<<< HEAD
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -203,9 +199,6 @@ export default function EditUser() {
       setLoading(false);
     }
   };
-=======
-  useEffect(() => { }, []);
->>>>>>> main
 
   const handleBack = () => {
     navigate("/setting/user");
