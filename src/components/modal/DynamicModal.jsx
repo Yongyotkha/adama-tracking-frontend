@@ -38,6 +38,7 @@ const DynamicModal = ({
   };
 
   const handleAdd = () => {
+    setSelectedRowKeys([]);
     const selectedRows = dataSource.filter((item) => selectedRowKeys.includes(item.key));
     onAddSelected(selectedRows);
     onClose();
