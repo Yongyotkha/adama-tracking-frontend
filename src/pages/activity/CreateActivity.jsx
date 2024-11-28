@@ -239,22 +239,38 @@ export default function CreateActivity() {
   const getParticipant = async () => {
     const [participant] = await Promise.all([
       useServiceAPI.get(paths.pathMasterSaleAll, {
-        'page_size' : 1,
-        'page_length' : 10
-      }),  
+        'page_size': 1,
+        'page_length': 10,
+      }),
     ]);
-
+  
     let participantData = [];
+    setParticipantList([]);
+    let count = 0;
     participant.data.data.forEach((element, key) => {
-      const count = key+1;
-      participantData.push({
-        key: `sales-${count}`, no: count, name: element.name, position: element.position_name, 
-        department: element.department_name, territory: element.territory_name, permission: element.permission_name
-      });
+      const id = element.id;
+      // ตรวจสอบว่ามี key อยู่ใน participantList แล้วหรือยัง
+      const isExisting = participants.some((item) => item.id === id);
+      if (!isExisting) {
+        count++;
+        const newKey = `sales-${count}`;
+        participantData.push({
+          id: element.id,
+          key: newKey,
+          no: count,
+          name: element.name,
+          position: element.position_name,
+          department: element.department_name,
+          territory: element.territory_name,
+          permission: element.permission_name,
+        });
+      }
     });
-    
-    setParticipantList(participantData);
-  }
+  
+    // เพิ่มเฉพาะข้อมูลใหม่เข้าไปใน participantList
+    setParticipantList((prevList) => [...prevList, ...participantData]);
+  };
+  
 
   const handleCloseTeamModal = () => {
     setIsTeamModalVisible(false);
@@ -385,7 +401,7 @@ export default function CreateActivity() {
 
       <FormCustom fields={formFields} form={formCustom} onChange={handleChange}/>
 
-      {isBtnExpenseActive ? (
+      {(isBtnExpenseActive || mode == 'advance') ? (
         <>
           <div className="flex items-center justify-between">
             <div className="title-page">Advance Expense</div>
