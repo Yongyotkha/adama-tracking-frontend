@@ -18,6 +18,9 @@ export const paths = {
   pathMasterAreas: "master/areas",
   pathMasterRoles: "master/roles",
   pathMasterCrop: "master/crop",
+  pathMasterProductTypes: "master/product-types",
+  pathMasterProductGroups: "master/product-groups",
+
   // pathMasterShop: "master/shop",
 
   pathMasterStatus: "master/status",
@@ -56,8 +59,12 @@ export const paths = {
 
   // user
   pathRegister: "register",
+  pathMasterUsersCreate: "users/create",
+
   pathMasterUsers: "users/list",
-  pathMasterUsersEdit: "users/detail",
+  pathMasterUsersDetail: "users/detail",
+  pathMasterUsersEdit: "user-update",
+
   //promotion
   pathPromotionlist: "promotion-management/list",
   pathPromotiondetail: "promotion-management/detail",
@@ -96,5 +103,9 @@ export const paths = {
   pathGetOrderDetail: "order/detail",
   pathGetOrderWaitingList: "order/list",
   pathGetOrderChangeStatus: "order/status",
+
+  // Expense Traveling
+  pathGetExpenseTraveling: "order/list",
+  pathGetExpenseTraveling: "order/list",
 
 };
