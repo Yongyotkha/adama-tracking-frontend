@@ -123,11 +123,6 @@ export default function ActivityList() {
     { title: "Position", dataIndex: "position", key: "position" },
   ];
 
-  const actionItems = [
-    { key: "1", label: <ItemDropDown mode="edit" link="/activity/edit" /> },
-    { key: "2", label: <ItemDropDown mode="delete" link="#" /> },
-  ];
-
   const header = [
     { title: "Activity No", width: 150, dataIndex: "activityNo", align: "start" },
     { title: "Activity Type", width: 150, dataIndex: "activityType", align: "start" },
@@ -163,23 +158,47 @@ export default function ActivityList() {
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
 
-        const newDataSource = data.map((row, index) => ({
-          key: index + 1 + (current - 1) * pageSize,
-          activityNo: row.document_number,
-          activityType: row.document_type,
-          shop: row.dealer_name,
-          sale: row.user_name ?? '-',
-          keyProduct: row.key_product ?? '-',
-          date: row.document_date,
-          time: row.time,
-          action: (
-            <Dropdown menu={{ items: actionItems }} placement="bottomRight">
-              <a onClick={(e) => e.preventDefault()}>
-                <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-              </a>
-            </Dropdown>
-          )
-        }));
+        const newDataSource = data.map((row, index) => {
+          const actionItems = [
+            { 
+              key: "1", 
+              label: (
+                <ItemDropDown 
+                  mode="edit" 
+                  link={`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}`} 
+                />
+              ) 
+            },
+            { 
+              key: "2", 
+              label: (
+                <ItemDropDown 
+                  mode="delete" 
+                  link={`#`} 
+                />
+              ) 
+            },
+          ];
+        
+          return {
+            key: index + 1 + (current - 1) * pageSize,
+            activityNo: row.document_number,
+            activityType: row.document_type,
+            shop: row.dealer_name,
+            sale: row.user_name ?? '-',
+            keyProduct: row.key_product ?? '-',
+            date: row.document_date,
+            time: row.time,
+            action: (
+              <Dropdown menu={{ items: actionItems }} placement="bottomRight">
+                <a onClick={(e) => e.preventDefault()}>
+                  <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+                </a>
+              </Dropdown>
+            ),
+          };
+        });
+        
 
         setDataSource(newDataSource);
         setTableParams({

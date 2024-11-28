@@ -86,7 +86,7 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
           setLocation((prev) => ({ ...prev, lat, long }));
         },
         (err) => {
-          console.error(err.message);
+          // console.error(err.message);
         }
       );
     } else {
@@ -95,8 +95,6 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
   };
 
   const getAddress = async (lat, long) => {
-    console.log(lat, long);
-    
     const apiKey = "AIzaSyAF-YpYX1gu-kPeKxVdCTh9f_9nXXlZaPc";
     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${apiKey}`;
 
@@ -116,7 +114,7 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
         console.error("Failed to fetch address");
       }
     } catch (err) {
-      console.error(err.message);
+      // console.error(err.message);
     }
   };
 
