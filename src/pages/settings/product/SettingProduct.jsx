@@ -242,7 +242,6 @@ export default function SettingProduct() {
     // },
     {
       key: "use_flag",
-      type: "text",
       label: "Status",
       type: "select",
       options: [
