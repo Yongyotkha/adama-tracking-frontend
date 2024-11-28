@@ -9,6 +9,8 @@ import { paths } from "../../../services/CorsPath";
 export default function ActivityCalendar() {
   const [loading, setLoading] = useState(false);
   const [events, setEvents] = useState([]);
+  const [userId, setUserId] = useState("");
+  const [dealerId, setDealerId] = useState("");
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1); // Current month
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear()); // Current year
   const navigate = useNavigate();
@@ -16,13 +18,13 @@ export default function ActivityCalendar() {
   const fetchEvents = async (month, year) => {
     setLoading(true);
     try {
-      const response = await useServiceAPI.get(paths.pathActivatyCalendarList, {
+      const response = await useServiceAPI.get(paths.pathActivityCalendarList, {
         platform: "web",
         keyword: "",
         month,
         year,
-        user_id: "",
-        dealer_id: "",
+        user_id: userId,
+        dealer_id: dealerId,
       });
 
       if (response.result) {
@@ -52,15 +54,33 @@ export default function ActivityCalendar() {
     }
   };
 
+  const receiveData = (data) => {
+    if (data.saleId) {
+      setUserId(data.saleId);
+    }
+
+    if (data.shopId) {
+      setDealerId(data.shopId);
+    }
+
+    if (data) {
+      console.log(data);
+    } else [console.log("นนเอง")];
+  };
+
   useEffect(() => {
     fetchEvents(currentMonth, currentYear);
-  }, [currentMonth, currentYear]);
+  }, [currentMonth, currentYear, userId, dealerId]);
 
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Calendar</div>
-        <ActionButton mode="create" text="Create" onClick={() => navigate("/activity/create")} />
+        <ActionButton
+          mode="create"
+          text="Create"
+          onClick={() => navigate("/activity/create")}
+        />
       </div>
 
       <DynamicCalendar
@@ -70,6 +90,7 @@ export default function ActivityCalendar() {
           setCurrentYear(year);
         }}
         loading={loading}
+        sendData={receiveData}
       />
     </MainLayout>
   );

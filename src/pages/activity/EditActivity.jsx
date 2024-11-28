@@ -143,7 +143,7 @@ export default function EditActivity() {
       setLoading(true);
       try {
         const [activityDetail] = await Promise.all([
-          useServiceAPI.get(paths.pathActivatyDetail, {
+          useServiceAPI.get(paths.pathActivityDetail, {
             'document_number': documentNumber
           }),
         ]);
@@ -283,7 +283,7 @@ export default function EditActivity() {
       .validateFields()
       .then((values) => {
         useServiceAPI
-          .post(paths.pathActivatyCreate, values, setLoading)
+          .post(paths.pathActivityCreate, values, setLoading)
           .then((response) => {
             navigate("/activity/list");
           })

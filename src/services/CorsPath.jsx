@@ -60,6 +60,7 @@ export const paths = {
   pathMasterActivityType: "master/activity-type",
   pathMasterSaleDropdown: "master/sale",
   pathMasterDealerDropdown: "master/dealer",
+  pathMasterDealerAll: "master/dealer-all",
 
   // List
   pathSaleManagementList: "sale-management/list",
@@ -101,11 +102,11 @@ export const paths = {
   pathWorkPlanSaleCrop: "/work-plan/sale/crop",
 
   //Activity
-  pathActivatyList: "/activity/list",
-  pathActivatyCreate: "/activity/create",
-  pathActivatyDetail: "/activity/detail",
+  pathActivityList: "/activity/list",
+  pathActivityCreate: "/activity/create",
+  pathActivityDetail: "/activity/detail",
   // Activity Calendar
-  pathActivatyCalendarList: "/activity/calendar/list",
+  pathActivityCalendarList: "/activity/calendar/list",
   
   // Orders
   pathGetOrderList: "order/list",

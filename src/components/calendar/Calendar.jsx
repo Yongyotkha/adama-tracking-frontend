@@ -3,7 +3,7 @@ import { Select } from "antd";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 
-const Calendar = ({ events, fetchEvents, loading }) => {
+const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   const [view, setView] = useState("month");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
@@ -23,6 +23,8 @@ const Calendar = ({ events, fetchEvents, loading }) => {
           response.data.map((item) => ({
             label: item.name,
             value: item.id,
+            user_id: item.id,
+            dealer_id: item.id,
           }))
         );
       } catch (error) {
@@ -36,7 +38,7 @@ const Calendar = ({ events, fetchEvents, loading }) => {
   const handleSaleChange = async (saleId) => {
     if (saleId) {
       try {
-        const response = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
+        const response = await useServiceAPI.get(paths.pathMasterDealerAll, {
           user_id: saleId,
         });
         setShopOptions(
@@ -51,28 +53,64 @@ const Calendar = ({ events, fetchEvents, loading }) => {
     } else {
       setShopOptions([]);
     }
+
+    sendData({
+      saleId,
+    });
   };
 
-  const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-  const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+  const handleShopChange = async (shopId) => {
+    sendData({
+      shopId,
+    });
+  };
+
+  const startOfMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    1
+  );
+  const endOfMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 1,
+    0
+  );
   const daysInMonth = endOfMonth.getDate();
   const startDayOfWeek = startOfMonth.getDay();
 
   const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   const handlePrevMonth = () => {
-    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    const newDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() - 1,
+      1
+    );
     setCurrentDate(newDate);
     setSelectedDate(null);
     fetchEvents(newDate.getMonth() + 1, newDate.getFullYear());
   };
 
   const handleNextMonth = () => {
-    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+    const newDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + 1,
+      1
+    );
     setCurrentDate(newDate);
     setSelectedDate(null);
     fetchEvents(newDate.getMonth() + 1, newDate.getFullYear());
@@ -108,7 +146,9 @@ const Calendar = ({ events, fetchEvents, loading }) => {
                 ))}
               </div>
               {event.attendees.length > 3 && (
-                <span className="text-xs font-bold">+{event.attendees.length - 3}</span>
+                <span className="text-xs font-bold">
+                  +{event.attendees.length - 3}
+                </span>
               )}
             </div>
           </div>
@@ -175,20 +215,22 @@ const Calendar = ({ events, fetchEvents, loading }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex gap-2">
-              <button
-                className={`px-4 py-2 rounded ${view === "weekly" ? "bg-gray-500 text-white" : "bg-gray-200"
-                  }`}
+              {/* <button
+                className={`px-4 py-2 rounded ${
+                  view === "weekly" ? "bg-gray-500 text-white" : "bg-gray-200"
+                }`}
                 onClick={() => setView("weekly")}
               >
                 Weekly
-              </button>
-              <button
-                className={`px-4 py-2 rounded ${view === "month" ? "bg-green-600 text-white" : "bg-gray-200"
-                  }`}
+              </button> */}
+              {/* <button
+                className={`px-4 py-2 rounded ${
+                  view === "month" ? "bg-green-600 text-white" : "bg-gray-200"
+                }`}
                 onClick={() => setView("month")}
               >
                 Month
-              </button>
+              </button> */}
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -215,16 +257,17 @@ const Calendar = ({ events, fetchEvents, loading }) => {
             <Select
               className="w-40"
               placeholder="Select a Sale Territory"
-              options={[{ label: "All", value: "all" }, ...saleOptions]}
+              options={[{ label: "All", value: null }, ...saleOptions]}
               defaultValue="all"
               onChange={handleSaleChange}
             />
             <Select
               className="w-40"
               placeholder="Select a Shop"
-              options={[{ label: "All", value: "all" }, ...shopOptions]}
+              options={[{ label: "All", value: null }, ...shopOptions]}
               defaultValue="all"
-            // disabled={!shopOptions.length}
+              disabled={!shopOptions.length}
+              onChange={handleShopChange}
             />
           </div>
         </div>
@@ -256,7 +299,9 @@ const Calendar = ({ events, fetchEvents, loading }) => {
                       key={`prev-${index}`}
                       className="border p-2 bg-[#CBC5C3] text-gray-500 min-h-[170px]"
                     >
-                      <div className="text-start font-bold">{date.getDate()}</div>
+                      <div className="text-start font-bold">
+                        {date.getDate()}
+                      </div>
                     </div>
                   );
                 })}
@@ -268,18 +313,25 @@ const Calendar = ({ events, fetchEvents, loading }) => {
                     currentDate.getMonth(),
                     index + 1
                   );
-                  const isActive = selectedDate === date.toISOString().split("T")[0];
+                  const isActive =
+                    selectedDate === date.toISOString().split("T")[0];
 
                   return (
                     <div
                       key={`current-${index}`}
-                      className={`border p-2 rounded cursor-pointer flex flex-col items-center justify-start min-h-[170px] transition ${isActive ? "bg-gray-100 border-green-600" : "bg-gray-50 hover:bg-green-100"
-                        }`}
-                      onClick={() => handleDateClick(date.toISOString().split("T")[0])}
+                      className={`border p-2 rounded cursor-pointer flex flex-col items-center justify-start min-h-[170px] transition ${
+                        isActive
+                          ? "bg-gray-100 border-green-600"
+                          : "bg-gray-50 hover:bg-green-100"
+                      }`}
+                      onClick={() =>
+                        handleDateClick(date.toISOString().split("T")[0])
+                      }
                     >
                       <div
-                        className={`text-start font-bold w-full ${isActive ? "text-green-600" : "text-gray-700"
-                          }`}
+                        className={`text-start font-bold w-full ${
+                          isActive ? "text-green-600" : "text-gray-700"
+                        }`}
                       >
                         {index + 1}
                       </div>
@@ -302,7 +354,9 @@ const Calendar = ({ events, fetchEvents, loading }) => {
                       key={`next-${index}`}
                       className="border p-2 bg-[#CBC5C3] text-gray-500 min-h-[170px]"
                     >
-                      <div className="text-start font-bold">{date.getDate()}</div>
+                      <div className="text-start font-bold">
+                        {date.getDate()}
+                      </div>
                     </div>
                   );
                 })}
@@ -311,11 +365,11 @@ const Calendar = ({ events, fetchEvents, loading }) => {
           ) : (
             renderWeeklyCalendar()
           )}
-
         </div>
 
         {/* Right Side: Event Details */}
-        <div className="col-span-1 md:col-span-1 lg:col-span-3 p-4 bg-white rounded-xl shadow border-t border-green-600 mb-5"
+        <div
+          className="col-span-1 md:col-span-1 lg:col-span-3 p-4 bg-white rounded-xl shadow border-t border-green-600 mb-5"
           style={{ borderTopWidth: "10px" }}
         >
           {selectedDate ? (
@@ -338,27 +392,43 @@ const Calendar = ({ events, fetchEvents, loading }) => {
                       <div className="flex items-start gap-4">
                         <div>
                           <div className="flex justify-between">
-                            <div className={`h-10 flex items-center justify-center`}>
-                              <span className="text-xl font-bold rounded-full text-white me-2" style={{ backgroundColor: event.color }}>{event.icon || "⭐"}</span>
-                              <h4 className="text-md font-bold text-gray-800">{event.title}</h4>
+                            <div
+                              className={`h-10 flex items-center justify-center`}
+                            >
+                              <span
+                                className="text-xl font-bold rounded-full text-white me-2"
+                                style={{ backgroundColor: event.color }}
+                              >
+                                {event.icon || "⭐"}
+                              </span>
+                              <h4 className="text-md font-bold text-gray-800">
+                                {event.title}
+                              </h4>
                             </div>
                             <span className="px-3 py-1 border rounded-full text-sm text-gray-600 flex items-center">
                               {event.time}
                             </span>
                           </div>
                           <p className="text-sm text-gray-600 flex">
-                            <img src="/img/icons/location.png" className="h-6 w-6 me-2" alt="" /> {event.location}
+                            <img
+                              src="/img/icons/location.png"
+                              className="h-6 w-6 me-2"
+                              alt=""
+                            />{" "}
+                            {event.location}
                           </p>
                           <div className="flex items-center gap-2 mt-2">
                             <div className="flex -space-x-2">
-                              {event.attendees.slice(0, 3).map((attendee, idx) => (
-                                <img
-                                  key={idx}
-                                  src={attendee.avatar}
-                                  alt={attendee.name}
-                                  className="w-6 h-6 rounded-full border-2 border-white"
-                                />
-                              ))}
+                              {event.attendees
+                                .slice(0, 3)
+                                .map((attendee, idx) => (
+                                  <img
+                                    key={idx}
+                                    src={attendee.avatar}
+                                    alt={attendee.name}
+                                    className="w-6 h-6 rounded-full border-2 border-white"
+                                  />
+                                ))}
                             </div>
                             {event.attendees.length > 3 && (
                               <span className="text-xs font-bold text-gray-600">
