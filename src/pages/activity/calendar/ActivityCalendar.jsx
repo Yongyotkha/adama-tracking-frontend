@@ -16,7 +16,7 @@ export default function ActivityCalendar() {
   const fetchEvents = async (month, year) => {
     setLoading(true);
     try {
-      const response = await useServiceAPI.get(paths.pathActivatyCalendarList, {
+      const response = await useServiceAPI.get(paths.pathActivityCalendarList, {
         platform: "web",
         keyword: "",
         month,

@@ -151,7 +151,7 @@ export default function ActivityList() {
 
     try {
       const response = await useServiceAPI.get(
-        paths.pathActivatyList,
+        paths.pathActivityList,
         requestData
       );
 

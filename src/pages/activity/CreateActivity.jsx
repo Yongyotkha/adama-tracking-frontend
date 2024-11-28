@@ -278,7 +278,7 @@ export default function CreateActivity() {
       .validateFields()
       .then((values) => {
         useServiceAPI
-          .post(paths.pathActivatyCreate, values, setLoading)
+          .post(paths.pathActivityCreate, values, setLoading)
           .then((response) => {
             navigate("/activity/list");
           })

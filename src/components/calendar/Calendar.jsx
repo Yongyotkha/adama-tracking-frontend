@@ -23,6 +23,8 @@ const Calendar = ({ events, fetchEvents, loading }) => {
           response.data.map((item) => ({
             label: item.name,
             value: item.id,
+            user_id: item.id,
+            dealer_id: item.id,
           }))
         );
       } catch (error) {
@@ -36,7 +38,7 @@ const Calendar = ({ events, fetchEvents, loading }) => {
   const handleSaleChange = async (saleId) => {
     if (saleId) {
       try {
-        const response = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
+        const response = await useServiceAPI.get(paths.pathMasterDealerAll, {
           user_id: saleId,
         });
         setShopOptions(
@@ -224,7 +226,8 @@ const Calendar = ({ events, fetchEvents, loading }) => {
               placeholder="Select a Shop"
               options={[{ label: "All", value: "all" }, ...shopOptions]}
               defaultValue="all"
-            // disabled={!shopOptions.length}
+              // disabled={!shopOptions.length}
+              // onChange={handleShopChange}
             />
           </div>
         </div>
