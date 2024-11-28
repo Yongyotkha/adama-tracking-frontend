@@ -56,8 +56,12 @@ export const paths = {
 
   // user
   pathRegister: "register",
+  pathMasterUsersCreate: "users/create",
+
   pathMasterUsers: "users/list",
-  pathMasterUsersEdit: "users/detail",
+  pathMasterUsersDetail: "users/detail",
+  pathMasterUsersEdit: "user-update",
+
   //promotion
   pathPromotionlist: "promotion-management/list",
   pathPromotiondetail: "promotion-management/detail",

@@ -62,10 +62,9 @@ export default function CreateUser() {
             "YYYY-MM-DD"
           );
         }
-        console.log("Form Values:", values);
 
         useServiceAPI
-          .post(paths.pathRegister, values, setLoading)
+          .post(paths.pathMasterUsersCreate, values, setLoading)
           .then((response) => {
             if (response.status == 201) {
               console.log(response.data.message);
