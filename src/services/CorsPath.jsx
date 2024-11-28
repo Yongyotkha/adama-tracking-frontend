@@ -87,7 +87,7 @@ export const paths = {
   // upload
   pathUpload: "upload/create",
 
-  //sale plan
+  //head plan
   pathGetWorkPlanList: "work-plan/list",
   pathWorkPlanStep1: "work-plan/workplan_step1",
   pathWorkPlanStep2: "work-plan/workplan_step2",

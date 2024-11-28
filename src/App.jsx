@@ -92,18 +92,22 @@ const App = () => {
 
 
           {/* Sale Plan Route */}
+
+          {/* Work Plan Route */}
           <Route path="/sale-plan/work-plan" element={<WorkPlan />} />
           <Route path="/sale-plan/work-plan-area" element={<WorkPlan />} />
           <Route path="/sale-plan/work-plan-sale" element={<WorkPlan />} />
           <Route path="/sale-plan/work-plan/create" element={<WorkPlanCreate />} />
           <Route path="/sale-plan/work-plan/edit" element={<EditWorkPlan />} />
           <Route path="/sale-plan/work-plan/create-2" element={<WorkPlanCreateStepTwo />} />
-          <Route path="/sale-plan/rolling-forecast" element={<RollingForecast />} />
-          <Route path="/sale-plan/rolling-forecast/edit" element={<EditRollingForecast />} />
           <Route path="/sale-plan/work-plan/sale-area-create" element={<WorkPlanAreaCreate />} />
           <Route path="/sale-plan/work-plan-sale/sale-create" element={<WorkPlanSaleCreate />} />
           <Route path="/sale-plan/work-plan-sale/sale-by-crop" element={<WorkPlanSaleByCrop />} />
           <Route path="/sale-plan/work-plan-sale/sale-by-dealer" element={<WorkPlanSaleByDealer />} />
+
+          {/* Rolling Rorecast Route */}
+          <Route path="/sale-plan/rolling-forecast" element={<RollingForecast />} />
+          <Route path="/sale-plan/rolling-forecast/edit" element={<EditRollingForecast />} />
 
           {/* Activity Route */}
           <Route path="/activity/list" element={<ActivityList />} />
