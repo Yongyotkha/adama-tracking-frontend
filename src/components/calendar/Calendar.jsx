@@ -306,7 +306,7 @@ const Calendar = ({ events, fetchEvents, loading }) => {
             </>
           ) : (
             <div className="text-center text-gray-500">
-              <p>Please select a date to view details.</p>
+              <p>Select a date to view events.</p>
             </div>
           )}
         </div>
