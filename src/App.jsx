@@ -100,9 +100,9 @@ const App = () => {
           <Route path="/sale-plan/rolling-forecast" element={<RollingForecast />} />
           <Route path="/sale-plan/rolling-forecast/edit" element={<EditRollingForecast />} />
           <Route path="/sale-plan/work-plan/sale-area-create" element={<WorkPlanAreaCreate />} />
-          <Route path="/sale-plan/work-plan/sale-create" element={<WorkPlanSaleCreate />} />
-          <Route path="/sale-plan/work-plan/sale-by-crop" element={<WorkPlanSaleByCrop />} />
-          <Route path="/sale-plan/work-plan/sale-by-dealer" element={<WorkPlanSaleByDealer />} />
+          <Route path="/sale-plan/work-plan-sale/sale-create" element={<WorkPlanSaleCreate />} />
+          <Route path="/sale-plan/work-plan-sale/sale-by-crop" element={<WorkPlanSaleByCrop />} />
+          <Route path="/sale-plan/work-plan-sale/sale-by-dealer" element={<WorkPlanSaleByDealer />} />
 
           {/* Activity Route */}
           <Route path="/activity/list" element={<ActivityList />} />
