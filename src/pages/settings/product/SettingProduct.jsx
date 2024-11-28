@@ -14,16 +14,49 @@ import { paths } from "../../../services/CorsPath";
 export default function SettingProduct() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [position, setPosition] = useState([]);
   const [modalConfig, setModalConfig] = useState({
     title: "",
     isVisible: false,
     header: [],
     dataSource: [],
   });
+  const [tableParams, setTableParams] = useState({
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+    filters: {},
+    sortOrder: null,
+    sortField: null,
+  });
+
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [positions, roles] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterProductTypes, {}),
+          useServiceAPI.get(paths.pathMasterProductGroups, {}),
+        ]);
+
+        setPosition(positions.data);
+        setRoles(roles.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, []);
+
 
   const filters = [
     {
-      key: "product_code",
+      key: "keyword",
       type: "text",
       label: "Product Code",
       placeholder: "All",
@@ -32,22 +65,14 @@ export default function SettingProduct() {
       key: "product_type",
       type: "select",
       label: "Product Type",
-      options: [
-        { value: "Special", label: "Special" },
-        { value: "Commodity", label: "Commodity" },
-        { value: "3rd Party", label: "3rd Party" },
-        { value: "SAS", label: "SAS" },
-      ],
+      options: position,
+
     },
     {
-      key: "product_group",
+      key: "category_id",
       type: "select",
       label: "Product Group",
-      options: [
-        { value: "Gold", label: "Gold" },
-        { value: "Silver", label: "Silver" },
-        { value: "Bronz", label: "Bronz" },
-      ],
+      options: roles,
     },
     {
       key: "product_name",
@@ -210,6 +235,8 @@ export default function SettingProduct() {
 
   //   setDataSource(dataSource);
   // }, []);
+
+
 
 
   useEffect(() => {

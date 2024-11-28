@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
 import { Form, Input, Col, Row, Select } from "antd";
@@ -9,19 +9,32 @@ import TableComponent from "../../components/table/TableComponent";
 import FileUploadComponent from "../../components/file_upload/FileUploadComponent";
 import DynamicButton from "../../components/button/DynamicButton";
 import DynamicModal from "../../components/modal/DynamicModal";
+import useServiceAPI from "../../services/CorsService";
+import { paths } from "../../services/CorsPath";
+import { useLocation } from "react-router-dom";
 
 const { Option } = Select;
 
 export default function EditActivity() {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const documentNumber = searchParams.get("documentNumber");
+
   const [loading, setLoading] = useState(false);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
+  const [activityList, setActivityList] = useState([]);
+  const [saleList, setSaleList] = useState([]);
+  const [saleAllList, setSaleAllList] = useState([]);
+  const [dealerList, setDealerList] = useState([]);
+  const [cropList, setCropList] = useState([]);
+  const [timeList, setTimeList] = useState([]);
+  const [activityDetail, setActivityDetail] = useState([]);
   const navigate = useNavigate();
 
   const [formCustom] = Form.useForm();
   const [customerForm] = Form.useForm();
   const [expenseForm] = Form.useForm();
   const [participantForm] = Form.useForm();
-
   const fileUploadRef = useRef(null); // Reference for FileUploadComponent
 
   const handleUploadClick = () => {
@@ -74,23 +87,105 @@ export default function EditActivity() {
       };
 
       console.log("Combined Form Data:", combinedData);
-      navigate("/activity");
+      navigate("/expenses/advance");
     } catch (error) {
       console.error("Validation failed:", error);
     }
   };
 
   const formFields = [
-    { label: "Activity Reference", name: "activity_reference", type: "text", disabled: true, required: false, col: 24, value: "202400000000001" },
-    { label: "Activity Type", name: "activity_type", type: "select", options: ["FMT"], disabled: false, required: true, col: 6, value: "FMT" },
-    { label: "Shop", name: "shop", type: "select", options: ["Chaifar"], disabled: false, required: true, col: 6, value: "Chaifar" },
-    { label: "Crop", name: "crop", type: "select", options: ["Rice"], disabled: false, required: true, col: 6, value: "Rice" },
-    { label: "Date", name: "date", type: "date", disabled: false, required: true, col: 6, value: "2024-01-01" },
-    { label: "Start Time", name: "start_time", type: "time", disabled: false, required: true, col: 6, value: "09:00" },
-    { label: "End Time", name: "end_time", type: "time", disabled: false, required: true, col: 6, value: "11:00" },
-    { label: "Location", name: "location", type: "text", disabled: false, required: false, col: 12, value: "2/80 ถนนพาดาวรี ต.ท่าอิฐ อ.เมืองอุดรธานี จ.อุดรธานี", iconSrc: "/img/icons/location.png", iconPosition: "left" },
-    { label: "Description", name: "description", type: "text-editor", disabled: false, required: false, col: 24, placeholder: "Add description", value: "" }
+    { label: "Activity Reference", name: "activity_reference", type: "text", disabled: true, required: false, col: 24, value: activityDetail.document_number },
+    { label: "Activity Type", name: "activity_type_id", type: "select", options: activityList, disabled: false, required: true, col: 8, value: "" },
+    { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: false, required: true, col: 8, value: "", moderef: true },
+    { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: false, required: true, col: 8, value: "", moderef: true },
+    { label: "Crop", name: "crop_id_list", type: "select", mode: "multiple", options: cropList, disabled: false, required: true, col: 6, value: [] },
+    { label: "Date", name: "document_date", type: "date", disabled: false, required: true, col: 6, value: "2024-01-01" },
+    { label: "Start Time", name: "time_start", type: "select", options:timeList, disabled: false, required: true, col: 6, value:""  },
+    { label: "End Time", name: "time_end", type: "select", options:timeList, disabled: false, required: true, col: 6, value: "" },
+    { label: "Location", name: "location_address", type: "location", disabled: true, required: false, col: 24, value: "", iconSrc: "/img/icons/location.png", iconPosition: "left" },
+    { label: "Description", name: "description", type: "text-editor", disabled: false, required: false, col: 24, placeholder: "Add description", value: "" },
+    { label: "Assign", name: "assing_user_list", type: "select", mode: "multiple", options: saleAllList, disabled: false, required: true, col: 24, value: [] },
   ];
+
+   // Master
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [activityType, sale, saleAll, time] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterActivityType, {}),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {
+            'status': 'all'
+          }),
+          useServiceAPI.get(paths.pathMasterTime, {}),
+        ]);
+
+        setActivityList(activityType.data);
+        setSaleList(sale.data);
+        setSaleAllList(saleAll.data);
+        setTimeList(time.data);
+      } catch (error) {
+        
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, []);
+
+  // Detail
+  useEffect(() => {
+    console.log(documentNumber);
+    
+    const getDetail = async () => {
+      setLoading(true);
+      try {
+        const [activityDetail] = await Promise.all([
+          useServiceAPI.get(paths.pathActivatyDetail, {
+            'document_number': documentNumber
+          }),
+        ]);
+        setActivityDetail(activityDetail.data);
+      } catch (error) {
+        
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getDetail();
+
+    console.log(activityDetail);
+    
+  }, []);
+
+  const handleChange = (attribue, value) => {
+    const getMasterSelect = async () => {
+      try {
+        if(attribue == 'user_id'){
+          const [dealer] = await Promise.all([
+            useServiceAPI.get(paths.pathMasterDealerDropdown, {
+              user_id: value
+            }),
+          ]);
+          setDealerList(dealer.data);
+        }else if(attribue == 'dealer_id'){
+          const [crop] = await Promise.all([
+            useServiceAPI.get(paths.pathMasterCrop, {
+              dealer_id: value
+            }),
+          ]);
+          setCropList(crop.data);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    getMasterSelect();
+  };
 
   const header = [
     { title: "Product Name", dataIndex: "productName", key: "productName", align: "left" },
@@ -183,6 +278,24 @@ export default function EditActivity() {
     setParticipants(participants.filter(item => item.key !== key));
   };
 
+  const handleSave = () => {
+    formCustom
+      .validateFields()
+      .then((values) => {
+        useServiceAPI
+          .post(paths.pathActivatyCreate, values, setLoading)
+          .then((response) => {
+            navigate("/activity/list");
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      })
+      .catch((errorInfo) => {
+        console.error("Validation Failed:", errorInfo);
+      });
+  };
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -191,9 +304,10 @@ export default function EditActivity() {
         {/* <ActionButton mode="hide" text="Add Advance Expense" onClick='' /> */}
       </div>
 
-      <FormCustom fields={formFields} form={formCustom} />
+      <FormCustom fields={formFields} form={formCustom} onChange={handleChange}/>
 
-      <div className="flex items-center justify-between">
+      {/* TODO: ทำในส่วนของ Activity Infomation Basic ก่อน */}
+      {/* <div className="flex items-center justify-between">
         <div className="title-page">Advance Expense</div>
         <ActionButton mode="hide" text="Hide Advance Expense" onClick='' />
       </div>
@@ -287,10 +401,10 @@ export default function EditActivity() {
           <ActionButton mode="add" text="Upload File" onClick={handleUploadClick} />
         </div>
         <FileUploadComponent ref={fileUploadRef} dataFile={fileList} />
-      </BoxPrimary>
+      </BoxPrimary> */}
 
       {/* Participant Section */}
-      <BoxPrimary>
+      {/* <BoxPrimary>
         <div className="flex items-center justify-between">
           <div className="text-[#00783F] text-lg font-semibold mb-3">Participant</div>
           <ActionButton mode="add" text="Add" onClick={handleOpenTeamModal} />
@@ -323,11 +437,11 @@ export default function EditActivity() {
             pagination={false}
           />
         </Form>
-      </BoxPrimary>
+      </BoxPrimary> */}
 
       <div className="flex justify-end space-x-4 mt-6">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/activity/list")} />
-        <ActionButton mode="update" text="Update" onClick={handleUpdate} />
+        <ActionButton mode="save" text="Save" onClick={handleSave} />
       </div>
 
       {/* Modal for Add Participant */}

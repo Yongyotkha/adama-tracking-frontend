@@ -18,14 +18,19 @@ export const paths = {
   pathMasterAreas: "master/areas",
   pathMasterRoles: "master/roles",
   pathMasterCrop: "master/crop",
+  pathMasterProductTypes: "master/product-types",
+  pathMasterProductGroups: "master/product-groups",
+  pathMasterProductByCrop: "master/product-by-crop",
+  pathMasterSaleAll: "master/sale-all/list",
+
   // pathMasterShop: "master/shop",
 
   pathMasterStatus: "master/status",
   pathMasterHeadofsale: "master/headofsale",
   pathMasterUserlist: "master/users/list",
   pathMasterSalearea: "master/salearea",
+  pathMasterMonths: "master/months",
   pathMasterYear: "master/years",
-
   
   // Sale
   pathSaleManagementDetail: "sale-management/sale-team/detail",
@@ -56,8 +61,12 @@ export const paths = {
 
   // user
   pathRegister: "register",
+  pathMasterUsersCreate: "users/create",
+
   pathMasterUsers: "users/list",
-  pathMasterUsersEdit: "users/detail",
+  pathMasterUsersDetail: "users/detail",
+  pathMasterUsersEdit: "user-update",
+
   //promotion
   pathPromotionlist: "promotion-management/list",
   pathPromotiondetail: "promotion-management/detail",
@@ -83,11 +92,14 @@ export const paths = {
   pathGetWorkPlanSaleList: "/work-plan/sale/list",
   pathWorkPlanSaleQuarter: "/work-plan/sale/quarter",
   pathWorkPlanSaleCrop: "/work-plan/sale/crop",
-  
-  //Activaty
+
+  //Activity
   pathActivatyList: "/activity/list",
   pathActivatyCreate: "/activity/create",
-
+  pathActivatyDetail: "/activity/detail",
+  // Activity Calendar
+  pathActivatyCalendarList: "/activity/calendar/list",
+  
   // Orders
   pathGetOrderList: "order/list",
   pathGetOrderCreate: "order/create",
@@ -95,5 +107,11 @@ export const paths = {
   pathGetOrderDetail: "order/detail",
   pathGetOrderWaitingList: "order/list",
   pathGetOrderChangeStatus: "order/status",
+
+  // Expense Traveling
+  pathGetExpenseTravelingList: "expense/traveling/list",
+  pathGetExpenseTravelingDetail: "expense/traveling/detail",
+  pathGetExpenseTravelingCreate: "expense/traveling/create",
+  pathGetExpenseTravelingUpdate: "expense/traveling/update",
 
 };

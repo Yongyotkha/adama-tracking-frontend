@@ -12,7 +12,8 @@ export default function CreatePromotion() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [form] = Form.useForm();
-  const { showMsg } = useContext(AuthContext);
+  // const { showMsg } = useContext(AuthContext);
+  const { showMsg, showNotification } = useContext(AuthContext);
 
   useEffect(() => { }, []);
 
@@ -26,19 +27,20 @@ export default function CreatePromotion() {
     { label: "Description ", 
       name: "description", 
       type: "text", 
-      required: false, 
+      required: true, 
       col: 12, 
     },
-    { label: "Value (THB)", 
+    { 
+      label: "Value (THB)", 
       name: "value", 
       type: "text", 
-      required: false, 
+      required: true, 
       col: 6, 
     },
     { label: "Status", 
       name: "use_flag", 
       type: "select", 
-      required: false, 
+      required: true, 
       col: 6, 
       options: [
         { name: "Active", id: 1, selected: true },
@@ -51,23 +53,30 @@ export default function CreatePromotion() {
     form
       .validateFields()
       .then((values) => {
-        console.log("Form Values:", values.description); // ตรวจสอบค่าที่ได้จากฟอร์มใน console
         useServiceAPI
           .post(paths.pathPromotioncreate, values, setLoading)
           .then((response) => {
             if (response.status === 201) {
-              console.log(response.data.message);
-              showMsg("success", response.data.message).then(() => {
-                navigate("/setting/promotion");
-              });
+              showNotification(
+                "success",
+                response.data.message,
+                response.data.message_line
+              );
+              // showMsg("success", response.data.message).then(() => {
+              //   navigate("/setting/promotion");
+              // });
             }
           })
           .catch((error) => {
             console.log(error);
             if (error.status === 422) {
-              showMsg("error", error.message);
+              // showMsg("error", error.message);
+              showNotification("error", response.message, response.message_line);
+
             } else {
-              showMsg("error", "เกิดข้อผิดพลาด");
+              // showMsg("error", "เกิดข้อผิดพลาด");
+              showNotification("error", response.message, response.message_line);
+
             }
           });
       })
@@ -81,9 +90,7 @@ export default function CreatePromotion() {
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Create Promotion</div>
-
       <FormUser fields={formFields} form={form}/>
-
       <div className="flex justify-end space-x-4">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/setting/promotion")} />
         {/* <ActionButton mode="save" text="Save" onClick={() => navigate("/setting/promotion")} /> */}

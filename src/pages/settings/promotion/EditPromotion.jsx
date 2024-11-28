@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import FormUser from "../../../components/form_user/FormUser";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -6,6 +6,7 @@ import ActionButton from "../../../components/button/ActionButton";
 import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/corsService";
 import { Form } from "antd";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function EditPromotion() {
   const location = useLocation();
@@ -13,13 +14,12 @@ export default function EditPromotion() {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [position, setPosition] = useState([]);
+  const { showMsg, showNotification } = useContext(AuthContext);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log(location.state.id);
         await fetchPromotionDetails(location.state.id);
-  
         const [positions] = await Promise.all([
           // useServiceAPI.get(paths.pathMasterStatus, {}),
           useServiceAPI.get(`${paths.pathMasterStatus}?status_type=status`),
@@ -59,21 +59,21 @@ export default function EditPromotion() {
             label: "Name", 
             name: "name", 
             type: "text", 
-            required: false, 
+            required: true, 
             col: 12, 
             value: data.name || "" },
           { 
             label: "Description", 
             name: "description", 
             type: "text", 
-            required: false, 
+            required: true, 
             col: 12, 
             value: data.description || "" },
           { 
             label: "Value (THB)", 
             name: "value", 
             type: "text", 
-            required: false, 
+            required: true, 
             col: 6, 
             value: data.value || "" },
           { 
@@ -86,13 +86,21 @@ export default function EditPromotion() {
               { name: "Active", id: 1, selected: true },
               { name: "Inactive", id: 0, selected: false },
             ],
-            value: data.use_flag === "1" ? "Active" : "Inactive" },
-          { label: "Remark", name: "remark", type: "text", required: false, col: 12, value: data.remark || "" },
+            value: parseInt(data.use_flag, 10) === 1 ? "Active" : "Inactive",
+
+          },
+          { 
+            label: "Remark", 
+            name: "remark", 
+            type: "text", 
+            required: false, 
+            col: 12, 
+            value: 
+            data.remark || "" 
+          },
         ];
   
         setFormFields(updatedFields);
-  
-        // Update form values directly
         const initialValues = updatedFields.reduce((acc, field) => {
           acc[field.name] = field.value;
           return acc;
@@ -123,17 +131,28 @@ export default function EditPromotion() {
           .then((response) => {
             if (response.status === 201) {
               console.log(response.data.message);
-              showMsg("success", response.data.message).then(() => {
-                navigate("/setting/promotion"); 
-              });
+              // showMsg("success", response.data.message).then(() => {
+              //   navigate("/setting/promotion"); 
+              // });
+
+              showNotification(
+                "success",
+                response.data.message,
+                response.data.message_line
+              );
+
             }
           })
           .catch((error) => {
             console.error(error);
             if (error.status === 422) {
-              showMsg("error", error.message);
+              // showMsg("error", error.message);
+              showNotification("error", response.message, response.message_line);
+
             } else {
-              showMsg("error", "เกิดข้อผิดพลาด");
+              // showMsg("error", "เกิดข้อผิดพลาด");
+              showNotification("error", response.message, response.message_line);
+
             }
           });
       })
@@ -145,16 +164,14 @@ export default function EditPromotion() {
 
 
   return (
+
     <MainLayout loading={loading}>
       <div className="title-page">Edit Promotion</div>
-
-      <FormUser profile="/img/profile.jpg" fields={formFields} form={form}  />
-
+      <FormUser profile="/img/profile.jpg" fields={formFields} form={form} />
       <div className="flex justify-end space-x-4">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/setting/promotion")} />
         {/* <ActionButton mode="update" text="Update" onClick={() => navigate("/setting/promotion")} /> */}
         <ActionButton text="update" mode="update" onClick={handleSave} />
-
       </div>
 
     </MainLayout>

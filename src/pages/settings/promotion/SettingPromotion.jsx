@@ -321,7 +321,7 @@ export default function SettingPromotion() {
     const sortField = tableParams.sortField || "name";
 
     const requestData = {
-      // keyword: filters.keyword || "",
+      keyword: filters.keyword || "",
       // user_id: filters.user_id || "",
       // position_id: filters.position || "",
       // role_id: filters.role || "",
@@ -340,9 +340,7 @@ export default function SettingPromotion() {
       );
 
       if (response.status === 200) {
-        const { data, records_filtered } = response.data;    
-        console.log(response.data);
-            
+        const { data, records_filtered } = response.data;                
         const newDataSource = data.map((promotion, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           action: (
@@ -412,12 +410,20 @@ export default function SettingPromotion() {
     JSON.stringify(tableParams.filters),
   ]);
 
+  const handleTableChange = (pagination, filters, sorter) => {
+    setTableParams({
+      pagination,
+      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortField: sorter.field,
+    });
+  };
+
   const filters = [
     {
-      key: "name",
+      key: "keyword",
       type: "text",
       label: "Name",
-      placeholder: "All",
     },
   ];
 
@@ -449,6 +455,7 @@ export default function SettingPromotion() {
         onSearch={handleSearch}
         onClear={handleClear}
         filters={filters}
+        onChange={handleTableChange}
       />
 
       <BoxPrimary>

@@ -10,9 +10,10 @@ dayjs.extend(customParseFormat);
 
 const { Option } = Select;
 
-export default function FormUser({ fields, title, profile, form }) {
+export default function FormUser({ fields, title, profile, form, onChange = {} }) {
   const { showMsg } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
+  const [formValues, setFormValues] = useState({});
   const dateFormat = "YYYY-MM-DD";
 
   const [imagePreview, setImagePreview] = useState(
@@ -55,11 +56,6 @@ export default function FormUser({ fields, title, profile, form }) {
     form?.setFieldsValue(initialValues);
   }, [fields, form]);
 
-
-  // useEffect(() => {
-  //   form?.setFieldsValue(initialValues);
-  // }, [initialValues, form]);
-
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     setImagePreview(URL.createObjectURL(file)); // แสดงตัวอย่างรูปภาพ
@@ -80,6 +76,17 @@ export default function FormUser({ fields, title, profile, form }) {
     } catch (error) {
       console.error("Error uploading form data:", error);
       showMsg("error", "เกิดข้อผิดพลาด");
+    }
+  };
+
+  const handleChange = (attribute, value) => {
+    form.setFieldsValue({ [attribute]: value }); // อัปเดตค่าลงในฟอร์ม
+    setFormValues((prev) => ({
+      ...prev,
+      [attribute]: value,
+    }));
+    if (onChange) {
+      onChange(attribute, value); // เรียก callback ถ้ามี
     }
   };
 
@@ -125,6 +132,9 @@ export default function FormUser({ fields, title, profile, form }) {
                       label: option.name,
                       value: option.id,
                     }))}
+                    value={form.getFieldValue(field.name)} // Dynamically bind the value
+                    onChange={(value) => handleChange(field.name, value)}
+                    // onChange={(value) => form.setFieldsValue({ [field.name]: value })} 
                   >
                     {/* {field?.options?.map((option, idx) => (
                       <Option key={idx} value={option.id}>
