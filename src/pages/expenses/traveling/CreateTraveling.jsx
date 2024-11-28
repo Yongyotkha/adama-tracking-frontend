@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Form, Input, Select } from "antd";
 import MainLayout from "../../../layouts/MainLayout";
 import FormCustom from "../../../components/form_custom/FormCustom";
+import FormUser from "../../../components/form_user/FormUser";
 import { useNavigate, useLocation } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
@@ -9,47 +10,90 @@ import TableComponent from "../../../components/table/TableComponent";
 import NumericInput from "../../../components/numeric_input/NumericInput";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import dayjs from "dayjs";
 
 export default function CreateTraveling() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  // const [dataSource, setDataSource] = useState([]);
+  const [dataSource, setDataSource] = useState([]);
 
   // Table data source
-  const [dataSource, setDataSource] = useState([
-    {
-      key: "1",
-      date: "01-08-2024",
-      from: "กรุงเทพ",
-      to: "สิงห์บุรี",
-      mileage: "0",
-      petrol: "0",
-      cashPetrol: "1260",
-      hotel: "0",
-      allowance: "400",
-      tollFee: "0",
-      entertain: "0",
-      others: "0",
-      total: "1660",
-      remark: "ไป-กลับ กทม สิงบุรี ลงแปลง อ้อย",
-    },
-    {
-      key: "2",
-      date: "01-08-2024",
-      from: "กรุงเทพ",
-      to: "สิงห์บุรี",
-      mileage: "0",
-      petrol: "0",
-      cashPetrol: "3200",
-      hotel: "0",
-      allowance: "1200",
-      tollFee: "0",
-      entertain: "0",
-      others: "0",
-      total: "4400",
-      remark: "ไป-กลับ กทม สิงบุรี ลงแปลง อ้อย",
-    },
-  ]);
+  // const [dataSource, setDataSource] = useState([
+  //   {
+  //     key: "1",
+  //     date: "01-08-2024",
+  //     from: "กรุงเทพ",
+  //     to: "สิงห์บุรี",
+  //     mileage: "0",
+  //     petrol: "0",
+  //     cashPetrol: "1260",
+  //     hotel: "0",
+  //     allowance: "400",
+  //     tollFee: "0",
+  //     entertain: "0",
+  //     others: "0",
+  //     total: "1660",
+  //     remark: "ไป-กลับ กทม สิงบุรี ลงแปลง อ้อย",
+  //   },
+  //   {
+  //     key: "2",
+  //     date: "01-08-2024",
+  //     from: "กรุงเทพ",
+  //     to: "สิงห์บุรี",
+  //     mileage: "0",
+  //     petrol: "0",
+  //     cashPetrol: "3200",
+  //     hotel: "0",
+  //     allowance: "1200",
+  //     tollFee: "0",
+  //     entertain: "0",
+  //     others: "0",
+  //     total: "4400",
+  //     remark: "ไป-กลับ กทม สิงบุรี ลงแปลง อ้อย",
+  //   },
+  //   {
+  //     key: "3",
+  //     date: "02-08-2024",
+  //     from: "กรุงเทพ",
+  //     to: "สิงห์บุรี",
+  //     mileage: "0",
+  //     petrol: "0",
+  //     cashPetrol: "3200",
+  //     hotel: "0",
+  //     allowance: "1200",
+  //     tollFee: "0",
+  //     entertain: "0",
+  //     others: "0",
+  //     total: "4400",
+  //     remark: "ไป-กลับ กทม สิงบุรี ลงแปลง อ้อย",
+  //   },
+  // ]);
+
+  const handleMonthChange = (value) => {
+    console.log(value);
+    
+    // const year = 2024; // กำหนดปีคงที่ (หรือรับค่าจากการเลือกปี)
+    // const daysInMonth = dayjs(`${year}-${value}`).daysInMonth();
+
+    // const newData = Array.from({ length: daysInMonth }, (_, i) => ({
+    //   key: i + 1,
+    //   date: dayjs(`${year}-${value}-${i + 1}`).format("DD-MM-YYYY"),
+    //   from: "กรุงเทพ",
+    //   to: "สิงห์บุรี",
+    //   mileage: "0",
+    //   petrol: "0",
+    //   cashPetrol: "0",
+    //   hotel: "0",
+    //   allowance: "0",
+    //   tollFee: "0",
+    //   entertain: "0",
+    //   others: "0",
+    //   total: "0",
+    //   remark: "",
+    // }));
+
+    // setDataSource(newData);
+  };
 
   // Function to add a new row
   const addRow = () => {
@@ -91,8 +135,24 @@ export default function CreateTraveling() {
     dataSource.reduce((acc, item) => acc + parseFloat(item[field] || 0), 0);
 
   const formFields = [
-    { label: "Month", name: "Month", type: "month", disabled: false, required: true, col: 6, value: "2024-08" },
-    { label: "Date", name: "date", type: "date", disabled: false, required: true, col: 6, value: "2024-01-01" },
+    { 
+      label: "Month", 
+      name: "Month", 
+      type: "month", 
+      disabled: false, 
+      required: true, 
+      col: 6, 
+      value: "2024-08" 
+    },
+    { 
+      label: "Date", 
+      name: "date", 
+      type: "date", 
+      disabled: false, 
+      required: true, 
+      col: 6, 
+      value: "2024-01-01" 
+    },
   ];
 
   // Table headers for the Traveling section
@@ -275,7 +335,7 @@ export default function CreateTraveling() {
       </div>
 
       {/* Form Section */}
-      <FormCustom fields={formFields} />
+      <FormUser fields={formFields} onChange={handleMonthChange} />
 
       {/* Traveling Section */}
       <BoxPrimary>
