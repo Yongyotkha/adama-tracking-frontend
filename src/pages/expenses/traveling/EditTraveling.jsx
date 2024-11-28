@@ -1,73 +1,124 @@
-import React, { useState } from "react";
-import { Input } from "antd";
+import React, { useState, useEffect, useContext } from "react";
+import { Form, Input, Select } from "antd";
 import MainLayout from "../../../layouts/MainLayout";
 import FormCustom from "../../../components/form_custom/FormCustom";
-import { useNavigate } from "react-router-dom";
+import FormUser from "../../../components/form_user/FormUser";
+import { useNavigate, useLocation } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
 import NumericInput from "../../../components/numeric_input/NumericInput";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function EditTraveling() {
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [loading, setLoading] = useState(false);
+  const { showMsg, showNotification } = useContext(AuthContext);
+  const [dataSource, setDataSource] = useState([]);
+  const [dataSourceDetail, setDataSourceDetail] = useState([]);
+  const [dataSale, setDataSale] = useState([]);
+  const [dataYear, setDataYear] = useState([]);
+  const [dataMonth, setDataMonth] = useState([]);
 
-  // Table data source
-  const [dataSource, setDataSource] = useState([
-    {
-      key: "1",
-      date: "01-08-2024",
-      from: "กรุงเทพ",
-      to: "สิงห์บุรี",
-      mileage: "0",
-      petrol: "0",
-      cashPetrol: "1260",
-      hotel: "0",
-      allowance: "400",
-      tollFee: "0",
-      entertain: "0",
-      others: "0",
-      total: "1660",
-      remark: "ไป-กลับ กทม สิงบุรี ลงแปลง อ้อย",
-    },
-    {
-      key: "2",
-      date: "01-08-2024",
-      from: "กรุงเทพ",
-      to: "สิงห์บุรี",
-      mileage: "0",
-      petrol: "0",
-      cashPetrol: "3200",
-      hotel: "0",
-      allowance: "1200",
-      tollFee: "0",
-      entertain: "0",
-      others: "0",
-      total: "4400",
-      remark: "ไป-กลับ กทม สิงบุรี ลงแปลง อ้อย",
-    },
-  ]);
+  const [saleId, setSaleId] = useState("");
+  const [yearCode, setYearCode] = useState("");
+  const [monthCode, setMonthCode] = useState("");
+
+  const [dataRemark, setDataRemark] = useState("");
+  const [dataTotalAdvanced, setDataTotalAdvanced] = useState(0);
+  const [dataTotalExpenses, setDataTotalExpenses] = useState(0);
+  const [returnToCompany, setReturnToCompany] = useState(0);
+  const [returnToStaff, setReturnToStaff] = useState(0);
+
+  const [formCustom] = Form.useForm();
+
+  // Set Data
+  const [getUserId, setGetUserId] = useState(location.state.user_id);
+  const [getYearCode, setGetYearCode] = useState(location.state.year_code);
+  const [getMonthCode, setGetMonthCode] = useState(location.state.month_code);
+
+  // Get Expenses Detail
+  useEffect(() => {
+    const getExpensesDetail = async () => {
+      setLoading(true);
+      try {
+        const [expense] = await Promise.all([
+          useServiceAPI.get(paths.pathGetExpenseTravelingDetail, {
+            year_code: getYearCode,
+            month_code: getMonthCode,
+            user_id: getUserId,
+          }),
+        ]);
+
+        setDataSourceDetail(expense.data);
+        setDataSource(
+          expense.data.data_items.map((data, index) => ({
+            key: index + 1,
+            date: data.date,
+            from: data.traveling_from,
+            to: data.traveling_to,
+            mileage: parseFloat(data.mileage),
+            petrol: parseFloat(data.petrol),
+            cashPetrol: parseFloat(data.cash_petrol),
+            hotel: parseFloat(data.hotel),
+            allowance: parseFloat(data.allowance),
+            tollFee:parseFloat(data.toll_fee),
+            entertain: parseFloat(data.entertain),
+            others: parseFloat(data.others),
+            total: parseFloat(data.total),
+            remark: data.remark,
+          }))
+        );
+
+        setDataRemark(expense.data.remark);
+        setSaleId(getUserId);
+        setYearCode(getYearCode);
+        setMonthCode(getMonthCode);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getExpensesDetail();
+  }, [saleId, yearCode, monthCode]);
+
+  const handleMonthChange = (filter, value) => {
+    if (filter == "sale") {
+      setSaleId(value);
+    }
+    if (filter == "year") {
+      setYearCode(value);
+    }
+    if (filter == "month") {
+      setMonthCode(value);
+    }
+  };
 
   // Function to add a new row
-  const addRow = () => {
-    const newRow = {
-      key: `${dataSource.length + 1}`,
-      date: "",
-      from: "",
-      to: "",
-      mileage: "0",
-      petrol: "0",
-      cashPetrol: "0",
-      hotel: "0",
-      allowance: "0",
-      tollFee: "0",
-      entertain: "0",
-      others: "0",
-      total: "0",
-      remark: "",
-    };
-    setDataSource([...dataSource, newRow]);
-  };
+  // const addRow = () => {
+  //   const newRow = {
+  //     key: `${dataSource.length + 1}`,
+  //     date: "",
+  //     from: "",
+  //     to: "",
+  //     mileage: "0",
+  //     petrol: "0",
+  //     cashPetrol: "0",
+  //     hotel: "0",
+  //     allowance: "0",
+  //     tollFee: "0",
+  //     entertain: "0",
+  //     others: "0",
+  //     total: "0",
+  //     remark: "",
+  //   };
+  //   setDataSource([...dataSource, newRow]);
+  // };
 
   // Update individual cell values
   const updateField = (key, field, value) => {
@@ -79,17 +130,69 @@ export default function EditTraveling() {
   };
 
   // Calculate total for each row
-  const calculateTotal = (item) =>
-    ["mileage", "petrol", "cashPetrol", "hotel", "allowance", "tollFee", "entertain", "others"]
-      .reduce((acc, field) => acc + parseFloat(item[field] || 0), 0);
+  const calculateTotal = (item) => (
+    [
+      // "mileage",
+      // "petrol",
+      "cashPetrol",
+      "hotel",
+      "allowance",
+      "tollFee",
+      "entertain",
+      "others",
+    ]).reduce((acc, field) => acc + parseFloat(item[field] || 0), 0);
 
   // Calculate total for the footer
-  const calculateFooterTotal = (field) =>
-    dataSource.reduce((acc, item) => acc + parseFloat(item[field] || 0), 0);
+  const calculateFooterTotal = (field) => {
+    return dataSource.reduce(
+      (acc, item) => acc + parseFloat(item[field] || 0),
+      0
+    );
+  };
+
+  // Update Footer Totals when Data Source Changes
+  useEffect(() => {
+    const totalExpenses = calculateFooterTotal("total");
+    const totalAdvanced = calculateFooterTotal("total"); // Adjust field as per requirement
+    setDataTotalExpenses(totalExpenses);
+    setDataTotalAdvanced(totalAdvanced);
+
+    // Optionally calculate "Return to Company" and "Return to Staff"
+    // const returnToCompany = totalAdvanced - totalExpenses > 0 ? totalAdvanced - totalExpenses : 0;
+    // const returnToStaff = totalExpenses - totalAdvanced > 0 ? totalExpenses - totalAdvanced : 0;
+
+    // setReturnToCompany(returnToCompany);
+    // setReturnToStaff(returnToStaff);
+  }, [dataSource, dataTotalExpenses, dataTotalAdvanced]);
 
   const formFields = [
-    { label: "Month", name: "Month", type: "month", disabled: false, required: true, col: 6, value: "2024-08" },
-    { label: "Date", name: "date", type: "date", disabled: false, required: true, col: 6, value: "2024-01-01" },
+    {
+      label: "Sale",
+      name: "sale",
+      type: "select",
+      options: dataSale,
+      required: false,
+      col: 6,
+      value: saleId,
+    },
+    {
+      label: "Year",
+      name: "year",
+      type: "select",
+      options: dataYear,
+      required: false,
+      col: 6,
+      value: yearCode,
+    },
+    {
+      label: "Month",
+      name: "month",
+      type: "select",
+      options: dataMonth,
+      required: false,
+      col: 6,
+      value: monthCode,
+    },
   ];
 
   // Table headers for the Traveling section
@@ -102,7 +205,8 @@ export default function EditTraveling() {
         <Input
           value={value}
           style={{ width: 120 }}
-          onChange={(e) => updateField(record.key, 'date', e.target.value)}
+          onChange={(e) => updateField(record.key, "date", e.target.value)}
+          disabled
         />
       ),
     },
@@ -114,7 +218,7 @@ export default function EditTraveling() {
         <Input
           value={value}
           style={{ width: 120 }}
-          onChange={(e) => updateField(record.key, 'from', e.target.value)}
+          onChange={(e) => updateField(record.key, "from", e.target.value)}
         />
       ),
     },
@@ -126,7 +230,7 @@ export default function EditTraveling() {
         <Input
           value={value}
           style={{ width: 120 }}
-          onChange={(e) => updateField(record.key, 'to', e.target.value)}
+          onChange={(e) => updateField(record.key, "to", e.target.value)}
         />
       ),
     },
@@ -138,7 +242,7 @@ export default function EditTraveling() {
         <NumericInput
           style={{ width: 100 }}
           value={value}
-          onChange={(val) => updateField(record.key, 'mileage', val)}
+          onChange={(val) => updateField(record.key, "mileage", val)}
         />
       ),
     },
@@ -150,7 +254,7 @@ export default function EditTraveling() {
         <NumericInput
           style={{ width: 100 }}
           value={value}
-          onChange={(val) => updateField(record.key, 'petrol', val)}
+          onChange={(val) => updateField(record.key, "petrol", val)}
         />
       ),
     },
@@ -162,7 +266,7 @@ export default function EditTraveling() {
         <NumericInput
           style={{ width: 100 }}
           value={value}
-          onChange={(val) => updateField(record.key, 'cashPetrol', val)}
+          onChange={(val) => updateField(record.key, "cashPetrol", val)}
         />
       ),
     },
@@ -174,7 +278,7 @@ export default function EditTraveling() {
         <NumericInput
           style={{ width: 100 }}
           value={value}
-          onChange={(val) => updateField(record.key, 'hotel', val)}
+          onChange={(val) => updateField(record.key, "hotel", val)}
         />
       ),
     },
@@ -186,7 +290,7 @@ export default function EditTraveling() {
         <NumericInput
           style={{ width: 100 }}
           value={value}
-          onChange={(val) => updateField(record.key, 'allowance', val)}
+          onChange={(val) => updateField(record.key, "allowance", val)}
         />
       ),
     },
@@ -198,7 +302,7 @@ export default function EditTraveling() {
         <NumericInput
           style={{ width: 100 }}
           value={value}
-          onChange={(val) => updateField(record.key, 'tollFee', val)}
+          onChange={(val) => updateField(record.key, "tollFee", val)}
         />
       ),
     },
@@ -210,7 +314,7 @@ export default function EditTraveling() {
         <NumericInput
           style={{ width: 100 }}
           value={value}
-          onChange={(val) => updateField(record.key, 'entertain', val)}
+          onChange={(val) => updateField(record.key, "entertain", val)}
         />
       ),
     },
@@ -222,7 +326,7 @@ export default function EditTraveling() {
         <NumericInput
           style={{ width: 100 }}
           value={value}
-          onChange={(val) => updateField(record.key, 'others', val)}
+          onChange={(val) => updateField(record.key, "others", val)}
         />
       ),
     },
@@ -234,8 +338,8 @@ export default function EditTraveling() {
         <NumericInput
           style={{ width: 100 }}
           value={value}
-          onChange={(val) => updateField(record.key, 'total', val)}
-          readOnly
+          onChange={(val) => updateField(record.key, "total", val)}
+          disabled
         />
       ),
     },
@@ -243,28 +347,108 @@ export default function EditTraveling() {
       title: <span className="text-nowrap">Remark</span>,
       dataIndex: "remark",
       key: "remark",
-      render: (text) => (
-        <Input style={{ width: 250 }} defaultValue={text} />
-      ),
+      render: (text) => <Input style={{ width: 250 }} defaultValue={text} />,
     },
   ];
-  
 
   const footerOrderList = () => (
     <tr className="bg-[#978B87] text-white text-start">
       <td colSpan={3}>Total (THB)</td>
-      <td><Input value={calculateFooterTotal("mileage")} readOnly /></td>
-      <td><Input value={calculateFooterTotal("petrol")} readOnly /></td>
-      <td><Input value={calculateFooterTotal("cashPetrol")} readOnly /></td>
-      <td><Input value={calculateFooterTotal("hotel")} readOnly /></td>
-      <td><Input value={calculateFooterTotal("allowance")} readOnly /></td>
-      <td><Input value={calculateFooterTotal("tollFee")} readOnly /></td>
-      <td><Input value={calculateFooterTotal("entertain")} readOnly /></td>
-      <td><Input value={calculateFooterTotal("others")} readOnly /></td>
-      <td><Input value={calculateFooterTotal("total")} readOnly /></td>
+      <td>
+        <Input value={calculateFooterTotal("mileage")} readOnly hidden />
+      </td>
+      <td>
+        <Input value={calculateFooterTotal("petrol")} readOnly />
+      </td>
+      <td>
+        <Input value={calculateFooterTotal("cashPetrol")} readOnly />
+      </td>
+      <td>
+        <Input value={calculateFooterTotal("hotel")} readOnly />
+      </td>
+      <td>
+        <Input value={calculateFooterTotal("allowance")} readOnly />
+      </td>
+      <td>
+        <Input value={calculateFooterTotal("tollFee")} readOnly />
+      </td>
+      <td>
+        <Input value={calculateFooterTotal("entertain")} readOnly />
+      </td>
+      <td>
+        <Input value={calculateFooterTotal("others")} readOnly />
+      </td>
+      <td>
+        <Input value={calculateFooterTotal("total")} readOnly />
+      </td>
       <td></td>
     </tr>
   );
+
+  const handleSave = () => {
+    formCustom
+      .validateFields()
+      .then((values) => {
+        //
+        const transformedData = dataSource.map((item, index) => ({
+          key: `${index + 1}`,
+          date: item.date || "",
+          traveling_from: item.from || "",
+          traveling_to: item.to || "",
+          mileage: item.mileage || "0",
+          petrol: item.petrol || "0",
+          cash_petrol: item.cashPetrol || "0",
+          hotel: item.hotel || "0",
+          allowance: item.allowance || "0",
+          toll_fee: item.tollFee || "0",
+          entertain: item.entertain || "0",
+          others: item.others || "0",
+          total: item.total || "0",
+          remark: item.remark || "",
+        }));
+
+        const body = {
+          action_code: "save",
+          year_code: yearCode,
+          month_code: monthCode,
+          user_id: saleId,
+          total_advanced: dataTotalAdvanced,
+          total_expenses: dataTotalExpenses,
+          total_return_to_company: returnToCompany,
+          total_to_staff: returnToStaff,
+          remark: dataRemark,
+          data_items: transformedData,
+        };
+        console.log(body);
+        return;
+        const saveExpensesTraveling = async () => {
+          setLoading(true);
+          try {
+            const [response] = await Promise.all([
+              useServiceAPI.put(paths.pathGetExpenseTravelingUpdate, body),
+            ]);
+
+            showNotification(
+              "success",
+              response.data.message,
+              response.data.message_line
+            ).then(() => {
+              navigate("/expenses/traveling");
+            });
+          } catch (error) {
+            // showMsg("error", error.message || "เกิดข้อผิดพลาด");
+            console.log(error);
+          } finally {
+            setLoading(false);
+          }
+        };
+        //
+        saveExpensesTraveling();
+      })
+      .catch((errorInfo) => {
+        console.error("Validation Failed:", errorInfo);
+      });
+  };
 
   return (
     <MainLayout loading={loading}>
@@ -273,13 +457,19 @@ export default function EditTraveling() {
       </div>
 
       {/* Form Section */}
-      <FormCustom fields={formFields} />
+      <FormUser
+        fields={formFields}
+        form={formCustom}
+        onChange={handleMonthChange}
+      />
 
       {/* Traveling Section */}
       <BoxPrimary>
         <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-lg font-semibold">Traveling</span>
-          <ActionButton mode="add" text="Add" onClick={addRow} />
+          <span className="text-[#00783F] text-lg font-semibold">
+            Traveling
+          </span>
+          {/* <ActionButton mode="add" text="Add" onClick={addRow} /> */}
         </div>
         <TableComponent
           header={header}
@@ -293,28 +483,37 @@ export default function EditTraveling() {
       <BoxPrimary>
         <div className="grid grid-cols-2 gap-4">
           <div className="flex justify-end">Total Advanced:</div>
-          <NumericInput value="26080" disabled />
+          <NumericInput value={dataTotalAdvanced} disabled />
 
           <div className="flex justify-end">Total Expenses:</div>
-          <NumericInput value="26080" disabled />
+          <NumericInput value={dataTotalExpenses} disabled />
 
           <div className="flex justify-end">Return to Company:</div>
-          <NumericInput value="0" disabled />
+          <NumericInput value={returnToCompany} disabled />
 
           <div className="flex justify-end">Return to Staff:</div>
-          <NumericInput value="26080" disabled />
+          <NumericInput value={returnToStaff} disabled />
         </div>
       </BoxPrimary>
 
       {/* Remark Section */}
       <BoxPrimary title="Remark">
-        <Input.TextArea placeholder="Remark" rows={2} />
+        <Input.TextArea
+          rows={2}
+          placeholder="Remark"
+          value={dataRemark}
+          onChange={(e) => setDataRemark(e.target.value)}
+        />
       </BoxPrimary>
 
       {/* Action Buttons */}
       <div className="flex justify-end space-x-4">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/expenses/traveling")} />
-        <ActionButton mode="save" text="Save" onClick={() => navigate("/expenses/traveling")} />
+        <ActionButton
+          mode="back"
+          text="Back"
+          onClick={() => navigate("/expenses/traveling")}
+        />
+        <ActionButton mode="save" text="Save" onClick={() => handleSave()} />
       </div>
     </MainLayout>
   );
