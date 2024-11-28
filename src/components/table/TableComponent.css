@@ -38,3 +38,7 @@
   background-color: #978b87 !important;
 
 }
+
+:where(.css-dev-only-do-not-override-1rmgrdf).ant-table-wrapper .ant-table-thead >tr>th, :where(.css-dev-only-do-not-override-1rmgrdf).ant-table-wrapper .ant-table-thead >tr>td {
+  border-bottom: unset;
+}

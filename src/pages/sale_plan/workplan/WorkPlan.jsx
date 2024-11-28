@@ -110,9 +110,15 @@ export default function WorkPlan() {
                     label: (
                       <ItemDropDown
                         mode={actionItem.action.toLowerCase()}
-                        onClick={() =>
-                          navigate(actionItem.action_url, { state })
-                        }
+                        onClick={() => {
+                          if (pathRole === "sale") {
+                            navigate("/sale-plan/work-plan/sale-create", {
+                              state,
+                            });
+                          } else {
+                            navigate(actionItem.action_url, { state });
+                          }
+                        }}
                       />
                     ),
                   };
