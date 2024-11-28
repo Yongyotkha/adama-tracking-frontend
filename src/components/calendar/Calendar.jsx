@@ -1,9 +1,57 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Select } from "antd";
+import useServiceAPI from "../../services/CorsService";
+import { paths } from "../../services/CorsPath";
 
 const Calendar = ({ events, fetchEvents, loading }) => {
   const [view, setView] = useState("month");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
+
+  // State for Sale Territory and Shop options
+  const [saleOptions, setSaleOptions] = useState([]);
+  const [shopOptions, setShopOptions] = useState([]);
+
+  useEffect(() => {
+    // Fetch Sale Territory options on mount
+    const fetchSaleOptions = async () => {
+      try {
+        const response = await useServiceAPI.get(paths.pathMasterSaleDropdown, {
+          status: "all",
+        });
+        setSaleOptions(
+          response.data.map((item) => ({
+            label: item.name,
+            value: item.id,
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching Sale options:", error);
+      }
+    };
+
+    fetchSaleOptions();
+  }, []);
+
+  const handleSaleChange = async (saleId) => {
+    if (saleId) {
+      try {
+        const response = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
+          user_id: saleId,
+        });
+        setShopOptions(
+          response.data.map((item) => ({
+            label: item.name,
+            value: item.id,
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching Shop options:", error);
+      }
+    } else {
+      setShopOptions([]);
+    }
+  };
 
   const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
   const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
@@ -19,17 +67,16 @@ const Calendar = ({ events, fetchEvents, loading }) => {
   const handlePrevMonth = () => {
     const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
     setCurrentDate(newDate);
-    setSelectedDate(null); // Reset selected date
-    fetchEvents(newDate.getMonth() + 1, newDate.getFullYear()); // Fetch events for the new month
+    setSelectedDate(null);
+    fetchEvents(newDate.getMonth() + 1, newDate.getFullYear());
   };
 
   const handleNextMonth = () => {
     const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
     setCurrentDate(newDate);
-    setSelectedDate(null); // Reset selected date
-    fetchEvents(newDate.getMonth() + 1, newDate.getFullYear()); // Fetch events for the new month
+    setSelectedDate(null);
+    fetchEvents(newDate.getMonth() + 1, newDate.getFullYear());
   };
-
 
   const handleDateClick = (date) => {
     setSelectedDate(date);
@@ -82,12 +129,10 @@ const Calendar = ({ events, fetchEvents, loading }) => {
 
     return (
       <div className="grid grid-cols-8">
-        {/* Header Row */}
         <div className="border p-2 font-bold text-center bg-gray-200">Time</div>
         {weekdays.map((day, index) => {
           const date = new Date(startOfWeek);
           date.setDate(date.getDate() + index);
-          const formattedDate = date.toISOString().split("T")[0];
 
           return (
             <div
@@ -100,36 +145,21 @@ const Calendar = ({ events, fetchEvents, loading }) => {
           );
         })}
 
-        {/* Time Slots */}
         {Array.from({ length: 9 }, (_, i) => 9 + i).map((hour) => (
           <React.Fragment key={hour}>
-            {/* Time Column */}
             <div className="border-t border-r p-2 text-center bg-gray-100">
               {hour}:00
             </div>
-            {/* Events for each day */}
             {weekdays.map((day, index) => {
               const date = new Date(startOfWeek);
               date.setDate(date.getDate() + index);
-              const formattedDate = date.toISOString().split("T")[0];
-              const eventsForDay = events.filter(
-                (event) => event.date === formattedDate && event.time.startsWith(`${hour}`)
-              );
 
               return (
                 <div
                   key={`${day}-${hour}`}
                   className="border-t border-r p-2 min-h-[60px] bg-white"
                 >
-                  {eventsForDay.map((event, idx) => (
-                    <div
-                      key={idx}
-                      className="p-1 mb-1 text-sm text-white rounded"
-                      style={{ backgroundColor: event.color }}
-                    >
-                      {event.title}
-                    </div>
-                  ))}
+                  {/* Events */}
                 </div>
               );
             })}
@@ -141,29 +171,27 @@ const Calendar = ({ events, fetchEvents, loading }) => {
 
   return (
     <div className="grid grid-rows-[auto,1fr] h-screen">
-      {/* Header */}
       <header className="p-4 bg-gray-50 border-b">
         <div className="flex items-center justify-between">
-          {/* Left Controls */}
           <div className="flex items-center gap-4">
-            {/* View Switch */}
             <div className="flex gap-2">
               <button
-                className={`px-4 py-2 rounded ${view === "weekly" ? "bg-gray-500 text-white" : "bg-gray-200"
-                  }`}
+                className={`px-4 py-2 rounded ${
+                  view === "weekly" ? "bg-gray-500 text-white" : "bg-gray-200"
+                }`}
                 onClick={() => setView("weekly")}
               >
                 Weekly
               </button>
               <button
-                className={`px-4 py-2 rounded ${view === "month" ? "bg-green-600 text-white" : "bg-gray-200"
-                  }`}
+                className={`px-4 py-2 rounded ${
+                  view === "month" ? "bg-green-600 text-white" : "bg-gray-200"
+                }`}
                 onClick={() => setView("month")}
               >
                 Month
               </button>
             </div>
-            {/* Month Selector */}
             <div className="flex items-center gap-2">
               <button
                 className="px-4 py-2 bg-green-600 text-white rounded"
@@ -182,30 +210,28 @@ const Calendar = ({ events, fetchEvents, loading }) => {
               </button>
             </div>
           </div>
-
           <span className="text-lg font-bold text-green-600">
             {months[currentDate.getMonth()]} {currentDate.getFullYear()}
           </span>
-
-          {/* Dropdowns */}
           <div className="flex items-center gap-4">
-            <select className="px-4 py-2 border rounded bg-white">
-              <option value="Sale Territory">Sale Territory</option>
-              <option value="Region 1">Region 1</option>
-              <option value="Region 2">Region 2</option>
-            </select>
-            <select className="px-4 py-2 border rounded bg-white">
-              <option value="Shop">Shop</option>
-              <option value="Shop A">Shop A</option>
-              <option value="Shop B">Shop B</option>
-            </select>
+            <Select
+              className="w-40"
+              placeholder="Select a Sale Territory"
+              options={[{ label: "All", value: "all" }, ...saleOptions]}
+              defaultValue="all"
+              onChange={handleSaleChange}
+            />
+            <Select
+              className="w-40"
+              placeholder="Select a Shop"
+              options={[{ label: "All", value: "all" }, ...shopOptions]}
+              defaultValue="all"
+              disabled={!shopOptions.length}
+            />
           </div>
         </div>
       </header>
-
-      {/* Main Content */}
       <main className="grid grid-cols-12 gap-4 p-4 bg-gray-50">
-        {/* Left Side: Calendar */}
         <div className="col-span-8">
           {view === "month" ? (
             <div className="grid grid-cols-7 gap-2">
@@ -221,18 +247,17 @@ const Calendar = ({ events, fetchEvents, loading }) => {
                   currentDate.getMonth(),
                   index + 1
                 );
-                const formattedDate = date.toISOString().split("T")[0];
 
                 return (
                   <div
                     key={index}
                     className="border p-2 rounded bg-gray-50 cursor-pointer flex flex-col items-center justify-start min-h-[170px] hover:bg-green-100 transition"
-                    onClick={() => handleDateClick(formattedDate)}
+                    onClick={() => handleDateClick(date.toISOString().split("T")[0])}
                   >
                     <div className="text-right font-bold w-full text-gray-700">
                       {index + 1}
                     </div>
-                    {renderEventsForDate(formattedDate)}
+                    {renderEventsForDate(date.toISOString().split("T")[0])}
                   </div>
                 );
               })}
@@ -241,7 +266,6 @@ const Calendar = ({ events, fetchEvents, loading }) => {
             renderWeeklyCalendar()
           )}
         </div>
-
         {/* Right Side: Event Details */}
         <div
           className="col-span-4 p-4 bg-gray-100 rounded shadow border-t border-green-600"
@@ -310,7 +334,6 @@ const Calendar = ({ events, fetchEvents, loading }) => {
             </div>
           )}
         </div>
-
       </main>
     </div>
   );
