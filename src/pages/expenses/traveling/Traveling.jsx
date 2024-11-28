@@ -154,42 +154,6 @@ export default function Traveling() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-  // useEffect(() => {
-  //   // Example data for the table
-  //   const dataSource = [
-  //     {
-  //       key: 1,
-  //       year: "2024",
-  //       month: "October",
-  //       date: "2024-01-01",
-  //       status: <BadgeStatus text="Completed" bgColor="#009845" textColor="#FFFFFF" />,
-  //       action: (
-  //         <Dropdown menu={{ items: actionItems }} placement="bottomRight">
-  //           <a onClick={(e) => e.preventDefault()}>
-  //             <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-  //           </a>
-  //         </Dropdown>
-  //       ),
-  //     },
-  //     {
-  //       key: 2,
-  //       year: "2024",
-  //       month: "September",
-  //       date: "2024-01-01",
-  //       status: <BadgeStatus text="Completed" bgColor="#009845" textColor="#FFFFFF" />,
-  //       action: (
-  //         <Dropdown menu={{ items: actionItems }} placement="bottomRight">
-  //           <a onClick={(e) => e.preventDefault()}>
-  //             <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-  //           </a>
-  //         </Dropdown>
-  //       ),
-  //     },
-  //   ];
-
-  //   setDataSource(dataSource);
-  // }, []);
-
   ////////////////////////////////////////////// table ///////////////////////////////////////////////
   const fetchData = async () => {
     setTableLoading(true);
