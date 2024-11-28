@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Form } from "antd";
+import { Col, Form, Input, Row } from "antd";
 import MainLayout from "../../../layouts/MainLayout";
 import FormUser from "../../../components/form_user/FormUser";
 import ActionButton from "../../../components/button/ActionButton";
@@ -8,6 +8,7 @@ import { AuthContext } from "../../../contexts/AuthContext";
 import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
 import dayjs from "dayjs";
+import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 
 export default function CreateUser() {
   const [loading, setLoading] = useState(false);
@@ -203,6 +204,7 @@ export default function CreateUser() {
     <MainLayout loading={loading}>
       <div className="title-page">Create User</div>
       <FormUser fields={formFields} form={form} />
+
       <div className="flex justify-end space-x-4 mt-4">
         <ActionButton text="Back" mode="back" onClick={handleBack} />
         <ActionButton text="Save" mode="save" onClick={handleSave} />

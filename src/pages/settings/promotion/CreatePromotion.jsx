@@ -20,7 +20,7 @@ export default function CreatePromotion() {
     { label: "Name", 
       name: "name", 
       type: "text", 
-      required: false, 
+      required: true, 
       col: 12, 
     },
     { label: "Description ", 

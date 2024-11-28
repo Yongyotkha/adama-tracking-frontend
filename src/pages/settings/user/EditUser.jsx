@@ -4,12 +4,14 @@ import FormUser from "../../../components/form_user/FormUser";
 import DynamicButton from "../../../components/button/DynamicButton";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
+import BoxPrimary from "../../../components/box_primary/BoxPrimary";
+import { Col, Form, Input, Row } from "antd";
 
 export default function EditUser() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {}, []);
+  useEffect(() => { }, []);
 
   const handleBack = () => {
     navigate("/setting/user");
@@ -136,6 +138,32 @@ export default function EditUser() {
       <div className="title-page">Edit User</div>
 
       <FormUser profile="/img/profile.jpg" fields={formFields} />
+
+      <BoxPrimary>
+        <div className="flex items-center justify-between">
+          <div className="text-[#00783F] text-lg font-semibold mb-3">Change Password</div>
+          <ActionButton mode="edit" text="Edit" onClick='' />
+        </div>
+        <Form layout="vertical">
+          <Row gutter={[16, 16]} className="mt-3">
+            <Col xs={24} sm={12} md={12} lg={8}>
+              <Form.Item className="mb-3" label="Current password">
+                <Input.Password disabled />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={8}>
+              <Form.Item className="mb-3" label="New password">
+                <Input.Password disabled />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={8}>
+              <Form.Item className="mb-3" label="Confirm password">
+                <Input.Password disabled />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
         <ActionButton text="Back" mode="back" onClick={handleBack} />

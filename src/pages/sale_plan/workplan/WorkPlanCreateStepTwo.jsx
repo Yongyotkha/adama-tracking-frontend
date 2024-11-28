@@ -1,8 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import TableComponent from "../../../components/table/TableComponent";
-import DynamicButton from "../../../components/button/DynamicButton";
 import { Input, InputNumber, Table } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
@@ -10,20 +8,16 @@ import TableCustomComponent from "../../../components/table/TableCustomComponent
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
-import { debounce } from "lodash";
 
 export default function WorkPlanCreateStepTwo() {
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [dataSource, setDataSource] = useState(
-    location?.state?.data?.dataSource
-  );
+  const [dataSource, setDataSource] = useState([]);
   const [areas, setAreas] = useState([]);
   const [permission, setPermission] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
   const { showNotification } = useContext(AuthContext);
-
   const [localQtyState, setLocalQtyState] = useState({});
 
   const handleQtyChange = (area_id, product_id, newQty, unitConvertValue) => {
@@ -83,10 +77,6 @@ export default function WorkPlanCreateStepTwo() {
       return updatedState; // อัปเดต localQtyState
     });
   };
-
-  useEffect(() => {
-    console.log(areas);
-  }, [areas]);
 
   useEffect(() => {
     useServiceAPI
@@ -243,7 +233,10 @@ export default function WorkPlanCreateStepTwo() {
                       min={0}
                       value={text}
                       formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        `฿ ${Number(value).toFixed(2)}`.replace(
+                          /\B(?=(\d{3})+(?!\d))/g,
+                          ","
+                        )
                       }
                     />
                   ),
@@ -261,7 +254,10 @@ export default function WorkPlanCreateStepTwo() {
                       min={0}
                       value={text}
                       formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        `฿ ${Number(value).toFixed(2)}`.replace(
+                          /\B(?=(\d{3})+(?!\d))/g,
+                          ","
+                        )
                       }
                     />
                   ),
@@ -286,9 +282,12 @@ export default function WorkPlanCreateStepTwo() {
                   className="w-full"
                   disabled
                   min={0}
-                  value={parseFloat(item.amount_target).toFixed(2)}
+                  value={item.amount_target}
                   formatter={(value) =>
-                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                    `฿ ${Number(value).toFixed(2)}`.replace(
+                      /\B(?=(\d{3})+(?!\d))/g,
+                      ","
+                    )
                   }
                 />
               ),
@@ -343,7 +342,10 @@ export default function WorkPlanCreateStepTwo() {
                           dataItem ? parseFloat(dataItem.value).toFixed(2) : 0
                         }
                         formatter={(value) =>
-                          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          `฿ ${Number(value).toFixed(2)}`.replace(
+                            /\B(?=(\d{3})+(?!\d))/g,
+                            ","
+                          )
                         }
                       />
                     );
@@ -426,7 +428,7 @@ export default function WorkPlanCreateStepTwo() {
             pagination={false}
             scroll={true}
             footer={() => (
-              <Table.Summary>
+              <Table.Summary fixed>
                 <Table.Summary.Row className="bg-[#978B87]">
                   <Table.Summary.Cell index={0} colSpan={2}>
                     Total (THB)
@@ -438,7 +440,10 @@ export default function WorkPlanCreateStepTwo() {
                       value={totalValue}
                       min={0}
                       formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        `฿ ${Number(value).toFixed(2)}`.replace(
+                          /\B(?=(\d{3})+(?!\d))/g,
+                          ","
+                        )
                       }
                       style={{ backgroundColor: "white" }}
                     />
@@ -451,7 +456,10 @@ export default function WorkPlanCreateStepTwo() {
                         disabled
                         value={parseFloat(area.amount_target || 0).toFixed(2)} // amount_target ของ area
                         formatter={(value) =>
-                          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          `฿ ${Number(value).toFixed(2)}`.replace(
+                            /\B(?=(\d{3})+(?!\d))/g,
+                            ","
+                          )
                         }
                         style={{ backgroundColor: "white" }}
                       />

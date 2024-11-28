@@ -1,73 +1,108 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
-import { Input } from "antd";
+import { Form, Input } from "antd";
 import TableComponent from "../../components/table/TableComponent";
 import ActionButton from "../../components/button/ActionButton";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import FormCustom from "../../components/form_custom/FormCustom";
+import FormUser from "../../components/form_user/FormUser";
+import useServiceAPI from "../../services/CorsService";
+import { paths } from "../../services/CorsPath";
+import { AuthContext } from "../../contexts/AuthContext";
 
 export default function ViewOrder() {
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [loading, setLoading] = useState(false);
+  const { showMsg, showNotification } = useContext(AuthContext);
+  const [dataSource, setDataSource] = useState([]);
+  const [dataSourceOther, setDataSourceOther] = useState([]);
+  const [getRemark, setGetRemark] = useState("");
+  const [documentNumber, setDocumentNumber] = useState(location.state.document_number);
+  const [dataOrderDetail, setDataOrderDetail] = useState([]);
+  const [formFields, setFormFields] = useState([]);
 
-  const dataSource = [
-    {
-      key: "1",
-      no: "1",
-      sku: "3027200113",
-      productName: "Bumper P",
-      unit: "0.5 ltX20",
-      pricePerUnit: "575.00",
-      quantity: 10,
-      foc: 1,
-      subTotal: "115,000.00",
-    },
-    {
-      key: "2",
-      no: "2",
-      sku: "207920011520",
-      productName: "Memory 300EC",
-      unit: "1lt X20",
-      pricePerUnit: "340.00",
-      quantity: 10,
-      foc: 1,
-      subTotal: "68,000.00",
-    },
-  ];
+  const [formCustom] = Form.useForm();
 
-  const dataSourceOther = [
+  // Get Data
+  useEffect(() => {
+    const loadDataOrderDetail = async () => {
+      setLoading(true);
+      try {
+        const [orderDetail] = await Promise.all([
+          useServiceAPI.get(paths.pathGetOrderDetail, {
+            document_number: documentNumber,
+          }),
+        ]);
+
+        setDataOrderDetail(orderDetail.data);
+        setDataSource(orderDetail.data.products);
+        setDataSourceOther(orderDetail.data.others);
+
+        // setFormFields(formFieldData);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDataOrderDetail();
+  }, [])
+  
+  const formFieldData = [
     {
-      key: "1",
-      no: "1",
-      productName: "เสื้อเชิ้ตยีนส์แขนยาว - อดามา",
-      unit: "ตัว",
-      quantity: 10,
-      value: 10000,
+      label: "Sale",
+      name: "sale",
+      type: "text",
+      disabled: true,
+      placeholder: dataOrderDetail.user_name,
+      value: dataOrderDetail.user_name,
     },
     {
-      key: "2",
-      no: "2",
-      productName: "เสื้อเชิ้ตยีนส์แขนยาว - อดามา",
-      unit: "ตัว",
-      quantity: 20,
-      value: 20000,
+      label: "Dealer",
+      name: "dealer",
+      type: "text",
+      disabled: true,
+      placeholder: dataOrderDetail.dealer_name,
+      value: dataOrderDetail.dealer_name,
+    },
+    {
+      label: "Order No",
+      name: "order_no",
+      type: "text",
+      disabled: true,
+      placeholder: dataOrderDetail.document_number,
+      value: dataOrderDetail.document_number,
+    },
+    {
+      label: "Date",
+      name: "order_date",
+      type: "date",
+      disabled: true,
+      placeholder: "",
+      value: dataOrderDetail.document_date,
     },
   ];
 
   const header = [
-    { title: "No", dataIndex: "no", key: "no", width: 10 },
-    { title: "SKU", dataIndex: "sku", key: "sku" },
-    { title: "Product Name", dataIndex: "productName", key: "productName" },
-    { title: "Unit", dataIndex: "unit", key: "unit" },
-    { title: "THB/Unit", dataIndex: "pricePerUnit", key: "pricePerUnit" },
+    { title: "No", dataIndex: "document_item", key: "document_item", width: 10 },
+    { title: "SKU", dataIndex: "product_code", key: "product_code" },
+    { title: "Product Name", dataIndex: "product_name", key: "product_name" },
+    { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
+    {
+      title: "THB/Unit",
+      dataIndex: "product_unit_thb",
+      key: "product_unit_thb",
+    },
     {
       title: <div className="text-center">QTY (ctn)</div>,
       dataIndex: "quantity",
       key: "quantity",
       render: (text) => (
         <div className="text-center">
-          {parseFloat(text || 0).toLocaleString("en-US")}
+          {parseFloat(text || 0).toLocaleString("en-US").replace(/,/g, "")}
         </div>
       ),
     },
@@ -83,8 +118,8 @@ export default function ViewOrder() {
     },
     {
       title: <div className="text-end">Sub Total (THB)</div>,
-      dataIndex: "subTotal",
-      key: "subTotal",
+      dataIndex: "net_amount",
+      key: "net_amount",
       render: (text) => (
         <div className="text-end">
           {parseFloat(text || 0).toLocaleString("en-US", {
@@ -96,14 +131,14 @@ export default function ViewOrder() {
   ];
 
   const headerOther = [
-    { title: "No", dataIndex: "no", key: "no", width: 10 },
-    { title: "Name", dataIndex: "productName", key: "productName" },
-    { title: "Unit", dataIndex: "unit", key: "unit" },
+    { title: "No", dataIndex: "document_item", key: "document_item", width: 10 },
+    { title: "Name", dataIndex: "product_name", key: "product_name" },
+    { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
     { title: "QTY", dataIndex: "quantity", key: "quantity" },
     {
       title: <div className="text-end">Value (THB)</div>,
-      dataIndex: "value",
-      key: "value",
+      dataIndex: "net_amount",
+      key: "net_amount",
       render: (text) => (
         <div className="text-end">
           {parseFloat(text || 0).toLocaleString("en-US", {
@@ -118,11 +153,12 @@ export default function ViewOrder() {
     <tr className="bg-[#978B87]">
       <td colSpan={8} className="text-right pr-2 text-white">
         Item : {dataSource.length} &nbsp;&nbsp; QTY (ctn):{" "}
-        {dataSource.reduce((total, item) => total + item.quantity, 0)} &nbsp;&nbsp;
-        Total :{" "}
+        {dataSource.reduce((total, item) => total + parseFloat(item.quantity.replace(/,/g, "")), 0)}{" "}
+        &nbsp;&nbsp; Total :{" "}
         {dataSource
           .reduce(
-            (total, item) => total + parseFloat(item.subTotal.replace(/,/g, "")),
+            (total, item) =>
+              total + parseFloat(item.net_amount.replace(/,/g, "")),
             0
           )
           .toLocaleString("en-US", { minimumFractionDigits: 2 })}
@@ -140,25 +176,21 @@ export default function ViewOrder() {
         )}
         &nbsp;&nbsp; Total :{" "}
         {dataSourceOther
-          .reduce((total, item) => total + item.value, 0)
+          .reduce(
+            (total, item) =>
+              total + parseFloat(item.net_amount.replace(/,/g, "")),
+            0
+          )
           .toLocaleString("en-US", { minimumFractionDigits: 2 })}
       </td>
     </tr>
   );
-
-  const formFields = [
-    { label: "Sale", name: "sale", type: "text", disabled: true, value: "Manupong" },
-    { label: "Dealer", name: "dealer", type: "text", disabled: true, value: "Chaifar" },
-    { label: "Order No", name: "order_no", type: "text", disabled: true, value: "20240001" },
-    { label: "Date", name: "order_date", type: "date", disabled: true, value: "2024-01-01" },
-  ];
-
+  
   return (
     <MainLayout loading={loading}>
-
       <div className="title-page">View Order</div>
 
-      <FormCustom fields={formFields} />
+      <FormUser fields={formFieldData} form={formCustom} />
 
       <BoxPrimary title="Order List">
         <TableComponent
@@ -181,12 +213,20 @@ export default function ViewOrder() {
       </BoxPrimary>
 
       <BoxPrimary title="Remark">
-        <Input.TextArea placeholder="Remark" value="Remark" disabled className="bg-gray-100" />
+        <Input.TextArea
+          placeholder=""
+          value={dataOrderDetail.ref_remark}
+          disabled
+          className="bg-gray-100"
+        />
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4 mt-4">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/order/list")} />
-        <ActionButton mode="save" text="Order" onClick={() => navigate("/order/list")} />
+        <ActionButton
+          mode="back"
+          text="Back"
+          onClick={() => navigate("/order/list")}
+        />
       </div>
     </MainLayout>
   );

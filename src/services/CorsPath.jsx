@@ -75,6 +75,14 @@ export const paths = {
   pathWorkPlanStep1: "work-plan/workplan_step1",
   pathWorkPlanStep2: "work-plan/workplan_step2",
 
+  //area plan
+  pathGetWorkPlanAreaList: "/work-plan/area/list",
+  pathWorkPlanAreaStep1: "/work-plan/area/workplan_step1",
+
+
+  pathGetWorkPlanSaleList: "/work-plan/sale/list",
+
+
 
   //Activaty
   pathActivatyList: "/activity/list",
@@ -84,4 +92,9 @@ export const paths = {
   // Orders
   pathGetOrderList: "order/list",
   pathGetOrderCreate: "order/create",
+  pathGetOrderUpdate: "order/update",
+  pathGetOrderDetail: "order/detail",
+  pathGetOrderWaitingList: "order/list",
+  pathGetOrderChangeStatus: "order/status",
+
 };
