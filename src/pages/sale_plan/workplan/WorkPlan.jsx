@@ -112,7 +112,7 @@ export default function WorkPlan() {
                         mode={actionItem.action.toLowerCase()}
                         onClick={() => {
                           if (pathRole === "sale") {
-                            navigate("/sale-plan/work-plan/sale-create", {
+                            navigate("/sale-plan/work-plan-sale/sale-create", {
                               state,
                             });
                           } else {

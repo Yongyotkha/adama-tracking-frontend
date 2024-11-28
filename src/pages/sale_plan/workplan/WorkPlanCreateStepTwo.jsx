@@ -8,6 +8,7 @@ import TableCustomComponent from "../../../components/table/TableCustomComponent
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
+import Title from "../../../components/title/Title";
 
 export default function WorkPlanCreateStepTwo() {
   const location = useLocation();
@@ -19,6 +20,7 @@ export default function WorkPlanCreateStepTwo() {
   const [totalValue, setTotalValue] = useState(0);
   const { showNotification } = useContext(AuthContext);
   const [localQtyState, setLocalQtyState] = useState({});
+  const [yearName, setYearName] = useState([]);
 
   const handleQtyChange = (area_id, product_id, newQty, unitConvertValue) => {
     setLocalQtyState((prevState) => {
@@ -117,6 +119,7 @@ export default function WorkPlanCreateStepTwo() {
             return acc;
           }, {});
 
+          setYearName(response.data.year_name);
           setLocalQtyState(initialQtyState);
           setDataSource(newData);
           setAreas(newDataArea);
@@ -400,7 +403,7 @@ export default function WorkPlanCreateStepTwo() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <div className="title-page">Create Work Plan</div>
+        <Title prefix="Create Plan" showYear={yearName} />
 
         <BoxPrimary>
           <div className="flex flex-col gap-2">

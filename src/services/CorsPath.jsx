@@ -22,18 +22,22 @@ export const paths = {
   pathMasterProductGroups: "master/product-groups",
   pathMasterProductCategorys: "master/product-categorys",
   
+  pathMasterProductByCrop: "master/product-by-crop",
+  pathMasterSaleAll: "master/sale-all/list",
 
   // pathMasterShop: "master/shop",
   pathMasterStatus: "master/status",
   pathMasterHeadofsale: "master/headofsale",
   pathMasterUserlist: "master/users/list",
   pathMasterSalearea: "master/salearea",
+  pathMasterMonths: "master/months",
   pathMasterYear: "master/years",
 
   //Products
   pathSaleManagementProductsList: "products-management/list",
   pathSaleManagementProductsDetail: "products-management/detail",
   pathSaleManagementProductsUpdate: "products-management/update",
+  
   // Sale
   pathSaleManagementDetail: "sale-management/sale-team/detail",
   pathSaleManagementCreate: "sale-management/sale-team/items/create",
@@ -89,16 +93,19 @@ export const paths = {
   //area plan
   pathGetWorkPlanAreaList: "/work-plan/area/list",
   pathWorkPlanAreaStep1: "/work-plan/area/workplan_step1",
-
-
+  
+  //sale plan
   pathGetWorkPlanSaleList: "/work-plan/sale/list",
+  pathWorkPlanSaleQuarter: "/work-plan/sale/quarter",
+  pathWorkPlanSaleCrop: "/work-plan/sale/crop",
 
-
-
-  //Activaty
+  //Activity
   pathActivatyList: "/activity/list",
   pathActivatyCreate: "/activity/create",
-
+  pathActivatyDetail: "/activity/detail",
+  // Activity Calendar
+  pathActivatyCalendarList: "/activity/calendar/list",
+  
   // Orders
   pathGetOrderList: "order/list",
   pathGetOrderCreate: "order/create",
@@ -106,5 +113,11 @@ export const paths = {
   pathGetOrderDetail: "order/detail",
   pathGetOrderWaitingList: "order/list",
   pathGetOrderChangeStatus: "order/status",
+
+  // Expense Traveling
+  pathGetExpenseTravelingList: "expense/traveling/list",
+  pathGetExpenseTravelingDetail: "expense/traveling/detail",
+  pathGetExpenseTravelingCreate: "expense/traveling/create",
+  pathGetExpenseTravelingUpdate: "expense/traveling/update",
 
 };

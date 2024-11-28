@@ -1,53 +1,159 @@
-import React, { useState } from "react";
-import { Input } from "antd";
+import React, { useEffect, useState } from "react";
+import { Form, Input, Select } from "antd";
 import MainLayout from "../../../layouts/MainLayout";
 import FormCustom from "../../../components/form_custom/FormCustom";
-import { useNavigate } from "react-router-dom";
+import FormUser from "../../../components/form_user/FormUser";
+import { useNavigate, useLocation } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
 import NumericInput from "../../../components/numeric_input/NumericInput";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
+import dayjs from "dayjs";
+import { convertLegacyProps } from "antd/es/button";
 
 export default function CreateTraveling() {
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [dataSource, setDataSource] = useState([]);
+  const [dataSale, setDataSale] = useState([]);
+  const [dataYear, setDataYear] = useState([]);
+  const [dataMonth, setDataMonth] = useState([]);
+  
+  const [saleId, setSaleId] = useState("");
+  const [yearCode, setYearCode] = useState("");
+  const [monthCode, setMonthCode] = useState("");
 
-  // Table data source
-  const [dataSource, setDataSource] = useState([
-    {
-      key: "1",
-      date: "01-08-2024",
-      from: "กรุงเทพ",
-      to: "สิงห์บุรี",
-      mileage: "0",
-      petrol: "0",
-      cashPetrol: "1260",
-      hotel: "0",
-      allowance: "400",
-      tollFee: "0",
-      entertain: "0",
-      others: "0",
-      total: "1660",
-      remark: "ไป-กลับ กทม สิงบุรี ลงแปลง อ้อย",
-    },
-    {
-      key: "2",
-      date: "01-08-2024",
-      from: "กรุงเทพ",
-      to: "สิงห์บุรี",
-      mileage: "0",
-      petrol: "0",
-      cashPetrol: "3200",
-      hotel: "0",
-      allowance: "1200",
-      tollFee: "0",
-      entertain: "0",
-      others: "0",
-      total: "4400",
-      remark: "ไป-กลับ กทม สิงบุรี ลงแปลง อ้อย",
-    },
-  ]);
+  const [formCustom] = Form.useForm();
 
+  // Get Master
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [sale, month, year] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {
+            status: ""
+          }),
+          useServiceAPI.get(paths.pathMasterYear, {}),
+          useServiceAPI.get(paths.pathMasterMonths, {}),
+        ]);
+
+        setDataSale(sale.data)
+        setDataYear(year.data);
+        setDataMonth(month.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, []);
+
+  const handleMonthChange = (filter, value) => {
+    console.log(filter);
+    console.log(value);
+    
+    if (filter == 'sale') {
+      setSaleId(value);
+    }
+    if (filter == 'year') {
+      setYearCode(value);
+    }
+    if (filter == 'month') {
+      setMonthCode(value);
+    }
+
+  };
+
+  // Fetch API Table Add Rows
+  useEffect(() => {
+    if (saleId && yearCode && monthCode) {
+      const loadDataTraveling = async () => {
+        setLoading(true);
+        try {
+          const [traveling] = await Promise.all([
+            useServiceAPI.get(paths.pathGetExpenseTravelingDetail, {
+              year_code: yearCode,
+              month_code: monthCode,
+              user_id: saleId
+            }),
+          ]);
+          
+          const dataItems = traveling.data.data_items;
+          console.log(dataItems);
+          
+          // setDataSale();
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      // Load Data
+      loadDataTraveling();
+
+      // Set State : Table data source
+      setDataSource([
+        {
+          key: "1",
+          date: "01-08-2024",
+          from: "กรุงเทพ",
+          to: "สิงห์บุรี",
+          mileage: "0",
+          petrol: "0",
+          cashPetrol: "1260",
+          hotel: "0",
+          allowance: "400",
+          tollFee: "0",
+          entertain: "0",
+          others: "0",
+          total: "1660",
+          remark: "ไป-กลับ กทม สิงบุรี ลงแปลง อ้อย",
+        },
+        {
+          key: "2",
+          date: "01-08-2024",
+          from: "กรุงเทพ",
+          to: "สิงห์บุรี",
+          mileage: "0",
+          petrol: "0",
+          cashPetrol: "3200",
+          hotel: "0",
+          allowance: "1200",
+          tollFee: "0",
+          entertain: "0",
+          others: "0",
+          total: "4400",
+          remark: "ไป-กลับ กทม สิงบุรี ลงแปลง อ้อย",
+        },
+        {
+          key: "3",
+          date: "02-08-2024",
+          from: "กรุงเทพ",
+          to: "สิงห์บุรี",
+          mileage: "0",
+          petrol: "0",
+          cashPetrol: "3200",
+          hotel: "0",
+          allowance: "1200",
+          tollFee: "0",
+          entertain: "0",
+          others: "0",
+          total: "4400",
+          remark: "ไป-กลับ กทม สิงบุรี ลงแปลง อ้อย",
+        },
+      ]);
+    } else {
+      // Set State : Table data source
+      setDataSource([]);
+    }
+  }, [saleId, yearCode, monthCode])
+  
   // Function to add a new row
   const addRow = () => {
     const newRow = {
@@ -88,8 +194,33 @@ export default function CreateTraveling() {
     dataSource.reduce((acc, item) => acc + parseFloat(item[field] || 0), 0);
 
   const formFields = [
-    { label: "Month", name: "Month", type: "month", disabled: false, required: true, col: 6, value: "2024-08" },
-    { label: "Date", name: "date", type: "date", disabled: false, required: true, col: 6, value: "2024-01-01" },
+    { 
+      label: "Sale", 
+      name: "sale", 
+      type: "select", 
+      options: dataSale,
+      required: false, 
+      col: 6,
+      value: saleId,
+    },
+    { 
+      label: "Year", 
+      name: "year", 
+      type: "select", 
+      options: dataYear, 
+      required: false, 
+      col: 6,
+      value: yearCode,
+    },
+    { 
+      label: "Month", 
+      name: "month", 
+      type: "select", 
+      options: dataMonth, 
+      required: false, 
+      col: 6,
+      value: monthCode,
+    },
   ];
 
   // Table headers for the Traveling section
@@ -249,7 +380,6 @@ export default function CreateTraveling() {
     },
   ];
   
-
   const footerOrderList = () => (
     <tr className="bg-[#978B87] text-white text-start">
       <td colSpan={3}>Total (THB)</td>
@@ -265,7 +395,7 @@ export default function CreateTraveling() {
       <td></td>
     </tr>
   );
-
+  
   return (
     <MainLayout loading={loading}>
       <div className="flex justify-between">
@@ -273,7 +403,7 @@ export default function CreateTraveling() {
       </div>
 
       {/* Form Section */}
-      <FormCustom fields={formFields} />
+      <FormUser fields={formFields} form={formCustom} onChange={handleMonthChange} />
 
       {/* Traveling Section */}
       <BoxPrimary>
