@@ -8,6 +8,8 @@ import ActionButton from "../../../components/button/ActionButton";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
+import Title from "../../../components/title/Title";
+import DynamicButton from "../../../components/button/DynamicButton";
 
 export default function WorkPlanCreate() {
   const location = useLocation();
@@ -15,6 +17,7 @@ export default function WorkPlanCreate() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [permission, setPermission] = useState([]);
+  const [yearName, setYearName] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
   const { showNotification } = useContext(AuthContext);
 
@@ -38,6 +41,7 @@ export default function WorkPlanCreate() {
             value: parseFloat(item.value || 0).toFixed(2),
           }));
           setDataSource(newData);
+          setYearName(response.data.year_name);
           setTotalValue(response.data.data_overall_target);
           setPermission(response.data.permission);
         }
@@ -175,7 +179,7 @@ export default function WorkPlanCreate() {
 
   return (
     <MainLayout loading={loading} childrenStyle={""}>
-      <div className="title-page">Create Work Plan</div>
+      <Title prefix="Create Plan" showYear={yearName} />
       <BoxPrimary>
         <div className="text-[#00783F] text-xl pb-5">Work Plan</div>
         <TableComponent

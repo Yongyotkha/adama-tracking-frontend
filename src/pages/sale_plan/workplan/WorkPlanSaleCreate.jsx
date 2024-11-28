@@ -1,39 +1,113 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import { Input, InputNumber, Table } from "antd";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import TableCustomComponent from "../../../components/table/TableCustomComponent";
 import ActionButton from "../../../components/button/ActionButton";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
+import { AuthContext } from "../../../contexts/AuthContext";
+import Title from "../../../components/title/Title";
 
 export default function WorkPlanSaleCreate() {
+  const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-  const months = Array.from({ length: 6 });
+  const { showNotification, formatNumber } = useContext(AuthContext);
+
+  const [quarter, setQuarter] = useState([]);
+  const [permission, setPermission] = useState([]);
+  const [totalValue, setTotalValue] = useState(0);
+  const [localQtyState, setLocalQtyState] = useState({});
+  const [yearName, setYearName] = useState([]);
 
   useEffect(() => {
-    const data = [
-      {
-        key: "1",
-        productName: "Ossinate 15%SL",
-        packSize: "1Kg.",
-        originalPlan: "30000",
-        valueTHB: "7500000",
-        originalPlanManupong: "150",
-        valueTHBManupong: "2500",
-      },
-      {
-        key: "2",
-        productName: "Apopo 20%SE",
-        packSize: "1Lt.",
-        originalPlan: "80000",
-        valueTHB: "280000000",
-        originalPlanManupong: "150",
-        valueTHBManupong: "2500",
-      },
-    ];
-    setDataSource(data);
+    useServiceAPI
+      .get(
+        paths.pathWorkPlanSaleQuarter,
+        {
+          year_code: location?.state?.year_code,
+          user_id: location?.state?.user_id,
+        },
+        setLoading
+      )
+      .then((response) => {
+        if (response.status === 200) {
+          const initialQtyState = response.data.quarter_items.reduce(
+            (acc, quarter) => {
+              acc[quarter.quarter_id] = {
+                months: quarter.data_items.reduce((monthAcc, month) => {
+                  monthAcc[month.month_id] = {
+                    products: month.data_items.reduce((productAcc, product) => {
+                      productAcc[product.product_id] = {
+                        qty: parseFloat(product.qty || 0),
+                        value: parseFloat(product.value || 0),
+                      };
+                      return productAcc;
+                    }, {}),
+                    total_qty: month.data_items.reduce(
+                      (sum, product) => sum + parseFloat(product.qty || 0),
+                      0
+                    ),
+                    total_value: month.data_items.reduce(
+                      (sum, product) => sum + parseFloat(product.value || 0),
+                      0
+                    ),
+                  };
+                  return monthAcc;
+                }, {}),
+                total_value: quarter.data_items.reduce(
+                  (sum, month) =>
+                    sum +
+                    month.data_items.reduce(
+                      (monthSum, product) =>
+                        monthSum + parseFloat(product.value || 0),
+                      0
+                    ),
+                  0
+                ),
+              };
+              return acc;
+            },
+            {}
+          );
+
+          setLocalQtyState(initialQtyState);
+
+          const newData = response.data.data_items.map((item) => ({
+            key: item.product_id,
+            product_id: item.product_id,
+            product_code: item.product_code,
+            product_name: item.product_name,
+            pack_size: item.pack_size,
+            unit_convert_value: item.unit_convert_value,
+            qty: item.original_qty,
+            value: item.original_value,
+          }));
+          const newDataQuarter = response.data.quarter_items.map((item) => ({
+            key: item.quarter_id,
+            quarter_id: item.quarter_id,
+            quarter_name: item.quarter_name,
+            amount_target: item.amount_target,
+            workplan_area_header_id: item.workplan_area_header_id,
+            workplan_header_id: item.workplan_header_id,
+            workplan_sale_header_id: item.workplan_sale_header_id,
+            data_items: item.data_items,
+          }));
+
+          setYearName(response.data.year_name);
+          setDataSource(newData);
+          setQuarter(newDataQuarter);
+          setTotalValue(response.data.amount_target);
+          setPermission(response.data.permission);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        showNotification("error", "เกิดข้อผิดพลาด");
+      });
   }, []);
 
   const applyTopLevelAndSpecificChildrenStyles = (columns) =>
@@ -63,10 +137,10 @@ export default function WorkPlanSaleCreate() {
                 backgroundColor: isFirstLevelChild
                   ? "#CBC5C3"
                   : isQtyChild
-                    ? parentBgColor // Use the parent's background color for 'Qty (KG)'
-                    : isLastLevelChild
-                      ? parentBgColor
-                      : null,
+                  ? parentBgColor // Use the parent's background color for 'Qty (KG)'
+                  : isLastLevelChild
+                  ? parentBgColor
+                  : null,
                 color: isLastLevelChild || isQtyChild ? textColor : "black",
                 fontWeight: "bold",
                 textAlign: "center",
@@ -94,14 +168,6 @@ export default function WorkPlanSaleCreate() {
       };
     });
 
-  const handleQtyChange = (value, month, quarter, recordKey) => {
-    const updatedData = [...dataSource];
-    const recordIndex = updatedData.findIndex((item) => item.key === recordKey);
-    if (recordIndex > -1) {
-      updatedData[recordIndex][`qtyKG_${month}_${quarter}`] = value; // อัปเดตค่าของช่องที่เปลี่ยน
-      setDataSource(updatedData); // อัปเดต dataSource
-    }
-  };
   const baseColumns = [
     {
       title: "Quarter", // Row 1
@@ -122,21 +188,21 @@ export default function WorkPlanSaleCreate() {
               children: [
                 {
                   title: "Product Name", // Row 4
-                  dataIndex: "productName",
+                  dataIndex: "product_name",
                   key: "productName",
                   fixed: "left",
                   width: 150,
                 },
                 {
                   title: "Pack Size",
-                  dataIndex: "packSize",
+                  dataIndex: "pack_size",
                   key: "packSize",
                   width: 150,
                   fixed: "left",
                 },
                 {
                   title: "Original Plan (KG)",
-                  dataIndex: "originalPlan",
+                  dataIndex: "qty",
                   key: "originalPlan",
                   width: 150,
                   fixed: "left",
@@ -153,7 +219,7 @@ export default function WorkPlanSaleCreate() {
                 },
                 {
                   title: "Value (THB)",
-                  dataIndex: "valueTHB",
+                  dataIndex: "value",
                   key: "valueTHB",
                   width: 150,
                   fixed: "left",
@@ -174,69 +240,311 @@ export default function WorkPlanSaleCreate() {
         },
       ],
     },
-    ...[1, 2, 3, 4].map((quarter, index) => {
-      const months = [
-        ["Jan.", "Feb.", "Mar."],
-        ["Apr.", "May.", "Jun."],
-        ["Jul.", "Aug.", "Sep."],
-        ["Oct.", "Nov.", "Dec."],
-      ][index];
 
-      return {
-        title: `Quarter ${quarter}`,
-        children: [
-          {
-            title: (
-              <Input
-                className="w-full text-end"
-                disabled
-                value={new Intl.NumberFormat("en-US").format(13862500)}
-              />
-            ),
-            colSpan: 3,
-            children: months.map((month) => ({
-              title: month,
-              dataIndex: `valueTHB_${month}_${quarter}`,
-              key: `valueTHB_${month}_${quarter}`,
-              width: 100,
-              children: [
-                {
-                  title: "Qty (KG)",
-                  dataIndex: `qtyKG_${month}_${quarter}`,
-                  key: `qtyKG_${month}_${quarter}`,
-                  render: (text, record) => (
+    ...quarter.map((item, index) => ({
+      title: item.quarter_name,
+      children: [
+        {
+          title: (
+            <InputNumber
+              disabled
+              className="w-full"
+              value={localQtyState[item.quarter_id]?.total_value || 0}
+              formatter={(value) =>
+                `${Number(value).toFixed(2)}`.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  ","
+                )
+              }
+            />
+          ),
+          children: item.data_items.map((month) => ({
+            title: month.month_name,
+            dataIndex: `value_${month.month_id}_${item.quarter_id}`,
+            key: `value_${month.month_id}_${item.quarter_id}`,
+            width: 100,
+            children: [
+              {
+                title: "Qty (KG)",
+                dataIndex: `qty_${month.month_id}`,
+                key: `qty_${month.month_id}`,
+                render: (text, record) => {
+                  const localData = localQtyState[item.quarter_id]?.months?.[
+                    month.month_id
+                  ]?.products?.[record.product_id] || { qty: 0, value: 0 };
+
+                  return (
                     <InputNumber
                       className="w-full"
                       min={0}
-                      value={text}
+                      value={localData.qty}
                       formatter={(value) =>
-                        value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "0.00"
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                       }
-                      parser={(value) => value.replace(/\$\s?|(,*)/g, "")} // ลบสัญลักษณ์ที่ไม่ใช่ตัวเลขออก
-                      onChange={(value) => handleQtyChange(value, month, quarter, record.key)}
+                      onChange={(value) =>
+                        handleQtyChange(
+                          item.quarter_id,
+                          month.month_id,
+                          record.product_id,
+                          value,
+                          record.unit_convert_value || 1
+                        )
+                      }
+                      disabled={!permission.edit}
                     />
-                  )
+                  );
                 },
-              ],
-            })),
-          },
-        ],
-      };
-    }),
+              },
+            ],
+          })),
+        },
+      ],
+    })),
+
+    ...quarter.map((item, index) => ({
+      title: item.quarter_name,
+      children: [
+        {
+          title: (
+            <InputNumber
+              disabled
+              className="w-full"
+              value={localQtyState[item.quarter_id]?.total_value || 0}
+              formatter={(value) =>
+                `${Number(value).toFixed(2)}`.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  ","
+                )
+              }
+            />
+          ),
+          children: item.data_items.map((month) => ({
+            title: month.month_name,
+            dataIndex: `value_${month.month_id}_${item.quarter_id}`,
+            key: `value_${month.month_id}_${item.quarter_id}`,
+            width: 100,
+            children: [
+              {
+                title: "Value (KG)",
+                dataIndex: `value_${month.month_id}`,
+                key: `value_${month.month_id}`,
+                render: (text, record) => {
+                  const localData = localQtyState[item.quarter_id]?.months?.[
+                    month.month_id
+                  ]?.products?.[record.product_id] || { qty: 0, value: 0 };
+                  return (
+                    <InputNumber
+                      className="w-full"
+                      min={0}
+                      value={localData.value}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      disabled
+                    />
+                  );
+                },
+              },
+            ],
+          })),
+        },
+      ],
+    })),
   ];
 
   const columns = applyTopLevelAndSpecificChildrenStyles(baseColumns);
 
+  const handleQtyChange = (
+    quarterId,
+    monthId,
+    productId,
+    newQty,
+    unitConvertValue
+  ) => {
+    setLocalQtyState((prevState) => {
+      const newValue = parseFloat((newQty * unitConvertValue).toFixed(2));
+
+      const updatedState = {
+        ...prevState,
+        [quarterId]: {
+          ...prevState[quarterId],
+          months: {
+            ...prevState[quarterId]?.months,
+            [monthId]: {
+              ...prevState[quarterId]?.months?.[monthId],
+              products: {
+                ...prevState[quarterId]?.months?.[monthId]?.products,
+                [productId]: {
+                  qty: newQty || 0,
+                  value: newValue,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      // คำนวณ total_qty และ total_value ของ month
+      const totalMonth = Object.values(
+        updatedState[quarterId]?.months?.[monthId]?.products || {}
+      ).reduce(
+        (acc, product) => ({
+          qty: acc.qty + parseFloat(product.qty || 0),
+          value: acc.value + parseFloat(product.value || 0),
+        }),
+        { qty: 0, value: 0 }
+      );
+
+      updatedState[quarterId].months[monthId].total_qty = totalMonth.qty;
+      updatedState[quarterId].months[monthId].total_value = totalMonth.value;
+
+      // คำนวณ total_value ของ quarter
+      const totalQuarterValue = Object.values(
+        updatedState[quarterId]?.months || {}
+      ).reduce((sum, month) => sum + parseFloat(month.total_value || 0), 0);
+
+      updatedState[quarterId].total_value = totalQuarterValue;
+
+      return updatedState;
+    });
+  };
+
+  const handleSave = async (mode) => {
+    const calculatedTotalAmountTarget = quarter.reduce((sum, quarterItem) => {
+      const localTotalValue =
+        localQtyState[quarterItem.quarter_id]?.total_value || 0;
+      return sum + localTotalValue;
+    }, 0);
+
+    // เปรียบเทียบ original plan (totalValue) กับ sum ของ amount_target
+    if (calculatedTotalAmountTarget < totalValue) {
+      showNotification(
+        "warning",
+        "Total Sale Value is less than the Original Plan",
+        [
+          `Original Plan: ฿ ${formatNumber(totalValue)}`,
+          `Current Total: ฿ ${formatNumber(calculatedTotalAmountTarget)}`,
+          `Difference: ฿ ${formatNumber(
+            totalValue - calculatedTotalAmountTarget
+          )}`,
+        ],
+        3
+      );
+    } else {
+      setLoading(true); // เริ่มโหลดข้อมูล
+
+      // อัพเดตข้อมูล quarter ด้วยข้อมูลใน localQtyState
+      try {
+        const updatedQuarterData = quarter.map((item) => {
+          const localQuarter = localQtyState[item.quarter_id] || {};
+
+          // อัพเดตข้อมูล months
+          const updatedMonths = item.data_items.map((month) => {
+            const localMonth = localQuarter.months?.[month.month_id] || {};
+            return {
+              ...month,
+              total_qty: localMonth.total_qty || 0,
+              total_value: localMonth.total_value || 0,
+              amount_target: localMonth.total_value || 0,
+              data_items: month.data_items.map((product) => {
+                const localProduct =
+                  localMonth.products?.[product.product_id] || {};
+                return {
+                  ...product,
+                  qty: localProduct.qty || product.qty || 0,
+                  value: localProduct.value || product.value || 0,
+                };
+              }),
+            };
+          });
+
+          // คำนวณ total_value ของ quarter
+          const totalQuarterValue = updatedMonths.reduce(
+            (sum, month) => sum + (month.total_value || 0),
+            0
+          );
+
+          return {
+            ...item,
+            amount_target: totalQuarterValue, // อัพเดต amount_target ด้วย total_value
+            total_value: totalQuarterValue,
+            data_items: updatedMonths,
+          };
+        });
+
+        await useServiceAPI
+          .post(paths.pathWorkPlanSaleQuarter, {
+            year_code: location?.state?.year_code,
+            user_id: location?.state?.user_id,
+            action_code: mode,
+            quarter_items: updatedQuarterData,
+          })
+          .then((response) => {
+            if (response.status === 200) {
+              if (mode == "draft") {
+                showNotification(
+                  "success",
+                  response.data.message,
+                  response.data.message_line
+                ).then(() => {
+                  navigate("/sale-plan/work-plan-sale");
+                });
+              } else {
+                showNotification(
+                  "success",
+                  response.data.message,
+                  response.data.message_line
+                ).then(() => {
+                  navigate("/sale-plan/work-plan-sale/sale-by-crop", {
+                    state: {
+                      year_code: location?.state?.year_code,
+                      user_id: location?.state?.user_id,
+                    },
+                  });
+                });
+              }
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+            if (error.status === 422) {
+              showNotification("error", error.message);
+            } else {
+              showNotification("error", "เกิดข้อผิดพลาด");
+            }
+          });
+      } catch (error) {
+        console.error("Unexpected error:", error);
+        showNotification("error", "เกิดข้อผิดพลาดที่ไม่คาดคิด");
+      } finally {
+        setLoading(false); // หยุดโหลดข้อมูลไม่ว่าจะสำเร็จหรือผิดพลาด
+      }
+    }
+  };
+
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <div className="title-page">Create Work Plan</div>
+      <Title prefix="Create Plan" showYear={yearName} />
+
 
         <BoxPrimary>
           <div className="flex flex-col gap-2">
             <div>Work Plan</div>
             <div className="w-[25%]">
-              <Input suffix="THB" disabled value={"205,250,000"} />
+              <InputNumber
+                disabled
+                suffix="THB"
+                className="w-full"
+                min={0}
+                value={totalValue}
+                formatter={(value) =>
+                  `${Number(value).toFixed(2)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
+                }
+              />
             </div>
           </div>
         </BoxPrimary>
@@ -256,34 +564,54 @@ export default function WorkPlanSaleCreate() {
                     Total (THB)
                   </Table.Summary.Cell>
 
-                  {months.map((_, index) => (
-                    <Table.Summary.Cell key={index} colSpan={1}>
-                      <InputNumber
-                        className="w-full"
-                        disabled
-                        value={index}
-                        min={0}
-                        formatter={(value) =>
-                          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                        }
-                        style={{ backgroundColor: "white" }}
-                      />
-                    </Table.Summary.Cell>
-                  ))}
-                  {months.map((_, index) => (
-                    <Table.Summary.Cell key={index} colSpan={1}>
-                      <InputNumber
-                        className="w-full"
-                        disabled
-                        value={index}
-                        min={0}
-                        formatter={(value) =>
-                          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                        }
-                        style={{ backgroundColor: "white" }}
-                      />
-                    </Table.Summary.Cell>
-                  ))}
+                  {quarter.map((item) =>
+                    Object.entries(
+                      localQtyState[item.quarter_id]?.months || {}
+                    ).map(([monthId, monthData], index) => (
+                      <Table.Summary.Cell
+                        key={`${item.quarter_id}-${monthId}`}
+                        colSpan={1}
+                      >
+                        <InputNumber
+                          className="w-full"
+                          disabled
+                          value={monthData.total_value || 0}
+                          min={0}
+                          formatter={(value) =>
+                            `${Number(value).toFixed(2)}`.replace(
+                              /\B(?=(\d{3})+(?!\d))/g,
+                              ","
+                            )
+                          }
+                          style={{ backgroundColor: "white" }}
+                        />
+                      </Table.Summary.Cell>
+                    ))
+                  )}
+                  {quarter.map((item) =>
+                    Object.entries(
+                      localQtyState[item.quarter_id]?.months || {}
+                    ).map(([monthId, monthData], index) => (
+                      <Table.Summary.Cell
+                        key={`${item.quarter_id}-${monthId}`}
+                        colSpan={1}
+                      >
+                        <InputNumber
+                          className="w-full"
+                          disabled
+                          value={monthData.total_value || 0}
+                          min={0}
+                          formatter={(value) =>
+                            `${Number(value).toFixed(2)}`.replace(
+                              /\B(?=(\d{3})+(?!\d))/g,
+                              ","
+                            )
+                          }
+                          style={{ backgroundColor: "white" }}
+                        />
+                      </Table.Summary.Cell>
+                    ))
+                  )}
                 </Table.Summary.Row>
               </Table.Summary>
             )}
@@ -295,14 +623,37 @@ export default function WorkPlanSaleCreate() {
             text="Back"
             mode="back"
             onClick={() => {
-              navigate("/sale-plan/work-plan/sale-");
+              navigate("/sale-plan/work-plan-sale");
             }}
           />
-          <ActionButton
-            text="Save and Next"
-            mode="save"
-            onClick={() => navigate("/sale-plan/work-plan/sale-by-crop")}
-          />
+          {permission.btn_draft && (
+            <ActionButton
+              text="Save Draft"
+              mode="saveDraft"
+              onClick={() => handleSave("draft")}
+            />
+          )}
+          {permission.btn_save && (
+            <ActionButton
+              text="Save and Next"
+              mode="save"
+              onClick={() => handleSave("save")}
+            />
+          )}
+          {permission.btn_next && (
+            <ActionButton
+              text="Next"
+              mode="save"
+              onClick={() =>
+                navigate("/sale-plan/work-plan-sale/sale-by-crop", {
+                  state: {
+                    year_code: location?.state?.year_code,
+                    user_id: location?.state?.user_id,
+                  },
+                })
+              }
+            />
+          )}
         </div>
       </MainLayout>
     </>

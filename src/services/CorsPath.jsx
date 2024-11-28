@@ -78,12 +78,12 @@ export const paths = {
   //area plan
   pathGetWorkPlanAreaList: "/work-plan/area/list",
   pathWorkPlanAreaStep1: "/work-plan/area/workplan_step1",
-
-
+  
+  //sale plan
   pathGetWorkPlanSaleList: "/work-plan/sale/list",
-
-
-
+  pathWorkPlanSaleQuarter: "/work-plan/sale/quarter",
+  pathWorkPlanSaleCrop: "/work-plan/sale/crop",
+  
   //Activaty
   pathActivatyList: "/activity/list",
   pathActivatyCreate: "/activity/create",
