@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import FormUser from "../../../components/form_user/FormUser";
-import DynamicButton from "../../../components/button/DynamicButton";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
@@ -9,16 +8,22 @@ import { Col, Form, Input, Row } from "antd";
 
 export default function ProfileUser() {
   const [loading, setLoading] = useState(false);
+  const [isEditingPassword, setIsEditingPassword] = useState(false); // State to manage password edit mode
   const navigate = useNavigate();
 
-  useEffect(() => { }, []);
+  useEffect(() => {}, []);
 
   const handleBack = () => {
     navigate("/setting/user");
   };
 
   const handleSave = () => {
+    // Perform save logic here
     navigate("/setting/user");
+  };
+
+  const handleEditPassword = () => {
+    setIsEditingPassword((prev) => !prev); // Toggle edit mode
   };
 
   const formFields = [
@@ -77,8 +82,12 @@ export default function ProfileUser() {
       type: "select",
       required: true,
       col: 6,
-      options: ["Sales Assistant", "Manager", "Team Lead"],
-      value: "Manager",
+      options: [
+        { name: "Sales Assistant", id: 1, selected: false },
+        { name: "Manager", id: 2, selected: true },
+        { name: "Team Lead", id: 3, selected: false },
+      ],
+      value: 2,
     },
     {
       label: "Department",
@@ -86,8 +95,12 @@ export default function ProfileUser() {
       type: "select",
       required: false,
       col: 6,
-      options: ["Sales Team", "Marketing Team", "Support Team"],
-      value: "Sales Team",
+      options: [
+        { name: "Sales Team", id: 1, selected: true },
+        { name: "Marketing Team", id: 2, selected: false },
+        { name: "Support Team", id: 3, selected: false },
+      ],
+      value: 1,
     },
     {
       label: "Territory",
@@ -111,8 +124,24 @@ export default function ProfileUser() {
       type: "select",
       required: true,
       col: 6,
-      options: ["Individual Module", "Admin Module", "Viewer"],
-      value: "Admin Module",
+      options: [
+        { name: "Individual Module", id: 1, selected: false },
+        { name: "Admin Module", id: 2, selected: true },
+        { name: "Viewer", id: 3, selected: false },
+      ],
+      value: 2,
+    },
+    {
+      label: "Permission",
+      name: "permission",
+      type: "select",
+      required: false,
+      col: 6,
+      options: [
+        { name: "Individual and BD/Assist", id: 1, selected: false },
+        { name: "Admin", id: 2, selected: false },
+        { name: "Viewer", id: 3, selected: false },
+      ],
     },
     {
       label: "Date of Joining",
@@ -128,8 +157,11 @@ export default function ProfileUser() {
       type: "select",
       required: false,
       col: 6,
-      options: ["Active", "Inactive"],
-      value: "Active",
+      options: [
+        { name: "Active", id: 1, selected: true },
+        { name: "Inactive", id: 0, selected: false },
+      ],
+      value: 1,
     },
   ];
 
@@ -142,23 +174,27 @@ export default function ProfileUser() {
       <BoxPrimary>
         <div className="flex items-center justify-between">
           <div className="text-[#00783F] text-lg font-semibold mb-3">Change Password</div>
-          <ActionButton mode="edit" text="Edit" onClick='' />
+          <ActionButton
+            mode="edit"
+            text={isEditingPassword ? "Cancel" : "Edit"} // Toggle button text
+            onClick={handleEditPassword}
+          />
         </div>
         <Form layout="vertical">
           <Row gutter={[16, 16]} className="mt-3">
             <Col xs={24} sm={12} md={12} lg={8}>
               <Form.Item className="mb-3" label="Current password">
-                <Input.Password disabled />
+                <Input.Password disabled={!isEditingPassword} />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12} md={12} lg={8}>
               <Form.Item className="mb-3" label="New password">
-                <Input.Password disabled />
+                <Input.Password disabled={!isEditingPassword} />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12} md={12} lg={8}>
               <Form.Item className="mb-3" label="Confirm password">
-                <Input.Password disabled />
+                <Input.Password disabled={!isEditingPassword} />
               </Form.Item>
             </Col>
           </Row>
