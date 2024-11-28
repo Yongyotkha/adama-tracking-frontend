@@ -29,6 +29,7 @@ export default function CreateActivity() {
   const [cropList, setCropList] = useState([]);
   const [productCropList, setProductCropList] = useState([]);
   const [timeList, setTimeList] = useState([]);
+  const [participantList, setParticipantList] = useState([]);
   const navigate = useNavigate();
 
   const [formCustom] = Form.useForm();
@@ -228,20 +229,31 @@ export default function CreateActivity() {
   ];
 
   let counter = 1;
-  const salesData = [
-    { key: `sales-${counter++}`, no: 1, name: "Kornkan Induang", position: "Sales Executive", territory: "Left North" },
-    { key: `sales-${counter++}`, no: 2, name: "Phaisan Jethuen", position: "Sales Executive", territory: "Left Lower North" },
-    { key: `sales-${counter++}`, no: 3, name: "Manupong Wongpuang", position: "Sales Executive", territory: "Lower North" },
-    { key: `sales-${counter++}`, no: 4, name: "Kriangkrai Kraikeaw", position: "Sales Executive", territory: "Central Left North" },
-    { key: `sales-${counter++}`, no: 5, name: "Charoenpong Khunawatcharakun", position: "Sales Executive", territory: "Central Right North" },
-    { key: `sales-${counter++}`, no: 6, name: "Amorn Sriworakul", position: "Sales Executive", territory: "Right Lower North" },
-    { key: `sales-${counter++}`, no: 7, name: "Nitchapan Akkaraketsawad", position: "Sales Executive", territory: "Upper Central" },
-    { key: `sales-${counter++}`, no: 8, name: "Manus Nakkhum", position: "Sales Executive", territory: "Central" },
-  ];
+  const salesData = [];
 
   const handleOpenTeamModal = () => {
     setIsTeamModalVisible(true);
+    getParticipant();
   };
+
+  const getParticipant = async () => {
+    const [participant] = await Promise.all([
+      useServiceAPI.get(paths.pathMasterSaleAll, {
+        'page_size' : 1,
+        'page_length' : 10
+      }),  
+    ]);
+
+    let participantData = [];
+    participant.data.data.forEach((element, key) => {
+      const count = key+1;
+      participantData.push({
+        key: `sales-${count}`, no: count, name: element.name, position: element.position_name, territory: element.territory_name
+      });
+    });
+    
+    setParticipantList(participantData);
+  }
 
   const handleCloseTeamModal = () => {
     setIsTeamModalVisible(false);
@@ -450,7 +462,7 @@ export default function CreateActivity() {
           { title: "Territory", dataIndex: "territory", key: "territory", width: 150 },
           { title: "Position", dataIndex: "position", key: "position", width: 150 },
         ]}
-        dataSource={salesData}
+        dataSource={participantList}
         width="1200px"
         onAddSelected={handleAddSelectedRows}
         type="add"
