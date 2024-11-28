@@ -4,11 +4,16 @@ import FormUser from "../../../components/form_user/FormUser";
 import DynamicButton from "../../../components/button/DynamicButton";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
+<<<<<<< HEAD
 import { Form } from "antd";
 import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { useLocation } from "react-router-dom";
+=======
+import BoxPrimary from "../../../components/box_primary/BoxPrimary";
+import { Col, Form, Input, Row } from "antd";
+>>>>>>> main
 
 export default function EditUser() {
   const [loading, setLoading] = useState(false);
@@ -22,6 +27,7 @@ export default function EditUser() {
   const { showMsg } = useContext(AuthContext);
   const location = useLocation();
 
+<<<<<<< HEAD
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -197,6 +203,9 @@ export default function EditUser() {
       setLoading(false);
     }
   };
+=======
+  useEffect(() => { }, []);
+>>>>>>> main
 
   const handleBack = () => {
     navigate("/setting/user");
@@ -353,6 +362,32 @@ export default function EditUser() {
       <div className="title-page">Edit User</div>
 
       <FormUser profile="/img/profile.jpg" fields={formFields} form={form}/>
+
+      <BoxPrimary>
+        <div className="flex items-center justify-between">
+          <div className="text-[#00783F] text-lg font-semibold mb-3">Change Password</div>
+          <ActionButton mode="edit" text="Edit" onClick='' />
+        </div>
+        <Form layout="vertical">
+          <Row gutter={[16, 16]} className="mt-3">
+            <Col xs={24} sm={12} md={12} lg={8}>
+              <Form.Item className="mb-3" label="Current password">
+                <Input.Password disabled />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={8}>
+              <Form.Item className="mb-3" label="New password">
+                <Input.Password disabled />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={8}>
+              <Form.Item className="mb-3" label="Confirm password">
+                <Input.Password disabled />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
         <ActionButton text="Back" mode="back" onClick={handleBack} />

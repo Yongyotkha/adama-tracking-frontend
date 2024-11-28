@@ -8,14 +8,14 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
           rel="noopener noreferrer"
           href={link}
           onClick={onClick}
-          className="flex gap-1"
+          className="block gap-1"
         >
           <img
             src="/img/icons/edit.png"
             alt="Edit icon"
             className="inline-block h-4 m-auto"
           />
-          <span className="text-[#978B87]">{text || "Edit"}</span>
+          <span className="text-[#978B87] ms-3">{text || "Edit"}</span>
         </a>
       )}
 
@@ -24,14 +24,14 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
           rel="noopener noreferrer"
           href={link}
           onClick={onClick}
-          className="flex gap-1"
+          className="block gap-1"
         >
           <img
             src="/img/icons/delete.png"
             alt="Delete icon"
             className="inline-block h-4 m-auto"
           />
-          <span className="text-[#978B87]">{text || "Delete"}</span>
+          <span className="text-[#978B87] ms-3">{text || "Delete"}</span>
         </a>
       )}
 
@@ -40,14 +40,14 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
           rel="noopener noreferrer"
           href={link}
           onClick={onClick}
-          className="flex gap-1"
+          className="block gap-1"
         >
           <img
             src="/img/icons/view.png"
             alt="Delete icon"
             className="inline-block h-4 m-auto"
           />
-          <span className="text-[#978B87]">{text || "View"}</span>
+          <span className="text-[#978B87] ms-3">{text || "View"}</span>
         </a>
       )}
       {mode == "history" && (
@@ -55,14 +55,14 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
           rel="noopener noreferrer"
           href={link}
           onClick={onClick}
-          className="flex gap-1"
+          className="block gap-1"
         >
           <img
             src="/img/icons/view.png"
             alt="Delete icon"
             className="inline-block h-4 m-auto"
           />
-          <span className="text-[#978B87]">{text || "history"}</span>
+          <span className="text-[#978B87] ms-3">{text || "History"}</span>
         </a>
       )}
       {mode == "create" && (
@@ -70,14 +70,14 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
           rel="noopener noreferrer"
           href={link}
           onClick={onClick}
-          className="flex gap-1"
+          className="block gap-1"
         >
           <img
             src="/img/icons/create.png"
             alt="Create icon"
             className="inline-block h-4 m-auto"
           />
-          <span className="text-[#978B87]">{text || "create"}</span>
+          <span className="text-[#978B87] ms-3">{text || "create"}</span>
         </a>
       )}
     </>

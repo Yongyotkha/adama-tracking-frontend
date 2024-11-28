@@ -18,6 +18,7 @@ export default function OrderList() {
   const [dataSale, setDataSale] = useState([]);
   const [dataDealer, setDataDealer] = useState([]);
   const [dataStatus, setDataStatus] = useState([]);
+  const [permission, setPermission] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const [tableParams, setTableParams] = useState({
     pagination: {
@@ -111,10 +112,6 @@ export default function OrderList() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-  const actionItems = [
-    { key: "1", label: <ItemDropDown mode="view" link="/order/view" /> },
-  ];
-
   const actionItemsPending = [
     { key: "1", label: <ItemDropDown mode="edit" link="/order/edit" /> },
     { key: "2", label: <ItemDropDown mode="view" link="/order/detail" /> },
@@ -134,7 +131,7 @@ export default function OrderList() {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
-    const sortOrder = tableParams.sortOrder || "asc";
+    const sortOrder = tableParams.sortOrder || "desc";
     const sortField = tableParams.sortField || "document_number";
 
     const requestData = {
@@ -158,7 +155,8 @@ export default function OrderList() {
 
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
-
+        setPermission(response.data.permission);
+        
         const newDataSource = data.map((order, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           orderNo: order.document_number,
@@ -182,12 +180,66 @@ export default function OrderList() {
           ),
           createdBy: order.updated_by,
           action: (
-            <Dropdown menu={{ items: actionItems }} placement="bottom">
+            <Dropdown
+              // menu={{
+              //   items: order.action.map((actionItem, actionIndex) => ({
+              //     key: actionIndex,
+              //     label: (
+              //       <ItemDropDown mode={actionItem.action.toLowerCase()}
+              //       onClick={() => {
+              //         navigate("/order/view", {
+              //           state: {
+              //             document_number: order.document_number,
+              //           },
+              //         });
+              //       }}
+
+              //       />
+              //     ),
+              //   })),
+              // }}
+
+              menu={{
+                items: [
+                  {
+                    key: 1,
+                    label: (
+                      <ItemDropDown
+                        mode="view"
+                        onClick={() => {
+                          navigate("/order/view", {
+                            state: {
+                              document_number: order.document_number,
+                            },
+                          });
+                        }}
+                      />
+                    ),
+                  },
+                  {
+                    key: 2,
+                    label: (
+                      <ItemDropDown
+                        mode="edit"
+                        onClick={() => {
+                          navigate("/order/edit", {
+                            state: {
+                              document_number: order.document_number,
+                            },
+                          });
+                        }}
+                      />
+                    ),
+                  },
+                ],
+              }}
+              placement="bottom"
+            >
               <a onClick={(e) => e.preventDefault()}>
                 <img
                   src="/img/icons/action.png"
-                  alt="Actions icon"
-                  className="inline-block w-5 h-5"
+                  alt="button icon"
+                  className="inline-block w-5 h-5 mr-2"
                 />
               </a>
             </Dropdown>
@@ -262,11 +314,13 @@ export default function OrderList() {
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Order List</div>
-        <ActionButton
-          mode="create"
-          text="Create"
-          onClick={(e) => navigate("/order/create")}
-        />
+        {permission.btn_create && (
+          <ActionButton
+            mode="create"
+            text="Create"
+            onClick={(e) => navigate("/order/create")}
+          />
+        )}
       </div>
 
       <FilterByOrder

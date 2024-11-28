@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
@@ -16,33 +16,74 @@ export default function WorkPlanCreate() {
   const [dataSource, setDataSource] = useState([]);
   const [permission, setPermission] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
-  const { showMsg, showNotification } = useContext(AuthContext);
+  const { showNotification } = useContext(AuthContext);
 
   useEffect(() => {
-    const total = dataSource.reduce(
-      (acc, item) => acc + parseFloat(item.value),
-      0
-    );
-    setTotalValue(total);
-  }, []);
-  useEffect(() => {
-    console.log(permission);
-  }, [permission]);
+    useServiceAPI
+      .get(
+        paths.pathWorkPlanStep1,
+        { year_code: location?.state?.year_code },
+        setLoading
+      )
+      .then((response) => {
+        if (response.status === 200) {
+          const newData = response.data.data_items.map((item) => ({
+            key: item.product_id,
+            product_id: item.product_id,
+            product_code: item.product_code,
+            product_name: item.product_name,
+            pack_size: item.pack_size,
+            unit_convert_value: item.unit_convert_value,
+            qty: item.qty || 0,
+            value: parseFloat(item.value || 0).toFixed(2),
+          }));
+          setDataSource(newData);
+          setTotalValue(response.data.data_overall_target);
+          setPermission(response.data.permission);
+        }
+      })
+      .catch((error) => {
+        if (error.status === 422) {
+          showNotification("error", error.message);
+        } else {
+          showNotification("error", "เกิดข้อผิดพลาด");
+        }
+      });
+  }, [location?.state?.year_code, showNotification]);
 
   const handleQtyChange = (value, key) => {
-    let total = 0; // Initialize as a number
-    const newData = dataSource.map((item) => {
-      if (item.key === key) {
-        const newValue =
-          parseFloat(value) * parseFloat(item.unit_convert_value);
-        total += parseFloat(newValue); // Add the updated value to total
-        return { ...item, qty: value, value: parseFloat(newValue.toFixed(2)) };
-      }
-      total += parseFloat(item.value);
-      return item;
-    });
-    setTotalValue(total.toFixed(2));
-    setDataSource(newData);
+    console.log(value);
+    // ค้นหารายการที่ต้องการเปลี่ยน
+    const itemToUpdate = dataSource.find((item) => item.key === key);
+
+    if (itemToUpdate) {
+      // คำนวณ value ใหม่
+      const newValue =
+        parseFloat(value || 0) *
+        parseFloat(itemToUpdate.unit_convert_value || 0);
+
+      // อัปเดต item ที่เปลี่ยนแปลง
+      const updatedItem = {
+        ...itemToUpdate,
+        qty: value || 0,
+        value: parseFloat(newValue.toFixed(2)),
+      };
+
+      // อัปเดต dataSource
+      const newDataSource = dataSource.map((item) =>
+        item.key === key ? updatedItem : item
+      );
+
+      // คำนวณ total ใหม่
+      const total = newDataSource.reduce(
+        (acc, item) => acc + parseFloat(item.value || 0),
+        0
+      );
+
+      // อัปเดต state
+      setDataSource(newDataSource);
+      setTotalValue(total.toFixed(2));
+    }
   };
 
   const header = [
@@ -60,7 +101,6 @@ export default function WorkPlanCreate() {
       title: "Qty (KG)",
       dataIndex: "qty",
       key: "qty",
-
       render: (text, record) => (
         <InputNumber
           className="w-full"
@@ -83,7 +123,10 @@ export default function WorkPlanCreate() {
           className="w-full"
           value={text}
           formatter={(value) =>
-            `฿ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            `฿ ${Number(value).toFixed(2)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
           }
           disabled
         />
@@ -91,44 +134,7 @@ export default function WorkPlanCreate() {
     },
   ];
 
-  useEffect(() => {
-    useServiceAPI
-      .get(
-        paths.pathWorkPlanStep1,
-        { year_code: location?.state?.year_code },
-        setLoading
-      )
-      .then((response) => {
-        if (response.status == 200) {
-          console.log(response.data.data_items);
-          const newData = response.data.data_items.map((item) => ({
-            key: item.product_id,
-            product_id: item.product_id,
-            product_code: item.product_code,
-            product_name: item.product_name,
-            pack_size: item.pack_size,
-            unit_convert_value: item.unit_convert_value,
-            qty: item.qty,
-            value: item.value,
-          }));
-          setDataSource(newData);
-          setTotalValue(response.data.data_overall_target);
-          setPermission(response.data.permission);
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-        if (error.status == 422) {
-          showNotification("error", error.message);
-        } else {
-          showNotification("error", "เกิดข้อผิดพลาด");
-        }
-      });
-  }, []);
-
   const handleSave = (mode) => {
-    console.log(dataSource, totalValue, mode);
-
     useServiceAPI
       .post(
         paths.pathWorkPlanStep1,
@@ -141,35 +147,25 @@ export default function WorkPlanCreate() {
         setLoading
       )
       .then((response) => {
-        if (response.status == 200) {
-          console.log(response.data);
-
-          if (mode == "draft") {
-            showNotification(
-              "success",
-              response.data.message,
-              response.data.message_line
-            ).then(() => {
+        if (response.status === 200) {
+          const successCallback = () => {
+            if (mode === "draft") {
               navigate("/sale-plan/work-plan");
-            });
-          } else if (mode == "save_and_next") {
-            showNotification(
-              "success",
-              response.data.message,
-              response.data.message_line
-            ).then(() => {
+            } else if (mode === "save_and_next") {
               navigate("/sale-plan/work-plan/create-2", {
-                state: {
-                  year_code: location?.state?.year_code,
-                },
+                state: { year_code: location?.state?.year_code },
               });
-            });
-          }
+            }
+          };
+          showNotification(
+            "success",
+            response.data.message,
+            response.data.message_line
+          ).then(successCallback);
         }
       })
       .catch((error) => {
-        console.log(error);
-        if (error.status == 422) {
+        if (error.status === 422) {
           showNotification("error", error.message);
         } else {
           showNotification("error", "เกิดข้อผิดพลาด");
@@ -178,79 +174,75 @@ export default function WorkPlanCreate() {
   };
 
   return (
-    <>
-      <MainLayout loading={loading} childrenStyle={""}>
-        <div className="title-page">Create Work Plan</div>
-        <BoxPrimary>
-          <div className="text-[#00783F] text-xl pb-5">Work Plan</div>
-          <TableComponent
-            header={header}
-            dataSource={dataSource}
-            pagination={false}
-            footer={() => (
-              <Table.Summary fixed>
-                <Table.Summary.Row className="bg-[#978B87]">
-                  <Table.Summary.Cell index={0} colSpan={3}>
-                    <span className="text-white">Total (THB)</span>
-                  </Table.Summary.Cell>
-                  <Table.Summary.Cell>
-                    <InputNumber
-                      className="w-full"
-                      disabled
-                      value={totalValue}
-                      min={0}
-                      formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      style={{ backgroundColor: "white" }}
-                    />
-                  </Table.Summary.Cell>
-                </Table.Summary.Row>
-              </Table.Summary>
-            )}
-          />
-        </BoxPrimary>
-
-        <div className="flex justify-end space-x-4">
+    <MainLayout loading={loading} childrenStyle={""}>
+      <div className="title-page">Create Work Plan</div>
+      <BoxPrimary>
+        <div className="text-[#00783F] text-xl pb-5">Work Plan</div>
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pagination={false}
+          footer={() => (
+            <Table.Summary fixed>
+              <Table.Summary.Row className="bg-[#978B87]">
+                <Table.Summary.Cell index={0} colSpan={3}>
+                  <span className="text-white">Total (THB)</span>
+                </Table.Summary.Cell>
+                <Table.Summary.Cell>
+                  <InputNumber
+                    className="w-full"
+                    disabled
+                    value={totalValue}
+                    formatter={(value) =>
+                      `฿ ${Number(value).toFixed(2)}`.replace(
+                        /\B(?=(\d{3})+(?!\d))/g,
+                        ","
+                      )
+                    }
+                    style={{ backgroundColor: "white" }}
+                  />
+                </Table.Summary.Cell>
+              </Table.Summary.Row>
+            </Table.Summary>
+          )}
+        />
+      </BoxPrimary>
+      <div className="flex justify-end space-x-4">
+        <ActionButton
+          text="Back"
+          mode="back"
+          onClick={() => navigate("/sale-plan/work-plan")}
+        />
+        {permission.btn_draft && (
           <ActionButton
-            text="Back"
-            mode="back"
+            text="Save Draft"
+            mode="saveDraft"
+            onClick={() => handleSave("draft")}
+          />
+        )}
+        {permission.btn_draft && (
+          <ActionButton
+            text="Save and Next"
+            mode="save"
+            className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
+            onClick={() => handleSave("save_and_next")}
+          />
+        )}
+
+        {permission.btn_next && (
+          <ActionButton
+            text="Next"
+            mode="save"
             onClick={() => {
-              navigate("/sale-plan/work-plan");
+              navigate("/sale-plan/work-plan/create-2", {
+                state: {
+                  year_code: location.state.year_code,
+                },
+              });
             }}
           />
-          {permission.btn_draft && (
-            <ActionButton
-              text="Save Draft"
-              mode="saveDraft"
-              onClick={() => handleSave("draft")}
-            />
-          )}
-          {permission.btn_draft && (
-            <ActionButton
-              text="Save and Next"
-              mode="save"
-              className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
-              onClick={() => handleSave("save_and_next")}
-            />
-          )}
-
-          {permission.btn_next && (
-            <ActionButton
-              text="Next"
-              mode="save"
-              className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
-              onClick={() =>
-                navigate("/sale-plan/work-plan/create-2", {
-                  state: {
-                    year_code: location?.state?.year_code,
-                  },
-                })
-              }
-            />
-          )}
-        </div>
-      </MainLayout>
-    </>
+        )}
+      </div>
+    </MainLayout>
   );
 }

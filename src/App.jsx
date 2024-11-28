@@ -18,6 +18,7 @@ import WorkPlanCreate from "./pages/sale_plan/workplan/WorkPlanCreate";
 import WorkPlanCreateStepTwo from "./pages/sale_plan/workplan/WorkPlanCreateStepTwo";
 import SettingRole from "./pages/settings/role/SettingRole";
 import SettingUser from "./pages/settings/user/SettingUser";
+import ProfileUser from "./pages/settings/user/ProfileUser";
 import CreateUser from "./pages/settings/user/CreateUser";
 import EditUser from "./pages/settings/user/EditUser";
 import SettingSale from "./pages/settings/sale/SettingSale";
@@ -91,6 +92,8 @@ const App = () => {
 
           {/* Sale Plan Route */}
           <Route path="/sale-plan/work-plan" element={<WorkPlan />} />
+          <Route path="/sale-plan/work-plan-area" element={<WorkPlan />} />
+          <Route path="/sale-plan/work-plan-sale" element={<WorkPlan />} />
           <Route path="/sale-plan/work-plan/create" element={<WorkPlanCreate />} />
           <Route path="/sale-plan/work-plan/edit" element={<EditWorkPlan />} />
           <Route path="/sale-plan/work-plan/create-2" element={<WorkPlanCreateStepTwo />} />
@@ -141,6 +144,7 @@ const App = () => {
 
           {/* Setting Route */}
           <Route path="/setting/role" element={<SettingRole />} />
+          <Route path="/setting/profile" element={<ProfileUser />} />
           <Route path="/setting/user" element={<SettingUser />} />
           <Route path="/setting/user/create" element={<CreateUser />} />
           <Route path="/setting/user/edit" element={<EditUser />} />
