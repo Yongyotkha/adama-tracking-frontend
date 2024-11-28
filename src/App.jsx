@@ -70,6 +70,7 @@ import CreateActivity from "./pages/activity/CreateActivity";
 import EditActivity from "./pages/activity/EditActivity";
 import ActivityPlanList from "./pages/activity/activity_plan/ActivityPlanList";
 import ActivityCalendar from "./pages/activity/calendar/ActivityCalendar";
+import ViewTraveling from "./pages/expenses/traveling/ViewTraveling";
 // END ------------- Activity ------------- END
 
 
@@ -131,6 +132,7 @@ const App = () => {
           <Route path="/expenses/traveling" element={<Traveling />} />
           <Route path="/expenses/traveling/create" element={<CreateTraveling />} />
           <Route path="/expenses/traveling/edit" element={<EditTraveling />} />
+          <Route path="/expenses/traveling/view" element={<ViewTraveling />} />
           <Route path="/expenses/clearing" element={<ClearingExpense />} />
           <Route path="/expenses/clearing/create" element={<CreateClearing />} />
           <Route path="/expenses/clearing/edit" element={<EditClearing />} />

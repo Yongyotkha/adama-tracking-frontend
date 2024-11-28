@@ -40,6 +40,32 @@ export default function EditTraveling() {
   const [getYearCode, setGetYearCode] = useState(location.state.year_code);
   const [getMonthCode, setGetMonthCode] = useState(location.state.month_code);
 
+  // Get Master
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [sale, year, month] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {
+            status: ""
+          }),
+          useServiceAPI.get(paths.pathMasterYear, {}),
+          useServiceAPI.get(paths.pathMasterMonths, {}),
+        ]);
+
+        setDataSale(sale.data)
+        setDataYear(year.data);
+        setDataMonth(month.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, []);
+
   // Get Expenses Detail
   useEffect(() => {
     const getExpensesDetail = async () => {
@@ -85,7 +111,7 @@ export default function EditTraveling() {
     };
 
     getExpensesDetail();
-  }, [saleId, yearCode, monthCode]);
+  }, []);
 
   const handleMonthChange = (filter, value) => {
     if (filter == "sale") {
@@ -98,6 +124,57 @@ export default function EditTraveling() {
       setMonthCode(value);
     }
   };
+
+  // Fetch API Table Add Rows
+  useEffect(() => {
+    if (saleId && yearCode && monthCode) {
+      const loadDataTraveling = async () => {
+        setLoading(true);
+        try {
+          const [traveling] = await Promise.all([
+            useServiceAPI.get(paths.pathGetExpenseTravelingDetail, {
+              year_code: yearCode,
+              month_code: monthCode,
+              user_id: saleId
+            }),
+          ]);
+          
+          const dataItems = traveling.data.data_items;
+          const transformedData = dataItems.map((item, index) => ({
+            key: `${index + 1}`,
+            date: item.date || "",
+            from: item.traveling_from || "",
+            to: item.traveling_to || "",
+            mileage: item.mileage || "0",
+            petrol: item.petrol || "0",
+            cashPetrol: item.cash_petrol || "0",
+            hotel: item.hotel || "0",
+            allowance: item.allowance || "0",
+            tollFee: item.toll_fee || "0",
+            entertain: item.entertain || "0",
+            others: item.others || "0",
+            total: item.total || "0",
+            remark: item.remark || "",
+          }));
+
+          // ตั้งค่า state
+          setDataSource(transformedData);
+
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      // Load Data
+      loadDataTraveling();
+
+    } else {
+      // Set State : Table data source
+      setDataSource([]);
+    }
+  }, [saleId, yearCode, monthCode])
 
   // Function to add a new row
   // const addRow = () => {
@@ -122,11 +199,13 @@ export default function EditTraveling() {
 
   // Update individual cell values
   const updateField = (key, field, value) => {
-    setDataSource((prevData) =>
-      prevData.map((item) =>
-        item.key === key ? { ...item, [field]: value, total: calculateTotal(item) } : item
-      )
-    );
+    if (field !== 'mileage' || field !== 'petrol') {
+      setDataSource((prevData) =>
+        prevData.map((item) =>
+          item.key === key ? { ...item, [field]: value, total: calculateTotal(item) } : item
+        )
+      );
+    }
   };
 
   // Calculate total for each row
@@ -173,7 +252,7 @@ export default function EditTraveling() {
       options: dataSale,
       required: false,
       col: 6,
-      value: saleId,
+      value: parseInt(saleId),
     },
     {
       label: "Year",
@@ -419,8 +498,8 @@ export default function EditTraveling() {
           remark: dataRemark,
           data_items: transformedData,
         };
-        console.log(body);
-        return;
+        // console.log(body);
+        // return;
         const saveExpensesTraveling = async () => {
           setLoading(true);
           try {
