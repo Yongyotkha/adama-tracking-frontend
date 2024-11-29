@@ -4,14 +4,12 @@ import FormUser from "../../../components/form_user/FormUser";
 import DynamicButton from "../../../components/button/DynamicButton";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
-// import { Form } from "antd";
 import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { useLocation } from "react-router-dom";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import { Col, Form, Input, Row } from "antd";
-import { values } from "lodash";
 
 export default function EditUser() {
   const [loading, setLoading] = useState(false);

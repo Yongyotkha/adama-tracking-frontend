@@ -1,17 +1,40 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import FormUser from "../../../components/form_user/FormUser";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import { Col, Form, Input, Row } from "antd";
+import useServiceAPI from "../../../services/CorsService";
+import { AuthContext } from "../../../contexts/AuthContext";
+import { paths } from "../../../services/CorsPath";
 
 export default function ProfileUser() {
   const [loading, setLoading] = useState(false);
+  const [formUserInfo, setFormUserInfo] = useState({});
   const [isEditingPassword, setIsEditingPassword] = useState(false); // State to manage password edit mode
   const navigate = useNavigate();
+  const { userInfo, showNotification } = useContext(AuthContext);
+  const [form] = Form.useForm();
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    useServiceAPI
+      .get(`${paths.pathMasterUsersDetail}/${userInfo.id}`, {}, setLoading)
+      .then((response) => {
+        if (response.status === 200) {
+          console.log(response.data);
+          setFormUserInfo(response.data);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        if (error.status === 422) {
+          showNotification("error", error.message);
+        } else {
+          showNotification("error", "เกิดข้อผิดพลาด");
+        }
+      });
+  }, []);
 
   const handleBack = () => {
     navigate("/setting/user");
@@ -33,7 +56,7 @@ export default function ProfileUser() {
       type: "text",
       required: true,
       col: 6,
-      value: "John Doe",
+      value: formUserInfo.name_en,
     },
     {
       label: "Name (TH)",
@@ -169,11 +192,13 @@ export default function ProfileUser() {
     <MainLayout loading={loading}>
       <div className="title-page">Profile</div>
 
-      <FormUser profile="/img/profile.jpg" fields={formFields} />
+      <FormUser profile="/img/profile.jpg" fields={formFields} form={form} />
 
       <BoxPrimary>
         <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">Change Password</div>
+          <div className="text-[#00783F] text-lg font-semibold mb-3">
+            Change Password
+          </div>
           <ActionButton
             mode="edit"
             text={isEditingPassword ? "Cancel" : "Edit"} // Toggle button text
