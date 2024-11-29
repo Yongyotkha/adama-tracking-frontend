@@ -218,6 +218,7 @@ export default function CreateOrder() {
       disabled: true, 
       required: false, 
       moderef: false,
+      placeholder: "Generate order no",
       value: "" 
     },
     { 
@@ -614,7 +615,6 @@ export default function CreateOrder() {
           placeholder="Search Product"
           optionFilterProp="label"
           className="w-full"
-          value=""
           onChange={onChangeProduct}
           onSearch={onSearchProduct}
           options={searchProductData}

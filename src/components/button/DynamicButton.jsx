@@ -8,6 +8,7 @@ const DynamicButton = ({
   disabled,
   iconSrc,
   path,
+  type
 }) => {
   const navigate = useNavigate();
 
@@ -24,6 +25,7 @@ const DynamicButton = ({
       className={`cursor-pointer text-center font-light text-sm rounded-[5px] ${className}`}
       onClick={handleClick}
       disabled={disabled}
+      type={type}
     >
       {iconSrc && (
         <span>

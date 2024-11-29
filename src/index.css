@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Anuphan:wght@100..700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -60,7 +61,7 @@
 
 * {
     font-family: "BrownLLHeb", sans-serif;
-}
+  }
 
 .title-page {
   color: #00783F;
@@ -71,4 +72,10 @@
 
 .ant-modal-content {
   border-top: 10px solid #00783F !important;
+}
+
+
+/* ฟอนต์ Anuphan สำหรับข้อความภาษาไทย */
+*:lang(th) {
+  font-family: "Anuphan", sans-serif !important;
 }
