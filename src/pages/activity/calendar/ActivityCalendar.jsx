@@ -18,15 +18,24 @@ export default function ActivityCalendar() {
   const fetchEvents = async (month, year) => {
     setLoading(true);
     try {
+      console.log("Fetching events with:", {
+        platform: "web",
+        keyword: "",
+        month,
+        year,
+        user_id: userId || "", // Use current userId
+        dealer_id: dealerId || "", // Use current dealerId
+      });
+  
       const response = await useServiceAPI.get(paths.pathActivityCalendarList, {
         platform: "web",
         keyword: "",
         month,
         year,
-        user_id: userId,
-        dealer_id: dealerId,
+        user_id: userId || "", // Use current userId
+        dealer_id: dealerId || "", // Use current dealerId
       });
-
+  
       if (response.result) {
         const formattedEvents = response.data.map((item) => ({
           title: item.activity_type_name,
@@ -41,7 +50,6 @@ export default function ActivityCalendar() {
           })),
         }));
         setEvents(formattedEvents);
-        // console.log(response);
       } else {
         console.error("Error fetching events:", response.message);
         setEvents([]);
@@ -53,19 +61,18 @@ export default function ActivityCalendar() {
       setLoading(false);
     }
   };
+  
 
   const receiveData = (data) => {
-    if (data.saleId) {
+    if (data.saleId !== undefined) {
       setUserId(data.saleId);
     }
-
-    if (data.shopId) {
+  
+    if (data.shopId !== undefined) {
       setDealerId(data.shopId);
     }
-
-    if (data) {
-      console.log(data);
-    } else [console.log("นนเอง")];
+  
+    console.log("Updated data:", { saleId: data.saleId, shopId: data.shopId });
   };
 
   useEffect(() => {
