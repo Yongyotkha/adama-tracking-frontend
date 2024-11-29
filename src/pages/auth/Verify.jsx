@@ -12,7 +12,7 @@ export default function Verify() {
   const navigate = useNavigate();
 
   const [otp, setOtp] = useState(["", "", "", ""]);
-  const [timeLeft, setTimeLeft] = useState(3); // 5 minutes
+  const [timeLeft, setTimeLeft] = useState(0); // 5 minutes
   const [otpInfo, setOtpInfo] = useState(""); // 5 minutes
   const [btnVerify, setBtnVerify] = useState("Verify");
   const { userInfo, showMsg,showNotification } = useContext(AuthContext);
@@ -30,7 +30,7 @@ export default function Verify() {
         setLoading
       )
       .then((response) => {
-        if (response.status == 200) {
+        if (response.result) {
           if (userInfo.is_change_password) {
             navigate("/change-password");
           } else {
@@ -186,7 +186,7 @@ export default function Verify() {
                 Didn't you receive any code?
               </p>
               <DynamicButton
-                type="link"
+                type="button"
                 text="RESEND OTP"
                 onClick={handleResend}
                 className="text-[#F5B317] font-bold"

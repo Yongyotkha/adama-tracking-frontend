@@ -4,11 +4,7 @@ import "./Navbar.css";
 import Logo from "../logo/Logo";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
-import {
-  LogoutOutlined,
-  PlusOutlined,
-  UserOutlined, 
-} from "@ant-design/icons";
+import { LogoutOutlined, PlusOutlined, UserOutlined } from "@ant-design/icons";
 
 const useMediaQuery = (query) => {
   const [matches, setMatches] = useState(false);
@@ -31,8 +27,13 @@ const Navbar = () => {
   const location = useLocation();
   const carouselRef = useRef(null); // Create a reference for the carousel
   const [activeIndex, setActiveIndex] = useState(0); // Track active index
-
   const { userInfo, logout } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (userInfo.is_change_password || userInfo.is_otp) {
+      logout();
+    }
+  }, [userInfo]);
 
   const menuItems = [
     {
@@ -294,7 +295,6 @@ const Navbar = () => {
       ),
     }));
 
-
     return (
       <Menu
         items={menuProfileItems}
@@ -320,9 +320,9 @@ const Navbar = () => {
     const currentIndex = menuItems.findIndex((item) =>
       item.dropdownMenu
         ? isActivePath(
-          item.path,
-          item.dropdownItems.map((subItem) => subItem.path)
-        )
+            item.path,
+            item.dropdownItems.map((subItem) => subItem.path)
+          )
         : isActivePath(item.path)
     );
     setActiveIndex(currentIndex >= 0 ? currentIndex : 0);
@@ -359,9 +359,9 @@ const Navbar = () => {
           {menuItems.map((item, index) => {
             const isActive = item.dropdownMenu
               ? isActivePath(
-                item.path,
-                item.dropdownItems.map((subItem) => subItem.path)
-              )
+                  item.path,
+                  item.dropdownItems.map((subItem) => subItem.path)
+                )
               : isActivePath(item.path);
 
             if (item.dropdownMenu) {
@@ -371,8 +371,9 @@ const Navbar = () => {
                   overlay={<CustomDropdownMenu items={item.dropdownItems} />}
                 >
                   <div
-                    className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
-                      }`}
+                    className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${
+                      isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
+                    }`}
                   >
                     <img
                       src={item.icon}
@@ -387,8 +388,9 @@ const Navbar = () => {
               return (
                 <div
                   key={index}
-                  className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
-                    } cursor-pointer`}
+                  className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${
+                    isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
+                  } cursor-pointer`}
                   onClick={() => handleNavigate(item.path, index)}
                 >
                   <img
@@ -406,8 +408,12 @@ const Navbar = () => {
 
       <div className="flex items-center w-1/6 justify-end gap-3">
         <div className="flex flex-col">
-          <span className="text-white hidden lg:block self-end text-nowrap">{userInfo?.name}</span>
-          <span className="text-white hidden lg:block self-end text-nowrap">{userInfo?.role_name}</span>
+          <span className="text-white hidden lg:block self-end text-nowrap">
+            {userInfo?.name}
+          </span>
+          <span className="text-white hidden lg:block self-end text-nowrap">
+            {userInfo?.role_name}
+          </span>
         </div>
 
         <Dropdown
@@ -416,7 +422,7 @@ const Navbar = () => {
           placement="bottomRight"
         >
           <img
-            src={userInfo?.profile_image || '/img/icons/dashboard.png'} // Fallback image
+            src={userInfo?.profile_image || "/img/icons/dashboard.png"} // Fallback image
             alt="User Avatar"
             className="rounded-full h-10 w-10 mx-2 cursor-pointer"
           />
