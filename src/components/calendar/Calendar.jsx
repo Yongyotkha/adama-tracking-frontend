@@ -211,9 +211,9 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
 
   return (
     <div className="grid grid-rows-[auto,1fr] h-screen">
-      <header className="p-4 bg-[#F5F3F3]">
+      <header className="py-3 bg-[#F5F3F3]">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center">
             <div className="flex gap-2">
               {/* <button
                 className={`px-4 py-2 rounded ${
