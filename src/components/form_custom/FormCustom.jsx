@@ -178,7 +178,7 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
                     value={formValues[field.name] || null}
                     onChange={(date) => handleChange(field.name, date)}
                     format="YYYY-MM-DD"
-                    disabled={formValues[field.disabled]}
+                    disabled={field.disabled}
                   />
                 ) : field.type === "month" ? (
                   <MonthPicker

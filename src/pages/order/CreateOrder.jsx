@@ -11,6 +11,7 @@ import DynamicModal from "../../components/modal/DynamicModal";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 
 dayjs.extend(customParseFormat);
 
