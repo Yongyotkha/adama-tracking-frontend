@@ -33,6 +33,7 @@ export const paths = {
   pathMasterSalearea: "master/salearea",
   pathMasterMonths: "master/months",
   pathMasterYear: "master/years",
+  pathMasterPerception: "master/perception",
 
   //Products
   pathSaleManagementProductsList: "products-management/list",
@@ -65,6 +66,7 @@ export const paths = {
   pathMasterActivityType: "master/activity-type",
   pathMasterSaleDropdown: "master/sale",
   pathMasterDealerDropdown: "master/dealer",
+  pathMasterDealerAll: "master/dealer-all",
 
   // List
   pathSaleManagementList: "sale-management/list",
@@ -91,7 +93,7 @@ export const paths = {
   // upload
   pathUpload: "upload/create",
 
-  //sale plan
+  //head plan
   pathGetWorkPlanList: "work-plan/list",
   pathWorkPlanStep1: "work-plan/workplan_step1",
   pathWorkPlanStep2: "work-plan/workplan_step2",
@@ -104,13 +106,16 @@ export const paths = {
   pathGetWorkPlanSaleList: "/work-plan/sale/list",
   pathWorkPlanSaleQuarter: "/work-plan/sale/quarter",
   pathWorkPlanSaleCrop: "/work-plan/sale/crop",
+  pathWorkPlanSaleDealer: "/work-plan/sale/dealer",
+  pathWorkPlanSaleSubDealer: "/work-plan/sale/subdealer",
+  pathWorkPlanSaleSubDealerList: "/work-plan/sale/subdealer/list",
 
   //Activity
-  pathActivatyList: "/activity/list",
-  pathActivatyCreate: "/activity/create",
-  pathActivatyDetail: "/activity/detail",
+  pathActivityList: "/activity/list",
+  pathActivityCreate: "/activity/create",
+  pathActivityDetail: "/activity/detail",
   // Activity Calendar
-  pathActivatyCalendarList: "/activity/calendar/list",
+  pathActivityCalendarList: "/activity/calendar/list",
   
   // Orders
   pathGetOrderList: "order/list",

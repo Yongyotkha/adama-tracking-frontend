@@ -117,7 +117,7 @@ export default function WorkPlanSaleByCrop() {
         </div>
       ),
       dataIndex: cropItem.crop_id,
-      key: `percent_${cropItem.crop_id}`,
+      key: `percentage_${cropItem.crop_id}`,
       onHeaderCell: () => ({
         style: {
           backgroundColor: "#009845",
@@ -133,7 +133,8 @@ export default function WorkPlanSaleByCrop() {
           min={0}
           max={100}
           value={
-            localQtyState[cropItem.crop_id]?.[record.product_id]?.percent || 0
+            localQtyState[cropItem.crop_id]?.[record.product_id]?.percentage ||
+            0
           }
           onChange={(value) =>
             handlePercentChange(value, cropItem.crop_id, record)
@@ -166,10 +167,7 @@ export default function WorkPlanSaleByCrop() {
           value={localQtyState[cropItem.crop_id]?.[record.product_id]?.qty || 0}
           disabled
           formatter={(value) =>
-            `${Number(value).toFixed(2)}`.replace(
-              /\B(?=(\d{3})+(?!\d))/g,
-              ","
-            )
+            `${Number(value).toFixed(2)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
         />
       ),
@@ -201,10 +199,7 @@ export default function WorkPlanSaleByCrop() {
           }
           disabled
           formatter={(value) =>
-            `${Number(value).toFixed(2)}`.replace(
-              /\B(?=(\d{3})+(?!\d))/g,
-              ","
-            )
+            `${Number(value).toFixed(2)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
         />
       ),
@@ -224,20 +219,34 @@ export default function WorkPlanSaleByCrop() {
       .then((response) => {
         if (response.status === 200) {
           const newLocalState = response.data.crop_items.reduce((acc, crop) => {
+            // Initialize crop_id object if it doesn't exist
+            if (!acc[crop.crop_id]) {
+              acc[crop.crop_id] = {};
+            }
+          
+            // Process data_items
             crop.data_items.forEach((item) => {
               const productId = item.product_id;
-              if (!acc[crop.crop_id]) {
-                acc[crop.crop_id] = {};
-              }
+          
+              const percentage = parseFloat(item.percentage || 0);
+              const qty = parseFloat(item.qty || 0);
+              const value = parseFloat(item.value || 0);
+          
+              // Assign product data to the crop_id
               acc[crop.crop_id][productId] = {
-                percent: parseFloat(item.percent || 0),
-                qty: parseFloat(item.qty || 0),
-                value: parseFloat(item.value || 0),
+                percentage,
+                qty,
+                value,
               };
             });
+          
+            // Assign amount_target to the crop_id
+            acc[crop.crop_id].amount_target = parseFloat(crop.amount_target || 0);
+          
             return acc;
           }, {});
-
+          
+          // Update the state
           setLocalQtyState(newLocalState);
 
           const newData = response.data.data_items.map((item) => ({
@@ -276,153 +285,168 @@ export default function WorkPlanSaleByCrop() {
 
   const handlePercentChange = (value, cropId, record) => {
     const { product_id, qty: totalQty, unit_convert_value } = record;
-  
+
     setLocalQtyState((prevState) => {
       // คำนวณ `qty` และ `value` สำหรับ cropId ที่เปลี่ยนแปลง
       const updatedQty = (value / 100) * totalQty;
       const updatedValue = updatedQty * (unit_convert_value || 1);
-  
+
       // อัปเดตข้อมูล `cropId` ที่เปลี่ยนแปลงใน `localQtyState`
       const updatedCropProducts = {
         ...prevState[cropId],
         [product_id]: {
-          percent: value,
+          percentage: value,
           qty: updatedQty,
           value: updatedValue,
         },
       };
-  
+
       // คำนวณ `totalPercent` ของทุก `cropId` ยกเว้น `cropId = 7`
-      const totalPercent = Object.keys(prevState).reduce((sum, currentCropId) => {
-        if (currentCropId === "7") return sum; // ไม่รวม `cropId = 7`
-        const cropData =
-          currentCropId === cropId
-            ? updatedCropProducts[product_id] // ใช้ค่าที่อัปเดตใหม่
-            : prevState[currentCropId]?.[product_id]; // ใช้ค่าจาก `prevState`
-        return sum + (cropData?.percent || 0);
-      }, 0);
-  
+      const totalPercent = Object.keys(prevState).reduce(
+        (sum, currentCropId) => {
+          if (currentCropId === "7") return sum; // ไม่รวม `cropId = 7`
+          const cropData =
+            currentCropId === cropId
+              ? updatedCropProducts[product_id] // ใช้ค่าที่อัปเดตใหม่
+              : prevState[currentCropId]?.[product_id]; // ใช้ค่าจาก `prevState`
+          return sum + (cropData?.percentage || 0);
+        },
+        0
+      );
+
       // หาก `totalPercent` เกิน 100% ให้แจ้งเตือนและไม่อัปเดต state
       if (totalPercent > 100) {
         showNotification(
           "error",
-          `Total percent for Product ${product_id} across all crops (excluding CropId 7) cannot exceed 100%.`
+          `Total percentage for Product ${product_id} across all crops (excluding CropId 7) cannot exceed 100%.`
         );
         return prevState;
       }
-  
+
       // คำนวณ `remainingPercent`
       const remainingPercent = Math.max(100 - totalPercent, 0); // ไม่ให้ค่าเป็นลบ
-  
+
       // อัปเดต `cropId = 7` สำหรับ `product_id`
       const updatedCrop7Products = {
         ...prevState["7"],
         [product_id]: {
-          percent: remainingPercent,
+          percentage: remainingPercent,
           qty: (remainingPercent / 100) * totalQty,
-          value: ((remainingPercent / 100) * totalQty) * (unit_convert_value || 1),
+          value:
+            (remainingPercent / 100) * totalQty * (unit_convert_value || 1),
         },
       };
-  
+
       // คำนวณ `amount_target` ของ `cropId` ที่เปลี่ยนแปลง
       const amountTarget = Object.values(updatedCropProducts).reduce(
         (sum, product) => sum + (product.value || 0),
         0
       );
-  
+
       // คำนวณ `amount_target` ของ `cropId = 7`
       const amountTargetCrop7 = Object.values(updatedCrop7Products).reduce(
         (sum, product) => sum + (product.value || 0),
         0
       );
-  
+
       return {
         ...prevState,
         [cropId]: {
           ...updatedCropProducts,
           amount_target: amountTarget,
         },
-        "7": {
+        7: {
           ...updatedCrop7Products,
           amount_target: amountTargetCrop7,
         },
       };
     });
   };
-  
-  
 
-  const handleSave = (mode) => {
-    const updatedCropData = crop.map((cropItem) => {
-      // ข้อมูลตั้งต้นของ cropItem
-      const originalDataItems = cropItem.data_items;
+  const handleSave = async (mode) => {
+    setLoading(true); // เริ่มโหลดข้อมูล
 
-      // อัปเดตข้อมูล `data_items` ด้วย `localQtyState`
-      const updatedDataItems = originalDataItems.map((product) => {
-        const localProductData =
-          localQtyState[cropItem.crop_id]?.[product.product_id] || {};
+    // อัพเดตข้อมูล quarter ด้วยข้อมูลใน localQtyState
+    try {
+      const updatedCropData = crop.map((cropItem) => {
+        // ข้อมูลตั้งต้นของ cropItem
+        const originalDataItems = cropItem.data_items;
+
+        // อัปเดตข้อมูล `data_items` ด้วย `localQtyState`
+        const updatedDataItems = originalDataItems.map((product) => {
+          const localProductData =
+            localQtyState[cropItem.crop_id]?.[product.product_id] || {};
+
+          return {
+            ...product, // ข้อมูลตั้งต้น
+            percentage: localProductData.percentage || product.percentage || 0,
+            qty: localProductData.qty || product.qty || 0,
+            value: localProductData.value || product.value || 0,
+          };
+        });
+
+        // คำนวณ `amount_target`
+        const amountTarget = updatedDataItems.reduce(
+          (sum, item) => sum + (item.value || 0),
+          0
+        );
 
         return {
-          ...product, // ข้อมูลตั้งต้น
-          percent: localProductData.percent || product.percent || 0,
-          qty: localProductData.qty || product.qty || 0,
-          value: localProductData.value || product.value || 0,
+          ...cropItem, // ข้อมูลตั้งต้น
+          data_items: updatedDataItems,
+          amount_target: amountTarget, // อัปเดต amount_target
         };
       });
 
-      // คำนวณ `amount_target`
-      const amountTarget = updatedDataItems.reduce(
-        (sum, item) => sum + (item.value || 0),
-        0
-      );
+      await useServiceAPI
+        .post(paths.pathWorkPlanSaleCrop, {
+          year_code: location?.state?.year_code,
+          user_id: location?.state?.user_id,
+          action_code: mode,
+          crop_items: updatedCropData, // รวมข้อมูลตั้งต้นของ crop
+        })
+        .then((response) => {
+          if (response.status === 200) {
+            if (mode == "draft") {
+              showNotification(
+                "success",
+                response.data.message,
+                response.data.message_line
+              ).then(() => {
+                navigate("/sale-plan/work-plan-sale");
+              });
+            } else {
+              showNotification(
+                "success",
+                response.data.message,
+                response.data.message_line
+              ).then(() => {
+                navigate("/sale-plan/work-plan-sale/sale-by-dealer", {
+                  state: {
+                    year_code: location?.state?.year_code,
+                    user_id: location?.state?.user_id,
+                  },
+                });
+              });
+            }
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+          if (error.status === 422) {
+            showNotification("error", error.message);
+          } else {
+            showNotification("error", "เกิดข้อผิดพลาด");
+          }
+        });
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      showNotification("error", "เกิดข้อผิดพลาดที่ไม่คาดคิด");
+    } finally {
+      setLoading(false); // หยุดโหลดข้อมูลไม่ว่าจะสำเร็จหรือผิดพลาด
+    }
 
-      return {
-        ...cropItem, // ข้อมูลตั้งต้น
-        data_items: updatedDataItems,
-        amount_target: amountTarget, // อัปเดต amount_target
-      };
-    });
-
-    console.log(updatedCropData);
-
-    // สร้าง payload
-    // const payload = {
-    //   year_code: location?.state?.year_code,
-    //   user_id: location?.state?.user_id,
-    //   action_code: mode,
-    //   crop_items: updatedCropData, // รวมข้อมูลตั้งต้นของ crop
-    // };
-
-    // setLoading(true);
-
-    // // เรียก API เพื่อบันทึกข้อมูล
-    // useServiceAPI
-    //   .post(paths.pathWorkPlanSaveCrop, payload, setLoading)
-    //   .then((response) => {
-    //     if (response.status === 200) {
-    //       showNotification(
-    //         "success",
-    //         response.data.message,
-    //         response.data.message_line
-    //       ).then(() => {
-    //         if (mode === "save") {
-    //           navigate("/sale-plan/work-plan/sale-by-dealer", {
-    //             state: {
-    //               year_code: location?.state?.year_code,
-    //               user_id: location?.state?.user_id,
-    //             },
-    //           });
-    //         }
-    //       });
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     console.error(error);
-    //     showNotification("error", "เกิดข้อผิดพลาด");
-    //   })
-    //   .finally(() => {
-    //     setLoading(false);
-    //   });
+    
   };
 
   return (
@@ -531,7 +555,12 @@ export default function WorkPlanSaleByCrop() {
             text="Back"
             mode="back"
             onClick={() => {
-              navigate("/sale-plan/work-plan/sale-create");
+              navigate("/sale-plan/work-plan-sale/sale-by-crop", {
+                state: {
+                  year_code: location?.state?.year_code,
+                  user_id: location?.state?.user_id,
+                },
+              })
             }}
           />
 
@@ -542,7 +571,7 @@ export default function WorkPlanSaleByCrop() {
               onClick={() => handleSave("draft")}
             />
           )}
-          {permission.btn_save && (
+          {permission.btn_save_and_next && (
             <ActionButton
               text="Save and Next"
               mode="save"
@@ -554,7 +583,7 @@ export default function WorkPlanSaleByCrop() {
               text="Next"
               mode="save"
               onClick={() =>
-                navigate("/sale-plan/work-plan/sale-by-dealer", {
+                navigate("/sale-plan/work-plan-sale/sale-by-dealer", {
                   state: {
                     year_code: location?.state?.year_code,
                     user_id: location?.state?.user_id,

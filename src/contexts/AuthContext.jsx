@@ -49,8 +49,8 @@ export const AuthProvider = ({ children }) => {
     // type 'success' | 'info' | 'warning' | 'error';
 
     const description = Array.isArray(line)
-    ? line.map((text) => `<span>${text}</span>`).join('<br>') // ใช้ HTML <br> เพื่อเว้นบรรทัด
-    : line;
+      ? line.map((text) => `<span>${text}</span>`).join("<br>") // ใช้ HTML <br> เพื่อเว้นบรรทัด
+      : line;
 
     return new Promise((resolve) => {
       api[type]({
@@ -69,7 +69,9 @@ export const AuthProvider = ({ children }) => {
     const storedUser = localStorage.getItem("users");
     const storedToken = localStorage.getItem("accessToken");
     if (storedUser && storedToken) {
-      setUserInfo(JSON.parse(storedUser));
+      const userInfo = JSON.parse(storedUser);
+    
+      setUserInfo(userInfo);
       setIsLoggedIn(true);
     } else {
       logout();
@@ -123,7 +125,10 @@ export const AuthProvider = ({ children }) => {
 
   const formatNumber = (number) => {
     if (isNaN(number) || number == null) return "0.00";
-    return number.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return number.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   };
 
   return (

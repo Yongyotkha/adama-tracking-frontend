@@ -633,7 +633,7 @@ export default function WorkPlanSaleCreate() {
               onClick={() => handleSave("draft")}
             />
           )}
-          {permission.btn_save && (
+          {permission.btn_save_and_next && (
             <ActionButton
               text="Save and Next"
               mode="save"

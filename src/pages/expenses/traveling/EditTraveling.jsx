@@ -332,7 +332,7 @@ export default function EditTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={parseFloat(value)}
           onChange={(val) => updateField(record.key, "petrol", val)}
         />
       ),
@@ -344,7 +344,7 @@ export default function EditTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={parseFloat(value)}
           onChange={(val) => updateField(record.key, "cashPetrol", val)}
         />
       ),
@@ -356,7 +356,7 @@ export default function EditTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={parseFloat(value)}
           onChange={(val) => updateField(record.key, "hotel", val)}
         />
       ),
@@ -368,7 +368,7 @@ export default function EditTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={parseFloat(value)}
           onChange={(val) => updateField(record.key, "allowance", val)}
         />
       ),
@@ -380,7 +380,7 @@ export default function EditTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={parseFloat(value)}
           onChange={(val) => updateField(record.key, "tollFee", val)}
         />
       ),
@@ -392,7 +392,7 @@ export default function EditTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={parseFloat(value)}
           onChange={(val) => updateField(record.key, "entertain", val)}
         />
       ),
@@ -404,7 +404,7 @@ export default function EditTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={parseFloat(value)}
           onChange={(val) => updateField(record.key, "others", val)}
         />
       ),
@@ -416,7 +416,7 @@ export default function EditTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={parseFloat(value)}
           onChange={(val) => updateField(record.key, "total", val)}
           disabled
         />
@@ -515,7 +515,7 @@ export default function EditTraveling() {
               navigate("/expenses/traveling");
             });
           } catch (error) {
-            // showMsg("error", error.message || "เกิดข้อผิดพลาด");
+            showMsg("error", error.message || "เกิดข้อผิดพลาด");
             console.log(error);
           } finally {
             setLoading(false);

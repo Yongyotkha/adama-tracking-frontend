@@ -140,24 +140,30 @@ export default function ActivityList() {
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
 
+    const sortOrder = tableParams.sortOrder || "desc";
+    const sortField = tableParams.sortField || "document_number";
+
     const requestData = {
       keyword: filters.keyword || "",
       activity_type_id: filters.activity_type || "",
       user_id: filters.sale || "",
       dealer_id: filters.shop || "",
+      page: "all",
+      orderby_column: sortField,
+      orderby: sortOrder,
       page_length: current,
       page_size: pageSize,
     };
 
     try {
       const response = await useServiceAPI.get(
-        paths.pathActivatyList,
+        paths.pathActivityList,
         requestData
       );
 
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
-
+        
         const newDataSource = data.map((row, index) => {
           const actionItems = [
             { 
@@ -267,7 +273,12 @@ export default function ActivityList() {
       />
 
       <BoxPrimary>
-        <TableComponent header={header} dataSource={dataSource} />
+        <TableComponent 
+          header={header} 
+          dataSource={dataSource} 
+          pagination={tableParams.pagination} 
+          loading={tableLoading}
+        />
       </BoxPrimary>
 
       <DynamicModal

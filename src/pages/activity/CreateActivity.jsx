@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
 import { Form, Input, Col, Row, Select } from "antd";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import ActionButton from "../../components/button/ActionButton";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import FormCustom from "../../components/form_custom/FormCustom";
@@ -14,6 +16,8 @@ import { paths } from "../../services/CorsPath";
 import { useLocation } from "react-router-dom";
 import { ReloadOutlined } from "@ant-design/icons";
 import { convertLegacyProps } from "antd/es/button";
+
+dayjs.extend(customParseFormat);
 
 const { Option } = Select;
 
@@ -41,43 +45,29 @@ export default function CreateActivity() {
   const fileUploadRef = useRef(null); // Reference for FileUploadComponent
   const [locationCustomer, setLocationCustomer] = useState([]);
   const [dealerCustomer, setDealerCustomer] = useState([]);
+  const [perceptionList, setPerceptionList] = useState([]);
+  const [fileList, setFileList] = useState([]);
 
   const [isBtnExpenseActive, setIsBtnExpenseActive] = useState(false);
 
-  const handleUploadClick = () => {
+  const handleUploadClick = async () => {    
     // Call triggerUpload from FileUploadComponent
     if (fileUploadRef.current) {
       fileUploadRef.current.triggerUpload();
     }
   };
 
-  // Example file list to be passed as dataFile
-  const [fileList, setFileList] = useState([
-    {
-      uid: '-1',
-      name: 'image.png',
+  const handleUploadSuccess = (response) => {
+    const data = response.data;
+    const fileUpload = {
+      uid: data.file_key,
+      name: data.file_name,
       status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    },
-    {
-      uid: '-2',
-      name: 'image.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    },
-    {
-      uid: '-3',
-      name: 'image.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    },
-    {
-      uid: '-4',
-      name: 'image.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    },
-  ]);
+      url: data.file_url,
+    };
+
+    // ใช้ callback เพื่ออัปเดต state อย่างถูกต้อง
+    setFileList((prevFileList) => [...prevFileList, fileUpload]);  };
 
   const handleUpdate = async () => {
     try {
@@ -106,7 +96,7 @@ export default function CreateActivity() {
     { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: false, required: true, col: 8, value: "", moderef: true },
     { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: false, required: true, col: 8, value: "", moderef: true },
     { label: "Crop", name: "crop_id_list", type: "select", mode: "multiple", options: cropList, disabled: false, required: true, col: 6, value: [], moderef: true },
-    { label: "Date", name: "document_date", type: "date", disabled: false, required: true, col: 6, value: "2024-01-01" },
+    { label: "Date", name: "document_date", type: "date", disabled: false, required: true, col: 6, value: dayjs().format("YYYY-MM-DD") },
     { label: "Start Time", name: "time_start", type: "select", options:timeList, disabled: false, required: true, col: 6, value:""  },
     { label: "End Time", name: "time_end", type: "select", options:timeList, disabled: false, required: true, col: 6, value: "" },
     { label: "Location", name: "location_address", type: "location", disabled: true, required: false, col: 24, value: "", iconSrc: "/img/icons/location.png", iconPosition: "left" },
@@ -119,19 +109,21 @@ export default function CreateActivity() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [activityType, sale, saleAll, time] = await Promise.all([
+        const [activityType, sale, saleAll, time, perception] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {
             'status': 'all'
           }),
           useServiceAPI.get(paths.pathMasterTime, {}),
+          useServiceAPI.get(paths.pathMasterPerception, {}),
         ]);
 
         setActivityList(activityType.data);
         setSaleList(sale.data);
         setSaleAllList(saleAll.data);
         setTimeList(time.data);
+        setPerceptionList(perception.data);
       } finally {
         setLoading(false);
       }
@@ -171,7 +163,9 @@ export default function CreateActivity() {
           let productCropList = [];
           productCrop.data.forEach((element, key) => {
             productCropList.push({
-              key: (key + 1), productName: element.product_name, packSize: element.packing_list, estimateSale: "0", actualSale: "0"
+              key: (key + 1), productName: element.product_name, packSize: element.packing_list, 
+              estimateSale: "0", actualSale: "0", bath_ltkg: element.bath_ltkg, prodectCode: element.product_code,
+              productId: element.id
             });
           });
           setProductCropList(productCropList);
@@ -189,24 +183,41 @@ export default function CreateActivity() {
     { title: "Pack Size", dataIndex: "packSize", key: "packSize", align: "center" },
     {
       title: "Estimate Sale (Kg/Lt)", dataIndex: "estimateSale", key: "estimateSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.estimateSale}/>
+        <Input placeholder="0" defaultValue={record.estimateSale} onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}/>
       )
     },
     {
       title: "Actual Sale (Kg/Lt)", dataIndex: "actualSale", key: "actualSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.actualSale}/>
+        <Input placeholder="0" defaultValue={record.actualSale} onChange={(e) => handleInputChange(e.target.value, record.key, "actualSale", record.bath_ltkg)}/>
       )
     },
   ];
+
+  const handleInputChange = (value, key, field, bath_ltkg) => {
+    const updatedData = productCropList.map((item) => {
+      if (item.key === key) {
+        const numericValue = parseFloat(value) || 0;
+        const newTotal = numericValue * bath_ltkg;
+        return { ...item, [field]: numericValue, total: newTotal };
+      }
+      return item;
+    });
+
+    setProductCropList(updatedData);
+  };
+
+  const calculateGrandTotal = (field) => {
+    return productCropList.reduce((sum, item) => sum + (item[field] || 0) * item.bath_ltkg, 0).toFixed(2);
+  };
 
   const footerOrderList = () => (
     <tr className="bg-[#978B87]">
       <td colSpan={2} className="text-left pr-2 text-white">Total (THB)</td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" />
+        <Input placeholder="0" value={calculateGrandTotal("estimateSale")} readOnly id="totalEstimateSale"/>
       </td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" />
+        <Input placeholder="0" value={calculateGrandTotal("actualSale")} readOnly id="totalActualSale"/>
       </td>
     </tr>
   );
@@ -228,9 +239,6 @@ export default function CreateActivity() {
     },
   ];
 
-  let counter = 1;
-  const salesData = [];
-
   const handleOpenTeamModal = () => {
     setIsTeamModalVisible(true);
     getParticipant();
@@ -239,22 +247,37 @@ export default function CreateActivity() {
   const getParticipant = async () => {
     const [participant] = await Promise.all([
       useServiceAPI.get(paths.pathMasterSaleAll, {
-        'page_size' : 1,
-        'page_length' : 10
-      }),  
+        'page_size': 1,
+        'page_length': 10,
+      }),
     ]);
-
+  
     let participantData = [];
+    setParticipantList([]);
+    let count = 0;
     participant.data.data.forEach((element, key) => {
-      const count = key+1;
-      participantData.push({
-        key: `sales-${count}`, no: count, name: element.name, position: element.position_name, 
-        department: element.department_name, territory: element.territory_name, permission: element.permission_name
-      });
+      const id = element.id;
+      // ตรวจสอบว่ามี key อยู่ใน participantList แล้วหรือยัง
+      const isExisting = participants.some((item) => item.id === id);
+      if (!isExisting) {
+        count++;
+        const newKey = `sales-${count}`;
+        participantData.push({
+          id: element.id,
+          key: newKey,
+          no: count,
+          name: element.name,
+          position: element.position_name,
+          department: element.department_name,
+          territory: element.territory_name,
+          permission: element.permission_name,
+        });
+      }
     });
-    
-    setParticipantList(participantData);
-  }
+  
+    // เพิ่มเฉพาะข้อมูลใหม่เข้าไปใน participantList
+    setParticipantList((prevList) => [...prevList, ...participantData]);
+  };
 
   const handleCloseTeamModal = () => {
     setIsTeamModalVisible(false);
@@ -282,22 +305,99 @@ export default function CreateActivity() {
     setParticipants(participants.filter(item => item.key !== key));
   };
 
+  //บันทึกข้อมูล
   const handleSave = () => {
-    formCustom
-      .validateFields()
-      .then((values) => {
-        useServiceAPI
-          .post(paths.pathActivatyCreate, values, setLoading)
-          .then((response) => {
-            navigate("/activity/list");
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      })
-      .catch((errorInfo) => {
-        console.error("Validation Failed:", errorInfo);
+    formCustom.validateFields();
+    //Form Basic Activity
+    const allValuesBasic = formCustom.getFieldsValue();
+    const pageCode = 'activity_transaction';
+    //File Upload
+    const imageLists = [];
+    fileList.forEach(element => {
+      imageLists.push(element.url);
+    });
+    //เปิด Expense หรือไม่?
+    const isExpense = isBtnExpenseActive || (mode == 'advance');
+    
+    //ส่วนของ Sale Plan
+    const expenseProductTotalEstimateSale = calculateGrandTotal("estimateSale");
+    const expenseProductTotalAcutalSale = calculateGrandTotal("actualSale");
+    let expenseProductDataList = [];
+    productCropList.forEach(element => {
+      expenseProductDataList.push({
+        "product_id": element.productId,
+        "product_code": element.prodectCode,
+        "product_name": element.productName,
+        "packing_list": element.packSize,
+        "bath_ltkg": element.bath_ltkg,
+        "estimate_sale_qty": element.estimateSale,
+        "acutal_sale_qty": element.actualSale
       });
+    });
+
+    //ส่วนของ Customer
+    const expenseCustomerDealerId = dealerCustomer.dealer_id;
+    const expenseCustomerDealerCode = dealerCustomer.dealer_code;
+    const expenseCustomerName = dealerCustomer.customer_name;
+    const expenseCustomerPlaceOfOwner = dealerCustomer.customer_place_of_owner;
+    const expenseCustomerPhoneNumber = dealerCustomer.customer_phone_number;
+    const expenseCustomerAddress = dealerCustomer.customer_address;
+    const expenseCustomerPerceptionId = customerForm.getFieldValue('perception') == 'Good' ? 1 : customerForm.getFieldValue('perception');
+    let expenseCustomerPerceptionName = perceptionList.find(
+      (option) => option.id === expenseCustomerPerceptionId
+    );
+    expenseCustomerPerceptionName = expenseCustomerPerceptionName ? expenseCustomerPerceptionName.name : 'Good'
+    const expenseCustomerLocationLongitude = customerForm.getFieldValue('location_customer_longitude');
+    const expenseCustomerLocationLatitude = customerForm.getFieldValue('location_customer_latitude');
+    const expenseCustomerLocationAddress = customerForm.getFieldValue('location_customer_address');
+
+    const expenseActualExp = expenseForm.getFieldValue('actual_exp');
+    const expenseActualSale = expenseForm.getFieldValue('actual_sale');
+
+    const expenseParticipantEstimate = participantForm.getFieldValue('actual_exp');
+    const expenseParticapantActual = participantForm.getFieldValue('actual_sale');
+    let expenseParticapantUserList = [];
+    participants.forEach(element => {
+      expenseParticapantUserList.push(element.id);
+    });
+
+    const body = {
+        "page_code": pageCode,
+        ...allValuesBasic,
+        "image_list": imageLists,
+        "is_expense": isExpense,
+        "expense_product_total_estimate_sale": expenseProductTotalEstimateSale,
+        "expense_product_total_acutal_sale": expenseProductTotalAcutalSale,
+        "expense_product_data_list": expenseProductDataList,
+        "expense_customer_dealer_id": expenseCustomerDealerId,
+        "expense_customer_dealer_code": expenseCustomerDealerCode,
+        "expense_customer_name": expenseCustomerName,
+        "expense_customer_place_of_owner": expenseCustomerPlaceOfOwner,
+        "expense_customer_phone_number": expenseCustomerPhoneNumber,
+        "expense_customer_address": expenseCustomerAddress,
+        "expense_customer_perception_id": expenseCustomerPerceptionId,
+        "expense_customer_perception_name": expenseCustomerPerceptionName,
+        "expense_customer_location_longitude": expenseCustomerLocationLongitude,
+        "expense_customer_location_latitude": expenseCustomerLocationLatitude,
+        "expense_customer_location_address": expenseCustomerLocationAddress,
+        "expense_actual_exp": expenseActualExp,
+        "expense_actual_sale": expenseActualSale,
+        "expense_file_list":[],
+        "expense_participant_estimate": expenseParticipantEstimate,
+        "expense_particapant_actual": expenseParticapantActual,
+        "expense_particapant_user_list": expenseParticapantUserList
+    };
+    
+    useServiceAPI
+    .post(paths.pathActivityCreate, body, setLoading)
+    .then((response) => {
+      if(response.result){
+        navigate("/activity/list");
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+    });
   };
 
   const showLayoutExpense = () => {
@@ -316,17 +416,13 @@ export default function CreateActivity() {
     }
   }, [locationCustomer.lat, locationCustomer.long]);
 
-  const getLocation = () => {
+  const getLocation = () => {    
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const lat = position.coords.latitude;
           const long = position.coords.longitude;
-          
           getAddress(lat, long);
-        },
-        (err) => {
-          // console.error(err.message);
         }
       );
     } else {
@@ -357,8 +453,6 @@ export default function CreateActivity() {
       console.error("Error fetching address:", err);
     }
   };
-  
-  
 
   const handleReload = () => {
     setLoading(true);
@@ -385,7 +479,7 @@ export default function CreateActivity() {
 
       <FormCustom fields={formFields} form={formCustom} onChange={handleChange}/>
 
-      {isBtnExpenseActive ? (
+      {(isBtnExpenseActive || mode == 'advance') ? (
         <>
           <div className="flex items-center justify-between">
             <div className="title-page">Advance Expense</div>
@@ -410,7 +504,7 @@ export default function CreateActivity() {
                 address: dealerCustomer.customer_address,
                 placeOfOwner: dealerCustomer.customer_place_of_owner,
                 phoneNumber: dealerCustomer.customer_phone_number,
-                Perception: "Good",
+                perception: "Good",
                 location_customer_address: locationCustomer.address,
                 location_customer_latitude: locationCustomer.lat,
                 location_customer_longitude: locationCustomer.long
@@ -435,9 +529,11 @@ export default function CreateActivity() {
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Perception" name="perception">
                     <Select>
-                      <Option value="Good">Good</Option>
-                      <Option value="Average">Average</Option>
-                      <Option value="Poor">Poor</Option>
+                      {perceptionList.map((option) => (
+                        <Option key={option.id} value={option.id}>
+                          {option.name}
+                        </Option>
+                      ))}
                     </Select>
                   </Form.Item>
                 </Col>
@@ -457,7 +553,7 @@ export default function CreateActivity() {
                           placeholder="Address"
                           value={locationCustomer.address || ""}
                           key={locationCustomer.address} // เพิ่ม key เพื่อบังคับให้รีเฟรช
-                          readOnly
+                          disabled="true"
                           style={{
                             width: "100%",
                             paddingRight: "50px",
@@ -561,7 +657,7 @@ export default function CreateActivity() {
               <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
               <ActionButton mode="add" text="Upload File" onClick={handleUploadClick} />
             </div>
-            <FileUploadComponent ref={fileUploadRef} dataFile={fileList} />
+            <FileUploadComponent ref={fileUploadRef} mode="edit" dataFile={fileList} modeUpload={mode} onUploadSuccess={handleUploadSuccess}/>
           </BoxPrimary>
 
           {/* Participant Section */}

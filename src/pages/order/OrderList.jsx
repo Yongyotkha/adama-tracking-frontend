@@ -157,7 +157,7 @@ export default function OrderList() {
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
         setPermission(response.data.permission);
-        
+
         const newDataSource = data.map((order, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           orderNo: order.document_number,
@@ -286,6 +286,15 @@ export default function OrderList() {
     });
   };
 
+  const handleTableChange = (pagination, filters, sorter) => {
+    setTableParams({
+      pagination,
+      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortField: sorter.field,
+    });
+  };
+
   const handleChange = (filter) => {
     if (filter.sale) {
       const getMasterDealer = async () => {
@@ -332,7 +341,13 @@ export default function OrderList() {
       />
 
       <BoxPrimary>
-        <TableComponent header={header} dataSource={dataSource} />
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pagination={tableParams.pagination}
+          loading={tableLoading}
+          onChange={handleTableChange}
+        />
       </BoxPrimary>
     </MainLayout>
   );

@@ -21,6 +21,7 @@ export default function Traveling() {
   const [dataSale, setDataSale] = useState([]);
   const [dataYear, setDataYear] = useState([]);
   const [dataMonth, setDataMonth] = useState([]);
+  const [dataStatus, setDataStatus] = useState([]);
   const { showMsg, showNotification } = useContext(AuthContext);
 
   const [permission, setPermission] = useState([]);
@@ -40,17 +41,21 @@ export default function Traveling() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [sale, year, month] = await Promise.all([
+        const [sale, year, month, status] = await Promise.all([
           useServiceAPI.get(paths.pathMasterSaleDropdown, {
             status: "",
           }),
           useServiceAPI.get(paths.pathMasterYear, {}),
           useServiceAPI.get(paths.pathMasterMonths, {}),
+          useServiceAPI.get(paths.pathMasterStatus, {
+            status_type: "expense_traveling"
+          }),
         ]);
 
         setDataSale(sale.data);
         setDataYear(year.data);
         setDataMonth(month.data);
+        setDataStatus(status.data)
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -62,42 +67,9 @@ export default function Traveling() {
   }, []);
 
   // Filter configuration
-  // const filters = [
-  //   {
-  //     key: "customer",
-  //     type: "select",
-  //     label: "Customer",
-  //     placeholder: "All",
-  //     options: [],
-  //   },
-  //   {
-  //     key: "expense_no",
-  //     type: "text",
-  //     label: "Expense No",
-  //     placeholder: "All",
-  //   },
-  //   {
-  //     key: "activity_ref",
-  //     type: "text",
-  //     label: "Activity Reference",
-  //     placeholder: "All",
-  //   },
-  //   {
-  //     key: "type_of_meeting",
-  //     type: "select",
-  //     label: "Type of Meeting",
-  //     placeholder: "All",
-  //     options: [],
-  //   },
-  //   {
-  //     key: "date",
-  //     type: "date",
-  //     label: "Date",
-  //     placeholder: "Select Date.."
-  //   },
-  // ];
   const filters = [
     {
+      key: "sale",
       label: "Sale",
       name: "sale",
       type: "select",
@@ -106,6 +78,7 @@ export default function Traveling() {
       moderef: false,
     },
     {
+      key: "year",
       label: "Year",
       name: "year",
       type: "select",
@@ -114,6 +87,7 @@ export default function Traveling() {
       moderef: false,
     },
     {
+      key: "month",
       label: "Month",
       name: "month",
       type: "select",
@@ -122,10 +96,11 @@ export default function Traveling() {
       moderef: false,
     },
     {
+      key: "status",
       label: "Status",
       name: "status",
       type: "select",
-      options: [],
+      options: dataStatus,
       placeholder: "All",
       moderef: false,
     },
@@ -153,42 +128,6 @@ export default function Traveling() {
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
-
-  // useEffect(() => {
-  //   // Example data for the table
-  //   const dataSource = [
-  //     {
-  //       key: 1,
-  //       year: "2024",
-  //       month: "October",
-  //       date: "2024-01-01",
-  //       status: <BadgeStatus text="Completed" bgColor="#009845" textColor="#FFFFFF" />,
-  //       action: (
-  //         <Dropdown menu={{ items: actionItems }} placement="bottomRight">
-  //           <a onClick={(e) => e.preventDefault()}>
-  //             <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-  //           </a>
-  //         </Dropdown>
-  //       ),
-  //     },
-  //     {
-  //       key: 2,
-  //       year: "2024",
-  //       month: "September",
-  //       date: "2024-01-01",
-  //       status: <BadgeStatus text="Completed" bgColor="#009845" textColor="#FFFFFF" />,
-  //       action: (
-  //         <Dropdown menu={{ items: actionItems }} placement="bottomRight">
-  //           <a onClick={(e) => e.preventDefault()}>
-  //             <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-  //           </a>
-  //         </Dropdown>
-  //       ),
-  //     },
-  //   ];
-
-  //   setDataSource(dataSource);
-  // }, []);
 
   ////////////////////////////////////////////// table ///////////////////////////////////////////////
   const fetchData = async () => {

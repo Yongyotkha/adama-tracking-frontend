@@ -10,6 +10,10 @@ import TableComponent from "../../components/table/TableComponent";
 import DynamicModal from "../../components/modal/DynamicModal";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+
+dayjs.extend(customParseFormat);
 
 export default function CreateOrder() {
   const navigate = useNavigate();
@@ -101,12 +105,10 @@ export default function CreateOrder() {
       const newRows = selectedRows.filter(
         (row) => !prev.some((getOtherProductData) => getOtherProductData.key === row.key)
       );
-      
       return [...prev, ...newRows];
     });
-    
-    selectedRows.map((data, index) => {
-      // State for Other table data
+  
+    selectedRows.map((data) => {
       const loadOtherProductDetail = async () => {
         setLoading(true);
         try {
@@ -115,35 +117,75 @@ export default function CreateOrder() {
               promotion_id: data.key,
             }),
           ]);
+  
+          const productData = otherProduct.data;
+  
+          // อัปเดต DataSourceOther
+          setDataSourceOther((prev) => {
+            // ตรวจสอบว่ามี product_code ซ้ำหรือไม่
+            const existingIndex = prev.findIndex(
+              (item) => item.product_id === productData.id
+            );
+  
+            if (existingIndex !== -1) {
+              // หากซ้ำ: เพิ่ม quantity
+              const updatedDataSource = prev.map((item, index) => {
+                if (index === existingIndex) {
+                  const updatedQuantity = item.quantity + 1; // Increment quantity
+                  const updatedNetAmount = (updatedQuantity * parseFloat(item.product_unit_thb.replace(/,/g, ""))).toFixed(2); // Recalculate net_amount
 
-          // อัปเดต state
-          setDataSourceOther((prev) => [
-            ...prev,
-            {
-              key: prev.length + 1, // สร้าง key ใหม่
-              no: prev.length + 1, // สร้างเลขลำดับใหม่
-              product_id: otherProduct.data.id,
-              product_code: "",
-              product_name: otherProduct.data.name,
+                  return {
+                    ...item,
+                    // quantity: item.quantity + 1,
+                    quantity: updatedQuantity,
+                    net_amount: updatedNetAmount, // Update net_amount
+                  };
+                }
+                return item;
+              });
+              
+              // รีเซ็ต key และ no
+              return updatedDataSource.map((item, index) => ({
+                ...item,
+                key: index + 1,
+                no: index + 1,
+              }));
+            }
+  
+            // หากไม่ซ้ำ: เพิ่มรายการใหม่
+            const newProduct = {
+              key: prev.length + 1,
+              no: prev.length + 1,
+              product_id: productData.id,
+              product_code: productData.code || "",
+              product_name: productData.name,
               product_unit: "",
-              product_unit_thb: otherProduct.data.value,
+              product_unit_thb: productData.value,
               quantity: 1,
-              net_amount: otherProduct.data.value,
-            },
-          ]);
-          
+              net_amount: productData.value,
+            };
+            
+            const updatedDataSource = [...prev, newProduct];
+
+            // รีเซ็ต key และ no
+            return updatedDataSource.map((item, index) => ({
+              ...item,
+              key: index + 1,
+              no: index + 1,
+            }));
+          });
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
         } finally {
           setLoading(false);
         }
       };
-      // Get Data
+  
+      // ดึงข้อมูล
       loadOtherProductDetail();
     });
-
   };
-
+  
   const removeParticipant = (key) => {
     setGetOtherProductData(getOtherProductData.filter(item => item.key !== key));
   };
@@ -176,16 +218,17 @@ export default function CreateOrder() {
       disabled: true, 
       required: false, 
       moderef: false,
+      placeholder: "Generate order no",
       value: "" 
     },
     { 
       label: "Date", 
       name: "order_date", 
       type: "date", 
-      disabled: false, 
+      disabled: true, 
       required: false, 
       moderef: false,
-      value: "" 
+      value: dayjs().format("YYYY-MM-DD")
     },
   ];
 
@@ -250,9 +293,25 @@ export default function CreateOrder() {
   //   setDataSourceOther([...dataSourceOther, newRow]);
   // };
 
+  // const handleDeleteOtherRow = (key) => {
+  //   setDataSourceOther(dataSourceOther.filter(item => item.key !== key));
+  // };
+
   const handleDeleteOtherRow = (key) => {
-    setDataSourceOther(dataSourceOther.filter(item => item.key !== key));
-  };
+    setDataSourceOther((prev) => {
+      // ลบรายการที่มี key ตรงกับ key ที่รับมา
+      const updatedDataSource = prev.filter((item) => item.key !== key);
+  
+      // รีเซ็ต key และ no
+      const resetDataSource = updatedDataSource.map((item, index) => ({
+        ...item,
+        key: index + 1,
+        no: index + 1,
+      }));
+  
+      return resetDataSource;
+    });
+  };  
 
   const handleOtherInputChange = (key, field, value) => {
     setDataSourceOther(dataSourceOther.map(item => item.key === key ? { ...item, [field]: value } : item));
@@ -303,16 +362,30 @@ export default function CreateOrder() {
       render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 }),
     },
     {
-      title: <div className="text-center">Action</div>, key: "action", render: (_, record) =>
+      title: <div className="text-center">Action</div>,
+      key: "action",
+      render: (_, record) => (
         <button className="delete-button flex justify-center mx-auto">
           <img
             src="/img/icons/delete.png"
             alt="delete"
             className="cursor-pointer w-6 h-6"
-            onClick={() => setDataSource(dataSource.filter((item) => item.key !== record.key))}
+            onClick={() => {
+              const updatedDataSource = dataSource.filter((item) => item.key !== record.key);
+    
+              // Reset keys and no after deletion
+              const resetDataSource = updatedDataSource.map((item, index) => ({
+                ...item,
+                key: index + 1,
+                no: index + 1,
+              }));
+    
+              setDataSource(resetDataSource);
+            }}
           />
         </button>
-    },
+      ),
+    },    
   ];
 
   const headerOther = [
@@ -373,8 +446,8 @@ export default function CreateOrder() {
   ];
 
   const footerOrderList = () => {
-    const totalQuantity = dataSource.reduce((total, item) => total + item.quantity, 0);
-    const totalFOC = dataSource.reduce((total, item) => total + item.foc, 0);
+    const totalQuantity = dataSource.reduce((total, item) => total + parseFloat(item.quantity), 0);
+    const totalFOC = dataSource.reduce((total, item) => total + parseFloat(item.foc), 0);
     const totalAmount = dataSource.reduce((total, item) => total + parseFloat(item.net_amount || 0), 0);
 
     return (
@@ -401,37 +474,73 @@ export default function CreateOrder() {
     setSearchProductData([]);
 
     const loadProductDetail = async () => {
-      setLoading(true);
-      try {
-        const [productDetail] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterProductDetail, {
-            product_id: value,
-          }),
-        ]);
+        setLoading(true);
+        try {
+            const [productDetail] = await Promise.all([
+                useServiceAPI.get(paths.pathMasterProductDetail, {
+                    product_id: value,
+                }),
+            ]);
 
-        // State for Order List table data
-        const data = productDetail.data
-        const newProductDataDetail = {
-          key: dataSource.length + 1,
-          no: dataSource.length + 1,
-          product_id: data.id,
-          product_code: data.product_code,
-          product_name: data.product_name,
-          product_unit: data.packing_list,
-          product_unit_thb: data.bath_unit,
-          product_campaign_order_min_foc: data.product_campaign_order_min_foc,
-          product_campaign_foc: data.product_campaign_foc,
-          quantity: 0,
-          foc: data.product_campaign_foc,
-          net_amount: 0.00,
-        };
+            const data = productDetail.data;
 
-        setDataSource([...dataSource, newProductDataDetail]);
-      } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
+            // Check for duplicate product_code
+            const existingProductIndex = dataSource.findIndex(
+                (item) => item.product_code === data.product_code
+            );
+
+            if (existingProductIndex !== -1) {
+                // If product_code exists, update the quantity
+                const updatedDataSource = dataSource.map((item, index) => {
+                    if (index === existingProductIndex) {
+                      const updatedQuantity = item.quantity + 1; // Increment quantity
+                      const updatedNetAmount = (updatedQuantity * parseFloat(item.product_unit_thb.replace(/,/g, ""))).toFixed(2); // Recalculate net_amount
+
+                        return {
+                            ...item,
+                            // quantity: item.quantity + 1, // Increment quantity
+                            quantity: updatedQuantity,
+                            net_amount: updatedNetAmount, // Update net_amount
+                        };
+                    }
+                    return item;
+                });
+
+                setDataSource(updatedDataSource);
+            } else {
+                // If product_code does not exist, add a new entry
+                const newProductDataDetail = {
+                    key: dataSource.length + 1,
+                    no: dataSource.length + 1,
+                    product_id: data.id,
+                    product_code: data.product_code,
+                    product_name: data.product_name,
+                    product_unit: data.packing_list,
+                    product_unit_thb: data.bath_unit,
+                    product_campaign_order_min_foc: data.product_campaign_order_min_foc,
+                    product_campaign_foc: data.product_campaign_foc,
+                    quantity: 1, // Set initial quantity to 1
+                    foc: data.product_campaign_foc,
+                    // net_amount: data.bath_unit,
+                    net_amount: (1 * parseFloat(data.bath_unit.replace(/,/g, ""))).toFixed(2), // Calculate net_amount based on quantity 1
+                };
+
+                const updatedDataSource = [...dataSource, newProductDataDetail];
+
+                // Reset the keys to ensure proper sequencing
+                const resetDataSource = updatedDataSource.map((item, index) => ({
+                    ...item,
+                    key: index + 1,
+                    no: index + 1,
+                }));
+
+                setDataSource(resetDataSource);
+            }
+        } catch (error) {
+            showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        } finally {
+            setLoading(false);
+        }
     };
 
     loadProductDetail();
@@ -506,7 +615,6 @@ export default function CreateOrder() {
           placeholder="Search Product"
           optionFilterProp="label"
           className="w-full"
-          value=""
           onChange={onChangeProduct}
           onSearch={onSearchProduct}
           options={searchProductData}

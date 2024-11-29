@@ -167,18 +167,19 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
                 field.type === "number" ? (
                   <Input
                     type={field.type}
-                    placeholder={`Enter ${field.label.toLowerCase()}`}
-                    value={formValues[field.name] || ""}
+                    placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                    // value={formValues[field.name] || ""}
+                    value={formValues[field.value] || ""}
                     disabled={field.disabled}
                     onChange={(e) => handleChange(field.name, e.target.value)}
                   />
                 ) : field.type === "date" ? (
                   <DatePicker
                     style={{ width: "100%" }}
-                    disabled={field.disabled}
                     value={formValues[field.name] || null}
                     onChange={(date) => handleChange(field.name, date)}
                     format="YYYY-MM-DD"
+                    disabled={field.disabled}
                   />
                 ) : field.type === "month" ? (
                   <MonthPicker

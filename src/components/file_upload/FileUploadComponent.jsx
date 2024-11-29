@@ -1,5 +1,7 @@
 import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { Image, Upload, message, App } from 'antd';
+import useServiceAPI from "../../services/CorsService";
+import { paths } from "../../services/CorsPath";
 
 const getBase64 = (file) =>
   new Promise((resolve, reject) => {
@@ -10,13 +12,19 @@ const getBase64 = (file) =>
   });
 
 // eslint-disable-next-line react/display-name
-const FileUploadComponent = forwardRef(({ dataFile = [], mode = "edit" }, ref) => {
+const FileUploadComponent = forwardRef((props, ref) => {
+  const {
+    dataFile = [],
+    mode = "edit",
+    modeUpload = "activity",
+    onUploadSuccess, // Correctly destructure from props
+  } = props;
+
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
-  const [fileList, setFileList] = useState(dataFile); // Initialize with dataFile prop
+  const [fileList, setFileList] = useState(dataFile);
   const hiddenFileInputRef = useRef(null);
 
-  // Update fileList whenever dataFile changes
   useEffect(() => {
     setFileList(dataFile);
   }, [dataFile]);
@@ -31,20 +39,18 @@ const FileUploadComponent = forwardRef(({ dataFile = [], mode = "edit" }, ref) =
 
   const handleChange = ({ fileList: newFileList }) => setFileList(newFileList);
 
-  // Method to trigger the hidden file input click
   const triggerUpload = () => {
     if (hiddenFileInputRef.current) {
       hiddenFileInputRef.current.click();
     }
   };
 
-  // Expose triggerUpload to parent component using ref
   useImperativeHandle(ref, () => ({
     triggerUpload,
   }));
 
   return (
-    <App> {/* Wrap component content with App for message support */}
+    <App>
       <Upload
         action="https://adama-api.mtsc.co.th/upload"
         listType="picture-card"
@@ -52,17 +58,16 @@ const FileUploadComponent = forwardRef(({ dataFile = [], mode = "edit" }, ref) =
         onPreview={handlePreview}
         onChange={handleChange}
         showUploadList={{
-          showRemoveIcon: mode !== "view", // Disable delete button if mode is "view"
+          showRemoveIcon: mode !== "view",
         }}
-        openFileDialogOnClick={false} // Prevent default click behavior on upload area
+        openFileDialogOnClick={false}
       />
 
-      {/* Hidden file input to manually trigger file selection */}
       <input
         type="file"
         ref={hiddenFileInputRef}
         style={{ display: 'none' }}
-        onChange={(e) => {
+        onChange={async (e) => {
           const files = e.target.files;
           if (files.length > 0) {
             const file = files[0];
@@ -75,6 +80,23 @@ const FileUploadComponent = forwardRef(({ dataFile = [], mode = "edit" }, ref) =
                 url: URL.createObjectURL(file),
               },
             ]);
+
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("mode", modeUpload);
+
+            try {
+              const response = await useServiceAPI.post(
+                paths.pathUpload,
+                formData
+              );
+
+              if (onUploadSuccess && typeof onUploadSuccess === 'function') {
+                onUploadSuccess(response); // Correctly call the callback
+              }
+            } catch (error) {
+              console.error("Error uploading form data:", error);
+            }
             message.success(`${file.name} uploaded successfully.`);
           }
         }}
