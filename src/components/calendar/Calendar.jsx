@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Select } from "antd";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
-import { Button } from "antd";
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import { Button, Tooltip, Popconfirm } from "antd";
+import { LeftOutlined, RightOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
 const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   const [view, setView] = useState("month");
@@ -152,13 +152,13 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
     return (
       <div className="flex flex-col gap-1 mt-2 w-full">
         {dateEvents.slice(0, 2).map((event, index) => (
-          <div
+          <div lang="th"
             key={index}
             className="flex items-center justify-between px-2 py-1 rounded-[10px] text-white text-sm"
             style={{ backgroundColor: event.color }}
           >
             <span>{event.title}</span>
-            <div className="flex items-center gap-1">
+            <div className="flex flex-col items-center gap-1">
               <div className="flex -space-x-2">
                 {event.attendees.slice(0, 3).map((attendee, idx) => (
                   <img
@@ -375,10 +375,9 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
         </div>
 
         {/* Right Side: Event Details */}
-
         <div className="col-span-1 md:col-span-1 lg:col-span-3 bg-[#F5F3F3] mb-5" >
           <div className="flex justify-end items-center gap-4 pb-4">
-            <Select
+            <Select lang="th"
               className="min-w-[150px]"
               placeholder="Select a Sale Territory"
               options={[{ label: "All", value: "" }, ...saleOptions]}
@@ -386,7 +385,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
               onChange={handleSaleChange}
             />
 
-            <Select
+            <Select lang="th"
               className="min-w-[150px]"
               placeholder="Select a Shop"
               options={[{ label: "All", value: "" }, ...shopOptions]}
@@ -444,22 +443,50 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                 />{" "}
                                 {event.location}
                               </p>
-                              <div className="flex items-center gap-2 mt-2">
-                                <div className="flex -space-x-2">
+                              <div className="flex items-center justify-between gap-2 mt-2">
+                                <div className="flex items-center -space-x-2">
                                   {event.attendees.slice(0, 3).map((attendee, idx) => (
                                     <img
                                       key={idx}
                                       src={attendee.avatar}
                                       alt={attendee.name}
-                                      className="w-6 h-6 rounded-full border-2 border-white"
+                                      className="w-6 h-6 rounded-full border-2 border-white shadow-md"
                                     />
                                   ))}
+                                  {event.attendees.length > 3 && (
+                                    <span lang="th" className="text-xs font-bold w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-md">
+                                      +{event.attendees.length - 3}
+                                    </span>
+                                  )}
                                 </div>
-                                {event.attendees.length > 3 && (
-                                  <span className="text-xs font-bold text-gray-600">
-                                    +{event.attendees.length - 3}
-                                  </span>
-                                )}
+
+                                <div>
+                                  <Tooltip title="View" placement="bottom">
+                                    <Popconfirm
+                                      placement="left"
+                                      title="Event Details"
+                                      description={
+                                        <div>
+                                          <h4>{event.title}</h4>
+                                          <p lang="th">{event.time}</p>
+                                          <p lang="th">{event.location}</p>
+                                          {/* Add any other details here */}
+                                          <Button className="me-2 border border-[#00783F] text-[#00783F] !border-[#00783F] !text-[#00783F] hover:!border-[#005f32] hover:!text-[#005f32]" icon={<EditOutlined />}>Edit</Button>
+                                          <Button className="me-2 border border-[#978B87] text-[#978B87] !border-[#978B87] !text-[#978B87] hover:!border-[red] hover:!text-[red]" icon={<DeleteOutlined />}>Delete</Button>
+                                        </div>
+                                      }
+                                      okText="Edit"
+                                      cancelText="Delete"
+                                      onConfirm={() => console.log("Closed")}
+                                    >
+                                      <img
+                                        src="/img/icons/view.png"
+                                        alt=""
+                                        className="w-6 h-6 rounded-full border-2 border-white cursor-pointer"
+                                      />
+                                    </Popconfirm>
+                                  </Tooltip>
+                                </div>
                               </div>
                             </div>
                           </div>
