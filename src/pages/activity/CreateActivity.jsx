@@ -41,6 +41,8 @@ export default function CreateActivity() {
   const fileUploadRef = useRef(null); // Reference for FileUploadComponent
   const [locationCustomer, setLocationCustomer] = useState([]);
   const [dealerCustomer, setDealerCustomer] = useState([]);
+  const [totalEstimateSale, setTotalEstimateSale] = useState(0);
+  const [totalActualSale, setTotalActualSale] = useState([]);
 
   const [isBtnExpenseActive, setIsBtnExpenseActive] = useState(false);
 
@@ -60,7 +62,6 @@ export default function CreateActivity() {
       url: data.file_url,
     }];
     setFileList(fileUpload);
-    console.log('Uploaded file response:', fileUpload);
   };
 
   // Example file list to be passed as dataFile
@@ -158,7 +159,7 @@ export default function CreateActivity() {
           let productCropList = [];
           productCrop.data.forEach((element, key) => {
             productCropList.push({
-              key: (key + 1), productName: element.product_name, packSize: element.packing_list, estimateSale: "0", actualSale: "0"
+              key: (key + 1), productName: element.product_name, packSize: element.packing_list, estimateSale: "0", actualSale: "0", bath_ltkg: element.bath_ltkg
             });
           });
           setProductCropList(productCropList);
@@ -176,24 +177,41 @@ export default function CreateActivity() {
     { title: "Pack Size", dataIndex: "packSize", key: "packSize", align: "center" },
     {
       title: "Estimate Sale (Kg/Lt)", dataIndex: "estimateSale", key: "estimateSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.estimateSale}/>
+        <Input placeholder="0" defaultValue={record.estimateSale} onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}/>
       )
     },
     {
       title: "Actual Sale (Kg/Lt)", dataIndex: "actualSale", key: "actualSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.actualSale}/>
+        <Input placeholder="0" defaultValue={record.actualSale} onChange={(e) => handleInputChange(e.target.value, record.key, "actualSale", record.bath_ltkg)}/>
       )
     },
   ];
+
+  const handleInputChange = (value, key, field, bath_ltkg) => {
+    const updatedData = productCropList.map((item) => {
+      if (item.key === key) {
+        const numericValue = parseFloat(value) || 0;
+        const newTotal = numericValue * bath_ltkg;
+        return { ...item, [field]: numericValue, total: newTotal };
+      }
+      return item;
+    });
+
+    setProductCropList(updatedData);
+  };
+
+  const calculateGrandTotal = (field) => {
+    return productCropList.reduce((sum, item) => sum + (item[field] || 0) * item.bath_ltkg, 0).toFixed(2);
+  };
 
   const footerOrderList = () => (
     <tr className="bg-[#978B87]">
       <td colSpan={2} className="text-left pr-2 text-white">Total (THB)</td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" />
+        <Input placeholder="0" value={calculateGrandTotal("estimateSale")} readOnly />
       </td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" />
+        <Input placeholder="0" value={calculateGrandTotal("actualSale")} readOnly />
       </td>
     </tr>
   );
@@ -281,22 +299,34 @@ export default function CreateActivity() {
     setParticipants(participants.filter(item => item.key !== key));
   };
 
+  //บันทึกข้อมูล
   const handleSave = () => {
-    formCustom
-      .validateFields()
-      .then((values) => {
-        useServiceAPI
-          .post(paths.pathActivityCreate, values, setLoading)
-          .then((response) => {
-            navigate("/activity/list");
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      })
-      .catch((errorInfo) => {
-        console.error("Validation Failed:", errorInfo);
-      });
+    formCustom.validateFields();
+    //Form Basic Activity
+    const allValuesBasic = formCustom.getFieldsValue();
+    //File Upload
+    const imageLists = [];
+    fileList.forEach(element => {
+      imageLists.push(element.url);
+    });
+
+    
+    
+    // formCustom
+    //   .validateFields()
+    //   .then((values) => {
+    //     useServiceAPI
+    //       .post(paths.pathActivityCreate, values, setLoading)
+    //       .then((response) => {
+    //         navigate("/activity/list");
+    //       })
+    //       .catch((error) => {
+    //         console.log(error);
+    //       });
+    //   })
+    //   .catch((errorInfo) => {
+    //     console.error("Validation Failed:", errorInfo);
+    //   });
   };
 
   const showLayoutExpense = () => {
@@ -407,7 +437,7 @@ export default function CreateActivity() {
                 address: dealerCustomer.customer_address,
                 placeOfOwner: dealerCustomer.customer_place_of_owner,
                 phoneNumber: dealerCustomer.customer_phone_number,
-                Perception: "Good",
+                perception: "Good",
                 location_customer_address: locationCustomer.address,
                 location_customer_latitude: locationCustomer.lat,
                 location_customer_longitude: locationCustomer.long
