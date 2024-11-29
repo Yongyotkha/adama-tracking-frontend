@@ -394,7 +394,12 @@ export default function WorkPlanSaleByDealer() {
                 response.data.message,
                 response.data.message_line
               ).then(() => {
-                navigate("/sale-plan/work-plan-sale");
+                navigate("/sale-plan/work-plan-sale", {
+                  state: {
+                    year_code: location?.state?.year_code,
+                    user_id: location?.state?.user_id,
+                  },
+                })
               });
             } else {
               showNotification(
@@ -402,7 +407,7 @@ export default function WorkPlanSaleByDealer() {
                 response.data.message,
                 response.data.message_line
               ).then(() => {
-                navigate("/sale-plan/work-plan-sale/sale-by-sub-dealer", {
+                navigate("/sale-plan/work-plan-sale/sale-by-subdealer", {
                   state: {
                     year_code: location?.state?.year_code,
                     user_id: location?.state?.user_id,
@@ -530,8 +535,8 @@ export default function WorkPlanSaleByDealer() {
 
         <div className="flex justify-end space-x-4">
           <ActionButton
-            text="Next"
-            mode="save"
+            text="Back"
+            mode="back"
             onClick={() =>
               navigate("/sale-plan/work-plan-sale/sale-by-crop", {
                 state: {
@@ -561,7 +566,7 @@ export default function WorkPlanSaleByDealer() {
               text="Next"
               mode="save"
               onClick={() =>
-                navigate("/sale-plan/work-plan-sale/sale-by-sub-dealer", {
+                navigate("/sale-plan/work-plan-sale/sale-by-subdealer", {
                   state: {
                     year_code: location?.state?.year_code,
                     user_id: location?.state?.user_id,

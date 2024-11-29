@@ -72,6 +72,7 @@ import ActivityPlanList from "./pages/activity/activity_plan/ActivityPlanList";
 import ActivityCalendar from "./pages/activity/calendar/ActivityCalendar";
 import ViewTraveling from "./pages/expenses/traveling/ViewTraveling";
 import ActivityMapping from "./pages/activity/mapping/ActivityMapping";
+import WorkPlanSaleBySubDealer from "./pages/sale_plan/workplan/WorkPlanSaleBySubDealer";
 // END ------------- Activity ------------- END
 
 
@@ -102,6 +103,7 @@ const App = () => {
           <Route path="/sale-plan/work-plan-sale/sale-create" element={<WorkPlanSaleCreate />} />
           <Route path="/sale-plan/work-plan-sale/sale-by-crop" element={<WorkPlanSaleByCrop />} />
           <Route path="/sale-plan/work-plan-sale/sale-by-dealer" element={<WorkPlanSaleByDealer />} />
+          <Route path="/sale-plan/work-plan-sale/sale-by-subdealer" element={<WorkPlanSaleBySubDealer />} />
 
           {/* Rolling Rorecast Route */}
           <Route path="/sale-plan/rolling-forecast" element={<RollingForecast />} />

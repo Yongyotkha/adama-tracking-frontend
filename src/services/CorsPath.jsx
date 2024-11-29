@@ -102,6 +102,8 @@ export const paths = {
   pathWorkPlanSaleQuarter: "/work-plan/sale/quarter",
   pathWorkPlanSaleCrop: "/work-plan/sale/crop",
   pathWorkPlanSaleDealer: "/work-plan/sale/dealer",
+  pathWorkPlanSaleSubDealer: "/work-plan/sale/subdealer",
+  pathWorkPlanSaleSubDealerList: "/work-plan/sale/subdealer/list",
 
   //Activity
   pathActivityList: "/activity/list",

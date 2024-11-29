@@ -194,21 +194,21 @@ export default function OrderWaitingList() {
                       />
                     ),
                   },
-                  {
-                    key: 2,
-                    label: (
-                      <ItemDropDown
-                        mode="edit"
-                        onClick={() => {
-                          navigate("/order/edit", {
-                            state: {
-                              document_number: order.document_number,
-                            },
-                          });
-                        }}
-                      />
-                    ),
-                  },
+                  // {
+                  //   key: 2,
+                  //   label: (
+                  //     <ItemDropDown
+                  //       mode="edit"
+                  //       onClick={() => {
+                  //         navigate("/order/edit", {
+                  //           state: {
+                  //             document_number: order.document_number,
+                  //           },
+                  //         });
+                  //       }}
+                  //     />
+                  //   ),
+                  // },
                 ],
               }}
               placement="bottom"

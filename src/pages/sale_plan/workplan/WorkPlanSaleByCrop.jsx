@@ -555,7 +555,12 @@ export default function WorkPlanSaleByCrop() {
             text="Back"
             mode="back"
             onClick={() => {
-              navigate("/sale-plan/work-plan/sale-create");
+              navigate("/sale-plan/work-plan-sale/sale-by-crop", {
+                state: {
+                  year_code: location?.state?.year_code,
+                  user_id: location?.state?.user_id,
+                },
+              })
             }}
           />
 

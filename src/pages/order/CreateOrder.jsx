@@ -10,6 +10,10 @@ import TableComponent from "../../components/table/TableComponent";
 import DynamicModal from "../../components/modal/DynamicModal";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+
+dayjs.extend(customParseFormat);
 
 export default function CreateOrder() {
   const navigate = useNavigate();
@@ -96,54 +100,6 @@ export default function CreateOrder() {
     setIsTeamModalVisible(false);
   };
 
-  // const handleAddSelectedRows = (selectedRows) => {
-  //   setGetOtherProductData((prev) => {
-  //     const newRows = selectedRows.filter(
-  //       (row) => !prev.some((getOtherProductData) => getOtherProductData.key === row.key)
-  //     );
-      
-  //     return [...prev, ...newRows];
-  //   });
-    
-  //   selectedRows.map((data, index) => {
-  //     // State for Other table data
-  //     const loadOtherProductDetail = async () => {
-  //       setLoading(true);
-  //       try {
-  //         const [otherProduct] = await Promise.all([
-  //           useServiceAPI.get(paths.pathMasterPromotionDetail, {
-  //             promotion_id: data.key,
-  //           }),
-  //         ]);
-
-  //         // อัปเดต state
-  //         setDataSourceOther((prev) => [
-  //           ...prev,
-  //           {
-  //             key: otherProduct.length + 1, // สร้าง key ใหม่
-  //             no: otherProduct.length + 1, // สร้างเลขลำดับใหม่
-  //             product_id: otherProduct.data.id,
-  //             product_code: "",
-  //             product_name: otherProduct.data.name,
-  //             product_unit: "",
-  //             product_unit_thb: otherProduct.data.value,
-  //             quantity: 1,
-  //             net_amount: otherProduct.data.value,
-  //           },
-  //         ]);
-          
-  //       } catch (error) {
-  //         showMsg("error", error.message || "เกิดข้อผิดพลาด");
-  //       } finally {
-  //         setLoading(false);
-  //       }
-  //     };
-  //     // Get Data
-  //     loadOtherProductDetail();
-  //   });
-
-  // };
-
   const handleAddSelectedRows = (selectedRows) => {
     setGetOtherProductData((prev) => {
       const newRows = selectedRows.filter(
@@ -175,14 +131,19 @@ export default function CreateOrder() {
               // หากซ้ำ: เพิ่ม quantity
               const updatedDataSource = prev.map((item, index) => {
                 if (index === existingIndex) {
+                  const updatedQuantity = item.quantity + 1; // Increment quantity
+                  const updatedNetAmount = (updatedQuantity * parseFloat(item.product_unit_thb.replace(/,/g, ""))).toFixed(2); // Recalculate net_amount
+
                   return {
                     ...item,
-                    quantity: item.quantity + 1,
+                    // quantity: item.quantity + 1,
+                    quantity: updatedQuantity,
+                    net_amount: updatedNetAmount, // Update net_amount
                   };
                 }
                 return item;
               });
-  
+              
               // รีเซ็ต key และ no
               return updatedDataSource.map((item, index) => ({
                 ...item,
@@ -203,9 +164,9 @@ export default function CreateOrder() {
               quantity: 1,
               net_amount: productData.value,
             };
-  
+            
             const updatedDataSource = [...prev, newProduct];
-  
+
             // รีเซ็ต key และ no
             return updatedDataSource.map((item, index) => ({
               ...item,
@@ -263,10 +224,10 @@ export default function CreateOrder() {
       label: "Date", 
       name: "order_date", 
       type: "date", 
-      disabled: false, 
+      disabled: true, 
       required: false, 
       moderef: false,
-      value: "" 
+      value: dayjs().format("YYYY-MM-DD")
     },
   ];
 
@@ -484,8 +445,8 @@ export default function CreateOrder() {
   ];
 
   const footerOrderList = () => {
-    const totalQuantity = dataSource.reduce((total, item) => total + item.quantity, 0);
-    const totalFOC = dataSource.reduce((total, item) => total + item.foc, 0);
+    const totalQuantity = dataSource.reduce((total, item) => total + parseFloat(item.quantity), 0);
+    const totalFOC = dataSource.reduce((total, item) => total + parseFloat(item.foc), 0);
     const totalAmount = dataSource.reduce((total, item) => total + parseFloat(item.net_amount || 0), 0);
 
     return (
@@ -506,59 +467,6 @@ export default function CreateOrder() {
       </td>
     </tr>
   );
-
-  // const onChangeProduct = (value) => {
-  //   // Set Empty
-  //   setSearchProductData([]);
-
-  //   const loadProductDetail = async () => {
-  //     setLoading(true);
-  //     try {
-  //       const [productDetail] = await Promise.all([
-  //         useServiceAPI.get(paths.pathMasterProductDetail, {
-  //           product_id: value,
-  //         }),
-  //       ]);
-
-  //       // State for Order List table data
-  //       const data = productDetail.data
-  //       const newProductDataDetail = {
-  //         key: dataSource.length + 1,
-  //         no: dataSource.length + 1,
-  //         product_id: data.id,
-  //         product_code: data.product_code,
-  //         product_name: data.product_name,
-  //         product_unit: data.packing_list,
-  //         product_unit_thb: data.bath_unit,
-  //         product_campaign_order_min_foc: data.product_campaign_order_min_foc,
-  //         product_campaign_foc: data.product_campaign_foc,
-  //         quantity: 0,
-  //         foc: data.product_campaign_foc,
-  //         net_amount: 0.00,
-  //       };
-
-  //       // setDataSource([...dataSource, newProductDataDetail]);
-
-  //       // Add new product data to the existing dataSource
-  //       const updatedDataSource = [...dataSource, newProductDataDetail];
-
-  //       // Reset the keys to ensure proper sequencing
-  //       const resetDataSource = updatedDataSource.map((item, index) => ({
-  //           ...item,
-  //           key: index + 1,
-  //           no: index + 1,
-  //       }));
-
-  //       setDataSource(resetDataSource);
-  //     } catch (error) {
-  //       showMsg("error", error.message || "เกิดข้อผิดพลาด");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   loadProductDetail();
-  // };
 
   const onChangeProduct = (value) => {
     // Set Empty
@@ -584,9 +492,14 @@ export default function CreateOrder() {
                 // If product_code exists, update the quantity
                 const updatedDataSource = dataSource.map((item, index) => {
                     if (index === existingProductIndex) {
+                      const updatedQuantity = item.quantity + 1; // Increment quantity
+                      const updatedNetAmount = (updatedQuantity * parseFloat(item.product_unit_thb.replace(/,/g, ""))).toFixed(2); // Recalculate net_amount
+
                         return {
                             ...item,
-                            quantity: item.quantity + 1, // Increment quantity
+                            // quantity: item.quantity + 1, // Increment quantity
+                            quantity: updatedQuantity,
+                            net_amount: updatedNetAmount, // Update net_amount
                         };
                     }
                     return item;
@@ -607,7 +520,8 @@ export default function CreateOrder() {
                     product_campaign_foc: data.product_campaign_foc,
                     quantity: 1, // Set initial quantity to 1
                     foc: data.product_campaign_foc,
-                    net_amount: 0.0,
+                    // net_amount: data.bath_unit,
+                    net_amount: (1 * parseFloat(data.bath_unit.replace(/,/g, ""))).toFixed(2), // Calculate net_amount based on quantity 1
                 };
 
                 const updatedDataSource = [...dataSource, newProductDataDetail];
