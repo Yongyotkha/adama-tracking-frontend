@@ -30,7 +30,6 @@ export default function OrderDetail() {
     // Set Data
     setDataSource(location.state.data.products);
     setDataSourceOther(location.state.data.others);
-    console.log(dataSource);
   }, [dataSource, dataSourceOther])
   
   const header = [
@@ -227,7 +226,7 @@ export default function OrderDetail() {
           navigate("/order/list");
         });
       } catch (error) {
-        // showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
         console.log(error);
       } finally {
         setLoading(false);

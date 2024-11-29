@@ -218,8 +218,8 @@ export default function ViewOrderWaiting() {
 
         showNotification(
           "success",
-          response.data.message,
-          response.data.message_line
+          response.message,
+          response.message_line
         ).then(() => {
           navigate("/order-waiting/list");
         });
@@ -249,8 +249,8 @@ export default function ViewOrderWaiting() {
 
         showNotification(
           "success",
-          response.data.message,
-          response.data.message_line
+          response.message,
+          response.message_line
         ).then(() => {
           navigate("/order-waiting/list");
         });
