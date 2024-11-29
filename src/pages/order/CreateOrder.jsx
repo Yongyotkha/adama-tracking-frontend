@@ -29,8 +29,8 @@ export default function CreateOrder() {
 
   const [formCustom] = Form.useForm();
 
+  // Get Master
   useEffect(() => {
-    // Get Master
     const getMaster = async () => {
       setLoading(true);
       try {
@@ -591,6 +591,7 @@ export default function CreateOrder() {
           others: dataSourceOther
         };
         // console.log(body);
+        // return;
         navigate("/order/detail", {
           state: {
             data: body
