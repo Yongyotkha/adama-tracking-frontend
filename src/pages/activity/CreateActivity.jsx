@@ -44,40 +44,27 @@ export default function CreateActivity() {
 
   const [isBtnExpenseActive, setIsBtnExpenseActive] = useState(false);
 
-  const handleUploadClick = () => {
+  const handleUploadClick = async () => {    
     // Call triggerUpload from FileUploadComponent
     if (fileUploadRef.current) {
       fileUploadRef.current.triggerUpload();
     }
   };
 
+  const handleUploadSuccess = (response) => {
+    const data = response.data;
+    const fileUpload = [{
+      uid: data.file_key,
+      name: data.file_name,
+      status: 'done',
+      url: data.file_url,
+    }];
+    setFileList(fileUpload);
+    console.log('Uploaded file response:', fileUpload);
+  };
+
   // Example file list to be passed as dataFile
-  const [fileList, setFileList] = useState([
-    {
-      uid: '-1',
-      name: 'image.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    },
-    {
-      uid: '-2',
-      name: 'image.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    },
-    {
-      uid: '-3',
-      name: 'image.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    },
-    {
-      uid: '-4',
-      name: 'image.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    },
-  ]);
+  const [fileList, setFileList] = useState([]);
 
   const handleUpdate = async () => {
     try {
@@ -228,9 +215,6 @@ export default function CreateActivity() {
     },
   ];
 
-  let counter = 1;
-  const salesData = [];
-
   const handleOpenTeamModal = () => {
     setIsTeamModalVisible(true);
     getParticipant();
@@ -270,7 +254,6 @@ export default function CreateActivity() {
     // เพิ่มเฉพาะข้อมูลใหม่เข้าไปใน participantList
     setParticipantList((prevList) => [...prevList, ...participantData]);
   };
-  
 
   const handleCloseTeamModal = () => {
     setIsTeamModalVisible(false);
@@ -373,8 +356,6 @@ export default function CreateActivity() {
       console.error("Error fetching address:", err);
     }
   };
-  
-  
 
   const handleReload = () => {
     setLoading(true);
@@ -473,7 +454,7 @@ export default function CreateActivity() {
                           placeholder="Address"
                           value={locationCustomer.address || ""}
                           key={locationCustomer.address} // เพิ่ม key เพื่อบังคับให้รีเฟรช
-                          readOnly
+                          disabled="true"
                           style={{
                             width: "100%",
                             paddingRight: "50px",
@@ -577,7 +558,7 @@ export default function CreateActivity() {
               <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
               <ActionButton mode="add" text="Upload File" onClick={handleUploadClick} />
             </div>
-            <FileUploadComponent ref={fileUploadRef} dataFile={fileList} />
+            <FileUploadComponent ref={fileUploadRef} mode="edit" dataFile={fileList} modeUpload={mode} onUploadSuccess={handleUploadSuccess}/>
           </BoxPrimary>
 
           {/* Participant Section */}
