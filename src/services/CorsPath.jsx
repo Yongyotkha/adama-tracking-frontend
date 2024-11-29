@@ -8,7 +8,6 @@ export const paths = {
   pathOtpCall: "otp/call",
   pathOtpVerify: "otp/verify",
   pathSetNewPassword: "set-newpassword",
-  pathCustomerDealer: "sale-customer-dealer/list",
   pathCustomerSubDealer: "sale-customer-subdealer/list",
 
   // Master
@@ -26,6 +25,7 @@ export const paths = {
   pathMasterSaleAll: "master/sale-all/list",
   pathMasterDealerCustomer: "master/dealer/customer",
 
+  
   // pathMasterShop: "master/shop",
   pathMasterStatus: "master/status",
   pathMasterHeadofsale: "master/headofsale",
@@ -40,6 +40,11 @@ export const paths = {
   pathSaleManagementProductsDetail: "products-management/detail",
   pathSaleManagementProductsUpdate: "products-management/update",
   
+  //Dealer
+  pathCustomerDealer: "sale-customer-dealer/list",
+  pathCustomerDealerDetail: "sale-customer-dealer/detail",
+
+
   // Sale
   pathSaleManagementDetail: "sale-management/sale-team/detail",
   pathSaleManagementCreate: "sale-management/sale-team/items/create",

@@ -78,7 +78,6 @@ export default function SettingUser() {
 
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
-
         const newDataSource = data.map((user, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           action: (
@@ -127,6 +126,7 @@ export default function SettingUser() {
         }));
 
         setDataSource(newDataSource);
+        
         setTableParams({
           ...tableParams,
           pagination: {
@@ -151,6 +151,7 @@ export default function SettingUser() {
     tableParams.sortField,
     JSON.stringify(tableParams.filters),
   ]);
+  // const response = await useServiceAPI.get(`${paths.pathCustomerDealerDetail}/${id}`);
 
   const handleTableChange = (pagination, filters, sorter) => {
     setTableParams({

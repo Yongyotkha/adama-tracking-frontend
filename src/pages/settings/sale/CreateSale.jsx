@@ -130,7 +130,7 @@ export default function CreateSale() {
       );
 
       if (response.status === 200) {
-        const Test = response.data.data;
+        const Test = response.data.data;        
         const territoryData = Test.map((item, index) => ({
           key: index + 1,
           name: item.name,
@@ -139,6 +139,7 @@ export default function CreateSale() {
         }));
         setUserList(territoryData);
       }
+      
     } catch (error) {
       console.error("Error fetching user list:", error);
     } finally {
@@ -158,7 +159,7 @@ export default function CreateSale() {
   //   // Add more entries if needed
   // ];
 
-  // Define the main table columns
+
   const columns = [
     {
       title: "Name",

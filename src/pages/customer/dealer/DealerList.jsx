@@ -14,39 +14,149 @@ import { paths } from "../../../services/CorsPath";
 export default function DealerList() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-
   const navigate = useNavigate();
+  const [tableLoading, setTableLoading] = useState(false);
+  const [tableParams, setTableParams] = useState({
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+    filters: {},
+    sortOrder: null,
+    sortField: null,
+  });
+
+  useEffect(() => {
+    fetchData();
+  }, [
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    tableParams.sortOrder,
+    tableParams.sortField,
+    JSON.stringify(tableParams.filters),
+  ]);
+
+
+  const fetchData = async () => {
+    setTableLoading(true);
+    const { current, pageSize } = tableParams.pagination;
+    const filters = tableParams.filters || {};
+
+    const requestData = {
+      keyword: filters.keyword || "",
+      use_flag: filters.use_flag || "",
+
+      page_length: current,
+      page_size: pageSize,
+    };
+
+    try {
+      const response = await useServiceAPI.get(
+        paths.pathCustomerDealer,
+        requestData
+      );
+
+      if (response.status === 200) {
+        const { data, records_filtered } = response.data;        
+        const newDataSource = data.map((data, index) => ({
+          key: index + 1 + (current - 1) * pageSize,
+          code: data.dealer_code,
+          dealerName: data.dealer_name_en,
+          address: data.address,
+          contactName: data.contact_number,
+          mobilePhone: data.contact_phone_number || "-",
+          groupCode: data.group_code,
+          status: <BadgeStatus text={data.status_name} bgColor={data.status_bg_color} textColor={data.status_color} />,
+          action: (
+            <Dropdown
+              menu={{
+                items: data.action.map((actionItem, actionIndex) => ({
+                  key: actionIndex,
+                  label: (
+                    <ItemDropDown mode={actionItem.action.toLowerCase()} 
+                    onClick={() => {
+                      navigate("/customer/dealer/edit-info", {
+                        state: {
+                          id: data.id,
+                        },
+                      });
+                    }}
+                    />
+                  ),
+                })),
+              }}
+              placement="bottom"
+            >
+              <a onClick={(e) => e.preventDefault()}>
+                <img
+                  src="/img/icons/action.png"
+                  alt="button icon"
+                  className="inline-block w-5 h-5 mr-2"
+                />
+              </a>
+            </Dropdown>
+          ),
+
+
+
+        }));
+
+        setDataSource(newDataSource);
+        setTableParams({
+          ...tableParams,
+          pagination: {
+            ...tableParams.pagination,
+            total: records_filtered,
+          },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
 
   const filters = [
     {
-      key: "dealer",
-      type: "select",
-      label: "Dealer",
-      placeholder: "All",
-      options: [
-        { value: 'Monggutthong Ltd.', label: 'Monggutthong Ltd.' },
-        { value: 'Bangbuathong Panich Co.,Ltd.', label: 'Bangbuathong Panich Co.,Ltd.' },
-      ],
+      key: "keyword",
+      type: "text",
+      label: "dealer",
     },
+    // {
+    //   key: "dealer",
+    //   type: "select",
+    //   label: "Dealer",
+    //   placeholder: "All",
+    //   options: [
+    //     { value: 'Monggutthong Ltd.', label: 'Monggutthong Ltd.' },
+    //     { value: 'Bangbuathong Panich Co.,Ltd.', label: 'Bangbuathong Panich Co.,Ltd.' },
+    //   ],
+    // },
     {
-      key: "status",
-      type: 'select',
+      key: "use_flag",
       label: "Status",
-      placeholder: "All",
+      type: "select",
       options: [
-        { value: 'Active', label: 'Active' },
-        { value: 'Inactive', label: 'Inactive' },
-        { value: 'Pending', label: 'Pending' },
+        { name: "Active", id: 1 },
+        { name: "Inactive", id: 0},
       ],
     },
   ];
 
-  const handleSearch = (filter) => {
-    console.log("Search filters applied:", filter);
+  const handleSearch = (filters) => {
+    setTableParams({
+      ...tableParams,
+      filters,
+    });
   };
 
   const handleClear = () => {
-    console.log("Filters cleared");
+    setTableParams({
+      ...tableParams,
+      filters: {},
+    });
   };
 
   const header = [
@@ -124,45 +234,16 @@ export default function DealerList() {
   //   setDataSource(dataSource);
   // }, []);
 
-  useEffect(() => {
-    const body = { platform: "web" };
-    useServiceAPI
-      .get(paths.pathCustomerDealer, body, setLoading)
-      .then((response) => {
-        if (response.status == 200) {
-          const newDataSource = response.data.map((data, index) => ({
-            key: index + 1,
-            code: data.dealer_code,
-            dealerName: data.dealer_name_en,
-            address: data.address,
-            contactName: data.contacts[0] ? data.contacts[0].name_en : "N/A",
-            mobilePhone: data.contact_number,
-            groupCode: data.group_code,
-            status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
-            action: (
-              <Dropdown menu={{ items: actionItems }} placement="bottom">
-                <a onClick={(e) => e.preventDefault()}>
-                  <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-                </a>
-              </Dropdown>
-            ),
 
-          }));
-
-          setDataSource(newDataSource);
-        }
-      })
-      .catch((error) => {
-        console.log(error.message);
-        setError(error.message);
-        if (error.status == 422) {
-          showMsg("error", error.message);
-        } else {
-          showMsg("error", "เกิดข้อผิดพลาด");
-        }
-      });
-  }, []);
-
+  const handleTableChange = (pagination, filters, sorter) => {
+    setTableParams({
+      pagination,
+      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortField: sorter.field,
+    });
+  };
+  
 
   return (
     <MainLayout loading={loading}>
@@ -176,7 +257,14 @@ export default function DealerList() {
       />
 
       <BoxPrimary>
-        <TableComponent header={header} dataSource={dataSource} />
+        <TableComponent 
+        header={header}
+        dataSource={dataSource}
+        pagination={tableParams.pagination}
+        loading={tableLoading}
+        onChange={handleTableChange}
+
+        />
       </BoxPrimary>
 
     </MainLayout>

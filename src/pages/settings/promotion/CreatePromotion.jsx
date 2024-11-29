@@ -31,17 +31,24 @@ export default function CreatePromotion() {
       col: 12, 
     },
     { 
+      label: "Unit", 
+      name: "unit", 
+      type: "text", 
+      required: true, 
+      col: 8, 
+    },
+    { 
       label: "Value (THB)", 
       name: "value", 
       type: "text", 
       required: true, 
-      col: 6, 
+      col: 8, 
     },
     { label: "Status", 
       name: "use_flag", 
       type: "select", 
       required: true, 
-      col: 6, 
+      col: 8, 
       options: [
         { name: "Active", id: 1, selected: true },
         { name: "Inactive", id: 0, selected: false },
@@ -56,7 +63,8 @@ export default function CreatePromotion() {
         useServiceAPI
           .post(paths.pathPromotioncreate, values, setLoading)
           .then((response) => {
-            if (response.status === 201) {
+            if (response.status === 200) {
+              navigate("/setting/promotion");
               showNotification(
                 "success",
                 response.data.message,
