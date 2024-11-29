@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
 import { Form, Input, Col, Row, Select } from "antd";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import ActionButton from "../../components/button/ActionButton";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import FormCustom from "../../components/form_custom/FormCustom";
@@ -14,6 +16,8 @@ import { paths } from "../../services/CorsPath";
 import { useLocation } from "react-router-dom";
 import { ReloadOutlined } from "@ant-design/icons";
 import { convertLegacyProps } from "antd/es/button";
+
+dayjs.extend(customParseFormat);
 
 const { Option } = Select;
 
@@ -41,43 +45,31 @@ export default function CreateActivity() {
   const fileUploadRef = useRef(null); // Reference for FileUploadComponent
   const [locationCustomer, setLocationCustomer] = useState([]);
   const [dealerCustomer, setDealerCustomer] = useState([]);
+  const [totalEstimateSale, setTotalEstimateSale] = useState(0);
+  const [totalActualSale, setTotalActualSale] = useState([]);
 
   const [isBtnExpenseActive, setIsBtnExpenseActive] = useState(false);
 
-  const handleUploadClick = () => {
+  const handleUploadClick = async () => {    
     // Call triggerUpload from FileUploadComponent
     if (fileUploadRef.current) {
       fileUploadRef.current.triggerUpload();
     }
   };
 
+  const handleUploadSuccess = (response) => {
+    const data = response.data;
+    const fileUpload = [{
+      uid: data.file_key,
+      name: data.file_name,
+      status: 'done',
+      url: data.file_url,
+    }];
+    setFileList(fileUpload);
+  };
+
   // Example file list to be passed as dataFile
-  const [fileList, setFileList] = useState([
-    {
-      uid: '-1',
-      name: 'image.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    },
-    {
-      uid: '-2',
-      name: 'image.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    },
-    {
-      uid: '-3',
-      name: 'image.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    },
-    {
-      uid: '-4',
-      name: 'image.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    },
-  ]);
+  const [fileList, setFileList] = useState([]);
 
   const handleUpdate = async () => {
     try {
@@ -106,7 +98,7 @@ export default function CreateActivity() {
     { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: false, required: true, col: 8, value: "", moderef: true },
     { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: false, required: true, col: 8, value: "", moderef: true },
     { label: "Crop", name: "crop_id_list", type: "select", mode: "multiple", options: cropList, disabled: false, required: true, col: 6, value: [], moderef: true },
-    { label: "Date", name: "document_date", type: "date", disabled: false, required: true, col: 6, value: "2024-01-01" },
+    { label: "Date", name: "document_date", type: "date", disabled: false, required: true, col: 6, value: dayjs().format("YYYY-MM-DD") },
     { label: "Start Time", name: "time_start", type: "select", options:timeList, disabled: false, required: true, col: 6, value:""  },
     { label: "End Time", name: "time_end", type: "select", options:timeList, disabled: false, required: true, col: 6, value: "" },
     { label: "Location", name: "location_address", type: "location", disabled: true, required: false, col: 24, value: "", iconSrc: "/img/icons/location.png", iconPosition: "left" },
@@ -171,7 +163,7 @@ export default function CreateActivity() {
           let productCropList = [];
           productCrop.data.forEach((element, key) => {
             productCropList.push({
-              key: (key + 1), productName: element.product_name, packSize: element.packing_list, estimateSale: "0", actualSale: "0"
+              key: (key + 1), productName: element.product_name, packSize: element.packing_list, estimateSale: "0", actualSale: "0", bath_ltkg: element.bath_ltkg
             });
           });
           setProductCropList(productCropList);
@@ -189,24 +181,41 @@ export default function CreateActivity() {
     { title: "Pack Size", dataIndex: "packSize", key: "packSize", align: "center" },
     {
       title: "Estimate Sale (Kg/Lt)", dataIndex: "estimateSale", key: "estimateSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.estimateSale}/>
+        <Input placeholder="0" defaultValue={record.estimateSale} onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}/>
       )
     },
     {
       title: "Actual Sale (Kg/Lt)", dataIndex: "actualSale", key: "actualSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.actualSale}/>
+        <Input placeholder="0" defaultValue={record.actualSale} onChange={(e) => handleInputChange(e.target.value, record.key, "actualSale", record.bath_ltkg)}/>
       )
     },
   ];
+
+  const handleInputChange = (value, key, field, bath_ltkg) => {
+    const updatedData = productCropList.map((item) => {
+      if (item.key === key) {
+        const numericValue = parseFloat(value) || 0;
+        const newTotal = numericValue * bath_ltkg;
+        return { ...item, [field]: numericValue, total: newTotal };
+      }
+      return item;
+    });
+
+    setProductCropList(updatedData);
+  };
+
+  const calculateGrandTotal = (field) => {
+    return productCropList.reduce((sum, item) => sum + (item[field] || 0) * item.bath_ltkg, 0).toFixed(2);
+  };
 
   const footerOrderList = () => (
     <tr className="bg-[#978B87]">
       <td colSpan={2} className="text-left pr-2 text-white">Total (THB)</td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" />
+        <Input placeholder="0" value={calculateGrandTotal("estimateSale")} readOnly />
       </td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" />
+        <Input placeholder="0" value={calculateGrandTotal("actualSale")} readOnly />
       </td>
     </tr>
   );
@@ -227,9 +236,6 @@ export default function CreateActivity() {
       ),
     },
   ];
-
-  let counter = 1;
-  const salesData = [];
 
   const handleOpenTeamModal = () => {
     setIsTeamModalVisible(true);
@@ -270,7 +276,6 @@ export default function CreateActivity() {
     // เพิ่มเฉพาะข้อมูลใหม่เข้าไปใน participantList
     setParticipantList((prevList) => [...prevList, ...participantData]);
   };
-  
 
   const handleCloseTeamModal = () => {
     setIsTeamModalVisible(false);
@@ -298,22 +303,34 @@ export default function CreateActivity() {
     setParticipants(participants.filter(item => item.key !== key));
   };
 
+  //บันทึกข้อมูล
   const handleSave = () => {
-    formCustom
-      .validateFields()
-      .then((values) => {
-        useServiceAPI
-          .post(paths.pathActivityCreate, values, setLoading)
-          .then((response) => {
-            navigate("/activity/list");
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      })
-      .catch((errorInfo) => {
-        console.error("Validation Failed:", errorInfo);
-      });
+    formCustom.validateFields();
+    //Form Basic Activity
+    const allValuesBasic = formCustom.getFieldsValue();
+    //File Upload
+    const imageLists = [];
+    fileList.forEach(element => {
+      imageLists.push(element.url);
+    });
+
+    
+    
+    // formCustom
+    //   .validateFields()
+    //   .then((values) => {
+    //     useServiceAPI
+    //       .post(paths.pathActivityCreate, values, setLoading)
+    //       .then((response) => {
+    //         navigate("/activity/list");
+    //       })
+    //       .catch((error) => {
+    //         console.log(error);
+    //       });
+    //   })
+    //   .catch((errorInfo) => {
+    //     console.error("Validation Failed:", errorInfo);
+    //   });
   };
 
   const showLayoutExpense = () => {
@@ -373,8 +390,6 @@ export default function CreateActivity() {
       console.error("Error fetching address:", err);
     }
   };
-  
-  
 
   const handleReload = () => {
     setLoading(true);
@@ -426,7 +441,7 @@ export default function CreateActivity() {
                 address: dealerCustomer.customer_address,
                 placeOfOwner: dealerCustomer.customer_place_of_owner,
                 phoneNumber: dealerCustomer.customer_phone_number,
-                Perception: "Good",
+                perception: "Good",
                 location_customer_address: locationCustomer.address,
                 location_customer_latitude: locationCustomer.lat,
                 location_customer_longitude: locationCustomer.long
@@ -473,7 +488,7 @@ export default function CreateActivity() {
                           placeholder="Address"
                           value={locationCustomer.address || ""}
                           key={locationCustomer.address} // เพิ่ม key เพื่อบังคับให้รีเฟรช
-                          readOnly
+                          disabled="true"
                           style={{
                             width: "100%",
                             paddingRight: "50px",
@@ -577,7 +592,7 @@ export default function CreateActivity() {
               <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
               <ActionButton mode="add" text="Upload File" onClick={handleUploadClick} />
             </div>
-            <FileUploadComponent ref={fileUploadRef} dataFile={fileList} />
+            <FileUploadComponent ref={fileUploadRef} mode="edit" dataFile={fileList} modeUpload={mode} onUploadSuccess={handleUploadSuccess}/>
           </BoxPrimary>
 
           {/* Participant Section */}
