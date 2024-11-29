@@ -113,7 +113,7 @@ export default function Verify() {
   };
 
   useEffect(() => {
-    // callOtpPhone();
+    callOtpPhone();
   }, []);
 
   return (
