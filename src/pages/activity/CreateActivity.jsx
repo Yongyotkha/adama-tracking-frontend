@@ -45,8 +45,8 @@ export default function CreateActivity() {
   const fileUploadRef = useRef(null); // Reference for FileUploadComponent
   const [locationCustomer, setLocationCustomer] = useState([]);
   const [dealerCustomer, setDealerCustomer] = useState([]);
-  const [totalEstimateSale, setTotalEstimateSale] = useState(0);
-  const [totalActualSale, setTotalActualSale] = useState([]);
+  const [perceptionList, setPerceptionList] = useState([]);
+  
 
   const [isBtnExpenseActive, setIsBtnExpenseActive] = useState(false);
 
@@ -111,19 +111,21 @@ export default function CreateActivity() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [activityType, sale, saleAll, time] = await Promise.all([
+        const [activityType, sale, saleAll, time, perception] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {
             'status': 'all'
           }),
           useServiceAPI.get(paths.pathMasterTime, {}),
+          useServiceAPI.get(paths.pathMasterPerception, {}),
         ]);
 
         setActivityList(activityType.data);
         setSaleList(sale.data);
         setSaleAllList(saleAll.data);
         setTimeList(time.data);
+        setPerceptionList(perception.data);
       } finally {
         setLoading(false);
       }
@@ -310,6 +312,7 @@ export default function CreateActivity() {
     formCustom.validateFields();
     //Form Basic Activity
     const allValuesBasic = formCustom.getFieldsValue();
+    const pageCode = 'activity_transaction';
     //File Upload
     const imageLists = [];
     fileList.forEach(element => {
@@ -334,25 +337,67 @@ export default function CreateActivity() {
       });
     });
 
-    console.log(isExpense, expenseProductTotalEstimateSale,expenseProductTotalAcutalSale, expenseProductDataList);
+    //ส่วนของ Customer
+    const expenseCustomerDealerId = dealerCustomer.dealer_id;
+    const expenseCustomerDealerCode = dealerCustomer.dealer_code;
+    const expenseCustomerName = dealerCustomer.customer_name;
+    const expenseCustomerPlaceOfOwner = dealerCustomer.customer_place_of_owner;
+    const expenseCustomerPhoneNumber = dealerCustomer.customer_phone_number;
+    const expenseCustomerAddress = dealerCustomer.customer_address;
+    const expenseCustomerPerceptionId = customerForm.getFieldValue('perception') == 'Good' ? 1 : customerForm.getFieldValue('perception');
+    let expenseCustomerPerceptionName = perceptionList.find(
+      (option) => option.id === expenseCustomerPerceptionId
+    );
+    expenseCustomerPerceptionName = expenseCustomerPerceptionName ? expenseCustomerPerceptionName.name : 'Good'
+    const expenseCustomerLocationLongitude = customerForm.getFieldValue('location_customer_longitude');
+    const expenseCustomerLocationLatitude = customerForm.getFieldValue('location_customer_latitude');
+    const expenseCustomerLocationAddress = customerForm.getFieldValue('location_customer_address');
+
+    const expenseActualExp = expenseForm.getFieldValue('actual_exp');
+    const expenseActualSale = expenseForm.getFieldValue('actual_sale');
+
+    const expenseParticipantEstimate = participantForm.getFieldValue('actual_exp');
+    const expenseParticapantActual = participantForm.getFieldValue('actual_sale');
+    let expenseParticapantUserList = [];
+    participants.forEach(element => {
+      expenseParticapantUserList.push(element.id);
+    });
+
+    const body = {
+        "page_code": pageCode,
+        ...allValuesBasic,
+        "image_list": imageLists,
+        "is_expense": isExpense,
+        "expense_product_total_estimate_sale": expenseProductTotalEstimateSale,
+        "expense_product_total_acutal_sale": expenseProductTotalAcutalSale,
+        "expense_product_data_list": expenseProductDataList,
+        "expense_customer_dealer_id": expenseCustomerDealerId,
+        "expense_customer_dealer_code": expenseCustomerDealerCode,
+        "expense_customer_name": expenseCustomerName,
+        "expense_customer_place_of_owner": expenseCustomerPlaceOfOwner,
+        "expense_customer_phone_number": expenseCustomerPhoneNumber,
+        "expense_customer_address": expenseCustomerAddress,
+        "expense_customer_perception_id": expenseCustomerPerceptionId,
+        "expense_customer_perception_name": expenseCustomerPerceptionName,
+        "expense_customer_location_longitude": expenseCustomerLocationLongitude,
+        "expense_customer_location_latitude": expenseCustomerLocationLatitude,
+        "expense_customer_location_address": expenseCustomerLocationAddress,
+        "expense_actual_exp": expenseActualExp,
+        "expense_actual_sale": expenseActualSale,
+        "expense_file_list":[],
+        "expense_participant_estimate": expenseParticipantEstimate,
+        "expense_particapant_actual": expenseParticapantActual,
+        "expense_particapant_user_list": expenseParticapantUserList
+    };
     
-    
-    
-    // formCustom
-    //   .validateFields()
-    //   .then((values) => {
-    //     useServiceAPI
-    //       .post(paths.pathActivityCreate, values, setLoading)
-    //       .then((response) => {
-    //         navigate("/activity/list");
-    //       })
-    //       .catch((error) => {
-    //         console.log(error);
-    //       });
-    //   })
-    //   .catch((errorInfo) => {
-    //     console.error("Validation Failed:", errorInfo);
-    //   });
+    useServiceAPI
+    .post(paths.pathActivityCreate, body, setLoading)
+    .then((response) => {
+      // navigate("/activity/list");
+    })
+    .catch((error) => {
+      console.log(error);
+    });
   };
 
   const showLayoutExpense = () => {
@@ -371,17 +416,13 @@ export default function CreateActivity() {
     }
   }, [locationCustomer.lat, locationCustomer.long]);
 
-  const getLocation = () => {
+  const getLocation = () => {    
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const lat = position.coords.latitude;
           const long = position.coords.longitude;
-          
           getAddress(lat, long);
-        },
-        (err) => {
-          // console.error(err.message);
         }
       );
     } else {
@@ -488,9 +529,11 @@ export default function CreateActivity() {
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Perception" name="perception">
                     <Select>
-                      <Option value="Good">Good</Option>
-                      <Option value="Average">Average</Option>
-                      <Option value="Poor">Poor</Option>
+                      {perceptionList.map((option) => (
+                        <Option key={option.id} value={option.id}>
+                          {option.name}
+                        </Option>
+                      ))}
                     </Select>
                   </Form.Item>
                 </Col>

@@ -33,6 +33,7 @@ export const paths = {
   pathMasterSalearea: "master/salearea",
   pathMasterMonths: "master/months",
   pathMasterYear: "master/years",
+  pathMasterPerception: "master/perception",
 
   //Products
   pathSaleManagementProductsList: "products-management/list",
