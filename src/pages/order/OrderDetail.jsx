@@ -119,43 +119,6 @@ export default function OrderDetail() {
     </tr>
   );
 
-  // const footerOrderList = (currentData) => (
-  //   <tr className="bg-[#978B87]">
-  //     <td colSpan={8} className="text-right pr-2 text-white">
-  //       Item : {dataSource.length} &nbsp;&nbsp; QTY (ctn):{" "}
-  //       {dataSource.reduce((total, item) => total + item.quantity, 0)}{" "}
-  //       &nbsp;&nbsp; Total :{" "}
-  //       {dataSource
-  //         .reduce(
-  //           (total, item) =>
-  //             // total + parseFloat(item.net_amount.replace(/,/g, "")),
-  //           0
-  //         )
-  //         .toLocaleString("en-US", { minimumFractionDigits: 2 })}
-  //     </td>
-  //   </tr>
-  // );
-
-  // const footerOther = () => (
-  //   <tr className="bg-[#978B87]">
-  //     <td colSpan={5} className="text-right pr-2 text-white">
-  //       Item : {dataSourceOther.length} &nbsp;&nbsp; QTY :{" "}
-  //       {dataSourceOther.reduce(
-  //         (total, item) => total + parseInt(item.quantity || 0),
-  //         0
-  //       )}
-  //       &nbsp;&nbsp; Total :{" "}
-  //       {dataSourceOther
-  //         .reduce(
-  //           (total, item) =>
-  //             total + parseFloat(item.net_amount.replace(/,/g, "")),
-  //           0
-  //         )
-  //         .toLocaleString("en-US", { minimumFractionDigits: 2 })}
-  //     </td>
-  //   </tr>
-  // );
-
   const formFields = [
     {
       label: "Sale",
@@ -163,7 +126,7 @@ export default function OrderDetail() {
       type: "text",
       disabled: true,
       placeholder: "",
-      value: "",
+      value: "111",
     },
     {
       label: "Dealer",
@@ -186,8 +149,8 @@ export default function OrderDetail() {
       name: "order_date",
       type: "date",
       disabled: true,
-      placeholder: "",
-      value: "",
+      placeholder: getDocumentDate,
+      value: "2024-11-11",
     },
   ];
 
