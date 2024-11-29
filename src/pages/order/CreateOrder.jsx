@@ -182,7 +182,7 @@ export default function CreateOrder() {
                 }
                 return item;
               });
-  
+              
               // รีเซ็ต key และ no
               return updatedDataSource.map((item, index) => ({
                 ...item,
@@ -203,9 +203,10 @@ export default function CreateOrder() {
               quantity: 1,
               net_amount: productData.value,
             };
-  
+            
             const updatedDataSource = [...prev, newProduct];
-  
+
+
             // รีเซ็ต key และ no
             return updatedDataSource.map((item, index) => ({
               ...item,
