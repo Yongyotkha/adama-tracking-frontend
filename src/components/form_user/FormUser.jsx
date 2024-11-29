@@ -123,6 +123,7 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
                     style={{ width: "100%" }}
                     placeholder="Select Date"
                     format={dateFormat}
+                    disabled={field.disabled}
                   />
                 ) : field.type === "select" ? (
                   <Select
