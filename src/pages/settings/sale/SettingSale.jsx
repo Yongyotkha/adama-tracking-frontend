@@ -24,6 +24,7 @@ export default function SettingSale() {
   const [isSAModalVisible, setIsSAModalVisible] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [userList, setUserList] = useState([]);
+  const [permission, setPermission] = useState({});
 
   const [tableLoading, setTableLoading] = useState(false);
   const [tableParams, setTableParams] = useState({
@@ -35,8 +36,6 @@ export default function SettingSale() {
     sortOrder: null,
     sortField: null,
   });
-
-
   const filters = [
     {
       key: "sale_head_name",
@@ -98,7 +97,9 @@ export default function SettingSale() {
 
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
-    
+        
+        console.log(response.data.permission);
+        setPermission(response.data.permission);
         const newDataSource = data.map((data, index) => ({
           key: index + 1,
           sale_head_name: data.sale_head_name,
@@ -416,11 +417,15 @@ export default function SettingSale() {
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Sale Management</div>
+        {
+        permission.btn_create !== false && ( // ตรวจสอบค่าของ btn_create
         <ActionButton
           mode="create"
           text="Create"
           onClick={(e) => navigate("/setting/sale/create")}
         />
+      )}
+
       </div>
 
       <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />

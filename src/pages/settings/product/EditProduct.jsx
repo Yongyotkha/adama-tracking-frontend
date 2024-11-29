@@ -25,6 +25,7 @@ export default function EditProduct() {
   const [selectedCropsName, setSelectedCropsName ] = useState([]);
   const [userinfo, setUserInfo ] = useState([]);
   const navigate = useNavigate();
+  const [cropList, setCropList] = useState([]); // state สำหรับ crop_list
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,6 +41,7 @@ export default function EditProduct() {
         setPosition(positions.data);
         setRoles(roles.data);
         setCropOptions(crops.data);         
+        setCropList(crops.data || []);
 
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -49,8 +51,10 @@ export default function EditProduct() {
   }, []);
   
   useEffect(() => {
-      console.log(selectedCrops);
-  }, [selectedCrops]);
+    console.log("Roles:", roles);
+    console.log("Crop Options:", cropOptions);
+  }, [roles, cropOptions]);
+  
 
 
   const fetchProductDetails = async (id) => {
@@ -60,9 +64,19 @@ export default function EditProduct() {
       if (response.status === 200) {
         const { data } = response; 
         setUserInfo(data);
+        setCropList(data.crop_list || []); 
+
         setCropOptions(data.crop_list);
         setSelectedCrops(data.crop_list.map((crop) => crop.id));
 
+        const Test = response.data.data;        
+        const territoryData = Test.map((item, index) => ({
+          key: index + 1,
+          name: item.name,
+          territory: item.territory_name,
+          position: item.position_name,
+        }));
+      setUserList(territoryData);
       } else {
         console.error("Failed to fetch promotion details:", response.message);
       }
@@ -112,7 +126,6 @@ export default function EditProduct() {
           crop_list: cropListToSend, // ส่ง crop_list
         };
   
-        // ส่งข้อมูลผ่าน API
         useServiceAPI
           .put(paths.pathSaleManagementProductsUpdate, dataToSend, setLoading)
           .then((response) => {
@@ -138,7 +151,9 @@ export default function EditProduct() {
 
   const handleCropChange = (value) => {
     const intValues = value.map((v) => parseInt(v, 10)); // แปลง string เป็น integer
-    setSelectedCrops(intValues);
+    setSelectedCrops(value.map((v) => parseInt(v, 10))); // เก็บค่าเป็น integer
+
+    // setSelectedCrops(intValues);
     
   };
   
@@ -214,7 +229,7 @@ export default function EditProduct() {
       <FormUser profile="/img/profile.jpg" fields={updatedFields} form={form}/>
 
       <BoxPrimary>
-      <Form layout="vertical"  form={form} >
+      <Form layout="vertical">
           <Form.Item label="Crop">
             <Select
               mode="multiple"
@@ -226,7 +241,7 @@ export default function EditProduct() {
               value={selectedCrops}
               >
               {
-              cropOptions.map((crop) => (
+              cropList.map((crop) => (
                 <Option key={crop.id} value={crop.id}>
                   {crop.name}
                 </Option>

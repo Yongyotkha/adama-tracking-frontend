@@ -12,6 +12,7 @@ import { useLocation } from "react-router-dom";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import { Col, Form, Input, Row } from "antd";
 import { values } from "lodash";
+import dayjs from "dayjs";
 
 export default function EditUser() {
   const [loading, setLoading] = useState(false);
@@ -22,17 +23,17 @@ export default function EditUser() {
   const [areas, setAreas] = useState([]);
   const [roles, setRoles] = useState([]);
   const [form] = Form.useForm();
-  const { showMsg } = useContext(AuthContext);
+  // const { showMsg } = useContext(AuthContext);
   const location = useLocation();
-  const [profileImage, setProfileImage] = useState("");
+  const [profileImage, setProfileImage] = useState("/img/profile.jpg"); // ค่าเริ่มต้น
   const [userinfo, setUserInfo] = useState([]);
+  const { showMsg, showNotification } = useContext(AuthContext);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
         await fetchPromotionDetails(location.state.id);
-
         const [positions, departments, territories, areas, roles] =
           await Promise.all([
             useServiceAPI.get(paths.pathMasterPosition, {}),
@@ -49,7 +50,9 @@ export default function EditUser() {
         setRoles(roles.data);
         // setAreas(areas.data.map((a) => ({ ...a, name: a.area_name })));
       } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        console.log(error.message );
+        showNotification("เกิดข้อผิดพลาด");
+
       } finally {
         setLoading(false);
       }
@@ -63,10 +66,10 @@ export default function EditUser() {
     try {
       const response = await useServiceAPI.get(`${paths.pathMasterUsersDetail}/${id}`);
       if (response.status === 200) {
-        const { data } = response;
-        setProfileImage(data.profile_image);
+        const { data } = response;        
+        setProfileImage(data.profile_image); // อัปเดตรูปภาพ
         setUserInfo(data);
-
+        
       } else {
         console.error(response.message);
       }
@@ -86,7 +89,8 @@ export default function EditUser() {
       type: "picture", // ประเภทฟิลด์
       required: false,
       col: 24,
-      value: userinfo.profile_image, // ใช้ค่า profile_image จาก API
+      value: userinfo.profile_image || "/img/profile.jpg",
+
     },
     {
       label: "Name (EN)",
@@ -106,7 +110,7 @@ export default function EditUser() {
     },
     {
       label: "Sales Employee Code",
-      name: "employee_code",
+      name: "sales_emp_code",
       type: "text",
       required: true,
       col: 6,
@@ -190,7 +194,7 @@ export default function EditUser() {
       type: "date",
       required: false,
       col: 6,
-      value: null,
+      value: userinfo.date_of_joining,
     },
     {
       label: "Status",
@@ -219,27 +223,46 @@ export default function EditUser() {
     form
       .validateFields()
       .then((values) => {
+        console.log(values);
+        
+        if (values.date_of_joining) {
+          values.date_of_joining = dayjs(values.date_of_joining).format(
+            "YYYY-MM-DD"
+          );
+        }
+        const useFlagValue = values.use_flag === "Active" ? 1 : 0;
         const dataToSend = {
           ...values,
           user_id: location.state.id, 
+          use_flag: useFlagValue,
         };
   
         useServiceAPI
           .put(paths.pathMasterUsersEdit, dataToSend, setLoading)
           .then((response) => {
-            if (response.status === 201) {
-              console.log(response.data.message);
+            if (response.status === 200) {
               showMsg("success", response.data.message).then(() => {
                 navigate("/setting/user");
               });
+            }
+            if (response.status === 200) {
+              navigate("/setting/user");
+              showNotification(
+                "success",
+                response.data.message,
+                response.data.message_line
+              );
             }
           })
           .catch((error) => {
             console.error(error);
             if (error.status === 422) {
-              showMsg("error", error.message);
+              // showMsg("error", error.message);
+              showNotification("error", response.message, response.message_line);
+
             } else {
-              showMsg("error", "เกิดข้อผิดพลาด");
+              // showMsg("error", "เกิดข้อผิดพลาด");
+              showNotification("error", response.message, response.message_line);
             }
           });
       })
@@ -254,18 +277,15 @@ export default function EditUser() {
       <div className="title-page">Edit User</div>
 
       <FormUser 
-        profile={form.getFieldValue("profile")}
-        // profile="/img/profile.jpg" 
+        profile={profileImage}
         fields={updatedFields} 
         form={form}
       />
 
-      <BoxPrimary>
+      {/* <BoxPrimary>
         <div className="flex items-center justify-between">
           <div className="text-[#00783F] text-lg font-semibold mb-3">Change Password</div>
-          {/* <ActionButton mode="edit" text="Edit" onClick='' /> */}
           <ActionButton mode="edit" text="Edit" onClick={() => console.log("Edit button clicked")} />
-
         </div>
         <Form layout="vertical">
           <Row gutter={[16, 16]} className="mt-3">
@@ -286,11 +306,17 @@ export default function EditUser() {
             </Col>
           </Row>
         </Form>
-      </BoxPrimary>
+      </BoxPrimary> */}
 
       <div className="flex justify-end space-x-4">
         <ActionButton text="Back" mode="back" onClick={handleBack} />
-        <ActionButton text="Update" mode="update" onClick={handleSave} />
+        <ActionButton 
+        text="Update" 
+        mode="update" 
+        onClick={handleSave} 
+        path='/setting/user'
+        />
+
       </div>
     </MainLayout>
   );

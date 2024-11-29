@@ -69,12 +69,19 @@ export default function EditPromotion() {
             required: true, 
             col: 12, 
             value: data.description || "" },
+            { 
+              label: "Unit", 
+              name: "unit", 
+              type: "text", 
+              required: true, 
+              col: 4, 
+            },
           { 
             label: "Value (THB)", 
             name: "value", 
             type: "text", 
             required: true, 
-            col: 6, 
+            col: 4, 
             value: data.value ===  ".00" ? "0.00" : data.value 
           },
           { 
@@ -82,7 +89,7 @@ export default function EditPromotion() {
             name: "use_flag", 
             type: "select", 
             required: false, 
-            col: 6, 
+            col: 4, 
             options: [
               { name: "Active", id: 1, selected: true },
               { name: "Inactive", id: 0, selected: false },
@@ -122,20 +129,24 @@ export default function EditPromotion() {
     form
       .validateFields()
       .then((values) => {
+        const useFlagValue = values.use_flag === "Active" ? 1 : 0;
+
         const dataToSend = {
           ...values,
           id: location.state.id, 
+          use_flag: useFlagValue, // ส่งค่า use_flag เป็น 1 หรือ 0
+
         };
   
         useServiceAPI
           .put(paths.pathPromotionupdate, dataToSend, setLoading)
           .then((response) => {
-            if (response.status === 201) {
+            if (response.status === 200) {
               console.log(response.data.message);
               // showMsg("success", response.data.message).then(() => {
               //   navigate("/setting/promotion"); 
               // });
-
+              navigate("/setting/promotion");
               showNotification(
                 "success",
                 response.data.message,
