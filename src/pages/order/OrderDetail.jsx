@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useContext } from "react";
 import MainLayout from "../../layouts/MainLayout";
+import FormCustom from "../../components/form_custom/FormCustom";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
-import { Input } from "antd";
+import { Form, Input } from "antd";
 import TableComponent from "../../components/table/TableComponent";
 import ActionButton from "../../components/button/ActionButton";
 import { useNavigate, useLocation } from "react-router-dom";
-import FormCustom from "../../components/form_custom/FormCustom";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -25,12 +25,42 @@ export default function OrderDetail() {
   
   const [dataSource, setDataSource] = useState([]);
   const [dataSourceOther, setDataSourceOther] = useState([]);
+  const [dataSale, setDataSale] = useState([]);
+  const [dataDealer, setDataDealer] = useState([]);
 
+  const [formCustom] = Form.useForm();
+
+  // Set Data
   useEffect(() => {
-    // Set Data
     setDataSource(location.state.data.products);
     setDataSourceOther(location.state.data.others);
   }, [dataSource, dataSourceOther])
+
+  // Get Master
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [sale, dealer] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {
+            status: "",
+          }),
+          useServiceAPI.get(paths.pathMasterDealerDropdown, {
+            user_id: getUserId,
+          }),
+        ]);
+
+        setDataSale(sale.data);
+        setDataDealer(dealer.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, []);
   
   const header = [
     { title: "No", dataIndex: "no", key: "no", width: 10 },
@@ -124,19 +154,21 @@ export default function OrderDetail() {
       key: "sale",
       label: "Sale",
       name: "sale",
-      type: "text",
+      type: "select",
       disabled: true,
-      placeholder: getUserId,
-      value: "",
+      options: dataSale,
+      placeholder: "",
+      value: getUserId,
     },
     {
       key: "dealer",
       label: "Dealer",
       name: "dealer",
-      type: "text",
+      type: "select",
       disabled: true,
-      placeholder: getDealerId,
-      value: "",
+      options: dataDealer,
+      placeholder: "",
+      value: getDealerId,
     },
     {
       key: "order_no",
@@ -207,7 +239,7 @@ export default function OrderDetail() {
     <MainLayout loading={loading}>
       <div className="title-page">View Detail</div>
 
-      <FormCustom fields={formFields} />
+      <FormCustom fields={formFields} form={formCustom} />
 
       <BoxPrimary title="Order List">
         <TableComponent

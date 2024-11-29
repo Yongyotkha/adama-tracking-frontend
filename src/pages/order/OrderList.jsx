@@ -45,7 +45,16 @@ export default function OrderList() {
         ]);
 
         setDataSale(sale.data);
-        setDataStatus(status.data);
+        
+        const productData = [];
+        status.data.map((data, index) => {
+          productData.push({ 
+            id: data.code, 
+            name: data.name, 
+          });
+        });
+        setDataStatus(productData);
+
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {

@@ -18,15 +18,6 @@ export default function ActivityCalendar() {
   const fetchEvents = async (month, year) => {
     setLoading(true);
     try {
-      console.log("Fetching events with:", {
-        platform: "web",
-        keyword: "",
-        month,
-        year,
-        user_id: userId || "", // Use current userId
-        dealer_id: dealerId || "", // Use current dealerId
-      });
-  
       const response = await useServiceAPI.get(paths.pathActivityCalendarList, {
         platform: "web",
         keyword: "",
@@ -35,7 +26,7 @@ export default function ActivityCalendar() {
         user_id: userId || "", // Use current userId
         dealer_id: dealerId || "", // Use current dealerId
       });
-  
+
       if (response.result) {
         const formattedEvents = response.data.map((item) => ({
           title: item.activity_type_name,
@@ -48,6 +39,11 @@ export default function ActivityCalendar() {
             name: user.name,
             avatar: user.profile_image,
           })),
+          permission: {
+            edit: item.permission.edit,
+            btn_delete: item.permission.btn_delete,
+          },
+          document_number: item.document_number, // For identifying events
         }));
         setEvents(formattedEvents);
       } else {
@@ -61,17 +57,17 @@ export default function ActivityCalendar() {
       setLoading(false);
     }
   };
-  
+
 
   const receiveData = (data) => {
     if (data.saleId !== undefined) {
       setUserId(data.saleId);
     }
-  
+
     if (data.shopId !== undefined) {
       setDealerId(data.shopId);
     }
-  
+
     console.log("Updated data:", { saleId: data.saleId, shopId: data.shopId });
   };
 
