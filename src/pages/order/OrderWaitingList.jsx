@@ -263,6 +263,15 @@ export default function OrderWaitingList() {
     });
   };
 
+  const handleTableChange = (pagination, filters, sorter) => {
+    setTableParams({
+      pagination,
+      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortField: sorter.field,
+    });
+  };
+
   const handleChange = (filter) => {
     if (filter.sale) {
       const getMasterDealer = async () => {
@@ -302,7 +311,13 @@ export default function OrderWaitingList() {
       />
 
       <BoxPrimary>
-        <TableComponent header={header} dataSource={dataSource} />
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pagination={tableParams.pagination}
+          loading={tableLoading}
+          onChange={handleTableChange}
+        />
       </BoxPrimary>
     </MainLayout>
   );
