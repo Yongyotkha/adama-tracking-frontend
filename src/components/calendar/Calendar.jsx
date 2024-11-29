@@ -78,8 +78,6 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
     setSelectedShop(null); // Reset UI for ShopID dropdown
   };
 
-
-
   const handleShopChange = (shopId) => {
     setSelectedShop(shopId);
 
@@ -87,6 +85,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
       shopId,
     });
   };
+
 
   const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -393,6 +392,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
               options={[{ label: "All", value: "" }, ...shopOptions]}
               value={selectedShop} // Bind state to ShopID dropdown
               onChange={handleShopChange}
+              disabled={!selectedSale || selectedSale === ""} // Disable if no Sale is selected or "All" is selected
             />
 
           </div>
