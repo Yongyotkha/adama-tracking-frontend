@@ -71,6 +71,7 @@ import EditActivity from "./pages/activity/EditActivity";
 import ActivityPlanList from "./pages/activity/activity_plan/ActivityPlanList";
 import ActivityCalendar from "./pages/activity/calendar/ActivityCalendar";
 import ViewTraveling from "./pages/expenses/traveling/ViewTraveling";
+import ActivityMapping from "./pages/activity/mapping/ActivityMapping";
 // END ------------- Activity ------------- END
 
 
@@ -90,20 +91,21 @@ const App = () => {
           {/* Protected Routes */}
           <Route path="/" element={ <Dashboard />} />
 
-
-          {/* Sale Plan Route */}
+          {/* Work Plan Route */}
           <Route path="/sale-plan/work-plan" element={<WorkPlan />} />
           <Route path="/sale-plan/work-plan-area" element={<WorkPlan />} />
           <Route path="/sale-plan/work-plan-sale" element={<WorkPlan />} />
           <Route path="/sale-plan/work-plan/create" element={<WorkPlanCreate />} />
           <Route path="/sale-plan/work-plan/edit" element={<EditWorkPlan />} />
           <Route path="/sale-plan/work-plan/create-2" element={<WorkPlanCreateStepTwo />} />
-          <Route path="/sale-plan/rolling-forecast" element={<RollingForecast />} />
-          <Route path="/sale-plan/rolling-forecast/edit" element={<EditRollingForecast />} />
           <Route path="/sale-plan/work-plan/sale-area-create" element={<WorkPlanAreaCreate />} />
           <Route path="/sale-plan/work-plan-sale/sale-create" element={<WorkPlanSaleCreate />} />
           <Route path="/sale-plan/work-plan-sale/sale-by-crop" element={<WorkPlanSaleByCrop />} />
           <Route path="/sale-plan/work-plan-sale/sale-by-dealer" element={<WorkPlanSaleByDealer />} />
+
+          {/* Rolling Rorecast Route */}
+          <Route path="/sale-plan/rolling-forecast" element={<RollingForecast />} />
+          <Route path="/sale-plan/rolling-forecast/edit" element={<EditRollingForecast />} />
 
           {/* Activity Route */}
           <Route path="/activity/list" element={<ActivityList />} />
@@ -111,6 +113,7 @@ const App = () => {
           <Route path="/activity/edit" element={<EditActivity />} />
           <Route path="/activity/plan/list" element={<ActivityPlanList />} />
           <Route path="/activity/calendar" element={<ActivityCalendar />} />
+          <Route path="/activity/mapping" element={<ActivityMapping />} />
 
           {/* Order Route */}
           <Route path="/order/list" element={<OrderList />} />
