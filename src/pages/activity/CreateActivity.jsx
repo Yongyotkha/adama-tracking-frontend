@@ -163,7 +163,9 @@ export default function CreateActivity() {
           let productCropList = [];
           productCrop.data.forEach((element, key) => {
             productCropList.push({
-              key: (key + 1), productName: element.product_name, packSize: element.packing_list, estimateSale: "0", actualSale: "0", bath_ltkg: element.bath_ltkg
+              key: (key + 1), productName: element.product_name, packSize: element.packing_list, 
+              estimateSale: "0", actualSale: "0", bath_ltkg: element.bath_ltkg, prodectCode: element.product_code,
+              productId: element.id
             });
           });
           setProductCropList(productCropList);
@@ -212,10 +214,10 @@ export default function CreateActivity() {
     <tr className="bg-[#978B87]">
       <td colSpan={2} className="text-left pr-2 text-white">Total (THB)</td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" value={calculateGrandTotal("estimateSale")} readOnly />
+        <Input placeholder="0" value={calculateGrandTotal("estimateSale")} readOnly id="totalEstimateSale"/>
       </td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" value={calculateGrandTotal("actualSale")} readOnly />
+        <Input placeholder="0" value={calculateGrandTotal("actualSale")} readOnly id="totalActualSale"/>
       </td>
     </tr>
   );
@@ -313,7 +315,27 @@ export default function CreateActivity() {
     fileList.forEach(element => {
       imageLists.push(element.url);
     });
+    //เปิด Expense หรือไม่?
+    const isExpense = isBtnExpenseActive || (mode == 'advance');
+    
+    //ส่วนของ Sale Plan
+    const expenseProductTotalEstimateSale = calculateGrandTotal("estimateSale");
+    const expenseProductTotalAcutalSale = calculateGrandTotal("actualSale");
+    let expenseProductDataList = [];
+    productCropList.forEach(element => {
+      expenseProductDataList.push({
+        "product_id": element.productId,
+        "product_code": element.prodectCode,
+        "product_name": element.productName,
+        "packing_list": element.packSize,
+        "bath_ltkg": element.bath_ltkg,
+        "estimate_sale_qty": element.estimateSale,
+        "acutal_sale_qty": element.actualSale
+      });
+    });
 
+    console.log(isExpense, expenseProductTotalEstimateSale,expenseProductTotalAcutalSale, expenseProductDataList);
+    
     
     
     // formCustom
