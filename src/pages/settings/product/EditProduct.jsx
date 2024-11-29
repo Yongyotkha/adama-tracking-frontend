@@ -27,7 +27,6 @@ export default function EditProduct() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    
     const fetchData = async () => {
       try {
         await fetchProductDetails(location.state.id);
@@ -46,13 +45,11 @@ export default function EditProduct() {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       }
     };
-  
     fetchData();
   }, []);
   
   useEffect(() => {
       console.log(selectedCrops);
-      
   }, [selectedCrops]);
 
 
@@ -63,25 +60,8 @@ export default function EditProduct() {
       if (response.status === 200) {
         const { data } = response; 
         setUserInfo(data);
-
-        const defaultCropName = data.crop_list.map((crop) => crop.name);  
-        const defaultCropIds = data.crop_list.map((crop) => crop.id);  
-        setSelectedCropsIDs(defaultCropIds);
-        setSelectedCropsName(defaultCropName);
-        // setFormCrop(defaultCropName);
-        setSelectedCrops(defaultCropIds);
-        // setFormFields(updatedFields);
-        const initialValues = updatedFields.reduce((acc, field) => {
-          acc[field.name] = field.value;
-          return acc;
-        }, {});
-
-        initialValues['crop_list'] = defaultCropName;
-        console.log(initialValues);
-        
-        // initialValues['crop_ID'] = defaultCropIds;
-
-        form.setFieldsValue(initialValues);
+        setCropOptions(data.crop_list);
+        setSelectedCrops(data.crop_list.map((crop) => crop.id));
 
       } else {
         console.error("Failed to fetch promotion details:", response.message);
@@ -93,10 +73,7 @@ export default function EditProduct() {
     }
   };
 
-  // const [formFields, setFormFields] = useState([]);
-  // const [formCrop, setFormCrop] = useState([]);
 
-  
   const updatedFields = [
     { label: "Product Code", name: "product_code", type: "text", required: true, col: 6, disabled: true, value: userinfo.product_code },
     { label: "Product Name", name: "product_name", type: "text", required: true, col: 6, disabled: true, value: userinfo.product_name },
@@ -123,7 +100,6 @@ export default function EditProduct() {
       .validateFields()
       .then((values) => {
         const useFlagValue = values.use_flag === "Active" ? 1 : 0;
-  
         const cropListToSend = selectedCrops.length > 0 
           ? selectedCrops 
           : form.getFieldValue("crop_ID"); 
@@ -160,24 +136,13 @@ export default function EditProduct() {
       });
   };
 
-  // const handleCropChange = (value) => {
-  //   console.log(value);
-  // };
-  
   const handleCropChange = (value) => {
-      const selectedIds = value.map((item) => {
-      if (typeof item === "number" || !isNaN(Number(item))) {
-        return item;
-      } else {
-        const crop = cropOptions.find((option) => option.name === item);
-        return crop ? crop.id : null; // ส่ง id หรือ null หากไม่พบ
-      }
-    });
-      const filteredIds = selectedIds.filter((id) => id !== null);
-  
-    setSelectedCrops(filteredIds); // อัปเดต selectedCrops ด้วย id
-    console.log("Selected IDs:", filteredIds); // แสดงผล id
+    const intValues = value.map((v) => parseInt(v, 10)); // แปลง string เป็น integer
+    setSelectedCrops(intValues);
+    
   };
+  
+
 
   // const cropOptions = [
   //   "Rice", "Wheat", "Corn", "Soybean", "Cotton", "Barley", "Sugarcane", "Potato", "Tomato", "Lettuce"
@@ -243,9 +208,6 @@ export default function EditProduct() {
 
 
   
-
-  
-
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Edit Product</div>
@@ -253,7 +215,7 @@ export default function EditProduct() {
 
       <BoxPrimary>
       <Form layout="vertical"  form={form} >
-          <Form.Item label="Crop" name="crop_list">
+          <Form.Item label="Crop">
             <Select
               mode="multiple"
               showSearch
@@ -261,6 +223,7 @@ export default function EditProduct() {
               optionFilterProp="children"
               className="w-full"
               onChange={handleCropChange} 
+              value={selectedCrops}
               >
               {
               cropOptions.map((crop) => (
@@ -272,26 +235,6 @@ export default function EditProduct() {
 
           </Form.Item>
         </Form>
-
-        {/* <Form layout="vertical">
-          <Form.Item label="Crop" name="crop">
-            <Select
-              mode="multiple"
-              showSearch
-              placeholder="Select Crop(s)"
-              optionFilterProp="children"
-              className="w-full"
-              onChange={handleCropChange} 
-            >
-              {cropOptions.map((crop) => (
-                <Option key={crop} value={crop}>
-                  {crop}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-        </Form> */}
-
       </BoxPrimary>
       
       <div className="flex justify-end space-x-4">
@@ -303,7 +246,7 @@ export default function EditProduct() {
         <DynamicButton
           text="Update"
           className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
-          // path='/setting/product'
+          path='/setting/product'
           mode="update"
           onClick={handleSave} 
         />

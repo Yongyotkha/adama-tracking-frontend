@@ -86,6 +86,8 @@ export default function SettingSale() {
     const requestData = {
       page_length: current,
       page_size: pageSize,
+      sale_head_id: filters.sale_head_name || "",
+      sale_area_id: filters.sale_area_name || "",
     };
 
     try {
