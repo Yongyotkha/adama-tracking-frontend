@@ -10,12 +10,17 @@ import { AuthContext } from "../../../contexts/AuthContext";
 import { paths } from "../../../services/CorsPath";
 
 export default function ProfileUser() {
+  const navigate = useNavigate();
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [formUserInfo, setFormUserInfo] = useState({});
   const [isEditingPassword, setIsEditingPassword] = useState(false); // State to manage password edit mode
-  const navigate = useNavigate();
+  const [position, setPosition] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [territory, setTerritory] = useState([]);
+  const [areas, setAreas] = useState([]);
+  const [roles, setRoles] = useState([]);
   const { userInfo, showNotification } = useContext(AuthContext);
-  const [form] = Form.useForm();
 
   useEffect(() => {
     useServiceAPI
@@ -34,7 +39,33 @@ export default function ProfileUser() {
           showNotification("error", "เกิดข้อผิดพลาด");
         }
       });
+
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [positions, departments, territories, areas, roles] =
+        await Promise.all([
+          useServiceAPI.get(paths.pathMasterPosition, {}),
+          useServiceAPI.get(paths.pathMasterDepartments, {}),
+          useServiceAPI.get(paths.pathMasterTerritory, {}),
+          useServiceAPI.get(paths.pathMasterAreas, {}),
+          useServiceAPI.get(paths.pathMasterRoles, {}),
+        ]);
+
+      setPosition(positions.data);
+      setDepartments(departments.data);
+      setTerritory(territories.data);
+      setAreas(areas.data);
+      setRoles(roles.data);
+    } catch (error) {
+      showMsg("error", error.message || "เกิดข้อผิดพลาด");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleBack = () => {
     navigate("/setting/user");
@@ -64,7 +95,7 @@ export default function ProfileUser() {
       type: "text",
       required: true,
       col: 6,
-      value: "จอห์น โด",
+      value: formUserInfo.name_th,
     },
     {
       label: "Sales Employee Code",
@@ -72,8 +103,8 @@ export default function ProfileUser() {
       type: "text",
       required: true,
       col: 6,
-      disabled: true,
-      value: "SM123",
+      // disabled: true,
+      value: formUserInfo.sales_emp_code,
     },
     {
       label: "Contact Number",
@@ -81,7 +112,7 @@ export default function ProfileUser() {
       type: "tel",
       required: true,
       col: 6,
-      value: "0812345678",
+      value: formUserInfo.phone_number,
     },
     {
       label: "Email",
@@ -89,7 +120,7 @@ export default function ProfileUser() {
       type: "email",
       required: false,
       col: 6,
-      value: "john.doe@example.com",
+      value: formUserInfo.email,
     },
     {
       label: "Address",
@@ -97,7 +128,7 @@ export default function ProfileUser() {
       type: "text",
       required: false,
       col: 12,
-      value: "123 Main St, Bangkok",
+      value: formUserInfo.address,
     },
     {
       label: "Position",
@@ -105,12 +136,8 @@ export default function ProfileUser() {
       type: "select",
       required: true,
       col: 6,
-      options: [
-        { name: "Sales Assistant", id: 1, selected: false },
-        { name: "Manager", id: 2, selected: true },
-        { name: "Team Lead", id: 3, selected: false },
-      ],
-      value: 2,
+      options: position,
+      value: formUserInfo.position_id,
     },
     {
       label: "Department",
