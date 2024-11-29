@@ -436,7 +436,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                   {event.time}
                                 </span>
                               </div>
-                              <p className="text-sm text-gray-600 flex">
+                              <p lang="th" className="text-sm text-gray-600 flex">
                                 <img
                                   src="/img/icons/location.png"
                                   className="h-6 w-6 me-2"
