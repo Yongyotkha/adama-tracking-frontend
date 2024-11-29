@@ -121,36 +121,40 @@ export default function OrderDetail() {
 
   const formFields = [
     {
+      key: "sale",
       label: "Sale",
       name: "sale",
       type: "text",
       disabled: true,
-      placeholder: "",
-      value: "111",
+      placeholder: getUserId,
+      value: "",
     },
     {
+      key: "dealer",
       label: "Dealer",
       name: "dealer",
       type: "text",
       disabled: true,
-      placeholder: "",
+      placeholder: getDealerId,
       value: "",
     },
     {
+      key: "order_no",
       label: "Order No",
       name: "order_no",
       type: "text",
       disabled: true,
-      placeholder: "",
+      placeholder: "Generate order no",
       value: "",
     },
     {
+      key: "order_date",
       label: "Date",
       name: "order_date",
-      type: "date",
+      type: "text",
       disabled: true,
-      placeholder: getDocumentDate,
-      value: "2024-11-11",
+      placeholder: dayjs().format("YYYY-MM-DD"),
+      value: "",
     },
   ];
 
