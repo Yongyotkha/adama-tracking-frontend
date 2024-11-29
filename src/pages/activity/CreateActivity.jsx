@@ -46,7 +46,7 @@ export default function CreateActivity() {
   const [locationCustomer, setLocationCustomer] = useState([]);
   const [dealerCustomer, setDealerCustomer] = useState([]);
   const [perceptionList, setPerceptionList] = useState([]);
-  
+  const [fileList, setFileList] = useState([]);
 
   const [isBtnExpenseActive, setIsBtnExpenseActive] = useState(false);
 
@@ -59,17 +59,15 @@ export default function CreateActivity() {
 
   const handleUploadSuccess = (response) => {
     const data = response.data;
-    const fileUpload = [{
+    const fileUpload = {
       uid: data.file_key,
       name: data.file_name,
       status: 'done',
       url: data.file_url,
-    }];
-    setFileList(fileUpload);
-  };
+    };
 
-  // Example file list to be passed as dataFile
-  const [fileList, setFileList] = useState([]);
+    // ใช้ callback เพื่ออัปเดต state อย่างถูกต้อง
+    setFileList((prevFileList) => [...prevFileList, fileUpload]);  };
 
   const handleUpdate = async () => {
     try {
@@ -393,7 +391,9 @@ export default function CreateActivity() {
     useServiceAPI
     .post(paths.pathActivityCreate, body, setLoading)
     .then((response) => {
-      // navigate("/activity/list");
+      if(response.result){
+        navigate("/activity/list");
+      }
     })
     .catch((error) => {
       console.log(error);
