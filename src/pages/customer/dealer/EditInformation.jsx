@@ -17,6 +17,7 @@ import dayjs from "dayjs";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import TableComponent from "../../../components/table/TableComponent";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
+import DynamicModal from "../../../components/modal/DynamicModal"; // Adjust path if needed
 
 
 export default function EditInformation() {
@@ -30,6 +31,8 @@ export default function EditInformation() {
   const [companyinfo, setcompanyinfo] = useState([]);
   const [contactItems, setContactItems] = useState([]); // State for contact items
   const [form] = Form.useForm();
+  const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
+
   // const [tableParams, setTableParams] = useState({
   //   pagination: {
   //     current: 1,
@@ -260,6 +263,20 @@ export default function EditInformation() {
       children: (
         <>
           <BoxPrimary>
+          <div className="flex justify-between space-x-4 mb-3">
+            <span className="text-[#00783F] text-lg font-semibold">
+              Network
+            </span>
+            <div className="flex space-x-2">
+              <ActionButton
+                mode="add"
+                text="Add"
+                // onClick={handleOpenTerritoryModal}
+                />
+            </div>
+          </div>
+
+        
             <TableComponent header={header} dataSource={networkList} />
           </BoxPrimary>
           <div className="flex justify-end space-x-4 mt-6">
@@ -276,10 +293,32 @@ export default function EditInformation() {
     setActiveTabKey(key);
   };
 
+
+  const handleOpenTerritoryModal = async () => {
+    // await fetchUserList(); // ดึงข้อมูลผู้ใช้ก่อนเปิดโมดอล
+    setIsTerritoryModalVisible(true); // แสดงโมดอลหลังข้อมูลพร้อม
+  };
+
+
+  const handleCloseTerritoryModal = () => {
+    setIsTerritoryModalVisible(false);
+  };
+
+  const handleAddSelectedRows = (selectedRows) => {
+    // const updatedRows = selectedRows.map((row) => ({
+    //   ...row,
+    //   sale_management_id: saleManagementId,
+    //   sale_management_header_id: saleManagementHeaderId,
+    //   sub_user_id: row.key,
+    // }));
+
+    // saveSelectedRows(updatedRows);
+    // setSelectedSalesData((prev) => [...prev, ...updatedRows]);
+  };
+
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Edit Information</div>
-
       {/* Tabs */}
       <Tabs
         activeKey={activeTabKey}
@@ -287,28 +326,17 @@ export default function EditInformation() {
         className="custom-tabs"
         items={items}
       />
-
       {/* <DynamicModal
-        title="Add Sale Team"
-        isVisible={isTeamModalVisible}
-        onClose={handleCloseTeamModal}
+        title="Add Sale Territory"
+        isVisible={isTerritoryModalVisible}
+        onClose={handleCloseTerritoryModal}
         header={[
           { title: "No", dataIndex: "no", key: "no", width: 50 },
           { title: "Name", dataIndex: "name", key: "name", width: 150 },
-          {
-            title: "Territory",
-            dataIndex: "territory",
-            key: "territory",
-            width: 150,
-          },
-          {
-            title: "Position",
-            dataIndex: "position",
-            key: "position",
-            width: 150,
-          },
+          { title: "Territory", dataIndex: "territory", key: "territory", width: 150,},
+          { title: "Position", dataIndex: "position", key: "position", width: 150,},
         ]}
-        dataSource={salesDataTeam}
+        // dataSource=""
         width="1200px"
         onAddSelected={handleAddSelectedRows}
         type="add"

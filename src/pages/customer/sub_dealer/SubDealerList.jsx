@@ -14,8 +14,20 @@ import { paths } from "../../../services/CorsPath";
 export default function SubDealerList() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-
   const navigate = useNavigate();
+  const [tableLoading, setTableLoading] = useState(false);
+  const [tableParams, setTableParams] = useState({
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+    filters: {},
+    sortOrder: null,
+    sortField: null,
+  });
+
+
+
 
   const filters = [
     {
@@ -48,6 +60,80 @@ export default function SubDealerList() {
       ],
     },
   ];
+
+  useEffect(() => {
+    fetchData();
+  }, [
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    tableParams.sortOrder,
+    tableParams.sortField,
+    JSON.stringify(tableParams.filters),
+  ]);
+
+  const fetchData = async () => {
+    setTableLoading(true);
+    const { current, pageSize } = tableParams.pagination;
+    const filters = tableParams.filters || {};
+
+
+    const requestData = {
+      keyword: filters.keyword || "",
+      use_flag: filters.use_flag || "",
+      page_length: current,
+      page_size: pageSize,
+    };
+
+    try {
+      const response = await useServiceAPI.get(
+        paths.pathCustomerSubDealerList,
+        requestData
+      );
+
+      if (response.status === 200) {
+        const { data, records_filtered } = response.data;
+        const newDataSource = data.map((data, index) => ({
+          key: index + 1 + (current - 1) * pageSize,
+        subDealerName: data.name,
+        contactName: data.contact_name,
+        address: data.contact_address,
+        phone: data.mobile_phone,
+          status: (
+            <BadgeStatus
+              text={data.status_name}
+              bgColor={data.status_bg_color}
+              textColor={data.status_color}
+            />
+          ),
+        action: (
+          <Dropdown menu={{ items: actionItems }} placement="bottom">
+            <a onClick={(e) => e.preventDefault()}>
+              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+            </a>
+          </Dropdown>
+        ),
+
+        }));
+
+        setDataSource(newDataSource);
+        
+        setTableParams({
+          ...tableParams,
+          pagination: {
+            ...tableParams.pagination,
+            total: records_filtered,
+          },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
+
+
   const handleSearch = (filter) => {
     console.log("Search filters applied:", filter);
   };
@@ -122,43 +208,6 @@ export default function SubDealerList() {
   //   setDataSource(dataSource);
   // }, []);
 
-  useEffect(() => {
-    const body = { platform: "web" };
-    useServiceAPI
-      .get(paths.pathCustomerSubDealer, body, setLoading)
-      .then((response) => {
-        if (response.status == 200) {
-          const newDataSource = response.data.map((data, index) => ({
-            key: index + 1,
-            subDealerName: data.shop_name,
-            contactName: data.contacts[0] ? data.contacts[0].name_th : "N/A",  
-            address: data.address,
-            phone: data.mobile_phone,
-            status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
-            action: (
-              <Dropdown menu={{ items: actionItems }} placement="bottom">
-                <a onClick={(e) => e.preventDefault()}>
-                  <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-                </a>
-              </Dropdown>
-            ),
-
-          }));
-
-          setDataSource(newDataSource);
-        }
-      })
-      .catch((error) => {
-        console.log(error.message);
-        setError(error.message);
-        if (error.status == 422) {
-          showMsg("error", error.message);
-        } else {
-          showMsg("error", "เกิดข้อผิดพลาด");
-        }
-      });
-  }, []);
-
 
 
   return (
@@ -176,7 +225,11 @@ export default function SubDealerList() {
       />
 
       <BoxPrimary>
-        <TableComponent header={header} dataSource={dataSource} />
+        <TableComponent 
+          header={header} 
+          dataSource={dataSource} 
+
+        />
       </BoxPrimary>
 
     </MainLayout>

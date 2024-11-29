@@ -263,7 +263,6 @@ export default function DealerList() {
         pagination={tableParams.pagination}
         loading={tableLoading}
         onChange={handleTableChange}
-
         />
       </BoxPrimary>
 

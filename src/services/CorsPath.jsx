@@ -43,7 +43,7 @@ export const paths = {
   //Dealer
   pathCustomerDealer: "sale-customer-dealer/list",
   pathCustomerDealerDetail: "sale-customer-dealer/detail",
-
+  pathCustomerSubDealerList: "sale-customer-subdealer/list",
 
   // Sale
   pathSaleManagementDetail: "sale-management/sale-team/detail",

@@ -7,6 +7,7 @@ import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/corsService";
 import { Form } from "antd";
 import { AuthContext } from "../../../contexts/AuthContext";
+import { values } from "lodash";
 
 export default function EditPromotion() {
   const location = useLocation();
@@ -75,6 +76,7 @@ export default function EditPromotion() {
               type: "text", 
               required: true, 
               col: 4, 
+              value: data.unit || "",
             },
           { 
             label: "Value (THB)", 
