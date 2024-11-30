@@ -54,6 +54,7 @@ export default function CreateActivity() {
 
   const [activityDetail, setActivityDetail] = useState([]);
   const [cropDetailList, setCropDetailList] = useState([]);
+  const [assignList, setAssignList] = useState([]);
 
   const handleUploadClick = async () => {    
     // Call triggerUpload from FileUploadComponent
@@ -101,11 +102,11 @@ export default function CreateActivity() {
     { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: false, required: true, col: 8, value: activityDetail.dealer_id ?? "", moderef: true},
     { label: "Crop", name: "crop_id_list", type: "select", mode: "multiple", options: cropList, disabled: false, required: true, col: 6, value: cropDetailList, moderef: true},
     { label: "Date", name: "document_date", type: "date", disabled: false, required: true, col: 6, value: dayjs().format("YYYY-MM-DD") },
-    { label: "Start Time", name: "time_start", type: "select", options:timeList, disabled: false, required: true, col: 6, value:""  },
-    { label: "End Time", name: "time_end", type: "select", options:timeList, disabled: false, required: true, col: 6, value: "" },
-    { label: "Location", name: "location_address", type: "location", disabled: true, required: false, col: 24, value: "", iconSrc: "/img/icons/location.png", iconPosition: "left" },
-    { label: "Description", name: "description", type: "text-editor", disabled: false, required: false, col: 24, placeholder: "Add description", value: "" },
-    { label: "Assign", name: "assing_user_list", type: "select", mode: "multiple", options: saleAllList, disabled: false, required: true, col: 24, value: []},
+    { label: "Start Time", name: "time_start", type: "select", options:timeList, disabled: false, required: true, col: 6, value: activityDetail.time_start ?? "" },
+    { label: "End Time", name: "time_end", type: "select", options:timeList, disabled: false, required: true, col: 6, value: activityDetail.time_end ?? "" },
+    { label: "Location", name: "location_address", type: "location", disabled: true, required: false, col: 24, value: activityDetail.location_address ?? "", iconSrc: "/img/icons/location.png", iconPosition: "left" },
+    { label: "Description", name: "description", type: "text-editor", disabled: false, required: false, col: 24, placeholder: "Add description", value: activityDetail.description ?? "" },
+    { label: "Assign", name: "assing_user_list", type: "select", mode: "multiple", options: saleAllList, disabled: false, required: true, col: 24, value: assignList},
   ];
 
    // Master
@@ -157,6 +158,46 @@ export default function CreateActivity() {
             cropData.push(element.id);
           });
           setCropDetailList(cropData);
+
+          //set assign list
+          let assignData = [];
+          await activityDetailData.assing_user_list.forEach(element => {
+            assignData.push(element.id);
+          });
+          setAssignList(assignData);
+
+          //set images list
+          let imageList = [];
+          await activityDetailData.image_list.forEach((element, key) => {
+            imageList.push({
+              uid: key,
+              name: getFileNameWithExtension(element),
+              status: 'done',
+              url: element,
+            });
+          });
+          setFileList(imageList);
+
+          let participantData = [];
+          let count = 0;
+          await activityDetailData.expense_particapant_user_list.forEach((element, key) => {
+            const id = element.id;
+              count++;
+              const newKey = `sales-${count}`;
+              participantData.push({
+                id: element.id,
+                key: newKey,
+                no: count,
+                name: element.name,
+                position: element.position_name,
+                department: element.department_name,
+                territory: element.territory_name,
+                permission: element.permission_name,
+              });
+          });
+        
+          // เพิ่มเฉพาะข้อมูลใหม่เข้าไปใน participantList
+          setParticipants(participantData);
         } finally {
           setLoading(false);
         }
@@ -165,6 +206,12 @@ export default function CreateActivity() {
       getDetail();
     }
   }, []);
+
+  // Function to extract the full filename
+  const getFileNameWithExtension = (url) => {
+    const parts = url.split('/');
+    return parts.pop(); // Get the last part of the URL
+  };
 
   const handleChange = (attribue, value) => {
     const getMasterSelect = async () => {
@@ -536,14 +583,14 @@ export default function CreateActivity() {
               layout="vertical"
               form={customerForm}
               initialValues={{
-                supportCustomerName: dealerCustomer.customer_name,
-                address: dealerCustomer.customer_address,
-                placeOfOwner: dealerCustomer.customer_place_of_owner,
-                phoneNumber: dealerCustomer.customer_phone_number,
-                perception: "Good",
-                location_customer_address: locationCustomer.address,
-                location_customer_latitude: locationCustomer.lat,
-                location_customer_longitude: locationCustomer.long
+                supportCustomerName: activityDetail?.expense_customer_name ?? dealerCustomer.customer_name,
+                address: activityDetail?.expense_customer_address ?? dealerCustomer.customer_address,
+                placeOfOwner: activityDetail?.expense_customer_place_of_owner ?? dealerCustomer.customer_place_of_owner,
+                phoneNumber: activityDetail?.expense_customer_phone_number ?? dealerCustomer.customer_phone_number,
+                perception: activityDetail?.expense_customer_perception_name ?? "Good",
+                location_customer_address: activityDetail?.expense_customer_location_address ?? locationCustomer.address,
+                location_customer_latitude: activityDetail?.expense_customer_location_latitude ?? locationCustomer.lat,
+                location_customer_longitude: activityDetail?.expense_customer_location_longitude ?? locationCustomer.long
               }}
             >
               <Row gutter={[16, 16]} className="mt-3">
@@ -669,8 +716,8 @@ export default function CreateActivity() {
               layout="vertical"
               form={expenseForm} // Use the new expenseForm instance here
               initialValues={{
-                actual_exp: "0",
-                actual_sale: "0"
+                actual_exp: activityDetail?.expense_expense_actual_exp ?? "0",
+                actual_sale: activityDetail?.expense_expense_actual_sale ?? "0"
               }}
             >
               <Row gutter={[16, 16]} className="mt-3">
@@ -707,18 +754,18 @@ export default function CreateActivity() {
               layout="vertical"
               form={participantForm}
               initialValues={{
-                estimate_participant: "0",
-                actual_participant: "0"
+                estimate_participant: activityDetail?.expense_participant_estimate ??"0",
+                actual_participant: activityDetail?.expense_particapant_actual ??"0"
               }}
             >
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item className="mb-3" label="Estimate Participant " name="actual_exp">
+                  <Form.Item className="mb-3" label="Estimate Participant " name="estimate_participant">
                     <Input placeholder="0" />
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item className="mb-3" label="Actual Participant" name="actual_sale">
+                  <Form.Item className="mb-3" label="Actual Participant" name="actual_participant">
                     <Input placeholder="0" />
                   </Form.Item>
                 </Col>
