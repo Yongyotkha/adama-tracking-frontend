@@ -36,7 +36,7 @@ const Navbar = () => {
   }, [userInfo]);
 
   const menuItems = [
-    ...userInfo.menu_permissions.map((menu) => ({
+    ...userInfo?.menu_permissions.map((menu) => ({
       label: menu.name,
       icon: `/${menu.icon}`,
       dropdownMenu: menu.dropdownItems.length > 0,
