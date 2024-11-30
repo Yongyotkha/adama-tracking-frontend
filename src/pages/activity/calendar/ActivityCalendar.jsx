@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
-import DynamicCalendar from "../../../components/calendar/Calendar";
+import DynamicCalendar from "../../../components/calendar/DynamicCalendar";
 import ActionButton from "../../../components/button/ActionButton";
 import { useNavigate } from "react-router-dom";
 import useServiceAPI from "../../../services/CorsService";

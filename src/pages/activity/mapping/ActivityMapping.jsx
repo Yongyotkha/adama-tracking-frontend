@@ -82,13 +82,18 @@ export default function ActivityMapping() {
       <Layout>
         {/* Filter Section */}
         <div
-          className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${
-            isFilterCollapsed ? "max-h-12" : "max-h-[500px]"
-          }`}
+          className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${isFilterCollapsed ? "max-h-12" : "max-h-auto"}`}
           style={{ width: "300px" }}
         >
           <div className="flex justify-between items-center px-4 py-2 border-b">
-            <h2 className="text-lg font-semibold">Filter</h2>
+            <div className="flex items-center gap-2">
+              <img
+                src="/img/icons/filter-green.png"
+                alt="Filter Icon"
+                className="w-5 h-5"
+              />
+              <span className="text-lg text-[#00783F]">Filter</span>
+            </div>
             <Button
               type="text"
               icon={isFilterCollapsed ? <DownOutlined /> : <UpOutlined />}
