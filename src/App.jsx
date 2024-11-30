@@ -111,7 +111,6 @@ const App = () => {
           <Route path="/sale-plan/rolling-forecast-sale" element={<RollingForecast />} />
           <Route path="/sale-plan/rolling-forecast/edit" element={<EditRollingForecast />} />
 
-
           {/* Activity Route */}
           <Route path="/activity/list" element={<ActivityList />} />
           <Route path="/activity/create" element={<CreateActivity />} />

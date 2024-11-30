@@ -3,7 +3,7 @@ import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableExpand from "../../../components/table/TableExpand";
-import { Dropdown } from "antd";
+import { Dropdown, Select } from "antd";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import { useNavigate } from "react-router-dom";
@@ -492,7 +492,46 @@ export default function RollingForecast() {
     <MainLayout loading={loading} childrenStyle="">
       <div className="flex justify-between">
         <div className="title-page">Rolling Forecast</div>
-        <div className="title-page">Rolling Forecast</div>
+        <Select
+          showSearch
+          style={{
+            width: 200,
+          }}
+          className="border-[#00783F] text-[#00783F]"
+          placeholder="Search to Select"
+          optionFilterProp="label"
+          filterSort={(optionA, optionB) =>
+            (optionA?.label ?? "")
+              .toLowerCase()
+              .localeCompare((optionB?.label ?? "").toLowerCase())
+          }
+          options={[
+            {
+              value: "1",
+              label: "Not Identified",
+            },
+            {
+              value: "2",
+              label: "Closed",
+            },
+            {
+              value: "3",
+              label: "Communicated",
+            },
+            {
+              value: "4",
+              label: "Identified",
+            },
+            {
+              value: "5",
+              label: "Resolved",
+            },
+            {
+              value: "6",
+              label: "Cancelled",
+            },
+          ]}
+        />
       </div>
       <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
 
