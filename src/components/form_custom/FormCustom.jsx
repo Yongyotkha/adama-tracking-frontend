@@ -24,11 +24,13 @@ const toolbarOptions = [
   ["clean"],
 ];
 
-export default function FormCustom({ fields, form, title, onChange = {} }) {
+export default function FormCustom({ fields, form, title, onChange = {}, mode }) {
   const [formValues, setFormValues] = useState({});
   const [location, setLocation] = useState({ lat: null, long: null, address: "" });
   const isInitialSet = useRef(false);
   const [loading, setLoading] = useState(false); // เพิ่ม state สำหรับควบคุมการหมุน
+  const dateFormat = "YYYY-MM-DD";
+  const [selecteValue, setSelectedValue] = useState(false);
 
   useEffect(() => {
     const initialValues = fields.reduce((values, field) => {
@@ -59,9 +61,29 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
   }, [fields, form, location]);
 
   useEffect(() => {
+    if(mode == 'edit'){
+      const initialValues = fields.reduce((acc, field) => {
+        acc[field.name] = field.type === "date" 
+          ? field.value ? dayjs(field.value, dateFormat) : null 
+          : field.value || null;
+        return acc;
+      }, {});
+    
+      form?.setFieldsValue(initialValues);
+    }
+  }, [fields, form]);
+
+  useEffect(() => {
     fields.forEach((field) => {
       if (field.type === "location") {
         getLocation();
+      }else if(field.type === "select"){
+        if(formValues[field.name] != undefined && formValues[field.name].length > 0){
+          if(!selecteValue){
+            handleChange(field.name, formValues[field.name]);
+            setSelectedValue(true);
+          }
+        }
       }
     });
   }, [fields]);
@@ -119,12 +141,17 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
   };
 
   const handleChange = (attribute, value) => {
+    // อัปเดตค่าที่เลือกใหม่
     setFormValues((prev) => ({
       ...prev,
       [attribute]: value,
     }));
-    form.setFieldsValue({ [attribute]: value });
-    onChange(attribute, value);
+    
+    form.setFieldsValue({ [attribute]: value }); // อัปเดตค่าลงในฟอร์ม
+    
+    if (onChange) {
+      onChange(attribute, value); // เรียก callback ถ้ามี
+    }
   };
 
   const handleReload = () => {
@@ -139,7 +166,7 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
   return (
     <BoxPrimary>
       {title && <div className="text-[#00783F] text-lg font-semibold mb-3">{title}</div>}
-      <Form layout="vertical" form={form}>
+      <Form layout="vertical" form={form} initialValues={{ formValues }}>
         <Row gutter={16} align="middle">
           {fields.map((field, index) => (
             <Col
@@ -199,26 +226,17 @@ export default function FormCustom({ fields, form, title, onChange = {} }) {
                   />
                 ) : field.type === "select" ? (
                   <Select
-                    mode={field.mode === 'multiple' ? 'multiple' : undefined}
-                    value={formValues[field.name] || []}
-                    onChange={(value) => handleChange(field.name, value)}
+                    mode={field.mode === "multiple" ? "multiple" : undefined}
+                    value={formValues[field.name] || []} // ใช้ค่าจาก state
+                    onChange={(value) => handleChange(field.name, value)} // เรียก handleChange
                     placeholder={`Select ${field.label.toLowerCase()}`}
                     disabled={field.disabled}
-                  >
-                    {field.mode !== 'multiple' ? 
-                    (
-                      <Option key="" value="" disabled>
-                        Please Select
-                      </Option>
-                    )
-                    : undefined}
-                    
-                    {field.options.map((option) => (
-                      <Option key={option.id} value={option.id}>
-                        {option.name}
-                      </Option>
-                    ))}
-                  </Select>
+                    allowClear
+                    options={field.options.map((option) => ({
+                      label: option.name,
+                      value: String(option.id),
+                    }))}
+                  />
                 ) : field.type === "text-editor" ? (
                   <ReactQuill
                     theme="snow"

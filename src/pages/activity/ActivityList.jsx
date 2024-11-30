@@ -165,13 +165,15 @@ export default function ActivityList() {
         const { data, records_filtered } = response.data;
         
         const newDataSource = data.map((row, index) => {
+          console.log(row);
+          
           const actionItems = [
             { 
               key: "1", 
               label: (
                 <ItemDropDown 
                   mode="edit" 
-                  link={`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}`} 
+                  link={`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`} 
                 />
               ) 
             },
