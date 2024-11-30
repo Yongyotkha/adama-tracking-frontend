@@ -36,7 +36,7 @@ export default function OrderWaitingList() {
       try {
         const [sale, status] = await Promise.all([
           useServiceAPI.get(paths.pathMasterSaleDropdown, {
-            status: "all",
+            status: "",
           }),
           useServiceAPI.get(paths.pathMasterStatus, {
             status_type: "order",
