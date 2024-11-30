@@ -544,7 +544,7 @@ export default function ViewTraveling() {
   return (
     <MainLayout loading={loading}>
       <div className="flex justify-between">
-        <div className="title-page">Edit Traveling Expense</div>
+        <div className="title-page">View Traveling Expense</div>
       </div>
 
       {/* Form Section */}
