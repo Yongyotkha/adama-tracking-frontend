@@ -31,7 +31,7 @@ export default function Verify() {
       )
       .then((response) => {
         if (response.result) {
-          if (userInfo.is_change_password) {
+          if (userInfo?.is_change_password) {
             navigate("/change-password");
           } else {
             navigate("/");
