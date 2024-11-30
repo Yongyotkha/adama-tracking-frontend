@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/api";
+import {
+  GoogleMap,
+  LoadScript,
+  Marker,
+  InfoWindow,
+} from "@react-google-maps/api";
 import { Layout, Checkbox, Button, Collapse } from "antd";
 import { UpOutlined, DownOutlined } from "@ant-design/icons";
 import MainLayout from "../../../layouts/MainLayout";
@@ -21,16 +26,34 @@ const center = {
 };
 
 const locations = [
-  { id: 1, title: "Demo Plot", lat: 13.736717, lng: 100.523186, details: "H3Q8+8FW ตำบล กุรุพุ่ง อำเภอ สันเขา" },
-  { id: 2, title: "Small FMT", lat: 14.736717, lng: 101.523186, details: "Sample Address 2" },
+  {
+    id: 1,
+    title: "Demo Plot",
+    lat: 13.736717,
+    lng: 100.523186,
+    details: "H3Q8+8FW ตำบล กุรุพุ่ง อำเภอ สันเขา",
+  },
+  {
+    id: 2,
+    title: "Small FMT",
+    lat: 14.736717,
+    lng: 101.523186,
+    details: "Sample Address 2",
+  },
 ];
 
 // Mock data for filter categories
 const mockFilters = {
-  "Activity Type": ["Demo Plot", "Small FMT", "Big FMT", "Key FMT", "ADAMA Day"],
+  "Activity Type": [
+    "Demo Plot",
+    "Small FMT",
+    "Big FMT",
+    "Key FMT",
+    "ADAMA Day",
+  ],
   Dealer: ["Dealer 1", "Dealer 2", "Dealer 3", "Dealer 4"],
-  "Sub Dealer": ["Sub Dealer 1", "Sub Dealer 2", "Sub Dealer 3"],
-  Territory: ["North", "South", "East", "West"],
+  // "Sub Dealer": ["Sub Dealer 1", "Sub Dealer 2", "Sub Dealer 3"],
+  // Territory: ["North", "South", "East", "West"],
   Area: ["Area 1", "Area 2"],
   Year: ["2023", "2024"],
 };
@@ -53,13 +76,12 @@ export default function ActivityMapping() {
             keyword: "",
           }),
         ]);
-        
+
         console.log(mapping.data);
         setDataMapping(mapping.data);
       } catch (error) {
         // showMsg("error", error.message || "เกิดข้อผิดพลาด");
         console.log(error);
-        
       } finally {
         setLoading(false);
       }
@@ -72,10 +94,13 @@ export default function ActivityMapping() {
   useEffect(() => {
     const initialCheckedFilters = {};
     Object.keys(mockFilters).forEach((category) => {
-      initialCheckedFilters[category] = mockFilters[category].reduce((acc, item) => {
-        acc[item] = true;
-        return acc;
-      }, {});
+      initialCheckedFilters[category] = mockFilters[category].reduce(
+        (acc, item) => {
+          acc[item] = true;
+          return acc;
+        },
+        {}
+      );
     });
     setCheckedFilters(initialCheckedFilters);
   }, []);
@@ -112,7 +137,9 @@ export default function ActivityMapping() {
       <Layout>
         {/* Filter Section */}
         <div
-          className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${isFilterCollapsed ? "max-h-12" : "max-h-auto"}`}
+          className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${
+            isFilterCollapsed ? "max-h-12" : "max-h-auto"
+          }`}
           style={{ width: "300px" }}
         >
           <div className="flex justify-between items-center px-4 py-2 border-b">
@@ -130,7 +157,11 @@ export default function ActivityMapping() {
               onClick={() => setIsFilterCollapsed(!isFilterCollapsed)}
             />
           </div>
-          <div className={`transition-all duration-300 ${isFilterCollapsed ? "opacity-0" : "opacity-100"} p-4`}>
+          <div
+            className={`transition-all duration-300 ${
+              isFilterCollapsed ? "opacity-0" : "opacity-100"
+            } p-4`}
+          >
             {/* Master "All" Checkbox */}
             <Checkbox
               className="mb-4"

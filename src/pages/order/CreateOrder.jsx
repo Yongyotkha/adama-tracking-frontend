@@ -36,7 +36,7 @@ export default function CreateOrder() {
       try {
         const [sale] = await Promise.all([
           useServiceAPI.get(paths.pathMasterSaleDropdown, {
-            status: "all",
+            status: "",
           }),
         ]);
 
