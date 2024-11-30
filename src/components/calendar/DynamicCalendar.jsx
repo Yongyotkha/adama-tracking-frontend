@@ -1,31 +1,191 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
+import { Select } from "antd";
+import useServiceAPI from "../../services/CorsService";
+import { paths } from "../../services/CorsPath";
+import { Button, Tooltip, Popconfirm } from "antd";
+import { LeftOutlined, RightOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../contexts/AuthContext";
 
-const Calendar = ({ events }) => {
-  const [view, setView] = useState("month"); // Default view: "month"
+const Calendar = ({ events, fetchEvents, loading, sendData }) => {
+  const [view, setView] = useState("month");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
 
-  const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-  const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-  const daysInMonth = endOfMonth.getDate();
-  const startDayOfWeek = startOfMonth.getDay(); // Sunday: 0, Monday: 1, ...
+  // State for Sale Territory and Shop options
+  const [saleOptions, setSaleOptions] = useState([]);
+  const [shopOptions, setShopOptions] = useState([]);
+  const [selectedSale, setSelectedSale] = useState(null); // Default value for SaleID
+  const [selectedShop, setSelectedShop] = useState(null); // Default value for ShopID
+  const { showNotification } = useContext(AuthContext);
+  const navigate = useNavigate(); // Initialize useNavigate
 
-  const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const handleEdit = (documentNumber) => {
+    const link = `/activity/edit?document_number=${encodeURIComponent(documentNumber)}`;
+    navigate(link); // Redirect to the edit page
+  };
+
+  const handleDelete = async (documentNumber) => {
+    try {
+      const response = await fetch(
+        `/activity/delete?document_number=${encodeURIComponent(documentNumber)}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`, // Replace with your token retrieval logic
+            "Content-Type": "application/json",
+          },
+        }
+      );
+  
+      if (response.ok) {
+        const responseData = await response.json();
+        await showNotification(
+          "success",
+          responseData.message || "Event deleted successfully!",
+          responseData.data?.Message?.Message_Line || ["The event has been removed."]
+        );
+        fetchEvents(); // Refresh the event list
+      } else {
+        const errorData = await response.json();
+        await showNotification(
+          "error",
+          errorData.message || "Failed to delete event.",
+          errorData.data?.Message?.Message_Line || ["Please try again later."]
+        );
+      }
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      await showNotification(
+        "error",
+        "An error occurred while deleting the event.",
+        ["Please try again later."]
+      );
+    }
+  };
+  
+  useEffect(() => {
+    // Fetch Sale Territory options on mount
+    const fetchSaleOptions = async () => {
+      try {
+        const response = await useServiceAPI.get(paths.pathMasterSaleDropdown, {
+          status: "all",
+        });
+        setSaleOptions(
+          response.data.map((item) => ({
+            label: item.name,
+            value: item.id,
+            user_id: item.id,
+            dealer_id: item.id,
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching Sale options:", error);
+      }
+    };
+
+    fetchSaleOptions();
+  }, []);
+
+  const handleSaleChange = async (saleId) => {
+    setSelectedSale(saleId); // Update the selected value for SaleID
+
+    if (saleId) {
+      try {
+        const response = await useServiceAPI.get(paths.pathMasterDealerAll, {
+          user_id: saleId,
+        });
+        setShopOptions(
+          response.data.map((item) => ({
+            label: item.name,
+            value: item.id,
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching Shop options:", error);
+      }
+    } else {
+      // Reset Shop options and value when "All" is selected
+      setShopOptions([]);
+      setSelectedShop(null); // Reset UI for ShopID dropdown
+
+      sendData({
+        saleId: "", // Reset SaleID
+        shopId: "", // Reset ShopID
+      });
+
+      return;
+    }
+
+    // Notify parent with SaleID and reset ShopID
+    sendData({
+      saleId,
+      shopId: "", // Reset ShopID
+    });
+
+    setSelectedShop(null); // Reset UI for ShopID dropdown
+  };
+
+  const handleShopChange = (shopId) => {
+    setSelectedShop(shopId);
+
+    sendData({
+      shopId,
+    });
+  };
+
+
+  const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+  const startOfMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    1
+  );
+  const endOfMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 1,
+    0
+  );
+  const daysInMonth = endOfMonth.getDate();
+  const startDayOfWeek = (startOfMonth.getDay() + 6) % 7; // Adjust for Monday start
+
+
   const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   const handlePrevMonth = () => {
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+    const newDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() - 1,
+      1
     );
+    setCurrentDate(newDate);
+    setSelectedDate(null);
+    fetchEvents(newDate.getMonth() + 1, newDate.getFullYear());
   };
 
   const handleNextMonth = () => {
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
+    const newDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + 1,
+      1
     );
+    setCurrentDate(newDate);
+    setSelectedDate(null);
+    fetchEvents(newDate.getMonth() + 1, newDate.getFullYear());
   };
 
   const handleDateClick = (date) => {
@@ -40,13 +200,13 @@ const Calendar = ({ events }) => {
     return (
       <div className="flex flex-col gap-1 mt-2 w-full">
         {dateEvents.slice(0, 2).map((event, index) => (
-          <div
+          <div lang="th"
             key={index}
-            className="flex items-center justify-between px-2 py-1 rounded text-white text-sm"
+            className="flex items-center justify-between px-2 py-1 rounded-[10px] text-white text-sm"
             style={{ backgroundColor: event.color }}
           >
             <span>{event.title}</span>
-            <div className="flex items-center gap-1">
+            <div className="flex flex-col items-center gap-1">
               <div className="flex -space-x-2">
                 {event.attendees.slice(0, 3).map((attendee, idx) => (
                   <img
@@ -58,7 +218,9 @@ const Calendar = ({ events }) => {
                 ))}
               </div>
               {event.attendees.length > 3 && (
-                <span className="text-xs font-bold">+{event.attendees.length - 3}</span>
+                <span className="text-xs font-bold">
+                  +{event.attendees.length - 3}
+                </span>
               )}
             </div>
           </div>
@@ -79,12 +241,10 @@ const Calendar = ({ events }) => {
 
     return (
       <div className="grid grid-cols-8">
-        {/* Header Row */}
         <div className="border p-2 font-bold text-center bg-gray-200">Time</div>
         {weekdays.map((day, index) => {
           const date = new Date(startOfWeek);
           date.setDate(date.getDate() + index);
-          const formattedDate = date.toISOString().split("T")[0];
 
           return (
             <div
@@ -97,36 +257,21 @@ const Calendar = ({ events }) => {
           );
         })}
 
-        {/* Time Slots */}
         {Array.from({ length: 9 }, (_, i) => 9 + i).map((hour) => (
           <React.Fragment key={hour}>
-            {/* Time Column */}
             <div className="border-t border-r p-2 text-center bg-gray-100">
               {hour}:00
             </div>
-            {/* Events for each day */}
             {weekdays.map((day, index) => {
               const date = new Date(startOfWeek);
               date.setDate(date.getDate() + index);
-              const formattedDate = date.toISOString().split("T")[0];
-              const eventsForDay = events.filter(
-                (event) => event.date === formattedDate && event.time.startsWith(`${hour}`)
-              );
 
               return (
                 <div
                   key={`${day}-${hour}`}
                   className="border-t border-r p-2 min-h-[60px] bg-white"
                 >
-                  {eventsForDay.map((event, idx) => (
-                    <div
-                      key={idx}
-                      className="p-1 mb-1 text-sm text-white rounded"
-                      style={{ backgroundColor: event.color }}
-                    >
-                      {event.title}
-                    </div>
-                  ))}
+                  {/* Events */}
                 </div>
               );
             })}
@@ -138,103 +283,139 @@ const Calendar = ({ events }) => {
 
   return (
     <div className="grid grid-rows-[auto,1fr] h-screen">
-      {/* Header */}
-      <header className="p-4 bg-gray-50 border-b">
+      <header className="pb-3 bg-[#F5F3F3]">
         <div className="flex items-center justify-between">
-          {/* Left Controls */}
-          <div className="flex items-center gap-4">
-            {/* View Switch */}
+          <div className="flex items-center">
             <div className="flex gap-2">
-              <button
+              {/* <button
                 className={`px-4 py-2 rounded ${
                   view === "weekly" ? "bg-gray-500 text-white" : "bg-gray-200"
                 }`}
                 onClick={() => setView("weekly")}
               >
                 Weekly
-              </button>
-              <button
+              </button> */}
+              {/* <button
                 className={`px-4 py-2 rounded ${
-                  view === "month" ? "bg-green-600 text-white" : "bg-gray-200"
+                  view === "month" ? "bg-[#009845] text-white" : "bg-gray-200"
                 }`}
                 onClick={() => setView("month")}
               >
                 Month
-              </button>
+              </button> */}
             </div>
-            {/* Month Selector */}
-            <div className="flex items-center gap-2">
-              <button
-                className="px-4 py-2 bg-green-600 text-white rounded"
-                onClick={handlePrevMonth}
-              >
-                &lt;
-              </button>
-              <span className="px-4 py-2 bg-gray-100 text-gray-700 rounded">
-                {months[currentDate.getMonth()]}
-              </span>
-              <button
-                className="px-4 py-2 bg-green-600 text-white rounded"
-                onClick={handleNextMonth}
-              >
-                &gt;
-              </button>
-            </div>
-          </div>
 
-        <span className="text-lg font-bold text-green-600">
-            {months[currentDate.getMonth()]} {currentDate.getFullYear()}
-        </span>
-
-          {/* Dropdowns */}
-          <div className="flex items-center gap-4">
-            <select className="px-4 py-2 border rounded bg-white">
-              <option value="Sale Territory">Sale Territory</option>
-              <option value="Region 1">Region 1</option>
-              <option value="Region 2">Region 2</option>
-            </select>
-            <select className="px-4 py-2 border rounded bg-white">
-              <option value="Shop">Shop</option>
-              <option value="Shop A">Shop A</option>
-              <option value="Shop B">Shop B</option>
-            </select>
           </div>
         </div>
       </header>
+      <main className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-12 gap-4 bg-[#F5F3F3]">
+        <div className="col-span-1 md:col-span-2 lg:col-span-9 bg-[#F5F3F3]">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pb-2">
+              <Button
+                className="!bg-[#00783F] !text-white hover:!bg-[#005f32] !border-none"
+                icon={<LeftOutlined />}
+                onClick={handlePrevMonth}
+              />
+              <span className="px-4 py-2 bg-white text-gray-700 rounded font-semibold">
+                {months[currentDate.getMonth()]}
+              </span>
+              <Button
+                className="!bg-[#00783F] !text-white hover:!bg-[#005f32] !border-none"
+                icon={<RightOutlined />}
+                onClick={handleNextMonth}
+              />
+            </div>
+            <span className="text-[25px] font-bold text-[#00783F] w-full block text-center mb-2">
+              {months[currentDate.getMonth()]} {currentDate.getFullYear()}
+            </span>
+          </div>
 
-      {/* Main Content */}
-      <main className="grid grid-cols-12 gap-4 p-4 bg-gray-50">
-        {/* Left Side: Calendar */}
-        <div className="col-span-8">
           {view === "month" ? (
-            <div className="grid grid-cols-7 gap-2">
-              {Array.from({ length: startDayOfWeek }).map((_, index) => (
-                <div
-                  key={`empty-${index}`}
-                  className="border p-2 bg-gray-100 min-h-[170px]"
-                />
-              ))}
-              {Array.from({ length: daysInMonth }).map((_, index) => {
-                const date = new Date(
-                  currentDate.getFullYear(),
-                  currentDate.getMonth(),
-                  index + 1
-                );
-                const formattedDate = date.toISOString().split("T")[0];
-
-                return (
-                  <div
-                    key={index}
-                    className="border p-2 rounded bg-gray-50 cursor-pointer flex flex-col items-center justify-start min-h-[170px] hover:bg-green-100 transition"
-                    onClick={() => handleDateClick(formattedDate)}
-                  >
-                    <div className="text-right font-bold w-full text-gray-700">
-                      {index + 1}
-                    </div>
-                    {renderEventsForDate(formattedDate)}
+            <div className="rounded-xl shadow-md border-t mb-5">
+              {/* Header of the calendar */}
+              <div className="grid grid-cols-7 bg-gray-100 text-gray-600 font-bold text-center py-2 rounded-t-xl">
+                {weekdays.map((day) => (
+                  <div key={day} className="p-2">
+                    {day}
                   </div>
-                );
-              })}
+                ))}
+              </div>
+
+              {/* Calendar grid */}
+              <div className="grid grid-cols-7 rounded-[20px]">
+                {/* Days from the previous month */}
+                {Array.from({ length: startDayOfWeek }).map((_, index) => {
+                  const date = new Date(
+                    currentDate.getFullYear(),
+                    currentDate.getMonth(),
+                    -startDayOfWeek + index + 1
+                  );
+                  return (
+                    <div
+                      key={`prev-${index}`}
+                      className="border p-2 bg-[#CBC5C3] text-gray-500 min-h-[170px]"
+                    >
+                      <div className="text-start font-bold">
+                        {date.getDate()}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Days of the current month */}
+                {Array.from({ length: daysInMonth }).map((_, index) => {
+                  const date = new Date(
+                    currentDate.getFullYear(),
+                    currentDate.getMonth(),
+                    index + 1
+                  );
+                  const isActive =
+                    selectedDate === date.toISOString().split("T")[0];
+
+                  return (
+                    <div
+                      key={`current-${index}`}
+                      className={`border p-2 rounded cursor-pointer flex flex-col items-center justify-start min-h-[170px] transition ${isActive
+                        ? "bg-gray-100 border-[#009845]"
+                        : "bg-gray-50 hover:bg-green-100"
+                        }`}
+                      onClick={() =>
+                        handleDateClick(date.toISOString().split("T")[0])
+                      }
+                    >
+                      <div
+                        className={`text-start font-bold w-full ${isActive ? "text-[#009845]" : "text-gray-700"
+                          }`}
+                      >
+                        {index + 1}
+                      </div>
+                      {renderEventsForDate(date.toISOString().split("T")[0])}
+                    </div>
+                  );
+                })}
+
+                {/* Fill up remaining cells to ensure 5 rows */}
+                {Array.from({
+                  length: Math.max(0, 35 - (startDayOfWeek + daysInMonth)),
+                }).map((_, index) => {
+                  const date = new Date(
+                    currentDate.getFullYear(),
+                    currentDate.getMonth() + 1,
+                    index + 1
+                  );
+                  return (
+                    <div
+                      key={`next-${index}`}
+                      className="border p-2 bg-[#CBC5C3] text-gray-500 min-h-[170px]"
+                    >
+                      <div className="text-start font-bold">
+                        {date.getDate()}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ) : (
             renderWeeklyCalendar()
@@ -242,67 +423,161 @@ const Calendar = ({ events }) => {
         </div>
 
         {/* Right Side: Event Details */}
-        <div className="col-span-4 p-4 bg-gray-100 rounded shadow">
+        <div className="col-span-1 md:col-span-1 lg:col-span-3 bg-[#F5F3F3] mb-5" >
+          <div className="flex justify-end items-center gap-4 pb-4">
+            <Select lang="th"
+              className="min-w-[150px]"
+              placeholder="Select a Sale Territory"
+              options={[{ label: "All", value: "" }, ...saleOptions]}
+              value={selectedSale} // Bind state to SaleID dropdown
+              onChange={handleSaleChange}
+            />
+
+            <Select lang="th"
+              className="min-w-[150px]"
+              placeholder="Select a Shop"
+              options={[{ label: "All", value: "" }, ...shopOptions]}
+              value={selectedShop} // Bind state to ShopID dropdown
+              onChange={handleShopChange}
+              disabled={!selectedSale || selectedSale === ""} // Disable if no Sale is selected or "All" is selected
+            />
+
+          </div>
           {selectedDate ? (
             <>
-              <h3 className="text-lg font-bold text-green-600 mb-4">
-                {new Date(selectedDate).toLocaleDateString("en-US", {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
-                })}
-              </h3>
-              <div className="space-y-4">
-                {events
-                  .filter((event) => event.date === selectedDate)
-                  .map((event, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-4 bg-white rounded-lg shadow"
-                    >
-                      <div className="flex items-start gap-4">
+              <div
+                className="border-t border-[#009845] rounded-xl p-3 bg-white"
+                style={{ borderTopWidth: "10px" }}
+              >
+                <h3 className="text-lg font-bold text-[#009845] mb-4">
+                  {new Date(selectedDate).toLocaleDateString("en-US", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                  })}
+                </h3>
+                <div className="space-y-4">
+                  {events.filter((event) => event.date === selectedDate).length > 0 ? (
+                    events
+                      .filter((event) => event.date === selectedDate)
+                      .map((event, index) => (
                         <div
-                          className={`w-10 h-10 flex items-center justify-center rounded-full text-white`}
-                          style={{ backgroundColor: event.color }}
+                          key={index}
+                          className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md"
                         >
-                          <span className="text-xl font-bold">{event.icon || "⭐"}</span>
-                        </div>
-                        <div>
-                          <h4 className="text-md font-bold text-gray-800">{event.title}</h4>
-                          <p className="text-sm text-gray-600">Location: {event.location}</p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <div className="flex -space-x-2">
-                              {event.attendees.slice(0, 3).map((attendee, idx) => (
+                          <div className="flex items-start gap-4">
+                            <div>
+                              <div className="flex justify-between">
+                                <div className={`h-10 flex items-center justify-center`}>
+                                  <span
+                                    className="text-xl font-bold rounded-full text-white me-2"
+                                    style={{ backgroundColor: event.color }}
+                                  >
+                                    {event.icon || "⭐"}
+                                  </span>
+                                  <h4 className="text-md font-bold text-gray-800">
+                                    {event.title}
+                                  </h4>
+                                </div>
+                                <span className="px-3 py-1 border rounded-full text-sm text-gray-600 flex items-center">
+                                  {event.time}
+                                </span>
+                              </div>
+                              <p lang="th" className="text-sm text-gray-600 flex">
                                 <img
-                                  key={idx}
-                                  src={attendee.avatar}
-                                  alt={attendee.name}
-                                  className="w-6 h-6 rounded-full border-2 border-white"
-                                />
-                              ))}
+                                  src="/img/icons/location.png"
+                                  className="h-6 w-6 me-2"
+                                  alt=""
+                                />{" "}
+                                {event.location}
+                              </p>
+                              <div className="flex items-center justify-between gap-2 mt-2">
+                                <div className="flex items-center -space-x-2">
+                                  {event.attendees.slice(0, 3).map((attendee, idx) => (
+                                    <img
+                                      key={idx}
+                                      src={attendee.avatar}
+                                      alt={attendee.name}
+                                      className="w-6 h-6 rounded-full border-2 border-white shadow-md"
+                                    />
+                                  ))}
+                                  {event.attendees.length > 3 && (
+                                    <span lang="th" className="text-xs font-bold w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-md">
+                                      +{event.attendees.length - 3}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div>
+                                  <Tooltip title="View" placement="bottom">
+                                    <Popconfirm
+                                      placement="leftTop"
+                                      title="Event Details"
+                                      description={
+                                        <div>
+                                          <h4>{event.title}</h4>
+                                          <p lang="th">{event.time}</p>
+                                          <p lang="th">{event.location}</p>
+                                          {/* Add any other details here */}
+                                          <Button
+                                            className="me-2 mt-2 border border-[#00783F] text-[#00783F] !border-[#00783F] !text-[#00783F] hover:!border-[#005f32] hover:!text-[#005f32]"
+                                            icon={<EditOutlined />}
+                                            onClick={() => handleEdit(event.document_number)} // Pass document_number
+                                          >
+                                            Edit
+                                          </Button>
+                                          <Button
+                                            className="me-2 border border-[#978B87] text-[#978B87] !border-[#978B87] !text-[#978B87] hover:!border-[red] hover:!text-[red]"
+                                            icon={<DeleteOutlined />}
+                                            onClick={() => handleDelete(event.document_number)} // Pass document_number
+                                          >
+                                            Delete
+                                          </Button>
+                                        </div>
+                                      }
+                                      okButtonProps={{ style: { display: "none" } }} // Hide ok button
+                                      cancelButtonProps={{ style: { display: "none" } }} // Hide cancel button
+                                    >
+                                      <img
+                                        src="/img/icons/view.png"
+                                        alt=""
+                                        className="w-6 h-6 rounded-full border-2 border-white cursor-pointer"
+                                      />
+                                    </Popconfirm>
+                                  </Tooltip>
+                                </div>
+                              </div>
                             </div>
-                            {event.attendees.length > 3 && (
-                              <span className="text-xs font-bold text-gray-600">
-                                +{event.attendees.length - 3}
-                              </span>
-                            )}
                           </div>
                         </div>
-                      </div>
-                      <div>
-                        <span className="px-3 py-1 border rounded-full text-sm text-gray-600">
-                          {event.time}
-                        </span>
-                      </div>
+                      ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center">
+                      <img
+                        src="/img/icons/schedule.png"
+                        alt="No Events"
+                        className="max-w-[150px] mt-4"
+                      />
+                      <p className="text-gray-500 mt-2">Nothing was planned for the day.</p>
                     </div>
-                  ))}
+                  )}
+                </div>
               </div>
             </>
           ) : (
-            <div className="text-center text-gray-500">
-              <p>Select a date to view events.</p>
+            <div
+              className="border-t border-[#009845] rounded-xl p-3 bg-white flex flex-col items-center py-5"
+              style={{ borderTopWidth: "10px" }}
+            >
+              <img
+                src="/img/icons/schedule.png"
+                alt="No Events"
+                className="max-w-[150px] mt-4"
+              />
+              <p className="text-gray-500 mt-2">Select a date to view events.</p>
             </div>
           )}
+
         </div>
       </main>
     </div>

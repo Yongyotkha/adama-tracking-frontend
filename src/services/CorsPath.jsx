@@ -120,6 +120,8 @@ export const paths = {
 
   // Activity Calendar
   pathActivityCalendarList: "/activity/calendar/list",
+  // Activity Mapping
+  pathActivityMapList: "/activity/map/list",
   
   // Orders
   pathGetOrderList: "order/list",
