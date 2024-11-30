@@ -30,7 +30,7 @@ const Navbar = () => {
   const { userInfo, logout } = useContext(AuthContext);
 
   useEffect(() => {
-    if (userInfo?.is_change_password || userInfo?.is_otp) {
+    if (userInfo.is_change_password || userInfo.is_otp) {
       logout();
     }
   }, [userInfo]);
