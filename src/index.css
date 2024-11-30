@@ -74,8 +74,8 @@
   border-top: 10px solid #00783F !important;
 }
 
-
 /* ฟอนต์ Anuphan สำหรับข้อความภาษาไทย */
 *:lang(th) {
   font-family: "Anuphan", sans-serif !important;
 }
+
