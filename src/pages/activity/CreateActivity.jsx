@@ -181,7 +181,6 @@ export default function CreateActivity() {
           let participantData = [];
           let count = 0;
           await activityDetailData.expense_particapant_user_list.forEach((element, key) => {
-            const id = element.id;
               count++;
               const newKey = `sales-${count}`;
               participantData.push({
@@ -198,6 +197,21 @@ export default function CreateActivity() {
         
           // เพิ่มเฉพาะข้อมูลใหม่เข้าไปใน participantList
           setParticipants(participantData);
+
+          let productCropLists = [];
+          await activityDetailData.expense_product_data_list.forEach((element, key) => {
+            productCropLists.push({
+              key: (key + 1), 
+              productName: element.product_name, 
+              packSize: element.packing_list, 
+              estimateSale: element.estimate_sale_qty, 
+              actualSale: element.acutal_sale_qty, 
+              bath_ltkg: element.bath_ltkg, 
+              prodectCode: element.product_code,
+              productId: element.id
+            });
+          });
+          setProductCropList(productCropLists);
         } finally {
           setLoading(false);
         }
@@ -295,10 +309,10 @@ export default function CreateActivity() {
     <tr className="bg-[#978B87]">
       <td colSpan={2} className="text-left pr-2 text-white">Total (THB)</td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" value={calculateGrandTotal("estimateSale")} readOnly id="totalEstimateSale"/>
+        <Input placeholder="0" value={activityDetail?.expense_product_total_estimate_sale ?? calculateGrandTotal("estimateSale")} readOnly/>
       </td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" value={calculateGrandTotal("actualSale")} readOnly id="totalActualSale"/>
+        <Input placeholder="0" value={activityDetail?.expense_product_total_acutal_sale ?? calculateGrandTotal("actualSale")} readOnly/>
       </td>
     </tr>
   );
