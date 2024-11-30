@@ -31,7 +31,7 @@ const Navbar = () => {
 
   useEffect(() => {
     if (userInfo.is_change_password || userInfo.is_otp) {
-      logout();
+      // logout();
     }
   }, [userInfo]);
 
