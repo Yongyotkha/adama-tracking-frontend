@@ -81,6 +81,8 @@ export default function WorkPlanAreaCreate() {
           const newDataSale = response.data.sale_items.map((item) => ({
             key: item.user_id,
             user_id: item.user_id,
+            territory_id: item.territory_id,
+            territory_name: item.territory_name,
             user_name: item.user_name,
             workplan_area_header_id: item.workplan_area_header_id,
             workplan_header_id: item.workplan_header_id,
@@ -263,7 +265,7 @@ export default function WorkPlanAreaCreate() {
       title: item.user_name,
       children: [
         {
-          title: "Lower North",
+          title: item.territory_name,
           key: "firstChilden",
           children: [
             {

@@ -17,9 +17,10 @@ export default function WorkPlan() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState([]);
   const [years, setYears] = useState([]);
+  const [pathName, setPathName] = useState([]);
   const [dataSource, setDataSource] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
-  const { showMsg, showNotification } = useContext(AuthContext);
+  const {  showNotification } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -74,12 +75,15 @@ export default function WorkPlan() {
       if (location.pathname == "/sale-plan/work-plan") {
         path = paths.pathGetWorkPlanList;
         pathRole = "head";
+        setPathName(pathRole);
       } else if (location.pathname == "/sale-plan/work-plan-area") {
         path = paths.pathGetWorkPlanAreaList;
         pathRole = "area";
+        setPathName(pathRole);
       } else if (location.pathname == "/sale-plan/work-plan-sale") {
         path = paths.pathGetWorkPlanSaleList;
         pathRole = "sale";
+        setPathName(pathRole);
       }
 
       const response = await useServiceAPI.get(path, requestData);
@@ -247,7 +251,15 @@ export default function WorkPlan() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <div className="title-page">Work Plan</div>
+        {pathName == "head" && (
+          <div className="title-page">Work Plan (Head Of Sale)</div>
+        )}
+        {pathName == "area" && (
+          <div className="title-page">Work Plan (Area)</div>
+        )}
+        {pathName == "sale" && (
+          <div className="title-page">Work Plan (Sale)</div>
+        )}
 
         <Filter
           onSearch={handleSearch}

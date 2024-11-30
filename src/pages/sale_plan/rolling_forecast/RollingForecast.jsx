@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
@@ -7,11 +7,32 @@ import { Dropdown } from "antd";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import { useNavigate } from "react-router-dom";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function RollingForecast() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-  const navigate = useNavigate();
+  const [tableLoading, setTableLoading] = useState(false);
+  const [status, setStatus] = useState([]);
+  const [years, setYears] = useState([]);
+  const [pathName, setPathName] = useState([]);
+  const { showNotification } = useContext(AuthContext);
+  const [tableParams, setTableParams] = useState({
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+    filters: {},
+    sortOrder: null,
+    sortField: null,
+  });
+
+  useEffect(() => {
+    getMaster();
+  }, []);
 
   useEffect(() => {
     const data = [
@@ -21,29 +42,133 @@ export default function RollingForecast() {
         workPlan: "50,750,000",
         lastModified: "2024-01-01 11:11",
         status: (
-          <BadgeStatus text="Wait for edit plan" bgColor="#A9A9A9" textColor="#FFFFFF" />
+          <BadgeStatus
+            text="Wait for edit plan"
+            bgColor="#A9A9A9"
+            textColor="#FFFFFF"
+          />
         ),
         action: (
           <Dropdown menu={{ items: dropdownItems }} placement="bottom">
             <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="button icon" className="inline-block w-5 h-5 mr-2" />
+              <img
+                src="/img/icons/action.png"
+                alt="button icon"
+                className="inline-block w-5 h-5 mr-2"
+              />
             </a>
           </Dropdown>
         ),
         nestedData: [
-          { key: "1-1", no: 1, month: "January", workPlan: "4,687,500", forecast: "4,687,500", actual: "4,687,500", status: "Complete" },
-          { key: "1-2", no: 2, month: "February", workPlan: "4,587,500", forecast: "4,587,500", actual: "0", status: "Pending" },
-          { key: "1-3", no: 3, month: "March", workPlan: "4,587,500", forecast: "4,587,500", actual: "0", status: "Pending" },
-          { key: "1-4", no: 4, month: "April", workPlan: "4,587,500", forecast: "4,587,500", actual: "0", status: "Pending" },
-          { key: "1-5", no: 5, month: "May", workPlan: "4,437,500", forecast: "4,437,500", actual: "0", status: "Pending" },
-          { key: "1-6", no: 6, month: "June", workPlan: "4,362,500", forecast: "4,362,500", actual: "0", status: "Pending" },
-          { key: "1-7", no: 7, month: "July", workPlan: "4,087,500", forecast: "4,087,500", actual: "0", status: "Pending" },
-          { key: "1-8", no: 8, month: "August", workPlan: "4,062,500", forecast: "4,062,500", actual: "0", status: "Pending" },
-          { key: "1-9", no: 9, month: "September", workPlan: "3,762,500", forecast: "3,762,500", actual: "0", status: "Pending" },
-          { key: "1-10", no: 10, month: "October", workPlan: "3,812,500", forecast: "3,812,500", actual: "0", status: "Pending" },
-          { key: "1-11", no: 11, month: "November", workPlan: "3,862,500", forecast: "3,862,500", actual: "0", status: "Plan" },
-          { key: "1-12", no: 12, month: "December", workPlan: "3,912,500", forecast: "3,912,500", actual: "0", status: "Plan" },
-        ]
+          {
+            key: "1-1",
+            no: 1,
+            month: "January",
+            workPlan: "4,687,500",
+            forecast: "4,687,500",
+            actual: "4,687,500",
+            status: "Complete",
+          },
+          {
+            key: "1-2",
+            no: 2,
+            month: "February",
+            workPlan: "4,587,500",
+            forecast: "4,587,500",
+            actual: "0",
+            status: "Pending",
+          },
+          {
+            key: "1-3",
+            no: 3,
+            month: "March",
+            workPlan: "4,587,500",
+            forecast: "4,587,500",
+            actual: "0",
+            status: "Pending",
+          },
+          {
+            key: "1-4",
+            no: 4,
+            month: "April",
+            workPlan: "4,587,500",
+            forecast: "4,587,500",
+            actual: "0",
+            status: "Pending",
+          },
+          {
+            key: "1-5",
+            no: 5,
+            month: "May",
+            workPlan: "4,437,500",
+            forecast: "4,437,500",
+            actual: "0",
+            status: "Pending",
+          },
+          {
+            key: "1-6",
+            no: 6,
+            month: "June",
+            workPlan: "4,362,500",
+            forecast: "4,362,500",
+            actual: "0",
+            status: "Pending",
+          },
+          {
+            key: "1-7",
+            no: 7,
+            month: "July",
+            workPlan: "4,087,500",
+            forecast: "4,087,500",
+            actual: "0",
+            status: "Pending",
+          },
+          {
+            key: "1-8",
+            no: 8,
+            month: "August",
+            workPlan: "4,062,500",
+            forecast: "4,062,500",
+            actual: "0",
+            status: "Pending",
+          },
+          {
+            key: "1-9",
+            no: 9,
+            month: "September",
+            workPlan: "3,762,500",
+            forecast: "3,762,500",
+            actual: "0",
+            status: "Pending",
+          },
+          {
+            key: "1-10",
+            no: 10,
+            month: "October",
+            workPlan: "3,812,500",
+            forecast: "3,812,500",
+            actual: "0",
+            status: "Pending",
+          },
+          {
+            key: "1-11",
+            no: 11,
+            month: "November",
+            workPlan: "3,862,500",
+            forecast: "3,862,500",
+            actual: "0",
+            status: "Plan",
+          },
+          {
+            key: "1-12",
+            no: 12,
+            month: "December",
+            workPlan: "3,912,500",
+            forecast: "3,912,500",
+            actual: "0",
+            status: "Plan",
+          },
+        ],
       },
       {
         key: 2,
@@ -56,19 +181,158 @@ export default function RollingForecast() {
         action: (
           <Dropdown menu={{ items: dropdownItems }} placement="bottom">
             <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="button icon" className="inline-block w-5 h-5 mr-2" />
+              <img
+                src="/img/icons/action.png"
+                alt="button icon"
+                className="inline-block w-5 h-5 mr-2"
+              />
             </a>
           </Dropdown>
         ),
         nestedData: [
-          { key: "2-1", no: 1, month: "January", workPlan: "5,000,000", forecast: "5,000,000", actual: "5,000,000", status: "Complete" },
-          { key: "2-2", no: 2, month: "February", workPlan: "5,000,000", forecast: "5,000,000", actual: "4,500,000", status: "In Progress" },
+          {
+            key: "2-1",
+            no: 1,
+            month: "January",
+            workPlan: "5,000,000",
+            forecast: "5,000,000",
+            actual: "5,000,000",
+            status: "Complete",
+          },
+          {
+            key: "2-2",
+            no: 2,
+            month: "February",
+            workPlan: "5,000,000",
+            forecast: "5,000,000",
+            actual: "4,500,000",
+            status: "In Progress",
+          },
           // Additional months...
         ],
       },
     ];
     setDataSource(data);
   }, []);
+
+  const fetchData = async () => {
+    setTableLoading(true);
+    const { current, pageSize } = tableParams.pagination;
+    const filters = tableParams.filters || {};
+
+    console.log(filters, "filters");
+
+    const requestData = {
+      keyword: filters.keyword || "",
+      year_code: filters.year || "",
+      status_code: filters.status || "",
+      user_id: 21,
+      page_length: current,
+      page_size: pageSize,
+    };
+
+    try {
+      let path = paths.pathRollingForecast;
+      let pathRole = "";
+
+      const response = await useServiceAPI.get(path, requestData);
+
+      if (response.status === 200) {
+        const { data, records_filtered } = response.data;
+
+        const newDataSource = data.map((row, index) => ({
+          key: index + 1 + (current - 1) * pageSize,
+          workPlan: pathRole == "area" ? row.amount_target : row.overall_target,
+          // workPlan: pathRole,
+          year: row.year_name,
+          action: (
+            <Dropdown
+              menu={{
+                items: row.action.map((actionItem, actionIndex) => {
+                  // กำหนดค่า state ตาม pathRole
+                  const state = {
+                    year_code: row.year_code,
+                    ...(pathRole === "area" && {
+                      sale_area_id: row.sale_area_id,
+                    }),
+                    ...(pathRole === "sale" && { user_id: row.user_id }),
+                  };
+
+                  return {
+                    key: actionIndex,
+                    label: (
+                      <ItemDropDown
+                        mode={actionItem.action.toLowerCase()}
+                        onClick={() => {
+                          if (pathRole === "sale") {
+                            navigate("/sale-plan/work-plan-sale/sale-create", {
+                              state,
+                            });
+                          } else {
+                            navigate(actionItem.action_url, { state });
+                          }
+                        }}
+                      />
+                    ),
+                  };
+                }),
+              }}
+              placement="bottom"
+            >
+              <a onClick={(e) => e.preventDefault()}>
+                <img
+                  src="/img/icons/action.png"
+                  alt="button icon"
+                  className="inline-block w-5 h-5 mr-2"
+                />
+              </a>
+            </Dropdown>
+          ),
+
+          status: (
+            <BadgeStatus
+              text={row.status_name}
+              bgColor={row.bg_color}
+              textColor={row.color}
+            />
+          ),
+          lastModified: row.updated_at,
+        }));
+
+        setDataSource(newDataSource);
+        setTableParams({
+          ...tableParams,
+          pagination: {
+            ...tableParams.pagination,
+            total: records_filtered,
+          },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
+  const getMaster = async () => {
+    setLoading(true);
+    try {
+      const [years, status] = await Promise.all([
+        useServiceAPI.get(paths.pathMasterYear),
+        useServiceAPI.get(paths.pathMasterStatus, {
+          status_type: "rolling_forecast",
+        }),
+      ]);
+
+      setYears(years.data);
+      setStatus(status.data);
+    } catch (error) {
+      showNotification("error", error.message || "เกิดข้อผิดพลาด");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filters = [
     {
@@ -149,17 +413,37 @@ export default function RollingForecast() {
 
   const columns = [
     { title: "Year", dataIndex: "year", key: "year", width: 100 },
-    { title: "Work Plan (THB)", dataIndex: "workPlan", key: "workPlan", width: 150 },
-    { title: "Last Modified", dataIndex: "lastModified", key: "lastModified", width: 150 },
+    {
+      title: "Work Plan (THB)",
+      dataIndex: "workPlan",
+      key: "workPlan",
+      width: 150,
+    },
+    {
+      title: "Last Modified",
+      dataIndex: "lastModified",
+      key: "lastModified",
+      width: 150,
+    },
     { title: "Status", dataIndex: "status", key: "status", width: 150 },
-    { title: "Action", dataIndex: "action", key: "action", width: 100 },
+    { title: "Action", dataIndex: "action", key: "action", width: 50 },
   ];
 
   const nestedColumns = [
     { title: "No", dataIndex: "no", key: "no", width: 50 },
     { title: "Month", dataIndex: "month", key: "month", width: 100 },
-    { title: "Work Plan (THB)", dataIndex: "workPlan", key: "workPlan", width: 150 },
-    { title: "Rolling Forecast (THB)", dataIndex: "forecast", key: "forecast", width: 150 },
+    {
+      title: "Work Plan (THB)",
+      dataIndex: "workPlan",
+      key: "workPlan",
+      width: 150,
+    },
+    {
+      title: "Rolling Forecast (THB)",
+      dataIndex: "forecast",
+      key: "forecast",
+      width: 150,
+    },
     { title: "Actual (THB)", dataIndex: "actual", key: "actual", width: 150 },
     {
       title: "Status",
@@ -170,11 +454,15 @@ export default function RollingForecast() {
         <BadgeStatus
           text={text}
           bgColor={
-            text === "Complete" ? "#00783F" :
-              text === "Plan" ? "#A9A9A9" :
-                text === "Pending" ? "#FFA500" :
-                  text === "Create" ? "#FFD700" :
-                    "#000000" // Default color if none match
+            text === "Complete"
+              ? "#00783F"
+              : text === "Plan"
+              ? "#A9A9A9"
+              : text === "Pending"
+              ? "#FFA500"
+              : text === "Create"
+              ? "#FFD700"
+              : "#000000" // Default color if none match
           }
           textColor="#FFFFFF"
           className="cursor-pointer"
@@ -185,26 +473,35 @@ export default function RollingForecast() {
       title: "Action",
       dataIndex: "action",
       key: "action",
-      width: 100,
+      width: 50,
       render: (text) => (
         <Dropdown menu={{ items: sub_items }} placement="bottom">
           <a onClick={(e) => e.preventDefault()}>
-            <img src="/img/icons/action.png" alt="button icon" className="inline-block w-5 h-5 mr-2" />
+            <img
+              src="/img/icons/action.png"
+              alt="button icon"
+              className="inline-block w-5 h-5 mr-2"
+            />
           </a>
         </Dropdown>
       ),
     },
   ];
 
-
-
   return (
     <MainLayout loading={loading} childrenStyle="">
-      <div className="title-page">Rolling Forecast</div>
+      <div className="flex justify-between">
+        <div className="title-page">Rolling Forecast</div>
+        <div className="title-page">Rolling Forecast</div>
+      </div>
       <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
 
       <BoxPrimary>
-        <TableExpand data={dataSource} columns={columns} nestedColumns={nestedColumns} />
+        <TableExpand
+          data={dataSource}
+          columns={columns}
+          nestedColumns={nestedColumns}
+        />
       </BoxPrimary>
     </MainLayout>
   );
