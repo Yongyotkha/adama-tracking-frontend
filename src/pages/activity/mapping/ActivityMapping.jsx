@@ -128,6 +128,18 @@ export default function ActivityMapping() {
     setCheckedFilters(updatedFilters);
   };
 
+  const handleSearch = (text) => {
+    setQuery(text);
+    if (text) {
+      const results = locationData.filter((item) =>
+        item.location_address.toLowerCase().includes(text.toLowerCase())
+      );
+      setFilteredData(results);
+    } else {
+      setFilteredData([]);
+    }
+  };
+
   const isAllChecked = Object.keys(checkedFilters).every((category) =>
     Object.values(checkedFilters[category] || {}).every(Boolean)
   );
@@ -137,9 +149,8 @@ export default function ActivityMapping() {
       <Layout>
         {/* Filter Section */}
         <div
-          className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${
-            isFilterCollapsed ? "max-h-12" : "max-h-auto"
-          }`}
+          className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${isFilterCollapsed ? "max-h-12" : "max-h-auto"
+            }`}
           style={{ width: "300px" }}
         >
           <div className="flex justify-between items-center px-4 py-2 border-b">
@@ -158,18 +169,21 @@ export default function ActivityMapping() {
             />
           </div>
           <div
-            className={`transition-all duration-300 ${
-              isFilterCollapsed ? "opacity-0" : "opacity-100"
-            } p-4`}
+            className={`transition-all duration-300 ${isFilterCollapsed ? "opacity-0" : "opacity-100"
+              } p-4`}
           >
             {/* Master "All" Checkbox */}
-            <Checkbox
-              className="mb-4"
-              checked={isAllChecked}
-              onChange={(e) => toggleAll(e.target.checked)}
-            >
-              All
-            </Checkbox>
+            <div className="flex justify-between">
+              <Checkbox
+                className="mb-4"
+                checked={isAllChecked}
+                onChange={(e) => toggleAll(e.target.checked)}
+              >
+                All
+              </Checkbox>
+              <img src="/img/icons/reload.png" alt="" className="h-6 w-6 cursor-pointer" onClick={{}} />
+            </div>
+
             {/* Collapsible Filter Categories */}
             <Collapse defaultActiveKey={["Activity Type"]}>
               {Object.keys(mockFilters).map((category) => (
