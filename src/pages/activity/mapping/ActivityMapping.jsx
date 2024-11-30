@@ -163,13 +163,17 @@ export default function ActivityMapping() {
             } p-4`}
           >
             {/* Master "All" Checkbox */}
-            <Checkbox
-              className="mb-4"
-              checked={isAllChecked}
-              onChange={(e) => toggleAll(e.target.checked)}
-            >
-              All
-            </Checkbox>
+            <div className="flex justify-between">
+              <Checkbox
+                className="mb-4"
+                checked={isAllChecked}
+                onChange={(e) => toggleAll(e.target.checked)}
+              >
+                All
+              </Checkbox>
+              <img src="/img/icons/reload.png" alt="" className="h-6 w-6 cursor-pointer" onClick={{}} />
+            </div>
+
             {/* Collapsible Filter Categories */}
             <Collapse defaultActiveKey={["Activity Type"]}>
               {Object.keys(mockFilters).map((category) => (
