@@ -3,6 +3,9 @@ import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/ap
 import { Layout, Checkbox, Button, Collapse } from "antd";
 import { UpOutlined, DownOutlined } from "@ant-design/icons";
 import MainLayout from "../../../layouts/MainLayout";
+import { useNavigate, useLocation } from "react-router-dom";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
 
 const { Content } = Layout;
 const { Panel } = Collapse;
@@ -33,10 +36,37 @@ const mockFilters = {
 };
 
 export default function ActivityMapping() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(null);
   const [isFilterCollapsed, setIsFilterCollapsed] = useState(false); // Manage vertical collapse state
   const [checkedFilters, setCheckedFilters] = useState({}); // Manage checked state for all filters
+  const [dataMapping, setDataMapping] = useState([]);
+
+  // Fetch Data
+  useEffect(() => {
+    const loadDataMappingList = async () => {
+      setLoading(true);
+      try {
+        const [mapping] = await Promise.all([
+          useServiceAPI.get(paths.pathActivityMapList, {
+            keyword: "",
+          }),
+        ]);
+        
+        console.log(mapping.data);
+        setDataMapping(mapping.data);
+      } catch (error) {
+        // showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        console.log(error);
+        
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDataMappingList();
+  }, []);
 
   // Initialize all checkboxes as selected on page load
   useEffect(() => {
