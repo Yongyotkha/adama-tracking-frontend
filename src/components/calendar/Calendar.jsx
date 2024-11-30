@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { Select } from "antd";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { Button, Tooltip, Popconfirm } from "antd";
 import { LeftOutlined, RightOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../contexts/AuthContext";
 
 const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   const [view, setView] = useState("month");
@@ -15,7 +17,53 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   const [shopOptions, setShopOptions] = useState([]);
   const [selectedSale, setSelectedSale] = useState(null); // Default value for SaleID
   const [selectedShop, setSelectedShop] = useState(null); // Default value for ShopID
+  const { showNotification } = useContext(AuthContext);
+  const navigate = useNavigate(); // Initialize useNavigate
 
+  const handleEdit = (documentNumber) => {
+    const link = `/activity/edit?document_number=${encodeURIComponent(documentNumber)}`;
+    navigate(link); // Redirect to the edit page
+  };
+
+  const handleDelete = async (documentNumber) => {
+    try {
+      const response = await fetch(
+        `/activity/delete?document_number=${encodeURIComponent(documentNumber)}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`, // Replace with your token retrieval logic
+            "Content-Type": "application/json",
+          },
+        }
+      );
+  
+      if (response.ok) {
+        const responseData = await response.json();
+        await showNotification(
+          "success",
+          responseData.message || "Event deleted successfully!",
+          responseData.data?.Message?.Message_Line || ["The event has been removed."]
+        );
+        fetchEvents(); // Refresh the event list
+      } else {
+        const errorData = await response.json();
+        await showNotification(
+          "error",
+          errorData.message || "Failed to delete event.",
+          errorData.data?.Message?.Message_Line || ["Please try again later."]
+        );
+      }
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      await showNotification(
+        "error",
+        "An error occurred while deleting the event.",
+        ["Please try again later."]
+      );
+    }
+  };
+  
   useEffect(() => {
     // Fetch Sale Territory options on mount
     const fetchSaleOptions = async () => {
@@ -249,7 +297,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
               </button> */}
               {/* <button
                 className={`px-4 py-2 rounded ${
-                  view === "month" ? "bg-green-600 text-white" : "bg-gray-200"
+                  view === "month" ? "bg-[#009845] text-white" : "bg-gray-200"
                 }`}
                 onClick={() => setView("month")}
               >
@@ -329,7 +377,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                     <div
                       key={`current-${index}`}
                       className={`border p-2 rounded cursor-pointer flex flex-col items-center justify-start min-h-[170px] transition ${isActive
-                        ? "bg-gray-100 border-green-600"
+                        ? "bg-gray-100 border-[#009845]"
                         : "bg-gray-50 hover:bg-green-100"
                         }`}
                       onClick={() =>
@@ -337,7 +385,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                       }
                     >
                       <div
-                        className={`text-start font-bold w-full ${isActive ? "text-green-600" : "text-gray-700"
+                        className={`text-start font-bold w-full ${isActive ? "text-[#009845]" : "text-gray-700"
                           }`}
                       >
                         {index + 1}
@@ -398,10 +446,10 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
           {selectedDate ? (
             <>
               <div
-                className="border-t border-green-600 rounded-xl p-3 bg-white"
+                className="border-t border-[#009845] rounded-xl p-3 bg-white"
                 style={{ borderTopWidth: "10px" }}
               >
-                <h3 className="text-lg font-bold text-green-600 mb-4">
+                <h3 className="text-lg font-bold text-[#009845] mb-4">
                   {new Date(selectedDate).toLocaleDateString("en-US", {
                     weekday: "long",
                     day: "numeric",
@@ -463,7 +511,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                 <div>
                                   <Tooltip title="View" placement="bottom">
                                     <Popconfirm
-                                      placement="left"
+                                      placement="leftTop"
                                       title="Event Details"
                                       description={
                                         <div>
@@ -471,13 +519,24 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                           <p lang="th">{event.time}</p>
                                           <p lang="th">{event.location}</p>
                                           {/* Add any other details here */}
-                                          <Button className="me-2 border border-[#00783F] text-[#00783F] !border-[#00783F] !text-[#00783F] hover:!border-[#005f32] hover:!text-[#005f32]" icon={<EditOutlined />}>Edit</Button>
-                                          <Button className="me-2 border border-[#978B87] text-[#978B87] !border-[#978B87] !text-[#978B87] hover:!border-[red] hover:!text-[red]" icon={<DeleteOutlined />}>Delete</Button>
+                                          <Button
+                                            className="me-2 mt-2 border border-[#00783F] text-[#00783F] !border-[#00783F] !text-[#00783F] hover:!border-[#005f32] hover:!text-[#005f32]"
+                                            icon={<EditOutlined />}
+                                            onClick={() => handleEdit(event.document_number)} // Pass document_number
+                                          >
+                                            Edit
+                                          </Button>
+                                          <Button
+                                            className="me-2 border border-[#978B87] text-[#978B87] !border-[#978B87] !text-[#978B87] hover:!border-[red] hover:!text-[red]"
+                                            icon={<DeleteOutlined />}
+                                            onClick={() => handleDelete(event.document_number)} // Pass document_number
+                                          >
+                                            Delete
+                                          </Button>
                                         </div>
                                       }
-                                      okText="Edit"
-                                      cancelText="Delete"
-                                      onConfirm={() => console.log("Closed")}
+                                      okButtonProps={{ style: { display: "none" } }} // Hide ok button
+                                      cancelButtonProps={{ style: { display: "none" } }} // Hide cancel button
                                     >
                                       <img
                                         src="/img/icons/view.png"
@@ -507,7 +566,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
             </>
           ) : (
             <div
-              className="border-t border-green-600 rounded-xl p-3 bg-white flex flex-col items-center py-5"
+              className="border-t border-[#009845] rounded-xl p-3 bg-white flex flex-col items-center py-5"
               style={{ borderTopWidth: "10px" }}
             >
               <img
