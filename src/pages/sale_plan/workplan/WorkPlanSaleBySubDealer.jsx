@@ -72,7 +72,7 @@ export default function WorkPlanSaleBySubDealer() {
       )
       .then((response) => {
         if (response.status === 200) {
-          const dealerData = response.data.dealer_items || [];
+          // const dealerData = response.data.dealer_items || [];
           const subDealerData = response.data.sub_dealer_items || [];
           const productData = response.data.data_items || [];
 
@@ -80,8 +80,7 @@ export default function WorkPlanSaleBySubDealer() {
           const newLocalQtyState = {};
 
           // Loop through dealers
-          dealerData.forEach((dealer) => {
-            const dealerId = dealer.dealer_id;
+            const dealerId = activeKey;
             if (!newLocalQtyState[dealerId]) {
               newLocalQtyState[dealerId] = {};
             }
@@ -101,7 +100,7 @@ export default function WorkPlanSaleBySubDealer() {
 
                 // Get quantity and value for this product under this sub-dealer
                 const qty =
-                  subDealer.products?.find((p) => p.product_id === productId)
+                  subDealer.data_items?.find((p) => p.product_id === productId)
                     ?.qty || 0;
                 const value = qty * (product.unit_convert_value || 1);
 
@@ -118,10 +117,10 @@ export default function WorkPlanSaleBySubDealer() {
                   .filter((product) => typeof product === "object")
                   .reduce((sum, product) => sum + (product.value || 0), 0);
             });
-          });
 
-          // Set localQtyState with the new data
           setLocalQtyState(newLocalQtyState);
+
+          console.log(subDealerData);
 
           const newData = response.data.data_items.map((item) => ({
             key: item.product_id,

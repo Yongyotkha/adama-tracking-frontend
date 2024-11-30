@@ -139,6 +139,7 @@ export default function WorkPlanSaleByCrop() {
           onChange={(value) =>
             handlePercentChange(value, cropItem.crop_id, record)
           }
+          disabled={!permission.edit || cropItem.crop_id == 7}
         />
       ),
     })),
@@ -223,15 +224,15 @@ export default function WorkPlanSaleByCrop() {
             if (!acc[crop.crop_id]) {
               acc[crop.crop_id] = {};
             }
-          
+
             // Process data_items
             crop.data_items.forEach((item) => {
               const productId = item.product_id;
-          
+
               const percentage = parseFloat(item.percentage || 0);
               const qty = parseFloat(item.qty || 0);
               const value = parseFloat(item.value || 0);
-          
+
               // Assign product data to the crop_id
               acc[crop.crop_id][productId] = {
                 percentage,
@@ -239,13 +240,15 @@ export default function WorkPlanSaleByCrop() {
                 value,
               };
             });
-          
+
             // Assign amount_target to the crop_id
-            acc[crop.crop_id].amount_target = parseFloat(crop.amount_target || 0);
-          
+            acc[crop.crop_id].amount_target = parseFloat(
+              crop.amount_target || 0
+            );
+
             return acc;
           }, {});
-          
+
           // Update the state
           setLocalQtyState(newLocalState);
 
@@ -445,8 +448,6 @@ export default function WorkPlanSaleByCrop() {
     } finally {
       setLoading(false); // หยุดโหลดข้อมูลไม่ว่าจะสำเร็จหรือผิดพลาด
     }
-
-    
   };
 
   return (
@@ -560,7 +561,7 @@ export default function WorkPlanSaleByCrop() {
                   year_code: location?.state?.year_code,
                   user_id: location?.state?.user_id,
                 },
-              })
+              });
             }}
           />
 

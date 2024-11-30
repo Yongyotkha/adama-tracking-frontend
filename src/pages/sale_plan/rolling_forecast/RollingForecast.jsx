@@ -18,6 +18,8 @@ export default function RollingForecast() {
   const [tableLoading, setTableLoading] = useState(false);
   const [status, setStatus] = useState([]);
   const [years, setYears] = useState([]);
+  const [sale, setSale] = useState([]);
+  const [defaultOption, setDefaultOption] = useState(null);
   const [pathName, setPathName] = useState([]);
   const { showNotification } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
@@ -318,15 +320,26 @@ export default function RollingForecast() {
   const getMaster = async () => {
     setLoading(true);
     try {
-      const [years, status] = await Promise.all([
+      const [years, status,sale] = await Promise.all([
         useServiceAPI.get(paths.pathMasterYear),
         useServiceAPI.get(paths.pathMasterStatus, {
           status_type: "rolling_forecast",
         }),
+        useServiceAPI.get(paths.pathMasterSaleDropdown),
       ]);
+
+      const formattedOptions = sale.data.map((item) => ({
+        value: item.id,
+        label: item.name,
+      }));
+
+      if (formattedOptions.length > 0) {
+        setDefaultOption(formattedOptions[0].value);
+      }
 
       setYears(years.data);
       setStatus(status.data);
+      setSale(formattedOptions);
     } catch (error) {
       showNotification("error", error.message || "เกิดข้อผิดพลาด");
     } finally {
@@ -488,9 +501,10 @@ export default function RollingForecast() {
     },
   ];
 
+
   return (
     <MainLayout loading={loading} childrenStyle="">
-      <div className="flex justify-between">
+      <div className="flex justify-between items-center">
         <div className="title-page">Rolling Forecast</div>
         <Select
           showSearch
@@ -501,36 +515,11 @@ export default function RollingForecast() {
           placeholder="Search to Select"
           optionFilterProp="label"
           filterSort={(optionA, optionB) =>
-            (optionA?.label ?? "")
-              .toLowerCase()
-              .localeCompare((optionB?.label ?? "").toLowerCase())
+            (optionA?.label ?? "").toLowerCase().localeCompare((optionB?.label ?? "").toLowerCase())
           }
-          options={[
-            {
-              value: "1",
-              label: "Not Identified",
-            },
-            {
-              value: "2",
-              label: "Closed",
-            },
-            {
-              value: "3",
-              label: "Communicated",
-            },
-            {
-              value: "4",
-              label: "Identified",
-            },
-            {
-              value: "5",
-              label: "Resolved",
-            },
-            {
-              value: "6",
-              label: "Cancelled",
-            },
-          ]}
+          options={sale}
+          value={defaultOption} 
+          onChange={(value)=>setDefaultOption(value)}
         />
       </div>
       <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
