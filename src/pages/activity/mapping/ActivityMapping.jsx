@@ -3,6 +3,9 @@ import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/ap
 import { Layout, Checkbox, Button, Collapse } from "antd";
 import { UpOutlined, DownOutlined } from "@ant-design/icons";
 import MainLayout from "../../../layouts/MainLayout";
+import { useNavigate, useLocation } from "react-router-dom";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
 
 const { Content } = Layout;
 const { Panel } = Collapse;
@@ -33,10 +36,37 @@ const mockFilters = {
 };
 
 export default function ActivityMapping() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(null);
   const [isFilterCollapsed, setIsFilterCollapsed] = useState(false); // Manage vertical collapse state
   const [checkedFilters, setCheckedFilters] = useState({}); // Manage checked state for all filters
+  const [dataMapping, setDataMapping] = useState([]);
+
+  // Fetch Data
+  useEffect(() => {
+    const loadDataMappingList = async () => {
+      setLoading(true);
+      try {
+        const [mapping] = await Promise.all([
+          useServiceAPI.get(paths.pathActivityMapList, {
+            keyword: "",
+          }),
+        ]);
+        
+        console.log(mapping.data);
+        setDataMapping(mapping.data);
+      } catch (error) {
+        // showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        console.log(error);
+        
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDataMappingList();
+  }, []);
 
   // Initialize all checkboxes as selected on page load
   useEffect(() => {
@@ -82,13 +112,18 @@ export default function ActivityMapping() {
       <Layout>
         {/* Filter Section */}
         <div
-          className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${
-            isFilterCollapsed ? "max-h-12" : "max-h-[500px]"
-          }`}
+          className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${isFilterCollapsed ? "max-h-12" : "max-h-auto"}`}
           style={{ width: "300px" }}
         >
           <div className="flex justify-between items-center px-4 py-2 border-b">
-            <h2 className="text-lg font-semibold">Filter</h2>
+            <div className="flex items-center gap-2">
+              <img
+                src="/img/icons/filter-green.png"
+                alt="Filter Icon"
+                className="w-5 h-5"
+              />
+              <span className="text-lg text-[#00783F]">Filter</span>
+            </div>
             <Button
               type="text"
               icon={isFilterCollapsed ? <DownOutlined /> : <UpOutlined />}
