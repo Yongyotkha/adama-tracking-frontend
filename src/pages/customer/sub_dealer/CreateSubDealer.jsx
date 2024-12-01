@@ -34,6 +34,9 @@ export default function CreateSubDealer() {
   const navigate = useNavigate();
   const [cropOptions, setCropOptions] = useState([]);
   const [form] = Form.useForm();
+  const [formlist] = Form.useForm();
+  const [formitem] = Form.useForm();
+
   const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); // กำหนด state สำหรับ defaultSelectedCrops
   const [personalInfoData, setPersonalInfoData] = useState({});
   // const [personalInfo, setPersonalInfo] = useState([]);
@@ -293,8 +296,9 @@ export default function CreateSubDealer() {
           crop_list: defaultSelectedCrops || [],
         };
   
-        console.log("Payload to be sent:", values);
+        console.log("Payload to be sent:", payload);
   
+        return;
         // ส่งข้อมูลไปยัง API
         useServiceAPI
           .post(paths.pathCreateSubDealer, payload, setLoading)

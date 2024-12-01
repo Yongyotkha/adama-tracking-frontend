@@ -54,7 +54,8 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
         : field.value || null;
       return acc;
     }, {});
-  
+    console.log(initialValues);
+    
     form?.setFieldsValue(initialValues);
   }, [fields, form]);
 
