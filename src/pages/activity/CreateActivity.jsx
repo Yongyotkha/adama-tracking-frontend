@@ -854,6 +854,10 @@ export default function CreateActivity() {
 
       <div className="flex justify-end space-x-4 mt-6">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/activity/list")} />
+        {
+          mode == 'expense_advance' ? (<ActionButton mode="saveDraft" text="Convert to Clearing" onClick={handleSave} />) : null
+        }
+
         <ActionButton mode="save" text="Save" onClick={handleSave} />
       </div>
 

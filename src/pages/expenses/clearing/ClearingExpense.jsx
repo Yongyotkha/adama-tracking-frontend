@@ -142,8 +142,7 @@ export default function ClearingExpense() {
         
 
         setDataSource(newDataSource);
-        console.log(newDataSource);
-        
+
         setTableParams({
           ...tableParams,
           pagination: {

@@ -143,8 +143,7 @@ export default function AdvanceExpense() {
         
 
         setDataSource(newDataSource);
-        console.log(newDataSource);
-        
+
         setTableParams({
           ...tableParams,
           pagination: {
