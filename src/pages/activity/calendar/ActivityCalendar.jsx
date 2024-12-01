@@ -82,7 +82,7 @@ export default function ActivityCalendar() {
         <ActionButton
           mode="create"
           text="Create"
-          onClick={() => navigate("/activity/create")}
+          onClick={() => navigate("/activity/create?pageCode=activity_transaction")}
         />
       </div>
 
