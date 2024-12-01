@@ -239,7 +239,7 @@ export default function OrderDetail() {
     <MainLayout loading={loading}>
       <div className="title-page">View Detail</div>
 
-      <FormCustom fields={formFields} form={formCustom} />
+      <FormCustom fields={formFields} form={formCustom} onChange="" />
 
       <BoxPrimary title="Order List">
         <TableComponent

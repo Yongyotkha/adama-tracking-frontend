@@ -24,7 +24,9 @@ const { Option } = Select;
 export default function CreateActivity() {
   const locationParam = useLocation();
   const searchParams = new URLSearchParams(locationParam.search);
-  const mode = searchParams.get("mode");
+  const mode = searchParams.get("mode"); 
+  const documentNumber = searchParams.get("documentNumber");
+  const pageCode = searchParams.get("pageCode");
 
   const [loading, setLoading] = useState(false);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
@@ -49,6 +51,10 @@ export default function CreateActivity() {
   const [fileList, setFileList] = useState([]);
 
   const [isBtnExpenseActive, setIsBtnExpenseActive] = useState(false);
+
+  const [activityDetail, setActivityDetail] = useState([]);
+  const [cropDetailList, setCropDetailList] = useState([]);
+  const [assignList, setAssignList] = useState([]);
 
   const handleUploadClick = async () => {    
     // Call triggerUpload from FileUploadComponent
@@ -83,7 +89,6 @@ export default function CreateActivity() {
         ...participantData
       };
 
-      console.log("Combined Form Data:", combinedData);
       navigate("/expenses/advance");
     } catch (error) {
       console.error("Validation failed:", error);
@@ -91,17 +96,17 @@ export default function CreateActivity() {
   };
 
   const formFields = [
-    { label: "Activity Reference", name: "activity_reference", type: "text", disabled: true, required: false, col: 24, value: "202400000000001" },
-    { label: "Activity Type", name: "activity_type_id", type: "select", options: activityList, disabled: false, required: true, col: 8, value: "" },
-    { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: false, required: true, col: 8, value: "", moderef: true },
-    { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: false, required: true, col: 8, value: "", moderef: true },
-    { label: "Crop", name: "crop_id_list", type: "select", mode: "multiple", options: cropList, disabled: false, required: true, col: 6, value: [], moderef: true },
+    { label: "Activity Reference", name: "activity_reference", type: "text", disabled: true, required: false, col: 24, value: activityDetail.document_number ?? "" },
+    { label: "Activity Type", name: "activity_type_id", type: "select", options: activityList, disabled: false, required: true, col: 8, value: activityDetail.activity_type_id ?? "" },
+    { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: false, required: true, col: 8, value: activityDetail.user_id ?? "", moderef: true},
+    { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: false, required: true, col: 8, value: activityDetail.dealer_id ?? "", moderef: true},
+    { label: "Crop", name: "crop_id_list", type: "select", mode: "multiple", options: cropList, disabled: false, required: true, col: 6, value: cropDetailList, moderef: true},
     { label: "Date", name: "document_date", type: "date", disabled: false, required: true, col: 6, value: dayjs().format("YYYY-MM-DD") },
-    { label: "Start Time", name: "time_start", type: "select", options:timeList, disabled: false, required: true, col: 6, value:""  },
-    { label: "End Time", name: "time_end", type: "select", options:timeList, disabled: false, required: true, col: 6, value: "" },
-    { label: "Location", name: "location_address", type: "location", disabled: true, required: false, col: 24, value: "", iconSrc: "/img/icons/location.png", iconPosition: "left" },
-    { label: "Description", name: "description", type: "text-editor", disabled: false, required: false, col: 24, placeholder: "Add description", value: "" },
-    { label: "Assign", name: "assing_user_list", type: "select", mode: "multiple", options: saleAllList, disabled: false, required: true, col: 24, value: [] },
+    { label: "Start Time", name: "time_start", type: "select", options:timeList, disabled: false, required: true, col: 6, value: activityDetail.time_start ?? "" },
+    { label: "End Time", name: "time_end", type: "select", options:timeList, disabled: false, required: true, col: 6, value: activityDetail.time_end ?? "" },
+    { label: "Location", name: "location_address", type: "location", disabled: true, required: false, col: 24, value: activityDetail.location_address ?? "", iconSrc: "/img/icons/location.png", iconPosition: "left" },
+    { label: "Description", name: "description", type: "text-editor", disabled: false, required: false, col: 24, placeholder: "Add description", value: activityDetail.description ?? "" },
+    { label: "Assign", name: "assing_user_list", type: "select", mode: "multiple", options: saleAllList, disabled: false, required: true, col: 24, value: assignList},
   ];
 
    // Master
@@ -118,9 +123,9 @@ export default function CreateActivity() {
           useServiceAPI.get(paths.pathMasterTime, {}),
           useServiceAPI.get(paths.pathMasterPerception, {}),
         ]);
-
         setActivityList(activityType.data);
         setSaleList(sale.data);
+
         setSaleAllList(saleAll.data);
         setTimeList(time.data);
         setPerceptionList(perception.data);
@@ -130,7 +135,97 @@ export default function CreateActivity() {
     };
 
     getMaster();
+
+    //เชคว่าเป็น mode edit หรือป่าว
+    if(documentNumber){
+      const getDetail = async () => {
+        setLoading(true);
+        try {
+          const [activityDetail] = await Promise.all([
+            useServiceAPI.get(paths.pathActivityExpenseDetail, {
+              'document_number': documentNumber,
+              'page_code': pageCode
+            }),
+          ]);
+
+          const activityDetailData = activityDetail.data;
+          setIsBtnExpenseActive(activityDetailData.is_expense);
+          setActivityDetail(activityDetailData);
+
+          //set crop list
+          let cropData = [];
+          await activityDetailData.crop_id_list.forEach(element => {
+            cropData.push(element.id);
+          });
+          setCropDetailList(cropData);
+
+          //set assign list
+          let assignData = [];
+          await activityDetailData.assing_user_list.forEach(element => {
+            assignData.push(element.id);
+          });
+          setAssignList(assignData);
+
+          //set images list
+          let imageList = [];
+          await activityDetailData.image_list.forEach((element, key) => {
+            imageList.push({
+              uid: key,
+              name: getFileNameWithExtension(element),
+              status: 'done',
+              url: element,
+            });
+          });
+          setFileList(imageList);
+
+          let participantData = [];
+          let count = 0;
+          await activityDetailData.expense_particapant_user_list.forEach((element, key) => {
+              count++;
+              const newKey = `sales-${count}`;
+              participantData.push({
+                id: element.id,
+                key: newKey,
+                no: count,
+                name: element.name,
+                position: element.position_name,
+                department: element.department_name,
+                territory: element.territory_name,
+                permission: element.permission_name,
+              });
+          });
+        
+          // เพิ่มเฉพาะข้อมูลใหม่เข้าไปใน participantList
+          setParticipants(participantData);
+
+          let productCropLists = [];
+          await activityDetailData.expense_product_data_list.forEach((element, key) => {
+            productCropLists.push({
+              key: (key + 1), 
+              productName: element.product_name, 
+              packSize: element.packing_list, 
+              estimateSale: element.estimate_sale_qty, 
+              actualSale: element.acutal_sale_qty, 
+              bath_ltkg: element.bath_ltkg, 
+              prodectCode: element.product_code,
+              productId: element.id
+            });
+          });
+          setProductCropList(productCropLists);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      getDetail();
+    }
   }, []);
+
+  // Function to extract the full filename
+  const getFileNameWithExtension = (url) => {
+    const parts = url.split('/');
+    return parts.pop(); // Get the last part of the URL
+  };
 
   const handleChange = (attribue, value) => {
     const getMasterSelect = async () => {
@@ -214,10 +309,10 @@ export default function CreateActivity() {
     <tr className="bg-[#978B87]">
       <td colSpan={2} className="text-left pr-2 text-white">Total (THB)</td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" value={calculateGrandTotal("estimateSale")} readOnly id="totalEstimateSale"/>
+        <Input placeholder="0" value={activityDetail?.expense_product_total_estimate_sale ?? calculateGrandTotal("estimateSale")} readOnly/>
       </td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" value={calculateGrandTotal("actualSale")} readOnly id="totalActualSale"/>
+        <Input placeholder="0" value={activityDetail?.expense_product_total_acutal_sale ?? calculateGrandTotal("actualSale")} readOnly/>
       </td>
     </tr>
   );
@@ -311,13 +406,14 @@ export default function CreateActivity() {
     //Form Basic Activity
     const allValuesBasic = formCustom.getFieldsValue();
     const pageCode = 'activity_transaction';
+    const actionCode = 'draft';
     //File Upload
     const imageLists = [];
     fileList.forEach(element => {
       imageLists.push(element.url);
     });
     //เปิด Expense หรือไม่?
-    const isExpense = isBtnExpenseActive || (mode == 'advance');
+    const isExpense = isBtnExpenseActive || (mode == 'expense_advance' || mode == 'expense_clearing');
     
     //ส่วนของ Sale Plan
     const expenseProductTotalEstimateSale = calculateGrandTotal("estimateSale");
@@ -363,6 +459,7 @@ export default function CreateActivity() {
 
     const body = {
         "page_code": pageCode,
+        "action_code": actionCode,
         ...allValuesBasic,
         "image_list": imageLists,
         "is_expense": isExpense,
@@ -389,7 +486,7 @@ export default function CreateActivity() {
     };
     
     useServiceAPI
-    .post(paths.pathActivityCreate, body, setLoading)
+    .post(paths.pathActivityExpenseCreate, body, setLoading)
     .then((response) => {
       if(response.result){
         navigate("/activity/list");
@@ -466,8 +563,8 @@ export default function CreateActivity() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Create Activity</div>
-        {mode !== 'advance' ? (
+        <div className="title-page">{documentNumber ? 'Edit Activity' : 'Create Activity'}</div>
+        {(mode !== 'expense_advance' || mode !== 'expense_clearing') ? (
           !isBtnExpenseActive ? 
           <ActionButton mode="create" text="Add Advance Expense" onClick={showLayoutExpense} />
           :
@@ -477,9 +574,9 @@ export default function CreateActivity() {
         {/* <ActionButton mode="hide" text="Add Advance Expense" onClick='' /> */}
       </div>
 
-      <FormCustom fields={formFields} form={formCustom} onChange={handleChange}/>
+      <FormCustom fields={formFields} form={formCustom} onChange={handleChange} mode={documentNumber ? 'edit' : 'create'}/>
 
-      {(isBtnExpenseActive || mode == 'advance') ? (
+      {(isBtnExpenseActive || (mode == 'expense_advance' || mode == 'expense_clearing')) ? (
         <>
           <div className="flex items-center justify-between">
             <div className="title-page">Advance Expense</div>
@@ -500,14 +597,14 @@ export default function CreateActivity() {
               layout="vertical"
               form={customerForm}
               initialValues={{
-                supportCustomerName: dealerCustomer.customer_name,
-                address: dealerCustomer.customer_address,
-                placeOfOwner: dealerCustomer.customer_place_of_owner,
-                phoneNumber: dealerCustomer.customer_phone_number,
-                perception: "Good",
-                location_customer_address: locationCustomer.address,
-                location_customer_latitude: locationCustomer.lat,
-                location_customer_longitude: locationCustomer.long
+                supportCustomerName: activityDetail?.expense_customer_name ?? dealerCustomer.customer_name,
+                address: activityDetail?.expense_customer_address ?? dealerCustomer.customer_address,
+                placeOfOwner: activityDetail?.expense_customer_place_of_owner ?? dealerCustomer.customer_place_of_owner,
+                phoneNumber: activityDetail?.expense_customer_phone_number ?? dealerCustomer.customer_phone_number,
+                perception: activityDetail?.expense_customer_perception_name ?? "Good",
+                location_customer_address: activityDetail?.expense_customer_location_address ?? locationCustomer.address,
+                location_customer_latitude: activityDetail?.expense_customer_location_latitude ?? locationCustomer.lat,
+                location_customer_longitude: activityDetail?.expense_customer_location_longitude ?? locationCustomer.long
               }}
             >
               <Row gutter={[16, 16]} className="mt-3">
@@ -633,8 +730,8 @@ export default function CreateActivity() {
               layout="vertical"
               form={expenseForm} // Use the new expenseForm instance here
               initialValues={{
-                actual_exp: "0",
-                actual_sale: "0"
+                actual_exp: activityDetail?.expense_expense_actual_exp ?? "0",
+                actual_sale: activityDetail?.expense_expense_actual_sale ?? "0"
               }}
             >
               <Row gutter={[16, 16]} className="mt-3">
@@ -671,18 +768,18 @@ export default function CreateActivity() {
               layout="vertical"
               form={participantForm}
               initialValues={{
-                estimate_participant: "0",
-                actual_participant: "0"
+                estimate_participant: activityDetail?.expense_participant_estimate ??"0",
+                actual_participant: activityDetail?.expense_particapant_actual ??"0"
               }}
             >
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item className="mb-3" label="Estimate Participant " name="actual_exp">
+                  <Form.Item className="mb-3" label="Estimate Participant " name="estimate_participant">
                     <Input placeholder="0" />
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item className="mb-3" label="Actual Participant" name="actual_sale">
+                  <Form.Item className="mb-3" label="Actual Participant" name="actual_participant">
                     <Input placeholder="0" />
                   </Form.Item>
                 </Col>

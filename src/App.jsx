@@ -107,12 +107,14 @@ const App = () => {
 
           {/* Rolling Rorecast Route */}
           <Route path="/sale-plan/rolling-forecast" element={<RollingForecast />} />
+          <Route path="/sale-plan/rolling-forecast-area" element={<RollingForecast />} />
+          <Route path="/sale-plan/rolling-forecast-sale" element={<RollingForecast />} />
           <Route path="/sale-plan/rolling-forecast/edit" element={<EditRollingForecast />} />
 
           {/* Activity Route */}
           <Route path="/activity/list" element={<ActivityList />} />
           <Route path="/activity/create" element={<CreateActivity />} />
-          <Route path="/activity/edit" element={<EditActivity />} />
+          <Route path="/activity/edit" element={<CreateActivity />} />
           <Route path="/activity/plan/list" element={<ActivityPlanList />} />
           <Route path="/activity/calendar" element={<ActivityCalendar />} />
           <Route path="/activity/mapping" element={<ActivityMapping />} />

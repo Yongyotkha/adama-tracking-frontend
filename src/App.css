@@ -115,3 +115,7 @@
   visibility: hidden;
   display: none !important;
 }
+
+.ant-popover-inner {
+  border-top: solid 10px #009845;
+}

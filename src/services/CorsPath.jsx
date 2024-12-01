@@ -113,12 +113,21 @@ export const paths = {
   pathWorkPlanSaleSubDealer: "/work-plan/sale/subdealer",
   pathWorkPlanSaleSubDealerList: "/work-plan/sale/subdealer/list",
 
+  //rolling-forecast
+  pathRollingForecast: "/rolling-forecast/sale/list",
+
   //Activity
   pathActivityList: "/activity/list",
   pathActivityCreate: "/activity/create",
   pathActivityDetail: "/activity/detail",
+
+  pathActivityExpenseCreate: "/activity-expense/create",
+  pathActivityExpenseDetail: "/activity-expense/detail",
+
   // Activity Calendar
   pathActivityCalendarList: "/activity/calendar/list",
+  // Activity Mapping
+  pathActivityMapList: "/activity/map/list",
   
   // Orders
   pathGetOrderList: "order/list",

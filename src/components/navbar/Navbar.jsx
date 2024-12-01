@@ -30,189 +30,205 @@ const Navbar = () => {
   const { userInfo, logout } = useContext(AuthContext);
 
   useEffect(() => {
-    if (userInfo.is_change_password || userInfo.is_otp) {
+    if (userInfo?.is_change_password || userInfo?.is_otp) {
       logout();
     }
   }, [userInfo]);
 
-  const menuItems = [
-    ...userInfo.menu_permissions.map((menu) => ({
-      label: menu.name,
-      icon: `/${menu.icon}`,
-      dropdownMenu: menu.dropdownItems.length > 0,
-      path: menu.url,
-      dropdownItems: menu.dropdownItems.map((item,index) => ({
-        key: index,
-        label: item.name,
-        path: item.url,
-      })),
-    })),
+  // const menuItems = [
+  //   ...userInfo?.menu_permissions.map((menu) => ({
+  //     label: menu.name,
+  //     icon: `/${menu.icon}`,
+  //     dropdownMenu: menu.dropdownItems.length > 0,
+  //     path: menu.url,
+  //     dropdownItems: menu?.dropdownItems?.map((item,index) => ({
+  //       key: index,
+  //       label: item.name,
+  //       path: item.url,
+  //     })),
+  //   })),
 
 
 
-    // {
-    //   label: "Dashboard",
-    //   icon: "/img/icons/dashboard.png",
-    //   dropdownMenu: false,
-    //   path: "/", // Navigates to Dashboard
-    // },
-    // {
-    //   label: "Sale Plan",
-    //   icon: "/img/icons/sale-plan.png",
-    //   dropdownMenu: true,
-    //   dropdownItems: [
-        // {
-        //   key: "1",
-        //   label: "Work Plan",
-        //   path: "sale-plan/work-plan",
-        // },
-        // {
-        //   key: "2",
-        //   label: "Work Plan (Area)",
-        //   path: "sale-plan/work-plan-area",
-        // },
-        // {
-        //   key: "3",
-        //   label: "Work Plan (Sale)",
-        //   path: "sale-plan/work-plan-sale",
-        // },
-    //     {
-    //       key: "4",
-    //       label: "Rolling Forecast",
-    //       path: "sale-plan/rolling-forecast",
-    //     },
-    //     {
-    //       key: "5",
-    //       label: "Quarter",
-    //       path: "sale-plan/quarter",
-    //     },
-    //   ],
-    // },
-    // {
-    //   label: "Activity",
-    //   icon: "/img/icons/activity.png",
-    //   path: "activity",
-    //   dropdownMenu: true,
-    //   dropdownItems: [
-    //     {
-    //       key: "1",
-    //       label: "Activity Plan",
-    //       path: "activity/plan/list",
-    //     },
-    //     {
-    //       key: "2",
-    //       label: "Calendar",
-    //       path: "activity/calendar",
-    //     },
-    //     {
-    //       key: "3",
-    //       label: "Activity List",
-    //       path: "activity/list",
-    //     },
-    //     {
-    //       key: "4",
-    //       label: "Mapping",
-    //       path: "activity/mapping",
-    //     },
-    //   ],
-    // },
-    // {
-    //   label: "Order",
-    //   icon: "/img/icons/activity.png",
-    //   path: "order",
-    //   dropdownMenu: true,
-    //   dropdownItems: [
-    //     {
-    //       key: "1",
-    //       label: "Order List",
-    //       path: "order/list",
-    //     },
-    //     {
-    //       key: "2",
-    //       label: "Order Waiting List",
-    //       path: "order-waiting/list",
-    //     },
-    //   ],
-    // },
-    // {
-    //   label: "Expenses",
-    //   icon: "/img/icons/expenses.png",
-    //   path: "expenses",
-    //   dropdownMenu: true,
-    //   dropdownItems: [
-    //     {
-    //       key: "1",
-    //       label: "Advance",
-    //       path: "expenses/advance",
-    //     },
-    //     {
-    //       key: "2",
-    //       label: "Clearing",
-    //       path: "expenses/clearing",
-    //     },
-    //     {
-    //       key: "3",
-    //       label: "Traveling",
-    //       path: "expenses/traveling",
-    //     },
-    //     {
-    //       key: "4",
-    //       label: "Material",
-    //       path: "expenses/material",
-    //     },
-    //     {
-    //       key: "5",
-    //       label: "Simple",
-    //       path: "expenses/simple",
-    //     },
-    //     {
-    //       key: "6",
-    //       label: "Product Claim",
-    //       path: "expenses/product-claim",
-    //     },
-    //   ],
-    // },
-    // {
-    //   label: "Customer",
-    //   icon: "/img/icons/customer.png",
-    //   dropdownMenu: true,
-    //   dropdownItems: [
-    //     {
-    //       key: "1",
-    //       label: "Dealer",
-    //       path: "customer/dealer",
-    //     },
-    //     {
-    //       key: "2",
-    //       label: "Sub Dealer",
-    //       path: "customer/sub-dealer",
-    //     },
-    //   ],
-    // },
-    // {
-    //   label: "Report",
-    //   icon: "/img/icons/report.png",
-    //   dropdownMenu: true,
-    //   dropdownItems: [
-    //     { key: "1", label: "Monthly Report", path: "report/monthly" },
-    //     { key: "2", label: "Quarterly Report", path: "report/quarterly" },
-    //     { key: "3", label: "Yearly Report", path: "report/yearly" },
-    //   ],
-    // },
-    // {
-    //   label: "Setting",
-    //   icon: "/img/icons/setting.png",
-    //   dropdownMenu: true,
-    //   dropdownItems: [
-    //     { key: "1", label: "Manage Roles", path: "setting/role" },
-    //     { key: "2", label: "Manage Users", path: "setting/user" },
-    //     { key: "3", label: "Sale Management", path: "setting/sale" },
-    //     { key: "4", label: "Product Management", path: "setting/product" },
-    //     { key: "5", label: "Promotion Management", path: "setting/promotion" },
-    //   ],
-    // },
-  ];
+  //   // {
+  //   //   label: "Dashboard",
+  //   //   icon: "/img/icons/dashboard.png",
+  //   //   dropdownMenu: false,
+  //   //   path: "/", // Navigates to Dashboard
+  //   // },
+  //   // {
+  //   //   label: "Sale Plan",
+  //   //   icon: "/img/icons/sale-plan.png",
+  //   //   dropdownMenu: true,
+  //   //   dropdownItems: [
+  //       // {
+  //       //   key: "1",
+  //       //   label: "Work Plan",
+  //       //   path: "sale-plan/work-plan",
+  //       // },
+  //       // {
+  //       //   key: "2",
+  //       //   label: "Work Plan (Area)",
+  //       //   path: "sale-plan/work-plan-area",
+  //       // },
+  //       // {
+  //       //   key: "3",
+  //       //   label: "Work Plan (Sale)",
+  //       //   path: "sale-plan/work-plan-sale",
+  //       // },
+  //   //     {
+  //   //       key: "4",
+  //   //       label: "Rolling Forecast",
+  //   //       path: "sale-plan/rolling-forecast",
+  //   //     },
+  //   //     {
+  //   //       key: "5",
+  //   //       label: "Quarter",
+  //   //       path: "sale-plan/quarter",
+  //   //     },
+  //   //   ],
+  //   // },
+  //   // {
+  //   //   label: "Activity",
+  //   //   icon: "/img/icons/activity.png",
+  //   //   path: "activity",
+  //   //   dropdownMenu: true,
+  //   //   dropdownItems: [
+  //   //     {
+  //   //       key: "1",
+  //   //       label: "Activity Plan",
+  //   //       path: "activity/plan/list",
+  //   //     },
+  //   //     {
+  //   //       key: "2",
+  //   //       label: "Calendar",
+  //   //       path: "activity/calendar",
+  //   //     },
+  //   //     {
+  //   //       key: "3",
+  //   //       label: "Activity List",
+  //   //       path: "activity/list",
+  //   //     },
+  //   //     {
+  //   //       key: "4",
+  //   //       label: "Mapping",
+  //   //       path: "activity/mapping",
+  //   //     },
+  //   //   ],
+  //   // },
+  //   // {
+  //   //   label: "Order",
+  //   //   icon: "/img/icons/activity.png",
+  //   //   path: "order",
+  //   //   dropdownMenu: true,
+  //   //   dropdownItems: [
+  //   //     {
+  //   //       key: "1",
+  //   //       label: "Order List",
+  //   //       path: "order/list",
+  //   //     },
+  //   //     {
+  //   //       key: "2",
+  //   //       label: "Order Waiting List",
+  //   //       path: "order-waiting/list",
+  //   //     },
+  //   //   ],
+  //   // },
+  //   // {
+  //   //   label: "Expenses",
+  //   //   icon: "/img/icons/expenses.png",
+  //   //   path: "expenses",
+  //   //   dropdownMenu: true,
+  //   //   dropdownItems: [
+  //   //     {
+  //   //       key: "1",
+  //   //       label: "Advance",
+  //   //       path: "expenses/advance",
+  //   //     },
+  //   //     {
+  //   //       key: "2",
+  //   //       label: "Clearing",
+  //   //       path: "expenses/clearing",
+  //   //     },
+  //   //     {
+  //   //       key: "3",
+  //   //       label: "Traveling",
+  //   //       path: "expenses/traveling",
+  //   //     },
+  //   //     {
+  //   //       key: "4",
+  //   //       label: "Material",
+  //   //       path: "expenses/material",
+  //   //     },
+  //   //     {
+  //   //       key: "5",
+  //   //       label: "Simple",
+  //   //       path: "expenses/simple",
+  //   //     },
+  //   //     {
+  //   //       key: "6",
+  //   //       label: "Product Claim",
+  //   //       path: "expenses/product-claim",
+  //   //     },
+  //   //   ],
+  //   // },
+  //   // {
+  //   //   label: "Customer",
+  //   //   icon: "/img/icons/customer.png",
+  //   //   dropdownMenu: true,
+  //   //   dropdownItems: [
+  //   //     {
+  //   //       key: "1",
+  //   //       label: "Dealer",
+  //   //       path: "customer/dealer",
+  //   //     },
+  //   //     {
+  //   //       key: "2",
+  //   //       label: "Sub Dealer",
+  //   //       path: "customer/sub-dealer",
+  //   //     },
+  //   //   ],
+  //   // },
+  //   // {
+  //   //   label: "Report",
+  //   //   icon: "/img/icons/report.png",
+  //   //   dropdownMenu: true,
+  //   //   dropdownItems: [
+  //   //     { key: "1", label: "Monthly Report", path: "report/monthly" },
+  //   //     { key: "2", label: "Quarterly Report", path: "report/quarterly" },
+  //   //     { key: "3", label: "Yearly Report", path: "report/yearly" },
+  //   //   ],
+  //   // },
+  //   // {
+  //   //   label: "Setting",
+  //   //   icon: "/img/icons/setting.png",
+  //   //   dropdownMenu: true,
+  //   //   dropdownItems: [
+  //   //     { key: "1", label: "Manage Roles", path: "setting/role" },
+  //   //     { key: "2", label: "Manage Users", path: "setting/user" },
+  //   //     { key: "3", label: "Sale Management", path: "setting/sale" },
+  //   //     { key: "4", label: "Product Management", path: "setting/product" },
+  //   //     { key: "5", label: "Promotion Management", path: "setting/promotion" },
+  //   //   ],
+  //   // },
+  // ];
 
+
+  const menuItems = userInfo?.menu_permissions?.map((menu) => ({
+    label: menu.name,
+    icon: `/${menu.icon}`,
+    dropdownMenu: menu.dropdownItems?.length > 0,
+    path: menu.url,
+    dropdownItems: menu.dropdownItems
+      ? menu.dropdownItems.map((item, index) => ({
+          key: index,
+          label: item.name,
+          path: item.url,
+        }))
+      : [], // ใช้ [] หากไม่มี dropdownItems
+  })) || [];
+
+  
   const CustomDropdownMenu = ({ items }) => {
     return (
       <Menu
