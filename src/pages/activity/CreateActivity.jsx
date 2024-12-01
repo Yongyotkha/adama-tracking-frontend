@@ -448,7 +448,7 @@ export default function CreateActivity() {
     formCustom.validateFields();
     //Form Basic Activity
     const allValuesBasic = formCustom.getFieldsValue();
-    const pageCode = 'activity_transaction';
+    const pageCode = mode ?? 'activity_transaction';
     const actionCode = 'draft';
     //File Upload
     const imageLists = [];
@@ -616,11 +616,12 @@ export default function CreateActivity() {
 
   };
 
+  const menuTitle = (mode == 'expense_advance' ? 'Advance Expense' : (mode == 'expense_clearing' ? ' Clearing Expense' : 'Activity'));
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">{documentNumber ? 'Edit Activity' : 'Create Activity'}</div>
-        {(mode !== 'expense_advance' || mode !== 'expense_clearing') ? (
+        <div className="title-page">{documentNumber ? 'Edit' + ' ' + menuTitle : 'Create' + ' ' + menuTitle}</div>
+        {(mode != 'expense_advance' && mode != 'expense_clearing') ? (
           !isBtnExpenseActive ? 
           <ActionButton mode="create" text="Add Advance Expense" onClick={showLayoutExpense} />
           :

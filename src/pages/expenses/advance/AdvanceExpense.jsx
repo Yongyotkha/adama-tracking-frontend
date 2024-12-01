@@ -8,10 +8,22 @@ import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
 import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
 
 export default function AdvanceExpense() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [tableParams, setTableParams] = useState({
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+    filters: {},
+    sortOrder: null,
+    sortField: null,
+  });
 
   const navigate = useNavigate();
 
@@ -71,60 +83,107 @@ export default function AdvanceExpense() {
     { title: "Action", dataIndex: "action", align: "center" },
   ];
 
-  const actionItems = [
-    { key: "1", label: <ItemDropDown mode="edit" link="/expenses/advance/edit" /> },
-    { key: "2", label: <ItemDropDown mode="view" link="/expenses/advance/view" /> },
-    { key: "3", label: <ItemDropDown mode="delete" link="#" /> },
-  ];
+  const fetchData = async () => {
+    setTableLoading(true);
+    const { current, pageSize } = tableParams.pagination;
+    const filters = tableParams.filters || {};
 
+    const sortOrder = tableParams.sortOrder || "desc";
+    const sortField = tableParams.sortField || "document_number";
+
+    const requestData = {
+      page_code:"expense_advance",
+      keyword: filters.keyword || "",
+      use_flag : "1",
+      user_id : "",
+      dealer_id : "",
+      activity_type_id : "",
+      document_number_referrent :"",
+      customer_name :"",
+      page: "all",
+      orderby_column: sortField,
+      orderby: sortOrder,
+      page_length: current,
+      page_size: pageSize,
+    };
+
+    try {
+      const response = await useServiceAPI.get(
+        paths.pathActivityExpenseList,
+        requestData
+      );
+
+      if (response.status === 200) {
+        const { data, records_filtered } = response.data;
+        
+        const newDataSource = data.map((row, index) => {
+          const actionItems = [
+            { key: "1", label: <ItemDropDown mode="edit" link="/expenses/advance/edit" /> },
+            { key: "2", label: <ItemDropDown mode="view" link="/expenses/advance/view" /> },
+            { key: "3", label: <ItemDropDown mode="delete" link="#" /> },
+          ];
+        
+          return {
+            key: index + 1 + (current - 1) * pageSize,
+            customer: row.customer_name,
+            expenseNo: row.customer_name,
+            activityReference: row.document_number,
+            typeOfMeeting: "FMT",
+            date: row.document_date,
+            status: <BadgeStatus text={row.status_name} bgColor={row.status_bg_color} textColor={row.status_color} />,
+            action: (
+              <Dropdown menu={{ items: actionItems }} placement="bottom">
+                <a onClick={(e) => e.preventDefault()}>
+                  <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+                </a>
+              </Dropdown>
+            ),
+          };
+        });
+        
+
+        setDataSource(newDataSource);
+        console.log(newDataSource);
+        
+        setTableParams({
+          ...tableParams,
+          pagination: {
+            ...tableParams.pagination,
+            total: records_filtered,
+          },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTableLoading(false);
+    }
+  };
+  
   useEffect(() => {
-    const dataSource = [
-      {
-        key: 1,
-        customer: "Chaifar",
-        expenseNo: "20240002",
-        activityReference: "2024000000000001",
-        typeOfMeeting: "FMT",
-        date: "2024-01-01",
-        status: <BadgeStatus text="Convert" bgColor="#00A0DF" textColor="#FFFFFF" />,
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 2,
-        customer: "Chaifar",
-        expenseNo: "20240001",
-        activityReference: "2024000000000002",
-        typeOfMeeting: "FMT",
-        date: "2024-01-01",
-        status: <BadgeStatus text="Convert" bgColor="#00A0DF" textColor="#FFFFFF" />,
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      },
-    ];
-
-    setDataSource(dataSource);
-  }, []);
+    fetchData();
+  }, [
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    tableParams.sortOrder,
+    tableParams.sortField,
+    JSON.stringify(tableParams.filters),
+  ]);
 
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Advance Expense</div>
-        <ActionButton mode="create" text="Create" onClick={() => navigate("/expenses/advance/create")} />
+        <ActionButton mode="create" text="Create" onClick={(e) => navigate("/activity/create?mode=expense_advance")} />
       </div>
       <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
       <BoxPrimary>
-        <TableComponent header={header} dataSource={dataSource} />
+      <TableComponent 
+        header={header}
+        dataSource={dataSource}
+        pagination={tableParams.pagination}
+        loading={tableLoading}
+      />
       </BoxPrimary>
     </MainLayout>
   );

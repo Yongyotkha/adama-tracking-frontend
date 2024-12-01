@@ -147,4 +147,7 @@ export const paths = {
   pathGetExpenseTravelingCreate: "expense/traveling/detail",
   pathGetExpenseTravelingUpdate: "expense/traveling/detail",
 
+  //Expense Activity
+  pathActivityExpenseList: "activity-expense/list",
+
 };
