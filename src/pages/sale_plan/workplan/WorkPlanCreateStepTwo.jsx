@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import { Input, InputNumber, Table } from "antd";
+import { Input, InputNumber, Table, Modal } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import TableCustomComponent from "../../../components/table/TableCustomComponent";
@@ -18,67 +18,9 @@ export default function WorkPlanCreateStepTwo() {
   const [areas, setAreas] = useState([]);
   const [permission, setPermission] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
-  const { showNotification } = useContext(AuthContext);
+  const { showNotification, showConfirm ,formatNumber } = useContext(AuthContext);
   const [localQtyState, setLocalQtyState] = useState({});
   const [yearName, setYearName] = useState([]);
-
-  const handleQtyChange = (area_id, product_id, newQty, unitConvertValue) => {
-    setLocalQtyState((prevState) => {
-      const updatedState = {
-        ...prevState,
-        [area_id]: {
-          ...(prevState[area_id] || {}),
-          [product_id]: newQty,
-        },
-      };
-
-      // ตรวจสอบว่า qty รวมของ product_id นี้ไม่เกิน dataSource.qty
-      const totalQty = Object.keys(updatedState)
-        .map((key) => updatedState[key][product_id] || 0)
-        .reduce((sum, qty) => sum + qty, 0);
-
-      const productData = dataSource.find(
-        (data) => data.product_id === product_id
-      );
-      if (totalQty > (productData?.qty || 0)) {
-        showNotification(
-          "error",
-          `Total quantity for ${productData.product_name} exceeds the limit.`
-        );
-        return prevState; // ไม่อัปเดต state ถ้าเกิน
-      }
-
-      // อัปเดต areas value (คำนวณ qty * unitConvertValue) และ sum value
-      const updatedAreas = areas.map((area) => {
-        if (area.area_id === area_id) {
-          const updatedDataItems = area.data_items.map((item) => {
-            if (item.product_id === product_id) {
-              return {
-                ...item,
-                qty: newQty,
-                value: (newQty * unitConvertValue).toFixed(2), // คำนวณ value
-              };
-            }
-            return item;
-          });
-
-          const totalValue = updatedDataItems
-            .reduce((sum, item) => sum + parseFloat(item.value || 0), 0)
-            .toFixed(2);
-
-          return {
-            ...area,
-            data_items: updatedDataItems,
-            amount_target: totalValue, // อัปเดต amount_target
-          };
-        }
-        return area;
-      });
-
-      setAreas(updatedAreas); // อัปเดต areas
-      return updatedState; // อัปเดต localQtyState
-    });
-  };
 
   useEffect(() => {
     useServiceAPI
@@ -364,40 +306,117 @@ export default function WorkPlanCreateStepTwo() {
 
   const columns = applyTopLevelAndSpecificChildrenStyles(baseColumns);
 
-  const handleSave = (mode) => {
-    useServiceAPI
-      .post(
-        paths.pathWorkPlanStep2,
-        {
-          year_code: location?.state?.year_code,
-          action_code: mode,
-          data_areas: areas,
+  const handleQtyChange = (area_id, product_id, newQty, unitConvertValue) => {
+    setLocalQtyState((prevState) => {
+      const updatedState = {
+        ...prevState,
+        [area_id]: {
+          ...(prevState[area_id] || {}),
+          [product_id]: newQty,
         },
-        setLoading
-      )
-      .then((response) => {
-        if (response.status === 200) {
-          showNotification(
-            "success",
-            response.data.message,
-            response.data.message_line
-          ).then(() => {
-            navigate("/sale-plan/work-plan", {
-              state: {
-                year_code: location?.state?.year_code,
-              },
-            });
+      };
+
+      // // ตรวจสอบว่า qty รวมของ product_id นี้ไม่เกิน dataSource.qty
+      // const totalQty = Object.keys(updatedState)
+      //   .map((key) => updatedState[key][product_id] || 0)
+      //   .reduce((sum, qty) => sum + qty, 0);
+
+      // const productData = dataSource.find(
+      //   (data) => data.product_id === product_id
+      // );
+      // if (totalQty > (productData?.qty || 0)) {
+      //   showNotification(
+      //     "error",
+      //     `Total quantity for ${productData.product_name} exceeds the limit.`
+      //   );
+      //   return prevState; // ไม่อัปเดต state ถ้าเกิน
+      // }
+
+      // อัปเดต areas value (คำนวณ qty * unitConvertValue) และ sum value
+      const updatedAreas = areas.map((area) => {
+        if (area.area_id === area_id) {
+          const updatedDataItems = area.data_items.map((item) => {
+            if (item.product_id === product_id) {
+              return {
+                ...item,
+                qty: newQty,
+                value: (newQty * unitConvertValue).toFixed(2), // คำนวณ value
+              };
+            }
+            return item;
           });
+
+          const totalValue = updatedDataItems
+            .reduce((sum, item) => sum + parseFloat(item.value || 0), 0)
+            .toFixed(2);
+
+          return {
+            ...area,
+            data_items: updatedDataItems,
+            amount_target: totalValue, // อัปเดต amount_target
+          };
         }
-      })
-      .catch((error) => {
-        console.log(error);
-        if (error.status === 422) {
-          showNotification("error", error.message);
-        } else {
-          showNotification("error", "เกิดข้อผิดพลาด");
-        }
+        return area;
       });
+
+      setAreas(updatedAreas); // อัปเดต areas
+      return updatedState; // อัปเดต localQtyState
+    });
+  };
+
+  const handleSave = async (mode) => {
+    // setLoading(true); // เริ่มโหลดข้อมูล
+
+    const totalAmountTarget = areas.reduce((sum, area) => {
+      return sum + parseFloat(area.amount_target || 0);
+    }, 0);
+
+    showConfirm("Work Plan is less than Original Plan", [
+      `Original Plan: ฿ ${formatNumber(totalValue)}`,
+      `Current Total: ฿ ${formatNumber(totalAmountTarget)}`,
+      `Difference: ฿ ${formatNumber(totalValue - totalAmountTarget)}`,
+    ]);
+
+    // try {
+    //   await useServiceAPI
+    //     .post(
+    //       paths.pathWorkPlanStep2,
+    //       {
+    //         year_code: location?.state?.year_code,
+    //         action_code: mode,
+    //         data_areas: areas,
+    //       },
+    //       setLoading
+    //     )
+    //     .then((response) => {
+    //       if (response.status === 200) {
+    //         showNotification(
+    //           "success",
+    //           response.data.message,
+    //           response.data.message_line
+    //         ).then(() => {
+    //           navigate("/sale-plan/work-plan", {
+    //             state: {
+    //               year_code: location?.state?.year_code,
+    //             },
+    //           });
+    //         });
+    //       }
+    //     })
+    //     .catch((error) => {
+    //       console.log(error);
+    //       if (error.status === 422) {
+    //         showNotification("error", error.message);
+    //       } else {
+    //         showNotification("error", "เกิดข้อผิดพลาด");
+    //       }
+    //     });
+    // } catch (error) {
+    //   console.error("Unexpected error:", error);
+    //   showNotification("error", "เกิดข้อผิดพลาดที่ไม่คาดคิด");
+    // } finally {
+    //   setLoading(false); // หยุดโหลดข้อมูลไม่ว่าจะสำเร็จหรือผิดพลาด
+    // }
   };
 
   return (

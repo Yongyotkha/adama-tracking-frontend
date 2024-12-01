@@ -48,22 +48,25 @@ export default function RollingForecastQuarter() {
           const initialQtyState = response.data.quarter_items.reduce(
             (acc, quarter) => {
               acc[quarter.quarter_id] = {
+                total_value: quarter.amount_target,
                 months: quarter.data_items.reduce((monthAcc, month) => {
                   monthAcc[month.month_id] = {
-                    products: month.workplan_data_items.reduce(
+                    total_value:month.rollingforecast_amount_target,
+                    products: month.rollingforecast_data_items.reduce(
                       (productAcc, product) => {
                         productAcc[product.product_id] = {
-                          qty: parseFloat(product.qty || 0),
-                          value: parseFloat(product.value || 0),
-                          rolling_qty: parseFloat(product.rolling_qty || 0),
-                          rolling_value: parseFloat(product.rolling_value || 0),
-                          actual_qty: parseFloat(product.actual_qty || 0),
-                          actual_value: parseFloat(product.actual_value || 0),
+                          // qty: parseFloat(product.qty || 0),
+                          // value: parseFloat(product.value || 0),
+                          rolling_qty: parseFloat(product.qty || 0),
+                          rolling_value: parseFloat(product.value || 0),
+                          // actual_qty: parseFloat(product.actual_qty || 0),
+                          // actual_value: parseFloat(product.actual_value || 0),
                         };
                         return productAcc;
                       },
                       {}
                     ),
+                  
                   };
                   return monthAcc;
                 }, {}),
@@ -419,6 +422,7 @@ export default function RollingForecastQuarter() {
         return { ...item, data_items: updatedMonths };
       });
 
+      console.log(localQtyState);
       const found = updatedQuarterData.some((quarter) => {
         const matchingItem = quarter.data_items.find(
           (item) => item.month_id === month.id
@@ -428,9 +432,10 @@ export default function RollingForecastQuarter() {
           console.log("Matching item found:", matchingItem);
 
           if (
-            matchingItem.workplan_amount_target >
-            matchingItem.rollingforecast_amount_target
+            Number(matchingItem.workplan_amount_target).toFixed(2) >
+            Number(matchingItem.rollingforecast_amount_target).toFixed(2) 
           ) {
+            
             showNotification(
               "warning",
               "Rollingforecast is less than Original Plan",

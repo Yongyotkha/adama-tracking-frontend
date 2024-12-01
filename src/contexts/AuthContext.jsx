@@ -10,22 +10,24 @@ import React, {
 
 import { endPoint, paths } from "../services/CorsPath.jsx";
 import { axiosInstance } from "../services/CorsService.jsx";
-import { message, notification } from "antd";
+import { message, notification ,Modal } from "antd";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
-
   const [messageApi, contextHolder] = message.useMessage(); // เพิ่ม messageApi
   const [api, contextNotiHolder] = notification.useNotification();
-
   const [isLoggedIn, setIsLoggedIn] = useState(
     localStorage.getItem("users") ? true : false
   );
   const [userInfo, setUserInfo] = useState(
     JSON.parse(localStorage.getItem("users"))
   );
+
+  const { confirm } = Modal;
+
 
   let loading = false;
 
@@ -70,7 +72,7 @@ export const AuthProvider = ({ children }) => {
     const storedToken = localStorage.getItem("accessToken");
     if (storedUser && storedToken) {
       const userInfo = JSON.parse(storedUser);
-    
+
       setUserInfo(userInfo);
       setIsLoggedIn(true);
     } else {
@@ -125,9 +127,33 @@ export const AuthProvider = ({ children }) => {
 
   const formatNumber = (number) => {
     if (isNaN(number) || number == null) return "0.00";
-    return number.toLocaleString("en-US", {
+    return Number(number).toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
+    });
+  };
+
+  const showConfirm = (title, line, onOk) => {
+    const description = Array.isArray(line)
+      ? line.map((text) => `<span>${text}</span>`).join("<br>") // ใช้ HTML <br> เพื่อเว้นบรรทัด
+      : line;
+
+    confirm({
+      title: title,
+      icon: <ExclamationCircleFilled />,
+      content: <div dangerouslySetInnerHTML={{ __html: description }} />,
+      // content: (
+      //   <>
+      //     <p>Work Plan is less than Original Plan</p>
+      //     <p>Original Plan: {Number(totalValue).toFixed(2)}</p>
+      //     <p>Current Total: {Number(totalAmountTarget).toFixed(2)}</p>
+      //     <p>Difference: {Number(totalValue - totalAmountTarget).toFixed(2)}</p>
+      //   </>
+      // ),
+      centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+      onOk() {
+        onOk;
+      },
     });
   };
 
@@ -141,6 +167,7 @@ export const AuthProvider = ({ children }) => {
         showMsg,
         showNotification,
         formatNumber,
+        showConfirm,
       }}
     >
       {contextHolder}
