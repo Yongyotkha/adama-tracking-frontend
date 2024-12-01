@@ -163,26 +163,41 @@ export default function ViewOrderWaiting() {
     },
   ];
 
-  const footerOrderList = (currentData) => (
-    <tr className="bg-[#978B87]">
-      <td colSpan={8} className="text-right pr-2 text-white">
-        Item : {dataSource.length} &nbsp;&nbsp; QTY (ctn):{" "}
-        {dataSource.reduce(
-          (total, item) => total + parseFloat(item.quantity.replace(/,/g, "")),
-          0
-        )}{" "}
-        &nbsp;&nbsp; Total :{" "}
-        {dataSource
-          .reduce(
-            (total, item) =>
-              total + parseFloat(item.net_amount.replace(/,/g, "")),
-            0
-          )
-          .toLocaleString("en-US", { minimumFractionDigits: 2 })}
-      </td>
-    </tr>
-  );
+  // const footerOrderList = (currentData) => (
+  //   <tr className="bg-[#978B87]">
+  //     <td colSpan={8} className="text-right pr-2 text-white">
+  //       Item : {dataSource.length} &nbsp;&nbsp; QTY (ctn):{" "}
+  //       {dataSource.reduce(
+  //         (total, item) => total + parseFloat(item.quantity.replace(/,/g, "")),
+  //         0
+  //       )}{" "}
+  //       &nbsp;&nbsp; Total :{" "}
+  //       {dataSource
+  //         .reduce(
+  //           (total, item) =>
+  //             total + parseFloat(item.net_amount.replace(/,/g, "")),
+  //           0
+  //         )
+  //         .toLocaleString("en-US", { minimumFractionDigits: 2 })}
+  //     </td>
+  //   </tr>
+  // );
 
+  const footerOrderList = () => {
+    const totalQuantity = dataSource.reduce((total, item) => total + parseFloat(item.quantity), 0);
+    const totalFOC = dataSource.reduce((total, item) => total + parseFloat(item.foc), 0);
+    const totalAmount = dataSource.reduce((total, item) => total + parseFloat(item.net_amount || 0), 0);
+
+    return (
+      <tr className="bg-[#978B87]">
+        <td colSpan={9} className="text-right pr-2 text-white">
+          Item: {dataSource.length} &nbsp; QTY (ctn): {totalQuantity}+{totalFOC} &nbsp;
+          Total: {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+        </td>
+      </tr>
+    );
+  };
+  
   const footerOther = () => (
     <tr className="bg-[#978B87]">
       <td colSpan={5} className="text-right pr-2 text-white">

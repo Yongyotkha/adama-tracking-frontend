@@ -27,7 +27,7 @@ export default function CreatePromotion() {
     { label: "Description ", 
       name: "description", 
       type: "text", 
-      required: true, 
+      required: false, 
       col: 12, 
     },
     { 
@@ -61,7 +61,7 @@ export default function CreatePromotion() {
       label: "Remark", 
       name: "remark", 
       type: "text", 
-      required: true, 
+      required: false, 
       col: 6, 
     },
   ];

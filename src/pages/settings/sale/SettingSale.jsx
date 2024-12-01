@@ -141,17 +141,49 @@ export default function SettingSale() {
             />
           ),
           
+          // action: (
+          //   <Dropdown menu={{ items: actionItems(data.id) }} placement="bottom">
+          //     <a onClick={(e) => e.preventDefault()}>
+          //       <img
+          //         src="/img/icons/action.png"
+          //         alt="Actions icon"
+          //         className="inline-block w-5 h-5"
+          //       />
+          //     </a>
+          //   </Dropdown>
+          // ),
           action: (
-            <Dropdown menu={{ items: actionItems(data.id) }} placement="bottom">
+            <Dropdown
+              menu={{
+                items: data.action.map((actionItem, actionIndex) => ({
+                  key: actionIndex,
+                  label: (
+                    <ItemDropDown mode={actionItem.action.toLowerCase()} 
+                    onClick={() => {
+                      navigate("/setting/sale/edit/", {
+                        state: {
+                          id: data.id,
+                        },
+                      });
+                    }}
+                    
+                    
+                    />
+                  ),
+                })),
+              }}
+              placement="bottom"
+            >
               <a onClick={(e) => e.preventDefault()}>
                 <img
                   src="/img/icons/action.png"
-                  alt="Actions icon"
-                  className="inline-block w-5 h-5"
+                  alt="button icon"
+                  className="inline-block w-5 h-5 mr-2"
                 />
               </a>
             </Dropdown>
-          ),
+          ),          
+
           
         }));
 
