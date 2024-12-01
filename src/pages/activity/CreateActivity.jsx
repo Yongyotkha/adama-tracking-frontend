@@ -96,7 +96,7 @@ export default function CreateActivity() {
   };
 
   const formFields = [
-    { label: "Activity Reference", name: "activity_reference", type: "text", disabled: true, required: false, col: 24, value: activityDetail.document_number ?? "" },
+    { label: "Activity Reference", name: "document_number", type: "text", disabled: true, required: false, col: 24, value: activityDetail.document_number ?? "" },
     { label: "Activity Type", name: "activity_type_id", type: "select", options: activityList, disabled: false, required: true, col: 8, value: activityDetail.activity_type_id ?? "" },
     { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: false, required: true, col: 8, value: activityDetail.user_id ?? "", moderef: true},
     { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: false, required: true, col: 8, value: activityDetail.dealer_id ?? "", moderef: true},
@@ -231,6 +231,7 @@ export default function CreateActivity() {
     const getMasterSelect = async () => {
       try {
         if(attribue == 'user_id'){
+          activityDetail.user_id = value;
           const [dealer] = await Promise.all([
             useServiceAPI.get(paths.pathMasterDealerDropdown, {
               user_id: value
@@ -238,6 +239,7 @@ export default function CreateActivity() {
           ]);
           setDealerList(dealer.data);
         }else if(attribue == 'dealer_id'){
+          activityDetail.dealer_id = value;
           const [crop, dealerCustomerData] = await Promise.all([
             useServiceAPI.get(paths.pathMasterCrop, {
               dealer_id: value
@@ -249,6 +251,7 @@ export default function CreateActivity() {
           setCropList(crop.data);
           setDealerCustomer(dealerCustomerData.data);
         }else if(attribue == 'crop_id_list'){
+          setCropDetailList(value);
           const [productCrop] = await Promise.all([
             useServiceAPI.get(paths.pathMasterProductByCrop, {
               crop_list: value
@@ -401,7 +404,7 @@ export default function CreateActivity() {
   };
 
   //บันทึกข้อมูล
-  const handleSave = () => {
+  const handleSave = async () => {
     formCustom.validateFields();
     //Form Basic Activity
     const allValuesBasic = formCustom.getFieldsValue();
@@ -485,16 +488,29 @@ export default function CreateActivity() {
         "expense_particapant_user_list": expenseParticapantUserList
     };
     
-    useServiceAPI
-    .post(paths.pathActivityExpenseCreate, body, setLoading)
-    .then((response) => {
-      if(response.result){
-        navigate("/activity/list");
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+    if(documentNumber){
+      useServiceAPI
+      .put(paths.pathActivityExpenseDetail, body, setLoading)
+      .then((response) => {
+        if(response.result){
+          navigate("/activity/list");
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    }else{
+      useServiceAPI
+      .post(paths.pathActivityExpenseCreate, body, setLoading)
+      .then((response) => {
+        if(response.result){
+          navigate("/activity/list");
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    }
   };
 
   const showLayoutExpense = () => {

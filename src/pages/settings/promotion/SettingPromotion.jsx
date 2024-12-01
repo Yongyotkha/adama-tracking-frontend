@@ -32,8 +32,12 @@ export default function SettingPromotion() {
     { title: "Name", width: 200, dataIndex: "name", align: "left" },
     { title: "Description", width: 300, dataIndex: "description", align: "left" },
     { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
+    { title: "unit", width: 100, dataIndex: "unit", align: "right" },
+
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
+
+    
   ];
 
   const actionItems = [
@@ -366,6 +370,7 @@ export default function SettingPromotion() {
           ),
           name: promotion.name,
           description: promotion.description,
+          unit: promotion.unit,
           // value: promotion.value,
           value: promotion.value === ".00" ? "0.00" : promotion.value,
           status: (
