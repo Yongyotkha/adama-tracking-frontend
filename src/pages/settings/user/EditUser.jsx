@@ -1,4 +1,4 @@
-import React, { useContext ,useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import FormUser from "../../../components/form_user/FormUser";
 import DynamicButton from "../../../components/button/DynamicButton";
@@ -10,11 +10,11 @@ import { AuthContext } from "../../../contexts/AuthContext";
 import { useLocation } from "react-router-dom";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import { Col, Form, Input, Row } from "antd";
-import { values } from "lodash";
 import dayjs from "dayjs";
 
 export default function EditUser() {
   const [loading, setLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const navigate = useNavigate();
   const [position, setPosition] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -22,19 +22,21 @@ export default function EditUser() {
   const [areas, setAreas] = useState([]);
   const [roles, setRoles] = useState([]);
   const [form] = Form.useForm();
-  // const { showMsg } = useContext(AuthContext);
   const location = useLocation();
-  const [profileImage, setProfileImage] = useState("/img/profile.jpg"); // ค่าเริ่มต้น
+  const [profileImage, setProfileImage] = useState("/img/profile.jpg"); // Default value
   const [userinfo, setUserInfo] = useState([]);
-  const { showMsg, showNotification } = useContext(AuthContext);
+  const { showNotification } = useContext(AuthContext);
   const [permission, setPermission] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
+        // Fetch user details
         await fetchPromotionDetails(location.state.id);
-        const [positions, departments, territories, areas, roles,permission] =
+
+        // Fetch other necessary data in parallel
+        const [positions, departments, territories, areas, roles, permissions] =
           await Promise.all([
             useServiceAPI.get(paths.pathMasterPosition, {}),
             useServiceAPI.get(paths.pathMasterDepartments, {}),
@@ -42,7 +44,6 @@ export default function EditUser() {
             useServiceAPI.get(paths.pathMasterAreas, {}),
             useServiceAPI.get(paths.pathMasterRoles, {}),
             useServiceAPI.get(paths.pathMasterPermission, {}),
-
           ]);
 
         setPosition(positions.data);
@@ -50,41 +51,35 @@ export default function EditUser() {
         setTerritory(territories.data);
         setAreas(areas.data);
         setRoles(roles.data);
-        setPermission(permission.data);
+        setPermission(permissions.data);
 
-        // setAreas(areas.data.map((a) => ({ ...a, name: a.area_name })));
+        // Mark data as loaded
+        setDataLoaded(true);
       } catch (error) {
-        console.log(error.message );
-        showNotification("เกิดข้อผิดพลาด");
-
+        console.error(error.message);
+        showNotification("error", "เกิดข้อผิดพลาด");
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
 
-  }, []);
+    fetchData();
+  }, [location.state.id]);
 
   const fetchPromotionDetails = async (id) => {
-    setLoading(true);
     try {
       const response = await useServiceAPI.get(`${paths.pathMasterUsersDetail}/${id}`);
       if (response.status === 200) {
-        const { data } = response;        
-        setProfileImage(data.profile_image); // อัปเดตรูปภาพ
+        const { data } = response;
+        setProfileImage(data.profile_image); // Update profile image
         setUserInfo(data);
-        
       } else {
         console.error(response.message);
       }
-    } 
-    catch (error) {
+    } catch (error) {
       console.error(error);
-    } finally {
-      setLoading(false);
     }
   };
-
 
   const updatedFields = [
     {
@@ -93,7 +88,7 @@ export default function EditUser() {
       type: "picture", // ประเภทฟิลด์
       required: false,
       col: 24,
-      value: userinfo.profile_image || "/img/profile.jpg",
+      value: userinfo.profile_image,
 
     },
     {
@@ -196,7 +191,7 @@ export default function EditUser() {
       label: "Permission",
       name: "permission",
       type: "select",
-      required: true,
+      required: false,
       col: 6,
       options: permission ,
       // value: parseInt(userinfo.permission_id, 10),
@@ -229,26 +224,28 @@ export default function EditUser() {
     navigate("/setting/user");
   };
 
-  // const handleSave = () => {
-  //   navigate("/setting/user");
-  // };
-
   const handleSave = () => {
     form
       .validateFields()
-      .then((values) => {        
+      .then((values) => {
         if (values.date_of_joining) {
-          values.date_of_joining = dayjs(values.date_of_joining).format(
-            "YYYY-MM-DD"
-          );
+          values.date_of_joining = dayjs(values.date_of_joining).format("YYYY-MM-DD");
         }
-        // const useFlagValue = values.use_flag === "Active" ? 1 : 0;
+        
+        let useFlagValue;
+        if (values.use_flag === 1 || values.use_flag === 0) {
+          useFlagValue = values.use_flag; // ถ้าค่าเป็น 1 หรือ 0 อยู่แล้ว ใช้ค่าเดิม
+        } else {
+          useFlagValue = values.use_flag === "Active" ? 1 : 0; // แปลงค่าจาก "Active" หรือ "Inactive"
+        }
+
         const dataToSend = {
           ...values,
-          user_id: location.state.id, 
-          // use_flag: useFlagValue,
+          user_id: location.state.id,
+          use_flag: useFlagValue, // ส่งค่า use_flag เป็น 1 หรือ 0
+
         };
-  
+
         useServiceAPI
           .put(paths.pathMasterUsersEdit, dataToSend, setLoading)
           .then((response) => {
@@ -263,67 +260,27 @@ export default function EditUser() {
           })
           .catch((error) => {
             console.error(error);
-            if (error.status === 422) {
-              // showMsg("error", error.message);
-              showNotification("error", response.message, response.message_line);
-
-            } else {
-              // showMsg("error", "เกิดข้อผิดพลาด");
-              showNotification("error", response.message, response.message_line);
-            }
+            showNotification("error", "เกิดข้อผิดพลาด");
           });
       })
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
       });
   };
-  
 
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Edit User</div>
 
-      <FormUser 
-        profile={profileImage}
-        fields={updatedFields} 
-        form={form}
-      />
-
-      {/* <BoxPrimary>
-        <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">Change Password</div>
-          <ActionButton mode="edit" text="Edit" onClick={() => console.log("Edit button clicked")} />
-        </div>
-        <Form layout="vertical">
-          <Row gutter={[16, 16]} className="mt-3">
-            <Col xs={24} sm={12} md={12} lg={8}>
-              <Form.Item className="mb-3" label="Current password">
-                <Input.Password disabled />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={8}>
-              <Form.Item className="mb-3" label="New password">
-                <Input.Password disabled />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={8}>
-              <Form.Item className="mb-3" label="Confirm password">
-                <Input.Password disabled />
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
-      </BoxPrimary> */}
+      {dataLoaded ? (
+        <FormUser profile={profileImage} fields={updatedFields} form={form} />
+      ) : (
+        <div>Loading data...</div>
+      )}
 
       <div className="flex justify-end space-x-4">
         <ActionButton text="Back" mode="back" onClick={handleBack} />
-        <ActionButton 
-        text="Update" 
-        mode="update" 
-        onClick={handleSave} 
-        path='/setting/user'
-        />
-
+        <ActionButton text="Update" mode="update" onClick={handleSave} />
       </div>
     </MainLayout>
   );

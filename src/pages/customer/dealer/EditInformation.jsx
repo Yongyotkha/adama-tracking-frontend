@@ -60,7 +60,7 @@ export default function EditInformation() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        console.log(location.state.id);
+        // console.log(location.state.id);
         await fetchPromotionDetails(location.state.id);
         const [crops] = await Promise.all([
           useServiceAPI.get(paths.pathMasterCrop, {}),
@@ -217,10 +217,12 @@ export default function EditInformation() {
         setCropOptions(data.crop_list || []);
         const cropNames = data.crop_list?.map((crop) => Number(crop.id)) || [];
         setDefaultSelectedCrops(cropNames);
-        console.log(cropNames);
-
+        // console.log(cropNames);
+        console.log(data);
+        
         const newDataNetwork = data.network_list.map((item, index) => ({
-          key: index + 1,
+          key: item.sub_dealer_id,
+          no: index + 1,
           name: item.sub_dealer_name || "-",
           contactperson: item.sub_dealer_contact_name || "-",
           mobilePhone: item.sub_dealer_contact_phone_number || "-",
@@ -255,30 +257,114 @@ export default function EditInformation() {
     }
   };
 
+  // const renderContactItems = () =>
+  //   contactItems.map((contact, index) => (
+  //     <div key={index} className="mb-6">
+  //       <div className="flex justify-between mb-4">
+  //         <span className="text-[#00783F] text-md">{`Person ${ index + 1}`}</span>
+  //       </div>
+  //       <Row gutter={[16, 16]}>
+  //         <Col xs={24} sm={12} md={8} lg={6}>
+  //           <Input placeholder="Name (EN)" value={contact.name_en || ""} 
+  //             onChange={(e) =>
+  //               handleContactChange(index, "name_en", e.target.value)
+  //             }
+  //           />
+            
+  //         </Col>
+  //         <Col xs={24} sm={12} md={8} lg={6}>
+  //           <Input placeholder="Name (TH)" value={contact.name_th || ""} 
+  //             onChange={(e) =>
+  //               handleContactChange(index, "name_th", e.target.value)
+  //             }
+  //           />
+  //         </Col>
+  //         <Col xs={24} sm={12} md={8} lg={6}>
+  //           <Input placeholder="Nickname" value={contact.nickname || ""} 
+  //           />
+  //         </Col>
+  //         <Col xs={24} sm={12} md={8} lg={6}>
+  //           <DatePicker
+  //             className="w-full"
+  //             placeholder="Date of Birth"
+  //             value={
+  //               contact.date_of_birth ? dayjs(contact.date_of_birth) : null
+  //             }
+  //           />
+  //         </Col>
+  //         <Col xs={24} sm={12} md={8} lg={6}>
+  //           <Input
+  //             placeholder="T-Shirt Size"
+  //             value={contact.t_shirt_size || ""}
+  //           />
+  //         </Col>
+  //         <Col xs={24} sm={12} md={8} lg={6}>
+  //           <Input
+  //             placeholder="Relationship"
+  //             value={contact.relationship || ""}
+  //           />
+  //         </Col>
+  //         <Col xs={24} sm={12} md={8} lg={6}>
+  //           <Input placeholder="Duty" value={contact.duty || ""} />
+  //         </Col>
+  //         <Col xs={24} sm={12} md={8} lg={6}>
+  //           <Input placeholder="Tel 1" value={contact.tel1 || ""} />
+  //         </Col>
+  //         <Col xs={24} sm={12} md={8} lg={6}>
+  //           <Input placeholder="Tel 2" value={contact.tel2 || ""} />
+  //         </Col>
+  //         <Col xs={24} sm={12} md={8} lg={6}>
+  //           <Input
+  //             placeholder="Contact Number"
+  //             value={contact.contact_number || ""}
+  //           />
+  //         </Col>
+  //         <Col xs={24} sm={12} md={8} lg={6}>
+  //           <Input placeholder="Email" value={contact.email || ""} />
+  //         </Col>
+  //         <Col xs={24} sm={12} md={8} lg={6}>
+  //           <Input placeholder="Line ID" value={contact.line_id || ""} />
+  //         </Col>
+  //       </Row>
+  //       <hr className="my-4" />
+  //     </div>
+  //   ));
+
   const renderContactItems = () =>
     contactItems.map((contact, index) => (
       <div key={index} className="mb-6">
         <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-md">{`Person ${
-            index + 1
-          }`}</span>
+          <span className="text-[#00783F] text-md">{`Person ${index + 1}`}</span>
         </div>
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Name (EN)" value={contact.name_en || ""} />
+            <Input
+              placeholder="Name (EN)"
+              value={contact.name_en || ""}
+              onChange={(e) => handleContactChange(index, "name_en", e.target.value)}
+            />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Name (TH)" value={contact.name_th || ""} />
+            <Input
+              placeholder="Name (TH)"
+              value={contact.name_th || ""}
+              onChange={(e) => handleContactChange(index, "name_th", e.target.value)}
+            />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Nickname" value={contact.nickname || ""} />
+            <Input
+              placeholder="Nickname"
+              value={contact.nickname || ""}
+              onChange={(e) => handleContactChange(index, "nickname", e.target.value)}
+            />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
             <DatePicker
               className="w-full"
               placeholder="Date of Birth"
-              value={
-                contact.date_of_birth ? dayjs(contact.date_of_birth) : null
+              value={contact.date_of_birth ? dayjs(contact.date_of_birth) : null}
+              onChange={(date, dateString) =>
+                handleContactChange(index, "date_of_birth", dateString)
               }
             />
           </Col>
@@ -286,39 +372,73 @@ export default function EditInformation() {
             <Input
               placeholder="T-Shirt Size"
               value={contact.t_shirt_size || ""}
+              onChange={(e) => handleContactChange(index, "t_shirt_size", e.target.value)}
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
             <Input
               placeholder="Relationship"
               value={contact.relationship || ""}
+              onChange={(e) => handleContactChange(index, "relationship", e.target.value)}
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Duty" value={contact.duty || ""} />
+            <Input
+              placeholder="Duty"
+              value={contact.duty || ""}
+              onChange={(e) => handleContactChange(index, "duty", e.target.value)}
+            />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Tel 1" value={contact.tel1 || ""} />
+            <Input
+              placeholder="Tel 1"
+              value={contact.tel1 || ""}
+              onChange={(e) => handleContactChange(index, "tel1", e.target.value)}
+            />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Tel 2" value={contact.tel2 || ""} />
+            <Input
+              placeholder="Tel 2"
+              value={contact.tel2 || ""}
+              onChange={(e) => handleContactChange(index, "tel2", e.target.value)}
+            />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
             <Input
               placeholder="Contact Number"
               value={contact.contact_number || ""}
+              onChange={(e) => handleContactChange(index, "contact_number", e.target.value)}
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Email" value={contact.email || ""} />
+            <Input
+              placeholder="Email"
+              value={contact.email || ""}
+              onChange={(e) => handleContactChange(index, "email", e.target.value)}
+            />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
-            <Input placeholder="Line ID" value={contact.line_id || ""} />
+            <Input
+              placeholder="Line ID"
+              value={contact.line_id || ""}
+              onChange={(e) => handleContactChange(index, "line_id", e.target.value)}
+            />
           </Col>
         </Row>
         <hr className="my-4" />
       </div>
     ));
+  
+
+
+
+
+
+
+
+
+
+
 
   // Handle tab change
   const handleTabChange = (key) => {
@@ -336,7 +456,8 @@ export default function EditInformation() {
 
   const handleAddSelectedRows = (selectedRows) => {
     const newRows = selectedRows.map((row, index) => ({
-      key: networkList.length + index + 1, // กำหนด key ใหม่
+      // key: networkList.length + index + 1, 
+      key: row.key,
       name: row.name || "-",
       contactperson: row.contactperson || "-",
       mobilePhone: row.territory || "-",
@@ -361,7 +482,14 @@ export default function EditInformation() {
       ),
     }));
 
-    setNetworkList((prevList) => [...prevList, ...newRows]); // เพิ่มแถวใหม่ลงใน networkList
+    // setNetworkList((prevList) => [...prevList, ...newRows]); 
+
+    setNetworkList((prevList) => {
+      const existingKeys = prevList.map((item) => item.key); // ดึง key ของรายการที่มีอยู่
+      const filteredNewRows = newRows.filter((row) => !existingKeys.includes(row.key)); // กรองเฉพาะ key ที่ยังไม่มีใน list
+      return [...prevList, ...filteredNewRows]; // รวมรายการเก่ากับรายการใหม่
+    });
+
   };
 
   const fetchUserList = async (page_size = 20, page_length = 1) => {
@@ -379,14 +507,17 @@ export default function EditInformation() {
       );
 
       if (response.status === 200) {
-        const data = response.data;
+        const data = response.data;      
+         
         const territoryData = data.map((item, index) => ({
-          key: index + 1,
+          key: item.sub_dealer_id,
+          no: index + 1,
           name: item.sub_dealer_name,
           territory: item.sub_dealer_contact_phone_number,
           position: item.sub_dealer_channel_type_name,
         }));
         setUserList(territoryData);
+
       }
     } catch (error) {
       console.error("Error fetching user list:", error);
@@ -425,10 +556,104 @@ export default function EditInformation() {
 
 
   useEffect(() => {
-    console.log(defaultSelectedCrops)
+    // console.log(defaultSelectedCrops)
   }, [defaultSelectedCrops]);
 
+  const handleSave = () => { 
+    form
+      .validateFields()
+      .then((values) => {
+        const formattedData = {
+          id: location.state.id, 
+          dealer_name_en: values.dealer_name_en || "",
+          dealer_name_th: values.dealer_name_th || "",
+          dealer_code: values.dealer_code || "",
+          tax_id: values.tax_id || "",
+          contact_number: values.contact_number || "",
+          address: values.address || "",
+          group_code: values.group_code || "",
+          date_of_anniversary: values.date_of_anniversary || "",
+          date_of_joining: values.date_of_joining || "",
+          photo_path: values.photo_path || "",
+          bank_account_items: companyinfo.bank_account_items || [],
+          contact_items: contactItems.map((item) => ({
+            name_en: item.name_en || "",
+            contact_number: item.contact_number || "",
+            name_th: item.name_th || "",
+            nickname: item.nickname || null,
+            date_of_birth: item.date_of_birth || null,
+            t_shirt_size: item.t_shirt_size || null,
+            relationship: item.relationship || null,
+            duty: item.duty || null,
+            tel1: item.tel1 || "",
+            tel2: item.tel2 || "",
+            email: item.email || null,
+            line_id: item.line_id || null,
+          })),
+          crop_list: defaultSelectedCrops || [],
+        };
+        useServiceAPI
+          .put(paths.pathCustomerSubDealerUpdate, formattedData)
+          .then((response) => {
+            if (response.status === 200) {
+              console.log("Save successful:", response.data);
+              navigate("/customer/dealer"); // กลับไปยังหน้าก่อนหน้า
+            }
+          })
+          .catch((error) => {
+            console.error("Save failed:", error);
+          });
+      })
+      .catch((errorInfo) => {
+        console.error("Validation Failed:", errorInfo);
+      });
+  };
 
+
+  const networkhandleSave = () => {
+    // Validate form fields if needed
+    form
+      .validateFields()
+      .then(() => {
+        const formattedData = {
+          id: location.state.id,
+          network_list: networkList.map((item) => ({
+            sub_dealer_id: item.key, 
+            is_on_shop: item.onshop, 
+          })),
+        };
+  
+        useServiceAPI
+          .put(paths.pathCustomerSubDealerNetworkUpdate, formattedData) // paths.pathNetworkSave = URL API
+          .then((response) => {
+            if (response.status === 200) {
+              console.log("Save successful:", response.data);
+              navigate("/customer/dealer");
+            }
+          })
+          .catch((error) => {
+            console.error("Save failed:", error);
+          });
+      })
+      .catch((errorInfo) => {
+        console.error("Validation Failed:", errorInfo);
+      });
+  };
+  
+
+  
+  const handleBankAccountChange = (index, field, value) => {
+    const updatedAccounts = [...companyinfo.bank_account_items];
+    updatedAccounts[index][field] = value;
+    setcompanyinfo({ ...companyinfo, bank_account_items: updatedAccounts });
+  };
+  
+  const handleContactChange = (index, field, value) => {
+    const updatedContacts = [...contactItems];
+    updatedContacts[index][field] = value;
+    setContactItems(updatedContacts);
+  };
+  
   const items = [
     {
       key: "profile",
@@ -441,81 +666,57 @@ export default function EditInformation() {
             fields={formFields}
             form={form}
           />
-          <BoxPrimary>
-            <div className="text-[#00783F] text-md">Bank Account 1</div>
-            {companyinfo.bank_account_items &&
-            companyinfo.bank_account_items.length > 0 ? (
-              companyinfo.bank_account_items.map((account, index) => (
-                <Row className="my-3" gutter={[16, 16]} key={index}>
+        <BoxPrimary>
+          {companyinfo.bank_account_items &&
+          companyinfo.bank_account_items.length > 0 ? (
+            companyinfo.bank_account_items.map((account, index) => (
+              <div key={index} className="my-6">
+                <div className="text-[#00783F] text-md">{`Bank Account ${index + 1}`}</div>
+                <Row className="my-3" gutter={[16, 16]}>
                   <Col xs={24} sm={12} md={8} lg={6}>
                     <Input
                       placeholder="Account Title"
                       value={account.account_title || ""}
+                      onChange={(e) =>
+                        handleBankAccountChange(index, "account_title", e.target.value)
+                      }
                     />
                   </Col>
                   <Col xs={24} sm={12} md={8} lg={6}>
                     <Input
                       placeholder="Account Number"
                       value={account.account_number || ""}
+                      onChange={(e) =>
+                        handleBankAccountChange(index, "account_number", e.target.value)
+                      }
                     />
                   </Col>
                   <Col xs={24} sm={12} md={8} lg={6}>
                     <Input
                       placeholder="Bank Name"
                       value={account.bank_name || ""}
+                      onChange={(e) =>
+                        handleBankAccountChange(index, "bank_name", e.target.value)
+                      }
                     />
                   </Col>
                   <Col xs={24} sm={12} md={8} lg={6}>
                     <Input
                       placeholder="Bank Branch"
                       value={account.bank_branch || ""}
+                      onChange={(e) =>
+                        handleBankAccountChange(index, "bank_branch", e.target.value)
+                      }
                     />
                   </Col>
                 </Row>
-              ))
-            ) : (
-              <div className="text-gray-500">
-                No bank account information available
               </div>
-            )}
+            ))
+          ) : (
+            <div className="text-gray-500">No bank account information available</div>
+          )}
+        </BoxPrimary>
 
-            <div className="text-[#00783F] text-md">Bank Account 2</div>
-            {companyinfo.bank_account_items &&
-            companyinfo.bank_account_items.length > 0 ? (
-              companyinfo.bank_account_items.map((account, index) => (
-                <Row className="my-3" gutter={[16, 16]} key={index}>
-                  <Col xs={24} sm={12} md={8} lg={6}>
-                    <Input
-                      placeholder="Account Title"
-                      value={account.account_title || ""}
-                    />
-                  </Col>
-                  <Col xs={24} sm={12} md={8} lg={6}>
-                    <Input
-                      placeholder="Account Number"
-                      value={account.account_number || ""}
-                    />
-                  </Col>
-                  <Col xs={24} sm={12} md={8} lg={6}>
-                    <Input
-                      placeholder="Bank Name"
-                      value={account.bank_name || ""}
-                    />
-                  </Col>
-                  <Col xs={24} sm={12} md={8} lg={6}>
-                    <Input
-                      placeholder="Bank Branch"
-                      value={account.bank_branch || ""}
-                    />
-                  </Col>
-                </Row>
-              ))
-            ) : (
-              <div className="text-gray-500">
-                No bank account information available
-              </div>
-            )}
-          </BoxPrimary>
 
           <BoxPrimary>
                 <Select
@@ -524,26 +725,35 @@ export default function EditInformation() {
                   placeholder="Select Crop(s)"
                   optionFilterProp="children"
                   className="w-full"
-                  value={defaultSelectedCrops} // เอาตัวนี้ส่ง
+                  value={defaultSelectedCrops} 
                   onChange={(value) => setDefaultSelectedCrops(value)} // จัดการการเปลี่ยนแปลงค่า
-                  options={transformedCropOptions} // ตัวเลือก
+                  options={transformedCropOptions} 
                 />
           </BoxPrimary>
+
           <BoxPrimary>
             <div className="flex justify-between mb-4">
-              <span className="text-[#00783F] text-lg font-semibold">
-                Contact Person
-              </span>
-              <ActionButton mode="add" text="Add" onClick={() => {}} />
+              <span className="text-[#00783F] text-lg font-semibold">Contact Person</span>
+              <ActionButton mode="add" text="Add" onClick={() => {
+                 setContactItems([
+                  ...contactItems,
+                  {
+                    name: "", // Default value for name field
+                    phone: "", // Default value for phone field
+                    email: "", // Default value for email field
+                    position: "" // Default value for position field
+                  }
+                ]);
+
+              }} />
             </div>
             {contactItems.length > 0 ? (
               renderContactItems()
             ) : (
-              <div className="text-gray-500">
-                No contact person information available
-              </div>
+              <div className="text-gray-500">No contact person information available</div>
             )}
           </BoxPrimary>
+
 
           <div className="flex justify-end space-x-4 mt-6">
             <ActionButton
@@ -554,8 +764,9 @@ export default function EditInformation() {
             <ActionButton
               mode="update"
               text="Update"
-              onClick={() => navigate("/customer/dealer")}
+              onClick={handleSave} 
             />
+
           </div>
         </>
       ),
@@ -589,16 +800,18 @@ export default function EditInformation() {
             <ActionButton
               mode="update"
               text="Update"
-              onClick={() => navigate("/customer/dealer")}
+              // onClick={() => navigate("/customer/dealer")}
+              onClick={networkhandleSave} 
+
             />
           </div>
         </>
       ),
     },
+
   ];
 
  
-
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Edit Information</div>

@@ -54,6 +54,8 @@ export default function CreatePromotion() {
         { name: "Active", id: 1, selected: true },
         { name: "Inactive", id: 0, selected: false },
       ],
+      value: 1,
+
     },
     { 
       label: "Remark", 
