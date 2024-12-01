@@ -228,7 +228,6 @@ export default function CreateSale() {
   ) => {
     const saleManagementHeaderId = sale_management_header_id;
     setSaleManagementHeaderId(saleManagementHeaderId);
-
     setLoading(true);
     try {
       const requestData = {

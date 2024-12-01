@@ -27,19 +27,22 @@ export default function EditUser() {
   const [profileImage, setProfileImage] = useState("/img/profile.jpg"); // ค่าเริ่มต้น
   const [userinfo, setUserInfo] = useState([]);
   const { showMsg, showNotification } = useContext(AuthContext);
+  const [permission, setPermission] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
         await fetchPromotionDetails(location.state.id);
-        const [positions, departments, territories, areas, roles] =
+        const [positions, departments, territories, areas, roles,permission] =
           await Promise.all([
             useServiceAPI.get(paths.pathMasterPosition, {}),
             useServiceAPI.get(paths.pathMasterDepartments, {}),
             useServiceAPI.get(paths.pathMasterTerritory, {}),
             useServiceAPI.get(paths.pathMasterAreas, {}),
             useServiceAPI.get(paths.pathMasterRoles, {}),
+            useServiceAPI.get(paths.pathMasterPermission, {}),
+
           ]);
 
         setPosition(positions.data);
@@ -47,6 +50,8 @@ export default function EditUser() {
         setTerritory(territories.data);
         setAreas(areas.data);
         setRoles(roles.data);
+        setPermission(permission.data);
+
         // setAreas(areas.data.map((a) => ({ ...a, name: a.area_name })));
       } catch (error) {
         console.log(error.message );
@@ -188,6 +193,15 @@ export default function EditUser() {
       value: parseInt(userinfo.role_id, 10),
     },
     {
+      label: "Permission",
+      name: "permission",
+      type: "select",
+      required: true,
+      col: 6,
+      options: permission ,
+      // value: parseInt(userinfo.permission_id, 10),
+    },
+    {
       label: "Date of Joining",
       name: "date_of_joining",
       type: "date",
@@ -205,7 +219,8 @@ export default function EditUser() {
         { name: "Active", id: 1, selected: true },
         { name: "Inactive", id: 0, selected: false },
       ],
-      value: userinfo.use_flag === 1 ? "Active" : "Inactive" 
+      // value: userinfo.use_flag === 1 ? "Active" : "Inactive" 
+      value: parseInt(userinfo.use_flag,10) === 1 ? "Active" : "Inactive"
     },
  
   ];
@@ -221,29 +236,22 @@ export default function EditUser() {
   const handleSave = () => {
     form
       .validateFields()
-      .then((values) => {
-        console.log(values);
-        
+      .then((values) => {        
         if (values.date_of_joining) {
           values.date_of_joining = dayjs(values.date_of_joining).format(
             "YYYY-MM-DD"
           );
         }
-        const useFlagValue = values.use_flag === "Active" ? 1 : 0;
+        // const useFlagValue = values.use_flag === "Active" ? 1 : 0;
         const dataToSend = {
           ...values,
           user_id: location.state.id, 
-          use_flag: useFlagValue,
+          // use_flag: useFlagValue,
         };
   
         useServiceAPI
           .put(paths.pathMasterUsersEdit, dataToSend, setLoading)
           .then((response) => {
-            if (response.status === 200) {
-              showMsg("success", response.data.message).then(() => {
-                navigate("/setting/user");
-              });
-            }
             if (response.status === 200) {
               navigate("/setting/user");
               showNotification(

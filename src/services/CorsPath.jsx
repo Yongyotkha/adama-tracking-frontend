@@ -24,8 +24,10 @@ export const paths = {
   pathMasterProductByCrop: "master/product-by-crop",
   pathMasterSaleAll: "master/sale-all/list",
   pathMasterDealerCustomer: "master/dealer/customer",
-
+  pathMasterSubDealer: "master/sub-dealer",
+  pathMasterPermission: "master/permission",
   
+
   // pathMasterShop: "master/shop",
   pathMasterStatus: "master/status",
   pathMasterHeadofsale: "master/headofsale",
@@ -34,6 +36,7 @@ export const paths = {
   pathMasterMonths: "master/months",
   pathMasterYear: "master/years",
   pathMasterPerception: "master/perception",
+  
 
   //Products
   pathSaleManagementProductsList: "products-management/list",
