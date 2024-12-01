@@ -118,7 +118,7 @@ export default function ClearingExpense() {
         
         const newDataSource = data.map((row, index) => {
           const actionItems = [
-            { key: "1", label: <ItemDropDown mode="edit" link="/expenses/clearing/edit" /> },
+            { key: "1", label: <ItemDropDown mode="edit" link={`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`} /> },
             { key: "3", label: <ItemDropDown mode="delete" link="#" /> },
           ];
         

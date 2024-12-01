@@ -118,7 +118,7 @@ export default function AdvanceExpense() {
         
         const newDataSource = data.map((row, index) => {
           const actionItems = [
-            { key: "1", label: <ItemDropDown mode="edit" link="/expenses/advance/edit" /> },
+            { key: "1", label: <ItemDropDown mode="edit" link={`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`} /> },
             { key: "2", label: <ItemDropDown mode="view" link="/expenses/advance/view" /> },
             { key: "3", label: <ItemDropDown mode="delete" link="#" /> },
           ];
