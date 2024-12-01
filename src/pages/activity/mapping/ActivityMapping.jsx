@@ -236,13 +236,22 @@ export default function ActivityMapping() {
 
       // Update search options for AutoComplete
       setSearchOptions(
-        results.map((item) => ({ value: item.location_address }))
+        results.map((item) => ({
+          value: item.location_address,
+          lat: parseFloat(item.location_latitude),
+          lng: parseFloat(item.location_longitude),
+        }))
       );
     } else {
       setSearchOptions([]);
     }
   };
 
+  const handleSelect = (value, option) => {
+    // Set the map center to the selected lat and lng
+    setCurrentLocation({ lat: option.lat, lng: option.lng });
+    setDataMapZoom(15); // Set a higher zoom level for focusing
+  };
 
   const isAllChecked = Object.keys(checkedFilters).every((category) =>
     Object.values(checkedFilters[category] || {}).every(Boolean)
@@ -276,17 +285,13 @@ export default function ActivityMapping() {
           </div>
           {/* Search Box */}
           <div className="w-full mb-4 mt-2 px-2">
-            {/* Search Box */}
-            <div className="w-full mb-4 mt-2 px-2">
-              <DynamicAutoComplete
-                options={searchOptions}
-                placeholder="Search activity types"
-                onSearch={handleSearch}
-                style={{ width: "100%" }}
-                className="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              />
-            </div>
-
+            <DynamicAutoComplete
+              options={searchOptions}
+              placeholder="Search locations"
+              onSearch={handleSearch}
+              onSelect={handleSelect} // Trigger when a location is selected
+              className="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            />
           </div>
 
           <div
@@ -340,7 +345,7 @@ export default function ActivityMapping() {
                 center={currentLocation}
                 zoom={dataMapZoom}
               >
-                {locations.map((location) => (
+                {(filteredData.length > 0 ? filteredData : locations).map((location) => (
                   <Marker
                     key={location.id}
                     position={{ lat: location.lat, lng: location.lng }}
