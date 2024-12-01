@@ -18,46 +18,45 @@ export default function ActivityCalendar() {
   const fetchEvents = async (month, year) => {
     setLoading(true);
     try {
-      const response = await useServiceAPI.get(paths.pathActivityCalendarList, {
-        platform: "web",
-        keyword: "",
-        month,
-        year,
-        user_id: userId || "", // Use current userId
-        dealer_id: dealerId || "", // Use current dealerId
-      });
+        const response = await useServiceAPI.get(paths.pathActivityCalendarList, {
+            platform: "web",
+            keyword: "",
+            month,
+            year,
+            user_id: userId || "", // Use current userId
+            dealer_id: dealerId || "", // Use current dealerId
+        });
 
-      if (response.result) {
-        const formattedEvents = response.data.map((item) => ({
-          title: item.activity_type_name,
-          date: item.document_date,
-          time: `${item.time_start} - ${item.time_end}`,
-          location: item.location_address || "N/A",
-          color: item.activity_color,
-          icon: "⭐",
-          attendees: item.assing_user_list.map((user) => ({
-            name: user.name,
-            avatar: user.profile_image,
-          })),
-          permission: {
-            edit: item.permission.edit,
-            btn_delete: item.permission.btn_delete,
-          },
-          document_number: item.document_number, // For identifying events
-        }));
-        setEvents(formattedEvents);
-      } else {
-        console.error("Error fetching events:", response.message);
-        setEvents([]);
-      }
+        if (response.result) {
+            const formattedEvents = response.data.map((item) => ({
+                title: item.activity_type_name,
+                date: item.document_date, // Ensure this matches the date format
+                time: `${item.time_start} - ${item.time_end}`,
+                location: item.location_address || "N/A",
+                color: item.activity_color,
+                icon: "⭐",
+                attendees: item.assing_user_list.map((user) => ({
+                    name: user.name,
+                    avatar: user.profile_image,
+                })),
+                permission: {
+                    edit: item.permission.edit,
+                    btn_delete: item.permission.btn_delete,
+                },
+                document_number: item.document_number, // For identifying events
+            }));
+            setEvents(formattedEvents);
+        } else {
+            console.error("Error fetching events:", response.message);
+            setEvents([]);
+        }
     } catch (error) {
-      console.error("Error fetching events:", error);
-      setEvents([]);
+        console.error("Error fetching events:", error);
+        setEvents([]);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
-
+};
 
   const receiveData = (data) => {
     if (data.saleId !== undefined) {
@@ -91,10 +90,15 @@ export default function ActivityCalendar() {
         fetchEvents={(month, year) => {
           setCurrentMonth(month);
           setCurrentYear(year);
+          fetchEvents(month, year); // Trigger fetch with updated parameters
         }}
         loading={loading}
-        sendData={receiveData}
+        sendData={(data) => {
+          setUserId(data.saleId || ""); // Handle empty or undefined saleId
+          setDealerId(data.shopId || ""); // Handle empty or undefined shopId
+        }}
       />
+
     </MainLayout>
   );
 }
