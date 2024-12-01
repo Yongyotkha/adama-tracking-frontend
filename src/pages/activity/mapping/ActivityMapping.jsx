@@ -42,10 +42,16 @@ export default function ActivityMapping() {
     const loadDataMappingList = async () => {
       setLoading(true);
       try {
-        const [mapping] = await Promise.all([
+        const [mapping, activity, dealers, areas, years] = await Promise.all([
           useServiceAPI.get(paths.pathActivityMapList, {
             keyword: "",
           }),
+          useServiceAPI.get(paths.pathMasterActivityType, {
+            status: "",
+          }),
+          useServiceAPI.get(paths.pathMasterDealerAll, {}),
+          useServiceAPI.get(paths.pathMasterAreas, {}),
+          useServiceAPI.get(paths.pathMasterYear, {}),
         ]);
 
         // Mapping Detail
@@ -65,39 +71,39 @@ export default function ActivityMapping() {
         );
 
         setActivityType(
-          mapping.data
+          activity.data
             .filter(
               (value, index, self) =>
-                self.findIndex((item) => item.activity_type_name === value.activity_type_name) === index
+                self.findIndex((item) => item.name === value.name) === index
             )
-            .map((data) => data.activity_type_name)
+            .map((data) => data.name)
         );
 
         setDataDealer(
-          mapping.data
+          dealers.data
             .filter(
               (value, index, self) =>
-                self.findIndex((item) => item.dealer_name === value.dealer_name) === index
+                self.findIndex((item) => item.name === value.name) === index
             )
-            .map((data) => data.dealer_name)
+            .map((data) => data.name)
         );
 
         setDataArea(
-          mapping.data
+          areas.data
             .filter(
               (value, index, self) =>
-                self.findIndex((item) => item.area_name === value.area_name) === index
+                self.findIndex((item) => item.name === value.name) === index
             )
-            .map((data) => data.area_name)
+            .map((data) => data.name)
         );
 
         setDataYear(
-          mapping.data
+          years.data
             .filter(
               (value, index, self) =>
-                self.findIndex((item) => item.year === value.year) === index
+                self.findIndex((item) => item.name === value.name) === index
             )
-            .map((data) => data.year)
+            .map((data) => data.name)
         );
 
       } catch (error) {
