@@ -117,6 +117,8 @@ export const paths = {
 
   //rolling-forecast
   pathRollingForecast: "/rolling-forecast/sale/list",
+  pathRollingForecastMonth: "/rolling-forecast/sale/detail",
+  pathRollingForecastQuarter: "/rolling-forecast/sale/quarter",
 
   //Activity
   pathActivityList: "/activity/list",
