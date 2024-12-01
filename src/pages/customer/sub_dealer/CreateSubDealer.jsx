@@ -34,8 +34,6 @@ export default function CreateSubDealer() {
   const navigate = useNavigate();
   const [cropOptions, setCropOptions] = useState([]);
   const [form] = Form.useForm();
-  const [formlist] = Form.useForm();
-  const [formitem] = Form.useForm();
 
   const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); // กำหนด state สำหรับ defaultSelectedCrops
   const [personalInfoData, setPersonalInfoData] = useState({});
@@ -66,12 +64,13 @@ export default function CreateSubDealer() {
 
   const formFields = [
     {
+      key:123123,
       label: "Shop Name",
       name: "shop_name",
       type: "text",
       required: false,
       col: 6,
-      value: "",
+      // value: "",
     },
     {
       label: "Mobile Phone",
@@ -79,7 +78,7 @@ export default function CreateSubDealer() {
       type: "text",
       required: false,
       col: 6,
-      value: "",
+      // value: "4124214",
     },
     {
       label: "Address",
@@ -87,7 +86,7 @@ export default function CreateSubDealer() {
       type: "text",
       required: false,
       col: 12,
-      value: "",
+      // value: "",
     },
     {
       label: "Office Hours",
