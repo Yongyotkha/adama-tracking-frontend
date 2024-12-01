@@ -5,11 +5,11 @@
   content: none !important;
 }
 
-:where(.css-dev-only-do-not-override-1hft8ot).ant-table-wrapper
+.ant-table-wrapper
   .ant-table-thead
   > tr
   > th,
-:where(.css-dev-only-do-not-override-1hft8ot).ant-table-wrapper
+.ant-table-wrapper
   .ant-table-thead
   > tr
   > td {
@@ -18,7 +18,7 @@
 
 }
 
-:where(.css-dev-only-do-not-override-1hft8ot).ant-table-wrapper
+.ant-table-wrapper
   .ant-table-summary
   > tr
   > td {
@@ -26,11 +26,11 @@
   color: white;
 }
 
-:where(.css-dev-only-do-not-override-1rmgrdf).ant-table-wrapper
+.ant-table-wrapper
   .ant-table-summary
   > tr
   > th,
-:where(.css-dev-only-do-not-override-1rmgrdf).ant-table-wrapper
+.ant-table-wrapper
   .ant-table-summary
   > tr
   > td {
@@ -39,6 +39,6 @@
 
 }
 
-:where(.css-dev-only-do-not-override-1rmgrdf).ant-table-wrapper .ant-table-thead >tr>th, :where(.css-dev-only-do-not-override-1rmgrdf).ant-table-wrapper .ant-table-thead >tr>td {
+.ant-table-wrapper .ant-table-thead >tr>th, .ant-table-wrapper .ant-table-thead >tr>td {
   border-bottom: unset;
 }

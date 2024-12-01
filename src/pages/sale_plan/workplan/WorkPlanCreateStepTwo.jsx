@@ -236,7 +236,7 @@ export default function WorkPlanCreateStepTwo() {
                       min={0}
                       value={text}
                       formatter={(value) =>
-                        `฿ ${Number(value).toFixed(2)}`.replace(
+                        `${Number(value).toFixed(2)}`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
                         )

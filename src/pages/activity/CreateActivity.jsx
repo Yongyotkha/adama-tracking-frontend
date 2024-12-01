@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
 import { Form, Input, Col, Row, Select } from "antd";
@@ -16,6 +16,7 @@ import { paths } from "../../services/CorsPath";
 import { useLocation } from "react-router-dom";
 import { ReloadOutlined } from "@ant-design/icons";
 import { convertLegacyProps } from "antd/es/button";
+import { AuthContext } from "../../contexts/AuthContext";
 
 dayjs.extend(customParseFormat);
 
@@ -61,6 +62,7 @@ export default function CreateActivity() {
     page_size: 1,
     page_length: 10
   });
+  const { showMsg, showNotification } = useContext(AuthContext);
 
   const handleUploadClick = async () => {    
     // Call triggerUpload from FileUploadComponent
@@ -444,19 +446,18 @@ export default function CreateActivity() {
   };
 
   //บันทึกข้อมูล
-  const handleSave = async () => {
+  const handleSave = (modeSave) => {
     formCustom.validateFields();
     //Form Basic Activity
     const allValuesBasic = formCustom.getFieldsValue();
-    const pageCode = mode ?? 'activity_transaction';
-    const actionCode = 'draft';
+    const actionCode =  modeSave == 'convert' ? 'convert_clearing' : 'draft';
     //File Upload
     const imageLists = [];
     fileList.forEach(element => {
       imageLists.push(element.url);
     });
     //เปิด Expense หรือไม่?
-    const isExpense = isBtnExpenseActive || (mode == 'expense_advance' || mode == 'expense_clearing');
+    const isExpense = isBtnExpenseActive || (pageCode == 'expense_advance' || pageCode == 'expense_clearing');
     
     //ส่วนของ Sale Plan
     const expenseProductTotalEstimateSale = calculateGrandTotal("estimateSale");
@@ -502,6 +503,7 @@ export default function CreateActivity() {
 
     const body = {
         "page_code": pageCode,
+        "document_number_referrent" : activityDetail?.document_number_referrent ?? null,
         "action_code": actionCode,
         ...allValuesBasic,
         "image_list": imageLists,
@@ -533,22 +535,34 @@ export default function CreateActivity() {
       .put(paths.pathActivityExpenseDetail, body, setLoading)
       .then((response) => {
         if(response.result){
-          navigate("/activity/list");
+          if(pageCode == 'expense_clearing'){
+            navigate("/expenses/clearing");
+          }else if(pageCode == 'expense_advance'){
+            navigate("/expenses/advance");
+          }else{
+            navigate("/activity/list");
+          }
         }
       })
       .catch((error) => {
-        console.log(error);
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
       });
     }else{
       useServiceAPI
       .post(paths.pathActivityExpenseCreate, body, setLoading)
       .then((response) => {
         if(response.result){
-          navigate("/activity/list");
+          if(pageCode == 'expense_clearing'){
+            navigate("/expenses/clearing");
+          }else if(pageCode == 'expense_advance'){
+            navigate("/expenses/advance");
+          }else{
+            navigate("/activity/list");
+          }
         }
       })
       .catch((error) => {
-        console.log(error);
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
       });
     }
   };
@@ -616,12 +630,12 @@ export default function CreateActivity() {
 
   };
 
-  const menuTitle = (mode == 'expense_advance' ? 'Advance Expense' : (mode == 'expense_clearing' ? ' Clearing Expense' : 'Activity'));
+  const menuTitle = (pageCode == 'expense_advance' ? 'Advance Expense' : (pageCode == 'expense_clearing' ? ' Clearing Expense' : 'Activity'));
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">{documentNumber ? 'Edit' + ' ' + menuTitle : 'Create' + ' ' + menuTitle}</div>
-        {(mode != 'expense_advance' && mode != 'expense_clearing') ? (
+        {(pageCode != 'expense_advance' && pageCode != 'expense_clearing') ? (
           !isBtnExpenseActive ? 
           <ActionButton mode="create" text="Add Advance Expense" onClick={showLayoutExpense} />
           :
@@ -633,7 +647,7 @@ export default function CreateActivity() {
 
       <FormCustom fields={formFields} form={formCustom} onChange={handleChange} mode={documentNumber ? 'edit' : 'create'}/>
 
-      {(isBtnExpenseActive || (mode == 'expense_advance' || mode == 'expense_clearing')) ? (
+      {(isBtnExpenseActive || (pageCode == 'expense_advance' || pageCode == 'expense_clearing')) ? (
         <>
           <div className="flex items-center justify-between">
             <div className="title-page">Advance Expense</div>
@@ -855,10 +869,10 @@ export default function CreateActivity() {
       <div className="flex justify-end space-x-4 mt-6">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/activity/list")} />
         {
-          mode == 'expense_advance' ? (<ActionButton mode="saveDraft" text="Convert to Clearing" onClick={handleSave} />) : null
+          pageCode == 'expense_advance' ? (<ActionButton mode="saveDraft" text="Convert to Clearing" onClick={() => handleSave('convert')} />) : null
         }
 
-        <ActionButton mode="save" text="Save" onClick={handleSave} />
+        <ActionButton mode="save" text="Save" onClick={() => handleSave('default') } />
       </div>
 
       {/* Modal for Add Participant */}
