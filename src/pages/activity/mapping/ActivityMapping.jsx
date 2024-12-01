@@ -115,12 +115,6 @@ export default function ActivityMapping() {
     height: "100vh",
   };
 
-  // const center = {
-  //   lat: 13.736717,
-  //   lng: 100.523186,
-  //   zoom: dataMapZoom,
-  // };
-
   // Mock data for filter categories
   const mockFilters = {
     "Activity Type": activityType,
