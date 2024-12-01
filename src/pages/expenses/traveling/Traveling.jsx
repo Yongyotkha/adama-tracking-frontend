@@ -55,7 +55,16 @@ export default function Traveling() {
         setDataSale(sale.data);
         setDataYear(year.data);
         setDataMonth(month.data);
-        setDataStatus(status.data)
+
+        const dataStatus = [];
+        status.data.map((data, index) => {
+          dataStatus.push({ 
+            id: data.code, 
+            name: data.name, 
+          });
+        });
+        setDataStatus(dataStatus);
+
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -141,7 +150,7 @@ export default function Traveling() {
       user_id: filters.sale || "",
       year: filters.year || "",
       month: filters.month || "",
-      status: filters.status || "",
+      status_code: filters.status || "",
       page: "all",
       use_flag: filters.use_flag || "",
       orderby_column: sortField,
