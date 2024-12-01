@@ -54,7 +54,7 @@ export default function Dashboard() {
         loading={loading}
       >
 
-        <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
+        {/* <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} /> */}
 
       </MainLayout>
 
