@@ -56,6 +56,11 @@ export default function CreateActivity() {
   const [cropDetailList, setCropDetailList] = useState([]);
   const [assignList, setAssignList] = useState([]);
   const [isSalePlanEdit, setIsSalePlanEdit] = useState(false);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [tableParams, setTableParams] = useState({
+    page_size: 1,
+    page_length: 10
+  });
 
   const handleUploadClick = async () => {    
     // Call triggerUpload from FileUploadComponent
@@ -183,7 +188,7 @@ export default function CreateActivity() {
           let count = 0;
           await activityDetailData.expense_particapant_user_list.forEach((element, key) => {
               count++;
-              const newKey = `sales-${count}`;
+              const newKey = `sales-${element.id}`;
               participantData.push({
                 id: element.id,
                 key: newKey,
@@ -378,10 +383,11 @@ export default function CreateActivity() {
   };
 
   const getParticipant = async () => {
+    setTableLoading(true);
     const [participant] = await Promise.all([
       useServiceAPI.get(paths.pathMasterSaleAll, {
         'page_size': 1,
-        'page_length': 10,
+        'page_length': 1000,
       }),
     ]);
   
@@ -394,7 +400,7 @@ export default function CreateActivity() {
       const isExisting = participants.some((item) => item.id === id);
       if (!isExisting) {
         count++;
-        const newKey = `sales-${count}`;
+        const newKey = `sales-${element.id}`;
         participantData.push({
           id: element.id,
           key: newKey,
@@ -422,7 +428,6 @@ export default function CreateActivity() {
       const newRows = selectedRows.filter(
         (row) => !prev.some((participant) => participant.key === row.key)
       );
-      
       // Merge existing participants with new rows
       const updatedParticipants = [...prev, ...newRows];
       
