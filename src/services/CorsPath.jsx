@@ -1,6 +1,8 @@
 // API EndPoint
-export const endPoint = "https://adama-api.mtsc.co.th/api";
+// export const endPoint = "https://adama-api.mtsc.co.th/api"; //Test API
+export const endPoint = "https://api-uat.adama.co.th"; //UAT API
 // export const endPoint = "http://localhost:8080/api";
+
 
 export const paths = {
   // Login
