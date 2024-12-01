@@ -117,13 +117,19 @@ export default function EditProduct() {
     form
       .validateFields()
       .then((values) => {
-        const useFlagValue = values.use_flag === "Active" ? 1 : 0;
+        // const useFlagValue = values.use_flag === "Active" ? 1 : 0;
         const cropListToSend = selectedCrops.length > 0 
           ? selectedCrops 
           : form.getFieldValue("crop_ID"); 
   
-        // สร้าง payload
-        const dataToSend = {
+          let useFlagValue;
+          if (values.use_flag === 1 || values.use_flag === 0) {
+            useFlagValue = values.use_flag; // ถ้าค่าเป็น 1 หรือ 0 อยู่แล้ว ใช้ค่าเดิม
+          } else {
+            useFlagValue = values.use_flag === "Active" ? 1 : 0; // แปลงค่าจาก "Active" หรือ "Inactive"
+          }
+
+          const dataToSend = {
           ...values,
           id: location.state.id,
           use_flag: useFlagValue, // ส่งค่า use_flag เป็น 1 หรือ 0
