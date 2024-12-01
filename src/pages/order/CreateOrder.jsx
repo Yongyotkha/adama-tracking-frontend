@@ -73,8 +73,8 @@ export default function CreateOrder() {
             key: data.id, 
             no: index + 1, 
             name: data.name, 
-            unit: "", 
-            value: data.value 
+            unit: data.unit, 
+            value: parseFloat(data.value)
           });
         })
 
@@ -136,6 +136,7 @@ export default function CreateOrder() {
 
                   return {
                     ...item,
+                    unit: item.unit,
                     // quantity: item.quantity + 1,
                     quantity: updatedQuantity,
                     net_amount: updatedNetAmount, // Update net_amount
