@@ -137,7 +137,7 @@ export default function CreateUser() {
       label: "Contact Number",
       name: "contact_number",
       type: "tel",
-      required: false,
+      required: true,
       col: 6,
     },
     {

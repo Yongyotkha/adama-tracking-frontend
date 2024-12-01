@@ -8,6 +8,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../../contexts/AuthContext";
 import useServiceAPI from "../../../services/corsService";
 import { paths } from "../../../services/CorsPath";
+import ActionButton from "../../../components/button/ActionButton";
 
 const { Option } = Select;
 
@@ -26,6 +27,7 @@ export default function EditProduct() {
   const [userinfo, setUserInfo ] = useState([]);
   const navigate = useNavigate();
   const [cropList, setCropList] = useState([]); // state สำหรับ crop_list
+  const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); // กำหนด state สำหรับ defaultSelectedCrops
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,9 +67,11 @@ export default function EditProduct() {
         const { data } = response; 
         setUserInfo(data);
         setCropList(data.crop_list || []); 
-
         setCropOptions(data.crop_list);
         setSelectedCrops(data.crop_list.map((crop) => crop.id));
+
+        const cropNames = data.crop_list?.map((crop) => Number(crop.id)) || [];
+        setDefaultSelectedCrops(cropNames);
 
         const Test = response.data.data;        
         const territoryData = Test.map((item, index) => ({
@@ -77,6 +81,8 @@ export default function EditProduct() {
           position: item.position_name,
         }));
       setUserList(territoryData);
+
+
       } else {
         console.error("Failed to fetch promotion details:", response.message);
       }
@@ -107,32 +113,39 @@ export default function EditProduct() {
     },
   ];
 
-
-
   const handleSave = () => { 
     form
       .validateFields()
       .then((values) => {
-        const useFlagValue = values.use_flag === "Active" ? 1 : 0;
+        // const useFlagValue = values.use_flag === "Active" ? 1 : 0;
         const cropListToSend = selectedCrops.length > 0 
           ? selectedCrops 
           : form.getFieldValue("crop_ID"); 
   
-        // สร้าง payload
-        const dataToSend = {
+          let useFlagValue;
+          if (values.use_flag === 1 || values.use_flag === 0) {
+            useFlagValue = values.use_flag; // ถ้าค่าเป็น 1 หรือ 0 อยู่แล้ว ใช้ค่าเดิม
+          } else {
+            useFlagValue = values.use_flag === "Active" ? 1 : 0; // แปลงค่าจาก "Active" หรือ "Inactive"
+          }
+
+          const dataToSend = {
           ...values,
           id: location.state.id,
           use_flag: useFlagValue, // ส่งค่า use_flag เป็น 1 หรือ 0
-          crop_list: cropListToSend, // ส่ง crop_list
+          crop_list: defaultSelectedCrops, // ส่ง crop_list
         };
-  
+
         useServiceAPI
           .put(paths.pathSaleManagementProductsUpdate, dataToSend, setLoading)
           .then((response) => {
-            if (response.status === 201) {
-              showMsg("success", response.data.message).then(() => {
-                navigate("/setting/product");
-              });
+            if (response.status === 200) {
+              navigate("/setting/product");
+              showNotification(
+                "success",
+                response.data.message,
+                response.data.message_line
+              );
             }
           })
           .catch((error) => {
@@ -221,7 +234,10 @@ export default function EditProduct() {
   //   { label: "Net Price", name: "net_price", type: "text", required: false, col: 6, disabled: true, value: "440.63" },
   // ];
 
-
+  const transformedCropOptions = cropOptions.map((option) => ({
+    label: option.name, // เปลี่ยนจาก name เป็น label
+    value: option.id, // คงค่า value เดิมไว้
+  }));
   
   return (
     <MainLayout loading={loading}>
@@ -232,21 +248,15 @@ export default function EditProduct() {
       <Form layout="vertical">
           <Form.Item label="Crop">
             <Select
-              mode="multiple"
-              showSearch
-              placeholder="Select Crop(s)"
-              optionFilterProp="children"
-              className="w-full"
-              onChange={handleCropChange} 
-              value={selectedCrops}
-              >
-              {
-              cropList.map((crop) => (
-                <Option key={crop.id} value={crop.id}>
-                  {crop.name}
-                </Option>
-              ))}
-            </Select>
+                  mode="multiple"
+                  showSearch
+                  placeholder="Select Crop(s)"
+                  optionFilterProp="children"
+                  className="w-full"
+                  value={defaultSelectedCrops} 
+                  onChange={(value) => setDefaultSelectedCrops(value)} // จัดการการเปลี่ยนแปลงค่า
+                  options={transformedCropOptions} 
+            />
 
           </Form.Item>
         </Form>
@@ -258,12 +268,12 @@ export default function EditProduct() {
           className="bg-[#B6AEAB] min-w-[96px] text-[#ffff] rounded-sm p-2"
           path='/setting/product'
         />
-        <DynamicButton
-          text="Update"
-          className="bg-[#00783F] min-w-[96px] text-[#ffff] rounded-sm p-2"
-          path='/setting/product'
-          mode="update"
+
+        <ActionButton 
+          text="Update" 
+          mode="update" 
           onClick={handleSave} 
+          path='/setting/product'
         />
       </div>
 

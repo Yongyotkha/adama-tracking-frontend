@@ -46,14 +46,14 @@ export default function OrderList() {
 
         setDataSale(sale.data);
         
-        const productData = [];
+        const dataStatus = [];
         status.data.map((data, index) => {
-          productData.push({ 
+          dataStatus.push({ 
             id: data.code, 
             name: data.name, 
           });
         });
-        setDataStatus(productData);
+        setDataStatus(dataStatus);
 
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");

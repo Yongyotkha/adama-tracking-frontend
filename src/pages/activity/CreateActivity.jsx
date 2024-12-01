@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
 import { Form, Input, Col, Row, Select } from "antd";
@@ -16,6 +16,7 @@ import { paths } from "../../services/CorsPath";
 import { useLocation } from "react-router-dom";
 import { ReloadOutlined } from "@ant-design/icons";
 import { convertLegacyProps } from "antd/es/button";
+import { AuthContext } from "../../contexts/AuthContext";
 
 dayjs.extend(customParseFormat);
 
@@ -55,6 +56,13 @@ export default function CreateActivity() {
   const [activityDetail, setActivityDetail] = useState([]);
   const [cropDetailList, setCropDetailList] = useState([]);
   const [assignList, setAssignList] = useState([]);
+  const [isSalePlanEdit, setIsSalePlanEdit] = useState(false);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [tableParams, setTableParams] = useState({
+    page_size: 1,
+    page_length: 10
+  });
+  const { showMsg, showNotification } = useContext(AuthContext);
 
   const handleUploadClick = async () => {    
     // Call triggerUpload from FileUploadComponent
@@ -182,7 +190,7 @@ export default function CreateActivity() {
           let count = 0;
           await activityDetailData.expense_particapant_user_list.forEach((element, key) => {
               count++;
-              const newKey = `sales-${count}`;
+              const newKey = `sales-${element.id}`;
               participantData.push({
                 id: element.id,
                 key: newKey,
@@ -208,12 +216,13 @@ export default function CreateActivity() {
               actualSale: element.acutal_sale_qty, 
               bath_ltkg: element.bath_ltkg, 
               prodectCode: element.product_code,
-              productId: element.id
+              productId: element.product_id
             });
           });
           setProductCropList(productCropLists);
         } finally {
           setLoading(false);
+          setIsSalePlanEdit(true);
         }
       };
   
@@ -251,22 +260,27 @@ export default function CreateActivity() {
           setCropList(crop.data);
           setDealerCustomer(dealerCustomerData.data);
         }else if(attribue == 'crop_id_list'){
-          setCropDetailList(value);
-          const [productCrop] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterProductByCrop, {
-              crop_list: value
-            }),
-          ]);
-
-          let productCropList = [];
-          productCrop.data.forEach((element, key) => {
-            productCropList.push({
-              key: (key + 1), productName: element.product_name, packSize: element.packing_list, 
-              estimateSale: "0", actualSale: "0", bath_ltkg: element.bath_ltkg, prodectCode: element.product_code,
-              productId: element.id
+          if(!isSalePlanEdit){
+            setCropDetailList(value);
+            const [productCrop] = await Promise.all([
+              useServiceAPI.get(paths.pathMasterProductByCrop, {
+                crop_list: value
+              }),
+            ]);
+  
+            let productCropList = [];
+            productCrop.data.forEach((element, key) => {
+              productCropList.push({
+                key: (key + 1), productName: element.product_name, packSize: element.packing_list, 
+                estimateSale: "0", actualSale: "0", bath_ltkg: element.bath_ltkg, prodectCode: element.product_code,
+                productId: element.id
+              });
             });
-          });
-          setProductCropList(productCropList);
+            setProductCropList(productCropList);
+          }
+          setIsSalePlanEdit(false);
+        } else if(attribue == 'activity_type_id') {
+          activityDetail.activity_type_id = value;
         } 
       } catch (error) {
         console.log(error);
@@ -281,12 +295,26 @@ export default function CreateActivity() {
     { title: "Pack Size", dataIndex: "packSize", key: "packSize", align: "center" },
     {
       title: "Estimate Sale (Kg/Lt)", dataIndex: "estimateSale", key: "estimateSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.estimateSale} onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}/>
+        <Input placeholder="0" defaultValue={record.estimateSale} onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}
+          formatter={(value) =>
+            `${Number(value).toFixed(2)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
+          }
+        />
       )
     },
     {
       title: "Actual Sale (Kg/Lt)", dataIndex: "actualSale", key: "actualSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.actualSale} onChange={(e) => handleInputChange(e.target.value, record.key, "actualSale", record.bath_ltkg)}/>
+        <Input placeholder="0" defaultValue={record.actualSale} onChange={(e) => handleInputChange(e.target.value, record.key, "actualSale", record.bath_ltkg)}
+          formatter={(value) =>
+            `${Number(value).toFixed(2)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
+          }
+        />
       )
     },
   ];
@@ -299,7 +327,7 @@ export default function CreateActivity() {
         return { ...item, [field]: numericValue, total: newTotal };
       }
       return item;
-    });
+    });    
 
     setProductCropList(updatedData);
   };
@@ -312,10 +340,24 @@ export default function CreateActivity() {
     <tr className="bg-[#978B87]">
       <td colSpan={2} className="text-left pr-2 text-white">Total (THB)</td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" value={activityDetail?.expense_product_total_estimate_sale ?? calculateGrandTotal("estimateSale")} readOnly/>
+        <Input placeholder="0" value={calculateGrandTotal("estimateSale") > 0 ? calculateGrandTotal("estimateSale") : activityDetail?.expense_product_total_estimate_sale } readOnly  
+          formatter={(value) =>
+            `${Number(value).toFixed(2)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
+          }
+        />
       </td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" value={activityDetail?.expense_product_total_acutal_sale ?? calculateGrandTotal("actualSale")} readOnly/>
+        <Input placeholder="0" value={calculateGrandTotal("actualSale") > 0 ? calculateGrandTotal("actualSale") : activityDetail?.expense_product_total_acutal_sale} readOnly
+          formatter={(value) =>
+            `${Number(value).toFixed(2)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
+          }
+        />
       </td>
     </tr>
   );
@@ -343,10 +385,11 @@ export default function CreateActivity() {
   };
 
   const getParticipant = async () => {
+    setTableLoading(true);
     const [participant] = await Promise.all([
       useServiceAPI.get(paths.pathMasterSaleAll, {
         'page_size': 1,
-        'page_length': 10,
+        'page_length': 1000,
       }),
     ]);
   
@@ -359,7 +402,7 @@ export default function CreateActivity() {
       const isExisting = participants.some((item) => item.id === id);
       if (!isExisting) {
         count++;
-        const newKey = `sales-${count}`;
+        const newKey = `sales-${element.id}`;
         participantData.push({
           id: element.id,
           key: newKey,
@@ -387,7 +430,6 @@ export default function CreateActivity() {
       const newRows = selectedRows.filter(
         (row) => !prev.some((participant) => participant.key === row.key)
       );
-      
       // Merge existing participants with new rows
       const updatedParticipants = [...prev, ...newRows];
       
@@ -404,19 +446,18 @@ export default function CreateActivity() {
   };
 
   //บันทึกข้อมูล
-  const handleSave = async () => {
+  const handleSave = (modeSave) => {
     formCustom.validateFields();
     //Form Basic Activity
     const allValuesBasic = formCustom.getFieldsValue();
-    const pageCode = 'activity_transaction';
-    const actionCode = 'draft';
+    const actionCode =  modeSave == 'convert' ? 'convert_clearing' : 'draft';
     //File Upload
     const imageLists = [];
     fileList.forEach(element => {
       imageLists.push(element.url);
     });
     //เปิด Expense หรือไม่?
-    const isExpense = isBtnExpenseActive || (mode == 'expense_advance' || mode == 'expense_clearing');
+    const isExpense = isBtnExpenseActive || (pageCode == 'expense_advance' || pageCode == 'expense_clearing');
     
     //ส่วนของ Sale Plan
     const expenseProductTotalEstimateSale = calculateGrandTotal("estimateSale");
@@ -462,6 +503,7 @@ export default function CreateActivity() {
 
     const body = {
         "page_code": pageCode,
+        "document_number_referrent" : activityDetail?.document_number_referrent ?? null,
         "action_code": actionCode,
         ...allValuesBasic,
         "image_list": imageLists,
@@ -493,22 +535,34 @@ export default function CreateActivity() {
       .put(paths.pathActivityExpenseDetail, body, setLoading)
       .then((response) => {
         if(response.result){
-          navigate("/activity/list");
+          if(pageCode == 'expense_clearing'){
+            navigate("/expenses/clearing");
+          }else if(pageCode == 'expense_advance'){
+            navigate("/expenses/advance");
+          }else{
+            navigate("/activity/list");
+          }
         }
       })
       .catch((error) => {
-        console.log(error);
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
       });
     }else{
       useServiceAPI
       .post(paths.pathActivityExpenseCreate, body, setLoading)
       .then((response) => {
         if(response.result){
-          navigate("/activity/list");
+          if(pageCode == 'expense_clearing'){
+            navigate("/expenses/clearing");
+          }else if(pageCode == 'expense_advance'){
+            navigate("/expenses/advance");
+          }else{
+            navigate("/activity/list");
+          }
         }
       })
       .catch((error) => {
-        console.log(error);
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
       });
     }
   };
@@ -576,11 +630,12 @@ export default function CreateActivity() {
 
   };
 
+  const menuTitle = (pageCode == 'expense_advance' ? 'Advance Expense' : (pageCode == 'expense_clearing' ? ' Clearing Expense' : 'Activity'));
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">{documentNumber ? 'Edit Activity' : 'Create Activity'}</div>
-        {(mode !== 'expense_advance' || mode !== 'expense_clearing') ? (
+        <div className="title-page">{documentNumber ? 'Edit' + ' ' + menuTitle : 'Create' + ' ' + menuTitle}</div>
+        {(pageCode != 'expense_advance' && pageCode != 'expense_clearing') ? (
           !isBtnExpenseActive ? 
           <ActionButton mode="create" text="Add Advance Expense" onClick={showLayoutExpense} />
           :
@@ -592,7 +647,7 @@ export default function CreateActivity() {
 
       <FormCustom fields={formFields} form={formCustom} onChange={handleChange} mode={documentNumber ? 'edit' : 'create'}/>
 
-      {(isBtnExpenseActive || (mode == 'expense_advance' || mode == 'expense_clearing')) ? (
+      {(isBtnExpenseActive || (pageCode == 'expense_advance' || pageCode == 'expense_clearing')) ? (
         <>
           <div className="flex items-center justify-between">
             <div className="title-page">Advance Expense</div>
@@ -752,7 +807,7 @@ export default function CreateActivity() {
             >
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item className="mb-3" label="Actual exp" name="actual_exp">
+                  <Form.Item className="mb-3" label="Actual exp" name="actual_exp" >
                     <Input placeholder="0" disabled />
                   </Form.Item>
                 </Col>
@@ -813,7 +868,11 @@ export default function CreateActivity() {
 
       <div className="flex justify-end space-x-4 mt-6">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/activity/list")} />
-        <ActionButton mode="save" text="Save" onClick={handleSave} />
+        {
+          pageCode == 'expense_advance' ? (<ActionButton mode="saveDraft" text="Convert to Clearing" onClick={() => handleSave('convert')} />) : null
+        }
+
+        <ActionButton mode="save" text="Save" onClick={() => handleSave('default') } />
       </div>
 
       {/* Modal for Add Participant */}
