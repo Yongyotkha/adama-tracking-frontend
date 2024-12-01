@@ -55,6 +55,7 @@ export default function CreateActivity() {
   const [activityDetail, setActivityDetail] = useState([]);
   const [cropDetailList, setCropDetailList] = useState([]);
   const [assignList, setAssignList] = useState([]);
+  const [isSalePlanEdit, setIsSalePlanEdit] = useState(false);
 
   const handleUploadClick = async () => {    
     // Call triggerUpload from FileUploadComponent
@@ -208,12 +209,13 @@ export default function CreateActivity() {
               actualSale: element.acutal_sale_qty, 
               bath_ltkg: element.bath_ltkg, 
               prodectCode: element.product_code,
-              productId: element.id
+              productId: element.product_id
             });
           });
           setProductCropList(productCropLists);
         } finally {
           setLoading(false);
+          setIsSalePlanEdit(true);
         }
       };
   
@@ -251,22 +253,27 @@ export default function CreateActivity() {
           setCropList(crop.data);
           setDealerCustomer(dealerCustomerData.data);
         }else if(attribue == 'crop_id_list'){
-          setCropDetailList(value);
-          const [productCrop] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterProductByCrop, {
-              crop_list: value
-            }),
-          ]);
-
-          let productCropList = [];
-          productCrop.data.forEach((element, key) => {
-            productCropList.push({
-              key: (key + 1), productName: element.product_name, packSize: element.packing_list, 
-              estimateSale: "0", actualSale: "0", bath_ltkg: element.bath_ltkg, prodectCode: element.product_code,
-              productId: element.id
+          if(!isSalePlanEdit){
+            setCropDetailList(value);
+            const [productCrop] = await Promise.all([
+              useServiceAPI.get(paths.pathMasterProductByCrop, {
+                crop_list: value
+              }),
+            ]);
+  
+            let productCropList = [];
+            productCrop.data.forEach((element, key) => {
+              productCropList.push({
+                key: (key + 1), productName: element.product_name, packSize: element.packing_list, 
+                estimateSale: "0", actualSale: "0", bath_ltkg: element.bath_ltkg, prodectCode: element.product_code,
+                productId: element.id
+              });
             });
-          });
-          setProductCropList(productCropList);
+            setProductCropList(productCropList);
+          }
+          setIsSalePlanEdit(false);
+        } else if(attribue == 'activity_type_id') {
+          activityDetail.activity_type_id = value;
         } 
       } catch (error) {
         console.log(error);
@@ -281,12 +288,26 @@ export default function CreateActivity() {
     { title: "Pack Size", dataIndex: "packSize", key: "packSize", align: "center" },
     {
       title: "Estimate Sale (Kg/Lt)", dataIndex: "estimateSale", key: "estimateSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.estimateSale} onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}/>
+        <Input placeholder="0" defaultValue={record.estimateSale} onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}
+          formatter={(value) =>
+            `${Number(value).toFixed(2)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
+          }
+        />
       )
     },
     {
       title: "Actual Sale (Kg/Lt)", dataIndex: "actualSale", key: "actualSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.actualSale} onChange={(e) => handleInputChange(e.target.value, record.key, "actualSale", record.bath_ltkg)}/>
+        <Input placeholder="0" defaultValue={record.actualSale} onChange={(e) => handleInputChange(e.target.value, record.key, "actualSale", record.bath_ltkg)}
+          formatter={(value) =>
+            `${Number(value).toFixed(2)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
+          }
+        />
       )
     },
   ];
@@ -299,7 +320,7 @@ export default function CreateActivity() {
         return { ...item, [field]: numericValue, total: newTotal };
       }
       return item;
-    });
+    });    
 
     setProductCropList(updatedData);
   };
@@ -312,10 +333,24 @@ export default function CreateActivity() {
     <tr className="bg-[#978B87]">
       <td colSpan={2} className="text-left pr-2 text-white">Total (THB)</td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" value={activityDetail?.expense_product_total_estimate_sale ?? calculateGrandTotal("estimateSale")} readOnly/>
+        <Input placeholder="0" value={calculateGrandTotal("estimateSale") > 0 ? calculateGrandTotal("estimateSale") : activityDetail?.expense_product_total_estimate_sale } readOnly  
+          formatter={(value) =>
+            `${Number(value).toFixed(2)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
+          }
+        />
       </td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" value={activityDetail?.expense_product_total_acutal_sale ?? calculateGrandTotal("actualSale")} readOnly/>
+        <Input placeholder="0" value={calculateGrandTotal("actualSale") > 0 ? calculateGrandTotal("actualSale") : activityDetail?.expense_product_total_acutal_sale} readOnly
+          formatter={(value) =>
+            `${Number(value).toFixed(2)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
+          }
+        />
       </td>
     </tr>
   );
@@ -752,7 +787,7 @@ export default function CreateActivity() {
             >
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item className="mb-3" label="Actual exp" name="actual_exp">
+                  <Form.Item className="mb-3" label="Actual exp" name="actual_exp" >
                     <Input placeholder="0" disabled />
                   </Form.Item>
                 </Col>
