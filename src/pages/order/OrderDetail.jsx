@@ -210,29 +210,41 @@ export default function OrderDetail() {
     };
     console.log(body);
 
-    const saveOrder = async () => {
-      setLoading(true);
-      try {
-        const [response] = await Promise.all([
-          useServiceAPI.post(paths.pathGetOrderCreate, body),
-        ]);
+    if (dataSource.length > 0) {
+      const saveOrder = async () => {
+        setLoading(true);
+        try {
+          const [response] = await Promise.all([
+            useServiceAPI.post(paths.pathGetOrderCreate, body),
+          ]);
 
-        showNotification(
-          "success",
-          response.data.message,
-          response.data.message_line
-        ).then(() => {
-          navigate("/order/list");
-        });
-      } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+          showNotification(
+            "success",
+            response.data.message,
+            response.data.message_line
+          ).then(() => {
+            navigate("/order/list");
+          });
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+          console.log(error);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    saveOrder();
+      saveOrder();
+    } else {
+      // console.log("เลือกรายการอย่างน้อย 1 รายการ");
+      showNotification(
+        "warning",
+        "โปรดเลือกรายการ อย่างน้อย 1 รายการ",
+        ""
+      ).then(() => {
+        // navigate("/order/list");
+      });
+    }
+
   };
 
   return (

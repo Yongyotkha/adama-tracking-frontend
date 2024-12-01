@@ -19,7 +19,6 @@ export default function CreateUser() {
   const [areas, setAreas] = useState([]);
   const [roles, setRoles] = useState([]);
   const [permission, setPermission] = useState([]);
-
   const navigate = useNavigate();
   const [form] = Form.useForm();
   // const { showMsg } = useContext(AuthContext);

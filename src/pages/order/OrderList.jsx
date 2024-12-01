@@ -188,7 +188,7 @@ export default function OrderList() {
               textColor={order.status_transaction_color}
             />
           ),
-          createdBy: order.updated_by,
+          createdBy: order.created_by,
           action: (
             <Dropdown
               // menu={{

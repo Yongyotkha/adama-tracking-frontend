@@ -1,8 +1,7 @@
 // API EndPoint
 export const endPoint = "https://adama-api.mtsc.co.th/api"; //Test API
-// export const endPoint = "https://api-uat.adama.co.th"; //UAT API
+// export const endPoint = "https://api-uat.adama.co.th/api"; //UAT API
 // export const endPoint = "http://localhost:8080/api";
-
 
 export const paths = {
   // Login
@@ -51,7 +50,11 @@ export const paths = {
   pathCustomerSubDealerList: "sale-customer-subdealer/list",
   pathCustomerSubDealerUpdate: "sale-customer-dealer/update",
   pathCustomerSubDealerNetworkUpdate : "sale-customer-dealer/network-create",
+  
+  //SubDealer
+  pathCreateSubDealer: "sale-customer-subdealer/create",
 
+  
   
   // Sale
   pathSaleManagementDetail: "sale-management/sale-team/detail",
@@ -130,6 +133,7 @@ export const paths = {
 
   pathActivityExpenseCreate: "/activity-expense/create",
   pathActivityExpenseDetail: "/activity-expense/detail",
+  pathActivityExpenseList: "/activity-expense/list",
 
   // Activity Calendar
   pathActivityCalendarList: "/activity/calendar/list",
@@ -149,8 +153,5 @@ export const paths = {
   pathGetExpenseTravelingDetail: "expense/traveling/detail",
   pathGetExpenseTravelingCreate: "expense/traveling/detail",
   pathGetExpenseTravelingUpdate: "expense/traveling/detail",
-
-  //Expense Activity
-  pathActivityExpenseList: "activity-expense/list",
 
 };

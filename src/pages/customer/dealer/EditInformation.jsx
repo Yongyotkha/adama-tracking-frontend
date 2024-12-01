@@ -257,79 +257,6 @@ export default function EditInformation() {
     }
   };
 
-  // const renderContactItems = () =>
-  //   contactItems.map((contact, index) => (
-  //     <div key={index} className="mb-6">
-  //       <div className="flex justify-between mb-4">
-  //         <span className="text-[#00783F] text-md">{`Person ${ index + 1}`}</span>
-  //       </div>
-  //       <Row gutter={[16, 16]}>
-  //         <Col xs={24} sm={12} md={8} lg={6}>
-  //           <Input placeholder="Name (EN)" value={contact.name_en || ""} 
-  //             onChange={(e) =>
-  //               handleContactChange(index, "name_en", e.target.value)
-  //             }
-  //           />
-            
-  //         </Col>
-  //         <Col xs={24} sm={12} md={8} lg={6}>
-  //           <Input placeholder="Name (TH)" value={contact.name_th || ""} 
-  //             onChange={(e) =>
-  //               handleContactChange(index, "name_th", e.target.value)
-  //             }
-  //           />
-  //         </Col>
-  //         <Col xs={24} sm={12} md={8} lg={6}>
-  //           <Input placeholder="Nickname" value={contact.nickname || ""} 
-  //           />
-  //         </Col>
-  //         <Col xs={24} sm={12} md={8} lg={6}>
-  //           <DatePicker
-  //             className="w-full"
-  //             placeholder="Date of Birth"
-  //             value={
-  //               contact.date_of_birth ? dayjs(contact.date_of_birth) : null
-  //             }
-  //           />
-  //         </Col>
-  //         <Col xs={24} sm={12} md={8} lg={6}>
-  //           <Input
-  //             placeholder="T-Shirt Size"
-  //             value={contact.t_shirt_size || ""}
-  //           />
-  //         </Col>
-  //         <Col xs={24} sm={12} md={8} lg={6}>
-  //           <Input
-  //             placeholder="Relationship"
-  //             value={contact.relationship || ""}
-  //           />
-  //         </Col>
-  //         <Col xs={24} sm={12} md={8} lg={6}>
-  //           <Input placeholder="Duty" value={contact.duty || ""} />
-  //         </Col>
-  //         <Col xs={24} sm={12} md={8} lg={6}>
-  //           <Input placeholder="Tel 1" value={contact.tel1 || ""} />
-  //         </Col>
-  //         <Col xs={24} sm={12} md={8} lg={6}>
-  //           <Input placeholder="Tel 2" value={contact.tel2 || ""} />
-  //         </Col>
-  //         <Col xs={24} sm={12} md={8} lg={6}>
-  //           <Input
-  //             placeholder="Contact Number"
-  //             value={contact.contact_number || ""}
-  //           />
-  //         </Col>
-  //         <Col xs={24} sm={12} md={8} lg={6}>
-  //           <Input placeholder="Email" value={contact.email || ""} />
-  //         </Col>
-  //         <Col xs={24} sm={12} md={8} lg={6}>
-  //           <Input placeholder="Line ID" value={contact.line_id || ""} />
-  //         </Col>
-  //       </Row>
-  //       <hr className="my-4" />
-  //     </div>
-  //   ));
-
   const renderContactItems = () =>
     contactItems.map((contact, index) => (
       <div key={index} className="mb-6">
@@ -430,17 +357,6 @@ export default function EditInformation() {
     ));
   
 
-
-
-
-
-
-
-
-
-
-
-  // Handle tab change
   const handleTabChange = (key) => {
     setActiveTabKey(key);
   };
@@ -542,12 +458,7 @@ export default function EditInformation() {
     );
   };
 
-  // const defaultSelectedCrops = ["Rice", "Corn", "Soybean"];
 
-  // Mock crop data for the multi-select dropdown
-  // const cropOptions = [
-  //   "Rice", "Wheat", "Corn", "Soybean", "Cotton", "Barley", "Sugarcane", "Potato", "Tomato", "Lettuce"
-  // ];
 
   const transformedCropOptions = cropOptions.map((option) => ({
     label: option.name, // เปลี่ยนจาก name เป็น label

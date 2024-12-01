@@ -11,7 +11,8 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   const [view, setView] = useState("month");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
-
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1); // Current month
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear()); // Current year
   // State for Sale Territory and Shop options
   const [saleOptions, setSaleOptions] = useState([]);
   const [shopOptions, setShopOptions] = useState([]);
@@ -27,47 +28,42 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
 
   const handleDelete = async (documentNumber) => {
     try {
-      // const response = await fetch(
-      //   `/activity/delete?document_number=${encodeURIComponent(documentNumber)}`,
-      //   {
-      //     method: "DELETE",
-      //     headers: {
-      //       Authorization: `Bearer ${localStorage.getItem("accessToken")}`, // Replace with your token retrieval logic
-      //       "Content-Type": "application/json",
-      //     },
-      //   }
-      // );
+      // Call API to delete the event
+      const response = await useServiceAPI.delete(
+        `/activity/delete?document_number=${encodeURIComponent(documentNumber)}`
+      );
 
-      const response = await useServiceAPI.delete(`/activity/delete?document_number=${encodeURIComponent(documentNumber)}`);
+      if (response.status === 200) {
+        // Fetch the updated events for the current month and year
+        await fetchEvents(currentMonth, currentYear);
 
-  console.log(response);
-      // if (response.ok) {
-      //   const responseData = await response.json();
-      //   await showNotification(
-      //     "success",
-      //     responseData.message || "Event deleted successfully!",
-      //     responseData.data?.Message?.Message_Line || ["The event has been removed."]
-      //   );
-      //   fetchEvents(); // Refresh the event list
-      // } else {
-      //   const errorData = await response.json();
-      //   await showNotification(
-      //     "error",
-      //     errorData.message || "Failed to delete event.",
-      //     errorData.data?.Message?.Message_Line || ["Please try again later."]
-      //   );
-      // }
+        // Show success notification
+        showNotification(
+          "success",
+          response.data.message || "Event deleted successfully!",
+          response.data.message_line || ["The event has been removed."]
+        );
+      } else {
+        // Show error notification if response is not 200
+        console.error("Failed to delete event:", response.message);
+        showNotification(
+          "error",
+          response.message || "Failed to delete event.",
+          response.message_line || ["Please try again later."]
+        );
+      }
     } catch (error) {
+      // Handle errors and show an error notification
       console.error("Error deleting event:", error);
-      await showNotification(
+      showNotification(
         "error",
         "An error occurred while deleting the event.",
         ["Please try again later."]
       );
     }
-  
   };
-  
+
+
   useEffect(() => {
     // Fetch Sale Territory options on mount
     const fetchSaleOptions = async () => {
@@ -171,29 +167,24 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   ];
 
   const handlePrevMonth = () => {
-    const newDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth() - 1,
-      1
-    );
+    const newDate = new Date(currentDate);
+    newDate.setMonth(newDate.getMonth() - 1);
     setCurrentDate(newDate);
-    setSelectedDate(null);
     fetchEvents(newDate.getMonth() + 1, newDate.getFullYear());
   };
 
   const handleNextMonth = () => {
-    const newDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth() + 1,
-      1
-    );
+    const newDate = new Date(currentDate);
+    newDate.setMonth(newDate.getMonth() + 1);
     setCurrentDate(newDate);
-    setSelectedDate(null);
     fetchEvents(newDate.getMonth() + 1, newDate.getFullYear());
   };
 
+
   const handleDateClick = (date) => {
-    setSelectedDate(date);
+    const correctedDate = new Date(date);
+    correctedDate.setDate(correctedDate.getDate() + 1); // Adjust the date
+    setSelectedDate(correctedDate.toISOString().split("T")[0]);
   };
 
   const renderEventsForDate = (date) => {
@@ -374,8 +365,9 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                     currentDate.getMonth(),
                     index + 1
                   );
-                  const isActive =
-                    selectedDate === date.toISOString().split("T")[0];
+                  const correctedDate = new Date(date);
+                  correctedDate.setDate(correctedDate.getDate() + 1); // Add the same adjustment here
+                  const isActive = selectedDate === correctedDate.toISOString().split("T")[0];
 
                   return (
                     <div
@@ -394,10 +386,11 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                       >
                         {index + 1}
                       </div>
-                      {renderEventsForDate(date.toISOString().split("T")[0])}
+                      {renderEventsForDate(correctedDate.toISOString().split("T")[0])}
                     </div>
                   );
                 })}
+
 
                 {/* Fill up remaining cells to ensure 5 rows */}
                 {Array.from({
