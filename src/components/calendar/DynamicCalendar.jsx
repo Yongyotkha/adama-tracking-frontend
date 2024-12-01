@@ -40,7 +40,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
 
       const response = await useServiceAPI.delete(`/activity/delete?document_number=${encodeURIComponent(documentNumber)}`);
 
-  console.log(response);
+      console.log(response);
       // if (response.ok) {
       //   const responseData = await response.json();
       //   await showNotification(
@@ -65,9 +65,9 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
         ["Please try again later."]
       );
     }
-  
+
   };
-  
+
   useEffect(() => {
     // Fetch Sale Territory options on mount
     const fetchSaleOptions = async () => {
@@ -193,7 +193,9 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   };
 
   const handleDateClick = (date) => {
-    setSelectedDate(date);
+    const correctedDate = new Date(date);
+    correctedDate.setDate(correctedDate.getDate() + 1); // Adjust the date
+    setSelectedDate(correctedDate.toISOString().split("T")[0]);
   };
 
   const renderEventsForDate = (date) => {
@@ -374,8 +376,9 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                     currentDate.getMonth(),
                     index + 1
                   );
-                  const isActive =
-                    selectedDate === date.toISOString().split("T")[0];
+                  const correctedDate = new Date(date);
+                  correctedDate.setDate(correctedDate.getDate() + 1); // Add the same adjustment here
+                  const isActive = selectedDate === correctedDate.toISOString().split("T")[0];
 
                   return (
                     <div
@@ -394,10 +397,11 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                       >
                         {index + 1}
                       </div>
-                      {renderEventsForDate(date.toISOString().split("T")[0])}
+                      {renderEventsForDate(correctedDate.toISOString().split("T")[0])}
                     </div>
                   );
                 })}
+
 
                 {/* Fill up remaining cells to ensure 5 rows */}
                 {Array.from({
