@@ -172,7 +172,7 @@ export default function ClearingExpense() {
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Clearing Expense</div>
-        <ActionButton mode="create" text="Create" onClick={(e) => navigate("/activity/create?mode=expense_clearing")} />
+        <ActionButton mode="create" text="Create" onClick={(e) => navigate("/activity/create?pageCode=expense_clearing")} />
       </div>
       <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
       <BoxPrimary>
