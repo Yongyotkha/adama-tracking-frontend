@@ -61,7 +61,6 @@ import ViewOrderWaiting from "./pages/order/ViewOrderWaiting";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import WorkPlanSaleByDealer from "./pages/sale_plan/workplan/WorkPlanSaleByDealer";
 import EditWorkPlan from "./pages/sale_plan/workplan/EditWorkPlan";
-import EditRollingForecast from "./pages/sale_plan/rolling_forecast/EditRollingForecast";
 import FirstChangePassword from "./pages/auth/FirstChangePassword";
 
 // START ------------- Activity ------------- START
@@ -73,6 +72,8 @@ import ActivityCalendar from "./pages/activity/calendar/ActivityCalendar";
 import ViewTraveling from "./pages/expenses/traveling/ViewTraveling";
 import ActivityMapping from "./pages/activity/mapping/ActivityMapping";
 import WorkPlanSaleBySubDealer from "./pages/sale_plan/workplan/WorkPlanSaleBySubDealer";
+import RollingForecastQuarter from "./pages/sale_plan/rolling_forecast/RollingForecastQuarter";
+import RollingForecastMonth from "./pages/sale_plan/rolling_forecast/RollingForecastMonth";
 // END ------------- Activity ------------- END
 
 
@@ -109,7 +110,8 @@ const App = () => {
           <Route path="/sale-plan/rolling-forecast" element={<RollingForecast />} />
           <Route path="/sale-plan/rolling-forecast-area" element={<RollingForecast />} />
           <Route path="/sale-plan/rolling-forecast-sale" element={<RollingForecast />} />
-          <Route path="/sale-plan/rolling-forecast/edit" element={<EditRollingForecast />} />
+          <Route path="/sale-plan/rolling-forecast/month" element={<RollingForecastMonth />} />
+          <Route path="/sale-plan/rolling-forecast/quarter" element={<RollingForecastQuarter />} />
 
           {/* Activity Route */}
           <Route path="/activity/list" element={<ActivityList />} />
