@@ -125,10 +125,10 @@ export default function AdvanceExpense() {
         
           return {
             key: index + 1 + (current - 1) * pageSize,
-            customer: row.customer_name,
-            expenseNo: row.customer_name,
-            activityReference: row.document_number,
-            typeOfMeeting: "FMT",
+            customer: row.dealer_name,
+            expenseNo: row.document_number,
+            activityReference: row.document_number_referrent,
+            typeOfMeeting: row.activity_type_name,
             date: row.document_date,
             status: <BadgeStatus text={row.status_name} bgColor={row.status_bg_color} textColor={row.status_color} />,
             action: (
