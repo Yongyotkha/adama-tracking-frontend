@@ -1,6 +1,8 @@
 // API EndPoint
-export const endPoint = "https://adama-api.mtsc.co.th/api";
+export const endPoint = "https://adama-api.mtsc.co.th/api"; //Test API
+// export const endPoint = "https://api-uat.adama.co.th"; //UAT API
 // export const endPoint = "http://localhost:8080/api";
+
 
 export const paths = {
   // Login
@@ -24,8 +26,10 @@ export const paths = {
   pathMasterProductByCrop: "master/product-by-crop",
   pathMasterSaleAll: "master/sale-all/list",
   pathMasterDealerCustomer: "master/dealer/customer",
-
+  pathMasterSubDealer: "master/sub-dealer",
+  pathMasterPermission: "master/permission",
   
+
   // pathMasterShop: "master/shop",
   pathMasterStatus: "master/status",
   pathMasterHeadofsale: "master/headofsale",
@@ -34,6 +38,7 @@ export const paths = {
   pathMasterMonths: "master/months",
   pathMasterYear: "master/years",
   pathMasterPerception: "master/perception",
+  
 
   //Products
   pathSaleManagementProductsList: "products-management/list",

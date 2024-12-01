@@ -9,6 +9,7 @@ import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
 import dayjs from "dayjs";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
+import { values } from "lodash";
 
 export default function CreateUser() {
   const [loading, setLoading] = useState(false);
@@ -17,9 +18,12 @@ export default function CreateUser() {
   const [territory, setTerritory] = useState([]);
   const [areas, setAreas] = useState([]);
   const [roles, setRoles] = useState([]);
+  const [permission, setPermission] = useState([]);
+
   const navigate = useNavigate();
   const [form] = Form.useForm();
-  const { showMsg } = useContext(AuthContext);
+  // const { showMsg } = useContext(AuthContext);
+  const { showMsg, showNotification } = useContext(AuthContext);
 
   const handleBack = () => {
     navigate("/setting/user");
@@ -29,13 +33,17 @@ export default function CreateUser() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [positions, departments, territories, areas, roles] =
+        const [positions, departments, territories, areas, roles, permission] =
           await Promise.all([
             useServiceAPI.get(paths.pathMasterPosition, {}),
             useServiceAPI.get(paths.pathMasterDepartments, {}),
             useServiceAPI.get(paths.pathMasterTerritory, {}),
             useServiceAPI.get(paths.pathMasterAreas, {}),
             useServiceAPI.get(paths.pathMasterRoles, {}),
+            useServiceAPI.get(paths.pathMasterRoles, {}),
+            useServiceAPI.get(paths.pathMasterPermission, {}),
+
+            
           ]);
 
         setPosition(positions.data);
@@ -44,6 +52,8 @@ export default function CreateUser() {
         // setAreas(areas.data.map((a) => ({ ...a, name: a.area_name })));
         setAreas(areas.data);
         setRoles(roles.data);
+        setPermission(permission.data);
+
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -68,18 +78,21 @@ export default function CreateUser() {
           .post(paths.pathMasterUsersCreate, values, setLoading)
           .then((response) => {
             if (response.status == 201) {
-              console.log(response.data.message);
-              showMsg("success", response.data.message).then(() => {
+              showNotification("success", response.data.message).then(() => {
                 navigate("/setting/user"); // นำทางไปยังหน้าล็อกอิน
               });
             }
           })
           .catch((error) => {
-            console.log(error);
+            console.log(error.response.data.data.message);
             if (error.status == 422) {
-              showMsg("error", error.message);
+              // showMsg("error", error.message);
+              showNotification("error",error.response.data.data.message);
+            } else if (error.status == 500) {
+              showNotification("error",error.response.data.data.message);
+              
             } else {
-              showMsg("error", "เกิดข้อผิดพลาด");
+              showNotification("error", "เกิดข้อผิดพลาด");
             }
           });
       })
@@ -87,6 +100,8 @@ export default function CreateUser() {
         console.error("Validation Failed:", errorInfo);
       });
   };
+
+  
 
   const formFields = [
     {
@@ -180,6 +195,15 @@ export default function CreateUser() {
       options: roles,
     },
     {
+      label: "Permission",
+      name: "permission",
+      type: "select",
+      required: true,
+      col: 6,
+      options: permission,
+
+    },
+    {
       label: "Date of Joining",
       name: "date_of_joining",
       type: "date",
@@ -190,12 +214,13 @@ export default function CreateUser() {
       label: "Status",
       name: "use_flag",
       type: "select",
-      required: false,
+      required: true,
       col: 6,
       options: [
         { name: "Active", id: 1, selected: true },
         { name: "Inactive", id: 0, selected: false },
       ],
+      value: 1,
     },
   ];
 
@@ -203,7 +228,6 @@ export default function CreateUser() {
     <MainLayout loading={loading}>
       <div className="title-page">Create User</div>
       <FormUser fields={formFields} form={form} />
-
       <div className="flex justify-end space-x-4 mt-4">
         <ActionButton text="Back" mode="back" onClick={handleBack} />
         <ActionButton text="Save" mode="save" onClick={handleSave} />

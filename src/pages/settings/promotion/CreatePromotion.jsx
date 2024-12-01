@@ -31,28 +31,36 @@ export default function CreatePromotion() {
       col: 12, 
     },
     { 
-      label: "Unit", 
-      name: "unit", 
-      type: "text", 
-      required: true, 
-      col: 8, 
-    },
-    { 
       label: "Value (THB)", 
       name: "value", 
       type: "text", 
       required: true, 
-      col: 8, 
+      col: 6, 
     },
+    { 
+      label: "Unit", 
+      name: "unit", 
+      type: "text", 
+      required: true, 
+      col: 6, 
+    },
+
     { label: "Status", 
       name: "use_flag", 
       type: "select", 
       required: true, 
-      col: 8, 
+      col: 6, 
       options: [
         { name: "Active", id: 1, selected: true },
         { name: "Inactive", id: 0, selected: false },
       ],
+    },
+    { 
+      label: "Remark", 
+      name: "remark", 
+      type: "text", 
+      required: true, 
+      col: 6, 
     },
   ];
 

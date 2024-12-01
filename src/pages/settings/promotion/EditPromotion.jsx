@@ -69,29 +69,30 @@ export default function EditPromotion() {
             type: "text", 
             required: true, 
             col: 12, 
-            value: data.description || "" },
-            { 
-              label: "Unit", 
-              name: "unit", 
-              type: "text", 
-              required: true, 
-              col: 4, 
-              value: data.unit || "",
-            },
+            value: data.description || "" 
+          },
           { 
             label: "Value (THB)", 
             name: "value", 
             type: "text", 
             required: true, 
-            col: 4, 
+            col: 6, 
             value: data.value ===  ".00" ? "0.00" : data.value 
+          },
+          { 
+            label: "Unit", 
+            name: "unit", 
+            type: "text", 
+            required: true, 
+            col: 6, 
+            value: data.unit || "",
           },
           { 
             label: "Status", 
             name: "use_flag", 
             type: "select", 
             required: false, 
-            col: 4, 
+            col: 6, 
             options: [
               { name: "Active", id: 1, selected: true },
               { name: "Inactive", id: 0, selected: false },
@@ -104,7 +105,7 @@ export default function EditPromotion() {
             name: "remark", 
             type: "text", 
             required: false, 
-            col: 12, 
+            col: 6, 
             value: 
             data.remark || "" 
           },

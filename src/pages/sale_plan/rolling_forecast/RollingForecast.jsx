@@ -3,7 +3,7 @@ import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableExpand from "../../../components/table/TableExpand";
-import { Dropdown } from "antd";
+import { Dropdown, Select } from "antd";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +18,8 @@ export default function RollingForecast() {
   const [tableLoading, setTableLoading] = useState(false);
   const [status, setStatus] = useState([]);
   const [years, setYears] = useState([]);
+  const [sale, setSale] = useState([]);
+  const [defaultOption, setDefaultOption] = useState(null);
   const [pathName, setPathName] = useState([]);
   const { showNotification } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
@@ -318,15 +320,26 @@ export default function RollingForecast() {
   const getMaster = async () => {
     setLoading(true);
     try {
-      const [years, status] = await Promise.all([
+      const [years, status,sale] = await Promise.all([
         useServiceAPI.get(paths.pathMasterYear),
         useServiceAPI.get(paths.pathMasterStatus, {
           status_type: "rolling_forecast",
         }),
+        useServiceAPI.get(paths.pathMasterSaleDropdown),
       ]);
+
+      const formattedOptions = sale.data.map((item) => ({
+        value: item.id,
+        label: item.name,
+      }));
+
+      if (formattedOptions.length > 0) {
+        setDefaultOption(formattedOptions[0].value);
+      }
 
       setYears(years.data);
       setStatus(status.data);
+      setSale(formattedOptions);
     } catch (error) {
       showNotification("error", error.message || "เกิดข้อผิดพลาด");
     } finally {
@@ -488,11 +501,26 @@ export default function RollingForecast() {
     },
   ];
 
+
   return (
     <MainLayout loading={loading} childrenStyle="">
-      <div className="flex justify-between">
+      <div className="flex justify-between items-center">
         <div className="title-page">Rolling Forecast</div>
-        <div className="title-page">Rolling Forecast</div>
+        <Select
+          showSearch
+          style={{
+            width: 200,
+          }}
+          className="border-[#00783F] text-[#00783F]"
+          placeholder="Search to Select"
+          optionFilterProp="label"
+          filterSort={(optionA, optionB) =>
+            (optionA?.label ?? "").toLowerCase().localeCompare((optionB?.label ?? "").toLowerCase())
+          }
+          options={sale}
+          value={defaultOption} 
+          onChange={(value)=>setDefaultOption(value)}
+        />
       </div>
       <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
 

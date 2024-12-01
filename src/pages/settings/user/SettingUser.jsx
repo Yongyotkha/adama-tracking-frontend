@@ -64,8 +64,8 @@ export default function SettingUser() {
       position_id: filters.position || "",
       role_id: filters.role || "",
       use_flag: filters.use_flag || "",
-      orderby_column: sortField,
-      orderby: sortOrder,
+      // orderby_column: sortField,
+      // orderby: sortOrder,
       page_length: current,
       page_size: pageSize,
     };
@@ -94,8 +94,6 @@ export default function SettingUser() {
                         },
                       });
                     }}
-                    
-                    
                     />
                   ),
                 })),
@@ -211,7 +209,7 @@ export default function SettingUser() {
       align: "left",
     },
     {
-      title: "Name(EN)",
+      title: "Name",
       width: 100,
       dataIndex: "name",
       align: "left",
