@@ -397,42 +397,109 @@ export default function RollingForecastQuarter() {
   
 
   const handleSave = async (mode) => {
-  
+    const calculatedTotalAmountTarget = quarter.reduce((sum, quarterItem) => {
+      const localTotalValue =
+        localQtyState[quarterItem.quarter_id]?.total_value || 0;
+      return sum + localTotalValue;
+    }, 0);
+
+    // เปรียบเทียบ original plan (totalValue) กับ sum ของ amount_target
+    if (calculatedTotalAmountTarget < totalValue) {
+      showNotification(
+        "warning",
+        "Total Sale Value is less than the Original Plan",
+        [
+          `Original Plan: ฿ ${formatNumber(totalValue)}`,
+          `Current Total: ฿ ${formatNumber(calculatedTotalAmountTarget)}`,
+          `Difference: ฿ ${formatNumber(
+            totalValue - calculatedTotalAmountTarget
+          )}`,
+        ],
+        3
+      );
+    } else {
       setLoading(true); // เริ่มโหลดข้อมูล
 
       // อัพเดตข้อมูล quarter ด้วยข้อมูลใน localQtyState
       try {
         const updatedQuarterData = quarter.map((item) => {
           const localQuarter = localQtyState[item.quarter_id] || {};
+
+          // อัพเดตข้อมูล months
           const updatedMonths = item.data_items.map((month) => {
             const localMonth = localQuarter.months?.[month.month_id] || {};
             return {
               ...month,
               total_qty: localMonth.total_qty || 0,
               total_value: localMonth.total_value || 0,
-              workplan_data_items: Object.entries(localMonth.products || {}).map(([productId, product]) => ({
-                product_id: parseInt(productId),
-                qty: product.qty || 0,
-                value: product.value || 0,
-              })),
-              rollingforecast_data_items: Object.entries(localMonth.products || {}).map(([productId, product]) => ({
-                product_id: parseInt(productId),
-                qty: product.rolling_qty || 0,
-                value: product.rolling_value || 0,
-              })),
-              actual_data_items: Object.entries(localMonth.products || {}).map(([productId, product]) => ({
-                product_id: parseInt(productId),
-                qty: product.actual_qty || 0,
-                value: product.actual_value || 0,
-              })),
+              amount_target: localMonth.total_value || 0,
+              data_items: month.data_items.map((product) => {
+                const localProduct =
+                  localMonth.products?.[product.product_id] || {};
+                return {
+                  ...product,
+                  qty: localProduct.qty || product.qty || 0,
+                  value: localProduct.value || product.value || 0,
+                };
+              }),
             };
           });
-          return { ...item, data_items: updatedMonths };
-        });
-        
-        console.log(updatedQuarterData);
 
-      
+          // คำนวณ total_value ของ quarter
+          const totalQuarterValue = updatedMonths.reduce(
+            (sum, month) => sum + (month.total_value || 0),
+            0
+          );
+
+          return {
+            ...item,
+            amount_target: totalQuarterValue, // อัพเดต amount_target ด้วย total_value
+            total_value: totalQuarterValue,
+            data_items: updatedMonths,
+          };
+        });
+
+        await useServiceAPI
+          .post(paths.pathWorkPlanSaleQuarter, {
+            year_code: location?.state?.year_code,
+            user_id: location?.state?.user_id,
+            action_code: mode,
+            quarter_items: updatedQuarterData,
+          })
+          .then((response) => {
+            if (response.status === 200) {
+              if (mode == "draft") {
+                showNotification(
+                  "success",
+                  response.data.message,
+                  response.data.message_line
+                ).then(() => {
+                  navigate("/sale-plan/work-plan-sale");
+                });
+              } else {
+                showNotification(
+                  "success",
+                  response.data.message,
+                  response.data.message_line
+                ).then(() => {
+                  navigate("/sale-plan/work-plan-sale/sale-by-crop", {
+                    state: {
+                      year_code: location?.state?.year_code,
+                      user_id: location?.state?.user_id,
+                    },
+                  });
+                });
+              }
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+            if (error.status === 422) {
+              showNotification("error", error.message);
+            } else {
+              showNotification("error", "เกิดข้อผิดพลาด");
+            }
+          });
       } catch (error) {
         console.error("Unexpected error:", error);
         showNotification("error", "เกิดข้อผิดพลาดที่ไม่คาดคิด");

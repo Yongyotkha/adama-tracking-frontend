@@ -27,33 +27,36 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
 
   const handleDelete = async (documentNumber) => {
     try {
-      const response = await fetch(
-        `/activity/delete?document_number=${encodeURIComponent(documentNumber)}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`, // Replace with your token retrieval logic
-            "Content-Type": "application/json",
-          },
-        }
-      );
-  
-      if (response.ok) {
-        const responseData = await response.json();
-        await showNotification(
-          "success",
-          responseData.message || "Event deleted successfully!",
-          responseData.data?.Message?.Message_Line || ["The event has been removed."]
-        );
-        fetchEvents(); // Refresh the event list
-      } else {
-        const errorData = await response.json();
-        await showNotification(
-          "error",
-          errorData.message || "Failed to delete event.",
-          errorData.data?.Message?.Message_Line || ["Please try again later."]
-        );
-      }
+      // const response = await fetch(
+      //   `/activity/delete?document_number=${encodeURIComponent(documentNumber)}`,
+      //   {
+      //     method: "DELETE",
+      //     headers: {
+      //       Authorization: `Bearer ${localStorage.getItem("accessToken")}`, // Replace with your token retrieval logic
+      //       "Content-Type": "application/json",
+      //     },
+      //   }
+      // );
+
+      const response = await useServiceAPI.delete(`/activity/delete?document_number=${encodeURIComponent(documentNumber)}`);
+
+  console.log(response);
+      // if (response.ok) {
+      //   const responseData = await response.json();
+      //   await showNotification(
+      //     "success",
+      //     responseData.message || "Event deleted successfully!",
+      //     responseData.data?.Message?.Message_Line || ["The event has been removed."]
+      //   );
+      //   fetchEvents(); // Refresh the event list
+      // } else {
+      //   const errorData = await response.json();
+      //   await showNotification(
+      //     "error",
+      //     errorData.message || "Failed to delete event.",
+      //     errorData.data?.Message?.Message_Line || ["Please try again later."]
+      //   );
+      // }
     } catch (error) {
       console.error("Error deleting event:", error);
       await showNotification(
@@ -62,6 +65,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
         ["Please try again later."]
       );
     }
+  
   };
   
   useEffect(() => {
