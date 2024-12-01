@@ -122,8 +122,8 @@ export default function Login() {
               />
             </Form.Item>
 
-            <div className="flex justify-center text-white">
-              <p>Listen • Learn • Deliver</p>
+            <div className="flex justify-center items-center text-white gap-1">
+              Listen <span>&#9658;</span> Learn <span>&#9658;</span> Deliver
             </div>
           </Form>
         </div>

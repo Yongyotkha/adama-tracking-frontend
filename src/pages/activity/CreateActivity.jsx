@@ -55,6 +55,12 @@ export default function CreateActivity() {
   const [activityDetail, setActivityDetail] = useState([]);
   const [cropDetailList, setCropDetailList] = useState([]);
   const [assignList, setAssignList] = useState([]);
+  const [isSalePlanEdit, setIsSalePlanEdit] = useState(false);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [tableParams, setTableParams] = useState({
+    page_size: 1,
+    page_length: 10
+  });
 
   const handleUploadClick = async () => {    
     // Call triggerUpload from FileUploadComponent
@@ -96,7 +102,7 @@ export default function CreateActivity() {
   };
 
   const formFields = [
-    { label: "Activity Reference", name: "activity_reference", type: "text", disabled: true, required: false, col: 24, value: activityDetail.document_number ?? "" },
+    { label: "Activity Reference", name: "document_number", type: "text", disabled: true, required: false, col: 24, value: activityDetail.document_number ?? "" },
     { label: "Activity Type", name: "activity_type_id", type: "select", options: activityList, disabled: false, required: true, col: 8, value: activityDetail.activity_type_id ?? "" },
     { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: false, required: true, col: 8, value: activityDetail.user_id ?? "", moderef: true},
     { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: false, required: true, col: 8, value: activityDetail.dealer_id ?? "", moderef: true},
@@ -182,7 +188,7 @@ export default function CreateActivity() {
           let count = 0;
           await activityDetailData.expense_particapant_user_list.forEach((element, key) => {
               count++;
-              const newKey = `sales-${count}`;
+              const newKey = `sales-${element.id}`;
               participantData.push({
                 id: element.id,
                 key: newKey,
@@ -208,12 +214,13 @@ export default function CreateActivity() {
               actualSale: element.acutal_sale_qty, 
               bath_ltkg: element.bath_ltkg, 
               prodectCode: element.product_code,
-              productId: element.id
+              productId: element.product_id
             });
           });
           setProductCropList(productCropLists);
         } finally {
           setLoading(false);
+          setIsSalePlanEdit(true);
         }
       };
   
@@ -231,6 +238,7 @@ export default function CreateActivity() {
     const getMasterSelect = async () => {
       try {
         if(attribue == 'user_id'){
+          activityDetail.user_id = value;
           const [dealer] = await Promise.all([
             useServiceAPI.get(paths.pathMasterDealerDropdown, {
               user_id: value
@@ -238,6 +246,7 @@ export default function CreateActivity() {
           ]);
           setDealerList(dealer.data);
         }else if(attribue == 'dealer_id'){
+          activityDetail.dealer_id = value;
           const [crop, dealerCustomerData] = await Promise.all([
             useServiceAPI.get(paths.pathMasterCrop, {
               dealer_id: value
@@ -249,21 +258,27 @@ export default function CreateActivity() {
           setCropList(crop.data);
           setDealerCustomer(dealerCustomerData.data);
         }else if(attribue == 'crop_id_list'){
-          const [productCrop] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterProductByCrop, {
-              crop_list: value
-            }),
-          ]);
-
-          let productCropList = [];
-          productCrop.data.forEach((element, key) => {
-            productCropList.push({
-              key: (key + 1), productName: element.product_name, packSize: element.packing_list, 
-              estimateSale: "0", actualSale: "0", bath_ltkg: element.bath_ltkg, prodectCode: element.product_code,
-              productId: element.id
+          if(!isSalePlanEdit){
+            setCropDetailList(value);
+            const [productCrop] = await Promise.all([
+              useServiceAPI.get(paths.pathMasterProductByCrop, {
+                crop_list: value
+              }),
+            ]);
+  
+            let productCropList = [];
+            productCrop.data.forEach((element, key) => {
+              productCropList.push({
+                key: (key + 1), productName: element.product_name, packSize: element.packing_list, 
+                estimateSale: "0", actualSale: "0", bath_ltkg: element.bath_ltkg, prodectCode: element.product_code,
+                productId: element.id
+              });
             });
-          });
-          setProductCropList(productCropList);
+            setProductCropList(productCropList);
+          }
+          setIsSalePlanEdit(false);
+        } else if(attribue == 'activity_type_id') {
+          activityDetail.activity_type_id = value;
         } 
       } catch (error) {
         console.log(error);
@@ -278,12 +293,26 @@ export default function CreateActivity() {
     { title: "Pack Size", dataIndex: "packSize", key: "packSize", align: "center" },
     {
       title: "Estimate Sale (Kg/Lt)", dataIndex: "estimateSale", key: "estimateSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.estimateSale} onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}/>
+        <Input placeholder="0" defaultValue={record.estimateSale} onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}
+          formatter={(value) =>
+            `${Number(value).toFixed(2)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
+          }
+        />
       )
     },
     {
       title: "Actual Sale (Kg/Lt)", dataIndex: "actualSale", key: "actualSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.actualSale} onChange={(e) => handleInputChange(e.target.value, record.key, "actualSale", record.bath_ltkg)}/>
+        <Input placeholder="0" defaultValue={record.actualSale} onChange={(e) => handleInputChange(e.target.value, record.key, "actualSale", record.bath_ltkg)}
+          formatter={(value) =>
+            `${Number(value).toFixed(2)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
+          }
+        />
       )
     },
   ];
@@ -296,7 +325,7 @@ export default function CreateActivity() {
         return { ...item, [field]: numericValue, total: newTotal };
       }
       return item;
-    });
+    });    
 
     setProductCropList(updatedData);
   };
@@ -309,10 +338,24 @@ export default function CreateActivity() {
     <tr className="bg-[#978B87]">
       <td colSpan={2} className="text-left pr-2 text-white">Total (THB)</td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" value={activityDetail?.expense_product_total_estimate_sale ?? calculateGrandTotal("estimateSale")} readOnly/>
+        <Input placeholder="0" value={calculateGrandTotal("estimateSale") > 0 ? calculateGrandTotal("estimateSale") : activityDetail?.expense_product_total_estimate_sale } readOnly  
+          formatter={(value) =>
+            `${Number(value).toFixed(2)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
+          }
+        />
       </td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" value={activityDetail?.expense_product_total_acutal_sale ?? calculateGrandTotal("actualSale")} readOnly/>
+        <Input placeholder="0" value={calculateGrandTotal("actualSale") > 0 ? calculateGrandTotal("actualSale") : activityDetail?.expense_product_total_acutal_sale} readOnly
+          formatter={(value) =>
+            `${Number(value).toFixed(2)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
+          }
+        />
       </td>
     </tr>
   );
@@ -340,10 +383,11 @@ export default function CreateActivity() {
   };
 
   const getParticipant = async () => {
+    setTableLoading(true);
     const [participant] = await Promise.all([
       useServiceAPI.get(paths.pathMasterSaleAll, {
         'page_size': 1,
-        'page_length': 10,
+        'page_length': 1000,
       }),
     ]);
   
@@ -356,7 +400,7 @@ export default function CreateActivity() {
       const isExisting = participants.some((item) => item.id === id);
       if (!isExisting) {
         count++;
-        const newKey = `sales-${count}`;
+        const newKey = `sales-${element.id}`;
         participantData.push({
           id: element.id,
           key: newKey,
@@ -384,7 +428,6 @@ export default function CreateActivity() {
       const newRows = selectedRows.filter(
         (row) => !prev.some((participant) => participant.key === row.key)
       );
-      
       // Merge existing participants with new rows
       const updatedParticipants = [...prev, ...newRows];
       
@@ -401,7 +444,7 @@ export default function CreateActivity() {
   };
 
   //บันทึกข้อมูล
-  const handleSave = () => {
+  const handleSave = async () => {
     formCustom.validateFields();
     //Form Basic Activity
     const allValuesBasic = formCustom.getFieldsValue();
@@ -485,16 +528,29 @@ export default function CreateActivity() {
         "expense_particapant_user_list": expenseParticapantUserList
     };
     
-    useServiceAPI
-    .post(paths.pathActivityExpenseCreate, body, setLoading)
-    .then((response) => {
-      if(response.result){
-        navigate("/activity/list");
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+    if(documentNumber){
+      useServiceAPI
+      .put(paths.pathActivityExpenseDetail, body, setLoading)
+      .then((response) => {
+        if(response.result){
+          navigate("/activity/list");
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    }else{
+      useServiceAPI
+      .post(paths.pathActivityExpenseCreate, body, setLoading)
+      .then((response) => {
+        if(response.result){
+          navigate("/activity/list");
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    }
   };
 
   const showLayoutExpense = () => {
@@ -736,7 +792,7 @@ export default function CreateActivity() {
             >
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item className="mb-3" label="Actual exp" name="actual_exp">
+                  <Form.Item className="mb-3" label="Actual exp" name="actual_exp" >
                     <Input placeholder="0" disabled />
                   </Form.Item>
                 </Col>
