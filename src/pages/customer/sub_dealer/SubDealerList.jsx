@@ -105,13 +105,42 @@ export default function SubDealerList() {
               textColor={data.status_color}
             />
           ),
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottom">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
+          action: (
+            <Dropdown
+              menu={{
+                items: data.action.map((actionItem, actionIndex) => ({
+                  key: actionIndex,
+                  label: (
+                    <ItemDropDown
+                      mode={actionItem.action.toLowerCase()}
+                      onClick={() => {
+                        if (actionItem.action === "Edit") {
+                          navigate("/customer/sub-dealer/edit", {
+                            state: {
+                              id: data.id,
+                            },
+                          });
+                        } else if (actionItem.action === "Delete") {
+                          // ฟังก์ชันลบ
+                          handleDelete(data.id);
+                        }
+                      }}
+                    />
+                  ),
+                })),
+              }}
+              placement="bottom"
+            >
+              <a onClick={(e) => e.preventDefault()}>
+                <img
+                  src="/img/icons/action.png"
+                  alt="button icon"
+                  className="inline-block w-5 h-5 mr-2"
+                />
+              </a>
+            </Dropdown>
+          ),
+          
 
         }));
 
@@ -129,6 +158,35 @@ export default function SubDealerList() {
       console.error(error);
     } finally {
       setTableLoading(false);
+    }
+  };
+
+  const handleDelete = async (record) => {
+    try {
+      const requestData = {
+        id: record, // ส่ง ID ที่ต้องการลบ
+      };
+
+      const response = await useServiceAPI.delete(
+        paths.pathDeleteSubDealer,
+        requestData
+      );
+
+      if (response.status === 200) {
+        fetchData();
+        showNotification(
+          "success",
+          response.data.message,
+          response.data.message_line
+        );
+      } else {
+        console.error("Failed to delete record:", response.message);
+        showNotification("error", response.message, response.message_line);
+      }
+    } catch (error) {
+      console.error("Error deleting record:", error);
+
+      showNotification("error", error.message, error.message_line);
     }
   };
 
@@ -228,7 +286,6 @@ export default function SubDealerList() {
         <TableComponent 
           header={header} 
           dataSource={dataSource} 
-
         />
       </BoxPrimary>
 

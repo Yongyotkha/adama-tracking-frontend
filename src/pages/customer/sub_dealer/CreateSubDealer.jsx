@@ -34,9 +34,13 @@ export default function CreateSubDealer() {
   const navigate = useNavigate();
   const [cropOptions, setCropOptions] = useState([]);
   const [form] = Form.useForm();
+  const [formlist] = Form.useForm();
+  const [formitem] = Form.useForm();
+
   const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); // กำหนด state สำหรับ defaultSelectedCrops
   const [personalInfoData, setPersonalInfoData] = useState({});
   // const [personalInfo, setPersonalInfo] = useState([]);
+  const { showMsg, showNotification } = useContext(AuthContext);
 
   const [cropData, setCropData] = useState([]);
   const [contactsData, setContactsData] = useState([]);
@@ -245,35 +249,34 @@ export default function CreateSubDealer() {
   };
   
   const handlePersonalInfoChange = (field, value) => {
+    console.log(field,value);
+    
     setPersonalInfo((prevInfo) => ({
       ...prevInfo,
       [field]: value, // อัปเดตค่าฟิลด์ที่กำหนด
     }));
   };
   
-
-  
   const handleSave = () => {
     form
       .validateFields()
-      .then(() => {
-        // สร้าง payload ในรูปแบบที่ระบุ
+      .then((values) => {
         const payload = {
-          name: personalInfo.shop_name || "",
-          mobile_phone: personalInfo.mobile_phone || "",
-          address: personalInfo.address || "",
-          email: personalInfo.email || "",
-          day_of_week: personalInfo.office_hours || [],
-          start_time: personalInfo.start_time || "",
-          end_time: personalInfo.end_time || "",
-          business_size: personalInfo.business_size || "",
-          outlet_location: personalInfo.outlet_location || "",
-          t_shirt_size: personalInfo.tshirt_size || "",
-          anniversary: personalInfo.anniversary
-            ? dayjs(personalInfo.anniversary).format("YYYY-MM-DD")
+          name: values.shop_name || "",
+          mobile_phone: values.mobile_phone || "",
+          address: values.address || "",
+          email: values.email || "",
+          day_of_week: values.office_hours || [],
+          start_time: values.start_time || "",
+          end_time: values.end_time || "",
+          business_size: values.business_size || "",
+          outlet_location: values.outlet_location || "",
+          t_shirt_size: values.tshirt_size || "",
+          anniversary: values.anniversary
+            ? dayjs(values.anniversary).format("YYYY-MM-DD")
             : null,
-          remark: personalInfo.remark || "",
-          photo_path: "photo_path", // ตัวอย่าง placeholder สำหรับรูปภาพ
+          remark: values.remark || "",
+          photo_path: "photo_path", // ตัวอย่าง placeholder
           contact_items: contacts.map((contact) => ({
             name_en: contact.name_en || "",
             contact_number: contact.contact_number || "",
@@ -293,8 +296,9 @@ export default function CreateSubDealer() {
           crop_list: defaultSelectedCrops || [],
         };
   
-        console.log("Payload to be sent:", payload); // ตรวจสอบ payload ก่อนส่ง
+        console.log("Payload to be sent:", payload);
   
+        return;
         // ส่งข้อมูลไปยัง API
         useServiceAPI
           .post(paths.pathCreateSubDealer, payload, setLoading)
@@ -319,6 +323,7 @@ export default function CreateSubDealer() {
       });
   };
   
+
   
   
   
@@ -333,12 +338,10 @@ export default function CreateSubDealer() {
       <div className="title-page">Create Sub Dealer</div>
       <FormUser title="Personal Info" 
         fields={formFields} 
+        form={form}
       />
 
-      <BoxPrimary
-      title="Crop"
-      >
-        
+      <BoxPrimary title="Crop">
         <Select
           mode="multiple"
           showSearch
