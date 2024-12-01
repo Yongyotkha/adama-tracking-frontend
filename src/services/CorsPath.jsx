@@ -53,7 +53,7 @@ export const paths = {
   
   //SubDealer
   pathCreateSubDealer: "sale-customer-subdealer/create",
-
+  pathDeleteSubDealer: "sale-customer-subdealer/delete",
   
   
   // Sale
@@ -97,6 +97,8 @@ export const paths = {
   pathPromotiondetail: "promotion-management/detail",
   pathPromotionupdate: "promotion-management/update",
   pathPromotioncreate: "promotion-management/create",
+  pathPromotiondelete: "promotion-management/delete",
+
 
   //Sale
   pathSaleManagementlist: "sale-management/list",
