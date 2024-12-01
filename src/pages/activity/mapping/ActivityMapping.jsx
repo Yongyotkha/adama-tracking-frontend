@@ -5,7 +5,7 @@ import {
   Marker,
   InfoWindow,
 } from "@react-google-maps/api";
-import { Layout, Checkbox, Button, Collapse } from "antd";
+import { Layout, Checkbox, Button, Collapse, Tooltip } from "antd";
 import { UpOutlined, DownOutlined } from "@ant-design/icons";
 import MainLayout from "../../../layouts/MainLayout";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -307,12 +307,13 @@ export default function ActivityMapping() {
               >
                 All
               </Checkbox>
-              <img
-                src="/img/icons/reload.png"
-                alt=""
-                className="h-6 w-6 cursor-pointer"
-                onClick={{}}
-              />
+              <Tooltip title="Reload data" placement="bottom">
+                <img
+                  src="/img/icons/reload.png"
+                  alt="Reload Icon"
+                  className="h-6 w-6 cursor-pointer"
+                />
+              </Tooltip>
             </div>
 
             {/* Collapsible Filter Categories */}
