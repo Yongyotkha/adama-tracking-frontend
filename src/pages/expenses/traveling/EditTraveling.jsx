@@ -200,9 +200,20 @@ export default function EditTraveling() {
   // Update individual cell values
   const updateField = (key, field, value) => {
     if (field !== 'mileage' || field !== 'petrol') {
+      // setDataSource((prevData) =>
+      //   prevData.map((item) =>
+      //     item.key === key ? { ...item, [field]: value, total: calculateTotal(item) } : item
+      //   )
+      // );
       setDataSource((prevData) =>
         prevData.map((item) =>
-          item.key === key ? { ...item, [field]: value, total: calculateTotal(item) } : item
+          item.key === key
+            ? {
+                ...item,
+                [field]: value, // อัพเดตฟิลด์ที่ถูกเลือก
+                total: calculateTotal({ ...item, [field]: value }) // คำนวณค่า total ใหม่
+              }
+            : item
         )
       );
     }
@@ -322,6 +333,7 @@ export default function EditTraveling() {
           style={{ width: 100 }}
           value={value}
           onChange={(val) => updateField(record.key, "mileage", val)}
+          disabled
         />
       ),
     },
