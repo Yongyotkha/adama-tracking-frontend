@@ -126,8 +126,8 @@ export default function OrderDetail() {
   ];
 
   const footerOrderList = () => {
-    const totalQuantity = dataSource.reduce((total, item) => total + item.quantity, 0);
-    const totalFOC = dataSource.reduce((total, item) => total + item.foc, 0);
+    const totalQuantity = dataSource.reduce((total, item) => total + parseFloat(item.quantity), 0);
+    const totalFOC = dataSource.reduce((total, item) => total + parseFloat(item.foc), 0);
     const totalAmount = dataSource.reduce((total, item) => total + parseFloat(item.net_amount || 0), 0);
 
     return (

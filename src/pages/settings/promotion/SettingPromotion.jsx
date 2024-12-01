@@ -30,10 +30,9 @@ export default function SettingPromotion() {
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "left" },
     { title: "Name", width: 200, dataIndex: "name", align: "left" },
-    { title: "Description", width: 300, dataIndex: "description", align: "left" },
+    { title: "Description", width: 200, dataIndex: "description", align: "left" },
+    { title: "Unit", width: 100, dataIndex: "unit", align: "right" },
     { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
-    { title: "unit", width: 100, dataIndex: "unit", align: "right" },
-
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
 

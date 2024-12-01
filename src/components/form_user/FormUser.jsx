@@ -18,6 +18,8 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
 
   const [imagePreview, setImagePreview] = useState(
     profile || "/img/Image-not-found.png"
+    // profile && profile.trim() !== "" ? profile : "/img/Image-not-found.png"
+
   );
 
 

@@ -230,7 +230,7 @@ export default function SettingProduct() {
     {
       key: "category_id",
       type: "select",
-      label: "Product Type",
+      label: "Category",
       options: producttype,
 
     },
