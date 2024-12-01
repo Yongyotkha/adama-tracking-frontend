@@ -19,6 +19,9 @@ export default function ActivityMapping() {
   const [isFilterCollapsed, setIsFilterCollapsed] = useState(false); // Manage vertical collapse state
   const [checkedFilters, setCheckedFilters] = useState({}); // Manage checked state for all filters
 
+  const [dataApiKey, setDataApiKay] = useState("AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik");
+
+  const [dataMapZoom, setDataMapZoom] = useState(10);
   const [dataMapping, setDataMapping] = useState([]);
   const [locations, setLocations] = useState([]);
   const [activityType, setActivityType] = useState([]);
@@ -27,6 +30,8 @@ export default function ActivityMapping() {
   const [dataterritory, setDataTerritory] = useState([]);
   const [dataArea, setDataArea] = useState([]);
   const [dataYear, setDataYear] = useState([]);
+  const [currentLocation, setCurrentLocation] = useState({ lat: 0.00, lng: 0.00 });
+  const [currentLocationAddress, setCurrentLocationAddress] = useState("");
 
   // Fetch Data
   useEffect(() => {
@@ -39,18 +44,29 @@ export default function ActivityMapping() {
           }),
         ]);
 
-        console.log(mapping.data);
+        // Mapping Detail
         setDataMapping(mapping.data);
 
         // Set Locations
         setLocations(
           mapping.data.map((data, index) => ({
+            key: locations.length + 1,
             id: locations.length + 1,
+            document_number: data.document_number,
             title: data.activity_type_name,
-            lat: data.location_latitude,
-            lng: data.location_longitude,
+            lat: parseFloat(data.location_latitude),
+            lng: parseFloat(data.location_longitude),
             details: data.location_address,
           }))
+        );
+
+        setActivityType(
+          mapping.data
+            .filter(
+              (value, index, self) =>
+                self.findIndex((item) => item.activity_type_name === value.activity_type_name) === index
+            )
+            .map((data) => data.activity_type_name)
         );
 
         setDataDealer(
@@ -80,12 +96,6 @@ export default function ActivityMapping() {
             .map((data) => data.year)
         );
         
-        // const [activityType, setActivityType] = useState([]);
-        // const [dataDealer, setDataDealer] = useState([]);
-        // const [dataSubDealer, setDataSubDealer] = useState([]);
-        // const [dataterritory, setDataTerritory] = useState([]);
-        // const [dataArea, setDataArea] = useState([]);
-        // const [dataYear, setDataYear] = useState([]);
       } catch (error) {
         // showMsg("error", error.message || "เกิดข้อผิดพลาด");
         console.log(error);
@@ -105,17 +115,11 @@ export default function ActivityMapping() {
     height: "100vh",
   };
 
-  const center = {
-    lat: 13.736717,
-    lng: 100.523186,
-  };
-
-  // const [activityType, setActivityType] = useState([]);
-  // const [dataDealer, setDataDealer] = useState([]);
-  // const [dataSubDealer, setDataSubDealer] = useState([]);
-  // const [dataterritory, setDataTerritory] = useState([]);
-  // const [dataArea, setDataArea] = useState([]);
-  // const [dataYear, setDataYear] = useState([]);
+  // const center = {
+  //   lat: 13.736717,
+  //   lng: 100.523186,
+  //   zoom: dataMapZoom,
+  // };
 
   // Mock data for filter categories
   const mockFilters = {
@@ -129,6 +133,42 @@ export default function ActivityMapping() {
 
   // Initialize all checkboxes as selected on page load
   useEffect(() => {
+    // Set Current Location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+  
+          const fetchCurrentLocation = async () => {
+            // ดึงข้อมูลที่อยู่จาก Google Maps Geocoding API
+            const fetchedAddress = await fetchAddress(lat, lng);
+            setCurrentLocationAddress(fetchedAddress);
+          }
+          fetchCurrentLocation();
+
+          const getCurrentLocation = {
+            key: locations.length + 1,
+            id: locations.length + 1,
+            document_number: "",
+            title: "ตำแหน่งที่อยู่ปัจจุบัน",
+            lat: lat,
+            lng: lng,
+            details:currentLocationAddress,
+          };
+
+          // Set State: ตำแหน่งปัจจุบัน
+          setCurrentLocation(getCurrentLocation);
+          // Set State: ตำแหน่งปัจจุบันและ Marker
+          setLocations((prev) => [...prev, getCurrentLocation]);
+        },
+        (error) => {
+          console.error("Error getting current location:", error);
+        }
+      );
+      
+    }
+
     const initialCheckedFilters = {};
     Object.keys(mockFilters).forEach((category) => {
       initialCheckedFilters[category] = mockFilters[category].reduce(
@@ -140,7 +180,28 @@ export default function ActivityMapping() {
       );
     });
     setCheckedFilters(initialCheckedFilters);
-  }, []);
+  }, [dataMapping]);
+
+  // ดึงที่อยู่จาก Google Maps Geocoding API
+  const fetchAddress = async (lat, lng) => {
+    const apiKey = dataApiKey; // ใส่ Google Maps API Key ของคุณ
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.status === "OK" && data.results.length > 0) {
+        return data.results[0].formatted_address; // คืนค่าที่อยู่
+      } else {
+        console.error("Geocoding API error:", data.status);
+        return "Address not found";
+      }
+    } catch (error) {
+      console.error("Error fetching address:", error);
+      return "Error fetching address";
+    }
+  };
 
   // Toggle a specific checkbox
   const toggleCheckbox = (category, item) => {
@@ -233,12 +294,12 @@ export default function ActivityMapping() {
 
             {/* Collapsible Filter Categories */}
             <Collapse defaultActiveKey={["Activity Type"]}>
-              {Object.keys(mockFilters).map((category) => (
-                <Panel header={category} key={category}>
+              {Object.keys(mockFilters).map((category, categoryKey) => (
+                <Panel header={category} key={categoryKey}>
                   <div className="flex flex-col space-y-2">
-                    {mockFilters[category].map((item) => (
+                    {mockFilters[category].map((item, itemKey) => (
                       <Checkbox
-                        key={item}
+                        key={itemKey}
                         checked={checkedFilters[category]?.[item]}
                         onChange={() => toggleCheckbox(category, item)}
                       >
@@ -255,11 +316,11 @@ export default function ActivityMapping() {
         {/* Map Section */}
         <Layout>
           <Content>
-            <LoadScript googleMapsApiKey="AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik">
+            <LoadScript googleMapsApiKey={dataApiKey}>
               <GoogleMap
                 mapContainerStyle={mapContainerStyle}
-                center={center}
-                zoom={6}
+                center={currentLocation}
+                zoom={dataMapZoom}
               >
                 {locations.map((location) => (
                   <Marker
