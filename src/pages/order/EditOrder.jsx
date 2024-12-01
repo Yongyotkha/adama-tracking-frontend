@@ -232,7 +232,8 @@ export default function EditOrder() {
         if (item.key === key) {
           const quantity = Math.max(0, newQuantity); // Prevent negative quantities
           const net_amount = (quantity * parseFloat(item.product_unit_thb.replace(/,/g, ""))).toFixed(2); // Calculate new net_amount
-          return { ...item, quantity, net_amount };
+          const foc = parseInt(quantity / item.product_campaign_order_min_foc);
+          return { ...item, quantity, net_amount, foc };
         }
         return item;
       })
@@ -435,7 +436,8 @@ export default function EditOrder() {
           product_campaign_order_min_foc: data.product_campaign_order_min_foc,
           product_campaign_foc: data.product_campaign_foc,
           quantity: 0,
-          foc: data.product_campaign_foc,
+          // foc: data.product_campaign_foc,
+          foc: parseInt(1 / data.product_campaign_order_min_foc),
           net_amount: 0.00,
         };
 

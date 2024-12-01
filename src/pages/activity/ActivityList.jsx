@@ -264,7 +264,7 @@ export default function ActivityList() {
 
       <div className="flex items-center justify-between">
         <div className="title-page">Activity List</div>
-        <ActionButton mode="create" text="Create" onClick={(e) => navigate("/activity/create")} />
+        <ActionButton mode="create" text="Create" onClick={(e) => navigate("/activity/create?mode=")} />
       </div>
 
       <Filter

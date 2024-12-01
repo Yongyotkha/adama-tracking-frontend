@@ -73,8 +73,8 @@ export default function CreateOrder() {
             key: data.id, 
             no: index + 1, 
             name: data.name, 
-            unit: "", 
-            value: data.value 
+            unit: data.unit, 
+            value: parseFloat(data.value)
           });
         })
 
@@ -136,6 +136,7 @@ export default function CreateOrder() {
 
                   return {
                     ...item,
+                    unit: item.unit,
                     // quantity: item.quantity + 1,
                     quantity: updatedQuantity,
                     net_amount: updatedNetAmount, // Update net_amount
@@ -261,7 +262,8 @@ export default function CreateOrder() {
         if (item.key === key) {
           const quantity = Math.max(0, newQuantity); // Prevent negative quantities
           const net_amount = (quantity * parseFloat(item.product_unit_thb.replace(/,/g, ""))).toFixed(2); // Calculate new net_amount
-          return { ...item, quantity, net_amount };
+          const foc = parseInt(quantity / item.product_campaign_order_min_foc);
+          return { ...item, quantity, net_amount, foc };
         }
         return item;
       })
@@ -520,7 +522,8 @@ export default function CreateOrder() {
                     product_campaign_order_min_foc: data.product_campaign_order_min_foc,
                     product_campaign_foc: data.product_campaign_foc,
                     quantity: 1, // Set initial quantity to 1
-                    foc: data.product_campaign_foc,
+                    foc: parseInt(1 / data.product_campaign_order_min_foc),
+                    // foc: data.product_campaign_foc,
                     // net_amount: data.bath_unit,
                     net_amount: (1 * parseFloat(data.bath_unit.replace(/,/g, ""))).toFixed(2), // Calculate net_amount based on quantity 1
                 };
@@ -619,6 +622,7 @@ export default function CreateOrder() {
           onChange={onChangeProduct}
           onSearch={onSearchProduct}
           options={searchProductData}
+          value=""
         />
         </div>
       </BoxPrimary>
