@@ -11,6 +11,7 @@ import MainLayout from "../../../layouts/MainLayout";
 import { useNavigate, useLocation } from "react-router-dom";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import DynamicAutoComplete from "../../../components/autocomplete/DynamicAutoComplete";
 
 export default function ActivityMapping() {
   const navigate = useNavigate();
@@ -32,6 +33,9 @@ export default function ActivityMapping() {
   const [dataYear, setDataYear] = useState([]);
   const [currentLocation, setCurrentLocation] = useState({ lat: 0.00, lng: 0.00 });
   const [currentLocationAddress, setCurrentLocationAddress] = useState("");
+
+  const [searchOptions, setSearchOptions] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
 
   // Fetch Data
   useEffect(() => {
@@ -95,7 +99,7 @@ export default function ActivityMapping() {
             )
             .map((data) => data.year)
         );
-        
+
       } catch (error) {
         // showMsg("error", error.message || "เกิดข้อผิดพลาด");
         console.log(error);
@@ -133,7 +137,7 @@ export default function ActivityMapping() {
         (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
-  
+
           const fetchCurrentLocation = async () => {
             // ดึงข้อมูลที่อยู่จาก Google Maps Geocoding API
             const fetchedAddress = await fetchAddress(lat, lng);
@@ -148,7 +152,7 @@ export default function ActivityMapping() {
             title: "ตำแหน่งที่อยู่ปัจจุบัน",
             lat: lat,
             lng: lng,
-            details:currentLocationAddress,
+            details: currentLocationAddress,
           };
 
           // Set State: ตำแหน่งปัจจุบัน
@@ -160,7 +164,7 @@ export default function ActivityMapping() {
           console.error("Error getting current location:", error);
         }
       );
-      
+
     }
 
     const initialCheckedFilters = {};
@@ -224,16 +228,21 @@ export default function ActivityMapping() {
   };
 
   const handleSearch = (text) => {
-    setQuery(text);
     if (text) {
-      const results = locationData.filter((item) =>
+      // Filter names from dataMapping
+      const results = dataMapping.filter((item) =>
         item.location_address.toLowerCase().includes(text.toLowerCase())
       );
-      setFilteredData(results);
+
+      // Update search options for AutoComplete
+      setSearchOptions(
+        results.map((item) => ({ value: item.location_address }))
+      );
     } else {
-      setFilteredData([]);
+      setSearchOptions([]);
     }
   };
+
 
   const isAllChecked = Object.keys(checkedFilters).every((category) =>
     Object.values(checkedFilters[category] || {}).every(Boolean)
@@ -244,11 +253,12 @@ export default function ActivityMapping() {
       <Layout>
         {/* Filter Section */}
         <div
-          className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${
-            isFilterCollapsed ? "max-h-12" : "max-h-auto"
-          }`}
+          className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${isFilterCollapsed ? "max-h-12" : "max-h-auto"
+            }`}
           style={{ width: "300px" }}
         >
+
+
           <div className="flex justify-between items-center px-4 py-2 border-b">
             <div className="flex items-center gap-2">
               <img
@@ -264,10 +274,24 @@ export default function ActivityMapping() {
               onClick={() => setIsFilterCollapsed(!isFilterCollapsed)}
             />
           </div>
+          {/* Search Box */}
+          <div className="w-full mb-4 mt-2 px-2">
+            {/* Search Box */}
+            <div className="w-full mb-4 mt-2 px-2">
+              <DynamicAutoComplete
+                options={searchOptions}
+                placeholder="Search activity types"
+                onSearch={handleSearch}
+                style={{ width: "100%" }}
+                className="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+
+          </div>
+
           <div
-            className={`transition-all duration-300 ${
-              isFilterCollapsed ? "opacity-0" : "opacity-100"
-            } p-4`}
+            className={`transition-all duration-300 ${isFilterCollapsed ? "opacity-0" : "opacity-100"
+              } px-4 pb-4`}
           >
             {/* Master "All" Checkbox */}
             <div className="flex justify-between">
