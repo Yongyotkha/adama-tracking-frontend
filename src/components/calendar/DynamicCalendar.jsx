@@ -515,22 +515,90 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                       title={null}
                                       description={
                                         <div>
-                                          <h4 className="flex items-center gap-2">
+                                          <h3 className="text-lg font-bold flex items-center gap-2 mb-3">
                                             <img
                                               src={event.icon} // Add icon before title
                                               alt="Event Icon"
-                                              className="w-4 h-4"
+                                              className="w-6 h-6"
                                             />
                                             {event.title}
-                                          </h4>
-                                          <p lang="th" className="my-2 px-3 py-1 border rounded-full text-sm text-gray-600 flex items-center w-fit">{event.time}</p>
-                                          <p lang="th" className="flex gap-1">
+                                          </h3>
+                                          <p
+                                            lang="th"
+                                            className="my-2 px-3 py-1 border rounded-full text-sm text-gray-600 flex items-center w-fit"
+                                          >
+                                            {new Date(event.date).toLocaleDateString("th-TH", {
+                                              weekday: "short",
+                                              year: "numeric",
+                                              month: "2-digit",
+                                              day: "2-digit",
+                                            })}{" "} <span className="mx-1">|</span>
+                                            {event.time}
+                                          </p>
+
+                                          <p lang="th" className="flex gap-1 mb-2 items-center">
+                                            <img
+                                              src="/img/icons/shop.png"
+                                              className="h-6 w-6 me-2"
+                                              alt=""
+                                            />
+                                            {event.dealer_name}
+                                          </p>
+
+                                          <p lang="th" className="flex gap-1 mb-2 items-center">
                                             <img
                                               src="/img/icons/location.png"
                                               className="h-6 w-6 me-2"
                                               alt=""
-                                            />{event.location}
+                                            />
+                                            {event.location}
                                           </p>
+                                          <p className="flex gap-1 mb-2 items-center mt-2">
+                                            <img
+                                              src="/img/icons/crops.png"
+                                              className="h-6 w-6 me-2"
+                                              alt=""
+                                            />
+                                            {event.crops || "N/A"}
+                                          </p>
+                                          <p
+                                            lang="th"
+                                            className="flex gap-1 mb-2 items-center mt-2"
+                                          >
+                                            <img
+                                              src="/img/icons/details.png"
+                                              className="h-6 w-6 me-2"
+                                              alt=""
+                                            />
+                                            <span
+                                              dangerouslySetInnerHTML={{
+                                                __html: event.description || "<span>No description available</span>",
+                                              }}
+                                            />
+                                          </p>
+
+                                          {/* Attendees Section */}
+                                          <p className="flex gap-1 mb-2 items-center mt-2">
+                                            <span className="text-gray-600 flex flex-wrap gap-2 items-center">
+                                              {event.attendees.length > 0
+                                                ? event.attendees.map((attendee) => (
+                                                  <span
+                                                    key={attendee.id}
+                                                    className="flex items-center gap-2 px-2 py-1 bg-gray-100 rounded-full text-sm"
+                                                  >
+                                                    <img
+                                                      src={attendee.avatar}
+                                                      alt={attendee.name}
+                                                      className="w-6 h-6 rounded-full border border-gray-300"
+                                                    />
+                                                    {attendee.name}
+                                                  </span>
+                                                ))
+                                                : "No attendees available"}
+                                            </span>
+                                          </p>
+
+
                                           {/* Conditionally render buttons */}
                                           {event.permission.edit && (
                                             <Button
@@ -552,6 +620,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                           )}
                                         </div>
                                       }
+
                                       okButtonProps={{ style: { display: "none" } }} // Hide ok button
                                       cancelButtonProps={{ style: { display: "none" } }} // Hide cancel button
                                     >

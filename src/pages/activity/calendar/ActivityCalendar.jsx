@@ -23,18 +23,20 @@ export default function ActivityCalendar() {
         keyword: "",
         month,
         year,
-        user_id: userId || "", // Use current userId
-        dealer_id: dealerId || "", // Use current dealerId
+        user_id: userId || "",
+        dealer_id: dealerId || "",
       });
   
       if (response.result) {
         const formattedEvents = response.data.map((item) => ({
           title: item.activity_type_name,
-          date: item.document_date, // Ensure this matches the date format
+          date: item.document_date,
           time: `${item.time_start} - ${item.time_end}`,
           location: item.location_address || "N/A",
           color: item.activity_color,
-          icon: item.activity_image || "https://via.placeholder.com/50", // Use activity_image or a placeholder
+          icon: item.activity_image || "https://via.placeholder.com/50",
+          crops: item.crop_id_list.map((crop) => crop.name).join(", "),
+          description: item.description,
           attendees: item.assing_user_list.map((user) => ({
             name: user.name,
             avatar: user.profile_image,
@@ -43,7 +45,8 @@ export default function ActivityCalendar() {
             edit: item.permission.edit,
             btn_delete: item.permission.btn_delete,
           },
-          document_number: item.document_number, // For identifying events
+          document_number: item.document_number,
+          dealer_name: item.dealer_name,
         }));
         setEvents(formattedEvents);
       } else {

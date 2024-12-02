@@ -38,9 +38,14 @@ export default function ViewOrder() {
 
         setDataOrderDetail(orderDetail.data);
         setDataSource(orderDetail.data.products);
-        setDataSourceOther(orderDetail.data.others);
-
-        // setFormFields(formFieldData);
+        
+        // setDataSourceOther(orderDetail.data.others);
+        const updatedData = orderDetail.data.others.map(item => ({
+          ...item,
+          product_unit: item.product_unit,
+        }));
+        setDataSourceOther(updatedData);
+        
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
