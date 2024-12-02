@@ -89,7 +89,7 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
       [attribute]: value,
     }));
     if (onChange) {
-      // onChange(attribute, value); // เรียก callback ถ้ามี
+      onChange(attribute, value); // เรียก callback ถ้ามี
     }
   };
 
