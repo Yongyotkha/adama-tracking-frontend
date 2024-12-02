@@ -130,8 +130,8 @@ export default function Traveling() {
 
   // Table header configuration
   const header = [
-    { title: "No", width: 50, dataIndex: "key", align: "center" },
-    { title: "Year", width: 100, dataIndex: "year", align: "center" },
+    { title: "No", width: 40, dataIndex: "key", align: "center" },
+    { title: "Year", width: 50, dataIndex: "year", align: "center" },
     { title: "Month", width: 150, dataIndex: "month", align: "left" },
     { title: "Date", width: 150, dataIndex: "date", align: "center" },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
