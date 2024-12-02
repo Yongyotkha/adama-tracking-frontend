@@ -265,7 +265,7 @@ export default function CreateSubDealer() {
           mobile_phone: values.mobile_phone || "",
           address: values.address || "",
           email: values.email || "",
-          day_of_week: values.office_hours || [],
+          day_of_week: "",
           start_time: values.start_time || "",
           end_time: values.end_time || "",
           business_size: values.business_size || "",
@@ -297,12 +297,11 @@ export default function CreateSubDealer() {
   
         console.log("Payload to be sent:", payload);
   
-        return;
         // ส่งข้อมูลไปยัง API
         useServiceAPI
           .post(paths.pathCreateSubDealer, payload, setLoading)
           .then((response) => {
-            if (response.status === 201) {
+            if (response.status === 200) {
               showNotification("success", response.data.message).then(() => {
                 navigate("/customer/sub-dealer");
               });
