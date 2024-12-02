@@ -307,7 +307,7 @@ export default function CreateActivity() {
     },
     {
       title: "Actual Sale (Kg/Lt)", dataIndex: "actualSale", key: "actualSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.actualSale} onChange={(e) => handleInputChange(e.target.value, record.key, "actualSale", record.bath_ltkg)}
+        <Input placeholder="0" defaultValue={record.actualSale} disabled={ pageCode != 'expense_clearing' ? true : false } onChange={(e) => handleInputChange(e.target.value, record.key, "actualSale", record.bath_ltkg)}
           formatter={(value) =>
             `${Number(value).toFixed(2)}`.replace(
               /\B(?=(\d{3})+(?!\d))/g,
