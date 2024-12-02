@@ -56,7 +56,7 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
     }, {});
     console.log(initialValues);
     
-    // form?.setFieldsValue(initialValues);
+    form?.setFieldsValue(initialValues);
   }, [fields]);
 
   const handleImageChange = async (e) => {
