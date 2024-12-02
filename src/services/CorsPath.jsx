@@ -136,6 +136,7 @@ export const paths = {
   pathActivityExpenseCreate: "/activity-expense/create",
   pathActivityExpenseDetail: "/activity-expense/detail",
   pathActivityExpenseList: "/activity-expense/list",
+  pathActivityExpenseDelete: "/activity-expense/delete",
 
   // Activity Calendar
   pathActivityCalendarList: "/activity/calendar/list",

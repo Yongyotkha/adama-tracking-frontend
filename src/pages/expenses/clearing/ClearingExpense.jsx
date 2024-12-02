@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import { Dropdown } from "antd";
@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function ClearingExpense() {
   const [loading, setLoading] = useState(false);
@@ -18,6 +19,7 @@ export default function ClearingExpense() {
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
+  const { showNotification } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -109,6 +111,41 @@ export default function ClearingExpense() {
     }
   };
 
+  const handleDelete = async (documentNumber) => {
+    try {
+      // Call API to delete the event
+      const response = await useServiceAPI.delete(
+        `/activity-expense/delete?document_number=${encodeURIComponent(documentNumber)}&page_code=${encodeURIComponent("expense_clearing")}`
+      );
+      await fetchData();
+      if (response.status === 200) {
+        // Show success notification
+        showNotification(
+          "success",
+          response.data.message || "Event deleted successfully!",
+          response.data.message_line || ["The event has been removed."]
+        );
+      } else {
+        // Show error notification if response is not 200
+        console.error("Failed to delete event:", response.message);
+        showNotification(
+          "error",
+          response.message || "Failed to delete event.",
+          response.message_line || ["Please try again later."]
+        );
+      }
+    } catch (error) {
+      // Handle errors and show an error notification
+      console.error("Error deleting event:", error);
+      showNotification(
+        "error",
+        "An error occurred while deleting the event.",
+        ["Please try again later."]
+      );
+    }
+  };
+
+
   // Master
   useEffect(() => {
     const getMaster = async () => {
@@ -180,7 +217,7 @@ export default function ClearingExpense() {
         const newDataSource = data.map((row, index) => {
           const actionItems = [
             { key: "1", label: <ItemDropDown mode="edit" link={`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`} /> },
-            { key: "3", label: <ItemDropDown mode="delete" link="#" /> },
+            { key: "3", label: <ItemDropDown mode="delete" link="#" onClick={() => handleDelete(row.document_number)}/> },
           ];
         
           return {
