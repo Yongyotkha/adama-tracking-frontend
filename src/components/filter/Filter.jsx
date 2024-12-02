@@ -8,6 +8,7 @@ const { Option } = Select;
 
 const Filter = ({ onSearch, onClear, onChange, filters }) => {
   const [filterValues, setFilterValues] = useState({});
+  const [activeKey, setActiveKey] = useState([]);
 
   const handleFilterChange = (filterKey, value) => {
     setFilterValues((prevValues) => {
@@ -16,14 +17,13 @@ const Filter = ({ onSearch, onClear, onChange, filters }) => {
         [filterKey]: value,
       };
 
-      // ใช้ updatedValues ทันทีสำหรับ onChange
       filters.forEach((data) => {
         if (data.moderef) {
-          onChange(updatedValues); // ใช้ค่าที่อัปเดต
+          onChange(updatedValues);
         }
       });
 
-      return updatedValues; // อัปเดต state
+      return updatedValues;
     });
   };
 
@@ -49,7 +49,6 @@ const Filter = ({ onSearch, onClear, onChange, filters }) => {
           <span className="text-lg">Filter</span>
         </div>
       ),
-      showArrow: false,
       children: (
         <>
           <Row gutter={16} className="p-4">
@@ -57,10 +56,10 @@ const Filter = ({ onSearch, onClear, onChange, filters }) => {
               <Col
                 className="mb-3"
                 key={filter.key}
-                xs={24} // 1 column for extra-small screens (<576px)
-                sm={12} // 2 columns for small screens (≥576px)
-                md={8} // 3 columns for medium screens (≥768px)
-                lg={6} // 4 columns for large screens (≥992px)
+                xs={24}
+                sm={12}
+                md={8}
+                lg={6}
               >
                 <label className="block text-gray-700">{filter.label}</label>
                 {filter.type === "select" && (
@@ -74,7 +73,7 @@ const Filter = ({ onSearch, onClear, onChange, filters }) => {
                     {filter.options.map((option, key) => (
                       <Option
                         key={key}
-                        value={filter.key == "status" ? option.code : option.id}
+                        value={filter.key === "status" ? option.code : option.id}
                       >
                         {option.name}
                       </Option>
@@ -140,7 +139,14 @@ const Filter = ({ onSearch, onClear, onChange, filters }) => {
     },
   ];
 
-  return <Collapse defaultActiveKey={["1"]} items={items} />;
+  return (
+    <Collapse
+      activeKey={activeKey}
+      onChange={(key) => setActiveKey(key)}
+      expandIconPosition="end" // เพิ่มไอคอนไว้ด้านขวามือ
+      items={items}
+    />
+  );
 };
 
 export default Filter;

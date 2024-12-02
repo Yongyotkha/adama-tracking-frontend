@@ -26,7 +26,7 @@ export default function ActivityCalendar() {
         user_id: userId || "", // Use current userId
         dealer_id: dealerId || "", // Use current dealerId
       });
-
+  
       if (response.result) {
         const formattedEvents = response.data.map((item) => ({
           title: item.activity_type_name,
@@ -34,7 +34,7 @@ export default function ActivityCalendar() {
           time: `${item.time_start} - ${item.time_end}`,
           location: item.location_address || "N/A",
           color: item.activity_color,
-          icon: "⭐",
+          icon: item.activity_image || "https://via.placeholder.com/50", // Use activity_image or a placeholder
           attendees: item.assing_user_list.map((user) => ({
             name: user.name,
             avatar: user.profile_image,
@@ -57,6 +57,7 @@ export default function ActivityCalendar() {
       setLoading(false);
     }
   };
+  
 
   const receiveData = (data) => {
     if (data.saleId !== undefined) {

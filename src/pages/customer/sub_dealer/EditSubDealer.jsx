@@ -105,14 +105,14 @@ export default function EditSubDealer() {
 
 
   const formFields = [
-    {
-      label: "Code SubDealer",
-      name: "code_dealer",
-      type: "text",
-      required: false,
-      col: 6,
-      value: "",
-    },
+    // {
+    //   label: "Code SubDealer",
+    //   name: "code_dealer",
+    //   type: "text",
+    //   required: false,
+    //   col: 6,
+    //   value: "",
+    // },
     {
       label: "Shop Name",
       name: "shop_name",
@@ -225,7 +225,7 @@ export default function EditSubDealer() {
       name: "remark",
       type: "text",
       required: false,
-      col: 12,
+      col: 24,
       value: companyinfo.remark
     },
   ];
@@ -257,96 +257,95 @@ export default function EditSubDealer() {
           <span className="text-[#00783F] text-md">{`Person ${index + 1}`}</span>
         </div>
         <Row gutter={[16, 16]} className="mt-3">
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Input
-                placeholder="Name (EN)"
-                value={contact.name_en || ""}
-                onChange={(e) => updateContact(index, "name_en", e.target.value)}
-              />
-            </Col>
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Input
-                placeholder="Name (TH)"
-                value={contact.name_th || ""}
-                onChange={(e) => updateContact(index, "name_th", e.target.value)}
-              />
-            </Col>
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Input
-                placeholder="Nickname"
-                value={contact.nickname || ""}
-                onChange={(e) => updateContact(index, "nickname", e.target.value)}
-              />
-            </Col>
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <DatePicker
-                className="w-full"
-                placeholder="Date of Birth"
-                value={contact.date_of_birth ? dayjs(contact.date_of_birth) : null}
-                onChange={(date) => updateContact(index, "date_of_birth", date)}
-              />
-            </Col>
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Input
-                placeholder="T-Shirt Size"
-                value={contact.t_shirt_size || ""}
-                onChange={(e) => updateContact(index, "t_shirt_size", e.target.value)}
-              />
-            </Col>
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Input
-                placeholder="Relationship"
-                value={contact.relationship || ""}
-                onChange={(e) => updateContact(index, "relationship", e.target.value)}
-              />
-            </Col>
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Input
-                placeholder="Duty"
-                value={contact.duty || ""}
-                onChange={(e) => updateContact(index, "duty", e.target.value)}
-              />
-            </Col>
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Input
-                placeholder="Tel 1"
-                value={contact.tel1 || ""}
-                onChange={(e) => updateContact(index, "tel1", e.target.value)}
-              />
-            </Col>
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Input
-                placeholder="Tel 2"
-                value={contact.tel2 || ""}
-                onChange={(e) => updateContact(index, "tel2", e.target.value)}
-              />
-            </Col>
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Input
-                placeholder="Contact Number"
-                value={contact.contact_number || ""}
-                onChange={(e) => updateContact(index, "contact_number", e.target.value)}
-              />
-            </Col>
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Input
-                placeholder="Email"
-                value={contact.email || ""}
-                onChange={(e) => updateContact(index, "email", e.target.value)}
-              />
-            </Col>
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Input
-                placeholder="Line ID"
-                value={contact.line_id || ""}
-                onChange={(e) => updateContact(index, "line_id", e.target.value)}
-              />
-            </Col>
-          </Row>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Input
+              placeholder="Name (EN)"
+              value={contact.name_en || ""}
+              onChange={(e) => handleContactChange(index, "name_en", e.target.value)}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Input
+              placeholder="Name (TH)"
+              value={contact.name_th || ""}
+              onChange={(e) => handleContactChange(index, "name_th", e.target.value)}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Input
+              placeholder="Nickname"
+              value={contact.nickname || ""}
+              onChange={(e) => handleContactChange(index, "nickname", e.target.value)}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <DatePicker
+              className="w-full"
+              placeholder="Date of Birth"
+              value={contact.date_of_birth ? dayjs(contact.date_of_birth) : null}
+              onChange={(date) => handleContactChange(index, "date_of_birth", date)}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Input
+              placeholder="T-Shirt Size"
+              value={contact.t_shirt_size || ""}
+              onChange={(e) => handleContactChange(index, "t_shirt_size", e.target.value)}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Input
+              placeholder="Relationship"
+              value={contact.relationship || ""}
+              onChange={(e) => handleContactChange(index, "relationship", e.target.value)}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Input
+              placeholder="Duty"
+              value={contact.duty || ""}
+              onChange={(e) => handleContactChange(index, "duty", e.target.value)}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Input
+              placeholder="Tel 1"
+              value={contact.tel1 || ""}
+              onChange={(e) => handleContactChange(index, "tel1", e.target.value)}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Input
+              placeholder="Tel 2"
+              value={contact.tel2 || ""}
+              onChange={(e) => handleContactChange(index, "tel2", e.target.value)}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Input
+              placeholder="Contact Number"
+              value={contact.contact_number || ""}
+              onChange={(e) => handleContactChange(index, "contact_number", e.target.value)}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Input
+              placeholder="Email"
+              value={contact.email || ""}
+              onChange={(e) => handleContactChange(index, "email", e.target.value)}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Input
+              placeholder="Line ID"
+              value={contact.line_id || ""}
+              onChange={(e) => handleContactChange(index, "line_id", e.target.value)}
+            />
+          </Col>
+        </Row>
         <hr className="my-4" />
       </div>
     ));
-
 
 
     const handleSave = () => {
