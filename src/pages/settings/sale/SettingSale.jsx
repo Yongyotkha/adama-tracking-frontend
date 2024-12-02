@@ -473,32 +473,32 @@ export default function SettingSale() {
       </BoxPrimary>
 
       {/* Dynamic Modal Instances */}
-      <DynamicModal
+      {/* <DynamicModal
         title="Sale Territory"
         isVisible={isTerritoryModalVisible}
         onClose={() => setIsTerritoryModalVisible(false)}
         header={territoryColumns}
         dataSource={userList}
         width="1200px"
-      />
+      /> */}
 
-      <DynamicModal
+      {/* <DynamicModal
         title="Sale Team"
         isVisible={isBDModalVisible}
         onClose={() => setIsBDModalVisible(false)}
         header={territoryColumns}
         dataSource={userList}
         width="1200px"
-      />
+      /> */}
 
-      <DynamicModal
+      {/* <DynamicModal
         title="Sale Team"
         isVisible={isSAModalVisible}
         onClose={() => setIsSAModalVisible(false)}
         header={territoryColumns}
         dataSource={userList}
         width="1200px"
-      />
+      /> */}
     </MainLayout>
   );
 }

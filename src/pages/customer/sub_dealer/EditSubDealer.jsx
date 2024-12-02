@@ -169,10 +169,14 @@ export default function EditSubDealer() {
       label: "Business Size",
       name: "business_size",
       type: "select",
-      options: ["Small", "Medium", "Large"],
+      options: [
+        { name: "Small", id: 1, selected: true },
+        { name: "Medium", id: 2, selected: false },
+        { name: "Large", id: 3, selected: false },
+      ],
       required: false,
       col: 6,
-      value: null,
+      value: companyinfo.business_size,
     },
     {
       label: "Email",
@@ -188,7 +192,7 @@ export default function EditSubDealer() {
       type: "text",
       required: false,
       col: 6,
-      value: "",
+      value: companyinfo.outlet_location,
       iconSrc: "/img/icons/location.png",
       iconPosition: "right",
     },
@@ -198,7 +202,7 @@ export default function EditSubDealer() {
       type: "text",
       required: false,
       col: 6,
-      value: "",
+      value: companyinfo.t_shirt_size,
     },
     {
       label: "Anniversary",
@@ -206,7 +210,7 @@ export default function EditSubDealer() {
       type: "date",
       required: false,
       col: 6,
-      value: "",
+      value: companyinfo.anniversary,
     },
     {
       label: "Address",
