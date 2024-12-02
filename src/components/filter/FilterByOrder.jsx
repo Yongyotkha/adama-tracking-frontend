@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Select, Collapse, Input, Row, Col, DatePicker } from "antd";
 import "./Filter.css";
 import DynamicButton from "../button/DynamicButton";
@@ -8,19 +8,19 @@ const { Option } = Select;
 
 const FilterByOrder = ({ onSearch, onClear, onChange, filters }) => {
   const [filterValues, setFilterValues] = useState({});
+  const [activeKey, setActiveKey] = useState([]); // เพิ่ม state สำหรับจัดการการกาง/หุบ
 
   const handleFilterChange = (filterKey, value) => {
     setFilterValues((prevValues) => ({
       ...prevValues,
       [filterKey]: value,
     }));
-    
-    filters.map((data, index) => {
-      // ใช้สำหรับ Filter: Menu Order
+
+    filters.forEach((data) => {
       if (data.moderef) {
-        onChange(filterValues)
+        onChange(filterValues);
       }
-    })
+    });
   };
 
   const handleSearch = () => {
@@ -45,7 +45,6 @@ const FilterByOrder = ({ onSearch, onClear, onChange, filters }) => {
           <span className="text-lg">Filter</span>
         </div>
       ),
-      showArrow: false,
       children: (
         <>
           <Row gutter={16} className="p-4">
@@ -53,10 +52,10 @@ const FilterByOrder = ({ onSearch, onClear, onChange, filters }) => {
               <Col
                 className="mb-3"
                 key={filter.key}
-                xs={24} // 1 column for extra-small screens (<576px)
-                sm={12} // 2 columns for small screens (≥576px)
-                md={8} // 3 columns for medium screens (≥768px)
-                lg={6} // 4 columns for large screens (≥992px)
+                xs={24}
+                sm={12}
+                md={8}
+                lg={6}
               >
                 <label className="block text-gray-700">{filter.label}</label>
                 {filter.type === "select" && (
@@ -133,7 +132,14 @@ const FilterByOrder = ({ onSearch, onClear, onChange, filters }) => {
     },
   ];
 
-  return <Collapse defaultActiveKey={["1"]} items={items} />;
+  return (
+    <Collapse
+      activeKey={activeKey} // จัดการการกาง/หุบ
+      onChange={(key) => setActiveKey(key)} // อัปเดต activeKey เมื่อมีการกด
+      expandIconPosition="end" // ทำให้ลูกศรอยู่ด้านขวา
+      items={items}
+    />
+  );
 };
 
 export default FilterByOrder;

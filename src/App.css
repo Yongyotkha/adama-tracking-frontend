@@ -143,5 +143,20 @@
 }
 
 .ant-collapse-content-active {
-  border-top: 0 !important;
+    border-top: 0 !important;
+}
+
+.ant-collapse-header {
+    background: #00783f;
+}
+
+.ant-collapse-expand-icon {
+    margin: auto;
+    padding-inline-end: 12px !important;
+    padding-inline-start: 12px;
+    color: white;
+}
+
+span.ant-popconfirm-message-icon {
+  display: none !important;
 }
