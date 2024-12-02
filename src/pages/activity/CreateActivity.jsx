@@ -104,7 +104,7 @@ export default function CreateActivity() {
   };
 
   const formFields = [
-    { label: "Activity Reference", name: "document_number", type: "text", disabled: true, required: false, col: 24, value: activityDetail.document_number ?? "" },
+    { label: "No", name: "document_number", type: "text", disabled: true, required: false, col: 24, value: activityDetail.document_number ?? "", placeholder:"Generate"},
     { label: "Activity Type", name: "activity_type_id", type: "select", options: activityList, disabled: false, required: false, col: 8, value: activityDetail.activity_type_id ?? "" },
     { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: false, required: false, col: 8, value: activityDetail.user_id ?? "", moderef: true},
     { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: false, required: false, col: 8, value: activityDetail.dealer_id ?? "", moderef: true},
@@ -295,7 +295,7 @@ export default function CreateActivity() {
     { title: "Pack Size", dataIndex: "packSize", key: "packSize", align: "center" },
     {
       title: "Estimate Sale (Kg/Lt)", dataIndex: "estimateSale", key: "estimateSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.estimateSale} onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}
+        <Input placeholder="0" defaultValue={record.estimateSale} disabled={ pageCode == 'expense_clearing' ? true : false } onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}
           formatter={(value) =>
             `${Number(value).toFixed(2)}`.replace(
               /\B(?=(\d{3})+(?!\d))/g,
@@ -611,8 +611,7 @@ export default function CreateActivity() {
           address: fetchedAddress,
           lat: lat,
           long: long,
-        })); 
-            
+        }));         
       } else {
         console.error("Failed to fetch address");
       }
@@ -732,6 +731,7 @@ export default function CreateActivity() {
                             boxSizing: "border-box",
                           }}
                         />
+                        {" "}
                       </Form.Item>
 
 
@@ -825,7 +825,7 @@ export default function CreateActivity() {
               <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
               <ActionButton mode="add" text="Upload File" onClick={handleUploadClick} />
             </div>
-            <FileUploadComponent ref={fileUploadRef} mode="edit" dataFile={fileList} modeUpload={mode} onUploadSuccess={handleUploadSuccess}/>
+            <FileUploadComponent ref={fileUploadRef} mode="edit" dataFile={fileList} modeUpload={pageCode} onUploadSuccess={handleUploadSuccess}/>
           </BoxPrimary>
 
           {/* Participant Section */}
