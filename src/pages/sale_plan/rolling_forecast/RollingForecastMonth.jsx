@@ -429,7 +429,7 @@ export default function RollingForecastMonth() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Create Plan" showYear={yearName} />
+        <Title prefix="Create Work Plan" showYear={yearName} />
 
         <BoxPrimary>
           <div className="flex gap-4">
