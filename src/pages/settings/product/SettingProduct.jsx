@@ -360,13 +360,14 @@ export default function SettingProduct() {
         />
       </BoxPrimary>
 
-      <DynamicModal
+      {/* <DynamicModal
         title={modalConfig.title}
         isVisible={modalConfig.isVisible}
         onClose={handleCloseModal}
         header={modalConfig.header}
         dataSource={modalConfig.dataSource}
-      />
+      /> */}
+      
     </MainLayout>
   );
 }

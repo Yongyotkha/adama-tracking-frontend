@@ -19,6 +19,7 @@ import {
   Tabs,
   Form,
   Select,
+  TimePicker,
 } from "antd";
 import { values } from "lodash";
 import dayjs from "dayjs";
@@ -64,7 +65,6 @@ export default function CreateSubDealer() {
 
   const formFields = [
     {
-      key:123123,
       label: "Shop Name",
       name: "shop_name",
       type: "text",
@@ -93,32 +93,49 @@ export default function CreateSubDealer() {
       name: "office_hours",
       type: "multiple",
       options: [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
+        { name: "Monday", id: 1, selected: true },
+        { name: "Tuesday", id: 0, selected: false },
+        { name: "Wednesday", id: 0, selected: false },
+        { name: "Thursday", id: 0, selected: false },
+        { name: "Friday", id: 0, selected: false },
+        { name: "Saturday", id: 0, selected: false },
+        { name: "Sunday", id: 0, selected: false },
       ],
       required: false,
       col: 6,
-      value: null,
       iconSrc: "/img/icons/calendar.png",
       iconPosition: "right",
     },
+    // {
+    //   label: "Office Hours",
+    //   name: "office_hours",
+    //   type: "select",
+    //   required: true,
+    //   col: 6,
+    //   iconSrc: "/img/icons/calendar.png",
+    //   iconPosition: "right",
+    //   options: [
+    //     { name: "Monday", id: 1, selected: true },
+    //     { name: "Tuesday", id: 0, selected: false },
+    //     { name: "Wednesday", id: 0, selected: false },
+    //     { name: "Thursday", id: 0, selected: false },
+    //     { name: "Friday", id: 0, selected: false },
+    //     { name: "Saturday", id: 0, selected: false },
+    //     { name: "Sunday", id: 0, selected: false },
+    //   ],
+    // },
     {
       label: "Start Time",
       name: "start_time",
-      type: "time",
+      type: "time", // ใช้ type "time"
       required: false,
       col: 6,
-      value: "",
+      value: null,
     },
     {
       label: "End Time",
       name: "end_time",
-      type: "time",
+      type: "time",      
       required: false,
       col: 6,
       value: "",
@@ -127,11 +144,15 @@ export default function CreateSubDealer() {
       label: "Business Size",
       name: "business_size",
       type: "select",
-      options: ["Small", "Medium", "Large"],
-      required: false,
+      required: true,
       col: 6,
-      value: null,
+      options: [
+        { name: "Small", id: "Small", selected: true },
+        { name: "Medium", id: "Medium", selected: false },
+        { name: "Large", id: "Large", selected: false },
+      ],
     },
+
     {
       label: "Email",
       name: "email",
@@ -276,6 +297,7 @@ export default function CreateSubDealer() {
             : null,
           remark: values.remark || "",
           photo_path: "photo_path", // ตัวอย่าง placeholder
+          
           contact_items: contacts.map((contact) => ({
             name_en: contact.name_en || "",
             contact_number: contact.contact_number || "",

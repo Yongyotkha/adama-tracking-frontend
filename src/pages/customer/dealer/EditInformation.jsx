@@ -25,7 +25,7 @@ import dayjs from "dayjs";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import TableComponent from "../../../components/table/TableComponent";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
-import DynamicModal from "../../../components/modal/DynamicModal"; // Adjust path if needed
+import DynamicModal from "../../../components/modal/DynamicModal"; 
 
 const { Option } = Select;
 
@@ -45,16 +45,6 @@ export default function EditInformation() {
   const [personitem, setpersonitem] = useState([]);
   const [cropOptions, setCropOptions] = useState([]);
   const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); // กำหนด state สำหรับ defaultSelectedCrops
-
-  // const [tableParams, setTableParams] = useState({
-  //   pagination: {
-  //     current: 1,
-  //     pageSize: 10,
-  //   },
-  //   filters: {},
-  //   sortOrder: null,
-  //   sortField: null,
-  // });
 
   useEffect(() => {
     const fetchData = async () => {
