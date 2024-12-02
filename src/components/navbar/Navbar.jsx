@@ -265,12 +265,12 @@ const Navbar = () => {
   const isMediumScreen = useMediaQuery("(max-width: 1024px)");
 
   const userMenuItems = [
-    {
-      key: "1",
-      label: "Profile",
-      icon: <UserOutlined style={{ fontSize: "18px" }} />,
-      path: "/setting/profile",
-    },
+    // {
+    //   key: "1",
+    //   label: "Profile",
+    //   icon: <UserOutlined style={{ fontSize: "18px" }} />,
+    //   path: "/setting/profile",
+    // },
     {
       key: "2",
       label: "Logout",
