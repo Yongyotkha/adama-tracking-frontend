@@ -201,7 +201,7 @@ export default function WorkPlanCreateStepTwo() {
                       min={0}
                       value={text}
                       formatter={(value) =>
-                        `฿ ${Number(value).toFixed(2)}`.replace(
+                        `${Number(value).toFixed(2)}`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
                         )
@@ -231,7 +231,7 @@ export default function WorkPlanCreateStepTwo() {
                   min={0}
                   value={item.amount_target}
                   formatter={(value) =>
-                    `฿ ${Number(value).toFixed(2)}`.replace(
+                    `${Number(value).toFixed(2)}`.replace(
                       /\B(?=(\d{3})+(?!\d))/g,
                       ","
                     )
@@ -289,7 +289,7 @@ export default function WorkPlanCreateStepTwo() {
                           dataItem ? parseFloat(dataItem.value).toFixed(2) : 0
                         }
                         formatter={(value) =>
-                          `฿ ${Number(value).toFixed(2)}`.replace(
+                          `${Number(value).toFixed(2)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )
@@ -318,21 +318,6 @@ export default function WorkPlanCreateStepTwo() {
         },
       };
 
-      // // ตรวจสอบว่า qty รวมของ product_id นี้ไม่เกิน dataSource.qty
-      // const totalQty = Object.keys(updatedState)
-      //   .map((key) => updatedState[key][product_id] || 0)
-      //   .reduce((sum, qty) => sum + qty, 0);
-
-      // const productData = dataSource.find(
-      //   (data) => data.product_id === product_id
-      // );
-      // if (totalQty > (productData?.qty || 0)) {
-      //   showNotification(
-      //     "error",
-      //     `Total quantity for ${productData.product_name} exceeds the limit.`
-      //   );
-      //   return prevState; // ไม่อัปเดต state ถ้าเกิน
-      // }
 
       // อัปเดต areas value (คำนวณ qty * unitConvertValue) และ sum value
       const updatedAreas = areas.map((area) => {
@@ -398,8 +383,6 @@ export default function WorkPlanCreateStepTwo() {
   };
 
   const createPlan = async (mode) => {
-  
-
     try {
       await useServiceAPI
         .post(
@@ -452,7 +435,10 @@ export default function WorkPlanCreateStepTwo() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${Number(value).toFixed(2)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
                 suffix="THB"
@@ -481,7 +467,7 @@ export default function WorkPlanCreateStepTwo() {
                       value={totalValue}
                       min={0}
                       formatter={(value) =>
-                        `฿ ${Number(value).toFixed(2)}`.replace(
+                        `${Number(value).toFixed(2)}`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
                         )
@@ -495,9 +481,9 @@ export default function WorkPlanCreateStepTwo() {
                       <InputNumber
                         className="w-full"
                         disabled
-                        value={parseFloat(area.amount_target || 0).toFixed(2)} // amount_target ของ area
+                        value={area.amount_target || 0} // amount_target ของ area
                         formatter={(value) =>
-                          `฿ ${Number(value).toFixed(2)}`.replace(
+                          `${Number(value).toFixed(2)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )

@@ -127,7 +127,7 @@ export default function WorkPlanCreate() {
           className="w-full"
           value={text}
           formatter={(value) =>
-            `฿ ${Number(value).toFixed(2)}`.replace(
+            `${Number(value).toFixed(2)}`.replace(
               /\B(?=(\d{3})+(?!\d))/g,
               ","
             )
@@ -198,7 +198,7 @@ export default function WorkPlanCreate() {
                     disabled
                     value={totalValue}
                     formatter={(value) =>
-                      `฿ ${Number(value).toFixed(2)}`.replace(
+                      `${Number(value).toFixed(2)}`.replace(
                         /\B(?=(\d{3})+(?!\d))/g,
                         ","
                       )

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import { Input, InputNumber, Table } from "antd";
+import { Input, InputNumber, Table ,Modal } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import TableCustomComponent from "../../../components/table/TableCustomComponent";
 import ActionButton from "../../../components/button/ActionButton";
@@ -9,6 +9,8 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import Title from "../../../components/title/Title";
+import { ExclamationCircleFilled } from "@ant-design/icons";
+
 
 export default function WorkPlanSaleCreate() {
   const location = useLocation();
@@ -16,6 +18,7 @@ export default function WorkPlanSaleCreate() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const { showNotification, formatNumber } = useContext(AuthContext);
+  const { confirm } = Modal;
 
   const [quarter, setQuarter] = useState([]);
   const [permission, setPermission] = useState([]);
@@ -416,117 +419,143 @@ export default function WorkPlanSaleCreate() {
       return sum + localTotalValue;
     }, 0);
 
-    // เปรียบเทียบ original plan (totalValue) กับ sum ของ amount_target
-    if (calculatedTotalAmountTarget < totalValue) {
-      showNotification(
-        "warning",
-        "Total Sale Value is less than the Original Plan",
-        [
-          `Original Plan: ฿ ${formatNumber(totalValue)}`,
-          `Current Total: ฿ ${formatNumber(calculatedTotalAmountTarget)}`,
-          `Difference: ฿ ${formatNumber(
-            totalValue - calculatedTotalAmountTarget
-          )}`,
-        ],
-        3
-      );
+    if (Number(totalValue) > Number(calculatedTotalAmountTarget)) {
+      confirm({
+        title: "Do you want to save ?",
+        icon: <ExclamationCircleFilled />,
+        content: (
+          <>
+            <p>Work Plan is less than Original Plan</p>
+            <p>Original Plan: {formatNumber(totalValue)}</p>
+            <p>Current Total: {formatNumber(calculatedTotalAmountTarget)}</p>
+            <p>
+              Difference:{" "}
+              {formatNumber(totalValue - calculatedTotalAmountTarget)}
+            </p>
+          </>
+        ),
+        centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+        onOk() {
+          createPlan(mode);
+        },
+      });
     } else {
-      setLoading(true); // เริ่มโหลดข้อมูล
+      createPlan(mode);
+    }
 
-      // อัพเดตข้อมูล quarter ด้วยข้อมูลใน localQtyState
-      try {
-        const updatedQuarterData = quarter.map((item) => {
-          const localQuarter = localQtyState[item.quarter_id] || {};
+    // // เปรียบเทียบ original plan (totalValue) กับ sum ของ amount_target
+    // if (calculatedTotalAmountTarget < totalValue) {
+    //   showNotification(
+    //     "warning",
+    //     "Total Sale Value is less than the Original Plan",
+    //     [
+    //       `Original Plan: ฿ ${formatNumber(totalValue)}`,
+    //       `Current Total: ฿ ${formatNumber(calculatedTotalAmountTarget)}`,
+    //       `Difference: ฿ ${formatNumber(
+    //         totalValue - calculatedTotalAmountTarget
+    //       )}`,
+    //     ],
+    //     3
+    //   );
+    // } else {
+    // }
+  };
 
-          // อัพเดตข้อมูล months
-          const updatedMonths = item.data_items.map((month) => {
-            const localMonth = localQuarter.months?.[month.month_id] || {};
-            return {
-              ...month,
-              total_qty: localMonth.total_qty || 0,
-              total_value: localMonth.total_value || 0,
-              amount_target: localMonth.total_value || 0,
-              data_items: month.data_items.map((product) => {
-                const localProduct =
-                  localMonth.products?.[product.product_id] || {};
-                return {
-                  ...product,
-                  qty: localProduct.qty || product.qty || 0,
-                  value: localProduct.value || product.value || 0,
-                };
-              }),
-            };
-          });
+  const createPlan = async () => {
+    setLoading(true); // เริ่มโหลดข้อมูล
 
-          // คำนวณ total_value ของ quarter
-          const totalQuarterValue = updatedMonths.reduce(
-            (sum, month) => sum + (month.total_value || 0),
-            0
-          );
+    // อัพเดตข้อมูล quarter ด้วยข้อมูลใน localQtyState
+    try {
+      const updatedQuarterData = quarter.map((item) => {
+        const localQuarter = localQtyState[item.quarter_id] || {};
 
+        // อัพเดตข้อมูล months
+        const updatedMonths = item.data_items.map((month) => {
+          const localMonth = localQuarter.months?.[month.month_id] || {};
           return {
-            ...item,
-            amount_target: totalQuarterValue, // อัพเดต amount_target ด้วย total_value
-            total_value: totalQuarterValue,
-            data_items: updatedMonths,
+            ...month,
+            total_qty: localMonth.total_qty || 0,
+            total_value: localMonth.total_value || 0,
+            amount_target: localMonth.total_value || 0,
+            data_items: month.data_items.map((product) => {
+              const localProduct =
+                localMonth.products?.[product.product_id] || {};
+              return {
+                ...product,
+                qty: localProduct.qty || product.qty || 0,
+                value: localProduct.value || product.value || 0,
+              };
+            }),
           };
         });
 
-        await useServiceAPI
-          .post(paths.pathWorkPlanSaleQuarter, {
-            year_code: location?.state?.year_code,
-            user_id: location?.state?.user_id,
-            action_code: mode,
-            quarter_items: updatedQuarterData,
-          })
-          .then((response) => {
-            if (response.status === 200) {
-              if (mode == "draft") {
-                showNotification(
-                  "success",
-                  response.data.message,
-                  response.data.message_line
-                ).then(() => {
-                  navigate("/sale-plan/work-plan-sale");
-                });
-              } else {
-                showNotification(
-                  "success",
-                  response.data.message,
-                  response.data.message_line
-                ).then(() => {
-                  navigate("/sale-plan/work-plan-sale/sale-by-crop", {
-                    state: {
-                      year_code: location?.state?.year_code,
-                      user_id: location?.state?.user_id,
-                    },
-                  });
-                });
-              }
-            }
-          })
-          .catch((error) => {
-            console.error(error);
-            if (error.status === 422) {
-              showNotification("error", error.message);
+        // คำนวณ total_value ของ quarter
+        const totalQuarterValue = updatedMonths.reduce(
+          (sum, month) => sum + (month.total_value || 0),
+          0
+        );
+
+        return {
+          ...item,
+          amount_target: totalQuarterValue, // อัพเดต amount_target ด้วย total_value
+          total_value: totalQuarterValue,
+          data_items: updatedMonths,
+        };
+      });
+
+      await useServiceAPI
+        .post(paths.pathWorkPlanSaleQuarter, {
+          year_code: location?.state?.year_code,
+          user_id: location?.state?.user_id,
+          action_code: mode,
+          quarter_items: updatedQuarterData,
+        })
+        .then((response) => {
+          if (response.status === 200) {
+            if (mode == "draft") {
+              showNotification(
+                "success",
+                response.data.message,
+                response.data.message_line
+              ).then(() => {
+                navigate("/sale-plan/work-plan-sale");
+              });
             } else {
-              showNotification("error", "เกิดข้อผิดพลาด");
+              showNotification(
+                "success",
+                response.data.message,
+                response.data.message_line
+              ).then(() => {
+                navigate("/sale-plan/work-plan-sale/sale-by-crop", {
+                  state: {
+                    year_code: location?.state?.year_code,
+                    user_id: location?.state?.user_id,
+                  },
+                });
+              });
             }
-          });
-      } catch (error) {
-        console.error("Unexpected error:", error);
-        showNotification("error", "เกิดข้อผิดพลาดที่ไม่คาดคิด");
-      } finally {
-        setLoading(false); // หยุดโหลดข้อมูลไม่ว่าจะสำเร็จหรือผิดพลาด
-      }
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+          if (error.status === 422) {
+            showNotification("error", error.message);
+          } else {
+            showNotification("error", "เกิดข้อผิดพลาด");
+          }
+        });
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      showNotification("error", "เกิดข้อผิดพลาดที่ไม่คาดคิด");
+    } finally {
+      setLoading(false); // หยุดโหลดข้อมูลไม่ว่าจะสำเร็จหรือผิดพลาด
     }
   };
 
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-      <Title prefix="Create Plan" showYear={yearName} />
-
+        <Title prefix="Create Plan" showYear={yearName} />
 
         <BoxPrimary>
           <div className="flex flex-col gap-2">

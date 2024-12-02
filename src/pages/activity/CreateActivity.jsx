@@ -707,7 +707,7 @@ export default function CreateActivity() {
                 </Col>
                 <Col xs={24} sm={24} md={24} lg={24}>
                   <Form.Item className="mb-3" label="Address" name="address">
-                    <Input disabled="true"/>
+                    <Input disabled={true}/>
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={24} md={24} lg={24}>
@@ -721,7 +721,7 @@ export default function CreateActivity() {
                           placeholder="Address"
                           value={locationCustomer.address || ""}
                           key={locationCustomer.address} // เพิ่ม key เพื่อบังคับให้รีเฟรช
-                          disabled="true"
+                          disabled={true}
                           style={{
                             width: "100%",
                             paddingRight: "50px",
@@ -732,6 +732,8 @@ export default function CreateActivity() {
                             boxSizing: "border-box",
                           }}
                         />
+                 
+
                       </Form.Item>
 
 
@@ -775,7 +777,7 @@ export default function CreateActivity() {
                           type="hidden"
                           placeholder="Latitude"
                           value={locationCustomer.lat || ""}
-                          disabled="true"
+                          disabled={true}
                         />
                       </Form.Item>
                   
@@ -787,7 +789,7 @@ export default function CreateActivity() {
                           type="hidden"
                           placeholder="Longitude"
                           value={locationCustomer.long || ""}
-                          disabled="true"
+                          disabled={true}
                         />
                       </Form.Item>
                     </div>
