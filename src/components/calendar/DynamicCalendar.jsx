@@ -512,7 +512,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                   <Tooltip title="View" placement="bottom">
                                     <Popconfirm
                                       placement="leftTop"
-                                      title= {null}
+                                      title={null}
                                       description={
                                         <div>
                                           <h4 className="flex items-center gap-2">
@@ -523,8 +523,14 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                             />
                                             {event.title}
                                           </h4>
-                                          <p lang="th">{event.time}</p>
-                                          <p lang="th">{event.location}</p>
+                                          <p lang="th" className="my-2 px-3 py-1 border rounded-full text-sm text-gray-600 flex items-center w-fit">{event.time}</p>
+                                          <p lang="th" className="flex gap-1">
+                                            <img
+                                              src="/img/icons/location.png"
+                                              className="h-6 w-6 me-2"
+                                              alt=""
+                                            />{event.location}
+                                          </p>
                                           {/* Conditionally render buttons */}
                                           {event.permission.edit && (
                                             <Button
