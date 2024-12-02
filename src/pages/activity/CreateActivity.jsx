@@ -104,17 +104,17 @@ export default function CreateActivity() {
   };
 
   const formFields = [
-    { label: "Activity Reference", name: "document_number", type: "text", disabled: true, required: false, col: 24, value: activityDetail.document_number ?? "" },
-    { label: "Activity Type", name: "activity_type_id", type: "select", options: activityList, disabled: false, required: true, col: 8, value: activityDetail.activity_type_id ?? "" },
-    { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: false, required: true, col: 8, value: activityDetail.user_id ?? "", moderef: true},
-    { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: false, required: true, col: 8, value: activityDetail.dealer_id ?? "", moderef: true},
-    { label: "Crop", name: "crop_id_list", type: "select", mode: "multiple", options: cropList, disabled: false, required: true, col: 6, value: cropDetailList, moderef: true},
-    { label: "Date", name: "document_date", type: "date", disabled: false, required: true, col: 6, value: dayjs().format("YYYY-MM-DD") },
-    { label: "Start Time", name: "time_start", type: "select", options:timeList, disabled: false, required: true, col: 6, value: activityDetail.time_start ?? "" },
-    { label: "End Time", name: "time_end", type: "select", options:timeList, disabled: false, required: true, col: 6, value: activityDetail.time_end ?? "" },
+    { label: "No", name: "document_number", type: "text", disabled: true, required: false, col: 24, value: activityDetail.document_number ?? "", placeholder:"Generate"},
+    { label: "Activity Type", name: "activity_type_id", type: "select", options: activityList, disabled: false, required: false, col: 8, value: activityDetail.activity_type_id ?? "" },
+    { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: false, required: false, col: 8, value: activityDetail.user_id ?? "", moderef: true},
+    { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: false, required: false, col: 8, value: activityDetail.dealer_id ?? "", moderef: true},
+    { label: "Crop", name: "crop_id_list", type: "select", mode: "multiple", options: cropList, disabled: false, required: false, col: 6, value: cropDetailList, moderef: true},
+    { label: "Date", name: "document_date", type: "date", disabled: false, required: false, col: 6, value: activityDetail.document_date ?? dayjs().format("YYYY-MM-DD") },
+    { label: "Start Time", name: "time_start", type: "select", options:timeList, disabled: false, required: false, col: 6, value: activityDetail.time_start ?? "" },
+    { label: "End Time", name: "time_end", type: "select", options:timeList, disabled: false, required: false, col: 6, value: activityDetail.time_end ?? "" },
     { label: "Location", name: "location_address", type: "location", disabled: true, required: false, col: 24, value: activityDetail.location_address ?? "", iconSrc: "/img/icons/location.png", iconPosition: "left" },
     { label: "Description", name: "description", type: "text-editor", disabled: false, required: false, col: 24, placeholder: "Add description", value: activityDetail.description ?? "" },
-    { label: "Assign", name: "assing_user_list", type: "select", mode: "multiple", options: saleAllList, disabled: false, required: true, col: 24, value: assignList},
+    { label: "Assign", name: "assing_user_list", type: "select", mode: "multiple", options: saleAllList, disabled: false, required: false, col: 24, value: assignList},
   ];
 
    // Master
@@ -295,7 +295,7 @@ export default function CreateActivity() {
     { title: "Pack Size", dataIndex: "packSize", key: "packSize", align: "center" },
     {
       title: "Estimate Sale (Kg/Lt)", dataIndex: "estimateSale", key: "estimateSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.estimateSale} onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}
+        <Input placeholder="0" defaultValue={record.estimateSale} disabled={ pageCode == 'expense_clearing' ? true : false } onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}
           formatter={(value) =>
             `${Number(value).toFixed(2)}`.replace(
               /\B(?=(\d{3})+(?!\d))/g,
@@ -611,8 +611,7 @@ export default function CreateActivity() {
           address: fetchedAddress,
           lat: lat,
           long: long,
-        })); 
-            
+        }));         
       } else {
         console.error("Failed to fetch address");
       }
@@ -732,8 +731,12 @@ export default function CreateActivity() {
                             boxSizing: "border-box",
                           }}
                         />
+<<<<<<< HEAD
                  
 
+=======
+                        {" "}
+>>>>>>> main
                       </Form.Item>
 
 
@@ -827,7 +830,7 @@ export default function CreateActivity() {
               <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
               <ActionButton mode="add" text="Upload File" onClick={handleUploadClick} />
             </div>
-            <FileUploadComponent ref={fileUploadRef} mode="edit" dataFile={fileList} modeUpload={mode} onUploadSuccess={handleUploadSuccess}/>
+            <FileUploadComponent ref={fileUploadRef} mode="edit" dataFile={fileList} modeUpload={pageCode} onUploadSuccess={handleUploadSuccess}/>
           </BoxPrimary>
 
           {/* Participant Section */}

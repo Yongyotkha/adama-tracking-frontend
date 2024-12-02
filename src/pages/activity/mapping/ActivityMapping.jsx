@@ -76,7 +76,11 @@ export default function ActivityMapping() {
               (value, index, self) =>
                 self.findIndex((item) => item.name === value.name) === index
             )
-            .map((data) => data.name)
+            .map((data, index) => ({
+              key: index,
+              id: index,
+              name: data.name,
+            }))
         );
 
         setDataDealer(
@@ -85,7 +89,11 @@ export default function ActivityMapping() {
               (value, index, self) =>
                 self.findIndex((item) => item.name === value.name) === index
             )
-            .map((data) => data.name)
+            .map((data, index) => ({
+              key: index,
+              id: index,
+              name: data.name,
+            }))
         );
 
         setDataArea(
@@ -94,7 +102,11 @@ export default function ActivityMapping() {
               (value, index, self) =>
                 self.findIndex((item) => item.name === value.name) === index
             )
-            .map((data) => data.name)
+            .map((data, index) => ({
+              key: index,
+              id: index,
+              name: data.name,
+            }))
         );
 
         setDataYear(
@@ -103,7 +115,11 @@ export default function ActivityMapping() {
               (value, index, self) =>
                 self.findIndex((item) => item.name === value.name) === index
             )
-            .map((data) => data.name)
+            .map((data, index) => ({
+              key: index,
+              id: index,
+              name: data.name,
+            }))
         );
 
       } catch (error) {
@@ -126,14 +142,42 @@ export default function ActivityMapping() {
   };
 
   // Mock data for filter categories
-  const mockFilters = {
-    "Activity Type": activityType,
-    Dealer: dataDealer,
-    // "Sub Dealer": dataSubDealer,
-    // Territory: dataterritory,
-    Area: dataArea,
-    Year: dataYear,
-  };
+  // const mockFilters = {
+  //   "Activity Type": activityType,
+  //   Dealer: dataDealer,
+  //   // "Sub Dealer": dataSubDealer,
+  //   // Territory: dataterritory,
+  //   Area: dataArea,
+  //   Year: dataYear,
+  // };
+
+  // After
+  const mockFilters = [
+    {
+      key: 1,
+      filter_type: 'activity_type',
+      filter_type_name: 'Activity Type',
+      data: activityType
+    },
+    {
+      key: 2,
+      filter_type: 'dealer',
+      filter_type_name: 'Dealer',
+      data: dataDealer
+    },
+    {
+      key: 3,
+      filter_type: 'area',
+      filter_type_name: 'Area',
+      data: dataArea
+    },
+    {
+      key: 4,
+      filter_type: 'year',
+      filter_type_name: 'Year',
+      data: dataYear
+    },
+  ];
 
   // Initialize all checkboxes as selected on page load
   useEffect(() => {
@@ -141,8 +185,8 @@ export default function ActivityMapping() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
+          const lat = parseFloat(position.coords.latitude);
+          const lng = parseFloat(position.coords.longitude);
 
           const fetchCurrentLocation = async () => {
             // ดึงข้อมูลที่อยู่จาก Google Maps Geocoding API
@@ -155,7 +199,7 @@ export default function ActivityMapping() {
             key: locations.length + 1,
             id: locations.length + 1,
             document_number: "",
-            title: "ตำแหน่งที่อยู่ปัจจุบัน",
+            title: "",
             lat: lat,
             lng: lng,
             details: currentLocationAddress,
@@ -174,16 +218,16 @@ export default function ActivityMapping() {
     }
 
     const initialCheckedFilters = {};
-    Object.keys(mockFilters).forEach((category) => {
-      initialCheckedFilters[category] = mockFilters[category].reduce(
-        (acc, item) => {
-          acc[item] = true;
-          return acc;
-        },
-        {}
-      );
-    });
-    setCheckedFilters(initialCheckedFilters);
+    // Object.keys(mockFilters).forEach((category) => {
+    //   initialCheckedFilters[category] = mockFilters[category].reduce(
+    //     (acc, item) => {
+    //       acc[item] = true;
+    //       return acc;
+    //     },
+    //     {}
+    //   );
+    // });
+    // setCheckedFilters(initialCheckedFilters);
   }, [dataMapping]);
 
   // ดึงที่อยู่จาก Google Maps Geocoding API
@@ -209,6 +253,10 @@ export default function ActivityMapping() {
 
   // Toggle a specific checkbox
   const toggleCheckbox = (category, item) => {
+    // console.log(category);
+    // console.log(item);
+    // return;
+    
     setCheckedFilters((prev) => ({
       ...prev,
       [category]: {
@@ -222,15 +270,15 @@ export default function ActivityMapping() {
   // Check/Uncheck all categories and items
   const toggleAll = (isChecked) => {
     const updatedFilters = {};
-    Object.keys(mockFilters).forEach((category) => {
-      updatedFilters[category] = mockFilters[category].reduce((acc, item) => {
-        acc[item] = isChecked;
-        return acc;
-      }, {});
-    });
-    console.log(updatedFilters);
+    // Object.keys(mockFilters).forEach((category) => {
+    //   updatedFilters[category] = mockFilters[category].reduce((acc, item) => {
+    //     acc[item] = isChecked;
+    //     return acc;
+    //   }, {});
+    // });
+    // console.log(updatedFilters);
 
-    setCheckedFilters(updatedFilters);
+    // setCheckedFilters(updatedFilters);
   };
 
   const handleSearch = (text) => {
@@ -323,7 +371,7 @@ export default function ActivityMapping() {
             </div>
 
             {/* Collapsible Filter Categories */}
-            <Collapse defaultActiveKey={["Activity Type"]} className="rounded-lg border-0">
+            {/* <Collapse defaultActiveKey={["Activity Type"]} className="rounded-lg border-0">
               {Object.keys(mockFilters).map((category, categoryKey) => (
                 <Panel header={category} key={categoryKey} className="custom-collapse">
                   <div className="flex flex-col space-y-2">
@@ -339,7 +387,42 @@ export default function ActivityMapping() {
                   </div>
                 </Panel>
               ))}
+            </Collapse> */}
+            <Collapse defaultActiveKey={["Activity Type"]} className="rounded-lg border-0">
+              {/* {Object.keys(mockFilters).map((category, categoryKey) => (
+                <Panel header={category} key={categoryKey} className="custom-collapse">
+                  <div className="flex flex-col space-y-2">
+                    {mockFilters[category].map((item, itemKey) => (
+                      <Checkbox
+                        key={itemKey}
+                        checked={checkedFilters[category]?.[item]}
+                        onChange={() => toggleCheckbox(category, item)}
+                      >
+                        {item}
+                      </Checkbox>
+                    ))}
+                  </div>
+                </Panel>
+              ))} */}
+              {mockFilters.map((category, categoryKey) => (
+                <Panel header={category.filter_type_name} key={category.key} className="custom-collapse">
+                  <div className="flex flex-col space-y-2">
+                    {category.data.map((item, itemKey) => (
+                      <Checkbox
+                        key={itemKey}
+                        
+                        checked={checkedFilters[itemKey]?.[itemKey]}
+                        // checked={checkedFilters[categoryKey]?.[itemKey]}
+                        // onChange={() => toggleCheckbox(category.filter_type, item.key)}
+                      >
+                        {item.name}
+                      </Checkbox>
+                    ))}
+                  </div>
+                </Panel>
+              ))}
             </Collapse>
+            
           </div>
         </div>
 

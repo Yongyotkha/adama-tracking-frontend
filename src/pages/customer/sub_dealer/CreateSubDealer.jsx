@@ -19,6 +19,7 @@ import {
   Tabs,
   Form,
   Select,
+  TimePicker,
 } from "antd";
 import { values } from "lodash";
 import dayjs from "dayjs";
@@ -126,15 +127,15 @@ export default function CreateSubDealer() {
     {
       label: "Start Time",
       name: "start_time",
-      type: "time",
+      type: "time", // ใช้ type "time"
       required: false,
       col: 6,
-      value: "",
+      value: null,
     },
     {
       label: "End Time",
       name: "end_time",
-      type: "time",
+      type: "time",      
       required: false,
       col: 6,
       value: "",
@@ -146,9 +147,9 @@ export default function CreateSubDealer() {
       required: true,
       col: 6,
       options: [
-        { name: "Small", id: 1, selected: true },
-        { name: "Medium", id: 2, selected: false },
-        { name: "Large", id: 3, selected: false },
+        { name: "Small", id: "Small", selected: true },
+        { name: "Medium", id: "Medium", selected: false },
+        { name: "Large", id: "Large", selected: false },
       ],
     },
 

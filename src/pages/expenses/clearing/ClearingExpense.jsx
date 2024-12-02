@@ -145,7 +145,6 @@ export default function ClearingExpense() {
     }
   };
 
-
   // Master
   useEffect(() => {
     const getMaster = async () => {
@@ -153,9 +152,7 @@ export default function ClearingExpense() {
       try {
         const [activityType, sale] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {
-            status: "all"
-          }),
+          useServiceAPI.get(paths.pathMasterDealerAll, {}),
         ]);
 
         setActivityList(activityType.data);

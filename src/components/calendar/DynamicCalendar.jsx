@@ -467,15 +467,14 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                           className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md"
                         >
                           <div className="flex items-start gap-4">
-                            <div>
+                            <div className="w-full">
                               <div className="flex justify-between">
                                 <div className={`h-10 flex items-center justify-center`}>
-                                  <span
-                                    className="text-xl font-bold rounded-full text-white me-2"
-                                    style={{ backgroundColor: event.color }}
-                                  >
-                                    {event.icon || "⭐"}
-                                  </span>
+                                  <img
+                                    src={event.icon}
+                                    alt={event.title}
+                                    className="w-6 h-6 rounded-full me-2"
+                                  />
                                   <h4 className="text-md font-bold text-gray-800">
                                     {event.title}
                                   </h4>
@@ -513,38 +512,134 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                   <Tooltip title="View" placement="bottom">
                                     <Popconfirm
                                       placement="leftTop"
-                                      title="Event Details"
+                                      title={null}
                                       description={
                                         <div>
-                                          <h4>{event.title}</h4>
-                                          <p lang="th">{event.time}</p>
-                                          <p lang="th">{event.location}</p>
-                                          {/* Add any other details here */}
-                                          <Button
-                                            className="me-2 mt-2 border border-[#00783F] text-[#00783F] !border-[#00783F] !text-[#00783F] hover:!border-[#005f32] hover:!text-[#005f32]"
-                                            icon={<EditOutlined />}
-                                            onClick={() => handleEdit(event.document_number)} // Pass document_number
+                                          <h3 className="text-lg font-bold flex items-center gap-2 mb-3">
+                                            <img
+                                              src={event.icon} // Add icon before title
+                                              alt="Event Icon"
+                                              className="w-6 h-6"
+                                            />
+                                            {event.title}
+                                          </h3>
+                                          <p
+                                            lang="th"
+                                            className="my-2 px-3 py-1 border rounded-full text-sm text-gray-600 flex items-center w-fit"
                                           >
-                                            Edit
-                                          </Button>
-                                          <Button
-                                            className="me-2 border border-[#978B87] text-[#978B87] !border-[#978B87] !text-[#978B87] hover:!border-[red] hover:!text-[red]"
-                                            icon={<DeleteOutlined />}
-                                            onClick={() => handleDelete(event.document_number)} // Pass document_number
+                                            {new Date(event.date).toLocaleDateString("th-TH", {
+                                              weekday: "short",
+                                              year: "numeric",
+                                              month: "2-digit",
+                                              day: "2-digit",
+                                            })}{" "} <span className="mx-1">|</span>
+                                            {event.time}
+                                          </p>
+
+                                          <p lang="th" className="flex gap-1 mb-2 items-center">
+                                            <img
+                                              src="/img/icons/shop.png"
+                                              className="h-6 w-6 me-2"
+                                              alt=""
+                                            />
+                                            {event.dealer_name}
+                                          </p>
+
+                                          <p lang="th" className="flex gap-1 mb-2 items-center">
+                                            <img
+                                              src="/img/icons/location.png"
+                                              className="h-6 w-6 me-2"
+                                              alt=""
+                                            />
+                                            {event.location}
+                                          </p>
+                                          <p className="flex gap-1 mb-2 items-center mt-2">
+                                            <img
+                                              src="/img/icons/crops.png"
+                                              className="h-6 w-6 me-2"
+                                              alt=""
+                                            />
+                                            {event.crops || "N/A"}
+                                          </p>
+                                          <p
+                                            lang="th"
+                                            className="flex gap-1 mb-2 items-center mt-2"
                                           >
-                                            Delete
-                                          </Button>
+                                            <img
+                                              src="/img/icons/details.png"
+                                              className="h-6 w-6 me-2"
+                                              alt=""
+                                            />
+                                            <span
+                                              dangerouslySetInnerHTML={{
+                                                __html: event.description || "<span>No description available</span>",
+                                              }}
+                                            />
+                                          </p>
+
+                                          {/* Attendees Section */}
+                                          <div className="mt-2">
+                                            {/* <p className="flex gap-1 mb-2 items-center">
+                                              <img
+                                                src="/img/icons/attendees.png"
+                                                alt="Attendees Icon"
+                                                className="h-6 w-6 me-2"
+                                              />
+                                              <span className="text-gray-600">Attendees</span>
+                                            </p> */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                              {event.attendees.length > 0 ? (
+                                                event.attendees.map((attendee) => (
+                                                  <div
+                                                    key={attendee.id}
+                                                    className="flex items-center gap-2 px-2 py-1 bg-gray-100 rounded-lg shadow-md"
+                                                  >
+                                                    <img
+                                                      src={attendee.avatar || "/img/default-avatar.png"}
+                                                      alt={attendee.name || "No Name"}
+                                                      className="w-8 h-8 rounded-full border border-gray-300"
+                                                    />
+                                                    <span className="text-sm text-gray-600">{attendee.name || "Unknown"}</span>
+                                                  </div>
+                                                ))
+                                              ) : (
+                                                <span className="text-gray-500">No attendees available</span>
+                                              )}
+                                            </div>
+                                          </div>
+
+                                          {/* Conditionally render buttons */}
+                                          {event.permission.edit && (
+                                            <Button
+                                              className="me-2 mt-2 border border-[#00783F] text-[#00783F] !border-[#00783F] !text-[#00783F] hover:!border-[#005f32] hover:!text-[#005f32]"
+                                              icon={<EditOutlined />}
+                                              onClick={() => handleEdit(event.document_number)} // Pass document_number
+                                            >
+                                              Edit
+                                            </Button>
+                                          )}
+                                          {event.permission.btn_delete && (
+                                            <Button
+                                              className="me-2 border border-[#978B87] text-[#978B87] !border-[#978B87] !text-[#978B87] hover:!border-[red] hover:!text-[red]"
+                                              icon={<DeleteOutlined />}
+                                              onClick={() => handleDelete(event.document_number)} // Pass document_number
+                                            >
+                                              Delete
+                                            </Button>
+                                          )}
                                         </div>
                                       }
+
                                       okButtonProps={{ style: { display: "none" } }} // Hide ok button
                                       cancelButtonProps={{ style: { display: "none" } }} // Hide cancel button
                                     >
                                       <img
                                         src="/img/icons/view.png"
-                                        alt=""
+                                        alt="View"
                                         className="w-6 h-6 rounded-full border-2 border-white cursor-pointer"
                                       />
                                     </Popconfirm>
+
                                   </Tooltip>
                                 </div>
                               </div>

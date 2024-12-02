@@ -193,15 +193,15 @@ export default function CreateUser() {
       col: 6,
       options: roles,
     },
-    {
-      label: "Permission",
-      name: "permission",
-      type: "select",
-      required: true,
-      col: 6,
-      options: permission,
+    // {
+    //   label: "Permission",
+    //   name: "permission",
+    //   type: "select",
+    //   required: true,
+    //   col: 6,
+    //   options: permission,
 
-    },
+    // },
     {
       label: "Date of Joining",
       name: "date_of_joining",
