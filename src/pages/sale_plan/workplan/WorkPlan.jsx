@@ -20,7 +20,7 @@ export default function WorkPlan() {
   const [pathName, setPathName] = useState([]);
   const [dataSource, setDataSource] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
-  const {  showNotification,formatNumber } = useContext(AuthContext);
+  const { showNotification, formatNumber } = useContext(AuthContext);
 
   const [tableParams, setTableParams] = useState({
     pagination: {
@@ -94,8 +94,12 @@ export default function WorkPlan() {
 
         const newDataSource = data.map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-          workPlan: pathRole == "area" ? formatNumber(row.amount_target) : formatNumber(row.overall_target),
+          workPlan:
+            pathRole == "area"
+              ? formatNumber(row.amount_target)
+              : formatNumber(row.overall_target),
           // workPlan: pathRole,
+          name: row.user_name,
           year: row.year_name,
           action: (
             <Dropdown
@@ -229,6 +233,17 @@ export default function WorkPlan() {
       dataIndex: "workPlan",
       align: "left",
     },
+    ...(pathName === "sale"
+      ? [
+          {
+            title: "Name",
+            width: 100,
+            dataIndex: "name",
+            align: "left",
+          },
+        ]
+      : []),
+
     {
       title: "Last modified",
       width: 100,

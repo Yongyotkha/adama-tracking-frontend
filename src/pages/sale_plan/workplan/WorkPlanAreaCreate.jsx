@@ -1,15 +1,15 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import { Input, InputNumber, Table } from "antd";
+import { Input, InputNumber, Table, Modal } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import TableCustomComponent from "../../../components/table/TableCustomComponent";
 import ActionButton from "../../../components/button/ActionButton";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
-import { debounce } from "lodash";
 import Title from "../../../components/title/Title";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 
 export default function WorkPlanAreaCreate() {
   const location = useLocation();
@@ -22,6 +22,7 @@ export default function WorkPlanAreaCreate() {
   const { showNotification, formatNumber } = useContext(AuthContext);
   const [yearName, setYearName] = useState([]);
   const [localQtyState, setLocalQtyState] = useState({});
+  const { confirm } = Modal;
 
   const handleQtyChange = (saleId, productId, newQty, unitConvertValue) => {
     setLocalQtyState((prevState) => {
@@ -367,84 +368,94 @@ export default function WorkPlanAreaCreate() {
     );
 
     // เปรียบเทียบกับ totalValue
-    if (calculatedTotalAmountTarget < totalValue) {
-      showNotification(
-        "warning",
-        "Sale Value is less than Original Plan",
-        [
-          `Original Plan: ฿ ${formatNumber(totalValue)}`,
-          `Current Total: ฿ ${formatNumber(calculatedTotalAmountTarget)}`,
-          `Difference: ฿ ${formatNumber(
-            totalValue - calculatedTotalAmountTarget
-          )}`,
-          
-        ],
-        3
-      );
+    if (Number(calculatedTotalAmountTarget) < Number(totalValue)) {
+      confirm({
+        title: "Do you want to save ?",
+        icon: <ExclamationCircleFilled />,
+        content: (
+          <>
+            <p>Work Plan is less than Original Plan</p>
+            <p>Original Plan: {formatNumber(totalValue)}</p>
+            <p>Current Total: {formatNumber(calculatedTotalAmountTarget)}</p>
+            <p>
+              <b className="text-red-600">Difference:{" "}
+              {formatNumber(totalValue - calculatedTotalAmountTarget)}
+              </b></p>
+          </>
+        ),
+        centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+        onOk() {
+          createPlan(mode);
+        },
+      });
     } else {
-      const updatedSale = sale.map((item) => {
-        const updatedItems = item.data_items.map((dataItem) => {
-          const localData = localQtyState[item.user_id]?.[
-            dataItem.product_id
-          ] || {
-            qty: dataItem.qty,
-            value: dataItem.value,
-          };
+      createPlan(mode);
+    }
+  };
 
-          return {
-            ...dataItem,
-            qty: localData.qty,
-            value: localData.value,
-          };
-        });
+  const createPlan = (mode) => {
+    const updatedSale = sale.map((item) => {
+      const updatedItems = item.data_items.map((dataItem) => {
+        const localData = localQtyState[item.user_id]?.[
+          dataItem.product_id
+        ] || {
+          qty: dataItem.qty,
+          value: dataItem.value,
+        };
 
         return {
-          ...item,
-          data_items: updatedItems,
-          amount_target:
-            localQtyState[`amount_target_${item.user_id}`] ||
-            item.amount_target,
+          ...dataItem,
+          qty: localData.qty,
+          value: localData.value,
         };
       });
 
-      useServiceAPI
-        .post(
-          paths.pathWorkPlanAreaStep1,
-          {
-            year_code: location?.state?.year_code,
-            sale_area_id: location?.state?.sale_area_id,
-            action_code: mode,
-            data_users: updatedSale,
-          },
-          setLoading
-        )
-        .then((response) => {
-          if (response.status === 200) {
-            showNotification(
-              "success",
-              response.data.message,
-              response.data.message_line
-            ).then(() => {
-              navigate("/sale-plan/work-plan-area");
-            });
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-          if (error.status === 422) {
-            showNotification("error", error.message);
-          } else {
-            showNotification("error", "เกิดข้อผิดพลาด");
-          }
-        });
+      return {
+        ...item,
+        data_items: updatedItems,
+        amount_target:
+          localQtyState[`amount_target_${item.user_id}`] || item.amount_target,
+      };
+    });
 
-      console.log("Updated Sale Data:", updatedSale);
-    }
+    useServiceAPI
+      .post(
+        paths.pathWorkPlanAreaStep1,
+        {
+          year_code: location?.state?.year_code,
+          sale_area_id: location?.state?.sale_area_id,
+          action_code: mode,
+          data_users: updatedSale,
+        },
+        setLoading
+      )
+      .then((response) => {
+        if (response.status === 200) {
+          showNotification(
+            "success",
+            response.data.message,
+            response.data.message_line
+          ).then(() => {
+            navigate("/sale-plan/work-plan-area");
+          });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        if (error.status === 422) {
+          showNotification("error", error.message);
+        } else {
+          showNotification("error", "เกิดข้อผิดพลาด");
+        }
+      });
+
+    console.log("Updated Sale Data:", updatedSale);
   };
+
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-      <Title prefix="Create Plan" showYear={yearName} />
+        <Title prefix="Create Plan" showYear={yearName} />
 
         <BoxPrimary>
           <div className="flex flex-col gap-2">
