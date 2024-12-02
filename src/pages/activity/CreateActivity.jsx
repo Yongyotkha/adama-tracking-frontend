@@ -109,7 +109,7 @@ export default function CreateActivity() {
     { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: false, required: false, col: 8, value: activityDetail.user_id ?? "", moderef: true},
     { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: false, required: false, col: 8, value: activityDetail.dealer_id ?? "", moderef: true},
     { label: "Crop", name: "crop_id_list", type: "select", mode: "multiple", options: cropList, disabled: false, required: false, col: 6, value: cropDetailList, moderef: true},
-    { label: "Date", name: "document_date", type: "date", disabled: false, required: false, col: 6, value: dayjs().format("YYYY-MM-DD") },
+    { label: "Date", name: "document_date", type: "date", disabled: false, required: false, col: 6, value: activityDetail.document_date ?? dayjs().format("YYYY-MM-DD") },
     { label: "Start Time", name: "time_start", type: "select", options:timeList, disabled: false, required: false, col: 6, value: activityDetail.time_start ?? "" },
     { label: "End Time", name: "time_end", type: "select", options:timeList, disabled: false, required: false, col: 6, value: activityDetail.time_end ?? "" },
     { label: "Location", name: "location_address", type: "location", disabled: true, required: false, col: 24, value: activityDetail.location_address ?? "", iconSrc: "/img/icons/location.png", iconPosition: "left" },
