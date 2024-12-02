@@ -136,7 +136,7 @@ export default function CreateOrder() {
 
                   return {
                     ...item,
-                    unit: item.unit,
+                    product_unit: item.unit,
                     // quantity: item.quantity + 1,
                     quantity: updatedQuantity,
                     net_amount: updatedNetAmount, // Update net_amount
@@ -160,7 +160,7 @@ export default function CreateOrder() {
               product_id: productData.id,
               product_code: productData.code || "",
               product_name: productData.name,
-              product_unit: "",
+              product_unit: productData.unit,
               product_unit_thb: productData.value,
               quantity: 1,
               net_amount: productData.value,
