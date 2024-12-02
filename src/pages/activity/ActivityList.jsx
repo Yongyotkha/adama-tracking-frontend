@@ -226,7 +226,7 @@ export default function ActivityList() {
           return {
             key: index + 1 + (current - 1) * pageSize,
             activityNo: row.document_number,
-            activityType: row.document_type,
+            activityType: row.activity_type_name,
             shop: row.dealer_name,
             sale: row.user_name ?? '-',
             keyProduct: row.key_product ?? '-',
@@ -266,9 +266,7 @@ export default function ActivityList() {
       try {
         const [activityType, sale] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {
-            status: "all"
-          }),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
         ]);
 
         setActivityList(activityType.data);
