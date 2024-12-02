@@ -75,6 +75,7 @@ export default function EditOrder() {
               ...item,
               no: prev.length + index + 1,
               key: prev.length + index + 1,
+              product_unit: item.product_unit,
               quantity: parseInt(item.quantity),
             })),
           ];
@@ -112,7 +113,7 @@ export default function EditOrder() {
             key: data.id, 
             no: index + 1, 
             name: data.name, 
-            unit: "", 
+            unit: data.unit, 
             value: data.value 
           });
         })
@@ -168,7 +169,7 @@ export default function EditOrder() {
               product_id: otherProduct.data.id,
               product_code: "",
               product_name: otherProduct.data.name,
-              product_unit: "",
+              product_unit: otherProduct.data.unit,
               product_unit_thb: otherProduct.data.value,
               quantity: 1,
               net_amount: otherProduct.data.value,
