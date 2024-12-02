@@ -95,28 +95,53 @@
     margin-top: 0;
 }
 
-
 .ant-form-item-explain-error {
-  position: absolute;
+    position: absolute;
 }
 
-.ant-form-item .ant-form-item-label >label.ant-form-item-required:not(.ant-form-item-required-mark-optional)::after {
-  display: inline-block;
-  margin-inline-end: 4px;
-  color: #ff4d4f;
-  font-size: 14px;
-  font-family: SimSun, sans-serif;
-  line-height: 1;
-  content: "*";
-  visibility: unset;
+.ant-form-item
+    .ant-form-item-label
+    > label.ant-form-item-required:not(
+        .ant-form-item-required-mark-optional
+    )::after {
+    display: inline-block;
+    margin-inline-end: 4px;
+    color: #ff4d4f;
+    font-size: 14px;
+    font-family: SimSun, sans-serif;
+    line-height: 1;
+    content: "*";
+    visibility: unset;
 }
 
-.ant-form-item .ant-form-item-label >label.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
-  visibility: hidden;
-  display: none !important;
+.ant-form-item
+    .ant-form-item-label
+    > label.ant-form-item-required:not(
+        .ant-form-item-required-mark-optional
+    )::before {
+    visibility: hidden;
+    display: none !important;
 }
 
 .ant-popover-inner {
-  border-top: solid 10px #009845;
+    border-top: solid 10px #009845;
 }
 
+.custom-collapse .ant-collapse-header {
+    padding: 10px !important;
+    background-color: #009845;
+    color: white !important;
+}
+
+.ant-checkbox {
+    border-color: #009845 !important;
+}
+
+.ant-checkbox-checked .ant-checkbox-inner {
+    background-color: #009845 !important;
+    border-color: #009845 !important;
+}
+
+.ant-collapse-content-active {
+  border-top: 0 !important;
+}

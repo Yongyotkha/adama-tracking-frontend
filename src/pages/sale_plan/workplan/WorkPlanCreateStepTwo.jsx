@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import { Input, InputNumber, Table, Modal } from "antd";
+import { InputNumber, Table, Modal } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import TableCustomComponent from "../../../components/table/TableCustomComponent";
@@ -9,6 +9,7 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import Title from "../../../components/title/Title";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 
 export default function WorkPlanCreateStepTwo() {
   const location = useLocation();
@@ -18,9 +19,10 @@ export default function WorkPlanCreateStepTwo() {
   const [areas, setAreas] = useState([]);
   const [permission, setPermission] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
-  const { showNotification, showConfirm ,formatNumber } = useContext(AuthContext);
+  const { showNotification, formatNumber } = useContext(AuthContext);
   const [localQtyState, setLocalQtyState] = useState({});
   const [yearName, setYearName] = useState([]);
+  const { confirm } = Modal;
 
   useEffect(() => {
     useServiceAPI
@@ -371,52 +373,76 @@ export default function WorkPlanCreateStepTwo() {
       return sum + parseFloat(area.amount_target || 0);
     }, 0);
 
-    showConfirm("Work Plan is less than Original Plan", [
-      `Original Plan: ฿ ${formatNumber(totalValue)}`,
-      `Current Total: ฿ ${formatNumber(totalAmountTarget)}`,
-      `Difference: ฿ ${formatNumber(totalValue - totalAmountTarget)}`,
-    ]);
+    if (Number(totalValue) > Number(totalAmountTarget)) {
+      confirm({
+        title: "Do you want to save ?",
+        icon: <ExclamationCircleFilled />,
+        content: (
+          <>
+            <p>Work Plan is less than Original Plan</p>
+            <p>Original Plan: {formatNumber(totalValue)}</p>
+            <p>Current Total: {formatNumber(totalAmountTarget)}</p>
+            <p>
+              Difference: {formatNumber(totalValue - totalAmountTarget)}
+            </p>
+          </>
+        ),
+        centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+        onOk() {
+          createPlan(mode);
+        },
+      });
+    } else {
+      createPlan(mode);
+    }
 
-    // try {
-    //   await useServiceAPI
-    //     .post(
-    //       paths.pathWorkPlanStep2,
-    //       {
-    //         year_code: location?.state?.year_code,
-    //         action_code: mode,
-    //         data_areas: areas,
-    //       },
-    //       setLoading
-    //     )
-    //     .then((response) => {
-    //       if (response.status === 200) {
-    //         showNotification(
-    //           "success",
-    //           response.data.message,
-    //           response.data.message_line
-    //         ).then(() => {
-    //           navigate("/sale-plan/work-plan", {
-    //             state: {
-    //               year_code: location?.state?.year_code,
-    //             },
-    //           });
-    //         });
-    //       }
-    //     })
-    //     .catch((error) => {
-    //       console.log(error);
-    //       if (error.status === 422) {
-    //         showNotification("error", error.message);
-    //       } else {
-    //         showNotification("error", "เกิดข้อผิดพลาด");
-    //       }
-    //     });
-    // } catch (error) {
-    //   console.error("Unexpected error:", error);
-    //   showNotification("error", "เกิดข้อผิดพลาดที่ไม่คาดคิด");
-    // } finally {
-    //   setLoading(false); // หยุดโหลดข้อมูลไม่ว่าจะสำเร็จหรือผิดพลาด
-    // }
+    console.log(areas);
+  };
+
+  const createPlan = async (mode) => {
+
+    console.log(areas);
+
+    try {
+      await useServiceAPI
+        .post(
+          paths.pathWorkPlanStep2,
+          {
+            year_code: location?.state?.year_code,
+            action_code: mode,
+            data_areas: areas,
+          },
+          setLoading
+        )
+        .then((response) => {
+          if (response.status === 200) {
+            showNotification(
+              "success",
+              response.data.message,
+              response.data.message_line
+            ).then(() => {
+              // navigate("/sale-plan/work-plan", {
+              //   state: {
+              //     year_code: location?.state?.year_code,
+              //   },
+              // });
+            });
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          if (error.status === 422) {
+            showNotification("error", error.message);
+          } else {
+            showNotification("error", "เกิดข้อผิดพลาด");
+          }
+        });
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      showNotification("error", "เกิดข้อผิดพลาดที่ไม่คาดคิด");
+    } finally {
+      setLoading(false); // หยุดโหลดข้อมูลไม่ว่าจะสำเร็จหรือผิดพลาด
+    }
   };
 
   return (

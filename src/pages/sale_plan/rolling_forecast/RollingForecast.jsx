@@ -222,30 +222,48 @@ export default function RollingForecast() {
       key: "year",
       type: "select",
       label: "Year",
-      options: [
-        { value: 2021, label: "2021" },
-        { value: 2022, label: "2022" },
-        { value: 2023, label: "2023" },
-      ],
+      options: years,
     },
     {
       key: "status",
       type: "select",
       label: "Status",
-      options: [
-        { value: "Active", label: "Active" },
-        { value: "Inactive", label: "Inactive" },
-        { value: "Pending", label: "Pending" },
-      ],
+      options: status,
     },
   ];
 
-  const handleSearch = (filter) => {
-    console.log("Search filters applied:", filter);
+  useEffect(() => {
+    fetchData();
+  }, [
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    tableParams.sortOrder,
+    tableParams.sortField,
+    JSON.stringify(tableParams.filters),
+    location.pathname,
+  ]);
+
+  const handleTableChange = (pagination, filters, sorter) => {
+    setTableParams({
+      pagination,
+      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortField: sorter.field,
+    });
+  };
+
+  const handleSearch = (filters) => {
+    setTableParams({
+      ...tableParams,
+      filters,
+    });
   };
 
   const handleClear = () => {
-    console.log("Filters cleared");
+    setTableParams({
+      ...tableParams,
+      filters: {},
+    });
   };
 
   const columns = [
@@ -358,6 +376,7 @@ export default function RollingForecast() {
           data={dataSource}
           columns={columns}
           nestedColumns={nestedColumns}
+          onChange={handleTableChange}
         />
       </BoxPrimary>
     </MainLayout>

@@ -273,7 +273,6 @@ export default function ActivityMapping() {
           style={{ width: "300px" }}
         >
 
-
           <div className="flex justify-between items-center px-4 py-2 border-b">
             <div className="flex items-center gap-2">
               <img
@@ -290,13 +289,14 @@ export default function ActivityMapping() {
             />
           </div>
           {/* Search Box */}
-          <div className="w-full mb-4 mt-2 px-2">
+          <div className="w-full my-2 px-2">
             <DynamicAutoComplete
               options={searchOptions}
               placeholder="Search locations"
               onSearch={handleSearch}
               onSelect={handleSelect} // Trigger when a location is selected
-              className="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="w-full rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              style={{ width: '100%' }}
             />
           </div>
 
@@ -323,9 +323,9 @@ export default function ActivityMapping() {
             </div>
 
             {/* Collapsible Filter Categories */}
-            <Collapse defaultActiveKey={["Activity Type"]}>
+            <Collapse defaultActiveKey={["Activity Type"]} className="rounded-lg border-0">
               {Object.keys(mockFilters).map((category, categoryKey) => (
-                <Panel header={category} key={categoryKey}>
+                <Panel header={category} key={categoryKey} className="custom-collapse">
                   <div className="flex flex-col space-y-2">
                     {mockFilters[category].map((item, itemKey) => (
                       <Checkbox

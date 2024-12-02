@@ -11,8 +11,8 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   const [view, setView] = useState("month");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
-  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1); // Current month
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear()); // Current year
+  // const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1); // Current month
+  // const [currentYear, setCurrentYear] = useState(new Date().getFullYear()); // Current year
   // State for Sale Territory and Shop options
   const [saleOptions, setSaleOptions] = useState([]);
   const [shopOptions, setShopOptions] = useState([]);
@@ -34,15 +34,19 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
       );
 
       if (response.status === 200) {
-        // Fetch the updated events for the current month and year
-        await fetchEvents(currentMonth, currentYear);
-
         // Show success notification
         showNotification(
           "success",
           response.data.message || "Event deleted successfully!",
           response.data.message_line || ["The event has been removed."]
         );
+
+        // Fetch the updated events for the current month and year
+        const newDate = new Date(currentDate);
+        newDate.setMonth(newDate.getMonth());
+        setCurrentDate(newDate);
+        fetchEvents(newDate.getMonth() + 1, newDate.getFullYear());
+
       } else {
         // Show error notification if response is not 200
         console.error("Failed to delete event:", response.message);

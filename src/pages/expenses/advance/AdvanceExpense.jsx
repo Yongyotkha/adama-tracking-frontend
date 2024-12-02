@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import { Dropdown } from "antd";
@@ -10,11 +10,16 @@ import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function AdvanceExpense() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
+  const [activityList, setActivityList] = useState([]);
+  const [saleList, setSaleList] = useState([]);
+  const [dealerList, setDealerList] = useState([]);
+  const { showNotification } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -29,14 +34,19 @@ export default function AdvanceExpense() {
 
   const filters = [
     {
+      key: "sale",
+      type: 'select',
+      label: "Sale",
+      placeholder: "All",
+      options: saleList,
+      moderef: true,
+    },
+    {
       key: "customer",
       type: "select",
       label: "Customer",
       placeholder: "All",
-      options: [
-        { value: 'Chaifar', label: 'Chaifar' },
-        { value: 'OtherCustomer', label: 'OtherCustomer' },
-      ],
+      options: dealerList,
     },
     {
       key: "expense_no",
@@ -52,9 +62,10 @@ export default function AdvanceExpense() {
     },
     {
       key: "type_of_meeting",
-      type: "text",
+      type: "select",
       label: "Type of Meeting",
       placeholder: "All",
+      options: activityList
     },
     {
       key: "date",
@@ -64,13 +75,99 @@ export default function AdvanceExpense() {
     },
   ];
   
-  const handleSearch = (filter) => {
-    console.log("Search filters applied:", filter);
+  const handleSearch = (filters) => {
+    setTableParams({
+      ...tableParams,
+      filters,
+    });
   };
 
   const handleClear = () => {
-    console.log("Filters cleared");
+    setTableParams({
+      ...tableParams,
+      filters: {},
+    });
   };
+
+  const handleChange = (filter) => {
+    if (filter) {
+      const getMasterDealer = async () => {
+        try {
+          const [dealer] = await Promise.all([
+            useServiceAPI.get(paths.pathMasterDealerDropdown, {
+              user_id: filter.sale
+            }),
+          ]);
+  
+          setDealerList(dealer.data);
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        }
+      };
+  
+      getMasterDealer();
+    } else {
+      handleClear();
+    }
+  };
+
+  const handleDelete = async (documentNumber) => {
+    try {
+      // Call API to delete the event
+      const response = await useServiceAPI.delete(
+        `/activity-expense/delete?document_number=${encodeURIComponent(documentNumber)}&page_code=${encodeURIComponent("expense_advance")}`
+      );
+      await fetchData();
+      if (response.status === 200) {
+        // Show success notification
+        showNotification(
+          "success",
+          response.data.message || "Event deleted successfully!",
+          response.data.message_line || ["The event has been removed."]
+        );
+      } else {
+        // Show error notification if response is not 200
+        console.error("Failed to delete event:", response.message);
+        showNotification(
+          "error",
+          response.message || "Failed to delete event.",
+          response.message_line || ["Please try again later."]
+        );
+      }
+    } catch (error) {
+      // Handle errors and show an error notification
+      console.error("Error deleting event:", error);
+      showNotification(
+        "error",
+        "An error occurred while deleting the event.",
+        ["Please try again later."]
+      );
+    }
+  };
+
+  // Master
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [activityType, sale] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterActivityType, {}),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {
+            status: "all"
+          }),
+        ]);
+
+        setActivityList(activityType.data);
+        setSaleList(sale.data);
+      } catch (error) {
+        
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, []);
 
   const header = [
     { title: "No", dataIndex: "key", align: "center" },
@@ -95,10 +192,10 @@ export default function AdvanceExpense() {
       page_code:"expense_advance",
       keyword: filters.keyword || "",
       use_flag : "1",
-      user_id : "",
-      dealer_id : "",
-      activity_type_id : "",
-      document_number_referrent :"",
+      user_id : filters.sale,
+      dealer_id : filters.customer,
+      activity_type_id : filters.type_of_meeting,
+      document_number_referrent :filters.activity_reference,
       customer_name :"",
       page: "all",
       orderby_column: sortField,
@@ -120,7 +217,7 @@ export default function AdvanceExpense() {
           const actionItems = [
             { key: "1", label: <ItemDropDown mode="edit" link={`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`} /> },
             { key: "2", label: <ItemDropDown mode="view" link="/expenses/advance/view" /> },
-            { key: "3", label: <ItemDropDown mode="delete" link="#" /> },
+            { key: "3", label: <ItemDropDown mode="delete" link="#"  onClick={() => handleDelete(row.document_number)} /> },
           ];
         
           return {
@@ -175,7 +272,12 @@ export default function AdvanceExpense() {
         <div className="title-page">Advance Expense</div>
         <ActionButton mode="create" text="Create" onClick={(e) => navigate("/activity/create?pageCode=expense_advance")} />
       </div>
-      <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
+      <Filter
+        onSearch={handleSearch}
+        onClear={handleClear}
+        onChange={handleChange}
+        filters={filters}
+      />
       <BoxPrimary>
       <TableComponent 
         header={header}
