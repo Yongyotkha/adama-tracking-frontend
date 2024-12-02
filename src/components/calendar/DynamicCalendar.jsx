@@ -515,7 +515,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                       title={null}
                                       description={
                                         <div>
-                                          <h3 className="flex items-center gap-2">
+                                          <h3 className="text-lg font-bold flex items-center gap-2 mb-3">
                                             <img
                                               src={event.icon} // Add icon before title
                                               alt="Event Icon"
@@ -553,7 +553,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                             />
                                             {event.location}
                                           </p>
-                                          <p lang="th" className="flex gap-1 mb-2 items-center mt-2">
+                                          <p className="flex gap-1 mb-2 items-center mt-2">
                                             <img
                                               src="/img/icons/crops.png"
                                               className="h-6 w-6 me-2"
@@ -578,7 +578,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                           </p>
 
                                           {/* Attendees Section */}
-                                          <p lang="th" className="flex gap-1 mb-2 items-center mt-2">
+                                          <p className="flex gap-1 mb-2 items-center mt-2">
                                             <span className="text-gray-600 flex flex-wrap gap-2 items-center">
                                               {event.attendees.length > 0
                                                 ? event.attendees.map((attendee) => (
