@@ -398,7 +398,7 @@ export default function WorkPlanCreateStepTwo() {
   };
 
   const createPlan = async (mode) => {
-    console.log(areas);
+  
 
     try {
       await useServiceAPI
