@@ -382,9 +382,7 @@ export default function WorkPlanCreateStepTwo() {
             <p>Work Plan is less than Original Plan</p>
             <p>Original Plan: {formatNumber(totalValue)}</p>
             <p>Current Total: {formatNumber(totalAmountTarget)}</p>
-            <p>
-              Difference: {formatNumber(totalValue - totalAmountTarget)}
-            </p>
+            <p>Difference: {formatNumber(totalValue - totalAmountTarget)}</p>
           </>
         ),
         centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
@@ -400,7 +398,6 @@ export default function WorkPlanCreateStepTwo() {
   };
 
   const createPlan = async (mode) => {
-
     console.log(areas);
 
     try {
@@ -421,11 +418,7 @@ export default function WorkPlanCreateStepTwo() {
               response.data.message,
               response.data.message_line
             ).then(() => {
-              // navigate("/sale-plan/work-plan", {
-              //   state: {
-              //     year_code: location?.state?.year_code,
-              //   },
-              // });
+              navigate("/sale-plan/work-plan");
             });
           }
         })
