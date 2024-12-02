@@ -628,7 +628,7 @@ export default function RollingForecastQuarter() {
             text="Back"
             mode="back"
             onClick={() => {
-              navigate("/sale-plan/work-plan-sale");
+              navigate(-1);
             }}
           />
           {permission.btn_draft && (
