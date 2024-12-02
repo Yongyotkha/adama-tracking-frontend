@@ -168,7 +168,7 @@ export default function SettingProduct() {
     { title: "No", width: 50, dataIndex: "key", align: "left" },
     {
       title: "Product Code",
-      width: 150,
+      width: 190,
       dataIndex: "product_code",
       align: "left",
     },

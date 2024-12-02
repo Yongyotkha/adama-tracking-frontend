@@ -214,6 +214,14 @@ export default function SubDealerList() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
   
+  const handleTableChange = (pagination, filters, sorter) => {
+    setTableParams({
+      pagination,
+      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortField: sorter.field,
+    });
+  };
   // useEffect(() => {
   //   const dataSource = [
   //     {
@@ -284,8 +292,11 @@ export default function SubDealerList() {
 
       <BoxPrimary>
         <TableComponent 
-          header={header} 
-          dataSource={dataSource} 
+            header={header}
+            dataSource={dataSource}
+            pagination={tableParams.pagination}
+            loading={tableLoading}
+            onChange={handleTableChange}
         />
       </BoxPrimary>
 

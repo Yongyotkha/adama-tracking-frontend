@@ -193,10 +193,16 @@ export default function OrderDetail() {
   // Utility function สำหรับแปลงวันที่
   const formatDate = (date) => {
     if (!date || !date.$d) return ""; // ตรวจสอบว่ามี $d หรือไม่
+  
     const d = new Date(date.$d); // แปลง $d เป็น Date Object
-    return d.toISOString().split("T")[0]; // แปลงเป็น YYYY-MM-DD
+    // ใช้เวลาท้องถิ่นแทน UTC
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0"); // เดือนเริ่มจาก 0, ต้องบวก 1
+    const day = String(d.getDate()).padStart(2, "0");
+  
+    return `${year}-${month}-${day}`; // ส่งคืนวันที่ในรูปแบบ YYYY-MM-DD
   };
-
+  
   const handleSaveOrder = () => {
     // แปลงวันที่โดยใช้ฟังก์ชัน formatDate
     const formattedDate = formatDate(getDocumentDate);
@@ -208,8 +214,8 @@ export default function OrderDetail() {
       products: dataSource,
       others: dataSourceOther,
     };
-    console.log(body);
-
+    // console.log(body);
+    // return;
     if (dataSource.length > 0) {
       const saveOrder = async () => {
         setLoading(true);
