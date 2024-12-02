@@ -467,7 +467,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                           className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md"
                         >
                           <div className="flex items-start gap-4">
-                            <div>
+                            <div className="w-full">
                               <div className="flex justify-between">
                                 <div className={`h-10 flex items-center justify-center`}>
                                   <img
@@ -578,26 +578,35 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                           </p>
 
                                           {/* Attendees Section */}
-                                          <p className="flex gap-1 mb-2 items-center mt-2">
-                                            <span className="text-gray-600 flex flex-wrap gap-2 items-center">
-                                              {event.attendees.length > 0
-                                                ? event.attendees.map((attendee) => (
-                                                  <span
+                                          <div className="mt-2">
+                                            {/* <p className="flex gap-1 mb-2 items-center">
+                                              <img
+                                                src="/img/icons/attendees.png"
+                                                alt="Attendees Icon"
+                                                className="h-6 w-6 me-2"
+                                              />
+                                              <span className="text-gray-600">Attendees</span>
+                                            </p> */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                              {event.attendees.length > 0 ? (
+                                                event.attendees.map((attendee) => (
+                                                  <div
                                                     key={attendee.id}
-                                                    className="flex items-center gap-2 px-2 py-1 bg-gray-100 rounded-full text-sm"
+                                                    className="flex items-center gap-2 px-2 py-1 bg-gray-100 rounded-lg shadow-md"
                                                   >
                                                     <img
-                                                      src={attendee.avatar}
-                                                      alt={attendee.name}
-                                                      className="w-6 h-6 rounded-full border border-gray-300"
+                                                      src={attendee.avatar || "/img/default-avatar.png"}
+                                                      alt={attendee.name || "No Name"}
+                                                      className="w-8 h-8 rounded-full border border-gray-300"
                                                     />
-                                                    {attendee.name}
-                                                  </span>
+                                                    <span className="text-sm text-gray-600">{attendee.name || "Unknown"}</span>
+                                                  </div>
                                                 ))
-                                                : "No attendees available"}
-                                            </span>
-                                          </p>
-
+                                              ) : (
+                                                <span className="text-gray-500">No attendees available</span>
+                                              )}
+                                            </div>
+                                          </div>
 
                                           {/* Conditionally render buttons */}
                                           {event.permission.edit && (
