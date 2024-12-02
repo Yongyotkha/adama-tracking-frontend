@@ -731,12 +731,7 @@ export default function CreateActivity() {
                             boxSizing: "border-box",
                           }}
                         />
-<<<<<<< HEAD
-                 
-
-=======
                         {" "}
->>>>>>> main
                       </Form.Item>
 
 
