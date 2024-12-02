@@ -20,7 +20,8 @@ export default function WorkPlan() {
   const [pathName, setPathName] = useState([]);
   const [dataSource, setDataSource] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
-  const {  showNotification } = useContext(AuthContext);
+  const {  showNotification,formatNumber } = useContext(AuthContext);
+
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -93,7 +94,7 @@ export default function WorkPlan() {
 
         const newDataSource = data.map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-          workPlan: pathRole == "area" ? row.amount_target : row.overall_target,
+          workPlan: pathRole == "area" ? formatNumber(row.amount_target) : formatNumber(row.overall_target),
           // workPlan: pathRole,
           year: row.year_name,
           action: (

@@ -1,17 +1,13 @@
 import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import React, {
   createContext,
-  useContext,
   useState,
   useEffect,
-  useRef,
-  useLayoutEffect,
 } from "react";
 
 import { endPoint, paths } from "../services/CorsPath.jsx";
 import { axiosInstance } from "../services/CorsService.jsx";
-import { message, notification ,Modal } from "antd";
-import { ExclamationCircleFilled } from "@ant-design/icons";
+import { message, notification } from "antd";
 
 export const AuthContext = createContext();
 
@@ -25,8 +21,6 @@ export const AuthProvider = ({ children }) => {
   const [userInfo, setUserInfo] = useState(
     JSON.parse(localStorage.getItem("users"))
   );
-
-  const { confirm } = Modal;
 
 
   let loading = false;
@@ -133,29 +127,6 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
-  const showConfirm = (title, line, onOk) => {
-    const description = Array.isArray(line)
-      ? line.map((text) => `<span>${text}</span>`).join("<br>") // ใช้ HTML <br> เพื่อเว้นบรรทัด
-      : line;
-
-    confirm({
-      title: title,
-      icon: <ExclamationCircleFilled />,
-      content: <div dangerouslySetInnerHTML={{ __html: description }} />,
-      // content: (
-      //   <>
-      //     <p>Work Plan is less than Original Plan</p>
-      //     <p>Original Plan: {Number(totalValue).toFixed(2)}</p>
-      //     <p>Current Total: {Number(totalAmountTarget).toFixed(2)}</p>
-      //     <p>Difference: {Number(totalValue - totalAmountTarget).toFixed(2)}</p>
-      //   </>
-      // ),
-      centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
-      onOk() {
-        onOk;
-      },
-    });
-  };
 
   return (
     <AuthContext.Provider
@@ -167,7 +138,7 @@ export const AuthProvider = ({ children }) => {
         showMsg,
         showNotification,
         formatNumber,
-        showConfirm,
+        
       }}
     >
       {contextHolder}
