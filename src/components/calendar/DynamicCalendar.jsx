@@ -519,7 +519,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                             <img
                                               src={event.icon} // Add icon before title
                                               alt="Event Icon"
-                                              className="w-4 h-4"
+                                              className="w-6 h-6"
                                             />
                                             {event.title}
                                           </h3>
