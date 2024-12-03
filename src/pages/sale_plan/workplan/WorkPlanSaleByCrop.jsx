@@ -249,6 +249,7 @@ export default function WorkPlanSaleByCrop() {
             return acc;
           }, {});
 
+          console.log(newLocalState);
           // Update the state
           setLocalQtyState(newLocalState);
 
@@ -342,13 +343,13 @@ export default function WorkPlanSaleByCrop() {
 
       // คำนวณ `amount_target` ของ `cropId` ที่เปลี่ยนแปลง
       const amountTarget = Object.values(updatedCropProducts).reduce(
-        (sum, product) => sum + (product.value || 0),
+        (sum, product) => sum + (Number(product.value) || 0),
         0
       );
 
       // คำนวณ `amount_target` ของ `cropId = 7`
       const amountTargetCrop7 = Object.values(updatedCrop7Products).reduce(
-        (sum, product) => sum + (product.value || 0),
+        (sum, product) => sum + (Number(product.value) || 0),
         0
       );
 
@@ -390,7 +391,7 @@ export default function WorkPlanSaleByCrop() {
 
         // คำนวณ `amount_target`
         const amountTarget = updatedDataItems.reduce(
-          (sum, item) => sum + (item.value || 0),
+          (sum, item) => sum + (Number(item.value) || 0),
           0
         );
 

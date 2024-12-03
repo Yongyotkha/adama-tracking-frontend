@@ -18,10 +18,11 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
 
   const [imagePreview, setImagePreview] = useState(
     profile || "/img/Image-not-found.png"
-    // profile && profile.trim() !== "" ? profile : "/img/Image-not-found.png"
-
   );
 
+  const handleFieldChange = (attribute, value) => {
+    form.setFieldsValue({ [attribute]: value });
+  };
 
   const [initialValues, setInitialValues] = useState(() =>
     fields.reduce(
@@ -42,29 +43,31 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
         }
         return values;
       },
-      { profile: profile || null } 
+      { profile: profile || null }
     )
   );
 
-
   useEffect(() => {
     const initialValues = fields.reduce((acc, field) => {
-      acc[field.name] = field.type === "date" 
-        ? field.value ? dayjs(field.value, dateFormat) : null 
-        : field.value || null;
+      acc[field.name] =
+        field.type === "date"
+          ? field.value
+            ? dayjs(field.value, dateFormat)
+            : null
+          : field.value || null;
       return acc;
     }, {});
     console.log(initialValues);
-    
+
     form?.setFieldsValue(initialValues);
   }, [fields]);
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
-    setImagePreview(URL.createObjectURL(file)); // แสดงตัวอย่างรูปภาพ
+    setImagePreview(URL.createObjectURL(file));
 
     const formData = new FormData();
-    formData.append("file", file); // File input
+    formData.append("file", file);
     formData.append("mode", "profile");
 
     try {
@@ -83,13 +86,13 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
   };
 
   const handleChange = (attribute, value) => {
-    form.setFieldsValue({ [attribute]: value }); // อัปเดตค่าลงในฟอร์ม
+    form.setFieldsValue({ [attribute]: value });
     setFormValues((prev) => ({
       ...prev,
       [attribute]: value,
     }));
     if (onChange) {
-      onChange(attribute, value); // เรียก callback ถ้ามี
+      onChange(attribute, value);
     }
   };
 
@@ -128,6 +131,13 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
                     format={dateFormat}
                     disabled={field.disabled}
                   />
+                ) : field.type === "time" ? (
+                  <TimePicker
+                    className="w-full"
+                    format="HH:mm"
+                    placeholder={`Select ${field.label}`}
+                    onChange={(value) => handleFieldChange(field.name, value)}
+                  />
                 ) : field.type === "select" ? (
                   <Select
                     placeholder={`Select ${field.label.toLowerCase()}`}
@@ -137,16 +147,8 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
                       value: option.id,
                     }))}
                     disabled={field.disabled}
-                    // value={form.getFieldValue(field.name)} // Dynamically bind the value
                     onChange={(value) => handleChange(field.name, value)}
-                    // onChange={(value) => form.setFieldsValue({ [field.name]: value })} 
-                  >
-                    {/* {field?.options?.map((option, idx) => (
-                      <Option key={idx} value={option.id}>
-                        {option.name}
-                      </Option>
-                    ))} */}
-                  </Select>
+                  />
                 ) : field.type === "picture" || field.type === "image" ? (
                   <div className="image-upload-container flex items-center gap-3">
                     <img
@@ -167,6 +169,17 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
                       name={field.name}
                     />
                   </div>
+                ) : field.type === "multiple" ? (
+                  <Select
+                    mode="multiple"
+                    placeholder={`Select ${field.label}`}
+                    allowClear
+                    options={field.options.map((option) => ({
+                      label: option.name,
+                      value: option.id,
+                    }))}
+                    onChange={(value) => handleFieldChange(field.name, value)}
+                  />
                 ) : null}
               </Form.Item>
             </Col>

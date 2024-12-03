@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import { Input, InputNumber, Table } from "antd";
+import { InputNumber, Table, Modal } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import TableCustomComponent from "../../../components/table/TableCustomComponent";
 import ActionButton from "../../../components/button/ActionButton";
@@ -9,6 +9,7 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import Title from "../../../components/title/Title";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 
 export default function WorkPlanSaleByDealer() {
   const location = useLocation();
@@ -22,6 +23,8 @@ export default function WorkPlanSaleByDealer() {
   const [localQtyState, setLocalQtyState] = useState({});
   const [yearName, setYearName] = useState([]);
   const totalDealers = dealer.length;
+  const { confirm } = Modal;
+
   useEffect(() => {
     useServiceAPI
       .get(
@@ -65,7 +68,6 @@ export default function WorkPlanSaleByDealer() {
             {}
           );
 
-          console.log(newLocalState);
           // Update the state
           setLocalQtyState(newLocalState);
 
@@ -331,10 +333,39 @@ export default function WorkPlanSaleByDealer() {
   };
 
   const handleSave = async (mode) => {
-    setLoading(true); // เริ่มโหลดข้อมูล
+    const totalAmountTarget = Object.values(localQtyState).reduce(
+      (sum, item) => {
+        return sum + (item.amount_target || 0);
+      },
+      0
+    );
 
-    // อัพเดตข้อมูล quarter ด้วยข้อมูลใน localQtyState
+    if (Number(totalValue) > Number(totalAmountTarget)) {
+      confirm({
+        title: "Do you want to save ?",
+        icon: <ExclamationCircleFilled />,
+        content: (
+          <>
+            <p>Work Plan is less than Original Plan</p>
+            <p>Original Plan: {formatNumber(totalValue)}</p>
+            <p>Current Total: {formatNumber(totalAmountTarget)}</p>
+            <p>Difference: {formatNumber(totalValue - totalAmountTarget)}</p>
+          </>
+        ),
+        centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+        onOk() {
+          createPlan(mode);
+        },
+      });
+    } else {
+      createPlan(mode);
+    }
+  };
+
+  const createPlan = async (mode) => {
     try {
+      setLoading(true); // เริ่มโหลดข้อมูล
+
       const mappedDealers = dealer.map((dealerItem) => {
         // Get the initial data_items
         const initialDataItems = dealerItem.data_items || [];
@@ -399,7 +430,7 @@ export default function WorkPlanSaleByDealer() {
                     year_code: location?.state?.year_code,
                     user_id: location?.state?.user_id,
                   },
-                })
+                });
               });
             } else {
               showNotification(
