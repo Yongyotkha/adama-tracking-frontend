@@ -66,7 +66,9 @@ export default function SettingSale() {
       label: (
         <ItemDropDown
           mode="edit"
-          onClick={() => navigate(`/setting/sale/edit/${id}`)} 
+          // onClick={() => navigate(`/setting/sale/edit/${id}`)} 
+          onClick={() => navigate("/setting/sale/edit", { state: { id } })} 
+
         />
       ),
     },
