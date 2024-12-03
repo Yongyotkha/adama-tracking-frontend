@@ -18,6 +18,7 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
 
   const [imagePreview, setImagePreview] = useState(
     profile || "/img/Image-not-found.png"
+
   );
 
   const handleFieldChange = (attribute, value) => {
@@ -57,7 +58,7 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
           : field.value || null;
       return acc;
     }, {});
-    console.log(initialValues);
+    // console.log(initialValues);
 
     form?.setFieldsValue(initialValues);
   }, [fields]);
@@ -153,6 +154,7 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
                   <div className="image-upload-container flex items-center gap-3">
                     <img
                       src={imagePreview}
+                      // src={field.value || imagePreview}
                       alt="Profile"
                       onClick={() =>
                         document.getElementById(`imageUpload-${index}`).click()

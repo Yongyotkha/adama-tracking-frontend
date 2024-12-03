@@ -28,6 +28,9 @@ export default function EditProduct() {
   const navigate = useNavigate();
   const [cropList, setCropList] = useState([]); // state สำหรับ crop_list
   const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); // กำหนด state สำหรับ defaultSelectedCrops
+  const [isDataLoaded, setIsDataLoaded] = useState(false); // เพิ่ม state สำหรับเช็คข้อมูล
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [profileImage, setProfileImage] = useState("/img/Image-not-found.png"); // Default value
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,33 +48,34 @@ export default function EditProduct() {
         setCropOptions(crops.data);         
         setCropList(crops.data || []);
 
+        setIsDataLoaded(true);
+        
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       }
     };
     fetchData();
-  }, []);
+  }, [location.state.id]);
   
   useEffect(() => {
-    console.log("Roles:", roles);
-    console.log("Crop Options:", cropOptions);
+    // console.log("Roles:", roles);
+    // console.log("Crop Options:", cropOptions);
   }, [roles, cropOptions]);
   
-
-
   const fetchProductDetails = async (id) => {
     setLoading(true);
     try {
       const response = await useServiceAPI.get(`${paths.pathSaleManagementProductsDetail}/${id}`);
       if (response.status === 200) {
-        const { data } = response; 
+        const { data } = response;         
         setUserInfo(data);
+        setProfileImage(data.product_image); 
         setCropList(data.crop_list || []); 
         setCropOptions(data.crop_list);
         setSelectedCrops(data.crop_list.map((crop) => crop.id));
-
         const cropNames = data.crop_list?.map((crop) => Number(crop.id)) || [];
         setDefaultSelectedCrops(cropNames);
+        setDataLoaded(true);
 
         const Test = response.data.data;        
         const territoryData = Test.map((item, index) => ({
@@ -80,9 +84,8 @@ export default function EditProduct() {
           territory: item.territory_name,
           position: item.position_name,
         }));
-      setUserList(territoryData);
-
-
+        setUserList(territoryData);
+        
       } else {
         console.error("Failed to fetch promotion details:", response.message);
       }
@@ -95,6 +98,7 @@ export default function EditProduct() {
 
 
   const updatedFields = [
+    { label: "", name: "profile", type: "picture", required: false, col: 24, value: userinfo.product_image},
     { label: "Product Code", name: "product_code", type: "text", required: true, col: 6, disabled: true, value: userinfo.product_code },
     { label: "Product Name", name: "product_name", type: "text", required: true, col: 6, disabled: true, value: userinfo.product_name },
     { label: "AI and content", name: "ai_content", type: "text", required: false, col: 12, disabled: true, value: userinfo.ai_and_content },
@@ -128,14 +132,15 @@ export default function EditProduct() {
           } else {
             useFlagValue = values.use_flag === "Active" ? 1 : 0; // แปลงค่าจาก "Active" หรือ "Inactive"
           }
-
+          const product_image = values.profile;          
           const dataToSend = {
           ...values,
           id: location.state.id,
           use_flag: useFlagValue, // ส่งค่า use_flag เป็น 1 หรือ 0
           crop_list: defaultSelectedCrops, // ส่ง crop_list
+          product_image:product_image,
         };
-
+          
         useServiceAPI
           .put(paths.pathSaleManagementProductsUpdate, dataToSend, setLoading)
           .then((response) => {
@@ -242,20 +247,27 @@ export default function EditProduct() {
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Edit Product</div>
-      <FormUser profile="/img/profile.jpg" fields={updatedFields} form={form}/>
+      {/* <FormUser  profile={profileImage} fields={updatedFields} form={form}/> */}
+      
+      {dataLoaded ? (
+        <FormUser profile={profileImage} fields={updatedFields} form={form} />
+      ) : (
+        <div></div>
+      )}
+
 
       <BoxPrimary>
       <Form layout="vertical">
           <Form.Item label="Crop">
             <Select
-                  mode="multiple"
-                  showSearch
-                  placeholder="Select Crop(s)"
-                  optionFilterProp="children"
-                  className="w-full"
-                  value={defaultSelectedCrops} 
-                  onChange={(value) => setDefaultSelectedCrops(value)} // จัดการการเปลี่ยนแปลงค่า
-                  options={transformedCropOptions} 
+                mode="multiple"
+                showSearch
+                placeholder="Select Crop(s)"
+                optionFilterProp="children"
+                className="w-full"
+                value={defaultSelectedCrops} 
+                onChange={(value) => setDefaultSelectedCrops(value)} // จัดการการเปลี่ยนแปลงค่า
+                options={transformedCropOptions} 
             />
 
           </Form.Item>
