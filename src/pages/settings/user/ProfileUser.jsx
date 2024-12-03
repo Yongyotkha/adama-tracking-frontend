@@ -101,9 +101,9 @@ export default function ProfileUser() {
       label: "Sales Employee Code",
       name: "employee_code",
       type: "text",
-      required: true,
+      required: false,
       col: 6,
-      // disabled: true,
+      disabled: true,
       value: formUserInfo.sales_emp_code,
     },
     {

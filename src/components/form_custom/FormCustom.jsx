@@ -6,6 +6,9 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
+import useServiceAPI from "../../services/CorsService";
+import { paths } from "../../services/CorsPath";
+const { Search } = Input;
 
 dayjs.extend(customParseFormat);
 
@@ -169,7 +172,8 @@ export default function FormCustom({ fields, form, title, onChange = {}, mode })
       <Form layout="vertical" form={form} initialValues={{ formValues }}>
         <Row gutter={16} align="middle">
           {fields.map((field, index) => (
-            <Col
+            field.type !== "hidden" ?
+            (<Col
               xs={24}
               sm={field.col || 12}
               md={field.col || 8}
@@ -190,62 +194,88 @@ export default function FormCustom({ fields, form, title, onChange = {}, mode })
                 {field.type === "text" ||
                 field.type === "email" ||
                 field.type === "tel" ||
-                field.type === "hidden" ||
                 field.type === "number" ? (
-                  <Input
-                    type={field.type}
-                    placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
-                    // value={formValues[field.name] || ""}
-                    value={formValues[field.value] || ""}
-                    disabled={field.disabled}
-                    onChange={(e) => handleChange(field.name, e.target.value)}
-                  />
-                ) : field.type === "date" ? (
-                  <DatePicker
-                    style={{ width: "100%" }}
-                    value={formValues[field.name] || null}
-                    onChange={(date) => handleChange(field.name, date)}
-                    format="YYYY-MM-DD"
-                    disabled={field.disabled}
-                  />
+                  <>
+                    <Input
+                      type={field.type}
+                      placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                      // value={formValues[field.name] || ""}
+                      value={formValues[field.value] || ""}
+                      disabled={field.disabled}
+                      onChange={(e) => handleChange(field.name, e.target.value)}
+                    />
+                    {" "}
+                  </>
+                ) : field.type === "search" ? (
+                  <>
+                    <Search
+                      placeholder="Search"
+                      onSearch={(value) => handleChange(field.name, value)}
+                    />
+                    {" "}
+                  </>
+                )
+                : field.type === "date" ? (
+                  <>
+                    <DatePicker
+                      style={{ width: "100%" }}
+                      value={formValues[field.name] || null}
+                      onChange={(date) => handleChange(field.name, date)}
+                      format="YYYY-MM-DD"
+                      disabled={field.disabled}
+                    />
+                    {" "}
+                  </>
                 ) : field.type === "month" ? (
-                  <MonthPicker
-                    style={{ width: "100%" }}
-                    disabled={field.disabled}
-                    value={formValues[field.name] || null}
-                    onChange={(date) => handleChange(field.name, date)}
-                    format="YYYY-MM"
-                  />
+                  <>
+                    <MonthPicker
+                      style={{ width: "100%" }}
+                      disabled={field.disabled}
+                      value={formValues[field.name] || null}
+                      onChange={(date) => handleChange(field.name, date)}
+                      format="YYYY-MM"
+                    />
+                    {" "}
+                  </>
                 ) : field.type === "time" ? (
-                  <TimePicker
-                    style={{ width: "100%" }}
-                    disabled={field.disabled}
-                    value={formValues[field.name] || null}
-                    onChange={(time) => handleChange(field.name, time)}
-                    format="HH:mm"
-                  />
+                  <>
+                    <TimePicker
+                      style={{ width: "100%" }}
+                      disabled={field.disabled}
+                      value={formValues[field.name] || null}
+                      onChange={(time) => handleChange(field.name, time)}
+                      format="HH:mm"
+                    />
+                    {" "}
+                  </>
                 ) : field.type === "select" ? (
-                  <Select
-                    mode={field.mode === "multiple" ? "multiple" : undefined}
-                    value={formValues[field.name] || []} // ใช้ค่าจาก state
-                    onChange={(value) => handleChange(field.name, value)} // เรียก handleChange
-                    placeholder={`Select ${field.label.toLowerCase()}`}
-                    disabled={field.disabled}
-                    allowClear
-                    options={field.options.map((option) => ({
-                      label: option.name,
-                      value: String(option.id),
-                    }))}
-                  />
+                  <>
+                    <Select
+                      mode={field.mode === "multiple" ? "multiple" : undefined}
+                      value={formValues[field.name] || []} // ใช้ค่าจาก state
+                      onChange={(value) => handleChange(field.name, value)} // เรียก handleChange
+                      placeholder={`Select ${field.label.toLowerCase()}`}
+                      disabled={field.disabled}
+                      allowClear
+                      options={field.options.map((option) => ({
+                        label: option.name,
+                        value: String(option.id),
+                      }))}
+                    />
+                    {" "}
+                  </>
                 ) : field.type === "text-editor" ? (
-                  <ReactQuill
-                    theme="snow"
-                    value={formValues[field.name] || ""}
-                    placeholder={`Enter ${field.label.toLowerCase()}`}
-                    readOnly={field.disabled}
-                    modules={{ toolbar: toolbarOptions }}
-                    onChange={(value) => handleChange(field.name, value)}
-                  />
+                  <>
+                    <ReactQuill
+                      theme="snow"
+                      value={formValues[field.name] || ""}
+                      placeholder={`Enter ${field.label.toLowerCase()}`}
+                      readOnly={field.disabled}
+                      modules={{ toolbar: toolbarOptions }}
+                      onChange={(value) => handleChange(field.name, value)}
+                    />
+                  {" "}
+                  </>
                 ) : field.type === "location" ? (
                   <div>
                     <div style={{ position: "relative" }}>
@@ -263,6 +293,7 @@ export default function FormCustom({ fields, form, title, onChange = {}, mode })
                           placeholder="Address"
                           value={formValues["location_address"] || ""}
                           onChange={(e) => handleChange("location_address", e.target.value)}
+                          disabled={field.disabled}
                           style={{
                             width: "100%",
                             paddingRight: "50px",
@@ -273,6 +304,7 @@ export default function FormCustom({ fields, form, title, onChange = {}, mode })
                             boxSizing: "border-box"
                           }}
                         />
+                        {" "}
                       </Form.Item>
                       <div
                         onClick={handleReload}
@@ -316,6 +348,7 @@ export default function FormCustom({ fields, form, title, onChange = {}, mode })
                         value={formValues["location_latitude"] || ""}
                         disabled
                       />
+                      {" "}
                     </Form.Item>
                 
                     <Form.Item
@@ -328,11 +361,12 @@ export default function FormCustom({ fields, form, title, onChange = {}, mode })
                         value={formValues["location_longitude"] || ""}
                         disabled
                       />
+                      {" "}
                     </Form.Item>
                   </div>
                 ) : null}
               </Form.Item>
-            </Col>
+            </Col>) : null
           ))}
         </Row>
       </Form>

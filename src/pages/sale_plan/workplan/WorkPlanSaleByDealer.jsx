@@ -23,6 +23,8 @@ export default function WorkPlanSaleByDealer() {
   const [localQtyState, setLocalQtyState] = useState({});
   const [yearName, setYearName] = useState([]);
   const totalDealers = dealer.length;
+  const [name, setName] = useState("");
+  const [message, setMessage] = useState("");
   const { confirm } = Modal;
 
   useEffect(() => {
@@ -83,6 +85,8 @@ export default function WorkPlanSaleByDealer() {
           }));
 
           setYearName(response.data.year_name);
+          setName(response.data.user_name);
+          setMessage(response.data.dealer_items_message);
           setDataSource(newData);
           setDealer(response.data.dealer_items);
           setTotalValue(response.data.amount_target);
@@ -472,9 +476,10 @@ export default function WorkPlanSaleByDealer() {
         <Title prefix="Sale By Dealer" showYear={yearName} />
 
         <BoxPrimary>
-          <div className="flex flex-col gap-2">
-            <div>Work Plan</div>
-            <div className="w-[25%]">
+          <div className="flex  gap-5">
+            <div>
+              <div>Work Plan</div>
+
               <InputNumber
                 disabled
                 suffix="THB"
@@ -488,6 +493,13 @@ export default function WorkPlanSaleByDealer() {
                   )
                 }
               />
+            </div>
+            <div>
+              <div>Sale</div>
+              <InputNumber disabled className="w-[300px]" value={name} />
+            </div>
+            <div className="self-end">
+              <div className="text-red-500 font-bold">{message}</div>
             </div>
           </div>
         </BoxPrimary>

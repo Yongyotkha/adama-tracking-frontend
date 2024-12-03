@@ -337,7 +337,7 @@ export default function WorkPlanAreaCreate() {
                         value={parseFloat(localData.value).toFixed(2)}
                         formatter={(value) =>
                           `${Number(value).toFixed(2)}`.replace(
-                            /\B(?=(\d{3})+(?!\d))/g,
+                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )
                         }

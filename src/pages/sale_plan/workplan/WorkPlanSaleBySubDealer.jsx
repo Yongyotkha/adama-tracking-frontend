@@ -24,6 +24,8 @@ export default function WorkPlanSaleBySubDealer() {
   const [localQtyState, setLocalQtyState] = useState({});
   const [yearName, setYearName] = useState([]);
   const totalDealers = subDealers.length;
+  const [message, setMessage] = useState("");
+
 
   useEffect(() => {
     getMasterSubDealer();
@@ -138,6 +140,8 @@ export default function WorkPlanSaleBySubDealer() {
           setSubDealers(response.data.sub_dealer_items);
           setTotalValue(response.data.amount_target);
           setPermission(response.data.permission);
+          setMessage(response.data.dealer_items_message);
+
         }
       })
       .catch((error) => {
@@ -554,7 +558,7 @@ export default function WorkPlanSaleBySubDealer() {
               <div className="">
                 <Input
                   disabled
-                  className=""
+                  className="w-[300px]"
                   value={
                     dealers.find((dealer) => dealer.dealer_id === activeKey)
                       ?.dealer_name || ""
@@ -582,6 +586,9 @@ export default function WorkPlanSaleBySubDealer() {
                   }
                 />
               </div>
+            </div>
+            <div className="self-end">
+              <div className="text-red-500 font-bold">{message}</div>
             </div>
           </div>
         </BoxPrimary>

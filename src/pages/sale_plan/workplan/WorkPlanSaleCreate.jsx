@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import { Input, InputNumber, Table ,Modal } from "antd";
+import { Input, InputNumber, Table, Modal } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import TableCustomComponent from "../../../components/table/TableCustomComponent";
 import ActionButton from "../../../components/button/ActionButton";
@@ -10,7 +10,6 @@ import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import Title from "../../../components/title/Title";
 import { ExclamationCircleFilled } from "@ant-design/icons";
-
 
 export default function WorkPlanSaleCreate() {
   const location = useLocation();
@@ -25,6 +24,7 @@ export default function WorkPlanSaleCreate() {
   const [totalValue, setTotalValue] = useState(0);
   const [localQtyState, setLocalQtyState] = useState({});
   const [yearName, setYearName] = useState([]);
+  const [name, setName] = useState("");
 
   useEffect(() => {
     useServiceAPI
@@ -102,6 +102,7 @@ export default function WorkPlanSaleCreate() {
 
           setYearName(response.data.year_name);
           setDataSource(newData);
+          setName(response.data.user_name);
           setQuarter(newDataQuarter);
           setTotalValue(response.data.amount_target);
           setPermission(response.data.permission);
@@ -177,15 +178,18 @@ export default function WorkPlanSaleCreate() {
       children: [
         {
           title: "Sale Plan (THB)", // Row 2
+
           children: [
             {
               title: "Month", // Row 3
+
               onHeaderCell: () => ({
                 style: {
                   backgroundColor: "#00783F", // สีเขียวเข้ม
                   color: "white", // สีตัวอักษร
                   fontWeight: "bold",
                   textAlign: "center",
+                  height: 100,
                 },
               }),
               children: [
@@ -265,13 +269,13 @@ export default function WorkPlanSaleCreate() {
             title: month.month_name,
             dataIndex: `value_${month.month_id}_${item.quarter_id}`,
             key: `value_${month.month_id}_${item.quarter_id}`,
-   
+
             children: [
               {
                 title: "Qty (KG)",
                 dataIndex: `qty_${month.month_id}`,
                 key: `qty_${month.month_id}`,
-                width:150,
+                width: 150,
                 render: (text, record) => {
                   const localData = localQtyState[item.quarter_id]?.months?.[
                     month.month_id
@@ -285,7 +289,6 @@ export default function WorkPlanSaleCreate() {
                       formatter={(value) =>
                         `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                       }
-                      
                       onChange={(value) =>
                         handleQtyChange(
                           item.quarter_id,
@@ -327,14 +330,12 @@ export default function WorkPlanSaleCreate() {
             title: month.month_name,
             dataIndex: `value_${month.month_id}_${item.quarter_id}`,
             key: `value_${month.month_id}_${item.quarter_id}`,
-
             children: [
               {
                 title: "Value (KG)",
                 dataIndex: `value_${month.month_id}`,
                 key: `value_${month.month_id}`,
-                width:150,
-                
+                width: 150,
                 render: (text, record) => {
                   const localData = localQtyState[item.quarter_id]?.months?.[
                     month.month_id
@@ -562,9 +563,9 @@ export default function WorkPlanSaleCreate() {
         <Title prefix="Create Plan" showYear={yearName} />
 
         <BoxPrimary>
-          <div className="flex flex-col gap-2">
-            <div>Work Plan</div>
-            <div className="w-[25%]">
+          <div className="flex gap-5">
+            <div>
+              <div>Work Plan</div>
               <InputNumber
                 disabled
                 suffix="THB"
@@ -578,6 +579,10 @@ export default function WorkPlanSaleCreate() {
                   )
                 }
               />
+            </div>
+            <div>
+              <div>Sale</div>
+              <InputNumber disabled className="w-[300px]" value={name} />
             </div>
           </div>
         </BoxPrimary>

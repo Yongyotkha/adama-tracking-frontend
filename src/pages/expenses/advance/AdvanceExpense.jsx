@@ -214,7 +214,7 @@ export default function AdvanceExpense() {
         const newDataSource = data.map((row, index) => {
           const actionItems = [
             { key: "1", label: <ItemDropDown mode="edit" link={`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`} /> },
-            { key: "2", label: <ItemDropDown mode="view" link="/expenses/advance/view" /> },
+            { key: "2", label: <ItemDropDown mode="view" link={`/activity/view?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`} /> },
             { key: "3", label: <ItemDropDown mode="delete" link="#"  onClick={() => handleDelete(row.document_number)} /> },
           ];
         
@@ -225,7 +225,7 @@ export default function AdvanceExpense() {
             activityReference: row.document_number_referrent,
             typeOfMeeting: row.activity_type_name,
             date: row.document_date,
-            status: <BadgeStatus text={row.status_name} bgColor={row.status_bg_color} textColor={row.status_color} />,
+            status: <BadgeStatus text={row.transaction_status_name} bgColor={row.transaction_status_bg_color} textColor={row.transaction_status_color} />,
             action: (
               <Dropdown menu={{ items: actionItems }} placement="bottom">
                 <a onClick={(e) => e.preventDefault()}>
