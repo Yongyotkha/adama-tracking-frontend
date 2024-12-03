@@ -275,7 +275,7 @@ export default function EditUser() {
       {dataLoaded ? (
         <FormUser profile={profileImage} fields={updatedFields} form={form} />
       ) : (
-        <div>Loading data...</div>
+        <div></div>
       )}
 
       <div className="flex justify-end space-x-4">

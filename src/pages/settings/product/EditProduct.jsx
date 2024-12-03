@@ -28,6 +28,9 @@ export default function EditProduct() {
   const navigate = useNavigate();
   const [cropList, setCropList] = useState([]); // state สำหรับ crop_list
   const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); // กำหนด state สำหรับ defaultSelectedCrops
+  const [isDataLoaded, setIsDataLoaded] = useState(false); // เพิ่ม state สำหรับเช็คข้อมูล
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [profileImage, setProfileImage] = useState("/img/Image-not-found.png"); // Default value
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,16 +48,18 @@ export default function EditProduct() {
         setCropOptions(crops.data);         
         setCropList(crops.data || []);
 
+        setIsDataLoaded(true);
+        
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       }
     };
     fetchData();
-  }, []);
+  }, [location.state.id]);
   
   useEffect(() => {
-    console.log("Roles:", roles);
-    console.log("Crop Options:", cropOptions);
+    // console.log("Roles:", roles);
+    // console.log("Crop Options:", cropOptions);
   }, [roles, cropOptions]);
   
   const fetchProductDetails = async (id) => {
@@ -62,14 +67,15 @@ export default function EditProduct() {
     try {
       const response = await useServiceAPI.get(`${paths.pathSaleManagementProductsDetail}/${id}`);
       if (response.status === 200) {
-        const { data } = response; 
+        const { data } = response;         
         setUserInfo(data);
+        setProfileImage(data.product_image); 
         setCropList(data.crop_list || []); 
         setCropOptions(data.crop_list);
         setSelectedCrops(data.crop_list.map((crop) => crop.id));
-
         const cropNames = data.crop_list?.map((crop) => Number(crop.id)) || [];
         setDefaultSelectedCrops(cropNames);
+        setDataLoaded(true);
 
         const Test = response.data.data;        
         const territoryData = Test.map((item, index) => ({
@@ -78,9 +84,8 @@ export default function EditProduct() {
           territory: item.territory_name,
           position: item.position_name,
         }));
-      setUserList(territoryData);
-
-
+        setUserList(territoryData);
+        
       } else {
         console.error("Failed to fetch promotion details:", response.message);
       }
@@ -242,7 +247,14 @@ export default function EditProduct() {
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Edit Product</div>
-      <FormUser fields={updatedFields} form={form}/>
+      {/* <FormUser  profile={profileImage} fields={updatedFields} form={form}/> */}
+      
+      {dataLoaded ? (
+        <FormUser profile={profileImage} fields={updatedFields} form={form} />
+      ) : (
+        <div></div>
+      )}
+
 
       <BoxPrimary>
       <Form layout="vertical">
