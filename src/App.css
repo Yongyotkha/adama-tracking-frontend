@@ -166,3 +166,14 @@ span.ant-popconfirm-message-icon {
   background-color: #5F504D ; 
   /* border-color: #5F504D !important; */
 }
+
+.filter-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* ระยะห่างระหว่างรายการ */
+}
+
+.custom-collapse .ant-checkbox-group {
+  display: flex;
+  flex-direction: column;
+}
