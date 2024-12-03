@@ -102,7 +102,7 @@ export default function WorkPlanSaleByCrop() {
           min={0}
           value={text}
           formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            `${Number(value).toFixed(2)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
           onChange={(value) => handleQtyChange(value, record.key)}
         />
@@ -118,13 +118,13 @@ export default function WorkPlanSaleByCrop() {
       ),
       dataIndex: cropItem.crop_id,
       key: `percentage_${cropItem.crop_id}`,
+      width: 150,
       onHeaderCell: () => ({
         style: {
           backgroundColor: "#009845",
           color: "white",
           fontWeight: "bold",
           textAlign: "left",
-          width: 150,
         },
       }),
       render: (text, record) => (
@@ -139,6 +139,9 @@ export default function WorkPlanSaleByCrop() {
           onChange={(value) =>
             handlePercentChange(value, cropItem.crop_id, record)
           }
+          formatter={(value) =>
+            `${Number(value)}%`
+          }
           disabled={!permission.edit || cropItem.crop_id == 7}
         />
       ),
@@ -152,12 +155,13 @@ export default function WorkPlanSaleByCrop() {
       ),
       dataIndex: cropItem.crop_id,
       key: `qty_${cropItem.crop_id}`,
+      width: 150,
+
       onHeaderCell: () => ({
         style: {
           backgroundColor: "#00783F",
           color: "white",
           fontWeight: "bold",
-          width: 150,
           textAlign: "left",
         },
       }),
@@ -182,11 +186,11 @@ export default function WorkPlanSaleByCrop() {
       ),
       dataIndex: cropItem.crop_id,
       key: `value_${cropItem.crop_id}`,
+      width: 150,
       onHeaderCell: () => ({
         style: {
           backgroundColor: "#009845",
           color: "white",
-          width: 150,
           fontWeight: "bold",
           textAlign: "left",
         },
@@ -353,6 +357,7 @@ export default function WorkPlanSaleByCrop() {
         0
       );
 
+
       return {
         ...prevState,
         [cropId]: {
@@ -506,11 +511,22 @@ export default function WorkPlanSaleByCrop() {
                       style={{ backgroundColor: "white" }}
                     />
                   </Table.Summary.Cell>
-                  {crop?.map((_, index) => (
-                    <Table.Summary.Cell
-                      key={index}
-                      colSpan={1}
-                    ></Table.Summary.Cell>
+                  {crop.map((item, index) => (
+                    <Table.Summary.Cell key={index} colSpan={1}>
+                      <InputNumber
+                        className="w-full"
+                        disabled
+                        value={localQtyState[item.crop_id]?.amount_target || 0}
+                        min={0}
+                        formatter={(value) =>
+                          `${Number(value).toFixed(2)}`.replace(
+                            /\B(?=(\d{3})+(?!\d))/g,
+                            ","
+                          )
+                        }
+                        style={{ backgroundColor: "white" }}
+                      />
+                    </Table.Summary.Cell>
                   ))}
                   {crop.map((item, index) => (
                     <Table.Summary.Cell key={index} colSpan={1}>
@@ -557,7 +573,7 @@ export default function WorkPlanSaleByCrop() {
             text="Back"
             mode="back"
             onClick={() => {
-              navigate("/sale-plan/work-plan-sale/sale-by-crop", {
+              navigate("/sale-plan/work-plan-sale/sale-create", {
                 state: {
                   year_code: location?.state?.year_code,
                   user_id: location?.state?.user_id,
