@@ -378,9 +378,9 @@ export default function WorkPlanAreaCreate() {
             <p>Original Plan: {formatNumber(totalValue)}</p>
             <p>Current Total: {formatNumber(calculatedTotalAmountTarget)}</p>
             <p>
-              <b className="text-red-600">Difference:{" "}
+              Difference:{" "}
               {formatNumber(totalValue - calculatedTotalAmountTarget)}
-              </b></p>
+            </p>
           </>
         ),
         centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง

@@ -467,7 +467,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                           className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md"
                         >
                           <div className="flex items-start gap-4">
-                            <div>
+                            <div className="w-full">
                               <div className="flex justify-between">
                                 <div className={`h-10 flex items-center justify-center`}>
                                   <img
@@ -515,22 +515,99 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                       title={null}
                                       description={
                                         <div>
-                                          <h4 className="flex items-center gap-2">
+                                          <h3 className="text-lg font-bold flex items-center gap-2 mb-3">
                                             <img
                                               src={event.icon} // Add icon before title
                                               alt="Event Icon"
-                                              className="w-4 h-4"
+                                              className="w-6 h-6"
                                             />
                                             {event.title}
-                                          </h4>
-                                          <p lang="th" className="my-2 px-3 py-1 border rounded-full text-sm text-gray-600 flex items-center w-fit">{event.time}</p>
-                                          <p lang="th" className="flex gap-1">
+                                          </h3>
+                                          <p
+                                            lang="th"
+                                            className="my-2 px-3 py-1 border rounded-full text-sm text-gray-600 flex items-center w-fit"
+                                          >
+                                            {new Date(event.date).toLocaleDateString("th-TH", {
+                                              weekday: "short",
+                                              year: "numeric",
+                                              month: "2-digit",
+                                              day: "2-digit",
+                                            })}{" "} <span className="mx-1">|</span>
+                                            {event.time}
+                                          </p>
+
+                                          <p lang="th" className="flex gap-1 mb-2 items-center">
+                                            <img
+                                              src="/img/icons/shop.png"
+                                              className="h-6 w-6 me-2"
+                                              alt=""
+                                            />
+                                            {event.dealer_name}
+                                          </p>
+
+                                          <p lang="th" className="flex gap-1 mb-2 items-center">
                                             <img
                                               src="/img/icons/location.png"
                                               className="h-6 w-6 me-2"
                                               alt=""
-                                            />{event.location}
+                                            />
+                                            {event.location}
                                           </p>
+                                          <p className="flex gap-1 mb-2 items-center mt-2">
+                                            <img
+                                              src="/img/icons/crops.png"
+                                              className="h-6 w-6 me-2"
+                                              alt=""
+                                            />
+                                            {event.crops || "N/A"}
+                                          </p>
+                                          <p
+                                            lang="th"
+                                            className="flex gap-1 mb-2 items-center mt-2"
+                                          >
+                                            <img
+                                              src="/img/icons/details.png"
+                                              className="h-6 w-6 me-2"
+                                              alt=""
+                                            />
+                                            <span
+                                              dangerouslySetInnerHTML={{
+                                                __html: event.description || "<span>No description available</span>",
+                                              }}
+                                            />
+                                          </p>
+
+                                          {/* Attendees Section */}
+                                          <div className="mt-2">
+                                            {/* <p className="flex gap-1 mb-2 items-center">
+                                              <img
+                                                src="/img/icons/attendees.png"
+                                                alt="Attendees Icon"
+                                                className="h-6 w-6 me-2"
+                                              />
+                                              <span className="text-gray-600">Attendees</span>
+                                            </p> */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                              {event.attendees.length > 0 ? (
+                                                event.attendees.map((attendee) => (
+                                                  <div
+                                                    key={attendee.id}
+                                                    className="flex items-center gap-2 px-2 py-1 bg-gray-100 rounded-lg shadow-md"
+                                                  >
+                                                    <img
+                                                      src={attendee.avatar || "/img/default-avatar.png"}
+                                                      alt={attendee.name || "No Name"}
+                                                      className="w-8 h-8 rounded-full border border-gray-300"
+                                                    />
+                                                    <span className="text-sm text-gray-600">{attendee.name || "Unknown"}</span>
+                                                  </div>
+                                                ))
+                                              ) : (
+                                                <span className="text-gray-500">No attendees available</span>
+                                              )}
+                                            </div>
+                                          </div>
+
                                           {/* Conditionally render buttons */}
                                           {event.permission.edit && (
                                             <Button
@@ -552,6 +629,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                           )}
                                         </div>
                                       }
+
                                       okButtonProps={{ style: { display: "none" } }} // Hide ok button
                                       cancelButtonProps={{ style: { display: "none" } }} // Hide cancel button
                                     >
