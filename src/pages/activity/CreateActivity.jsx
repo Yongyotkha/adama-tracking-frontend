@@ -106,11 +106,11 @@ export default function CreateActivity() {
   const formFields = [
     { label: menuTitle + " No", name: "document_number", type: "text", disabled: true, required: false, col: 24, value: activityDetail.document_number ?? "", placeholder:"Generate"},
     { label: "Activity Reference", name: "activity_reference", type: pageCode != 'activity_transaction' ? (viewSegment ? "hidden" : "search") : "hidden", disabled: viewSegment ?? false, required: false, col: 24, value: ""},
-    { label: "Activity Type", name: "activity_type_id", type: "select", options: activityList, disabled: viewSegment ?? false, required: false, col: 8, value: activityDetail.activity_type_id ?? "" },
-    { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: viewSegment ?? false, required: false, col: 8, value: activityDetail.user_id ?? "", moderef: true},
-    { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: viewSegment ?? false, required: false, col: 8, value: activityDetail.dealer_id ?? "", moderef: true},
-    { label: "Crop", name: "crop_id_list", type: "select", mode: "multiple", options: cropList, disabled: viewSegment ?? false, required: false, col: 6, value: cropDetailList, moderef: true},
-    { label: "Date", name: "document_date", type: "date", disabled: viewSegment ?? false, required: false, col: 6, value: activityDetail.document_date ?? dayjs().format("YYYY-MM-DD") },
+    { label: "Activity Type", name: "activity_type_id", type: "select", options: activityList, disabled: viewSegment ?? false, required: true, col: 8, value: activityDetail.activity_type_id ?? "" },
+    { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: viewSegment ?? false, required: true, col: 8, value: activityDetail.user_id ?? "", moderef: true},
+    { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: viewSegment ?? false, required: true, col: 8, value: activityDetail.dealer_id ?? "", moderef: true},
+    { label: "Crop", name: "crop_id_list", type: "select", mode: "multiple", options: cropList, disabled: viewSegment ?? false, required: true, col: 6, value: cropDetailList, moderef: true},
+    { label: "Date", name: "document_date", type: "date", disabled: viewSegment ?? false, required: true, col: 6, value: activityDetail.document_date ?? dayjs().format("YYYY-MM-DD") },
     { label: "Start Time", name: "time_start", type: "select", options:timeList, disabled: viewSegment ?? false, required: false, col: 6, value: activityDetail.time_start ?? "" },
     { label: "End Time", name: "time_end", type: "select", options:timeList, disabled: viewSegment ?? false, required: false, col: 6, value: activityDetail.time_end ?? "" },
     { label: "Location", name: "location_address", type: "location", disabled: viewSegment ?? false, required: false, col: 24, value: activityDetail.location_address ?? "", iconSrc: "/img/icons/location.png", iconPosition: "left" },
@@ -302,21 +302,30 @@ export default function CreateActivity() {
   const setupDealer = async (value) => {
     activityDetail.user_id = value;
     const [dealer] = await Promise.all([
-      useServiceAPI.get(paths.pathMasterDealerDropdown, {
+      useServiceAPI.get(paths.pathMasterSubDealerAll, {
         user_id: value
       }),
     ]);
-    setDealerList(dealer.data);
+    let subDealerAll = [];
+    await dealer.data.forEach(element => {
+      subDealerAll.push({
+        'id': element.sub_dealer_id,
+        'name': element.sub_dealer_name,
+      });
+    });
+    console.log(subDealerAll);
+    
+    setDealerList((prevList) => [...prevList, ...subDealerAll]);
   }
 
   const setupCropAndDealerCustomer = async (value) => {
     activityDetail.dealer_id = value;
     const [crop, dealerCustomerData] = await Promise.all([
-      useServiceAPI.get(paths.pathMasterCrop, {
-        dealer_id: value
+      useServiceAPI.get(paths.pathMasterSubDealerCrop, {
+        sub_dealer_id: value
       }),
-      useServiceAPI.get(paths.pathMasterDealerCustomer, {
-        delaer_id: value
+      useServiceAPI.get(paths.pathMasterSubDealerCustomer, {
+        sub_delaer_id: value
       }),
     ]);
     setCropList(crop.data);
