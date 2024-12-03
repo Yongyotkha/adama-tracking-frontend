@@ -90,13 +90,13 @@ export default function CreateSubDealer() {
       name: "day_of_week",
       type: "multiple",
       options: [
-        { name: "Monday", id: 1, selected: true },
-        { name: "Tuesday", id: 2, selected: false },
-        { name: "Wednesday", id: 3, selected: false },
-        { name: "Thursday", id: 4, selected: false },
-        { name: "Friday", id: 5, selected: false },
-        { name: "Saturday", id: 6, selected: false },
-        { name: "Sunday", id: 7, selected: false },
+        { name: "Monday", id: "Monday", selected: true },
+        { name: "Tuesday", id: "Tuesday", selected: false },
+        { name: "Wednesday", id: "Wednesday", selected: false },
+        { name: "Thursday", id: "Thursday", selected: false },
+        { name: "Friday", id: "Friday", selected: false },
+        { name: "Saturday", id: "Saturday", selected: false },
+        { name: "Sunday", id: "Sunday", selected: false },
       ],
       required: false,
       col: 6,
@@ -261,12 +261,10 @@ export default function CreateSubDealer() {
           mobile_phone: values.mobile_phone || "",
           address: values.address || "",
           email: values.email || "",
-          day_of_week: "",
-          // start_time: values.start_time || "",
+          day_of_week: values.day_of_week ,
           start_time: values.start_time
           ? dayjs(values.start_time).format("HH:mm")
           : "",
-          // end_time: values.end_time || "",
           end_time: values.end_time
           ? dayjs(values.end_time).format("HH:mm")
           : "",
