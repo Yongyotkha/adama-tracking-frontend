@@ -929,15 +929,8 @@ export default function CreateActivity() {
 
       <div className="flex justify-end space-x-4 mt-6">
         <ActionButton mode="back" text="Back" onClick={() => navigate(menuURL)} />
-        {
-          viewSegment ? 
-            null
-          : 
-          (
-            pageCode == 'expense_advance' ? (<ActionButton mode="saveDraft" text="Convert to Clearing" onClick={() => handleSave('convert')} />) : null
-          )
-          (<ActionButton mode="save" text="Save" onClick={() => handleSave('default') } />)
-        }
+        {viewSegment ? null : (pageCode == 'expense_advance' ? (<ActionButton mode="saveDraft" text="Convert to Clearing" onClick={() => handleSave('convert')} />) : null)}
+        {viewSegment ? null : (<ActionButton mode="save" text="Save" onClick={() => handleSave('default') } />)}
       </div>
 
       {/* Modal for Add Participant */}

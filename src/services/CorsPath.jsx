@@ -26,7 +26,10 @@ export const paths = {
   pathMasterProductByCrop: "master/product-by-crop",
   pathMasterSaleAll: "master/sale-all/list",
   pathMasterDealerCustomer: "master/dealer/customer",
-  pathMasterSubDealer: "master/sub-dealer",
+  pathMasterSubDealer: "master/sub-dealer", 
+  pathMasterSubDealerAll: "master/sub-dealer-all",
+  pathMasterSubDealerCrop: "master/sub-dealer-crop",
+  pathMasterSubDealerCustomer: "master/sub-dealer-customer",
   pathMasterPermission: "master/permission",
 
   // pathMasterShop: "master/shop",
