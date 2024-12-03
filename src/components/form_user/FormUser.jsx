@@ -150,7 +150,8 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
                 ) : field.type === "picture" || field.type === "image" ? (
                   <div className="image-upload-container flex items-center gap-3">
                     <img
-                      src={imagePreview}
+                      // src={imagePreview}
+                      src={field.value || imagePreview}
                       alt="Profile"
                       onClick={() =>
                         document.getElementById(`imageUpload-${index}`).click()
