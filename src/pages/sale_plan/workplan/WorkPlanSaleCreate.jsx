@@ -461,7 +461,7 @@ export default function WorkPlanSaleCreate() {
     // }
   };
 
-  const createPlan = async () => {
+  const createPlan = async (mode) => {
     setLoading(true); // เริ่มโหลดข้อมูล
 
     // อัพเดตข้อมูล quarter ด้วยข้อมูลใน localQtyState
