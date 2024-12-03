@@ -22,13 +22,12 @@ export const paths = {
   pathMasterProductTypes: "master/product-types",
   pathMasterProductGroups: "master/product-groups",
   pathMasterProductCategorys: "master/product-categorys",
-  
+
   pathMasterProductByCrop: "master/product-by-crop",
   pathMasterSaleAll: "master/sale-all/list",
   pathMasterDealerCustomer: "master/dealer/customer",
   pathMasterSubDealer: "master/sub-dealer",
   pathMasterPermission: "master/permission",
-  
 
   // pathMasterShop: "master/shop",
   pathMasterStatus: "master/status",
@@ -38,28 +37,25 @@ export const paths = {
   pathMasterMonths: "master/months",
   pathMasterYear: "master/years",
   pathMasterPerception: "master/perception",
-  
 
   //Products
   pathSaleManagementProductsList: "products-management/list",
   pathSaleManagementProductsDetail: "products-management/detail",
   pathSaleManagementProductsUpdate: "products-management/update",
-  
+
   //Dealer
   pathCustomerDealer: "sale-customer-dealer/list",
   pathCustomerDealerDetail: "sale-customer-dealer/detail",
   pathCustomerSubDealerList: "sale-customer-subdealer/list",
   pathCustomerSubDealerUpdate: "sale-customer-dealer/update",
-  pathCustomerSubDealerNetworkUpdate : "sale-customer-dealer/network-create",
-  
+  pathCustomerSubDealerNetworkUpdate: "sale-customer-dealer/network-create",
+
   //SubDealer
   pathCreateSubDealer: "sale-customer-subdealer/create",
   pathDeleteSubDealer: "sale-customer-subdealer/delete",
   pathSubDealerDetail: "sale-customer-subdealer/detail",
   pathSubDealerDetailUpdate: "sale-customer-subdealer/update",
 
-
-  
   // Sale
   pathSaleManagementDetail: "sale-management/sale-team/detail",
   pathSaleManagementCreate: "sale-management/sale-team/items/create",
@@ -103,12 +99,15 @@ export const paths = {
   pathPromotioncreate: "promotion-management/create",
   pathPromotiondelete: "promotion-management/delete",
 
-
   //Sale
   pathSaleManagementlist: "sale-management/list",
 
   // upload
   pathUpload: "upload/create",
+
+  // master select plan
+
+  pathMasterWorkPlan: "master/plan-select",
 
   //head plan
   pathGetWorkPlanList: "work-plan/list",
@@ -118,7 +117,7 @@ export const paths = {
   //area plan
   pathGetWorkPlanAreaList: "/work-plan/area/list",
   pathWorkPlanAreaStep1: "/work-plan/area/workplan_step1",
-  
+
   //sale plan
   pathGetWorkPlanSaleList: "/work-plan/sale/list",
   pathWorkPlanSaleQuarter: "/work-plan/sale/quarter",
@@ -146,7 +145,7 @@ export const paths = {
   pathActivityCalendarList: "/activity/calendar/list",
   // Activity Mapping
   pathActivityMapList: "/activity/map/list",
-  
+
   // Orders
   pathGetOrderList: "order/list",
   pathGetOrderCreate: "order/create",
@@ -160,5 +159,4 @@ export const paths = {
   pathGetExpenseTravelingDetail: "expense/traveling/detail",
   pathGetExpenseTravelingCreate: "expense/traveling/detail",
   pathGetExpenseTravelingUpdate: "expense/traveling/detail",
-
 };

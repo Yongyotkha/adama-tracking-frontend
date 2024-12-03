@@ -20,7 +20,6 @@ export default function RollingForecast() {
   const [years, setYears] = useState([]);
   const [sale, setSale] = useState([]);
   const [defaultOption, setDefaultOption] = useState(null);
-  const [pathName, setPathName] = useState([]);
   const { showNotification } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
     pagination: {
@@ -353,6 +352,7 @@ export default function RollingForecast() {
         <div className="title-page">Rolling Forecast</div>
         <Select
           showSearch
+          allowClear
           style={{
             width: 200,
           }}

@@ -41,8 +41,6 @@ export default function CreateUser() {
             useServiceAPI.get(paths.pathMasterRoles, {}),
             useServiceAPI.get(paths.pathMasterRoles, {}),
             useServiceAPI.get(paths.pathMasterPermission, {}),
-
-            
           ]);
 
         setPosition(positions.data);
@@ -89,7 +87,6 @@ export default function CreateUser() {
               showNotification("error",error.response.data.data.message);
             } else if (error.status == 500) {
               showNotification("error",error.response.data.data.message);
-              
             } else {
               showNotification("error", "เกิดข้อผิดพลาด");
             }
@@ -186,7 +183,7 @@ export default function CreateUser() {
       options: areas,
     },
     {
-      label: "Role",
+      label: "Permission",
       name: "role_id",
       type: "select",
       required: true,

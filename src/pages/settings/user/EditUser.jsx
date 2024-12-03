@@ -187,15 +187,15 @@ export default function EditUser() {
       options: roles,
       value: parseInt(userinfo.role_id, 10),
     },
-    // {
-    //   label: "Permission",
-    //   name: "permission",
-    //   type: "select",
-    //   required: false,
-    //   col: 6,
-    //   options: permission ,
-    //   // value: parseInt(userinfo.permission_id, 10),
-    // },
+    {
+      label: "Permission",
+      name: "permission",
+      type: "select",
+      required: false,
+      col: 6,
+      options: permission ,
+      // value: parseInt(userinfo.permission_id, 10),
+    },
     {
       label: "Date of Joining",
       name: "date_of_joining",
@@ -275,7 +275,7 @@ export default function EditUser() {
       {dataLoaded ? (
         <FormUser profile={profileImage} fields={updatedFields} form={form} />
       ) : (
-        <div>Loading data...</div>
+        <div></div>
       )}
 
       <div className="flex justify-end space-x-4">

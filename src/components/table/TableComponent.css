@@ -5,40 +5,24 @@
   content: none !important;
 }
 
-.ant-table-wrapper
-  .ant-table-thead
-  > tr
-  > th,
-.ant-table-wrapper
-  .ant-table-thead
-  > tr
-  > td {
+.ant-table-wrapper .ant-table-thead > tr > th,
+.ant-table-wrapper .ant-table-thead > tr > td {
   border-bottom: none !important; /* Override the border-bottom */
-
-
 }
 
-.ant-table-wrapper
-  .ant-table-summary
-  > tr
-  > td {
+.ant-table-wrapper .ant-table-summary > tr > td {
   background-color: #978b87 !important;
   color: white;
 }
 
-.ant-table-wrapper
-  .ant-table-summary
-  > tr
-  > th,
-.ant-table-wrapper
-  .ant-table-summary
-  > tr
-  > td {
+.ant-table-wrapper .ant-table-summary > tr > th,
+.ant-table-wrapper .ant-table-summary > tr > td {
   border-bottom: 1px solid #f0f0f0;
   background-color: #978b87 !important;
-
 }
 
-.ant-table-wrapper .ant-table-thead >tr>th, .ant-table-wrapper .ant-table-thead >tr>td {
+.ant-table-wrapper .ant-table-thead > tr > th,
+.ant-table-wrapper .ant-table-thead > tr > td {
   border-bottom: unset;
 }
+

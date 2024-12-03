@@ -220,7 +220,7 @@ export default function WorkPlanAreaCreate() {
                   title: "Original Plan",
                   dataIndex: "qty",
                   key: "original_plan_qty",
-                  width: 200,
+                  width: 150,
                   fixed: "left",
                   render: (text, record) => (
                     <InputNumber
@@ -238,7 +238,7 @@ export default function WorkPlanAreaCreate() {
                   title: "Value (THB)",
                   dataIndex: "value",
                   key: "value_thb",
-                  width: 200,
+                  width: 150,
                   fixed: "left",
                   render: (text, record) => (
                     <InputNumber
@@ -293,7 +293,7 @@ export default function WorkPlanAreaCreate() {
                   title: "Qty (KG)",
                   dataIndex: `qty_${item.user_id}`,
                   key: `qty_${item.user_id}`,
-                  width: 200,
+                  width: 150,
                   render: (_, record) => {
                     const localData = localQtyState[item.user_id]?.[
                       record.product_id
@@ -324,7 +324,7 @@ export default function WorkPlanAreaCreate() {
                   title: "Value (THB)",
                   dataIndex: `value_${item.user_id}`,
                   key: `value_${item.user_id}`,
-                  width: 200,
+                  width: 150,
                   render: (_, record) => {
                     const localData = localQtyState[item.user_id]?.[
                       record.product_id
@@ -336,7 +336,7 @@ export default function WorkPlanAreaCreate() {
                         className="w-full"
                         value={parseFloat(localData.value).toFixed(2)}
                         formatter={(value) =>
-                          `฿ ${Number(value).toFixed(2)}`.replace(
+                          `${Number(value).toFixed(2)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )

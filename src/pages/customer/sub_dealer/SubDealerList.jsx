@@ -16,6 +16,7 @@ export default function SubDealerList() {
   const [dataSource, setDataSource] = useState([]);
   const navigate = useNavigate();
   const [tableLoading, setTableLoading] = useState(false);
+  const [Status, setStatus] = useState([]);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -26,12 +27,41 @@ export default function SubDealerList() {
     sortField: null,
   });
 
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [dataStatus] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterStatus, {
+            status_type: "status",
+          }),
+        ]);
+        
+        const Status = [];
+        dataStatus.data.map((data, index) => {
+          Status.push({ 
+            id: data.code, 
+            name: data.name, 
+          });
+        });
+        
+        setStatus(Status);
 
+        setPosition(producttype.data);
+        setRoles(roles.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+    getMaster();
+  }, []);
 
 
   const filters = [
     {
-      key: "sub_dealer",
+      key: "keyword",
       type: "text",
       label: "Sub Dealer",
       placeholder: "All",
@@ -43,21 +73,17 @@ export default function SubDealerList() {
       placeholder: "All",
     },
     {
-      key: "phone",
+      key: "contact_phone_number",
       type: "text",
       label: "Phone",
       placeholder: "Phone",
     },
     {
-      key: "status",
+      key: "use_flag",
       type: 'select',
       label: "Status",
       placeholder: "All",
-      options: [
-        { value: 'Active', label: 'Active' },
-        { value: 'Inactive', label: 'Inactive' },
-        { value: 'Pending', label: 'Pending' },
-      ],
+      options: Status,
     },
   ];
 
@@ -75,11 +101,11 @@ export default function SubDealerList() {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
-
-
     const requestData = {
       keyword: filters.keyword || "",
       use_flag: filters.use_flag || "",
+      contact_phone_number: filters.contact_phone_number || "",
+      contact_name: filters.contact_name || "",
       page_length: current,
       page_size: pageSize,
     };
@@ -192,13 +218,29 @@ export default function SubDealerList() {
 
 
 
-  const handleSearch = (filter) => {
-    console.log("Search filters applied:", filter);
+  const handleSearch = (filters) => {
+    setTableParams({
+      ...tableParams,
+      pagination: {
+        ...tableParams.pagination,
+        current: 1, // Reset current page to 1
+        pageSize: 10, // Ensure the page size is set to 10
+      },
+      filters: {
+        ...filters,
+        page_length: 1, // Set default page_length
+        page_size: 10,  // Set default page_size
+      },
+    });
   };
 
   const handleClear = () => {
-    console.log("Filters cleared");
+    setTableParams({
+      ...tableParams,
+      filters: {},
+    });
   };
+
 
   const actionItems = [
     { key: "1", label: <ItemDropDown mode="edit" link="/customer/sub-dealer/edit" /> },

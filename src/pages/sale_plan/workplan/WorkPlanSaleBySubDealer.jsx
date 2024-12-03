@@ -259,6 +259,7 @@ export default function WorkPlanSaleBySubDealer() {
           title: "Qty (KG)",
           dataIndex: `qty-${dealerItem.sub_dealer_id}`,
           key: `qty-${dealerItem.sub_dealer_id}`,
+          width: 150,
           onHeaderCell: () => ({
             style: {
               backgroundColor: index % 2 === 1 ? "#00783F" : "#009845",
@@ -316,6 +317,7 @@ export default function WorkPlanSaleBySubDealer() {
           title: "Value (THB)",
           dataIndex: `value-${dealerItem.sub_dealer_id}`,
           key: `value-${dealerItem.sub_dealer_id}`,
+          width: 150,
           onHeaderCell: () => ({
             style: {
               backgroundColor:

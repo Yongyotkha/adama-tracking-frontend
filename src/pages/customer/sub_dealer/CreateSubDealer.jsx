@@ -63,14 +63,13 @@ export default function CreateSubDealer() {
     fetchData();
   }, []);
 
-  const formFields = [
+  const [formFields, setFormFields] = useState([
     {
       label: "Shop Name",
       name: "shop_name",
       type: "text",
-      required: false,
+      required: true,
       col: 6,
-      // value: "",
     },
     {
       label: "Mobile Phone",
@@ -78,7 +77,6 @@ export default function CreateSubDealer() {
       type: "text",
       required: false,
       col: 6,
-      // value: "4124214",
     },
     {
       label: "Address",
@@ -86,48 +84,29 @@ export default function CreateSubDealer() {
       type: "text",
       required: false,
       col: 12,
-      // value: "",
     },
     {
       label: "Office Hours",
-      name: "office_hours",
+      name: "day_of_week",
       type: "multiple",
       options: [
         { name: "Monday", id: 1, selected: true },
-        { name: "Tuesday", id: 0, selected: false },
-        { name: "Wednesday", id: 0, selected: false },
-        { name: "Thursday", id: 0, selected: false },
-        { name: "Friday", id: 0, selected: false },
-        { name: "Saturday", id: 0, selected: false },
-        { name: "Sunday", id: 0, selected: false },
+        { name: "Tuesday", id: 2, selected: false },
+        { name: "Wednesday", id: 3, selected: false },
+        { name: "Thursday", id: 4, selected: false },
+        { name: "Friday", id: 5, selected: false },
+        { name: "Saturday", id: 6, selected: false },
+        { name: "Sunday", id: 7, selected: false },
       ],
       required: false,
       col: 6,
       iconSrc: "/img/icons/calendar.png",
       iconPosition: "right",
     },
-    // {
-    //   label: "Office Hours",
-    //   name: "office_hours",
-    //   type: "select",
-    //   required: true,
-    //   col: 6,
-    //   iconSrc: "/img/icons/calendar.png",
-    //   iconPosition: "right",
-    //   options: [
-    //     { name: "Monday", id: 1, selected: true },
-    //     { name: "Tuesday", id: 0, selected: false },
-    //     { name: "Wednesday", id: 0, selected: false },
-    //     { name: "Thursday", id: 0, selected: false },
-    //     { name: "Friday", id: 0, selected: false },
-    //     { name: "Saturday", id: 0, selected: false },
-    //     { name: "Sunday", id: 0, selected: false },
-    //   ],
-    // },
     {
       label: "Start Time",
       name: "start_time",
-      type: "time", // ใช้ type "time"
+      type: "time",
       required: false,
       col: 6,
       value: null,
@@ -135,7 +114,7 @@ export default function CreateSubDealer() {
     {
       label: "End Time",
       name: "end_time",
-      type: "time",      
+      type: "time",
       required: false,
       col: 6,
       value: "",
@@ -152,7 +131,6 @@ export default function CreateSubDealer() {
         { name: "Large", id: "Large", selected: false },
       ],
     },
-
     {
       label: "Email",
       name: "email",
@@ -195,12 +173,9 @@ export default function CreateSubDealer() {
       col: 24,
       value: "",
     },
-  ];
+  ]);
 
-  // // Mock crop data for the multi-select dropdown
-  // const cropOptions = [
-  //   "Rice", "Wheat", "Corn", "Soybean", "Cotton", "Barley", "Sugarcane", "Potato", "Tomato", "Lettuce"
-  // ];
+  
 
   const transformedCropOptions = cropOptions.map((option) => ({
     label: option.name, // เปลี่ยนจาก name เป็น label
@@ -287,8 +262,14 @@ export default function CreateSubDealer() {
           address: values.address || "",
           email: values.email || "",
           day_of_week: "",
-          start_time: values.start_time || "",
-          end_time: values.end_time || "",
+          // start_time: values.start_time || "",
+          start_time: values.start_time
+          ? dayjs(values.start_time).format("HH:mm")
+          : "",
+          // end_time: values.end_time || "",
+          end_time: values.end_time
+          ? dayjs(values.end_time).format("HH:mm")
+          : "",
           business_size: values.business_size || "",
           outlet_location: values.outlet_location || "",
           t_shirt_size: values.tshirt_size || "",
@@ -342,10 +323,6 @@ export default function CreateSubDealer() {
         showNotification("error", "Please complete all required fields.");
       });
   };
-  
-
-  
-  
   
   useEffect(() => {
     console.log(defaultSelectedCrops)

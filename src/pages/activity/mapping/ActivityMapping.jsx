@@ -18,127 +18,139 @@ export default function ActivityMapping() {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(null);
   const [isFilterCollapsed, setIsFilterCollapsed] = useState(false); // Manage vertical collapse state
-  const [checkedFilters, setCheckedFilters] = useState({}); // Manage checked state for all filters
-  const [isAllChecked, setIsAllChecked] = useState(false);
+  // const [checkedFilters, setCheckedFilters] = useState({}); // Manage checked state for all filters
+  // const [isAllChecked, setIsAllChecked] = useState(true);
 
-  const [dataApiKey, setDataApiKay] = useState("AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik");
+  const [dataApiKey, setDataApiKay] = useState(
+    "AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik"
+  );
 
+  const [locations, setLocations] = useState([]);
+  const [locationForChange, setLocationForChange] = useState([]);
   const [dataMapZoom, setDataMapZoom] = useState(10);
   const [dataMapping, setDataMapping] = useState([]);
-  const [locations, setLocations] = useState([]);
   const [activityType, setActivityType] = useState([]);
   const [dataDealer, setDataDealer] = useState([]);
   const [dataSubDealer, setDataSubDealer] = useState([]);
   const [dataterritory, setDataTerritory] = useState([]);
   const [dataArea, setDataArea] = useState([]);
   const [dataYear, setDataYear] = useState([]);
-  const [currentLocation, setCurrentLocation] = useState({ lat: 0.00, lng: 0.00 });
+  const [currentLocation, setCurrentLocation] = useState({
+    lat: 0.0,
+    lng: 0.0,
+  });
   const [currentLocationAddress, setCurrentLocationAddress] = useState("");
 
   const [searchOptions, setSearchOptions] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
+  const [filteredData, setFilteredData] = useState("");
 
   // Fetch Data
   useEffect(() => {
-    const loadDataMappingList = async () => {
-      setLoading(true);
-      try {
-        const [mapping, activity, dealers, areas, years] = await Promise.all([
-          useServiceAPI.get(paths.pathActivityMapList, {
-            keyword: "",
-          }),
-          useServiceAPI.get(paths.pathMasterActivityType, {
-            status: "",
-          }),
-          useServiceAPI.get(paths.pathMasterDealerAll, {}),
-          useServiceAPI.get(paths.pathMasterAreas, {}),
-          useServiceAPI.get(paths.pathMasterYear, {}),
-        ]);
+    if (isAllChecked) {
 
-        // Mapping Detail
-        setDataMapping(mapping.data);
+      const loadDataMappingList = async () => {
+        setLoading(true);
+        try {
+          const [mapping, activity, dealers, areas, years] = await Promise.all([
+            useServiceAPI.get(paths.pathActivityMapList, {
+              keyword: "",
+            }),
+            useServiceAPI.get(paths.pathMasterActivityType, {
+              status: "",
+            }),
+            useServiceAPI.get(paths.pathMasterDealerAll, {}),
+            useServiceAPI.get(paths.pathMasterAreas, {}),
+            useServiceAPI.get(paths.pathMasterYear, {}),
+          ]);
 
-        // Set Locations
-        setLocations(
-          mapping.data.map((data, index) => ({
-            key: locations.length + 1,
-            id: locations.length + 1,
-            document_number: data.document_number,
-            title: data.activity_type_name,
-            lat: parseFloat(data.location_latitude),
-            lng: parseFloat(data.location_longitude),
-            details: data.location_address,
-            activity_type_id: data.activity_type_id,
-            activity_type_name: data.activity_type_name,
-            dealer_id: data.dealer_id,
-            dealer_name: data.dealer_name,
-            area_id: data.area_id,
-            area_name: data.area_name,
-            year: data.year,
-          }))
-        );
+          // Mapping Detail
+          setDataMapping(mapping.data);
 
-        setActivityType(
-          activity.data
-            .filter(
-              (value, index, self) =>
-                self.findIndex((item) => item.name === value.name) === index
-            )
-            .map((data, index) => ({
-              key: index,
-              id: index,
-              name: data.name,
+          // Set Locations
+          setLocations(
+            mapping.data.map((data, index) => ({
+              key: locations.length + 1,
+              id: locations.length + 1,
+              document_number: data.document_number,
+              title: data.activity_type_name,
+              lat: parseFloat(data.location_latitude),
+              lng: parseFloat(data.location_longitude),
+              details: data.location_address,
+              activity_type_id: data.activity_type_id,
+              activity_type_name: data.activity_type_name,
+              dealer_id: data.dealer_id,
+              dealer_name: data.dealer_name,
+              area_id: data.area_id,
+              area_name: data.area_name,
+              year: data.year,
             }))
-        );
+          );
 
-        setDataDealer(
-          dealers.data
-            .filter(
-              (value, index, self) =>
-                self.findIndex((item) => item.name === value.name) === index
-            )
-            .map((data, index) => ({
-              key: index,
-              id: index,
-              name: data.name,
-            }))
-        );
+          setActivityType(
+            activity.data
+              .filter(
+                (value, index, self) =>
+                  self.findIndex((item) => item.name === value.name) === index
+              )
+              .map((data, index) => ({
+                key: index,
+                id: index,
+                name: data.name,
+              }))
+          );
 
-        setDataArea(
-          areas.data
-            .filter(
-              (value, index, self) =>
-                self.findIndex((item) => item.name === value.name) === index
-            )
-            .map((data, index) => ({
-              key: index,
-              id: index,
-              name: data.name,
-            }))
-        );
+          setDataDealer(
+            dealers.data
+              .filter(
+                (value, index, self) =>
+                  self.findIndex((item) => item.name === value.name) === index
+              )
+              .map((data, index) => ({
+                key: index,
+                id: index,
+                name: data.name,
+              }))
+          );
 
-        setDataYear(
-          years.data
-            .filter(
-              (value, index, self) =>
-                self.findIndex((item) => item.name === value.name) === index
-            )
-            .map((data, index) => ({
-              key: index,
-              id: index,
-              name: data.name,
-            }))
-        );
+          setDataArea(
+            areas.data
+              .filter(
+                (value, index, self) =>
+                  self.findIndex((item) => item.name === value.name) === index
+              )
+              .map((data, index) => ({
+                key: index,
+                id: index,
+                name: data.name,
+              }))
+          );
 
-      } catch (error) {
-        // showMsg("error", error.message || "เกิดข้อผิดพลาด");
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+          setDataYear(
+            years.data
+              .filter(
+                (value, index, self) =>
+                  self.findIndex((item) => item.name === value.name) === index
+              )
+              .map((data, index) => ({
+                key: index,
+                id: index,
+                name: data.name,
+              }))
+          );
+        } catch (error) {
+          // showMsg("error", error.message || "เกิดข้อผิดพลาด");
+          console.log(error);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    loadDataMappingList();
+      loadDataMappingList();
+
+    } else {
+      // เมื่อไม่มี filter ถูกเลือก ให้ล้างข้อมูล
+      setLocations([]);
+    }
   }, []);
 
   const { Content } = Layout;
@@ -150,42 +162,72 @@ export default function ActivityMapping() {
   };
 
   // Mock data for filter categories
-  // const mockFilters = {
-  //   "Activity Type": activityType,
-  //   Dealer: dataDealer,
-  //   // "Sub Dealer": dataSubDealer,
-  //   // Territory: dataterritory,
-  //   Area: dataArea,
-  //   Year: dataYear,
-  // };
-
-  // After
   const mockFilters = [
     {
       key: 1,
-      filter_type: 'activity_type',
-      filter_type_name: 'Activity Type',
-      data: activityType
+      filter_type: "activity_type",
+      filter_type_name: "Activity Type",
+      data: activityType,
     },
     {
       key: 2,
-      filter_type: 'dealer',
-      filter_type_name: 'Dealer',
-      data: dataDealer
+      filter_type: "dealer",
+      filter_type_name: "Dealer",
+      data: dataDealer,
     },
     {
       key: 3,
-      filter_type: 'area',
-      filter_type_name: 'Area',
-      data: dataArea
+      filter_type: "area",
+      filter_type_name: "Area",
+      data: dataArea,
     },
     {
       key: 4,
-      filter_type: 'year',
-      filter_type_name: 'Year',
-      data: dataYear
+      filter_type: "year",
+      filter_type_name: "Year",
+      data: dataYear,
     },
   ];
+
+  // สร้างค่าเริ่มต้นของ checkedFilters จาก mockFilters
+  const getDefaultFilters = () => {
+    const defaultFilters = {};
+    mockFilters.forEach((filterItem) => {
+      defaultFilters[filterItem.filter_type] = filterItem.data.map(
+        (item) => item.id
+      );
+    });
+    return defaultFilters;
+  };
+
+  const [checkedFilters, setCheckedFilters] = useState(getDefaultFilters()); // ตั้งค่าตอนเริ่มต้น
+  const [isAllChecked, setIsAllChecked] = useState(true); // ตรวจสอบ "All" checkbox is selected by default
+
+  // ฟังก์ชันสำหรับการเลือกหรือยกเลิกเลือกทั้งหมด
+  const toggleAll = (isChecked) => {
+    const updatedFilters = {};
+
+    if (isChecked) {
+      // เลือกทั้งหมด
+      mockFilters.forEach((filterItem) => {
+        updatedFilters[filterItem.filter_type] = filterItem.data.map(
+          (item) => item.id
+        );
+      });
+    } else {
+      // ยกเลิกทั้งหมด
+      mockFilters.forEach((filterItem) => {
+        updatedFilters[filterItem.filter_type] = [];
+      });
+    }
+
+    setCheckedFilters(updatedFilters);
+    setIsAllChecked(isChecked); // กำหนดสถานะของ "Check All" ให้ตรงกับตัวเลือก
+  };
+
+  useEffect(() => {
+    setCheckedFilters(getDefaultFilters());
+  }, []);
 
   // Initialize all checkboxes as selected on page load
   useEffect(() => {
@@ -200,7 +242,7 @@ export default function ActivityMapping() {
             // ดึงข้อมูลที่อยู่จาก Google Maps Geocoding API
             const fetchedAddress = await fetchAddress(lat, lng);
             setCurrentLocationAddress(fetchedAddress);
-          }
+          };
           fetchCurrentLocation();
 
           const getCurrentLocation = {
@@ -216,13 +258,12 @@ export default function ActivityMapping() {
           // Set State: ตำแหน่งปัจจุบัน
           setCurrentLocation(getCurrentLocation);
           // Set State: ตำแหน่งปัจจุบันและ Marker
-          setLocations((prev) => [...prev, getCurrentLocation]);
+          // setLocations((prev) => [...prev, getCurrentLocation]);
         },
         (error) => {
           console.error("Error getting current location:", error);
         }
       );
-
     }
 
     const initialCheckedFilters = {};
@@ -259,51 +300,16 @@ export default function ActivityMapping() {
     }
   };
 
-  // Toggle a specific checkbox
-  const toggleCheckbox = (category, item) => {
-    console.log(category);
-    console.log(item);
-    return;
-    
-    // setCheckedFilters((prev) => ({
-    //   ...prev,
-    //   [category]: {
-    //     ...prev[category],
-    //     [item]: !prev[category][item],
-    //   },
-    // }));
-    setCheckedFilters((prev) => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        [item]: !prev[category][item],
-      },
-    }));
-    console.log(checkedFilters);
-  };
 
-  // ฟังก์ชันสำหรับการเลือกหรือยกเลิกเลือกทั้งหมด
-  const toggleAll = (isChecked) => {
-    const updatedFilters = {};
-
-    mockFilters.forEach((filterItem) => {
-      updatedFilters[filterItem.filter_type] = isChecked
-        ? filterItem.data.map((item) => item.id) // เลือกทั้งหมด
-        : []; // ยกเลิกทั้งหมด
-    });
-
-    setCheckedFilters(updatedFilters);
-    setIsAllChecked(isChecked); // กำหนดสถานะของ "Check All" ให้ตรงกับตัวเลือก
-  };
-
+  // ฟังก์ชันสำหรับการเลือก filter เฉพาะ
   const handleCheckboxChange = (filterType, id) => {
     setCheckedFilters((prevState) => {
       const newFilters = { ...prevState };
-
+  
       if (!newFilters[filterType]) {
         newFilters[filterType] = [];
       }
-
+  
       if (newFilters[filterType].includes(id)) {
         // Remove the item if it's already checked
         newFilters[filterType] = newFilters[filterType].filter((i) => i !== id);
@@ -311,7 +317,7 @@ export default function ActivityMapping() {
         // Add the item to the checked filter
         newFilters[filterType].push(id);
       }
-      
+  
       return newFilters;
     });
   };
@@ -325,41 +331,81 @@ export default function ActivityMapping() {
     });
 
     setIsAllChecked(allFiltersSelected); // ถ้าทุกตัวเลือกถูกเลือก ก็จะเป็น true
-    console.log(checkedFilters);
-
-    // ตรวจสอบ `mockFilters` ที่มี `filter_type` เป็น `activity_type`
-    // const activityFilter = mockFilters.find(
-    //   (filter) => filter.filter_type === "activity_type"
-    // );
-
-    // if (activityFilter) {
-    //   const selectedActivities = activityFilter.data.filter((item) =>
-    //     checkedFilters["activity_type"]?.includes(item.id)
-    //   );
-
-    //   if (selectedActivities.length > 0) {
-    //     setLocations((prevLocations) => {
-          
-          
-    //       const filteredLocations = prevLocations.filter((location) =>
-    //         selectedActivities.some(
-    //           (activity) => parseInt(activity.id) == (location.activity_type_id)
-    //         )
-    //       );
-
-    //       // ตรวจสอบว่าข้อมูลเปลี่ยนแปลงก่อนอัปเดต State
-    //       if (
-    //         JSON.stringify(filteredLocations) !== JSON.stringify(prevLocations)
-    //       ) {
-    //         return filteredLocations;
-    //       }
-
-    //       return prevLocations; // ถ้าข้อมูลเหมือนเดิมไม่ต้องอัปเดต
-    //     });
-    //   }
-    // }
-
   }, [checkedFilters]);
+
+  // Set New Marker
+  useEffect(() => {
+    if (checkedFilters != null) {
+      const loadDataMappingList = async () => {
+        setLoading(true);
+        try {
+          const activityType =
+            Array.isArray(checkedFilters.activity_type) &&
+              checkedFilters.activity_type.length > 0
+              ? checkedFilters.activity_type
+              : [];
+          const dealer =
+            Array.isArray(checkedFilters.dealer) &&
+              checkedFilters.dealer.length > 0
+              ? checkedFilters.dealer
+              : [];
+          const area =
+            Array.isArray(checkedFilters.area) && checkedFilters.area.length > 0
+              ? checkedFilters.area
+              : [];
+          const year =
+            Array.isArray(checkedFilters.year) && checkedFilters.year.length > 0
+              ? checkedFilters.year
+              : [];
+
+          const [mapping] = await Promise.all([
+            useServiceAPI.get(paths.pathActivityMapList, {
+              keyword: "",
+              activity_type: activityType,
+              dealer: dealer,
+              area: area,
+              year: year,
+            }),
+          ]);
+
+          // Mapping Detail
+          setDataMapping(mapping.data);
+
+          // Set Locations
+          setLocations(
+            mapping.data.map((data, index) => ({
+              key: locations.length + 1,
+              id: locations.length + 1,
+              document_number: data.document_number,
+              title: data.activity_type_name,
+              lat: parseFloat(data.location_latitude),
+              lng: parseFloat(data.location_longitude),
+              details: data.location_address,
+              activity_type_id: data.activity_type_id,
+              activity_type_name: data.activity_type_name,
+              dealer_id: data.dealer_id,
+              dealer_name: data.dealer_name,
+              area_id: data.area_id,
+              area_name: data.area_name,
+              year: data.year,
+            }))
+          );
+        } catch (error) {
+          // showMsg("error", error.message || "เกิดข้อผิดพลาด");
+          console.log(error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadDataMappingList();
+    }
+  }, [checkedFilters]);
+
+
+  useEffect(() => {
+    console.log(locations);
+  }, [locations]);
 
   const handleSearch = (text) => {
     if (text) {
@@ -387,20 +433,15 @@ export default function ActivityMapping() {
     setDataMapZoom(15); // Set a higher zoom level for focusing
   };
 
-  // const isAllChecked = Object.keys(checkedFilters).every((category) =>
-  //   Object.values(checkedFilters[category] || {}).every(Boolean)
-  // );
-
   return (
     <MainLayout loading={loading}>
       <Layout>
         {/* Filter Section */}
         <div
-          className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${isFilterCollapsed ? "max-h-12" : "max-h-auto"
+          className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${isFilterCollapsed ? "max-h-12" : "max-h-[600px] overflow-y-auto"
             }`}
           style={{ width: "300px" }}
         >
-
           <div className="flex justify-between items-center px-4 py-2 border-b">
             <div className="flex items-center gap-2">
               <img
@@ -424,7 +465,7 @@ export default function ActivityMapping() {
               onSearch={handleSearch}
               onSelect={handleSelect} // Trigger when a location is selected
               className="w-full rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
             />
           </div>
 
@@ -441,6 +482,7 @@ export default function ActivityMapping() {
               >
                 All
               </Checkbox>
+
               <Tooltip title="Reload data" placement="bottom">
                 <img
                   src="/img/icons/reload.png"
@@ -451,36 +493,28 @@ export default function ActivityMapping() {
             </div>
 
             {/* Collapsible Filter Categories */}
-            {/* <Collapse defaultActiveKey={["Activity Type"]} className="rounded-lg border-0">
-              {Object.keys(mockFilters).map((category, categoryKey) => (
-                <Panel header={category} key={categoryKey} className="custom-collapse">
-                  <div className="flex flex-col space-y-2">
-                    {mockFilters[category].map((item, itemKey) => (
-                      <Checkbox
-                        key={itemKey}
-                        checked={checkedFilters[category]?.[item]}
-                        onChange={() => toggleCheckbox(category, item)}
-                      >
-                        {item}
-                      </Checkbox>
-                    ))}
-                  </div>
-                </Panel>
-              ))}
-            </Collapse> */}
-            <Collapse defaultActiveKey={["Activity Type"]} className="rounded-lg border-0">
+            <Collapse
+              defaultActiveKey={["Activity Type"]}
+              className="rounded-lg border-0"
+            >
               {mockFilters.map((category, categoryKey) => (
-                <Panel header={category.filter_type_name} key={category.key} className="custom-collapse">
+                <Panel
+                  header={category.filter_type_name}
+                  key={category.key}
+                  className="custom-collapse"
+                >
                   <div className="flex flex-col space-y-2">
                     {category.data.map((item, itemKey) => (
                       <Checkbox
                         key={itemKey}
-                        // checked
-                        // checked={checkedFilters[itemKey]?.[itemKey]}
-                        // checked={checkedFilters[categoryKey]?.[itemKey]}
-                        // onChange={() => toggleCheckbox(category.filter_type, itemKey)}
-                        checked={checkedFilters[category.filter_type]?.includes(item.id) || false}
-                        onChange={() => handleCheckboxChange(category.filter_type, item.id)}
+                        checked={
+                          checkedFilters[category.filter_type]?.includes(
+                            item.id
+                          ) || false
+                        }
+                        onChange={() =>
+                          handleCheckboxChange(category.filter_type, item.id)
+                        }
                       >
                         {item.name}
                       </Checkbox>
@@ -489,7 +523,6 @@ export default function ActivityMapping() {
                 </Panel>
               ))}
             </Collapse>
-            
           </div>
         </div>
 
@@ -502,9 +535,9 @@ export default function ActivityMapping() {
                 center={currentLocation}
                 zoom={dataMapZoom}
               >
-                {(filteredData.length > 0 ? filteredData : locations).map((location) => (
+                {locations.map((location, locationIndex) => (
                   <Marker
-                    key={location.id}
+                    key={locationIndex}
                     position={{ lat: location.lat, lng: location.lng }}
                     onClick={() => setSelected(location)}
                   />

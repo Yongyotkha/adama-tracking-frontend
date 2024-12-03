@@ -145,11 +145,7 @@ export default function ProfileUser() {
       type: "select",
       required: false,
       col: 6,
-      options: [
-        { name: "Sales Team", id: 1, selected: true },
-        { name: "Marketing Team", id: 2, selected: false },
-        { name: "Support Team", id: 3, selected: false },
-      ],
+      options: departments,
       value: 1,
     },
     {
@@ -158,6 +154,8 @@ export default function ProfileUser() {
       type: "text",
       required: false,
       col: 6,
+      options: territory,
+
       value: "North",
     },
     {
@@ -166,6 +164,8 @@ export default function ProfileUser() {
       type: "text",
       required: false,
       col: 6,
+      options: areas,
+
       value: "Zone 1",
     },
     {
@@ -174,25 +174,21 @@ export default function ProfileUser() {
       type: "select",
       required: true,
       col: 6,
-      options: [
-        { name: "Individual Module", id: 1, selected: false },
-        { name: "Admin Module", id: 2, selected: true },
-        { name: "Viewer", id: 3, selected: false },
-      ],
+      options: roles,
       value: 2,
     },
-    {
-      label: "Permission",
-      name: "permission",
-      type: "select",
-      required: false,
-      col: 6,
-      options: [
-        { name: "Individual and BD/Assist", id: 1, selected: false },
-        { name: "Admin", id: 2, selected: false },
-        { name: "Viewer", id: 3, selected: false },
-      ],
-    },
+    // {
+    //   label: "Permission",
+    //   name: "permission",
+    //   type: "select",
+    //   required: false,
+    //   col: 6,
+    //   options: [
+    //     { name: "Individual and BD/Assist", id: 1, selected: false },
+    //     { name: "Admin", id: 2, selected: false },
+    //     { name: "Viewer", id: 3, selected: false },
+    //   ],
+    // },
     {
       label: "Date of Joining",
       name: "date_of_joining",
@@ -219,7 +215,7 @@ export default function ProfileUser() {
     <MainLayout loading={loading}>
       <div className="title-page">Profile</div>
 
-      <FormUser profile="/img/profile.jpg" fields={formFields} form={form} />
+      <FormUser  fields={formFields} form={form} />
 
       <BoxPrimary>
         <div className="flex items-center justify-between">
