@@ -208,6 +208,7 @@ export default function WorkPlanSaleByDealer() {
           title: "Qty (KG)",
           dataIndex: `qty-${dealerItem.dealer_id}`,
           key: `qty-${dealerItem.dealer_id}`,
+          width: 150,
           onHeaderCell: () => ({
             style: {
               backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สีเขียวสลับ
@@ -266,6 +267,7 @@ export default function WorkPlanSaleByDealer() {
           title: "Value (THB)",
           dataIndex: `value-${dealerItem.dealer_id}`,
           key: `value-${dealerItem.dealer_id}`,
+          width: 150,
           onHeaderCell: () => ({
             style: {
               backgroundColor:

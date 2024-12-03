@@ -18,8 +18,9 @@ export default function WorkPlan() {
   const [status, setStatus] = useState([]);
   const [years, setYears] = useState([]);
   const [sale, setSale] = useState([]);
-  const [defaultOption, setDefaultOption] = useState(null);
+  const [defaultOption, setDefaultOption] = useState();
   const [pathName, setPathName] = useState([]);
+  const [permission, setPermission] = useState([]);
   const [dataSource, setDataSource] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const { showNotification, formatNumber } = useContext(AuthContext);
@@ -35,29 +36,41 @@ export default function WorkPlan() {
   });
 
   useEffect(() => {
+    let page_code;
+    if (location.pathname == "/sale-plan/work-plan") {
+      page_code = "work-plan";
+    } else if (location.pathname == "/sale-plan/work-plan-area") {
+      page_code = "work-plan-area";
+    } else if (location.pathname == "/sale-plan/work-plan-sale") {
+      page_code = "work-plan-sale";
+    }
+
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [years, status, sale] = await Promise.all([
+        const [years, status, user] = await Promise.all([
           useServiceAPI.get(paths.pathMasterYear),
           useServiceAPI.get(paths.pathMasterStatus, {
             status_type: "work_plan",
           }),
-          useServiceAPI.get(paths.pathMasterSaleDropdown),
+          useServiceAPI.get(paths.pathMasterWorkPlan, {
+            page_code,
+          }),
         ]);
 
-        const formattedOptions = sale.data.map((item) => ({
-          value: item.id,
-          label: item.name,
-        }));
+        if (user.data.length > 0) {
+          const formattedOptions = user.data.map((item) => ({
+            value: item.id,
+            label: item.name,
+          }));
 
-        if (formattedOptions.length > 0) {
-          setDefaultOption(formattedOptions[0].value);
+          // if (formattedOptions.length > 0) {
+          //   setDefaultOption("");
+          // }
+          setSale(formattedOptions);
         }
-
         setYears(years.data);
         setStatus(status.data);
-        setSale(formattedOptions);
       } catch (error) {
         showNotification("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -66,7 +79,7 @@ export default function WorkPlan() {
     };
 
     getMaster();
-  }, []);
+  }, [location.pathname]);
 
   const fetchData = async () => {
     setTableLoading(true);
@@ -79,12 +92,13 @@ export default function WorkPlan() {
       keyword: filters.keyword || "",
       year_code: filters.year || "",
       status_code: filters.status || "",
+      permission_id: defaultOption || "",
       page_length: current,
       page_size: pageSize,
     };
 
     try {
-      let path ;
+      let path;
       let pathRole = "";
       if (location.pathname == "/sale-plan/work-plan") {
         path = paths.pathGetWorkPlanList;
@@ -103,7 +117,7 @@ export default function WorkPlan() {
       const response = await useServiceAPI.get(path, requestData);
 
       if (response.status === 200) {
-        const { data, records_filtered } = response.data;
+        const { data, records_filtered, permission } = response.data;
 
         const newDataSource = data.map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
@@ -112,7 +126,7 @@ export default function WorkPlan() {
               ? formatNumber(row.amount_target)
               : formatNumber(row.overall_target),
           // workPlan: pathRole,
-          name: row.user_name,
+          name: pathRole == "area" ? row.sale_area_name : row.user_name,
           year: row.year_name,
           action: (
             <Dropdown
@@ -168,6 +182,7 @@ export default function WorkPlan() {
           lastModified: row.updated_at,
         }));
 
+        setPermission(permission);
         setDataSource(newDataSource);
         setTableParams({
           ...tableParams,
@@ -193,7 +208,10 @@ export default function WorkPlan() {
     tableParams.sortField,
     JSON.stringify(tableParams.filters),
     location.pathname,
+    defaultOption,
   ]);
+
+  useEffect(() => {}, [location.pathname]);
 
   const handleTableChange = (pagination, filters, sorter) => {
     setTableParams({
@@ -245,18 +263,17 @@ export default function WorkPlan() {
       width: "20%",
       dataIndex: "workPlan",
       align: "center",
-    
     },
-    // ...(pathName === "sale"
-    //   ? [
-    //       {
-    //         title: "Name",
-    //         width: 100,
-    //         dataIndex: "name",
-    //         align: "left",
-    //       },
-    //     ]
-    //   : []),
+    ...(pathName !== "head"
+      ? [
+          {
+            title: "Name",
+            width: 100,
+            dataIndex: "name",
+            align: "left",
+          },
+        ]
+      : []),
     {
       title: "Last modified",
       width: "20%",
@@ -290,23 +307,27 @@ export default function WorkPlan() {
           {pathName == "sale" && (
             <div className="title-page">Work Plan (Sale)</div>
           )}
-          <Select
-            showSearch
-            style={{
-              width: 200,
-            }}
-            className="border-[#00783F] text-[#00783F]"
-            placeholder="Search to Select"
-            optionFilterProp="label"
-            filterSort={(optionA, optionB) =>
-              (optionA?.label ?? "")
-                .toLowerCase()
-                .localeCompare((optionB?.label ?? "").toLowerCase())
-            }
-            options={sale}
-            value={defaultOption}
-            onChange={(value) => setDefaultOption(value)}
-          />
+
+          {permission.btn_select && (
+            <Select
+              showSearch
+              allowClear
+              style={{
+                width: 200,
+              }}
+              className="border-[#00783F] text-[#00783F]"
+              placeholder="All"
+              optionFilterProp="label"
+              filterSort={(optionA, optionB) =>
+                (optionA?.label ?? "")
+                  .toLowerCase()
+                  .localeCompare((optionB?.label ?? "").toLowerCase())
+              }
+              options={sale}
+              value={defaultOption}
+              onChange={(value) => setDefaultOption(value)}
+            />
+          )}
         </div>
 
         <Filter

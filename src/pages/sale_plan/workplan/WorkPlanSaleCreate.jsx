@@ -265,12 +265,13 @@ export default function WorkPlanSaleCreate() {
             title: month.month_name,
             dataIndex: `value_${month.month_id}_${item.quarter_id}`,
             key: `value_${month.month_id}_${item.quarter_id}`,
-            width: 100,
+   
             children: [
               {
                 title: "Qty (KG)",
                 dataIndex: `qty_${month.month_id}`,
                 key: `qty_${month.month_id}`,
+                width:150,
                 render: (text, record) => {
                   const localData = localQtyState[item.quarter_id]?.months?.[
                     month.month_id
@@ -284,6 +285,7 @@ export default function WorkPlanSaleCreate() {
                       formatter={(value) =>
                         `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                       }
+                      
                       onChange={(value) =>
                         handleQtyChange(
                           item.quarter_id,
@@ -325,12 +327,14 @@ export default function WorkPlanSaleCreate() {
             title: month.month_name,
             dataIndex: `value_${month.month_id}_${item.quarter_id}`,
             key: `value_${month.month_id}_${item.quarter_id}`,
-            width: 100,
+
             children: [
               {
                 title: "Value (KG)",
                 dataIndex: `value_${month.month_id}`,
                 key: `value_${month.month_id}`,
+                width:150,
+                
                 render: (text, record) => {
                   const localData = localQtyState[item.quarter_id]?.months?.[
                     month.month_id

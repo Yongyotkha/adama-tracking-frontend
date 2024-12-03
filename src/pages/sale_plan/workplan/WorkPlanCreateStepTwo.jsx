@@ -141,6 +141,7 @@ export default function WorkPlanCreateStepTwo() {
         {
           title: "Position",
           key: "position",
+          textAlign: "center",
           children: [
             {
               title: "Sale Plan (THB)",
@@ -164,14 +165,14 @@ export default function WorkPlanCreateStepTwo() {
                   title: "Pack Size",
                   dataIndex: "pack_size",
                   key: "pack_size",
-                  width: 200,
+                  width: 150,
                   fixed: "left",
                 },
                 {
                   title: "Original Plan",
                   dataIndex: "qty",
                   key: "original_plan_qty",
-                  width: 200,
+                  width: 150,
                   fixed: "left",
                   render: (text, record) => (
                     <InputNumber
@@ -192,7 +193,7 @@ export default function WorkPlanCreateStepTwo() {
                   title: "Value (THB)",
                   dataIndex: "value",
                   key: "value_thb",
-                  width: 200,
+                  width: 150,
                   fixed: "left",
                   render: (text, record) => (
                     <InputNumber
@@ -244,7 +245,7 @@ export default function WorkPlanCreateStepTwo() {
                   title: "Qty (KG)",
                   dataIndex: `qty_${item.area_id}`,
                   key: `qty_${item.area_id}`,
-                  width: 200,
+                  width: 150,
                   render: (_, record) => {
                     const dataItem = item.data_items.find(
                       (i) => i.product_id === record.product_id
@@ -276,7 +277,7 @@ export default function WorkPlanCreateStepTwo() {
                   title: "Value (THB)",
                   dataIndex: `value_${item.area_id}`,
                   key: `value_${item.area_id}`,
-                  width: 200,
+                  width: 150,
                   render: (text, record) => {
                     const dataItem = item.data_items.find(
                       (i) => i.product_id === record.product_id

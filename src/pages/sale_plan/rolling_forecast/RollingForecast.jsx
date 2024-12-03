@@ -352,6 +352,7 @@ export default function RollingForecast() {
         <div className="title-page">Rolling Forecast</div>
         <Select
           showSearch
+          allowClear
           style={{
             width: 200,
           }}
