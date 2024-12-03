@@ -117,6 +117,7 @@ const App = () => {
           <Route path="/activity/list" element={<ActivityList />} />
           <Route path="/activity/create" element={<CreateActivity />} />
           <Route path="/activity/edit" element={<CreateActivity />} />
+          <Route path="/activity/view" element={<CreateActivity />} />
           <Route path="/activity/plan/list" element={<ActivityPlanList />} />
           <Route path="/activity/calendar" element={<ActivityCalendar />} />
           <Route path="/activity/mapping" element={<ActivityMapping />} />

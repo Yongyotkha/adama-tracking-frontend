@@ -63,152 +63,12 @@ export default function CreateSubDealer() {
     fetchData();
   }, []);
 
-  // const formFields = [
-  //   {
-  //     label: "Shop Name",
-  //     name: "shop_name",
-  //     type: "text",
-  //     required: false,
-  //     col: 6,
-  //     // value: "",
-  //   },
-  //   {
-  //     label: "Mobile Phone",
-  //     name: "mobile_phone",
-  //     type: "text",
-  //     required: false,
-  //     col: 6,
-  //     // value: "4124214",
-  //   },
-  //   {
-  //     label: "Address",
-  //     name: "address",
-  //     type: "text",
-  //     required: false,
-  //     col: 12,
-  //     // value: "",
-  //   },
-  //   {
-  //     label: "Office Hours",
-  //     name: "office_hours",
-  //     type: "multiple",
-  //     options: [
-  //       { name: "Monday", id: 1, selected: true },
-  //       { name: "Tuesday", id: 0, selected: false },
-  //       { name: "Wednesday", id: 0, selected: false },
-  //       { name: "Thursday", id: 0, selected: false },
-  //       { name: "Friday", id: 0, selected: false },
-  //       { name: "Saturday", id: 0, selected: false },
-  //       { name: "Sunday", id: 0, selected: false },
-  //     ],
-  //     required: false,
-  //     col: 6,
-  //     iconSrc: "/img/icons/calendar.png",
-  //     iconPosition: "right",
-  //   },
-  //   // {
-  //   //   label: "Office Hours",
-  //   //   name: "office_hours",
-  //   //   type: "select",
-  //   //   required: true,
-  //   //   col: 6,
-  //   //   iconSrc: "/img/icons/calendar.png",
-  //   //   iconPosition: "right",
-  //   //   options: [
-  //   //     { name: "Monday", id: 1, selected: true },
-  //   //     { name: "Tuesday", id: 0, selected: false },
-  //   //     { name: "Wednesday", id: 0, selected: false },
-  //   //     { name: "Thursday", id: 0, selected: false },
-  //   //     { name: "Friday", id: 0, selected: false },
-  //   //     { name: "Saturday", id: 0, selected: false },
-  //   //     { name: "Sunday", id: 0, selected: false },
-  //   //   ],
-  //   // },
-  //   {
-  //     label: "Start Time",
-  //     name: "start_time",
-  //     type: "time", // ใช้ type "time"
-  //     required: false,
-  //     col: 6,
-  //     value: null,
-  //   },
-  //   {
-  //     label: "End Time",
-  //     name: "end_time",
-  //     type: "time",      
-  //     required: false,
-  //     col: 6,
-  //     value: "",
-  //   },
-  //   {
-  //     label: "Business Size",
-  //     name: "business_size",
-  //     type: "select",
-  //     required: true,
-  //     col: 6,
-  //     options: [
-  //       { name: "Small", id: "Small", selected: true },
-  //       { name: "Medium", id: "Medium", selected: false },
-  //       { name: "Large", id: "Large", selected: false },
-  //     ],
-  //   },
-
-  //   {
-  //     label: "Email",
-  //     name: "email",
-  //     type: "email",
-  //     required: false,
-  //     col: 6,
-  //     value: "",
-  //   },
-  //   {
-  //     label: "Outlet Location",
-  //     name: "outlet_location",
-  //     type: "text",
-  //     required: false,
-  //     col: 6,
-  //     value: "",
-  //     iconSrc: "/img/icons/location.png",
-  //     iconPosition: "right",
-  //   },
-  //   {
-  //     label: "T-Shirt Size",
-  //     name: "tshirt_size",
-  //     type: "text",
-  //     required: false,
-  //     col: 6,
-  //     value: "",
-  //   },
-  //   {
-  //     label: "Anniversary",
-  //     name: "anniversary",
-  //     type: "date",
-  //     required: false,
-  //     col: 6,
-  //     value: "",
-  //   },
-  //   {
-  //     label: "Remark",
-  //     name: "remark",
-  //     type: "text",
-  //     required: false,
-  //     col: 24,
-  //     value: "",
-  //   },
-  // ];
-
-  // // Mock crop data for the multi-select dropdown
-  // const cropOptions = [
-  //   "Rice", "Wheat", "Corn", "Soybean", "Cotton", "Barley", "Sugarcane", "Potato", "Tomato", "Lettuce"
-  // ];
-
-
   const [formFields, setFormFields] = useState([
     {
       label: "Shop Name",
       name: "shop_name",
       type: "text",
-      required: false,
+      required: true,
       col: 6,
     },
     {
@@ -227,16 +87,16 @@ export default function CreateSubDealer() {
     },
     {
       label: "Office Hours",
-      name: "office_hours",
+      name: "day_of_week",
       type: "multiple",
       options: [
-        { name: "Monday", id: 1, selected: true },
-        { name: "Tuesday", id: 2, selected: false },
-        { name: "Wednesday", id: 3, selected: false },
-        { name: "Thursday", id: 4, selected: false },
-        { name: "Friday", id: 5, selected: false },
-        { name: "Saturday", id: 6, selected: false },
-        { name: "Sunday", id: 7, selected: false },
+        { name: "Monday", id: "Monday", selected: true },
+        { name: "Tuesday", id: "Tuesday", selected: false },
+        { name: "Wednesday", id: "Wednesday", selected: false },
+        { name: "Thursday", id: "Thursday", selected: false },
+        { name: "Friday", id: "Friday", selected: false },
+        { name: "Saturday", id: "Saturday", selected: false },
+        { name: "Sunday", id: "Sunday", selected: false },
       ],
       required: false,
       col: 6,
@@ -401,9 +261,13 @@ export default function CreateSubDealer() {
           mobile_phone: values.mobile_phone || "",
           address: values.address || "",
           email: values.email || "",
-          day_of_week: "",
-          start_time: values.start_time || "",
-          end_time: values.end_time || "",
+          day_of_week: values.day_of_week ,
+          start_time: values.start_time
+          ? dayjs(values.start_time).format("HH:mm")
+          : "",
+          end_time: values.end_time
+          ? dayjs(values.end_time).format("HH:mm")
+          : "",
           business_size: values.business_size || "",
           outlet_location: values.outlet_location || "",
           t_shirt_size: values.tshirt_size || "",
@@ -457,10 +321,6 @@ export default function CreateSubDealer() {
         showNotification("error", "Please complete all required fields.");
       });
   };
-  
-
-  
-  
   
   useEffect(() => {
     console.log(defaultSelectedCrops)

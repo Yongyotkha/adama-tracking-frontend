@@ -17,6 +17,7 @@ export default function SettingProduct() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [roles, setRoles] = useState([]);
+  const [Status, setStatus] = useState([]);
   const [producttype, setPosition] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const navigate = useNavigate();
@@ -41,10 +42,23 @@ export default function SettingProduct() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [producttype, roles] = await Promise.all([
+        const [producttype, roles, dataStatus] = await Promise.all([
           useServiceAPI.get(paths.pathMasterProductCategorys, {}),
           useServiceAPI.get(paths.pathMasterProductGroups, {}),
+          useServiceAPI.get(paths.pathMasterStatus, {
+            status_type: "status",
+          }),
         ]);
+        
+        const Status = [];
+        dataStatus.data.map((data, index) => {
+          Status.push({ 
+            id: data.code, 
+            name: data.name, 
+          });
+        });
+        
+        setStatus(Status);
 
         setPosition(producttype.data);
         setRoles(roles.data);
@@ -244,19 +258,27 @@ export default function SettingProduct() {
       key: "use_flag",
       label: "Status",
       type: "select",
-      options: [
-        { name: "Active", id: 1 },
-        { name: "Inactive", id: 0},
-      ],
+      options: Status,
+      
     },
   ];
 
   const handleSearch = (filters) => {
     setTableParams({
       ...tableParams,
-      filters,
+      pagination: {
+        ...tableParams.pagination,
+        current: 1, // Reset current page to 1
+        pageSize: 10, // Ensure the page size is set to 10
+      },
+      filters: {
+        ...filters,
+        page_length: 1, // Set default page_length
+        page_size: 10,  // Set default page_size
+      },
     });
   };
+  
 
   const handleClear = () => {
     setTableParams({

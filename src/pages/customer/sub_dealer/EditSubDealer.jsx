@@ -129,25 +129,24 @@ export default function EditSubDealer() {
       col: 6,
       value: companyinfo.mobile_phone
     },
-
     {
       label: "Office Hours",
-      name: "office_hours",
+      name: "day_of_week",
       type: "multiple",
       options: [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
+        { name: "Monday", id: "Monday", selected: true },
+        { name: "Tuesday", id: "Tuesday", selected: false },
+        { name: "Wednesday", id: "Wednesday", selected: false },
+        { name: "Thursday", id: "Thursday", selected: false },
+        { name: "Friday", id: "Friday", selected: false },
+        { name: "Saturday", id: "Saturday", selected: false },
+        { name: "Sunday", id: "Sunday", selected: false },
       ],
       required: false,
       col: 6,
-      value: null,
       iconSrc: "/img/icons/calendar.png",
       iconPosition: "right",
+      value:companyinfo.day_of_week,
     },
     {
       label: "Start Time",
@@ -156,6 +155,9 @@ export default function EditSubDealer() {
       required: false,
       col: 6,
       value: companyinfo.start_time
+      ? dayjs(companyinfo.start_time, "HH:mm")
+      : null,
+      
     },
     {
       label: "End Time",
@@ -164,6 +166,9 @@ export default function EditSubDealer() {
       required: false,
       col: 6,
       value: companyinfo.end_time
+      ? dayjs(companyinfo.end_time, "HH:mm")
+      : null,
+      // value: companyinfo.end_time
     },
     {
       label: "Business Size",
@@ -358,9 +363,16 @@ export default function EditSubDealer() {
             mobile_phone: values.mobile_phone || "",
             address: values.address || "",
             email: values.email || "",
-            day_of_week: "",
-            start_time: values.start_time || "",
-            end_time: values.end_time || "",
+            day_of_week: values.day_of_week ,
+            // start_time: values.start_time || "",
+            // end_time: values.end_time || "",
+            start_time: values.start_time
+            ? dayjs(values.start_time).format("HH:mm")
+            : "",
+            end_time: values.end_time
+            ? dayjs(values.end_time).format("HH:mm")
+            : "",
+
             business_size: values.business_size || "",
             outlet_location: values.outlet_location || "",
             t_shirt_size: values.tshirt_size || "",

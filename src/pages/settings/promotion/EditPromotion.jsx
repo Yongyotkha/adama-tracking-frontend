@@ -35,9 +35,6 @@ export default function EditPromotion() {
     fetchData();
   }, []);
   
-
-  
-
   const [formFields, setFormFields] = useState([]);
 
   // const formFields = [
@@ -132,8 +129,6 @@ export default function EditPromotion() {
     form
       .validateFields()
       .then((values) => {
-        // const useFlagValue = values.use_flag === "Active" ? 1 : 0;
-
         let useFlagValue;
         if (values.use_flag === 1 || values.use_flag === 0) {
           useFlagValue = values.use_flag; // ถ้าค่าเป็น 1 หรือ 0 อยู่แล้ว ใช้ค่าเดิม
@@ -145,22 +140,18 @@ export default function EditPromotion() {
           ...values,
           id: location.state.id, 
           use_flag: useFlagValue, // ส่งค่า use_flag เป็น 1 หรือ 0
-
         };
   
         useServiceAPI
           .put(paths.pathPromotionupdate, dataToSend, setLoading)
           .then((response) => {
             if (response.status === 200) {
-              console.log(response.data.message);
-              // showMsg("success", response.data.message).then(() => {
-              //   navigate("/setting/promotion"); 
-              // });
+              console.log(response.message);
               navigate("/setting/promotion");
               showNotification(
                 "success",
-                response.data.message,
-                response.data.message_line
+                response.message,
+                response.message_line
               );
 
             }
