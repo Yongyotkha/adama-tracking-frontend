@@ -156,6 +156,9 @@ export default function EditSubDealer() {
       required: false,
       col: 6,
       value: companyinfo.start_time
+      ? dayjs(companyinfo.start_time, "HH:mm")
+      : null,
+      
     },
     {
       label: "End Time",
@@ -164,6 +167,10 @@ export default function EditSubDealer() {
       required: false,
       col: 6,
       value: companyinfo.end_time
+      ? dayjs(companyinfo.end_time, "HH:mm")
+      : null,
+
+      // value: companyinfo.end_time
     },
     {
       label: "Business Size",
@@ -359,8 +366,15 @@ export default function EditSubDealer() {
             address: values.address || "",
             email: values.email || "",
             day_of_week: "",
-            start_time: values.start_time || "",
-            end_time: values.end_time || "",
+            // start_time: values.start_time || "",
+            // end_time: values.end_time || "",
+            start_time: values.start_time
+            ? dayjs(values.start_time).format("HH:mm")
+            : "",
+            end_time: values.end_time
+            ? dayjs(values.end_time).format("HH:mm")
+            : "",
+
             business_size: values.business_size || "",
             outlet_location: values.outlet_location || "",
             t_shirt_size: values.tshirt_size || "",

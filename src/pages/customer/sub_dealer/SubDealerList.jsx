@@ -16,6 +16,7 @@ export default function SubDealerList() {
   const [dataSource, setDataSource] = useState([]);
   const navigate = useNavigate();
   const [tableLoading, setTableLoading] = useState(false);
+  const [Status, setStatus] = useState([]);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -26,7 +27,36 @@ export default function SubDealerList() {
     sortField: null,
   });
 
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [dataStatus] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterStatus, {
+            status_type: "status",
+          }),
+        ]);
+        
+        const Status = [];
+        dataStatus.data.map((data, index) => {
+          Status.push({ 
+            id: data.code, 
+            name: data.name, 
+          });
+        });
+        
+        setStatus(Status);
 
+        setPosition(producttype.data);
+        setRoles(roles.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+    getMaster();
+  }, []);
 
 
   const filters = [
@@ -53,10 +83,7 @@ export default function SubDealerList() {
       type: 'select',
       label: "Status",
       placeholder: "All",
-      options: [
-        {  name:'Active', id: "1" , value: 1, label: 'Active' },
-        {  name:'Inactive', id:"0" , value: 0, label: 'Inactive' },
-      ],
+      options: Status,
     },
   ];
 
@@ -194,7 +221,16 @@ export default function SubDealerList() {
   const handleSearch = (filters) => {
     setTableParams({
       ...tableParams,
-      filters,
+      pagination: {
+        ...tableParams.pagination,
+        current: 1, // Reset current page to 1
+        pageSize: 10, // Ensure the page size is set to 10
+      },
+      filters: {
+        ...filters,
+        page_length: 1, // Set default page_length
+        page_size: 10,  // Set default page_size
+      },
     });
   };
 

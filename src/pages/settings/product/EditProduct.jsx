@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext ,useMemo } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import FormUser from "../../../components/form_user/FormUser";
 import DynamicButton from "../../../components/button/DynamicButton";
@@ -95,27 +95,50 @@ export default function EditProduct() {
       setLoading(false);
     }
   };
-
-
-  const updatedFields = [
-    { label: "", name: "profile", type: "picture", required: false, col: 24, value: userinfo.product_image},
+  const updatedFields = useMemo(() => [
+    { label: "", name: "profile", type: "picture", required: false, col: 24, value: userinfo.product_image },
     { label: "Product Code", name: "product_code", type: "text", required: true, col: 6, disabled: true, value: userinfo.product_code },
     { label: "Product Name", name: "product_name", type: "text", required: true, col: 6, disabled: true, value: userinfo.product_name },
     { label: "AI and content", name: "ai_content", type: "text", required: false, col: 12, disabled: true, value: userinfo.ai_and_content },
-    { label: "Product Type", name: "product_type", type: "select", required: false, col: 6, options: position, value:userinfo.product_type },
-    { label: "Product Group", name: "product_group", type: "select", required: false, col: 6, options: roles ,value:userinfo.product_group},
-    { label: "Category", name: "category", type: "text", required: false, col: 6, disabled: true, value: userinfo.product_category},
+    { label: "Product Type", name: "product_type", type: "select", required: false, col: 6, options: position, value: userinfo.product_type },
+    { label: "Product Group", name: "product_group", type: "select", required: false, col: 6, options: roles, value: userinfo.product_group },
+    { label: "Category", name: "category", type: "text", required: false, col: 6, disabled: true, value: userinfo.product_category },
     { label: "Packing list", name: "packing_list", type: "text", required: false, col: 6, disabled: true, value: userinfo.packing_list },
     { label: "Packing unit size (lt,kg)", name: "packing_unit_size", type: "text", required: false, col: 6, disabled: true, value: userinfo.packing_unit_size },
     { label: "Net Price", name: "net_price", type: "text", required: false, col: 6, disabled: true, value: userinfo.net_price },
-    { label: "Status", name: "use_flag", type: "select", required: false, col: 6,
+    {
+      label: "Status",
+      name: "use_flag",
+      type: "select",
+      required: false,
+      col: 6,
       options: [
         { name: "Active", id: 1, selected: true },
         { name: "Inactive", id: 0, selected: false },
       ],
-      value: userinfo.use_flag === "1" ? "Active" : "Inactive" 
+      value: userinfo.use_flag === "1" ? "Active" : "Inactive",
     },
-  ];
+  ], [userinfo, position, roles]);
+  
+  // const updatedFields = [
+  //   { label: "", name: "profile", type: "picture", required: false, col: 24, value: userinfo.product_image},
+  //   { label: "Product Code", name: "product_code", type: "text", required: true, col: 6, disabled: true, value: userinfo.product_code },
+  //   { label: "Product Name", name: "product_name", type: "text", required: true, col: 6, disabled: true, value: userinfo.product_name },
+  //   { label: "AI and content", name: "ai_content", type: "text", required: false, col: 12, disabled: true, value: userinfo.ai_and_content },
+  //   { label: "Product Type", name: "product_type", type: "select", required: false, col: 6, options: position, value:userinfo.product_type },
+  //   { label: "Product Group", name: "product_group", type: "select", required: false, col: 6, options: roles ,value:userinfo.product_group},
+  //   { label: "Category", name: "category", type: "text", required: false, col: 6, disabled: true, value: userinfo.product_category},
+  //   { label: "Packing list", name: "packing_list", type: "text", required: false, col: 6, disabled: true, value: userinfo.packing_list },
+  //   { label: "Packing unit size (lt,kg)", name: "packing_unit_size", type: "text", required: false, col: 6, disabled: true, value: userinfo.packing_unit_size },
+  //   { label: "Net Price", name: "net_price", type: "text", required: false, col: 6, disabled: true, value: userinfo.net_price },
+  //   { label: "Status", name: "use_flag", type: "select", required: false, col: 6,
+  //     options: [
+  //       { name: "Active", id: 1, selected: true },
+  //       { name: "Inactive", id: 0, selected: false },
+  //     ],
+  //     value: userinfo.use_flag === "1" ? "Active" : "Inactive" 
+  //   },
+  // ];
 
   const handleSave = () => { 
     form
@@ -250,7 +273,9 @@ export default function EditProduct() {
       {/* <FormUser  profile={profileImage} fields={updatedFields} form={form}/> */}
       
       {dataLoaded ? (
-        <FormUser profile={profileImage} fields={updatedFields} form={form} />
+        // <FormUser profile={profileImage} fields={updatedFields} form={form} />
+        <FormUser profile={userinfo.product_image} fields={updatedFields} form={form} />
+
       ) : (
         <div></div>
       )}

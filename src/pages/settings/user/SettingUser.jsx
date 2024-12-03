@@ -191,9 +191,19 @@ export default function SettingUser() {
   const handleSearch = (filters) => {
     setTableParams({
       ...tableParams,
-      filters,
+      pagination: {
+        ...tableParams.pagination,
+        current: 1, // Reset current page to 1
+        pageSize: 10, // Ensure the page size is set to 10
+      },
+      filters: {
+        ...filters,
+        page_length: 1, // Set default page_length
+        page_size: 10,  // Set default page_size
+      },
     });
   };
+  
 
   const handleClear = () => {
     setTableParams({
