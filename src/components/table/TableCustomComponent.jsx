@@ -38,10 +38,10 @@ const TableCustomComponent = ({
         }
         scroll={{
           x: scroll ? "max-content" : 1000,
+          y: 70 * 7,
         }}
         // footer={footer ? () => footer : null}
         summary={footer}
-
       />
     </ConfigProvider>
   );

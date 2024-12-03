@@ -139,6 +139,7 @@ export default function WorkPlanSaleByCrop() {
           onChange={(value) =>
             handlePercentChange(value, cropItem.crop_id, record)
           }
+          
           disabled={!permission.edit || cropItem.crop_id == 7}
         />
       ),
@@ -305,6 +306,9 @@ export default function WorkPlanSaleByCrop() {
         },
       };
 
+      console.log(updatedCropProducts);
+
+
       // คำนวณ `totalPercent` ของทุก `cropId` ยกเว้น `cropId = 7`
       const totalPercent = Object.keys(prevState).reduce(
         (sum, currentCropId) => {
@@ -352,6 +356,7 @@ export default function WorkPlanSaleByCrop() {
         (sum, product) => sum + (Number(product.value) || 0),
         0
       );
+
 
       return {
         ...prevState,
@@ -506,11 +511,22 @@ export default function WorkPlanSaleByCrop() {
                       style={{ backgroundColor: "white" }}
                     />
                   </Table.Summary.Cell>
-                  {crop?.map((_, index) => (
-                    <Table.Summary.Cell
-                      key={index}
-                      colSpan={1}
-                    ></Table.Summary.Cell>
+                  {crop.map((item, index) => (
+                    <Table.Summary.Cell key={index} colSpan={1}>
+                      <InputNumber
+                        className="w-full"
+                        disabled
+                        value={localQtyState[item.crop_id]?.amount_target || 0}
+                        min={0}
+                        formatter={(value) =>
+                          `${Number(value).toFixed(2)}`.replace(
+                            /\B(?=(\d{3})+(?!\d))/g,
+                            ","
+                          )
+                        }
+                        style={{ backgroundColor: "white" }}
+                      />
+                    </Table.Summary.Cell>
                   ))}
                   {crop.map((item, index) => (
                     <Table.Summary.Cell key={index} colSpan={1}>

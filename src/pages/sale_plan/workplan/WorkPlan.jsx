@@ -3,7 +3,7 @@ import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
-import { Dropdown } from "antd";
+import { Dropdown, Select } from "antd";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -17,6 +17,8 @@ export default function WorkPlan() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState([]);
   const [years, setYears] = useState([]);
+  const [sale, setSale] = useState([]);
+  const [defaultOption, setDefaultOption] = useState(null);
   const [pathName, setPathName] = useState([]);
   const [dataSource, setDataSource] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
@@ -36,15 +38,26 @@ export default function WorkPlan() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [years, status] = await Promise.all([
+        const [years, status, sale] = await Promise.all([
           useServiceAPI.get(paths.pathMasterYear),
           useServiceAPI.get(paths.pathMasterStatus, {
             status_type: "work_plan",
           }),
+          useServiceAPI.get(paths.pathMasterSaleDropdown),
         ]);
+
+        const formattedOptions = sale.data.map((item) => ({
+          value: item.id,
+          label: item.name,
+        }));
+
+        if (formattedOptions.length > 0) {
+          setDefaultOption(formattedOptions[0].value);
+        }
 
         setYears(years.data);
         setStatus(status.data);
+        setSale(formattedOptions);
       } catch (error) {
         showNotification("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -71,7 +84,7 @@ export default function WorkPlan() {
     };
 
     try {
-      let path = paths.pathGetWorkPlanList;
+      let path ;
       let pathRole = "";
       if (location.pathname == "/sale-plan/work-plan") {
         path = paths.pathGetWorkPlanList;
@@ -223,59 +236,78 @@ export default function WorkPlan() {
   const header = [
     {
       title: "Years",
-      width: 100,
+      width: "10%",
       dataIndex: "year",
-      align: "left",
+      align: "center",
     },
     {
       title: "Work Plan (THB)",
-      width: 100,
+      width: "20%",
       dataIndex: "workPlan",
-      align: "left",
+      align: "center",
+    
     },
-    ...(pathName === "sale"
-      ? [
-          {
-            title: "Name",
-            width: 100,
-            dataIndex: "name",
-            align: "left",
-          },
-        ]
-      : []),
-
+    // ...(pathName === "sale"
+    //   ? [
+    //       {
+    //         title: "Name",
+    //         width: 100,
+    //         dataIndex: "name",
+    //         align: "left",
+    //       },
+    //     ]
+    //   : []),
     {
       title: "Last modified",
-      width: 100,
+      width: "20%",
       dataIndex: "lastModified",
-      align: "left",
+      align: "center",
     },
     {
       title: "Status",
-      width: 100,
+      width: "20%",
       dataIndex: "status",
-      align: "left",
+      align: "center",
     },
     {
       title: "Action",
-      width: 100,
+      width: "10%",
       dataIndex: "action",
-      align: "left",
+      align: "center",
     },
   ];
 
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        {pathName == "head" && (
-          <div className="title-page">Work Plan (Head Of Sale)</div>
-        )}
-        {pathName == "area" && (
-          <div className="title-page">Work Plan (Area)</div>
-        )}
-        {pathName == "sale" && (
-          <div className="title-page">Work Plan (Sale)</div>
-        )}
+        <div className="flex justify-between items-center">
+          {pathName == "head" && (
+            <div className="title-page">Work Plan (Head Of Sale)</div>
+          )}
+          {pathName == "area" && (
+            <div className="title-page">Work Plan (Area)</div>
+          )}
+          {pathName == "sale" && (
+            <div className="title-page">Work Plan (Sale)</div>
+          )}
+          <Select
+            showSearch
+            style={{
+              width: 200,
+            }}
+            className="border-[#00783F] text-[#00783F]"
+            placeholder="Search to Select"
+            optionFilterProp="label"
+            filterSort={(optionA, optionB) =>
+              (optionA?.label ?? "")
+                .toLowerCase()
+                .localeCompare((optionB?.label ?? "").toLowerCase())
+            }
+            options={sale}
+            value={defaultOption}
+            onChange={(value) => setDefaultOption(value)}
+          />
+        </div>
 
         <Filter
           onSearch={handleSearch}
