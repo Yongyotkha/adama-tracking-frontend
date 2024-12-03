@@ -293,6 +293,7 @@ export default function FormCustom({ fields, form, title, onChange = {}, mode })
                           placeholder="Address"
                           value={formValues["location_address"] || ""}
                           onChange={(e) => handleChange("location_address", e.target.value)}
+                          disabled={field.disabled}
                           style={{
                             width: "100%",
                             paddingRight: "50px",
