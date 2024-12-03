@@ -31,7 +31,7 @@ export default function SubDealerList() {
 
   const filters = [
     {
-      key: "sub_dealer",
+      key: "keyword",
       type: "text",
       label: "Sub Dealer",
       placeholder: "All",
@@ -43,20 +43,19 @@ export default function SubDealerList() {
       placeholder: "All",
     },
     {
-      key: "phone",
+      key: "contact_phone_number",
       type: "text",
       label: "Phone",
       placeholder: "Phone",
     },
     {
-      key: "status",
+      key: "use_flag",
       type: 'select',
       label: "Status",
       placeholder: "All",
       options: [
-        { value: 'Active', label: 'Active' },
-        { value: 'Inactive', label: 'Inactive' },
-        { value: 'Pending', label: 'Pending' },
+        {  name:'Active', id: "1" , value: 1, label: 'Active' },
+        {  name:'Inactive', id:"0" , value: 0, label: 'Inactive' },
       ],
     },
   ];
@@ -75,11 +74,11 @@ export default function SubDealerList() {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
-
-
     const requestData = {
       keyword: filters.keyword || "",
       use_flag: filters.use_flag || "",
+      contact_phone_number: filters.contact_phone_number || "",
+      contact_name: filters.contact_name || "",
       page_length: current,
       page_size: pageSize,
     };
@@ -192,13 +191,20 @@ export default function SubDealerList() {
 
 
 
-  const handleSearch = (filter) => {
-    console.log("Search filters applied:", filter);
+  const handleSearch = (filters) => {
+    setTableParams({
+      ...tableParams,
+      filters,
+    });
   };
 
   const handleClear = () => {
-    console.log("Filters cleared");
+    setTableParams({
+      ...tableParams,
+      filters: {},
+    });
   };
+
 
   const actionItems = [
     { key: "1", label: <ItemDropDown mode="edit" link="/customer/sub-dealer/edit" /> },
