@@ -25,9 +25,10 @@ const { Option } = Select;
 export default function CreateActivity() {
   const locationParam = useLocation();
   const searchParams = new URLSearchParams(locationParam.search);
-  const mode = searchParams.get("mode"); 
   const documentNumber = searchParams.get("documentNumber");
   const pageCode = searchParams.get("pageCode");
+  const pathSegments = location.pathname.split('/');
+  const viewSegment = pathSegments[2] === 'view';
 
   const [loading, setLoading] = useState(false);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
@@ -58,10 +59,6 @@ export default function CreateActivity() {
   const [assignList, setAssignList] = useState([]);
   const [isSalePlanEdit, setIsSalePlanEdit] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
-  const [tableParams, setTableParams] = useState({
-    page_size: 1,
-    page_length: 10
-  });
   const { showMsg, showNotification } = useContext(AuthContext);
 
   const handleUploadClick = async () => {    
@@ -103,18 +100,22 @@ export default function CreateActivity() {
     }
   };
 
+  const menuTitle = (pageCode == 'expense_advance' ? 'Advance Expense' : (pageCode == 'expense_clearing' ? 'Clearing Expense' : 'Activity'));
+  const menuURL = (pageCode == 'expense_advance' ? '/expenses/advance' : (pageCode == 'expense_clearing' ? '/expenses/clearing' : '/activity/list'));
+
   const formFields = [
-    { label: "No", name: "document_number", type: "text", disabled: true, required: false, col: 24, value: activityDetail.document_number ?? "", placeholder:"Generate"},
-    { label: "Activity Type", name: "activity_type_id", type: "select", options: activityList, disabled: false, required: false, col: 8, value: activityDetail.activity_type_id ?? "" },
-    { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: false, required: false, col: 8, value: activityDetail.user_id ?? "", moderef: true},
-    { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: false, required: false, col: 8, value: activityDetail.dealer_id ?? "", moderef: true},
-    { label: "Crop", name: "crop_id_list", type: "select", mode: "multiple", options: cropList, disabled: false, required: false, col: 6, value: cropDetailList, moderef: true},
-    { label: "Date", name: "document_date", type: "date", disabled: false, required: false, col: 6, value: activityDetail.document_date ?? dayjs().format("YYYY-MM-DD") },
-    { label: "Start Time", name: "time_start", type: "select", options:timeList, disabled: false, required: false, col: 6, value: activityDetail.time_start ?? "" },
-    { label: "End Time", name: "time_end", type: "select", options:timeList, disabled: false, required: false, col: 6, value: activityDetail.time_end ?? "" },
-    { label: "Location", name: "location_address", type: "location", disabled: true, required: false, col: 24, value: activityDetail.location_address ?? "", iconSrc: "/img/icons/location.png", iconPosition: "left" },
-    { label: "Description", name: "description", type: "text-editor", disabled: false, required: false, col: 24, placeholder: "Add description", value: activityDetail.description ?? "" },
-    { label: "Assign", name: "assing_user_list", type: "select", mode: "multiple", options: saleAllList, disabled: false, required: false, col: 24, value: assignList},
+    { label: menuTitle + " No", name: "document_number", type: "text", disabled: true, required: false, col: 24, value: activityDetail.document_number ?? "", placeholder:"Generate"},
+    { label: "Activity Reference", name: "activity_reference", type: pageCode != 'activity_transaction' ? (viewSegment ? "hidden" : "search") : "hidden", disabled: viewSegment ?? false, required: false, col: 24, value: ""},
+    { label: "Activity Type", name: "activity_type_id", type: "select", options: activityList, disabled: viewSegment ?? false, required: false, col: 8, value: activityDetail.activity_type_id ?? "" },
+    { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: viewSegment ?? false, required: false, col: 8, value: activityDetail.user_id ?? "", moderef: true},
+    { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: viewSegment ?? false, required: false, col: 8, value: activityDetail.dealer_id ?? "", moderef: true},
+    { label: "Crop", name: "crop_id_list", type: "select", mode: "multiple", options: cropList, disabled: viewSegment ?? false, required: false, col: 6, value: cropDetailList, moderef: true},
+    { label: "Date", name: "document_date", type: "date", disabled: viewSegment ?? false, required: false, col: 6, value: activityDetail.document_date ?? dayjs().format("YYYY-MM-DD") },
+    { label: "Start Time", name: "time_start", type: "select", options:timeList, disabled: viewSegment ?? false, required: false, col: 6, value: activityDetail.time_start ?? "" },
+    { label: "End Time", name: "time_end", type: "select", options:timeList, disabled: viewSegment ?? false, required: false, col: 6, value: activityDetail.time_end ?? "" },
+    { label: "Location", name: "location_address", type: "location", disabled: viewSegment ?? false, required: false, col: 24, value: activityDetail.location_address ?? "", iconSrc: "/img/icons/location.png", iconPosition: "left" },
+    { label: "Description", name: "description", type: "text-editor", disabled: viewSegment ?? false, required: false, col: 24, placeholder: "Add description", value: activityDetail.description ?? "" },
+    { label: "Assign", name: "assing_user_list", type: "select", mode: "multiple", options: saleAllList, disabled: viewSegment ?? false, required: false, col: 24, value: assignList},
   ];
 
    // Master
@@ -159,67 +160,7 @@ export default function CreateActivity() {
           const activityDetailData = activityDetail.data;
           setIsBtnExpenseActive(activityDetailData.is_expense);
           setActivityDetail(activityDetailData);
-
-          //set crop list
-          let cropData = [];
-          await activityDetailData.crop_id_list.forEach(element => {
-            cropData.push(element.id);
-          });
-          setCropDetailList(cropData);
-
-          //set assign list
-          let assignData = [];
-          await activityDetailData.assing_user_list.forEach(element => {
-            assignData.push(element.id);
-          });
-          setAssignList(assignData);
-
-          //set images list
-          let imageList = [];
-          await activityDetailData.image_list.forEach((element, key) => {
-            imageList.push({
-              uid: key,
-              name: getFileNameWithExtension(element),
-              status: 'done',
-              url: element,
-            });
-          });
-          setFileList(imageList);
-
-          let participantData = [];
-          let count = 0;
-          await activityDetailData.expense_particapant_user_list.forEach((element, key) => {
-              count++;
-              const newKey = `sales-${element.id}`;
-              participantData.push({
-                id: element.id,
-                key: newKey,
-                no: count,
-                name: element.name,
-                position: element.position_name,
-                department: element.department_name,
-                territory: element.territory_name,
-                permission: element.permission_name,
-              });
-          });
-        
-          // เพิ่มเฉพาะข้อมูลใหม่เข้าไปใน participantList
-          setParticipants(participantData);
-
-          let productCropLists = [];
-          await activityDetailData.expense_product_data_list.forEach((element, key) => {
-            productCropLists.push({
-              key: (key + 1), 
-              productName: element.product_name, 
-              packSize: element.packing_list, 
-              estimateSale: element.estimate_sale_qty, 
-              actualSale: element.acutal_sale_qty, 
-              bath_ltkg: element.bath_ltkg, 
-              prodectCode: element.product_code,
-              productId: element.product_id
-            });
-          });
-          setProductCropList(productCropLists);
+          await setupData(activityDetailData);
         } finally {
           setLoading(false);
           setIsSalePlanEdit(true);
@@ -229,6 +170,69 @@ export default function CreateActivity() {
       getDetail();
     }
   }, []);
+
+  const setupData = async (activityDetailData) => {
+    //set crop list
+    let cropData = [];
+    await activityDetailData.crop_id_list.forEach(element => {
+      cropData.push(element.id);
+    });
+    setCropDetailList(cropData);
+
+    //set assign list
+    let assignData = [];
+    await activityDetailData.assing_user_list.forEach(element => {
+      assignData.push(element.id);
+    });
+    setAssignList(assignData);
+
+    //set images list
+    let imageList = [];
+    await activityDetailData.image_list.forEach((element, key) => {
+      imageList.push({
+        uid: key,
+        name: getFileNameWithExtension(element),
+        status: 'done',
+        url: element,
+      });
+    });
+    setFileList(imageList);
+
+    let participantData = [];
+    let count = 0;
+    await activityDetailData.expense_particapant_user_list.forEach((element, key) => {
+        count++;
+        const newKey = `sales-${element.id}`;
+        participantData.push({
+          id: element.id,
+          key: newKey,
+          no: count,
+          name: element.name,
+          position: element.position_name,
+          department: element.department_name,
+          territory: element.territory_name,
+          permission: element.permission_name,
+        });
+    });
+  
+    // เพิ่มเฉพาะข้อมูลใหม่เข้าไปใน participantList
+    setParticipants(participantData);
+
+    let productCropLists = [];
+    await activityDetailData.expense_product_data_list.forEach((element, key) => {
+      productCropLists.push({
+        key: (key + 1), 
+        productName: element.product_name, 
+        packSize: element.packing_list, 
+        estimateSale: element.estimate_sale_qty, 
+        actualSale: element.acutal_sale_qty, 
+        bath_ltkg: element.bath_ltkg, 
+        prodectCode: element.product_code,
+        productId: element.product_id
+      });
+    });
+    setProductCropList(productCropLists);
+  }
 
   // Function to extract the full filename
   const getFileNameWithExtension = (url) => {
@@ -240,48 +244,52 @@ export default function CreateActivity() {
     const getMasterSelect = async () => {
       try {
         if(attribue == 'user_id'){
-          activityDetail.user_id = value;
-          const [dealer] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterDealerDropdown, {
-              user_id: value
-            }),
-          ]);
-          setDealerList(dealer.data);
-        }else if(attribue == 'dealer_id'){
-          activityDetail.dealer_id = value;
-          const [crop, dealerCustomerData] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterCrop, {
-              dealer_id: value
-            }),
-            useServiceAPI.get(paths.pathMasterDealerCustomer, {
-              delaer_id: value
-            }),
-          ]);
-          setCropList(crop.data);
-          setDealerCustomer(dealerCustomerData.data);
-        }else if(attribue == 'crop_id_list'){
-          if(!isSalePlanEdit){
-            setCropDetailList(value);
-            const [productCrop] = await Promise.all([
-              useServiceAPI.get(paths.pathMasterProductByCrop, {
-                crop_list: value
-              }),
-            ]);
-  
-            let productCropList = [];
-            productCrop.data.forEach((element, key) => {
-              productCropList.push({
-                key: (key + 1), productName: element.product_name, packSize: element.packing_list, 
-                estimateSale: "0", actualSale: "0", bath_ltkg: element.bath_ltkg, prodectCode: element.product_code,
-                productId: element.id
-              });
-            });
-            setProductCropList(productCropList);
-          }
-          setIsSalePlanEdit(false);
+          await setupDealer(value);
+        } else if(attribue == 'dealer_id'){
+          await setupCropAndDealerCustomer(value);
+        } else if(attribue == 'crop_id_list'){
+          await setupCrop(value);
         } else if(attribue == 'activity_type_id') {
           activityDetail.activity_type_id = value;
-        } 
+        } else if(attribue == 'activity_reference'){
+          setLoading(true);
+      
+          try {
+            const [response] = await Promise.all([
+              useServiceAPI.get(paths.pathActivityDetail, {
+                document_number: value
+              }),
+            ]);
+            const activityDetailData = response.data;
+            setActivityDetail(activityDetailData);
+            //set crop list
+            let cropData = [];
+            await activityDetailData.crop_id_list.forEach(element => {
+              cropData.push(element.id);
+            });
+            setCropDetailList(cropData);
+
+            await setupDealer(activityDetailData.user_id);
+            await setupCropAndDealerCustomer(activityDetailData.dealer_id);
+            await setupCrop(cropData);
+
+            //set assign list
+          let assignData = [];
+          await activityDetailData.assing_user_list.forEach(element => {
+            assignData.push(element.id);
+          });
+          setAssignList(assignData);
+          } catch (error) {
+            console.log(error);
+            
+            showNotification(
+              "error",
+              "Data Not Found."
+            );
+          } finally {
+            setLoading(false);
+          }
+        }
       } catch (error) {
         console.log(error);
       }
@@ -290,12 +298,59 @@ export default function CreateActivity() {
     getMasterSelect();
   };
 
+  //handleChangeFunction
+  const setupDealer = async (value) => {
+    activityDetail.user_id = value;
+    const [dealer] = await Promise.all([
+      useServiceAPI.get(paths.pathMasterDealerDropdown, {
+        user_id: value
+      }),
+    ]);
+    setDealerList(dealer.data);
+  }
+
+  const setupCropAndDealerCustomer = async (value) => {
+    activityDetail.dealer_id = value;
+    const [crop, dealerCustomerData] = await Promise.all([
+      useServiceAPI.get(paths.pathMasterCrop, {
+        dealer_id: value
+      }),
+      useServiceAPI.get(paths.pathMasterDealerCustomer, {
+        delaer_id: value
+      }),
+    ]);
+    setCropList(crop.data);
+    setDealerCustomer(dealerCustomerData.data);
+  }
+
+  const setupCrop = async (value) => {
+    if(!isSalePlanEdit){
+      setCropDetailList(value);
+      const [productCrop] = await Promise.all([
+        useServiceAPI.get(paths.pathMasterProductByCrop, {
+          crop_list: value
+        }),
+      ]);
+
+      let productCropList = [];
+      productCrop.data.forEach((element, key) => {
+        productCropList.push({
+          key: (key + 1), productName: element.product_name, packSize: element.packing_list, 
+          estimateSale: "0", actualSale: "0", bath_ltkg: element.bath_ltkg, prodectCode: element.product_code,
+          productId: element.id
+        });
+      });
+      setProductCropList(productCropList);
+    }
+    setIsSalePlanEdit(false);
+  }
+
   const header = [
     { title: "Product Name", dataIndex: "productName", key: "productName", align: "left" },
     { title: "Pack Size", dataIndex: "packSize", key: "packSize", align: "center" },
     {
       title: "Estimate Sale (Kg/Lt)", dataIndex: "estimateSale", key: "estimateSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.estimateSale} disabled={ pageCode == 'expense_clearing' ? true : false } onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}
+        <Input placeholder="0" defaultValue={record.estimateSale} disabled={ pageCode == 'expense_clearing' ? true : (viewSegment ?? false) } onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}
           formatter={(value) =>
             `${Number(value).toFixed(2)}`.replace(
               /\B(?=(\d{3})+(?!\d))/g,
@@ -307,7 +362,7 @@ export default function CreateActivity() {
     },
     {
       title: "Actual Sale (Kg/Lt)", dataIndex: "actualSale", key: "actualSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.actualSale} disabled={ pageCode != 'expense_clearing' ? true : false } onChange={(e) => handleInputChange(e.target.value, record.key, "actualSale", record.bath_ltkg)}
+        <Input placeholder="0" defaultValue={record.actualSale} disabled={ pageCode != 'expense_clearing' ? true : (viewSegment ?? false) } onChange={(e) => handleInputChange(e.target.value, record.key, "actualSale", record.bath_ltkg)}
           formatter={(value) =>
             `${Number(value).toFixed(2)}`.replace(
               /\B(?=(\d{3})+(?!\d))/g,
@@ -629,7 +684,6 @@ export default function CreateActivity() {
 
   };
 
-  const menuTitle = (pageCode == 'expense_advance' ? 'Advance Expense' : (pageCode == 'expense_clearing' ? ' Clearing Expense' : 'Activity'));
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -643,7 +697,6 @@ export default function CreateActivity() {
         
         {/* <ActionButton mode="hide" text="Add Advance Expense" onClick='' /> */}
       </div>
-
       <FormCustom fields={formFields} form={formCustom} onChange={handleChange} mode={documentNumber ? 'edit' : 'create'}/>
 
       {(isBtnExpenseActive || (pageCode == 'expense_advance' || pageCode == 'expense_clearing')) ? (
@@ -823,16 +876,24 @@ export default function CreateActivity() {
           <BoxPrimary>
             <div className="flex items-center justify-between">
               <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
+              {viewSegment ? null : (
               <ActionButton mode="add" text="Upload File" onClick={handleUploadClick} />
+              ) }
+
             </div>
-            <FileUploadComponent ref={fileUploadRef} mode="edit" dataFile={fileList} modeUpload={pageCode} onUploadSuccess={handleUploadSuccess}/>
+            <FileUploadComponent ref={fileUploadRef} mode={viewSegment ? "view" : "edit"} dataFile={fileList} modeUpload={pageCode} onUploadSuccess={handleUploadSuccess}/>
           </BoxPrimary>
 
           {/* Participant Section */}
           <BoxPrimary>
             <div className="flex items-center justify-between">
               <div className="text-[#00783F] text-lg font-semibold mb-3">Participant</div>
-              <ActionButton mode="add" text="Add" onClick={handleOpenTeamModal} />
+              {
+                viewSegment ? null : (
+                  <ActionButton mode="add" text="Add" onClick={handleOpenTeamModal} />
+                )
+              }
+
             </div>
 
             <Form
@@ -846,12 +907,12 @@ export default function CreateActivity() {
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Estimate Participant " name="estimate_participant">
-                    <Input placeholder="0" />
+                    <Input placeholder="0" disabled={viewSegment}/>
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Actual Participant" name="actual_participant">
-                    <Input placeholder="0" />
+                    <Input placeholder="0" disabled={viewSegment}/>
                   </Form.Item>
                 </Col>
               </Row>
@@ -867,12 +928,16 @@ export default function CreateActivity() {
       ) : null}
 
       <div className="flex justify-end space-x-4 mt-6">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/activity/list")} />
+        <ActionButton mode="back" text="Back" onClick={() => navigate(menuURL)} />
         {
-          pageCode == 'expense_advance' ? (<ActionButton mode="saveDraft" text="Convert to Clearing" onClick={() => handleSave('convert')} />) : null
+          viewSegment ? 
+            null
+          : 
+          (
+            pageCode == 'expense_advance' ? (<ActionButton mode="saveDraft" text="Convert to Clearing" onClick={() => handleSave('convert')} />) : null
+          )
+          (<ActionButton mode="save" text="Save" onClick={() => handleSave('default') } />)
         }
-
-        <ActionButton mode="save" text="Save" onClick={() => handleSave('default') } />
       </div>
 
       {/* Modal for Add Participant */}

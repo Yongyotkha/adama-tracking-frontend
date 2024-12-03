@@ -62,7 +62,6 @@ const FileUploadComponent = forwardRef((props, ref) => {
         }}
         openFileDialogOnClick={false}
       />
-
       <input
         type="file"
         ref={hiddenFileInputRef}
