@@ -305,11 +305,11 @@ export default function ActivityMapping() {
   const handleCheckboxChange = (filterType, id) => {
     setCheckedFilters((prevState) => {
       const newFilters = { ...prevState };
-
+  
       if (!newFilters[filterType]) {
         newFilters[filterType] = [];
       }
-
+  
       if (newFilters[filterType].includes(id)) {
         // Remove the item if it's already checked
         newFilters[filterType] = newFilters[filterType].filter((i) => i !== id);
@@ -317,7 +317,7 @@ export default function ActivityMapping() {
         // Add the item to the checked filter
         newFilters[filterType].push(id);
       }
-
+  
       return newFilters;
     });
   };
