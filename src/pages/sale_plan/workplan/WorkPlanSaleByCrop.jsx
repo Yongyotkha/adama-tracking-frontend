@@ -16,12 +16,12 @@ export default function WorkPlanSaleByCrop() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const { showNotification, formatNumber } = useContext(AuthContext);
-
   const [crop, setCrop] = useState([]);
   const [permission, setPermission] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
   const [localQtyState, setLocalQtyState] = useState({});
   const [yearName, setYearName] = useState([]);
+  const [name, setName] = useState("");
 
   const columns = [
     {
@@ -281,6 +281,7 @@ export default function WorkPlanSaleByCrop() {
           setYearName(response.data.year_name);
           setDataSource(newData);
           setCrop(newDataCrop);
+          setName(response.data.user_name);
           setTotalValue(response.data.amount_target);
           setPermission(response.data.permission);
         }
@@ -462,9 +463,9 @@ export default function WorkPlanSaleByCrop() {
         <Title prefix="Create Plan" showYear={yearName} />
 
         <BoxPrimary>
-          <div className="flex flex-col gap-2">
-            <div>Work Plan</div>
-            <div className="w-[25%]">
+         <div className="flex gap-5">
+            <div>
+              <div>Work Plan</div>
               <InputNumber
                 disabled
                 suffix="THB"
@@ -478,6 +479,10 @@ export default function WorkPlanSaleByCrop() {
                   )
                 }
               />
+            </div>
+            <div>
+              <div>Sale</div>
+              <InputNumber disabled className="w-[300px]" value={name} />
             </div>
           </div>
         </BoxPrimary>
