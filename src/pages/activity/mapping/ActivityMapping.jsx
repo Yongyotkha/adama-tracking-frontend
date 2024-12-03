@@ -19,6 +19,7 @@ export default function ActivityMapping() {
   const [selected, setSelected] = useState(null);
   const [isFilterCollapsed, setIsFilterCollapsed] = useState(false); // Manage vertical collapse state
   const [checkedFilters, setCheckedFilters] = useState({}); // Manage checked state for all filters
+  const [isAllChecked, setIsAllChecked] = useState(false);
 
   const [dataApiKey, setDataApiKay] = useState("AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik");
 
@@ -67,6 +68,13 @@ export default function ActivityMapping() {
             lat: parseFloat(data.location_latitude),
             lng: parseFloat(data.location_longitude),
             details: data.location_address,
+            activity_type_id: data.activity_type_id,
+            activity_type_name: data.activity_type_name,
+            dealer_id: data.dealer_id,
+            dealer_name: data.dealer_name,
+            area_id: data.area_id,
+            area_name: data.area_name,
+            year: data.year,
           }))
         );
 
@@ -253,10 +261,17 @@ export default function ActivityMapping() {
 
   // Toggle a specific checkbox
   const toggleCheckbox = (category, item) => {
-    // console.log(category);
-    // console.log(item);
-    // return;
+    console.log(category);
+    console.log(item);
+    return;
     
+    // setCheckedFilters((prev) => ({
+    //   ...prev,
+    //   [category]: {
+    //     ...prev[category],
+    //     [item]: !prev[category][item],
+    //   },
+    // }));
     setCheckedFilters((prev) => ({
       ...prev,
       [category]: {
@@ -267,19 +282,84 @@ export default function ActivityMapping() {
     console.log(checkedFilters);
   };
 
-  // Check/Uncheck all categories and items
+  // ฟังก์ชันสำหรับการเลือกหรือยกเลิกเลือกทั้งหมด
   const toggleAll = (isChecked) => {
     const updatedFilters = {};
-    // Object.keys(mockFilters).forEach((category) => {
-    //   updatedFilters[category] = mockFilters[category].reduce((acc, item) => {
-    //     acc[item] = isChecked;
-    //     return acc;
-    //   }, {});
-    // });
-    // console.log(updatedFilters);
 
-    // setCheckedFilters(updatedFilters);
+    mockFilters.forEach((filterItem) => {
+      updatedFilters[filterItem.filter_type] = isChecked
+        ? filterItem.data.map((item) => item.id) // เลือกทั้งหมด
+        : []; // ยกเลิกทั้งหมด
+    });
+
+    setCheckedFilters(updatedFilters);
+    setIsAllChecked(isChecked); // กำหนดสถานะของ "Check All" ให้ตรงกับตัวเลือก
   };
+
+  const handleCheckboxChange = (filterType, id) => {
+    setCheckedFilters((prevState) => {
+      const newFilters = { ...prevState };
+
+      if (!newFilters[filterType]) {
+        newFilters[filterType] = [];
+      }
+
+      if (newFilters[filterType].includes(id)) {
+        // Remove the item if it's already checked
+        newFilters[filterType] = newFilters[filterType].filter((i) => i !== id);
+      } else {
+        // Add the item to the checked filter
+        newFilters[filterType].push(id);
+      }
+      
+      return newFilters;
+    });
+  };
+
+  // ฟังก์ชันสำหรับการตรวจสอบว่าเลือกทั้งหมดหรือไม่
+  useEffect(() => {
+    const allFiltersSelected = mockFilters.every((filterItem) => {
+      return filterItem.data.every((item) =>
+        checkedFilters[filterItem.filter_type]?.includes(item.id)
+      );
+    });
+
+    setIsAllChecked(allFiltersSelected); // ถ้าทุกตัวเลือกถูกเลือก ก็จะเป็น true
+    console.log(checkedFilters);
+
+    // ตรวจสอบ `mockFilters` ที่มี `filter_type` เป็น `activity_type`
+    // const activityFilter = mockFilters.find(
+    //   (filter) => filter.filter_type === "activity_type"
+    // );
+
+    // if (activityFilter) {
+    //   const selectedActivities = activityFilter.data.filter((item) =>
+    //     checkedFilters["activity_type"]?.includes(item.id)
+    //   );
+
+    //   if (selectedActivities.length > 0) {
+    //     setLocations((prevLocations) => {
+          
+          
+    //       const filteredLocations = prevLocations.filter((location) =>
+    //         selectedActivities.some(
+    //           (activity) => parseInt(activity.id) == (location.activity_type_id)
+    //         )
+    //       );
+
+    //       // ตรวจสอบว่าข้อมูลเปลี่ยนแปลงก่อนอัปเดต State
+    //       if (
+    //         JSON.stringify(filteredLocations) !== JSON.stringify(prevLocations)
+    //       ) {
+    //         return filteredLocations;
+    //       }
+
+    //       return prevLocations; // ถ้าข้อมูลเหมือนเดิมไม่ต้องอัปเดต
+    //     });
+    //   }
+    // }
+
+  }, [checkedFilters]);
 
   const handleSearch = (text) => {
     if (text) {
@@ -307,9 +387,9 @@ export default function ActivityMapping() {
     setDataMapZoom(15); // Set a higher zoom level for focusing
   };
 
-  const isAllChecked = Object.keys(checkedFilters).every((category) =>
-    Object.values(checkedFilters[category] || {}).every(Boolean)
-  );
+  // const isAllChecked = Object.keys(checkedFilters).every((category) =>
+  //   Object.values(checkedFilters[category] || {}).every(Boolean)
+  // );
 
   return (
     <MainLayout loading={loading}>
@@ -340,7 +420,7 @@ export default function ActivityMapping() {
           <div className="w-full my-2 px-2">
             <DynamicAutoComplete
               options={searchOptions}
-              placeholder="Search locations"
+              placeholder="Search locations (Min length 3)"
               onSearch={handleSearch}
               onSelect={handleSelect} // Trigger when a location is selected
               className="w-full rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
@@ -389,31 +469,18 @@ export default function ActivityMapping() {
               ))}
             </Collapse> */}
             <Collapse defaultActiveKey={["Activity Type"]} className="rounded-lg border-0">
-              {/* {Object.keys(mockFilters).map((category, categoryKey) => (
-                <Panel header={category} key={categoryKey} className="custom-collapse">
-                  <div className="flex flex-col space-y-2">
-                    {mockFilters[category].map((item, itemKey) => (
-                      <Checkbox
-                        key={itemKey}
-                        checked={checkedFilters[category]?.[item]}
-                        onChange={() => toggleCheckbox(category, item)}
-                      >
-                        {item}
-                      </Checkbox>
-                    ))}
-                  </div>
-                </Panel>
-              ))} */}
               {mockFilters.map((category, categoryKey) => (
                 <Panel header={category.filter_type_name} key={category.key} className="custom-collapse">
                   <div className="flex flex-col space-y-2">
                     {category.data.map((item, itemKey) => (
                       <Checkbox
                         key={itemKey}
-                        
-                        checked={checkedFilters[itemKey]?.[itemKey]}
+                        // checked
+                        // checked={checkedFilters[itemKey]?.[itemKey]}
                         // checked={checkedFilters[categoryKey]?.[itemKey]}
-                        // onChange={() => toggleCheckbox(category.filter_type, item.key)}
+                        // onChange={() => toggleCheckbox(category.filter_type, itemKey)}
+                        checked={checkedFilters[category.filter_type]?.includes(item.id) || false}
+                        onChange={() => handleCheckboxChange(category.filter_type, item.id)}
                       >
                         {item.name}
                       </Checkbox>
