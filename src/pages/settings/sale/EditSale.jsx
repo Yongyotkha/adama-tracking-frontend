@@ -36,6 +36,7 @@ export default function CreateSale() {
   const [selectedSaleArea, setSelectedSaleArea] = useState(null); // เก็บค่าที่เลือกจาก Sale Area
   const [defaultSaleHead, setDefaultSaleHead] = useState(null);
   const [defaultSaleArea, setDefaultSaleArea] = useState(null);
+  const [permission, setPermission] = useState({});
 
   useEffect(() => {
     fetchData();
@@ -54,34 +55,41 @@ export default function CreateSale() {
         `${paths.pathSaleManagementDetail}`,
         requestData
       );
-      console.log(response);
 
       if (response.status === 200) {
         const { data } = response;
         setSaleManagementId(id);
+        setPermission(data.permission); 
+               
         const transformedData = data.items.map((item, index) => ({
           key: item.sale_management_header_id,
           no: index + 1,
           name: item.name,
           position: item.position_name,
           territory: item.territory_name,
+          
           actionmain: (
             <>
-              <DynamicButton
-                iconSrc="/img/icons/create.png"
-                onClick={() =>
-                  handleOpenTeamModal(
-                    data.area_id,
-                    item.position_id,
-                    item.department_id,
-                    item.sale_management_header_id
-                  )
-                }
-              />
-              <DynamicButton
+              {permission?.edit !== false && (
+                <DynamicButton
+                  iconSrc="/img/icons/create.png"
+                  onClick={() =>
+                    handleOpenTeamModal(
+                      data.area_id,
+                      item.position_id,
+                      item.department_id,
+                      item.sale_management_header_id
+                    )
+                  }
+                />
+              )}
+            {
+              permission?.view !== false && ( 
+                <DynamicButton
                 iconSrc="/img/icons/delete.png"
                 onClick={() => handleDelete(item.sale_management_header_id)}
               />
+            )}
             </>
           ),
 
@@ -498,12 +506,23 @@ export default function CreateSale() {
             Sale Team
           </span>
           <div className="flex space-x-2">
-            <ActionButton
+            {/* <ActionButton
               mode="add"
               text="Add"
               onClick={handleOpenTerritoryModal}
-            />
+            /> */}
+            {
+              permission.btn_add !== false && ( 
+              <ActionButton
+                mode="add"
+                text="Add"
+                onClick={handleOpenTerritoryModal}
+              />
+            )}
+
+
           </div>
+          
         </div>
 
         <TableExpand
@@ -519,11 +538,14 @@ export default function CreateSale() {
           text="Back"
           onClick={() => navigate("/setting/sale")}
         />
+      {
+        permission.btn_save !== false && ( 
         <ActionButton
           mode="save"
           text="Save"
           onClick={() => navigate("/setting/sale")}
         />
+      )}
       </div>
 
       {/* Modal for Add Sale Territory */}
