@@ -82,34 +82,43 @@ export default function SettingUser() {
           key: index + 1 + (current - 1) * pageSize,
           action: (
             <Dropdown
-              menu={{
-                items: user.action.map((actionItem, actionIndex) => ({
-                  key: actionIndex,
-                  label: (
-                    <ItemDropDown mode={actionItem.action.toLowerCase()} 
+            menu={{
+              items: user.action.map((actionItem, actionIndex) => ({
+                key: actionIndex,
+                label: (
+                  <ItemDropDown
+                    mode={actionItem.action.toLowerCase()} 
                     onClick={() => {
-                      navigate("/setting/user/edit", {
-                        state: {
-                          id: user.id,
-                        },
-                      });
+                      if (actionItem.action.toLowerCase() === "edit") {
+                        navigate("/setting/user/edit", {
+                          state: {
+                            id: user.id,
+                            mod: actionItem.action
+                          },
+                        });
+                      } else if (actionItem.action.toLowerCase() === "view") {
+                        navigate("/setting/user/view", {
+                          state: {
+                            id: user.id,
+                            mod: actionItem.action
+                          },
+                        });
+                      }
                     }}
-                    
-                    
-                    />
-                  ),
-                })),
-              }}
-              placement="bottom"
-            >
-              <a onClick={(e) => e.preventDefault()}>
-                <img
-                  src="/img/icons/action.png"
-                  alt="button icon"
-                  className="inline-block w-5 h-5 mr-2"
-                />
-              </a>
-            </Dropdown>
+                  />
+                ),
+              })),
+            }}
+            placement="bottom"
+          >
+            <a onClick={(e) => e.preventDefault()}>
+              <img
+                src="/img/icons/action.png"
+                alt="button icon"
+                className="inline-block w-5 h-5 mr-2"
+              />
+            </a>
+          </Dropdown>
           ),
           name: user.name_en,
           status: (

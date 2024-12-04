@@ -28,13 +28,19 @@ export default function EditUser() {
   const { showNotification } = useContext(AuthContext);
   const [permission, setPermission] = useState([]);
 
+  // อ่านสถานะ mod จาก state
+  const mode = location.state?.mod; 
+  const isViewMode = mode === "View";
+
+            
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch user details
+        // Fetch user 
+        console.log(location.state.id);
+        console.log(location.state.mod);
         await fetchPromotionDetails(location.state.id);
-
         // Fetch other necessary data in parallel
         const [positions, departments, territories, areas, roles, permissions] =
           await Promise.all([
@@ -81,7 +87,7 @@ export default function EditUser() {
     }
   };
 
-  const updatedFields = [
+  let  updatedFields = [
     {
       label: "Profile Image",
       name: "profile", // ชื่อฟิลด์ในฟอร์ม
@@ -220,6 +226,13 @@ export default function EditUser() {
  
   ];
 
+  if (isViewMode) {
+    updatedFields = updatedFields.map(field => ({
+      ...field,
+      disabled: true
+    }));
+  }
+
   const handleBack = () => {
     navigate("/setting/user");
   };
@@ -259,8 +272,14 @@ export default function EditUser() {
             }
           })
           .catch((error) => {
-            console.error(error);
-            showNotification("error", "เกิดข้อผิดพลาด");
+            if (error.status == 422) {
+              // showMsg("error", error.message);
+              showNotification("error",error.response.data.data.message);
+            } else if (error.status == 500) {
+              showNotification("error",error.response.data.data.message);
+            } else {
+              showNotification("error", "เกิดข้อผิดพลาด");
+            }
           });
       })
       .catch((errorInfo) => {
@@ -270,7 +289,7 @@ export default function EditUser() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Edit User</div>
+      <div className="title-page">{isViewMode ? "View User" : "Edit User"}</div>
 
       {dataLoaded ? (
         <FormUser profile={profileImage} fields={updatedFields} form={form} />
@@ -280,7 +299,14 @@ export default function EditUser() {
 
       <div className="flex justify-end space-x-4">
         <ActionButton text="Back" mode="back" onClick={handleBack} />
-        <ActionButton text="Update" mode="update" onClick={handleSave} />
+        {
+          // แก้ไข: หากอยู่ในโหมด View ไม่ต้องแสดงปุ่ม Update
+          !isViewMode && (
+            <ActionButton text="Update" mode="update" onClick={handleSave} />
+          )
+        }
+
+        {/* <ActionButton text="Update" mode="update" onClick={handleSave} /> */}
       </div>
     </MainLayout>
   );

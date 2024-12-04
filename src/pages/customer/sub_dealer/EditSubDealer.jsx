@@ -41,19 +41,23 @@ export default function EditSubDealer() {
   const [contactItems, setContactItems] = useState([]); // State for contact items
   const { showMsg, showNotification } = useContext(AuthContext);
   const [contacts, setContacts] = useState([]);
+  const [profileImage, setProfileImage] = useState("/img/profile.jpg"); // Default value
+  const [dataLoaded, setDataLoaded] = useState(false);
 
-
+  const mode = location.state.mode; 
+  const isViewMode = mode === "View";
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        console.log(location.state.id);
+        
         await fetchPromotionDetails(location.state.id);
         const [crops] = await Promise.all([
           useServiceAPI.get(paths.pathMasterCrop, {}),
         ]);
 
         setCropOptions(crops.data);
+        setDataLoaded(true);
 
       } catch (error) {
         console.log(error.message);
@@ -73,8 +77,9 @@ export default function EditSubDealer() {
         `${paths.pathSubDealerDetail}?id=${id}`
       );
       if (response.status === 200) {
-        const { data } = response;                
+        const { data } = response;                        
         setcompanyinfo(data);
+        setProfileImage(data.photo_path); 
         setContactItems(data.contact_items);
 
         setCropOptions(data.crop_list || []);
@@ -91,28 +96,17 @@ export default function EditSubDealer() {
     }
   };
 
-  // const formFields = [
-  //   { label: "Code SubDealer", name: "code_dealer", type: "text", required: false, col: 6, value:"" },
-  //   { label: "Shop Name", name: "shop_name", type: "text", required: false, col: 6, value: companyinfo.name },
-  //   { label: "Mobile Phone", name: "mobile_phone", type: "text", required: false, col: 6, value: companyinfo.mobile_phone },
-  //   { label: "Address", name: "address", type: "text", required: false, col: 12, value: companyinfo.address },
-  //   { label: "Email", name: "email", type: "email", required: false, col: 6, value: companyinfo.email },
-  //   { label: "Start Time", name: "start_time", type: "time", required: false, col: 3, value: companyinfo.start_time },
-  //   { label: "End Time", name: "end_time", type: "time", required: false, col: 3, value: companyinfo.end_time },
-  //   { label: "Business Size", name: "business_size", type: "select", options: ["Small", "Medium", "Large"], required: false, col: 6, value: companyinfo.business_size },
-  //   { label: "Remark", name: "remark", type: "text", required: false, col: 12, value: companyinfo.remark },
-  // ];
 
+  let formFields = [
+    {
+      label: "",
+      name: "profile", // ชื่อฟิลด์ในฟอร์ม
+      type: "picture", // ประเภทฟิลด์
+      required: false,
+      col: 24,
+      value: companyinfo.photo_path,
 
-  const formFields = [
-    // {
-    //   label: "Code SubDealer",
-    //   name: "code_dealer",
-    //   type: "text",
-    //   required: false,
-    //   col: 6,
-    //   value: "",
-    // },
+    },
     {
       label: "Shop Name",
       name: "shop_name",
@@ -236,7 +230,12 @@ export default function EditSubDealer() {
   ];
 
 
-
+  if (isViewMode) {
+    formFields = formFields.map(field => ({
+      ...field,
+      disabled: true
+    }));
+  }
 
 
   const transformedCropOptions = cropOptions.map((option) => ({
@@ -254,12 +253,23 @@ export default function EditSubDealer() {
     setContactItems(updatedContacts);
   };
 
+  const handleRemoveContact = (index) => {
+    setContactItems((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const renderContactItems = () =>
     contactItems.map((contact, index) => (
       <div key={index} className="mb-6">
         <div className="flex justify-between mb-4">
           <span className="text-[#00783F] text-md">{`Person ${index + 1}`}</span>
+          {index > 0 && !isViewMode && (
+          <ActionButton
+            mode="reject"
+            text="Delete"
+            onClick={() => handleRemoveContact(index)}
+            disabled={isViewMode}
+          />
+        )}
         </div>
         <Row gutter={[16, 16]} className="mt-3">
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -267,6 +277,7 @@ export default function EditSubDealer() {
               placeholder="Name (EN)"
               value={contact.name_en || ""}
               onChange={(e) => handleContactChange(index, "name_en", e.target.value)}
+              disabled={isViewMode}
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -274,6 +285,8 @@ export default function EditSubDealer() {
               placeholder="Name (TH)"
               value={contact.name_th || ""}
               onChange={(e) => handleContactChange(index, "name_th", e.target.value)}
+              disabled={isViewMode}
+
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -281,6 +294,8 @@ export default function EditSubDealer() {
               placeholder="Nickname"
               value={contact.nickname || ""}
               onChange={(e) => handleContactChange(index, "nickname", e.target.value)}
+              disabled={isViewMode}
+
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -289,6 +304,8 @@ export default function EditSubDealer() {
               placeholder="Date of Birth"
               value={contact.date_of_birth ? dayjs(contact.date_of_birth) : null}
               onChange={(date) => handleContactChange(index, "date_of_birth", date)}
+              disabled={isViewMode}
+
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -296,6 +313,8 @@ export default function EditSubDealer() {
               placeholder="T-Shirt Size"
               value={contact.t_shirt_size || ""}
               onChange={(e) => handleContactChange(index, "t_shirt_size", e.target.value)}
+              disabled={isViewMode}
+
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -303,6 +322,8 @@ export default function EditSubDealer() {
               placeholder="Relationship"
               value={contact.relationship || ""}
               onChange={(e) => handleContactChange(index, "relationship", e.target.value)}
+              disabled={isViewMode}
+
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -310,6 +331,8 @@ export default function EditSubDealer() {
               placeholder="Duty"
               value={contact.duty || ""}
               onChange={(e) => handleContactChange(index, "duty", e.target.value)}
+              disabled={isViewMode}
+
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -317,6 +340,8 @@ export default function EditSubDealer() {
               placeholder="Tel 1"
               value={contact.tel1 || ""}
               onChange={(e) => handleContactChange(index, "tel1", e.target.value)}
+              disabled={isViewMode}
+
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -324,6 +349,8 @@ export default function EditSubDealer() {
               placeholder="Tel 2"
               value={contact.tel2 || ""}
               onChange={(e) => handleContactChange(index, "tel2", e.target.value)}
+              disabled={isViewMode}
+
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -331,6 +358,8 @@ export default function EditSubDealer() {
               placeholder="Contact Number"
               value={contact.contact_number || ""}
               onChange={(e) => handleContactChange(index, "contact_number", e.target.value)}
+              disabled={isViewMode}
+
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -338,6 +367,8 @@ export default function EditSubDealer() {
               placeholder="Email"
               value={contact.email || ""}
               onChange={(e) => handleContactChange(index, "email", e.target.value)}
+              disabled={isViewMode}
+
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -345,6 +376,8 @@ export default function EditSubDealer() {
               placeholder="Line ID"
               value={contact.line_id || ""}
               onChange={(e) => handleContactChange(index, "line_id", e.target.value)}
+              disabled={isViewMode}
+
             />
           </Col>
         </Row>
@@ -356,7 +389,7 @@ export default function EditSubDealer() {
     const handleSave = () => {
       form
         .validateFields()
-        .then((values) => {
+        .then((values) => {          
           const payload = {
             id: location.state.id,
             name: values.shop_name || "",
@@ -380,7 +413,7 @@ export default function EditSubDealer() {
               ? dayjs(values.anniversary).format("YYYY-MM-DD")
               : null,
             remark: values.remark || "",
-            photo_path: "photo_path", // ตัวอย่าง placeholder
+            photo_path: values.profile, // ตัวอย่าง placeholder
             
             contact_items: contactItems.map((contact) => ({
               name_en: contact.name_en || "",
@@ -427,8 +460,17 @@ export default function EditSubDealer() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Edit Sub Dealer</div>
-      <FormUser profile="/img/profile.jpg" title="Personal Info" fields={formFields} form={form}/>
+      <div className="title-page"></div>
+      <div className="title-page">{isViewMode ? "View Sub Dealer" : "Edit Sub Dealer"}</div>
+
+      {/* <FormUser  profile={profileImage}  title="Personal Info" fields={formFields} form={form}/> */}
+
+      {dataLoaded ? (
+        <FormUser profile={profileImage} fields={formFields} form={form} />
+      ) : (
+        <div></div>
+      )}
+
       <BoxPrimary>
           <Select
             mode="multiple"
@@ -439,12 +481,31 @@ export default function EditSubDealer() {
             value={defaultSelectedCrops} 
             onChange={(value) => setDefaultSelectedCrops(value)} // จัดการการเปลี่ยนแปลงค่า
             options={transformedCropOptions} 
+            disabled={isViewMode}
           />
       </BoxPrimary>
       <BoxPrimary>
         <div className="flex justify-between mb-4">
           <span className="text-[#00783F] text-lg font-semibold">Contact Person</span>
-          <ActionButton mode="add" text="Add" onClick={() => {
+          {!isViewMode && ( 
+            <ActionButton
+              mode="add"
+              text="Add"
+              onClick={() => {
+                setContactItems([
+                  ...contactItems,
+                  {
+                    name: "",
+                    phone: "",
+                    email: "",
+                    position: ""
+                  }
+                ]);
+              }}
+            />
+          )}
+
+          {/* <ActionButton mode="add" text="Add" onClick={() => {
               setContactItems([
               ...contactItems,
               {
@@ -454,8 +515,7 @@ export default function EditSubDealer() {
                 position: "" // Default value for position field
               }
             ]);
-
-          }} />
+          }} /> */}
         </div>
         {contactItems.length > 0 ? (
           renderContactItems()
@@ -468,8 +528,12 @@ export default function EditSubDealer() {
       <div className="flex justify-end space-x-4 mt-6">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/customer/sub-dealer")} />
         {/* <ActionButton htmlType="submit" mode="update" text="Update" onClick={() => navigate("/customer/sub-dealer")} /> */}
-        <ActionButton text="Save" mode="save" onClick={handleSave} />
-
+        {/* <ActionButton text="Save" mode="save" onClick={handleSave} /> */}
+        {
+        !isViewMode && (
+          <ActionButton text="Update" mode="update" onClick={handleSave} />
+          )
+        }
       </div>
     </MainLayout>
   );
