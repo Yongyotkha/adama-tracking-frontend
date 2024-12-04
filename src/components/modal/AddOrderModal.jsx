@@ -11,30 +11,8 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
     Label: [],
     Product: [],
     Overall: [],
+    Other: [],
   });
-
-  // Initialize empty file list for Other section
-  const [otherList, setOtherList] = useState([]);
-
-  // Log fileList length every time it changes
-  useEffect(() => {
-    console.log("Current fileList length:", otherList);
-  }, [otherList]);
-
-  // Reference for FileUploadComponent
-  const fileUploadRef = useRef(null);
-
-  // Function to trigger upload in FileUploadComponent
-  const handleUploadClick = () => {
-    if (fileUploadRef.current) {
-      fileUploadRef.current.triggerUpload();
-    }
-  };
-
-  // Update fileList state when files are selected for Other section
-  const handleOtherUploadChange = ({ fileList }) => {
-    setOtherList(fileList);
-  };
 
   const handleUploadChange = (key) => ({ fileList }) => {
     setFileLists((prev) => ({
@@ -54,7 +32,8 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
     name: "file",
     onChange: handleUploadChange(key),
     beforeUpload: () => false, // Prevent actual upload
-    showUploadList: false, // Hide the default file list from Dragger
+    fileList: fileLists[key],
+    multiple: true,
   });
 
   const formFields = [
@@ -63,6 +42,62 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
     { label: "Lot No", name: "lotNo", placeholder: "Enter Lot No" },
     { label: "Reason", name: "reason", placeholder: "Enter Reason" },
   ];
+
+  const [labelFiles, setLabelFiles] = useState([]);
+  const [productFiles, setProductFiles] = useState([]);
+  const [overallFiles, setOverallFiles] = useState([]);
+  const [otherFiles, setOtherFiles] = useState([]);
+
+  const UploadSection = ({ label, files, setFiles }) => {
+    const handleFileChange = ({ fileList }) => {
+      setFiles(fileList);
+    };
+  
+    const handleRemoveFile = (file) => {
+      setFiles((prev) => prev.filter((item) => item.uid !== file.uid));
+    };
+  
+    return (
+      <div className="upload-section">
+        <label className="upload-label">{label}</label>
+        <div className="upload-container">
+          {!files.length ? (
+            <Upload
+              listType="picture"
+              beforeUpload={() => false}
+              onChange={handleFileChange}
+              fileList={files}
+              className="upload-dragger"
+            >
+              <p className="upload-text">Choose a file or drag & drop it here</p>
+              <p className="upload-text">JPEG, PNG</p>
+              <Button icon={<UploadOutlined />} className="upload-button">
+                Browse File
+              </Button>
+            </Upload>
+          ) : (
+            files.map((file) => (
+              <div key={file.uid} className="file-preview">
+                <div className="file-thumbnail">
+                  <img
+                    src={file.thumbUrl || URL.createObjectURL(file.originFileObj)}
+                    alt={file.name}
+                    className="preview-image"
+                  />
+                </div>
+                <Button
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() => handleRemoveFile(file)}
+                  className="delete-button"
+                ></Button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <Modal
@@ -101,53 +136,11 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
           </div>
         ))}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {["Label", "Product", "Overall"].map((uploadLabel) => (
-            <div key={uploadLabel} className="flex flex-col items-start w-full">
-              <label className="text-sm text-gray-700 mb-2">{uploadLabel}</label>
-
-              {/* Conditionally show Dragger or Preview */}
-              {fileLists[uploadLabel].length === 0 ? (
-                <Dragger {...draggerProps(uploadLabel)} fileList={fileLists[uploadLabel]} className="w-full bg-white">
-                  <p className="text-center text-[16px] text-[#978B87] w-full">Choose a file or drag & Drop it here</p>
-                  <p className="text-center text-[16px] text-[#978B87] w-full">JPEG, PNG</p>
-                  <Button variant="filled" icon={<UploadOutlined />} className="my-2 mx-auto bg-[#009845] hover:bg-[#009845] text-white">
-                    Upload Files
-                  </Button>
-                </Dragger>
-              ) : (
-                <div className="relative w-full border border-dashed p-2 rounded-lg">
-                  <img
-                    src={fileLists[uploadLabel][0].thumbUrl || URL.createObjectURL(fileLists[uploadLabel][0].originFileObj)}
-                    alt="preview"
-                    className="w-full h-auto"
-                  />
-                  <button
-                    onClick={() => handleRemove(uploadLabel, fileLists[uploadLabel][0])}
-                    className="absolute bottom-2 left-2"
-                  >
-                    <img
-                      src="/img/icons/delete-file.png"
-                      alt="Delete icon"
-                      className="inline-block h-10 m-auto"
-                    />
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
-
-          {/* Other section using FileUploadComponent */}
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-700 mb-2">Other</label>
-            <div className="flex flex-col items-start w-full border border-dashed p-4 rounded-lg">
-              <FileUploadComponent ref={fileUploadRef} dataFile={otherList} onChange={handleOtherUploadChange} />
-              <p className="text-center text-[16px] mt-2 text-[#978B87] w-full min-h-[42px]">Choose a file JPEG, PNG</p>
-              <Button variant="filled" icon={<UploadOutlined />} onClick={handleUploadClick} className="my-2 mx-auto bg-[#009845] hover:bg-[#009845] text-white">
-                Upload Files
-              </Button>
-            </div>
-          </div>
+        <div className="file-upload-grid">
+          <UploadSection label="Label" files={labelFiles} setFiles={setLabelFiles} />
+          <UploadSection label="Product" files={productFiles} setFiles={setProductFiles} />
+          <UploadSection label="Overall" files={overallFiles} setFiles={setOverallFiles} />
+          <UploadSection label="Other" files={otherFiles} setFiles={setOtherFiles} />
         </div>
       </form>
     </Modal>

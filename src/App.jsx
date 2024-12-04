@@ -136,7 +136,8 @@ const App = () => {
           <Route path="/expenses/advance/create" element={<CreateAdvanceExpense />} />
           <Route path="/expenses/advance/edit" element={<EditAdvanceExpense />} />
           <Route path="/expenses/advance/view" element={<ViewAdvanceExpense />} />
-          <Route path="/expenses/product-claim" element={<ProductClaim />} />
+          <Route path="/expenses/product-claim-list" element={<ProductClaim />} />
+          <Route path="/expenses/product-claim-waiting-list" element={<ProductClaim />} />
           <Route path="/expenses/product-claim/create" element={<CreateClaimRequest />} />
           <Route path="/expenses/product-claim/edit" element={<EditClaimRequest />} />
           <Route path="/expenses/traveling" element={<Traveling />} />

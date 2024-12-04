@@ -27,7 +27,7 @@ const toolbarOptions = [
   ["clean"],
 ];
 
-export default function FormCustom({ fields, form, title, onChange = {}, mode }) {
+export default function FormCustom({ fields, form, title, onChange, mode }) {
   const [formValues, setFormValues] = useState({});
   const [location, setLocation] = useState({ lat: null, long: null, address: "" });
   const isInitialSet = useRef(false);
@@ -150,7 +150,8 @@ export default function FormCustom({ fields, form, title, onChange = {}, mode })
       [attribute]: value,
     }));
     
-    form.setFieldsValue({ [attribute]: value }); // อัปเดตค่าลงในฟอร์ม
+    form?.setFieldsValue({ [attribute]: value }); // อัปเดตค่าลงในฟอร์ม
+    console.log(onChange);
     
     if (onChange) {
       onChange(attribute, value); // เรียก callback ถ้ามี

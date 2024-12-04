@@ -16,6 +16,8 @@ export default function ProductClaim() {
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [statusList, setStatusList] = useState([]);
+  const [dealerList, setDealerList] = useState([]);
   const [isProductModalVisible, setIsProductModalVisible] = useState(false);
   const [tableParams, setTableParams] = useState({
     pagination: {
@@ -27,6 +29,8 @@ export default function ProductClaim() {
     sortField: null,
   });
   const navigate = useNavigate();
+  const pathSegments = location.pathname.split('/');
+  const listSegment = pathSegments[2] === 'product-claim-list';
   
   const filters = [
     {
@@ -43,20 +47,17 @@ export default function ProductClaim() {
     },
     {
       key: "dealer_name",
-      type: "text",
-      label: "Dealer Name",
+      type: "select",
+      label: "Dealer",
       placeholder: "All",
+      options: dealerList
     },
     {
       key: "status",
       type: 'select',
       label: "Status",
       placeholder: "All",
-      options: [
-        { value: 'Wait for Approve', label: 'Wait for Approve' },
-        { value: 'Approved', label: 'Approved' },
-        { value: 'Rejected', label: 'Rejected' },
-      ],
+      options: statusList,
     },
   ];
   
@@ -162,6 +163,34 @@ export default function ProductClaim() {
       setTableLoading(false);
     }
   };
+  useEffect(() => {
+    const getMasterStatus = async () => {
+      try {
+        const [status, dealer] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterStatus, {
+            status_type: "claim"
+          }),
+          useServiceAPI.get(paths.pathMasterSubDealer, {}),
+        ]);
+
+        setStatusList(status.data);
+
+        let subDealerAll = [];
+        await dealer.data.forEach(element => {
+          subDealerAll.push({
+            'id': element.sub_dealer_id,
+            'name': element.sub_dealer_name,
+          });
+        });
+
+        setDealerList((prevList) => [...prevList, ...subDealerAll]);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      }
+    };
+
+    getMasterStatus();
+  }, [])
   
   useEffect(() => {
     fetchData();
