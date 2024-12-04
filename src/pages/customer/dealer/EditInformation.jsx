@@ -738,15 +738,17 @@ export default function EditInformation() {
               <span className="text-[#00783F] text-lg font-semibold">
                 Network
               </span>
-
-              
-              <div className="flex space-x-2">
-                <ActionButton
-                  mode="add"
-                  text="Add"
-                  onClick={handleOpenTerritoryModal}
-                />
-              </div>
+              {
+                !isViewMode && (
+                  <div className="flex space-x-2">
+                  <ActionButton
+                    mode="add"
+                    text="Add"
+                    onClick={handleOpenTerritoryModal}
+                  />
+                </div>
+                )
+              }
             </div>
             <TableComponent header={header} dataSource={networkList} />
           </BoxPrimary>
@@ -777,10 +779,18 @@ export default function EditInformation() {
   ];
 
   if (isViewMode) {
-    items = items.map(field => ({
-      ...field,
-      disabled: true
-    }));
+    items = items.map(field => {
+      if (field.key === 'network') {
+        return field;
+      }else if(field.key === 'profile'){
+        return field;
+
+      }
+      return {
+        ...field,
+        disabled: true
+      };
+    });
   }
   
   return (
