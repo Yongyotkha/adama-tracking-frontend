@@ -461,7 +461,7 @@ export default function SettingSale() {
       <div className="flex items-center justify-between">
         <div className="title-page">Sale Management</div>
         {
-        permission.btn_create !== false && ( // ตรวจสอบค่าของ btn_create
+        permission.btn_create !== false && ( 
         <ActionButton
           mode="create"
           text="Create"
