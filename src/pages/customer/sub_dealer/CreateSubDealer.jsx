@@ -65,6 +65,13 @@ export default function CreateSubDealer() {
 
   const [formFields, setFormFields] = useState([
     {
+      label: "",
+      name: "profile",
+      type: "picture", // เพิ่มรูปภาพในลูป
+      required: false,
+      col: 24,
+    },
+    {
       label: "Shop Name",
       name: "shop_name",
       type: "text",
@@ -256,6 +263,8 @@ export default function CreateSubDealer() {
     form
       .validateFields()
       .then((values) => {
+        console.log(values);
+        
         const payload = {
           name: values.shop_name || "",
           mobile_phone: values.mobile_phone || "",
@@ -275,7 +284,7 @@ export default function CreateSubDealer() {
             ? dayjs(values.anniversary).format("YYYY-MM-DD")
             : null,
           remark: values.remark || "",
-          photo_path: "photo_path", // ตัวอย่าง placeholder
+          photo_path: values.profile, // ตัวอย่าง placeholder
           
           contact_items: contacts.map((contact) => ({
             name_en: contact.name_en || "",

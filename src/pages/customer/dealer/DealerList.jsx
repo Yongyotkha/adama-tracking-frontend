@@ -107,12 +107,32 @@ export default function DealerList() {
                   key: actionIndex,
                   label: (
                     <ItemDropDown mode={actionItem.action.toLowerCase()} 
+
+                    // onClick={() => {
+                    //   navigate("/customer/dealer/edit-info", {
+                    //     state: {
+                    //       id: data.id,
+                    //       mod: actionItem.action
+                    //     },
+                    //   });
+                    // }}
+
                     onClick={() => {
-                      navigate("/customer/dealer/edit-info", {
-                        state: {
-                          id: data.id,
-                        },
-                      });
+                      if (actionItem.action.toLowerCase() === "edit") {
+                        navigate("/customer/dealer/edit-info", {
+                          state: {
+                            id: data.id,
+                            mod: actionItem.action
+                          },
+                        });
+                      } else if (actionItem.action.toLowerCase() === "view") {
+                        navigate("/customer/dealer/view-info", {
+                          state: {
+                            id: data.id,
+                            mod: actionItem.action
+                          },
+                        });
+                      }
                     }}
                     />
                   ),

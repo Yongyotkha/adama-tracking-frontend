@@ -151,9 +151,13 @@ const App = () => {
           {/* Customer Route */}
           <Route path="/customer/dealer" element={<Dealer />} />
           <Route path="/customer/dealer/edit-info" element={<EditInformation />} />
+          <Route path="/customer/dealer/view-info" element={<EditInformation />} />
+
           <Route path="/customer/sub-dealer" element={<SubDealer />} />
           <Route path="/customer/sub-dealer/create" element={<CreateSubDealer />} />
           <Route path="/customer/sub-dealer/edit" element={<EditSubDealer />} />
+          <Route path="/customer/sub-dealer/view" element={<EditSubDealer />} />
+
 
           {/* Setting Route */}
           <Route path="/setting/role" element={<SettingRole />} />
@@ -161,6 +165,8 @@ const App = () => {
           <Route path="/setting/user" element={<SettingUser />} />
           <Route path="/setting/user/create" element={<CreateUser />} />
           <Route path="/setting/user/edit" element={<EditUser />} />
+          <Route path="/setting/user/view" element={<EditUser />} />
+
           <Route path="/setting/sale" element={<SettingSale />} />
           <Route path="/setting/sale/create" element={<CreateSale />} />
           <Route path="/setting/sale/edit" element={<EditSale />} />
