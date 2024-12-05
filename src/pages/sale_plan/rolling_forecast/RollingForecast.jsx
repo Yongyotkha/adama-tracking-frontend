@@ -34,6 +34,7 @@ export default function RollingForecast() {
   useEffect(() => {
     getMaster();
   }, []);
+  
   useEffect(() => {
     if (defaultOption) {
       fetchData();
