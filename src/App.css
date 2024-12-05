@@ -166,3 +166,74 @@ span.ant-popconfirm-message-icon {
   background-color: #5F504D ; 
   /* border-color: #5F504D !important; */
 }
+
+.filter-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* ระยะห่างระหว่างรายการ */
+}
+
+.custom-collapse .ant-checkbox-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* upload file */
+.file-upload-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.upload-section {
+  display: flex;
+  flex-direction: column;
+  border: 2px dashed #ccc;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  position: relative;
+}
+
+.upload-label {
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.upload-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.upload-text {
+  margin-bottom: 10px;
+  color: #978b87;
+  font-size: 14px;
+}
+
+.upload-button {
+  background-color: #009845;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  margin-top: 10px;
+}
+
+.file-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.file-thumbnail img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  background-color: #eee;
+}
+

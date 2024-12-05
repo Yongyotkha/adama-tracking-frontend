@@ -9,12 +9,28 @@ import TableComponent from "../../../components/table/TableComponent";
 import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import DynamicModal from "../../../components/modal/DynamicModal";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
 
 export default function ProductClaim() {
   const [loading, setLoading] = useState(false);
+  const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [statusList, setStatusList] = useState([]);
+  const [dealerList, setDealerList] = useState([]);
   const [isProductModalVisible, setIsProductModalVisible] = useState(false);
+  const [tableParams, setTableParams] = useState({
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+    filters: {},
+    sortOrder: null,
+    sortField: null,
+  });
   const navigate = useNavigate();
+  const pathSegments = location.pathname.split('/');
+  const listSegment = pathSegments[2] === 'product-claim-list';
   
   const filters = [
     {
@@ -31,20 +47,17 @@ export default function ProductClaim() {
     },
     {
       key: "dealer_name",
-      type: "text",
-      label: "Dealer Name",
+      type: "select",
+      label: "Dealer",
       placeholder: "All",
+      options: dealerList
     },
     {
       key: "status",
       type: 'select',
       label: "Status",
       placeholder: "All",
-      options: [
-        { value: 'Wait for Approve', label: 'Wait for Approve' },
-        { value: 'Approved', label: 'Approved' },
-        { value: 'Rejected', label: 'Rejected' },
-      ],
+      options: statusList,
     },
   ];
   
@@ -76,10 +89,6 @@ export default function ProductClaim() {
     { title: "Position", dataIndex: "position", key: "position" },
   ];
 
-  const actionItems = [
-    { key: "1", label: <ItemDropDown mode="edit" link="/expenses/product-claim/edit" /> },
-  ];
-
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
     { title: "Claim No", width: 150, dataIndex: "claimNo", align: "center" },
@@ -89,59 +98,109 @@ export default function ProductClaim() {
     { title: "Status", width: 150, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
+
+  const fetchData = async () => {
+    setTableLoading(true);
+    const { current, pageSize } = tableParams.pagination;
+    const filters = tableParams.filters || {};
+
+    const sortOrder = tableParams.sortOrder || "desc";
+    const sortField = tableParams.sortField || "document_number";
+
+    const requestData = {
+      keyword: filters.keyword || "",
+      page: "all",
+      orderby_column: sortField,
+      orderby: sortOrder,
+      page_length: current,
+      page_size: pageSize,
+    };
+
+    try {
+      const response = await useServiceAPI.get(
+        paths.pathClaimList,
+        requestData
+      );
+
+      if (response.status === 200) {
+        const { data, records_filtered } = response.data;
+        
+        const newDataSource = data.map((row, index) => {
+          const actionItems = [
+            { key: "1", label: <ItemDropDown mode="edit" link="/expenses/product-claim/edit" /> },
+          ];
+        
+          return {
+            key: index + 1 + (current - 1) * pageSize,
+            claimNo: row.document_number,
+            claimDate: row.document_date,
+            dealerName: row.dealer_name,
+            product: <BadgeStatus text={row.product_count} bgColor="#F89E18" textColor="#FFFFFF" />,
+            status: <BadgeStatus text={row.status_transaction_name} bgColor={row.status_transaction_bg_color} textColor={row.status_transaction_color} />,
+            action: (
+              <Dropdown menu={{ items: actionItems }} placement="bottomRight">
+                <a onClick={(e) => e.preventDefault()}>
+                  <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+                </a>
+              </Dropdown>
+            ),
+          };
+        });
+
+        setDataSource(newDataSource);
+
+        setTableParams({
+          ...tableParams,
+          pagination: {
+            ...tableParams.pagination,
+            total: records_filtered,
+          },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTableLoading(false);
+    }
+  };
+  useEffect(() => {
+    const getMasterStatus = async () => {
+      try {
+        const [status, dealer] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterStatus, {
+            status_type: "claim"
+          }),
+          useServiceAPI.get(paths.pathMasterSubDealer, {}),
+        ]);
+
+        setStatusList(status.data);
+
+        let subDealerAll = [];
+        await dealer.data.forEach(element => {
+          subDealerAll.push({
+            'id': element.sub_dealer_id,
+            'name': element.sub_dealer_name,
+          });
+        });
+
+        setDealerList((prevList) => [...prevList, ...subDealerAll]);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      }
+    };
+
+    getMasterStatus();
+  }, [])
   
   useEffect(() => {
-    const dataSource = [
-      {
-        key: 1,
-        claimNo: "20241000003",
-        claimDate: "2024-01-01",
-        dealerName: "Chaifar",
-        // product: <BadgeStatus text="2" bgColor="#F89E18" textColor="#FFFFFF" onClick={handleShowProductModal} />, // Badge to represent product count
-        product: <BadgeStatus text="2" bgColor="#F89E18" textColor="#FFFFFF" />, // Badge to represent product count
-        status: <BadgeStatus text="Wait for Approve" bgColor="#F89E18" textColor="#FFFFFF" />,
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottomRight">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 2,
-        claimNo: "20241000002",
-        claimDate: "2024-01-01",
-        dealerName: "Chaifar",
-        product: <BadgeStatus text="1" bgColor="#F89E18" textColor="#FFFFFF" />,
-        status: <BadgeStatus text="Wait for Approve" bgColor="#F89E18" textColor="#FFFFFF" />,
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottomRight">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      },
-      {
-        key: 3,
-        claimNo: "20241000001",
-        claimDate: "2024-01-01",
-        dealerName: "Chaifar",
-        product: <BadgeStatus text="1" bgColor="#F89E18" textColor="#FFFFFF" />,
-        status: <BadgeStatus text="Wait for Approve" bgColor="#F89E18" textColor="#FFFFFF" />,
-        action: (
-          <Dropdown menu={{ items: actionItems }} placement="bottomRight">
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      },
-    ];
-  
-    setDataSource(dataSource);
-  }, []);
+    fetchData();
+  }, [
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    tableParams.sortOrder,
+    tableParams.sortField,
+    JSON.stringify(tableParams.filters),
+  ]);
 
   return (
     <MainLayout loading={loading}>
@@ -158,7 +217,12 @@ export default function ProductClaim() {
       />
 
       <BoxPrimary>
-        <TableComponent header={header} dataSource={dataSource} />
+        <TableComponent 
+          header={header}
+          dataSource={dataSource}
+          pagination={tableParams.pagination}
+          loading={tableLoading}
+        />
       </BoxPrimary>
 
       <DynamicModal

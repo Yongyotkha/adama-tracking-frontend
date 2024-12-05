@@ -45,17 +45,25 @@ export default function EditInformation() {
   const [personitem, setpersonitem] = useState([]);
   const [cropOptions, setCropOptions] = useState([]);
   const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); // กำหนด state สำหรับ defaultSelectedCrops
+  const [profileImage, setProfileImage] = useState("/img/profile.jpg"); // Default value
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+    // อ่านสถานะ mod จาก state
+    const mode = location.state?.mod; 
+    const isViewMode = mode === "View";
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // console.log(location.state.id);
+        console.log(location.state.mod);
         await fetchPromotionDetails(location.state.id);
         const [crops] = await Promise.all([
           useServiceAPI.get(paths.pathMasterCrop, {}),
         ]);
         setCropOptions(crops.data);
+        setDataLoaded(true);
+
         // setCropList(crops.data || []);
       } catch (error) {
         console.log(error.message);
@@ -70,6 +78,15 @@ export default function EditInformation() {
  
 
   const formFields = [
+    {
+      label: "",
+      name: "profile", // ชื่อฟิลด์ในฟอร์ม
+      type: "picture", // ประเภทฟิลด์
+      required: false,
+      col: 24,
+      value: companyinfo.photo_path,
+
+    },
     {
       label: "Dealer Name (EN)",
       name: "dealer_name_en",
@@ -193,6 +210,7 @@ export default function EditInformation() {
     },
   ];
 
+
   const fetchPromotionDetails = async (id) => {
     setLoading(true);
     try {
@@ -200,10 +218,10 @@ export default function EditInformation() {
         `${paths.pathCustomerDealerDetail}?id=${id}`
       );
       if (response.status === 200) {
-        const { data } = response;
+        const { data } = response;        
         setcompanyinfo(data);
         setContactItems(data.contact_items);
-
+        setProfileImage(data.photo_path)
         setCropOptions(data.crop_list || []);
         const cropNames = data.crop_list?.map((crop) => Number(crop.id)) || [];
         setDefaultSelectedCrops(cropNames);
@@ -247,11 +265,23 @@ export default function EditInformation() {
     }
   };
 
+  const handleRemoveContact = (index) => {
+    setContactItems((prev) => prev.filter((_, i) => i !== index));
+  };
+  
   const renderContactItems = () =>
     contactItems.map((contact, index) => (
       <div key={index} className="mb-6">
         <div className="flex justify-between mb-4">
           <span className="text-[#00783F] text-md">{`Person ${index + 1}`}</span>
+        {index > 0 && !isViewMode && (
+          <ActionButton
+            mode="reject"
+            text="Delete"
+            onClick={() => handleRemoveContact(index)}
+            disabled={isViewMode}
+          />
+        )}
         </div>
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -259,6 +289,7 @@ export default function EditInformation() {
               placeholder="Name (EN)"
               value={contact.name_en || ""}
               onChange={(e) => handleContactChange(index, "name_en", e.target.value)}
+              disabled={isViewMode}
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -266,6 +297,7 @@ export default function EditInformation() {
               placeholder="Name (TH)"
               value={contact.name_th || ""}
               onChange={(e) => handleContactChange(index, "name_th", e.target.value)}
+              disabled={isViewMode}
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -273,6 +305,7 @@ export default function EditInformation() {
               placeholder="Nickname"
               value={contact.nickname || ""}
               onChange={(e) => handleContactChange(index, "nickname", e.target.value)}
+              disabled={isViewMode}
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -283,6 +316,7 @@ export default function EditInformation() {
               onChange={(date, dateString) =>
                 handleContactChange(index, "date_of_birth", dateString)
               }
+              disabled={isViewMode}
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -290,6 +324,7 @@ export default function EditInformation() {
               placeholder="T-Shirt Size"
               value={contact.t_shirt_size || ""}
               onChange={(e) => handleContactChange(index, "t_shirt_size", e.target.value)}
+              disabled={isViewMode}
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -297,6 +332,7 @@ export default function EditInformation() {
               placeholder="Relationship"
               value={contact.relationship || ""}
               onChange={(e) => handleContactChange(index, "relationship", e.target.value)}
+              disabled={isViewMode}
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -304,6 +340,7 @@ export default function EditInformation() {
               placeholder="Duty"
               value={contact.duty || ""}
               onChange={(e) => handleContactChange(index, "duty", e.target.value)}
+              disabled={isViewMode}
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -311,6 +348,7 @@ export default function EditInformation() {
               placeholder="Tel 1"
               value={contact.tel1 || ""}
               onChange={(e) => handleContactChange(index, "tel1", e.target.value)}
+              disabled={isViewMode}
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -318,6 +356,7 @@ export default function EditInformation() {
               placeholder="Tel 2"
               value={contact.tel2 || ""}
               onChange={(e) => handleContactChange(index, "tel2", e.target.value)}
+              disabled={isViewMode}
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -325,6 +364,7 @@ export default function EditInformation() {
               placeholder="Contact Number"
               value={contact.contact_number || ""}
               onChange={(e) => handleContactChange(index, "contact_number", e.target.value)}
+              disabled={isViewMode}
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -332,6 +372,7 @@ export default function EditInformation() {
               placeholder="Email"
               value={contact.email || ""}
               onChange={(e) => handleContactChange(index, "email", e.target.value)}
+              disabled={isViewMode}
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -339,6 +380,7 @@ export default function EditInformation() {
               placeholder="Line ID"
               value={contact.line_id || ""}
               onChange={(e) => handleContactChange(index, "line_id", e.target.value)}
+              disabled={isViewMode}
             />
           </Col>
         </Row>
@@ -448,8 +490,6 @@ export default function EditInformation() {
     );
   };
 
-
-
   const transformedCropOptions = cropOptions.map((option) => ({
     label: option.name, // เปลี่ยนจาก name เป็น label
     value: option.id, // คงค่า value เดิมไว้
@@ -475,7 +515,7 @@ export default function EditInformation() {
           group_code: values.group_code || "",
           date_of_anniversary: values.date_of_anniversary || "",
           date_of_joining: values.date_of_joining || "",
-          photo_path: values.photo_path || "",
+          photo_path: values.profile || "",
           bank_account_items: companyinfo.bank_account_items || [],
           contact_items: contactItems.map((item) => ({
             name_en: item.name_en || "",
@@ -540,7 +580,6 @@ export default function EditInformation() {
         console.error("Validation Failed:", errorInfo);
       });
   };
-  
 
   
   const handleBankAccountChange = (index, field, value) => {
@@ -555,120 +594,137 @@ export default function EditInformation() {
     setContactItems(updatedContacts);
   };
   
-  const items = [
+
+
+
+  let items = [
     {
       key: "profile",
       label: <span className="tab-title">Profile</span>,
       children: (
-        <>
-          <FormUser
-            profile="/img/profile.jpg"
-            title="Company Info"
-            fields={formFields}
-            form={form}
-          />
-        <BoxPrimary>
-          {companyinfo.bank_account_items &&
-          companyinfo.bank_account_items.length > 0 ? (
-            companyinfo.bank_account_items.map((account, index) => (
-              <div key={index} className="my-6">
-                <div className="text-[#00783F] text-md">{`Bank Account ${index + 1}`}</div>
-                <Row className="my-3" gutter={[16, 16]}>
-                  <Col xs={24} sm={12} md={8} lg={6}>
-                    <Input
-                      placeholder="Account Title"
-                      value={account.account_title || ""}
-                      onChange={(e) =>
-                        handleBankAccountChange(index, "account_title", e.target.value)
-                      }
-                    />
-                  </Col>
-                  <Col xs={24} sm={12} md={8} lg={6}>
-                    <Input
-                      placeholder="Account Number"
-                      value={account.account_number || ""}
-                      onChange={(e) =>
-                        handleBankAccountChange(index, "account_number", e.target.value)
-                      }
-                    />
-                  </Col>
-                  <Col xs={24} sm={12} md={8} lg={6}>
-                    <Input
-                      placeholder="Bank Name"
-                      value={account.bank_name || ""}
-                      onChange={(e) =>
-                        handleBankAccountChange(index, "bank_name", e.target.value)
-                      }
-                    />
-                  </Col>
-                  <Col xs={24} sm={12} md={8} lg={6}>
-                    <Input
-                      placeholder="Bank Branch"
-                      value={account.bank_branch || ""}
-                      onChange={(e) =>
-                        handleBankAccountChange(index, "bank_branch", e.target.value)
-                      }
-                    />
-                  </Col>
-                </Row>
-              </div>
-            ))
-          ) : (
-            <div className="text-gray-500">No bank account information available</div>
-          )}
-        </BoxPrimary>
+      <>
+      {dataLoaded ? (
+        <FormUser profile={profileImage} fields={formFields} form={form} />
+      ) : (
+        <div></div>
+      )}
 
+      {/* <FormUser
+        profile={profileImage}
+        // profile="/img/profile.jpg"
+        title="Company Info"
+        fields={formFields}
+        form={form}
+      /> */}
+      <BoxPrimary>
+        {companyinfo.bank_account_items &&
+        companyinfo.bank_account_items.length > 0 ? (
+          companyinfo.bank_account_items.map((account, index) => (
+            <div key={index} className="my-6">
+              <div className="text-[#00783F] text-md">{`Bank Account ${index + 1}`}</div>
+              <Row className="my-3" gutter={[16, 16]}>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Input
+                    placeholder="Account Title"
+                    value={account.account_title || ""}
+                    onChange={(e) =>
+                      handleBankAccountChange(index, "account_title", e.target.value)
+                    }
+                  />
+                </Col>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Input
+                    placeholder="Account Number"
+                    value={account.account_number || ""}
+                    onChange={(e) =>
+                      handleBankAccountChange(index, "account_number", e.target.value)
+                    }
+                  />
+                </Col>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Input
+                    placeholder="Bank Name"
+                    value={account.bank_name || ""}
+                    onChange={(e) =>
+                      handleBankAccountChange(index, "bank_name", e.target.value)
+                    }
+                  />
+                </Col>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Input
+                    placeholder="Bank Branch"
+                    value={account.bank_branch || ""}
+                    onChange={(e) =>
+                      handleBankAccountChange(index, "bank_branch", e.target.value)
+                    }
+                  />
+                </Col>
+              </Row>
+            </div>
+          ))
+        ) : (
+          <div className="text-gray-500">No bank account information available</div>
+        )}
+      </BoxPrimary>
 
-          <BoxPrimary>
-                <Select
-                  mode="multiple"
-                  showSearch
-                  placeholder="Select Crop(s)"
-                  optionFilterProp="children"
-                  className="w-full"
-                  value={defaultSelectedCrops} 
-                  onChange={(value) => setDefaultSelectedCrops(value)} // จัดการการเปลี่ยนแปลงค่า
-                  options={transformedCropOptions} 
-                />
-          </BoxPrimary>
+      <BoxPrimary>
+            <Select
+              mode="multiple"
+              showSearch
+              placeholder="Select Crop(s)"
+              optionFilterProp="children"
+              className="w-full"
+              value={defaultSelectedCrops} 
+              onChange={(value) => setDefaultSelectedCrops(value)} // จัดการการเปลี่ยนแปลงค่า
+              options={transformedCropOptions} 
+              disabled={isViewMode}
+            />
+      </BoxPrimary>
 
-          <BoxPrimary>
-            <div className="flex justify-between mb-4">
-              <span className="text-[#00783F] text-lg font-semibold">Contact Person</span>
-              <ActionButton mode="add" text="Add" onClick={() => {
-                 setContactItems([
+      <BoxPrimary>
+        <div className="flex justify-between mb-4">
+          <span className="text-[#00783F] text-lg font-semibold">Contact Person</span>
+          {!isViewMode && ( 
+            <ActionButton
+              mode="add"
+              text="Add"
+              onClick={() => {
+                setContactItems([
                   ...contactItems,
                   {
-                    name: "", // Default value for name field
-                    phone: "", // Default value for phone field
-                    email: "", // Default value for email field
-                    position: "" // Default value for position field
+                    name: "",
+                    phone: "",
+                    email: "",
+                    position: ""
                   }
                 ]);
-
-              }} />
-            </div>
-            {contactItems.length > 0 ? (
-              renderContactItems()
-            ) : (
-              <div className="text-gray-500">No contact person information available</div>
-            )}
-          </BoxPrimary>
-
-
-          <div className="flex justify-end space-x-4 mt-6">
-            <ActionButton
-              mode="back"
-              text="Back"
-              onClick={() => navigate("/customer/dealer")}
+              }}
             />
-            <ActionButton
-              mode="update"
-              text="Update"
-              onClick={handleSave} 
-            />
-
-          </div>
+          )}
+        </div>
+        {contactItems.length > 0 ? (
+          renderContactItems()
+        ) : (
+          <div className="text-gray-500">No contact person information available</div>
+        )}
+      </BoxPrimary>
+        <div className="flex justify-end space-x-4 mt-6">
+          <ActionButton
+            mode="back"
+            text="Back"
+            onClick={() => navigate("/customer/dealer")}
+          />
+          {/* <ActionButton
+            mode="update"
+            text="Update"
+            onClick={handleSave} 
+          /> */}
+        {
+        !isViewMode && (
+          <ActionButton text="Update" mode="update" onClick={handleSave} />
+          )
+        }
+        </div>
         </>
       ),
     },
@@ -682,13 +738,17 @@ export default function EditInformation() {
               <span className="text-[#00783F] text-lg font-semibold">
                 Network
               </span>
-              <div className="flex space-x-2">
-                <ActionButton
-                  mode="add"
-                  text="Add"
-                  onClick={handleOpenTerritoryModal}
-                />
-              </div>
+              {
+                !isViewMode && (
+                  <div className="flex space-x-2">
+                  <ActionButton
+                    mode="add"
+                    text="Add"
+                    onClick={handleOpenTerritoryModal}
+                  />
+                </div>
+                )
+              }
             </div>
             <TableComponent header={header} dataSource={networkList} />
           </BoxPrimary>
@@ -698,13 +758,19 @@ export default function EditInformation() {
               text="Back"
               onClick={() => navigate("/customer/dealer")}
             />
-            <ActionButton
+          {
+          !isViewMode && (
+            <ActionButton text="Update" mode="update" onClick={networkhandleSave} />
+            )
+          }
+
+            {/* <ActionButton
               mode="update"
               text="Update"
               // onClick={() => navigate("/customer/dealer")}
               onClick={networkhandleSave} 
 
-            />
+            /> */}
           </div>
         </>
       ),
@@ -712,17 +778,30 @@ export default function EditInformation() {
 
   ];
 
- 
+  if (isViewMode) {
+    items = items.map(field => {
+      if (field.key === 'network') {
+        return field;
+      }else if(field.key === 'profile'){
+        return field;
+
+      }
+      return {
+        ...field,
+        disabled: true
+      };
+    });
+  }
+  
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Edit Information</div>
+      <div className="title-page">{isViewMode ? "View Informatio" : "Edit Informatio"}</div>
       <Tabs
         activeKey={activeTabKey}
         onChange={handleTabChange}
         className="custom-tabs"
         items={items}
       />
-
       <DynamicModal
         title="Add Sale Territory"
         isVisible={isTerritoryModalVisible}

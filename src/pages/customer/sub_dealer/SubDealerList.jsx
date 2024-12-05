@@ -140,17 +140,26 @@ export default function SubDealerList() {
                     <ItemDropDown
                       mode={actionItem.action.toLowerCase()}
                       onClick={() => {
-                        if (actionItem.action === "Edit") {
+                        if (actionItem.action === "Delete") {
+                          handleDelete(data.id);
+                        } else if(actionItem.action === "View"){
+                          navigate("/customer/sub-dealer/view", {
+                            state: {
+                              id: data.id,
+                              mode: actionItem.action,
+                            },
+                          });
+                        }
+                        else {
                           navigate("/customer/sub-dealer/edit", {
                             state: {
                               id: data.id,
+                              mode: actionItem.action,
                             },
                           });
-                        } else if (actionItem.action === "Delete") {
-                          // ฟังก์ชันลบ
-                          handleDelete(data.id);
                         }
                       }}
+
                     />
                   ),
                 })),
