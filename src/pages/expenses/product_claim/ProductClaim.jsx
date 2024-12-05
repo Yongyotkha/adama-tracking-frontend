@@ -109,7 +109,9 @@ export default function ProductClaim() {
 
     const requestData = {
       keyword: filters.keyword || "",
-      page: "all",
+      trasaction_status_code : "ODW",
+      page : listSegment ? "all" : "wait_for_approval",
+      payment_status_code : "",
       orderby_column: sortField,
       orderby: sortOrder,
       page_length: current,
