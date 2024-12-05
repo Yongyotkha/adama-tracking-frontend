@@ -11,15 +11,23 @@ import TableExpand from "../../../components/table/TableExpand";
 import { AuthContext } from "../../../contexts/AuthContext";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import TableCustomComponent from "../../../components/table/TableCustomComponent";
+import TableComponent from "../../../components/table/TableComponent";
 
 export default function ActivityPlanList() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [dataSourceSumary, setDataSourceSummary] = useState([]);
+  const [dataSumary, setDataSummary] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const [years, setYears] = useState([]);
+  const [status, setStatus] = useState([]);
+  const [sale, setSale] = useState([]);
+  const [dealer, setDealer] = useState([]);
   const [defaultOption, setDefaultOption] = useState(null);
-  const { showNotification,formatNumber } = useContext(AuthContext);
+  const [selectedYear, setSelectedYear] = useState(null);
+  const { showNotification, formatNumber } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -31,7 +39,50 @@ export default function ActivityPlanList() {
   });
 
   useEffect(() => {
-    fetchData();
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [years, status, sale, dealer] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterYear),
+          useServiceAPI.get(paths.pathMasterStatus, {
+            status_type: "activity_plan",
+          }),
+          useServiceAPI.get(paths.pathMasterSaleDropdown),
+          useServiceAPI.get(paths.pathMasterDealerAll),
+        ]);
+
+        if (sale.data.length > 0) {
+          const formattedOptions = sale.data.map((item) => ({
+            value: item.id,
+            label: item.name,
+          }));
+          setSale(formattedOptions);
+        }
+        if (years.data.length > 0) {
+          const formattedYearsOptions = years.data.map((item) => ({
+            value: item.id,
+            label: item.name,
+          }));
+          setYears(formattedYearsOptions);
+          setSelectedYear(formattedYearsOptions[0].value);
+        }
+        setStatus(status.data);
+        setDealer(dealer.data);
+      } catch (error) {
+        showNotification("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (selectedYear) {
+      fetchActivitySummary();
+      fetchData();
+    }
   }, [
     tableParams.pagination.current,
     tableParams.pagination.pageSize,
@@ -39,7 +90,44 @@ export default function ActivityPlanList() {
     tableParams.sortField,
     JSON.stringify(tableParams.filters),
     location.pathname,
+    defaultOption,
+    selectedYear,
   ]);
+
+  useEffect(() => {}, [selectedYear]);
+
+  const fetchActivitySummary = async () => {
+    try {
+      const response = await useServiceAPI.get(paths.pathActivitySummary, {
+        year_code: selectedYear,
+      });
+
+      if (response.status === 200) {
+        const { data } = response;
+
+        // Prepare dataSourceSummary
+        const newDataSource = data?.activity_type.map((activity, index) => {
+          // Create a row object with type and qty for each month
+          const monthData = activity.data_items.reduce((acc, item) => {
+            acc[`month_${item.month_id}`] = item.qty || 0;
+            return acc;
+          }, {});
+          return {
+            key: index,
+            type: activity.activity_type_name,
+            ...monthData,
+          };
+        });
+
+        setDataSourceSummary(newDataSource);
+        setDataSummary(data);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTableLoading(false);
+    }
+  };
 
   const filters = [
     {
@@ -47,22 +135,14 @@ export default function ActivityPlanList() {
       type: "select",
       label: "Dealer",
       placeholder: "All",
-      options: [{ value: "Dealer A", label: "Dealer A" }],
-    },
-    {
-      key: "Date",
-      type: "date",
-      label: "Date",
+      options: dealer,
     },
     {
       key: "status",
       type: "select",
       label: "Status",
       placeholder: "All",
-      options: [
-        { value: "Active", label: "Active" },
-        { value: "InActive", label: "InActive" },
-      ],
+      options: status,
     },
   ];
 
@@ -81,7 +161,7 @@ export default function ActivityPlanList() {
   };
 
   const columns = [
-    { title: "Dealer", width: 150, dataIndex: "name", align: "center" },
+    { title: "Dealer", width: 150, dataIndex: "name", align: "start" },
     {
       title: "Work Plan (THB)",
       width: 150,
@@ -98,6 +178,20 @@ export default function ActivityPlanList() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
+  const columnsSummary = [
+    { title: "Type", width: 150, dataIndex: "type", align: "start" },
+
+    ...(Array.isArray(dataSumary?.month_items)
+      ? dataSumary.month_items.map((month_item) => ({
+          title: month_item.month_name,
+          dataIndex: `month_${month_item.month_id}`, // Dynamically map month data
+          key: `month_${month_item.month_id}`,
+          width: 100,
+          align: "center",
+        }))
+      : []),
+  ];
+
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -105,9 +199,9 @@ export default function ActivityPlanList() {
 
     const requestData = {
       keyword: filters.keyword || "",
-      year_code: filters.year || "",
+      year_code: selectedYear || "",
       status_code: filters.status || "",
-      user_id: defaultOption || 96,
+      user_id: defaultOption,
       page_length: current,
       page_size: pageSize,
     };
@@ -121,7 +215,7 @@ export default function ActivityPlanList() {
         const newDataSource = data.map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           workPlan: formatNumber(row.amount_target),
-          name: row.user_name,
+          name: row.dealer_name,
           action: (
             <Dropdown
               menu={{
@@ -132,7 +226,7 @@ export default function ActivityPlanList() {
                       <ItemDropDown
                         mode={actionItem.action.toLowerCase()}
                         onClick={() => {
-                          navigate("/sale-plan/rolling-forecast/month", {
+                          navigate("/activity/plan/dealer", {
                             state: {
                               year_code: row.year_code,
                               workplan_header_id: row.workplan_header_id,
@@ -141,6 +235,7 @@ export default function ActivityPlanList() {
                               workplan_sale_header_id:
                                 row.workplan_sale_header_id,
                               user_id: row.user_id,
+                              dealer_id: row.dealer_id,
                             },
                           });
                         }}
@@ -173,7 +268,7 @@ export default function ActivityPlanList() {
             no: i + 1,
             month: dataItem.month_name,
             value: formatNumber(dataItem.amount_target),
-            name: dataItem.dealer_name,
+            name: dataItem.sub_dealer_name,
             status: (
               <BadgeStatus
                 text={dataItem.status_name}
@@ -250,46 +345,45 @@ export default function ActivityPlanList() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-  // Example events passed via props
-  const events = {
-    "2024-11-01": [
-      {
-        id: 1,
-        title: "Meeting",
-        color: "purple",
-        icons: ["👩‍👩‍👧👩‍👩‍👧👩‍👩‍👧", "+3"],
-        type: "ribbon",
-      },
-      {
-        id: 2,
-        title: "Meeting",
-        color: "red",
-        icons: ["👩‍👩‍👧", "+2"],
-        type: "ribbon",
-      },
-      {
-        id: 3,
-        title: "Meeting",
-        color: "green",
-        icons: ["👩‍👩‍👧", "+1"],
-        type: "ribbon",
-      },
-      {
-        id: 4,
-        title: "Meeting",
-        color: "blue",
-        icons: ["👩‍👩‍👧", "+3"],
-        type: "ribbon",
-      },
-    ],
-    "2024-11-07": [
-      { id: 1, color: "red", icons: ["⭐"], type: "badge" },
-      { id: 2, color: "blue", icons: ["📹"], type: "badge" },
-      { id: 3, color: "green", icons: ["➕"], type: "badge" },
-      { id: 4, color: "orange", icons: ["🍊"], type: "badge" },
-      { id: 5, title: "Visit", color: "purple", icons: ["👨‍👩‍👦"], type: "ribbon" },
-    ],
-  };
+  // const events = {
+  //   "2024-11-01": [
+  //     {
+  //       id: 1,
+  //       title: "Meeting",
+  //       color: "purple",
+  //       icons: ["👩‍👩‍👧👩‍👩‍👧👩‍👩‍👧", "+3"],
+  //       type: "ribbon",
+  //     },
+  //     {
+  //       id: 2,
+  //       title: "Meeting",
+  //       color: "red",
+  //       icons: ["👩‍👩‍👧", "+2"],
+  //       type: "ribbon",
+  //     },
+  //     {
+  //       id: 3,
+  //       title: "Meeting",
+  //       color: "green",
+  //       icons: ["👩‍👩‍👧", "+1"],
+  //       type: "ribbon",
+  //     },
+  //     {
+  //       id: 4,
+  //       title: "Meeting",
+  //       color: "blue",
+  //       icons: ["👩‍👩‍👧", "+3"],
+  //       type: "ribbon",
+  //     },
+  //   ],
+  //   "2024-11-07": [
+  //     { id: 1, color: "red", icons: ["⭐"], type: "badge" },
+  //     { id: 2, color: "blue", icons: ["📹"], type: "badge" },
+  //     { id: 3, color: "green", icons: ["➕"], type: "badge" },
+  //     { id: 4, color: "orange", icons: ["🍊"], type: "badge" },
+  //     { id: 5, title: "Visit", color: "purple", icons: ["👨‍👩‍👦"], type: "ribbon" },
+  //   ],
+  // };
 
   const handleTableChange = (pagination, filters, sorter) => {
     setTableParams({
@@ -303,30 +397,56 @@ export default function ActivityPlanList() {
   return (
     <MainLayout loading={loading}>
       <div className="flex justify-between items-center">
-        <div className="title-page">Rolling Forecast</div>
-        <Select
-          showSearch
-          allowClear
-          style={{
-            width: 200,
-          }}
-          className="border-[#00783F] text-[#00783F]"
-          placeholder="Search to Select"
-          optionFilterProp="label"
-          filterSort={(optionA, optionB) =>
-            (optionA?.label ?? "")
-              .toLowerCase()
-              .localeCompare((optionB?.label ?? "").toLowerCase())
-          }
-          options={years}
-          value={defaultOption}
-          onChange={(value) => setDefaultOption(value)}
-        />
+        <div className="title-page">Activity Plan</div>
+        <div className="flex gap-3">
+          <Select
+            // showSearch
+            allowClear
+            style={{
+              width: 200,
+            }}
+            className="border-[#00783F] text-[#00783F]"
+            placeholder="All"
+            // optionFilterProp="label"
+            // filterSort={(optionA, optionB) =>
+            //   (optionA?.label ?? "")
+            //     .toLowerCase()
+            //     .localeCompare((optionB?.label ?? "").toLowerCase())
+            // }
+            options={years}
+            value={selectedYear}
+            onChange={(value) => setSelectedYear(value)}
+          />
+          <Select
+            showSearch
+            allowClear
+            style={{
+              width: 200,
+            }}
+            className="border-[#00783F] text-[#00783F]"
+            placeholder="All"
+            optionFilterProp="label"
+            filterSort={(optionA, optionB) =>
+              (optionA?.label ?? "")
+                .toLowerCase()
+                .localeCompare((optionB?.label ?? "").toLowerCase())
+            }
+            options={sale}
+            value={defaultOption}
+            onChange={(value) => setDefaultOption(value)}
+          />
+        </div>
       </div>
 
-      <div style={{ padding: "0px" }}>
+      {/* <div style={{ padding: "0px" }}>
         <CalendarActivityApp events={events} />
-      </div>
+      </div> */}
+
+      <TableComponent
+        dataSource={dataSourceSumary}
+        header={columnsSummary}
+        pagination={false}
+      />
 
       <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
 

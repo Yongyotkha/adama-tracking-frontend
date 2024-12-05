@@ -211,7 +211,7 @@ export default function WorkPlan() {
     defaultOption,
   ]);
 
-  useEffect(() => {}, [location.pathname]);
+  
 
   const handleTableChange = (pagination, filters, sorter) => {
     setTableParams({

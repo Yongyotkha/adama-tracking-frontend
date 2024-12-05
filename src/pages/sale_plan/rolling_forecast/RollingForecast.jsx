@@ -84,6 +84,8 @@ export default function RollingForecast() {
       page_length: current,
       page_size: pageSize,
     };
+    
+    console.log(requestData);
 
     try {
       let path = paths.pathRollingForecast;
@@ -233,7 +235,9 @@ export default function RollingForecast() {
   ];
 
   useEffect(() => {
-    fetchData();
+    if (defaultOption) {
+      fetchData();
+    }
   }, [
     tableParams.pagination.current,
     tableParams.pagination.pageSize,
