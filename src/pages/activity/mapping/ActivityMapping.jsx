@@ -591,8 +591,15 @@ export default function ActivityMapping() {
                       scaledSize: { width: 30, height: 30 },
                     }}
                     // onClick={() => setSelected(location)}
-                    onClick={() => setlocationWindowInfo(location)}
-                    // onClick={() => console.log(location)}
+
+                    // onClick={() => setlocationWindowInfo(location)}
+
+                    onClick={() => setlocationWindowInfo({
+                      lat: parseFloat(location.lat),
+                      lng: parseFloat(location.lng ),
+                      title: location.title && "",
+                      details: location.details && "",
+                    })}
                   />
                 ))}
 
@@ -614,8 +621,8 @@ export default function ActivityMapping() {
                     onCloseClick={() => setlocationWindowInfo(null)}
                   >
                     <div>
-                      <h3>{locationWindowInfo.title && ""}</h3>
-                      <p>{locationWindowInfo.details && ""}</p>
+                      <h3>{locationWindowInfo.title}</h3>
+                      <p>{locationWindowInfo.details}</p>
                     </div>
                   </InfoWindow>
                 )}
