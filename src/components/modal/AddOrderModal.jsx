@@ -168,6 +168,10 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
 
             const data = productDetail.data;
             setDataSource(data);
+            setFormValues((prev) => ({
+              ...prev,
+              ['productName']: data.product_name
+            }));
         } catch (error) {
           console.log(error);
             showNotification(

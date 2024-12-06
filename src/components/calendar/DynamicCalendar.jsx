@@ -541,7 +541,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                               month: "2-digit",
                                               day: "2-digit",
                                             })}{" "} <span className="mx-1">|</span>
-                                            {event.time}
+                                            {event.time || "-"}
                                           </p>
 
                                           <p lang="th" className="flex gap-1 mb-2 items-center">
@@ -550,7 +550,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                               className="h-6 w-6 me-2"
                                               alt=""
                                             />
-                                            {event.dealer_name}
+                                            {event.dealer_name || "-"}
                                           </p>
 
                                           <p lang="th" className="flex gap-1 mb-2 items-center">
@@ -559,7 +559,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                               className="h-6 w-6 me-2"
                                               alt=""
                                             />
-                                            {event.location}
+                                            {event.location || "-"}
                                           </p>
                                           <p className="flex gap-1 mb-2 items-center mt-2">
                                             <img
@@ -567,7 +567,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                               className="h-6 w-6 me-2"
                                               alt=""
                                             />
-                                            {event.crops || "N/A"}
+                                            {event.crops || "-"}
                                           </p>
                                           <p
                                             lang="th"

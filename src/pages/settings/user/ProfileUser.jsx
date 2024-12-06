@@ -174,7 +174,6 @@ export default function ProfileUser() {
       col: 6,
       disabled: true,
       value: formUserInfo.sales_emp_code,
-      disabled: true,
     },
     {
       label: "Contact Number",
