@@ -105,7 +105,7 @@ export default function RollingForecastMonth() {
 
   const columns = [
     {
-      title: "Dealer", // Row 3
+      title: "Month", // Row 3
       onHeaderCell: () => ({
         style: {
           backgroundColor: "#00783F", // สีเขียวเข้ม

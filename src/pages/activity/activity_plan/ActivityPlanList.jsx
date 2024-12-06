@@ -212,6 +212,8 @@ export default function ActivityPlanList() {
       console.log(response);
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
+
+        console.log(data);
         const newDataSource = data.map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           workPlan: formatNumber(row.amount_target),
@@ -287,7 +289,7 @@ export default function ActivityPlanList() {
                           <ItemDropDown
                             mode={actionDataItem.action.toLowerCase()}
                             onClick={() => {
-                              navigate("/sale-plan/rolling-forecast/quarter", {
+                              navigate("/activity/plan/sub-dealer", {
                                 state: {
                                   year_code: dataItem.year_code,
                                   workplan_header_id:
@@ -298,6 +300,8 @@ export default function ActivityPlanList() {
                                     dataItem.workplan_sale_header_id,
                                   user_id: row.user_id,
                                   month_id: dataItem.month_id,
+                                  dealer_id: dataItem.dealer_id,
+                                  sub_dealer_id: dataItem.sub_dealer_id,
                                 },
                               });
                             }}

@@ -75,6 +75,7 @@ import WorkPlanSaleBySubDealer from "./pages/sale_plan/workplan/WorkPlanSaleBySu
 import RollingForecastQuarter from "./pages/sale_plan/rolling_forecast/RollingForecastQuarter";
 import RollingForecastMonth from "./pages/sale_plan/rolling_forecast/RollingForecastMonth";
 import ActivityPlanDealer from "./pages/activity/activity_plan/ActivityPlanDealer";
+import ActivityPlanSubDealer from "./pages/activity/activity_plan/ActivityPlanSubDealer";
 // END ------------- Activity ------------- END
 
 
@@ -117,6 +118,7 @@ const App = () => {
           {/* Activity Route */}
           <Route path="/activity/plan" element={<ActivityPlanList />} />
           <Route path="/activity/plan/dealer" element={<ActivityPlanDealer />} />
+          <Route path="/activity/plan/sub-dealer" element={<ActivityPlanSubDealer />} />
    
 
 

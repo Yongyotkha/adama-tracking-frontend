@@ -139,6 +139,7 @@ export const paths = {
   pathActivitySubDealerList: "/activity-plan/sale/dealer/list",
   pathActivitySubDealer: "/activity-plan/sale/dealer/detail",
   pathActivitySummary: "/activity-plan/sale/activity-summary",
+  pathActivitySubDealerDetail: "/activity-plan/sale/dealer/sub-dealer/detail",
   
   pathActivityList: "/activity/list",
   pathActivityCreate: "/activity/create",
