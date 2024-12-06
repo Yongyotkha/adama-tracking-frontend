@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import FormCustom from "../../../components/form_custom/FormCustom";
 import { useNavigate } from "react-router-dom";
@@ -9,8 +9,11 @@ import TableComponent from "../../../components/table/TableComponent";
 import AddOrderModal from "../../../components/modal/AddOrderModal";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import dayjs from "dayjs";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function CreateClaimRequest() {
+  const { showMsg, showNotification } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [isAddOrderModalVisible, setIsAddOrderModalVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,6 +25,7 @@ export default function CreateClaimRequest() {
   // State for Order List table data
   const [dataSource, setDataSource] = useState([]);
   const [dataClaim, setDataClaim] = useState([]);
+  const [formValues, setFormValues] = useState({});
 
   const formFields = [
     { 
@@ -42,7 +46,7 @@ export default function CreateClaimRequest() {
       required: false, 
       value: dataClaim?.dealer ?? "" 
     },
-    { label: "Claim No", name: "claim_no", type: "text", disabled: false, required: false, value: "Generate Auto" },
+    { label: "Claim No", name: "claim_no", type: "text", disabled: true, required: false, value: "Generate Auto" },
     { label: "Create Date", name: "create_date", type: "date", disabled: false, required: true, value: "" },
   ];
 
@@ -221,6 +225,7 @@ export default function CreateClaimRequest() {
       no: key,
       sku: data.product.product_code,
       productName: data.product.product_name,
+      product: data.product,
       lotNo: data.lotNo,
       reason: data.reason ?? "",
       url_label: data.files.labels[0],
@@ -231,6 +236,65 @@ export default function CreateClaimRequest() {
     };
     setDataSource((prev) => [...prev, newData]);
   };
+
+  const handleInputChange = (name, value) => {
+    setFormValues((prev) => ({
+      ...prev,
+      [name]: value, // Dynamically update the corresponding field's value
+    }));
+  };
+
+  const saveClaim = () => {
+    let allValuesBasic = formCustom.getFieldsValue();
+    allValuesBasic.create_date = dayjs(allValuesBasic.create_date).format('YYYY-MM-DD');
+
+    let products = [];
+    dataSource.forEach(element => {
+      const data = {
+        "product_id": element.product.id,
+        "product_code": element.product.product_code,
+        "product_name": element.product.product_name,
+        "product_unit": element.product.packing_list,
+        "product_unit_thb": element.product.bath_unit,
+        "quantity": 5,
+        "lot_number": element.lotNo,
+        "reason": element.reason,
+        "label_list": element.url_label ? [element.url_label] : [],
+        "product_list": element.url_product ? [element.url_product] : [],
+        "overall_list": element.url_overall ? [element.url_overall] : [],
+        "other_list": element.url_other ? [element.url_other] : []
+      };
+      products.push(data);
+    });
+    const body = {
+      "document_date": allValuesBasic.create_date,
+      "user_id": allValuesBasic.sale,
+      "dealer_id": allValuesBasic.dealer,
+      "remark": formValues["remark"],
+      "products": products
+    };
+
+    useServiceAPI
+    .post(paths.pathClaimCreate, body, setLoading)
+    .then((response) => {
+      const successCallback = () => {
+        if(response.result){
+          
+        }
+      };
+      showNotification(
+        "success",
+        response.data.message,
+        response.data.message_line
+      ).then(successCallback);
+
+      console.log(response);
+      
+    })
+    .catch((error) => {
+      showMsg("error", error.message || "เกิดข้อผิดพลาด");
+    });
+  }
 
   return (
     <MainLayout loading={loading}>
@@ -276,7 +340,7 @@ export default function CreateClaimRequest() {
       {/* Remark Section */}
       <BoxPrimary title="Remark">
         <div className="mb-3 flex justify-end">
-          <Input.TextArea placeholder="Remark" rows={2} />
+          <Input.TextArea placeholder="Remark" rows={2} onChange={(e) => handleInputChange("remark", e.target.value)} value={formValues["remark"] || ""}/>
         </div>
       </BoxPrimary>
 
@@ -291,7 +355,7 @@ export default function CreateClaimRequest() {
       {/* Action Buttons */}
       <div className="flex justify-end space-x-4">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/expenses/product-claim")} />
-        <ActionButton mode="save" text="Save" onClick={() => navigate("/expenses/product-claim")} />
+        <ActionButton mode="save" text="Save" onClick={saveClaim} />
       </div>
     </MainLayout>
   );

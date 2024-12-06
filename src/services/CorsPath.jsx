@@ -171,4 +171,5 @@ export const paths = {
 
   // Claim
   pathClaimList: "claim/list",
+  pathClaimCreate: "claim/create",
 };

@@ -289,7 +289,7 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
                     disabled={field.disabled}
                     prefix={field.prefix}
                     onChange={(e) => handleInputChange(field.name, e.target.value)}
-                    value={formValues[field.name] || ""}
+                    value={formValues[field.name] || field.value}
                   />
                 }
           </div>
