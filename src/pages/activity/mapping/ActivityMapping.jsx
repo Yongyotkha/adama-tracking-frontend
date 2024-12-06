@@ -52,6 +52,10 @@ export default function ActivityMapping() {
         const [mapping, activity, dealers, areas, years] = await Promise.all([
           useServiceAPI.get(paths.pathActivityMapList, {
             keyword: "",
+            activity_type: [],
+            dealer: [],
+            area: [],
+            year: [],
           }),
           useServiceAPI.get(paths.pathMasterActivityType, {
             status: "",
@@ -81,6 +85,8 @@ export default function ActivityMapping() {
             area_id: data.area_id,
             area_name: data.area_name,
             year: data.year,
+            activity_image: data.activity_image,
+            activity_image_location: data.activity_image_location,
           }))
         );
 
@@ -268,12 +274,16 @@ export default function ActivityMapping() {
   // ฟังก์ชันสำหรับการเลือกหรือยกเลิกเลือกทั้งหมด
   const toggleAll = (isChecked) => {
     const updatedFilters = {};
-
-    mockFilters.forEach((filterItem) => {
-      updatedFilters[filterItem.filter_type] = isChecked
-        ? filterItem.data.map((item) => item.id) // เลือกทั้งหมด
-        : []; // ยกเลิกทั้งหมด
-    });
+    
+    if (isChecked) {
+      console.log(isChecked);
+      mockFilters.forEach((filterItem) => {
+        updatedFilters[filterItem.filter_type] = isChecked
+          ? filterItem.data.map((item) => item.id) // เลือกทั้งหมด
+          : []; // ยกเลิกทั้งหมด
+      });
+  
+    }
 
     setCheckedFilters(updatedFilters);
     setIsAllChecked(isChecked); // กำหนดสถานะของ "Check All" ให้ตรงกับตัวเลือก
@@ -338,12 +348,14 @@ export default function ActivityMapping() {
           const [mapping] = await Promise.all([
             useServiceAPI.get(paths.pathActivityMapList, {
               keyword: "",
-              activity_type: activityType,
-              dealer: dealer,
-              area: area,
-              year: year,
+              activity_type: JSON.stringify(activityType),
+              dealer: JSON.stringify(dealer),
+              area: JSON.stringify(area),
+              year: JSON.stringify(year),
             }),
           ]);
+          // console.log(activityType);
+          // return;
 
           // Mapping Detail
           setDataMapping(mapping.data);
@@ -365,6 +377,8 @@ export default function ActivityMapping() {
               area_id: data.area_id,
               area_name: data.area_name,
               year: data.year,
+              activity_image: data.activity_image,
+              activity_image_location: data.activity_image_location,
             }))
           );
         } catch (error) {
@@ -518,6 +532,10 @@ export default function ActivityMapping() {
                   <Marker
                     key={locationIndex}
                     position={{ lat: location.lat, lng: location.lng }}
+                    icon={{
+                      url: location.activity_image_location,
+                      scaledSize: { width: 30, height: 30 },
+                    }}
                     onClick={() => setSelected(location)}
                   />
                 ))}
