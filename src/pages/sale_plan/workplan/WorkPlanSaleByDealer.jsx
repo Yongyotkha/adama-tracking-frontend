@@ -117,6 +117,7 @@ export default function WorkPlanSaleByDealer() {
           key: "productName",
           fixed: "left",
           width: 150,
+          align: "center",
           onHeaderCell: () => ({
             style: {
               backgroundColor: "#00783F", // สีเขียวเข้ม
@@ -132,12 +133,15 @@ export default function WorkPlanSaleByDealer() {
           key: "packSize",
           width: 150,
           fixed: "left",
+          align: "center",
+
           onHeaderCell: () => ({
             style: {
               backgroundColor: "#00783F", // สีเขียวเข้ม
               color: "white", // สีตัวอักษร
               fontWeight: "bold",
               textAlign: "center",
+              width:'150px'
             },
           }),
         },

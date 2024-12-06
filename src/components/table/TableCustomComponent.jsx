@@ -9,6 +9,7 @@ const TableCustomComponent = ({
   footer,
   pagination,
   scroll,
+  loading,
 }) => {
   return (
     <ConfigProvider
@@ -42,6 +43,7 @@ const TableCustomComponent = ({
         }}
         // footer={footer ? () => footer : null}
         summary={footer}
+        loading={loading}
       />
     </ConfigProvider>
   );

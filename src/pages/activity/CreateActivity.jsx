@@ -280,8 +280,6 @@ export default function CreateActivity() {
           });
           setAssignList(assignData);
           } catch (error) {
-            console.log(error);
-            
             showNotification(
               "error",
               "Data Not Found."
@@ -313,8 +311,6 @@ export default function CreateActivity() {
         'name': element.sub_dealer_name,
       });
     });
-    console.log(subDealerAll);
-    
     setDealerList((prevList) => [...prevList, ...subDealerAll]);
   }
 
@@ -513,7 +509,8 @@ export default function CreateActivity() {
   const handleSave = (modeSave) => {
     formCustom.validateFields();
     //Form Basic Activity
-    const allValuesBasic = formCustom.getFieldsValue();
+    let allValuesBasic = formCustom.getFieldsValue();
+    allValuesBasic.document_date = dayjs(allValuesBasic.document_date).format('YYYY-MM-DD')
     const actionCode =  modeSave == 'convert' ? 'convert_clearing' : 'draft';
     //File Upload
     const imageLists = [];
@@ -598,32 +595,50 @@ export default function CreateActivity() {
       useServiceAPI
       .put(paths.pathActivityExpenseDetail, body, setLoading)
       .then((response) => {
-        if(response.result){
-          if(pageCode == 'expense_clearing'){
-            navigate("/expenses/clearing");
-          }else if(pageCode == 'expense_advance'){
-            navigate("/expenses/advance");
-          }else{
-            navigate("/activity/list");
+        const successCallback = () => {
+          if(response.result){
+            if(pageCode == 'expense_clearing'){
+              navigate("/expenses/clearing");
+            }else if(pageCode == 'expense_advance'){
+              navigate("/expenses/advance");
+            }else{
+              navigate("/activity/list");
+            }
           }
-        }
+        };
+        showNotification(
+          "success",
+          response.data.message,
+          response.data.message_line
+        ).then(successCallback);
       })
       .catch((error) => {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        if (error.status === 422) {
+          showNotification("error", error.message);
+        } else {
+          showNotification("error", "เกิดข้อผิดพลาด");
+        }
       });
     }else{
       useServiceAPI
       .post(paths.pathActivityExpenseCreate, body, setLoading)
       .then((response) => {
-        if(response.result){
-          if(pageCode == 'expense_clearing'){
-            navigate("/expenses/clearing");
-          }else if(pageCode == 'expense_advance'){
-            navigate("/expenses/advance");
-          }else{
-            navigate("/activity/list");
+        const successCallback = () => {
+          if(response.result){
+            if(pageCode == 'expense_clearing'){
+              navigate("/expenses/clearing");
+            }else if(pageCode == 'expense_advance'){
+              navigate("/expenses/advance");
+            }else{
+              navigate("/activity/list");
+            }
           }
-        }
+        };
+        showNotification(
+          "success",
+          response.data.message,
+          response.data.message_line
+        ).then(successCallback);
       })
       .catch((error) => {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
