@@ -226,12 +226,20 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
         overall: overallList.length > 0 ? overallList : [],
         others: otherList.length > 0 ? otherList : [],
       },
-      productDetail: dataSource,
+      product: dataSource,
       lotNo: formValues['lotNo'],
       reason: formValues['reason']
     };
 
-    console.log(data);
+    setLabelFiles([]);
+    setProductFiles([]);
+    setOverallFiles([]);
+    setOtherFiles([]);
+    setFormValues([]);
+    setLabelList([]);
+    setProductList([]);
+    setOverallList([]);
+    setOtherList([]);
     //callback
     handleAdd(data);
   };
@@ -281,7 +289,7 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
                     disabled={field.disabled}
                     prefix={field.prefix}
                     onChange={(e) => handleInputChange(field.name, e.target.value)}
-                    value={field.value}
+                    value={formValues[field.name] || ""}
                   />
                 }
           </div>

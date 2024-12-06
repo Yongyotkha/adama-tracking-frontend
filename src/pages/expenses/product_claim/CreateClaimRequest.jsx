@@ -20,26 +20,8 @@ export default function CreateClaimRequest() {
   const navigate = useNavigate();
   const [formCustom] = Form.useForm();
   // State for Order List table data
-  const [dataSource, setDataSource] = useState([
-    {
-      key: "1",
-      no: "1",
-      sku: "3027200113",
-      productName: "Bumper P",
-      lotNo: "BGS0109",
-      reason: "Damaged item",
-      quantity: 2,
-    },
-    {
-      key: "2",
-      no: "2",
-      sku: "207920011520",
-      productName: "Memory 300EC",
-      lotNo: "BGS0163",
-      reason: "Damaged item",
-      quantity: 1,
-    },
-  ]);
+  const [dataSource, setDataSource] = useState([]);
+  const [dataClaim, setDataClaim] = useState([]);
 
   const formFields = [
     { 
@@ -49,8 +31,7 @@ export default function CreateClaimRequest() {
       options: dataSale, 
       disabled: false, 
       required: false, 
-      moderef: true,
-      value: "",
+      value: dataClaim?.sale ?? "",
     },
     { 
       label: "Dealer", 
@@ -59,10 +40,9 @@ export default function CreateClaimRequest() {
       options: dataDealer, 
       disabled: false, 
       required: false, 
-      moderef: false,
-      value: "" 
+      value: dataClaim?.dealer ?? "" 
     },
-    { label: "Claim No", name: "claim_no", type: "text", disabled: true, required: false, value: "Generate Auto" },
+    { label: "Claim No", name: "claim_no", type: "text", disabled: false, required: false, value: "Generate Auto" },
     { label: "Create Date", name: "create_date", type: "date", disabled: false, required: true, value: "" },
   ];
 
@@ -90,6 +70,7 @@ export default function CreateClaimRequest() {
 
   const handleChange = (filter, value) => {
     if (filter == 'sale') {
+      dataClaim.sale = value;
       const getMasterDealer = async () => {
         setLoading(true);
         try {
@@ -160,36 +141,44 @@ export default function CreateClaimRequest() {
       title: <div className="text-center">Label</div>,
       key: "label",
       render: (_, record) => (
-        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick("https://img-cdn.pixlr.com/image-generator/history/65bb506dcb310754719cf81f/ede935de-1138-4f66-8ed7-44bd16efc709/medium.webp")}>
+        record.url_label ?
+        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick(record.url_label)}>
           <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
         </button>
+        : "-"
       ),
     },
     {
       title: <div className="text-center">Product</div>,
       key: "product",
       render: (_, record) => (
-        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick("https://dfstudio-d420.kxcdn.com/wordpress/wp-content/uploads/2019/06/digital_camera_photo-1080x675.jpg")}>
+        record.url_product ?
+        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick(record.url_product)}>
           <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
         </button>
+        : "-"
       ),
     },
     {
       title: <div className="text-center">Overall</div>,
       key: "overall",
       render: (_, record) => (
-        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick("https://img-cdn.pixlr.com/image-generator/history/65bb506dcb310754719cf81f/ede935de-1138-4f66-8ed7-44bd16efc709/medium.webp")}>
+        record.url_overall ?
+        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick(record.url_overall)}>
           <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
         </button>
+        : "-"
       ),
     },
     {
       title: <div className="text-center">Other</div>,
       key: "other",
       render: (_, record) => (
-        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick("https://img-cdn.pixlr.com/image-generator/history/65bb506dcb310754719cf81f/ede935de-1138-4f66-8ed7-44bd16efc709/medium.webp")}>
+        record.url_other ?
+        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick(record.url_other)}>
           <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
         </button>
+        : "-"
       ),
     },
     {
@@ -225,8 +214,22 @@ export default function CreateClaimRequest() {
   };
 
   const handleAdd = (data) => {
-    console.log("Add Order Data:", data);
-    // Handle data submission logic here
+    handleCloseAddOrderModal();
+    const key = dataSource.length + 1;
+    const newData = {
+      key: key,
+      no: key,
+      sku: data.product.product_code,
+      productName: data.product.product_name,
+      lotNo: data.lotNo,
+      reason: data.reason ?? "",
+      url_label: data.files.labels[0],
+      url_product: data.files.products[0],
+      url_overall: data.files.overall[0],
+      url_other: data.files.others[0],
+      quantity: 0
+    };
+    setDataSource((prev) => [...prev, newData]);
   };
 
   return (
