@@ -90,7 +90,7 @@ export default function Login() {
               <Form.Item
                 name="remember"
                 valuePropName="checked"
-                className="text-nowrap mb-0"
+                className="text-nowrap mb-0 hidden"
               >
                 <Checkbox className="text-white hover:text-[#00783F]">
                   Remember me
