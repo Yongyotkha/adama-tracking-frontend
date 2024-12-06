@@ -172,7 +172,8 @@ export default function EditInformation() {
   ];
 
   const header = [
-    { title: "No", width: 50, dataIndex: "key", align: "center" },
+    // { title: "No", width: 50, dataIndex: "key", align: "center" },
+    { title: "No", width: 50, dataIndex: "no", align: "center" },
     { title: "Sub Dealer Name", width: 100, dataIndex: "name", align: "left" },
     {
       title: "Contact Person",
@@ -795,7 +796,7 @@ export default function EditInformation() {
   
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">{isViewMode ? "View Informatio" : "Edit Informatio"}</div>
+      <div className="title-page">{isViewMode ? "View Informatio" : "Edit Information"}</div>
       <Tabs
         activeKey={activeTabKey}
         onChange={handleTabChange}

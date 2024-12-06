@@ -94,6 +94,7 @@ export const paths = {
   pathMasterUsers: "users/list",
   pathMasterUsersDetail: "users/detail",
   pathMasterUsersEdit: "user-update",
+  pathProfileChangePassword :"confirmChangePassword",
 
   //promotion
   pathPromotionlist: "promotion-management/list",
