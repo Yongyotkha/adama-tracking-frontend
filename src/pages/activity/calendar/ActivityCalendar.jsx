@@ -27,7 +27,11 @@ export default function ActivityCalendar() {
         dealer_id: dealerId || "",
       });
   
+      console.log(response);
+      
       if (response.result) {
+        console.log(response.result);
+        
         const formattedEvents = response.data.map((item) => ({
           title: item.activity_type_name,
           date: item.document_date,

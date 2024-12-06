@@ -377,6 +377,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                     currentDate.getMonth(),
                     index + 1
                   );
+                  
                   const correctedDate = new Date(date);
                   correctedDate.setDate(correctedDate.getDate() + 1); // Add the same adjustment here
                   const isActive = selectedDate === correctedDate.toISOString().split("T")[0];
@@ -466,10 +467,11 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                   })}
                 </h3>
                 <div className="space-y-4">
-                  {events.filter((event) => event.date === selectedDate).length > 0 ? (
+                  {events.filter((event) => event.date === selectedDate).length > 0 ? (                    
                     events
                       .filter((event) => event.date === selectedDate)
                       .map((event, index) => (
+                        
                         <div
                           key={index}
                           className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md"
@@ -597,9 +599,9 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                             </p> */}
                                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                               {event.attendees.length > 0 ? (
-                                                event.attendees.map((attendee) => (
+                                                event.attendees.map((attendee, index) => (
                                                   <div
-                                                    key={attendee.id}
+                                                    key={attendee.id || index}
                                                     className="flex items-center gap-2 px-2 py-1 bg-gray-100 rounded-lg shadow-md"
                                                   >
                                                     <img
