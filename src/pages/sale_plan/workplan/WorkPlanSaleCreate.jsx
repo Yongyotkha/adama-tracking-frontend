@@ -189,7 +189,6 @@ export default function WorkPlanSaleCreate() {
                   color: "white", // สีตัวอักษร
                   fontWeight: "bold",
                   textAlign: "center",
-                  height: 100,
                 },
               }),
               children: [

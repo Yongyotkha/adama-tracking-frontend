@@ -191,53 +191,7 @@ export default function ActivityPlanSubDealer() {
       ],
     })),
 
-    // {
-    //   title: 'Total',
-    //   key: 'total',
-    //   onHeaderCell: () => ({
-    //     style: {
-    //       backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สลับต่อจาก loop แรก
-    //       color: "white",
-    //       fontWeight: "bold",
-    //       textAlign: "center",
-    //     },
-    //   }),
-    //   children: [
-    //     {
-    //       title: "Qty",
-    //       dataIndex: `qty`,
-    //       key: `qty`,
-    //       width: 150,
-    //       onHeaderCell: () => ({
-    //         style: {
-    //           backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สลับต่อจาก loop แรก
-    //           color: "white",
-    //           fontWeight: "bold",
-    //           textAlign: "center",
-    //         },
-    //       }),
-    //       render: (_, record) => {
-    //         const localData = localQtyState[month.month_id]?.[
-    //           record.activity_type_id
-    //         ] || { value: 0 };
-
-    //         return (
-    //           <InputNumber
-    //             className="w-full"
-    //             disabled
-    //             value={localData.value}
-    //             formatter={(value) =>
-    //               `${Number(value).toFixed(2)}`.replace(
-    //                 /\B(?=(\d{3})+(?!\d))/g,
-    //                 ","
-    //               )
-    //             }
-    //           />
-    //         );
-    //       },
-    //     },
-    //   ],
-    // },
+  
 
     // Loop สำหรับ Value (THB)
     ...activity.map((month, index) => ({
