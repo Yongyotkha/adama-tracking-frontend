@@ -135,6 +135,7 @@ export default function CreateClaimRequest() {
             min={0}
             value={record.quantity}
             onChange={(e) => handleQuantityChange(record.key, parseInt(e.target.value) || 0)}
+            id={`qty-${record.product.id}`} 
             className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 min-w-24"
           />
           <img src="/img/icons/expand.png" alt="+" className="cursor-pointer w-6 h-6" onClick={() => handleQuantityChange(record.key, record.quantity + 1)} />
@@ -256,7 +257,7 @@ export default function CreateClaimRequest() {
         "product_name": element.product.product_name,
         "product_unit": element.product.packing_list,
         "product_unit_thb": element.product.bath_unit,
-        "quantity": 5,
+        "quantity": document.getElementById(`qty-${element.product.id}`).value,
         "lot_number": element.lotNo,
         "reason": element.reason,
         "label_list": element.url_label ? [element.url_label] : [],
