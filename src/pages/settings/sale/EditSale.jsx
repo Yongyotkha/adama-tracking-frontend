@@ -67,7 +67,6 @@ export default function CreateSale() {
           name: item.name,
           position: item.position_name,
           territory: item.territory_name,
-          
           actionmain: (
             <>
               {permission?.edit !== false && (
