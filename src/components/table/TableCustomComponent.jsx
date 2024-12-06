@@ -10,6 +10,7 @@ const TableCustomComponent = ({
   pagination,
   scroll,
   loading,
+  className,
 }) => {
   return (
     <ConfigProvider
@@ -20,8 +21,8 @@ const TableCustomComponent = ({
         components: {
           Table: {
             headerColor: "#5F504D",
-            cellPaddingBlock:7,
-            cellPaddingInline:7,
+            cellPaddingBlock: 7,
+            cellPaddingInline: 7,
           },
           Pagination: {
             itemActiveBg: "#009845",
@@ -32,6 +33,7 @@ const TableCustomComponent = ({
       }}
     >
       <Table
+        
         className="custom-scrollbar"
         columns={header}
         dataSource={dataSource}

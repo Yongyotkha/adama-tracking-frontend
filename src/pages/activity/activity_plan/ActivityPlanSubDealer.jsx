@@ -125,7 +125,7 @@ export default function ActivityPlanSubDealer() {
           dataIndex: "activity_type_name",
           key: "type",
           fixed: "left",
-          width: 250,
+          width: 200,
           onHeaderCell: () => ({
             style: {
               backgroundColor: "#00783F", // สีเขียวเข้ม
@@ -150,10 +150,10 @@ export default function ActivityPlanSubDealer() {
       }),
       children: [
         {
-          title: "Qty (KG)",
+          title: "Qty",
           dataIndex: `qty-${month.month_id}`,
           key: `qty-${month.month_id}`,
-          width: 150,
+          // width: 150,
 
           onHeaderCell: () => ({
             style: {
@@ -176,6 +176,7 @@ export default function ActivityPlanSubDealer() {
                 formatter={(value) =>
                   `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
+                disabled={!permission.edit}
                 onChange={(value) =>
                   handleQtyChange(
                     month.month_id,
@@ -191,57 +192,55 @@ export default function ActivityPlanSubDealer() {
       ],
     })),
 
-  
-
     // Loop สำหรับ Value (THB)
-    ...activity.map((month, index) => ({
-      title: month.month_name,
-      key: `dealer-${month.month_id}-value`,
-      onHeaderCell: () => ({
-        style: {
-          backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สลับต่อจาก loop แรก
-          color: "white",
-          fontWeight: "bold",
-          textAlign: "center",
-        },
-      }),
-      children: [
-        {
-          title: "Value (THB)",
-          dataIndex: `value-${month.month_id}`,
-          key: `value-${month.month_id}`,
-          width: 150,
+    // ...activity.map((month, index) => ({
+    //   title: month.month_name,
+    //   key: `dealer-${month.month_id}-value`,
+    //   onHeaderCell: () => ({
+    //     style: {
+    //       backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สลับต่อจาก loop แรก
+    //       color: "white",
+    //       fontWeight: "bold",
+    //       textAlign: "center",
+    //     },
+    //   }),
+    //   children: [
+    //     {
+    //       title: "Value (THB)",
+    //       dataIndex: `value-${month.month_id}`,
+    //       key: `value-${month.month_id}`,
+    //       width: 150,
 
-          onHeaderCell: () => ({
-            style: {
-              backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สลับต่อจาก loop แรก
-              color: "white",
-              fontWeight: "bold",
-              textAlign: "center",
-            },
-          }),
-          render: (_, record) => {
-            const localData = localQtyState[month.month_id]?.[
-              record.activity_type_id
-            ] || { value: 0 };
+    //       onHeaderCell: () => ({
+    //         style: {
+    //           backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สลับต่อจาก loop แรก
+    //           color: "white",
+    //           fontWeight: "bold",
+    //           textAlign: "center",
+    //         },
+    //       }),
+    //       render: (_, record) => {
+    //         const localData = localQtyState[month.month_id]?.[
+    //           record.activity_type_id
+    //         ] || { value: 0 };
 
-            return (
-              <InputNumber
-                className="w-full"
-                disabled
-                value={localData.value}
-                formatter={(value) =>
-                  `${Number(value).toFixed(2)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
-                }
-              />
-            );
-          },
-        },
-      ],
-    })),
+    //         return (
+    //           <InputNumber
+    //             className="w-full"
+    //             disabled
+    //             value={localData.value}
+    //             formatter={(value) =>
+    //               `${Number(value).toFixed(2)}`.replace(
+    //                 /\B(?=(\d{3})+(?!\d))/g,
+    //                 ","
+    //               )
+    //             }
+    //           />
+    //         );
+    //       },
+    //     },
+    //   ],
+    // })),
   ];
 
   const handleQtyChange = (month_id, activity_id, qty, unitConvertValue) => {
@@ -453,10 +452,11 @@ export default function ActivityPlanSubDealer() {
           <div className="text-[#00783F] text-xl pb-5">Monthly Sale Plan</div>
 
           <TableCustomComponent
+   
             header={columns}
             dataSource={dataSource}
             pagination={false}
-            scroll={true}
+            // scroll={true}
             footer={() => (
               <Table.Summary fixed>
                 <Table.Summary.Row>
@@ -486,7 +486,7 @@ export default function ActivityPlanSubDealer() {
                       </Table.Summary.Cell>
                     );
                   })}
-                  {activity.map((month) => {
+                  {/* {activity.map((month) => {
                     const totalValue = Object.values(
                       localQtyState[month.month_id] || {}
                     ).reduce((sum, product) => sum + (product.value || 0), 0);
@@ -510,7 +510,7 @@ export default function ActivityPlanSubDealer() {
                         />
                       </Table.Summary.Cell>
                     );
-                  })}
+                  })} */}
                 </Table.Summary.Row>
               </Table.Summary>
             )}
