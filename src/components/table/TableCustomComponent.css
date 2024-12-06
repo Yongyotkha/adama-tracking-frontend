@@ -25,12 +25,3 @@
 .ant-table-wrapper .ant-table-thead > tr > td {
   border-bottom: unset;
 }
-
-.ant-table-wrapper .ant-table-cell,
-.ant-table-wrapper .ant-table-thead > tr > th,
-.ant-table-wrapper .ant-table-tbody > tr > th,
-.ant-table-wrapper .ant-table-tbody > tr > td,
-.ant-table-wrapper tfoot > tr > th,
-.ant-table-wrapper tfoot > tr > td {
-  padding: 5px 5px !important;
-}

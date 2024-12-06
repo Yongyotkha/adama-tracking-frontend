@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import { InputNumber, Table, Modal } from "antd";
+import { InputNumber, Table, Modal, Typography } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import TableCustomComponent from "../../../components/table/TableCustomComponent";
 import ActionButton from "../../../components/button/ActionButton";
@@ -10,6 +10,7 @@ import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import Title from "../../../components/title/Title";
 import { ExclamationCircleFilled } from "@ant-design/icons";
+
 
 export default function WorkPlanSaleByDealer() {
   const location = useLocation();
@@ -26,6 +27,7 @@ export default function WorkPlanSaleByDealer() {
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const { confirm } = Modal;
+  const { Text } = Typography;
 
   useEffect(() => {
     useServiceAPI
@@ -141,7 +143,7 @@ export default function WorkPlanSaleByDealer() {
               color: "white", // สีตัวอักษร
               fontWeight: "bold",
               textAlign: "center",
-              width:'150px'
+              width: "150px",
             },
           }),
         },
@@ -201,7 +203,11 @@ export default function WorkPlanSaleByDealer() {
       ],
     },
     ...dealer.map((dealerItem, index) => ({
-      title: dealerItem.dealer_name,
+      title: (
+        <Text ellipsis={{ tooltip: dealerItem.dealer_name }} className="text-white">
+          {dealerItem.dealer_name}
+        </Text>
+      ),
       key: `dealer-${dealerItem.dealer_id}-qty`,
       onHeaderCell: () => ({
         style: {
@@ -259,7 +265,11 @@ export default function WorkPlanSaleByDealer() {
 
     // Loop สำหรับ Value (THB)
     ...dealer.map((dealerItem, index) => ({
-      title: dealerItem.dealer_name,
+      title: (
+        <Text ellipsis={{ tooltip: dealerItem.dealer_name }} className="text-white">
+          {dealerItem.dealer_name}
+        </Text>
+      ),
       key: `dealer-${dealerItem.dealer_id}-value`,
       onHeaderCell: () => ({
         style: {

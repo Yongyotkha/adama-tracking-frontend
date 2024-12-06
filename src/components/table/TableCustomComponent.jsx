@@ -16,11 +16,12 @@ const TableCustomComponent = ({
       theme={{
         token: {
           colorPrimary: "#009845",
-          fontWeightStrong: 600,
         },
         components: {
           Table: {
             headerColor: "#5F504D",
+            cellPaddingBlock:7,
+            cellPaddingInline:7,
           },
           Pagination: {
             itemActiveBg: "#009845",

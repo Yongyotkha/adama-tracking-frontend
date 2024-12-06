@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ConfigProvider, Table } from "antd";
 import "./TableExpand.css";
 
-const TableExpand = ({ data, columns, nestedColumns,pagination ,onChange}) => {
+const TableExpand = ({ data, columns, nestedColumns,pagination ,onChange,loading}) => {
   const [expandedRowKeys, setExpandedRowKeys] = useState([]);
 
   const handleExpand = (record) => {
@@ -51,6 +51,7 @@ const TableExpand = ({ data, columns, nestedColumns,pagination ,onChange}) => {
       <Table
         columns={columns}
         dataSource={data}
+        loading={loading}
         onChange={onChange}
         pagination={
           pagination

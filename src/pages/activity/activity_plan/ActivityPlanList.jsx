@@ -349,46 +349,6 @@ export default function ActivityPlanList() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-  // const events = {
-  //   "2024-11-01": [
-  //     {
-  //       id: 1,
-  //       title: "Meeting",
-  //       color: "purple",
-  //       icons: ["👩‍👩‍👧👩‍👩‍👧👩‍👩‍👧", "+3"],
-  //       type: "ribbon",
-  //     },
-  //     {
-  //       id: 2,
-  //       title: "Meeting",
-  //       color: "red",
-  //       icons: ["👩‍👩‍👧", "+2"],
-  //       type: "ribbon",
-  //     },
-  //     {
-  //       id: 3,
-  //       title: "Meeting",
-  //       color: "green",
-  //       icons: ["👩‍👩‍👧", "+1"],
-  //       type: "ribbon",
-  //     },
-  //     {
-  //       id: 4,
-  //       title: "Meeting",
-  //       color: "blue",
-  //       icons: ["👩‍👩‍👧", "+3"],
-  //       type: "ribbon",
-  //     },
-  //   ],
-  //   "2024-11-07": [
-  //     { id: 1, color: "red", icons: ["⭐"], type: "badge" },
-  //     { id: 2, color: "blue", icons: ["📹"], type: "badge" },
-  //     { id: 3, color: "green", icons: ["➕"], type: "badge" },
-  //     { id: 4, color: "orange", icons: ["🍊"], type: "badge" },
-  //     { id: 5, title: "Visit", color: "purple", icons: ["👨‍👩‍👦"], type: "ribbon" },
-  //   ],
-  // };
-
   const handleTableChange = (pagination, filters, sorter) => {
     console.log(pagination);
     setTableParams({
@@ -451,6 +411,7 @@ export default function ActivityPlanList() {
         dataSource={dataSourceSumary}
         header={columnsSummary}
         pagination={false}
+        loading={tableLoading}
       />
 
       <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
@@ -462,6 +423,7 @@ export default function ActivityPlanList() {
           pagination={tableParams.pagination}
           nestedColumns={nestedColumns}
           onChange={handleTableChange}
+          loading={tableLoading}
         />
       </BoxPrimary>
     </MainLayout>
