@@ -70,30 +70,6 @@ export default function ActivityMapping() {
         setDataMapping(mapping.data);
 
         // Set Locations
-        // setLocations(
-        //   mapping.data.map((data, index) => ({
-        //     key: locations.length + 1,
-        //     id: locations.length + 1,
-        //     document_number: data.document_number,
-        //     title: data.activity_type_name,
-        //     // lat: parseFloat(data.location_latitude),
-        //     // lng: parseFloat(data.location_longitude),
-        //     lat: data.location_latitude,
-        //     lng: data.location_longitude,
-        //     details: data.location_address,
-        //     activity_type_id: data.activity_type_id,
-        //     activity_type_name: data.activity_type_name,
-        //     dealer_id: data.dealer_id,
-        //     dealer_name: data.dealer_name,
-        //     area_id: data.area_id,
-        //     area_name: data.area_name,
-        //     year: data.year,
-        //     activity_image: data.activity_image,
-        //     activity_image_location: data.activity_image_location,
-        //   }))
-        // );
-
-        // Set Locations
         const newLocations = mapping.data.map((data, index) => ({
           key: locations.length + 1,
           id: locations.length + 1,
@@ -199,18 +175,18 @@ export default function ActivityMapping() {
       filter_type_name: "Dealer",
       data: dataDealer,
     },
-    {
-      key: 3,
-      filter_type: "area",
-      filter_type_name: "Area",
-      data: dataArea,
-    },
-    {
-      key: 4,
-      filter_type: "year",
-      filter_type_name: "Year",
-      data: dataYear,
-    },
+    // {
+    //   key: 3,
+    //   filter_type: "area",
+    //   filter_type_name: "Area",
+    //   data: dataArea,
+    // },
+    // {
+    //   key: 4,
+    //   filter_type: "year",
+    //   filter_type_name: "Year",
+    //   data: dataYear,
+    // },
   ];
 
   // สร้างค่าเริ่มต้นของ checkedFilters จาก mockFilters
@@ -305,7 +281,6 @@ export default function ActivityMapping() {
   };
 
   const renderMarkerLocation = () => {
-    // console.log(locationMarkerIcon);
     // Set MarkerLocation
     setLocationMarkerIcon(
       locations.map((data, index) => ({
@@ -364,7 +339,7 @@ export default function ActivityMapping() {
     if (locations.length > 0) {
       renderMarkerLocation();
     }
-  }, [locations, selected]);
+  }, [locations, selected, locationWindowInfo]);
 
   // Set New Marker
   useEffect(() => {
@@ -570,17 +545,6 @@ export default function ActivityMapping() {
                 center={currentLocation}
                 zoom={dataMapZoom}
               >
-              {/* {locations.map((location, locationIndex) => (
-                <Marker
-                  key={locationIndex}
-                  position={{ lat: parseFloat(location.lat), lng: parseFloat(location.lng ) }}
-                  icon={{
-                    url: location.activity_image_location,
-                    scaledSize: { width: 30, height: 30 },
-                  }}
-                  onClick={() => setSelected(location)}
-                />
-              ))} */}
               {locationMarkerIcon.map((location, locationIndex) => (
                   <Marker
                     key={locationIndex}
@@ -590,41 +554,27 @@ export default function ActivityMapping() {
                       // url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
                       scaledSize: { width: 30, height: 30 },
                     }}
-                    // onClick={() => setSelected(location)}
-
-                    // onClick={() => setlocationWindowInfo(location)}
-
-                    onClick={() => setlocationWindowInfo({
-                      lat: parseFloat(location.lat),
-                      lng: parseFloat(location.lng ),
-                      title: location.title && "",
-                      details: location.details && "",
-                    })}
+                    onClick={() =>
+                      setlocationWindowInfo({
+                        lat: parseFloat(location.lat),
+                        lng: parseFloat(location.lng),
+                        title: location.title || "No Title",
+                        details: location.details || "No Details"
+                      })
+                    }
                   />
                 ))}
 
-                {/* {selected && (
-                  <InfoWindow
-                    position={{ lat: parseFloat(selected.lat), lng: parseFloat(selected.lng) }}
-                    onCloseClick={() => setSelected(null)}
-                  >
-                    <div>
-                      <h3>{selected.title}</h3>
-                      <p>{selected.details}</p>
-                    </div>
-                  </InfoWindow>
-                )} */}
-                {/* setlocationWindowInfo */}
                 {locationWindowInfo && (
                   <InfoWindow
-                    position={{ lat: parseFloat(locationWindowInfo.lat), lng: parseFloat(locationWindowInfo.lng) }}
-                    onCloseClick={() => setlocationWindowInfo(null)}
-                  >
-                    <div>
-                      <h3>{locationWindowInfo.title}</h3>
-                      <p>{locationWindowInfo.details}</p>
-                    </div>
-                  </InfoWindow>
+                      position={{ lat: parseFloat(locationWindowInfo.lat), lng: parseFloat(locationWindowInfo.lng) }}
+                      onCloseClick={() => setlocationWindowInfo(null)}
+                    >
+                      <div>
+                        <h3>{locationWindowInfo.title}</h3>
+                        <p>{locationWindowInfo.details}</p>
+                      </div>
+                    </InfoWindow>
                 )}
 
               </GoogleMap>

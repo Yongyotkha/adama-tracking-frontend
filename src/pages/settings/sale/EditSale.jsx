@@ -199,17 +199,8 @@ export default function CreateSale() {
     { title: "No", dataIndex: "no", key: "no", width: 80 },
     { title: "Name", dataIndex: "name", key: "name", width: 150 },
     { title: "Position", dataIndex: "position", key: "position", width: 200 },
-    {
-      title: "Territory",
-      dataIndex: "territory",
-      key: "territory",
-      width: 150,
-    },
-    {
-      title: "Action",
-      dataIndex: "actionsubitem",
-      key: "action",
-      width: 100,
+    { title: "Territory",dataIndex: "territory", key: "territory", width: 150,},
+    { title: "Action", dataIndex: "actionsubitem", key: "action", width: 100,
       // render: (_, nestedRecord) => (
       //   <DynamicButton iconSrc="/img/icons/delete.png" onClick={() => handleDelete(nestedRecord.key)} />
       // ),
