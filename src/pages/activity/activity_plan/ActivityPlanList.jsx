@@ -390,6 +390,7 @@ export default function ActivityPlanList() {
   // };
 
   const handleTableChange = (pagination, filters, sorter) => {
+    console.log(pagination);
     setTableParams({
       pagination,
       filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
@@ -458,6 +459,7 @@ export default function ActivityPlanList() {
         <TableExpand
           data={dataSource}
           columns={columns}
+          pagination={tableParams.pagination}
           nestedColumns={nestedColumns}
           onChange={handleTableChange}
         />

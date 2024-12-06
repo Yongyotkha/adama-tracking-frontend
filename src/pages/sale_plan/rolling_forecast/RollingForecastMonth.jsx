@@ -216,6 +216,8 @@ export default function RollingForecastMonth() {
           title: "Qty (KG)",
           dataIndex: `qty-${month.month_id}`,
           key: `qty-${month.month_id}`,
+          width: 150,
+
           onHeaderCell: () => ({
             style: {
               backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สีเขียวสลับ
@@ -273,6 +275,8 @@ export default function RollingForecastMonth() {
           title: "Value (THB)",
           dataIndex: `value-${month.month_id}`,
           key: `value-${month.month_id}`,
+          width: 150,
+
           onHeaderCell: () => ({
             style: {
               backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สลับต่อจาก loop แรก

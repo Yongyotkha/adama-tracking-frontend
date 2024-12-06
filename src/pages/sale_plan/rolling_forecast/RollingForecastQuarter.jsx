@@ -51,7 +51,7 @@ export default function RollingForecastQuarter() {
                 total_value: quarter.amount_target,
                 months: quarter.data_items.reduce((monthAcc, month) => {
                   monthAcc[month.month_id] = {
-                    total_value:month.rollingforecast_amount_target,
+                    total_value: month.rollingforecast_amount_target,
                     products: month.rollingforecast_data_items.reduce(
                       (productAcc, product) => {
                         productAcc[product.product_id] = {
@@ -66,7 +66,6 @@ export default function RollingForecastQuarter() {
                       },
                       {}
                     ),
-                  
                   };
                   return monthAcc;
                 }, {}),
@@ -113,7 +112,7 @@ export default function RollingForecastQuarter() {
       color: "white", // สีตัวอักษร
       fontWeight: "bold",
       textAlign: "center",
-      width: 150,
+      // width: 150,
     },
   });
   const defaultHeaderDarkGreen = () => ({
@@ -254,6 +253,8 @@ export default function RollingForecastQuarter() {
                   ),
                 dataIndex: `workplan_${month.month_id}`,
                 key: `workplan_qty_${month.month_id}`,
+                width: 150,
+
                 render: (_, record) => {
                   const workplanData =
                     month.workplan_data_items.find(
@@ -282,6 +283,8 @@ export default function RollingForecastQuarter() {
                 onHeaderCell: () => defaultHeaderDynamic("#7DB41E"),
                 dataIndex: `rollingforecast_${month.month_id}`,
                 key: `rollingforecast_qty_${month.month_id}`,
+                width: 150,
+
                 render: (_, record) => {
                   const rollingData =
                     localQtyState[item.quarter_id]?.months?.[month.month_id]
@@ -319,6 +322,8 @@ export default function RollingForecastQuarter() {
                 onHeaderCell: () => defaultHeaderDynamic("#93CC23"),
                 dataIndex: `actual_${month.month_id}`,
                 key: `actual_qty_${month.month_id}`,
+                width: 150,
+
                 render: (_, record) => {
                   const actualData =
                     month.actual_data_items.find(
@@ -433,9 +438,8 @@ export default function RollingForecastQuarter() {
 
           if (
             Number(matchingItem.workplan_amount_target).toFixed(2) >
-            Number(matchingItem.rollingforecast_amount_target).toFixed(2) 
+            Number(matchingItem.rollingforecast_amount_target).toFixed(2)
           ) {
-            
             showNotification(
               "warning",
               "Rollingforecast is less than Original Plan",

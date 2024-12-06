@@ -77,6 +77,8 @@ export default function ActivityPlanSubDealer() {
             unit_convert_value: item.unit_convert_value,
           }));
 
+          console.log(newLocalState);
+
           setName(response.data.user_name);
           setYearName(response.data.year_name);
           setDataSource(newData);
@@ -118,7 +120,6 @@ export default function ActivityPlanSubDealer() {
             },
           }),
         },
-        
       ],
     },
     ...months.map((month, index) => ({
@@ -154,20 +155,21 @@ export default function ActivityPlanSubDealer() {
 
             return (
               <InputNumber
-              value={localData.qty}
-              min={0}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              onChange={(value) =>
-                handleQtyChange(
-                  month.month_id,
-                  record.activity_type_id,
-                  value,
-                  record.unit_convert_value || 1
-                )
-              }
-            />
+                value={localData.qty}
+                className="w-full"
+                min={0}
+                formatter={(value) =>
+                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                onChange={(value) =>
+                  handleQtyChange(
+                    month.month_id,
+                    record.activity_type_id,
+                    value,
+                    record.unit_convert_value || 1
+                  )
+                }
+              />
             );
           },
         },
@@ -203,11 +205,8 @@ export default function ActivityPlanSubDealer() {
           }),
           render: (_, record) => {
             const localData = localQtyState[month.month_id]?.[
-              record.product_id
-            ] || {
-              qty: 0,
-              value: 0,
-            };
+              record.activity_type_id
+            ] || { value: 0 };
 
             return (
               <InputNumber
@@ -266,27 +265,29 @@ export default function ActivityPlanSubDealer() {
         };
       });
 
-      await useServiceAPI
-        .put(paths.pathRollingForecastMonth, {
-          action_code: mode,
-          year_code: location?.state?.year_code,
-          user_id: location?.state?.user_id,
-          workplan_header_id: location?.state?.workplan_header_id,
-          workplan_area_header_id: location?.state?.workplan_area_header_id,
-          workplan_sale_header_id: location?.state?.workplan_sale_header_id,
-          month_items: mappedMonth,
-        })
-        .then((response) => {
-          if (response.status === 200) {
-            showNotification("success", response.data.message).then(() => {
-              navigate("/sale-plan/rolling-forecast-sale");
-            });
-          }
-        })
-        .catch((error) => {
-          console.error(error);
-          showNotification("error", "An error occurred");
-        });
+      console.log(mappedMonth);
+
+      // await useServiceAPI
+      //   .put(paths.pathRollingForecastMonth, {
+      //     action_code: mode,
+      //     year_code: location?.state?.year_code,
+      //     user_id: location?.state?.user_id,
+      //     workplan_header_id: location?.state?.workplan_header_id,
+      //     workplan_area_header_id: location?.state?.workplan_area_header_id,
+      //     workplan_sale_header_id: location?.state?.workplan_sale_header_id,
+      //     month_items: mappedMonth,
+      //   })
+      //   .then((response) => {
+      //     if (response.status === 200) {
+      //       showNotification("success", response.data.message).then(() => {
+      //         navigate("/sale-plan/rolling-forecast-sale");
+      //       });
+      //     }
+      //   })
+      //   .catch((error) => {
+      //     console.error(error);
+      //     showNotification("error", "An error occurred");
+      //   });
     } catch (error) {
       console.error("Unexpected error:", error);
       showNotification("error", "An unexpected error occurred");
@@ -352,9 +353,7 @@ export default function ActivityPlanSubDealer() {
             footer={() => (
               <Table.Summary fixed>
                 <Table.Summary.Row>
-                  <Table.Summary.Cell index={0} >
-                    Total (THB)
-                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={0}>Total (THB)</Table.Summary.Cell>
                   {months.map((month) => {
                     const totalValue = Object.values(
                       localQtyState[month.month_id] || {}
