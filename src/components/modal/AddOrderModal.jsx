@@ -168,6 +168,10 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
 
             const data = productDetail.data;
             setDataSource(data);
+            setFormValues((prev) => ({
+              ...prev,
+              ['productName']: data.product_name
+            }));
         } catch (error) {
           console.log(error);
             showNotification(
@@ -289,7 +293,7 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
                     disabled={field.disabled}
                     prefix={field.prefix}
                     onChange={(e) => handleInputChange(field.name, e.target.value)}
-                    value={formValues[field.name] || field.value}
+                    value={formValues[field.name] || ""}
                   />
                 }
           </div>
