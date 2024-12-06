@@ -26,7 +26,8 @@ export default function ActivityMapping() {
   );
 
   const [locations, setLocations] = useState([]);
-  const [locationForChange, setLocationForChange] = useState([]);
+  const [locationMarkerIcon, setLocationMarkerIcon] = useState([]);
+  const [locationWindowInfo, setlocationWindowInfo] = useState(null);
   const [dataMapZoom, setDataMapZoom] = useState(10);
   const [dataMapping, setDataMapping] = useState([]);
   const [activityType, setActivityType] = useState([]);
@@ -50,7 +51,7 @@ export default function ActivityMapping() {
       setLoading(true);
       try {
         const [mapping, activity, dealers, areas, years] = await Promise.all([
-          useServiceAPI.get(paths.pathActivityMapList, {
+          useServiceAPI.post(paths.pathActivityMapList, {
             keyword: "",
             activity_type: [],
             dealer: [],
@@ -69,27 +70,50 @@ export default function ActivityMapping() {
         setDataMapping(mapping.data);
 
         // Set Locations
-        setLocations(
-          mapping.data.map((data, index) => ({
-            key: locations.length + 1,
-            id: locations.length + 1,
-            document_number: data.document_number,
-            title: data.activity_type_name,
-            lat: parseFloat(data.location_latitude),
-            lng: parseFloat(data.location_longitude),
-            details: data.location_address,
-            activity_type_id: data.activity_type_id,
-            activity_type_name: data.activity_type_name,
-            dealer_id: data.dealer_id,
-            dealer_name: data.dealer_name,
-            area_id: data.area_id,
-            area_name: data.area_name,
-            year: data.year,
-            activity_image: data.activity_image,
-            activity_image_location: data.activity_image_location,
-          }))
-        );
+        // setLocations(
+        //   mapping.data.map((data, index) => ({
+        //     key: locations.length + 1,
+        //     id: locations.length + 1,
+        //     document_number: data.document_number,
+        //     title: data.activity_type_name,
+        //     // lat: parseFloat(data.location_latitude),
+        //     // lng: parseFloat(data.location_longitude),
+        //     lat: data.location_latitude,
+        //     lng: data.location_longitude,
+        //     details: data.location_address,
+        //     activity_type_id: data.activity_type_id,
+        //     activity_type_name: data.activity_type_name,
+        //     dealer_id: data.dealer_id,
+        //     dealer_name: data.dealer_name,
+        //     area_id: data.area_id,
+        //     area_name: data.area_name,
+        //     year: data.year,
+        //     activity_image: data.activity_image,
+        //     activity_image_location: data.activity_image_location,
+        //   }))
+        // );
 
+        // Set Locations
+        const newLocations = mapping.data.map((data, index) => ({
+          key: locations.length + 1,
+          id: locations.length + 1,
+          document_number: data.document_number,
+          title: data.activity_type_name,
+          lat: data.location_latitude,
+          lng: data.location_longitude,
+          details: data.description,
+          activity_type_id: data.activity_type_id,
+          activity_type_name: data.activity_type_name,
+          dealer_id: data.dealer_id,
+          dealer_name: data.dealer_name,
+          area_id: data.area_id,
+          area_name: data.area_name,
+          year: data.year,
+          activity_image: data.activity_image,
+          activity_image_location: data.activity_image_location,
+        }));
+        setLocations(newLocations);
+  
         setActivityType(
           activity.data
             .filter(
@@ -98,7 +122,7 @@ export default function ActivityMapping() {
             )
             .map((data, index) => ({
               key: index,
-              id: index,
+              id: data.id,
               name: data.name,
             }))
         );
@@ -111,7 +135,7 @@ export default function ActivityMapping() {
             )
             .map((data, index) => ({
               key: index,
-              id: index,
+              id: data.id,
               name: data.name,
             }))
         );
@@ -124,7 +148,7 @@ export default function ActivityMapping() {
             )
             .map((data, index) => ({
               key: index,
-              id: index,
+              id: data.id,
               name: data.name,
             }))
         );
@@ -137,10 +161,11 @@ export default function ActivityMapping() {
             )
             .map((data, index) => ({
               key: index,
-              id: index,
+              id: data.id,
               name: data.name,
             }))
         );
+
       } catch (error) {
         // showMsg("error", error.message || "เกิดข้อผิดพลาด");
         console.log(error);
@@ -228,8 +253,6 @@ export default function ActivityMapping() {
 
           // Set State: ตำแหน่งปัจจุบัน
           setCurrentLocation(getCurrentLocation);
-          // Set State: ตำแหน่งปัจจุบันและ Marker
-          // setLocations((prev) => [...prev, getCurrentLocation]);
         },
         (error) => {
           console.error("Error getting current location:", error);
@@ -237,17 +260,6 @@ export default function ActivityMapping() {
       );
     }
 
-    const initialCheckedFilters = {};
-    // Object.keys(mockFilters).forEach((category) => {
-    //   initialCheckedFilters[category] = mockFilters[category].reduce(
-    //     (acc, item) => {
-    //       acc[item] = true;
-    //       return acc;
-    //     },
-    //     {}
-    //   );
-    // });
-    // setCheckedFilters(initialCheckedFilters);
   }, [dataMapping]);
 
   // ดึงที่อยู่จาก Google Maps Geocoding API
@@ -273,10 +285,10 @@ export default function ActivityMapping() {
 
   // ฟังก์ชันสำหรับการเลือกหรือยกเลิกเลือกทั้งหมด
   const toggleAll = (isChecked) => {
+    // console.log(isChecked);
     const updatedFilters = {};
     
     if (isChecked) {
-      console.log(isChecked);
       mockFilters.forEach((filterItem) => {
         updatedFilters[filterItem.filter_type] = isChecked
           ? filterItem.data.map((item) => item.id) // เลือกทั้งหมด
@@ -287,7 +299,35 @@ export default function ActivityMapping() {
 
     setCheckedFilters(updatedFilters);
     setIsAllChecked(isChecked); // กำหนดสถานะของ "Check All" ให้ตรงกับตัวเลือก
+
+    // Render MarkerLocation
+    renderMarkerLocation();
   };
+
+  const renderMarkerLocation = () => {
+    // console.log(locationMarkerIcon);
+    // Set MarkerLocation
+    setLocationMarkerIcon(
+      locations.map((data, index) => ({
+        key: locations.length + 1,
+        id: locations.length + 1,
+        document_number: data.document_number,
+        title: data.activity_type_name,
+        lat: data.lat,
+        lng: data.lng,
+        details: data.description,
+        activity_type_id: data.activity_type_id,
+        activity_type_name: data.activity_type_name,
+        dealer_id: data.dealer_id,
+        dealer_name: data.dealer_name,
+        area_id: data.area_id,
+        area_name: data.area_name,
+        year: data.year,
+        activity_image: data.activity_image,
+        activity_image_location: data.activity_image_location,
+      }))
+    );
+  }
 
   const handleCheckboxChange = (filterType, id) => {
     setCheckedFilters((prevState) => {
@@ -319,6 +359,12 @@ export default function ActivityMapping() {
 
     setIsAllChecked(allFiltersSelected); // ถ้าทุกตัวเลือกถูกเลือก ก็จะเป็น true
   }, [checkedFilters]);
+  
+  useEffect(() => {
+    if (locations.length > 0) {
+      renderMarkerLocation();
+    }
+  }, [locations, selected]);
 
   // Set New Marker
   useEffect(() => {
@@ -346,16 +392,14 @@ export default function ActivityMapping() {
               : [];
 
           const [mapping] = await Promise.all([
-            useServiceAPI.get(paths.pathActivityMapList, {
+            useServiceAPI.post(paths.pathActivityMapList, {
               keyword: "",
-              activity_type: JSON.stringify(activityType),
-              dealer: JSON.stringify(dealer),
-              area: JSON.stringify(area),
-              year: JSON.stringify(year),
+              activity_type: activityType,
+              dealer: dealer,
+              area: area,
+              year: year,
             }),
           ]);
-          // console.log(activityType);
-          // return;
 
           // Mapping Detail
           setDataMapping(mapping.data);
@@ -367,9 +411,11 @@ export default function ActivityMapping() {
               id: locations.length + 1,
               document_number: data.document_number,
               title: data.activity_type_name,
-              lat: parseFloat(data.location_latitude),
-              lng: parseFloat(data.location_longitude),
-              details: data.location_address,
+              // lat: parseFloat(data.location_latitude),
+              // lng: parseFloat(data.location_longitude),
+              lat: data.location_latitude,
+              lng: data.location_longitude,
+              details: data.description,
               activity_type_id: data.activity_type_id,
               activity_type_name: data.activity_type_name,
               dealer_id: data.dealer_id,
@@ -392,10 +438,6 @@ export default function ActivityMapping() {
       loadDataMappingList();
     }
   }, [checkedFilters]);
-
-  useEffect(() => {
-    console.log(locations);
-  }, [locations]);
 
   const handleSearch = (text) => {
     if (text) {
@@ -528,21 +570,35 @@ export default function ActivityMapping() {
                 center={currentLocation}
                 zoom={dataMapZoom}
               >
-                {locations.map((location, locationIndex) => (
+              {/* {locations.map((location, locationIndex) => (
+                <Marker
+                  key={locationIndex}
+                  position={{ lat: parseFloat(location.lat), lng: parseFloat(location.lng ) }}
+                  icon={{
+                    url: location.activity_image_location,
+                    scaledSize: { width: 30, height: 30 },
+                  }}
+                  onClick={() => setSelected(location)}
+                />
+              ))} */}
+              {locationMarkerIcon.map((location, locationIndex) => (
                   <Marker
                     key={locationIndex}
-                    position={{ lat: location.lat, lng: location.lng }}
+                    position={{ lat: parseFloat(location.lat), lng: parseFloat(location.lng ) }}
                     icon={{
                       url: location.activity_image_location,
+                      // url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
                       scaledSize: { width: 30, height: 30 },
                     }}
-                    onClick={() => setSelected(location)}
+                    // onClick={() => setSelected(location)}
+                    onClick={() => setlocationWindowInfo(location)}
+                    // onClick={() => console.log(location)}
                   />
                 ))}
 
-                {selected && (
+                {/* {selected && (
                   <InfoWindow
-                    position={{ lat: selected.lat, lng: selected.lng }}
+                    position={{ lat: parseFloat(selected.lat), lng: parseFloat(selected.lng) }}
                     onCloseClick={() => setSelected(null)}
                   >
                     <div>
@@ -550,7 +606,20 @@ export default function ActivityMapping() {
                       <p>{selected.details}</p>
                     </div>
                   </InfoWindow>
+                )} */}
+                {/* setlocationWindowInfo */}
+                {locationWindowInfo && (
+                  <InfoWindow
+                    position={{ lat: parseFloat(locationWindowInfo.lat), lng: parseFloat(locationWindowInfo.lng) }}
+                    onCloseClick={() => setlocationWindowInfo(null)}
+                  >
+                    <div>
+                      <h3>{locationWindowInfo.title && ""}</h3>
+                      <p>{locationWindowInfo.details && ""}</p>
+                    </div>
+                  </InfoWindow>
                 )}
+
               </GoogleMap>
             </LoadScript>
           </Content>
