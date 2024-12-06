@@ -280,7 +280,7 @@ export default function CreateClaimRequest() {
     .then((response) => {
       const successCallback = () => {
         if(response.result){
-          
+          navigate("/expenses/product-claim-list");
         }
       };
       showNotification(
