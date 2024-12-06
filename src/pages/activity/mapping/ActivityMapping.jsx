@@ -27,7 +27,7 @@ export default function ActivityMapping() {
 
   const [locations, setLocations] = useState([]);
   const [locationMarkerIcon, setLocationMarkerIcon] = useState([]);
-  const [locationForChange, setLocationForChange] = useState([]);
+  const [locationWindowInfo, setlocationWindowInfo] = useState(null);
   const [dataMapZoom, setDataMapZoom] = useState(10);
   const [dataMapping, setDataMapping] = useState([]);
   const [activityType, setActivityType] = useState([]);
@@ -101,7 +101,7 @@ export default function ActivityMapping() {
           title: data.activity_type_name,
           lat: data.location_latitude,
           lng: data.location_longitude,
-          details: data.location_address,
+          details: data.description,
           activity_type_id: data.activity_type_id,
           activity_type_name: data.activity_type_name,
           dealer_id: data.dealer_id,
@@ -305,7 +305,7 @@ export default function ActivityMapping() {
   };
 
   const renderMarkerLocation = () => {
-    console.log(locationMarkerIcon);
+    // console.log(locationMarkerIcon);
     // Set MarkerLocation
     setLocationMarkerIcon(
       locations.map((data, index) => ({
@@ -315,7 +315,7 @@ export default function ActivityMapping() {
         title: data.activity_type_name,
         lat: data.lat,
         lng: data.lng,
-        details: data.location_address,
+        details: data.description,
         activity_type_id: data.activity_type_id,
         activity_type_name: data.activity_type_name,
         dealer_id: data.dealer_id,
@@ -364,7 +364,7 @@ export default function ActivityMapping() {
     if (locations.length > 0) {
       renderMarkerLocation();
     }
-  }, [locations]);
+  }, [locations, selected]);
 
   // Set New Marker
   useEffect(() => {
@@ -415,7 +415,7 @@ export default function ActivityMapping() {
               // lng: parseFloat(data.location_longitude),
               lat: data.location_latitude,
               lng: data.location_longitude,
-              details: data.location_address,
+              details: data.description,
               activity_type_id: data.activity_type_id,
               activity_type_name: data.activity_type_name,
               dealer_id: data.dealer_id,
@@ -590,18 +590,32 @@ export default function ActivityMapping() {
                       // url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
                       scaledSize: { width: 30, height: 30 },
                     }}
-                    onClick={() => setSelected(location)}
+                    // onClick={() => setSelected(location)}
+                    onClick={() => setlocationWindowInfo(location)}
+                    // onClick={() => console.log(location)}
                   />
                 ))}
 
-                {selected && (
+                {/* {selected && (
                   <InfoWindow
-                    position={{ lat: selected.lat, lng: selected.lng }}
+                    position={{ lat: parseFloat(selected.lat), lng: parseFloat(selected.lng) }}
                     onCloseClick={() => setSelected(null)}
                   >
                     <div>
                       <h3>{selected.title}</h3>
                       <p>{selected.details}</p>
+                    </div>
+                  </InfoWindow>
+                )} */}
+                {/* setlocationWindowInfo */}
+                {locationWindowInfo && (
+                  <InfoWindow
+                    position={{ lat: parseFloat(locationWindowInfo.lat), lng: parseFloat(locationWindowInfo.lng) }}
+                    onCloseClick={() => setlocationWindowInfo(null)}
+                  >
+                    <div>
+                      <h3>{locationWindowInfo.title && ""}</h3>
+                      <p>{locationWindowInfo.details && ""}</p>
                     </div>
                   </InfoWindow>
                 )}
