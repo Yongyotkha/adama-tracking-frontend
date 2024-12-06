@@ -84,9 +84,8 @@ export default function ActivityPlanSubDealer() {
 
           console.log(newLocalState);
 
-
-          setExpense(response.data.expense)
-          setEstimate(response.data.estimate_expense)
+          setExpense(response.data.expense);
+          setEstimate(response.data.estimate_expense);
 
           setData(response.data);
           setName(response.data.user_name);
@@ -98,8 +97,14 @@ export default function ActivityPlanSubDealer() {
         }
       })
       .catch((error) => {
+        let message = error.response.data.data.Message;
         console.error(error);
-        showNotification("error", "An error occurred");
+        showNotification(
+          "error",
+          message.Message_Header,
+          message.Message_Line,
+          2
+        );
       });
   }, [location]);
 
@@ -311,7 +316,7 @@ export default function ActivityPlanSubDealer() {
       setExpense(
         ((Number(totalAmountTarget) / Number(totalValue)) * 100).toFixed(2)
       );
-      console.log(totalAmountTarget,totalValue)
+      console.log(totalAmountTarget, totalValue);
       setEstimate(totalAmountTarget);
 
       return newState;
@@ -587,7 +592,6 @@ export default function ActivityPlanSubDealer() {
               onClick={() => handleSave("save")}
             />
           )}
-         
         </div>
       </MainLayout>
     </>
