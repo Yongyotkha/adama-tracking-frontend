@@ -93,46 +93,54 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
 
   const handleSaleChange = async (saleId) => {
     setSelectedSale(saleId); // Update the selected value for SaleID
-
+  
     if (saleId) {
       try {
-        const response = await useServiceAPI.get(paths.pathMasterDealerAll, {
+        const response = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
           user_id: saleId,
         });
-        setShopOptions(
-          response.data.map((item) => ({
-            label: item.name,
-            value: item.id,
-          }))
-        );
+  
+        if (response.result) {
+          setShopOptions(
+            response.data.map((item) => ({
+              label: item.sub_dealer_name, // Use sub_dealer_name for display
+              value: item.sub_dealer_id,  // Use sub_dealer_id as the value
+            }))
+          );
+        } else {
+          console.error("Error fetching Sub Dealer options:", response.message);
+          setShopOptions([]); // Reset options in case of an error
+        }
       } catch (error) {
-        console.error("Error fetching Shop options:", error);
+        console.error("Error fetching Sub Dealer options:", error);
+        setShopOptions([]); // Reset options in case of an error
       }
     } else {
       // Reset Shop options and value when "All" is selected
       setShopOptions([]);
       setSelectedShop(null); // Reset UI for ShopID dropdown
-
+  
       sendData({
         saleId: "", // Reset SaleID
         shopId: "", // Reset ShopID
       });
-
+  
       return;
     }
-
+  
     // Notify parent with SaleID and reset ShopID
     sendData({
       saleId,
       shopId: "", // Reset ShopID
     });
-
+  
     setSelectedShop(null); // Reset UI for ShopID dropdown
   };
+  
 
   const handleShopChange = (shopId) => {
     setSelectedShop(shopId);
-
+  
     sendData({
       shopId,
     });

@@ -1,7 +1,6 @@
 // API EndPoint
 export const endPoint = "https://adama-api.mtsc.co.th/api"; //Test API
 // export const endPoint = "https://api-uat.adama.co.th/api"; //UAT API
-// export const endPoint = "https://api-uat.adama.co.th/api"; //UAT API
 // export const endPoint = "http://localhost:8080/api";
 
 export const paths = {
@@ -94,6 +93,7 @@ export const paths = {
   pathMasterUsers: "users/list",
   pathMasterUsersDetail: "users/detail",
   pathMasterUsersEdit: "user-update",
+  pathProfileChangePassword :"confirmChangePassword",
 
   //promotion
   pathPromotionlist: "promotion-management/list",
@@ -139,6 +139,7 @@ export const paths = {
   pathActivitySubDealerList: "/activity-plan/sale/dealer/list",
   pathActivitySubDealer: "/activity-plan/sale/dealer/detail",
   pathActivitySummary: "/activity-plan/sale/activity-summary",
+  pathActivitySubDealerDetail: "/activity-plan/sale/dealer/sub-dealer/detail",
   
   pathActivityList: "/activity/list",
   pathActivityCreate: "/activity/create",

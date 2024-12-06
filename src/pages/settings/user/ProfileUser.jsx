@@ -21,14 +21,18 @@ export default function ProfileUser() {
   const [areas, setAreas] = useState([]);
   const [roles, setRoles] = useState([]);
   const { userInfo, showNotification } = useContext(AuthContext);
+  const [profileImage, setProfileImage] = useState("/img/profile.jpg"); // Default value
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   useEffect(() => {
     useServiceAPI
       .get(`${paths.pathMasterUsersDetail}/${userInfo.id}`, {}, setLoading)
       .then((response) => {
         if (response.status === 200) {
-          console.log(response.data);
+          console.log(response.data.profile_image);
           setFormUserInfo(response.data);
+          setProfileImage(response.data.profile_image);
+
         }
       })
       .catch((error) => {
@@ -60,6 +64,8 @@ export default function ProfileUser() {
       setTerritory(territories.data);
       setAreas(areas.data);
       setRoles(roles.data);
+      setDataLoaded(true);
+
     } catch (error) {
       showMsg("error", error.message || "เกิดข้อผิดพลาด");
     } finally {
@@ -71,10 +77,64 @@ export default function ProfileUser() {
     navigate("/setting/user");
   };
 
+  // const handleSave = () => {
+  //   // Perform save logic here
+  //   navigate("/setting/user");
+  // };
+
+
   const handleSave = () => {
-    // Perform save logic here
-    navigate("/setting/user");
+    form
+      .validateFields()
+      .then((values) => {
+        console.log(values);
+        
+        const dataToSend = {
+          ...values,
+          token: userInfo?.token 
+        };
+  
+        useServiceAPI
+          .post(paths.pathProfileChangePassword, dataToSend, setLoading)
+          .then((response) => {
+            // return;
+            // console.log(response.status);
+            // console.log(response.result);
+            // console.log(response.message);
+
+            if (response.status === 200) {
+                if(response.data.Result === false){
+                  showNotification(
+                    "error",
+                    response.data.Message.Message_Header,
+                    response.data.Message.Message_Line
+                  );
+                }
+                else if(response.result === true){
+                  navigate("/setting/user");
+                  showNotification(
+                    "success",
+                    response.message,
+                    // response.data.Message.Message_Line
+                  );
+                };
+            }
+          })
+          .catch((error) => {
+            if (error.status == 422) {
+              showNotification("error", error.response.data.data.message);
+            } else if (error.status == 500) {
+              showNotification("error", error.response.data.data.message);
+            } else {
+              showNotification("error", "error");
+            }
+          });
+      })
+      .catch((errorInfo) => {
+        console.error("Validation Failed:", errorInfo);
+      });
   };
+  
 
   const handleEditPassword = () => {
     setIsEditingPassword((prev) => !prev); // Toggle edit mode
@@ -82,12 +142,20 @@ export default function ProfileUser() {
 
   const formFields = [
     {
+      label: "",
+      name: "profile",
+      type: "picture", // เพิ่มรูปภาพในลูป
+      required: false,
+      col: 24,
+    },
+    {
       label: "Name (EN)",
       name: "name_en",
       type: "text",
       required: true,
       col: 6,
       value: formUserInfo.name_en,
+      disabled: true,
     },
     {
       label: "Name (TH)",
@@ -96,6 +164,7 @@ export default function ProfileUser() {
       required: true,
       col: 6,
       value: formUserInfo.name_th,
+      disabled: true,
     },
     {
       label: "Sales Employee Code",
@@ -105,6 +174,7 @@ export default function ProfileUser() {
       col: 6,
       disabled: true,
       value: formUserInfo.sales_emp_code,
+      disabled: true,
     },
     {
       label: "Contact Number",
@@ -113,6 +183,7 @@ export default function ProfileUser() {
       required: true,
       col: 6,
       value: formUserInfo.phone_number,
+      disabled: true,
     },
     {
       label: "Email",
@@ -121,6 +192,7 @@ export default function ProfileUser() {
       required: false,
       col: 6,
       value: formUserInfo.email,
+      disabled: true,
     },
     {
       label: "Address",
@@ -129,6 +201,7 @@ export default function ProfileUser() {
       required: false,
       col: 12,
       value: formUserInfo.address,
+      disabled: true,
     },
     {
       label: "Position",
@@ -137,7 +210,8 @@ export default function ProfileUser() {
       required: true,
       col: 6,
       options: position,
-      value: formUserInfo.position_id,
+      value: parseInt(formUserInfo.position_id, 10),
+      disabled: true,
     },
     {
       label: "Department",
@@ -146,7 +220,8 @@ export default function ProfileUser() {
       required: false,
       col: 6,
       options: departments,
-      value: 1,
+      value: parseInt(formUserInfo.department_id, 10),
+      disabled: true,
     },
     {
       label: "Territory",
@@ -155,8 +230,8 @@ export default function ProfileUser() {
       required: false,
       col: 6,
       options: territory,
-
       value: "North",
+      disabled: true,
     },
     {
       label: "Area",
@@ -165,7 +240,7 @@ export default function ProfileUser() {
       required: false,
       col: 6,
       options: areas,
-
+      disabled: true,
       value: "Zone 1",
     },
     {
@@ -175,7 +250,8 @@ export default function ProfileUser() {
       required: true,
       col: 6,
       options: roles,
-      value: 2,
+      value: parseInt(formUserInfo.role_id, 10),
+      disabled: true,
     },
     // {
     //   label: "Permission",
@@ -196,6 +272,7 @@ export default function ProfileUser() {
       required: false,
       col: 6,
       value: null,
+      disabled: true,
     },
     {
       label: "Status",
@@ -208,6 +285,7 @@ export default function ProfileUser() {
         { name: "Inactive", id: 0, selected: false },
       ],
       value: 1,
+      disabled: true,
     },
   ];
 
@@ -215,39 +293,74 @@ export default function ProfileUser() {
     <MainLayout loading={loading}>
       <div className="title-page">Profile</div>
 
-      <FormUser  fields={formFields} form={form} />
 
-      <BoxPrimary>
-        <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">
-            Change Password
-          </div>
-          <ActionButton
-            mode="edit"
-            text={isEditingPassword ? "Cancel" : "Edit"} // Toggle button text
-            onClick={handleEditPassword}
-          />
-        </div>
-        <Form layout="vertical">
-          <Row gutter={[16, 16]} className="mt-3">
-            <Col xs={24} sm={12} md={12} lg={8}>
-              <Form.Item className="mb-3" label="Current password">
-                <Input.Password disabled={!isEditingPassword} />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={8}>
-              <Form.Item className="mb-3" label="New password">
-                <Input.Password disabled={!isEditingPassword} />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={8}>
-              <Form.Item className="mb-3" label="Confirm password">
-                <Input.Password disabled={!isEditingPassword} />
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
-      </BoxPrimary>
+      {dataLoaded ? (
+        <FormUser  profile={profileImage}  fields={formFields} form={form} />
+
+      ) : (
+        <div></div>
+      )}
+<BoxPrimary>
+  <div className="flex items-center justify-between">
+    <div className="text-[#00783F] text-lg font-semibold mb-3">
+      Change Password
+    </div>
+    <ActionButton
+      mode="edit"
+      text={isEditingPassword ? "Cancel" : "Edit"}
+      onClick={handleEditPassword}
+    />
+  </div>
+  <Form layout="vertical" form={form}>
+    <Row gutter={[16, 16]} className="mt-3">
+      <Col xs={24} sm={12} md={12} lg={8}>
+        <Form.Item
+          className="mb-3"
+          name="current_password"
+          label="Current password"
+          rules={[
+            { required: isEditingPassword, message: "Please input your current password!" }
+          ]}
+        >
+          <Input.Password disabled={!isEditingPassword} />
+        </Form.Item>
+      </Col>
+      <Col xs={24} sm={12} md={12} lg={8}>
+        <Form.Item
+          className="mb-3"
+          name="new_password"
+          label="New password"
+          rules={[
+            { required: isEditingPassword, message: "Please input your new password!" }
+          ]}
+        >
+          <Input.Password disabled={!isEditingPassword} />
+        </Form.Item>
+      </Col>
+      <Col xs={24} sm={12} md={12} lg={8}>
+        <Form.Item
+          className="mb-3"
+          name="new_confirm_password"
+          label="Confirm password"
+          dependencies={['new_password']}
+          rules={[
+            { required: isEditingPassword, message: "Please confirm your password!" },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                if (!value || getFieldValue('new_password') === value) {
+                  return Promise.resolve();
+                }
+                return Promise.reject(new Error('The two passwords that you entered do not match!'));
+              },
+            }),
+          ]}
+        >
+          <Input.Password disabled={!isEditingPassword} />
+        </Form.Item>
+      </Col>
+    </Row>
+  </Form>
+</BoxPrimary>
 
       <div className="flex justify-end space-x-4">
         <ActionButton text="Back" mode="back" onClick={handleBack} />

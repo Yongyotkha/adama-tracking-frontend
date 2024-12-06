@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ConfigProvider, Table } from "antd";
-import "./TableComponent.css";
+import "./TableCustomComponent.css";
 
 const TableCustomComponent = ({
   header,
