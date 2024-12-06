@@ -47,6 +47,7 @@ export default function EditInformation() {
   const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); // กำหนด state สำหรับ defaultSelectedCrops
   const [profileImage, setProfileImage] = useState("/img/profile.jpg"); // Default value
   const [dataLoaded, setDataLoaded] = useState(false);
+  const { userInfo, showNotification } = useContext(AuthContext);
 
     // อ่านสถานะ mod จาก state
     const mode = location.state?.mod; 
@@ -226,9 +227,7 @@ export default function EditInformation() {
         setCropOptions(data.crop_list || []);
         const cropNames = data.crop_list?.map((crop) => Number(crop.id)) || [];
         setDefaultSelectedCrops(cropNames);
-        // console.log(cropNames);
-        console.log(data);
-        
+        // console.log(cropNames);        
         const newDataNetwork = data.network_list.map((item, index) => ({
           key: item.sub_dealer_id,
           no: index + 1,
@@ -407,6 +406,7 @@ export default function EditInformation() {
     const newRows = selectedRows.map((row, index) => ({
       // key: networkList.length + index + 1, 
       key: row.key,
+      no: networkList.length + index + 1, 
       name: row.name || "-",
       contactperson: row.contactperson || "-",
       mobilePhone: row.territory || "-",
@@ -434,11 +434,19 @@ export default function EditInformation() {
     // setNetworkList((prevList) => [...prevList, ...newRows]); 
 
     setNetworkList((prevList) => {
+      console.log(prevList);
+
       const existingKeys = prevList.map((item) => item.key); // ดึง key ของรายการที่มีอยู่
       const filteredNewRows = newRows.filter((row) => !existingKeys.includes(row.key)); // กรองเฉพาะ key ที่ยังไม่มีใน list
-      return [...prevList, ...filteredNewRows]; // รวมรายการเก่ากับรายการใหม่
-    });
 
+      if (filteredNewRows.length === 0) {
+        showNotification("error", "Sale Territory has already been added.");
+        return [...prevList, ...filteredNewRows]; 
+      }else{
+        showNotification("success", "Add sale territory success.");
+        return [...prevList, ...filteredNewRows]; 
+      }
+    });
   };
 
   const fetchUserList = async (page_size = 20, page_length = 1) => {
@@ -457,13 +465,20 @@ export default function EditInformation() {
 
       if (response.status === 200) {
         const data = response.data;      
-         
         const territoryData = data.map((item, index) => ({
           key: item.sub_dealer_id,
           no: index + 1,
           name: item.sub_dealer_name,
           territory: item.sub_dealer_contact_phone_number,
-          position: item.sub_dealer_channel_type_name,
+          // position: item.sub_dealer_channel_type_name,
+          position: (
+            <BadgeStatus
+              text={item.sub_dealer_channel_type_name}
+              bgColor={item.sub_dealer_channel_type_bg_color}
+              textColor={item.sub_dealer_channel_type_color}
+            />
+          ),
+
         }));
         setUserList(territoryData);
 
@@ -489,6 +504,7 @@ export default function EditInformation() {
         item.key === key ? { ...item, onshop: !item.onshop } : item
       )
     );
+    showNotification("success", "Add on shop success");
   };
 
   const transformedCropOptions = cropOptions.map((option) => ({
@@ -569,8 +585,13 @@ export default function EditInformation() {
           .put(paths.pathCustomerSubDealerNetworkUpdate, formattedData) // paths.pathNetworkSave = URL API
           .then((response) => {
             if (response.status === 200) {
-              console.log("Save successful:", response.data);
               navigate("/customer/dealer");
+              showNotification(
+                "success",
+                response.data.message,
+                response.data.message_line
+              );
+
             }
           })
           .catch((error) => {
@@ -796,7 +817,7 @@ export default function EditInformation() {
   
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">{isViewMode ? "View Informatio" : "Edit Information"}</div>
+      <div className="title-page">{isViewMode ? "View Information" : "Edit Information"}</div>
       <Tabs
         activeKey={activeTabKey}
         onChange={handleTabChange}

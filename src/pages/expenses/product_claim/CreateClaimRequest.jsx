@@ -1,46 +1,96 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import FormCustom from "../../../components/form_custom/FormCustom";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import { Input } from "antd";
+import { Form, Modal, Button, Input } from "antd";
 import TableComponent from "../../../components/table/TableComponent";
 import AddOrderModal from "../../../components/modal/AddOrderModal";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
 
 export default function CreateClaimRequest() {
   const [loading, setLoading] = useState(false);
   const [isAddOrderModalVisible, setIsAddOrderModalVisible] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState("");
+  const [dataSale, setDataSale] = useState([]);
+  const [dataDealer, setDataDealer] = useState([]);
   const navigate = useNavigate();
-
+  const [formCustom] = Form.useForm();
   // State for Order List table data
-  const [dataSource, setDataSource] = useState([
-    {
-      key: "1",
-      no: "1",
-      sku: "3027200113",
-      productName: "Bumper P",
-      lotNo: "BGS0109",
-      reason: "Damaged item",
-      quantity: 2,
-    },
-    {
-      key: "2",
-      no: "2",
-      sku: "207920011520",
-      productName: "Memory 300EC",
-      lotNo: "BGS0163",
-      reason: "Damaged item",
-      quantity: 1,
-    },
-  ]);
+  const [dataSource, setDataSource] = useState([]);
+  const [dataClaim, setDataClaim] = useState([]);
 
   const formFields = [
-    { label: "Dealer", name: "dealer", type: "select", options: ["Dealer 1", "Dealer 2"], disabled: false, required: true, value: "Select" },
-    { label: "By Sale", name: "by_sale", type: "select", options: ["Sale 1", "Sale 2"], disabled: false, required: true, value: "Select" },
-    { label: "Claim No", name: "claim_no", type: "text", disabled: true, required: false, value: "Generate Auto" },
+    { 
+      label: "Sale", 
+      name: "sale", 
+      type: "select", 
+      options: dataSale, 
+      disabled: false, 
+      required: false, 
+      value: dataClaim?.sale ?? "",
+    },
+    { 
+      label: "Dealer", 
+      name: "dealer", 
+      type: "select", 
+      options: dataDealer, 
+      disabled: false, 
+      required: false, 
+      value: dataClaim?.dealer ?? "" 
+    },
+    { label: "Claim No", name: "claim_no", type: "text", disabled: false, required: false, value: "Generate Auto" },
     { label: "Create Date", name: "create_date", type: "date", disabled: false, required: true, value: "" },
   ];
+
+  // Get Master
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [sale] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {
+            status: "",
+          }),
+        ]);
+
+        setDataSale(sale.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, []);
+
+  const handleChange = (filter, value) => {
+    if (filter == 'sale') {
+      dataClaim.sale = value;
+      const getMasterDealer = async () => {
+        setLoading(true);
+        try {
+          const [dealer] = await Promise.all([
+            useServiceAPI.get(paths.pathMasterDealerDropdown, {
+              user_id: value,
+            }),
+          ]);
+
+          setDataDealer(dealer.data);
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      getMasterDealer();
+    }
+  };
 
   const handleQuantityChange = (key, newQuantity) => {
     setDataSource((prevData) =>
@@ -51,6 +101,16 @@ export default function CreateClaimRequest() {
         return item;
       })
     );
+  };
+
+  const handleViewClick = (content) => {
+    setModalContent(content);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setModalContent("");
   };
 
   const header = [
@@ -80,37 +140,45 @@ export default function CreateClaimRequest() {
     {
       title: <div className="text-center">Label</div>,
       key: "label",
-      render: () => (
-        <button className="view-button flex justify-center mx-auto">
+      render: (_, record) => (
+        record.url_label ?
+        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick(record.url_label)}>
           <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
         </button>
+        : "-"
       ),
     },
     {
       title: <div className="text-center">Product</div>,
       key: "product",
-      render: () => (
-        <button className="view-button flex justify-center mx-auto">
+      render: (_, record) => (
+        record.url_product ?
+        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick(record.url_product)}>
           <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
         </button>
+        : "-"
       ),
     },
     {
       title: <div className="text-center">Overall</div>,
       key: "overall",
-      render: () => (
-        <button className="view-button flex justify-center mx-auto">
+      render: (_, record) => (
+        record.url_overall ?
+        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick(record.url_overall)}>
           <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
         </button>
+        : "-"
       ),
     },
     {
       title: <div className="text-center">Other</div>,
       key: "other",
-      render: () => (
-        <button className="view-button flex justify-center mx-auto">
+      render: (_, record) => (
+        record.url_other ?
+        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick(record.url_other)}>
           <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
         </button>
+        : "-"
       ),
     },
     {
@@ -145,6 +213,25 @@ export default function CreateClaimRequest() {
     setIsAddOrderModalVisible(false);
   };
 
+  const handleAdd = (data) => {
+    handleCloseAddOrderModal();
+    const key = dataSource.length + 1;
+    const newData = {
+      key: key,
+      no: key,
+      sku: data.product.product_code,
+      productName: data.product.product_name,
+      lotNo: data.lotNo,
+      reason: data.reason ?? "",
+      url_label: data.files.labels[0],
+      url_product: data.files.products[0],
+      url_overall: data.files.overall[0],
+      url_other: data.files.others[0],
+      quantity: 0
+    };
+    setDataSource((prev) => [...prev, newData]);
+  };
+
   return (
     <MainLayout loading={loading}>
       <div className="flex justify-between">
@@ -152,7 +239,7 @@ export default function CreateClaimRequest() {
       </div>
 
       {/* Form Section */}
-      <FormCustom fields={formFields} />
+      <FormCustom fields={formFields} form={formCustom} onChange={handleChange} />
 
       {/* Order List Section */}
       <BoxPrimary>
@@ -166,6 +253,24 @@ export default function CreateClaimRequest() {
           pageSize={10}
           footer={footerOrderList}
         />
+
+        <Modal
+          title="Preview"
+          open={isModalOpen}
+          onCancel={handleCloseModal}
+          footer={[
+            <Button key="close" type="primary" onClick={handleCloseModal}>
+              Close
+            </Button>,
+          ]}
+        >
+          <div>
+            <img
+              src={modalContent}
+              className=""
+            />
+          </div>
+        </Modal>
       </BoxPrimary>
 
       {/* Remark Section */}
@@ -179,6 +284,7 @@ export default function CreateClaimRequest() {
         title="Add Order"
         isVisible={isAddOrderModalVisible}
         onClose={handleCloseAddOrderModal}
+        handleAdd={handleAdd}
         width="1200px" // Customize the width to make it extra-large.
       />
 

@@ -99,11 +99,9 @@ export default function SettingSale() {
 
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
-        
-        console.log(response.data.permission);
         setPermission(response.data.permission);
         const newDataSource = data.map((data, index) => ({
-          key: index + 1,
+          key: index + 1 + (current - 1) * pageSize,
           sale_head_name: data.sale_head_name,
           sale_area_name: data.sale_area_name,
           area: data.area_name,
@@ -208,6 +206,7 @@ export default function SettingSale() {
   useEffect(() => {
     fetchData();
   }, [
+    
     tableParams.pagination.current,
     tableParams.pagination.pageSize,
     JSON.stringify(tableParams.filters),
