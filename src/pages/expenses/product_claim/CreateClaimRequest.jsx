@@ -224,6 +224,11 @@ export default function CreateClaimRequest() {
     setIsAddOrderModalVisible(false);
   };
 
+  const handleAdd = (data) => {
+    console.log("Add Order Data:", data);
+    // Handle data submission logic here
+  };
+
   return (
     <MainLayout loading={loading}>
       <div className="flex justify-between">
@@ -276,6 +281,7 @@ export default function CreateClaimRequest() {
         title="Add Order"
         isVisible={isAddOrderModalVisible}
         onClose={handleCloseAddOrderModal}
+        handleAdd={handleAdd}
         width="1200px" // Customize the width to make it extra-large.
       />
 

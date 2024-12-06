@@ -26,6 +26,7 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
   const [dataCallbackList, setDataCallbackList] = useState([]);
 
   const [loading, setLoading] = useState(false);
+  const [formValues, setFormValues] = useState({});
 
   const [fileLists, setFileLists] = useState({
     Label: [],
@@ -33,6 +34,13 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
     Overall: [],
     Other: [],
   });
+
+  const handleInputChange = (name, value) => {
+    setFormValues((prev) => ({
+      ...prev,
+      [name]: value, // Dynamically update the corresponding field's value
+    }));
+  };
 
   const handleUploadChange = (key) => ({ fileList }) => {
     setFileLists((prev) => ({
@@ -218,11 +226,14 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
         overall: overallList.length > 0 ? overallList : [],
         others: otherList.length > 0 ? otherList : [],
       },
-      productDetail: dataSource
+      productDetail: dataSource,
+      lotNo: formValues['lotNo'],
+      reason: formValues['reason']
     };
 
     console.log(data);
-    
+    //callback
+    handleAdd(data);
   };
 
   return (
@@ -269,7 +280,7 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
                     required={field.required}
                     disabled={field.disabled}
                     prefix={field.prefix}
-                    onChange={field.onChange}
+                    onChange={(e) => handleInputChange(field.name, e.target.value)}
                     value={field.value}
                   />
                 }
