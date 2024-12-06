@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ConfigProvider, Table } from "antd";
 import "./TableExpand.css";
 
-const TableExpand = ({ data, columns, nestedColumns }) => {
+const TableExpand = ({ data, columns, nestedColumns,pagination ,onChange}) => {
   const [expandedRowKeys, setExpandedRowKeys] = useState([]);
 
   const handleExpand = (record) => {
@@ -51,6 +51,10 @@ const TableExpand = ({ data, columns, nestedColumns }) => {
       <Table
         columns={columns}
         dataSource={data}
+        onChange={onChange}
+        pagination={
+          pagination
+        }
         rowKey="key"
         scroll={{ x: "max-content" }}
         expandable={{

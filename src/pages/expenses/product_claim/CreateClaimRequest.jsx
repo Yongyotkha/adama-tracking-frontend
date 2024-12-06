@@ -1,18 +1,24 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import FormCustom from "../../../components/form_custom/FormCustom";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import { Input } from "antd";
+import { Form, Modal, Button, Input } from "antd";
 import TableComponent from "../../../components/table/TableComponent";
 import AddOrderModal from "../../../components/modal/AddOrderModal";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
 
 export default function CreateClaimRequest() {
   const [loading, setLoading] = useState(false);
   const [isAddOrderModalVisible, setIsAddOrderModalVisible] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState("");
+  const [dataSale, setDataSale] = useState([]);
+  const [dataDealer, setDataDealer] = useState([]);
   const navigate = useNavigate();
-
+  const [formCustom] = Form.useForm();
   // State for Order List table data
   const [dataSource, setDataSource] = useState([
     {
@@ -36,11 +42,74 @@ export default function CreateClaimRequest() {
   ]);
 
   const formFields = [
-    { label: "Dealer", name: "dealer", type: "select", options: ["Dealer 1", "Dealer 2"], disabled: false, required: true, value: "Select" },
-    { label: "By Sale", name: "by_sale", type: "select", options: ["Sale 1", "Sale 2"], disabled: false, required: true, value: "Select" },
+    { 
+      label: "Sale", 
+      name: "sale", 
+      type: "select", 
+      options: dataSale, 
+      disabled: false, 
+      required: false, 
+      moderef: true,
+      value: "",
+    },
+    { 
+      label: "Dealer", 
+      name: "dealer", 
+      type: "select", 
+      options: dataDealer, 
+      disabled: false, 
+      required: false, 
+      moderef: false,
+      value: "" 
+    },
     { label: "Claim No", name: "claim_no", type: "text", disabled: true, required: false, value: "Generate Auto" },
     { label: "Create Date", name: "create_date", type: "date", disabled: false, required: true, value: "" },
   ];
+
+  // Get Master
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [sale] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {
+            status: "",
+          }),
+        ]);
+
+        setDataSale(sale.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, []);
+
+  const handleChange = (filter, value) => {
+    if (filter == 'sale') {
+      const getMasterDealer = async () => {
+        setLoading(true);
+        try {
+          const [dealer] = await Promise.all([
+            useServiceAPI.get(paths.pathMasterDealerDropdown, {
+              user_id: value,
+            }),
+          ]);
+
+          setDataDealer(dealer.data);
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      getMasterDealer();
+    }
+  };
 
   const handleQuantityChange = (key, newQuantity) => {
     setDataSource((prevData) =>
@@ -51,6 +120,16 @@ export default function CreateClaimRequest() {
         return item;
       })
     );
+  };
+
+  const handleViewClick = (content) => {
+    setModalContent(content);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setModalContent("");
   };
 
   const header = [
@@ -80,8 +159,8 @@ export default function CreateClaimRequest() {
     {
       title: <div className="text-center">Label</div>,
       key: "label",
-      render: () => (
-        <button className="view-button flex justify-center mx-auto">
+      render: (_, record) => (
+        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick("https://img-cdn.pixlr.com/image-generator/history/65bb506dcb310754719cf81f/ede935de-1138-4f66-8ed7-44bd16efc709/medium.webp")}>
           <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
         </button>
       ),
@@ -89,8 +168,8 @@ export default function CreateClaimRequest() {
     {
       title: <div className="text-center">Product</div>,
       key: "product",
-      render: () => (
-        <button className="view-button flex justify-center mx-auto">
+      render: (_, record) => (
+        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick("https://dfstudio-d420.kxcdn.com/wordpress/wp-content/uploads/2019/06/digital_camera_photo-1080x675.jpg")}>
           <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
         </button>
       ),
@@ -98,8 +177,8 @@ export default function CreateClaimRequest() {
     {
       title: <div className="text-center">Overall</div>,
       key: "overall",
-      render: () => (
-        <button className="view-button flex justify-center mx-auto">
+      render: (_, record) => (
+        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick("https://img-cdn.pixlr.com/image-generator/history/65bb506dcb310754719cf81f/ede935de-1138-4f66-8ed7-44bd16efc709/medium.webp")}>
           <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
         </button>
       ),
@@ -107,8 +186,8 @@ export default function CreateClaimRequest() {
     {
       title: <div className="text-center">Other</div>,
       key: "other",
-      render: () => (
-        <button className="view-button flex justify-center mx-auto">
+      render: (_, record) => (
+        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick("https://img-cdn.pixlr.com/image-generator/history/65bb506dcb310754719cf81f/ede935de-1138-4f66-8ed7-44bd16efc709/medium.webp")}>
           <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
         </button>
       ),
@@ -152,7 +231,7 @@ export default function CreateClaimRequest() {
       </div>
 
       {/* Form Section */}
-      <FormCustom fields={formFields} />
+      <FormCustom fields={formFields} form={formCustom} onChange={handleChange} />
 
       {/* Order List Section */}
       <BoxPrimary>
@@ -166,6 +245,24 @@ export default function CreateClaimRequest() {
           pageSize={10}
           footer={footerOrderList}
         />
+
+        <Modal
+          title="Preview"
+          open={isModalOpen}
+          onCancel={handleCloseModal}
+          footer={[
+            <Button key="close" type="primary" onClick={handleCloseModal}>
+              Close
+            </Button>,
+          ]}
+        >
+          <div>
+            <img
+              src={modalContent}
+              className=""
+            />
+          </div>
+        </Modal>
       </BoxPrimary>
 
       {/* Remark Section */}
