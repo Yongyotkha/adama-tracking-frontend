@@ -190,7 +190,7 @@ export default function CreateClaimRequest() {
           <Input
             inputMode="numeric"
             min={0}
-            value={record.quantity}
+            value={Math.floor(record.quantity)}
             onChange={(e) => handleQuantityChange(record.key, parseInt(e.target.value) || 0)}
             id={`qty-${record.product.id}`} 
             className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 min-w-24"
@@ -262,7 +262,7 @@ export default function CreateClaimRequest() {
   const footerOrderList = () => (
     <tr className="bg-[#978B87]">
       <td colSpan={11} className="text-right pr-2 text-white">
-        Item: {dataSource.length} &nbsp; QTY (ctn): {dataSource.reduce((total, item) => total + item.quantity, 0)}
+        Item: {dataSource.length} &nbsp; QTY (ctn): {dataSource.reduce((total, item) => total + Math.floor(item.quantity), 0)}
       </td>
     </tr>
   );
