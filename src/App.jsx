@@ -146,7 +146,7 @@ const App = () => {
           <Route path="/expenses/product-claim-list" element={<ProductClaim />} />
           <Route path="/expenses/product-claim-waiting-list" element={<ProductClaim />} />
           <Route path="/expenses/product-claim/create" element={<CreateClaimRequest />} />
-          <Route path="/expenses/product-claim/edit" element={<EditClaimRequest />} />
+          <Route path="/expenses/product-claim/edit" element={<CreateClaimRequest />} />
           <Route path="/expenses/traveling" element={<Traveling />} />
           <Route path="/expenses/traveling/create" element={<CreateTraveling />} />
           <Route path="/expenses/traveling/edit" element={<EditTraveling />} />

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import { Dropdown } from "antd";
@@ -11,8 +11,10 @@ import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import DynamicModal from "../../../components/modal/DynamicModal";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function ProductClaim() {
+  const { showMsg, showNotification } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
@@ -129,7 +131,9 @@ export default function ProductClaim() {
         
         const newDataSource = data.map((row, index) => {
           const actionItems = [
-            { key: "1", label: <ItemDropDown mode="edit" link="/expenses/product-claim/edit" /> },
+            { 
+              key: "1", 
+              label: <ItemDropDown mode="edit" link={`/expenses/product-claim/edit?documentNumber=${encodeURIComponent(row.document_number)}`} /> },
           ];
         
           return {

@@ -27,6 +27,7 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
 
   const [loading, setLoading] = useState(false);
   const [formValues, setFormValues] = useState({});
+  const [formErrors, setFormErrors] = useState({}); // Track validation errors
 
   const [fileLists, setFileLists] = useState({
     Label: [],
@@ -34,6 +35,55 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
     Overall: [],
     Other: [],
   });
+
+  const validateField = (name, value) => {
+    let error = "";
+
+    switch (name) {
+      case "lotNo":
+        if (!value) error = "Lot No is required.";
+        break;
+      case "productName":
+        if (!value) error = "Product is required.";
+        break;
+      default:
+        break;
+    }
+
+    setFormErrors((prev) => ({
+      ...prev,
+      [name]: error,
+    }));
+  };
+
+  const isFormValid = () => {
+    const errors = {};
+  
+    // Validate input fields
+    formFields.forEach((field) => {
+      validateField(field.name, formValues[field.name] || "");
+      if (!formValues[field.name] && field.required) {
+        errors[field.name] = `${field.label} is required.`;
+      }
+    });
+  
+    // Validate upload sections
+    const uploadSections = [
+      { label: "Label", files: labelFiles },
+      { label: "Product", files: productFiles },
+      { label: "Overall", files: overallFiles },
+      { label: "Other", files: otherFiles },
+    ];
+  
+    const hasAtLeastOneFile = uploadSections.some((section) => section.files.length > 0);
+  
+    if (!hasAtLeastOneFile) {
+      errors.upload = "At least one file must be uploaded in any section.";
+    }
+  
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleInputChange = (name, value) => {
     setFormValues((prev) => ({
@@ -66,8 +116,8 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
 
   const formFields = [
     { label: "Product", name: "product", placeholder: "Search...", prefix: <SearchOutlined className="text-gray-500" />, onChange: handleSearch },
-    { label: "Product Name", name: "productName", placeholder: "Enter Product Name", disabled: true, value: dataSource?.product_name ?? "" },
-    { label: "Lot No", name: "lotNo", placeholder: "Enter Lot No" },
+    { label: "Product Name", name: "productName", placeholder: "Enter Product Name", disabled: true, value: dataSource?.product_name ?? "", required: true },
+    { label: "Lot No", name: "lotNo", placeholder: "Enter Lot No", required: true },
     { label: "Reason", name: "reason", placeholder: "Enter Reason" },
   ];
 
@@ -223,6 +273,10 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
   };
 
   const handleAddCallback = () => {
+    if (!isFormValid()) {
+      return;
+    }
+
     const data = {
       files: {
         labels: labelList.length > 0 ? labelList : [],
@@ -273,7 +327,9 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
       <form className="space-y-4">
         {formFields.map((field) => (
           <div key={field.name} className="flex flex-col">
-            <label className="text-sm text-gray-700 mb-1">{field.label}</label>
+            <label className="text-sm text-gray-700 mb-1">
+              {field.label} {field.required && <span className="text-red-500">*</span>}
+            </label>
                 {field.name == 'product' ?
                   <Select
                     showSearch
@@ -287,7 +343,9 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
                   />
                 : 
                   <Input
-                    className="border-[#CBC5C3] hover:border-[#009845] focus:border-[#009845] !hover:border-[#009845] !focus:border-[#009845]"
+                    className={`border-[#CBC5C3] hover:border-[#009845] focus:border-[#009845] ${
+                      formErrors[field.name] ? "border-red-500" : ""
+                    }`}
                     placeholder={field.placeholder}
                     required={field.required}
                     disabled={field.disabled}
@@ -296,6 +354,9 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
                     value={formValues[field.name] || ""}
                   />
                 }
+                {formErrors[field.name] && (
+                  <span className="text-red-500 text-xs mt-1">{formErrors[field.name]}</span>
+                )}
           </div>
         ))}
 
@@ -304,6 +365,11 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
           <UploadSection label="Product" files={productFiles} setFiles={setProductFiles} />
           <UploadSection label="Overall" files={overallFiles} setFiles={setOverallFiles} />
           <UploadSection label="Other" files={otherFiles} setFiles={setOtherFiles} />
+          {formErrors.upload && (
+            <div className="text-red-500 text-xs mt-2">
+              {formErrors.upload}
+            </div>
+          )}
         </div>
       </form>
     </Modal>

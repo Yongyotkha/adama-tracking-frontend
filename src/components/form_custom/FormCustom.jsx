@@ -200,8 +200,7 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                     <Input
                       type={field.type}
                       placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
-                      // value={formValues[field.name] || ""}
-                      value={formValues[field.value] || ""}
+                      value={formValues[field.name] || ""}
                       disabled={field.disabled}
                       onChange={(e) => handleChange(field.name, e.target.value)}
                     />

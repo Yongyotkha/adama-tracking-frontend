@@ -11,8 +11,14 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import dayjs from "dayjs";
 import { AuthContext } from "../../../contexts/AuthContext";
+import { values } from "lodash";
+import { useLocation } from "react-router-dom";
 
 export default function CreateClaimRequest() {
+  const locationParam = useLocation();
+  const searchParams = new URLSearchParams(locationParam.search);
+  const documentNumber = searchParams.get("documentNumber");
+
   const { showMsg, showNotification } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [isAddOrderModalVisible, setIsAddOrderModalVisible] = useState(false);
@@ -26,6 +32,8 @@ export default function CreateClaimRequest() {
   const [dataSource, setDataSource] = useState([]);
   const [dataClaim, setDataClaim] = useState([]);
   const [formValues, setFormValues] = useState({});
+  
+  const valueFormCustom = formCustom.getFieldsValue();
 
   const formFields = [
     { 
@@ -35,7 +43,7 @@ export default function CreateClaimRequest() {
       options: dataSale, 
       disabled: false, 
       required: false, 
-      value: dataClaim?.sale ?? "",
+      value: dataClaim?.user_id ?? "",
     },
     { 
       label: "Dealer", 
@@ -44,10 +52,10 @@ export default function CreateClaimRequest() {
       options: dataDealer, 
       disabled: false, 
       required: false, 
-      value: dataClaim?.dealer ?? "" 
+      value: dataClaim?.dealer_id ?? "" 
     },
-    { label: "Claim No", name: "claim_no", type: "text", disabled: true, required: false, value: "Generate Auto" },
-    { label: "Create Date", name: "create_date", type: "date", disabled: false, required: true, value: "" },
+    { label: "Claim No", name: "claim_no", type: "text", disabled: true, required: false, value: dataClaim?.document_number ??"Generate Auto" },
+    { label: "Create Date", name: "create_date", type: "date", disabled: false, required: true, value: valueFormCustom?.create_date ?? dayjs().format("YYYY-MM-DD")},
   ];
 
   // Get Master
@@ -70,11 +78,56 @@ export default function CreateClaimRequest() {
     };
 
     getMaster();
+
+    //เชคว่าเป็น mode edit หรือป่าว
+    if(documentNumber){
+      const getDetail = async () => {
+        setLoading(true);
+        try {
+          const [claimDetail] = await Promise.all([
+            useServiceAPI.get(paths.pathClaimDetail, {
+              'document_number': documentNumber
+            }),
+          ]);
+
+          setDataClaim(claimDetail.data);
+          await setupData(claimDetail.data);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      getDetail();
+    }
   }, []);
+
+  const setupData = async (data) => {
+    const products = data.products;
+    let newData = [];
+    await products.forEach((element) => {
+      const key = element.document_item;
+      const item = {
+        key: key,
+        no: key,
+        sku: element.product_code,
+        productName: element.product_name,
+        product: element,
+        lotNo: element.lot_number,
+        reason: element.reason ?? "",
+        url_label: element.label_List[0],
+        url_product: element.product_list[0],
+        url_overall: element.overall_list[0],
+        url_other: element.other_list[0],
+        quantity: element.quantity
+      };
+      newData.push(item);
+    });
+    setDataSource(newData);
+  };
 
   const handleChange = (filter, value) => {
     if (filter == 'sale') {
-      dataClaim.sale = value;
+      dataClaim.user_id = value;
       const getMasterDealer = async () => {
         setLoading(true);
         try {
@@ -93,6 +146,10 @@ export default function CreateClaimRequest() {
       };
 
       getMasterDealer();
+    }else if(filter == 'dealer'){
+      dataClaim.dealer_id = value;
+    }else if(filter == 'create_date'){
+      dataClaim.create_date = value;
     }
   };
 
@@ -239,6 +296,7 @@ export default function CreateClaimRequest() {
   };
 
   const handleInputChange = (name, value) => {
+    dataClaim.ref_remark = value;
     setFormValues((prev) => ({
       ...prev,
       [name]: value, // Dynamically update the corresponding field's value
@@ -252,7 +310,7 @@ export default function CreateClaimRequest() {
     let products = [];
     dataSource.forEach(element => {
       const data = {
-        "product_id": element.product.id,
+        "product_id": element.product.product_id ?? element.product.id,
         "product_code": element.product.product_code,
         "product_name": element.product.product_name,
         "product_unit": element.product.packing_list,
@@ -268,6 +326,7 @@ export default function CreateClaimRequest() {
       products.push(data);
     });
     const body = {
+      "document_number": documentNumber ?? null,
       "document_date": allValuesBasic.create_date,
       "user_id": allValuesBasic.sale,
       "dealer_id": allValuesBasic.dealer,
@@ -275,26 +334,49 @@ export default function CreateClaimRequest() {
       "products": products
     };
 
-    useServiceAPI
-    .post(paths.pathClaimCreate, body, setLoading)
-    .then((response) => {
-      const successCallback = () => {
-        if(response.result){
-          navigate("/expenses/product-claim-list");
-        }
-      };
-      showNotification(
-        "success",
-        response.data.message,
-        response.data.message_line
-      ).then(successCallback);
-
-      console.log(response);
-      
-    })
-    .catch((error) => {
-      showMsg("error", error.message || "เกิดข้อผิดพลาด");
-    });
+    if(documentNumber){
+      useServiceAPI
+      .put(paths.pathClaimUpdate, body, setLoading)
+      .then((response) => {
+        const successCallback = () => {
+          if(response.result){
+            navigate("/expenses/product-claim-list");
+          }
+        };
+        showNotification(
+          "success",
+          response.data.message,
+          response.data.message_line
+        ).then(successCallback);
+  
+        console.log(response);
+        
+      })
+      .catch((error) => {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      });
+    }else{
+      useServiceAPI
+      .post(paths.pathClaimCreate, body, setLoading)
+      .then((response) => {
+        const successCallback = () => {
+          if(response.result){
+            navigate("/expenses/product-claim-list");
+          }
+        };
+        showNotification(
+          "success",
+          response.data.message,
+          response.data.message_line
+        ).then(successCallback);
+  
+        console.log(response);
+        
+      })
+      .catch((error) => {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      });
+    }
   }
 
   return (
@@ -341,7 +423,7 @@ export default function CreateClaimRequest() {
       {/* Remark Section */}
       <BoxPrimary title="Remark">
         <div className="mb-3 flex justify-end">
-          <Input.TextArea placeholder="Remark" rows={2} onChange={(e) => handleInputChange("remark", e.target.value)} value={formValues["remark"] || ""}/>
+          <Input.TextArea placeholder="Remark" rows={2} onChange={(e) => handleInputChange("remark", e.target.value)} value={dataClaim?.ref_remark ?? (formValues["remark"] || "") }/>
         </div>
       </BoxPrimary>
 
