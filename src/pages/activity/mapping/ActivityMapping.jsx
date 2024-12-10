@@ -89,7 +89,7 @@ export default function ActivityMapping() {
           activity_image_location: data.activity_image_location,
         }));
         setLocations(newLocations);
-  
+
         setActivityType(
           activity.data
             .filter(
@@ -263,14 +263,14 @@ export default function ActivityMapping() {
   const toggleAll = (isChecked) => {
     // console.log(isChecked);
     const updatedFilters = {};
-    
+
     if (isChecked) {
       mockFilters.forEach((filterItem) => {
         updatedFilters[filterItem.filter_type] = isChecked
           ? filterItem.data.map((item) => item.id) // เลือกทั้งหมด
           : []; // ยกเลิกทั้งหมด
       });
-  
+
     }
 
     setCheckedFilters(updatedFilters);
@@ -334,7 +334,7 @@ export default function ActivityMapping() {
 
     setIsAllChecked(allFiltersSelected); // ถ้าทุกตัวเลือกถูกเลือก ก็จะเป็น true
   }, [checkedFilters]);
-  
+
   useEffect(() => {
     if (locations.length > 0) {
       renderMarkerLocation();
@@ -545,10 +545,10 @@ export default function ActivityMapping() {
                 center={currentLocation}
                 zoom={dataMapZoom}
               >
-              {locationMarkerIcon.map((location, locationIndex) => (
+                {locationMarkerIcon.map((location, locationIndex) => (
                   <Marker
                     key={locationIndex}
-                    position={{ lat: parseFloat(location.lat), lng: parseFloat(location.lng ) }}
+                    position={{ lat: parseFloat(location.lat), lng: parseFloat(location.lng) }}
                     icon={{
                       url: location.activity_image_location,
                       // url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
@@ -567,15 +567,46 @@ export default function ActivityMapping() {
 
                 {locationWindowInfo && (
                   <InfoWindow
-                      position={{ lat: parseFloat(locationWindowInfo.lat), lng: parseFloat(locationWindowInfo.lng) }}
-                      onCloseClick={() => setlocationWindowInfo(null)}
-                    >
-                      <div>
-                        <h3>{locationWindowInfo.title}</h3>
-                        <p>{locationWindowInfo.details}</p>
+                    position={{ lat: parseFloat(locationWindowInfo.lat), lng: parseFloat(locationWindowInfo.lng) }}
+                    onCloseClick={() => setlocationWindowInfo(null)}
+                    options={{ pixelOffset: new window.google.maps.Size(0, -30) }}
+                  >
+                    <div>
+                      <div className="flex items-center gap-2 mb-1 border-b pb-2">
+                        <img src="https://api-uat.adama.co.th/images/activity-type-mark-location/DemoPlot.png" className="w-6 h-6" alt="" />{locationWindowInfo.activity_type_name || "No Activity Type"}
                       </div>
-                    </InfoWindow>
+                      <div className="flex items-center gap-2 mb-1 border-b pb-2">
+                        <img src="/img/icons/shop.png" className="w-6 h-6" alt="" />{locationWindowInfo.dealer_name || "No Dealer Name"}
+                      </div>
+                      <div className="flex items-center gap-2 mb-1 border-b pb-2">
+                        <img src="/img/icons/location.png" className="w-6 h-6" alt="" />{locationWindowInfo.crop_list || "No Crops Listed"}
+                      </div>
+                      <div className="flex items-center gap-2 mb-1 border-b pb-2">
+                        <img src="/img/icons/crops.png" className="w-6 h-6" alt="" />{locationWindowInfo.location_address || "No Address Available"}
+                      </div>
+                      <div className="flex items-center gap-2 mb-1 border-b pb-2">
+                        <img src="/img/icons/details.png" className="w-6 h-6" alt="" />{locationWindowInfo.document_date_time || "No Date Available"}
+                      </div>
+                      <div className="flex items-center gap-2 mb-1 border-b pb-2">
+                        <img src="/img/icons/shop.png" className="w-6 h-6" alt="" />
+                        Description
+                        {/* ถ้ามีตัวแปรจะให้อ่าน Html ลอง Search ใช้ Code นี้
+                        dangerouslySetInnerHTML={{
+                          __html: event.description || "<span>No description available</span>",
+                        }} */}
+                      </div>
+                      <div className="flex items-center gap-2 mb-1 border-b pb-2">
+                        <img
+                          src={"/img/default-avatar.png"}
+                          alt={"No Name"}
+                          className="w-6 h-6 rounded-full border border-gray-300"
+                        />
+                        <span className="text-sm text-gray-600">{"Unknown"}</span>
+                      </div>
+                    </div>
+                  </InfoWindow>
                 )}
+
 
               </GoogleMap>
             </LoadScript>
