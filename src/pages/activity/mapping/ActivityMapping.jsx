@@ -77,6 +77,7 @@ export default function ActivityMapping() {
           title: data.activity_type_name,
           lat: data.location_latitude,
           lng: data.location_longitude,
+          address: data.location_address,
           details: data.description,
           activity_type_id: data.activity_type_id,
           activity_type_name: data.activity_type_name,
@@ -87,6 +88,8 @@ export default function ActivityMapping() {
           year: data.year,
           activity_image: data.activity_image,
           activity_image_location: data.activity_image_location,
+          crop_id_list: data.crop_id_list,
+          document_date_display: data.document_date_display,
         }));
         setLocations(newLocations);
 
@@ -290,6 +293,7 @@ export default function ActivityMapping() {
         title: data.activity_type_name,
         lat: data.lat,
         lng: data.lng,
+        address: data.address,
         details: data.description,
         activity_type_id: data.activity_type_id,
         activity_type_name: data.activity_type_name,
@@ -300,6 +304,8 @@ export default function ActivityMapping() {
         year: data.year,
         activity_image: data.activity_image,
         activity_image_location: data.activity_image_location,
+        crop_id_list: data.crop_id_list,
+        document_date_display: data.document_date_display,
       }))
     );
   }
@@ -390,6 +396,7 @@ export default function ActivityMapping() {
               // lng: parseFloat(data.location_longitude),
               lat: data.location_latitude,
               lng: data.location_longitude,
+              address: data.location_address,
               details: data.description,
               activity_type_id: data.activity_type_id,
               activity_type_name: data.activity_type_name,
@@ -400,6 +407,8 @@ export default function ActivityMapping() {
               year: data.year,
               activity_image: data.activity_image,
               activity_image_location: data.activity_image_location,
+              crop_id_list: data.crop_id_list,
+              document_date_display: data.document_date_display,
             }))
           );
         } catch (error) {
@@ -558,8 +567,14 @@ export default function ActivityMapping() {
                       setlocationWindowInfo({
                         lat: parseFloat(location.lat),
                         lng: parseFloat(location.lng),
+                        address: location.address,
                         title: location.title || "No Title",
-                        details: location.details || "No Details"
+                        details: location.details || "No Details",
+                        activity_type_name: location.activity_type_name,
+                        dealer_name: location.dealer_name,
+                        area_name: location.area_name,
+                        crop_list: location.crop_id_list,
+                        document_date_display: location.document_date_display,
                       })
                     }
                   />
@@ -582,14 +597,14 @@ export default function ActivityMapping() {
                         <img src="/img/icons/location.png" className="w-6 h-6" alt="" />{locationWindowInfo.crop_list || "No Crops Listed"}
                       </div>
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src="/img/icons/crops.png" className="w-6 h-6" alt="" />{locationWindowInfo.location_address || "No Address Available"}
+                        <img src="/img/icons/crops.png" className="w-6 h-6" alt="" />{locationWindowInfo.address || "No Address Available"}
                       </div>
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src="/img/icons/details.png" className="w-6 h-6" alt="" />{locationWindowInfo.document_date_time || "No Date Available"}
+                        <img src="/img/icons/details.png" className="w-6 h-6" alt="" />{locationWindowInfo.document_date_display || "No Date Available"}
                       </div>
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img src="/img/icons/shop.png" className="w-6 h-6" alt="" />
-                        Description
+                        {locationWindowInfo.details || "No Description"}
                         {/* ถ้ามีตัวแปรจะให้อ่าน Html ลอง Search ใช้ Code นี้
                         dangerouslySetInnerHTML={{
                           __html: event.description || "<span>No description available</span>",
