@@ -79,6 +79,40 @@ export default function ProductClaim() {
     setIsProductModalVisible(false);
   };
 
+  const handleApprove = async (documentNumber) => {
+    try {
+      // Call API to delete the event
+      const response = await useServiceAPI.put(
+        `/claim/status?document_number=${encodeURIComponent(documentNumber)}&status_code=${encodeURIComponent("ODC")}&remark=${encodeURIComponent("อนุมัติ")}`
+      );
+      await fetchData();
+      if (response.status === 200) {
+        // Show success notification
+        showNotification(
+          "success",
+          response.data.message || "Event deleted successfully!",
+          response.data.message_line || ["The event has been removed."]
+        );
+      } else {
+        // Show error notification if response is not 200
+        console.error("Failed to approve event:", response.message);
+        showNotification(
+          "error",
+          response.message || "Failed to approve event.",
+          response.message_line || ["Please try again later."]
+        );
+      }
+    } catch (error) {
+      // Handle errors and show an error notification
+      console.error("Error approved event:", error);
+      showNotification(
+        "error",
+        "An error occurred while approved the event.",
+        ["Please try again later."]
+      );
+    }
+  };
+
   const productModalData = [
     { key: 1, name: "Tossaphon Suphaksitthikorn", territory: "Left North", position: "Business Development Executive" },
     { key: 2, name: "Panudech Srithong", territory: "Left Lower North", position: "Business Development Executive" },
@@ -133,7 +167,12 @@ export default function ProductClaim() {
           const actionItems = [
             { 
               key: "1", 
-              label: <ItemDropDown mode="edit" link={`/expenses/product-claim/edit?documentNumber=${encodeURIComponent(row.document_number)}`} /> },
+              label: <ItemDropDown mode="edit" link={`/expenses/product-claim/edit?documentNumber=${encodeURIComponent(row.document_number)}`} /> 
+            },
+            { 
+              key: "2", 
+              label: <ItemDropDown mode="approve" link="#" onClick={() => handleApprove(row.document_number)}/> 
+            },
           ];
         
           return {

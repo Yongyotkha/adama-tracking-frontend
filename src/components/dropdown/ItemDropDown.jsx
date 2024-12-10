@@ -80,6 +80,22 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
           <span className="text-[#978B87] ms-3">{text || "create"}</span>
         </a>
       )}
+
+      {mode == "approve" && (
+        <a
+          rel="noopener noreferrer"
+          href={link}
+          onClick={onClick}
+          className="block gap-1"
+        >
+          <img
+            src="/img/icons/edit.png"
+            alt="Approve icon"
+            className="inline-block h-4 m-auto"
+          />
+          <span className="text-[#978B87] ms-3">{text || "Approve"}</span>
+        </a>
+      )}
     </>
   );
 }
