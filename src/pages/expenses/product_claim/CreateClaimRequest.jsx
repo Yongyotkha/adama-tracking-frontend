@@ -17,6 +17,7 @@ import { useLocation } from "react-router-dom";
 export default function CreateClaimRequest() {
   const locationParam = useLocation();
   const searchParams = new URLSearchParams(locationParam.search);
+  const pathSegments = location.pathname.split('/');
   const documentNumber = searchParams.get("documentNumber");
 
   const { showMsg, showNotification } = useContext(AuthContext);
@@ -379,6 +380,10 @@ export default function CreateClaimRequest() {
     }
   }
 
+  const backClaim = () => {
+    navigate("/expenses/product-claim-list");
+  }
+
   return (
     <MainLayout loading={loading}>
       <div className="flex justify-between">
@@ -437,7 +442,7 @@ export default function CreateClaimRequest() {
 
       {/* Action Buttons */}
       <div className="flex justify-end space-x-4">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/expenses/product-claim")} />
+        <ActionButton mode="back" text="Back" onClick={backClaim} />
         <ActionButton mode="save" text="Save" onClick={saveClaim} />
       </div>
     </MainLayout>
