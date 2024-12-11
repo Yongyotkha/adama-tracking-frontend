@@ -135,6 +135,7 @@ export default function WorkPlan() {
                   // กำหนดค่า state ตาม pathRole
                   const state = {
                     year_code: row.year_code,
+                    mode: actionItem.action.toLowerCase(),
                     ...(pathRole === "area" && {
                       sale_area_id: row.sale_area_id,
                     }),
@@ -151,6 +152,13 @@ export default function WorkPlan() {
                             navigate("/sale-plan/work-plan-sale/sale-create", {
                               state,
                             });
+                          } else if (pathRole === "area") {
+                            navigate(
+                              "/sale-plan/work-plan-area/sale-area-create",
+                              {
+                                state,
+                              }
+                            );
                           } else {
                             navigate(actionItem.action_url, { state });
                           }
@@ -208,17 +216,14 @@ export default function WorkPlan() {
     tableParams.sortField,
     JSON.stringify(tableParams.filters),
     location.pathname,
-    defaultOption,
   ]);
-
-  
 
   const handleTableChange = (pagination, filters, sorter) => {
     setTableParams({
       pagination,
       filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
-      sortOrder: sorter.order === "descend" ? "desc" : "asc",
-      sortField: sorter.field,
+      // sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      // sortField: sorter.field,
     });
   };
 
@@ -237,10 +242,28 @@ export default function WorkPlan() {
     },
   ];
 
+  useEffect(() => {
+    setTableParams((prev) => ({
+      ...prev,
+      filters: {
+        ...prev.filters,
+        permission_id: defaultOption,
+      },
+      pagination: {
+        current: 1,
+        pageSize: 10,
+      },
+    }));
+  }, [defaultOption]);
+
   const handleSearch = (filters) => {
     setTableParams({
       ...tableParams,
       filters,
+      pagination: {
+        current: 1,
+        pageSize: 10,
+      },
     });
   };
 
@@ -318,11 +341,11 @@ export default function WorkPlan() {
               className="border-[#00783F] text-[#00783F]"
               placeholder="All"
               optionFilterProp="label"
-              filterSort={(optionA, optionB) =>
-                (optionA?.label ?? "")
-                  .toLowerCase()
-                  .localeCompare((optionB?.label ?? "").toLowerCase())
-              }
+              // filterSort={(optionA, optionB) =>
+              //   (optionA?.label ?? "")
+              //     .toLowerCase()
+              //     .localeCompare((optionB?.label ?? "").toLowerCase())
+              // }
               options={sale}
               value={defaultOption}
               onChange={(value) => setDefaultOption(value)}

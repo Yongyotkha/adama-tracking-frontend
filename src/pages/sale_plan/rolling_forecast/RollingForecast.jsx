@@ -38,6 +38,8 @@ export default function RollingForecast() {
   useEffect(() => {
     if (defaultOption) {
       fetchData();
+    }else{
+      setDataSource([]);
     }
   }, [defaultOption]);
 
@@ -85,7 +87,6 @@ export default function RollingForecast() {
       page_size: pageSize,
     };
     
-    console.log(requestData);
 
     try {
       let path = paths.pathRollingForecast;
@@ -97,6 +98,7 @@ export default function RollingForecast() {
           key: index + 1 + (current - 1) * pageSize,
           workPlan: row.amount_target,
           year: row.year_name,
+          name: row.user_name,
           action: (
             <Dropdown
               menu={{
@@ -257,9 +259,14 @@ export default function RollingForecast() {
   };
 
   const handleSearch = (filters) => {
+
     setTableParams({
       ...tableParams,
       filters,
+      pagination: {
+        current: 1,
+        pageSize: 10,
+      },
     });
   };
 
@@ -286,8 +293,14 @@ export default function RollingForecast() {
       ),
     },
     {
+      title: "Sale Territory Name",
+      dataIndex: "name",
+      key: "Sale Territory Name",
+      width: 150,
+    },
+    {
       title: "Last Modified",
-      dataIndex: "lastModified",
+      dataIndex: "updated_at",
       key: "lastModified",
       width: 150,
     },
@@ -364,11 +377,11 @@ export default function RollingForecast() {
           className="border-[#00783F] text-[#00783F]"
           placeholder="Search to Select"
           optionFilterProp="label"
-          filterSort={(optionA, optionB) =>
-            (optionA?.label ?? "")
-              .toLowerCase()
-              .localeCompare((optionB?.label ?? "").toLowerCase())
-          }
+          // filterSort={(optionA, optionB) =>
+          //   (optionA?.label ?? "")
+          //     .toLowerCase()
+          //     .localeCompare((optionB?.label ?? "").toLowerCase())
+          // }
           options={sale}
           value={defaultOption}
           onChange={(value) => setDefaultOption(value)}
@@ -380,6 +393,7 @@ export default function RollingForecast() {
         <TableExpand
           data={dataSource}
           columns={columns}
+          loading={tableLoading}
           nestedColumns={nestedColumns}
           onChange={handleTableChange}
         />

@@ -146,7 +146,7 @@ export default function RollingForecastMonth() {
           }),
         },
         {
-          title: "Original Plan (KG)",
+          title: "Work Plan (KG)",
           dataIndex: "qty",
           key: "originalPlan",
           width: 150,
