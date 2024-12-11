@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
-import { Dropdown } from "antd";
+import { Dropdown, Modal } from "antd";
 import ActionButton from "../../../components/button/ActionButton";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
@@ -12,6 +12,7 @@ import DynamicModal from "../../../components/modal/DynamicModal";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 
 export default function ProductClaim() {
   const { showMsg, showNotification } = useContext(AuthContext);
@@ -20,6 +21,7 @@ export default function ProductClaim() {
   const [dataSource, setDataSource] = useState([]);
   const [statusList, setStatusList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
+  const { confirm } = Modal;
   const [isProductModalVisible, setIsProductModalVisible] = useState(false);
   const [tableParams, setTableParams] = useState({
     pagination: {
@@ -80,37 +82,45 @@ export default function ProductClaim() {
   };
 
   const handleApprove = async (documentNumber) => {
-    try {
-      // Call API to delete the event
-      const response = await useServiceAPI.put(
-        `/claim/status?document_number=${encodeURIComponent(documentNumber)}&status_code=${encodeURIComponent("ODC")}&remark=${encodeURIComponent("อนุมัติ")}`
-      );
-      await fetchData();
-      if (response.status === 200) {
-        // Show success notification
-        showNotification(
-          "success",
-          response.data.message || "Event deleted successfully!",
-          response.data.message_line || ["The event has been removed."]
-        );
-      } else {
-        // Show error notification if response is not 200
-        console.error("Failed to approve event:", response.message);
-        showNotification(
-          "error",
-          response.message || "Failed to approve event.",
-          response.message_line || ["Please try again later."]
-        );
-      }
-    } catch (error) {
-      // Handle errors and show an error notification
-      console.error("Error approved event:", error);
-      showNotification(
-        "error",
-        "An error occurred while approved the event.",
-        ["Please try again later."]
-      );
-    }
+    confirm({
+      title: "Do you want to approve ?",
+      icon: <ExclamationCircleFilled />,
+      content: [],
+      centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+      async onOk() {
+        try {
+          // Call API to delete the event
+          const response = await useServiceAPI.put(
+            `/claim/status?document_number=${encodeURIComponent(documentNumber)}&status_code=${encodeURIComponent("ODC")}&remark=${encodeURIComponent("อนุมัติ")}`
+          );
+          await fetchData();
+          if (response.status === 200) {
+            // Show success notification
+            showNotification(
+              "success",
+              response.data.message || "Event deleted successfully!",
+              response.data.message_line || ["The event has been removed."]
+            );
+          } else {
+            // Show error notification if response is not 200
+            console.error("Failed to approve event:", response.message);
+            showNotification(
+              "error",
+              response.message || "Failed to approve event.",
+              response.message_line || ["Please try again later."]
+            );
+          }
+        } catch (error) {
+          // Handle errors and show an error notification
+          console.error("Error approved event:", error);
+          showNotification(
+            "error",
+            "An error occurred while approved the event.",
+            ["Please try again later."]
+          );
+        }
+      },
+    });
   };
 
   const productModalData = [
