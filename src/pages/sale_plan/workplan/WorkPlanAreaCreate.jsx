@@ -17,11 +17,13 @@ export default function WorkPlanAreaCreate() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [sale, setSale] = useState([]);
+  const [saleAreaName, setSaleAreaName] = useState([]);
   const [permission, setPermission] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
   const { showNotification, formatNumber } = useContext(AuthContext);
   const [yearName, setYearName] = useState([]);
   const [localQtyState, setLocalQtyState] = useState({});
+  const [mode, setMode] = useState(location?.state?.mode);
   const { confirm } = Modal;
 
   const handleQtyChange = (saleId, productId, newQty, unitConvertValue) => {
@@ -113,6 +115,7 @@ export default function WorkPlanAreaCreate() {
           }, {});
 
           setYearName(response.data.year_name);
+          setSaleAreaName(response.data.sale_area_name);
           setLocalQtyState(initialQtyState);
           setDataSource(newData);
           setSale(newDataSale);
@@ -213,11 +216,11 @@ export default function WorkPlanAreaCreate() {
                   title: "Pack Size",
                   dataIndex: "pack_size",
                   key: "pack_size",
-                  width: 200,
+                  width: 150,
                   fixed: "left",
                 },
                 {
-                  title: "Original Plan",
+                  title: "Work Plan (KG)",
                   dataIndex: "qty",
                   key: "original_plan_qty",
                   width: 150,
@@ -337,7 +340,7 @@ export default function WorkPlanAreaCreate() {
                         value={parseFloat(localData.value).toFixed(2)}
                         formatter={(value) =>
                           `${Number(value).toFixed(2)}`.replace(
-                             /\B(?=(\d{3})+(?!\d))/g,
+                            /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )
                         }
@@ -455,12 +458,12 @@ export default function WorkPlanAreaCreate() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Create Plan" showYear={yearName} />
+        <Title prefix="Work Plan" showYear={yearName} />
 
         <BoxPrimary>
-          <div className="flex flex-col gap-2">
-            <div>Yearly Target</div>
-            <div className="w-[25%]">
+          <div className="flex gap-4">
+            <div>
+              <div>Yearly Target</div>
               <InputNumber
                 disabled
                 suffix="THB"
@@ -474,6 +477,10 @@ export default function WorkPlanAreaCreate() {
                   )
                 }
               />
+            </div>
+            <div className="">
+              <div>Sale Area</div>
+              <InputNumber disabled className="w-[250px]" value={saleAreaName} />
             </div>
           </div>
         </BoxPrimary>

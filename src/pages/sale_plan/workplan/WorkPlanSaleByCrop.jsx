@@ -22,6 +22,7 @@ export default function WorkPlanSaleByCrop() {
   const [localQtyState, setLocalQtyState] = useState({});
   const [yearName, setYearName] = useState([]);
   const [name, setName] = useState("");
+  const [mode, setMode] = useState(location?.state?.mode);
 
   const columns = [
     {
@@ -139,9 +140,7 @@ export default function WorkPlanSaleByCrop() {
           onChange={(value) =>
             handlePercentChange(value, cropItem.crop_id, record)
           }
-          formatter={(value) =>
-            `${Number(value)}%`
-          }
+          formatter={(value) => `${Number(value)}%`}
           disabled={!permission.edit || cropItem.crop_id == 7}
         />
       ),
@@ -358,7 +357,6 @@ export default function WorkPlanSaleByCrop() {
         0
       );
 
-
       return {
         ...prevState,
         [cropId]: {
@@ -435,6 +433,7 @@ export default function WorkPlanSaleByCrop() {
                   state: {
                     year_code: location?.state?.year_code,
                     user_id: location?.state?.user_id,
+                    mode: location?.state?.mode,
                   },
                 });
               });
@@ -460,10 +459,11 @@ export default function WorkPlanSaleByCrop() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Create Plan" showYear={yearName} />
+      <Title prefix="Work Plan" showYear={yearName} />
+
 
         <BoxPrimary>
-         <div className="flex gap-5">
+          <div className="flex gap-5">
             <div>
               <div>Work Plan</div>
               <InputNumber
@@ -582,6 +582,7 @@ export default function WorkPlanSaleByCrop() {
                 state: {
                   year_code: location?.state?.year_code,
                   user_id: location?.state?.user_id,
+                  mode: location?.state?.mode,
                 },
               });
             }}
@@ -610,6 +611,7 @@ export default function WorkPlanSaleByCrop() {
                   state: {
                     year_code: location?.state?.year_code,
                     user_id: location?.state?.user_id,
+                    mode: location?.state?.mode,
                   },
                 })
               }

@@ -18,13 +18,13 @@ export default function WorkPlanSaleCreate() {
   const [dataSource, setDataSource] = useState([]);
   const { showNotification, formatNumber } = useContext(AuthContext);
   const { confirm } = Modal;
-
   const [quarter, setQuarter] = useState([]);
   const [permission, setPermission] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
   const [localQtyState, setLocalQtyState] = useState({});
   const [yearName, setYearName] = useState([]);
   const [name, setName] = useState("");
+  const [mode, setMode] = useState(location?.state?.mode);
 
   useEffect(() => {
     useServiceAPI
@@ -207,7 +207,7 @@ export default function WorkPlanSaleCreate() {
                   fixed: "left",
                 },
                 {
-                  title: "Original Plan (KG)",
+                  title: "Work Plan (KG)",
                   dataIndex: "qty",
                   key: "originalPlan",
                   width: 150,
@@ -534,6 +534,8 @@ export default function WorkPlanSaleCreate() {
                   state: {
                     year_code: location?.state?.year_code,
                     user_id: location?.state?.user_id,
+                    mode: location?.state?.mode,
+
                   },
                 });
               });
@@ -559,7 +561,8 @@ export default function WorkPlanSaleCreate() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Create Plan" showYear={yearName} />
+      <Title prefix="Work Plan" showYear={yearName} />
+
 
         <BoxPrimary>
           <div className="flex gap-5">
@@ -686,6 +689,7 @@ export default function WorkPlanSaleCreate() {
                   state: {
                     year_code: location?.state?.year_code,
                     user_id: location?.state?.user_id,
+                    mode: location?.state?.mode,
                   },
                 })
               }

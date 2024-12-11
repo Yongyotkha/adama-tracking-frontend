@@ -17,6 +17,7 @@ export default function WorkPlanSaleByDealer() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [mode, setMode] = useState(location?.state?.mode);
   const { showNotification, formatNumber } = useContext(AuthContext);
   const [dealer, setDealer] = useState([]);
   const [permission, setPermission] = useState([]);
@@ -148,7 +149,7 @@ export default function WorkPlanSaleByDealer() {
           }),
         },
         {
-          title: "Original Plan (KG)",
+          title: "Work Plan (KG)",
           dataIndex: "qty",
           key: "originalPlan",
           width: 150,
@@ -445,12 +446,7 @@ export default function WorkPlanSaleByDealer() {
                 response.data.message,
                 response.data.message_line
               ).then(() => {
-                navigate("/sale-plan/work-plan-sale", {
-                  state: {
-                    year_code: location?.state?.year_code,
-                    user_id: location?.state?.user_id,
-                  },
-                });
+                navigate("/sale-plan/work-plan-sale");
               });
             } else {
               showNotification(
@@ -462,6 +458,7 @@ export default function WorkPlanSaleByDealer() {
                   state: {
                     year_code: location?.state?.year_code,
                     user_id: location?.state?.user_id,
+                    mode: location?.state?.mode,
                   },
                 });
               });
@@ -488,6 +485,7 @@ export default function WorkPlanSaleByDealer() {
     <>
       <MainLayout loading={loading} childrenStyle={""}>
         <Title prefix="Sale By Dealer" showYear={yearName} />
+
 
         <BoxPrimary>
           <div className="flex  gap-5">
@@ -601,6 +599,8 @@ export default function WorkPlanSaleByDealer() {
                 state: {
                   year_code: location?.state?.year_code,
                   user_id: location?.state?.user_id,
+                  mode: location?.state?.mode,
+
                 },
               })
             }
@@ -629,6 +629,8 @@ export default function WorkPlanSaleByDealer() {
                   state: {
                     year_code: location?.state?.year_code,
                     user_id: location?.state?.user_id,
+                    mode: location?.state?.mode,
+
                   },
                 })
               }

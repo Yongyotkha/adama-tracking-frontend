@@ -20,6 +20,7 @@ export default function WorkPlanCreate() {
   const [yearName, setYearName] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
   const { showNotification } = useContext(AuthContext);
+  const [mode, setMode] = useState(location?.state?.mode);
 
   useEffect(() => {
     useServiceAPI
@@ -127,10 +128,7 @@ export default function WorkPlanCreate() {
           className="w-full"
           value={text}
           formatter={(value) =>
-            `${Number(value).toFixed(2)}`.replace(
-              /\B(?=(\d{3})+(?!\d))/g,
-              ","
-            )
+            `${Number(value).toFixed(2)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
           disabled
         />
@@ -157,7 +155,7 @@ export default function WorkPlanCreate() {
               navigate("/sale-plan/work-plan");
             } else if (mode === "save_and_next") {
               navigate("/sale-plan/work-plan/create-2", {
-                state: { year_code: location?.state?.year_code },
+                state: { year_code: location?.state?.year_code, mode:location?.state?.mode },
               });
             }
           };
@@ -179,7 +177,9 @@ export default function WorkPlanCreate() {
 
   return (
     <MainLayout loading={loading} childrenStyle={""}>
-      <Title prefix="Create Plan" showYear={yearName} />
+        <Title prefix="Work Plan" showYear={yearName} />
+
+     
       <BoxPrimary>
         <div className="text-[#00783F] text-xl pb-5">Work Plan</div>
         <TableComponent
@@ -241,6 +241,7 @@ export default function WorkPlanCreate() {
               navigate("/sale-plan/work-plan/create-2", {
                 state: {
                   year_code: location.state.year_code,
+                  mode: location.state.mode,
                 },
               });
             }}
