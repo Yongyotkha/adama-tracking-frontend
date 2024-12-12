@@ -29,11 +29,7 @@ const Navbar = () => {
   const [activeIndex, setActiveIndex] = useState(0); // Track active index
   const { userInfo, logout } = useContext(AuthContext);
 
-  useEffect(() => {
-    if (userInfo?.is_change_password || userInfo?.is_otp) {
-      logout();
-    }
-  }, [userInfo]);
+  
 
   // const menuItems = [
   //   ...userInfo?.menu_permissions.map((menu) => ({

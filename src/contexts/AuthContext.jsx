@@ -22,7 +22,6 @@ export const AuthProvider = ({ children }) => {
     JSON.parse(localStorage.getItem("users"))
   );
 
-
   let loading = false;
 
   const notifyLoadingState = (callback, state) => {

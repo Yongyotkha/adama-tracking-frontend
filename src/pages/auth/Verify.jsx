@@ -17,9 +17,8 @@ export default function Verify() {
   const { userInfo, showMsg, showNotification } = useContext(AuthContext);
 
   useEffect(() => {
-    console.log(location.state)
-  }, [location])
-  
+    console.log(location.state);
+  }, [location]);
 
   const onFinish = () => {
     const otpCode = otp.join("");
@@ -101,18 +100,20 @@ export default function Verify() {
   };
 
   const callOtpPhone = () => {
-    let phone;
+    let request;
     if (location.state) {
-      phone = location?.state.phone_number_otp;
-      user_name = location?.state.user_name;
+      request = {
+        phone_number: location?.state.phone_number_otp,
+        user_name: location?.state.user_name,
+      };
     } else {
-      phone = userInfo?.phone_number_otp;
-      user_name = userInfo?.user_name;
-
+      request = {
+        phone_number: userInfo?.phone_number_otp,
+      };
     }
 
     useServiceAPI
-      .post(paths.pathOtpCall, { phone_number: phone }, setLoading)
+      .post(paths.pathOtpCall, request, setLoading)
       .then((response) => {
         if (response.status == 200) {
           console.log(response);

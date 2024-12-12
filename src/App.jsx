@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import "./App.css";
@@ -93,96 +92,97 @@ const App = () => {
           <Route path="/first-change-password" element={<FirstChangePassword />} />
 
           {/* Protected Routes */}
-          <Route path="/" element={ <Dashboard />} />
+          <Route element={<ProtectedRoute/>}>
 
-          {/* Work Plan Route */}
-          <Route path="/sale-plan/work-plan" element={<WorkPlan />} />
-          <Route path="/sale-plan/work-plan-area" element={<WorkPlan />} />
-          <Route path="/sale-plan/work-plan-sale" element={<WorkPlan />} />
-          <Route path="/sale-plan/work-plan/create" element={<WorkPlanCreate />} />
-          {/* <Route path="/sale-plan/work-plan/edit" element={<EditWorkPlan />} /> */}
-          <Route path="/sale-plan/work-plan/create-2" element={<WorkPlanCreateStepTwo />} />
-          <Route path="/sale-plan/work-plan-area/sale-area-create" element={<WorkPlanAreaCreate />} />
-          <Route path="/sale-plan/work-plan-sale/sale-create" element={<WorkPlanSaleCreate />} />
-          <Route path="/sale-plan/work-plan-sale/sale-by-crop" element={<WorkPlanSaleByCrop />} />
-          <Route path="/sale-plan/work-plan-sale/sale-by-dealer" element={<WorkPlanSaleByDealer />} />
-          <Route path="/sale-plan/work-plan-sale/sale-by-subdealer" element={<WorkPlanSaleBySubDealer />} />
+              <Route path="/" element={ <Dashboard />} />
 
-          {/* Rolling Rorecast Route */}
-          <Route path="/sale-plan/rolling-forecast" element={<RollingForecast />} />
-          <Route path="/sale-plan/rolling-forecast-area" element={<RollingForecast />} />
-          <Route path="/sale-plan/rolling-forecast-sale" element={<RollingForecast />} />
-          <Route path="/sale-plan/rolling-forecast/month" element={<RollingForecastMonth />} />
-          <Route path="/sale-plan/rolling-forecast/quarter" element={<RollingForecastQuarter />} />
+              {/* Work Plan Route */}
+              <Route path="/sale-plan/work-plan" element={<WorkPlan />} />
+              <Route path="/sale-plan/work-plan-area" element={<WorkPlan />} />
+              <Route path="/sale-plan/work-plan-sale" element={<WorkPlan />} />
+              <Route path="/sale-plan/work-plan/create" element={<WorkPlanCreate />} />
+              <Route path="/sale-plan/work-plan/create-2" element={<WorkPlanCreateStepTwo />} />
+              <Route path="/sale-plan/work-plan-area/sale-area-create" element={<WorkPlanAreaCreate />} />
+              <Route path="/sale-plan/work-plan-sale/sale-create" element={<WorkPlanSaleCreate />} />
+              <Route path="/sale-plan/work-plan-sale/sale-by-crop" element={<WorkPlanSaleByCrop />} />
+              <Route path="/sale-plan/work-plan-sale/sale-by-dealer" element={<WorkPlanSaleByDealer />} />
+              <Route path="/sale-plan/work-plan-sale/sale-by-subdealer" element={<WorkPlanSaleBySubDealer />} />
 
-          {/* Activity Route */}
-          <Route path="/activity/plan" element={<ActivityPlanList />} />
-          <Route path="/activity/plan/dealer" element={<ActivityPlanDealer />} />
-          <Route path="/activity/plan/sub-dealer" element={<ActivityPlanSubDealer />} />
-   
+              {/* Rolling Rorecast Route */}
+              <Route path="/sale-plan/rolling-forecast" element={<RollingForecast />} />
+              <Route path="/sale-plan/rolling-forecast-area" element={<RollingForecast />} />
+              <Route path="/sale-plan/rolling-forecast-sale" element={<RollingForecast />} />
+              <Route path="/sale-plan/rolling-forecast/month" element={<RollingForecastMonth />} />
+              <Route path="/sale-plan/rolling-forecast/quarter" element={<RollingForecastQuarter />} />
 
-
-          <Route path="/activity/list" element={<ActivityList />} />
-          <Route path="/activity/create" element={<CreateActivity />} />
-          <Route path="/activity/edit" element={<CreateActivity />} />
-          <Route path="/activity/view" element={<CreateActivity />} />
-          <Route path="/activity/calendar" element={<ActivityCalendar />} />
-          <Route path="/activity/mapping" element={<ActivityMapping />} />
-
-          {/* Order Route */}
-          <Route path="/order/list" element={<OrderList />} />
-          <Route path="/order/create" element={<CreateOrder />} />
-          <Route path="/order/edit" element={<EditOrder />} />
-          <Route path="/order/detail" element={<OrderDetail />} />
-          <Route path="/order/view" element={<ViewOrder />} />
-          <Route path="/order-waiting/list" element={<OrderWaitingList />} />
-          <Route path="/order-waiting/view" element={<ViewOrderWaiting />} />
-
-          {/* Expenses Route */}
-          <Route path="/expenses/advance" element={<AdvanceExpense />} />
-          <Route path="/expenses/advance/create" element={<CreateAdvanceExpense />} />
-          <Route path="/expenses/advance/edit" element={<EditAdvanceExpense />} />
-          <Route path="/expenses/advance/view" element={<ViewAdvanceExpense />} />
-          <Route path="/expenses/product-claim-list" element={<ProductClaim />} />
-          <Route path="/expenses/product-claim-waiting-list" element={<ProductClaim />} />
-          <Route path="/expenses/product-claim/create" element={<CreateClaimRequest />} />
-          <Route path="/expenses/product-claim/edit" element={<CreateClaimRequest />} />
-          <Route path="/expenses/traveling" element={<Traveling />} />
-          <Route path="/expenses/traveling/create" element={<CreateTraveling />} />
-          <Route path="/expenses/traveling/edit" element={<EditTraveling />} />
-          <Route path="/expenses/traveling/view" element={<ViewTraveling />} />
-          <Route path="/expenses/clearing" element={<ClearingExpense />} />
-          <Route path="/expenses/clearing/create" element={<CreateClearing />} />
-          <Route path="/expenses/clearing/edit" element={<EditClearing />} />
-
-          {/* Customer Route */}
-          <Route path="/customer/dealer" element={<Dealer />} />
-          <Route path="/customer/dealer/edit-info" element={<EditInformation />} />
-          <Route path="/customer/dealer/view-info" element={<EditInformation />} />
-
-          <Route path="/customer/sub-dealer" element={<SubDealer />} />
-          <Route path="/customer/sub-dealer/create" element={<CreateSubDealer />} />
-          <Route path="/customer/sub-dealer/edit" element={<EditSubDealer />} />
-          <Route path="/customer/sub-dealer/view" element={<EditSubDealer />} />
+              {/* Activity Route */}
+              <Route path="/activity/plan" element={<ActivityPlanList />} />
+              <Route path="/activity/plan/dealer" element={<ActivityPlanDealer />} />
+              <Route path="/activity/plan/sub-dealer" element={<ActivityPlanSubDealer />} />
+      
 
 
-          {/* Setting Route */}
-          <Route path="/setting/role" element={<SettingRole />} />
-          <Route path="/setting/profile" element={<ProfileUser />} />
-          <Route path="/setting/user" element={<SettingUser />} />
-          <Route path="/setting/user/create" element={<CreateUser />} />
-          <Route path="/setting/user/edit" element={<EditUser />} />
-          <Route path="/setting/user/view" element={<EditUser />} />
+              <Route path="/activity/list" element={<ActivityList />} />
+              <Route path="/activity/create" element={<CreateActivity />} />
+              <Route path="/activity/edit" element={<CreateActivity />} />
+              <Route path="/activity/view" element={<CreateActivity />} />
+              <Route path="/activity/calendar" element={<ActivityCalendar />} />
+              <Route path="/activity/mapping" element={<ActivityMapping />} />
 
-          <Route path="/setting/sale" element={<SettingSale />} />
-          <Route path="/setting/sale/create" element={<CreateSale />} />
-          <Route path="/setting/sale/edit" element={<EditSale />} />
-          <Route path="/setting/product" element={<SettingProduct />} />
-          <Route path="/setting/product/edit" element={<EditProduct />} />
-          <Route path="/setting/promotion" element={<SettingPromotion />} />
-          <Route path="/setting/promotion/create" element={<CreatePromotion />} />
-          <Route path="/setting/promotion/edit" element={<EditPromotion />} />
+              {/* Order Route */}
+              <Route path="/order/list" element={<OrderList />} />
+              <Route path="/order/create" element={<CreateOrder />} />
+              <Route path="/order/edit" element={<EditOrder />} />
+              <Route path="/order/detail" element={<OrderDetail />} />
+              <Route path="/order/view" element={<ViewOrder />} />
+              <Route path="/order-waiting/list" element={<OrderWaitingList />} />
+              <Route path="/order-waiting/view" element={<ViewOrderWaiting />} />
 
+              {/* Expenses Route */}
+              <Route path="/expenses/advance" element={<AdvanceExpense />} />
+              <Route path="/expenses/advance/create" element={<CreateAdvanceExpense />} />
+              <Route path="/expenses/advance/edit" element={<EditAdvanceExpense />} />
+              <Route path="/expenses/advance/view" element={<ViewAdvanceExpense />} />
+              <Route path="/expenses/product-claim-list" element={<ProductClaim />} />
+              <Route path="/expenses/product-claim-waiting-list" element={<ProductClaim />} />
+              <Route path="/expenses/product-claim/create" element={<CreateClaimRequest />} />
+              <Route path="/expenses/product-claim/edit" element={<CreateClaimRequest />} />
+              <Route path="/expenses/traveling" element={<Traveling />} />
+              <Route path="/expenses/traveling/create" element={<CreateTraveling />} />
+              <Route path="/expenses/traveling/edit" element={<EditTraveling />} />
+              <Route path="/expenses/traveling/view" element={<ViewTraveling />} />
+              <Route path="/expenses/clearing" element={<ClearingExpense />} />
+              <Route path="/expenses/clearing/create" element={<CreateClearing />} />
+              <Route path="/expenses/clearing/edit" element={<EditClearing />} />
+
+              {/* Customer Route */}
+              <Route path="/customer/dealer" element={<Dealer />} />
+              <Route path="/customer/dealer/edit-info" element={<EditInformation />} />
+              <Route path="/customer/dealer/view-info" element={<EditInformation />} />
+
+              <Route path="/customer/sub-dealer" element={<SubDealer />} />
+              <Route path="/customer/sub-dealer/create" element={<CreateSubDealer />} />
+              <Route path="/customer/sub-dealer/edit" element={<EditSubDealer />} />
+              <Route path="/customer/sub-dealer/view" element={<EditSubDealer />} />
+
+
+              {/* Setting Route */}
+              <Route path="/setting/role" element={<SettingRole />} />
+              <Route path="/setting/profile" element={<ProfileUser />} />
+              <Route path="/setting/user" element={<SettingUser />} />
+              <Route path="/setting/user/create" element={<CreateUser />} />
+              <Route path="/setting/user/edit" element={<EditUser />} />
+              <Route path="/setting/user/view" element={<EditUser />} />
+
+              <Route path="/setting/sale" element={<SettingSale />} />
+              <Route path="/setting/sale/create" element={<CreateSale />} />
+              <Route path="/setting/sale/edit" element={<EditSale />} />
+              <Route path="/setting/product" element={<SettingProduct />} />
+              <Route path="/setting/product/edit" element={<EditProduct />} />
+              <Route path="/setting/promotion" element={<SettingPromotion />} />
+              <Route path="/setting/promotion/create" element={<CreatePromotion />} />
+              <Route path="/setting/promotion/edit" element={<EditPromotion />} />
+          </Route>	
           {/* Error Route */}
           <Route path="/error/403" element={<Error403 />} />
           <Route path="*" element={<Error404 />} />
