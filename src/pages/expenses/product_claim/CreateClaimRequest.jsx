@@ -214,7 +214,7 @@ export default function CreateClaimRequest() {
     { title: "No", dataIndex: "no", key: "no", align: "center" },
     { title: "SKU", dataIndex: "sku", key: "sku", align: "center" },
     { title: "Product Name", dataIndex: "productName", key: "productName", align: "center" },
-    { title: "Lot No", dataIndex: "lotNo", key: "lotNo", align: "center" },
+    { title: "Batch", dataIndex: "lotNo", key: "lotNo", align: "center" },
     { title: "Reason", dataIndex: "reason", key: "reason", align: "center" },
     {
       title: <div className="text-center">QTY (ctn)</div>,
@@ -361,13 +361,9 @@ export default function CreateClaimRequest() {
     let allValuesBasic = formCustom.getFieldsValue();
     allValuesBasic.create_date = dayjs(allValuesBasic.create_date).format('YYYY-MM-DD');
     let products = [];
-    console.log(allValuesBasic);
-    
-    console.log(dataSource);
-    
+
     dataSource.forEach(element => {
-      console.log(element.product_unit);
-      
+      const selectedProductUnit = element.product_unit || dataProductUnits[0]?.id;
       const data = {
         "product_id": element.product.product_id ?? element.product.id,
         "product_code": element.product.product_code,
@@ -375,7 +371,7 @@ export default function CreateClaimRequest() {
         "product_unit": element.product.packing_list,
         "product_unit_thb": element.product.bath_unit,
         "quantity": document.getElementById(`qty-${element.product.id}`).value,
-        "unit": element.product_unit,
+        "unit": selectedProductUnit,
         "lot_number": element.lotNo,
         "reason": element.reason,
         "label_list": element.url_label ? [element.url_label] : [],
