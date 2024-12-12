@@ -8,6 +8,7 @@ export const paths = {
   pathVerifyOtp: "verify-otp",
   pathOtpCall: "otp/call",
   pathOtpVerify: "otp/verify",
+  pathVerifyPhone: "otp/verify-phone",
   pathSetNewPassword: "set-newpassword",
   pathCustomerSubDealer: "sale-customer-subdealer/list",
 
