@@ -150,6 +150,10 @@ export default function ActivityPlanList() {
     setTableParams({
       ...tableParams,
       filters,
+      pagination: {
+        current: 1,
+        pageSize: 10,
+      },
     });
   };
 
@@ -342,8 +346,8 @@ export default function ActivityPlanList() {
   };
 
   const nestedColumns = [
-    { title: "No", width: 50, dataIndex: "no", align: "center" },
-    { title: "Sub Dealer", width: 150, dataIndex: "name", align: "center" },
+    { title: "No", width: 100, dataIndex: "no", align: "center" },
+    { title: "Sub Dealer", width: 150, dataIndex: "name", align: "start" },
     { title: "Value (THB)", width: 150, dataIndex: "value", align: "center" },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },

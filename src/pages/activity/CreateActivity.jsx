@@ -279,12 +279,7 @@ export default function CreateActivity() {
             assignData.push(element.id);
           });
           setAssignList(assignData);
-          } catch (error) {
-            showNotification(
-              "error",
-              "Data Not Found."
-            );
-          } finally {
+          } catch (error) {} finally {
             setLoading(false);
           }
         }
@@ -350,31 +345,21 @@ export default function CreateActivity() {
     setIsSalePlanEdit(false);
   }
 
+  function NumberFormatter(number) {
+    return number.toLocaleString(undefined, {maximumFractionDigits:2});
+  }
+
   const header = [
     { title: "Product Name", dataIndex: "productName", key: "productName", align: "left" },
     { title: "Pack Size", dataIndex: "packSize", key: "packSize", align: "center" },
     {
       title: "Estimate Sale (Kg/Lt)", dataIndex: "estimateSale", key: "estimateSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.estimateSale} disabled={ pageCode == 'expense_clearing' ? true : (viewSegment ?? false) } onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}
-          formatter={(value) =>
-            `${Number(value).toFixed(2)}`.replace(
-              /\B(?=(\d{3})+(?!\d))/g,
-              ","
-            )
-          }
-        />
+        <Input placeholder="0" value={NumberFormatter(record.estimateSale)} disabled={ pageCode == 'expense_clearing' ? true : (viewSegment ?? false) } onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}/>
       )
     },
     {
       title: "Actual Sale (Kg/Lt)", dataIndex: "actualSale", key: "actualSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.actualSale} disabled={ pageCode != 'expense_clearing' ? true : (viewSegment ?? false) } onChange={(e) => handleInputChange(e.target.value, record.key, "actualSale", record.bath_ltkg)}
-          formatter={(value) =>
-            `${Number(value).toFixed(2)}`.replace(
-              /\B(?=(\d{3})+(?!\d))/g,
-              ","
-            )
-          }
-        />
+        <Input placeholder="0" value={NumberFormatter(record.actualSale)} disabled={ pageCode != 'expense_clearing' ? true : (viewSegment ?? false) } onChange={(e) => handleInputChange(e.target.value, record.key, "actualSale", record.bath_ltkg)}/>
       )
     },
   ];
@@ -393,31 +378,20 @@ export default function CreateActivity() {
   };
 
   const calculateGrandTotal = (field) => {
-    return productCropList.reduce((sum, item) => sum + (item[field] || 0) * item.bath_ltkg, 0).toFixed(2);
+    const number = productCropList.reduce((sum, item) => sum + (item[field] || 0) * item.bath_ltkg, 0).toFixed(2);
+    console.log(NumberFormatter(number.toString()));
+    
+    return NumberFormatter(number);
   };
 
   const footerOrderList = () => (
     <tr className="bg-[#978B87]">
       <td colSpan={2} className="text-left pr-2 text-white">Total (THB)</td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" value={calculateGrandTotal("estimateSale") > 0 ? calculateGrandTotal("estimateSale") : activityDetail?.expense_product_total_estimate_sale } readOnly  
-          formatter={(value) =>
-            `${Number(value).toFixed(2)}`.replace(
-              /\B(?=(\d{3})+(?!\d))/g,
-              ","
-            )
-          }
-        />
+        <Input placeholder="0" value={calculateGrandTotal("estimateSale") > 0 ? calculateGrandTotal("estimateSale") : activityDetail?.expense_product_total_estimate_sale } readOnly  />
       </td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" value={calculateGrandTotal("actualSale") > 0 ? calculateGrandTotal("actualSale") : activityDetail?.expense_product_total_acutal_sale} readOnly
-          formatter={(value) =>
-            `${Number(value).toFixed(2)}`.replace(
-              /\B(?=(\d{3})+(?!\d))/g,
-              ","
-            )
-          }
-        />
+        <Input placeholder="0" value={calculateGrandTotal("actualSale") > 0 ? calculateGrandTotal("actualSale") : activityDetail?.expense_product_total_acutal_sale} readOnly />
       </td>
     </tr>
   );
@@ -612,13 +586,7 @@ export default function CreateActivity() {
           response.data.message_line
         ).then(successCallback);
       })
-      .catch((error) => {
-        if (error.status === 422) {
-          showNotification("error", error.message);
-        } else {
-          showNotification("error", "เกิดข้อผิดพลาด");
-        }
-      });
+      .catch((error) => {});
     }else{
       useServiceAPI
       .post(paths.pathActivityExpenseCreate, body, setLoading)
@@ -640,9 +608,7 @@ export default function CreateActivity() {
           response.data.message_line
         ).then(successCallback);
       })
-      .catch((error) => {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      });
+      .catch((error) => {});
     }
   };
 
@@ -909,7 +875,8 @@ export default function CreateActivity() {
           </BoxPrimary>
 
           {/* Participant Section */}
-          <BoxPrimary>
+          {pageCode == 'expense_clearing' ? <>
+            <BoxPrimary>
             <div className="flex items-center justify-between">
               <div className="text-[#00783F] text-lg font-semibold mb-3">Participant</div>
               {
@@ -948,6 +915,7 @@ export default function CreateActivity() {
               />
             </Form>
           </BoxPrimary>
+          </> : null }
         </>
       ) : null}
 

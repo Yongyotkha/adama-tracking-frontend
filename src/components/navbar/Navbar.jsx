@@ -245,12 +245,11 @@ const Navbar = () => {
           label: (
             <span
               className={`${
-                // location.pathname.startsWith(`/${item.path}`)
-
-                location.pathname == "/" + item.path
+                location.pathname === `/${item.path}` || 
+                location.pathname.startsWith(`/${item.path}/`)
                   ? "pointer-events-none font-bold text-[#009845]"
                   : "text-[#978B87]"
-              } py-1`} // add padding, rounded corners, and block display for consistent styling
+              } py-1`}
             >
               {item.label}
             </span>

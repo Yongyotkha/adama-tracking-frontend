@@ -89,7 +89,7 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
           className="block gap-1"
         >
           <img
-            src="/img/icons/edit.png"
+            src="/img/icons/approve.png"
             alt="Approve icon"
             className="inline-block h-4 m-auto"
           />

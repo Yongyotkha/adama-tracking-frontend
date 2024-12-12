@@ -11,6 +11,7 @@ import DynamicModal from "../../components/modal/DynamicModal";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
+import dayjs from "dayjs";
 
 export default function ActivityList() {
   const [loading, setLoading] = useState(false);
@@ -73,6 +74,10 @@ export default function ActivityList() {
     setTableParams({
       ...tableParams,
       filters,
+      pagination: {
+        current: 1,
+        pageSize: 10,
+      }
     });
   };
 
@@ -167,6 +172,7 @@ export default function ActivityList() {
     { title: "Key Product", width: 100, dataIndex: "keyProduct", align: "start" },
     { title: "Date", width: 150, dataIndex: "date", align: "start" },
     { title: "Time", width: 100, dataIndex: "time", align: "start", className: "text-nowrap" },
+    { title: "Create Date", width: 100, dataIndex: "createdAt", align: "start", className: "text-nowrap" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
@@ -227,11 +233,12 @@ export default function ActivityList() {
             key: index + 1 + (current - 1) * pageSize,
             activityNo: row.document_number,
             activityType: row.activity_type_name,
-            shop: row.dealer_name,
+            shop: row.dealer_name ?? '-',
             sale: row.user_name ?? '-',
             keyProduct: row.key_product ?? '-',
             date: row.document_date,
             time: row.time,
+            createdAt: dayjs(row.created_at).format("YYYY-MM-DD"),
             action: (
               <Dropdown menu={{ items: actionItems }} placement="bottomRight">
                 <a onClick={(e) => e.preventDefault()}>

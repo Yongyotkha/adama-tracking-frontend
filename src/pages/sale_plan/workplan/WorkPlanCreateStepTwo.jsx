@@ -19,9 +19,11 @@ export default function WorkPlanCreateStepTwo() {
   const [areas, setAreas] = useState([]);
   const [permission, setPermission] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
+  const [mode, setMode] = useState(location?.state?.mode);
   const { showNotification, formatNumber } = useContext(AuthContext);
   const [localQtyState, setLocalQtyState] = useState({});
   const [yearName, setYearName] = useState([]);
+
   const { confirm } = Modal;
 
   useEffect(() => {
@@ -169,7 +171,7 @@ export default function WorkPlanCreateStepTwo() {
                   fixed: "left",
                 },
                 {
-                  title: "Original Plan",
+                  title: "Work Plan",
                   dataIndex: "qty",
                   key: "original_plan_qty",
                   width: 150,
@@ -425,7 +427,8 @@ export default function WorkPlanCreateStepTwo() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Create Plan" showYear={yearName} />
+      <Title prefix="Work Plan" showYear={yearName} />
+
 
         <BoxPrimary>
           <div className="flex flex-col gap-2">

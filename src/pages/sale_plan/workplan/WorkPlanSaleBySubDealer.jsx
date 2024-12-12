@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import { Input, InputNumber, Table, Tabs,Typography } from "antd";
+import { Input, InputNumber, Table, Tabs, Typography } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import TableCustomComponent from "../../../components/table/TableCustomComponent";
 import ActionButton from "../../../components/button/ActionButton";
@@ -14,6 +14,7 @@ export default function WorkPlanSaleBySubDealer() {
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const { showNotification } = useContext(AuthContext);
   const [dealers, setDealers] = useState([]);
@@ -21,23 +22,24 @@ export default function WorkPlanSaleBySubDealer() {
   const [subDealers, setSubDealers] = useState([]);
   const [permission, setPermission] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
+  const [mode, setMode] = useState(location?.state?.mode);
   const [localQtyState, setLocalQtyState] = useState({});
   const [yearName, setYearName] = useState([]);
   const totalDealers = subDealers.length;
   const [message, setMessage] = useState("");
   const { Text } = Typography;
 
-
   useEffect(() => {
-    getMasterSubDealer();
+    getMasterDealer();
   }, []);
   useEffect(() => {
     if (activeKey) {
       getSubDealerList();
     }
+    console.log(activeKey, "useEffect");
   }, [activeKey]);
 
-  const getMasterSubDealer = () => {
+  const getMasterDealer = () => {
     useServiceAPI
       .get(
         paths.pathWorkPlanSaleSubDealerList,
@@ -62,27 +64,26 @@ export default function WorkPlanSaleBySubDealer() {
       });
   };
 
-  const getSubDealerList = () => {
-    useServiceAPI
-      .get(
-        paths.pathWorkPlanSaleSubDealer,
-        {
+  const getSubDealerList = async () => {
+    try {
+      setTableLoading(true);
+
+      await useServiceAPI
+        .get(paths.pathWorkPlanSaleSubDealer, {
           year_code: location?.state?.year_code,
           user_id: location?.state?.user_id,
           dealer_id: activeKey,
-        },
-        setLoading
-      )
-      .then((response) => {
-        if (response.status === 200) {
-          // const dealerData = response.data.dealer_items || [];
-          const subDealerData = response.data.sub_dealer_items || [];
-          const productData = response.data.data_items || [];
+        })
+        .then((response) => {
+          if (response.status === 200) {
+            // const dealerData = response.data.dealer_items || [];
+            const subDealerData = response.data.sub_dealer_items || [];
+            const productData = response.data.data_items || [];
 
-          // Initialize localQtyState based on API response
-          const newLocalQtyState = {};
+            // Initialize localQtyState based on API response
+            const newLocalQtyState = {};
 
-          // Loop through dealers
+            // Loop through dealers
             const dealerId = activeKey;
             if (!newLocalQtyState[dealerId]) {
               newLocalQtyState[dealerId] = {};
@@ -121,39 +122,44 @@ export default function WorkPlanSaleBySubDealer() {
                   .reduce((sum, product) => sum + (product.value || 0), 0);
             });
 
-          setLocalQtyState(newLocalQtyState);
+            setLocalQtyState(newLocalQtyState);
 
-          console.log(subDealerData);
+            console.log(subDealerData);
 
-          const newData = response.data.data_items.map((item) => ({
-            key: item.product_id,
-            product_id: item.product_id,
-            product_code: item.product_code,
-            product_name: item.product_name,
-            pack_size: item.pack_size,
-            unit_convert_value: item.unit_convert_value,
-            qty: item.original_qty,
-            value: item.original_value,
-          }));
+            const newData = response.data.data_items.map((item) => ({
+              key: item.product_id,
+              product_id: item.product_id,
+              product_code: item.product_code,
+              product_name: item.product_name,
+              pack_size: item.pack_size,
+              unit_convert_value: item.unit_convert_value,
+              qty: item.original_qty,
+              value: item.original_value,
+            }));
 
-          setYearName(response.data.year_name);
-          setDataSource(newData);
-          setSubDealers(response.data.sub_dealer_items);
-          setTotalValue(response.data.amount_target);
-          setPermission(response.data.permission);
-          setMessage(response.data.dealer_items_message);
-
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        showNotification("error", "เกิดข้อผิดพลาด");
-      });
+            setYearName(response.data.year_name);
+            setDataSource(newData);
+            setSubDealers(response.data.sub_dealer_items);
+            setTotalValue(response.data.amount_target);
+            setPermission(response.data.permission);
+            setMessage(response.data.dealer_items_message);
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+          showNotification("error", "เกิดข้อผิดพลาด");
+        });
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      showNotification("error", "เกิดข้อผิดพลาดที่ไม่คาดคิด");
+    } finally {
+      setTableLoading(false);
+    }
   };
 
   const columns = [
     {
-      title: "Sub Dealer Plan", // Row 3
+      title: "Sub Dealer", // Row 3
       onHeaderCell: () => ({
         style: {
           backgroundColor: "#00783F", // สีเขียวเข้ม
@@ -194,7 +200,7 @@ export default function WorkPlanSaleBySubDealer() {
           }),
         },
         {
-          title: "Original Plan (KG)",
+          title: "Work Plan (KG)",
           dataIndex: "qty",
           key: "originalPlan",
           width: 150,
@@ -250,7 +256,10 @@ export default function WorkPlanSaleBySubDealer() {
     },
     ...subDealers.map((dealerItem, index) => ({
       title: (
-        <Text ellipsis={{ tooltip: dealerItem.sub_dealer_name }} className="text-white">
+        <Text
+          ellipsis={{ tooltip: dealerItem.sub_dealer_name }}
+          className="text-white"
+        >
           {dealerItem.sub_dealer_name}
         </Text>
       ),
@@ -312,7 +321,10 @@ export default function WorkPlanSaleBySubDealer() {
     ...subDealers.map((dealerItem, index) => ({
       // title: dealerItem.sub_dealer_name,
       title: (
-        <Text ellipsis={{ tooltip: dealerItem.sub_dealer_name }} className="text-white">
+        <Text
+          ellipsis={{ tooltip: dealerItem.sub_dealer_name }}
+          className="text-white"
+        >
           {dealerItem.sub_dealer_name}
         </Text>
       ),
@@ -543,9 +555,7 @@ export default function WorkPlanSaleBySubDealer() {
 
   // Handle tab change
   const handleTabChange = (key) => {
-    console.log(key);
     setActiveKey(key);
-    console.log(subDealers);
   };
 
   return (
@@ -611,6 +621,7 @@ export default function WorkPlanSaleBySubDealer() {
             dataSource={dataSource}
             pagination={false}
             scroll={true}
+            loading={tableLoading}
             footer={() => (
               <Table.Summary fixed>
                 <Table.Summary.Row className="bg-[#978B87]">
@@ -688,6 +699,7 @@ export default function WorkPlanSaleBySubDealer() {
                 state: {
                   year_code: location?.state?.year_code,
                   user_id: location?.state?.user_id,
+                  mode: location?.state?.mode,
                 },
               })
             }
@@ -712,20 +724,6 @@ export default function WorkPlanSaleBySubDealer() {
               text="Save"
               mode="save"
               onClick={() => handleSave("save")}
-            />
-          )}
-          {permission.btn_next && (
-            <ActionButton
-              text="Next"
-              mode="save"
-              onClick={() =>
-                navigate("/sale-plan/work-plan-sale/sale-by-sub-dealer", {
-                  state: {
-                    year_code: location?.state?.year_code,
-                    user_id: location?.state?.user_id,
-                  },
-                })
-              }
             />
           )}
         </div>
