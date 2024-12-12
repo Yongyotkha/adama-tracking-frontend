@@ -117,7 +117,7 @@ const AddOrderModal = ({ isVisible, onClose, handleAdd, handleSearch }) => {
   const formFields = [
     { label: "Product", name: "product", placeholder: "Search...", prefix: <SearchOutlined className="text-gray-500" />, onChange: handleSearch },
     { label: "Product Name", name: "productName", placeholder: "Enter Product Name", disabled: true, value: dataSource?.product_name ?? "", required: true },
-    { label: "Lot No", name: "lotNo", placeholder: "Enter Lot No", required: true },
+    { label: "Batch No", name: "lotNo", placeholder: "Enter Batch No", required: true },
     { label: "Reason", name: "reason", placeholder: "Enter Reason" },
   ];
 

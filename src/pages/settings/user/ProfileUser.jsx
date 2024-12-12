@@ -4,7 +4,7 @@ import FormUser from "../../../components/form_user/FormUser";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import { Col, Form, Input, Row } from "antd";
+import { Button, Col, Form, Input, Row } from "antd";
 import useServiceAPI from "../../../services/CorsService";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { paths } from "../../../services/CorsPath";
@@ -229,7 +229,7 @@ export default function ProfileUser() {
       required: false,
       col: 6,
       options: territory,
-      value: "North",
+      value: formUserInfo.territory_name,
       disabled: true,
     },
     {
@@ -240,7 +240,7 @@ export default function ProfileUser() {
       col: 6,
       options: areas,
       disabled: true,
-      value: "Zone 1",
+      value: formUserInfo.area_name,
     },
     {
       label: "Role",
@@ -270,22 +270,23 @@ export default function ProfileUser() {
       type: "date",
       required: false,
       col: 6,
-      value: null,
+      value: formUserInfo.date_of_joining,
       disabled: true,
     },
     {
       label: "Status",
-      name: "status",
+      name: "use_flag",
       type: "select",
       required: false,
       col: 6,
+      disabled: true,
       options: [
         { name: "Active", id: 1, selected: true },
         { name: "Inactive", id: 0, selected: false },
       ],
-      value: 1,
-      disabled: true,
+      value: parseInt(formUserInfo.use_flag,10) === 1 ? "Active" : "Inactive"
     },
+
   ];
 
   return (
@@ -304,11 +305,24 @@ export default function ProfileUser() {
     <div className="text-[#00783F] text-lg font-semibold mb-3">
       Change Password
     </div>
-    <ActionButton
-      mode="edit"
+    {/* <ActionButton
+      mode="delete"
       text={isEditingPassword ? "Cancel" : "Edit"}
       onClick={handleEditPassword}
+    /> */}
+    <Button 
+      type="primary" 
+      danger 
+      onClick={handleEditPassword}
+    >
+    <img
+      src="/img/icons/edit-btn.png"
+      alt="button icon"
+      className="inline-block h-5"
     />
+      {isEditingPassword ? "Cancel" : "Edit"} 
+    </Button>
+
   </div>
   <Form layout="vertical" form={form}>
     <Row gutter={[16, 16]} className="mt-3">
