@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { Form, Input, message, Row, Col } from "antd";
@@ -8,14 +8,18 @@ import DynamicButton from "../../components/button/DynamicButton";
 import { AuthContext } from "../../contexts/AuthContext";
 
 export default function Verify() {
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [timeLeft, setTimeLeft] = useState(0); // 5 minutes
   const [otpInfo, setOtpInfo] = useState(""); // 5 minutes
-  const [btnVerify, setBtnVerify] = useState("Verify");
-  const { userInfo, showMsg,showNotification } = useContext(AuthContext);
+  const { userInfo, showMsg, showNotification } = useContext(AuthContext);
+
+  useEffect(() => {
+    console.log(location.state)
+  }, [location])
+  
 
   const onFinish = () => {
     const otpCode = otp.join("");
@@ -33,6 +37,15 @@ export default function Verify() {
         if (response.result) {
           if (userInfo?.is_change_password) {
             navigate("/change-password");
+          } else if (location?.state) {
+            localStorage.setItem("accessToken", response.data.token);
+            localStorage.setItem(
+              "expiredToken",
+              response.data.token_expired_date
+            );
+            showNotification("success", response.message).then(() => {
+              navigate("/change-password");
+            });
           } else {
             navigate("/");
           }
@@ -88,18 +101,23 @@ export default function Verify() {
   };
 
   const callOtpPhone = () => {
+    let phone;
+    if (location.state) {
+      phone = location?.state.phone_number_otp;
+      user_name = location?.state.user_name;
+    } else {
+      phone = userInfo?.phone_number_otp;
+      user_name = userInfo?.user_name;
+
+    }
+
     useServiceAPI
-      .post(
-        paths.pathOtpCall,
-        { phone_number: userInfo.phone_number_otp },
-        setLoading
-      )
+      .post(paths.pathOtpCall, { phone_number: phone }, setLoading)
       .then((response) => {
         if (response.status == 200) {
           console.log(response);
           setTimeLeft(300);
           setOtpInfo(response.data.data);
-          // showMsg("success", response.data.message);
         }
       })
       .catch((error) => {
@@ -113,7 +131,9 @@ export default function Verify() {
   };
 
   useEffect(() => {
-    callOtpPhone();
+    if (userInfo?.phone_number_otp || location?.state?.phone_number) {
+      // callOtpPhone();
+    }
   }, []);
 
   return (
@@ -125,7 +145,7 @@ export default function Verify() {
         <p className="text-[#00783F] text-xl font-bold">OTP Verification</p>
         <p className="text-[#978B87]">Enter the OTP sent to</p>
         <p className="text-[#00783F] text-xl font-bold">
-          {userInfo.phone_number_display}
+          {userInfo?.phone_number_display}
         </p>
         <Form
           name="otpVerification"
