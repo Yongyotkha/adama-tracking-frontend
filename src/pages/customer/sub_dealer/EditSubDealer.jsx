@@ -46,10 +46,7 @@ export default function EditSubDealer() {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [dataApiKey, setDataApiKay] = useState("AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik");
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState({
-    lat: 13.9572612,
-    lng: 100.6222401,
-  });
+  const [currentLocation, setCurrentLocation] = useState({});
   const [dataMapZoom, setDataMapZoom] = useState(10);
   const mode = location.state.mode; 
   const isViewMode = mode === "View";
@@ -87,7 +84,10 @@ export default function EditSubDealer() {
         const { data } = response;
         console.log(data.location_latitude);
         console.log(data.location_longitude);
-                                       
+        const lat = parseFloat(data.location_latitude) || 13.9572612; 
+        const lng = parseFloat(data.location_longitude) || 100.6222401;   
+        setCurrentLocation({ lat, lng });
+
         setcompanyinfo(data);
         setProfileImage(data.photo_path); 
         setContactItems(data.contact_items);
@@ -232,7 +232,7 @@ export default function EditSubDealer() {
       type: "text",
       required: false,
       col: 24,
-      value: companyinfo.outlet_location,
+      value: companyinfo.location_address,
       iconSrc: "/img/icons/location.png",
       iconPosition: "right",
     },
@@ -403,10 +403,6 @@ export default function EditSubDealer() {
     const handleMarkerDragEnd = async (event) => {
       const lat = event.latLng.lat();
       const lng = event.latLng.lng();
-      console.log(lat);
-      console.log(lng);
-  
-      // ใช้ Geocoder เพื่อค้นหาชื่อสถานที่
       const geocoder = new window.google.maps.Geocoder();
       const latlng = { lat, lng };
     
@@ -416,10 +412,10 @@ export default function EditSubDealer() {
           const locationName = response.results[0].formatted_address;
     
           // อัปเดต Outlet Location
-          form.setFieldsValue({ outlet_location: locationName });
+          form.setFieldsValue({ location_address: locationName });
           setcompanyinfo((prev) => ({
             ...prev,
-            outlet_location: locationName,
+            location_address: locationName,
           }));
     
           showNotification("success", `Location updated: ${locationName}`);
@@ -496,9 +492,7 @@ export default function EditSubDealer() {
               line_id: contact.line_id || null,
             })),
             crop_list: defaultSelectedCrops || [],
-          };
-              console.log(payload);
-              
+          };              
             useServiceAPI
             .put(paths.pathSubDealerDetailUpdate, payload, setLoading)
             .then((response) => {
@@ -560,47 +554,47 @@ export default function EditSubDealer() {
         </GoogleMap>
     </LoadScript>
 
-      <BoxPrimary title="Crop">
-          <Select
-            mode="multiple"
-            showSearch
-            placeholder="Select Crop(s)"
-            optionFilterProp="children"
-            className="w-full"
-            value={defaultSelectedCrops} 
-            onChange={(value) => setDefaultSelectedCrops(value)} // จัดการการเปลี่ยนแปลงค่า
-            options={transformedCropOptions} 
-            disabled={isViewMode}
-          />
-      </BoxPrimary>
+    <BoxPrimary title="Crop">
+        <Select
+          mode="multiple"
+          showSearch
+          placeholder="Select Crop(s)"
+          optionFilterProp="children"
+          className="w-full"
+          value={defaultSelectedCrops} 
+          onChange={(value) => setDefaultSelectedCrops(value)} // จัดการการเปลี่ยนแปลงค่า
+          options={transformedCropOptions} 
+          disabled={isViewMode}
+        />
+    </BoxPrimary>
 
-      <BoxPrimary>
-        <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-lg font-semibold">Contact Person</span>
-          {!isViewMode && ( 
-            <ActionButton
-              mode="add"
-              text="Add"
-              onClick={() => {
-                setContactItems([
-                  ...contactItems,
-                  {
-                    name: "",
-                    phone: "",
-                    email: "",
-                    position: ""
-                  }
-                ]);
-              }}
-            />
-          )}
-        </div>
-        {contactItems.length > 0 ? (
-          renderContactItems()
-        ) : (
-          <div className="text-gray-500"></div>
+    <BoxPrimary>
+      <div className="flex justify-between mb-4">
+        <span className="text-[#00783F] text-lg font-semibold">Contact Person</span>
+        {!isViewMode && ( 
+          <ActionButton
+            mode="add"
+            text="Add"
+            onClick={() => {
+              setContactItems([
+                ...contactItems,
+                {
+                  name: "",
+                  phone: "",
+                  email: "",
+                  position: ""
+                }
+              ]);
+            }}
+          />
         )}
-      </BoxPrimary>
+      </div>
+      {contactItems.length > 0 ? (
+        renderContactItems()
+      ) : (
+        <div className="text-gray-500"></div>
+      )}
+    </BoxPrimary>
 
       {/* Action Buttons */}
       <div className="flex justify-end space-x-4 mt-6">

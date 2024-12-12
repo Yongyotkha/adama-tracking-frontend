@@ -85,11 +85,130 @@ export default function CreateSubDealer() {
     fetchData();
   }, []);
 
+  // const [formFields, setFormFields] = useState([
+  //   {
+  //     label: "",
+  //     name: "profile",
+  //     type: "picture", // เพิ่มรูปภาพในลูป
+  //     required: false,
+  //     col: 24,
+  //   },
+  //   {
+  //     label: "Shop Name",
+  //     name: "shop_name",
+  //     type: "text",
+  //     required: true,
+  //     col: 6,
+  //   },
+  //   {
+  //     label: "Mobile Phone",
+  //     name: "mobile_phone",
+  //     type: "text",
+  //     required: false,
+  //     col: 6,
+  //   },
+  //   {
+  //     label: "Address",
+  //     name: "address",
+  //     type: "text",
+  //     required: false,
+  //     col: 12,
+  //   },
+  //   {
+  //     label: "Office Hours",
+  //     name: "day_of_week",
+  //     type: "multiple",
+  //     options: [
+  //       { name: "Monday", id: "Monday", selected: true },
+  //       { name: "Tuesday", id: "Tuesday", selected: false },
+  //       { name: "Wednesday", id: "Wednesday", selected: false },
+  //       { name: "Thursday", id: "Thursday", selected: false },
+  //       { name: "Friday", id: "Friday", selected: false },
+  //       { name: "Saturday", id: "Saturday", selected: false },
+  //       { name: "Sunday", id: "Sunday", selected: false },
+  //     ],
+  //     required: false,
+  //     col: 6,
+  //     iconSrc: "/img/icons/calendar.png",
+  //     iconPosition: "right",
+  //   },
+  //   {
+  //     label: "Start Time",
+  //     name: "start_time",
+  //     type: "time",
+  //     required: false,
+  //     col: 6,
+  //     value: null,
+  //   },
+  //   {
+  //     label: "End Time",
+  //     name: "end_time",
+  //     type: "time",
+  //     required: false,
+  //     col: 6,
+  //     value: "",
+  //   },
+  //   {
+  //     label: "Business Size",
+  //     name: "business_size",
+  //     type: "select",
+  //     required: true,
+  //     col: 6,
+  //     options: [
+  //       { name: "Small", id: "Small", selected: true },
+  //       { name: "Medium", id: "Medium", selected: false },
+  //       { name: "Large", id: "Large", selected: false },
+  //     ],
+  //   },
+  //   {
+  //     label: "Email",
+  //     name: "email",
+  //     type: "email",
+  //     required: false,
+  //     col: 6,
+  //     value: "",
+  //   },
+  //   {
+  //     label: "Outlet Location",
+  //     name: "outlet_location",
+  //     type: "text",
+  //     required: false,
+  //     col: 6,
+  //     value: "",
+  //     iconSrc: "/img/icons/location.png",
+  //     iconPosition: "right",
+  //   },
+  //   {
+  //     label: "T-Shirt Size",
+  //     name: "tshirt_size",
+  //     type: "text",
+  //     required: false,
+  //     col: 6,
+  //     value: "",
+  //   },
+  //   {
+  //     label: "Anniversary",
+  //     name: "anniversary",
+  //     type: "date",
+  //     required: false,
+  //     col: 6,
+  //     value: "",
+  //   },
+  //   {
+  //     label: "Remark",
+  //     name: "remark",
+  //     type: "text",
+  //     required: false,
+  //     col: 24,
+  //     value: "",
+  //   },
+  // ]);
+
   const [formFields, setFormFields] = useState([
     {
       label: "",
-      name: "profile",
-      type: "picture", // เพิ่มรูปภาพในลูป
+      name: "profile", // ชื่อฟิลด์ในฟอร์ม
+      type: "picture", // ประเภทฟิลด์
       required: false,
       col: 24,
     },
@@ -97,7 +216,7 @@ export default function CreateSubDealer() {
       label: "Shop Name",
       name: "shop_name",
       type: "text",
-      required: true,
+      required: false,
       col: 6,
     },
     {
@@ -106,13 +225,6 @@ export default function CreateSubDealer() {
       type: "text",
       required: false,
       col: 6,
-    },
-    {
-      label: "Address",
-      name: "address",
-      type: "text",
-      required: false,
-      col: 12,
     },
     {
       label: "Office Hours",
@@ -138,7 +250,6 @@ export default function CreateSubDealer() {
       type: "time",
       required: false,
       col: 6,
-      value: null,
     },
     {
       label: "End Time",
@@ -146,65 +257,69 @@ export default function CreateSubDealer() {
       type: "time",
       required: false,
       col: 6,
-      value: "",
     },
-    {
-      label: "Business Size",
-      name: "business_size",
-      type: "select",
-      required: true,
-      col: 6,
-      options: [
-        { name: "Small", id: "Small", selected: true },
-        { name: "Medium", id: "Medium", selected: false },
-        { name: "Large", id: "Large", selected: false },
-      ],
-    },
+    // {
+    //   label: "Business Size",
+    //   name: "business_size",
+    //   type: "select",
+    //   options: [
+    //     { name: "Small", id: 1, selected: true },
+    //     { name: "Medium", id: 2, selected: false },
+    //     { name: "Large", id: 3, selected: false },
+    //   ],
+    //   required: false,
+    //   col: 6,
+    //   value: companyinfo.business_size,
+    // },
     {
       label: "Email",
       name: "email",
       type: "email",
       required: false,
       col: 6,
-      value: "",
     },
+    // {
+    //   label: "T-Shirt Size",
+    //   name: "tshirt_size",
+    //   type: "text",
+    //   required: false,
+    //   col: 6,
+    //   value: companyinfo.t_shirt_size,
+    // },
+    // {
+    //   label: "Anniversary",
+    //   name: "anniversary",
+    //   type: "date",
+    //   required: false,
+    //   col: 6,
+    //   value: companyinfo.anniversary,
+    // },
     {
-      label: "Outlet Location",
-      name: "outlet_location",
+      label: "Address",
+      name: "address",
       type: "text",
       required: false,
-      col: 6,
-      value: "",
-      iconSrc: "/img/icons/location.png",
-      iconPosition: "right",
-    },
-    {
-      label: "T-Shirt Size",
-      name: "tshirt_size",
-      type: "text",
-      required: false,
-      col: 6,
-      value: "",
-    },
-    {
-      label: "Anniversary",
-      name: "anniversary",
-      type: "date",
-      required: false,
-      col: 6,
-      value: "",
+      col: 12,
     },
     {
       label: "Remark",
       name: "remark",
       type: "text",
       required: false,
+      col: 12,
+    },
+    {
+      label: "Outlet Location",
+      name: "outlet_location",
+      type: "text",
+      required: false,
       col: 24,
-      value: "",
+      value: companyinfo.location_address,
+      iconSrc: "/img/icons/location.png",
+      iconPosition: "right",
     },
   ]);
 
-  
 
   const transformedCropOptions = cropOptions.map((option) => ({
     label: option.name, // เปลี่ยนจาก name เป็น label
@@ -362,7 +477,10 @@ export default function CreateSubDealer() {
           ? dayjs(values.end_time).format("HH:mm")
           : "",
           business_size: values.business_size || "",
-          outlet_location: values.outlet_location || "",
+          // outlet_location: values.outlet_location || "",
+          location_address: values.outlet_location || "",
+          location_longitude: currentLocation.lng || "",
+          location_latitude: currentLocation.lat  || "",
           t_shirt_size: values.tshirt_size || "",
           anniversary: values.anniversary
             ? dayjs(values.anniversary).format("YYYY-MM-DD")

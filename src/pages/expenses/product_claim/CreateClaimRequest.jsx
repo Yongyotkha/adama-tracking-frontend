@@ -27,6 +27,7 @@ export default function CreateClaimRequest() {
   const [modalContent, setModalContent] = useState("");
   const [dataSale, setDataSale] = useState([]);
   const [dataDealer, setDataDealer] = useState([]);
+  const [dataProductUnits, setDataProductUnits] = useState([]);
   const navigate = useNavigate();
   const [formCustom] = Form.useForm();
   // State for Order List table data
@@ -119,7 +120,7 @@ export default function CreateClaimRequest() {
         url_product: element.product_list[0],
         url_overall: element.overall_list[0],
         url_other: element.other_list[0],
-        quantity: element.quantity
+        quantity: element.quantity,
       };
       newData.push(item);
     });
@@ -137,8 +138,8 @@ export default function CreateClaimRequest() {
               user_id: value,
             }),
           ]);
-
           setDataDealer(dealer.data);
+          
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
         } finally {
@@ -154,6 +155,26 @@ export default function CreateClaimRequest() {
     }
   };
 
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [product_unit] =
+          await Promise.all([
+            useServiceAPI.get(paths.pathMasterProductUnit, {}),
+          ]);
+          setDataProductUnits(product_unit.data)
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+    
   const handleQuantityChange = (key, newQuantity) => {
     setDataSource((prevData) =>
       prevData.map((item) => {
@@ -175,6 +196,20 @@ export default function CreateClaimRequest() {
     setModalContent("");
   };
 
+  const handleChangeDealer = (key, value) => {
+    console.log(key);
+    console.log(value);
+
+    setDataSource((prevData) =>
+      prevData.map((item) =>
+        item.key === key ? { ...item, product_unit: value } : item
+      )
+    
+      
+    );
+  };
+
+  
   const header = [
     { title: "No", dataIndex: "no", key: "no", align: "center" },
     { title: "SKU", dataIndex: "sku", key: "sku", align: "center" },
@@ -198,6 +233,24 @@ export default function CreateClaimRequest() {
           />
           <img src="/img/icons/expand.png" alt="+" className="cursor-pointer w-6 h-6" onClick={() => handleQuantityChange(record.key, record.quantity + 1)} />
         </div>
+      ),
+    },
+    { 
+      title: <div className="text-center">Product Unit</div>,
+      dataIndex: "product_unit", // แทนที่ "name" ด้วย "dataIndex"
+      key: "product_unit",
+      render: (_, record) => (
+        <select
+          className="ant-input css-dev-only-do-not-override-5ck91v ant-input-outlined border border-solid border-[#00783F] text-[#00783F] text-center mx-2 min-w-24"
+          value={record.product_unit}
+          onChange={(e) => handleChangeDealer(record.key, e.target.value)}
+        >
+          {dataProductUnits.map((product_unit) => (
+            <option key={product_unit.id} value={product_unit.id}>
+              {product_unit.name}
+            </option>
+          ))}
+        </select>
       ),
     },
     {
@@ -262,7 +315,7 @@ export default function CreateClaimRequest() {
 
   const footerOrderList = () => (
     <tr className="bg-[#978B87]">
-      <td colSpan={11} className="text-right pr-2 text-white">
+      <td colSpan={13} className="text-right pr-2 text-white">
         Item: {dataSource.length} &nbsp; QTY (ctn): {dataSource.reduce((total, item) => total + Math.floor(item.quantity), 0)}
       </td>
     </tr>
@@ -307,9 +360,14 @@ export default function CreateClaimRequest() {
   const saveClaim = () => {
     let allValuesBasic = formCustom.getFieldsValue();
     allValuesBasic.create_date = dayjs(allValuesBasic.create_date).format('YYYY-MM-DD');
-
     let products = [];
+    console.log(allValuesBasic);
+    
+    console.log(dataSource);
+    
     dataSource.forEach(element => {
+      console.log(element.product_unit);
+      
       const data = {
         "product_id": element.product.product_id ?? element.product.id,
         "product_code": element.product.product_code,
@@ -317,6 +375,7 @@ export default function CreateClaimRequest() {
         "product_unit": element.product.packing_list,
         "product_unit_thb": element.product.bath_unit,
         "quantity": document.getElementById(`qty-${element.product.id}`).value,
+        "unit": element.product_unit,
         "lot_number": element.lotNo,
         "reason": element.reason,
         "label_list": element.url_label ? [element.url_label] : [],
@@ -324,7 +383,7 @@ export default function CreateClaimRequest() {
         "overall_list": element.url_overall ? [element.url_overall] : [],
         "other_list": element.url_other ? [element.url_other] : []
       };
-      products.push(data);
+      products.push(data);      
     });
     const body = {
       "document_number": documentNumber ?? null,
