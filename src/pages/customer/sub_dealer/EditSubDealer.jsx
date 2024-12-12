@@ -26,6 +26,7 @@ import BadgeStatus from "../../../components/badge/BadgeStatus";
 import TableComponent from "../../../components/table/TableComponent";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import DynamicModal from "../../../components/modal/DynamicModal"; 
+import { GoogleMap, LoadScript, Marker} from "@react-google-maps/api";
 
 
 const { Option } = Select;
@@ -43,14 +44,20 @@ export default function EditSubDealer() {
   const [contacts, setContacts] = useState([]);
   const [profileImage, setProfileImage] = useState("/img/profile.jpg"); // Default value
   const [dataLoaded, setDataLoaded] = useState(false);
-
+  const [dataApiKey, setDataApiKay] = useState("AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik");
+  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState({
+    lat: 13.9572612,
+    lng: 100.6222401,
+  });
+  const [dataMapZoom, setDataMapZoom] = useState(10);
   const mode = location.state.mode; 
   const isViewMode = mode === "View";
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        
         await fetchPromotionDetails(location.state.id);
         const [crops] = await Promise.all([
           useServiceAPI.get(paths.pathMasterCrop, {}),
@@ -77,15 +84,17 @@ export default function EditSubDealer() {
         `${paths.pathSubDealerDetail}?id=${id}`
       );
       if (response.status === 200) {
-        const { data } = response;                        
+        const { data } = response;
+        console.log(data.location_latitude);
+        console.log(data.location_longitude);
+                                       
         setcompanyinfo(data);
         setProfileImage(data.photo_path); 
         setContactItems(data.contact_items);
-
         setCropOptions(data.crop_list || []);
         const cropNames = data.crop_list?.map((crop) => Number(crop.id)) || [];
         setDefaultSelectedCrops(cropNames);
-        
+
       } else {
         console.error("Failed to fetch data:", response.message);
       }
@@ -164,19 +173,19 @@ export default function EditSubDealer() {
       : null,
       // value: companyinfo.end_time
     },
-    {
-      label: "Business Size",
-      name: "business_size",
-      type: "select",
-      options: [
-        { name: "Small", id: 1, selected: true },
-        { name: "Medium", id: 2, selected: false },
-        { name: "Large", id: 3, selected: false },
-      ],
-      required: false,
-      col: 6,
-      value: companyinfo.business_size,
-    },
+    // {
+    //   label: "Business Size",
+    //   name: "business_size",
+    //   type: "select",
+    //   options: [
+    //     { name: "Small", id: 1, selected: true },
+    //     { name: "Medium", id: 2, selected: false },
+    //     { name: "Large", id: 3, selected: false },
+    //   ],
+    //   required: false,
+    //   col: 6,
+    //   value: companyinfo.business_size,
+    // },
     {
       label: "Email",
       name: "email",
@@ -185,32 +194,22 @@ export default function EditSubDealer() {
       col: 6,
       value: companyinfo.email
     },
-    {
-      label: "Outlet Location",
-      name: "outlet_location",
-      type: "text",
-      required: false,
-      col: 6,
-      value: companyinfo.outlet_location,
-      iconSrc: "/img/icons/location.png",
-      iconPosition: "right",
-    },
-    {
-      label: "T-Shirt Size",
-      name: "tshirt_size",
-      type: "text",
-      required: false,
-      col: 6,
-      value: companyinfo.t_shirt_size,
-    },
-    {
-      label: "Anniversary",
-      name: "anniversary",
-      type: "date",
-      required: false,
-      col: 6,
-      value: companyinfo.anniversary,
-    },
+    // {
+    //   label: "T-Shirt Size",
+    //   name: "tshirt_size",
+    //   type: "text",
+    //   required: false,
+    //   col: 6,
+    //   value: companyinfo.t_shirt_size,
+    // },
+    // {
+    //   label: "Anniversary",
+    //   name: "anniversary",
+    //   type: "date",
+    //   required: false,
+    //   col: 6,
+    //   value: companyinfo.anniversary,
+    // },
     {
       label: "Address",
       name: "address",
@@ -224,11 +223,20 @@ export default function EditSubDealer() {
       name: "remark",
       type: "text",
       required: false,
-      col: 24,
+      col: 12,
       value: companyinfo.remark
     },
+    {
+      label: "Outlet Location",
+      name: "outlet_location",
+      type: "text",
+      required: false,
+      col: 24,
+      value: companyinfo.outlet_location,
+      iconSrc: "/img/icons/location.png",
+      iconPosition: "right",
+    },
   ];
-
 
   if (isViewMode) {
     formFields = formFields.map(field => ({
@@ -264,7 +272,7 @@ export default function EditSubDealer() {
           <span className="text-[#00783F] text-md">{`Person ${index + 1}`}</span>
           {index > 0 && !isViewMode && (
           <ActionButton
-            mode="reject"
+            mode="delete"
             text="Delete"
             onClick={() => handleRemoveContact(index)}
             disabled={isViewMode}
@@ -386,6 +394,64 @@ export default function EditSubDealer() {
     ));
 
 
+
+    const mapContainerStyle = {
+      width: "100%",
+      height: "30vh",
+    };
+  
+    const handleMarkerDragEnd = async (event) => {
+      const lat = event.latLng.lat();
+      const lng = event.latLng.lng();
+      console.log(lat);
+      console.log(lng);
+  
+      // ใช้ Geocoder เพื่อค้นหาชื่อสถานที่
+      const geocoder = new window.google.maps.Geocoder();
+      const latlng = { lat, lng };
+    
+      try {
+        const response = await geocoder.geocode({ location: latlng });
+        if (response.results && response.results.length > 0) {
+          const locationName = response.results[0].formatted_address;
+    
+          // อัปเดต Outlet Location
+          form.setFieldsValue({ outlet_location: locationName });
+          setcompanyinfo((prev) => ({
+            ...prev,
+            outlet_location: locationName,
+          }));
+    
+          showNotification("success", `Location updated: ${locationName}`);
+          // อัปเดตตำแหน่งปัจจุบันใน State
+          setCurrentLocation({ lat, lng });
+        } else {
+          showNotification("error", "No address found for this location.");
+        }
+      } catch (error) {
+        console.error("Geocoder failed due to:", error);
+        showNotification("error", "Unable to fetch location name.");
+      }
+    
+
+    };
+    
+    useEffect(() => {
+      const checkGoogleMaps = () => {
+        if (window.google && window.google.maps) {
+          setIsGoogleLoaded(true);
+        } else {
+          const interval = setInterval(() => {
+            if (window.google && window.google.maps) {
+              clearInterval(interval);
+              setIsGoogleLoaded(true);
+            }
+          }, 500);
+        }
+      };
+      checkGoogleMaps();
+    }, []);
+    
     const handleSave = () => {
       form
         .validateFields()
@@ -397,24 +463,22 @@ export default function EditSubDealer() {
             address: values.address || "",
             email: values.email || "",
             day_of_week: values.day_of_week ,
-            // start_time: values.start_time || "",
-            // end_time: values.end_time || "",
             start_time: values.start_time
             ? dayjs(values.start_time).format("HH:mm")
             : "",
             end_time: values.end_time
             ? dayjs(values.end_time).format("HH:mm")
             : "",
-
             business_size: values.business_size || "",
-            outlet_location: values.outlet_location || "",
+            location_address: values.outlet_location || "",
+            location_longitude: currentLocation.lng || "",
+            location_latitude: currentLocation.lat  || "",
             t_shirt_size: values.tshirt_size || "",
             anniversary: values.anniversary
               ? dayjs(values.anniversary).format("YYYY-MM-DD")
               : null,
             remark: values.remark || "",
-            photo_path: values.profile, // ตัวอย่าง placeholder
-            
+            photo_path: values.profile, 
             contact_items: contactItems.map((contact) => ({
               name_en: contact.name_en || "",
               contact_number: contact.contact_number || "",
@@ -433,8 +497,9 @@ export default function EditSubDealer() {
             })),
             crop_list: defaultSelectedCrops || [],
           };
-    
-              useServiceAPI
+              console.log(payload);
+              
+            useServiceAPI
             .put(paths.pathSubDealerDetailUpdate, payload, setLoading)
             .then((response) => {
               if (response.status === 200) {
@@ -458,20 +523,44 @@ export default function EditSubDealer() {
     };
 
 
+
   return (
     <MainLayout loading={loading}>
       <div className="title-page"></div>
       <div className="title-page">{isViewMode ? "View Sub Dealer" : "Edit Sub Dealer"}</div>
-
       {/* <FormUser  profile={profileImage}  title="Personal Info" fields={formFields} form={form}/> */}
-
       {dataLoaded ? (
         <FormUser profile={profileImage} fields={formFields} form={form} />
       ) : (
         <div></div>
       )}
+      
+    <LoadScript googleMapsApiKey={dataApiKey}>
+        <GoogleMap
+          mapContainerStyle={mapContainerStyle}
+          center={currentLocation}
+          zoom={dataMapZoom}
+          onClick={(e) => {
+            const lat = e.latLng.lat();
+            const lng = e.latLng.lng();
+            setCurrentLocation({ lat, lng });
+          }}
+        >
+          {isGoogleLoaded && (
+            <Marker 
+              position={currentLocation}
+              icon={{
+                url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
+                scaledSize: { width: 30, height: 30 },
+              }}
+              draggable={true}
+              onDragEnd={handleMarkerDragEnd} 
+            />
+          )}
+        </GoogleMap>
+    </LoadScript>
 
-      <BoxPrimary>
+      <BoxPrimary title="Crop">
           <Select
             mode="multiple"
             showSearch
@@ -484,6 +573,7 @@ export default function EditSubDealer() {
             disabled={isViewMode}
           />
       </BoxPrimary>
+
       <BoxPrimary>
         <div className="flex justify-between mb-4">
           <span className="text-[#00783F] text-lg font-semibold">Contact Person</span>
@@ -504,23 +594,11 @@ export default function EditSubDealer() {
               }}
             />
           )}
-
-          {/* <ActionButton mode="add" text="Add" onClick={() => {
-              setContactItems([
-              ...contactItems,
-              {
-                name: "", // Default value for name field
-                phone: "", // Default value for phone field
-                email: "", // Default value for email field
-                position: "" // Default value for position field
-              }
-            ]);
-          }} /> */}
         </div>
         {contactItems.length > 0 ? (
           renderContactItems()
         ) : (
-          <div className="text-gray-500">No contact person information available</div>
+          <div className="text-gray-500"></div>
         )}
       </BoxPrimary>
 
