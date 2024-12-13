@@ -424,12 +424,14 @@ export default function ActivityMapping() {
   }, [checkedFilters]);
 
   const handleSearch = (text) => {
+    console.log(text);
+    
     if (text) {
       // Filter names from dataMapping
       const results = dataMapping.filter((item) =>
         item.location_address.toLowerCase().includes(text.toLowerCase())
       );
-
+ 
       // Update search options for AutoComplete
       setSearchOptions(
         results.map((item) => ({
@@ -575,14 +577,14 @@ export default function ActivityMapping() {
                         area_name: location.area_name,
                         crop_list: location.crop_id_list,
                         document_date_display: location.document_date_display,
-                      };
+                      };                      
                       setlocationWindowInfo(newLocationWindowInfo);
 
-                      // Log the necessary details to the console
-                      console.log("Dealer Name:", newLocationWindowInfo.dealer_name);
-                      console.log("Address:", newLocationWindowInfo.address);
-                      console.log("Crops List:", newLocationWindowInfo.crop_list);
-                      console.log("Document Date Display:", newLocationWindowInfo.document_date_display);
+                      // // Log the necessary details to the console
+                      // console.log("Dealer Name:", newLocationWindowInfo.dealer_name);
+                      // console.log("Address:", newLocationWindowInfo.address);
+                      // console.log("Crops List:", newLocationWindowInfo.crop_list);
+                      // console.log("Document Date Display:", newLocationWindowInfo.document_date_display);
                     }}
                   />
 
