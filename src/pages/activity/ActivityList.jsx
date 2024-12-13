@@ -5,6 +5,7 @@ import { Dropdown } from "antd";
 import ActionButton from "../../components/button/ActionButton";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import TableComponent from "../../components/table/TableComponent";
+import BadgeStatus from "../../components/badge/BadgeStatus";
 import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../components/dropdown/ItemDropDown";
 import DynamicModal from "../../components/modal/DynamicModal";
@@ -169,10 +170,10 @@ export default function ActivityList() {
     { title: "Activity Type", width: 150, dataIndex: "activityType", align: "start" },
     { title: "Sale", width: 150, dataIndex: "sale", align: "start" },
     { title: "Shop", width: 150, dataIndex: "shop", align: "start" },
-    { title: "Key Product", width: 100, dataIndex: "keyProduct", align: "start" },
     { title: "Date", width: 150, dataIndex: "date", align: "start" },
     { title: "Time", width: 100, dataIndex: "time", align: "start", className: "text-nowrap" },
     { title: "Create Date", width: 100, dataIndex: "createdAt", align: "start", className: "text-nowrap" },
+    { title: "Mapping", width: 150, dataIndex: "mappingStatus", align: "start" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
@@ -235,10 +236,16 @@ export default function ActivityList() {
             activityType: row.activity_type_name,
             shop: row.dealer_name ?? '-',
             sale: row.user_name ?? '-',
-            keyProduct: row.key_product ?? '-',
             date: row.document_date,
             time: row.time,
             createdAt: dayjs(row.created_at).format("YYYY-MM-DD"),
+            mappingStatus: (
+              <BadgeStatus
+                text={row.status_mapping_name}
+                bgColor={row.status_mapping_bg_color}
+                textColor={row.status_mapping_color}
+              />
+            ),
             action: (
               <Dropdown menu={{ items: actionItems }} placement="bottomRight">
                 <a onClick={(e) => e.preventDefault()}>
@@ -248,7 +255,6 @@ export default function ActivityList() {
             ),
           };
         });
-        
 
         setDataSource(newDataSource);
         setTableParams({

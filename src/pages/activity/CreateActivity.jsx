@@ -104,18 +104,135 @@ export default function CreateActivity() {
   const menuURL = (pageCode == 'expense_advance' ? '/expenses/advance' : (pageCode == 'expense_clearing' ? '/expenses/clearing' : '/activity/list'));
 
   const formFields = [
-    { label: menuTitle + " No", name: "document_number", type: "text", disabled: true, required: false, col: 24, value: activityDetail.document_number ?? "", placeholder:"Generate"},
-    { label: "Activity Reference", name: "activity_reference", type: pageCode != 'activity_transaction' ? (viewSegment ? "hidden" : "search") : "hidden", disabled: viewSegment ?? false, required: false, col: 24, value: ""},
-    { label: "Activity Type", name: "activity_type_id", type: "select", options: activityList, disabled: viewSegment ?? false, required: true, col: 8, value: activityDetail.activity_type_id ?? "" },
-    { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: viewSegment ?? false, required: true, col: 8, value: activityDetail.user_id ?? "", moderef: true},
-    { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: viewSegment ?? false, required: true, col: 8, value: activityDetail.dealer_id ?? "", moderef: true},
-    { label: "Crop", name: "crop_id_list", type: "select", mode: "multiple", options: cropList, disabled: viewSegment ?? false, required: true, col: 6, value: cropDetailList, moderef: true},
-    { label: "Date", name: "document_date", type: "date", disabled: viewSegment ?? false, required: true, col: 6, value: activityDetail.document_date ?? dayjs().format("YYYY-MM-DD") },
-    { label: "Start Time", name: "time_start", type: "select", options:timeList, disabled: viewSegment ?? false, required: false, col: 6, value: activityDetail.time_start ?? "" },
-    { label: "End Time", name: "time_end", type: "select", options:timeList, disabled: viewSegment ?? false, required: false, col: 6, value: activityDetail.time_end ?? "" },
-    { label: "Location", name: "location_address", type: "location", disabled: viewSegment ?? false, required: false, col: 24, value: activityDetail.location_address ?? "", iconSrc: "/img/icons/location.png", iconPosition: "left" },
-    { label: "Description", name: "description", type: "text-editor", disabled: viewSegment ?? false, required: false, col: 24, placeholder: "Add description", value: activityDetail.description ?? "" },
-    { label: "Assign", name: "assing_user_list", type: "select", mode: "multiple", options: saleAllList, disabled: viewSegment ?? false, required: false, col: 24, value: assignList},
+    {
+      label: menuTitle + " No",
+      name: "document_number",
+      type: "text",
+      disabled: true,
+      required: false,
+      col: 24,
+      value: activityDetail.document_number ?? "",
+      placeholder: "Generate",
+    },
+    {
+      label: "Activity Reference",
+      name: "activity_reference",
+      type:
+        pageCode != "activity_transaction"
+          ? viewSegment
+            ? "hidden"
+            : "search"
+          : "hidden",
+      disabled: viewSegment ?? false,
+      required: false,
+      col: 24,
+      value: "",
+    },
+    {
+      label: "Activity Type",
+      name: "activity_type_id",
+      type: "select",
+      options: activityList,
+      disabled: viewSegment ?? false,
+      required: true,
+      col: 8,
+      value: activityDetail.activity_type_id ?? "",
+    },
+    {
+      label: "Sale",
+      name: "user_id",
+      type: "select",
+      options: saleList,
+      disabled: viewSegment ?? false,
+      required: true,
+      col: 8,
+      value: activityDetail.user_id ?? "",
+      moderef: true,
+    },
+    {
+      label: "Shop",
+      name: "dealer_id",
+      type: "select",
+      options: dealerList,
+      disabled: viewSegment ?? false,
+      required: true,
+      col: 8,
+      value: activityDetail.dealer_id ?? "",
+      moderef: true,
+    },
+    {
+      label: "Crop",
+      name: "crop_id_list",
+      type: "select",
+      mode: "multiple",
+      options: cropList,
+      disabled: viewSegment ?? false,
+      required: true,
+      col: 6,
+      value: cropDetailList,
+      moderef: true,
+    },
+    {
+      label: "Date",
+      name: "document_date",
+      type: "date",
+      disabled: viewSegment ?? false,
+      required: true,
+      col: 6,
+      value: activityDetail.document_date ?? dayjs().format("YYYY-MM-DD"),
+    },
+    {
+      label: "Start Time",
+      name: "time_start",
+      type: "select",
+      options: timeList,
+      disabled: viewSegment ?? false,
+      required: false,
+      col: 6,
+      value: activityDetail.time_start ?? "",
+    },
+    {
+      label: "End Time",
+      name: "time_end",
+      type: "select",
+      options: timeList,
+      disabled: viewSegment ?? false,
+      required: false,
+      col: 6,
+      value: activityDetail.time_end ?? "",
+    },
+    {
+      label: "Location",
+      name: "location_address",
+      type: "location",
+      disabled: viewSegment ?? false,
+      required: false,
+      col: 24,
+      value: activityDetail.location_address ?? "",
+      iconSrc: "/img/icons/location.png",
+      iconPosition: "left",
+    },
+    {
+      label: "Description",
+      name: "description",
+      type: "text-editor",
+      disabled: viewSegment ?? false,
+      required: false,
+      col: 24,
+      placeholder: "Add description",
+      value: activityDetail.description ?? "",
+    },
+    {
+      label: "Assign",
+      name: "assing_user_list",
+      type: "select",
+      mode: "multiple",
+      options: saleAllList,
+      disabled: viewSegment ?? false,
+      required: false,
+      col: 24,
+      value: assignList,
+    },
   ];
 
    // Master
@@ -246,6 +363,9 @@ export default function CreateActivity() {
         if(attribue == 'user_id'){
           await setupDealer(value);
         } else if(attribue == 'dealer_id'){
+          console.log(attribue);
+          console.log(value);
+          
           await setupCropAndDealerCustomer(value);
         } else if(attribue == 'crop_id_list'){
           await setupCrop(value);
@@ -714,7 +834,7 @@ export default function CreateActivity() {
                 address: activityDetail?.expense_customer_address ?? dealerCustomer.customer_address,
                 placeOfOwner: activityDetail?.expense_customer_place_of_owner ?? dealerCustomer.customer_place_of_owner,
                 phoneNumber: activityDetail?.expense_customer_phone_number ?? dealerCustomer.customer_phone_number,
-                perception: activityDetail?.expense_customer_perception_name ?? "Good",
+                perception: activityDetail?.expense_customer_perception_name ?? "",
                 location_customer_address: activityDetail?.expense_customer_location_address ?? locationCustomer.address,
                 location_customer_latitude: activityDetail?.expense_customer_location_latitude ?? locationCustomer.lat,
                 location_customer_longitude: activityDetail?.expense_customer_location_longitude ?? locationCustomer.long
@@ -723,7 +843,7 @@ export default function CreateActivity() {
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Support Customer Name" name="supportCustomerName">
-                    <Input disabled="true"/>
+                    <Input disabled="true" placeholder={dealerCustomer.customer_name}/>
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
@@ -738,13 +858,22 @@ export default function CreateActivity() {
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Perception" name="perception">
-                    <Select>
+                    {/* <Select>
                       {perceptionList.map((option) => (
                         <Option key={option.id} value={option.id}>
                           {option.name}
                         </Option>
                       ))}
-                    </Select>
+                    </Select> */}
+                    <Select
+                        placeholder=""
+                        disabled={false}
+                        allowClear
+                        options={perceptionList.map((option) => ({
+                          label: option.name,
+                          value: String(option.id),
+                        }))}
+                      />
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={24} md={24} lg={24}>
