@@ -181,7 +181,9 @@ export default function ProductClaim() {
             },
             { 
               key: "2", 
-              label: <ItemDropDown mode="approve" link="#" onClick={() => handleApprove(row.document_number)}/> 
+              // label: <ItemDropDown mode="approve" link="#" onClick={() => handleApprove(row.document_number)}/> 
+              label: <ItemDropDown mode="approve" link={`/expenses/product-claim/edit?documentNumber=${encodeURIComponent(row.document_number)}&mode=approve`} /> 
+
             },
           ];
         

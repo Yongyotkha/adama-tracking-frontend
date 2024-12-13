@@ -13,12 +13,14 @@ import dayjs from "dayjs";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { values } from "lodash";
 import { useLocation } from "react-router-dom";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 
 export default function CreateClaimRequest() {
   const locationParam = useLocation();
   const searchParams = new URLSearchParams(locationParam.search);
   const pathSegments = location.pathname.split('/');
   const documentNumber = searchParams.get("documentNumber");
+  const { confirm } = Modal;
 
   const { showMsg, showNotification } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
@@ -34,7 +36,7 @@ export default function CreateClaimRequest() {
   const [dataSource, setDataSource] = useState([]);
   const [dataClaim, setDataClaim] = useState([]);
   const [formValues, setFormValues] = useState({});
-  
+  const mode = searchParams.get("mode");
   const valueFormCustom = formCustom.getFieldsValue();
 
   const formFields = [
@@ -357,6 +359,52 @@ export default function CreateClaimRequest() {
     }));
   };
 
+  const handleApprove = async (documentNumber) => {
+    confirm({
+      title: "Do you want to approve ?",
+      icon: <ExclamationCircleFilled />,
+      content: [],
+      centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+      async onOk() {
+        try {
+          // Call API to delete the event
+          const response = await useServiceAPI.put(
+            `/claim/status?document_number=${encodeURIComponent(documentNumber)}&status_code=${encodeURIComponent("ODC")}&remark=${encodeURIComponent("อนุมัติ")}`
+          );
+          if (response.status === 200) {
+            // Show success notification
+            showNotification("success", 
+              response.data.message|| "Event deleted successfully!", 
+              response.data.message_line || ["The event has been removed."]
+            ).then(() => {
+              navigate("/expenses/product-claim-list"); // นำทางไปยังหน้าล็อกอิน
+            })
+
+
+          } else {
+            // Show error notification if response is not 200
+            console.error("Failed to approve event:", response.message);
+            showNotification(
+              "error",
+              response.message || "Failed to approve event.",
+              response.message_line || ["Please try again later."]
+            );
+          }
+        } catch (error) {
+          // Handle errors and show an error notification
+          console.error("Error approved event:", error);
+          showNotification(
+            "error",
+            "An error occurred while approved the event.",
+            ["Please try again later."]
+          );
+        }
+      },
+    });
+  };
+
+
+
   const saveClaim = () => {
     let allValuesBasic = formCustom.getFieldsValue();
     allValuesBasic.create_date = dayjs(allValuesBasic.create_date).format('YYYY-MM-DD');
@@ -442,7 +490,9 @@ export default function CreateClaimRequest() {
   return (
     <MainLayout loading={loading}>
       <div className="flex justify-between">
-        <div className="title-page">Create Claim Request</div>
+        <div className="title-page">
+          {mode === "approve" ? "Approve Claim Request" : "Create Claim Request"}
+        </div>
       </div>
 
       {/* Form Section */}
@@ -498,7 +548,13 @@ export default function CreateClaimRequest() {
       {/* Action Buttons */}
       <div className="flex justify-end space-x-4">
         <ActionButton mode="back" text="Back" onClick={backClaim} />
-        <ActionButton mode="save" text="Save" onClick={saveClaim} />
+        {/* <ActionButton mode="save" text="Save" onClick={saveClaim} /> */}
+        {mode === "approve" ? (
+        <ActionButton mode="save" text="Approve" onClick={() => handleApprove(documentNumber)} />
+        ) : (
+          <ActionButton mode="save" text="Save" onClick={saveClaim} />
+        )}
+
       </div>
     </MainLayout>
   );

@@ -22,6 +22,7 @@ export default function CreateOrder() {
   const [dataSource, setDataSource] = useState([]);
   const [dataSourceOther, setDataSourceOther] = useState([]);
   const [dataSale, setDataSale] = useState([]);
+  const [dataSaleId, setDataSaleId] = useState("");
   const [dataDealer, setDataDealer] = useState([]);
   const [searchProductData, setSearchProductData] = useState([]);
   const [getOtherProductData, setGetOtherProductData] = useState([]);
@@ -200,7 +201,7 @@ export default function CreateOrder() {
       disabled: false, 
       required: false, 
       moderef: true,
-      value: "",
+      value: dataSaleId,
     },
     { 
       label: "Dealer", 
@@ -244,6 +245,7 @@ export default function CreateOrder() {
             }),
           ]);
 
+          setDataSaleId(value);
           setDataDealer(dealer.data);
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");

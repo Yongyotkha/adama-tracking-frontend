@@ -47,7 +47,7 @@ export default function EditSubDealer() {
   const [dataApiKey, setDataApiKay] = useState("AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik");
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
   const [currentLocation, setCurrentLocation] = useState({});
-  const [dataMapZoom, setDataMapZoom] = useState(10);
+  const [dataMapZoom, setDataMapZoom] = useState(15);
   const mode = location.state.mode; 
   const isViewMode = mode === "View";
 
@@ -595,7 +595,7 @@ export default function EditSubDealer() {
                     <Marker 
                       position={currentLocation}
                       icon={{
-                        url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
+                        // url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
                         scaledSize: { width: 30, height: 30 },
                       }}
                       draggable={true}
