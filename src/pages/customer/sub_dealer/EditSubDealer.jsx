@@ -104,7 +104,15 @@ export default function EditSubDealer() {
       setLoading(false);
     }
   };
-
+  
+  useEffect(() => {
+    if (companyinfo.remark) {
+      form.setFieldsValue({
+        remark: companyinfo.remark, // กำหนดค่าของ remark ในฟอร์ม
+      });
+    }
+  }, [companyinfo, form]); // อัปเดตเมื่อ companyinfo เปลี่ยน
+  
 
   let formFields = [
     {
@@ -131,6 +139,14 @@ export default function EditSubDealer() {
       required: false,
       col: 6,
       value: companyinfo.mobile_phone
+    },
+    {
+      label: "Address",
+      name: "address",
+      type: "text",
+      required: false,
+      col: 12,
+      value: companyinfo.address,
     },
     {
       label: "Office Hours",
@@ -171,7 +187,6 @@ export default function EditSubDealer() {
       value: companyinfo.end_time
       ? dayjs(companyinfo.end_time, "HH:mm")
       : null,
-      // value: companyinfo.end_time
     },
     // {
     //   label: "Business Size",
@@ -210,21 +225,38 @@ export default function EditSubDealer() {
     //   col: 6,
     //   value: companyinfo.anniversary,
     // },
+
+    // {
+    //   label: "Remark",
+    //   name: "remark",
+    //   type: "text",
+    //   required: false,
+    //   col: 12,
+    //   value: companyinfo.remark
+    // },
     {
-      label: "Address",
-      name: "address",
+      label: "Fertilizer Business",
+      name: "tshirt_size",
       type: "text",
       required: false,
-      col: 12,
-      value: companyinfo.address,
+      col: 6,
+      value: companyinfo.t_shirt_size,
     },
     {
-      label: "Remark",
-      name: "remark",
+      label: "Seed Business",
+      name: "seed_business",
       type: "text",
       required: false,
-      col: 12,
-      value: companyinfo.remark
+      col: 6,
+      value: companyinfo.anniversary,
+    },
+    {
+      label: "Pesticides Business",
+      name: "pesticides_business",
+      type: "text",
+      required: false,
+      col: 6,
+      value: companyinfo.anniversary,
     },
     {
       label: "Outlet Location",
@@ -519,17 +551,73 @@ export default function EditSubDealer() {
 
 
   return (
+
+    <Form form={form} layout="vertical">
+    
     <MainLayout loading={loading}>
       <div className="title-page"></div>
       <div className="title-page">{isViewMode ? "View Sub Dealer" : "Edit Sub Dealer"}</div>
-      {/* <FormUser  profile={profileImage}  title="Personal Info" fields={formFields} form={form}/> */}
+
+
       {dataLoaded ? (
-        <FormUser profile={profileImage} fields={formFields} form={form} />
+        <FormUser 
+          profile={profileImage} 
+          fields={formFields} 
+          form={form} 
+          initialValues={{
+            remark: companyinfo.remark || "", // ค่าเริ่มต้นของ remark
+          }}
+        />
       ) : (
         <div></div>
       )}
       
-    <LoadScript googleMapsApiKey={dataApiKey}>
+            <div className={`bg-white p-4`}
+              style={{
+                boxShadow: "rgba(0, 0, 0, 0.1)", // Optional for a subtle shadow
+                marginTop: "-20px",
+              }}
+            >
+            <div className="text-[#00783F] text-lg font-semibold mb-3">
+      
+              <LoadScript googleMapsApiKey={dataApiKey}>
+                <GoogleMap
+                  mapContainerStyle={mapContainerStyle}
+                  center={currentLocation}
+                  zoom={dataMapZoom}
+                  onClick={(e) => {
+                    const lat = e.latLng.lat();
+                    const lng = e.latLng.lng();
+                    setCurrentLocation({ lat, lng });
+                  }}
+                >
+                  {isGoogleLoaded && (
+                    <Marker 
+                      position={currentLocation}
+                      icon={{
+                        url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
+                        scaledSize: { width: 30, height: 30 },
+                      }}
+                      draggable={true}
+                      onDragEnd={handleMarkerDragEnd} 
+                    />
+                  )}
+                </GoogleMap>
+              </LoadScript>
+      
+      
+              <Form.Item 
+                label="Remark" 
+                name="remark"
+                className="mt-3"
+              >
+                <Input placeholder="Enter Remark" />
+              </Form.Item>
+      
+              </div>
+            </div>
+
+    {/* <LoadScript googleMapsApiKey={dataApiKey}>
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           center={currentLocation}
@@ -552,7 +640,7 @@ export default function EditSubDealer() {
             />
           )}
         </GoogleMap>
-    </LoadScript>
+    </LoadScript> */}
 
     <BoxPrimary title="Crop">
         <Select
@@ -599,8 +687,6 @@ export default function EditSubDealer() {
       {/* Action Buttons */}
       <div className="flex justify-end space-x-4 mt-6">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/customer/sub-dealer")} />
-        {/* <ActionButton htmlType="submit" mode="update" text="Update" onClick={() => navigate("/customer/sub-dealer")} /> */}
-        {/* <ActionButton text="Save" mode="save" onClick={handleSave} /> */}
         {
         !isViewMode && (
           <ActionButton text="Update" mode="update" onClick={handleSave} />
@@ -608,5 +694,8 @@ export default function EditSubDealer() {
         }
       </div>
     </MainLayout>
+    </Form>
+
+
   );
 }

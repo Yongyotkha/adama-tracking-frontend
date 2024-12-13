@@ -207,8 +207,8 @@ export default function CreateSubDealer() {
   const [formFields, setFormFields] = useState([
     {
       label: "",
-      name: "profile", // ชื่อฟิลด์ในฟอร์ม
-      type: "picture", // ประเภทฟิลด์
+      name: "profile", 
+      type: "picture", 
       required: false,
       col: 24,
     },
@@ -225,6 +225,13 @@ export default function CreateSubDealer() {
       type: "text",
       required: false,
       col: 6,
+    },
+    {
+      label: "Address",
+      name: "address",
+      type: "text",
+      required: false,
+      col: 12,
     },
     {
       label: "Office Hours",
@@ -278,35 +285,29 @@ export default function CreateSubDealer() {
       required: false,
       col: 6,
     },
-    // {
-    //   label: "T-Shirt Size",
-    //   name: "tshirt_size",
-    //   type: "text",
-    //   required: false,
-    //   col: 6,
-    //   value: companyinfo.t_shirt_size,
-    // },
-    // {
-    //   label: "Anniversary",
-    //   name: "anniversary",
-    //   type: "date",
-    //   required: false,
-    //   col: 6,
-    //   value: companyinfo.anniversary,
-    // },
     {
-      label: "Address",
-      name: "address",
+      label: "Fertilizer Business",
+      name: "tshirt_size",
       type: "text",
       required: false,
-      col: 12,
+      col: 6,
+      value: companyinfo.t_shirt_size,
     },
     {
-      label: "Remark",
-      name: "remark",
+      label: "Seed Business",
+      name: "seed_business",
       type: "text",
       required: false,
-      col: 12,
+      col: 6,
+      value: companyinfo.anniversary,
+    },
+    {
+      label: "Pesticides Business",
+      name: "pesticides_business",
+      type: "text",
+      required: false,
+      col: 6,
+      value: companyinfo.anniversary,
     },
     {
       label: "Outlet Location",
@@ -318,6 +319,13 @@ export default function CreateSubDealer() {
       iconSrc: "/img/icons/location.png",
       iconPosition: "right",
     },
+    // {
+    //   label: "Remark",
+    //   name: "remark",
+    //   type: "text",
+    //   required: false,
+    //   col: 24,
+    // },
   ]);
 
 
@@ -378,7 +386,6 @@ export default function CreateSubDealer() {
     ]);
   };
   
-
   const updateContact = (index, field, value) => {
     setContacts((prevContacts) =>
       prevContacts.map((contact, i) =>
@@ -387,9 +394,6 @@ export default function CreateSubDealer() {
     );
   };
 
-
-  
-  
   const handlePersonalInfoChange = (field, value) => {
     console.log(field,value);
     
@@ -462,8 +466,7 @@ export default function CreateSubDealer() {
     form
       .validateFields()
       .then((values) => {
-        console.log(values);
-        
+        // console.log(values);
         const payload = {
           name: values.shop_name || "",
           mobile_phone: values.mobile_phone || "",
@@ -539,14 +542,63 @@ export default function CreateSubDealer() {
 
 
   return (
+    <Form form={form} layout="vertical">
+
     <MainLayout loading={loading}>
-      
-      <div className="title-page">Create Sub Dealer</div>
-      <FormUser title="Personal Info" 
+    <div className="title-page">Create Sub Dealer</div>
+      <FormUser 
+        title="Personal Info" 
         fields={formFields} 
         form={form}
       />
 
+      <div className={`bg-white p-4`}
+        style={{
+          boxShadow: "rgba(0, 0, 0, 0.1)", // Optional for a subtle shadow
+          marginTop: "-20px",
+        }}
+      >
+      <div className="text-[#00783F] text-lg font-semibold mb-3">
+
+        <LoadScript googleMapsApiKey={dataApiKey}>
+          <GoogleMap
+            mapContainerStyle={mapContainerStyle}
+            center={currentLocation}
+            zoom={dataMapZoom}
+            onClick={(e) => {
+              const lat = e.latLng.lat();
+              const lng = e.latLng.lng();
+              setCurrentLocation({ lat, lng });
+            }}
+          >
+            {isGoogleLoaded && (
+              <Marker 
+                position={currentLocation}
+                icon={{
+                  url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
+                  scaledSize: { width: 30, height: 30 },
+                }}
+                draggable={true}
+                onDragEnd={handleMarkerDragEnd} 
+              />
+            )}
+          </GoogleMap>
+        </LoadScript>
+
+
+        <Form.Item 
+          label="Remark" 
+          name="remark"
+          className="mt-3"
+        >
+          <Input placeholder="Enter Remark" />
+        </Form.Item>
+
+        </div>
+      </div>
+
+
+      {/* 
       <LoadScript googleMapsApiKey={dataApiKey}>
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
@@ -570,8 +622,7 @@ export default function CreateSubDealer() {
             />
           )}
         </GoogleMap>
-      </LoadScript>
-
+      </LoadScript> */}
 
       <BoxPrimary title="Crop">
         <Select
@@ -725,8 +776,11 @@ export default function CreateSubDealer() {
           onClick={() => navigate("/customer/sub-dealer")}
         />
         <ActionButton text="Save" mode="save" onClick={handleSave} />
-
       </div>
     </MainLayout>
+    </Form>
+
+
+
   );
 }
