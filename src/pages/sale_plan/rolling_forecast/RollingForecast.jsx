@@ -20,7 +20,7 @@ export default function RollingForecast() {
   const [years, setYears] = useState([]);
   const [sale, setSale] = useState([]);
   const [defaultOption, setDefaultOption] = useState(null);
-  const { showNotification } = useContext(AuthContext);
+  const { showNotification ,formatNumber} = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -34,11 +34,11 @@ export default function RollingForecast() {
   useEffect(() => {
     getMaster();
   }, []);
-  
+
   useEffect(() => {
     if (defaultOption) {
       fetchData();
-    }else{
+    } else {
       setDataSource([]);
     }
   }, [defaultOption]);
@@ -86,7 +86,6 @@ export default function RollingForecast() {
       page_length: current,
       page_size: pageSize,
     };
-    
 
     try {
       let path = paths.pathRollingForecast;
@@ -259,7 +258,6 @@ export default function RollingForecast() {
   };
 
   const handleSearch = (filters) => {
-
     setTableParams({
       ...tableParams,
       filters,
@@ -284,13 +282,7 @@ export default function RollingForecast() {
       dataIndex: "workPlan",
       key: "workPlan",
       width: 150,
-      render: (text, record) => (
-        <span>
-          {Number(text)
-            .toFixed(2) // แสดงทศนิยม 2 ตำแหน่ง
-            .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-        </span>
-      ),
+      render: (text, record) => <span>{formatNumber(text)}</span>,
     },
     {
       title: "Sale Territory Name",
@@ -316,39 +308,21 @@ export default function RollingForecast() {
       dataIndex: "workPlan",
       key: "workPlan",
       width: 150,
-      render: (text, record) => (
-        <span>
-          {Number(text)
-            .toFixed(2) // แสดงทศนิยม 2 ตำแหน่ง
-            .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-        </span>
-      ),
+      render: (text, record) => <span>{formatNumber(text)}</span>,
     },
     {
       title: "Rolling Forecast (THB)",
       dataIndex: "forecast",
       key: "forecast",
       width: 150,
-      render: (text, record) => (
-        <span>
-          {Number(text)
-            .toFixed(2) // แสดงทศนิยม 2 ตำแหน่ง
-            .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-        </span>
-      ),
+      render: (text, record) => <span>{formatNumber(text)}</span>,
     },
     {
       title: "Actual (THB)",
       dataIndex: "actual",
       key: "actual",
       width: 150,
-      render: (text, record) => (
-        <span>
-          {Number(text)
-            .toFixed(2) // แสดงทศนิยม 2 ตำแหน่ง
-            .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-        </span>
-      ),
+      render: (text, record) => <span>{formatNumber(text)}</span>,
     },
     {
       title: "Status",

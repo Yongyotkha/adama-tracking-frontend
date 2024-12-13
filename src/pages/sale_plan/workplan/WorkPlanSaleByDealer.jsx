@@ -193,7 +193,7 @@ export default function WorkPlanSaleByDealer() {
               disabled
               value={text}
               formatter={(value) =>
-                `${Number(value).toFixed(2)}`.replace(
+                `${Number(value)}`.replace(
                   /\B(?=(\d{3})+(?!\d))/g,
                   ","
                 )
@@ -310,7 +310,7 @@ export default function WorkPlanSaleByDealer() {
                 disabled
                 value={localData.value}
                 formatter={(value) =>
-                  `${Number(value).toFixed(2)}`.replace(
+                  `${Number(value)}`.replace(
                     /\B(?=(\d{3})+(?!\d))/g,
                     ","
                   )
@@ -499,7 +499,7 @@ export default function WorkPlanSaleByDealer() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${Number(value).toFixed(2)}`.replace(
+                  `${Number(value)}`.replace(
                     /\B(?=(\d{3})+(?!\d))/g,
                     ","
                   )
@@ -537,7 +537,7 @@ export default function WorkPlanSaleByDealer() {
                       min={0}
                       value={totalValue}
                       formatter={(value) =>
-                        `${Number(value).toFixed(2)}`.replace(
+                        `${Number(value)}`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
                         )
@@ -556,7 +556,7 @@ export default function WorkPlanSaleByDealer() {
                         }
                         min={0}
                         formatter={(value) =>
-                          `${Number(value).toFixed(2)}`.replace(
+                          `${Number(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )
@@ -575,7 +575,7 @@ export default function WorkPlanSaleByDealer() {
                         }
                         min={0}
                         formatter={(value) =>
-                          `${Number(value).toFixed(2)}`.replace(
+                          `${Number(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )
