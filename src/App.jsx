@@ -83,8 +83,7 @@ const App = () => {
     <Router>
       <AuthProvider>
         <Routes>
-
-
+          
         <Route element={<PublicRoute/>}>
 
           {/* Public Routes */}

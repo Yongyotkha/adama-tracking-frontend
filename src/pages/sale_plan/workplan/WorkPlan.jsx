@@ -277,15 +277,15 @@ export default function WorkPlan() {
   const header = [
     {
       title: "Years",
-      width: "10%",
+      width: "20%",
       dataIndex: "year",
-      align: "center",
+      align: "left",
     },
     {
       title: "Work Plan (THB)",
       width: "20%",
       dataIndex: "workPlan",
-      align: "center",
+      align: "left",
     },
     ...(pathName !== "head"
       ? [
@@ -301,7 +301,7 @@ export default function WorkPlan() {
       title: "Last modified",
       width: "20%",
       dataIndex: "lastModified",
-      align: "center",
+      align: "left",
     },
     {
       title: "Status",
