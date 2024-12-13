@@ -595,7 +595,7 @@ export default function EditSubDealer() {
                     <Marker 
                       position={currentLocation}
                       icon={{
-                        url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
+                        // url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
                         scaledSize: { width: 30, height: 30 },
                       }}
                       draggable={true}
