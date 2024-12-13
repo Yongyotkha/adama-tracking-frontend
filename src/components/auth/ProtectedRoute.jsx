@@ -3,9 +3,10 @@ import { AuthContext } from "../../contexts/AuthContext";
 import { useContext, useEffect } from "react";
 
 const ProtectedRoute = () => {
-  const { userInfo, logout } = useContext(AuthContext);
+  const { userInfo } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  // ถ้ายังไม่ได้ล็อกอิน ให้เปลี่ยนเส้นทางไปหน้า Login
   if (!userInfo) {
     return <Navigate to="/login" />;
   }
@@ -16,10 +17,18 @@ const ProtectedRoute = () => {
     } else if (userInfo?.is_change_password) {
       navigate("/change-password");
     }
-  }, [userInfo, navigate]);
+  });
+  return <Outlet />;
+};
 
-  
+const PublicRoute = () => {
+  const { userInfo } = useContext(AuthContext);
+
+  if (userInfo) {
+    return <Navigate to="/" />;
+  }
 
   return <Outlet />;
 };
-export default ProtectedRoute;
+
+export { ProtectedRoute, PublicRoute };

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
 import { Checkbox, Form, Input, message } from "antd";
@@ -11,7 +11,11 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const { login, showMsg } = useContext(AuthContext);
+  const { login, showMsg, logout } = useContext(AuthContext);
+
+  useEffect(() => {
+    logout();
+  }, []);
 
   const onFinish = (values) => {
     login(username, password, setLoading)
