@@ -61,18 +61,18 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ตรวจสอบ Local Storage เมื่อเริ่มต้น
-  useEffect(() => {
-    const storedUser = localStorage.getItem("users");
-    const storedToken = localStorage.getItem("accessToken");
-    if (storedUser && storedToken) {
-      const userInfo = JSON.parse(storedUser);
+  // useEffect(() => {
+  //   const storedUser = localStorage.getItem("users");
+  //   const storedToken = localStorage.getItem("accessToken");
+  //   if (storedUser && storedToken) {
+  //     const userInfo = JSON.parse(storedUser);
 
-      setUserInfo(userInfo);
-      setIsLoggedIn(true);
-    } else {
-      logout();
-    }
-  }, []);
+  //     setUserInfo(userInfo);
+  //     setIsLoggedIn(true);
+  //   } else {
+  //     logout();
+  //   }
+  // }, []);
 
   const login = async (username, password, onLoadingChange = null) => {
     try {

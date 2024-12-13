@@ -6,6 +6,7 @@ import { Button, Tooltip, Popconfirm } from "antd";
 import { LeftOutlined, RightOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
+import ActionButton from "../button/ActionButton";
 
 const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   const [view, setView] = useState("month");
@@ -67,6 +68,11 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
     }
   };
 
+  const handleActionButtonClick = () => {
+    // Adjusted URL to be relative to the base URL of your application
+    const url = `/activity/create?pageCode=activity_transaction&date=${encodeURIComponent(selectedDate)}&page=activity/calendar`;
+    navigate(url); // Using react-router-dom's navigate function to redirect
+  };
 
   useEffect(() => {
     // Fetch Sale Territory options on mount
@@ -93,13 +99,13 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
 
   const handleSaleChange = async (saleId) => {
     setSelectedSale(saleId); // Update the selected value for SaleID
-  
+
     if (saleId) {
       try {
         const response = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
           user_id: saleId,
         });
-  
+
         if (response.result) {
           setShopOptions(
             response.data.map((item) => ({
@@ -119,28 +125,28 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
       // Reset Shop options and value when "All" is selected
       setShopOptions([]);
       setSelectedShop(null); // Reset UI for ShopID dropdown
-  
+
       sendData({
         saleId: "", // Reset SaleID
         shopId: "", // Reset ShopID
       });
-  
+
       return;
     }
-  
+
     // Notify parent with SaleID and reset ShopID
     sendData({
       saleId,
       shopId: "", // Reset ShopID
     });
-  
+
     setSelectedShop(null); // Reset UI for ShopID dropdown
   };
-  
+
 
   const handleShopChange = (shopId) => {
     setSelectedShop(shopId);
-  
+
     sendData({
       shopId,
     });
@@ -377,7 +383,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                     currentDate.getMonth(),
                     index + 1
                   );
-                  
+
                   const correctedDate = new Date(date);
                   correctedDate.setDate(correctedDate.getDate() + 1); // Add the same adjustment here
                   const isActive = selectedDate === correctedDate.toISOString().split("T")[0];
@@ -456,22 +462,32 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
           {selectedDate ? (
             <>
               <div
-                className="border-t border-[#009845] rounded-xl p-3 bg-white"
+                className="border-t border-[#009845] rounded-xl p-3 bg-white shadow"
                 style={{ borderTopWidth: "10px" }}
               >
-                <h3 className="text-lg font-bold text-[#009845] mb-4">
-                  {new Date(selectedDate).toLocaleDateString("en-US", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                  })}
-                </h3>
+                <div className="flex justify-between">
+                  <h3 className="text-lg font-bold text-[#009845] mb-4">
+                    {new Date(selectedDate).toLocaleDateString("en-US", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                    })}
+                  </h3>
+                  {events.filter((event) => event.date === selectedDate).length === 0 && (
+                    <ActionButton
+                      mode="add"
+                      className="min-w-fit h-6"
+                      style={{ gap: "0" }}
+                      onClick={handleActionButtonClick} // Add onClick event handler
+                    />
+                  )}
+                </div>
                 <div className="space-y-4">
-                  {events.filter((event) => event.date === selectedDate).length > 0 ? (                    
+                  {events.filter((event) => event.date === selectedDate).length > 0 ? (
                     events
                       .filter((event) => event.date === selectedDate)
                       .map((event, index) => (
-                        
+
                         <div
                           key={index}
                           className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md"
@@ -672,7 +688,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
             </>
           ) : (
             <div
-              className="border-t border-[#009845] rounded-xl p-3 bg-white flex flex-col items-center py-5"
+              className="border-t border-[#009845] rounded-xl p-3 bg-white shadow flex flex-col items-center py-5"
               style={{ borderTopWidth: "10px" }}
             >
               <img
