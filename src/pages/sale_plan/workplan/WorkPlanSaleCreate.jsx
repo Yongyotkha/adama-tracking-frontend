@@ -257,7 +257,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               value={localQtyState[item.quarter_id]?.total_value || 0}
               formatter={(value) =>
-                `${Number(value).toFixed(2)}`.replace(
+                `${Number(value)}`.replace(
                   /\B(?=(\d{3})+(?!\d))/g,
                   ","
                 )
@@ -318,7 +318,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               value={localQtyState[item.quarter_id]?.total_value || 0}
               formatter={(value) =>
-                `${Number(value).toFixed(2)}`.replace(
+                `${Number(value)}`.replace(
                   /\B(?=(\d{3})+(?!\d))/g,
                   ","
                 )
@@ -369,7 +369,7 @@ export default function WorkPlanSaleCreate() {
     unitConvertValue
   ) => {
     setLocalQtyState((prevState) => {
-      const newValue = parseFloat((newQty * unitConvertValue).toFixed(2));
+      const newValue = parseFloat((newQty * unitConvertValue));
 
       const updatedState = {
         ...prevState,
@@ -559,7 +559,7 @@ export default function WorkPlanSaleCreate() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${Number(value).toFixed(2)}`.replace(
+                  `${Number(value)}`.replace(
                     /\B(?=(\d{3})+(?!\d))/g,
                     ","
                   )
@@ -602,7 +602,7 @@ export default function WorkPlanSaleCreate() {
                           value={monthData.total_value || 0}
                           min={0}
                           formatter={(value) =>
-                            `${Number(value).toFixed(2)}`.replace(
+                            `${Number(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )
@@ -626,7 +626,7 @@ export default function WorkPlanSaleCreate() {
                           value={monthData.total_value || 0}
                           min={0}
                           formatter={(value) =>
-                            `${Number(value).toFixed(2)}`.replace(
+                            `${Number(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )
