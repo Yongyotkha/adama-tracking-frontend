@@ -331,7 +331,7 @@ export default function WorkPlanSaleCreate() {
             key: `value_${month.month_id}_${item.quarter_id}`,
             children: [
               {
-                title: "Value (KG)",
+                title: "Value (THB)",
                 dataIndex: `value_${month.month_id}`,
                 key: `value_${month.month_id}`,
                 width: 150,
@@ -447,22 +447,6 @@ export default function WorkPlanSaleCreate() {
       createPlan(mode);
     }
 
-    // // เปรียบเทียบ original plan (totalValue) กับ sum ของ amount_target
-    // if (calculatedTotalAmountTarget < totalValue) {
-    //   showNotification(
-    //     "warning",
-    //     "Total Sale Value is less than the Original Plan",
-    //     [
-    //       `Original Plan: ฿ ${formatNumber(totalValue)}`,
-    //       `Current Total: ฿ ${formatNumber(calculatedTotalAmountTarget)}`,
-    //       `Difference: ฿ ${formatNumber(
-    //         totalValue - calculatedTotalAmountTarget
-    //       )}`,
-    //     ],
-    //     3
-    //   );
-    // } else {
-    // }
   };
 
   const createPlan = async (mode) => {

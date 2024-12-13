@@ -1,11 +1,34 @@
-import React, { useContext } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
+import { useContext, useEffect } from "react";
 
-const ProtectedRoute = ({ children }) => {
-  const { isLoggedIn } = useContext(AuthContext);
+const ProtectedRoute = () => {
+  const { userInfo } = useContext(AuthContext);
+  const navigate = useNavigate();
 
-  return isLoggedIn ? children : <Navigate to="/login" />;
+  // ถ้ายังไม่ได้ล็อกอิน ให้เปลี่ยนเส้นทางไปหน้า Login
+  if (!userInfo) {
+    return <Navigate to="/login" />;
+  }
+
+  useEffect(() => {
+    if (userInfo?.is_otp) {
+      navigate("/verify-otp");
+    } else if (userInfo?.is_change_password) {
+      navigate("/change-password");
+    }
+  });
+  return <Outlet />;
 };
 
-export default ProtectedRoute;
+const PublicRoute = () => {
+  const { userInfo } = useContext(AuthContext);
+
+  if (userInfo) {
+    return <Navigate to="/" />;
+  }
+
+  return <Outlet />;
+};
+
+export { ProtectedRoute, PublicRoute };

@@ -22,7 +22,6 @@ export const AuthProvider = ({ children }) => {
     JSON.parse(localStorage.getItem("users"))
   );
 
-
   let loading = false;
 
   const notifyLoadingState = (callback, state) => {
@@ -105,7 +104,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    // if (isLoggedIn) {
     setIsLoggedIn(false);
     setUserInfo(null);
 
@@ -115,8 +113,6 @@ export const AuthProvider = ({ children }) => {
 
     console.log("เข้าฟังก์ชัน logout");
     navigate("/login");
-
-    // }
   };
 
   const formatNumber = (number) => {

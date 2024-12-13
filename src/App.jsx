@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import "./App.css";
@@ -58,7 +57,7 @@ import CreateClearing from "./pages/expenses/clearing/CreateClearingExpense";
 import EditClearing from "./pages/expenses/clearing/EditClearingExpense";
 import ViewOrder from "./pages/order/ViewOrder";
 import ViewOrderWaiting from "./pages/order/ViewOrderWaiting";
-import ProtectedRoute from "./components/auth/ProtectedRoute";
+import  { ProtectedRoute, PublicRoute } from "./components/auth/ProtectedRoute";
 import WorkPlanSaleByDealer from "./pages/sale_plan/workplan/WorkPlanSaleByDealer";
 import EditWorkPlan from "./pages/sale_plan/workplan/EditWorkPlan";
 import FirstChangePassword from "./pages/auth/FirstChangePassword";
@@ -85,6 +84,9 @@ const App = () => {
       <AuthProvider>
         <Routes>
 
+
+        <Route element={<PublicRoute/>}>
+
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/verify-otp" element={<Verify />} />
@@ -92,7 +94,11 @@ const App = () => {
           <Route path="/change-password" element={<ChangePassword />} />
           <Route path="/first-change-password" element={<FirstChangePassword />} />
 
+        </Route>	
+
           {/* Protected Routes */}
+        <Route element={<ProtectedRoute/>}>
+
           <Route path="/" element={ <Dashboard />} />
 
           {/* Work Plan Route */}
@@ -100,7 +106,6 @@ const App = () => {
           <Route path="/sale-plan/work-plan-area" element={<WorkPlan />} />
           <Route path="/sale-plan/work-plan-sale" element={<WorkPlan />} />
           <Route path="/sale-plan/work-plan/create" element={<WorkPlanCreate />} />
-          {/* <Route path="/sale-plan/work-plan/edit" element={<EditWorkPlan />} /> */}
           <Route path="/sale-plan/work-plan/create-2" element={<WorkPlanCreateStepTwo />} />
           <Route path="/sale-plan/work-plan-area/sale-area-create" element={<WorkPlanAreaCreate />} />
           <Route path="/sale-plan/work-plan-sale/sale-create" element={<WorkPlanSaleCreate />} />
@@ -119,7 +124,7 @@ const App = () => {
           <Route path="/activity/plan" element={<ActivityPlanList />} />
           <Route path="/activity/plan/dealer" element={<ActivityPlanDealer />} />
           <Route path="/activity/plan/sub-dealer" element={<ActivityPlanSubDealer />} />
-   
+  
 
 
           <Route path="/activity/list" element={<ActivityList />} />
@@ -182,15 +187,15 @@ const App = () => {
           <Route path="/setting/promotion" element={<SettingPromotion />} />
           <Route path="/setting/promotion/create" element={<CreatePromotion />} />
           <Route path="/setting/promotion/edit" element={<EditPromotion />} />
-
-          {/* Error Route */}
-          <Route path="/error/403" element={<Error403 />} />
-          <Route path="*" element={<Error404 />} />
-          <Route path="/error/500" element={<Error500 />} />
-          <Route path="/error/503" element={<Error503 />} />
-          <Route path="/wiki" element={<Wiki />} />
+        </Route>	
 
 
+        {/* Error Route */}
+        <Route path="/error/403" element={<Error403 />} />
+        <Route path="*" element={<Error404 />} />
+        <Route path="/error/500" element={<Error500 />} />
+        <Route path="/error/503" element={<Error503 />} />
+        <Route path="/wiki" element={<Wiki />} />
 
 
         </Routes>
