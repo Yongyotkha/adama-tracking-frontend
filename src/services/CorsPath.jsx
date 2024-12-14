@@ -145,6 +145,8 @@ export const paths = {
   pathActivityList: "/activity/list",
   pathActivityCreate: "/activity/create",
   pathActivityDetail: "/activity/detail",
+  pathActivityMappingStatusDetail: "/activity/mapping/detail",
+  pathActivityMappingStatusDetailUpdate: "/activity/mapping/detail",
 
   pathActivityExpenseCreate: "/activity-expense/create",
   pathActivityExpenseDetail: "/activity-expense/detail",

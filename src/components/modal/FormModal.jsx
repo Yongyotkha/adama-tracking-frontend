@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, Input, Button, DatePicker, Select, Upload } from "antd";
 import { UploadOutlined, EnvironmentOutlined } from "@ant-design/icons";
 import dayjs from 'dayjs';
@@ -11,18 +11,41 @@ const { Option } = Select;
 const FormModal = ({
   isVisible,
   onClose,
-  title = "Mapping"
+  title = "Mapping",
+  dataSource,
 }) => {
   const [formData, setFormData] = useState({
+    documentNumber: "",
     customerName: "",
     placeOfOwner: "",
     phoneNumber: "",
     address: "",
+    longitude: "",
+    latitude: "",
     perception: "",
     remark: "",
     date: null,
     photo: []
   });
+
+  // UseEffect เพื่ออัปเดต formData เมื่อ dataSource เปลี่ยน
+  useEffect(() => {
+    if (dataSource) {
+      setFormData({
+        documentNumber: dataSource.document_number || "",
+        customerName: dataSource.customer_name || "",
+        placeOfOwner: dataSource.customer_place_of_owner || "",
+        phoneNumber: dataSource.customer_phone_number || "",
+        address: dataSource.customer_address || "",
+        longitude: dataSource.location_latitude || "",
+        latitude: dataSource.location_longitude || "",
+        perception: dataSource.perception || "",
+        remark: dataSource.remark || "",
+        date: dataSource.date ? dayjs(dataSource.date) : null,
+        photo: dataSource.photo || []
+      });
+    }
+  }, [dataSource]);
 
   const handleInputChange = (key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }));
@@ -34,7 +57,8 @@ const FormModal = ({
 
   const submitForm = () => {
     console.log("Form Data:", formData);
-    onClose();
+    // Return
+    onClose(formData);
   };
 
   const handleLocation = () => {
@@ -47,6 +71,7 @@ const FormModal = ({
       title={title}
       visible={isVisible}
       onCancel={onClose}
+      dataSource={dataSource}
       onOk={submitForm}
       width="1200px"
       className="ant-modal"
@@ -55,26 +80,21 @@ const FormModal = ({
       okButtonProps={{ style: { backgroundColor: '#00783F', borderColor: '#00783F', color: '#ffffff' } }}
     >
       <div className="grid grid-cols-4 gap-4 py-4">
+        <div className="col-span-4 md:col-span-1 hidden">
+          <label className="block mb-2 font-medium text-gray-700">Document Number</label>
+          <Input disabled value={formData.documentNumber || dataSource.document_number} onChange={value => handleInputChange('documentNumber', value)} />
+        </div>
         <div className="col-span-4 md:col-span-1">
           <label className="block mb-2 font-medium text-gray-700">Support Customer Name</label>
-          <Select
-            className="w-full"
-            value={formData.customerName}
-            onChange={value => handleInputChange('customerName', value)}
-            placeholder="Select a customer"
-            disabled
-          >
-            <Option value="customer1">Customer 1</Option>
-            <Option value="customer2">Customer 2</Option>
-          </Select>
+          <Input disabled value={formData.customerName || dataSource.customer_name} onChange={value => handleInputChange('customerName', value)} />
         </div>
         <div className="col-span-4 md:col-span-1">
           <label className="block mb-2 font-medium text-gray-700">Place of Owner</label>
-          <Input disabled value={formData.placeOfOwner} onChange={e => handleInputChange('placeOfOwner', e.target.value)} />
+          <Input disabled value={formData.placeOfOwner || dataSource.customer_place_of_owner} onChange={e => handleInputChange('placeOfOwner', e.target.value)} />
         </div>
         <div className="col-span-4 md:col-span-1">
           <label className="block mb-2 font-medium text-gray-700">Phone Number</label>
-          <Input disabled value={formData.phoneNumber} onChange={e => handleInputChange('phoneNumber', e.target.value)} />
+          <Input disabled value={formData.phoneNumber || dataSource.customer_phone_number} onChange={e => handleInputChange('phoneNumber', e.target.value)} />
         </div>
         <div className="col-span-4 md:col-span-1">
           <label className="block mb-2 font-medium text-gray-700">Perception</label>
@@ -90,11 +110,20 @@ const FormModal = ({
         </div>
         <div className="col-span-4">
           <label className="block mb-2 font-medium text-gray-700">Address</label>
-          <Input disabled value={formData.address} onChange={e => handleInputChange('address', e.target.value)} />
+          <Input disabled value={formData.address || dataSource.customer_address} onChange={e => handleInputChange('address', e.target.value)} />
+        </div>
+        <div className="col-span-4 hidden">
+          <label className="block mb-2 font-medium text-gray-700">Latitude</label>
+          <Input disabled value={formData.latitude || dataSource.location_latitude} onChange={e => handleInputChange('address', e.target.value)} />
+        </div>
+        <div className="col-span-4 hidden">
+          <label className="block mb-2 font-medium text-gray-700">Longitude</label>
+          <Input disabled value={formData.longitude || dataSource.location_longitude} onChange={e => handleInputChange('address', e.target.value)} />
         </div>
         <div className="col-span-4 md:col-span-4">
           <label className="block mb-2 font-medium text-gray-700">Place of GPS</label>
           <Input
+            disabled
             className="w-full"
             value={formData.gps}
             onChange={(e) => setFormData({ ...formData, gps: e.target.value })}
@@ -125,7 +154,8 @@ const FormModal = ({
         </div> */}
         <div className="col-span-4 md:col-span-4">
           <label className="block mb-2 font-medium text-gray-700">Remark</label>
-          <Input.TextArea className="w-full" rows={4} onChange={e => handleInputChange('remark', e.target.value)} />
+          <Input.TextArea className="w-full" rows={4} value={
+            formData.remark || dataSource.remark} onChange={e => handleInputChange('remark', e.target.value)} />
         </div>
 
 

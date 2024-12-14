@@ -14,6 +14,7 @@ import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
 import dayjs from "dayjs";
 import FormModal from "../../components/modal/FormModal";
+import { use } from "react";
 
 export default function ActivityList() {
   const [loading, setLoading] = useState(false);
@@ -22,7 +23,7 @@ export default function ActivityList() {
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
-  const { showNotification } = useContext(AuthContext);
+  const { showMsg, showNotification } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -32,15 +33,67 @@ export default function ActivityList() {
     sortOrder: null,
     sortField: null,
   });
+  
+  const [mappingData, setMappingData] = useState({});
+  const [mappingDataSave, setMappingDataSave] = useState({});
 
   const [isProductModalVisible, setIsProductModalVisible] = useState(false);
   const [isMappingModalVisible, setIsMappingModalVisible] = useState(false);
-  const handleShowMappingModal = () => {
+  // Handle Open Modal & Get Data
+  const handleShowMappingModal = (data) => {
     setIsMappingModalVisible(true);
+    // Fetch Data: Mapping Detail
+    const getMappingData = async () => {
+      try {
+        const [mapping] = await Promise.all([
+          useServiceAPI.get(paths.pathActivityMappingStatusDetail, {
+            document_number: data.document_number
+          }),
+        ]);
+
+        setMappingData(mapping.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      }
+    };
+
+    getMappingData();
   };
 
-  const handleCloseMappingModal = () => {
+  // Handle Close Modal & Save
+  const handleCloseMappingModal = (data) => {
+    const dataInfo = data;
     setIsMappingModalVisible(false);
+
+    // Mapping Save
+    const updateMappingDetail = async () => {
+      try {
+        const body = {
+          document_number: dataInfo.documentNumber,
+          location_longitude: dataInfo.longitude,
+          location_latitude: dataInfo.latitude,
+          location_address: dataInfo.address,
+          perception_id: dataInfo.perception,
+          image_list: ["localhost"],
+        };
+
+        const [mapping] = await Promise.all([
+          useServiceAPI.put(paths.pathActivityMappingStatusDetailUpdate, body),
+        ]);
+
+        showNotification(
+          "success",
+          response.data.message,
+          response.data.message_line
+        ).then(() => {
+          // navigate("/activity/list");
+        });
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      }
+    };
+
+    updateMappingDetail();
   };
 
   const navigate = useNavigate();
@@ -240,9 +293,9 @@ export default function ActivityList() {
             },
           ];
 
-          const handleBadgeClick = () => {
+          const handleBadgeClick = (data) => {
             if (row.status_mapping_name !== 'complete') {
-              handleShowMappingModal();
+              handleShowMappingModal(data);
             } else {
               console.log("Action not allowed for 'complete' status.");
             }
@@ -262,7 +315,9 @@ export default function ActivityList() {
                 text={row.status_mapping_name}
                 bgColor={row.status_mapping_bg_color}
                 textColor={row.status_mapping_color}
-                onClick={handleBadgeClick}
+                onClick={() => {
+                  handleBadgeClick(row);
+                }}
               // style={{ cursor: row.status_mapping_name !== 'complete' ? 'pointer' : 'not-allowed' }}
               />
             ),
@@ -363,6 +418,7 @@ export default function ActivityList() {
         isVisible={isMappingModalVisible}
         onClose={handleCloseMappingModal}
         title="Mapping" // Customize as needed
+        dataSource={mappingData}
       />
     </MainLayout>
   );
