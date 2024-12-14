@@ -55,16 +55,38 @@ const FormModal = ({
     setFormData(prev => ({ ...prev, photo: fileList }));
   };
 
+  const [locationCurrent, setLocationCurrent] = useState({
+    latitude: "",
+    longitude: "",
+  });
+
+  const handleGetLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setLocationCurrent({ latitude, longitude });
+          console.log("Current Location:", { latitude, longitude });
+        },
+        (error) => {
+          console.error("Error fetching location:", error.message);
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
+  };
+
   const submitForm = () => {
     console.log("Form Data:", formData);
     // Return
     onClose(formData);
   };
 
-  const handleLocation = () => {
-    console.log('Location action triggered');
-    // Implement location reloading or setting logic here
-  };
+  // const handleLocation = () => {
+  //   console.log('Location action triggered');
+  //   // Implement location reloading or setting logic here
+  // };
 
   return (
     <Modal
@@ -132,7 +154,7 @@ const FormModal = ({
             suffix={
               <Button
                 icon={<img src="/img/icons/reload.png" alt="Reload" style={{ width: 20, height: 20 }} />}
-                onClick={handleLocation}
+                onClick={handleGetLocation}
                 style={{ border: 'none', background: 'transparent' }}
               />
             }
