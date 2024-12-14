@@ -13,6 +13,7 @@ import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
 import dayjs from "dayjs";
+import FormModal from "../../components/modal/FormModal";
 
 export default function ActivityList() {
   const [loading, setLoading] = useState(false);
@@ -33,6 +34,15 @@ export default function ActivityList() {
   });
 
   const [isProductModalVisible, setIsProductModalVisible] = useState(false);
+  const [isMappingModalVisible, setIsMappingModalVisible] = useState(false);
+  const handleShowMappingModal = () => {
+    setIsMappingModalVisible(true);
+  };
+
+  const handleCloseMappingModal = () => {
+    setIsMappingModalVisible(false);
+  };
+
   const navigate = useNavigate();
 
   const filters = [
@@ -98,13 +108,13 @@ export default function ActivityList() {
               user_id: filter.sale
             }),
           ]);
-  
+
           setDealerList(dealer.data);
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
         }
       };
-  
+
       getMasterDealer();
     } else {
       handleClear();
@@ -206,30 +216,38 @@ export default function ActivityList() {
 
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
-        
+
         const newDataSource = data.map((row, index) => {
           const actionItems = [
-            { 
-              key: "1", 
+            {
+              key: "1",
               label: (
-                <ItemDropDown 
-                  mode="edit" 
-                  link={`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`} 
+                <ItemDropDown
+                  mode="edit"
+                  link={`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`}
                 />
-              ) 
+              )
             },
-            { 
-              key: "2", 
+            {
+              key: "2",
               label: (
-                <ItemDropDown 
-                  mode="delete" 
-                  link={`#`} 
+                <ItemDropDown
+                  mode="delete"
+                  link={`#`}
                   onClick={() => handleDelete(row.document_number)}
                 />
-              ) 
+              )
             },
           ];
-        
+
+          const handleBadgeClick = () => {
+            if (row.status_mapping_name !== 'complete') {
+              handleShowMappingModal();
+            } else {
+              console.log("Action not allowed for 'complete' status.");
+            }
+          };
+
           return {
             key: index + 1 + (current - 1) * pageSize,
             activityNo: row.document_number,
@@ -244,6 +262,8 @@ export default function ActivityList() {
                 text={row.status_mapping_name}
                 bgColor={row.status_mapping_bg_color}
                 textColor={row.status_mapping_color}
+                onClick={handleBadgeClick}
+              // style={{ cursor: row.status_mapping_name !== 'complete' ? 'pointer' : 'not-allowed' }}
               />
             ),
             action: (
@@ -285,7 +305,7 @@ export default function ActivityList() {
         setActivityList(activityType.data);
         setSaleList(sale.data);
       } catch (error) {
-        
+
       } finally {
         setLoading(false);
       }
@@ -321,10 +341,10 @@ export default function ActivityList() {
       />
 
       <BoxPrimary>
-        <TableComponent 
-          header={header} 
-          dataSource={dataSource} 
-          pagination={tableParams.pagination} 
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pagination={tableParams.pagination}
           loading={tableLoading}
         />
       </BoxPrimary>
@@ -338,6 +358,12 @@ export default function ActivityList() {
         width="1200px" // Customize the width to make it extra-large
       />
 
+      {/* FormModal */}
+      <FormModal
+        isVisible={isMappingModalVisible}
+        onClose={handleCloseMappingModal}
+        title="Mapping" // Customize as needed
+      />
     </MainLayout>
   );
 }
