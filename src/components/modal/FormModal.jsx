@@ -77,6 +77,12 @@ const FormModal = ({
     }
   };
 
+  useEffect(() => {
+    // Get Current Location
+    handleGetLocation();
+  }, [])
+  
+
   const submitForm = () => {
     console.log("Form Data:", formData);
     // Return
