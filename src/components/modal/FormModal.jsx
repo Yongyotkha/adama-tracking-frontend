@@ -93,12 +93,6 @@ const FormModal = ({
     onClose(); // Close the modal after action
   };
 
-  // const submitForm = () => {
-  //   console.log("Form Data:", formData);
-  //   // Return
-  //   onClose(formData);
-  // };
-
   // const handleLocation = () => {
   //   console.log('Location action triggered');
   //   // Implement location reloading or setting logic here
