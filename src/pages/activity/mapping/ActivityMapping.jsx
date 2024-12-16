@@ -424,12 +424,14 @@ export default function ActivityMapping() {
   }, [checkedFilters]);
 
   const handleSearch = (text) => {
+    console.log(text);
+    
     if (text) {
       // Filter names from dataMapping
       const results = dataMapping.filter((item) =>
         item.location_address.toLowerCase().includes(text.toLowerCase())
       );
-
+ 
       // Update search options for AutoComplete
       setSearchOptions(
         results.map((item) => ({
@@ -443,7 +445,7 @@ export default function ActivityMapping() {
     }
   };
 
-  const handleSelect = (value, option) => {
+  const handleSelect = (value, option) => {    
     // Set the map center to the selected lat and lng
     setCurrentLocation({ lat: option.lat, lng: option.lng });
     setDataMapZoom(15); // Set a higher zoom level for focusing
@@ -560,11 +562,11 @@ export default function ActivityMapping() {
                     position={{ lat: parseFloat(location.lat), lng: parseFloat(location.lng) }}
                     icon={{
                       url: location.activity_image_location,
-                      // url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
                       scaledSize: { width: 30, height: 30 },
                     }}
-                    onClick={() =>
-                      setlocationWindowInfo({
+                    onClick={() => {
+                      // Set the location information for the InfoWindow
+                      const newLocationWindowInfo = {
                         lat: parseFloat(location.lat),
                         lng: parseFloat(location.lng),
                         address: location.address,
@@ -575,9 +577,17 @@ export default function ActivityMapping() {
                         area_name: location.area_name,
                         crop_list: location.crop_id_list,
                         document_date_display: location.document_date_display,
-                      })
-                    }
+                      };                      
+                      setlocationWindowInfo(newLocationWindowInfo);
+
+                      // // Log the necessary details to the console
+                      // console.log("Dealer Name:", newLocationWindowInfo.dealer_name);
+                      // console.log("Address:", newLocationWindowInfo.address);
+                      // console.log("Crops List:", newLocationWindowInfo.crop_list);
+                      // console.log("Document Date Display:", newLocationWindowInfo.document_date_display);
+                    }}
                   />
+
                 ))}
 
                 {locationWindowInfo && (
@@ -594,10 +604,10 @@ export default function ActivityMapping() {
                         <img src="/img/icons/shop.png" className="w-6 h-6" alt="" />{locationWindowInfo.dealer_name || "No Dealer Name"}
                       </div>
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src="/img/icons/location.png" className="w-6 h-6" alt="" />{locationWindowInfo.crop_list || "No Crops Listed"}
+                        <img src="/img/icons/location.png" className="w-6 h-6" alt="" />{locationWindowInfo.address || "No Address Available"}
                       </div>
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src="/img/icons/crops.png" className="w-6 h-6" alt="" />{locationWindowInfo.address || "No Address Available"}
+                        <img src="/img/icons/crops.png" className="w-6 h-6" alt="" />{locationWindowInfo.crop_list || "No Crops Listed"}
                       </div>
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img src="/img/icons/details.png" className="w-6 h-6" alt="" />{locationWindowInfo.document_date_display || "No Date Available"}
@@ -610,13 +620,14 @@ export default function ActivityMapping() {
                           __html: event.description || "<span>No description available</span>",
                         }} */}
                       </div>
+
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img
-                          src={"/img/default-avatar.png"}
+                          src={"/img/icons/default-avatar.png"}
                           alt={"No Name"}
                           className="w-6 h-6 rounded-full border border-gray-300"
                         />
-                        <span className="text-sm text-gray-600">{"Unknown"}</span>
+                        <span>{"Unknown"}</span>
                       </div>
                     </div>
                   </InfoWindow>

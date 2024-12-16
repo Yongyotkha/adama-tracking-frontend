@@ -39,7 +39,7 @@ export default function WorkPlanCreate() {
             pack_size: item.pack_size,
             unit_convert_value: item.unit_convert_value,
             qty: item.qty || 0,
-            value: parseFloat(item.value || 0).toFixed(2),
+            value: parseFloat(item.value || 0),
           }));
           setDataSource(newData);
           setYearName(response.data.year_name);
@@ -71,7 +71,7 @@ export default function WorkPlanCreate() {
       const updatedItem = {
         ...itemToUpdate,
         qty: value || 0,
-        value: parseFloat(newValue.toFixed(2)),
+        value: parseFloat(newValue),
       };
 
       // อัปเดต dataSource
@@ -87,7 +87,7 @@ export default function WorkPlanCreate() {
 
       // อัปเดต state
       setDataSource(newDataSource);
-      setTotalValue(total.toFixed(2));
+      setTotalValue(total);
     }
   };
 
@@ -128,7 +128,7 @@ export default function WorkPlanCreate() {
           className="w-full"
           value={text}
           formatter={(value) =>
-            `${Number(value).toFixed(2)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
           disabled
         />
@@ -198,7 +198,7 @@ export default function WorkPlanCreate() {
                     disabled
                     value={totalValue}
                     formatter={(value) =>
-                      `${Number(value).toFixed(2)}`.replace(
+                      `${Number(value)}`.replace(
                         /\B(?=(\d{3})+(?!\d))/g,
                         ","
                       )

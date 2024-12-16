@@ -27,6 +27,7 @@ import BadgeStatus from "../../../components/badge/BadgeStatus";
 import TableComponent from "../../../components/table/TableComponent";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import DynamicModal from "../../../components/modal/DynamicModal"; // Adjust path if needed
+import { GoogleMap, LoadScript, Marker} from "@react-google-maps/api";
 
 const { Option } = Select;
 
@@ -35,15 +36,36 @@ export default function CreateSubDealer() {
   const navigate = useNavigate();
   const [cropOptions, setCropOptions] = useState([]);
   const [form] = Form.useForm();
-
   const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); // กำหนด state สำหรับ defaultSelectedCrops
   const [personalInfoData, setPersonalInfoData] = useState({});
   // const [personalInfo, setPersonalInfo] = useState([]);
   const { showMsg, showNotification } = useContext(AuthContext);
-
   const [cropData, setCropData] = useState([]);
   const [contactsData, setContactsData] = useState([]);
-  const [contacts, setContacts] = useState([]);
+  const [dataApiKey, setDataApiKay] = useState("AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik");
+  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+  const [companyinfo, setcompanyinfo] = useState([]);
+  const [currentLocation, setCurrentLocation] = useState({
+    lat: 13.9572612,
+    lng: 100.6222401,
+  });
+  const [dataMapZoom, setDataMapZoom] = useState(15);
+  const [contacts, setContacts] = useState([
+    {
+      name_en: "",
+      name_th: "",
+      nickname: "",
+      date_of_birth: null,
+      t_shirt_size: "",
+      relationship: "",
+      duty: "",
+      tel1: "",
+      tel2: "",
+      contact_number: "",
+      email: "",
+      line_id: "",
+    },
+  ]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,11 +85,130 @@ export default function CreateSubDealer() {
     fetchData();
   }, []);
 
+  // const [formFields, setFormFields] = useState([
+  //   {
+  //     label: "",
+  //     name: "profile",
+  //     type: "picture", // เพิ่มรูปภาพในลูป
+  //     required: false,
+  //     col: 24,
+  //   },
+  //   {
+  //     label: "Shop Name",
+  //     name: "shop_name",
+  //     type: "text",
+  //     required: true,
+  //     col: 6,
+  //   },
+  //   {
+  //     label: "Mobile Phone",
+  //     name: "mobile_phone",
+  //     type: "text",
+  //     required: false,
+  //     col: 6,
+  //   },
+  //   {
+  //     label: "Address",
+  //     name: "address",
+  //     type: "text",
+  //     required: false,
+  //     col: 12,
+  //   },
+  //   {
+  //     label: "Office Hours",
+  //     name: "day_of_week",
+  //     type: "multiple",
+  //     options: [
+  //       { name: "Monday", id: "Monday", selected: true },
+  //       { name: "Tuesday", id: "Tuesday", selected: false },
+  //       { name: "Wednesday", id: "Wednesday", selected: false },
+  //       { name: "Thursday", id: "Thursday", selected: false },
+  //       { name: "Friday", id: "Friday", selected: false },
+  //       { name: "Saturday", id: "Saturday", selected: false },
+  //       { name: "Sunday", id: "Sunday", selected: false },
+  //     ],
+  //     required: false,
+  //     col: 6,
+  //     iconSrc: "/img/icons/calendar.png",
+  //     iconPosition: "right",
+  //   },
+  //   {
+  //     label: "Start Time",
+  //     name: "start_time",
+  //     type: "time",
+  //     required: false,
+  //     col: 6,
+  //     value: null,
+  //   },
+  //   {
+  //     label: "End Time",
+  //     name: "end_time",
+  //     type: "time",
+  //     required: false,
+  //     col: 6,
+  //     value: "",
+  //   },
+  //   {
+  //     label: "Business Size",
+  //     name: "business_size",
+  //     type: "select",
+  //     required: true,
+  //     col: 6,
+  //     options: [
+  //       { name: "Small", id: "Small", selected: true },
+  //       { name: "Medium", id: "Medium", selected: false },
+  //       { name: "Large", id: "Large", selected: false },
+  //     ],
+  //   },
+  //   {
+  //     label: "Email",
+  //     name: "email",
+  //     type: "email",
+  //     required: false,
+  //     col: 6,
+  //     value: "",
+  //   },
+  //   {
+  //     label: "Outlet Location",
+  //     name: "outlet_location",
+  //     type: "text",
+  //     required: false,
+  //     col: 6,
+  //     value: "",
+  //     iconSrc: "/img/icons/location.png",
+  //     iconPosition: "right",
+  //   },
+  //   {
+  //     label: "T-Shirt Size",
+  //     name: "tshirt_size",
+  //     type: "text",
+  //     required: false,
+  //     col: 6,
+  //     value: "",
+  //   },
+  //   {
+  //     label: "Anniversary",
+  //     name: "anniversary",
+  //     type: "date",
+  //     required: false,
+  //     col: 6,
+  //     value: "",
+  //   },
+  //   {
+  //     label: "Remark",
+  //     name: "remark",
+  //     type: "text",
+  //     required: false,
+  //     col: 24,
+  //     value: "",
+  //   },
+  // ]);
+
   const [formFields, setFormFields] = useState([
     {
       label: "",
-      name: "profile",
-      type: "picture", // เพิ่มรูปภาพในลูป
+      name: "profile", 
+      type: "picture", 
       required: false,
       col: 24,
     },
@@ -75,7 +216,7 @@ export default function CreateSubDealer() {
       label: "Shop Name",
       name: "shop_name",
       type: "text",
-      required: true,
+      required: false,
       col: 6,
     },
     {
@@ -116,7 +257,6 @@ export default function CreateSubDealer() {
       type: "time",
       required: false,
       col: 6,
-      value: null,
     },
     {
       label: "End Time",
@@ -124,65 +264,70 @@ export default function CreateSubDealer() {
       type: "time",
       required: false,
       col: 6,
-      value: "",
     },
-    {
-      label: "Business Size",
-      name: "business_size",
-      type: "select",
-      required: true,
-      col: 6,
-      options: [
-        { name: "Small", id: "Small", selected: true },
-        { name: "Medium", id: "Medium", selected: false },
-        { name: "Large", id: "Large", selected: false },
-      ],
-    },
+    // {
+    //   label: "Business Size",
+    //   name: "business_size",
+    //   type: "select",
+    //   options: [
+    //     { name: "Small", id: 1, selected: true },
+    //     { name: "Medium", id: 2, selected: false },
+    //     { name: "Large", id: 3, selected: false },
+    //   ],
+    //   required: false,
+    //   col: 6,
+    //   value: companyinfo.business_size,
+    // },
     {
       label: "Email",
       name: "email",
       type: "email",
       required: false,
       col: 6,
-      value: "",
+    },
+    {
+      label: "Fertilizer Business",
+      name: "tshirt_size",
+      type: "text",
+      required: false,
+      col: 6,
+      value: companyinfo.t_shirt_size,
+    },
+    {
+      label: "Seed Business",
+      name: "seed_business",
+      type: "text",
+      required: false,
+      col: 6,
+      value: companyinfo.anniversary,
+    },
+    {
+      label: "Pesticides Business",
+      name: "pesticides_business",
+      type: "text",
+      required: false,
+      col: 6,
+      value: companyinfo.anniversary,
     },
     {
       label: "Outlet Location",
       name: "outlet_location",
       type: "text",
       required: false,
-      col: 6,
-      value: "",
+      col: 24,
+      value: companyinfo.location_address,
       iconSrc: "/img/icons/location.png",
       iconPosition: "right",
     },
-    {
-      label: "T-Shirt Size",
-      name: "tshirt_size",
-      type: "text",
-      required: false,
-      col: 6,
-      value: "",
-    },
-    {
-      label: "Anniversary",
-      name: "anniversary",
-      type: "date",
-      required: false,
-      col: 6,
-      value: "",
-    },
-    {
-      label: "Remark",
-      name: "remark",
-      type: "text",
-      required: false,
-      col: 24,
-      value: "",
-    },
+    // {
+    //   label: "Remark",
+    //   name: "remark",
+    //   type: "text",
+    //   required: false,
+    //   col: 24,
+    // },
   ]);
 
-  
 
   const transformedCropOptions = cropOptions.map((option) => ({
     label: option.name, // เปลี่ยนจาก name เป็น label
@@ -241,7 +386,6 @@ export default function CreateSubDealer() {
     ]);
   };
   
-
   const updateContact = (index, field, value) => {
     setContacts((prevContacts) =>
       prevContacts.map((contact, i) =>
@@ -249,7 +393,7 @@ export default function CreateSubDealer() {
       )
     );
   };
-  
+
   const handlePersonalInfoChange = (field, value) => {
     console.log(field,value);
     
@@ -259,12 +403,70 @@ export default function CreateSubDealer() {
     }));
   };
   
+  const handleRemoveContact = (index) => {
+    setContacts((prevContacts) => prevContacts.filter((_, i) => i !== index));
+  };
+
+  const mapContainerStyle = {
+    width: "100%",
+    height: "30vh",
+  };
+
+
+  const handleMarkerDragEnd = async (event) => {
+    const lat = event.latLng.lat();
+    const lng = event.latLng.lng();
+
+    const geocoder = new window.google.maps.Geocoder();
+    const latlng = { lat, lng };
+    
+    try {
+      const response = await geocoder.geocode({ location: latlng });
+      if (response.results && response.results.length > 0) {
+        const locationName = response.results[0].formatted_address;
+        // อัปเดต Outlet Location
+        form.setFieldsValue({ outlet_location: locationName });
+        setcompanyinfo((prev) => ({
+          ...prev,
+          outlet_location: locationName,
+        }));
+  
+        showNotification("success", `Location updated: ${locationName}`);
+        // อัปเดตตำแหน่งปัจจุบันใน State
+        setCurrentLocation({ lat, lng });
+        
+      } else {
+        showNotification("error", "No address found for this location.");
+      }
+    } catch (error) {
+      console.error(error);
+      showNotification("error", "Unable to fetch location name.");
+    }
+  
+  };
+  
+  useEffect(() => {
+    const checkGoogleMaps = () => {
+      if (window.google && window.google.maps) {
+        setIsGoogleLoaded(true);
+      } else {
+        const interval = setInterval(() => {
+          if (window.google && window.google.maps) {
+            clearInterval(interval);
+            setIsGoogleLoaded(true);
+          }
+        }, 500);
+      }
+    };
+    checkGoogleMaps();
+  }, []);
+
+
   const handleSave = () => {
     form
       .validateFields()
       .then((values) => {
-        console.log(values);
-        
+        // console.log(values);
         const payload = {
           name: values.shop_name || "",
           mobile_phone: values.mobile_phone || "",
@@ -278,7 +480,10 @@ export default function CreateSubDealer() {
           ? dayjs(values.end_time).format("HH:mm")
           : "",
           business_size: values.business_size || "",
-          outlet_location: values.outlet_location || "",
+          // outlet_location: values.outlet_location || "",
+          location_address: values.outlet_location || "",
+          location_longitude: currentLocation.lng || "",
+          location_latitude: currentLocation.lat  || "",
           t_shirt_size: values.tshirt_size || "",
           anniversary: values.anniversary
             ? dayjs(values.anniversary).format("YYYY-MM-DD")
@@ -332,18 +537,92 @@ export default function CreateSubDealer() {
   };
   
   useEffect(() => {
-    console.log(defaultSelectedCrops)
+    // console.log(defaultSelectedCrops)
   }, [defaultSelectedCrops]);
 
 
   return (
+    <Form form={form} layout="vertical">
+
     <MainLayout loading={loading}>
-      
-      <div className="title-page">Create Sub Dealer</div>
-      <FormUser title="Personal Info" 
+    <div className="title-page">Create Sub Dealer</div>
+      <FormUser 
+        title="Personal Info" 
         fields={formFields} 
         form={form}
       />
+
+      <div className={`bg-white p-4`}
+        style={{
+          boxShadow: "rgba(0, 0, 0, 0.1)", // Optional for a subtle shadow
+          marginTop: "-20px",
+        }}
+      >
+      <div className="text-[#00783F] text-lg font-semibold mb-3">
+
+        <LoadScript googleMapsApiKey={dataApiKey}>
+          <GoogleMap
+            mapContainerStyle={mapContainerStyle}
+            center={currentLocation}
+            zoom={dataMapZoom}
+            onClick={(e) => {
+              const lat = e.latLng.lat();
+              const lng = e.latLng.lng();
+              setCurrentLocation({ lat, lng });
+            }}
+          >
+            {isGoogleLoaded && (
+              <Marker 
+                position={currentLocation}
+                icon={{
+                  // url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
+                  scaledSize: { width: 30, height: 30 },
+                }}
+                draggable={true}
+                onDragEnd={handleMarkerDragEnd} 
+              />
+            )}
+          </GoogleMap>
+        </LoadScript>
+
+
+        <Form.Item 
+          label="Remark" 
+          name="remark"
+          className="mt-3"
+        >
+          <Input placeholder="Enter Remark" />
+        </Form.Item>
+
+        </div>
+      </div>
+
+
+      {/* 
+      <LoadScript googleMapsApiKey={dataApiKey}>
+        <GoogleMap
+          mapContainerStyle={mapContainerStyle}
+          center={currentLocation}
+          zoom={dataMapZoom}
+          onClick={(e) => {
+            const lat = e.latLng.lat();
+            const lng = e.latLng.lng();
+            setCurrentLocation({ lat, lng });
+          }}
+        >
+          {isGoogleLoaded && (
+            <Marker 
+              position={currentLocation}
+              icon={{
+                url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
+                scaledSize: { width: 30, height: 30 },
+              }}
+              draggable={true}
+              onDragEnd={handleMarkerDragEnd} 
+            />
+          )}
+        </GoogleMap>
+      </LoadScript> */}
 
       <BoxPrimary title="Crop">
         <Select
@@ -367,9 +646,16 @@ export default function CreateSubDealer() {
         </div>
         {contacts.map((contact, index) => (
           <div key={index}>
-            <span className="text-[#00783F] text-md">{`Person ${
-              index + 1
-            }`}</span>
+              <div className="flex justify-between mb-4">
+                <span className="text-[#00783F] text-md">{`Person ${index + 1}`}</span>
+                {index > 0 && (
+                  <ActionButton
+                    mode="delete"
+                    text="Delete"
+                    onClick={() => handleRemoveContact(index)}
+                  />
+                )}
+              </div>
             <Row gutter={[16, 16]} className="mt-3">
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Input
@@ -490,8 +776,11 @@ export default function CreateSubDealer() {
           onClick={() => navigate("/customer/sub-dealer")}
         />
         <ActionButton text="Save" mode="save" onClick={handleSave} />
-
       </div>
     </MainLayout>
+    </Form>
+
+
+
   );
 }

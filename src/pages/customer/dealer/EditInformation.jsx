@@ -19,6 +19,7 @@ import {
   Tabs,
   Form,
   Select,
+  Checkbox,
 } from "antd";
 import { values } from "lodash";
 import dayjs from "dayjs";
@@ -57,7 +58,7 @@ export default function EditInformation() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        console.log(location.state.mod);
+        // console.log(location.state.mod);
         await fetchPromotionDetails(location.state.id);
         const [crops] = await Promise.all([
           useServiceAPI.get(paths.pathMasterCrop, {}),
@@ -170,37 +171,41 @@ export default function EditInformation() {
       col: 6,
       value: companyinfo.date_of_joining,
     },
+    {
+      label: "Status",
+      name: "use_flag",
+      type: "select",
+      required: false,
+      col: 6,
+      disabled: true,
+      options: [
+        { name: "Active", id: 1, selected: true },
+        { name: "Inactive", id: 0, selected: false },
+      ],
+      value: parseInt(companyinfo.use_flag,10) === 1 ? "Active" : "Inactive"
+    },
+
   ];
 
   const header = [
     // { title: "No", width: 50, dataIndex: "key", align: "center" },
     { title: "No", width: 50, dataIndex: "no", align: "center" },
     { title: "Sub Dealer Name", width: 100, dataIndex: "name", align: "left" },
-    {
-      title: "Contact Person",
-      width: 200,
-      dataIndex: "contactperson",
-      align: "left",
-    },
-    {
-      title: "Phone NO",
-      width: 150,
-      dataIndex: "mobilePhone",
-      align: "center",
-    },
-    {
-      title: "On Shop",
-      width: 150,
-      dataIndex: "onshop",
-      align: "center",
-      render: (isOnShop, record) => (
-        <input
-          type="checkbox"
-          checked={isOnShop}
-          onChange={() => handleCheckboxChange(record.key)} // เพิ่ม handler สำหรับเปลี่ยนสถานะ
-        />
-      ),
-    },
+    { title: "Contact Person", width: 200,  dataIndex: "contactperson", align: "left",},
+    { title: "Phone NO",  width: 150, dataIndex: "mobilePhone", align: "center",},
+    // {
+    //   title: "On Shop",
+    //   width: 150,
+    //   dataIndex: "onshop",
+    //   align: "center",
+    //   render: (isOnShop, record) => (
+    //     <Checkbox
+    //       checked={isOnShop} // กำหนดค่าเริ่มต้นของ Checkbox
+    //       onChange={() => handleCheckboxChange(record.key)} // ฟังก์ชันเปลี่ยนสถานะเมื่อคลิก
+    //     >
+    //     </Checkbox>
+    //   ),
+    // },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
@@ -211,6 +216,39 @@ export default function EditInformation() {
       label: <ItemDropDown mode="edit" link="/customer/dealer/edit-info" />,
     },
   ];
+
+  const handleDeleteItem = async (record) => {
+    console.log("id", location.state.id);
+    console.log(record);
+    
+    // try {
+    //   const requestData = {
+    //     sale_management_items_id: record, // ส่ง ID ที่ต้องการลบ
+    //   };
+
+    //   const response = await useServiceAPI.delete(
+    //     paths.pathSaleManagementDeleteSubItem,
+    //     requestData
+    //   );
+
+    //   if (response.status === 200) {
+    //     fetchData();
+    //     // showMsg("success", "Record deleted successfully.");
+    //     showNotification(
+    //       "success",
+    //       response.data.message,
+    //       response.data.message_line
+    //     );
+    //   } else {
+    //     console.error("Failed to delete record:", response.message);
+    //     showNotification("error", response.message, response.message_line);
+    //   }
+    // } catch (error) {
+    //   console.error("Error deleting record:", error);
+
+    //   showNotification("error", error.message, error.message_line);
+    // }
+  };
 
 
   const fetchPromotionDetails = async (id) => {
@@ -243,15 +281,23 @@ export default function EditInformation() {
             />
           ),
           action: (
-            <Dropdown menu={{ items: actionItems }} placement="bottom">
-              <a onClick={(e) => e.preventDefault()}>
-                <img
-                  src="/img/icons/action.png"
-                  alt="Actions icon"
-                  className="inline-block w-5 h-5"
-                />
-              </a>
-            </Dropdown>
+            // <Dropdown menu={{ items: actionItems }} placement="bottom">
+            //   <a onClick={(e) => e.preventDefault()}>
+            //     <img
+            //       src="/img/icons/action.png"
+            //       alt="Actions icon"
+            //       className="inline-block w-5 h-5"
+            //     />
+            //   </a>
+            // </Dropdown>
+            <>
+              <DynamicButton
+                iconSrc="/img/icons/delete.png"
+                onClick={() =>
+                  handleDeleteItem(item.sub_dealer_id)
+                }
+              />
+            </>
           ),
         }));
         setNetworkList(newDataNetwork);
@@ -276,7 +322,7 @@ export default function EditInformation() {
           <span className="text-[#00783F] text-md">{`Person ${index + 1}`}</span>
         {index > 0 && !isViewMode && (
           <ActionButton
-            mode="reject"
+            mode="delete"
             text="Delete"
             onClick={() => handleRemoveContact(index)}
             disabled={isViewMode}
@@ -419,26 +465,31 @@ export default function EditInformation() {
         />
       ),
       action: (
-        <Dropdown menu={{ items: actionItems }} placement="bottom">
-          <a onClick={(e) => e.preventDefault()}>
-            <img
-              src="/img/icons/action.png"
-              alt="Actions icon"
-              className="inline-block w-5 h-5"
-            />
-          </a>
-        </Dropdown>
+        // <Dropdown menu={{ items: actionItems }} placement="bottom">
+        //   <a onClick={(e) => e.preventDefault()}>
+        //     <img
+        //       src="/img/icons/action.png"
+        //       alt="Actions icon"
+        //       className="inline-block w-5 h-5"
+        //     />
+        //   </a>
+        // </Dropdown>
+        <>
+          <DynamicButton
+            iconSrc="/img/icons/delete.png"
+            onClick={() =>
+              handleDeleteItem(row.sub_dealer_id)
+            }
+          />
+        </>
       ),
     }));
 
     // setNetworkList((prevList) => [...prevList, ...newRows]); 
 
     setNetworkList((prevList) => {
-      console.log(prevList);
-
       const existingKeys = prevList.map((item) => item.key); // ดึง key ของรายการที่มีอยู่
       const filteredNewRows = newRows.filter((row) => !existingKeys.includes(row.key)); // กรองเฉพาะ key ที่ยังไม่มีใน list
-
       if (filteredNewRows.length === 0) {
         showNotification("error", "Sale Territory has already been added.");
         return [...prevList, ...filteredNewRows]; 
@@ -604,10 +655,23 @@ export default function EditInformation() {
   };
 
   
+  // const handleBankAccountChange = (index, field, value) => {
+  //   const updatedAccounts = [...companyinfo.bank_account_items];
+  //   updatedAccounts[index][field] = value;
+  //   setcompanyinfo({ ...companyinfo, bank_account_items: updatedAccounts });
+  // };
+
   const handleBankAccountChange = (index, field, value) => {
-    const updatedAccounts = [...companyinfo.bank_account_items];
-    updatedAccounts[index][field] = value;
-    setcompanyinfo({ ...companyinfo, bank_account_items: updatedAccounts });
+    const updatedAccounts = companyinfo.bank_account_items?.length
+      ? [...companyinfo.bank_account_items]
+      : Array(2).fill({ account_title: "", account_number: "", bank_name: "", bank_branch: "" });
+  
+    // อัปเดตค่าของฟิลด์ที่เปลี่ยนแปลงในรายการที่เลือก
+    updatedAccounts[index] = {
+      ...updatedAccounts[index],
+      [field]: value,
+    };
+      setcompanyinfo({ ...companyinfo, bank_account_items: updatedAccounts });
   };
   
   const handleContactChange = (index, field, value) => {
@@ -616,9 +680,6 @@ export default function EditInformation() {
     setContactItems(updatedContacts);
   };
   
-
-
-
   let items = [
     {
       key: "profile",
@@ -638,7 +699,7 @@ export default function EditInformation() {
         fields={formFields}
         form={form}
       /> */}
-      <BoxPrimary>
+      {/* <BoxPrimary>
         {companyinfo.bank_account_items &&
         companyinfo.bank_account_items.length > 0 ? (
           companyinfo.bank_account_items.map((account, index) => (
@@ -687,20 +748,42 @@ export default function EditInformation() {
         ) : (
           <div className="text-gray-500">No bank account information available</div>
         )}
-      </BoxPrimary>
+      </BoxPrimary> */}
 
       <BoxPrimary>
-            <Select
-              mode="multiple"
-              showSearch
-              placeholder="Select Crop(s)"
-              optionFilterProp="children"
-              className="w-full"
-              value={defaultSelectedCrops} 
-              onChange={(value) => setDefaultSelectedCrops(value)} // จัดการการเปลี่ยนแปลงค่า
-              options={transformedCropOptions} 
-              disabled={isViewMode}
-            />
+        {(companyinfo.bank_account_items?.length > 0
+          ? companyinfo.bank_account_items
+          : Array(2).fill({ account_title: "", account_number: "", bank_name: "", bank_branch: "" }) // Default 2 รายการ
+        ).map((account, index) => (
+          <div key={index} className="my-6">
+            <div className="text-[#00783F] text-md">{`Bank Account ${index + 1}`}</div>
+            <Row className="my-3" gutter={[16, 16]}>
+              {["account_title", "account_number", "bank_name", "bank_branch"].map((field) => (
+                <Col xs={24} sm={12} md={8} lg={6} key={field}>
+                  <Input
+                    placeholder={field.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())} // Capitalize placeholder
+                    value={account[field] || ""}
+                    onChange={(e) => handleBankAccountChange(index, field, e.target.value)}
+                    disabled= {true}
+                  />
+                </Col>
+              ))}
+            </Row>
+          </div>
+        ))}
+      </BoxPrimary>
+      <BoxPrimary>
+          <Select
+            mode="multiple"
+            showSearch
+            placeholder="Select Crop(s)"
+            optionFilterProp="children"
+            className="w-full"
+            value={defaultSelectedCrops} 
+            onChange={(value) => setDefaultSelectedCrops(value)} // จัดการการเปลี่ยนแปลงค่า
+            options={transformedCropOptions} 
+            disabled={isViewMode}
+          />
       </BoxPrimary>
 
       <BoxPrimary>
@@ -772,7 +855,10 @@ export default function EditInformation() {
                 )
               }
             </div>
-            <TableComponent header={header} dataSource={networkList} />
+            <TableComponent 
+              header={header} 
+              dataSource={networkList} 
+            />
           </BoxPrimary>
           <div className="flex justify-end space-x-4 mt-6">
             <ActionButton
@@ -831,18 +917,8 @@ export default function EditInformation() {
         header={[
           { title: "No", dataIndex: "no", key: "no", width: 50 },
           { title: "Name", dataIndex: "name", key: "name", width: 150 },
-          {
-            title: "contact number",
-            dataIndex: "territory",
-            key: "territory",
-            width: 150,
-          },
-          {
-            title: "Status",
-            dataIndex: "position",
-            key: "position",
-            width: 150,
-          },
+          { title: "contact number",  dataIndex: "territory", key: "territory", width: 150,},
+          { title: "Status",  dataIndex: "position",  key: "position",  width: 150,},
         ]}
         dataSource={userList}
         width="1200px"

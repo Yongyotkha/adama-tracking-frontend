@@ -257,7 +257,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               value={localQtyState[item.quarter_id]?.total_value || 0}
               formatter={(value) =>
-                `${Number(value).toFixed(2)}`.replace(
+                `${Number(value)}`.replace(
                   /\B(?=(\d{3})+(?!\d))/g,
                   ","
                 )
@@ -318,7 +318,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               value={localQtyState[item.quarter_id]?.total_value || 0}
               formatter={(value) =>
-                `${Number(value).toFixed(2)}`.replace(
+                `${Number(value)}`.replace(
                   /\B(?=(\d{3})+(?!\d))/g,
                   ","
                 )
@@ -331,7 +331,7 @@ export default function WorkPlanSaleCreate() {
             key: `value_${month.month_id}_${item.quarter_id}`,
             children: [
               {
-                title: "Value (KG)",
+                title: "Value (THB)",
                 dataIndex: `value_${month.month_id}`,
                 key: `value_${month.month_id}`,
                 width: 150,
@@ -369,7 +369,7 @@ export default function WorkPlanSaleCreate() {
     unitConvertValue
   ) => {
     setLocalQtyState((prevState) => {
-      const newValue = parseFloat((newQty * unitConvertValue).toFixed(2));
+      const newValue = parseFloat((newQty * unitConvertValue));
 
       const updatedState = {
         ...prevState,
@@ -447,22 +447,6 @@ export default function WorkPlanSaleCreate() {
       createPlan(mode);
     }
 
-    // // เปรียบเทียบ original plan (totalValue) กับ sum ของ amount_target
-    // if (calculatedTotalAmountTarget < totalValue) {
-    //   showNotification(
-    //     "warning",
-    //     "Total Sale Value is less than the Original Plan",
-    //     [
-    //       `Original Plan: ฿ ${formatNumber(totalValue)}`,
-    //       `Current Total: ฿ ${formatNumber(calculatedTotalAmountTarget)}`,
-    //       `Difference: ฿ ${formatNumber(
-    //         totalValue - calculatedTotalAmountTarget
-    //       )}`,
-    //     ],
-    //     3
-    //   );
-    // } else {
-    // }
   };
 
   const createPlan = async (mode) => {
@@ -575,7 +559,7 @@ export default function WorkPlanSaleCreate() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${Number(value).toFixed(2)}`.replace(
+                  `${Number(value)}`.replace(
                     /\B(?=(\d{3})+(?!\d))/g,
                     ","
                   )
@@ -618,7 +602,7 @@ export default function WorkPlanSaleCreate() {
                           value={monthData.total_value || 0}
                           min={0}
                           formatter={(value) =>
-                            `${Number(value).toFixed(2)}`.replace(
+                            `${Number(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )
@@ -642,7 +626,7 @@ export default function WorkPlanSaleCreate() {
                           value={monthData.total_value || 0}
                           min={0}
                           formatter={(value) =>
-                            `${Number(value).toFixed(2)}`.replace(
+                            `${Number(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )

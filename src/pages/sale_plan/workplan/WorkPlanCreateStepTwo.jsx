@@ -183,7 +183,7 @@ export default function WorkPlanCreateStepTwo() {
                       min={0}
                       value={text}
                       formatter={(value) =>
-                        `${Number(value).toFixed(2)}`.replace(
+                        `${Number(value)}`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
                         )
@@ -204,7 +204,7 @@ export default function WorkPlanCreateStepTwo() {
                       min={0}
                       value={text}
                       formatter={(value) =>
-                        `${Number(value).toFixed(2)}`.replace(
+                        `${Number(value)}`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
                         )
@@ -234,7 +234,7 @@ export default function WorkPlanCreateStepTwo() {
                   min={0}
                   value={item.amount_target}
                   formatter={(value) =>
-                    `${Number(value).toFixed(2)}`.replace(
+                    `${Number(value)}`.replace(
                       /\B(?=(\d{3})+(?!\d))/g,
                       ","
                     )
@@ -289,10 +289,10 @@ export default function WorkPlanCreateStepTwo() {
                         disabled
                         className="w-full"
                         value={
-                          dataItem ? parseFloat(dataItem.value).toFixed(2) : 0
+                          dataItem ? parseFloat(dataItem.value) : 0
                         }
                         formatter={(value) =>
-                          `${Number(value).toFixed(2)}`.replace(
+                          `${Number(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )
@@ -330,7 +330,7 @@ export default function WorkPlanCreateStepTwo() {
               return {
                 ...item,
                 qty: newQty,
-                value: (newQty * unitConvertValue).toFixed(2), // คำนวณ value
+                value: (newQty * unitConvertValue), // คำนวณ value
               };
             }
             return item;
@@ -338,7 +338,7 @@ export default function WorkPlanCreateStepTwo() {
 
           const totalValue = updatedDataItems
             .reduce((sum, item) => sum + parseFloat(item.value || 0), 0)
-            .toFixed(2);
+            ;
 
           return {
             ...area,
@@ -439,7 +439,7 @@ export default function WorkPlanCreateStepTwo() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${Number(value).toFixed(2)}`.replace(
+                  `${Number(value)}`.replace(
                     /\B(?=(\d{3})+(?!\d))/g,
                     ","
                   )
@@ -471,7 +471,7 @@ export default function WorkPlanCreateStepTwo() {
                       value={totalValue}
                       min={0}
                       formatter={(value) =>
-                        `${Number(value).toFixed(2)}`.replace(
+                        `${Number(value)}`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
                         )
@@ -487,7 +487,7 @@ export default function WorkPlanCreateStepTwo() {
                         disabled
                         value={area.amount_target || 0} // amount_target ของ area
                         formatter={(value) =>
-                          `${Number(value).toFixed(2)}`.replace(
+                          `${Number(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )

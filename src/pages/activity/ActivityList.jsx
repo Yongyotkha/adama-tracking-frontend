@@ -5,6 +5,7 @@ import { Dropdown } from "antd";
 import ActionButton from "../../components/button/ActionButton";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import TableComponent from "../../components/table/TableComponent";
+import BadgeStatus from "../../components/badge/BadgeStatus";
 import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../components/dropdown/ItemDropDown";
 import DynamicModal from "../../components/modal/DynamicModal";
@@ -12,6 +13,7 @@ import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
 import dayjs from "dayjs";
+import FormModal from "../../components/modal/FormModal";
 
 export default function ActivityList() {
   const [loading, setLoading] = useState(false);
@@ -20,7 +22,7 @@ export default function ActivityList() {
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
-  const { showNotification } = useContext(AuthContext);
+  const { showMsg, showNotification } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -31,8 +33,98 @@ export default function ActivityList() {
     sortField: null,
   });
 
+  const [mappingData, setMappingData] = useState({});
+  const [mappingDataSave, setMappingDataSave] = useState({});
+  const [perceptionData, setPerceptionData] = useState([]);
+
   const [isProductModalVisible, setIsProductModalVisible] = useState(false);
-  const navigate = useNavigate();
+  const [isMappingModalVisible, setIsMappingModalVisible] = useState(false);
+
+  // Get Master
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [perception] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterPerception, {}),
+        ]);
+
+        // Set State
+        setPerceptionData(perception.data);
+
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, []);
+
+  // Handle Open Modal & Get Data
+  const handleShowMappingModal = (data) => {
+    setIsMappingModalVisible(true);
+    // Fetch Data: Mapping Detail
+    const getMappingData = async () => {
+      try {
+        const [mapping] = await Promise.all([
+          useServiceAPI.get(paths.pathActivityMappingStatusDetail, {
+            document_number: data.document_number
+          }),
+        ]);
+
+        setMappingData(mapping.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      }
+    };
+
+    getMappingData();
+  };
+
+  // Handle Close Modal & Save
+  const handleOKMappingModal = (data) => {
+    const dataInfo = data;
+    setIsMappingModalVisible(false);
+
+    // Mapping Save
+    const updateMappingDetail = async () => {
+      try {
+        const body = {
+          document_number: dataInfo.documentNumber,
+          location_longitude: dataInfo.longitude,
+          location_latitude: dataInfo.latitude,
+          location_address: dataInfo.address,
+          perception_id: dataInfo.perception,
+          image_list: ["localhost"],
+        };
+
+        const [mapping] = await Promise.all([
+          useServiceAPI.put(paths.pathActivityMappingStatusDetailUpdate, body),
+        ]);
+
+        showNotification(
+          "success",
+          mapping.data.message,
+          mapping.data.message_line
+        ).then(() => {
+          fetchData();
+        });
+
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      }
+    };
+
+    updateMappingDetail();
+  };
+
+  // Handle Upload File Image
+  const handleChangeFileUpload = (data) => {
+    console.log(data);
+    
+  }
 
   const filters = [
     {
@@ -97,13 +189,13 @@ export default function ActivityList() {
               user_id: filter.sale
             }),
           ]);
-  
+
           setDealerList(dealer.data);
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
         }
       };
-  
+
       getMasterDealer();
     } else {
       handleClear();
@@ -169,10 +261,10 @@ export default function ActivityList() {
     { title: "Activity Type", width: 150, dataIndex: "activityType", align: "start" },
     { title: "Sale", width: 150, dataIndex: "sale", align: "start" },
     { title: "Shop", width: 150, dataIndex: "shop", align: "start" },
-    { title: "Key Product", width: 100, dataIndex: "keyProduct", align: "start" },
     { title: "Date", width: 150, dataIndex: "date", align: "start" },
     { title: "Time", width: 100, dataIndex: "time", align: "start", className: "text-nowrap" },
     { title: "Create Date", width: 100, dataIndex: "createdAt", align: "start", className: "text-nowrap" },
+    { title: "Mapping", width: 150, dataIndex: "mappingStatus", align: "start" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
@@ -205,40 +297,58 @@ export default function ActivityList() {
 
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
-        
+
         const newDataSource = data.map((row, index) => {
           const actionItems = [
-            { 
-              key: "1", 
+            {
+              key: "1",
               label: (
-                <ItemDropDown 
-                  mode="edit" 
-                  link={`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`} 
+                <ItemDropDown
+                  mode="edit"
+                  link={`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`}
                 />
-              ) 
+              )
             },
-            { 
-              key: "2", 
+            {
+              key: "2",
               label: (
-                <ItemDropDown 
-                  mode="delete" 
-                  link={`#`} 
+                <ItemDropDown
+                  mode="delete"
+                  link={`#`}
                   onClick={() => handleDelete(row.document_number)}
                 />
-              ) 
+              )
             },
           ];
-        
+
+          const handleBadgeClick = (data) => {
+            if (row.status_mapping_name !== 'complete') {
+              handleShowMappingModal(data);
+            } else {
+              console.log("Action not allowed for 'complete' status.");
+            }
+          };
+
           return {
             key: index + 1 + (current - 1) * pageSize,
             activityNo: row.document_number,
             activityType: row.activity_type_name,
             shop: row.dealer_name ?? '-',
             sale: row.user_name ?? '-',
-            keyProduct: row.key_product ?? '-',
             date: row.document_date,
             time: row.time,
             createdAt: dayjs(row.created_at).format("YYYY-MM-DD"),
+            mappingStatus: (
+              <BadgeStatus
+                text={row.status_mapping_name}
+                bgColor={row.status_mapping_bg_color}
+                textColor={row.status_mapping_color}
+                onClick={() => {
+                  handleBadgeClick(row);
+                }}
+              // style={{ cursor: row.status_mapping_name !== 'complete' ? 'pointer' : 'not-allowed' }}
+              />
+            ),
             action: (
               <Dropdown menu={{ items: actionItems }} placement="bottomRight">
                 <a onClick={(e) => e.preventDefault()}>
@@ -248,7 +358,6 @@ export default function ActivityList() {
             ),
           };
         });
-        
 
         setDataSource(newDataSource);
         setTableParams({
@@ -279,7 +388,7 @@ export default function ActivityList() {
         setActivityList(activityType.data);
         setSaleList(sale.data);
       } catch (error) {
-        
+
       } finally {
         setLoading(false);
       }
@@ -315,10 +424,10 @@ export default function ActivityList() {
       />
 
       <BoxPrimary>
-        <TableComponent 
-          header={header} 
-          dataSource={dataSource} 
-          pagination={tableParams.pagination} 
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pagination={tableParams.pagination}
           loading={tableLoading}
         />
       </BoxPrimary>
@@ -332,6 +441,15 @@ export default function ActivityList() {
         width="1200px" // Customize the width to make it extra-large
       />
 
+      {/* FormModal */}
+      <FormModal
+        isVisible={isMappingModalVisible}
+        onClose={() => setIsMappingModalVisible(false)} // Handling closing of modal
+        onOk={handleOKMappingModal} // Pass the function directly
+        title="Mapping"
+        dataSource={mappingData}
+        perceptionData={perceptionData}
+      />
     </MainLayout>
   );
 }

@@ -1,7 +1,7 @@
 import React from "react";
-import { MinusOutlined, PlusOutlined } from "@ant-design/icons"; // Import Ant Design icon
+import { DeleteOutlined, MinusOutlined, PlusOutlined } from "@ant-design/icons"; // Import Ant Design icon
 
-const ActionButton = ({ onClick, disabled, mode, text, className = "" }) => {
+const ActionButton = ({ onClick, disabled, mode, text, className = "" , style }) => {
   return (
     <>
       {mode === "create" && (
@@ -54,6 +54,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "" }) => {
           className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#009845] gap-2 p-2 py-1 items-center ${className} min-w-[80px] justify-center`}
           onClick={onClick}
           disabled={disabled}
+          style={style}
         >
           <PlusOutlined className="inline-block text-[16px]" />
           <div>{text}</div>
@@ -96,6 +97,23 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "" }) => {
           onClick={onClick}
           disabled={disabled}
         >
+          <div>{text}</div>
+        </button>
+      )}
+
+      {mode === "delete" && (
+        <button
+          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#f11113] gap-2 p-2 py-1 items-center ${className} min-w-[80px] justify-center`}
+          onClick={onClick}
+          disabled={disabled}
+        >
+          <div>
+            <img
+              src="/img/icons/trash.png"
+              alt="button icon"
+              className="inline-block h-5"
+            />
+          </div>
           <div>{text}</div>
         </button>
       )}

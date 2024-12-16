@@ -1,9 +1,5 @@
 import { Navigate, useNavigate, useLocation } from "react-router-dom";
-import React, {
-  createContext,
-  useState,
-  useEffect,
-} from "react";
+import React, { createContext, useState, useEffect } from "react";
 
 import { endPoint, paths } from "../services/CorsPath.jsx";
 import { axiosInstance } from "../services/CorsService.jsx";
@@ -21,7 +17,6 @@ export const AuthProvider = ({ children }) => {
   const [userInfo, setUserInfo] = useState(
     JSON.parse(localStorage.getItem("users"))
   );
-
 
   let loading = false;
 
@@ -61,18 +56,18 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ตรวจสอบ Local Storage เมื่อเริ่มต้น
-  useEffect(() => {
-    const storedUser = localStorage.getItem("users");
-    const storedToken = localStorage.getItem("accessToken");
-    if (storedUser && storedToken) {
-      const userInfo = JSON.parse(storedUser);
+  // useEffect(() => {
+  //   const storedUser = localStorage.getItem("users");
+  //   const storedToken = localStorage.getItem("accessToken");
+  //   if (storedUser && storedToken) {
+  //     const userInfo = JSON.parse(storedUser);
 
-      setUserInfo(userInfo);
-      setIsLoggedIn(true);
-    } else {
-      logout();
-    }
-  }, []);
+  //     setUserInfo(userInfo);
+  //     setIsLoggedIn(true);
+  //   } else {
+  //     logout();
+  //   }
+  // }, []);
 
   const login = async (username, password, onLoadingChange = null) => {
     try {
@@ -105,7 +100,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    // if (isLoggedIn) {
     setIsLoggedIn(false);
     setUserInfo(null);
 
@@ -115,18 +109,15 @@ export const AuthProvider = ({ children }) => {
 
     console.log("เข้าฟังก์ชัน logout");
     navigate("/login");
-
-    // }
   };
 
   const formatNumber = (number) => {
-    if (isNaN(number) || number == null) return "0.00";
+    if (isNaN(number) || number == null) return "0";
     return Number(number).toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     });
   };
-
 
   return (
     <AuthContext.Provider
@@ -138,7 +129,6 @@ export const AuthProvider = ({ children }) => {
         showMsg,
         showNotification,
         formatNumber,
-        
       }}
     >
       {contextHolder}

@@ -8,6 +8,7 @@ export const paths = {
   pathVerifyOtp: "verify-otp",
   pathOtpCall: "otp/call",
   pathOtpVerify: "otp/verify",
+  pathVerifyPhone: "otp/verify-phone",
   pathSetNewPassword: "set-newpassword",
   pathCustomerSubDealer: "sale-customer-subdealer/list",
 
@@ -30,7 +31,7 @@ export const paths = {
   pathMasterSubDealerCrop: "master/sub-dealer-crop",
   pathMasterSubDealerCustomer: "master/sub-dealer-customer",
   pathMasterPermission: "master/permission",
-
+  pathMasterProductUnit: "master/product-unit",
   // pathMasterShop: "master/shop",
   pathMasterStatus: "master/status",
   pathMasterHeadofsale: "master/headofsale",
@@ -144,6 +145,8 @@ export const paths = {
   pathActivityList: "/activity/list",
   pathActivityCreate: "/activity/create",
   pathActivityDetail: "/activity/detail",
+  pathActivityMappingStatusDetail: "/activity/mapping/detail",
+  pathActivityMappingStatusDetailUpdate: "/activity/mapping/detail",
 
   pathActivityExpenseCreate: "/activity-expense/create",
   pathActivityExpenseDetail: "/activity-expense/detail",
