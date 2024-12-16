@@ -125,6 +125,10 @@ export default function WorkPlan() {
             pathRole == "area"
               ? formatNumber(row.amount_target)
               : formatNumber(row.overall_target),
+          salePlan:
+            pathRole == "area"
+              ? formatNumber(row.sale_amount_target)
+              : '',
           // workPlan: pathRole,
           name: pathRole == "area" ? row.sale_area_name : row.user_name,
           year: row.year_name,
@@ -277,7 +281,7 @@ export default function WorkPlan() {
   const header = [
     {
       title: "Years",
-      width: "20%",
+      width: "15%",
       dataIndex: "year",
       align: "left",
     },
@@ -287,16 +291,27 @@ export default function WorkPlan() {
       dataIndex: "workPlan",
       align: "left",
     },
+    ...(pathName == "area"
+      ? [
+          {
+            title: "Sale Plan(THB)",
+            width: "20%",
+            dataIndex: "salePlan",
+            align: "left",
+          },
+        ]
+      : []),
     ...(pathName !== "head"
       ? [
           {
             title: "Name",
-            width: 100,
+            width: "20%",
             dataIndex: "name",
             align: "left",
           },
         ]
       : []),
+    
     {
       title: "Last modified",
       width: "20%",
@@ -305,7 +320,7 @@ export default function WorkPlan() {
     },
     {
       title: "Status",
-      width: "20%",
+      width: "15%",
       dataIndex: "status",
       align: "center",
     },
