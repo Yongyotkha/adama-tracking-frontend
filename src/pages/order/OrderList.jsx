@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
 import { Dropdown, Modal } from "antd";
@@ -10,9 +10,12 @@ import TableComponent from "../../components/table/TableComponent";
 import ItemDropDown from "../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
+import { AuthContext } from "../../contexts/AuthContext";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 
 export default function OrderList() {
   const navigate = useNavigate();
+  const { showMsg, showNotification } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [dataSale, setDataSale] = useState([]);
@@ -250,6 +253,17 @@ export default function OrderList() {
                       />
                     ),
                   },
+                  {
+                    key: 3,
+                    label: (
+                      <ItemDropDown
+                        mode="delete"
+                        onClick={() => {
+                          handleDelete(order.document_number);
+                        }}
+                      />
+                    ),
+                  },
                 ],
               }}
               placement="bottom"
@@ -336,6 +350,47 @@ export default function OrderList() {
     } else {
       handleClear();
     }
+  };
+
+  const handleDelete = async (documentNumber) => {
+    confirm({
+      title: "Do you want to delete ?",
+      icon: <ExclamationCircleFilled />,
+      content: [],
+      centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+      async onOk() {
+        try {
+          const response = await useServiceAPI.delete(paths.pathGetOrderDelete, {
+            document_number: documentNumber,
+          });
+
+          if (response.status === 200) {
+            // Show success notification
+            showNotification("success", 
+              response.data.message|| "Event deleted successfully!", 
+              response.data.message_line || ["The event has been removed."]
+            ).then(() => {
+              
+            })
+          } else {
+            showNotification("warning", 
+              response.data.message|| "Event deleted successfully!", 
+              response.data.message_line || ["The event has been removed."]
+            )
+          }
+
+        } catch (error) {
+          // Handle errors and show an error notification
+          if (error.response.data.status === 400) {
+            const message = error.response.data.data;
+            showNotification("warning", 
+              message.Message.Message_Header, 
+              message.Message.Message_Line
+            )
+          }
+        }
+      },
+    });
   };
 
   return (
