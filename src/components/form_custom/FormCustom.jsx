@@ -257,7 +257,8 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                       placeholder={`Select ${field.label.toLowerCase()}`}
                       disabled={field.disabled}
                       allowClear
-                      options={field.options.map((option) => ({
+                      options={field.options.map((option, index) => ({
+                        key: index,
                         label: option.name,
                         value: String(option.id),
                       }))}
