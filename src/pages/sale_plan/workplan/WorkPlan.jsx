@@ -281,7 +281,7 @@ export default function WorkPlan() {
   const header = [
     {
       title: "Years",
-      width: "20%",
+      width: "15%",
       dataIndex: "year",
       align: "left",
     },
@@ -305,7 +305,7 @@ export default function WorkPlan() {
       ? [
           {
             title: "Name",
-            width: 100,
+            width: "20%",
             dataIndex: "name",
             align: "left",
           },
@@ -320,7 +320,7 @@ export default function WorkPlan() {
     },
     {
       title: "Status",
-      width: "20%",
+      width: "15%",
       dataIndex: "status",
       align: "center",
     },
