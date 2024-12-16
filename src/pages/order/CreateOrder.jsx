@@ -45,18 +45,7 @@ export default function CreateOrder() {
           }),
         ]);
 
-        // setDataSale(sale.data);
-        // if (sale.data.some((item) => item.id === userInfo.id)) {
-        //   // ถ้ามี id === 1, set เฉพาะรายการที่ id === 1
-        //   // setDataSale(sale.data.filter((item) => item.id === userInfo.id));
-        //   setDataSale(sale.data);
-        //   setDataSaleId(userInfo.id);
-        // } else {
-        //   // ถ้าไม่มี id === 1, set ทั้งหมด
-        //   setDataSale(sale.data);
-        // }
         setDataSale(sale.data);
-        // setDataSaleId(userInfo.id);
 
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -218,7 +207,7 @@ export default function CreateOrder() {
       disabled: false, 
       required: false, 
       moderef: true,
-      value: dataSaleId,
+      value: parseInt(dataSaleId || userInfo.id, 10),
     },
     { 
       label: "Dealer", 
