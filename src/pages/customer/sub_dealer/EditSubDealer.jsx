@@ -187,6 +187,7 @@ export default function EditSubDealer() {
       value: companyinfo.end_time
       ? dayjs(companyinfo.end_time, "HH:mm")
       : null,
+      
     },
     // {
     //   label: "Business Size",
@@ -259,15 +260,15 @@ export default function EditSubDealer() {
       value: companyinfo.anniversary,
     },
     {
-      label: "Outlet Location *Please select a location on the map" ,
+      label: "Outlet Location Please select a location on the map" ,
       labelColor: "red",
       name: "outlet_location",
       type: "text",
       required: false,
       col: 24,
       value: companyinfo.location_address,
-      iconSrc: "/img/icons/location.png",
-      iconPosition: "right",
+      // iconSrc: "/img/icons/location.png",
+      // iconPosition: "right",
       disabled: true,
     },
   ];
@@ -613,7 +614,11 @@ export default function EditSubDealer() {
               name="remark"
               className="mt-3"
             >
-              <Input placeholder="Enter Remark" />
+              <Input 
+                placeholder="Enter Remark" 
+                disabled={isViewMode}
+              />
+              
             </Form.Item>
     
             </div>
