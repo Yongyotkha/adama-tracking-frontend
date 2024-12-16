@@ -19,6 +19,7 @@ import {
   Tabs,
   Form,
   Select,
+  Typography,
 } from "antd";
 import { values } from "lodash";
 import dayjs from "dayjs";
@@ -28,9 +29,8 @@ import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import DynamicModal from "../../../components/modal/DynamicModal"; 
 import { GoogleMap, LoadScript, Marker} from "@react-google-maps/api";
 
-
 const { Option } = Select;
-
+const { Text } = Typography;
 export default function EditSubDealer() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -162,7 +162,7 @@ export default function EditSubDealer() {
         { name: "Sunday", id: "Sunday", selected: false },
       ],
       required: false,
-      col: 6,
+      col: 12,
       iconSrc: "/img/icons/calendar.png",
       iconPosition: "right",
       value:companyinfo.day_of_week,
@@ -259,7 +259,8 @@ export default function EditSubDealer() {
       value: companyinfo.anniversary,
     },
     {
-      label: "Outlet Location",
+      label: "Outlet Location *Please select a location on the map" ,
+      labelColor: "red",
       name: "outlet_location",
       type: "text",
       required: false,
@@ -267,6 +268,7 @@ export default function EditSubDealer() {
       value: companyinfo.location_address,
       iconSrc: "/img/icons/location.png",
       iconPosition: "right",
+      disabled: true,
     },
   ];
 
@@ -572,50 +574,50 @@ export default function EditSubDealer() {
         <div></div>
       )}
       
-            <div className={`bg-white p-4`}
-              style={{
-                boxShadow: "rgba(0, 0, 0, 0.1)", // Optional for a subtle shadow
-                marginTop: "-20px",
-              }}
-            >
-            <div className="text-[#00783F] text-lg font-semibold mb-3">
-      
-              <LoadScript googleMapsApiKey={dataApiKey}>
-                <GoogleMap
-                  mapContainerStyle={mapContainerStyle}
-                  center={currentLocation}
-                  zoom={dataMapZoom}
-                  onClick={(e) => {
-                    const lat = e.latLng.lat();
-                    const lng = e.latLng.lng();
-                    setCurrentLocation({ lat, lng });
-                  }}
-                >
-                  {isGoogleLoaded && (
-                    <Marker 
-                      position={currentLocation}
-                      icon={{
-                        // url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
-                        scaledSize: { width: 30, height: 30 },
-                      }}
-                      draggable={true}
-                      onDragEnd={handleMarkerDragEnd} 
-                    />
-                  )}
-                </GoogleMap>
-              </LoadScript>
-      
-      
-              <Form.Item 
-                label="Remark" 
-                name="remark"
-                className="mt-3"
+          <div className={`bg-white p-4`}
+            style={{
+              boxShadow: "rgba(0, 0, 0, 0.1)", // Optional for a subtle shadow
+              marginTop: "-20px",
+            }}
+          >
+          <div className="text-[#00783F] text-lg font-semibold mb-3">
+    
+            <LoadScript googleMapsApiKey={dataApiKey}>
+              <GoogleMap
+                mapContainerStyle={mapContainerStyle}
+                center={currentLocation}
+                zoom={dataMapZoom}
+                onClick={(e) => {
+                  const lat = e.latLng.lat();
+                  const lng = e.latLng.lng();
+                  setCurrentLocation({ lat, lng });
+                }}
               >
-                <Input placeholder="Enter Remark" />
-              </Form.Item>
-      
-              </div>
+                {isGoogleLoaded && (
+                  <Marker 
+                    position={currentLocation}
+                    icon={{
+                      // url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
+                      scaledSize: { width: 30, height: 30 },
+                    }}
+                    draggable={true}
+                    onDragEnd={handleMarkerDragEnd} 
+                  />
+                )}
+              </GoogleMap>
+            </LoadScript>
+    
+    
+            <Form.Item 
+              label="Remark" 
+              name="remark"
+              className="mt-3"
+            >
+              <Input placeholder="Enter Remark" />
+            </Form.Item>
+    
             </div>
+          </div>
 
     {/* <LoadScript googleMapsApiKey={dataApiKey}>
         <GoogleMap
