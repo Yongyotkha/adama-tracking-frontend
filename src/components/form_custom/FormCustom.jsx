@@ -260,7 +260,7 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                       options={field.options.map((option, index) => ({
                         key: index,
                         label: option.name,
-                        value: option.id,
+                        value: parseInt(option.id, 10),
                       }))}
                     />
                     {" "}

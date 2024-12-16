@@ -47,6 +47,11 @@ export default function CreateOrder() {
 
         setDataSale(sale.data);
 
+        const checkSaleId = sale.data.find(item => item.id === userInfo.id);
+        if (checkSaleId) {
+          setDataSaleId(userInfo.id);
+        }
+
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -207,7 +212,7 @@ export default function CreateOrder() {
       disabled: false, 
       required: false, 
       moderef: true,
-      value: parseInt(dataSaleId || userInfo.id, 10),
+      value: parseInt(dataSaleId, 10),
     },
     { 
       label: "Dealer", 
