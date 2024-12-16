@@ -33,7 +33,7 @@ export default function ActivityList() {
     sortOrder: null,
     sortField: null,
   });
-  
+
   const [mappingData, setMappingData] = useState({});
   const [mappingDataSave, setMappingDataSave] = useState({});
 
@@ -61,7 +61,7 @@ export default function ActivityList() {
   };
 
   // Handle Close Modal & Save
-  const handleCloseMappingModal = (data) => {
+  const handleOKMappingModal = (data) => {
     const dataInfo = data;
     setIsMappingModalVisible(false);
 
@@ -416,8 +416,9 @@ export default function ActivityList() {
       {/* FormModal */}
       <FormModal
         isVisible={isMappingModalVisible}
-        onClose={handleCloseMappingModal}
-        title="Mapping" // Customize as needed
+        onClose={() => setIsMappingModalVisible(false)} // Handling closing of modal
+        onOk={handleOKMappingModal} // Pass the function directly
+        title="Mapping"
         dataSource={mappingData}
       />
     </MainLayout>
