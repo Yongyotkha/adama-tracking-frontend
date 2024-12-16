@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import { Input, InputNumber, Table, Tabs } from "antd";
+import { Input, InputNumber, Table, Tabs ,Typography} from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import TableCustomComponent from "../../../components/table/TableCustomComponent";
 import ActionButton from "../../../components/button/ActionButton";
@@ -27,6 +27,7 @@ export default function ActivityPlanDealer() {
   const [yearName, setYearName] = useState([]);
   const totalDealers = subDealers.length;
   const [message, setMessage] = useState("");
+  const { Text } = Typography;
 
   useEffect(() => {
     getMasterSubDealer();
@@ -257,7 +258,12 @@ export default function ActivityPlanDealer() {
       ],
     },
     ...subDealers.map((dealerItem, index) => ({
-      title: dealerItem.sub_dealer_name,
+ 
+      title: (
+        <Text ellipsis={{ tooltip: dealerItem.sub_dealer_name }} className="text-white">
+          {dealerItem.sub_dealer_name}
+        </Text>
+      ),
       key: `dealer-${dealerItem.sub_dealer_id}-qty`,
       onHeaderCell: () => ({
         style: {
@@ -314,7 +320,12 @@ export default function ActivityPlanDealer() {
       ],
     })),
     ...subDealers.map((dealerItem, index) => ({
-      title: dealerItem.sub_dealer_name,
+ 
+      title: (
+        <Text ellipsis={{ tooltip: dealerItem.sub_dealer_name }} className="text-white">
+          {dealerItem.sub_dealer_name}
+        </Text>
+      ),
       key: `dealer-${dealerItem.sub_dealer_id}-value`,
       onHeaderCell: () => ({
         style: {

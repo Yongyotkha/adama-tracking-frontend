@@ -230,7 +230,7 @@ export default function ActivityPlanSubDealer() {
     //             disabled
     //             value={localData.value}
     //             formatter={(value) =>
-    //               `${Number(value).toFixed(2)}`.replace(
+    //               `${Number(value)}`.replace(
     //                 /\B(?=(\d{3})+(?!\d))/g,
     //                 ","
     //               )
@@ -267,7 +267,7 @@ export default function ActivityPlanSubDealer() {
       }, 0);
 
       setExpense(
-        ((Number(totalAmountTarget) / Number(totalValue)) * 100).toFixed(2)
+        ((Number(totalAmountTarget) / Number(totalValue)) * 100)
       );
       console.log(totalAmountTarget, totalValue);
       setEstimate(totalAmountTarget);
@@ -391,7 +391,7 @@ export default function ActivityPlanSubDealer() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${Number(value).toFixed(2)}`.replace(
+                  `${Number(value)}`.replace(
                     /\B(?=(\d{3})+(?!\d))/g,
                     ","
                   )
@@ -405,7 +405,7 @@ export default function ActivityPlanSubDealer() {
                 className="w-full"
                 value={estimate}
                 formatter={(value) =>
-                  `${Number(value).toFixed(2)}`.replace(
+                  `${Number(value)}`.replace(
                     /\B(?=(\d{3})+(?!\d))/g,
                     ","
                   )
@@ -476,7 +476,7 @@ export default function ActivityPlanSubDealer() {
                           disabled
                           value={totalValue}
                           formatter={(value) =>
-                            `${Number(value).toFixed(2)}`.replace(
+                            `${Number(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )
@@ -501,7 +501,7 @@ export default function ActivityPlanSubDealer() {
                           disabled
                           value={totalValue}
                           formatter={(value) =>
-                            `${Number(value).toFixed(2)}`.replace(
+                            `${Number(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )
