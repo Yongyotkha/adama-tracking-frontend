@@ -1,11 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Form, Input, DatePicker, TimePicker, Select, Col, Row } from "antd";
+import { Form, Input, DatePicker, TimePicker, Select, Col, Row, Button } from "antd";
 import BoxPrimary from "../box_primary/BoxPrimary";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { AuthContext } from "../../contexts/AuthContext";
 import { paths } from "../../services/CorsPath";
 import useServiceAPI from "../../services/CorsService";
+import { EditOutlined } from "@ant-design/icons";
 dayjs.extend(customParseFormat);
 
 const { Option } = Select;
@@ -156,15 +157,31 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
                     onChange={(value) => handleChange(field.name, value)}
                   />
                 ) : field.type === "picture" || field.type === "image" ? (
-                  <div className="image-upload-container flex items-center gap-3">
+                  // <div className="image-upload-container flex items-center gap-3">
+                  //   <img
+                  //     src={imagePreview}
+                  //     // src={field.value || imagePreview}
+                  //     alt="Profile"
+                  //     onClick={() =>
+                  //       document.getElementById(`imageUpload-${index}`).click()
+                  //     }
+                  //     className="w-24 h-24 rounded-full object-cover cursor-pointer shadow-lg"
+                  //   />
+                  //   <input
+                  //     type="file"
+                  //     accept="image/*"
+                  //     onChange={handleImageChange}
+                  //     style={{ display: "none" }}
+                  //     id={`imageUpload-${index}`}
+                  //     name={field.name}
+                  //   />
+                  // </div>
+                  <div className="image-upload-container flex items-center gap-3 mb-4">
                     <img
                       src={imagePreview}
-                      // src={field.value || imagePreview}
                       alt="Profile"
-                      onClick={() =>
-                        document.getElementById(`imageUpload-${index}`).click()
-                      }
-                      className="w-24 h-24 rounded-full object-cover cursor-pointer shadow-lg"
+                      onClick={() => document.getElementById(`imageUpload-${index}`).click() }
+                      className="w-24 h-24 rounded-full object-cover mb-2 cursor-pointer shadow-lg"
                     />
                     <input
                       type="file"
@@ -174,6 +191,13 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
                       id={`imageUpload-${index}`}
                       name={field.name}
                     />
+                    <Button
+                      icon={imagePreview !== "/img/Image-not-found.png" ? <EditOutlined /> : <PlusOutlined />}
+                      onClick={() => document.getElementById(`imageUpload-${index}`).click() }
+                      className="text-[#00783F] border-[#00783F]"
+                    >
+                      {imagePreview !== "/img/Image-not-found.png" ? "Edit Photo" : "Add Photo"}
+                    </Button>
                   </div>
                 ) : field.type === "multiple" ? (
                   <Select
