@@ -49,6 +49,7 @@ export const paths = {
   //Dealer
   pathCustomerDealer: "sale-customer-dealer/list",
   pathCustomerDealerDetail: "sale-customer-dealer/detail",
+  pathCustomerNetworkDelete: "sale-customer-dealer/network-delete",
   pathCustomerSubDealerList: "sale-customer-subdealer/list",
   pathCustomerSubDealerUpdate: "sale-customer-dealer/update",
   pathCustomerSubDealerNetworkUpdate: "sale-customer-dealer/network-create",
@@ -134,6 +135,9 @@ export const paths = {
   pathRollingForecast: "/rolling-forecast/sale/list",
   pathRollingForecastMonth: "/rolling-forecast/sale/detail",
   pathRollingForecastQuarter: "/rolling-forecast/sale/quarter",
+
+  pathRollingForecastDealer: "/rolling-forecast/sale/dealer/list",
+  pathRollingForecastDealerMonth: "/rolling-forecast/sale/dealer/month",
 
   //Activity
   pathActivityPlan: "/activity-plan/sale/list",

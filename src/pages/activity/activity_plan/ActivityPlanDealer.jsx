@@ -246,7 +246,7 @@ export default function ActivityPlanDealer() {
               disabled
               value={text}
               formatter={(value) =>
-                `${Number(value).toFixed(2)}`.replace(
+                `${Number(value)}`.replace(
                   /\B(?=(\d{3})+(?!\d))/g,
                   ","
                 )
@@ -354,7 +354,7 @@ export default function ActivityPlanDealer() {
                 min={0}
                 value={localData.value}
                 formatter={(value) =>
-                  `${Number(value).toFixed(2)}`.replace(
+                  `${Number(value)}`.replace(
                     /\B(?=(\d{3})+(?!\d))/g,
                     ","
                   )
@@ -368,6 +368,96 @@ export default function ActivityPlanDealer() {
     })),
   ];
 
+  // const handleQtyChange = (
+  //   dealerId,
+  //   subDealerId,
+  //   productId,
+  //   newQty,
+  //   unitConvertValue = 1
+  // ) => {
+  //   setLocalQtyState((prevState) => {
+  //     const updatedState = { ...prevState };
+
+  //     // Initialize nested structure if not present
+  //     if (!updatedState[dealerId]) {
+  //       updatedState[dealerId] = {};
+  //     }
+  //     if (!updatedState[dealerId][subDealerId]) {
+  //       updatedState[dealerId][subDealerId] = { totalAmountTarget: 0 };
+  //     }
+
+  //     // Get the original plan for the product
+  //     const originalPlan =
+  //       dataSource.find((item) => item.product_id === productId)?.qty || 0;
+
+  //     // Calculate the total quantity allocated to sub-dealers (excluding sub_dealer_id = 0)
+  //     const totalOtherQty = Object.keys(updatedState[dealerId]).reduce(
+  //       (sum, dealerKey) => {
+  //         if (dealerKey !== "0" && dealerKey !== subDealerId.toString()) {
+  //           return (
+  //             sum + (updatedState[dealerId][dealerKey][productId]?.qty || 0)
+  //           );
+  //         }
+  //         return sum;
+  //       },
+  //       0
+  //     );
+
+  //     // Ensure the new quantity does not exceed the original plan
+  //     const maxQty = originalPlan - totalOtherQty;
+  //     const finalQty = Math.min(newQty, maxQty);
+
+  //     // Update the state for the current sub-dealer
+  //     if (!updatedState[dealerId][subDealerId][productId]) {
+  //       updatedState[dealerId][subDealerId][productId] = {};
+  //     }
+  //     updatedState[dealerId][subDealerId][productId] = {
+  //       qty: finalQty,
+  //       value: finalQty * unitConvertValue,
+  //     };
+
+  //     // Recalculate totalAmountTarget for the current sub-dealer
+  //     updatedState[dealerId][subDealerId].totalAmountTarget = Object.values(
+  //       updatedState[dealerId][subDealerId]
+  //     )
+  //       .filter((product) => typeof product === "object")
+  //       .reduce((sum, product) => sum + (product.value || 0), 0);
+
+  //     // Calculate the remaining quantity for sub_dealer_id = 0
+  //     const remainingQty =
+  //       originalPlan -
+  //       Object.keys(updatedState[dealerId]).reduce((sum, dealerKey) => {
+  //         if (dealerKey !== "0") {
+  //           return (
+  //             sum + (updatedState[dealerId][dealerKey][productId]?.qty || 0)
+  //           );
+  //         }
+  //         return sum;
+  //       }, 0);
+
+  //     if (!updatedState[dealerId][0]) {
+  //       updatedState[dealerId][0] = { totalAmountTarget: 0 };
+  //     }
+  //     if (!updatedState[dealerId][0][productId]) {
+  //       updatedState[dealerId][0][productId] = {};
+  //     }
+  //     updatedState[dealerId][0][productId] = {
+  //       qty: remainingQty,
+  //       value: remainingQty * unitConvertValue,
+  //     };
+
+  //     // Recalculate totalAmountTarget for sub_dealer_id = 0
+  //     updatedState[dealerId][0].totalAmountTarget = Object.values(
+  //       updatedState[dealerId][0]
+  //     )
+  //       .filter((product) => typeof product === "object")
+  //       .reduce((sum, product) => sum + (product.value || 0), 0);
+
+  //     return updatedState;
+  //   });
+  // };
+
+
   const handleQtyChange = (
     dealerId,
     subDealerId,
@@ -377,7 +467,7 @@ export default function ActivityPlanDealer() {
   ) => {
     setLocalQtyState((prevState) => {
       const updatedState = { ...prevState };
-
+  
       // Initialize nested structure if not present
       if (!updatedState[dealerId]) {
         updatedState[dealerId] = {};
@@ -385,56 +475,60 @@ export default function ActivityPlanDealer() {
       if (!updatedState[dealerId][subDealerId]) {
         updatedState[dealerId][subDealerId] = { totalAmountTarget: 0 };
       }
-
+  
       // Get the original plan for the product
       const originalPlan =
-        dataSource.find((item) => item.product_id === productId)?.qty || 0;
-
+        Number(dataSource.find((item) => item.product_id === productId)?.qty) || 0;
+  
       // Calculate the total quantity allocated to sub-dealers (excluding sub_dealer_id = 0)
       const totalOtherQty = Object.keys(updatedState[dealerId]).reduce(
         (sum, dealerKey) => {
           if (dealerKey !== "0" && dealerKey !== subDealerId.toString()) {
             return (
-              sum + (updatedState[dealerId][dealerKey][productId]?.qty || 0)
+              sum +
+              Number(updatedState[dealerId][dealerKey][productId]?.qty || 0)
             );
           }
           return sum;
         },
         0
       );
-
+  
       // Ensure the new quantity does not exceed the original plan
-      const maxQty = originalPlan - totalOtherQty;
-      const finalQty = Math.min(newQty, maxQty);
-
+      const maxQty = Math.max(0, originalPlan - totalOtherQty);
+      const finalQty = Math.min(Number(newQty), maxQty);
+  
       // Update the state for the current sub-dealer
       if (!updatedState[dealerId][subDealerId][productId]) {
         updatedState[dealerId][subDealerId][productId] = {};
       }
       updatedState[dealerId][subDealerId][productId] = {
         qty: finalQty,
-        value: finalQty * unitConvertValue,
+        value: finalQty * Number(unitConvertValue),
       };
-
+  
       // Recalculate totalAmountTarget for the current sub-dealer
       updatedState[dealerId][subDealerId].totalAmountTarget = Object.values(
         updatedState[dealerId][subDealerId]
       )
         .filter((product) => typeof product === "object")
-        .reduce((sum, product) => sum + (product.value || 0), 0);
-
+        .reduce((sum, product) => sum + Number(product.value || 0), 0);
+  
       // Calculate the remaining quantity for sub_dealer_id = 0
-      const remainingQty =
+      const remainingQty = Math.max(
+        0,
         originalPlan -
-        Object.keys(updatedState[dealerId]).reduce((sum, dealerKey) => {
-          if (dealerKey !== "0") {
-            return (
-              sum + (updatedState[dealerId][dealerKey][productId]?.qty || 0)
-            );
-          }
-          return sum;
-        }, 0);
-
+          Object.keys(updatedState[dealerId]).reduce((sum, dealerKey) => {
+            if (dealerKey !== "0") {
+              return (
+                sum +
+                Number(updatedState[dealerId][dealerKey][productId]?.qty || 0)
+              );
+            }
+            return sum;
+          }, 0)
+      );
+  
       if (!updatedState[dealerId][0]) {
         updatedState[dealerId][0] = { totalAmountTarget: 0 };
       }
@@ -443,20 +537,21 @@ export default function ActivityPlanDealer() {
       }
       updatedState[dealerId][0][productId] = {
         qty: remainingQty,
-        value: remainingQty * unitConvertValue,
+        value: remainingQty * Number(unitConvertValue),
       };
-
+  
       // Recalculate totalAmountTarget for sub_dealer_id = 0
       updatedState[dealerId][0].totalAmountTarget = Object.values(
         updatedState[dealerId][0]
       )
         .filter((product) => typeof product === "object")
-        .reduce((sum, product) => sum + (product.value || 0), 0);
-
+        .reduce((sum, product) => sum + Number(product.value || 0), 0);
+  
       return updatedState;
     });
   };
 
+  
   const handleSave = async (mode) => {
     setLoading(true); // เริ่มโหลดข้อมูล
 
@@ -551,7 +646,7 @@ export default function ActivityPlanDealer() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Create Activity By Dealer" showYear={yearName} />
+        <Title prefix="Activity By Dealer" showYear={yearName} />
 
         {activeKey && (
           <Tabs
@@ -597,7 +692,7 @@ export default function ActivityPlanDealer() {
                       ?.amount_target || 0
                   }
                   formatter={(value) =>
-                    `${Number(value).toFixed(2)}`.replace(
+                    `${Number(value)}`.replace(
                       /\B(?=(\d{3})+(?!\d))/g,
                       ","
                     )
@@ -633,7 +728,7 @@ export default function ActivityPlanDealer() {
                       min={0}
                       value={totalValue}
                       formatter={(value) =>
-                        `${Number(value).toFixed(2)}`.replace(
+                        `${Number(value)}`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
                         )
@@ -653,7 +748,7 @@ export default function ActivityPlanDealer() {
                         }
                         min={0}
                         formatter={(value) =>
-                          `${Number(value).toFixed(2)}`.replace(
+                          `${Number(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )
@@ -673,7 +768,7 @@ export default function ActivityPlanDealer() {
                         }
                         min={0}
                         formatter={(value) =>
-                          `${Number(value).toFixed(2)}`.replace(
+                          `${Number(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )

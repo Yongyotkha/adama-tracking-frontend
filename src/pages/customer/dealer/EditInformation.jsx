@@ -27,6 +27,7 @@ import BadgeStatus from "../../../components/badge/BadgeStatus";
 import TableComponent from "../../../components/table/TableComponent";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import DynamicModal from "../../../components/modal/DynamicModal"; 
+import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 
 const { Option } = Select;
 
@@ -49,6 +50,10 @@ export default function EditInformation() {
   const [profileImage, setProfileImage] = useState("/img/profile.jpg"); // Default value
   const [dataLoaded, setDataLoaded] = useState(false);
   const { userInfo, showNotification } = useContext(AuthContext);
+  const [dataApiKey, setDataApiKay] = useState("AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik");
+  const [currentLocation, setCurrentLocation] = useState({});
+  const [dataMapZoom, setDataMapZoom] = useState(15);
+  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
 
     // อ่านสถานะ mod จาก state
     const mode = location.state?.mod; 
@@ -177,12 +182,24 @@ export default function EditInformation() {
       type: "select",
       required: false,
       col: 6,
-      disabled: true,
+      // disabled: true,
       options: [
         { name: "Active", id: 1, selected: true },
         { name: "Inactive", id: 0, selected: false },
       ],
       value: parseInt(companyinfo.use_flag,10) === 1 ? "Active" : "Inactive"
+    },
+    {
+      label: "Outlet Location *Please select a location on the map" ,
+      labelColor: "red",
+      name: "outlet_location",
+      type: "text",
+      required: false,
+      col: 24,
+      value: companyinfo.location_address,
+      iconSrc: "/img/icons/location.png",
+      iconPosition: "right",
+      disabled: true,
     },
 
   ];
@@ -192,7 +209,7 @@ export default function EditInformation() {
     { title: "No", width: 50, dataIndex: "no", align: "center" },
     { title: "Sub Dealer Name", width: 100, dataIndex: "name", align: "left" },
     { title: "Contact Person", width: 200,  dataIndex: "contactperson", align: "left",},
-    { title: "Phone NO",  width: 150, dataIndex: "mobilePhone", align: "center",},
+    { title: "NO",  width: 150, dataIndex: "mobilePhone", align: "center",},
     // {
     //   title: "On Shop",
     //   width: 150,
@@ -221,33 +238,35 @@ export default function EditInformation() {
     console.log("id", location.state.id);
     console.log(record);
     
-    // try {
-    //   const requestData = {
-    //     sale_management_items_id: record, // ส่ง ID ที่ต้องการลบ
-    //   };
+    try {
+      const requestData = {
+        dealer_id:location.state.id,
+        sub_dealer_id: record, // ส่ง ID ที่ต้องการลบ
+      };
 
-    //   const response = await useServiceAPI.delete(
-    //     paths.pathSaleManagementDeleteSubItem,
-    //     requestData
-    //   );
+      const response = await useServiceAPI.delete(
+        paths.pathCustomerNetworkDelete,
+        requestData
+      );
 
-    //   if (response.status === 200) {
-    //     fetchData();
-    //     // showMsg("success", "Record deleted successfully.");
-    //     showNotification(
-    //       "success",
-    //       response.data.message,
-    //       response.data.message_line
-    //     );
-    //   } else {
-    //     console.error("Failed to delete record:", response.message);
-    //     showNotification("error", response.message, response.message_line);
-    //   }
-    // } catch (error) {
-    //   console.error("Error deleting record:", error);
+      if (response.status === 200) {
+        // fetchData();
+        await fetchPromotionDetails(location.state.id);
 
-    //   showNotification("error", error.message, error.message_line);
-    // }
+        showNotification(
+          "success",
+          response.data.message,
+          response.data.message_line
+        );
+      } else {
+        console.error("Failed to delete record:", response.message);
+        showNotification("error", response.message, response.message_line);
+      }
+    } catch (error) {
+      console.error("Error deleting record:", error);
+
+      showNotification("error", error.message, error.message_line);
+    }
   };
 
 
@@ -258,14 +277,21 @@ export default function EditInformation() {
         `${paths.pathCustomerDealerDetail}?id=${id}`
       );
       if (response.status === 200) {
-        const { data } = response;        
+        const { data } = response;  
+        console.log(data.location_longitude);
+        console.log(data.location_latitude);
+      
         setcompanyinfo(data);
         setContactItems(data.contact_items);
         setProfileImage(data.photo_path)
         setCropOptions(data.crop_list || []);
         const cropNames = data.crop_list?.map((crop) => Number(crop.id)) || [];
         setDefaultSelectedCrops(cropNames);
-        // console.log(cropNames);        
+        const lat = parseFloat(data.location_latitude) || 13.9572612; 
+        const lng = parseFloat(data.location_longitude) || 100.6222401;   
+        setCurrentLocation({ lat, lng });
+
+
         const newDataNetwork = data.network_list.map((item, index) => ({
           key: item.sub_dealer_id,
           no: index + 1,
@@ -572,6 +598,14 @@ export default function EditInformation() {
     form
       .validateFields()
       .then((values) => {
+        console.log(values);
+
+        let useFlagValue;
+        if (values.use_flag === 1 || values.use_flag === 0) {
+          useFlagValue = values.use_flag; // ถ้าค่าเป็น 1 หรือ 0 อยู่แล้ว ใช้ค่าเดิม
+        } else {
+          useFlagValue = values.use_flag === "Active" ? 1 : 0; // แปลงค่าจาก "Active" หรือ "Inactive"
+        }
         const formattedData = {
           id: location.state.id, 
           dealer_name_en: values.dealer_name_en || "",
@@ -584,7 +618,12 @@ export default function EditInformation() {
           date_of_anniversary: values.date_of_anniversary || "",
           date_of_joining: values.date_of_joining || "",
           photo_path: values.profile || "",
+          location_address: values.outlet_location || "",
+          location_longitude: currentLocation.lng || "",
+          location_latitude: currentLocation.lat  || "",
+          use_flag: useFlagValue,
           bank_account_items: companyinfo.bank_account_items || [],
+          
           contact_items: contactItems.map((item) => ({
             name_en: item.name_en || "",
             contact_number: item.contact_number || "",
@@ -601,12 +640,20 @@ export default function EditInformation() {
           })),
           crop_list: defaultSelectedCrops || [],
         };
+        console.log(formattedData);
+        
         useServiceAPI
           .put(paths.pathCustomerSubDealerUpdate, formattedData)
           .then((response) => {
             if (response.status === 200) {
-              console.log("Save successful:", response.data);
-              navigate("/customer/dealer"); // กลับไปยังหน้าก่อนหน้า
+              navigate("/customer/dealer");
+              showNotification(
+                "success",
+                response.data.message,
+                response.data.message_line
+              );
+              // console.log("Save successful:", response.data);
+              // navigate("/customer/dealer"); 
             }
           })
           .catch((error) => {
@@ -680,6 +727,59 @@ export default function EditInformation() {
     setContactItems(updatedContacts);
   };
   
+  const mapContainerStyle = {
+    width: "100%",
+    height: "30vh",
+  };
+
+  const handleMarkerDragEnd = async (event) => {
+    const lat = event.latLng.lat();
+    const lng = event.latLng.lng();
+    const geocoder = new window.google.maps.Geocoder();
+    const latlng = { lat, lng };
+  
+    try {
+      const response = await geocoder.geocode({ location: latlng });
+      if (response.results && response.results.length > 0) {
+        const locationName = response.results[0].formatted_address;
+  
+        // อัปเดต Outlet Location
+        form.setFieldsValue({ location_address: locationName });
+        setcompanyinfo((prev) => ({
+          ...prev,
+          location_address: locationName,
+        }));
+  
+        showNotification("success", `Location updated: ${locationName}`);
+        // อัปเดตตำแหน่งปัจจุบันใน State
+        setCurrentLocation({ lat, lng });
+      } else {
+        showNotification("error", "No address found for this location.");
+      }
+    } catch (error) {
+      console.error("Geocoder failed due to:", error);
+      showNotification("error", "Unable to fetch location name.");
+    }
+  
+
+  };
+  
+    useEffect(() => {
+      const checkGoogleMaps = () => {
+        if (window.google && window.google.maps) {
+          setIsGoogleLoaded(true);
+        } else {
+          const interval = setInterval(() => {
+            if (window.google && window.google.maps) {
+              clearInterval(interval);
+              setIsGoogleLoaded(true);
+            }
+          }, 500);
+        }
+      };
+      checkGoogleMaps();
+    }, []);
+    
   let items = [
     {
       key: "profile",
@@ -692,63 +792,40 @@ export default function EditInformation() {
         <div></div>
       )}
 
-      {/* <FormUser
-        profile={profileImage}
-        // profile="/img/profile.jpg"
-        title="Company Info"
-        fields={formFields}
-        form={form}
-      /> */}
-      {/* <BoxPrimary>
-        {companyinfo.bank_account_items &&
-        companyinfo.bank_account_items.length > 0 ? (
-          companyinfo.bank_account_items.map((account, index) => (
-            <div key={index} className="my-6">
-              <div className="text-[#00783F] text-md">{`Bank Account ${index + 1}`}</div>
-              <Row className="my-3" gutter={[16, 16]}>
-                <Col xs={24} sm={12} md={8} lg={6}>
-                  <Input
-                    placeholder="Account Title"
-                    value={account.account_title || ""}
-                    onChange={(e) =>
-                      handleBankAccountChange(index, "account_title", e.target.value)
-                    }
-                  />
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={6}>
-                  <Input
-                    placeholder="Account Number"
-                    value={account.account_number || ""}
-                    onChange={(e) =>
-                      handleBankAccountChange(index, "account_number", e.target.value)
-                    }
-                  />
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={6}>
-                  <Input
-                    placeholder="Bank Name"
-                    value={account.bank_name || ""}
-                    onChange={(e) =>
-                      handleBankAccountChange(index, "bank_name", e.target.value)
-                    }
-                  />
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={6}>
-                  <Input
-                    placeholder="Bank Branch"
-                    value={account.bank_branch || ""}
-                    onChange={(e) =>
-                      handleBankAccountChange(index, "bank_branch", e.target.value)
-                    }
-                  />
-                </Col>
-              </Row>
-            </div>
-          ))
-        ) : (
-          <div className="text-gray-500">No bank account information available</div>
-        )}
-      </BoxPrimary> */}
+      <div className={`bg-white p-4`}
+        style={{
+          boxShadow: "rgba(0, 0, 0, 0.1)", // Optional for a subtle shadow
+          marginTop: "-20px",
+        }}
+      >
+      <div className="text-[#00783F] text-lg font-semibold mb-3">
+
+        <LoadScript googleMapsApiKey={dataApiKey}>
+          <GoogleMap
+            mapContainerStyle={mapContainerStyle}
+            center={currentLocation}
+            zoom={dataMapZoom}
+            onClick={(e) => {
+              const lat = e.latLng.lat();
+              const lng = e.latLng.lng();
+              setCurrentLocation({ lat, lng });
+            }}
+          >
+            {isGoogleLoaded && (
+              <Marker
+                position={currentLocation}
+                icon={{
+                  url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
+                  scaledSize: { width: 30, height: 30 },
+                }}
+                draggable={true}
+                onDragEnd={handleMarkerDragEnd} 
+              />
+            )}
+          </GoogleMap>
+        </LoadScript>
+        </div>
+      </div>
 
       <BoxPrimary>
         {(companyinfo.bank_account_items?.length > 0

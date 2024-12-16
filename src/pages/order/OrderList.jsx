@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
-import { Dropdown } from "antd";
+import { Dropdown, Modal } from "antd";
 import FilterByOrder from "../../components/filter/FilterByOrder";
 import ActionButton from "../../components/button/ActionButton";
 import BadgeStatus from "../../components/badge/BadgeStatus";
@@ -29,6 +29,7 @@ export default function OrderList() {
     sortOrder: null,
     sortField: null,
   });
+  const { confirm } = Modal;
 
   // Get Master
   useEffect(() => {

@@ -190,10 +190,7 @@ export default function RollingForecastMonth() {
               disabled
               value={text}
               formatter={(value) =>
-                `${Number(value).toFixed(2)}`.replace(
-                  /\B(?=(\d{3})+(?!\d))/g,
-                  ","
-                )
+                `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
             />
           ),
@@ -299,10 +296,7 @@ export default function RollingForecastMonth() {
                 disabled
                 value={localData.value}
                 formatter={(value) =>
-                  `${Number(value).toFixed(2)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
             );
@@ -446,10 +440,7 @@ export default function RollingForecastMonth() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${Number(value).toFixed(2)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
             </div>
@@ -489,7 +480,7 @@ export default function RollingForecastMonth() {
                           disabled
                           value={totalValue}
                           formatter={(value) =>
-                            `${Number(value).toFixed(2)}`.replace(
+                            `${Number(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )
@@ -498,7 +489,7 @@ export default function RollingForecastMonth() {
                         />
                       </Table.Summary.Cell>
                     );
-                  })}{" "}
+                  })}
                   {months.map((month) => {
                     const totalValue = Object.values(
                       localQtyState[month.month_id] || {}
@@ -514,7 +505,7 @@ export default function RollingForecastMonth() {
                           disabled
                           value={totalValue}
                           formatter={(value) =>
-                            `${Number(value).toFixed(2)}`.replace(
+                            `${Number(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )

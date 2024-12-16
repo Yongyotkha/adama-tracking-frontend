@@ -75,6 +75,7 @@ import RollingForecastQuarter from "./pages/sale_plan/rolling_forecast/RollingFo
 import RollingForecastMonth from "./pages/sale_plan/rolling_forecast/RollingForecastMonth";
 import ActivityPlanDealer from "./pages/activity/activity_plan/ActivityPlanDealer";
 import ActivityPlanSubDealer from "./pages/activity/activity_plan/ActivityPlanSubDealer";
+import RollingForecastDealer from "./pages/sale_plan/rolling_forecast/RollingForecastDealer";
 // END ------------- Activity ------------- END
 
 
@@ -117,15 +118,14 @@ const App = () => {
           <Route path="/sale-plan/rolling-forecast-area" element={<RollingForecast />} />
           <Route path="/sale-plan/rolling-forecast-sale" element={<RollingForecast />} />
           <Route path="/sale-plan/rolling-forecast/month" element={<RollingForecastMonth />} />
+          <Route path="/sale-plan/rolling-forecast/dealer" element={<RollingForecastDealer />} />
           <Route path="/sale-plan/rolling-forecast/quarter" element={<RollingForecastQuarter />} />
 
           {/* Activity Route */}
           <Route path="/activity/plan" element={<ActivityPlanList />} />
           <Route path="/activity/plan/dealer" element={<ActivityPlanDealer />} />
           <Route path="/activity/plan/sub-dealer" element={<ActivityPlanSubDealer />} />
-  
-
-
+          
           <Route path="/activity/list" element={<ActivityList />} />
           <Route path="/activity/create" element={<CreateActivity />} />
           <Route path="/activity/edit" element={<CreateActivity />} />

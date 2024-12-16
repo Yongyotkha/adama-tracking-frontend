@@ -20,7 +20,7 @@ export default function RollingForecast() {
   const [years, setYears] = useState([]);
   const [sale, setSale] = useState([]);
   const [defaultOption, setDefaultOption] = useState(null);
-  const { showNotification ,formatNumber} = useContext(AuthContext);
+  const { showNotification, formatNumber } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -108,7 +108,6 @@ export default function RollingForecast() {
                       <ItemDropDown
                         mode={actionItem.action.toLowerCase()}
                         onClick={() => {
-                          console.log();
                           navigate("/sale-plan/rolling-forecast/month", {
                             state: {
                               year_code: row.year_code,
@@ -144,7 +143,7 @@ export default function RollingForecast() {
               textColor={row.color}
             />
           ),
-          lastModified: row.updated_at,
+          updated_at: row.updated_at,
           nestedData: row.data_items.map((dataItem, i) => ({
             key: `${index + 1}-${i + 1}`,
             no: i + 1,
@@ -169,8 +168,21 @@ export default function RollingForecast() {
                         label: (
                           <ItemDropDown
                             mode={actionDataItem.action.toLowerCase()}
+                            text={actionDataItem.action}
                             onClick={() => {
-                              navigate("/sale-plan/rolling-forecast/quarter", {
+                              let path = "";
+                              if (
+                                actionDataItem.action ==
+                                "Rolling Forecast (Dealer)"
+                              ) {
+                                path = "/sale-plan/rolling-forecast/dealer";
+                              } else if (
+                                actionDataItem.action ==
+                                "Rolling Forecast (Summary)"
+                              ) {
+                                path = "/sale-plan/rolling-forecast/quarter";
+                              }
+                              navigate(path, {
                                 state: {
                                   year_code: dataItem.year_code,
                                   workplan_header_id:
