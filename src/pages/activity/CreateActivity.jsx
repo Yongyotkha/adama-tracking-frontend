@@ -637,7 +637,7 @@ export default function CreateActivity() {
 
   //บันทึกข้อมูล
   const handleSave = (modeSave) => {
-    formCustom.validateFields();
+    // formCustom.validateFields();
     //Form Basic Activity
     let allValuesBasic = formCustom.getFieldsValue();
     allValuesBasic.document_date = dayjs(allValuesBasic.document_date).format('YYYY-MM-DD')
@@ -685,8 +685,9 @@ export default function CreateActivity() {
     const expenseActualExp = expenseForm.getFieldValue('actual_exp');
     const expenseActualSale = expenseForm.getFieldValue('actual_sale');
 
-    const expenseParticipantEstimate = participantForm.getFieldValue('actual_exp');
-    const expenseParticapantActual = participantForm.getFieldValue('actual_sale');
+    const expenseParticipantEstimate = participantForm.getFieldValue('estimate_participant');
+    const expenseParticapantActual = participantForm.getFieldValue('actual_participant');
+    
     let expenseParticapantUserList = [];
     let particapantList = [];
     participantUsers.forEach(element => {
@@ -1073,6 +1074,7 @@ export default function CreateActivity() {
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Estimate Participant " name="estimate_participant">
                     <Input placeholder="0" disabled={viewSegment}/>
+                    {" "}
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
