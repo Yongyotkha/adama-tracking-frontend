@@ -107,7 +107,12 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
           {fields.map((field, index) => (
             <Col xs={24} sm={12} md={8} lg={field.col || 6} key={index}>
               <Form.Item
-                label={field.label}
+                // label={field.label}
+                label={
+                  <span style={{ color: field.labelColor || "inherit", fontWeight: "bold" }}>
+                    {field.label}
+                  </span>
+                }
                 name={field.name}
                 rules={[
                   {

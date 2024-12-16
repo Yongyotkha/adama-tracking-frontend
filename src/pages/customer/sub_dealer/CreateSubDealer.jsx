@@ -247,7 +247,7 @@ export default function CreateSubDealer() {
         { name: "Sunday", id: "Sunday", selected: false },
       ],
       required: false,
-      col: 6,
+      col: 12,
       iconSrc: "/img/icons/calendar.png",
       iconPosition: "right",
     },
@@ -318,6 +318,7 @@ export default function CreateSubDealer() {
       value: companyinfo.location_address,
       iconSrc: "/img/icons/location.png",
       iconPosition: "right",
+      disabled: true,
     },
     // {
     //   label: "Remark",

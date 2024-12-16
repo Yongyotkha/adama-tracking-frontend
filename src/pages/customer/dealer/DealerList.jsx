@@ -96,7 +96,7 @@ export default function DealerList() {
           code: data.dealer_code,
           dealerName: data.dealer_name_en,
           address: data.address,
-          contactName: data.contact_number,
+          contactName: data.contact_name,
           mobilePhone: data.contact_phone_number || "-",
           groupCode: data.group_code,
           status: <BadgeStatus text={data.status_name} bgColor={data.status_bg_color} textColor={data.status_color} />,
@@ -175,7 +175,7 @@ export default function DealerList() {
     {
       key: "keyword",
       type: "text",
-      label: "dealer",
+      label: "Dealer",
     },
     // {
     //   key: "dealer",

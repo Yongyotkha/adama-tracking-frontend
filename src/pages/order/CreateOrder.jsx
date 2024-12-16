@@ -27,6 +27,10 @@ export default function CreateOrder() {
   const [searchProductData, setSearchProductData] = useState([]);
   const [getOtherProductData, setGetOtherProductData] = useState([]);
   const [inputRemark, setInputRemark] = useState("");
+  const [userInfo, setUserInfo] = useState(
+    JSON.parse(localStorage.getItem("users"))
+  );
+  
 
   const [formCustom] = Form.useForm();
 
@@ -42,6 +46,7 @@ export default function CreateOrder() {
         ]);
 
         setDataSale(sale.data);
+
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -138,6 +143,7 @@ export default function CreateOrder() {
                   return {
                     ...item,
                     product_unit: item.unit,
+                    product_unit_value: item.unit_value,
                     // quantity: item.quantity + 1,
                     quantity: updatedQuantity,
                     net_amount: updatedNetAmount, // Update net_amount
@@ -201,7 +207,7 @@ export default function CreateOrder() {
       disabled: false, 
       required: false, 
       moderef: true,
-      value: dataSaleId,
+      value: parseInt(dataSaleId || userInfo.id, 10),
     },
     { 
       label: "Dealer", 
@@ -284,22 +290,6 @@ export default function CreateOrder() {
       })
     );
   };
-
-  // const handleAddOtherRow = () => {
-  //   const newRow = {
-  //     key: (dataSourceOther.length + 1).toString(),
-  //     no: (dataSourceOther.length + 1).toString(),
-  //     productName: "",
-  //     unit: "",
-  //     quantity: 1,
-  //     value: '10000',
-  //   };
-  //   setDataSourceOther([...dataSourceOther, newRow]);
-  // };
-
-  // const handleDeleteOtherRow = (key) => {
-  //   setDataSourceOther(dataSourceOther.filter(item => item.key !== key));
-  // };
 
   const handleDeleteOtherRow = (key) => {
     setDataSourceOther((prev) => {
@@ -405,6 +395,11 @@ export default function CreateOrder() {
       key: "product_unit",
     },
     {
+      title: "Value(THB/Unit)",
+      dataIndex: "product_unit_value",
+      key: "product_unit_value",
+    },
+    {
       title: <div className="text-center">QTY</div>,
       dataIndex: "quantity",
       key: "quantity",
@@ -433,7 +428,7 @@ export default function CreateOrder() {
       ),
     },
     {
-      title: "Value (THB)",
+      title: "Sub Total (THB)",
       dataIndex: "net_amount",
       key: "net_amount",
       render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 })
@@ -466,7 +461,7 @@ export default function CreateOrder() {
 
   const footerOther = () => (
     <tr className="bg-[#978B87]">
-      <td colSpan={6} className="text-right pr-2 text-white">
+      <td colSpan={7} className="text-right pr-2 text-white">
         Item: {dataSourceOther.length} &nbsp; QTY: {dataSourceOther.reduce((total, item) => total + item.quantity, 0)} &nbsp;
         Total: {dataSourceOther.reduce((total, item) => total + parseFloat(item.net_amount.replace(/,/g, "")), 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
       </td>
