@@ -24,7 +24,7 @@ const ProtectedRoute = () => {
 const PublicRoute = () => {
   const { userInfo } = useContext(AuthContext);
 
-  if (userInfo) {
+  if (!userInfo?.is_otp && !userInfo?.is_change_password) {
     return <Navigate to="/" />;
   }
 
