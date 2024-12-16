@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
-import { Dropdown, Modal } from "antd";
+import { Dropdown, Modal, Select } from "antd";
 import FilterByOrder from "../../components/filter/FilterByOrder";
 import ActionButton from "../../components/button/ActionButton";
 import BadgeStatus from "../../components/badge/BadgeStatus";
@@ -22,6 +22,7 @@ export default function OrderList() {
   const [dataDealer, setDataDealer] = useState([]);
   const [dataStatus, setDataStatus] = useState([]);
   const [permission, setPermission] = useState([]);
+  const [defaultOption, setDefaultOption] = useState();
   const [tableLoading, setTableLoading] = useState(false);
   const [tableParams, setTableParams] = useState({
     pagination: {
@@ -48,7 +49,16 @@ export default function OrderList() {
           }),
         ]);
 
-        setDataSale(sale.data);
+        // setDataSale(sale.data);
+        const formattedOptions = sale.data.map((item) => ({
+          value: item.id,
+          label: item.name,
+        }));
+
+        // if (formattedOptions.length > 0) {
+        //   setDefaultOption("");
+        // }
+        setDataSale(formattedOptions);
         
         const dataStatus = [];
         status.data.map((data, index) => {
@@ -70,14 +80,14 @@ export default function OrderList() {
   }, []);
 
   const filters = [
-    {
-      key: "sale",
-      type: "select",
-      label: "Sale",
-      placeholder: "All",
-      options: dataSale,
-      moderef: true,
-    },
+    // {
+    //   key: "sale",
+    //   type: "select",
+    //   label: "Sale",
+    //   placeholder: "All",
+    //   options: dataSale,
+    //   moderef: true,
+    // },
     {
       key: "dealer",
       type: "select",
@@ -150,7 +160,7 @@ export default function OrderList() {
     const sortField = tableParams.sortField || "document_number";
 
     const requestData = {
-      user_id: filters.sale || "",
+      user_id: filters.sale || defaultOption,
       dealer_id: filters.dealer || "",
       keyword: filters.order_no || "",
       trasaction_status_code: filters.status || "",
@@ -404,6 +414,19 @@ export default function OrderList() {
             onClick={(e) => navigate("/order/create")}
           />
         )}
+        <Select
+          showSearch
+          allowClear
+          style={{
+            width: 200,
+          }}
+          className="border-[#00783F] text-[#00783F]"
+          placeholder="All"
+          optionFilterProp="label"
+          options={dataSale}
+          value={defaultOption}
+          onChange={(value) => setDefaultOption(value)}
+        />
       </div>
 
       <FilterByOrder
