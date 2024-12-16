@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { Modal, Input, Button, DatePicker, Select, Upload } from "antd";
-import { UploadOutlined, EnvironmentOutlined } from "@ant-design/icons";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Modal, Input, Button, DatePicker, Select } from "antd";
+import { EnvironmentOutlined } from "@ant-design/icons";
+import Webcam from "react-webcam";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 
@@ -27,10 +28,18 @@ const FormModal = ({
     perception: "",
     remark: "",
     date: null,
-    photo: [],
+    photo: null, // will store the captured image
   });
 
-  // UseEffect เพื่ออัปเดต formData เมื่อ dataSource เปลี่ยน
+  const [locationCurrent, setLocationCurrent] = useState({
+    latitude: "",
+    longitude: "",
+  });
+
+  const webcamRef = useRef(null);
+  const [capturedImage, setCapturedImage] = useState(null);
+
+  // Update formData when dataSource changes
   useEffect(() => {
     if (dataSource) {
       setFormData({
@@ -44,7 +53,7 @@ const FormModal = ({
         perception: dataSource.perception || "",
         remark: dataSource.remark || "",
         date: dataSource.date ? dayjs(dataSource.date) : null,
-        photo: dataSource.photo || [],
+        photo: dataSource.photo || null,
       });
     }
   }, [dataSource]);
@@ -52,16 +61,6 @@ const FormModal = ({
   const handleInputChange = (key, value) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
-
-  const handleFileChange = ({ fileList }) => {
-    // setFormData((prev) => ({ ...prev, photo: fileList }));
-    onChange(fileList);
-  };
-
-  const [locationCurrent, setLocationCurrent] = useState({
-    latitude: "",
-    longitude: "",
-  });
 
   const handleGetLocation = () => {
     if (navigator.geolocation) {
@@ -80,30 +79,33 @@ const FormModal = ({
     }
   };
 
-  // Get Current Location
+  // Get Current Location on mount
   useEffect(() => {
     handleGetLocation();
-  }, [])
+  }, []);
 
+  const captureImage = useCallback(() => {
+    if (webcamRef.current) {
+      const imageSrc = webcamRef.current.getScreenshot();
+      setCapturedImage(imageSrc);
+      setFormData((prev) => ({ ...prev, photo: imageSrc }));
+    }
+  }, [webcamRef]);
 
   const handleSubmit = () => {
     if (onOk) {
-      onOk(formData); // Pass the formData to the function
+      // Pass capturedImage and formData
+      onOk({ ...formData, photo: capturedImage });
     }
-    onClose(); // Close the modal after action
+    onClose();
   };
-
-  // const handleLocation = () => {
-  //   console.log('Location action triggered');
-  //   // Implement location reloading or setting logic here
-  // };
 
   return (
     <Modal
       title={title}
       visible={isVisible}
       onCancel={onClose}
-      onOk={handleSubmit} // Use handleSubmit here
+      onOk={handleSubmit}
       width="1200px"
       className="ant-modal"
       okText="Complete"
@@ -124,7 +126,7 @@ const FormModal = ({
           <Input
             disabled
             value={formData.documentNumber || dataSource.document_number}
-            onChange={(value) => handleInputChange("documentNumber", value)}
+            onChange={(e) => handleInputChange("documentNumber", e.target.value)}
           />
         </div>
         <div className="col-span-4 md:col-span-1">
@@ -134,7 +136,7 @@ const FormModal = ({
           <Input
             disabled
             value={formData.customerName || dataSource.customer_name}
-            onChange={(value) => handleInputChange("customerName", value)}
+            onChange={(e) => handleInputChange("customerName", e.target.value)}
           />
         </div>
         <div className="col-span-4 md:col-span-1">
@@ -175,9 +177,7 @@ const FormModal = ({
           </Select>
         </div>
         <div className="col-span-4">
-          <label className="block mb-2 font-medium text-gray-700">
-            Address
-          </label>
+          <label className="block mb-2 font-medium text-gray-700">Address</label>
           <Input
             disabled
             value={formData.address || dataSource.customer_address}
@@ -191,7 +191,7 @@ const FormModal = ({
           <Input
             disabled
             value={formData.latitude || dataSource.location_latitude}
-            onChange={(e) => handleInputChange("address", e.target.value)}
+            onChange={(e) => handleInputChange("latitude", e.target.value)}
           />
         </div>
         <div className="col-span-4 hidden">
@@ -201,7 +201,7 @@ const FormModal = ({
           <Input
             disabled
             value={formData.longitude || dataSource.location_longitude}
-            onChange={(e) => handleInputChange("address", e.target.value)}
+            onChange={(e) => handleInputChange("longitude", e.target.value)}
           />
         </div>
         <div className="col-span-4 md:col-span-4">
@@ -230,13 +230,23 @@ const FormModal = ({
             }
           />
         </div>
+
+        {/* Webcam Capture Section */}
         <div className="col-span-4 md:col-span-4">
           <label className="block mb-2 font-medium text-gray-700">Photo</label>
-          <Upload onChange={handleFileChange} listType="picture" maxCount={1}>
-            <Button icon={<UploadOutlined />} className="w-full">
-              Upload (Max: 1)
-            </Button>
-          </Upload>
+          <Webcam
+            audio={false}
+            ref={webcamRef}
+            screenshotFormat="image/jpeg"
+            videoConstraints={{ facingMode: "user" }}
+            style={{ width: "100%", maxHeight: "300px" }}
+          />
+          <Button onClick={captureImage} className="w-full mt-2">
+            Capture Photo
+          </Button>
+          {capturedImage && (
+            <img src={capturedImage} alt="Captured" className="w-full mt-2" />
+          )}
         </div>
 
         <div className="col-span-4 md:col-span-4">
