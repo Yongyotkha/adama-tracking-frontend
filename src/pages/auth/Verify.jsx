@@ -142,7 +142,7 @@ export default function Verify() {
   };
 
   useEffect(() => {
-    if (userInfo?.phone_number_otp || location?.state?.phone_number) {
+    if (userInfo?.phone_number_otp || location?.state?.phone_number_otp) {
       callOtpPhone();
     }
   }, []);

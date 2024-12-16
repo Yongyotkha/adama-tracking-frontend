@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 export default function ItemDropDown({ text, link, onClick, mode }) {
+
+
   return (
     <>
-      {mode == "edit" && (
+      { (mode == "edit" || mode == "rolling forecast (summary)") && (
         <a
           rel="noopener noreferrer"
           href={link}
@@ -65,7 +67,7 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
           <span className="text-[#978B87] ms-3">{text || "History"}</span>
         </a>
       )}
-      {mode == "create" && (
+      { (mode == "create" || mode == "rolling forecast (dealer)") && (
         <a
           rel="noopener noreferrer"
           href={link}
@@ -77,7 +79,7 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
             alt="Create icon"
             className="inline-block h-4 m-auto"
           />
-          <span className="text-[#978B87] ms-3">{text || "create"}</span>
+          <span className="text-[#978B87] ms-3">{text || "Create"}</span>
         </a>
       )}
 
