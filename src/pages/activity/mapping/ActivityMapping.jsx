@@ -445,7 +445,7 @@ export default function ActivityMapping() {
     }
   };
 
-  const handleSelect = (value, option) => {
+  const handleSelect = (value, option) => {    
     // Set the map center to the selected lat and lng
     setCurrentLocation({ lat: option.lat, lng: option.lng });
     setDataMapZoom(15); // Set a higher zoom level for focusing

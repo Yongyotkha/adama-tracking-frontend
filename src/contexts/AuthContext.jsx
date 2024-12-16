@@ -1,9 +1,5 @@
 import { Navigate, useNavigate, useLocation } from "react-router-dom";
-import React, {
-  createContext,
-  useState,
-  useEffect,
-} from "react";
+import React, { createContext, useState, useEffect } from "react";
 
 import { endPoint, paths } from "../services/CorsPath.jsx";
 import { axiosInstance } from "../services/CorsService.jsx";
@@ -116,13 +112,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   const formatNumber = (number) => {
-    if (isNaN(number) || number == null) return "0.00";
+    if (isNaN(number) || number == null) return "0";
     return Number(number).toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     });
   };
-
 
   return (
     <AuthContext.Provider
@@ -134,7 +129,6 @@ export const AuthProvider = ({ children }) => {
         showMsg,
         showNotification,
         formatNumber,
-        
       }}
     >
       {contextHolder}

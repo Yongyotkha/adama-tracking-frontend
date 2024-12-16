@@ -29,7 +29,7 @@ export default function WorkPlanAreaCreate() {
   const handleQtyChange = (saleId, productId, newQty, unitConvertValue) => {
     setLocalQtyState((prevState) => {
       // คำนวณ value ใหม่ตาม qty และ unitConvertValue
-      const newValue = (newQty * unitConvertValue).toFixed(2);
+      const newValue = (newQty * unitConvertValue);
 
       // อัพเดตสถานะใน localQtyState
       const updatedQtyState = {
@@ -51,7 +51,7 @@ export default function WorkPlanAreaCreate() {
 
       return {
         ...updatedQtyState,
-        [`amount_target_${saleId}`]: updatedAmountTarget.toFixed(2),
+        [`amount_target_${saleId}`]: updatedAmountTarget,
       };
     });
 
@@ -250,7 +250,7 @@ export default function WorkPlanAreaCreate() {
                       min={0}
                       value={text}
                       formatter={(value) =>
-                        `${Number(value).toFixed(2)}`.replace(
+                        `${Number(value)}`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
                         )
@@ -283,7 +283,7 @@ export default function WorkPlanAreaCreate() {
                     item.amount_target
                   }
                   formatter={(value) =>
-                    `${Number(value).toFixed(2)}`.replace(
+                    `${Number(value)}`.replace(
                       /\B(?=(\d{3})+(?!\d))/g,
                       ","
                     )
@@ -306,7 +306,7 @@ export default function WorkPlanAreaCreate() {
                       <InputNumber
                         className="w-full"
                         min={0}
-                        value={localData.qty}
+                        value={localData.qty || 0}
                         formatter={(value) =>
                           `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                         }
@@ -337,9 +337,9 @@ export default function WorkPlanAreaCreate() {
                       <InputNumber
                         disabled
                         className="w-full"
-                        value={parseFloat(localData.value).toFixed(2)}
+                        value={parseFloat(localData.value)}
                         formatter={(value) =>
-                          `${Number(value).toFixed(2)}`.replace(
+                          `${Number(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )
@@ -471,7 +471,7 @@ export default function WorkPlanAreaCreate() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${Number(value).toFixed(2)}`.replace(
+                  `${Number(value)}`.replace(
                     /\B(?=(\d{3})+(?!\d))/g,
                     ","
                   )

@@ -103,7 +103,7 @@ export default function WorkPlanSaleByCrop() {
           min={0}
           value={text}
           formatter={(value) =>
-            `${Number(value).toFixed(2)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
           onChange={(value) => handleQtyChange(value, record.key)}
         />
@@ -171,7 +171,7 @@ export default function WorkPlanSaleByCrop() {
           value={localQtyState[cropItem.crop_id]?.[record.product_id]?.qty || 0}
           disabled
           formatter={(value) =>
-            `${Number(value).toFixed(2)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
         />
       ),
@@ -203,7 +203,7 @@ export default function WorkPlanSaleByCrop() {
           }
           disabled
           formatter={(value) =>
-            `${Number(value).toFixed(2)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
         />
       ),
@@ -473,7 +473,7 @@ export default function WorkPlanSaleByCrop() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${Number(value).toFixed(2)}`.replace(
+                  `${Number(value)}`.replace(
                     /\B(?=(\d{3})+(?!\d))/g,
                     ","
                   )
@@ -508,7 +508,7 @@ export default function WorkPlanSaleByCrop() {
                       value={totalValue}
                       min={0}
                       formatter={(value) =>
-                        `${Number(value).toFixed(2)}`.replace(
+                        `${Number(value)}`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
                         )
@@ -524,7 +524,7 @@ export default function WorkPlanSaleByCrop() {
                         value={localQtyState[item.crop_id]?.amount_target || 0}
                         min={0}
                         formatter={(value) =>
-                          `${Number(value).toFixed(2)}`.replace(
+                          `${Number(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )
@@ -541,7 +541,7 @@ export default function WorkPlanSaleByCrop() {
                         value={localQtyState[item.crop_id]?.amount_target || 0}
                         min={0}
                         formatter={(value) =>
-                          `${Number(value).toFixed(2)}`.replace(
+                          `${Number(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )
@@ -558,7 +558,7 @@ export default function WorkPlanSaleByCrop() {
                         value={localQtyState[item.crop_id]?.amount_target || 0}
                         min={0}
                         formatter={(value) =>
-                          `${Number(value).toFixed(2)}`.replace(
+                          `${Number(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )

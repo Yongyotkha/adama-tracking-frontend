@@ -102,6 +102,7 @@ export default function OrderWaitingList() {
       align: "center",
     },
     { title: "Status", width: 150, dataIndex: "status", align: "center" },
+    { title: "SAP Status", width: 150, dataIndex: "sapStatus", align: "center" },
     { title: "Create By", width: 150, dataIndex: "createdBy", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
@@ -155,6 +156,13 @@ export default function OrderWaitingList() {
               text={order.status_transaction_name}
               bgColor={order.status_transaction_bg_color}
               textColor={order.status_transaction_color}
+            />
+          ),
+          sapStatus: (
+            <BadgeStatus
+              text={order.status_interface_name}
+              bgColor={order.status_interface_bg_color}
+              textColor={order.status_interface_color}
             />
           ),
           createdBy: order.updated_by,

@@ -60,6 +60,7 @@ export default function CreateActivity() {
   const [isSalePlanEdit, setIsSalePlanEdit] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const { showMsg, showNotification } = useContext(AuthContext);
+  const [actualParticipantCount, setActualParticipantCount] = useState("0");
 
   const handleUploadClick = async () => {    
     // Call triggerUpload from FileUploadComponent
@@ -104,18 +105,135 @@ export default function CreateActivity() {
   const menuURL = (pageCode == 'expense_advance' ? '/expenses/advance' : (pageCode == 'expense_clearing' ? '/expenses/clearing' : '/activity/list'));
 
   const formFields = [
-    { label: menuTitle + " No", name: "document_number", type: "text", disabled: true, required: false, col: 24, value: activityDetail.document_number ?? "", placeholder:"Generate"},
-    { label: "Activity Reference", name: "activity_reference", type: pageCode != 'activity_transaction' ? (viewSegment ? "hidden" : "search") : "hidden", disabled: viewSegment ?? false, required: false, col: 24, value: ""},
-    { label: "Activity Type", name: "activity_type_id", type: "select", options: activityList, disabled: viewSegment ?? false, required: true, col: 8, value: activityDetail.activity_type_id ?? "" },
-    { label: "Sale", name: "user_id", type: "select", options: saleList, disabled: viewSegment ?? false, required: true, col: 8, value: activityDetail.user_id ?? "", moderef: true},
-    { label: "Shop", name: "dealer_id", type: "select", options: dealerList, disabled: viewSegment ?? false, required: true, col: 8, value: activityDetail.dealer_id ?? "", moderef: true},
-    { label: "Crop", name: "crop_id_list", type: "select", mode: "multiple", options: cropList, disabled: viewSegment ?? false, required: true, col: 6, value: cropDetailList, moderef: true},
-    { label: "Date", name: "document_date", type: "date", disabled: viewSegment ?? false, required: true, col: 6, value: activityDetail.document_date ?? dayjs().format("YYYY-MM-DD") },
-    { label: "Start Time", name: "time_start", type: "select", options:timeList, disabled: viewSegment ?? false, required: false, col: 6, value: activityDetail.time_start ?? "" },
-    { label: "End Time", name: "time_end", type: "select", options:timeList, disabled: viewSegment ?? false, required: false, col: 6, value: activityDetail.time_end ?? "" },
-    { label: "Location", name: "location_address", type: "location", disabled: viewSegment ?? false, required: false, col: 24, value: activityDetail.location_address ?? "", iconSrc: "/img/icons/location.png", iconPosition: "left" },
-    { label: "Description", name: "description", type: "text-editor", disabled: viewSegment ?? false, required: false, col: 24, placeholder: "Add description", value: activityDetail.description ?? "" },
-    { label: "Assign", name: "assing_user_list", type: "select", mode: "multiple", options: saleAllList, disabled: viewSegment ?? false, required: false, col: 24, value: assignList},
+    {
+      label: menuTitle + " No",
+      name: "document_number",
+      type: "text",
+      disabled: true,
+      required: false,
+      col: 24,
+      value: activityDetail.document_number ?? "",
+      placeholder: "Generate",
+    },
+    {
+      label: "Activity Reference",
+      name: "activity_reference",
+      type:
+        pageCode != "activity_transaction"
+          ? viewSegment
+            ? "hidden"
+            : "search"
+          : "hidden",
+      disabled: viewSegment ?? false,
+      required: false,
+      col: 24,
+      value: "",
+    },
+    {
+      label: "Activity Type",
+      name: "activity_type_id",
+      type: "select",
+      options: activityList,
+      disabled: viewSegment ?? false,
+      required: true,
+      col: 8,
+      value: activityDetail.activity_type_id ?? "",
+    },
+    {
+      label: "Sale",
+      name: "user_id",
+      type: "select",
+      options: saleList,
+      disabled: viewSegment ?? false,
+      required: true,
+      col: 8,
+      value: activityDetail.user_id ?? "",
+      moderef: true,
+    },
+    {
+      label: "Shop",
+      name: "dealer_id",
+      type: "select",
+      options: dealerList,
+      disabled: viewSegment ?? false,
+      required: true,
+      col: 8,
+      value: activityDetail.dealer_id ?? "",
+      moderef: true,
+    },
+    {
+      label: "Crop",
+      name: "crop_id_list",
+      type: "select",
+      mode: "multiple",
+      options: cropList,
+      disabled: viewSegment ?? false,
+      required: true,
+      col: 6,
+      value: cropDetailList,
+      moderef: true,
+    },
+    {
+      label: "Date",
+      name: "document_date",
+      type: "date",
+      disabled: viewSegment ?? false,
+      required: true,
+      col: 6,
+      value: activityDetail.document_date ?? dayjs().format("YYYY-MM-DD"),
+    },
+    {
+      label: "Start Time",
+      name: "time_start",
+      type: "select",
+      options: timeList,
+      disabled: viewSegment ?? false,
+      required: false,
+      col: 6,
+      value: activityDetail.time_start ?? "",
+    },
+    {
+      label: "End Time",
+      name: "time_end",
+      type: "select",
+      options: timeList,
+      disabled: viewSegment ?? false,
+      required: false,
+      col: 6,
+      value: activityDetail.time_end ?? "",
+    },
+    {
+      label: "Location",
+      name: "location_address",
+      type: "location",
+      disabled: viewSegment ?? false,
+      required: false,
+      col: 24,
+      value: activityDetail.location_address ?? "",
+      iconSrc: "/img/icons/location.png",
+      iconPosition: "left",
+    },
+    {
+      label: "Description",
+      name: "description",
+      type: "text-editor",
+      disabled: viewSegment ?? false,
+      required: false,
+      col: 24,
+      placeholder: "Add description",
+      value: activityDetail.description ?? "",
+    },
+    {
+      label: "Assign",
+      name: "assing_user_list",
+      type: "select",
+      mode: "multiple",
+      options: saleAllList,
+      disabled: viewSegment ?? false,
+      required: false,
+      col: 24,
+      value: assignList,
+    },
   ];
 
    // Master
@@ -200,18 +318,16 @@ export default function CreateActivity() {
 
     let participantData = [];
     let count = 0;
-    await activityDetailData.expense_particapant_user_list.forEach((element, key) => {
+    await activityDetailData.particapant_list.forEach((element, key) => {
         count++;
-        const newKey = `sales-${element.id}`;
+        const newKey = `sales-${(key + 1)}`;
         participantData.push({
-          id: element.id,
+          no: (key + 1), 
+          id: (key + 1),
           key: newKey,
-          no: count,
           name: element.name,
-          position: element.position_name,
-          department: element.department_name,
-          territory: element.territory_name,
-          permission: element.permission_name,
+          address: element.address,
+          phone: element.phone
         });
     });
   
@@ -246,6 +362,9 @@ export default function CreateActivity() {
         if(attribue == 'user_id'){
           await setupDealer(value);
         } else if(attribue == 'dealer_id'){
+          console.log(attribue);
+          console.log(value);
+          
           await setupCropAndDealerCustomer(value);
         } else if(attribue == 'crop_id_list'){
           await setupCrop(value);
@@ -379,8 +498,7 @@ export default function CreateActivity() {
 
   const calculateGrandTotal = (field) => {
     const number = productCropList.reduce((sum, item) => sum + (item[field] || 0) * item.bath_ltkg, 0).toFixed(2);
-    console.log(NumberFormatter(number.toString()));
-    
+
     return NumberFormatter(number);
   };
 
@@ -397,14 +515,30 @@ export default function CreateActivity() {
   );
 
   const [participants, setParticipants] = useState([]);
-
+  const [participantUsers, setParticipantUsers] = useState([]);
+  const handleInputParticipantChange = (key, field, value) => {
+    const updatedParticipants = participants.map((participant) =>
+      participant.key === key ? { ...participant, [field]: value } : participant
+    );
+    setParticipants(updatedParticipants);
+  };
   const participantColumns = [
     { title: 'No', dataIndex: 'no', key: 'no', align: 'center' },
-    { title: 'Name', dataIndex: 'name', key: 'name' },
-    { title: 'Position', dataIndex: 'position', key: 'position' },
-    { title: 'Department', dataIndex: 'department', key: 'department' },
-    { title: 'Territory', dataIndex: 'territory', key: 'territory' },
-    { title: 'Permission', dataIndex: 'permission', key: 'permission' },
+    {
+      title: "Name", dataIndex: "name", key: "name", align: "center", render: (_, record) => (
+        <Input value={record.name} onChange={(e) => handleInputParticipantChange(record.key, 'name', e.target.value)}/>
+      )
+    },
+    {
+      title: "Address", dataIndex: "address", key: "address", align: "center", render: (_, record) => (
+        <Input value={record.address} onChange={(e) => handleInputParticipantChange(record.key, 'address', e.target.value)}/>
+      )
+    },
+    {
+      title: "Phone", dataIndex: "phone", key: "phone", align: "center", render: (_, record) => (
+        <Input value={record.phone} onChange={(e) => handleInputParticipantChange(record.key, 'phone', e.target.value)}/>
+      )
+    },
     {
       title: 'Action', key: 'action', align: 'center',
       render: (_, record) => (
@@ -459,6 +593,24 @@ export default function CreateActivity() {
   };
 
   const handleAddSelectedRows = (selectedRows) => {
+    const lengthRows = selectedRows.length;
+    setActualParticipantCount(lengthRows);
+    setParticipantUsers((prev) => {
+      // Filter out any selected rows that already exist in participants based on their key
+      const newRows = selectedRows.filter(
+        (row) => !prev.some((participant) => participant.key === row.key)
+      );
+      // Merge existing participants with new rows
+      const updatedParticipants = [...prev, ...newRows];
+      
+      // Reassign the "no" property to ensure it starts from 1 and increments
+      return updatedParticipants.map((participant, index) => ({
+        ...participant,
+        address: '',
+        phone: '',
+        no: index + 1, // Update "no" based on the new index
+      }));
+    });
     setParticipants((prev) => {
       // Filter out any selected rows that already exist in participants based on their key
       const newRows = selectedRows.filter(
@@ -470,6 +622,8 @@ export default function CreateActivity() {
       // Reassign the "no" property to ensure it starts from 1 and increments
       return updatedParticipants.map((participant, index) => ({
         ...participant,
+        address: '',
+        phone: '',
         no: index + 1, // Update "no" based on the new index
       }));
     });
@@ -477,11 +631,13 @@ export default function CreateActivity() {
 
   const removeParticipant = (key) => {
     setParticipants(participants.filter(item => item.key !== key));
+    setParticipantUsers(participants.filter(item => item.key !== key));
+    setActualParticipantCount(participants.length - 1);
   };
 
   //บันทึกข้อมูล
   const handleSave = (modeSave) => {
-    formCustom.validateFields();
+    // formCustom.validateFields();
     //Form Basic Activity
     let allValuesBasic = formCustom.getFieldsValue();
     allValuesBasic.document_date = dayjs(allValuesBasic.document_date).format('YYYY-MM-DD')
@@ -529,11 +685,20 @@ export default function CreateActivity() {
     const expenseActualExp = expenseForm.getFieldValue('actual_exp');
     const expenseActualSale = expenseForm.getFieldValue('actual_sale');
 
-    const expenseParticipantEstimate = participantForm.getFieldValue('actual_exp');
-    const expenseParticapantActual = participantForm.getFieldValue('actual_sale');
+    const expenseParticipantEstimate = participantForm.getFieldValue('estimate_participant');
+    const expenseParticapantActual = participantForm.getFieldValue('actual_participant');
+    
     let expenseParticapantUserList = [];
-    participants.forEach(element => {
+    let particapantList = [];
+    participantUsers.forEach(element => {
       expenseParticapantUserList.push(element.id);
+    });
+    participants.forEach(element => {
+      particapantList.push({
+        "name": element.name,
+        "address": element.address,
+        "phone": element.phone
+      });
     });
 
     const body = {
@@ -562,7 +727,8 @@ export default function CreateActivity() {
         "expense_file_list":[],
         "expense_participant_estimate": expenseParticipantEstimate,
         "expense_particapant_actual": expenseParticapantActual,
-        "expense_particapant_user_list": expenseParticapantUserList
+        "expense_particapant_user_list": expenseParticapantUserList,
+        "particapant_list": particapantList
     };
     
     if(documentNumber){
@@ -714,7 +880,7 @@ export default function CreateActivity() {
                 address: activityDetail?.expense_customer_address ?? dealerCustomer.customer_address,
                 placeOfOwner: activityDetail?.expense_customer_place_of_owner ?? dealerCustomer.customer_place_of_owner,
                 phoneNumber: activityDetail?.expense_customer_phone_number ?? dealerCustomer.customer_phone_number,
-                perception: activityDetail?.expense_customer_perception_name ?? "Good",
+                perception: activityDetail?.expense_customer_perception_name ?? "",
                 location_customer_address: activityDetail?.expense_customer_location_address ?? locationCustomer.address,
                 location_customer_latitude: activityDetail?.expense_customer_location_latitude ?? locationCustomer.lat,
                 location_customer_longitude: activityDetail?.expense_customer_location_longitude ?? locationCustomer.long
@@ -723,7 +889,7 @@ export default function CreateActivity() {
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Support Customer Name" name="supportCustomerName">
-                    <Input disabled="true"/>
+                    <Input disabled="true" placeholder={dealerCustomer.customer_name}/>
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
@@ -738,13 +904,22 @@ export default function CreateActivity() {
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Perception" name="perception">
-                    <Select>
+                    {/* <Select>
                       {perceptionList.map((option) => (
                         <Option key={option.id} value={option.id}>
                           {option.name}
                         </Option>
                       ))}
-                    </Select>
+                    </Select> */}
+                    <Select
+                        placeholder=""
+                        disabled={false}
+                        allowClear
+                        options={perceptionList.map((option) => ({
+                          label: option.name,
+                          value: String(option.id),
+                        }))}
+                      />
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={24} md={24} lg={24}>
@@ -892,18 +1067,20 @@ export default function CreateActivity() {
               form={participantForm}
               initialValues={{
                 estimate_participant: activityDetail?.expense_participant_estimate ??"0",
-                actual_participant: activityDetail?.expense_particapant_actual ??"0"
+                actual_participant: activityDetail?.expense_particapant_actual ?? (actualParticipantCount ?? "0")
               }}
             >
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Estimate Participant " name="estimate_participant">
                     <Input placeholder="0" disabled={viewSegment}/>
+                    {" "}
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Actual Participant" name="actual_participant">
-                    <Input placeholder="0" disabled={viewSegment}/>
+                    <Input placeholder="" disabled={viewSegment} value={activityDetail?.expense_particapant_actual ?? (actualParticipantCount ?? "0")}/>
+                    {" "}
                   </Form.Item>
                 </Col>
               </Row>

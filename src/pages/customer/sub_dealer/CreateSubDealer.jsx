@@ -49,7 +49,7 @@ export default function CreateSubDealer() {
     lat: 13.9572612,
     lng: 100.6222401,
   });
-  const [dataMapZoom, setDataMapZoom] = useState(10);
+  const [dataMapZoom, setDataMapZoom] = useState(15);
   const [contacts, setContacts] = useState([
     {
       name_en: "",

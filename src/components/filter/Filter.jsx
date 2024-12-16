@@ -44,9 +44,9 @@ const Filter = ({ onSearch, onClear, onChange, filters }) => {
           <img
             src="/img/icons/filter.png"
             alt="Filter Icon"
-            className="w-5 h-5"
+            className="w-6 h-6"
           />
-          <span className="text-lg">Filter</span>
+          <span className="text-lg pt-1">Filter</span>
         </div>
       ),
       children: (

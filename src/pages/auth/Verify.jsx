@@ -33,10 +33,14 @@ export default function Verify() {
         setLoading
       )
       .then((response) => {
+
+        let message = response.data.Message;
+
         if (response.result) {
-          if (userInfo?.is_change_password) {
-            navigate("/change-password");
-          } else if (location?.state) {
+          if (
+            userInfo?.is_change_password ||
+            location?.state.mode === "forgot"
+          ) {
             localStorage.setItem("accessToken", response.data.token);
             localStorage.setItem(
               "expiredToken",
@@ -48,7 +52,13 @@ export default function Verify() {
           } else {
             navigate("/");
           }
+        }else{
+
+          showNotification("error", message.Message_Header,message.Message_Line);
+
         }
+
+        console.log(response);
       })
       .catch((error) => {
         console.log(error.message);
@@ -133,7 +143,7 @@ export default function Verify() {
 
   useEffect(() => {
     if (userInfo?.phone_number_otp || location?.state?.phone_number) {
-      // callOtpPhone();
+      callOtpPhone();
     }
   }, []);
 
@@ -146,7 +156,8 @@ export default function Verify() {
         <p className="text-[#00783F] text-xl font-bold">OTP Verification</p>
         <p className="text-[#978B87]">Enter the OTP sent to</p>
         <p className="text-[#00783F] text-xl font-bold">
-          {userInfo?.phone_number_display}
+          {userInfo?.phone_number_display ||
+            location?.state.phone_number_display}
         </p>
         <Form
           name="otpVerification"
