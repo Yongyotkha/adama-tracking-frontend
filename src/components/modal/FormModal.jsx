@@ -11,7 +11,7 @@ const { Option } = Select;
 const FormModal = ({
   isVisible,
   onClose,
-  onChange,
+  onOk,
   title = "Mapping",
   dataSource,
   perceptionData,
@@ -83,13 +83,21 @@ const FormModal = ({
   // Get Current Location
   useEffect(() => {
     handleGetLocation();
-  }, []);
+  }, [])
 
-  const submitForm = () => {
-    console.log("Form Data:", formData);
-    // Return
-    onClose(formData);
+
+  const handleSubmit = () => {
+    if (onOk) {
+      onOk(formData); // Pass the formData to the function
+    }
+    onClose(); // Close the modal after action
   };
+
+  // const submitForm = () => {
+  //   console.log("Form Data:", formData);
+  //   // Return
+  //   onClose(formData);
+  // };
 
   // const handleLocation = () => {
   //   console.log('Location action triggered');
@@ -101,9 +109,7 @@ const FormModal = ({
       title={title}
       visible={isVisible}
       onCancel={onClose}
-      dataSource={dataSource}
-      perceptionData={perceptionData}
-      onOk={submitForm}
+      onOk={handleSubmit} // Use handleSubmit here
       width="1200px"
       className="ant-modal"
       okText="Complete"
