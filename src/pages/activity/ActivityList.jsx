@@ -14,7 +14,6 @@ import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
 import dayjs from "dayjs";
 import FormModal from "../../components/modal/FormModal";
-import { use } from "react";
 
 export default function ActivityList() {
   const [loading, setLoading] = useState(false);
@@ -33,12 +32,37 @@ export default function ActivityList() {
     sortOrder: null,
     sortField: null,
   });
-  
+
+  const navigate = useNavigate();
   const [mappingData, setMappingData] = useState({});
   const [mappingDataSave, setMappingDataSave] = useState({});
+  const [perceptionData, setPerceptionData] = useState([]);
 
   const [isProductModalVisible, setIsProductModalVisible] = useState(false);
   const [isMappingModalVisible, setIsMappingModalVisible] = useState(false);
+
+  // Get Master
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [perception] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterPerception, {}),
+        ]);
+
+        // Set State
+        setPerceptionData(perception.data);
+
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, []);
+
   // Handle Open Modal & Get Data
   const handleShowMappingModal = (data) => {
     setIsMappingModalVisible(true);
@@ -83,11 +107,12 @@ export default function ActivityList() {
 
         showNotification(
           "success",
-          response.data.message,
-          response.data.message_line
+          mapping.data.message,
+          mapping.data.message_line
         ).then(() => {
-          // navigate("/activity/list");
+          fetchData();
         });
+
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       }
@@ -96,7 +121,11 @@ export default function ActivityList() {
     updateMappingDetail();
   };
 
-  const navigate = useNavigate();
+  // Handle Upload File Image
+  const handleChangeFileUpload = (data) => {
+    console.log(data);
+    
+  }
 
   const filters = [
     {
@@ -417,8 +446,10 @@ export default function ActivityList() {
       <FormModal
         isVisible={isMappingModalVisible}
         onClose={handleCloseMappingModal}
+        onChange={handleChangeFileUpload}
         title="Mapping" // Customize as needed
         dataSource={mappingData}
+        perceptionData={perceptionData}
       />
     </MainLayout>
   );
