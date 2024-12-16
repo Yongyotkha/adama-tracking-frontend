@@ -137,7 +137,7 @@ export default function CreateActivity() {
       disabled: viewSegment ?? false,
       required: true,
       col: 8,
-      value: activityDetail.activity_type_id ?? "",
+      value: parseInt(activityDetail.activity_type_id, 10) ?? "",
     },
     {
       label: "Sale",
@@ -147,7 +147,7 @@ export default function CreateActivity() {
       disabled: viewSegment ?? false,
       required: true,
       col: 8,
-      value: activityDetail.user_id ?? "",
+      value: parseInt(activityDetail.user_id, 10) ?? "",
       moderef: true,
     },
     {
@@ -158,7 +158,7 @@ export default function CreateActivity() {
       disabled: viewSegment ?? false,
       required: true,
       col: 8,
-      value: activityDetail.dealer_id ?? "",
+      value: parseInt(activityDetail.dealer_id, 10) ?? "",
       moderef: true,
     },
     {
@@ -293,7 +293,7 @@ export default function CreateActivity() {
     //set crop list
     let cropData = [];
     await activityDetailData.crop_id_list.forEach(element => {
-      cropData.push(element.id);
+      cropData.push(parseInt(element.id, 10));
     });
     setCropDetailList(cropData);
 
@@ -384,7 +384,7 @@ export default function CreateActivity() {
             //set crop list
             let cropData = [];
             await activityDetailData.crop_id_list.forEach(element => {
-              cropData.push(element.id);
+              cropData.push(parseInt(element.id, 10));
             });
             setCropDetailList(cropData);
 
@@ -444,7 +444,7 @@ export default function CreateActivity() {
 
   const setupCrop = async (value) => {
     if(!isSalePlanEdit){
-      setCropDetailList(value);
+      setCropDetailList(parseInt(value, 10));
       const [productCrop] = await Promise.all([
         useServiceAPI.get(paths.pathMasterProductByCrop, {
           crop_list: value
@@ -592,46 +592,31 @@ export default function CreateActivity() {
     setIsTeamModalVisible(false);
   };
 
-  const handleAddSelectedRows = (selectedRows) => {
-    const lengthRows = selectedRows.length;
+  const handleAddSelectedRows = () => {
+    const lengthRows = (parseInt(actualParticipantCount) + 1);
     setActualParticipantCount(lengthRows);
-    setParticipantUsers((prev) => {
-      // Filter out any selected rows that already exist in participants based on their key
-      const newRows = selectedRows.filter(
-        (row) => !prev.some((participant) => participant.key === row.key)
-      );
-      // Merge existing participants with new rows
-      const updatedParticipants = [...prev, ...newRows];
-      
-      // Reassign the "no" property to ensure it starts from 1 and increments
-      return updatedParticipants.map((participant, index) => ({
-        ...participant,
-        address: '',
-        phone: '',
-        no: index + 1, // Update "no" based on the new index
-      }));
-    });
-    setParticipants((prev) => {
-      // Filter out any selected rows that already exist in participants based on their key
-      const newRows = selectedRows.filter(
-        (row) => !prev.some((participant) => participant.key === row.key)
-      );
-      // Merge existing participants with new rows
-      const updatedParticipants = [...prev, ...newRows];
-      
-      // Reassign the "no" property to ensure it starts from 1 and increments
-      return updatedParticipants.map((participant, index) => ({
-        ...participant,
-        address: '',
-        phone: '',
-        no: index + 1, // Update "no" based on the new index
-      }));
-    });
+    
+    let dataParticipant = [{
+      address: '',
+      phone: '',
+      no: lengthRows,
+      key: lengthRows
+    }];
+    setParticipants((prevList) => [...prevList, ...dataParticipant]);
   };
 
   const removeParticipant = (key) => {
-    setParticipants(participants.filter(item => item.key !== key));
-    setParticipantUsers(participants.filter(item => item.key !== key));
+    setParticipants((prevList) => {
+      // Filter out the removed participant
+      const updatedList = prevList.filter(item => item.key !== key);
+  
+      // Reassign 'no' to ensure the indices are sequential
+      return updatedList.map((item, index) => ({
+        ...item,
+        no: (parseInt(index) + 1), // Reset the 'no' based on the new order
+        key: (parseInt(index) + 1) // Update key to maintain consistency
+      }));
+    });
     setActualParticipantCount(participants.length - 1);
   };
 
@@ -1056,7 +1041,7 @@ export default function CreateActivity() {
               <div className="text-[#00783F] text-lg font-semibold mb-3">Participant</div>
               {
                 viewSegment ? null : (
-                  <ActionButton mode="add" text="Add" onClick={handleOpenTeamModal} />
+                  <ActionButton mode="add" text="Add" onClick={handleAddSelectedRows} />
                 )
               }
 
