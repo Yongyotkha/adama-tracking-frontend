@@ -36,15 +36,15 @@ export default function DealerList() {
             status_type: "status",
           }),
         ]);
-        
+
         const Status = [];
         dataStatus.data.map((data, index) => {
-          Status.push({ 
-            id: data.code, 
-            name: data.name, 
+          Status.push({
+            id: data.code,
+            name: data.name,
           });
         });
-        
+
         setStatus(Status);
 
         setPosition(producttype.data);
@@ -58,7 +58,6 @@ export default function DealerList() {
     getMaster();
   }, []);
 
-
   useEffect(() => {
     fetchData();
   }, [
@@ -68,7 +67,6 @@ export default function DealerList() {
     tableParams.sortField,
     JSON.stringify(tableParams.filters),
   ]);
-
 
   const fetchData = async () => {
     setTableLoading(true);
@@ -90,7 +88,7 @@ export default function DealerList() {
       );
 
       if (response.status === 200) {
-        const { data, records_filtered } = response.data;        
+        const { data, records_filtered } = response.data;
         const newDataSource = data.map((data, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           code: data.dealer_code || "-",
@@ -99,31 +97,38 @@ export default function DealerList() {
           contactName: data.contact_name,
           mobilePhone: data.mobile_phone || "-",
           groupCode: data.group_code,
-          status: <BadgeStatus text={data.status_name} bgColor={data.status_bg_color} textColor={data.status_color} />,
+          status: (
+            <BadgeStatus
+              text={data.status_name}
+              bgColor={data.status_bg_color}
+              textColor={data.status_color}
+            />
+          ),
           action: (
             <Dropdown
               menu={{
                 items: data.action.map((actionItem, actionIndex) => ({
                   key: actionIndex,
                   label: (
-                    <ItemDropDown mode={actionItem.action.toLowerCase()} 
-                    onClick={() => {
-                      if (actionItem.action.toLowerCase() === "edit") {
-                        navigate("/customer/dealer/edit-info", {
-                          state: {
-                            id: data.id,
-                            mod: actionItem.action
-                          },
-                        });
-                      } else if (actionItem.action.toLowerCase() === "view") {
-                        navigate("/customer/dealer/view-info", {
-                          state: {
-                            id: data.id,
-                            mod: actionItem.action
-                          },
-                        });
-                      }
-                    }}
+                    <ItemDropDown
+                      mode={actionItem.action.toLowerCase()}
+                      onClick={() => {
+                        if (actionItem.action.toLowerCase() === "edit") {
+                          navigate("/customer/farners/create", {
+                            state: {
+                              id: data.id,
+                              mod: actionItem.action,
+                            },
+                          });
+                        } else if (actionItem.action.toLowerCase() === "view") {
+                          navigate("/customer/farners/create", {
+                            state: {
+                              id: data.id,
+                              mod: actionItem.action,
+                            },
+                          });
+                        }
+                      }}
                     />
                   ),
                 })),
@@ -157,7 +162,6 @@ export default function DealerList() {
     }
   };
 
-
   const filters = [
     {
       key: "keyword",
@@ -177,13 +181,13 @@ export default function DealerList() {
       ...tableParams,
       pagination: {
         ...tableParams.pagination,
-        current: 1, 
-        pageSize: 10, 
+        current: 1,
+        pageSize: 10,
       },
       filters: {
         ...filters,
-        page_length: 1, 
-        page_size: 10,  
+        page_length: 1,
+        page_size: 10,
       },
     });
   };
@@ -200,15 +204,26 @@ export default function DealerList() {
     { title: "Code", width: 100, dataIndex: "code", align: "left" },
     { title: "Farmer Name", width: 200, dataIndex: "Name", align: "left" },
     { title: "Address", width: 300, dataIndex: "address", align: "left" },
-    { title: "Contact Name", width: 200, dataIndex: "contactName", align: "left" },
-    { title: "Mobile Phone", width: 150, dataIndex: "mobilePhone", align: "center" },
-    { title: "Group Code", width: 150, dataIndex: "groupCode", align: "center" },
+    {
+      title: "Contact Name",
+      width: 200,
+      dataIndex: "contactName",
+      align: "left",
+    },
+    {
+      title: "Mobile Phone",
+      width: 150,
+      dataIndex: "mobilePhone",
+      align: "center",
+    },
+    {
+      title: "Group Code",
+      width: 150,
+      dataIndex: "groupCode",
+      align: "center",
+    },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
-  ];
-
-  const actionItems = [
-    { key: "1", label: <ItemDropDown mode="edit" link="/customer/dealer/edit-info" /> },
   ];
 
   const handleTableChange = (pagination, filters, sorter) => {
@@ -219,29 +234,40 @@ export default function DealerList() {
       sortField: sorter.field,
     });
   };
-  
 
   return (
     <MainLayout loading={loading}>
+      <div className="flex items-center justify-between">
+        <div className="title-page">Farmers</div>
+        {/* <ActionButton
+          mode="create"
+          text="Create"
+          onClick={(e) => navigate("/customer/farners/create")}
+        /> */}
+        <ActionButton
+          text="Create"
+          mode="create"
+          onClick={() =>
+            navigate("/customer/farners/create", {
+                state: { 
+                    mod: "create" 
+                },
+            })
+          }
+        />
+      </div>
 
-      <div className="title-page">Farmers</div>
-
-      <Filter
-        onSearch={handleSearch}
-        onClear={handleClear}
-        filters={filters}
-      />
+      <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
 
       <BoxPrimary>
-        <TableComponent 
-        header={header}
-        dataSource={dataSource}
-        pagination={tableParams.pagination}
-        loading={tableLoading}
-        onChange={handleTableChange}
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pagination={tableParams.pagination}
+          loading={tableLoading}
+          onChange={handleTableChange}
         />
       </BoxPrimary>
-
     </MainLayout>
   );
 }

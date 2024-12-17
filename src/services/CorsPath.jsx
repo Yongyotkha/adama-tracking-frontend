@@ -56,7 +56,8 @@ export const paths = {
 
   // Farners
   pathCustomerFarmers: "sale-customer-farmer/list",
-
+  pathCustomerFarmersCreate: "sale-customer-farmer/create",
+  pathCustomerFarmersUpdate: "sale-customer-farmer/update",
 
   //SubDealer
   pathCreateSubDealer: "sale-customer-subdealer/create",
