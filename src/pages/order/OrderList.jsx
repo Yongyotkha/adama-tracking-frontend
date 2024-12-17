@@ -339,28 +339,47 @@ export default function OrderList() {
   };
 
   const handleChange = (filter) => {
-    if (filter.sale) {
-      const getMasterDealer = async () => {
-        setLoading(true);
-        try {
-          const [dealer] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterDealerDropdown, {
-              user_id: filter,
-            }),
-          ]);
+    // if (filter.sale) {
+    //   const getMasterDealer = async () => {
+    //     setLoading(true);
+    //     try {
+    //       const [dealer] = await Promise.all([
+    //         useServiceAPI.get(paths.pathMasterDealerDropdown, {
+    //           user_id: filter,
+    //         }),
+    //       ]);
 
-          setDataDealer(dealer.data);
-        } catch (error) {
-          showMsg("error", error.message || "เกิดข้อผิดพลาด");
-        } finally {
-          setLoading(false);
-        }
-      };
+    //       setDataDealer(dealer.data);
+    //     } catch (error) {
+    //       showMsg("error", error.message || "เกิดข้อผิดพลาด");
+    //     } finally {
+    //       setLoading(false);
+    //     }
+    //   };
 
-      getMasterDealer();
-    } else {
-      handleClear();
-    }
+    //   getMasterDealer();
+    // } else {
+    //   handleClear();
+    // }
+    setDefaultOption(filter);
+    const getMasterDealer = async () => {
+      setLoading(true);
+      try {
+        const [dealer] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterDealerDropdown, {
+            user_id: filter,
+          }),
+        ]);
+
+        setDataDealer(dealer.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMasterDealer();
   };
 
   const handleDelete = async (documentNumber) => {
@@ -427,7 +446,8 @@ export default function OrderList() {
           optionFilterProp="label"
           options={dataSale}
           value={defaultOption}
-          onChange={(value) => setDefaultOption(value)}
+          // onChange={(value) => setDefaultOption(value)}
+          onChange={(value) => handleChange(value)}
         />
         </div>
       </div>
