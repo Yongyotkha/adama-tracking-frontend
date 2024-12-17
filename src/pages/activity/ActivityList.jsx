@@ -40,6 +40,8 @@ export default function ActivityList() {
   const [isProductModalVisible, setIsProductModalVisible] = useState(false);
   const [isMappingModalVisible, setIsMappingModalVisible] = useState(false);
 
+  const navigate = useNavigate();
+
   // Get Master
   useEffect(() => {
     const getMaster = async () => {
