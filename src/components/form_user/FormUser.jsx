@@ -6,7 +6,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import { AuthContext } from "../../contexts/AuthContext";
 import { paths } from "../../services/CorsPath";
 import useServiceAPI from "../../services/CorsService";
-import { EditOutlined } from "@ant-design/icons";
+import { EditOutlined,PlusOutlined } from "@ant-design/icons";
 dayjs.extend(customParseFormat);
 
 const { Option } = Select;
