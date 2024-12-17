@@ -260,12 +260,12 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                       options={field.options.map((option, index) => ({
                         key: index,
                         label: option.name,
-                        value: parseInt(option.id, 10),
+                        value: field.typeMode == 'string' ? option.id.toString() : parseInt(option.id, 10),
                       }))}
                     />
                     {" "}
                   </>
-                ) : field.type === "text-editor" ? (
+                )  : field.type === "text-editor" ? (
                   <>
                     <ReactQuill
                       theme="snow"

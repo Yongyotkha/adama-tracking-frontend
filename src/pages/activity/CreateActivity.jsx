@@ -133,38 +133,42 @@ export default function CreateActivity() {
       label: "Activity Type",
       name: "activity_type_id",
       type: "select",
+      typeMode: "string",
       options: activityList,
       disabled: viewSegment ?? false,
       required: true,
       col: 8,
-      value: parseInt(activityDetail.activity_type_id, 10) ?? "",
+      value: activityDetail.activity_type_id ?? "",
     },
     {
       label: "Sale",
       name: "user_id",
       type: "select",
+      typeMode: "string",
       options: saleList,
       disabled: viewSegment ?? false,
       required: true,
       col: 8,
-      value: parseInt(activityDetail.user_id, 10) ?? "",
+      value: activityDetail.user_id ?? "",
       moderef: true,
     },
     {
       label: "Shop",
       name: "dealer_id",
       type: "select",
+      typeMode: "string",
       options: dealerList,
       disabled: viewSegment ?? false,
       required: true,
       col: 8,
-      value: parseInt(activityDetail.dealer_id, 10) ?? "",
+      value: activityDetail.dealer_id ?? "",
       moderef: true,
     },
     {
       label: "Crop",
       name: "crop_id_list",
       type: "select",
+      typeMode: "string",
       mode: "multiple",
       options: cropList,
       disabled: viewSegment ?? false,
@@ -186,6 +190,7 @@ export default function CreateActivity() {
       label: "Start Time",
       name: "time_start",
       type: "select",
+      typeMode: "string",
       options: timeList,
       disabled: viewSegment ?? false,
       required: false,
@@ -196,6 +201,7 @@ export default function CreateActivity() {
       label: "End Time",
       name: "time_end",
       type: "select",
+      typeMode: "string",
       options: timeList,
       disabled: viewSegment ?? false,
       required: false,
@@ -293,7 +299,7 @@ export default function CreateActivity() {
     //set crop list
     let cropData = [];
     await activityDetailData.crop_id_list.forEach(element => {
-      cropData.push(parseInt(element.id, 10));
+      cropData.push(element.id);
     });
     setCropDetailList(cropData);
 
@@ -384,7 +390,7 @@ export default function CreateActivity() {
             //set crop list
             let cropData = [];
             await activityDetailData.crop_id_list.forEach(element => {
-              cropData.push(parseInt(element.id, 10));
+              cropData.push(element.id);
             });
             setCropDetailList(cropData);
 
@@ -444,7 +450,7 @@ export default function CreateActivity() {
 
   const setupCrop = async (value) => {
     if(!isSalePlanEdit){
-      setCropDetailList(parseInt(value, 10));
+      setCropDetailList(value);
       const [productCrop] = await Promise.all([
         useServiceAPI.get(paths.pathMasterProductByCrop, {
           crop_list: value
