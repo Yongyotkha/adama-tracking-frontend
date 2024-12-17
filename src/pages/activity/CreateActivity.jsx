@@ -669,6 +669,7 @@ export default function CreateActivity() {
 
     const expenseActualExp = expenseForm.getFieldValue('actual_exp');
     const expenseActualSale = expenseForm.getFieldValue('actual_sale');
+    const expenseAdvance = expenseForm.getFieldValue('advance_expense');
 
     const expenseParticipantEstimate = participantForm.getFieldValue('estimate_participant');
     const expenseParticapantActual = participantForm.getFieldValue('actual_participant');
@@ -709,6 +710,7 @@ export default function CreateActivity() {
         "expense_customer_location_address": expenseCustomerLocationAddress,
         "expense_actual_exp": expenseActualExp,
         "expense_actual_sale": expenseActualSale,
+        "expense_advance": expenseAdvance,
         "expense_file_list":[],
         "expense_participant_estimate": expenseParticipantEstimate,
         "expense_particapant_actual": expenseParticapantActual,
@@ -1004,19 +1006,28 @@ export default function CreateActivity() {
               layout="vertical"
               form={expenseForm} // Use the new expenseForm instance here
               initialValues={{
-                actual_exp: activityDetail?.expense_expense_actual_exp ?? "0",
-                actual_sale: activityDetail?.expense_expense_actual_sale ?? "0"
+                actual_exp: (calculateGrandTotal("estimateSale") > 0 ? calculateGrandTotal("estimateSale") : activityDetail?.expense_expense_actual_exp) ?? "0",
+                actual_sale: (calculateGrandTotal("actualSale") > 0 ? calculateGrandTotal("actualSale") : activityDetail?.expense_expense_actual_sale) ?? "0",
+                advance_expense: activityDetail?.advance_expense ?? "0"
               }}
             >
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
+                  <Form.Item className="mb-3" label="Actual exp" name="advance_expense" >
+                    <Input placeholder="0" />
+                    {" "}
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Actual exp" name="actual_exp" >
-                    <Input placeholder="0" disabled />
+                    <Input placeholder="0" disabled value={calculateGrandTotal("estimateSale") > 0 ? calculateGrandTotal("estimateSale") : activityDetail?.expense_expense_actual_exp }/>
+                    {" "}
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Actual sale" name="actual_sale">
-                    <Input placeholder="0" disabled />
+                    <Input placeholder="0" disabled value={calculateGrandTotal("actualSale") > 0 ? calculateGrandTotal("actualSale") : activityDetail?.expense_expense_actual_sale }/>
+                    {" "}
                   </Form.Item>
                 </Col>
               </Row>
