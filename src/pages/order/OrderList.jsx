@@ -160,7 +160,8 @@ export default function OrderList() {
     const sortField = tableParams.sortField || "document_number";
 
     const requestData = {
-      user_id: filters.sale || defaultOption,
+      // user_id: filters.sale || defaultOption,
+      user_id: defaultOption || "",
       dealer_id: filters.dealer || "",
       keyword: filters.order_no || "",
       trasaction_status_code: filters.status || "",
@@ -405,8 +406,9 @@ export default function OrderList() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div className="title-page">Order List</div>
+        <div className="flex gap-2">
         {permission.btn_create && (
           <ActionButton
             mode="create"
@@ -427,6 +429,7 @@ export default function OrderList() {
           value={defaultOption}
           onChange={(value) => setDefaultOption(value)}
         />
+        </div>
       </div>
 
       <FilterByOrder
