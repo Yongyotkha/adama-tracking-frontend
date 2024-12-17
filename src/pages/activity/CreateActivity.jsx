@@ -877,29 +877,25 @@ export default function CreateActivity() {
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Support Customer Name" name="supportCustomerName">
                     <Input disabled="true" placeholder={dealerCustomer.customer_name}/>
+                    {" "}
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Place of Owner" name="placeOfOwner">
                     <Input placeholder="-" disabled="true"/>
+                    {" "}
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Phone Number" name="phoneNumber">
                     <Input placeholder="Enter phone number" disabled="true"/>
+                    {" "}
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Perception" name="perception">
-                    {/* <Select>
-                      {perceptionList.map((option) => (
-                        <Option key={option.id} value={option.id}>
-                          {option.name}
-                        </Option>
-                      ))}
-                    </Select> */}
                     <Select
-                        placeholder=""
+                        placeholder="Select Perception"
                         disabled={false}
                         allowClear
                         options={perceptionList.map((option) => ({
@@ -907,11 +903,13 @@ export default function CreateActivity() {
                           value: String(option.id),
                         }))}
                       />
+                      {" "}
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={24} md={24} lg={24}>
                   <Form.Item className="mb-3" label="Address" name="address">
                     <Input disabled={true}/>
+                    {" "}
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={24} md={24} lg={24}>
@@ -982,6 +980,7 @@ export default function CreateActivity() {
                           value={locationCustomer.lat || ""}
                           disabled={true}
                         />
+                        {" "}
                       </Form.Item>
                   
                       <Form.Item
@@ -994,6 +993,7 @@ export default function CreateActivity() {
                           value={locationCustomer.long || ""}
                           disabled={true}
                         />
+                        {" "}
                       </Form.Item>
                     </div>
                   </Col>
@@ -1008,13 +1008,13 @@ export default function CreateActivity() {
               initialValues={{
                 actual_exp: (calculateGrandTotal("estimateSale") > 0 ? calculateGrandTotal("estimateSale") : activityDetail?.expense_expense_actual_exp) ?? "0",
                 actual_sale: (calculateGrandTotal("actualSale") > 0 ? calculateGrandTotal("actualSale") : activityDetail?.expense_expense_actual_sale) ?? "0",
-                advance_expense: activityDetail?.advance_expense ?? "0"
+                advance_expense: activityDetail?.advance_expense ?? ""
               }}
             >
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Advance expense" name="advance_expense" >
-                    <Input placeholder="0" />
+                    <Input placeholder="Free Text" />
                     {" "}
                   </Form.Item>
                 </Col>
@@ -1046,14 +1046,13 @@ export default function CreateActivity() {
           </BoxPrimary>
 
           {/* Participant Section */}
-          {pageCode == 'expense_clearing' ? <>
             <BoxPrimary>
             <div className="flex items-center justify-between">
               <div className="text-[#00783F] text-lg font-semibold mb-3">Participant</div>
               {
-                viewSegment ? null : (
+                pageCode == 'expense_clearing' ?(viewSegment ? null : (
                   <ActionButton mode="add" text="Add" onClick={handleAddSelectedRows} />
-                )
+                )) : undefined
               }
 
             </div>
@@ -1069,26 +1068,28 @@ export default function CreateActivity() {
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Estimate Participant " name="estimate_participant">
-                    <Input placeholder="0" disabled={viewSegment}/>
+                    <Input placeholder="0" disabled={pageCode == 'expense_clearing' ? true : viewSegment}/>
                     {" "}
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Actual Participant" name="actual_participant">
-                    <Input placeholder="" disabled={viewSegment} value={activityDetail?.expense_particapant_actual ?? (actualParticipantCount ?? "0")}/>
+                    <Input placeholder="0" disabled="true" value={activityDetail?.expense_particapant_actual ?? (actualParticipantCount ?? "0")}/>
                     {" "}
                   </Form.Item>
                 </Col>
               </Row>
 
-              <TableComponent
+              { pageCode == 'expense_clearing' ? <>
+                <TableComponent
                 header={participantColumns}
                 dataSource={participants}
                 pagination={false}
               />
+              </> : <></> }
+              
             </Form>
           </BoxPrimary>
-          </> : null }
         </>
       ) : null}
 
