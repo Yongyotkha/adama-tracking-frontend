@@ -244,6 +244,29 @@ export default function CreateOrder() {
       value: dayjs().format("YYYY-MM-DD")
     },
   ];
+  
+  const getMasterDealer = async () => {
+    // setLoading(true);
+    try {
+      const [dealer] = await Promise.all([
+        useServiceAPI.get(paths.pathMasterDealerDropdown, {
+          user_id: dataSaleId,
+        }),
+      ]);
+
+      setDataDealer(dealer.data);
+    } catch (error) {
+      // showMsg("error", error.message || "เกิดข้อผิดพลาด");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (dataSaleId) {
+      getMasterDealer();
+    }
+  }, [dataSaleId])
 
   const handleChange = (filter, value) => {
     if (filter == 'sale') {
