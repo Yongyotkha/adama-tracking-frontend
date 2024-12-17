@@ -267,7 +267,7 @@ export default function ActivityPlanSubDealer() {
       }, 0);
 
       setExpense(
-        ((Number(totalAmountTarget) / Number(totalValue)) * 100)
+        ((Number(totalAmountTarget) / Number(totalValue)) * 100).toFixed(2)
       );
       console.log(totalAmountTarget, totalValue);
       setEstimate(totalAmountTarget);
@@ -319,7 +319,7 @@ export default function ActivityPlanSubDealer() {
             content: (
               <>
                 <p>Estimate must be greater than 3 %</p>
-                <p>Estimate: {estimate}%</p>
+                <p>Estimate: {expense}%</p>
                 <p>
                   <b>
                     Do you want to{" "}
@@ -391,10 +391,7 @@ export default function ActivityPlanSubDealer() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${Number(value)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
             </div>
@@ -405,10 +402,7 @@ export default function ActivityPlanSubDealer() {
                 className="w-full"
                 value={estimate}
                 formatter={(value) =>
-                  `${Number(value)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
             </div>
@@ -452,7 +446,6 @@ export default function ActivityPlanSubDealer() {
           <div className="text-[#00783F] text-xl pb-5">Monthly Sale Plan</div>
 
           <TableCustomComponent
-   
             header={columns}
             dataSource={dataSource}
             pagination={false}

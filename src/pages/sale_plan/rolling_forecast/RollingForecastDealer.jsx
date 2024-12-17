@@ -35,7 +35,6 @@ export default function RollingForecastDealer() {
     if (activeKey) {
       getMonthDetails();
     }
-   
   }, [activeKey]);
 
   const getMasterDealer = () => {
@@ -82,7 +81,6 @@ export default function RollingForecastDealer() {
           dealer_id: activeKey,
         })
         .then((response) => {
-    
           if (response.status === 200) {
             console.log(response);
             const newLocalState = response.data.month_items.reduce(
@@ -486,7 +484,7 @@ export default function RollingForecastDealer() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Work Plan" showYear={yearName} />
+        <Title prefix="Rolling Forecast (Dealer)" showYear={yearName} />
 
         <Tabs
           // activeKey={activeTabKey}
@@ -619,19 +617,7 @@ export default function RollingForecastDealer() {
         </BoxPrimary>
 
         <div className="flex justify-end space-x-4">
-          <ActionButton
-            text="Back"
-            mode="back"
-            onClick={() =>
-              navigate("/sale-plan/work-plan-sale/sale-by-dealer", {
-                state: {
-                  year_code: location?.state?.year_code,
-                  user_id: location?.state?.user_id,
-                  mode: location?.state?.mode,
-                },
-              })
-            }
-          />
+          <ActionButton text="Back" mode="back" onClick={() => navigate(-1)} />
 
           {permission.btn_draft && (
             <ActionButton
