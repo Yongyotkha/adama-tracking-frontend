@@ -489,6 +489,7 @@ export default function EditSubDealer() {
         .then((values) => {          
           const payload = {
             id: location.state.id,
+            use_flag: 1,
             name: values.shop_name || "",
             mobile_phone: values.mobile_phone || "",
             address: values.address || "",

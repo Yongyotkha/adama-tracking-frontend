@@ -469,6 +469,7 @@ export default function CreateSubDealer() {
       .then((values) => {
         // console.log(values);
         const payload = {
+          use_flag: 1,
           name: values.shop_name || "",
           mobile_phone: values.mobile_phone || "",
           address: values.address || "",
