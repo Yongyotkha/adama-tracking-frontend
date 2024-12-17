@@ -1013,7 +1013,7 @@ export default function CreateActivity() {
             >
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item className="mb-3" label="Actual exp" name="advance_expense" >
+                  <Form.Item className="mb-3" label="Advance expense" name="advance_expense" >
                     <Input placeholder="0" />
                     {" "}
                   </Form.Item>
