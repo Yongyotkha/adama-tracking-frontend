@@ -85,7 +85,7 @@ export default function DealerList() {
 
     try {
       const response = await useServiceAPI.get(
-        paths.pathCustomerDealer,
+        paths.pathCustomerFarmers,
         requestData
       );
 
@@ -93,11 +93,11 @@ export default function DealerList() {
         const { data, records_filtered } = response.data;        
         const newDataSource = data.map((data, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-          code: data.dealer_code,
-          dealerName: data.dealer_name_en,
+          code: data.dealer_code || "-",
+          Name: data.name || "-",
           address: data.address,
           contactName: data.contact_name,
-          mobilePhone: data.contact_phone_number || "-",
+          mobilePhone: data.mobile_phone || "-",
           groupCode: data.group_code,
           status: <BadgeStatus text={data.status_name} bgColor={data.status_bg_color} textColor={data.status_color} />,
           action: (
@@ -162,7 +162,7 @@ export default function DealerList() {
     {
       key: "keyword",
       type: "text",
-      label: "Dealer",
+      label: "Farmers",
     },
     {
       key: "use_flag",
@@ -177,13 +177,13 @@ export default function DealerList() {
       ...tableParams,
       pagination: {
         ...tableParams.pagination,
-        current: 1, // Reset current page to 1
-        pageSize: 10, // Ensure the page size is set to 10
+        current: 1, 
+        pageSize: 10, 
       },
       filters: {
         ...filters,
-        page_length: 1, // Set default page_length
-        page_size: 10,  // Set default page_size
+        page_length: 1, 
+        page_size: 10,  
       },
     });
   };
@@ -198,7 +198,7 @@ export default function DealerList() {
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
     { title: "Code", width: 100, dataIndex: "code", align: "left" },
-    { title: "Dealer Name", width: 200, dataIndex: "dealerName", align: "left" },
+    { title: "Farmer Name", width: 200, dataIndex: "Name", align: "left" },
     { title: "Address", width: 300, dataIndex: "address", align: "left" },
     { title: "Contact Name", width: 200, dataIndex: "contactName", align: "left" },
     { title: "Mobile Phone", width: 150, dataIndex: "mobilePhone", align: "center" },
@@ -206,7 +206,6 @@ export default function DealerList() {
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
-
 
   const actionItems = [
     { key: "1", label: <ItemDropDown mode="edit" link="/customer/dealer/edit-info" /> },
@@ -225,7 +224,7 @@ export default function DealerList() {
   return (
     <MainLayout loading={loading}>
 
-      <div className="title-page">Dealer</div>
+      <div className="title-page">Farmers</div>
 
       <Filter
         onSearch={handleSearch}

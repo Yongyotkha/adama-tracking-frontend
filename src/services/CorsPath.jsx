@@ -54,6 +54,10 @@ export const paths = {
   pathCustomerSubDealerUpdate: "sale-customer-dealer/update",
   pathCustomerSubDealerNetworkUpdate: "sale-customer-dealer/network-create",
 
+  // Farners
+  pathCustomerFarmers: "sale-customer-farmer/list",
+
+
   //SubDealer
   pathCreateSubDealer: "sale-customer-subdealer/create",
   pathDeleteSubDealer: "sale-customer-subdealer/delete",
