@@ -233,6 +233,7 @@ export default function CreateActivity() {
       label: "Assign",
       name: "assing_user_list",
       type: "select",
+      typeMode: "string",
       mode: "multiple",
       options: saleAllList,
       disabled: viewSegment ?? false,
