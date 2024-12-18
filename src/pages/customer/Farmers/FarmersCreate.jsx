@@ -57,6 +57,7 @@ export default function EditInformation() {
   const [dataMapZoom, setDataMapZoom] = useState(15);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
   const [defaultIdFarmers, setDefaultFarmers] = useState([]); 
+  const [isMapEnabled, setIsMapEnabled] = useState(false);
 
     // อ่านสถานะ mod จาก state
     const mode = location.state?.mod; 
@@ -181,7 +182,7 @@ export default function EditInformation() {
     },
     {
       label: "Outlet Location Please select a location on the map" ,
-      labelColor: "red",
+      // labelColor: "red",
       name: "location_address",
       type: "text",
       required: false,
@@ -189,7 +190,7 @@ export default function EditInformation() {
       value: companyinfo.location_address,
       iconSrc: "/img/icons/location.png",
       iconPosition: "right",
-      disabled: true,
+      disabled: false,
     },
     {
       label: "T-Shirt Size",
@@ -600,10 +601,9 @@ export default function EditInformation() {
           useFlagValue = values.use_flag === "Active" ? 1 : 0; // แปลงค่าจาก "Active" หรือ "Inactive"
         }
 
-        
-
-        if (defaultIdFarmers === undefined) {
-            console.log(values);
+      
+        if (location.state.mod === create) {
+            console.log("test");
         }else{
             console.log("upda11111111111111te");
         }
@@ -611,20 +611,29 @@ export default function EditInformation() {
         return;
         const formattedData = {
           id: location.state.id, 
-          name: values.dealer_name_en || "",
-          dealer_name_th: values.dealer_name_th || "",
-          dealer_code: values.dealer_code || "",
-          tax_id: values.tax_id || "",
-          contact_number: values.contact_number || "",
+          name: values.name || "",
+          mobile_phone: values.mobile_phone || "",
           address: values.address || "",
-          group_code: values.group_code || "",
-          date_of_anniversary: values.date_of_anniversary || "",
-          date_of_joining: values.date_of_joining || "",
-          photo_path: values.profile || "",
-          location_address: values.outlet_location || "",
+          email: values.tax_id || "",
+          day_of_week: values.day_of_week ,
+          start_time: values.start_time
+          ? dayjs(values.start_time).format("HH:mm")
+          : "",
+          end_time: values.end_time
+          ? dayjs(values.end_time).format("HH:mm")
+          : "",
+          business_size: values.business_size || "",
+          outlet_location: values.outlet_location || "",
+          t_shirt_size: values.tshirt_size || "",
+          anniversary: values.anniversary
+            ? dayjs(values.anniversary).format("YYYY-MM-DD")
+            : null,
           location_longitude: currentLocation.lng || "",
           location_latitude: currentLocation.lat  || "",
+          location_address: values.outlet_location || "",
           use_flag: useFlagValue,
+
+
           bank_account_items: companyinfo.bank_account_items || [],
           
           contact_items: contactItems.map((item) => ({
@@ -795,13 +804,20 @@ export default function EditInformation() {
         <div></div>
       )}
 
-      {/* <div className={`bg-white p-4`}
+      <div className={`bg-white p-4`}
         style={{
           boxShadow: "rgba(0, 0, 0, 0.1)", // Optional for a subtle shadow
           marginTop: "-20px",
         }}
       >
       <div className="text-[#00783F] text-lg font-semibold mb-3">
+        <div className="flex justify-end space-x-4 mb-2">
+            <ActionButton
+              text={isMapEnabled ? "Close Google" : "Open Google"}
+              mode="update" 
+              onClick={() => setIsMapEnabled((prev) => !prev)} />
+          </div>
+
         <LoadScript googleMapsApiKey={dataApiKey}>
           <GoogleMap
             mapContainerStyle={mapContainerStyle}
@@ -822,12 +838,13 @@ export default function EditInformation() {
                 }}
                 draggable={true}
                 onDragEnd={handleMarkerDragEnd} 
+                options={{ disableDefaultUI: !isMapEnabled, draggable: isMapEnabled }}
               />
             )}
           </GoogleMap>
         </LoadScript>
         </div>
-      </div> */}
+      </div>
 
 
       <BoxPrimary>
@@ -875,7 +892,7 @@ export default function EditInformation() {
           <ActionButton
             mode="back"
             text="Back"
-            onClick={() => navigate("/customer/dealer")}
+            onClick={() => navigate("/customer/farners")}
           />
           {/* <ActionButton
             mode="update"
@@ -971,17 +988,17 @@ export default function EditInformation() {
   if (isViewMode) {
     items = items.map(field => {
       if (field.key === 'network' || field.key === 'profile') {
-        return field; // ไม่ทำอะไรกับ network และ profile
+        return field; 
       }
       return {
         ...field,
-        disabled: true // ปิดการกรอกข้อมูลใน view mode
+        disabled: true
       };
     });
   } else {
     items = items.map(field => ({
       ...field,
-      disabled: false // เปิดให้กรอกข้อมูลได้สำหรับ create และ edit
+      disabled: false 
     }));
   }
   
