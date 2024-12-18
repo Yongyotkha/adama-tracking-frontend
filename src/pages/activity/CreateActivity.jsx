@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
-import { Form, Input, Col, Row, Select } from "antd";
+import { Form, Input, Col, Row, Select, InputNumber } from "antd";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import ActionButton from "../../components/button/ActionButton";
@@ -480,17 +480,36 @@ export default function CreateActivity() {
     { title: "Pack Size", dataIndex: "packSize", key: "packSize", align: "center" },
     {
       title: "Estimate Sale (Kg/Lt)", dataIndex: "estimateSale", key: "estimateSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" value={NumberFormatter(record.estimateSale)} disabled={ pageCode == 'expense_clearing' ? true : (viewSegment ?? false) } onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}/>
+        <InputNumber 
+          className="w-full"
+          min={0}
+          value={record.estimateSale} 
+          disabled={ pageCode == 'expense_clearing' ? true : (viewSegment ?? false) } 
+          onChange={(value) => handleInputChange(value, record.key, "estimateSale", record.bath_ltkg, record)}
+          formatter={(value) =>
+            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
+        />
       )
     },
     {
       title: "Actual Sale (Kg/Lt)", dataIndex: "actualSale", key: "actualSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" value={NumberFormatter(record.actualSale)} disabled={ pageCode != 'expense_clearing' ? true : (viewSegment ?? false) } onChange={(e) => handleInputChange(e.target.value, record.key, "actualSale", record.bath_ltkg)}/>
+        <InputNumber 
+          className="w-full"
+          min={0}
+          value={record.actualSale} 
+          disabled={ pageCode != 'expense_clearing' ? true : (viewSegment ?? false) } 
+          onChange={(value) => handleInputChange(value, record.key, "actualSale", record.bath_ltkg, record)}
+          formatter={(value) =>
+            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
+        />
       )
     },
   ];
 
-  const handleInputChange = (value, key, field, bath_ltkg) => {
+  const handleInputChange = (value, key, field, bath_ltkg, record) => {
+
     const updatedData = productCropList.map((item) => {
       if (item.key === key) {
         const numericValue = parseFloat(value) || 0;
@@ -499,6 +518,8 @@ export default function CreateActivity() {
       }
       return item;
     });    
+
+    record.field = value;
 
     setProductCropList(updatedData);
   };
@@ -513,10 +534,26 @@ export default function CreateActivity() {
     <tr className="bg-[#978B87]">
       <td colSpan={2} className="text-left pr-2 text-white">Total (THB)</td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" value={calculateGrandTotal("estimateSale") > 0 ? calculateGrandTotal("estimateSale") : activityDetail?.expense_product_total_estimate_sale } readOnly  />
+      <InputNumber 
+        className="w-full"
+        min={0}
+        value={calculateGrandTotal("estimateSale") > 0 ? calculateGrandTotal("estimateSale") : activityDetail?.expense_product_total_estimate_sale} 
+        readOnly
+        formatter={(value) =>
+          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+        }
+      />
       </td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" value={calculateGrandTotal("actualSale") > 0 ? calculateGrandTotal("actualSale") : activityDetail?.expense_product_total_acutal_sale} readOnly />
+        <InputNumber 
+          className="w-full"
+          min={0}
+          value={calculateGrandTotal("actualSale") > 0 ? calculateGrandTotal("actualSale") : activityDetail?.expense_product_total_acutal_sale} 
+          readOnly
+          formatter={(value) =>
+            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
+        />
       </td>
     </tr>
   );
@@ -1021,19 +1058,44 @@ export default function CreateActivity() {
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Advance expense" name="advance_expense" >
-                    <Input placeholder="Free Text" />
+                    <InputNumber 
+                      placeholder="Free Text"
+                      className="w-full"
+                      min={0}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                    />
                     {" "}
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Actual exp" name="actual_exp" >
-                    <Input placeholder="0" disabled value={calculateGrandTotal("estimateSale") > 0 ? calculateGrandTotal("estimateSale") : activityDetail?.expense_expense_actual_exp }/>
+                    <InputNumber 
+                      className="w-full"
+                      min={0}
+                      placeholder="0"
+                      value={calculateGrandTotal("estimateSale") > 0 ? calculateGrandTotal("estimateSale") : activityDetail?.expense_expense_actual_exp} 
+                      disabled
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                    />
                     {" "}
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Actual sale" name="actual_sale">
-                    <Input placeholder="0" disabled value={calculateGrandTotal("actualSale") > 0 ? calculateGrandTotal("actualSale") : activityDetail?.expense_expense_actual_sale }/>
+                    <InputNumber 
+                      className="w-full"
+                      min={0}
+                      placeholder="0"
+                      value={calculateGrandTotal("actualSale") > 0 ? calculateGrandTotal("actualSale") : activityDetail?.expense_expense_actual_sale} 
+                      disabled
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                    />
                     {" "}
                   </Form.Item>
                 </Col>
@@ -1075,13 +1137,30 @@ export default function CreateActivity() {
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Estimate Participant " name="estimate_participant">
-                    <Input placeholder="0" disabled={pageCode == 'expense_clearing' ? true : viewSegment}/>
+                    <InputNumber 
+                      className="w-full"
+                      min={0}
+                      placeholder="0"
+                      disabled={pageCode == 'expense_clearing' ? true : viewSegment}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                    />
                     {" "}
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Actual Participant" name="actual_participant">
-                    <Input placeholder="0" disabled="true" value={activityDetail?.expense_particapant_actual ?? (actualParticipantCount ?? "0")}/>
+                  <InputNumber 
+                      className="w-full"
+                      min={0}
+                      placeholder="0"
+                      disabled
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      value={activityDetail?.expense_particapant_actual ?? (actualParticipantCount ?? "0")}
+                    />
                     {" "}
                   </Form.Item>
                 </Col>
