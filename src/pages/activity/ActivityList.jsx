@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import Filter from "../../components/filter/Filter";
-import { Dropdown } from "antd";
+import { Dropdown, Modal } from "antd";
 import ActionButton from "../../components/button/ActionButton";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import TableComponent from "../../components/table/TableComponent";
@@ -14,8 +14,10 @@ import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
 import dayjs from "dayjs";
 import FormModal from "../../components/modal/FormModal";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 
 export default function ActivityList() {
+  const { confirm } = Modal;
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState(false);
   const [activityList, setActivityList] = useState([]);
@@ -209,37 +211,45 @@ export default function ActivityList() {
   };
 
   const handleDelete = async (documentNumber) => {
-    try {
-      // Call API to delete the event
-      const response = await useServiceAPI.delete(
-        `/activity/delete?document_number=${encodeURIComponent(documentNumber)}`
-      );
-      await fetchData();
-      if (response.status === 200) {
-        // Show success notification
-        showNotification(
-          "success",
-          response.data.message || "Event deleted successfully!",
-          response.data.message_line || ["The event has been removed."]
-        );
-      } else {
-        // Show error notification if response is not 200
-        console.error("Failed to delete event:", response.message);
-        showNotification(
-          "error",
-          response.message || "Failed to delete event.",
-          response.message_line || ["Please try again later."]
-        );
-      }
-    } catch (error) {
-      // Handle errors and show an error notification
-      console.error("Error deleting event:", error);
-      showNotification(
-        "error",
-        "An error occurred while deleting the event.",
-        ["Please try again later."]
-      );
-    }
+    confirm({
+      title: "Do you want to delete ?",
+      icon: <ExclamationCircleFilled />,
+      content: [],
+      centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+      async onOk() {
+        try {
+          // Call API to delete the event
+          const response = await useServiceAPI.delete(
+            `/activity/delete?document_number=${encodeURIComponent(documentNumber)}`
+          );
+          await fetchData();
+          if (response.status === 200) {
+            // Show success notification
+            showNotification(
+              "success",
+              response.data.message || "Event deleted successfully!",
+              response.data.message_line || ["The event has been removed."]
+            );
+          } else {
+            // Show error notification if response is not 200
+            console.error("Failed to delete event:", response.message);
+            showNotification(
+              "error",
+              response.message || "Failed to delete event.",
+              response.message_line || ["Please try again later."]
+            );
+          }
+        } catch (error) {
+          // Handle errors and show an error notification
+          console.error("Error deleting event:", error);
+          showNotification(
+            "error",
+            "An error occurred while deleting the event.",
+            ["Please try again later."]
+          );
+        }
+      },
+    });
   };
 
   const handleShowProductModal = () => {
@@ -381,6 +391,15 @@ export default function ActivityList() {
     }
   };
 
+  const handleTableChange = (pagination, filters, sorter) => {
+    setTableParams({
+      pagination,
+      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortField: sorter.field,
+    });
+  };
+
   // Master
   useEffect(() => {
     const getMaster = async () => {
@@ -435,6 +454,7 @@ export default function ActivityList() {
           dataSource={dataSource}
           pagination={tableParams.pagination}
           loading={tableLoading}
+          onChange={handleTableChange}
         />
       </BoxPrimary>
 

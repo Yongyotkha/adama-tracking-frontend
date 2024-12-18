@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
-import { Form, Input, Col, Row, Select } from "antd";
+import { Form, Input, Col, Row, Select, InputNumber } from "antd";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import ActionButton from "../../components/button/ActionButton";
@@ -61,6 +61,7 @@ export default function CreateActivity() {
   const [tableLoading, setTableLoading] = useState(false);
   const { showMsg, showNotification } = useContext(AuthContext);
   const [actualParticipantCount, setActualParticipantCount] = useState("0");
+  const [timeselect, setTimeSelect] = useState([]);
 
   const handleUploadClick = async () => {    
     // Call triggerUpload from FileUploadComponent
@@ -133,38 +134,42 @@ export default function CreateActivity() {
       label: "Activity Type",
       name: "activity_type_id",
       type: "select",
+      typeMode: "string",
       options: activityList,
       disabled: viewSegment ?? false,
       required: true,
       col: 8,
-      value: parseInt(activityDetail.activity_type_id, 10) ?? "",
+      value: activityDetail.activity_type_id ?? "",
     },
     {
       label: "Sale",
       name: "user_id",
       type: "select",
+      typeMode: "string",
       options: saleList,
       disabled: viewSegment ?? false,
       required: true,
       col: 8,
-      value: parseInt(activityDetail.user_id, 10) ?? "",
+      value: activityDetail.user_id ?? "",
       moderef: true,
     },
     {
       label: "Shop",
       name: "dealer_id",
       type: "select",
+      typeMode: "string",
       options: dealerList,
       disabled: viewSegment ?? false,
       required: true,
       col: 8,
-      value: parseInt(activityDetail.dealer_id, 10) ?? "",
+      value: activityDetail.dealer_id ?? "",
       moderef: true,
     },
     {
       label: "Crop",
       name: "crop_id_list",
       type: "select",
+      typeMode: "string",
       mode: "multiple",
       options: cropList,
       disabled: viewSegment ?? false,
@@ -186,6 +191,7 @@ export default function CreateActivity() {
       label: "Start Time",
       name: "time_start",
       type: "select",
+      typeMode: "string",
       options: timeList,
       disabled: viewSegment ?? false,
       required: false,
@@ -196,6 +202,7 @@ export default function CreateActivity() {
       label: "End Time",
       name: "time_end",
       type: "select",
+      typeMode: "string",
       options: timeList,
       disabled: viewSegment ?? false,
       required: false,
@@ -227,6 +234,7 @@ export default function CreateActivity() {
       label: "Assign",
       name: "assing_user_list",
       type: "select",
+      typeMode: "string",
       mode: "multiple",
       options: saleAllList,
       disabled: viewSegment ?? false,
@@ -293,7 +301,7 @@ export default function CreateActivity() {
     //set crop list
     let cropData = [];
     await activityDetailData.crop_id_list.forEach(element => {
-      cropData.push(parseInt(element.id, 10));
+      cropData.push(element.id);
     });
     setCropDetailList(cropData);
 
@@ -362,9 +370,6 @@ export default function CreateActivity() {
         if(attribue == 'user_id'){
           await setupDealer(value);
         } else if(attribue == 'dealer_id'){
-          console.log(attribue);
-          console.log(value);
-          
           await setupCropAndDealerCustomer(value);
         } else if(attribue == 'crop_id_list'){
           await setupCrop(value);
@@ -384,7 +389,7 @@ export default function CreateActivity() {
             //set crop list
             let cropData = [];
             await activityDetailData.crop_id_list.forEach(element => {
-              cropData.push(parseInt(element.id, 10));
+              cropData.push(element.id);
             });
             setCropDetailList(cropData);
 
@@ -401,7 +406,22 @@ export default function CreateActivity() {
           } catch (error) {} finally {
             setLoading(false);
           }
-        }
+        } else if(attribue == 'time_start' || attribue == 'time_end'){
+          activityDetail[attribue] = value;
+          const timeStart = activityDetail.time_start;  
+          const timeEnd = activityDetail.time_end;  
+
+          if(timeStart != undefined && timeEnd != undefined){
+            if(timeStart >= timeEnd){
+              showNotification(
+                "warning",
+                "Invalid Time Range",
+                ["Time End cannot be earlier than Time Start. Please adjust the times."],
+                3
+              );
+            }
+          }
+        } 
       } catch (error) {
         console.log(error);
       }
@@ -444,7 +464,7 @@ export default function CreateActivity() {
 
   const setupCrop = async (value) => {
     if(!isSalePlanEdit){
-      setCropDetailList(parseInt(value, 10));
+      setCropDetailList(value);
       const [productCrop] = await Promise.all([
         useServiceAPI.get(paths.pathMasterProductByCrop, {
           crop_list: value
@@ -473,17 +493,36 @@ export default function CreateActivity() {
     { title: "Pack Size", dataIndex: "packSize", key: "packSize", align: "center" },
     {
       title: "Estimate Sale (Kg/Lt)", dataIndex: "estimateSale", key: "estimateSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" value={NumberFormatter(record.estimateSale)} disabled={ pageCode == 'expense_clearing' ? true : (viewSegment ?? false) } onChange={(e) => handleInputChange(e.target.value, record.key, "estimateSale", record.bath_ltkg)}/>
+        <InputNumber 
+          className="w-full"
+          min={0}
+          value={record.estimateSale} 
+          disabled={ pageCode == 'expense_clearing' ? true : (viewSegment ?? false) } 
+          onChange={(value) => handleInputChange(value, record.key, "estimateSale", record.bath_ltkg, record)}
+          formatter={(value) =>
+            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
+        />
       )
     },
     {
       title: "Actual Sale (Kg/Lt)", dataIndex: "actualSale", key: "actualSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" value={NumberFormatter(record.actualSale)} disabled={ pageCode != 'expense_clearing' ? true : (viewSegment ?? false) } onChange={(e) => handleInputChange(e.target.value, record.key, "actualSale", record.bath_ltkg)}/>
+        <InputNumber 
+          className="w-full"
+          min={0}
+          value={record.actualSale} 
+          disabled={ pageCode != 'expense_clearing' ? true : (viewSegment ?? false) } 
+          onChange={(value) => handleInputChange(value, record.key, "actualSale", record.bath_ltkg, record)}
+          formatter={(value) =>
+            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
+        />
       )
     },
   ];
 
-  const handleInputChange = (value, key, field, bath_ltkg) => {
+  const handleInputChange = (value, key, field, bath_ltkg, record) => {
+
     const updatedData = productCropList.map((item) => {
       if (item.key === key) {
         const numericValue = parseFloat(value) || 0;
@@ -492,6 +531,8 @@ export default function CreateActivity() {
       }
       return item;
     });    
+
+    record.field = value;
 
     setProductCropList(updatedData);
   };
@@ -506,10 +547,26 @@ export default function CreateActivity() {
     <tr className="bg-[#978B87]">
       <td colSpan={2} className="text-left pr-2 text-white">Total (THB)</td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" value={calculateGrandTotal("estimateSale") > 0 ? calculateGrandTotal("estimateSale") : activityDetail?.expense_product_total_estimate_sale } readOnly  />
+      <InputNumber 
+        className="w-full"
+        min={0}
+        value={calculateGrandTotal("estimateSale") > 0 ? calculateGrandTotal("estimateSale") : activityDetail?.expense_product_total_estimate_sale} 
+        readOnly
+        formatter={(value) =>
+          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+        }
+      />
       </td>
       <td colSpan={1} className="text-center">
-        <Input placeholder="0" value={calculateGrandTotal("actualSale") > 0 ? calculateGrandTotal("actualSale") : activityDetail?.expense_product_total_acutal_sale} readOnly />
+        <InputNumber 
+          className="w-full"
+          min={0}
+          value={calculateGrandTotal("actualSale") > 0 ? calculateGrandTotal("actualSale") : activityDetail?.expense_product_total_acutal_sale} 
+          readOnly
+          formatter={(value) =>
+            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
+        />
       </td>
     </tr>
   );
@@ -622,7 +679,21 @@ export default function CreateActivity() {
 
   //บันทึกข้อมูล
   const handleSave = (modeSave) => {
-    // formCustom.validateFields();
+    formCustom.validateFields();
+    const timeStart = activityDetail.time_start;  
+    const timeEnd = activityDetail.time_end;  
+
+    if(timeStart != undefined && timeEnd != undefined){
+      if(timeStart >= timeEnd){
+        showNotification(
+          "warning",
+          "Invalid Time Range",
+          ["Time End cannot be earlier than Time Start. Please adjust the times."],
+          3
+        );
+        return;
+      }
+    }
     //Form Basic Activity
     let allValuesBasic = formCustom.getFieldsValue();
     allValuesBasic.document_date = dayjs(allValuesBasic.document_date).format('YYYY-MM-DD')
@@ -1014,19 +1085,44 @@ export default function CreateActivity() {
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Advance expense" name="advance_expense" >
-                    <Input placeholder="Free Text" />
+                    <InputNumber 
+                      placeholder="Free Text"
+                      className="w-full"
+                      min={0}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                    />
                     {" "}
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Actual exp" name="actual_exp" >
-                    <Input placeholder="0" disabled value={calculateGrandTotal("estimateSale") > 0 ? calculateGrandTotal("estimateSale") : activityDetail?.expense_expense_actual_exp }/>
+                    <InputNumber 
+                      className="w-full"
+                      min={0}
+                      placeholder="0"
+                      value={calculateGrandTotal("estimateSale") > 0 ? calculateGrandTotal("estimateSale") : activityDetail?.expense_expense_actual_exp} 
+                      disabled
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                    />
                     {" "}
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Actual sale" name="actual_sale">
-                    <Input placeholder="0" disabled value={calculateGrandTotal("actualSale") > 0 ? calculateGrandTotal("actualSale") : activityDetail?.expense_expense_actual_sale }/>
+                    <InputNumber 
+                      className="w-full"
+                      min={0}
+                      placeholder="0"
+                      value={calculateGrandTotal("actualSale") > 0 ? calculateGrandTotal("actualSale") : activityDetail?.expense_expense_actual_sale} 
+                      disabled
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                    />
                     {" "}
                   </Form.Item>
                 </Col>
@@ -1068,13 +1164,30 @@ export default function CreateActivity() {
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Estimate Participant " name="estimate_participant">
-                    <Input placeholder="0" disabled={pageCode == 'expense_clearing' ? true : viewSegment}/>
+                    <InputNumber 
+                      className="w-full"
+                      min={0}
+                      placeholder="0"
+                      disabled={pageCode == 'expense_clearing' ? true : viewSegment}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                    />
                     {" "}
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Actual Participant" name="actual_participant">
-                    <Input placeholder="0" disabled="true" value={activityDetail?.expense_particapant_actual ?? (actualParticipantCount ?? "0")}/>
+                  <InputNumber 
+                      className="w-full"
+                      min={0}
+                      placeholder="0"
+                      disabled
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      value={activityDetail?.expense_particapant_actual ?? (actualParticipantCount ?? "0")}
+                    />
                     {" "}
                   </Form.Item>
                 </Col>

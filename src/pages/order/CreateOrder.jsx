@@ -212,7 +212,8 @@ export default function CreateOrder() {
       disabled: false, 
       required: false, 
       moderef: true,
-      value: parseInt(dataSaleId, 10),
+      // value: parseInt(dataSaleId, 10),
+      value: dataSaleId,
     },
     { 
       label: "Dealer", 
@@ -612,13 +613,14 @@ export default function CreateOrder() {
       .then((values) => {
         const body = {
           document_date: values.order_date,
-          user_id: values.sale,
+          user_id: dataSaleId,
           dealer_id: values.dealer,
           remark: inputRemark,
           products: dataSource,
           others: dataSourceOther
         };
         // console.log(body);
+        // console.log(dataSaleId);
         // return;
         navigate("/order/detail", {
           state: {
