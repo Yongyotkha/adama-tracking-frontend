@@ -215,23 +215,47 @@ export default function RollingForecastQuarter() {
     },
 
     ...quarter.map((item, index) => ({
-      title: item.quarter_name,
+      // title: item.quarter_name,
+      title: (
+        <div className="flex items-center gap-2">
+          <div className="w-[33%]">Workplan Q{item.quarter_id}</div>
+          <div className="w-[33%]">Rolling Forecast Q{item.quarter_id}</div>
+          <div className="w-[33%]">Actual Q{item.quarter_id}</div>
+        </div>
+      ),
       onHeaderCell: () => getAlternatingHeaderStyle(index + 1),
       children: [
         {
           title: (
-            <InputNumber
-              disabled
-              className="w-[30%]"
-              style={{ backgroundColor: "white" }}
-              value={item.amount_target}
-              formatter={(value) =>
-                `${Number(value).toFixed(2)}`.replace(
-                  /\B(?=(\d{3})+(?!\d))/g,
-                  ","
-                )
-              }
-            />
+            <div className="flex items-center gap-2">
+              <InputNumber
+                disabled
+                className="w-[33%]"
+                style={{ backgroundColor: "white" }}
+                value={item.amount_target}
+                formatter={(value) =>
+                  `${Number(value).toFixed(2)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+              />
+              <InputNumber
+                disabled
+                className="w-[33%]"
+                style={{ backgroundColor: "white" }}
+                value={item.workplan_target || 0}
+                formatter={(value) =>
+                  `${Number(value).toFixed(2)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+              />
+              <InputNumber
+                disabled
+                className="w-[33%]"
+                style={{ backgroundColor: "white" }}
+                value={item.rollingforecast_target || 0}
+                formatter={(value) =>
+                  `${Number(value).toFixed(2)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+              />
+            </div>
           ),
           onHeaderCell: () => getAlternatingHeaderStyle(index + 1),
           children: item.data_items.map((month) => ({
