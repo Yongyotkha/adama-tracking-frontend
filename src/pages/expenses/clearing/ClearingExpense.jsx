@@ -263,6 +263,15 @@ export default function ClearingExpense() {
     JSON.stringify(tableParams.filters),
   ]);
 
+  const handleTableChange = (pagination, filters, sorter) => {
+    setTableParams({
+      pagination,
+      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortField: sorter.field,
+    });
+  };
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -281,6 +290,7 @@ export default function ClearingExpense() {
           dataSource={dataSource}
           pagination={tableParams.pagination}
           loading={tableLoading}
+          onChange={handleTableChange}
         />
       </BoxPrimary>
     </MainLayout>
