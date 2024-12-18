@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
-import { Dropdown } from "antd";
+import { Dropdown, Modal } from "antd";
 import ActionButton from "../../../components/button/ActionButton";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
@@ -11,8 +11,10 @@ import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 
 export default function ClearingExpense() {
+  const { confirm } = Modal;
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [activityList, setActivityList] = useState([]);
@@ -112,37 +114,45 @@ export default function ClearingExpense() {
   };
 
   const handleDelete = async (documentNumber) => {
-    try {
-      // Call API to delete the event
-      const response = await useServiceAPI.delete(
-        `/activity-expense/delete?document_number=${encodeURIComponent(documentNumber)}&page_code=${encodeURIComponent("expense_clearing")}`
-      );
-      await fetchData();
-      if (response.status === 200) {
-        // Show success notification
-        showNotification(
-          "success",
-          response.data.message || "Event deleted successfully!",
-          response.data.message_line || ["The event has been removed."]
-        );
-      } else {
-        // Show error notification if response is not 200
-        console.error("Failed to delete event:", response.message);
-        showNotification(
-          "error",
-          response.message || "Failed to delete event.",
-          response.message_line || ["Please try again later."]
-        );
-      }
-    } catch (error) {
-      // Handle errors and show an error notification
-      console.error("Error deleting event:", error);
-      showNotification(
-        "error",
-        "An error occurred while deleting the event.",
-        ["Please try again later."]
-      );
-    }
+    confirm({
+      title: "Do you want to delete ?",
+      icon: <ExclamationCircleFilled />,
+      content: [],
+      centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+      async onOk() {
+        try {
+          // Call API to delete the event
+          const response = await useServiceAPI.delete(
+            `/activity-expense/delete?document_number=${encodeURIComponent(documentNumber)}&page_code=${encodeURIComponent("expense_clearing")}`
+          );
+          await fetchData();
+          if (response.status === 200) {
+            // Show success notification
+            showNotification(
+              "success",
+              response.data.message || "Event deleted successfully!",
+              response.data.message_line || ["The event has been removed."]
+            );
+          } else {
+            // Show error notification if response is not 200
+            console.error("Failed to delete event:", response.message);
+            showNotification(
+              "error",
+              response.message || "Failed to delete event.",
+              response.message_line || ["Please try again later."]
+            );
+          }
+        } catch (error) {
+          // Handle errors and show an error notification
+          console.error("Error deleting event:", error);
+          showNotification(
+            "error",
+            "An error occurred while deleting the event.",
+            ["Please try again later."]
+          );
+        }
+      },
+    });
   };
 
   // Master
