@@ -61,6 +61,7 @@ export default function CreateActivity() {
   const [tableLoading, setTableLoading] = useState(false);
   const { showMsg, showNotification } = useContext(AuthContext);
   const [actualParticipantCount, setActualParticipantCount] = useState("0");
+  const [timeselect, setTimeSelect] = useState([]);
 
   const handleUploadClick = async () => {    
     // Call triggerUpload from FileUploadComponent
@@ -369,9 +370,6 @@ export default function CreateActivity() {
         if(attribue == 'user_id'){
           await setupDealer(value);
         } else if(attribue == 'dealer_id'){
-          console.log(attribue);
-          console.log(value);
-          
           await setupCropAndDealerCustomer(value);
         } else if(attribue == 'crop_id_list'){
           await setupCrop(value);
@@ -408,7 +406,22 @@ export default function CreateActivity() {
           } catch (error) {} finally {
             setLoading(false);
           }
-        }
+        } else if(attribue == 'time_start' || attribue == 'time_end'){
+          activityDetail[attribue] = value;
+          const timeStart = activityDetail.time_start;  
+          const timeEnd = activityDetail.time_end;  
+
+          if(timeStart != undefined && timeEnd != undefined){
+            if(timeStart >= timeEnd){
+              showNotification(
+                "warning",
+                "Invalid Time Range",
+                ["Time End cannot be earlier than Time Start. Please adjust the times."],
+                3
+              );
+            }
+          }
+        } 
       } catch (error) {
         console.log(error);
       }
@@ -666,7 +679,21 @@ export default function CreateActivity() {
 
   //บันทึกข้อมูล
   const handleSave = (modeSave) => {
-    // formCustom.validateFields();
+    formCustom.validateFields();
+    const timeStart = activityDetail.time_start;  
+    const timeEnd = activityDetail.time_end;  
+
+    if(timeStart != undefined && timeEnd != undefined){
+      if(timeStart >= timeEnd){
+        showNotification(
+          "warning",
+          "Invalid Time Range",
+          ["Time End cannot be earlier than Time Start. Please adjust the times."],
+          3
+        );
+        return;
+      }
+    }
     //Form Basic Activity
     let allValuesBasic = formCustom.getFieldsValue();
     allValuesBasic.document_date = dayjs(allValuesBasic.document_date).format('YYYY-MM-DD')
