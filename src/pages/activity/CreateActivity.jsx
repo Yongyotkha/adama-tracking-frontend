@@ -38,6 +38,7 @@ export default function CreateActivity() {
   const [dealerList, setDealerList] = useState([]);
   const [cropList, setCropList] = useState([]);
   const [productCropList, setProductCropList] = useState([]);
+  const [productList, setProductList] = useState([]);
   const [timeList, setTimeList] = useState([]);
   const [participantList, setParticipantList] = useState([]);
   const navigate = useNavigate();
@@ -56,11 +57,13 @@ export default function CreateActivity() {
 
   const [activityDetail, setActivityDetail] = useState([]);
   const [cropDetailList, setCropDetailList] = useState([]);
+  const [productDetailList, setProductDetailList] = useState([]);
   const [assignList, setAssignList] = useState([]);
   const [isSalePlanEdit, setIsSalePlanEdit] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const { showMsg, showNotification } = useContext(AuthContext);
   const [actualParticipantCount, setActualParticipantCount] = useState("0");
+  const [timeselect, setTimeSelect] = useState([]);
 
   const handleUploadClick = async () => {    
     // Call triggerUpload from FileUploadComponent
@@ -137,7 +140,9 @@ export default function CreateActivity() {
       options: activityList,
       disabled: viewSegment ?? false,
       required: true,
-      col: 8,
+      col: pageCode != "activity_transaction"
+      ? 8
+      : 6,
       value: activityDetail.activity_type_id ?? "",
     },
     {
@@ -148,7 +153,9 @@ export default function CreateActivity() {
       options: saleList,
       disabled: viewSegment ?? false,
       required: true,
-      col: 8,
+      col: pageCode != "activity_transaction"
+      ? 8
+      : 6,
       value: activityDetail.user_id ?? "",
       moderef: true,
     },
@@ -160,7 +167,9 @@ export default function CreateActivity() {
       options: dealerList,
       disabled: viewSegment ?? false,
       required: true,
-      col: 8,
+      col: pageCode != "activity_transaction"
+      ? 8
+      : 6,
       value: activityDetail.dealer_id ?? "",
       moderef: true,
     },
@@ -178,12 +187,30 @@ export default function CreateActivity() {
       moderef: true,
     },
     {
+      label: "Product",
+      name: "product_id_list",
+      type:
+        pageCode != "activity_transaction"
+        ? "hidden"
+        : "select",
+      typeMode: "string",
+      mode: "multiple",
+      options: productList,
+      disabled: viewSegment ?? false,
+      required: true,
+      col: 24,
+      value: productDetailList,
+      moderef: true,
+    },
+    {
       label: "Date",
       name: "document_date",
       type: "date",
       disabled: viewSegment ?? false,
       required: true,
-      col: 6,
+      col: pageCode != "activity_transaction"
+      ? 6
+      : 8,
       value: activityDetail.document_date ?? dayjs().format("YYYY-MM-DD"),
     },
     {
@@ -194,7 +221,9 @@ export default function CreateActivity() {
       options: timeList,
       disabled: viewSegment ?? false,
       required: false,
-      col: 6,
+      col: pageCode != "activity_transaction"
+      ? 6
+      : 8,
       value: activityDetail.time_start ?? "",
     },
     {
@@ -205,13 +234,15 @@ export default function CreateActivity() {
       options: timeList,
       disabled: viewSegment ?? false,
       required: false,
-      col: 6,
+      col: pageCode != "activity_transaction"
+      ? 6
+      : 8,
       value: activityDetail.time_end ?? "",
     },
     {
       label: "Location",
       name: "location_address",
-      type: "location",
+      type: "text",
       disabled: viewSegment ?? false,
       required: false,
       col: 24,
@@ -342,6 +373,7 @@ export default function CreateActivity() {
     setParticipants(participantData);
 
     let productCropLists = [];
+    let productLists = [];
     await activityDetailData.expense_product_data_list.forEach((element, key) => {
       productCropLists.push({
         key: (key + 1), 
@@ -353,8 +385,14 @@ export default function CreateActivity() {
         prodectCode: element.product_code,
         productId: element.product_id
       });
+      productLists.push({
+        key: (key + 1), 
+        name: element.product_name + ' (' + element.packing_list + ')', 
+        id: element.product_id
+      });
     });
     setProductCropList(productCropLists);
+    setProductList(productLists);
   }
 
   // Function to extract the full filename
@@ -369,9 +407,6 @@ export default function CreateActivity() {
         if(attribue == 'user_id'){
           await setupDealer(value);
         } else if(attribue == 'dealer_id'){
-          console.log(attribue);
-          console.log(value);
-          
           await setupCropAndDealerCustomer(value);
         } else if(attribue == 'crop_id_list'){
           await setupCrop(value);
@@ -408,7 +443,22 @@ export default function CreateActivity() {
           } catch (error) {} finally {
             setLoading(false);
           }
-        }
+        } else if(attribue == 'time_start' || attribue == 'time_end'){
+          activityDetail[attribue] = value;
+          const timeStart = activityDetail.time_start;  
+          const timeEnd = activityDetail.time_end;  
+
+          if(timeStart != undefined && timeEnd != undefined){
+            if(timeStart >= timeEnd){
+              showNotification(
+                "warning",
+                "Invalid Time Range",
+                ["Time End cannot be earlier than Time Start. Please adjust the times."],
+                3
+              );
+            }
+          }
+        } 
       } catch (error) {
         console.log(error);
       }
@@ -459,14 +509,21 @@ export default function CreateActivity() {
       ]);
 
       let productCropList = [];
+      let productList = [];
       productCrop.data.forEach((element, key) => {
         productCropList.push({
           key: (key + 1), productName: element.product_name, packSize: element.packing_list, 
           estimateSale: "0", actualSale: "0", bath_ltkg: element.bath_ltkg, prodectCode: element.product_code,
           productId: element.id
         });
+        productList.push({
+          key: (key + 1), 
+          name: element.product_name + ' (' + element.packing_list + ')',
+          id: element.id
+        });
       });
       setProductCropList(productCropList);
+      setProductList(productList);
     }
     setIsSalePlanEdit(false);
   }
@@ -666,7 +723,21 @@ export default function CreateActivity() {
 
   //บันทึกข้อมูล
   const handleSave = (modeSave) => {
-    // formCustom.validateFields();
+    formCustom.validateFields();
+    const timeStart = activityDetail.time_start;  
+    const timeEnd = activityDetail.time_end;  
+
+    if(timeStart != undefined && timeEnd != undefined){
+      if(timeStart >= timeEnd){
+        showNotification(
+          "warning",
+          "Invalid Time Range",
+          ["Time End cannot be earlier than Time Start. Please adjust the times."],
+          3
+        );
+        return;
+      }
+    }
     //Form Basic Activity
     let allValuesBasic = formCustom.getFieldsValue();
     allValuesBasic.document_date = dayjs(allValuesBasic.document_date).format('YYYY-MM-DD')
@@ -1102,18 +1173,25 @@ export default function CreateActivity() {
               </Row>
             </Form>
           </BoxPrimary>
+          
+          {
+            pageCode == 'expense_clearing' ?
+            <>
+              <BoxPrimary>
+                <div className="flex items-center justify-between">
+                  <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
+                  {viewSegment ? null : (
+                  <ActionButton mode="add" text="Upload File" onClick={handleUploadClick} />
+                  ) }
 
-          <BoxPrimary>
-            <div className="flex items-center justify-between">
-              <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
-              {viewSegment ? null : (
-              <ActionButton mode="add" text="Upload File" onClick={handleUploadClick} />
-              ) }
+                </div>
+                <FileUploadComponent ref={fileUploadRef} mode={viewSegment ? "view" : "edit"} dataFile={fileList} modeUpload={pageCode} onUploadSuccess={handleUploadSuccess}/>
+              </BoxPrimary>
+            </>
+            : undefined
 
-            </div>
-            <FileUploadComponent ref={fileUploadRef} mode={viewSegment ? "view" : "edit"} dataFile={fileList} modeUpload={pageCode} onUploadSuccess={handleUploadSuccess}/>
-          </BoxPrimary>
-
+          }
+    
           {/* Participant Section */}
             <BoxPrimary>
             <div className="flex items-center justify-between">

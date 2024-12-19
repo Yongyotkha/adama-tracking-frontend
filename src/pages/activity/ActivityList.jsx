@@ -37,6 +37,8 @@ export default function ActivityList() {
 
   const [mappingData, setMappingData] = useState({});
   const [mappingDataSave, setMappingDataSave] = useState({});
+  const [mappingperception , setMappingmappingperception] = useState({});
+
   const [perceptionData, setPerceptionData] = useState([]);
 
   const [isProductModalVisible, setIsProductModalVisible] = useState(false);
@@ -76,8 +78,9 @@ export default function ActivityList() {
           useServiceAPI.get(paths.pathActivityMappingStatusDetail, {
             document_number: data.document_number
           }),
-        ]);
+        ]);    
 
+        setMappingmappingperception(mapping.data.customer_perception_id)
         setMappingData(mapping.data);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -91,7 +94,8 @@ export default function ActivityList() {
   const handleOKMappingModal = (data) => {
     const dataInfo = data;
     setIsMappingModalVisible(false);
-
+    console.log(dataInfo);
+    
     // Mapping Save
     const updateMappingDetail = async () => {
       try {
@@ -100,7 +104,7 @@ export default function ActivityList() {
           location_longitude: dataInfo.longitude,
           location_latitude: dataInfo.latitude,
           location_address: dataInfo.address,
-          perception_id: dataInfo.perception,
+          perception_id: mappingperception,
           image_list: ["localhost"],
         };
 

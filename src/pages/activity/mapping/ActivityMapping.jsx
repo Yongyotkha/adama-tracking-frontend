@@ -36,6 +36,7 @@ export default function ActivityMapping() {
   const [dataSubDealer, setDataSubDealer] = useState([]);
   const [dataterritory, setDataTerritory] = useState([]);
   const [dataArea, setDataArea] = useState([]);
+
   const [dataYear, setDataYear] = useState([]);
   const [currentLocation, setCurrentLocation] = useState({
     lat: 0.0,
@@ -95,6 +96,7 @@ export default function ActivityMapping() {
         }));
         setLocations(newLocations);
 
+        
         setActivityType(
           activity.data
             .filter(
@@ -293,28 +295,84 @@ export default function ActivityMapping() {
   };
 
   // ฟังก์ชันสำหรับการเลือกหรือยกเลิกเลือกทั้งหมด
+  // const toggleAll = (isChecked) => {
+  //   // console.log(isChecked);
+  //   const updatedFilters = {};
+
+  //   if (isChecked) {
+  //     mockFilters.forEach((filterItem) => {
+  //       updatedFilters[filterItem.filter_type] = isChecked
+  //         ? filterItem.data.map((item) => item.id) // เลือกทั้งหมด
+  //         : []; // ยกเลิกทั้งหมด
+  //     });
+
+  //   }
+
+  //   setCheckedFilters(updatedFilters);
+  //   setIsAllChecked(isChecked); // กำหนดสถานะของ "Check All" ให้ตรงกับตัวเลือก
+
+  //   // Render MarkerLocation
+  //   renderMarkerLocation();
+  // };
+
   const toggleAll = (isChecked) => {
-    // console.log(isChecked);
+    // สร้างตัวกรองใหม่โดยการเลือกหรือยกเลิกเลือกทั้งหมด
     const updatedFilters = {};
-
+    mockFilters.forEach((filterItem) => {
+      updatedFilters[filterItem.filter_type] = isChecked
+        ? filterItem.data.map((item) => item.id) // เลือกทั้งหมด
+        : []; // ยกเลิกทั้งหมด
+    });
+  
+    // อัปเดตสถานะของฟิลเตอร์และ "Check All"
+    setCheckedFilters(updatedFilters);
+    setIsAllChecked(isChecked);
     if (isChecked) {
-      mockFilters.forEach((filterItem) => {
-        updatedFilters[filterItem.filter_type] = isChecked
-          ? filterItem.data.map((item) => item.id) // เลือกทั้งหมด
-          : []; // ยกเลิกทั้งหมด
-      });
-
+      // ถ้าเลือก Check All ให้แสดง Marker ทั้งหมด
+      setLocationMarkerIcon(
+        locations.map((data, index) => ({
+          key: index,
+          id: data.id,
+          document_number: data.document_number,
+          title: data.title,
+          lat: data.lat,
+          lng: data.lng,
+          address: data.address,
+          details: data.details,
+          activity_type_id: data.activity_type_id,
+          activity_type_name: data.activity_type_name,
+          dealer_id: data.dealer_id,
+          dealer_name: data.dealer_name,
+          area_id: data.area_id,
+          area_name: data.area_name,
+          year: data.year,
+          activity_image: data.activity_image,
+          activity_image_location: data.activity_image_location,
+          crop_id_list: data.crop_id_list,
+          document_date_display: data.document_date_display,
+        }))
+      );
+    } else {
+      // ถ้ายกเลิก Check All ให้ลบ Marker ทั้งหมด
+      setLocationMarkerIcon([]);
     }
 
-    setCheckedFilters(updatedFilters);
-    setIsAllChecked(isChecked); // กำหนดสถานะของ "Check All" ให้ตรงกับตัวเลือก
 
-    // Render MarkerLocation
-    renderMarkerLocation();
+
   };
 
   const renderMarkerLocation = () => {
     // Set MarkerLocation
+    const isAnyFilterChecked = Object.values(checkedFilters).some(
+      (filter) => filter.length > 0
+    )
+
+    if (!isAnyFilterChecked) {
+      // หากไม่มีการเลือกฟิลเตอร์เลย ให้ลบ Marker ทั้งหมด
+      setLocationMarkerIcon([]);
+      return;
+    }
+
     setLocationMarkerIcon(
       locations.map((data, index) => ({
         key: locations.length + 1,
@@ -529,8 +587,8 @@ export default function ActivityMapping() {
                     (filterType) =>
                       checkedFilters[filterType].length > 0 &&
                       checkedFilters[filterType].length <
-                      mockFilters.find((filter) => filter.filter_type === filterType).data
-                        .length
+                        mockFilters.find((filter) => filter.filter_type === filterType).data
+                          .length
                   )
                 }
                 checked={isAllChecked}

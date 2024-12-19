@@ -48,6 +48,8 @@ export default function EditSubDealer() {
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
   const [currentLocation, setCurrentLocation] = useState({});
   const [dataMapZoom, setDataMapZoom] = useState(15);
+  const [isMapEnabled, setIsMapEnabled] = useState(false);
+  
   const mode = location.state.mode; 
   const isViewMode = mode === "View";
 
@@ -583,7 +585,14 @@ export default function EditSubDealer() {
             }}
           >
           <div className="text-[#00783F] text-lg font-semibold mb-3">
-    
+            
+          <div className="flex justify-end space-x-4 mb-2">
+            <ActionButton 
+              text={isMapEnabled ? "Close Google" : "Open Google"}
+              mode="update" 
+              onClick={() => setIsMapEnabled((prev) => !prev)} />
+          </div>
+
             <LoadScript googleMapsApiKey={dataApiKey}>
               <GoogleMap
                 mapContainerStyle={mapContainerStyle}
@@ -604,6 +613,7 @@ export default function EditSubDealer() {
                     }}
                     draggable={true}
                     onDragEnd={handleMarkerDragEnd} 
+                    options={{ disableDefaultUI: !isMapEnabled, draggable: isMapEnabled }}
                   />
                 )}
               </GoogleMap>

@@ -20,7 +20,7 @@ export default function ProfileUser() {
   const [territory, setTerritory] = useState([]);
   const [areas, setAreas] = useState([]);
   const [roles, setRoles] = useState([]);
-  const { userInfo, showNotification } = useContext(AuthContext);
+  const { userInfo, showNotification , showMsg } = useContext(AuthContext);
   const [profileImage, setProfileImage] = useState("/img/profile.jpg"); // Default value
   const [dataLoaded, setDataLoaded] = useState(false);
 
@@ -122,7 +122,7 @@ export default function ProfileUser() {
           })
           .catch((error) => {
             if (error.status == 422) {
-              showNotification("error", error.response.data.data.message);
+              showNotification("error", error.response.data.data.message || error.response.data.message);              
             } else if (error.status == 500) {
               showNotification("error", error.response.data.data.message);
             } else {
@@ -295,7 +295,11 @@ export default function ProfileUser() {
 
 
       {dataLoaded ? (
-        <FormUser  profile={profileImage}  fields={formFields} form={form} />
+        <FormUser  
+          profile={profileImage}  
+          fields={formFields} 
+          form={form} 
+        />
 
       ) : (
         <div></div>
@@ -373,10 +377,13 @@ export default function ProfileUser() {
       </Col>
     </Row>
   </Form>
+  <div className="flex justify-end space-x-4">
+    <ActionButton text="Update Password" mode="update" onClick={handleSave} />
+  </div>
 </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
-        <ActionButton text="Back" mode="back" onClick={handleBack} />
+        {/* <ActionButton text="Back" mode="back" onClick={handleBack} /> */}
         <ActionButton text="Update" mode="update" onClick={handleSave} />
       </div>
     </MainLayout>

@@ -381,7 +381,7 @@ export default function CreateTraveling() {
     const totalExpenses = calculateFooterTotal("total");
     const totalAdvanced = calculateFooterTotal("total"); // Adjust field as per requirement
     setDataTotalExpenses(totalExpenses);
-    setDataTotalAdvanced(totalAdvanced);
+    // setDataTotalAdvanced(totalAdvanced);
 
     // Optionally calculate "Return to Company" and "Return to Staff"
     // const returnToCompany = totalAdvanced - totalExpenses > 0 ? totalAdvanced - totalExpenses : 0;
@@ -389,7 +389,22 @@ export default function CreateTraveling() {
 
     // setReturnToCompany(returnToCompany);
     // setReturnToStaff(returnToStaff);
-  }, [dataSource, dataTotalExpenses, dataTotalAdvanced]);
+  }, [dataSource, dataTotalExpenses]);
+
+    useEffect(() => {
+      if (dataTotalAdvanced > dataTotalExpenses) {
+        setReturnToCompany(dataTotalAdvanced - dataTotalExpenses);
+        setReturnToStaff(0);
+      } else if (dataTotalAdvanced < dataTotalExpenses) {
+        setReturnToStaff(dataTotalExpenses - dataTotalAdvanced);
+        setReturnToCompany(0);
+      } else {
+        setReturnToCompany(0);
+        setReturnToStaff(0);
+      }
+    }, [dataTotalAdvanced, dataTotalExpenses]);
+
+
 
   const footerOrderList = () => (
     <tr className="bg-[#978B87] text-white text-start">
@@ -491,7 +506,7 @@ export default function CreateTraveling() {
         <TableComponent
           header={header}
           dataSource={dataSource}
-          pageSize={10}
+          pageSize={31}
           footer={footerOrderList}
         />
       </BoxPrimary>
@@ -500,7 +515,11 @@ export default function CreateTraveling() {
       <BoxPrimary>
         <div className="grid grid-cols-2 gap-4">
           <div className="flex justify-end">Total Advanced:</div>
-          <NumericInput value={dataTotalAdvanced} disabled />
+          {/* <NumericInput value={dataTotalAdvanced} disabled /> */}
+          <NumericInput
+            value = {dataTotalAdvanced}
+            onChange={(value) => setDataTotalAdvanced(parseFloat(value) || 0)}
+          />
 
           <div className="flex justify-end">Total Expenses:</div>
           <NumericInput value={dataTotalExpenses} disabled />

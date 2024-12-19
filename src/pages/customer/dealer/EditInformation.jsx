@@ -54,6 +54,7 @@ export default function EditInformation() {
   const [currentLocation, setCurrentLocation] = useState({});
   const [dataMapZoom, setDataMapZoom] = useState(15);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+  const [isMapEnabled, setIsMapEnabled] = useState(false);
 
     // อ่านสถานะ mod จาก state
     const mode = location.state?.mod; 
@@ -190,7 +191,7 @@ export default function EditInformation() {
       value: parseInt(companyinfo.use_flag,10) === 1 ? "Active" : "Inactive"
     },
     {
-      label: "Outlet Location *Please select a location on the map" ,
+      label: "Outlet Location Please select a location on the map" ,
       labelColor: "red",
       name: "outlet_location",
       type: "text",
@@ -742,7 +743,6 @@ export default function EditInformation() {
       const response = await geocoder.geocode({ location: latlng });
       if (response.results && response.results.length > 0) {
         const locationName = response.results[0].formatted_address;
-  
         // อัปเดต Outlet Location
         form.setFieldsValue({ location_address: locationName });
         setcompanyinfo((prev) => ({
@@ -799,6 +799,12 @@ export default function EditInformation() {
         }}
       >
       <div className="text-[#00783F] text-lg font-semibold mb-3">
+        <div className="flex justify-end space-x-4 mb-2">
+          <ActionButton 
+            text={isMapEnabled ? "Close Google" : "Open Google"}
+            mode="update" 
+            onClick={() => setIsMapEnabled((prev) => !prev)} />
+        </div>
 
         <LoadScript googleMapsApiKey={dataApiKey}>
           <GoogleMap
@@ -820,6 +826,7 @@ export default function EditInformation() {
                 }}
                 draggable={true}
                 onDragEnd={handleMarkerDragEnd} 
+                options={{ disableDefaultUI: !isMapEnabled, draggable: isMapEnabled }}
               />
             )}
           </GoogleMap>
@@ -960,7 +967,6 @@ export default function EditInformation() {
         </>
       ),
     },
-
   ];
 
   if (isViewMode) {
