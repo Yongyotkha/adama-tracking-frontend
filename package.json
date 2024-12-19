@@ -11,6 +11,11 @@
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^6.2.1",
+    "@mui/styled-engine-sc": "^6.2.1",
+    "@mui/x-charts": "^7.23.2",
     "@react-google-maps/api": "^2.20.3",
     "antd": "^5.22.2",
     "axios": "^1.7.7",
@@ -22,7 +27,8 @@
     "react-quill-new": "^3.3.3",
     "react-router-dom": "^6.26.2",
     "react-select": "^5.8.3",
-    "react-webcam": "^7.2.0"
+    "react-webcam": "^7.2.0",
+    "styled-components": "^6.1.13"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
