@@ -220,7 +220,7 @@ export default function CreateActivity() {
       typeMode: "string",
       options: timeList,
       disabled: viewSegment ?? false,
-      required: false,
+      required: true,
       col: pageCode != "activity_transaction"
       ? 6
       : 8,
@@ -233,7 +233,7 @@ export default function CreateActivity() {
       typeMode: "string",
       options: timeList,
       disabled: viewSegment ?? false,
-      required: false,
+      required: true,
       col: pageCode != "activity_transaction"
       ? 6
       : 8,
