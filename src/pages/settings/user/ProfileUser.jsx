@@ -83,57 +83,138 @@ export default function ProfileUser() {
   // };
 
 
+  // const handleSave = () => {
+  //   form
+  //     .validateFields()
+  //     .then((values) => {
+  //       console.log(values.profile);
+  //       console.log(userInfo.id);
+        
+  //       const dataToSend = {
+  //         ...values,
+  //         token: userInfo?.token 
+  //       };
+
+  //       const updateimg ={
+  //         user_id: userInfo.id,
+  //         profile: values.profile,
+  //       }
+        
+  //       useServiceAPI
+  //         .put(paths.pathProfileProfileimg, updateimg, setLoading)
+  //         .post(paths.pathProfileChangePassword, dataToSend, setLoading)
+  //         .then((response) => {
+  //           if (response.status === 200) {
+  //               if(response.data.Result === false){
+  //                 showNotification(
+  //                   "error",
+  //                   response.data.Message.Message_Header,
+  //                   response.data.Message.Message_Line
+  //                 );
+  //               }
+  //               else if(response.result === true){
+  //                 // navigate("/setting/user");
+  //                 showNotification(
+  //                   "success",
+  //                   response.message,
+  //                   // response.data.Message.Message_Line
+  //                 );
+  //               };
+  //           }
+  //         })
+  //         .catch((error) => {
+  //           if (error.status == 422) {
+  //             showNotification("error", error.response.data.data.message || error.response.data.message);              
+  //           } else if (error.status == 500) {
+  //             showNotification("error", error.response.data.data.message);
+  //           } else {
+  //             showNotification("error", "error");
+  //           }
+  //         });
+
+
+
+  //     })
+  //     .catch((errorInfo) => {
+  //       console.error("Validation Failed:", errorInfo);
+  //     });
+  // };
+  
+
   const handleSave = () => {
     form
       .validateFields()
-      .then((values) => {
-        console.log(values);
-        
-        const dataToSend = {
-          ...values,
-          token: userInfo?.token 
-        };
+      .then(async (values) => {
+        setLoading(true);
   
-        useServiceAPI
-          .post(paths.pathProfileChangePassword, dataToSend, setLoading)
-          .then((response) => {
-            // return;
-            // console.log(response.status);
-            // console.log(response.result);
-            // console.log(response.message);
-
-            if (response.status === 200) {
-                if(response.data.Result === false){
-                  showNotification(
-                    "error",
-                    response.data.Message.Message_Header,
-                    response.data.Message.Message_Line
-                  );
-                }
-                else if(response.result === true){
-                  navigate("/setting/user");
-                  showNotification(
-                    "success",
-                    response.message,
-                    // response.data.Message.Message_Line
-                  );
-                };
-            }
-          })
-          .catch((error) => {
-            if (error.status == 422) {
-              showNotification("error", error.response.data.data.message || error.response.data.message);              
-            } else if (error.status == 500) {
-              showNotification("error", error.response.data.data.message);
-            } else {
-              showNotification("error", "error");
-            }
-          });
+        try {
+          const updateimg = {
+            user_id: userInfo.id,
+            profile: values.profile, // อัปเดตรูปภาพ
+          };
+  
+          const dataToSend = {
+            ...values, // ค่าที่มาจากฟอร์ม
+            token: userInfo?.token, // ส่ง token ของ user ไปยัง API
+          };
+  
+          // เรียก API พร้อมกัน (PUT สำหรับรูปภาพ, POST สำหรับเปลี่ยนรหัสผ่าน)
+          const [updateImgResponse, changePasswordResponse] = await Promise.all([
+            useServiceAPI.put(paths.pathProfileProfileimg, updateimg),
+            useServiceAPI.post(paths.pathProfileChangePassword, dataToSend),
+          ]);
+  
+          // ตรวจสอบ response ของ update รูปภาพ
+          if (updateImgResponse.status === 200 && updateImgResponse.result) {
+            console.log("Profile image updated successfully");
+          } else {
+            showNotification(
+              "error",
+              updateImgResponse?.data?.message || "Error updating profile image"
+            );
+            return; // หยุดกระบวนการถ้ามีปัญหา
+          }
+  
+          // ตรวจสอบ response ของการเปลี่ยนรหัสผ่าน
+          if (
+            changePasswordResponse.status === 200 &&
+            changePasswordResponse.result
+          ) {
+            showNotification(
+              "success",
+              changePasswordResponse?.data?.message || "Update successful"
+            );
+          } else {
+            showNotification(
+              "error",
+              changePasswordResponse?.data?.message ||
+                "Error changing password"
+            );
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          if (error.response?.status === 422) {
+            showNotification(
+              "error",
+              error.response?.data?.data?.message || error.response?.data?.message
+            );
+          } else if (error.response?.status === 500) {
+            showNotification(
+              "error",
+              error.response?.data?.data?.message || "Server error"
+            );
+          } else {
+            showNotification("error", "Unknown error occurred");
+          }
+        } finally {
+          setLoading(false); // ปิดสถานะ loading เมื่อเสร็จสิ้น
+        }
       })
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
       });
   };
+
   
 
   const handleEditPassword = () => {

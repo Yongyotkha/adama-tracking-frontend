@@ -102,6 +102,7 @@ export const paths = {
   pathMasterUsersDetail: "users/detail",
   pathMasterUsersEdit: "user-update",
   pathProfileChangePassword :"confirmChangePassword",
+  pathProfileProfileimg: "user-update-image",
 
   //promotion
   pathPromotionlist: "promotion-management/list",
