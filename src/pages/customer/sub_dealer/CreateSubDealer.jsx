@@ -291,7 +291,7 @@ export default function CreateSubDealer() {
       type: "text",
       required: false,
       col: 6,
-      value: companyinfo.t_shirt_size,
+      value: companyinfo.fertilizer_business,
     },
     {
       label: "Seed Business",
@@ -299,7 +299,7 @@ export default function CreateSubDealer() {
       type: "text",
       required: false,
       col: 6,
-      value: companyinfo.anniversary,
+      value: companyinfo.seed_business,
     },
     {
       label: "Pesticides Business",
@@ -307,7 +307,7 @@ export default function CreateSubDealer() {
       type: "text",
       required: false,
       col: 6,
-      value: companyinfo.anniversary,
+      value: companyinfo.pesticides_business,
     },
     {
       label: "Outlet Location",
@@ -492,7 +492,10 @@ export default function CreateSubDealer() {
             : null,
           remark: values.remark || "",
           photo_path: values.profile, // ตัวอย่าง placeholder
-          
+          fertilizer_business: values.fertilizer_businessfertilizer_business,
+          seed_business: values.seed_business,
+          pesticides_business: values.pesticides_business,
+
           contact_items: contacts.map((contact) => ({
             name_en: contact.name_en || "",
             contact_number: contact.contact_number || "",
@@ -599,32 +602,6 @@ export default function CreateSubDealer() {
         </div>
       </div>
 
-
-      
-      <LoadScript googleMapsApiKey={dataApiKey}>
-        <GoogleMap
-          mapContainerStyle={mapContainerStyle}
-          center={currentLocation}
-          zoom={dataMapZoom}
-          onClick={(e) => {
-            const lat = e.latLng.lat();
-            const lng = e.latLng.lng();
-            setCurrentLocation({ lat, lng });
-          }}
-        >
-          {isGoogleLoaded && (
-            <Marker 
-              position={currentLocation}
-              icon={{
-                url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
-                scaledSize: { width: 30, height: 30 },
-              }}
-              draggable={true}
-              onDragEnd={handleMarkerDragEnd} 
-            />
-          )}
-        </GoogleMap>
-      </LoadScript>
 
       <BoxPrimary title="Crop">
         <Select

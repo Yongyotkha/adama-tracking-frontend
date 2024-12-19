@@ -13,6 +13,7 @@ import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import dayjs from "dayjs";
 import { convertLegacyProps } from "antd/es/button";
+import TableComponentCustomer from "../../../components/table/TableComponentCustomer";
 
 export default function CreateTraveling() {
   const navigate = useNavigate();
@@ -503,7 +504,9 @@ export default function CreateTraveling() {
           <span className="text-[#00783F] text-lg font-semibold">Traveling</span>
           {/* <ActionButton mode="add" text="Add" onClick={addRow} /> */}
         </div>
-        <TableComponent
+
+
+        <TableComponentCustomer
           header={header}
           dataSource={dataSource}
           pageSize={31}

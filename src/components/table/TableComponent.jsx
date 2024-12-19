@@ -8,12 +8,12 @@ const TableComponent = ({
   dataSource,
   pageSize,
   footer,
-  pagination = true,
+  pagination,
   scroll,
   loading,
   onChange
 }) => {
-  const scrollY = 22 * pageSize;
+  // const scrollY = 22 * pageSize;
 
   return (
     <ConfigProvider
@@ -39,10 +39,10 @@ const TableComponent = ({
         columns={header}
         dataSource={dataSource}
         loading={loading}
-        // pagination={
-        //   pagination
-        // }
-        pagination={false}
+        pagination={
+          pagination
+        }
+        // pagination={false}
         
         // pagination={
         //   pagination
@@ -53,7 +53,7 @@ const TableComponent = ({
         //     : false
         // }
         scroll={{
-          y: scrollY, // เพิ่ม
+          // y: scrollY, // เพิ่ม
           x: scroll ? "max-content" : 1000,
         }}
         summary={footer} 

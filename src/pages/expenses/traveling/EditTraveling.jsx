@@ -11,6 +11,7 @@ import NumericInput from "../../../components/numeric_input/NumericInput";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
+import TableComponentCustomer from "../../../components/table/TableComponentCustomer";
 
 export default function EditTraveling() {
   const navigate = useNavigate();
@@ -576,7 +577,7 @@ export default function EditTraveling() {
           </span>
           {/* <ActionButton mode="add" text="Add" onClick={addRow} /> */}
         </div>
-        <TableComponent
+        <TableComponentCustomer
           header={header}
           dataSource={dataSource}
           pageSize={31}

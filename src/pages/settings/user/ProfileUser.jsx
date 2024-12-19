@@ -145,76 +145,77 @@ export default function ProfileUser() {
     form
       .validateFields()
       .then(async (values) => {
+        const { current_password, new_password, new_confirm_password, profile } = values;
+        const dataToSend = {
+          ...values,
+          token: userInfo?.token,
+        };
+  
+        const updateimg = {
+          user_id: userInfo.id,
+          profile: profile,
+        };
+  
+        // เริ่มสถานะ loading
         setLoading(true);
   
         try {
-          const updateimg = {
-            user_id: userInfo.id,
-            profile: values.profile, // อัปเดตรูปภาพ
-          };
+          const promises = [];
   
-          const dataToSend = {
-            ...values, // ค่าที่มาจากฟอร์ม
-            token: userInfo?.token, // ส่ง token ของ user ไปยัง API
-          };
-  
-          // เรียก API พร้อมกัน (PUT สำหรับรูปภาพ, POST สำหรับเปลี่ยนรหัสผ่าน)
-          const [updateImgResponse, changePasswordResponse] = await Promise.all([
-            useServiceAPI.put(paths.pathProfileProfileimg, updateimg),
-            useServiceAPI.post(paths.pathProfileChangePassword, dataToSend),
-          ]);
-  
-          // ตรวจสอบ response ของ update รูปภาพ
-          if (updateImgResponse.status === 200 && updateImgResponse.result) {
-            console.log("Profile image updated successfully");
-          } else {
-            showNotification(
-              "error",
-              updateImgResponse?.data?.message || "Error updating profile image"
+          // ตรวจสอบว่าต้องส่ง API สำหรับเปลี่ยนรหัสผ่านหรือไม่
+          if (current_password && new_password && new_confirm_password) {
+            const passwordPromise = useServiceAPI.post(
+              paths.pathProfileChangePassword,
+              dataToSend
             );
-            return; // หยุดกระบวนการถ้ามีปัญหา
+            promises.push(passwordPromise);
           }
   
-          // ตรวจสอบ response ของการเปลี่ยนรหัสผ่าน
-          if (
-            changePasswordResponse.status === 200 &&
-            changePasswordResponse.result
-          ) {
-            showNotification(
-              "success",
-              changePasswordResponse?.data?.message || "Update successful"
+          // ตรวจสอบว่าต้องส่ง API สำหรับอัปเดตรูปภาพหรือไม่
+          if (profile) {
+            const profileImgPromise = useServiceAPI.put(
+              paths.pathProfileProfileimg,
+              updateimg
             );
-          } else {
-            showNotification(
-              "error",
-              changePasswordResponse?.data?.message ||
-                "Error changing password"
-            );
+            promises.push(profileImgPromise);
           }
+  
+          // รอให้คำขอทั้งหมดเสร็จสิ้น
+          const responses = await Promise.all(promises);
+  
+          // ตรวจสอบผลลัพธ์ของ API แต่ละตัว
+          responses.forEach((response) => {
+            if (response.status === 200 && response.result) {
+              showNotification(
+                "success",
+                response?.data?.message || "Update successful"
+              );
+            } else {
+              showNotification(
+                "error",
+                response?.data?.message || "Error occurred"
+              );
+            }
+          });
         } catch (error) {
-          console.error("Error:", error);
+          console.error("Error occurred:", error);
           if (error.response?.status === 422) {
             showNotification(
               "error",
-              error.response?.data?.data?.message || error.response?.data?.message
-            );
-          } else if (error.response?.status === 500) {
-            showNotification(
-              "error",
-              error.response?.data?.data?.message || "Server error"
+              error.response?.data?.message || "Validation error"
             );
           } else {
-            showNotification("error", "Unknown error occurred");
+            showNotification("error", "Unexpected error occurred");
           }
         } finally {
-          setLoading(false); // ปิดสถานะ loading เมื่อเสร็จสิ้น
+          // ปิดสถานะ loading
+          setLoading(false);
         }
       })
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
       });
   };
-
   
 
   const handleEditPassword = () => {
