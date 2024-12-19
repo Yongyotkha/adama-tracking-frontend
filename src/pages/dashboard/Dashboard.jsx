@@ -183,7 +183,7 @@ export default function Dashboard() {
               <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] mb-3">
                 <h3 className="text-[#00783F] text-lg font-semibold mb-3">Sub Dealer Plan</h3>
                 {/* Placeholder for Bar Horizon Chart */}
-                <div className="h-full bg-gray-200 rounded">
+                <div className="h-full rounded">
                   <BarChart
                     dataset={dataset}
                     yAxis={[{ scaleType: 'band', dataKey: 'month' }]}
