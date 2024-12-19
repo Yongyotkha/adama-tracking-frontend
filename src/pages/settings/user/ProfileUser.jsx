@@ -377,9 +377,9 @@ export default function ProfileUser() {
       </Col>
     </Row>
   </Form>
-  <div className="flex justify-end space-x-4">
+  {/* <div className="flex justify-end space-x-4">
     <ActionButton text="Update Password" mode="update" onClick={handleSave} />
-  </div>
+  </div> */}
 </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
