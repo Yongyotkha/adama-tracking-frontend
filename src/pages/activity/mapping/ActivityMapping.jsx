@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
 import {
   GoogleMap,
@@ -50,7 +51,7 @@ export default function ActivityMapping() {
     const loadDataMappingList = async () => {
       setLoading(true);
       try {
-        const [mapping, activity, dealers, areas, years] = await Promise.all([
+        const [mapping, activity, dealers, areas, years, sub_dealers] = await Promise.all([
           useServiceAPI.post(paths.pathActivityMapList, {
             keyword: "",
             activity_type: [],
@@ -64,6 +65,7 @@ export default function ActivityMapping() {
           useServiceAPI.get(paths.pathMasterDealerAll, {}),
           useServiceAPI.get(paths.pathMasterAreas, {}),
           useServiceAPI.get(paths.pathMasterYear, {}),
+          useServiceAPI.get(paths.pathMasterSubDealerAll, {}),
         ]);
 
         // Mapping Detail
@@ -108,6 +110,19 @@ export default function ActivityMapping() {
 
         setDataDealer(
           dealers.data
+            .filter(
+              (value, index, self) =>
+                self.findIndex((item) => item.name === value.name) === index
+            )
+            .map((data, index) => ({
+              key: index,
+              id: data.id,
+              name: data.name,
+            }))
+        );
+
+        setDataSubDealer(
+          sub_dealers.data
             .filter(
               (value, index, self) =>
                 self.findIndex((item) => item.name === value.name) === index
@@ -170,40 +185,55 @@ export default function ActivityMapping() {
       key: 1,
       filter_type: "activity_type",
       filter_type_name: "Activity Type",
-      data: activityType,
+      data: activityType.filter((item) => item && item.id && item.name), // Validate data
     },
     {
       key: 2,
       filter_type: "dealer",
       filter_type_name: "Dealer",
-      data: dataDealer,
+      data: dataDealer.filter((item) => item && item.id && item.name), // Validate data
     },
-    // {
-    //   key: 3,
-    //   filter_type: "area",
-    //   filter_type_name: "Area",
-    //   data: dataArea,
-    // },
-    // {
-    //   key: 4,
-    //   filter_type: "year",
-    //   filter_type_name: "Year",
-    //   data: dataYear,
-    // },
+    {
+      key: 3,
+      filter_type: "area",
+      filter_type_name: "Area",
+      data: dataArea.filter((item) => item && item.id && item.name), // Validate data
+    },
+    {
+      key: 4,
+      filter_type: "year",
+      filter_type_name: "Year",
+      data: dataYear.filter((item) => item && item.id && item.name), // Validate data
+    },
+    {
+      key: 5,
+      filter_type: "sub_dealer",
+      filter_type_name: "Sub Dealer",
+      data: dataSubDealer
+        .filter((item) => item && item.sub_dealer_id && item.sub_dealer_name) // Validate fields
+        .map((item) => ({
+          id: item.sub_dealer_id, // Map sub_dealer_id to id
+          name: item.sub_dealer_name, // Map sub_dealer_name to name
+        })),
+    },
   ];
 
   // สร้างค่าเริ่มต้นของ checkedFilters จาก mockFilters
   const getDefaultFilters = () => {
     const defaultFilters = {};
     mockFilters.forEach((filterItem) => {
-      defaultFilters[filterItem.filter_type] = filterItem.data.map(
-        (item) => item.id
-      );
+      defaultFilters[filterItem.filter_type] =
+        filterItem.data?.map((item) => item.id) || []; // Safely map IDs
     });
     return defaultFilters;
   };
-  const [checkedFilters, setCheckedFilters] = useState(getDefaultFilters()); // ตั้งค่าตอนเริ่มต้น
+  
+  const [checkedFilters, setCheckedFilters] = useState(getDefaultFilters());   // ตั้งค่าตอนเริ่มต้น
 
+  useEffect(() => {
+    console.log("mockFilters:", mockFilters);
+    console.log("checkedFilters:", checkedFilters);
+  }, [mockFilters, checkedFilters]);
   // Initialize all checkboxes as selected on page load
   useEffect(() => {
     // Set Current Location
@@ -425,13 +455,13 @@ export default function ActivityMapping() {
 
   const handleSearch = (text) => {
     console.log(text);
-    
+
     if (text) {
       // Filter names from dataMapping
       const results = dataMapping.filter((item) =>
         item.location_address.toLowerCase().includes(text.toLowerCase())
       );
- 
+
       // Update search options for AutoComplete
       setSearchOptions(
         results.map((item) => ({
@@ -445,7 +475,7 @@ export default function ActivityMapping() {
     }
   };
 
-  const handleSelect = (value, option) => {    
+  const handleSelect = (value, option) => {
     // Set the map center to the selected lat and lng
     setCurrentLocation({ lat: option.lat, lng: option.lng });
     setDataMapZoom(15); // Set a higher zoom level for focusing
@@ -527,11 +557,15 @@ export default function ActivityMapping() {
                   className="custom-collapse my-2"
                 >
                   <Checkbox.Group
-                    options={category.data.map((item) => ({
-                      label: item.name,
-                      value: item.id,
-                    }))}
-                    value={checkedFilters[category.filter_type]}
+                    options={category.data
+                      .filter((item) => item && item.name && item.id) // Validate each option
+                      .map((item) => ({
+                        label: item.name,
+                        value: item.id.toString(), // Ensure `value` is a string
+                      }))}
+                    value={checkedFilters[category.filter_type]?.map((id) =>
+                      id?.toString() // Ensure all values are strings
+                    )}
                     onChange={(list) => {
                       setCheckedFilters((prevFilters) => ({
                         ...prevFilters,
@@ -577,7 +611,7 @@ export default function ActivityMapping() {
                         area_name: location.area_name,
                         crop_list: location.crop_id_list,
                         document_date_display: location.document_date_display,
-                      };                      
+                      };
                       setlocationWindowInfo(newLocationWindowInfo);
 
                       // // Log the necessary details to the console
