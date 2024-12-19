@@ -18,6 +18,7 @@ export default function DealerList() {
   const navigate = useNavigate();
   const [tableLoading, setTableLoading] = useState(false);
   const [Status, setStatus] = useState([]);
+  const [Position, setPosition] = useState([]);  
   const { showMsg, showNotification } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
     pagination: {
@@ -49,9 +50,11 @@ export default function DealerList() {
 
         setStatus(Status);
 
-        setPosition(producttype.data);
-        setRoles(roles.data);
+        // setPosition(producttype.data);
+        // setRoles(roles.data);
       } catch (error) {
+        console.log(error);
+        
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
         setLoading(false);

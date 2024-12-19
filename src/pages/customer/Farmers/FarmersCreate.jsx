@@ -197,7 +197,8 @@ export default function EditInformation() {
             end_time: farmerData.end_time
               ? dayjs(farmerData.end_time, "HH:mm")
               : null,
-            business_size: farmerData.business_size || "",
+            // business_size: farmerData.business_size || "",
+            business_size: parseInt(farmerData.business_size, 10),
             outlet_location: farmerData.outlet_location || "",
             t_shirt_size: farmerData.t_shirt_size || "",
             anniversary: farmerData.anniversary
@@ -313,13 +314,13 @@ const [formFields, setFormFields] = useState([
       label: "Business Size",
       name: "business_size",
       type: "select",
+      required: false,
+      col: 6,
       options: [
         { name: "Small", id: 1, selected: true },
         { name: "Medium", id: 2, selected: false },
         { name: "Large", id: 3, selected: false },
       ],
-      required: false,
-      col: 6,
     },
     {
       label: "Email",
@@ -338,7 +339,7 @@ const [formFields, setFormFields] = useState([
       value: companyinfo.location_address,
       iconSrc: "/img/icons/location.png",
       iconPosition: "right",
-      disabled: false,
+      disabled: true,
     },
     {
       label: "T-Shirt Size",
@@ -697,7 +698,7 @@ const [formFields, setFormFields] = useState([
           name: values.name || "",
           mobile_phone: values.mobile_phone || "",
           address: values.address || "",
-          email: values.tax_id || "",
+          email: values.email || "",
           day_of_week: values.day_of_week ,
           start_time: values.start_time
           ? dayjs(values.start_time).format("HH:mm")
@@ -706,16 +707,16 @@ const [formFields, setFormFields] = useState([
           ? dayjs(values.end_time).format("HH:mm")
           : "",
           business_size: values.business_size || "",
-          outlet_location: values.outlet_location || "",
-          t_shirt_size: values.tshirt_size || "",
+          outlet_location: values.location_address || "",
+          t_shirt_size: values.t_shirt_size || "",
           anniversary: values.anniversary
             ? dayjs(values.anniversary).format("YYYY-MM-DD")
             : null,
           location_longitude: currentLocation.lng || "",
           location_latitude: currentLocation.lat  || "",
-          location_address: values.outlet_location || "",
+          location_address: values.location_address || "",
           use_flag: useFlagValue,
-
+          remark: values.remark,
 
           bank_account_items: companyinfo.bank_account_items || [],
           
