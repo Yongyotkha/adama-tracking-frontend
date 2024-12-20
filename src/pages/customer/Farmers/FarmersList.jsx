@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useContext  } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import { Dropdown } from "antd";
@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../../services/corsService";
 import { paths } from "../../../services/CorsPath";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function DealerList() {
   const [loading, setLoading] = useState(false);
@@ -17,6 +18,8 @@ export default function DealerList() {
   const navigate = useNavigate();
   const [tableLoading, setTableLoading] = useState(false);
   const [Status, setStatus] = useState([]);
+  const [Position, setPosition] = useState([]);  
+  const { showMsg, showNotification } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -47,9 +50,11 @@ export default function DealerList() {
 
         setStatus(Status);
 
-        setPosition(producttype.data);
-        setRoles(roles.data);
+        // setPosition(producttype.data);
+        // setRoles(roles.data);
       } catch (error) {
+        console.log(error);
+        
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
         setLoading(false);
@@ -121,13 +126,18 @@ export default function DealerList() {
                             },
                           });
                         } else if (actionItem.action.toLowerCase() === "view") {
+                          console.log(2222222222222222);
+                          
                           navigate("/customer/farners/create", {
                             state: {
                               id: data.id,
                               mod: actionItem.action,
                             },
                           });
+                        } else if (actionItem.action.toLowerCase() === "delete") {                          
+                          handleDeleteItem(data.id);
                         }
+                        
                       }}
                     />
                   ),
@@ -234,6 +244,37 @@ export default function DealerList() {
       sortField: sorter.field,
     });
   };
+
+  const handleDeleteItem = async (record) => {
+    try {      
+      const requestData = {
+        id: record, // ส่ง ID ที่ต้องการลบ
+      };
+
+      const response = await useServiceAPI.delete(
+        paths.pathCustomerFarmersDelete,
+        requestData
+      );
+
+      if (response.status === 200) {
+        fetchData();
+        // showMsg("success", "Record deleted successfully.");
+        showNotification(
+          "success",
+          response.message,
+          response.message_line
+        );
+      } else {
+        console.error("Failed to delete record:", response.message);
+        showNotification("error", response.message, response.message_line);
+      }
+    } catch (error) {
+      console.error("Error deleting record:", error);
+
+      showNotification("error", error.message, error.message_line);
+    }
+  };
+
 
   return (
     <MainLayout loading={loading}>

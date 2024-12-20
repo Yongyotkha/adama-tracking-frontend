@@ -13,6 +13,8 @@ const TableComponent = ({
   loading,
   onChange
 }) => {
+  // const scrollY = 22 * pageSize;
+
   return (
     <ConfigProvider
       theme={{
@@ -40,7 +42,18 @@ const TableComponent = ({
         pagination={
           pagination
         }
+        // pagination={false}
+        
+        // pagination={
+        //   pagination
+        //     ? {
+        //         pageSize: pageSize,
+        //         showSizeChanger: false, 
+        //       }
+        //     : false
+        // }
         scroll={{
+          // y: scrollY, // เพิ่ม
           x: scroll ? "max-content" : 1000,
         }}
         summary={footer} 

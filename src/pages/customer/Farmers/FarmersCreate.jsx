@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import FormUser from "../../../components/form_user/FormUser";
 import DynamicButton from "../../../components/button/DynamicButton";
@@ -67,11 +67,10 @@ export default function EditInformation() {
     const fetchData = async () => {
       setLoading(true);
       try {
-
         console.log(location.state.mod);
         console.log(location.state.id);
         setDefaultFarmers(location.state.id)
-        await fetchPromotionDetails(location.state.id);
+        // await fetchFarnersDetails(location.state.id);
         const [crops] = await Promise.all([
           useServiceAPI.get(paths.pathMasterCrop, {}),
         ]);
@@ -89,17 +88,171 @@ export default function EditInformation() {
     fetchData();
   }, []);
 
- 
+  // const fetchFarnersDetails = async (id) => {
+  //   setLoading(true);
+  //   try {
+  //     const response = await useServiceAPI.get(
+  //       `${paths.pathCustomerFarmersDetail}?id=${id}`
+  //     );
+  //     if (response.status === 200) {
+  //       const { data } = response;
+        
+  //       form.setFieldsValue({
+  //         name: data.name || "",
+  //         mobile_phone: data.mobile_phone || "",
+  //         address: data.address || "",
+  //         email: data.email || "",
+  //         day_of_week: data.day_of_week || [],
+  //         start_time: data.start_time ? dayjs(data.start_time, "HH:mm") : null,
+  //         end_time: data.end_time ? dayjs(data.end_time, "HH:mm") : null,
+  //         business_size: data.business_size || "",
+  //         outlet_location: data.outlet_location || "",
+  //         t_shirt_size: data.t_shirt_size || "",
+  //         anniversary: data.anniversary
+  //           ? dayjs(data.anniversary, "YYYY-MM-DD")
+  //           : null,
+  //         location_address: data.location_address || "",
+  //         use_flag: parseInt(data.use_flag, 10) === 1 ? "Active" : "Inactive",
+  //         remark: data.remark || "",
+  //       });
 
-  const formFields = [
-    {
+  //       setcompanyinfo(data);
+  //       setContactItems(data.contact_items);
+  //       setProfileImage(data.photo_path)
+  //       setCropOptions(data.crop_list || []);
+  //       const cropNames = data.crop_list?.map((crop) => Number(crop.id)) || [];
+  //       setDefaultSelectedCrops(cropNames);
+  //       const lat = parseFloat(data.location_latitude) || 13.9572612; 
+  //       const lng = parseFloat(data.location_longitude) || 100.6222401;   
+  //       setCurrentLocation({ lat, lng });
+
+
+  //       // const newDataNetwork = data.network_list.map((item, index) => ({
+  //       //   key: item.sub_dealer_id,
+  //       //   no: index + 1,
+  //       //   name: item.sub_dealer_name || "-",
+  //       //   contactperson: item.sub_dealer_contact_name || "-",
+  //       //   mobilePhone: item.sub_dealer_contact_phone_number || "-",
+  //       //   onshop: item.is_on_shop || false,
+  //       //   status: (
+  //       //     <BadgeStatus
+  //       //       text={item.sub_dealer_channel_type_name}
+  //       //       bgColor={item.sub_dealer_channel_type_bg_color}
+  //       //       textColor={item.sub_dealer_channel_type_color}
+  //       //     />
+  //       //   ),
+  //       //   action: (
+  //       //     <>
+  //       //       <DynamicButton
+  //       //         iconSrc="/img/icons/delete.png"
+  //       //         onClick={() =>
+  //       //           handleDeleteItem(item.sub_dealer_id)
+  //       //         }
+  //       //       />
+  //       //     </>
+  //       //   ),
+  //       // }));
+  //       // setNetworkList(newDataNetwork);
+  //     } else {
+  //       console.error("Failed to fetch data:", response.message);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  useEffect(() => {
+    const fetchData = async () => {
+
+      if (mode === "create") {
+        form.resetFields(); // ล้างฟอร์มสำหรับโหมดสร้างใหม่
+        setDataLoaded(true); // ตั้งค่าข้อมูลว่าโหลดเสร็จแล้ว
+        return;
+      }
+
+      setLoading(true);
+      try {
+        // ดึงข้อมูล Farmers Details
+        const farmerResponse = await useServiceAPI.get(
+          `${paths.pathCustomerFarmersDetail}?id=${location.state.id}`
+        );
+  
+        // ตรวจสอบว่า API ส่งข้อมูลกลับมาสำเร็จหรือไม่
+        if (farmerResponse.status === 200) {
+          const farmerData = farmerResponse.data;
+  
+          // ตั้งค่า default values ลงในฟอร์ม
+          form.setFieldsValue({
+
+            name: farmerData.name || "",
+            mobile_phone: farmerData.mobile_phone || "",
+            address: farmerData.address || "",
+            email: farmerData.email || "",
+            day_of_week: farmerData.day_of_week || [],
+            start_time: farmerData.start_time
+              ? dayjs(farmerData.start_time, "HH:mm")
+              : null,
+            end_time: farmerData.end_time
+              ? dayjs(farmerData.end_time, "HH:mm")
+              : null,
+            // business_size: farmerData.business_size || "",
+            business_size: parseInt(farmerData.business_size, 10),
+            outlet_location: farmerData.outlet_location || "",
+            t_shirt_size: farmerData.t_shirt_size || "",
+            anniversary: farmerData.anniversary
+              ? dayjs(farmerData.anniversary, "YYYY-MM-DD")
+              : null,
+            location_address: farmerData.location_address || "",
+            use_flag:
+              parseInt(farmerData.use_flag, 10) === 1 ? "Active" : "Inactive",
+            remark: farmerData.remark || "",
+          });
+  
+          // ตั้งค่า state ของข้อมูลอื่น ๆ
+          setcompanyinfo(farmerData);
+          setContactItems(farmerData.contact_items || []);
+          setDefaultSelectedCrops(
+            farmerData.crop_list?.map((crop) => Number(crop.id)) || []
+          );
+          setProfileImage(farmerData.photo_path || "/img/profile.jpg");
+          setCurrentLocation({
+            lat: parseFloat(farmerData.location_latitude) || 13.9572612,
+            lng: parseFloat(farmerData.location_longitude) || 100.6222401,
+          });
+        } else {
+          console.error("Failed to fetch farmer data:", farmerResponse.message);
+          showNotification("error", "Failed to load farmer details");
+        }
+  
+        // ดึงข้อมูล Crop Options
+        const cropResponse = await useServiceAPI.get(paths.pathMasterCrop, {});
+        if (cropResponse.status === 200) {
+          setCropOptions(cropResponse.data || []);
+        } else {
+          console.error("Failed to fetch crop data:", cropResponse.message);
+        }
+      } catch (error) {
+        console.error("Error loading data:", error);
+        showNotification("error", "Error occurred while loading data");
+      } finally {
+        setLoading(false);
+        setDataLoaded(true); // ตั้งค่าเพื่อบอกว่าโหลดข้อมูลเสร็จแล้ว
+      }
+    };
+  
+    fetchData();
+  }, [location.state.id]);
+  
+const [formFields, setFormFields] = useState([
+
+  {
       label: "",
       name: "profile", // ชื่อฟิลด์ในฟอร์ม
       type: "picture", // ประเภทฟิลด์
       required: false,
       col: 24,
-      value: companyinfo.photo_path,
-
     },
     {
       label: "Farmer Name",
@@ -108,7 +261,6 @@ export default function EditInformation() {
       disabled: isViewMode,
       required: false,
       col: 6,
-      value: companyinfo.dealer_name_en,
     },
     {
       label: "Mobile Phone",
@@ -117,7 +269,6 @@ export default function EditInformation() {
       disabled: isViewMode,
       required: false,
       col: 6,
-      value: companyinfo.contact_number,
     },
     {
       label: "Address",
@@ -126,7 +277,6 @@ export default function EditInformation() {
       disabled: isViewMode,
       required: false,
       col: 12,
-      value: companyinfo.address,
     },
     {
       label: "Office Hours",
@@ -164,14 +314,13 @@ export default function EditInformation() {
       label: "Business Size",
       name: "business_size",
       type: "select",
+      required: false,
+      col: 6,
       options: [
         { name: "Small", id: 1, selected: true },
         { name: "Medium", id: 2, selected: false },
         { name: "Large", id: 3, selected: false },
       ],
-      required: false,
-      col: 6,
-      value: companyinfo.business_size,
     },
     {
       label: "Email",
@@ -190,7 +339,7 @@ export default function EditInformation() {
       value: companyinfo.location_address,
       iconSrc: "/img/icons/location.png",
       iconPosition: "right",
-      disabled: false,
+      disabled: true,
     },
     {
       label: "T-Shirt Size",
@@ -217,7 +366,6 @@ export default function EditInformation() {
         { name: "Active", id: 1, selected: true },
         { name: "Inactive", id: 0, selected: false },
       ],
-      value: parseInt(companyinfo.use_flag,10) === 1 ? "Active" : "Inactive"
     },
     {
       label: "Remark",
@@ -227,7 +375,8 @@ export default function EditInformation() {
       col: 24,
     },
 
-  ];
+])
+
 
   const header = [
     // { title: "No", width: 50, dataIndex: "key", align: "center" },
@@ -266,7 +415,7 @@ export default function EditInformation() {
 
       if (response.status === 200) {
         // fetchData();
-        await fetchPromotionDetails(location.state.id);
+        await fetchFarnersDetails(location.state.id);
 
         showNotification(
           "success",
@@ -284,64 +433,6 @@ export default function EditInformation() {
     }
   };
 
-
-  const fetchPromotionDetails = async (id) => {
-    setLoading(true);
-    try {
-      const response = await useServiceAPI.get(
-        `${paths.pathCustomerDealerDetail}?id=${id}`
-      );
-      if (response.status === 200) {
-        const { data } = response;  
-        console.log(data.location_longitude);
-        console.log(data.location_latitude);
-      
-        setcompanyinfo(data);
-        setContactItems(data.contact_items);
-        setProfileImage(data.photo_path)
-        setCropOptions(data.crop_list || []);
-        const cropNames = data.crop_list?.map((crop) => Number(crop.id)) || [];
-        setDefaultSelectedCrops(cropNames);
-        const lat = parseFloat(data.location_latitude) || 13.9572612; 
-        const lng = parseFloat(data.location_longitude) || 100.6222401;   
-        setCurrentLocation({ lat, lng });
-
-
-        const newDataNetwork = data.network_list.map((item, index) => ({
-          key: item.sub_dealer_id,
-          no: index + 1,
-          name: item.sub_dealer_name || "-",
-          contactperson: item.sub_dealer_contact_name || "-",
-          mobilePhone: item.sub_dealer_contact_phone_number || "-",
-          onshop: item.is_on_shop || false,
-          status: (
-            <BadgeStatus
-              text={item.sub_dealer_channel_type_name}
-              bgColor={item.sub_dealer_channel_type_bg_color}
-              textColor={item.sub_dealer_channel_type_color}
-            />
-          ),
-          action: (
-            <>
-              <DynamicButton
-                iconSrc="/img/icons/delete.png"
-                onClick={() =>
-                  handleDeleteItem(item.sub_dealer_id)
-                }
-              />
-            </>
-          ),
-        }));
-        setNetworkList(newDataNetwork);
-      } else {
-        console.error("Failed to fetch data:", response.message);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleRemoveContact = (index) => {
     setContactItems((prev) => prev.filter((_, i) => i !== index));
@@ -602,19 +693,12 @@ export default function EditInformation() {
         }
 
       
-        if (location.state.mod === create) {
-            console.log("test");
-        }else{
-            console.log("upda11111111111111te");
-        }
-
-        return;
         const formattedData = {
           id: location.state.id, 
           name: values.name || "",
           mobile_phone: values.mobile_phone || "",
           address: values.address || "",
-          email: values.tax_id || "",
+          email: values.email || "",
           day_of_week: values.day_of_week ,
           start_time: values.start_time
           ? dayjs(values.start_time).format("HH:mm")
@@ -623,16 +707,16 @@ export default function EditInformation() {
           ? dayjs(values.end_time).format("HH:mm")
           : "",
           business_size: values.business_size || "",
-          outlet_location: values.outlet_location || "",
-          t_shirt_size: values.tshirt_size || "",
+          outlet_location: values.location_address || "",
+          t_shirt_size: values.t_shirt_size || "",
           anniversary: values.anniversary
             ? dayjs(values.anniversary).format("YYYY-MM-DD")
             : null,
           location_longitude: currentLocation.lng || "",
           location_latitude: currentLocation.lat  || "",
-          location_address: values.outlet_location || "",
+          location_address: values.location_address || "",
           use_flag: useFlagValue,
-
+          remark: values.remark,
 
           bank_account_items: companyinfo.bank_account_items || [],
           
@@ -652,25 +736,48 @@ export default function EditInformation() {
           })),
           crop_list: defaultSelectedCrops || [],
         };
-        console.log(formattedData);
-        
-        useServiceAPI
-          .put(paths.pathCustomerSubDealerUpdate, formattedData)
+
+        if (location.state.mod === "create") {
+            useServiceAPI
+            .post(paths.pathCustomerFarmersCreate, formattedData)
+            .then((response) => {
+              if (response.status === 200) {
+                navigate("/customer/farners");
+                showNotification(
+                  "success",
+                  response.data.message,
+                  response.data.message_line
+                );
+                // console.log("Save successful:", response.data);
+                // navigate("/customer/farners"); 
+              }
+            })
+            .catch((error) => {
+              console.error("Save failed:", error);
+            });
+
+            
+        }else{
+          useServiceAPI
+          .put(paths.pathCustomerFarmersUpdate, formattedData)
           .then((response) => {
             if (response.status === 200) {
-              navigate("/customer/dealer");
+              navigate("/customer/farners");
               showNotification(
                 "success",
                 response.data.message,
                 response.data.message_line
               );
               // console.log("Save successful:", response.data);
-              // navigate("/customer/dealer"); 
+              // navigate("/customer/farners"); 
             }
           })
           .catch((error) => {
             console.error("Save failed:", error);
           });
+        }
+
+      
       })
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
@@ -695,7 +802,7 @@ export default function EditInformation() {
           .put(paths.pathCustomerSubDealerNetworkUpdate, formattedData) // paths.pathNetworkSave = URL API
           .then((response) => {
             if (response.status === 200) {
-              navigate("/customer/dealer");
+              navigate("/customer/farners");
               showNotification(
                 "success",
                 response.data.message,
@@ -848,6 +955,8 @@ export default function EditInformation() {
 
 
       <BoxPrimary>
+        <span className="text-[#00783F] text-lg font-semibold">Crop</span>
+
           <Select
             mode="multiple"
             showSearch
@@ -963,7 +1072,7 @@ export default function EditInformation() {
             <ActionButton
               mode="back"
               text="Back"
-              onClick={() => navigate("/customer/dealer")}
+              onClick={() => navigate("/customer/farners")}
             />
           {
           !isViewMode && (
@@ -974,7 +1083,7 @@ export default function EditInformation() {
             {/* <ActionButton
               mode="update"
               text="Update"
-              // onClick={() => navigate("/customer/dealer")}
+              // onClick={() => navigate("/customer/farners")}
               onClick={networkhandleSave} 
 
             /> */}
@@ -1001,6 +1110,8 @@ export default function EditInformation() {
       disabled: false 
     }));
   }
+  
+
   
   
   return (

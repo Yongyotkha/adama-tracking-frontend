@@ -58,7 +58,8 @@ export const paths = {
   pathCustomerFarmers: "sale-customer-farmer/list",
   pathCustomerFarmersCreate: "sale-customer-farmer/create",
   pathCustomerFarmersUpdate: "sale-customer-farmer/update",
-
+  pathCustomerFarmersDetail: "sale-customer-farmer/detail",
+  pathCustomerFarmersDelete: "sale-customer-farmer/delete",
   //SubDealer
   pathCreateSubDealer: "sale-customer-subdealer/create",
   pathDeleteSubDealer: "sale-customer-subdealer/delete",
@@ -101,6 +102,7 @@ export const paths = {
   pathMasterUsersDetail: "users/detail",
   pathMasterUsersEdit: "user-update",
   pathProfileChangePassword :"confirmChangePassword",
+  pathProfileProfileimg: "user-update-image",
 
   //promotion
   pathPromotionlist: "promotion-management/list",

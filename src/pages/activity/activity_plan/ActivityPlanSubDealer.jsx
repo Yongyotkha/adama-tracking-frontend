@@ -30,6 +30,7 @@ export default function ActivityPlanSubDealer() {
   const [totalValue, setTotalValue] = useState(0);
   const [estimate, setEstimate] = useState(0);
   const [expense, setExpense] = useState(0);
+  const [remark, setRemark] = useState("");
   const [localQtyState, setLocalQtyState] = useState({});
   const [yearName, setYearName] = useState([]);
   const { confirm } = Modal;
@@ -94,6 +95,7 @@ export default function ActivityPlanSubDealer() {
           setActivity(response.data.sub_dealer_items);
           setTotalValue(response.data.amount_target);
           setPermission(response.data.permission);
+          setRemark(response.data.remark);
         }
       })
       .catch((error) => {
@@ -312,7 +314,7 @@ export default function ActivityPlanSubDealer() {
         createPlan(mode, updatedActivity);
       } else {
         console.log(expense);
-        if (Number(expense) <= 3) {
+        if (Number(expense) >= 3) {
           confirm({
             title: "Unable to save",
             icon: <ExclamationCircleFilled />,
@@ -361,6 +363,7 @@ export default function ActivityPlanSubDealer() {
         sub_dealer_items: updatedActivity,
         estimate_expense: estimate,
         expense: expense,
+        remark: remark
       })
       .then((response) => {
         if (response.status === 200) {
@@ -508,6 +511,12 @@ export default function ActivityPlanSubDealer() {
               </Table.Summary>
             )}
           />
+        </BoxPrimary>
+
+        <BoxPrimary title='Remark'>
+          <div className="mb-3 flex justify-end">
+            <Input.TextArea placeholder="Remark" rows={2} value={remark}/>
+          </div>
         </BoxPrimary>
 
         <div className="flex justify-end space-x-4">

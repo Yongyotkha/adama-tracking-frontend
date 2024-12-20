@@ -104,7 +104,7 @@ export default function ActivityList() {
           location_longitude: dataInfo.longitude,
           location_latitude: dataInfo.latitude,
           location_address: dataInfo.address,
-          perception_id: mappingperception,
+          perception_id: dataInfo.perception,
           image_list: ["localhost"],
         };
 

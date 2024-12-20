@@ -239,11 +239,11 @@ export default function EditSubDealer() {
     // },
     {
       label: "Fertilizer Business",
-      name: "tshirt_size",
+      name: "fertilizer_business",
       type: "text",
       required: false,
       col: 6,
-      value: companyinfo.t_shirt_size,
+      value: companyinfo.fertilizer_business,
     },
     {
       label: "Seed Business",
@@ -251,7 +251,7 @@ export default function EditSubDealer() {
       type: "text",
       required: false,
       col: 6,
-      value: companyinfo.anniversary,
+      value: companyinfo.seed_business,
     },
     {
       label: "Pesticides Business",
@@ -259,7 +259,7 @@ export default function EditSubDealer() {
       type: "text",
       required: false,
       col: 6,
-      value: companyinfo.anniversary,
+      value: companyinfo.pesticides_business,
     },
     {
       label: "Outlet Location Please select a location on the map" ,
@@ -513,6 +513,10 @@ export default function EditSubDealer() {
               : null,
             remark: values.remark || "",
             photo_path: values.profile, 
+            pesticides_business: values.pesticides_business,
+            seed_business:values.seed_business,
+            fertilizer_business: values.fertilizer_business,
+
             contact_items: contactItems.map((contact) => ({
               name_en: contact.name_en || "",
               contact_number: contact.contact_number || "",
