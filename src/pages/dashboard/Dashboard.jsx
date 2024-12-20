@@ -38,19 +38,14 @@ export default function Dashboard() {
 
   // Pie Chart Data
   const pieData = [
-    { value: 20000, label: "Rice (25%)", color: "#8B5CF6", name: "Rice" },
-    { value: 10000, label: "Fruits (12.5%)", color: "#E11D48", name: "Fruits" },
-    { value: 10000, label: "Sugarcane (12.5%)", color: "#3B82F6", name: "Sugarcane" },
-    { value: 10000, label: "Vegetable (12.5%)", color: "#10B981", name: "Vegetable" },
-    { value: 10000, label: "Corn (12.5%)", color: "#F59E0B", name: "Corn" },
-    { value: 10000, label: "Pineapple (12.5%)", color: "#7C3AED", name: "Pineapple" },
-    { value: 10000, label: "Other (12.5%)", color: "#A78BFA", name: "Other" },
+    { value: 20000, label: "Rice", color: "#8B5CF6", name: "Rice" },
+    { value: 10000, label: "Fruits", color: "#E11D48", name: "Fruits" },
+    { value: 10000, label: "Sugarcane", color: "#3B82F6", name: "Sugarcane" },
+    { value: 10000, label: "Vegetable", color: "#10B981", name: "Vegetable" },
+    { value: 10000, label: "Corn", color: "#F59E0B", name: "Corn" },
+    { value: 10000, label: "Pineapple", color: "#7C3AED", name: "Pineapple" },
+    { value: 10000, label: "Other", color: "#A78BFA", name: "Other" },
   ];
-
-  const pieSize = {
-    // width: 400,
-    height: 400,
-  };
 
   // Calculate Total Value
   const totalValue = pieData.reduce((sum, item) => sum + item.value, 0);
@@ -73,11 +68,12 @@ export default function Dashboard() {
     );
   }
 
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Dashboard</div>
-        <Select className="mb-4" defaultValue="2024">
+        <Select defaultValue="2024">
           <Select.Option value="2024">Year 2024</Select.Option>
         </Select>
       </div>
@@ -88,7 +84,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between w-full">
               <div>
                 <h3 className="text-lg font-bold text-green-700">Dealer</h3>
-                <div className="text-4xl font-bold">10</div>
+                <div className="text-4xl font-bold text-[#00783F]">10</div>
               </div>
               <div>
                 <img src="/img/icons/dealer.png" alt="" className="w-[4.5rem] h-[4.5rem]" />
@@ -101,7 +97,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between w-full">
               <div>
                 <h3 className="text-lg font-bold text-green-700">Sub Dealer</h3>
-                <div className="text-4xl font-bold">10</div>
+                <div className="text-4xl font-bold text-[#00783F]">10</div>
               </div>
               <div>
                 <img src="/img/icons/sub-dealer.png" alt="" className="w-[4.5rem] h-[4.5rem]" />
@@ -151,7 +147,7 @@ export default function Dashboard() {
                 </Select>
               </div>
             </div>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300">
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 w-full">
               <div className="text-center p-2">
                 <div className="text-md font-bold text-green-700">1,000,000</div>
                 <div className="text-sm text-gray-500">Order</div>
@@ -255,16 +251,20 @@ export default function Dashboard() {
                     <PieChart
                       series={[
                         {
-                          data: pieData,
+                          data: pieData.map((item) => ({
+                            ...item,
+                            tooltip: `${item.name}: ${(item.value / totalValue * 100).toFixed(
+                              1
+                            )}% (${item.value.toLocaleString()})`,
+                          })),
                           innerRadius: 120,
                           outerRadius: 150,
                           colorField: "color",
-                          labelField: "label",
+                          labelField: "name", // Legend shows only names
+                          label: { formatter: (item) => item.name }, // Ensure labels are formatted correctly
                         },
                       ]}
-                      {...pieSize}
-                      // Optionally disable legend directly (if supported)
-                      showLegend={false}
+                      height={400}
                     >
                       <PieCenterLabel>{totalValue.toLocaleString()}</PieCenterLabel>
                     </PieChart>
@@ -288,7 +288,7 @@ export default function Dashboard() {
             </ul>
           </BoxPrimary>
         </Col>
-        
+
       </Row>
     </MainLayout>
   );
