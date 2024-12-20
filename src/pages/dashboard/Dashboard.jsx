@@ -139,8 +139,8 @@ export default function Dashboard() {
           </BoxPrimary>
         </Col>
         <Col xs={24} sm={12} lg={12} xxl={6}>
-          <BoxPrimary className="h-full">
-            <div className="flex justify-between items-center">
+          <BoxPrimary className="h-full items-center flex flex-col">
+            <div className="flex justify-between items-center w-full">
               <h3 className="text-lg font-bold text-green-700">Order</h3>
               <div className="flex space-x-2">
                 <Select className="w-36" defaultValue="All Sub Dealer">
@@ -151,14 +151,24 @@ export default function Dashboard() {
                 </Select>
               </div>
             </div>
-            <div className="text-4xl font-bold">30</div>
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300">
+              <div className="text-center p-2">
+                <div className="text-md font-bold text-green-700">1,000,000</div>
+                <div className="text-sm text-gray-500">Order</div>
+              </div>
+              <div className="text-center p-2">
+                <div className="text-md font-bold text-green-700">1,000,000</div>
+                <div className="text-sm text-gray-500">Estimate</div>
+              </div>
+            </div>
           </BoxPrimary>
         </Col>
       </Row>
 
       {/* Row 2: Charts and Activity */}
       <Row gutter={[16, 16]}>
-        <Col xs={24} md={24} xl={18}>
+
+        <Col xs={24} lg={24} xl={18}>
           <Row gutter={[16, 16]}>
             {/* Dealer Plan Chart */}
             <Col xs={24} lg={24} xl={12}>
@@ -267,7 +277,7 @@ export default function Dashboard() {
         </Col>
 
         {/* Activity Section */}
-        <Col xs={24} md={24} xl={6}>
+        <Col xs={24} lg={24} xl={6}>
           <BoxPrimary>
             <h3 className="text-[#00783F] text-lg font-semibold mb-3">Activity</h3>
             <ul className="list-disc ml-6">
@@ -278,6 +288,7 @@ export default function Dashboard() {
             </ul>
           </BoxPrimary>
         </Col>
+        
       </Row>
     </MainLayout>
   );
