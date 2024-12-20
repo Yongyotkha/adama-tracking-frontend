@@ -83,7 +83,7 @@ export default function Dashboard() {
           <BoxPrimary className="h-full flex items-center justify-between">
             <div className="flex items-center justify-between w-full">
               <div>
-                <h3 className="text-lg font-bold text-green-700">Dealer</h3>
+                <h3 className="text-lg font-bold text-[#00783F]">Dealer</h3>
                 <div className="text-4xl font-bold text-[#00783F]">10</div>
               </div>
               <div>
@@ -96,7 +96,7 @@ export default function Dashboard() {
           <BoxPrimary className="h-full flex items-center justify-between">
             <div className="flex items-center justify-between w-full">
               <div>
-                <h3 className="text-lg font-bold text-green-700">Sub Dealer</h3>
+                <h3 className="text-lg font-bold text-[#00783F]">Sub Dealer</h3>
                 <div className="text-4xl font-bold text-[#00783F]">10</div>
               </div>
               <div>
@@ -107,9 +107,9 @@ export default function Dashboard() {
         </Col>
         <Col xs={24} sm={12} lg={12} xxl={6}>
           <BoxPrimary className="h-full">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-bold text-green-700">Expense</h3>
-              <div className="flex space-x-2">
+            <div className="flex flex-wrap justify-between items-center">
+              <h3 className="text-lg font-bold text-[#00783F]">Expense</h3>
+              <div className="flex flex-wrap gap-2">
                 <Select className="w-36" defaultValue="All Sub Dealer">
                   <Select.Option value="All Sub Dealer">All Sub Dealer</Select.Option>
                 </Select>
@@ -120,15 +120,15 @@ export default function Dashboard() {
             </div>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-300">
               <div className="text-center py-2">
-                <div className="text-md font-bold text-green-700">1,000,000</div>
+                <div className="text-md font-bold text-[#00783F]">1,000,000</div>
                 <div className="text-sm text-gray-500">Advance</div>
               </div>
               <div className="text-center py-2">
-                <div className="text-md font-bold text-green-700">1,000,000</div>
+                <div className="text-md font-bold text-[#00783F]">1,000,000</div>
                 <div className="text-sm text-gray-500">Estimate</div>
               </div>
               <div className="text-center py-2">
-                <div className="text-md font-bold text-green-700">1,000,000</div>
+                <div className="text-md font-bold text-[#00783F]">1,000,000</div>
                 <div className="text-sm text-gray-500">Actual</div>
               </div>
             </div>
@@ -136,9 +136,9 @@ export default function Dashboard() {
         </Col>
         <Col xs={24} sm={12} lg={12} xxl={6}>
           <BoxPrimary className="h-full items-center flex flex-col">
-            <div className="flex justify-between items-center w-full">
-              <h3 className="text-lg font-bold text-green-700">Order</h3>
-              <div className="flex space-x-2">
+            <div className="flex flex-wrap justify-between items-center w-full">
+              <h3 className="text-lg font-bold text-[#00783F]">Order</h3>
+              <div className="flex flex-wrap gap-2">
                 <Select className="w-36" defaultValue="All Sub Dealer">
                   <Select.Option value="All Sub Dealer">All Sub Dealer</Select.Option>
                 </Select>
@@ -149,11 +149,11 @@ export default function Dashboard() {
             </div>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 w-full">
               <div className="text-center p-2">
-                <div className="text-md font-bold text-green-700">1,000,000</div>
+                <div className="text-md font-bold text-[#00783F]">1,000,000</div>
                 <div className="text-sm text-gray-500">Order</div>
               </div>
               <div className="text-center p-2">
-                <div className="text-md font-bold text-green-700">1,000,000</div>
+                <div className="text-md font-bold text-[#00783F]">1,000,000</div>
                 <div className="text-sm text-gray-500">Estimate</div>
               </div>
             </div>
@@ -169,9 +169,9 @@ export default function Dashboard() {
             {/* Dealer Plan Chart */}
             <Col xs={24} lg={24} xl={12}>
               <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] mb-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between">
                   <h3 className="text-[#00783F] text-lg font-semibold mb-3">Dealer Plan</h3>
-                  <div className="flex space-x-2">
+                  <div className="flex flex-wrap gap-2">
                     <Select className="mb-4" defaultValue="All Dealer">
                       <Select.Option value="All Dealer">All Dealer</Select.Option>
                     </Select>
