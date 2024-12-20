@@ -76,66 +76,6 @@ export default function ProfileUser() {
     navigate("/setting/user");
   };
 
-  // const handleSave = () => {
-  //   // Perform save logic here
-  //   navigate("/setting/user");
-  // };
-
-  // const handleSave = () => {
-  //   form
-  //     .validateFields()
-  //     .then((values) => {
-  //       console.log(values.profile);
-  //       console.log(userInfo.id);
-
-  //       const dataToSend = {
-  //         ...values,
-  //         token: userInfo?.token
-  //       };
-
-  //       const updateimg ={
-  //         user_id: userInfo.id,
-  //         profile: values.profile,
-  //       }
-
-  //       useServiceAPI
-  //         .put(paths.pathProfileProfileimg, updateimg, setLoading)
-  //         .post(paths.pathProfileChangePassword, dataToSend, setLoading)
-  //         .then((response) => {
-  //           if (response.status === 200) {
-  //               if(response.data.Result === false){
-  //                 showNotification(
-  //                   "error",
-  //                   response.data.Message.Message_Header,
-  //                   response.data.Message.Message_Line
-  //                 );
-  //               }
-  //               else if(response.result === true){
-  //                 // navigate("/setting/user");
-  //                 showNotification(
-  //                   "success",
-  //                   response.message,
-  //                   // response.data.Message.Message_Line
-  //                 );
-  //               };
-  //           }
-  //         })
-  //         .catch((error) => {
-  //           if (error.status == 422) {
-  //             showNotification("error", error.response.data.data.message || error.response.data.message);
-  //           } else if (error.status == 500) {
-  //             showNotification("error", error.response.data.data.message);
-  //           } else {
-  //             showNotification("error", "error");
-  //           }
-  //         });
-
-  //     })
-  //     .catch((errorInfo) => {
-  //       console.error("Validation Failed:", errorInfo);
-  //     });
-  // };
-
   const handleSave = () => {
     form
       .validateFields()
@@ -348,18 +288,7 @@ export default function ProfileUser() {
       value: parseInt(formUserInfo.role_id, 10),
       disabled: true,
     },
-    // {
-    //   label: "Permission",
-    //   name: "permission",
-    //   type: "select",
-    //   required: false,
-    //   col: 6,
-    //   options: [
-    //     { name: "Individual and BD/Assist", id: 1, selected: false },
-    //     { name: "Admin", id: 2, selected: false },
-    //     { name: "Viewer", id: 3, selected: false },
-    //   ],
-    // },
+
     {
       label: "Date of Joining",
       name: "date_of_joining",
@@ -398,11 +327,7 @@ export default function ProfileUser() {
           <div className="text-[#00783F] text-lg font-semibold mb-3">
             Change Password
           </div>
-          {/* <ActionButton
-      mode="delete"
-      text={isEditingPassword ? "Cancel" : "Edit"}
-      onClick={handleEditPassword}
-    /> */}
+
           <Button type="primary" danger onClick={handleEditPassword}>
             <img
               src="/img/icons/edit-btn.png"
@@ -474,13 +399,9 @@ export default function ProfileUser() {
             </Col>
           </Row>
         </Form>
-        {/* <div className="flex justify-end space-x-4">
-    <ActionButton text="Update Password" mode="update" onClick={handleSave} />
-  </div> */}
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
-        {/* <ActionButton text="Back" mode="back" onClick={handleBack} /> */}
         <ActionButton text="Update" mode="update" onClick={handleSave} />
       </div>
     </MainLayout>
