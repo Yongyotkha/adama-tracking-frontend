@@ -193,56 +193,6 @@ export default function ActivityPlanSubDealer() {
         },
       ],
     })),
-
-    // Loop สำหรับ Value (THB)
-    // ...activity.map((month, index) => ({
-    //   title: month.month_name,
-    //   key: `dealer-${month.month_id}-value`,
-    //   onHeaderCell: () => ({
-    //     style: {
-    //       backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สลับต่อจาก loop แรก
-    //       color: "white",
-    //       fontWeight: "bold",
-    //       textAlign: "center",
-    //     },
-    //   }),
-    //   children: [
-    //     {
-    //       title: "Value (THB)",
-    //       dataIndex: `value-${month.month_id}`,
-    //       key: `value-${month.month_id}`,
-    //       width: 150,
-
-    //       onHeaderCell: () => ({
-    //         style: {
-    //           backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สลับต่อจาก loop แรก
-    //           color: "white",
-    //           fontWeight: "bold",
-    //           textAlign: "center",
-    //         },
-    //       }),
-    //       render: (_, record) => {
-    //         const localData = localQtyState[month.month_id]?.[
-    //           record.activity_type_id
-    //         ] || { value: 0 };
-
-    //         return (
-    //           <InputNumber
-    //             className="w-full"
-    //             disabled
-    //             value={localData.value}
-    //             formatter={(value) =>
-    //               `${Number(value)}`.replace(
-    //                 /\B(?=(\d{3})+(?!\d))/g,
-    //                 ","
-    //               )
-    //             }
-    //           />
-    //         );
-    //       },
-    //     },
-    //   ],
-    // })),
   ];
 
   const handleQtyChange = (month_id, activity_id, qty, unitConvertValue) => {
@@ -320,7 +270,7 @@ export default function ActivityPlanSubDealer() {
             icon: <ExclamationCircleFilled />,
             content: (
               <>
-                <p>Estimate must be greater than 3 %</p>
+                <p>Estimate must be Less than 3 %</p>
                 <p>Estimate: {expense}%</p>
                 <p>
                   <b>
@@ -330,7 +280,7 @@ export default function ActivityPlanSubDealer() {
                 </p>
               </>
             ),
-            centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+            centered: true, 
             onOk() {
               createPlan("draft", updatedActivity);
             },
@@ -348,8 +298,7 @@ export default function ActivityPlanSubDealer() {
   };
 
   const createPlan = async (mode, updatedActivity) => {
-    console.log();
-
+  
     await useServiceAPI
       .post(paths.pathActivitySubDealerDetail, {
         action_code: mode,
@@ -363,7 +312,7 @@ export default function ActivityPlanSubDealer() {
         sub_dealer_items: updatedActivity,
         estimate_expense: estimate,
         expense: expense,
-        remark: remark
+        remark: remark,
       })
       .then((response) => {
         if (response.status === 200) {
@@ -513,9 +462,14 @@ export default function ActivityPlanSubDealer() {
           />
         </BoxPrimary>
 
-        <BoxPrimary title='Remark'>
+        <BoxPrimary title="Remark">
           <div className="mb-3 flex justify-end">
-            <Input.TextArea placeholder="Remark" rows={2} value={remark}/>
+            <Input.TextArea
+              placeholder="Remark"
+              rows={2}
+              value={remark}
+              onChange={(e) => setRemark(e.target.value)}
+            />
           </div>
         </BoxPrimary>
 

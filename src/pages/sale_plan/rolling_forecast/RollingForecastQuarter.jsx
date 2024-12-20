@@ -215,23 +215,56 @@ export default function RollingForecastQuarter() {
     },
 
     ...quarter.map((item, index) => ({
-      title: item.quarter_name,
+      // title: item.quarter_name,
+      title: (
+        <div className="flex items-center gap-2">
+          <div className="w-[33%]">Workplan (Q{item.quarter_id})</div>
+          <div className="w-[33%]">Rolling Forecast (Q{item.quarter_id})</div>
+          <div className="w-[33%]">Actual (Q{item.quarter_id})</div>
+        </div>
+      ),
       onHeaderCell: () => getAlternatingHeaderStyle(index + 1),
       children: [
         {
           title: (
-            <InputNumber
-              disabled
-              className="w-[30%]"
-              style={{ backgroundColor: "white" }}
-              value={item.amount_target}
-              formatter={(value) =>
-                `${Number(value).toFixed(2)}`.replace(
-                  /\B(?=(\d{3})+(?!\d))/g,
-                  ","
-                )
-              }
-            />
+            <div className="flex items-center gap-2">
+              <InputNumber
+                disabled
+                className="w-[33%]"
+                style={{ backgroundColor: "white" }}
+                value={item.amount_target}
+                formatter={(value) =>
+                  `${Number(value).toFixed(2)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
+                }
+              />
+              <InputNumber
+                disabled
+                className="w-[33%]"
+                style={{ backgroundColor: "white" }}
+                value={item.workplan_target || 0}
+                formatter={(value) =>
+                  `${Number(value).toFixed(2)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
+                }
+              />
+              <InputNumber
+                disabled
+                className="w-[33%]"
+                style={{ backgroundColor: "white" }}
+                value={item.rollingforecast_target || 0}
+                formatter={(value) =>
+                  `${Number(value).toFixed(2)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
+                }
+              />
+            </div>
           ),
           onHeaderCell: () => getAlternatingHeaderStyle(index + 1),
           children: item.data_items.map((month) => ({
@@ -244,7 +277,6 @@ export default function RollingForecastQuarter() {
                 title: (
                   <div>
                     <p>Work Plan</p>
-                    <p>(KG)</p>
                   </div>
                 ),
                 onHeaderCell: () =>
@@ -274,12 +306,7 @@ export default function RollingForecastQuarter() {
                 },
               },
               {
-                title: (
-                  <div>
-                    <p>Rolling Forecast</p>
-                    <p>(KG)</p>
-                  </div>
-                ),
+                title: "Rolling Forecast",
                 onHeaderCell: () => defaultHeaderDynamic("#7DB41E"),
                 dataIndex: `rollingforecast_${month.month_id}`,
                 key: `rollingforecast_qty_${month.month_id}`,
@@ -316,7 +343,6 @@ export default function RollingForecastQuarter() {
                 title: (
                   <div>
                     <p>Actual</p>
-                    <p>(KG)</p>
                   </div>
                 ),
                 onHeaderCell: () => defaultHeaderDynamic("#93CC23"),
