@@ -48,19 +48,15 @@ export default function RollingForecastQuarter() {
           const initialQtyState = response.data.quarter_items.reduce(
             (acc, quarter) => {
               acc[quarter.quarter_id] = {
-                total_value: quarter.amount_target,
+                total_value: quarter.rollingforecast_amount_target,
                 months: quarter.data_items.reduce((monthAcc, month) => {
                   monthAcc[month.month_id] = {
                     total_value: month.rollingforecast_amount_target,
                     products: month.rollingforecast_data_items.reduce(
                       (productAcc, product) => {
                         productAcc[product.product_id] = {
-                          // qty: parseFloat(product.qty || 0),
-                          // value: parseFloat(product.value || 0),
-                          rolling_qty: parseFloat(product.qty || 0),
-                          rolling_value: parseFloat(product.value || 0),
-                          // actual_qty: parseFloat(product.actual_qty || 0),
-                          // actual_value: parseFloat(product.actual_value || 0),
+                          rolling_qty: Number(product.qty || 0),
+                          rolling_value: Number(product.value || 0),
                         };
                         return productAcc;
                       },
@@ -234,34 +230,25 @@ export default function RollingForecastQuarter() {
                 style={{ backgroundColor: "white" }}
                 value={item.amount_target}
                 formatter={(value) =>
-                  `${Number(value).toFixed(2)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
               <InputNumber
                 disabled
                 className="w-[33%]"
                 style={{ backgroundColor: "white" }}
-                value={item.workplan_target || 0}
+                value={localQtyState[item.quarter_id]?.total_value || 0}
                 formatter={(value) =>
-                  `${Number(value).toFixed(2)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
               <InputNumber
                 disabled
                 className="w-[33%]"
                 style={{ backgroundColor: "white" }}
-                value={item.rollingforecast_target || 0}
+                value={item.actual_amount_target || 0}
                 formatter={(value) =>
-                  `${Number(value).toFixed(2)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
             </div>
@@ -393,17 +380,17 @@ export default function RollingForecastQuarter() {
       const productData =
         updatedState[quarterId]?.months?.[monthId]?.products[productId] || {};
       productData.rolling_qty = newQty || 0;
-      productData.rolling_value = parseFloat(
-        (newQty * unitConvertValue).toFixed(2)
-      );
+      productData.rolling_value = Number(newQty) * Number(unitConvertValue);
 
       // Recalculate totals for the month
       const totalMonth = Object.values(
         updatedState[quarterId]?.months?.[monthId]?.products || {}
       ).reduce(
         (acc, product) => ({
-          rolling_qty: acc.rolling_qty + (product.rolling_qty || 0),
-          rolling_value: acc.rolling_value + (product.rolling_value || 0),
+          rolling_qty:
+            Number(acc.rolling_qty) + Number(product.rolling_qty || 0),
+          rolling_value:
+            Number(acc.rolling_value) + Number(product.rolling_value || 0),
         }),
         { rolling_qty: 0, rolling_value: 0 }
       );
@@ -414,13 +401,15 @@ export default function RollingForecastQuarter() {
       // Recalculate totals for the quarter
       const totalQuarterValue = Object.values(
         updatedState[quarterId]?.months || {}
-      ).reduce((sum, month) => sum + (month.total_value || 0), 0);
+      ).reduce((sum, month) => Number(sum) + Number(month.total_value || 0), 0);
 
       updatedState[quarterId].total_value = totalQuarterValue;
       console.log(updatedState);
       return updatedState;
     });
   };
+
+
 
   const handleSave = async (mode) => {
     setLoading(true); // เริ่มโหลดข้อมูล
@@ -454,6 +443,7 @@ export default function RollingForecastQuarter() {
       });
 
       console.log(localQtyState);
+
       const found = updatedQuarterData.some((quarter) => {
         const matchingItem = quarter.data_items.find(
           (item) => item.month_id === month.id
@@ -463,8 +453,8 @@ export default function RollingForecastQuarter() {
           console.log("Matching item found:", matchingItem);
 
           if (
-            Number(matchingItem.workplan_amount_target).toFixed(2) >
-            Number(matchingItem.rollingforecast_amount_target).toFixed(2)
+            Number(matchingItem.workplan_amount_target) >
+            Number(matchingItem.rollingforecast_amount_target)
           ) {
             showNotification(
               "warning",
@@ -554,10 +544,7 @@ export default function RollingForecastQuarter() {
                   min={0}
                   value={totalValue}
                   formatter={(value) =>
-                    `${Number(value).toFixed(2)}`.replace(
-                      /\B(?=(\d{3})+(?!\d))/g,
-                      ","
-                    )
+                    `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                   }
                 />
               </div>
@@ -597,7 +584,7 @@ export default function RollingForecastQuarter() {
                           disabled
                           value={Number(month.workplan_amount_target || 0)}
                           formatter={(value) =>
-                            `${Number(value).toFixed(2)}`.replace(
+                            `${Number(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )
@@ -619,7 +606,7 @@ export default function RollingForecastQuarter() {
                             ]?.total_value || 0
                           )}
                           formatter={(value) =>
-                            `${Number(value).toFixed(2)}`.replace(
+                            `${Number(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )
@@ -637,7 +624,7 @@ export default function RollingForecastQuarter() {
                           disabled
                           value={Number(month.actual_amount_target || 0)}
                           formatter={(value) =>
-                            `${Number(value).toFixed(2)}`.replace(
+                            `${Number(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )
