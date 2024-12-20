@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
 import {
   GoogleMap,
@@ -36,7 +35,6 @@ export default function ActivityMapping() {
   const [dataSubDealer, setDataSubDealer] = useState([]);
   const [dataterritory, setDataTerritory] = useState([]);
   const [dataArea, setDataArea] = useState([]);
-
   const [dataYear, setDataYear] = useState([]);
   const [currentLocation, setCurrentLocation] = useState({
     lat: 0.0,
@@ -52,7 +50,7 @@ export default function ActivityMapping() {
     const loadDataMappingList = async () => {
       setLoading(true);
       try {
-        const [mapping, activity, dealers, areas, years, sub_dealers] = await Promise.all([
+        const [mapping, activity, dealers, areas, years] = await Promise.all([
           useServiceAPI.post(paths.pathActivityMapList, {
             keyword: "",
             activity_type: [],
@@ -66,7 +64,6 @@ export default function ActivityMapping() {
           useServiceAPI.get(paths.pathMasterDealerAll, {}),
           useServiceAPI.get(paths.pathMasterAreas, {}),
           useServiceAPI.get(paths.pathMasterYear, {}),
-          useServiceAPI.get(paths.pathMasterSubDealerAll, {}),
         ]);
 
         // Mapping Detail
@@ -96,7 +93,6 @@ export default function ActivityMapping() {
         }));
         setLocations(newLocations);
 
-        
         setActivityType(
           activity.data
             .filter(
@@ -112,19 +108,6 @@ export default function ActivityMapping() {
 
         setDataDealer(
           dealers.data
-            .filter(
-              (value, index, self) =>
-                self.findIndex((item) => item.name === value.name) === index
-            )
-            .map((data, index) => ({
-              key: index,
-              id: data.id,
-              name: data.name,
-            }))
-        );
-
-        setDataSubDealer(
-          sub_dealers.data
             .filter(
               (value, index, self) =>
                 self.findIndex((item) => item.name === value.name) === index
@@ -187,55 +170,40 @@ export default function ActivityMapping() {
       key: 1,
       filter_type: "activity_type",
       filter_type_name: "Activity Type",
-      data: activityType.filter((item) => item && item.id && item.name), // Validate data
+      data: activityType,
     },
     {
       key: 2,
       filter_type: "dealer",
       filter_type_name: "Dealer",
-      data: dataDealer.filter((item) => item && item.id && item.name), // Validate data
+      data: dataDealer,
     },
-    {
-      key: 3,
-      filter_type: "area",
-      filter_type_name: "Area",
-      data: dataArea.filter((item) => item && item.id && item.name), // Validate data
-    },
-    {
-      key: 4,
-      filter_type: "year",
-      filter_type_name: "Year",
-      data: dataYear.filter((item) => item && item.id && item.name), // Validate data
-    },
-    {
-      key: 5,
-      filter_type: "sub_dealer",
-      filter_type_name: "Sub Dealer",
-      data: dataSubDealer
-        .filter((item) => item && item.sub_dealer_id && item.sub_dealer_name) // Validate fields
-        .map((item) => ({
-          id: item.sub_dealer_id, // Map sub_dealer_id to id
-          name: item.sub_dealer_name, // Map sub_dealer_name to name
-        })),
-    },
+    // {
+    //   key: 3,
+    //   filter_type: "area",
+    //   filter_type_name: "Area",
+    //   data: dataArea,
+    // },
+    // {
+    //   key: 4,
+    //   filter_type: "year",
+    //   filter_type_name: "Year",
+    //   data: dataYear,
+    // },
   ];
 
   // สร้างค่าเริ่มต้นของ checkedFilters จาก mockFilters
   const getDefaultFilters = () => {
     const defaultFilters = {};
     mockFilters.forEach((filterItem) => {
-      defaultFilters[filterItem.filter_type] =
-        filterItem.data?.map((item) => item.id) || []; // Safely map IDs
+      defaultFilters[filterItem.filter_type] = filterItem.data.map(
+        (item) => item.id
+      );
     });
     return defaultFilters;
   };
-  
-  const [checkedFilters, setCheckedFilters] = useState(getDefaultFilters());   // ตั้งค่าตอนเริ่มต้น
+  const [checkedFilters, setCheckedFilters] = useState(getDefaultFilters()); // ตั้งค่าตอนเริ่มต้น
 
-  useEffect(() => {
-    console.log("mockFilters:", mockFilters);
-    console.log("checkedFilters:", checkedFilters);
-  }, [mockFilters, checkedFilters]);
   // Initialize all checkboxes as selected on page load
   useEffect(() => {
     // Set Current Location
@@ -295,84 +263,32 @@ export default function ActivityMapping() {
   };
 
   // ฟังก์ชันสำหรับการเลือกหรือยกเลิกเลือกทั้งหมด
-  // const toggleAll = (isChecked) => {
-  //   // console.log(isChecked);
-  //   const updatedFilters = {};
-
-  //   if (isChecked) {
-  //     mockFilters.forEach((filterItem) => {
-  //       updatedFilters[filterItem.filter_type] = isChecked
-  //         ? filterItem.data.map((item) => item.id) // เลือกทั้งหมด
-  //         : []; // ยกเลิกทั้งหมด
-  //     });
-
-  //   }
-
-  //   setCheckedFilters(updatedFilters);
-  //   setIsAllChecked(isChecked); // กำหนดสถานะของ "Check All" ให้ตรงกับตัวเลือก
-
-  //   // Render MarkerLocation
-  //   renderMarkerLocation();
-  // };
-
+  // ฟังก์ชันสำหรับการเลือกหรือยกเลิกเลือกทั้งหมด
   const toggleAll = (isChecked) => {
-    // สร้างตัวกรองใหม่โดยการเลือกหรือยกเลิกเลือกทั้งหมด
     const updatedFilters = {};
+
+    // วนลูป filter ทั้งหมด เพื่อตั้งค่าตัวเลือกให้ทุกค่าเป็น checked หาก isChecked = true
     mockFilters.forEach((filterItem) => {
       updatedFilters[filterItem.filter_type] = isChecked
         ? filterItem.data.map((item) => item.id) // เลือกทั้งหมด
         : []; // ยกเลิกทั้งหมด
     });
-  
-    // อัปเดตสถานะของฟิลเตอร์และ "Check All"
+
     setCheckedFilters(updatedFilters);
     setIsAllChecked(isChecked);
+
+    // หาก isChecked = true ให้แสดง Marker ทั้งหมด
     if (isChecked) {
-      // ถ้าเลือก Check All ให้แสดง Marker ทั้งหมด
-      setLocationMarkerIcon(
-        locations.map((data, index) => ({
-          key: index,
-          id: data.id,
-          document_number: data.document_number,
-          title: data.title,
-          lat: data.lat,
-          lng: data.lng,
-          address: data.address,
-          details: data.details,
-          activity_type_id: data.activity_type_id,
-          activity_type_name: data.activity_type_name,
-          dealer_id: data.dealer_id,
-          dealer_name: data.dealer_name,
-          area_id: data.area_id,
-          area_name: data.area_name,
-          year: data.year,
-          activity_image: data.activity_image,
-          activity_image_location: data.activity_image_location,
-          crop_id_list: data.crop_id_list,
-          document_date_display: data.document_date_display,
-        }))
-      );
+      setLocationMarkerIcon(locations);
     } else {
-      // ถ้ายกเลิก Check All ให้ลบ Marker ทั้งหมด
+      // ถ้าไม่ checked all ให้ล้าง Marker ออกหรือ set ตาม logic ของคุณ
+      // โดยกรณีนี้จะไม่แสดง Marker ใด ๆ เมื่อยกเลิกเลือกทั้งหมด
       setLocationMarkerIcon([]);
     }
-
-
-
   };
 
   const renderMarkerLocation = () => {
     // Set MarkerLocation
-    const isAnyFilterChecked = Object.values(checkedFilters).some(
-      (filter) => filter.length > 0
-    )
-
-    if (!isAnyFilterChecked) {
-      // หากไม่มีการเลือกฟิลเตอร์เลย ให้ลบ Marker ทั้งหมด
-      setLocationMarkerIcon([]);
-      return;
-    }
-
     setLocationMarkerIcon(
       locations.map((data, index) => ({
         key: locations.length + 1,
@@ -513,13 +429,13 @@ export default function ActivityMapping() {
 
   const handleSearch = (text) => {
     console.log(text);
-
+    
     if (text) {
       // Filter names from dataMapping
       const results = dataMapping.filter((item) =>
         item.location_address.toLowerCase().includes(text.toLowerCase())
       );
-
+ 
       // Update search options for AutoComplete
       setSearchOptions(
         results.map((item) => ({
@@ -533,7 +449,7 @@ export default function ActivityMapping() {
     }
   };
 
-  const handleSelect = (value, option) => {
+  const handleSelect = (value, option) => {    
     // Set the map center to the selected lat and lng
     setCurrentLocation({ lat: option.lat, lng: option.lng });
     setDataMapZoom(15); // Set a higher zoom level for focusing
@@ -587,11 +503,11 @@ export default function ActivityMapping() {
                     (filterType) =>
                       checkedFilters[filterType].length > 0 &&
                       checkedFilters[filterType].length <
-                        mockFilters.find((filter) => filter.filter_type === filterType).data
-                          .length
+                      mockFilters.find((filter) => filter.filter_type === filterType).data
+                        .length
                   )
                 }
-                checked={isAllChecked}
+                // checked={isAllChecked}
                 onChange={(e) => toggleAll(e.target.checked)}
               >
                 Check All
@@ -615,15 +531,11 @@ export default function ActivityMapping() {
                   className="custom-collapse my-2"
                 >
                   <Checkbox.Group
-                    options={category.data
-                      .filter((item) => item && item.name && item.id) // Validate each option
-                      .map((item) => ({
-                        label: item.name,
-                        value: item.id.toString(), // Ensure `value` is a string
-                      }))}
-                    value={checkedFilters[category.filter_type]?.map((id) =>
-                      id?.toString() // Ensure all values are strings
-                    )}
+                    options={category.data.map((item) => ({
+                      label: item.name,
+                      value: item.id,
+                    }))}
+                    value={checkedFilters[category.filter_type]}
                     onChange={(list) => {
                       setCheckedFilters((prevFilters) => ({
                         ...prevFilters,
@@ -669,7 +581,7 @@ export default function ActivityMapping() {
                         area_name: location.area_name,
                         crop_list: location.crop_id_list,
                         document_date_display: location.document_date_display,
-                      };
+                      };                      
                       setlocationWindowInfo(newLocationWindowInfo);
 
                       // // Log the necessary details to the console
