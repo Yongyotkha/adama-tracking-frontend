@@ -30,6 +30,7 @@ export default function ProfileUser() {
       .then((response) => {
         if (response.status === 200) {
           console.log(response.data.profile_image);
+
           setFormUserInfo(response.data);
           setProfileImage(response.data.profile_image);
 
@@ -145,6 +146,12 @@ export default function ProfileUser() {
     form
       .validateFields()
       .then(async (values) => {
+
+        if (!values.profile) {
+          showNotification("error", "No data update!");
+          return; // หยุดการทำงานหาก profile เป็น null
+        }
+
         const { current_password, new_password, new_confirm_password, profile } = values;
         const dataToSend = {
           ...values,
