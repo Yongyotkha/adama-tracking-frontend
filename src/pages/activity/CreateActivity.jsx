@@ -188,7 +188,7 @@ export default function CreateActivity() {
     },
     {
       label: "Product",
-      name: "product_id_list",
+      name: "product_list",
       type:
         pageCode != "activity_transaction"
         ? "hidden"
@@ -314,6 +314,8 @@ export default function CreateActivity() {
           ]);
 
           const activityDetailData = activityDetail.data;
+          console.log(activityDetailData);
+          
           setIsBtnExpenseActive(activityDetailData.is_expense);
           setActivityDetail(activityDetailData);
           await setupData(activityDetailData);
@@ -329,12 +331,14 @@ export default function CreateActivity() {
 
   const setupData = async (activityDetailData) => {
     //set crop list
+    console.log(activityDetailData);
+    
     let cropData = [];
     await activityDetailData.crop_id_list.forEach(element => {
       cropData.push(element.id);
     });
     setCropDetailList(cropData);
-
+    
     //set assign list
     let assignData = [];
     await activityDetailData.assing_user_list.forEach(element => {
@@ -353,6 +357,15 @@ export default function CreateActivity() {
       });
     });
     setFileList(imageList);
+
+    let productDetails = [];
+    await activityDetailData.product_list.forEach(element => {
+      productDetails.push(element.name);
+    });
+    setProductDetailList(productDetails);
+    console.log(productDetails);
+
+
 
     let participantData = [];
     let count = 0;
@@ -393,6 +406,7 @@ export default function CreateActivity() {
     });
     setProductCropList(productCropLists);
     setProductList(productLists);
+    
   }
 
   // Function to extract the full filename
