@@ -7,6 +7,7 @@ import { dataset, valueFormatter } from './dataset/dealer_plan';
 import { useDrawingArea } from '@mui/x-charts/hooks';
 import { styled } from '@mui/material/styles';
 import { PieChart } from "@mui/x-charts";
+import BoxPrimary from "../../components/box_primary/BoxPrimary";
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(false);
@@ -16,11 +17,11 @@ export default function Dashboard() {
         label: 'rainfall (mm)',
       },
     ],
-    width: 500,
+    // width: 500,
     height: 300,
     sx: {
       [`.${axisClasses.left} .${axisClasses.label}`]: {
-        transform: 'translate(-20px, 0)',
+        transform: 'translate(-10px, 0)',
       },
     },
   };
@@ -31,32 +32,38 @@ export default function Dashboard() {
         label: 'rainfall (mm)',
       },
     ],
-    width: 500,
+    // width: 500,
     height: 400,
   };
 
+  // Pie Chart Data
   const pieData = [
-    { value: 20, label: 'Rice (25%)', color: '#8B5CF6' },
-    { value: 10, label: 'Fruits (12.5%)', color: '#E11D48' },
-    { value: 10, label: 'Sugarcane (12.5%)', color: '#3B82F6' },
-    { value: 10, label: 'Vegetable (12.5%)', color: '#10B981' },
-    { value: 10, label: 'Corn (12.5%)', color: '#F59E0B' },
-    { value: 10, label: 'Pineapple (12.5%)', color: '#7C3AED' },
-    { value: 10, label: 'Other (12.5%)', color: '#A78BFA' },
+    { value: 20000, label: "Rice (25%)", color: "#8B5CF6", name: "Rice" },
+    { value: 10000, label: "Fruits (12.5%)", color: "#E11D48", name: "Fruits" },
+    { value: 10000, label: "Sugarcane (12.5%)", color: "#3B82F6", name: "Sugarcane" },
+    { value: 10000, label: "Vegetable (12.5%)", color: "#10B981", name: "Vegetable" },
+    { value: 10000, label: "Corn (12.5%)", color: "#F59E0B", name: "Corn" },
+    { value: 10000, label: "Pineapple (12.5%)", color: "#7C3AED", name: "Pineapple" },
+    { value: 10000, label: "Other (12.5%)", color: "#A78BFA", name: "Other" },
   ];
 
-  const size = {
-    width: 400,
+  const pieSize = {
+    // width: 400,
     height: 400,
   };
 
-  const StyledText = styled('text')(({ theme }) => ({
+  // Calculate Total Value
+  const totalValue = pieData.reduce((sum, item) => sum + item.value, 0);
+
+  // Styled Center Text
+  const StyledText = styled("text")(({ theme }) => ({
     fill: theme.palette.text.primary,
-    textAnchor: 'middle',
-    dominantBaseline: 'central',
+    textAnchor: "middle",
+    dominantBaseline: "central",
     fontSize: 20,
   }));
 
+  // Custom Center Label
   function PieCenterLabel({ children }) {
     const { width, height, left, top } = useDrawingArea();
     return (
@@ -77,19 +84,33 @@ export default function Dashboard() {
       {/* Row 1: Dealer, Sub Dealer, Expense, Order */}
       <Row gutter={[16, 16]} className="mb-4">
         <Col xs={24} sm={12} lg={12} xxl={6}>
-          <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
-            <h3 className="text-lg font-bold text-green-700">Dealer</h3>
-            <div className="text-4xl font-bold">10</div>
-          </Card>
+          <BoxPrimary className="h-full flex items-center justify-between">
+            <div className="flex items-center justify-between w-full">
+              <div>
+                <h3 className="text-lg font-bold text-green-700">Dealer</h3>
+                <div className="text-4xl font-bold">10</div>
+              </div>
+              <div>
+                <img src="/img/icons/dealer.png" alt="" className="w-[4.5rem] h-[4.5rem]" />
+              </div>
+            </div>
+          </BoxPrimary>
         </Col>
         <Col xs={24} sm={12} lg={12} xxl={6}>
-          <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
-            <h3 className="text-lg font-bold text-green-700">Sub Dealer</h3>
-            <div className="text-4xl font-bold">30</div>
-          </Card>
+          <BoxPrimary className="h-full flex items-center justify-between">
+            <div className="flex items-center justify-between w-full">
+              <div>
+                <h3 className="text-lg font-bold text-green-700">Sub Dealer</h3>
+                <div className="text-4xl font-bold">10</div>
+              </div>
+              <div>
+                <img src="/img/icons/sub-dealer.png" alt="" className="w-[4.5rem] h-[4.5rem]" />
+              </div>
+            </div>
+          </BoxPrimary>
         </Col>
         <Col xs={24} sm={12} lg={12} xxl={6}>
-          <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
+          <BoxPrimary className="h-full">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-bold text-green-700">Expense</h3>
               <div className="flex space-x-2">
@@ -115,27 +136,46 @@ export default function Dashboard() {
                 <div className="text-sm text-gray-500">Actual</div>
               </div>
             </div>
-          </Card>
+          </BoxPrimary>
         </Col>
         <Col xs={24} sm={12} lg={12} xxl={6}>
-          <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
-            <h3 className="text-lg font-bold text-green-700">Order</h3>
-            <div className="text-4xl font-bold">30</div>
-          </Card>
+          <BoxPrimary className="h-full items-center flex flex-col">
+            <div className="flex justify-between items-center w-full">
+              <h3 className="text-lg font-bold text-green-700">Order</h3>
+              <div className="flex space-x-2">
+                <Select className="w-36" defaultValue="All Sub Dealer">
+                  <Select.Option value="All Sub Dealer">All Sub Dealer</Select.Option>
+                </Select>
+                <Select className="w-36" defaultValue="All Month">
+                  <Select.Option value="All Month">All Month</Select.Option>
+                </Select>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300">
+              <div className="text-center p-2">
+                <div className="text-md font-bold text-green-700">1,000,000</div>
+                <div className="text-sm text-gray-500">Order</div>
+              </div>
+              <div className="text-center p-2">
+                <div className="text-md font-bold text-green-700">1,000,000</div>
+                <div className="text-sm text-gray-500">Estimate</div>
+              </div>
+            </div>
+          </BoxPrimary>
         </Col>
       </Row>
 
-
       {/* Row 2: Charts and Activity */}
       <Row gutter={[16, 16]}>
-        <Col xs={24} md={18}>
+
+        <Col xs={24} lg={24} xl={18}>
           <Row gutter={[16, 16]}>
             {/* Dealer Plan Chart */}
-            <Col xs={24} lg={12}>
+            <Col xs={24} lg={24} xl={12}>
               <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] mb-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-[#00783F] text-lg font-semibold mb-3">Dealer Plan</h3>
-                  <div>
+                  <div className="flex space-x-2">
                     <Select className="mb-4" defaultValue="All Dealer">
                       <Select.Option value="All Dealer">All Dealer</Select.Option>
                     </Select>
@@ -160,8 +200,9 @@ export default function Dashboard() {
                 </div>
               </Card>
             </Col>
+
             {/* Top 5 Activity */}
-            <Col xs={24} lg={12} className="h-full">
+            <Col xs={24} lg={24} xl={12} className="h-full">
               <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] mb-3">
                 <h3 className="text-[#00783F] text-lg font-semibold mb-3">Top 5 Activity</h3>
                 {/* Placeholder for Bar Chart */}
@@ -170,16 +211,16 @@ export default function Dashboard() {
                   <BarChart
                     xAxis={[{ scaleType: 'band', data: ['group A', 'group B', 'group C'] }]}
                     series={[{ data: [4, 3, 5] }, { data: [1, 6, 3] }, { data: [2, 5, 6] }]}
-                    width={500}
                     height={309}
                   />
                 </div>
               </Card>
             </Col>
           </Row>
+
           <Row gutter={[16, 16]}>
             {/* Sale Dealer Plan */}
-            <Col xs={24} lg={12}>
+            <Col xs={24} lg={24} xl={12}>
               <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] mb-3">
                 <h3 className="text-[#00783F] text-lg font-semibold mb-3">Sub Dealer Plan</h3>
                 {/* Placeholder for Bar Horizon Chart */}
@@ -195,7 +236,7 @@ export default function Dashboard() {
               </Card>
             </Col>
             {/* Sale By Crop */}
-            <Col xs={24} lg={12}>
+            <Col xs={24} lg={24} xl={12}>
               <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] mb-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-[#00783F] text-lg font-semibold mb-3">Sale By Crop</h3>
@@ -209,14 +250,26 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="flex justify-center items-center">
-                  <PieChart
-                    series={[
-                      { data: pieData, innerRadius: 80, outerRadius: 150, colorField: 'color' },
-                    ]}
-                    {...size}
-                  >
-                    <PieCenterLabel>80,000,000</PieCenterLabel>
-                  </PieChart>
+                  {/* Pie Chart */}
+                  <div className="flex-grow flex justify-center items-center">
+                    <PieChart
+                      series={[
+                        {
+                          data: pieData,
+                          innerRadius: 120,
+                          outerRadius: 150,
+                          colorField: "color",
+                          labelField: "label",
+                        },
+                      ]}
+                      {...pieSize}
+                      // Optionally disable legend directly (if supported)
+                      showLegend={false}
+                    >
+                      <PieCenterLabel>{totalValue.toLocaleString()}</PieCenterLabel>
+                    </PieChart>
+                  </div>
+
                 </div>
               </Card>
             </Col>
@@ -224,8 +277,8 @@ export default function Dashboard() {
         </Col>
 
         {/* Activity Section */}
-        <Col xs={24} lg={6}>
-          <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] mb-3">
+        <Col xs={24} lg={24} xl={6}>
+          <BoxPrimary>
             <h3 className="text-[#00783F] text-lg font-semibold mb-3">Activity</h3>
             <ul className="list-disc ml-6">
               <li>Demo Plot: 20,000,000</li>
@@ -233,8 +286,9 @@ export default function Dashboard() {
               <li>Visit: 10,000,000</li>
               {/* Add more activities as needed */}
             </ul>
-          </Card>
+          </BoxPrimary>
         </Col>
+        
       </Row>
     </MainLayout>
   );
