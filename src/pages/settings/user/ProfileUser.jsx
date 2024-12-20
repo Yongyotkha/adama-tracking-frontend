@@ -20,7 +20,7 @@ export default function ProfileUser() {
   const [territory, setTerritory] = useState([]);
   const [areas, setAreas] = useState([]);
   const [roles, setRoles] = useState([]);
-  const { userInfo, showNotification , showMsg } = useContext(AuthContext);
+  const { userInfo, showNotification, showMsg } = useContext(AuthContext);
   const [profileImage, setProfileImage] = useState("/img/profile.jpg"); // Default value
   const [dataLoaded, setDataLoaded] = useState(false);
 
@@ -33,7 +33,6 @@ export default function ProfileUser() {
 
           setFormUserInfo(response.data);
           setProfileImage(response.data.profile_image);
-
         }
       })
       .catch((error) => {
@@ -66,7 +65,6 @@ export default function ProfileUser() {
       setAreas(areas.data);
       setRoles(roles.data);
       setDataLoaded(true);
-
     } catch (error) {
       showMsg("error", error.message || "เกิดข้อผิดพลาด");
     } finally {
@@ -83,24 +81,23 @@ export default function ProfileUser() {
   //   navigate("/setting/user");
   // };
 
-
   // const handleSave = () => {
   //   form
   //     .validateFields()
   //     .then((values) => {
   //       console.log(values.profile);
   //       console.log(userInfo.id);
-        
+
   //       const dataToSend = {
   //         ...values,
-  //         token: userInfo?.token 
+  //         token: userInfo?.token
   //       };
 
   //       const updateimg ={
   //         user_id: userInfo.id,
   //         profile: values.profile,
   //       }
-        
+
   //       useServiceAPI
   //         .put(paths.pathProfileProfileimg, updateimg, setLoading)
   //         .post(paths.pathProfileChangePassword, dataToSend, setLoading)
@@ -125,7 +122,7 @@ export default function ProfileUser() {
   //         })
   //         .catch((error) => {
   //           if (error.status == 422) {
-  //             showNotification("error", error.response.data.data.message || error.response.data.message);              
+  //             showNotification("error", error.response.data.data.message || error.response.data.message);
   //           } else if (error.status == 500) {
   //             showNotification("error", error.response.data.data.message);
   //           } else {
@@ -133,42 +130,43 @@ export default function ProfileUser() {
   //           }
   //         });
 
-
-
   //     })
   //     .catch((errorInfo) => {
   //       console.error("Validation Failed:", errorInfo);
   //     });
   // };
-  
 
   const handleSave = () => {
     form
       .validateFields()
       .then(async (values) => {
-
         if (!values.profile) {
           showNotification("error", "No data update!");
           return; // หยุดการทำงานหาก profile เป็น null
         }
 
-        const { current_password, new_password, new_confirm_password, profile } = values;
+        const {
+          current_password,
+          new_password,
+          new_confirm_password,
+          profile,
+        } = values;
         const dataToSend = {
           ...values,
-          token: userInfo?.token,
+          // token: userInfo?.token,
         };
-  
+
         const updateimg = {
           user_id: userInfo.id,
           profile: profile,
         };
-  
+
         // เริ่มสถานะ loading
         setLoading(true);
-  
+
         try {
           const promises = [];
-  
+
           // ตรวจสอบว่าต้องส่ง API สำหรับเปลี่ยนรหัสผ่านหรือไม่
           if (current_password && new_password && new_confirm_password) {
             const passwordPromise = useServiceAPI.post(
@@ -177,7 +175,7 @@ export default function ProfileUser() {
             );
             promises.push(passwordPromise);
           }
-  
+
           // ตรวจสอบว่าต้องส่ง API สำหรับอัปเดตรูปภาพหรือไม่
           if (profile) {
             const profileImgPromise = useServiceAPI.put(
@@ -186,13 +184,23 @@ export default function ProfileUser() {
             );
             promises.push(profileImgPromise);
           }
-  
+
           // รอให้คำขอทั้งหมดเสร็จสิ้น
           const responses = await Promise.all(promises);
-  
+
           // ตรวจสอบผลลัพธ์ของ API แต่ละตัว
           responses.forEach((response) => {
+            console.log(response);
             if (response.status === 200 && response.result) {
+              if (profile) {
+                console.log(updateimg?.profile);
+                console.log(userInfo?.profile_image, "info");
+
+                userInfo.profile_image = updateimg.profile;
+
+                localStorage.setItem("users", JSON.stringify(userInfo));
+              }
+
               showNotification(
                 "success",
                 response?.data?.message || "Update successful"
@@ -223,7 +231,6 @@ export default function ProfileUser() {
         console.error("Validation Failed:", errorInfo);
       });
   };
-  
 
   const handleEditPassword = () => {
     setIsEditingPassword((prev) => !prev); // Toggle edit mode
@@ -373,103 +380,104 @@ export default function ProfileUser() {
         { name: "Active", id: 1, selected: true },
         { name: "Inactive", id: 0, selected: false },
       ],
-      value: parseInt(formUserInfo.use_flag,10) === 1 ? "Active" : "Inactive"
+      value: parseInt(formUserInfo.use_flag, 10) === 1 ? "Active" : "Inactive",
     },
-
   ];
 
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Profile</div>
 
-
       {dataLoaded ? (
-        <FormUser  
-          profile={profileImage}  
-          fields={formFields} 
-          form={form} 
-        />
-
+        <FormUser profile={profileImage} fields={formFields} form={form} />
       ) : (
         <div></div>
       )}
-<BoxPrimary>
-  <div className="flex items-center justify-between">
-    <div className="text-[#00783F] text-lg font-semibold mb-3">
-      Change Password
-    </div>
-    {/* <ActionButton
+      <BoxPrimary>
+        <div className="flex items-center justify-between">
+          <div className="text-[#00783F] text-lg font-semibold mb-3">
+            Change Password
+          </div>
+          {/* <ActionButton
       mode="delete"
       text={isEditingPassword ? "Cancel" : "Edit"}
       onClick={handleEditPassword}
     /> */}
-    <Button 
-      type="primary" 
-      danger 
-      onClick={handleEditPassword}
-    >
-    <img
-      src="/img/icons/edit-btn.png"
-      alt="button icon"
-      className="inline-block h-5"
-    />
-      {isEditingPassword ? "Cancel" : "Edit"} 
-    </Button>
-
-  </div>
-  <Form layout="vertical" form={form}>
-    <Row gutter={[16, 16]} className="mt-3">
-      <Col xs={24} sm={12} md={12} lg={8}>
-        <Form.Item
-          className="mb-3"
-          name="current_password"
-          label="Current password"
-          rules={[
-            { required: isEditingPassword, message: "Please input your current password!" }
-          ]}
-        >
-          <Input.Password disabled={!isEditingPassword} />
-        </Form.Item>
-      </Col>
-      <Col xs={24} sm={12} md={12} lg={8}>
-        <Form.Item
-          className="mb-3"
-          name="new_password"
-          label="New password"
-          rules={[
-            { required: isEditingPassword, message: "Please input your new password!" }
-          ]}
-        >
-          <Input.Password disabled={!isEditingPassword} />
-        </Form.Item>
-      </Col>
-      <Col xs={24} sm={12} md={12} lg={8}>
-        <Form.Item
-          className="mb-3"
-          name="new_confirm_password"
-          label="Confirm password"
-          dependencies={['new_password']}
-          rules={[
-            { required: isEditingPassword, message: "Please confirm your password!" },
-            ({ getFieldValue }) => ({
-              validator(_, value) {
-                if (!value || getFieldValue('new_password') === value) {
-                  return Promise.resolve();
-                }
-                return Promise.reject(new Error('The two passwords that you entered do not match!'));
-              },
-            }),
-          ]}
-        >
-          <Input.Password disabled={!isEditingPassword} />
-        </Form.Item>
-      </Col>
-    </Row>
-  </Form>
-  {/* <div className="flex justify-end space-x-4">
+          <Button type="primary" danger onClick={handleEditPassword}>
+            <img
+              src="/img/icons/edit-btn.png"
+              alt="button icon"
+              className="inline-block h-5"
+            />
+            {isEditingPassword ? "Cancel" : "Edit"}
+          </Button>
+        </div>
+        <Form layout="vertical" form={form}>
+          <Row gutter={[16, 16]} className="mt-3">
+            <Col xs={24} sm={12} md={12} lg={8}>
+              <Form.Item
+                className="mb-3"
+                name="current_password"
+                label="Current password"
+                rules={[
+                  {
+                    required: isEditingPassword,
+                    message: "Please input your current password!",
+                  },
+                ]}
+              >
+                <Input.Password disabled={!isEditingPassword} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={8}>
+              <Form.Item
+                className="mb-3"
+                name="new_password"
+                label="New password"
+                rules={[
+                  {
+                    required: isEditingPassword,
+                    message: "Please input your new password!",
+                  },
+                ]}
+              >
+                <Input.Password disabled={!isEditingPassword} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={8}>
+              <Form.Item
+                className="mb-3"
+                name="new_confirm_password"
+                label="Confirm password"
+                dependencies={["new_password"]}
+                rules={[
+                  {
+                    required: isEditingPassword,
+                    message: "Please confirm your password!",
+                  },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value || getFieldValue("new_password") === value) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject(
+                        new Error(
+                          "The two passwords that you entered do not match!"
+                        )
+                      );
+                    },
+                  }),
+                ]}
+              >
+                <Input.Password disabled={!isEditingPassword} />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+        {/* <div className="flex justify-end space-x-4">
     <ActionButton text="Update Password" mode="update" onClick={handleSave} />
   </div> */}
-</BoxPrimary>
+      </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
         {/* <ActionButton text="Back" mode="back" onClick={handleBack} /> */}
