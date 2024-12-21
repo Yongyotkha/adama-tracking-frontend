@@ -257,10 +257,12 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                       placeholder={`Select ${field.label.toLowerCase()}`}
                       disabled={field.disabled}
                       allowClear
+                      showSearch
+                       optionFilterProp="label"
                       options={field.options.map((option, index) => ({
                         key: index,
                         label: option.name,
-                        value: field.typeMode == 'string' ? option.id.toString() : parseInt(option.id, 10),
+                        value: field.typeMode == 'string' ? option?.id?.toString() : parseInt(option.id, 10),
                       }))}
                     />
                     {" "}
