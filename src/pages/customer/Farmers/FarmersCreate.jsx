@@ -57,7 +57,7 @@ export default function EditInformation() {
   const [dataMapZoom, setDataMapZoom] = useState(15);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
   const [defaultIdFarmers, setDefaultFarmers] = useState([]); 
-  const [isMapEnabled, setIsMapEnabled] = useState(false);
+  const [isMapEnabled, setIsMapEnabled] = useState(true);
 
     // อ่านสถานะ mod จาก state
     const mode = location.state?.mod; 
@@ -188,6 +188,7 @@ export default function EditInformation() {
 
             name: farmerData.name || "",
             mobile_phone: farmerData.mobile_phone || "",
+            profile: farmerData.photo_path || "",
             address: farmerData.address || "",
             email: farmerData.email || "",
             day_of_week: farmerData.day_of_week || [],
@@ -216,7 +217,7 @@ export default function EditInformation() {
           setDefaultSelectedCrops(
             farmerData.crop_list?.map((crop) => Number(crop.id)) || []
           );
-          setProfileImage(farmerData.photo_path || "/img/profile.jpg");
+          setProfileImage(farmerData.photo_path);
           setCurrentLocation({
             lat: parseFloat(farmerData.location_latitude) || 13.9572612,
             lng: parseFloat(farmerData.location_longitude) || 100.6222401,
@@ -692,9 +693,10 @@ const [formFields, setFormFields] = useState([
           useFlagValue = values.use_flag === "Active" ? 1 : 0; // แปลงค่าจาก "Active" หรือ "Inactive"
         }
 
-      
+        console.log(values);
         const formattedData = {
           id: location.state.id, 
+          photo_path: values.profile,
           name: values.name || "",
           mobile_phone: values.mobile_phone || "",
           address: values.address || "",
@@ -717,9 +719,7 @@ const [formFields, setFormFields] = useState([
           location_address: values.location_address || "",
           use_flag: useFlagValue,
           remark: values.remark,
-
           bank_account_items: companyinfo.bank_account_items || [],
-          
           contact_items: contactItems.map((item) => ({
             name_en: item.name_en || "",
             contact_number: item.contact_number || "",
@@ -736,6 +736,9 @@ const [formFields, setFormFields] = useState([
           })),
           crop_list: defaultSelectedCrops || [],
         };
+
+        console.log(formattedData);
+        
 
         if (location.state.mod === "create") {
             useServiceAPI
@@ -918,12 +921,12 @@ const [formFields, setFormFields] = useState([
         }}
       >
       <div className="text-[#00783F] text-lg font-semibold mb-3">
-        <div className="flex justify-end space-x-4 mb-2">
+        {/* <div className="flex justify-end space-x-4 mb-2">
             <ActionButton
               text={isMapEnabled ? "Close Google" : "Open Google"}
               mode="update" 
               onClick={() => setIsMapEnabled((prev) => !prev)} />
-          </div>
+          </div> */}
 
         <LoadScript googleMapsApiKey={dataApiKey}>
           <GoogleMap
@@ -945,7 +948,7 @@ const [formFields, setFormFields] = useState([
                 }}
                 draggable={true}
                 onDragEnd={handleMarkerDragEnd} 
-                options={{ disableDefaultUI: !isMapEnabled, draggable: isMapEnabled }}
+                // options={{ disableDefaultUI: !isMapEnabled, draggable: isMapEnabled }}
               />
             )}
           </GoogleMap>
