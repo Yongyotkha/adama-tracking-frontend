@@ -72,6 +72,8 @@ export default function CreateActivity() {
     }
   };
 
+
+
   const handleUploadSuccess = (response) => {
     const data = response.data;
     const fileUpload = {
@@ -860,6 +862,12 @@ export default function CreateActivity() {
     setActualParticipantCount(participants.length - 1);
   };
 
+  useEffect(() => {
+    console.log(expenseForm);
+    
+  }, []);
+
+  
   //บันทึกข้อมูล
   const handleSave = (modeSave) => {
     formCustom.validateFields();
@@ -962,6 +970,14 @@ export default function CreateActivity() {
       });
     });
 
+    console.log(expenseActualExp);
+    console.log(expenseActualSale);
+    console.log(expenseAdvance);
+
+
+    // console.log(advance_expense);
+    
+    
     const body = {
       page_code: pageCode,
       document_number_referrent:

@@ -65,7 +65,7 @@ export default function EditInformation() {
       setLoading(true);
       try {
         // console.log(location.state.mod);
-        await fetchPromotionDetails(location.state.id);
+        await fetchDealerDetails(location.state.id);
         const [crops] = await Promise.all([
           useServiceAPI.get(paths.pathMasterCrop, {}),
         ]);
@@ -252,7 +252,7 @@ export default function EditInformation() {
 
       if (response.status === 200) {
         // fetchData();
-        await fetchPromotionDetails(location.state.id);
+        await fetchDealerDetails(location.state.id);
 
         showNotification(
           "success",
@@ -271,7 +271,7 @@ export default function EditInformation() {
   };
 
 
-  const fetchPromotionDetails = async (id) => {
+  const fetchDealerDetails = async (id) => {
     setLoading(true);
     try {
       const response = await useServiceAPI.get(
@@ -394,6 +394,15 @@ export default function EditInformation() {
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
             <Input
+              placeholder="Age"
+              value={contact.age || ""}
+              onChange={(e) => handleContactChange(index, "age", e.target.value)}
+              disabled={true}
+            />
+          </Col>
+
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Input
               placeholder="T-Shirt Size"
               value={contact.t_shirt_size || ""}
               onChange={(e) => handleContactChange(index, "t_shirt_size", e.target.value)}
@@ -456,6 +465,15 @@ export default function EditInformation() {
               disabled={isViewMode}
             />
           </Col>
+          <Col xs={24} sm={18} md={18} lg={18}>
+            <Input
+              placeholder="hobby"
+              value={contact.hobby || ""}
+              onChange={(e) => handleContactChange(index, "hobby", e.target.value)}
+              disabled={isViewMode}
+            />
+          </Col>
+
         </Row>
         <hr className="my-4" />
       </div>
@@ -722,11 +740,29 @@ export default function EditInformation() {
       setcompanyinfo({ ...companyinfo, bank_account_items: updatedAccounts });
   };
   
+  // const handleContactChange = (index, field, value) => {
+  //   const updatedContacts = [...contactItems];
+  //   updatedContacts[index][field] = value;
+  //   setContactItems(updatedContacts);
+  // };
+  
   const handleContactChange = (index, field, value) => {
     const updatedContacts = [...contactItems];
-    updatedContacts[index][field] = value;
-    setContactItems(updatedContacts);
+  
+    if (field === "date_of_birth") {
+      const birthDate = dayjs(value);
+      const currentYear = dayjs().year();
+      const age = currentYear - birthDate.year(); // คำนวณอายุ
+  
+      updatedContacts[index][field] = value; // อัปเดตวันเกิด
+      updatedContacts[index]["age"] = age; // อัปเดตอายุ
+    } else {
+      updatedContacts[index][field] = value; // อัปเดตฟิลด์อื่นๆ
+    }
+  
+    setContactItems(updatedContacts); // อัปเดต state
   };
+
   
   const mapContainerStyle = {
     width: "100%",

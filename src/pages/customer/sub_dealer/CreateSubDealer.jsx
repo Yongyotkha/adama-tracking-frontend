@@ -387,13 +387,36 @@ export default function CreateSubDealer() {
     ]);
   };
   
+  // const updateContact = (index, field, value) => {
+  //   setContacts((prevContacts) =>
+  //     prevContacts.map((contact, i) =>
+  //       i === index ? { ...contact, [field]: value } : contact
+  //     )
+  //   );
+  // };
+
   const updateContact = (index, field, value) => {
     setContacts((prevContacts) =>
-      prevContacts.map((contact, i) =>
-        i === index ? { ...contact, [field]: value } : contact
-      )
+      prevContacts.map((contact, i) => {
+        if (i === index) {
+          const updatedContact = { ...contact, [field]: value };
+  
+          // หากฟิลด์ที่เปลี่ยนคือ date_of_birth ให้คำนวณอายุ
+          if (field === "date_of_birth" && value) {
+            const birthDate = dayjs(value);
+            const currentYear = dayjs().year();
+            const age = currentYear - birthDate.year(); // คำนวณอายุ
+            updatedContact.age = age;
+          }
+  
+          return updatedContact;
+        }
+        return contact;
+      })
     );
   };
+  
+
 
   const handlePersonalInfoChange = (field, value) => {
     console.log(field,value);
@@ -677,6 +700,15 @@ export default function CreateSubDealer() {
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Input
+                  placeholder="Age"
+                  value={contact.age || ""}
+                  onChange={(e) => updateContact(index, "age", e.target.value)}
+                  disabled={true}
+                />
+              </Col>
+              
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
                   placeholder="T-Shirt Size"
                   value={contact.t_shirt_size}
                   onChange={(e) =>
@@ -739,6 +771,13 @@ export default function CreateSubDealer() {
                   onChange={(e) =>
                     updateContact(index, "line_id", e.target.value)
                   }
+                />
+              </Col>
+              <Col xs={24} sm={18} md={18} lg={18}>
+                <Input
+                  placeholder="hobby"
+                  value={contact.hobby || ""}
+                  onChange={(e) => updateContact(index, "hobby", e.target.value)}
                 />
               </Col>
             </Row>
