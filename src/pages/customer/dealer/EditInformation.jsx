@@ -65,7 +65,7 @@ export default function EditInformation() {
       setLoading(true);
       try {
         // console.log(location.state.mod);
-        await fetchPromotionDetails(location.state.id);
+        await fetchDealerDetails(location.state.id);
         const [crops] = await Promise.all([
           useServiceAPI.get(paths.pathMasterCrop, {}),
         ]);
@@ -252,7 +252,7 @@ export default function EditInformation() {
 
       if (response.status === 200) {
         // fetchData();
-        await fetchPromotionDetails(location.state.id);
+        await fetchDealerDetails(location.state.id);
 
         showNotification(
           "success",
@@ -271,7 +271,7 @@ export default function EditInformation() {
   };
 
 
-  const fetchPromotionDetails = async (id) => {
+  const fetchDealerDetails = async (id) => {
     setLoading(true);
     try {
       const response = await useServiceAPI.get(
