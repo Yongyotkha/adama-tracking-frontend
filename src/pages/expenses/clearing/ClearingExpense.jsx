@@ -229,7 +229,7 @@ export default function ClearingExpense() {
         
           return {
             key: index + 1 + (current - 1) * pageSize,
-            customer: row.dealer_name,
+            customer: row.customer_name,
             expenseNo: row.document_number,
             activityReference: row.document_number_referrent,
             typeOfMeeting: row.activity_type_name,
@@ -277,7 +277,7 @@ export default function ClearingExpense() {
     setTableParams({
       pagination,
       filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
-      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      // sortOrder: sorter.order === "descend" ? "desc" : "asc",
       sortField: sorter.field,
     });
   };

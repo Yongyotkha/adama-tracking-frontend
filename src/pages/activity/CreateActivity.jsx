@@ -541,34 +541,34 @@ export default function CreateActivity() {
 
   const setupCrop = async (value) => {
     if (!isSalePlanEdit) {
-    setCropDetailList(value);
-    const [productCrop] = await Promise.all([
-      useServiceAPI.get(paths.pathMasterProductByCrop, {
-        crop_list: value,
-      }),
-    ]);
+      setCropDetailList(value);
+      const [productCrop] = await Promise.all([
+        useServiceAPI.get(paths.pathMasterProductByCrop, {
+          crop_list: value,
+        }),
+      ]);
 
-    let productCropList = [];
-    let productList = [];
-    productCrop.data.forEach((element, key) => {
-      productCropList.push({
-        key: key + 1,
-        productName: element.product_name,
-        packSize: element.packing_list,
-        estimateSale: "0",
-        actualSale: "0",
-        bath_ltkg: element.bath_ltkg,
-        prodectCode: element.product_code,
-        productId: element.id,
+      let productCropList = [];
+      let productList = [];
+      productCrop.data.forEach((element, key) => {
+        productCropList.push({
+          key: key + 1,
+          productName: element.product_name,
+          packSize: element.packing_list,
+          estimateSale: "0",
+          actualSale: "0",
+          bath_ltkg: element.bath_ltkg,
+          prodectCode: element.product_code,
+          productId: element.id,
+        });
+        productList.push({
+          key: key + 1,
+          name: element.product_name + " (" + element.packing_list + ")",
+          id: element.id,
+        });
       });
-      productList.push({
-        key: key + 1,
-        name: element.product_name + " (" + element.packing_list + ")",
-        id: element.id,
-      });
-    });
-    setProductCropList(productCropList);
-    setProductList(productList);
+      setProductCropList(productCropList);
+      setProductList(productList);
     }
     setIsSalePlanEdit(false);
   };
@@ -966,7 +966,7 @@ export default function CreateActivity() {
       page_code: pageCode,
       document_number_referrent:
         activityDetail?.document_number_referrent ?? null,
-      action_code: actionCode,
+      action_code: modeSave,
       ...allValuesBasic,
       image_list: imageLists,
       is_expense: isExpense,
@@ -995,7 +995,7 @@ export default function CreateActivity() {
       particapant_list: particapantList,
     };
     console.log(body);
-return;
+    // return;
     if (documentNumber) {
       useServiceAPI
         .put(paths.pathActivityExpenseDetail, body, setLoading)
@@ -1005,7 +1005,12 @@ return;
               if (pageCode == "expense_clearing") {
                 navigate("/expenses/clearing");
               } else if (pageCode == "expense_advance") {
-                navigate("/expenses/advance");
+                if (modeSave == "convert_clearing") {
+                  // navigate(`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`)
+                  navigate("/expenses/clearing");
+                } else {
+                  navigate("/expenses/advance");
+                }
               } else {
                 navigate("/activity/list");
               }
@@ -1014,7 +1019,7 @@ return;
           showNotification(
             "success",
             response.data.message,
-            response.data.message_line
+            response.data.message_line,2
           ).then(successCallback);
         })
         .catch((error) => {});
@@ -1027,7 +1032,13 @@ return;
               if (pageCode == "expense_clearing") {
                 navigate("/expenses/clearing");
               } else if (pageCode == "expense_advance") {
-                navigate("/expenses/advance");
+                if (modeSave == "convert_clearing") {
+                  navigate("/expenses/clearing");
+
+                  // navigate(`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`)
+                } else {
+                  navigate("/expenses/advance");
+                }
               } else {
                 navigate("/activity/list");
               }
@@ -1036,7 +1047,7 @@ return;
           showNotification(
             "success",
             response.data.message,
-            response.data.message_line
+            response.data.message_line,2
           ).then(successCallback);
         })
         .catch((error) => {});
@@ -1153,7 +1164,7 @@ return;
             />
           </BoxPrimary>
 
-          <BoxPrimary>
+          <BoxPrimary className="hidden">
             <span className="text-[#00783F] text-lg font-semibold mb-3">
               Customer
             </span>
@@ -1294,7 +1305,7 @@ return;
                           }}
                         />
                       </div>
-                      {/* CSS Keyframes */}
+
                       <style>{`
                           @keyframes spin {
                             0% {
@@ -1367,13 +1378,14 @@ return;
                           expense_advance: value,
                         });
                       }}
+                      disabled={pageCode == "expense_clearing"}
                     />{" "}
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item
                     className="mb-3"
-                    label="Actual exp"
+                    label="Estimate Sale"
                     name="actual_exp"
                   >
                     <InputNumber
@@ -1502,15 +1514,17 @@ return;
                       className="w-full"
                       min={0}
                       placeholder="0"
-                      disabled
+                      disabled={pageCode != "expense_clearing"}
                       formatter={(value) =>
                         `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                       }
-                      value={
-                        activityDetail?.expense_particapant_actual ??
-                        actualParticipantCount ??
-                        "0"
-                      }
+                      value={activityDetail?.expense_particapant_actual}
+                      onChange={(value) => {
+                        setActivityDetail({
+                          ...activityDetail,
+                          expense_particapant_actual: value,
+                        });
+                      }}
                     />{" "}
                   </Form.Item>
                 </Col>
@@ -1542,14 +1556,14 @@ return;
           <ActionButton
             mode="saveDraft"
             text="Convert to Clearing"
-            onClick={() => handleSave("convert")}
+            onClick={() => handleSave("convert_clearing")}
           />
         ) : null}
         {viewSegment ? null : (
           <ActionButton
             mode="save"
             text="Save"
-            onClick={() => handleSave("default")}
+            onClick={() => handleSave("save")}
           />
         )}
       </div>
