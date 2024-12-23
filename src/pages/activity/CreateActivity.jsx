@@ -343,21 +343,21 @@ export default function CreateActivity() {
     console.log(activityDetailData);
 
     let cropData = [];
-    await activityDetailData.crop_id_list.forEach((element) => {
+    await activityDetailData?.crop_id_list?.forEach((element) => {
       cropData.push(element.id);
     });
     setCropDetailList(cropData);
 
     //set assign list
     let assignData = [];
-    await activityDetailData.assing_user_list.forEach((element) => {
+    await activityDetailData?.assing_user_list?.forEach((element) => {
       assignData.push(element.id);
     });
     setAssignList(assignData);
 
     //set images list
     let imageList = [];
-    await activityDetailData.image_list.forEach((element, key) => {
+    await activityDetailData?.image_list?.forEach((element, key) => {
       imageList.push({
         uid: key,
         name: getFileNameWithExtension(element),
@@ -368,15 +368,16 @@ export default function CreateActivity() {
     setFileList(imageList);
 
     let productDetails = [];
-    await activityDetailData.product_list.forEach((element) => {
-      productDetails.push(element.name);
+    await activityDetailData?.product_list?.forEach((element) => {
+      // productDetails.push(element.name);
+      productDetails.push(element.id);
     });
     setProductDetailList(productDetails);
     console.log(productDetails);
 
     let participantData = [];
     let count = 0;
-    await activityDetailData.particapant_list.forEach((element, key) => {
+    await activityDetailData?.particapant_list?.forEach((element, key) => {
       count++;
       const newKey = `sales-${key + 1}`;
       participantData.push({
@@ -394,7 +395,7 @@ export default function CreateActivity() {
 
     let productCropLists = [];
     let productLists = [];
-    await activityDetailData.expense_product_data_list.forEach(
+    await activityDetailData?.expense_product_data_list?.forEach(
       (element, key) => {
         productCropLists.push({
           key: key + 1,
@@ -432,11 +433,13 @@ export default function CreateActivity() {
             await setupDealer(value);
           }
         } else if (attribue == "dealer_id") {
+          activityDetail.dealer_id = value;
+
           if (value) {
             await setupCropAndDealerCustomer(value);
           }
         } else if (attribue == "crop_id_list") {
-          if (value) {
+          if (value.length > 0) {
             await setupCrop(value);
           }
         } else if (attribue == "activity_type_id") {
@@ -526,7 +529,6 @@ export default function CreateActivity() {
   };
 
   const setupCropAndDealerCustomer = async (value) => {
-    activityDetail.dealer_id = value;
     const [crop, dealerCustomerData] = await Promise.all([
       useServiceAPI.get(paths.pathMasterSubDealerCrop, {
         sub_dealer_id: value,
@@ -541,34 +543,34 @@ export default function CreateActivity() {
 
   const setupCrop = async (value) => {
     if (!isSalePlanEdit) {
-      setCropDetailList(value);
-      const [productCrop] = await Promise.all([
-        useServiceAPI.get(paths.pathMasterProductByCrop, {
-          crop_list: value,
-        }),
-      ]);
+    setCropDetailList(value);
+    const [productCrop] = await Promise.all([
+      useServiceAPI.get(paths.pathMasterProductByCrop, {
+        crop_list: value,
+      }),
+    ]);
 
-      let productCropList = [];
-      let productList = [];
-      productCrop.data.forEach((element, key) => {
-        productCropList.push({
-          key: key + 1,
-          productName: element.product_name,
-          packSize: element.packing_list,
-          estimateSale: "0",
-          actualSale: "0",
-          bath_ltkg: element.bath_ltkg,
-          prodectCode: element.product_code,
-          productId: element.id,
-        });
-        productList.push({
-          key: key + 1,
-          name: element.product_name + " (" + element.packing_list + ")",
-          id: element.id,
-        });
+    let productCropList = [];
+    let productList = [];
+    productCrop.data.forEach((element, key) => {
+      productCropList.push({
+        key: key + 1,
+        productName: element.product_name,
+        packSize: element.packing_list,
+        estimateSale: "0",
+        actualSale: "0",
+        bath_ltkg: element.bath_ltkg,
+        prodectCode: element.product_code,
+        productId: element.id,
       });
-      setProductCropList(productCropList);
-      setProductList(productList);
+      productList.push({
+        key: key + 1,
+        name: element.product_name + " (" + element.packing_list + ")",
+        id: element.id,
+      });
+    });
+    setProductCropList(productCropList);
+    setProductList(productList);
     }
     setIsSalePlanEdit(false);
   };
@@ -660,7 +662,10 @@ export default function CreateActivity() {
 
     record.field = value;
 
-    const sumTotal = updatedData.reduce((acc, item) => acc + (item.total || 0), 0);
+    const sumTotal = updatedData.reduce(
+      (acc, item) => acc + (item.total || 0),
+      0
+    );
 
     if (field === "estimateSale") {
       setActivityDetail({
@@ -1006,9 +1011,7 @@ export default function CreateActivity() {
       particapant_list: particapantList,
     };
     console.log(body);
-
-
-
+return;
     if (documentNumber) {
       useServiceAPI
         .put(paths.pathActivityExpenseDetail, body, setLoading)

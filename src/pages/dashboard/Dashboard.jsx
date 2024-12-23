@@ -3,18 +3,18 @@ import { Card, Row, Col, Select } from "antd";
 import MainLayout from "../../layouts/MainLayout";
 import { BarChart } from '@mui/x-charts/BarChart';
 import { axisClasses } from '@mui/x-charts/ChartsAxis';
-import { dataset, valueFormatter } from './dataset/dealer_plan';
 import { useDrawingArea } from '@mui/x-charts/hooks';
 import { styled } from '@mui/material/styles';
 import { PieChart } from "@mui/x-charts";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
+import { Hidden } from "@mui/material";
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const chartSetting = {
     yAxis: [
       {
-        label: 'rainfall (mm)',
+        label: 'Million',
       },
     ],
     // width: 500,
@@ -35,6 +35,132 @@ export default function Dashboard() {
     // width: 500,
     height: 400,
   };
+
+  const dataset = [
+    {
+      plan: 92,
+      actual: 73,
+      month: "Jan",
+    },
+    {
+      plan: 92,
+      actual: 73,
+      month: "Feb",
+    },
+    {
+      plan: 92,
+      actual: 73,
+      month: "Mar",
+    },
+    {
+      plan: 92,
+      actual: 73,
+      month: "Apr",
+    },
+    {
+      plan: 92,
+      actual: 99,
+      month: "May",
+    },
+    {
+      plan: 103,
+      actual: 144,
+      month: "June",
+    },
+    {
+      plan: 105,
+      actual: 319,
+      month: "July",
+    },
+    {
+      plan: 106,
+      actual: 249,
+      month: "Aug",
+    },
+    {
+      plan: 95,
+      actual: 131,
+      month: "Sept",
+    },
+    {
+      plan: 97,
+      actual: 55,
+      month: "Oct",
+    },
+    {
+      plan: 76,
+      actual: 48,
+      month: "Nov",
+    },
+    {
+      plan: 103,
+      actual: 25,
+      month: "Dec",
+    },
+  ];
+
+  const dataset2 = [
+    {
+      plan: 92,
+      actual: 73,
+      month: "Apopo 20%SE",
+    },
+    {
+      plan: 92,
+      actual: 73,
+      month: "Atranex 90WG",
+    },
+    {
+      plan: 92,
+      actual: 73,
+      month: "Baloric 320EC",
+    },
+    {
+      plan: 92,
+      actual: 73,
+      month: "Bla-S",
+    },
+    {
+      plan: 92,
+      actual: 99,
+      month: "Bumper P",
+    },
+    {
+      plan: 103,
+      actual: 144,
+      month: "Custodia",
+    },
+    {
+      plan: 105,
+      actual: 319,
+      month: "Fiesta",
+    },
+    {
+      plan: 106,
+      actual: 249,
+      month: "Fiesta",
+    },
+    {
+      plan: 95,
+      actual: 131,
+      month: "Formass 480SL",
+    },
+    {
+      plan: 97,
+      actual: 55,
+      month: "Hamper 300SC",
+    },
+    {
+      plan: 76,
+      actual: 48,
+      month: "Hexaron",
+    },
+  ];
+
+  function valueFormatter(value) {
+    return `${value} Million`;
+  }
+
 
   // Pie Chart Data
   const pieData = [
@@ -168,15 +294,15 @@ export default function Dashboard() {
           <Row gutter={[16, 16]}>
             {/* Dealer Plan Chart */}
             <Col xs={24} lg={24} xl={12}>
-              <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] mb-3">
+              <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
                 <div className="flex flex-wrap items-center justify-between">
                   <h3 className="text-[#00783F] text-lg font-semibold mb-3">Dealer Plan</h3>
                   <div className="flex flex-wrap gap-2">
                     <Select className="mb-4" defaultValue="All Dealer">
                       <Select.Option value="All Dealer">All Dealer</Select.Option>
                     </Select>
-                    <Select className="mb-4" defaultValue="All Dealer">
-                      <Select.Option value="All Dealer">All Dealer</Select.Option>
+                    <Select className="mb-4" defaultValue="All Month">
+                      <Select.Option value="All Month">All Month</Select.Option>
                     </Select>
                   </div>
                 </div>
@@ -186,11 +312,16 @@ export default function Dashboard() {
                     dataset={dataset}
                     xAxis={[{ scaleType: 'band', dataKey: 'month' }]}
                     series={[
-                      { dataKey: 'london', label: 'London', valueFormatter },
-                      { dataKey: 'paris', label: 'Paris', valueFormatter },
-                      { dataKey: 'newYork', label: 'New York', valueFormatter },
-                      { dataKey: 'seoul', label: 'Seoul', valueFormatter },
+                      { dataKey: 'plan', label: 'Plan', valueFormatter },
+                      { dataKey: 'actual', label: 'Actual', valueFormatter },
                     ]}
+                    slotProps={{
+                      legend: {
+                        direction: 'row',
+                        position: { vertical: 'bottom', horizontal: 'middle' },
+                        padding: 0,
+                      },
+                    }}
                     {...chartSetting}
                   />
                 </div>
@@ -198,16 +329,58 @@ export default function Dashboard() {
             </Col>
 
             {/* Top 5 Activity */}
-            <Col xs={24} lg={24} xl={12} className="h-full">
-              <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] mb-3">
-                <h3 className="text-[#00783F] text-lg font-semibold mb-3">Top 5 Activity</h3>
-                {/* Placeholder for Bar Chart */}
+            <Col xs={24} lg={24} xl={12}>
+              <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
+                <div className="flex flex-wrap items-center justify-between mb-3">
+                  <h3 className="text-[#00783F] text-lg font-semibold">Top 5 Activity</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <Select defaultValue="All Dealer" className="w-40">
+                      <Select.Option value="All Dealer">All Dealer</Select.Option>
+                    </Select>
+                    <Select defaultValue="All Month" className="w-40">
+                      <Select.Option value="All Month">All Month</Select.Option>
+                    </Select>
+                  </div>
+                </div>
                 <div className="h-full rounded">
-                  {/* Top 5 Activity Bar Chart */}
                   <BarChart
-                    xAxis={[{ scaleType: 'band', data: ['group A', 'group B', 'group C'] }]}
-                    series={[{ data: [4, 3, 5] }, { data: [1, 6, 3] }, { data: [2, 5, 6] }]}
-                    height={309}
+                    dataset={[
+                      { activity: "Demo Plot", value: 90 },
+                      { activity: "ADAMA Day", value: 80 },
+                      { activity: "Field Day", value: 70 },
+                      { activity: "Visit", value: 50 },
+                      { activity: "Knock Door", value: 30 },
+                    ]}
+                    xAxis={[
+                      {
+                        dataKey: "activity",
+                        scaleType: "band", // Set the type to 'band'
+                        label: "Activity",
+                      },
+                    ]}
+                    series={[
+                      {
+                        dataKey: "value",
+                        label: "Million",
+                        color: "#8BC34A",
+                      },
+                    ]}
+                    yAxis={[
+                      {
+                        label: "Million",
+                      },
+                    ]}
+                    height={304}
+                    slotProps={{ legend: { hidden: true } }} // Hides the legend
+                    sx={{
+                      ".MuiBar-root": {
+                        borderRadius: "4px",
+                      },
+                      ".MuiAxis-left .MuiAxis-label": {
+                        fontSize: "12px",
+                        fill: "#6B7280",
+                      },
+                    }}
                   />
                 </div>
               </Card>
@@ -215,32 +388,95 @@ export default function Dashboard() {
           </Row>
 
           <Row gutter={[16, 16]}>
+
             {/* Sale Dealer Plan */}
             <Col xs={24} lg={24} xl={12}>
-              <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] mb-3">
-                <h3 className="text-[#00783F] text-lg font-semibold mb-3">Sub Dealer Plan</h3>
-                {/* Placeholder for Bar Horizon Chart */}
+              <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
+                <div className="flex flex-wrap items-center justify-between">
+                  <h3 className="text-[#00783F] text-lg font-semibold mb-3">Sub Dealer Plan</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <Select className="mb-4" defaultValue="All Sub Dealer">
+                      <Select.Option value="All Sub Dealer">All Sub Dealer</Select.Option>
+                    </Select>
+                    <Select className="mb-4" defaultValue="All Month">
+                      <Select.Option value="All Month">All Month</Select.Option>
+                    </Select>
+                  </div>
+                </div>
+                {/* Overlapping Horizontal Bar Chart */}
                 <div className="h-full rounded">
                   <BarChart
-                    dataset={dataset}
-                    yAxis={[{ scaleType: 'band', dataKey: 'month' }]}
-                    series={[{ dataKey: 'seoul', label: 'Seoul rainfall', valueFormatter }]}
+                    dataset={[
+                      { month: "Apopo 20%SE", plan: 92, actual: 73 },
+                      { month: "Atranex 90WG", plan: 92, actual: 73 },
+                      { month: "Baloric 320EC", plan: 92, actual: 73 },
+                      { month: "Bla-S", plan: 92, actual: 73 },
+                      { month: "Bumper P", plan: 92, actual: 99 },
+                      { month: "Custodia", plan: 103, actual: 144 },
+                      { month: "Fiesta", plan: 105, actual: 319 },
+                      { month: "Formass 480SL", plan: 95, actual: 131 },
+                      { month: "Hamper 300SC", plan: 97, actual: 55 },
+                      { month: "Hexaron", plan: 76, actual: 48 },
+                    ]}
+                    yAxis={[
+                      {
+                        scaleType: "band",
+                        dataKey: "month",
+                        label: "Month",
+                      },
+                    ]}
+                    xAxis={[
+                      {
+                        label: "Million",
+                      },
+                    ]}
+                    series={[
+                      {
+                        dataKey: "plan",
+                        label: "Plan",
+                        color: "#3B82F6", // Blue for Plan
+                        stack: "overlap", // Allows stacking
+                      },
+                      {
+                        dataKey: "actual",
+                        label: "Actual",
+                        color: "#10B981", // Green for Actual
+                        stack: "overlap", // Allows stacking
+                      },
+                    ]}
                     layout="horizontal"
-                    {...chartSetting2}
+                    height={400}
+                    slotProps={{
+                      legend: {
+                        direction: "row",
+                        position: { vertical: "top", horizontal: "right" },
+                        padding: 0,
+                      },
+                    }}
+                    sx={{
+                      ".MuiBar-root": {
+                        borderRadius: "4px",
+                      },
+                      ".MuiAxis-left .MuiAxis-label": {
+                        fontSize: "12px",
+                        fill: "#6B7280",
+                      },
+                    }}
                   />
                 </div>
               </Card>
             </Col>
+
             {/* Sale By Crop */}
             <Col xs={24} lg={24} xl={12}>
-              <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] mb-3">
-                <div className="flex items-center justify-between">
+              <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
+                <div className="flex flex-wrap items-center justify-between">
                   <h3 className="text-[#00783F] text-lg font-semibold mb-3">Sale By Crop</h3>
-                  <div>
-                    <Select className="mr-2" defaultValue="All Sales">
+                  <div className="flex flex-wrap gap-2">
+                    <Select className="mb-4" defaultValue="All Sales">
                       <Select.Option value="All Sales">All Sales</Select.Option>
                     </Select>
-                    <Select defaultValue="All Month">
+                    <Select className="mb-4" defaultValue="All Month">
                       <Select.Option value="All Month">All Month</Select.Option>
                     </Select>
                   </div>
@@ -253,9 +489,7 @@ export default function Dashboard() {
                         {
                           data: pieData.map((item) => ({
                             ...item,
-                            tooltip: `${item.name}: ${(item.value / totalValue * 100).toFixed(
-                              1
-                            )}% (${item.value.toLocaleString()})`,
+                            tooltip: `${item.name} (${((item.value / totalValue) * 100).toFixed(1)}%)<br>${item.value.toLocaleString()}`,
                           })),
                           innerRadius: 120,
                           outerRadius: 150,
@@ -278,16 +512,70 @@ export default function Dashboard() {
 
         {/* Activity Section */}
         <Col xs={24} lg={24} xl={6}>
-          <BoxPrimary>
-            <h3 className="text-[#00783F] text-lg font-semibold mb-3">Activity</h3>
-            <ul className="list-disc ml-6">
-              <li>Demo Plot: 20,000,000</li>
-              <li>Field Day: 20,000,000</li>
-              <li>Visit: 10,000,000</li>
-              {/* Add more activities as needed */}
-            </ul>
+          <BoxPrimary className="h-full">
+            <div className="flex flex-wrap items-center justify-between mb-4">
+              <h3 className="text-[#00783F] text-lg font-semibold">Activity</h3>
+              <div className="flex flex-wrap gap-2">
+                <Select className="mb-4" defaultValue="All Sales">
+                  <Select.Option value="All Sales">All Sales</Select.Option>
+                </Select>
+                <Select className="mb-4" defaultValue="All Month">
+                  <Select.Option value="All Month">All Month</Select.Option>
+                </Select>
+              </div>
+            </div>
+            <table className="w-full table-auto border-collapse">
+              <thead>
+                <tr className="border-b border-gray-300">
+                  <th className="text-left py-2 font-semibold">Type</th>
+                  <th className="text-left py-2 font-semibold">Plan</th>
+                  <th className="text-left py-2 font-semibold">Actual</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { type: "Demo Plot", plan: 10000000, actual: 20000000, icon: "up" },
+                  { type: "Field Day", plan: 10000000, actual: 20000000, icon: "up" },
+                  { type: "Knock Door", plan: 10000000, actual: 5000000, icon: "down" },
+                  { type: "Other", plan: 10000000, actual: 7000000, icon: "down" },
+                  { type: "Visit", plan: 10000000, actual: 20000000, icon: "up" },
+                ].map((item, index) => (
+                  <tr
+                    key={index}
+                    className="border-b border-gray-200 hover:bg-gray-100"
+                  >
+                    <td className="py-2 flex gap-2">
+                      <img
+                        src={`/img/icons/${item.type.toLowerCase().replace(" ", "-")}.png`}
+                        alt=""
+                        className="w-6 h-6"
+                      />
+                      <span>{item.type}</span>
+                    </td>
+                    <td className="py-2 text-gray-700">
+                      {item.plan.toLocaleString()}
+                    </td>
+                    <td className="py-2 flex gap-1">
+                      <img
+                        src={`/img/icons/${item.icon}.png`}
+                        alt={item.icon}
+                        className="w-4 h-4"
+                      />
+                      <span
+                        className={`${item.icon === "up" ? "text-green-500" : "text-[#752157]"
+                          } font-semibold`}
+                      >
+                        {item.actual.toLocaleString()}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </BoxPrimary>
         </Col>
+
+
 
       </Row>
     </MainLayout>
