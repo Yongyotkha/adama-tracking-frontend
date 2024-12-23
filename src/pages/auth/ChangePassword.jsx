@@ -12,7 +12,7 @@ export default function ChangePassword() {
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const { showMsg } = useContext(AuthContext);
+  const { showMsg ,logout } = useContext(AuthContext);
 
   const checkPasswordStrength = (password) => {
     const conditions = [
@@ -52,7 +52,7 @@ export default function ChangePassword() {
           console.log(response.message);
           if (response.status == 200) {
             showMsg("success", response.message,1).then(() => {
-              navigate("/"); 
+              logout();
             });
           }
         })
