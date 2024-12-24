@@ -23,13 +23,32 @@ const DynamicModal = ({
     setSearchText(e.target.value);
   };
 
-  const filteredData = dataSource.filter(
-    (item) =>
-      item.name?.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.territory?.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.position?.toLowerCase().includes(searchText.toLowerCase())
-  );
+  // const filteredData = dataSource.filter(
+  //   (item) =>
+  //     console.log(item) ||
+  //     item?.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+  //     item?.territory?.toLowerCase().includes(searchText.toLowerCase()) ||
+  //     item?.position?.toLowerCase().includes(searchText.toLowerCase())
+  // );
 
+  const filteredData = dataSource.filter((item) => {
+    // ล็อกแต่ละ item สำหรับการดีบัก (สามารถลบได้เมื่อไม่ต้องการ)  
+    const search = searchText.toLowerCase();
+    const nameMatches =
+      typeof item.name === 'string' &&
+      item.name.toLowerCase().includes(search);
+    const territoryMatches =
+      typeof item.territory === 'string' &&
+      item.territory.toLowerCase().includes(search);
+    const positionMatches =
+      typeof item.positionText === 'string' &&
+      item.positionText.toLowerCase().includes(search);
+  
+    return nameMatches || territoryMatches || positionMatches;
+  });
+
+  
+  
   const rowSelection = {
     selectedRowKeys,
     onChange: (selectedKeys) => {
