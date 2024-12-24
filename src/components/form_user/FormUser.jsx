@@ -6,7 +6,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import { AuthContext } from "../../contexts/AuthContext";
 import { paths } from "../../services/CorsPath";
 import useServiceAPI from "../../services/CorsService";
-import { EditOutlined,PlusOutlined } from "@ant-design/icons";
+import { EditOutlined,EnvironmentOutlined,MailOutlined,PlusOutlined, UserOutlined } from "@ant-design/icons";
 dayjs.extend(customParseFormat);
 
 const { Option } = Select;
@@ -98,6 +98,13 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
     }
   };
 
+  const iconMap = {
+    "/img/icons/location.png": <EnvironmentOutlined style={{ color: "rgba(0,0,0,.45)" }} />,
+    "/img/icons/email.png": <MailOutlined style={{ color: "rgba(0,0,0,.45)" }} />,
+    "/img/icons/user.png": <UserOutlined style={{ color: "rgba(0,0,0,.45)" }} />,
+    // เพิ่มไอคอนอื่นๆ ตามต้องการ
+  };
+
   return (
     <BoxPrimary>
       {title && (
@@ -123,13 +130,30 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
                 ]}
                 className="mb-3"
               >
-                {field.type === "text" ||
+                {
+                field.type === "text" ||
                 field.type === "email" ||
                 field.type === "tel" ? (
+                  // <Input
+                  //   type={field.type}
+                  //   placeholder={`Enter ${field.label.toLowerCase()}`}
+                  //   disabled={field.disabled} 
+                  //   suffix={field.iconSrc ? <img src={field.iconSrc} alt="Location Icon" style={{ width: '20px', height: '20px' }} /> : []}
+                  // />
                   <Input
                     type={field.type}
                     placeholder={`Enter ${field.label.toLowerCase()}`}
                     disabled={field.disabled}
+                    prefix={
+                      field.iconPosition === "left" && field.iconSrc ? (
+                        <img src={field.iconSrc} alt={`${field.label} Icon`} style={{ width: '20px', height: '20px' }} />
+                      ) : null
+                    }
+                    suffix={
+                      field.iconPosition === "right" && field.iconSrc ? (
+                        <img src={field.iconSrc} alt={`${field.label} Icon`} style={{ width: '20px', height: '20px' }} />
+                      ) : null
+                    }
                   />
                 ) : field.type === "date" ? (
                   <DatePicker
