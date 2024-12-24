@@ -165,7 +165,10 @@ export default function RollingForecastMonth() {
               disabled
               value={text}
               formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                `${parseInt(value)}`.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  ","
+                )
               }
             />
           ),
@@ -190,7 +193,10 @@ export default function RollingForecastMonth() {
               disabled
               value={text}
               formatter={(value) =>
-                `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                `${parseInt(value)}`.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  ","
+                )
               }
             />
           ),
@@ -237,7 +243,10 @@ export default function RollingForecastMonth() {
                 min={0}
                 value={localData.qty}
                 formatter={(value) =>
-                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 onChange={(value) =>
                   handleQtyChange(
@@ -296,7 +305,10 @@ export default function RollingForecastMonth() {
                 disabled
                 value={localData.value}
                 formatter={(value) =>
-                  `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
               />
             );
@@ -309,14 +321,13 @@ export default function RollingForecastMonth() {
   const handleQtyChange = (month_id, productId, qty, unitConvertValue) => {
     setLocalQtyState((prevState) => {
       // Calculate the new value
-      const value = qty * unitConvertValue;
+      const value = parseFloat(qty||0) * parseFloat(unitConvertValue||0);
 
       // Update the dealer's product information
       const updatedDealerProducts = {
         ...prevState[month_id],
         [productId]: {
           qty: qty || 0,
-
           value,
         },
       };
@@ -440,7 +451,10 @@ export default function RollingForecastMonth() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
               />
             </div>
@@ -480,7 +494,7 @@ export default function RollingForecastMonth() {
                           disabled
                           value={totalValue}
                           formatter={(value) =>
-                            `${Number(value)}`.replace(
+                            `${parseInt(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )
@@ -505,7 +519,7 @@ export default function RollingForecastMonth() {
                           disabled
                           value={totalValue}
                           formatter={(value) =>
-                            `${Number(value)}`.replace(
+                            `${parseInt(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )

@@ -112,7 +112,10 @@ export default function WorkPlanCreate() {
           min={0}
           value={text}
           formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            `${parseInt(value)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
           }
           onChange={(value) => handleQtyChange(value, record.key)}
           disabled={!permission.edit}
@@ -128,7 +131,10 @@ export default function WorkPlanCreate() {
           className="w-full"
           value={text}
           formatter={(value) =>
-            `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            `${parseInt(value)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
           }
           disabled
         />
@@ -198,7 +204,7 @@ export default function WorkPlanCreate() {
                     disabled
                     value={totalValue}
                     formatter={(value) =>
-                      `${Number(value)}`.replace(
+                      `${parseInt(value)}`.replace(
                         /\B(?=(\d{3})+(?!\d))/g,
                         ","
                       )

@@ -232,7 +232,10 @@ export default function WorkPlanAreaCreate() {
                       min={0}
                       value={text}
                       formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        `${parseInt(value)}`.replace(
+                          /\B(?=(\d{3})+(?!\d))/g,
+                          ","
+                        )
                       }
                     />
                   ),
@@ -250,7 +253,7 @@ export default function WorkPlanAreaCreate() {
                       min={0}
                       value={text}
                       formatter={(value) =>
-                        `${Number(value)}`.replace(
+                        `${parseInt(value)}`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
                         )
@@ -283,7 +286,7 @@ export default function WorkPlanAreaCreate() {
                     item.amount_target
                   }
                   formatter={(value) =>
-                    `${Number(value)}`.replace(
+                    `${parseInt(value)}`.replace(
                       /\B(?=(\d{3})+(?!\d))/g,
                       ","
                     )
@@ -308,7 +311,10 @@ export default function WorkPlanAreaCreate() {
                         min={0}
                         value={localData.qty || 0}
                         formatter={(value) =>
-                          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          `${parseInt(value)}`.replace(
+                            /\B(?=(\d{3})+(?!\d))/g,
+                            ","
+                          )
                         }
                         onChange={(value) =>
                           handleQtyChange(
@@ -339,7 +345,7 @@ export default function WorkPlanAreaCreate() {
                         className="w-full"
                         value={parseFloat(localData.value)}
                         formatter={(value) =>
-                          `${Number(value)}`.replace(
+                          `${parseInt(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )
@@ -471,7 +477,7 @@ export default function WorkPlanAreaCreate() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${Number(value)}`.replace(
+                  `${parseInt(value)}`.replace(
                     /\B(?=(\d{3})+(?!\d))/g,
                     ","
                   )
@@ -511,7 +517,10 @@ export default function WorkPlanAreaCreate() {
                           item.amount_target
                         }
                         formatter={(value) =>
-                          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          `${parseInt(value)}`.replace(
+                            /\B(?=(\d{3})+(?!\d))/g,
+                            ","
+                          )
                         }
                         style={{ backgroundColor: "white" }}
                       />

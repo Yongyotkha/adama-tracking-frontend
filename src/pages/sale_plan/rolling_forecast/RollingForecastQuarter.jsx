@@ -180,7 +180,10 @@ export default function RollingForecastQuarter() {
                       disabled
                       value={text}
                       formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        `${parseInt(value)}`.replace(
+                          /\B(?=(\d{3})+(?!\d))/g,
+                          ","
+                        )
                       }
                     />
                   ),
@@ -198,7 +201,10 @@ export default function RollingForecastQuarter() {
                       disabled
                       value={text}
                       formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        `${parseInt(value)}`.replace(
+                          /\B(?=(\d{3})+(?!\d))/g,
+                          ","
+                        )
                       }
                     />
                   ),
@@ -230,7 +236,10 @@ export default function RollingForecastQuarter() {
                 style={{ backgroundColor: "white" }}
                 value={item.amount_target}
                 formatter={(value) =>
-                  `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
               />
               <InputNumber
@@ -239,7 +248,10 @@ export default function RollingForecastQuarter() {
                 style={{ backgroundColor: "white" }}
                 value={localQtyState[item.quarter_id]?.total_value || 0}
                 formatter={(value) =>
-                  `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
               />
               <InputNumber
@@ -248,7 +260,10 @@ export default function RollingForecastQuarter() {
                 style={{ backgroundColor: "white" }}
                 value={item.actual_amount_target || 0}
                 formatter={(value) =>
-                  `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
               />
             </div>
@@ -285,7 +300,10 @@ export default function RollingForecastQuarter() {
                       min={0}
                       value={workplanData.qty || 0}
                       formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        `${parseInt(value)}`.replace(
+                          /\B(?=(\d{3})+(?!\d))/g,
+                          ","
+                        )
                       }
                       disabled
                     />
@@ -309,7 +327,10 @@ export default function RollingForecastQuarter() {
                       min={0}
                       value={rollingData.rolling_qty || 0}
                       formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        `${parseInt(value)}`.replace(
+                          /\B(?=(\d{3})+(?!\d))/g,
+                          ","
+                        )
                       }
                       onChange={(value) =>
                         handleQtyChange(
@@ -348,7 +369,10 @@ export default function RollingForecastQuarter() {
                       min={0}
                       value={actualData.qty || 0}
                       formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        `${parseInt(value)}`.replace(
+                          /\B(?=(\d{3})+(?!\d))/g,
+                          ","
+                        )
                       }
                       disabled
                     />
@@ -544,7 +568,10 @@ export default function RollingForecastQuarter() {
                   min={0}
                   value={totalValue}
                   formatter={(value) =>
-                    `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                    `${parseInt(value)}`.replace(
+                      /\B(?=(\d{3})+(?!\d))/g,
+                      ","
+                    )
                   }
                 />
               </div>
@@ -584,7 +611,7 @@ export default function RollingForecastQuarter() {
                           disabled
                           value={Number(month.workplan_amount_target || 0)}
                           formatter={(value) =>
-                            `${Number(value)}`.replace(
+                            `${parseInt(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )
@@ -606,7 +633,7 @@ export default function RollingForecastQuarter() {
                             ]?.total_value || 0
                           )}
                           formatter={(value) =>
-                            `${Number(value)}`.replace(
+                            `${parseInt(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )
@@ -624,7 +651,7 @@ export default function RollingForecastQuarter() {
                           disabled
                           value={Number(month.actual_amount_target || 0)}
                           formatter={(value) =>
-                            `${Number(value)}`.replace(
+                            `${parseInt(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )

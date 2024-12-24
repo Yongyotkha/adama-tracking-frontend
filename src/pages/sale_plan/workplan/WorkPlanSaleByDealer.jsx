@@ -168,7 +168,7 @@ export default function WorkPlanSaleByDealer() {
               disabled
               value={text}
               formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
             />
           ),
@@ -193,7 +193,7 @@ export default function WorkPlanSaleByDealer() {
               disabled
               value={text}
               formatter={(value) =>
-                `${Number(value)}`.replace(
+                `${parseInt(value)}`.replace(
                   /\B(?=(\d{3})+(?!\d))/g,
                   ","
                 )
@@ -246,7 +246,10 @@ export default function WorkPlanSaleByDealer() {
                 min={0}
                 value={localData.qty}
                 formatter={(value) =>
-                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 onChange={(value) =>
                   handleQtyChange(
@@ -310,7 +313,7 @@ export default function WorkPlanSaleByDealer() {
                 disabled
                 value={localData.value}
                 formatter={(value) =>
-                  `${Number(value)}`.replace(
+                  `${parseInt(value)}`.replace(
                     /\B(?=(\d{3})+(?!\d))/g,
                     ","
                   )
@@ -499,7 +502,7 @@ export default function WorkPlanSaleByDealer() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${Number(value)}`.replace(
+                  `${parseInt(value)}`.replace(
                     /\B(?=(\d{3})+(?!\d))/g,
                     ","
                   )
@@ -537,7 +540,7 @@ export default function WorkPlanSaleByDealer() {
                       min={0}
                       value={totalValue}
                       formatter={(value) =>
-                        `${Number(value)}`.replace(
+                        `${parseInt(value)}`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
                         )
@@ -556,7 +559,7 @@ export default function WorkPlanSaleByDealer() {
                         }
                         min={0}
                         formatter={(value) =>
-                          `${Number(value)}`.replace(
+                          `${parseInt(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )
@@ -575,7 +578,7 @@ export default function WorkPlanSaleByDealer() {
                         }
                         min={0}
                         formatter={(value) =>
-                          `${Number(value)}`.replace(
+                          `${parseInt(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )

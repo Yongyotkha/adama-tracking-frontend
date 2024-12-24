@@ -76,7 +76,10 @@ export default function WorkPlanSaleByCrop() {
           min={0}
           value={text}
           formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            `${parseInt(value)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
           }
           onChange={(value) => handleQtyChange(value, record.key)}
         />
@@ -103,7 +106,10 @@ export default function WorkPlanSaleByCrop() {
           min={0}
           value={text}
           formatter={(value) =>
-            `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            `${parseInt(value)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
           }
           onChange={(value) => handleQtyChange(value, record.key)}
         />
@@ -140,7 +146,7 @@ export default function WorkPlanSaleByCrop() {
           onChange={(value) =>
             handlePercentChange(value, cropItem.crop_id, record)
           }
-          formatter={(value) => `${Number(value)}%`}
+          formatter={(value) => `${parseInt(value)}%`}
           disabled={!permission.edit || cropItem.crop_id == 7}
         />
       ),
@@ -171,7 +177,10 @@ export default function WorkPlanSaleByCrop() {
           value={localQtyState[cropItem.crop_id]?.[record.product_id]?.qty || 0}
           disabled
           formatter={(value) =>
-            `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            `${parseInt(value)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
           }
         />
       ),
@@ -203,7 +212,10 @@ export default function WorkPlanSaleByCrop() {
           }
           disabled
           formatter={(value) =>
-            `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            `${parseInt(value)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
           }
         />
       ),
@@ -473,7 +485,7 @@ export default function WorkPlanSaleByCrop() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${Number(value)}`.replace(
+                  `${parseInt(value)}`.replace(
                     /\B(?=(\d{3})+(?!\d))/g,
                     ","
                   )
@@ -508,7 +520,7 @@ export default function WorkPlanSaleByCrop() {
                       value={totalValue}
                       min={0}
                       formatter={(value) =>
-                        `${Number(value)}`.replace(
+                        `${parseInt(value)}`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
                         )
@@ -524,7 +536,7 @@ export default function WorkPlanSaleByCrop() {
                         value={localQtyState[item.crop_id]?.amount_target || 0}
                         min={0}
                         formatter={(value) =>
-                          `${Number(value)}`.replace(
+                          `${parseInt(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )
@@ -541,7 +553,7 @@ export default function WorkPlanSaleByCrop() {
                         value={localQtyState[item.crop_id]?.amount_target || 0}
                         min={0}
                         formatter={(value) =>
-                          `${Number(value)}`.replace(
+                          `${parseInt(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )
@@ -558,7 +570,7 @@ export default function WorkPlanSaleByCrop() {
                         value={localQtyState[item.crop_id]?.amount_target || 0}
                         min={0}
                         formatter={(value) =>
-                          `${Number(value)}`.replace(
+                          `${parseInt(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )

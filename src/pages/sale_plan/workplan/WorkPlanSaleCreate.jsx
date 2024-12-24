@@ -218,7 +218,10 @@ export default function WorkPlanSaleCreate() {
                       disabled
                       value={text}
                       formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        `${parseInt(value)}`.replace(
+                          /\B(?=(\d{3})+(?!\d))/g,
+                          ","
+                        )
                       }
                     />
                   ),
@@ -235,7 +238,10 @@ export default function WorkPlanSaleCreate() {
                       disabled
                       value={text}
                       formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        `${parseInt(value)}`.replace(
+                          /\B(?=(\d{3})+(?!\d))/g,
+                          ","
+                        )
                       }
                     />
                   ),
@@ -257,7 +263,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               value={localQtyState[item.quarter_id]?.total_value || 0}
               formatter={(value) =>
-                `${Number(value)}`.replace(
+                `${parseInt(value)}`.replace(
                   /\B(?=(\d{3})+(?!\d))/g,
                   ","
                 )
@@ -286,7 +292,10 @@ export default function WorkPlanSaleCreate() {
                       min={0}
                       value={localData.qty}
                       formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        `${parseInt(value)}`.replace(
+                          /\B(?=(\d{3})+(?!\d))/g,
+                          ","
+                        )
                       }
                       onChange={(value) =>
                         handleQtyChange(
@@ -318,7 +327,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               value={localQtyState[item.quarter_id]?.total_value || 0}
               formatter={(value) =>
-                `${Number(value)}`.replace(
+                `${parseInt(value)}`.replace(
                   /\B(?=(\d{3})+(?!\d))/g,
                   ","
                 )
@@ -345,7 +354,10 @@ export default function WorkPlanSaleCreate() {
                       min={0}
                       value={localData.value}
                       formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        `${parseInt(value)}`.replace(
+                          /\B(?=(\d{3})+(?!\d))/g,
+                          ","
+                        )
                       }
                       disabled
                     />
@@ -559,7 +571,7 @@ export default function WorkPlanSaleCreate() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${Number(value)}`.replace(
+                  `${parseInt(value)}`.replace(
                     /\B(?=(\d{3})+(?!\d))/g,
                     ","
                   )
@@ -602,7 +614,7 @@ export default function WorkPlanSaleCreate() {
                           value={monthData.total_value || 0}
                           min={0}
                           formatter={(value) =>
-                            `${Number(value)}`.replace(
+                            `${parseInt(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )
@@ -626,7 +638,7 @@ export default function WorkPlanSaleCreate() {
                           value={monthData.total_value || 0}
                           min={0}
                           formatter={(value) =>
-                            `${Number(value)}`.replace(
+                            `${parseInt(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )

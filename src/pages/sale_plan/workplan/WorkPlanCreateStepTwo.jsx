@@ -183,7 +183,7 @@ export default function WorkPlanCreateStepTwo() {
                       min={0}
                       value={text}
                       formatter={(value) =>
-                        `${Number(value)}`.replace(
+                        `${parseInt(value)}`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
                         )
@@ -204,7 +204,7 @@ export default function WorkPlanCreateStepTwo() {
                       min={0}
                       value={text}
                       formatter={(value) =>
-                        `${Number(value)}`.replace(
+                        `${parseInt(value)}`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
                         )
@@ -234,7 +234,7 @@ export default function WorkPlanCreateStepTwo() {
                   min={0}
                   value={item.amount_target}
                   formatter={(value) =>
-                    `${Number(value)}`.replace(
+                    `${parseInt(value)}`.replace(
                       /\B(?=(\d{3})+(?!\d))/g,
                       ","
                     )
@@ -260,7 +260,10 @@ export default function WorkPlanCreateStepTwo() {
                           localQtyState[item.area_id]?.[record.product_id] || 0
                         }
                         formatter={(value) =>
-                          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          `${parseInt(value)}`.replace(
+                            /\B(?=(\d{3})+(?!\d))/g,
+                            ","
+                          )
                         }
                         onChange={(value) =>
                           handleQtyChange(
@@ -292,7 +295,7 @@ export default function WorkPlanCreateStepTwo() {
                           dataItem ? parseFloat(dataItem.value) : 0
                         }
                         formatter={(value) =>
-                          `${Number(value)}`.replace(
+                          `${parseInt(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )
@@ -439,7 +442,7 @@ export default function WorkPlanCreateStepTwo() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${Number(value)}`.replace(
+                  `${parseInt(value)}`.replace(
                     /\B(?=(\d{3})+(?!\d))/g,
                     ","
                   )
@@ -471,7 +474,7 @@ export default function WorkPlanCreateStepTwo() {
                       value={totalValue}
                       min={0}
                       formatter={(value) =>
-                        `${Number(value)}`.replace(
+                        `${parseInt(value)}`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
                         )
@@ -487,7 +490,7 @@ export default function WorkPlanCreateStepTwo() {
                         disabled
                         value={area.amount_target || 0} // amount_target ของ area
                         formatter={(value) =>
-                          `${Number(value)}`.replace(
+                          `${parseInt(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
                             ","
                           )

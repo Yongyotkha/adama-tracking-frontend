@@ -176,7 +176,10 @@ export default function ActivityPlanSubDealer() {
                 className="w-full"
                 min={0}
                 formatter={(value) =>
-                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled={!permission.edit}
                 onChange={(value) =>
@@ -343,7 +346,10 @@ export default function ActivityPlanSubDealer() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
               />
             </div>
@@ -354,7 +360,10 @@ export default function ActivityPlanSubDealer() {
                 className="w-full"
                 value={estimate}
                 formatter={(value) =>
-                  `${Number(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
               />
             </div>
@@ -421,7 +430,7 @@ export default function ActivityPlanSubDealer() {
                           disabled
                           value={totalValue}
                           formatter={(value) =>
-                            `${Number(value)}`.replace(
+                            `${parseInt(value)}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
                               ","
                             )
