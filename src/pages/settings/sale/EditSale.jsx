@@ -426,10 +426,16 @@ export default function CreateSale() {
         }));
         setSaleAreas(saleAreaData);
 
+        // console.log(response.data.sale_head_name);
+        // console.log(response.data.sale_area_name);
+        // console.log(response.data.area_name);
+
+
         // เซ็ตค่า default
         if (response.data.length > 0) {
           setDefaultSaleArea(response.data[0].id); // เลือกอันแรกเป็น default
           setSelectedSaleArea(response.data[0].id); // เซ็ต selected value
+
         }
       } else {
         console.error("Failed to fetch Sale Areas:", response.message);
