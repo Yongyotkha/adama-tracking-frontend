@@ -234,10 +234,7 @@ export default function WorkPlanCreateStepTwo() {
                   min={0}
                   value={item.amount_target}
                   formatter={(value) =>
-                    `${parseInt(value)}`.replace(
-                      /\B(?=(\d{3})+(?!\d))/g,
-                      ","
-                    )
+                    `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                   }
                 />
               ),
@@ -291,9 +288,7 @@ export default function WorkPlanCreateStepTwo() {
                       <InputNumber
                         disabled
                         className="w-full"
-                        value={
-                          dataItem ? parseFloat(dataItem.value) : 0
-                        }
+                        value={dataItem ? parseFloat(dataItem.value) : 0}
                         formatter={(value) =>
                           `${parseInt(value)}`.replace(
                             /\B(?=(\d{3})+(?!\d))/g,
@@ -324,7 +319,6 @@ export default function WorkPlanCreateStepTwo() {
         },
       };
 
-
       // อัปเดต areas value (คำนวณ qty * unitConvertValue) และ sum value
       const updatedAreas = areas.map((area) => {
         if (area.area_id === area_id) {
@@ -333,16 +327,16 @@ export default function WorkPlanCreateStepTwo() {
               return {
                 ...item,
                 qty: newQty,
-                value: (newQty * unitConvertValue), // คำนวณ value
+                value: newQty * unitConvertValue, // คำนวณ value
               };
             }
             return item;
           });
 
-          const totalValue = updatedDataItems
-            .reduce((sum, item) => sum + parseFloat(item.value || 0), 0)
-            ;
-
+          const totalValue = updatedDataItems.reduce(
+            (sum, item) => sum + parseFloat(item.value || 0),
+            0
+          );
           return {
             ...area,
             data_items: updatedDataItems,
@@ -427,29 +421,53 @@ export default function WorkPlanCreateStepTwo() {
     }
   };
 
+
+  useEffect(() => {
+    console.log(areas)
+  }, [areas])
+  
+
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-      <Title prefix="Work Plan" showYear={yearName} />
-
+        <Title prefix="Work Plan" showYear={yearName} />
 
         <BoxPrimary>
-          <div className="flex flex-col gap-2">
-            <div>Overall Target</div>
-            <div className="w-[25%]">
-              <InputNumber
-                className="w-full"
-                min={0}
-                value={totalValue}
-                formatter={(value) =>
-                  `${parseInt(value)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
-                }
-                disabled
-                suffix="THB"
-              />
+          <div className="flex gap-2">
+            <div>
+              <div>Overall Target</div>
+              <div className="w-full">
+                <InputNumber
+                  className="w-full"
+                  min={0}
+                  value={totalValue}
+                  formatter={(value) =>
+                    `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  disabled
+                  suffix="THB"
+                />
+              </div>
+            </div>
+            <div>
+              <div>Work Plan</div>
+              <div className="w-full">
+                <InputNumber
+                  className="w-full"
+                  min={0}
+                  value={
+                    areas.reduce(
+                      (sum, area) => sum + parseFloat(area.amount_target),
+                      0
+                    )
+                  }
+                  formatter={(value) =>
+                    `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  disabled
+                  suffix="THB"
+                />
+              </div>
             </div>
           </div>
         </BoxPrimary>

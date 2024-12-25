@@ -278,7 +278,7 @@ export default function ActivityList() {
     { title: "Sale", width: 150, dataIndex: "sale", align: "start" },
     { title: "Shop", width: 150, dataIndex: "shop", align: "start" },
     { title: "Date", width: 150, dataIndex: "date", align: "start" },
-    { title: "Time", width: 100, dataIndex: "time", align: "start", className: "text-nowrap" },
+    // { title: "Time", width: 100, dataIndex: "time", align: "start", className: "text-nowrap" },
     { title: "Create Date", width: 100, dataIndex: "createdAt", align: "start", className: "text-nowrap" },
     { title: "Mapping", width: 150, dataIndex: "mappingStatus", align: "start" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },

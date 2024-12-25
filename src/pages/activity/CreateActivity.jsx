@@ -72,8 +72,6 @@ export default function CreateActivity() {
     }
   };
 
-
-
   const handleUploadSuccess = (response) => {
     const data = response.data;
     const fileUpload = {
@@ -178,13 +176,15 @@ export default function CreateActivity() {
         (dealer) => dealer.id === activityDetail.dealer_id
       )
         ? dealerList
-        : [
+        : activityDetail.dealer_id && activityDetail.dealer_name
+        ? [
             ...dealerList,
             {
               id: activityDetail.dealer_id,
               name: activityDetail.dealer_name,
             },
-          ],
+          ]
+        : dealerList,
       disabled: viewSegment ?? false,
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
@@ -225,28 +225,28 @@ export default function CreateActivity() {
       col: pageCode != "activity_transaction" ? 6 : 8,
       value: activityDetail.document_date ?? dayjs().format("YYYY-MM-DD"),
     },
-    {
-      label: "Start Time",
-      name: "time_start",
-      type: "select",
-      typeMode: "string",
-      options: timeList,
-      disabled: viewSegment ?? false,
-      // required: true,
-      col: pageCode != "activity_transaction" ? 6 : 8,
-      value: activityDetail.time_start ?? "",
-    },
-    {
-      label: "End Time",
-      name: "time_end",
-      type: "select",
-      typeMode: "string",
-      options: timeList,
-      disabled: viewSegment ?? false,
-      // required: true,
-      col: pageCode != "activity_transaction" ? 6 : 8,
-      value: activityDetail.time_end ?? "",
-    },
+    // {
+    //   label: "Start Time",
+    //   name: "time_start",
+    //   type: "select",
+    //   typeMode: "string",
+    //   options: timeList,
+    //   disabled: viewSegment ?? false,
+    //   // required: true,
+    //   col: pageCode != "activity_transaction" ? 6 : 8,
+    //   value: activityDetail.time_start ?? "",
+    // },
+    // {
+    //   label: "End Time",
+    //   name: "time_end",
+    //   type: "select",
+    //   typeMode: "string",
+    //   options: timeList,
+    //   disabled: viewSegment ?? false,
+    //   // required: true,
+    //   col: pageCode != "activity_transaction" ? 6 : 8,
+    //   value: activityDetail.time_end ?? "",
+    // },
     {
       label: "Location",
       name: "location_address",
@@ -429,12 +429,10 @@ export default function CreateActivity() {
     const getMasterSelect = async () => {
       try {
         if (attribue == "user_id") {
-          if (value) {
-            await setupDealer(value);
-          }
+          activityDetail.user_id = value;
+          await setupDealer(value);
         } else if (attribue == "dealer_id") {
           activityDetail.dealer_id = value;
-
           if (value) {
             await setupCropAndDealerCustomer(value);
           }
@@ -512,7 +510,6 @@ export default function CreateActivity() {
 
   //handleChangeFunction
   const setupDealer = async (value) => {
-    activityDetail.user_id = value;
     const [dealer] = await Promise.all([
       useServiceAPI.get(paths.pathMasterSubDealerAll, {
         user_id: value,
@@ -525,7 +522,13 @@ export default function CreateActivity() {
         name: element.sub_dealer_name,
       });
     });
-    setDealerList((prevList) => [...prevList, ...subDealerAll]);
+    // setDealerList((prevList) => [...prevList, ...subDealerAll]);
+    if (subDealerAll && value) {
+      setDealerList(subDealerAll);
+    } else {
+      setDealerList([]);
+    }
+
   };
 
   const setupCropAndDealerCustomer = async (value) => {
@@ -864,10 +867,8 @@ export default function CreateActivity() {
 
   useEffect(() => {
     console.log(expenseForm);
-    
   }, []);
 
-  
   //บันทึกข้อมูล
   const handleSave = (modeSave) => {
     formCustom.validateFields();
@@ -969,15 +970,7 @@ export default function CreateActivity() {
         phone: element.phone,
       });
     });
-
-    console.log(expenseActualExp);
-    console.log(expenseActualSale);
-    console.log(expenseAdvance);
-
-
     // console.log(advance_expense);
-    
-    
     const body = {
       page_code: pageCode,
       document_number_referrent:
@@ -1003,6 +996,7 @@ export default function CreateActivity() {
       expense_actual_exp: activityDetail?.expense_actual_exp,
       expense_actual_sale: activityDetail?.expense_actual_sale,
       expense_advance: activityDetail?.expense_advance,
+      expense_actual: activityDetail?.expense_actual,
       expense_file_list: [],
       expense_participant_estimate:
         activityDetail?.expense_participant_estimate,
@@ -1035,7 +1029,8 @@ export default function CreateActivity() {
           showNotification(
             "success",
             response.data.message,
-            response.data.message_line,2
+            response.data.message_line,
+            2
           ).then(successCallback);
         })
         .catch((error) => {});
@@ -1063,7 +1058,8 @@ export default function CreateActivity() {
           showNotification(
             "success",
             response.data.message,
-            response.data.message_line,2
+            response.data.message_line,
+            2
           ).then(successCallback);
         })
         .catch((error) => {});
@@ -1381,7 +1377,7 @@ export default function CreateActivity() {
                     name="advance_expense"
                   >
                     <InputNumber
-                      placeholder="Free Text"
+                      placeholder="Advance expense"
                       className="w-full"
                       min={0}
                       formatter={(value) =>
@@ -1395,6 +1391,30 @@ export default function CreateActivity() {
                         });
                       }}
                       disabled={pageCode == "expense_clearing"}
+                    />{" "}
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={12} lg={6}>
+                  <Form.Item
+                    className="mb-3"
+                    label="Actual expense"
+                    name="actual_expense"
+                  >
+                    <InputNumber
+                      placeholder="Actual expense"
+                      className="w-full"
+                      min={0}
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      value={activityDetail.expense_actual}
+                      onChange={(value) => {
+                        setActivityDetail({
+                          ...activityDetail,
+                          expense_actual: value,
+                        });
+                      }}
+                      disabled={pageCode != "expense_clearing"}
                     />{" "}
                   </Form.Item>
                 </Col>

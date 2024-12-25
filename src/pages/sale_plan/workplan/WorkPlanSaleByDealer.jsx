@@ -244,7 +244,7 @@ export default function WorkPlanSaleByDealer() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={localData.qty}
+                value={localData.qty || 0 }
                 formatter={(value) =>
                   `${parseInt(value)}`.replace(
                     /\B(?=(\d{3})+(?!\d))/g,
@@ -256,7 +256,7 @@ export default function WorkPlanSaleByDealer() {
                     dealerItem.dealer_id,
                     record.product_id,
                     value,
-                    record.unit_convert_value || 1
+                    record.unit_convert_value || 0
                   )
                 }
                 disabled={!permission.edit}
@@ -329,7 +329,7 @@ export default function WorkPlanSaleByDealer() {
   const handleQtyChange = (dealerId, productId, qty, unitConvertValue) => {
     setLocalQtyState((prevState) => {
       // Calculate the new value
-      const value = qty * unitConvertValue;
+      const value = Number(qty || 0) * Number(unitConvertValue || 0);
 
       // Update the dealer's product information
       const updatedDealerProducts = {
@@ -342,7 +342,7 @@ export default function WorkPlanSaleByDealer() {
 
       // Recalculate amount_target for the dealer
       const amountTarget = Object.values(updatedDealerProducts).reduce(
-        (sum, product) => sum + (product.value || 0),
+        (sum, product) => sum + Number(product.value || 0),
         0
       );
 
@@ -359,7 +359,7 @@ export default function WorkPlanSaleByDealer() {
   const handleSave = async (mode) => {
     const totalAmountTarget = Object.values(localQtyState).reduce(
       (sum, item) => {
-        return sum + (item.amount_target || 0);
+        return sum + Number(item.amount_target || 0);
       },
       0
     );

@@ -79,6 +79,8 @@ export default function WorkPlan() {
     };
 
     getMaster();
+
+    
   }, [location.pathname]);
 
   const fetchData = async () => {

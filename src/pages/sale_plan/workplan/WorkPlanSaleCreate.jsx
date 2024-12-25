@@ -263,10 +263,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               value={localQtyState[item.quarter_id]?.total_value || 0}
               formatter={(value) =>
-                `${parseInt(value)}`.replace(
-                  /\B(?=(\d{3})+(?!\d))/g,
-                  ","
-                )
+                `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
             />
           ),
@@ -303,7 +300,7 @@ export default function WorkPlanSaleCreate() {
                           month.month_id,
                           record.product_id,
                           value,
-                          record.unit_convert_value || 1
+                          record
                         )
                       }
                       disabled={!permission.edit}
@@ -327,10 +324,7 @@ export default function WorkPlanSaleCreate() {
               className="w-full"
               value={localQtyState[item.quarter_id]?.total_value || 0}
               formatter={(value) =>
-                `${parseInt(value)}`.replace(
-                  /\B(?=(\d{3})+(?!\d))/g,
-                  ","
-                )
+                `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
             />
           ),
@@ -373,17 +367,75 @@ export default function WorkPlanSaleCreate() {
 
   const columns = applyTopLevelAndSpecificChildrenStyles(baseColumns);
 
-  const handleQtyChange = (
-    quarterId,
-    monthId,
-    productId,
-    newQty,
-    unitConvertValue
-  ) => {
-    setLocalQtyState((prevState) => {
-      const newValue = parseFloat((newQty * unitConvertValue));
+  // const handleQtyChange = (
+  //   quarterId,
+  //   monthId,
+  //   productId,
+  //   newQty,
+  //   record
+  //   // unitConvertValue
+  // ) => {
+  //   setLocalQtyState((prevState) => {
+  //     console.log(record);
+  //     console.log(record.qty);
+  //     const newValue = parseFloat(newQty || 0) * parseFloat(record.unit_convert_value || 0);
 
-      const updatedState = {
+  //     const updatedState = {
+  //       ...prevState,
+  //       [quarterId]: {
+  //         ...prevState[quarterId],
+  //         months: {
+  //           ...prevState[quarterId]?.months,
+  //           [monthId]: {
+  //             ...prevState[quarterId]?.months?.[monthId],
+  //             products: {
+  //               ...prevState[quarterId]?.months?.[monthId]?.products,
+  //               [productId]: {
+  //                 qty: newQty || 0,
+  //                 value: newValue,
+  //               },
+  //             },
+  //           },
+  //         },
+  //       },
+  //     };
+
+  //     // คำนวณ total_qty และ total_value ของ month
+  //     const totalMonth = Object.values(
+  //       updatedState[quarterId]?.months?.[monthId]?.products || {}
+  //     ).reduce(
+  //       (acc, product) => ({
+  //         qty: acc.qty + parseFloat(product.qty || 0),
+  //         value: acc.value + parseFloat(product.value || 0),
+  //       }),
+  //       { qty: 0, value: 0 }
+  //     );
+
+  //     updatedState[quarterId].months[monthId].total_qty = totalMonth.qty;
+  //     updatedState[quarterId].months[monthId].total_value = totalMonth.value;
+
+  //     // คำนวณ total_value ของ quarter
+  //     const totalQuarterValue = Object.values(
+  //       updatedState[quarterId]?.months || {}
+  //     ).reduce((sum, month) => sum + parseFloat(month.total_value || 0), 0);
+
+  //     updatedState[quarterId].total_value = totalQuarterValue;
+
+  //     console.log(updatedState);
+  //     return updatedState;
+  //   });
+  // };
+
+  const handleQtyChange = (quarterId, monthId, productId, newQty, record) => {
+    setLocalQtyState((prevState) => {
+      console.log(record);
+      console.log(record.qty);
+
+      const newValue =
+        parseFloat(newQty || 0) * parseFloat(record.unit_convert_value || 0);
+
+      // สร้าง state ชั่วคราวเพื่อคำนวณผลรวม
+      const tempState = {
         ...prevState,
         [quarterId]: {
           ...prevState[quarterId],
@@ -403,9 +455,39 @@ export default function WorkPlanSaleCreate() {
         },
       };
 
+      const totalProductsQty = Object.entries(tempState)
+        .flatMap(([quarterKey, quarter]) => {
+          return Object.entries(quarter?.months || {}).flatMap(
+            ([monthKey, month]) => {
+              return Object.entries(month?.products || {})
+                .filter(([key]) => key === String(productId)) // ตรวจสอบ key ที่ตรงกับ productId
+                .map(([key, product]) => {
+                  return parseFloat(product?.qty || 0); // แปลง qty เป็น float
+                });
+            }
+          );
+        })
+        .reduce((acc, qty) => {
+          const parsedAcc = parseFloat(acc) || 0; // แปลง acc เป็น float
+          const parsedQty = parseFloat(qty) || 0; // แปลง qty เป็น float
+          console.log("Accumulated Qty:", parsedAcc, "Current Qty:", parsedQty);
+          return parsedAcc + parsedQty; // บวกเลขที่ถูกแปลงแล้ว
+        }, 0);
+
+      // ตรวจสอบว่าผลรวมไม่เกิน record.qty
+      if (totalProductsQty > parseFloat(record.qty || 0)) {
+        showNotification(
+          "warning",
+          record.product_name,
+          "value is greater than Work plan",
+          2
+        );
+        return prevState; // ยกเลิกการเปลี่ยนแปลง
+      }
+
       // คำนวณ total_qty และ total_value ของ month
       const totalMonth = Object.values(
-        updatedState[quarterId]?.months?.[monthId]?.products || {}
+        tempState[quarterId]?.months?.[monthId]?.products || {}
       ).reduce(
         (acc, product) => ({
           qty: acc.qty + parseFloat(product.qty || 0),
@@ -414,17 +496,17 @@ export default function WorkPlanSaleCreate() {
         { qty: 0, value: 0 }
       );
 
-      updatedState[quarterId].months[monthId].total_qty = totalMonth.qty;
-      updatedState[quarterId].months[monthId].total_value = totalMonth.value;
+      tempState[quarterId].months[monthId].total_qty = totalMonth.qty;
+      tempState[quarterId].months[monthId].total_value = totalMonth.value;
 
       // คำนวณ total_value ของ quarter
       const totalQuarterValue = Object.values(
-        updatedState[quarterId]?.months || {}
+        tempState[quarterId]?.months || {}
       ).reduce((sum, month) => sum + parseFloat(month.total_value || 0), 0);
 
-      updatedState[quarterId].total_value = totalQuarterValue;
+      tempState[quarterId].total_value = totalQuarterValue;
 
-      return updatedState;
+      return tempState;
     });
   };
 
@@ -458,7 +540,6 @@ export default function WorkPlanSaleCreate() {
     } else {
       createPlan(mode);
     }
-
   };
 
   const createPlan = async (mode) => {
@@ -531,7 +612,6 @@ export default function WorkPlanSaleCreate() {
                     year_code: location?.state?.year_code,
                     user_id: location?.state?.user_id,
                     mode: location?.state?.mode,
-
                   },
                 });
               });
@@ -554,16 +634,16 @@ export default function WorkPlanSaleCreate() {
     }
   };
 
+
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-      <Title prefix="Work Plan" showYear={yearName} />
-
+        <Title prefix="Work Plan" showYear={yearName} />
 
         <BoxPrimary>
           <div className="flex gap-5">
             <div>
-              <div>Work Plan</div>
+              <div>Amount Target</div>
               <InputNumber
                 disabled
                 suffix="THB"
@@ -571,11 +651,25 @@ export default function WorkPlanSaleCreate() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${parseInt(value)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
+              />
+            </div>
+            <div>
+              <div>Work Plan</div>
+              <InputNumber
+                disabled
+                suffix="THB"
+                className="w-full"
+                min={0}
+                value={Object.values(localQtyState).reduce(
+                  (sum, year) => sum + (year.total_value || 0),
+                  0
+                )}
+                formatter={(value) =>
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+
               />
             </div>
             <div>

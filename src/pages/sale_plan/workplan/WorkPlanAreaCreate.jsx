@@ -29,7 +29,7 @@ export default function WorkPlanAreaCreate() {
   const handleQtyChange = (saleId, productId, newQty, unitConvertValue) => {
     setLocalQtyState((prevState) => {
       // คำนวณ value ใหม่ตาม qty และ unitConvertValue
-      const newValue = (newQty * unitConvertValue);
+      const newValue = newQty * unitConvertValue;
 
       // อัพเดตสถานะใน localQtyState
       const updatedQtyState = {
@@ -133,6 +133,9 @@ export default function WorkPlanAreaCreate() {
       });
   }, []);
 
+
+  
+
   const applyTopLevelAndSpecificChildrenStyles = (columns) =>
     columns.map((col, index) => {
       const backgroundColor = index % 2 === 0 ? "#00783F" : "#009845"; // Alternating color for top-level columns
@@ -216,14 +219,14 @@ export default function WorkPlanAreaCreate() {
                   title: "Pack Size",
                   dataIndex: "pack_size",
                   key: "pack_size",
-                  width: 150,
+                  width: 125,
                   fixed: "left",
                 },
                 {
                   title: "Work Plan (KG)",
                   dataIndex: "qty",
                   key: "original_plan_qty",
-                  width: 150,
+                  width: 125,
                   fixed: "left",
                   render: (text, record) => (
                     <InputNumber
@@ -244,7 +247,7 @@ export default function WorkPlanAreaCreate() {
                   title: "Value (THB)",
                   dataIndex: "value",
                   key: "value_thb",
-                  width: 150,
+                  width: 125,
                   fixed: "left",
                   render: (text, record) => (
                     <InputNumber
@@ -286,10 +289,7 @@ export default function WorkPlanAreaCreate() {
                     item.amount_target
                   }
                   formatter={(value) =>
-                    `${parseInt(value)}`.replace(
-                      /\B(?=(\d{3})+(?!\d))/g,
-                      ","
-                    )
+                    `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                   }
                 />
               ),
@@ -299,7 +299,7 @@ export default function WorkPlanAreaCreate() {
                   title: "Qty (KG)",
                   dataIndex: `qty_${item.user_id}`,
                   key: `qty_${item.user_id}`,
-                  width: 150,
+                  width: 125,
                   render: (_, record) => {
                     const localData = localQtyState[item.user_id]?.[
                       record.product_id
@@ -333,7 +333,7 @@ export default function WorkPlanAreaCreate() {
                   title: "Value (THB)",
                   dataIndex: `value_${item.user_id}`,
                   key: `value_${item.user_id}`,
-                  width: 150,
+                  width: 125,
                   render: (_, record) => {
                     const localData = localQtyState[item.user_id]?.[
                       record.product_id
@@ -477,16 +477,34 @@ export default function WorkPlanAreaCreate() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${parseInt(value)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
             </div>
+            <div>
+              <div>Work Plan</div>
+              <div className="w-full">
+                <InputNumber
+                  className="w-full"
+                  min={0}
+                  value={Object.keys(localQtyState)
+                    .filter((key) => key.startsWith("amount_target_"))
+                    .reduce((sum, key) => sum + localQtyState[key], 0)}
+                  formatter={(value) =>
+                    `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  disabled
+                  suffix="THB"
+                />
+              </div>
+            </div>
             <div className="">
               <div>Sale Area</div>
-              <InputNumber disabled className="w-[250px]" value={saleAreaName} />
+              <InputNumber
+                disabled
+                className="w-[250px]"
+                value={saleAreaName}
+              />
             </div>
           </div>
         </BoxPrimary>
