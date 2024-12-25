@@ -165,8 +165,8 @@ export default function EditSubDealer() {
       ],
       required: false,
       col: 12,
-      iconSrc: "/img/icons/calendar.png",
-      iconPosition: "right",
+      // iconSrc: "/img/icons/calendar.png",
+      // iconPosition: "right",
       value:companyinfo.day_of_week,
     },
     {
@@ -189,7 +189,6 @@ export default function EditSubDealer() {
       value: companyinfo.end_time
       ? dayjs(companyinfo.end_time, "HH:mm")
       : null,
-      
     },
     // {
     //   label: "Business Size",
@@ -269,7 +268,7 @@ export default function EditSubDealer() {
       required: false,
       col: 24,
       value: companyinfo.location_address,
-      // iconSrc: "/img/icons/location.png",
+      iconSrc: "/img/icons/location.png",
       // iconPosition: "right",
       disabled: true,
     },

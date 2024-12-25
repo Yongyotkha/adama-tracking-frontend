@@ -47,10 +47,10 @@ export default function SubDealerList() {
         
         setStatus(Status);
 
-        setPosition(producttype.data);
-        setRoles(roles.data);
+        // setPosition(producttype.data);
+        // setRoles(roles.data);
       } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        console.log( error.message);
       } finally {
         setLoading(false);
       }

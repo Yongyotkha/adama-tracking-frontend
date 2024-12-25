@@ -38,8 +38,8 @@ export default function EditUser() {
       setLoading(true);
       try {
         // Fetch user 
-        console.log(location.state.id);
-        console.log(location.state.mod);
+        // console.log(location.state.id);
+        // console.log(location.state.mod);
         await fetchPromotionDetails(location.state.id);
         // Fetch other necessary data in parallel
         const [positions, departments, territories, areas, roles, permissions] =

@@ -49,7 +49,7 @@ export default function EditInformation() {
   const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); // กำหนด state สำหรับ defaultSelectedCrops
   const [profileImage, setProfileImage] = useState("/img/profile.jpg"); // Default value
   const [dataLoaded, setDataLoaded] = useState(false);
-  const { userInfo, showNotification,showMsg } = useContext(AuthContext);
+  const { userInfo, showNotification } = useContext(AuthContext);
   const [dataApiKey, setDataApiKay] = useState("AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik");
   const [currentLocation, setCurrentLocation] = useState({});
   const [dataMapZoom, setDataMapZoom] = useState(15);
@@ -278,10 +278,7 @@ export default function EditInformation() {
         `${paths.pathCustomerDealerDetail}?id=${id}`
       );
       if (response.status === 200) {
-        const { data } = response;  
-        console.log(data.location_longitude);
-        console.log(data.location_latitude);
-      
+        const { data } = response;        
         setcompanyinfo(data);
         setContactItems(data.contact_items);
         setProfileImage(data.photo_path)
@@ -289,11 +286,9 @@ export default function EditInformation() {
         const cropNames = data.crop_list?.map((crop) => Number(crop.id)) || [];
         setDefaultSelectedCrops(cropNames);
         const lat = parseFloat(data.location_latitude) || 13.9572612; 
-        const lng = parseFloat(data.location_longitude) || 100.6222401;   
+        const lng = parseFloat(data.location_longitude) || 100.6222401;           
         setCurrentLocation({ lat, lng });
-
-
-        const newDataNetwork = data.network_list.map((item, index) => ({
+        const newDataNetwork = data.network_list?.map((item, index) => ({
           key: item.sub_dealer_id,
           no: index + 1,
           name: item.sub_dealer_name || "-",
@@ -566,7 +561,7 @@ export default function EditInformation() {
           no: index + 1,
           name: item.sub_dealer_name,
           territory: item.sub_dealer_contact_phone_number,
-          // position: item.sub_dealer_channel_type_name,
+          positionText: item.sub_dealer_channel_type_name,
           position: (
             <BadgeStatus
               text={item.sub_dealer_channel_type_name}
@@ -845,7 +840,7 @@ export default function EditInformation() {
         <LoadScript googleMapsApiKey={dataApiKey}>
           <GoogleMap
             mapContainerStyle={mapContainerStyle}
-            center={currentLocation}
+            center={ currentLocation}
             zoom={dataMapZoom}
             onClick={(e) => {
               const lat = e.latLng.lat();
