@@ -18,7 +18,7 @@ export default function ActivityMapping() {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(null);
   const [isFilterCollapsed, setIsFilterCollapsed] = useState(false); // Manage vertical collapse state
-  // const [checkedFilters, setCheckedFilters] = useState({}); // Manage checked state for all filters
+  const [checkedFilters, setCheckedFilters] = useState({}); // Manage checked state for all filters
   const [isAllChecked, setIsAllChecked] = useState(true);
 
   const [dataApiKey, setDataApiKay] = useState(
@@ -91,6 +91,7 @@ export default function ActivityMapping() {
           crop_id_list: data.crop_id_list,
           document_date_display: data.document_date_display,
         }));
+        
         setLocations(newLocations);
 
         setActivityType(
@@ -178,31 +179,7 @@ export default function ActivityMapping() {
       filter_type_name: "Dealer",
       data: dataDealer,
     },
-    // {
-    //   key: 3,
-    //   filter_type: "area",
-    //   filter_type_name: "Area",
-    //   data: dataArea,
-    // },
-    // {
-    //   key: 4,
-    //   filter_type: "year",
-    //   filter_type_name: "Year",
-    //   data: dataYear,
-    // },
   ];
-
-  // สร้างค่าเริ่มต้นของ checkedFilters จาก mockFilters
-  const getDefaultFilters = () => {
-    const defaultFilters = {};
-    mockFilters.forEach((filterItem) => {
-      defaultFilters[filterItem.filter_type] = filterItem.data.map(
-        (item) => item.id
-      );
-    });
-    return defaultFilters;
-  };
-  const [checkedFilters, setCheckedFilters] = useState(getDefaultFilters()); // ตั้งค่าตอนเริ่มต้น
 
   // Initialize all checkboxes as selected on page load
   useEffect(() => {
@@ -262,30 +239,31 @@ export default function ActivityMapping() {
     }
   };
 
-  // ฟังก์ชันสำหรับการเลือกหรือยกเลิกเลือกทั้งหมด
-  // ฟังก์ชันสำหรับการเลือกหรือยกเลิกเลือกทั้งหมด
+
   const toggleAll = (isChecked) => {
     const updatedFilters = {};
-
-    // วนลูป filter ทั้งหมด เพื่อตั้งค่าตัวเลือกให้ทุกค่าเป็น checked หาก isChecked = true
     mockFilters.forEach((filterItem) => {
       updatedFilters[filterItem.filter_type] = isChecked
-        ? filterItem.data.map((item) => item.id) // เลือกทั้งหมด
-        : []; // ยกเลิกทั้งหมด
+        ? filterItem.data.map((item) => item.id) 
+        : []; 
     });
-
     setCheckedFilters(updatedFilters);
     setIsAllChecked(isChecked);
-
-    // หาก isChecked = true ให้แสดง Marker ทั้งหมด
-    if (isChecked) {
-      setLocationMarkerIcon(locations);
-    } else {
-      // ถ้าไม่ checked all ให้ล้าง Marker ออกหรือ set ตาม logic ของคุณ
-      // โดยกรณีนี้จะไม่แสดง Marker ใด ๆ เมื่อยกเลิกเลือกทั้งหมด
-      setLocationMarkerIcon([]);
-    }
+    // if (isChecked) {
+      // setLocationMarkerIcon(locations);
+    // } else {
+    //   setLocationMarkerIcon([]);
+    // }
   };
+
+  
+
+  useEffect(() => {
+    if (locations.length < 0) {
+      renderMarkerLocation();
+    } 
+  }, [locations]);
+
 
   const renderMarkerLocation = () => {
     // Set MarkerLocation
@@ -314,25 +292,6 @@ export default function ActivityMapping() {
     );
   }
 
-  const handleCheckboxChange = (filterType, id) => {
-    setCheckedFilters((prevState) => {
-      const newFilters = { ...prevState };
-
-      if (!newFilters[filterType]) {
-        newFilters[filterType] = [];
-      }
-
-      if (newFilters[filterType].includes(id)) {
-        // Remove the item if it's already checked
-        newFilters[filterType] = newFilters[filterType].filter((i) => i !== id);
-      } else {
-        // Add the item to the checked filter
-        newFilters[filterType].push(id);
-      }
-
-      return newFilters;
-    });
-  };
 
   // ฟังก์ชันสำหรับการตรวจสอบว่าเลือกทั้งหมดหรือไม่
   useEffect(() => {
@@ -342,14 +301,10 @@ export default function ActivityMapping() {
       );
     });
 
-    setIsAllChecked(allFiltersSelected); // ถ้าทุกตัวเลือกถูกเลือก ก็จะเป็น true
+
+    setIsAllChecked(allFiltersSelected); 
   }, [checkedFilters]);
 
-  useEffect(() => {
-    if (locations.length > 0) {
-      renderMarkerLocation();
-    }
-  }, [locations, selected, locationWindowInfo]);
 
   // Set New Marker
   useEffect(() => {
@@ -425,6 +380,9 @@ export default function ActivityMapping() {
 
       loadDataMappingList();
     }
+
+
+
   }, [checkedFilters]);
 
   const handleSearch = (text) => {
@@ -454,6 +412,14 @@ export default function ActivityMapping() {
     setCurrentLocation({ lat: option.lat, lng: option.lng });
     setDataMapZoom(15); // Set a higher zoom level for focusing
   };
+
+
+  useEffect(() => {
+   
+    setLocationMarkerIcon(locations);
+
+  }, [locations]);
+
 
   return (
     <MainLayout loading={loading}>
@@ -537,6 +503,8 @@ export default function ActivityMapping() {
                     }))}
                     value={checkedFilters[category.filter_type]}
                     onChange={(list) => {
+                      console.log(list,category.filter_type);
+                      
                       setCheckedFilters((prevFilters) => ({
                         ...prevFilters,
                         [category.filter_type]: list,
@@ -559,17 +527,28 @@ export default function ActivityMapping() {
                 mapContainerStyle={mapContainerStyle}
                 center={currentLocation}
                 zoom={dataMapZoom}
+                options={ { styles: [
+                  {
+                    featureType: "poi", // Points of Interest
+                    stylers: [{ visibility: "off" }], // Turn off POI visibility
+                  },
+                ],}}
               >
                 {locationMarkerIcon.map((location, locationIndex) => (
+                 
                   <Marker
                     key={locationIndex}
-                    position={{ lat: parseFloat(location.lat), lng: parseFloat(location.lng) }}
+                    position={{ lat: parseFloat(location.lat) , lng: parseFloat(location.lng) }}
+                    // position={{ lat: (parseFloat(location.lat) -(Math.random() - 0.5) * 0.00002), lng: (parseFloat(location.lng)-(Math.random() - 0.5) * 0.00002)}}
                     icon={{
                       url: location.activity_image_location,
                       scaledSize: { width: 30, height: 30 },
                     }}
+                    options={{
+                      suppressInfoWindow: true, // ปิดการแสดง InfoWindow เริ่มต้น
+                    }}
                     onClick={() => {
-                      // Set the location information for the InfoWindow
+                      // Set the location information for the InfoWindow   
                       const newLocationWindowInfo = {
                         lat: parseFloat(location.lat),
                         lng: parseFloat(location.lng),
@@ -584,13 +563,9 @@ export default function ActivityMapping() {
                       };                      
                       setlocationWindowInfo(newLocationWindowInfo);
 
-                      // // Log the necessary details to the console
-                      // console.log("Dealer Name:", newLocationWindowInfo.dealer_name);
-                      // console.log("Address:", newLocationWindowInfo.address);
-                      // console.log("Crops List:", newLocationWindowInfo.crop_list);
-                      // console.log("Document Date Display:", newLocationWindowInfo.document_date_display);
                     }}
                   />
+
 
                 ))}
 
@@ -619,10 +594,6 @@ export default function ActivityMapping() {
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img src="/img/icons/shop.png" className="w-6 h-6" alt="" />
                         {locationWindowInfo.details || "No Description"}
-                        {/* ถ้ามีตัวแปรจะให้อ่าน Html ลอง Search ใช้ Code นี้
-                        dangerouslySetInnerHTML={{
-                          __html: event.description || "<span>No description available</span>",
-                        }} */}
                       </div>
 
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
