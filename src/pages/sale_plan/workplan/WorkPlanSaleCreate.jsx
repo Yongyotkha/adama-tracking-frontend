@@ -216,9 +216,9 @@ export default function WorkPlanSaleCreate() {
                     <InputNumber
                       className="w-full"
                       disabled
-                      value={text}
+                      value={text || 0}
                       formatter={(value) =>
-                        `${parseInt(value)}`.replace(
+                        `${parseInt(value) }`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
                         )
@@ -236,7 +236,7 @@ export default function WorkPlanSaleCreate() {
                     <InputNumber
                       className="w-full"
                       disabled
-                      value={text}
+                      value={text || 0}
                       formatter={(value) =>
                         `${parseInt(value)}`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
@@ -470,7 +470,6 @@ export default function WorkPlanSaleCreate() {
         .reduce((acc, qty) => {
           const parsedAcc = parseFloat(acc) || 0; // แปลง acc เป็น float
           const parsedQty = parseFloat(qty) || 0; // แปลง qty เป็น float
-          console.log("Accumulated Qty:", parsedAcc, "Current Qty:", parsedQty);
           return parsedAcc + parsedQty; // บวกเลขที่ถูกแปลงแล้ว
         }, 0);
 
