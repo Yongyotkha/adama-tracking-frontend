@@ -54,6 +54,7 @@ export const paths = {
   pathCustomerSubDealerUpdate: "sale-customer-dealer/update",
   pathCustomerSubDealerNetworkUpdate: "sale-customer-dealer/network-create",
 
+  
   // Farners
   pathCustomerFarmers: "sale-customer-farmer/list",
   pathCustomerFarmersCreate: "sale-customer-farmer/create",
@@ -65,6 +66,11 @@ export const paths = {
   pathDeleteSubDealer: "sale-customer-subdealer/delete",
   pathSubDealerDetail: "sale-customer-subdealer/detail",
   pathSubDealerDetailUpdate: "sale-customer-subdealer/update",
+
+  // dashbord
+  pathDashBordCustomer: "dashboard/customer",
+  pathDashBordExpense: "dashboard/expense",
+  pathDashBordOrder: "dashboard/order",
 
   // Sale
   pathSaleManagementDetail: "sale-management/sale-team/detail",

@@ -36,6 +36,7 @@ export default function CreateSale() {
   const [selectedSaleArea, setSelectedSaleArea] = useState(null); // เก็บค่าที่เลือกจาก Sale Area
   const [defaultSaleHead, setDefaultSaleHead] = useState(null);
   const [defaultSaleArea, setDefaultSaleArea] = useState(null);
+  const [defaultArea, setDefaultArea] = useState(null);
   const [permission, setPermission] = useState({});
 
   useEffect(() => {
@@ -60,7 +61,25 @@ export default function CreateSale() {
         const { data } = response;
         setSaleManagementId(id);
         setPermission(data.permission); 
-               
+
+        if (data.area_name) {
+          setDefaultArea(data.area_name);
+          console.log(data.area_name);
+          
+        }        
+      // ตั้งค่า Default Sale Area
+      if (data.sale_area_name) {
+        setDefaultSaleArea(data.sale_area_name);
+        setSelectedSaleArea(data.sale_area_name); // Set ค่าเริ่มต้นสำหรับ Sale Area
+      }
+   
+      // ตั้งค่า Default Sale Area
+      if (data.sale_head_name) {
+        setDefaultSaleHead(data.sale_head_name);
+        setSelectedSaleHead(data.sale_head_name); // Set ค่าเริ่มต้นสำหรับ Sale Area
+      }
+
+
         const transformedData = data.items.map((item, index) => ({
           key: item.sale_management_header_id,
           no: index + 1,
@@ -154,18 +173,6 @@ export default function CreateSale() {
     }
   };
 
-  // const salesDataTeam = [
-  //   { key: "1", no: 1, name: "Passakorn Kong-In", position: "Sales Assistant", territory: "Right North" },
-  //   { key: "2", no: 2, name: "Tossaphon Suphaksitthikorn", position: "Business Development Executive", territory: "Right Lower North" },
-  //   { key: "3", no: 3, name: "Panudech Srithong", position: "Business Development Executive", territory: "Upper Central" },
-  //   { key: "4", no: 4, name: "Sarawut Nisap", position: "Business Development Executive", territory: "Central" },
-  //   { key: "5", no: 5, name: "Tanadol Kaewyai", position: "Sales Assistant", territory: "Central" },
-  //   { key: "6", no: 6, name: "Thanakit Kongkrapan", position: "Sales Assistant", territory: "West" },
-  //   { key: "7", no: 7, name: "Wisisak Prakobsin", position: "Business Development Executive", territory: "South" },
-  //   { key: "8", no: 8, name: "Chinnawat Bunmakaew", position: "Sales Assistant", territory: "South" },
-  //   // Add more entries if needed
-  // ];
-
 
   const columns = [
     {
@@ -211,10 +218,6 @@ export default function CreateSale() {
     await fetchUserList(); // ดึงข้อมูลผู้ใช้ก่อนเปิดโมดอล
     setIsTerritoryModalVisible(true); // แสดงโมดอลหลังข้อมูลพร้อม
   };
-
-  // const handleOpenTeamModal = () => {
-  //   setIsTeamModalVisible(true);
-  // };
 
   const handleOpenTeamModal = async (
     area,
@@ -382,6 +385,7 @@ export default function CreateSale() {
           response.data.message,
           response.data.message_line
         );
+
       } else {
         console.error("Failed to delete record:", response.message);
         showNotification("error", response.message, response.message_line);
@@ -404,10 +408,10 @@ export default function CreateSale() {
         setSaleHeads(saleHeadData);
 
         // เซ็ตค่า default
-        if (response.data.length > 0) {
-          setDefaultSaleHead(response.data[0].id); // เลือกอันแรกเป็น default
-          setSelectedSaleHead(response.data[0].id); // เซ็ต selected value
-        }
+        // if (response.data.length > 0) {
+        //   setDefaultSaleHead(response.data[0].id); // เลือกอันแรกเป็น default
+        //   setSelectedSaleHead(response.data[0].id); // เซ็ต selected value
+        // }
       } else {
         console.error("Failed to fetch Sale Heads:", response.message);
       }
@@ -426,17 +430,11 @@ export default function CreateSale() {
         }));
         setSaleAreas(saleAreaData);
 
-        // console.log(response.data.sale_head_name);
-        // console.log(response.data.sale_area_name);
-        // console.log(response.data.area_name);
-
-
         // เซ็ตค่า default
-        if (response.data.length > 0) {
-          setDefaultSaleArea(response.data[0].id); // เลือกอันแรกเป็น default
-          setSelectedSaleArea(response.data[0].id); // เซ็ต selected value
-
-        }
+        // if (response.data.length > 0) {
+        //   // setDefaultSaleArea(response.data[0].id); // เลือกอันแรกเป็น default
+        //   setSelectedSaleArea(response.data[0].id); // เซ็ต selected value
+        // }
       } else {
         console.error("Failed to fetch Sale Areas:", response.message);
       }
@@ -491,7 +489,7 @@ export default function CreateSale() {
 
           <div>
             <label className="block mb-1 text-sm text-gray-600">Area</label>
-            <Input defaultValue="Area 1" disabled className="w-full" />
+            <Input value={defaultArea} disabled className="w-full" />
           </div>
         </div>
       </BoxPrimary>
