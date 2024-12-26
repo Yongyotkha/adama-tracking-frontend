@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect  } from "react";
 import { Card, Row, Col, Select } from "antd";
 import MainLayout from "../../layouts/MainLayout";
 import { BarChart } from '@mui/x-charts/BarChart';
@@ -8,8 +8,22 @@ import { styled } from '@mui/material/styles';
 import { PieChart } from "@mui/x-charts";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import { Hidden } from "@mui/material";
+import useServiceAPI from "../../services/CorsService";
+import { paths } from "../../services/CorsPath";
 
 export default function Dashboard() {
+  const [years, setYears] = useState([]);
+  const [selectedYear, setSelectedYear] = useState({});
+
+  const [months, setMonths] = useState([]);
+  const [selectedMonths, setSelectedMonths] = useState(null);
+  const [subdealer, setSubdealer] = useState([]);
+  const [selectedSubdealer, setSelectedSubdealer] = useState(null);
+  const [dashboardData, setDashboardData] = useState({ dealer_count: 0, sub_dealer_count: 0 });
+  const [dashboardDataExpense, setDashboardDataExpense] = useState({total_expense_actual_sale: 0, total_expense_actual_exp: 0, total_expense_advance:0 });
+  const [dashboardDataOrder, setDashboardDataOrder] = useState({ total_order: 0, total_order_amonth: 0 });
+
+
   const [loading, setLoading] = useState(false);
   const chartSetting = {
     yAxis: [
@@ -195,22 +209,186 @@ export default function Dashboard() {
   }
 
 
+  useEffect(() => {
+    fetchYears(); // ดึงปี
+    fetchMonth(); // ดึงเดือน
+    fetchSubdealer();
+    fetchDashboardData();
+    fetchDashboardDataExpense();
+    fetchDashboardDataOrder();
+  }, []);
+
+
+  // เลือกปี
+  const fetchYears = async () => {
+    setLoading(true);
+    try {
+      const response = await useServiceAPI.get(paths.pathMasterYear);
+      if (response.status === 200) {
+        const yearsData = response.data || []; // ตรวจสอบว่า data มีอยู่หรือไม่
+        setYears(yearsData); // เก็บข้อมูลทั้งหมดลง state
+        setSelectedYear(yearsData[0]?.id);         
+      }
+    } catch (error) {
+      console.error("Error fetching years:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  
+  const handleYearChange = (value) => {
+    setSelectedYear(value); // อัปเดตค่า state
+    fetchDashboardData(value);
+    fetchDashboardDataExpense(value)
+    fetchDashboardDataOrder(value);
+  };
+
+
+  // เลือเดือน
+  const fetchMonth = async () => {
+    setLoading(true);
+    try {
+      const response = await useServiceAPI.get(paths.pathMasterMonths);
+      if (response.status === 200) {
+        const monthsData = response.data || [];
+        setMonths(monthsData);
+        setSelectedMonths(monthsData[0]?.id); // ตั้งค่า default เป็นเดือนแรก
+      }
+    } catch (error) {
+      console.error("Error fetching months:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // เช็คค่าทีเลือก Expense mount
+  const handleMonthChangeExpense = (value) => {
+    setSelectedMonths(value); // อัปเดตค่าเดือนที่เลือก
+    console.log("Selected Month ID:", value); // Log ค่าที่เลือก
+  };
+
+    // เลือก subdealer
+    const fetchSubdealer = async () => {
+      setLoading(true);
+      try {
+        const response = await useServiceAPI.get(paths.pathMasterSubDealer);
+        if (response.status === 200) {
+          const subDealerData = response.data || [];
+          setSubdealer(subDealerData);
+          setSelectedSubdealer(subDealerData[0]?.sub_dealer_id); // ตั้งค่า default เป็น sub dealer แรก
+        }
+      } catch (error) {
+        console.error("Error fetching subdealers:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+  const handleSubdealerChangeExpense = (value) => {
+    setSelectedSubdealer(value); // อัปเดตค่า Sub Dealer ที่เลือก
+    console.log("Selected Sub Dealer ID:", value); // Log ค่าที่เลือก
+  };
+
+  const fetchDashboardData = async (year) => {
+    setLoading(true);
+    try {
+      const response = await useServiceAPI.get(paths.pathDashBordCustomer, { year_code: year });
+      if (response.status === 200) {
+        const data = response.data || {};
+        setDashboardData({
+          dealer_count: data["dealer_count "] || 0,
+          sub_dealer_count:  data["sub_dealer_count "] || 0,
+        });
+      } else {
+        console.error("Failed to fetch dashboard data:", response.message);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const fetchDashboardDataExpense = async (year = new Date().getFullYear()) => {
+    setLoading(true);
+    try {
+      const response = await useServiceAPI.get(paths.pathDashBordExpense, { year_code: year });
+      if (response.status === 200) {
+        const data = response.data || {};
+        setDashboardDataExpense({
+          total_expense_advance: data["total_expense_advance "] || 0,
+          total_expense_actual_exp:  data["total_expense_actual_exp "] || 0,
+          total_expense_actual_sale:  data["total_expense_actual_sale "] || 0,
+        });
+
+      } else {
+        console.error("Failed to fetch dashboard data:", response.message);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const fetchDashboardDataOrder = async (year = new Date().getFullYear()) => {
+    setLoading(true);
+    try {
+      const response = await useServiceAPI.get(paths.pathDashBordOrder, { year_code: year });
+      if (response.status === 200) {
+        const data = response.data || {};
+        setDashboardDataOrder({
+          total_order: data["total_order "] || 0,
+          total_order_amonth:  data["total_order_amonth "] || 0,
+        });
+
+      } else {
+        console.error("Failed to fetch dashboard data:", response.message);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Dashboard</div>
-        <Select defaultValue="2024">
+        {/* <Select defaultValue="2024">
           <Select.Option value="2024">Year 2024</Select.Option>
-        </Select>
+        </Select> */}
+      <Select
+        className="w-40"
+        value={selectedYear}
+        onChange={handleYearChange}
+        placeholder={loading ? "Loading..." : "Select Year"}
+        disabled={loading}
+      >
+        {years.map((year) => (
+          <Select.Option key={year.id} value={year.id}>
+            {`Year ${year.name}`}
+          </Select.Option>
+        ))}
+      </Select>
       </div>
       {/* Row 1: Dealer, Sub Dealer, Expense, Order */}
       <Row gutter={[16, 16]} className="mb-4">
+
         <Col xs={24} sm={12} lg={12} xxl={6}>
           <BoxPrimary className="h-full flex items-center justify-between">
             <div className="flex items-center justify-between w-full">
               <div>
                 <h3 className="text-lg font-bold text-[#00783F]">Dealer</h3>
-                <div className="text-4xl font-bold text-[#00783F]">10</div>
+                <div className="text-4xl font-bold text-[#00783F]">
+                    {dashboardData.dealer_count}
+                </div>
               </div>
               <div>
                 <img src="/img/icons/dealer.png" alt="" className="w-[4.5rem] h-[4.5rem]" />
@@ -218,12 +396,15 @@ export default function Dashboard() {
             </div>
           </BoxPrimary>
         </Col>
+        
         <Col xs={24} sm={12} lg={12} xxl={6}>
           <BoxPrimary className="h-full flex items-center justify-between">
             <div className="flex items-center justify-between w-full">
               <div>
                 <h3 className="text-lg font-bold text-[#00783F]">Sub Dealer</h3>
-                <div className="text-4xl font-bold text-[#00783F]">10</div>
+                <div className="text-4xl font-bold text-[#00783F]">
+                    {dashboardData.sub_dealer_count}
+                </div>
               </div>
               <div>
                 <img src="/img/icons/sub-dealer.png" alt="" className="w-[4.5rem] h-[4.5rem]" />
@@ -236,25 +417,50 @@ export default function Dashboard() {
             <div className="flex flex-wrap justify-between items-center">
               <h3 className="text-lg font-bold text-[#00783F]">Expense</h3>
               <div className="flex flex-wrap gap-2">
-                <Select className="w-36" defaultValue="All Sub Dealer">
+                {/* <Select className="w-36" defaultValue="All Sub Dealer">
                   <Select.Option value="All Sub Dealer">All Sub Dealer</Select.Option>
+                </Select> */}
+                <Select
+                  className="w-36"
+                  value={selectedSubdealer}
+                  onChange={handleSubdealerChangeExpense}
+                  placeholder={loading ? "Loading..." : "Select sub dealer"}
+                  disabled={loading}
+                >
+                  {subdealer.map((sudealer) => (
+                    <Select.Option key={sudealer.sub_dealer_id} value={sudealer.sub_dealer_id}>
+                      {`${sudealer.sub_dealer_name}`}
+                    </Select.Option>
+                  ))}
                 </Select>
-                <Select className="w-36" defaultValue="All Month">
-                  <Select.Option value="All Month">All Month</Select.Option>
+
+                <Select
+                  className="w-36"
+                  value={selectedMonths}
+                  onChange={handleSubdealerChangeExpense}
+                  placeholder={loading ? "Loading..." : "Select Month"}
+                  disabled={loading}
+                >
+                  {months.map((month) => (
+                    <Select.Option key={month.id} value={month.id}>
+                      {`months ${month.name}`}
+                    </Select.Option>
+                  ))}
                 </Select>
+
               </div>
             </div>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-300">
               <div className="text-center py-2">
-                <div className="text-md font-bold text-[#00783F]">1,000,000</div>
+                <div className="text-md font-bold text-[#00783F]">  {dashboardDataExpense.total_expense_advance} </div>
                 <div className="text-sm text-gray-500">Advance</div>
               </div>
               <div className="text-center py-2">
-                <div className="text-md font-bold text-[#00783F]">1,000,000</div>
+                <div className="text-md font-bold text-[#00783F]">  {dashboardDataExpense.total_expense_actual_exp} </div>
                 <div className="text-sm text-gray-500">Estimate</div>
               </div>
               <div className="text-center py-2">
-                <div className="text-md font-bold text-[#00783F]">1,000,000</div>
+                <div className="text-md font-bold text-[#00783F]">  {dashboardDataExpense.total_expense_actual_sale} </div>
                 <div className="text-sm text-gray-500">Actual</div>
               </div>
             </div>
@@ -275,11 +481,11 @@ export default function Dashboard() {
             </div>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 w-full">
               <div className="text-center p-2">
-                <div className="text-md font-bold text-[#00783F]">1,000,000</div>
+                <div className="text-md font-bold text-[#00783F]"> {dashboardDataOrder.total_order} </div>
                 <div className="text-sm text-gray-500">Order</div>
               </div>
               <div className="text-center p-2">
-                <div className="text-md font-bold text-[#00783F]">1,000,000</div>
+                <div className="text-md font-bold text-[#00783F]"> {dashboardDataOrder.total_order_amonth} </div>
                 <div className="text-sm text-gray-500">Estimate</div>
               </div>
             </div>
