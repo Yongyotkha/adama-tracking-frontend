@@ -522,7 +522,7 @@ export default function RollingForecastDealer() {
               </div>
             </div>
             <div>
-              <div>Work Plan</div>
+              <div>Amount Target</div>
               <div className="">
                 <InputNumber
                   disabled
@@ -533,6 +533,27 @@ export default function RollingForecastDealer() {
                     dealers.find((dealer) => dealer.dealer_id === activeKey)
                       ?.amount_target || 0
                   }
+                  formatter={(value) =>
+                    `${parseInt(value)}`.replace(
+                      /\B(?=(\d{3})+(?!\d))/g,
+                      ","
+                    )
+                  }
+                />
+              </div>
+            </div>
+            <div>
+              <div>Work Plan</div>
+              <div className="">
+                <InputNumber
+                  disabled
+                  suffix="THB"
+                  className="w-full"
+                  min={0}
+                  value={Object.values(localQtyState).reduce(
+                    (sum, value) => sum + (value.amount_target || 0),
+                    0
+                  )}
                   formatter={(value) =>
                     `${parseInt(value)}`.replace(
                       /\B(?=(\d{3})+(?!\d))/g,

@@ -170,7 +170,7 @@ export default function RollingForecastQuarter() {
                   title: "Work Plan (KG)",
                   dataIndex: "qty",
                   key: "originalPlan",
-                  width: 150,
+                  width: 125,
                   fixed: "left",
                   onHeaderCell: defaultHeaderDarkGreen,
 
@@ -192,7 +192,7 @@ export default function RollingForecastQuarter() {
                   title: "Value (THB)",
                   dataIndex: "value",
                   key: "valueTHB",
-                  width: 150,
+                  width: 125,
                   fixed: "left",
                   onHeaderCell: defaultHeaderDarkGreen,
                   render: (text) => (
@@ -287,7 +287,7 @@ export default function RollingForecastQuarter() {
                   ),
                 dataIndex: `workplan_${month.month_id}`,
                 key: `workplan_qty_${month.month_id}`,
-                width: 150,
+                width: 125,
 
                 render: (_, record) => {
                   const workplanData =
@@ -315,7 +315,7 @@ export default function RollingForecastQuarter() {
                 onHeaderCell: () => defaultHeaderDynamic("#7DB41E"),
                 dataIndex: `rollingforecast_${month.month_id}`,
                 key: `rollingforecast_qty_${month.month_id}`,
-                width: 150,
+                width: 125,
 
                 render: (_, record) => {
                   const rollingData =
@@ -356,7 +356,7 @@ export default function RollingForecastQuarter() {
                 onHeaderCell: () => defaultHeaderDynamic("#93CC23"),
                 dataIndex: `actual_${month.month_id}`,
                 key: `actual_qty_${month.month_id}`,
-                width: 150,
+                width: 125,
 
                 render: (_, record) => {
                   const actualData =

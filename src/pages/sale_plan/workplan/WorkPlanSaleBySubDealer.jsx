@@ -36,7 +36,6 @@ export default function WorkPlanSaleBySubDealer() {
     if (activeKey) {
       getSubDealerList();
     }
-    console.log(activeKey, "useEffect");
   }, [activeKey]);
 
   const getMasterDealer = () => {
@@ -508,7 +507,8 @@ export default function WorkPlanSaleBySubDealer() {
                 response.data.message,
                 response.data.message_line
               ).then(() => {
-                navigate("/sale-plan/work-plan-sale");
+                // navigate("/sale-plan/work-plan-sale");
+                getSubDealerList();
               });
             } else {
               showNotification(
