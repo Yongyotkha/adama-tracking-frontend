@@ -256,7 +256,8 @@ export default function RollingForecastMonth() {
                     record.unit_convert_value || 1
                   )
                 }
-                disabled={!permission.edit || !month.is_edit}
+                disabled={ !month.is_edit}
+                // disabled={!permission.edit || !month.is_edit}
               />
             );
           },
@@ -347,6 +348,11 @@ export default function RollingForecastMonth() {
       };
     });
   };
+
+  useEffect(() => {
+   console.log(localQtyState);
+  }, [localQtyState])
+  
 
   const handleSave = async (mode) => {
     setLoading(true); // เริ่มโหลดข้อมูล
@@ -443,13 +449,32 @@ export default function RollingForecastMonth() {
         <BoxPrimary>
           <div className="flex gap-4">
             <div>
-              <div>Work Plan</div>
+              <div>Amount Target</div>
               <InputNumber
                 disabled
                 suffix="THB"
                 className="w-[300px]"
                 min={0}
                 value={totalValue}
+                formatter={(value) =>
+                  `${parseInt(value)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
+                }
+              />
+            </div>
+            <div>
+              <div>Work Plan</div>
+              <InputNumber
+                disabled
+                suffix="THB"
+                className="w-[300px]"
+                min={0}
+                value={Object.values(localQtyState).reduce(
+                  (sum, value) => sum + (value.amount_target || 0),
+                  0
+                )}
                 formatter={(value) =>
                   `${parseInt(value)}`.replace(
                     /\B(?=(\d{3})+(?!\d))/g,
