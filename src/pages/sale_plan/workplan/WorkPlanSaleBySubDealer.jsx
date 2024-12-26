@@ -384,17 +384,17 @@ export default function WorkPlanSaleBySubDealer() {
   ) => {
     setLocalQtyState((prevState) => {
       const updatedState = { ...prevState };
-  
+
       if (!updatedState[dealerId]) {
         updatedState[dealerId] = {};
       }
       if (!updatedState[dealerId][subDealerId]) {
         updatedState[dealerId][subDealerId] = { totalAmountTarget: 0 };
       }
-  
+
       const originalPlan =
         dataSource.find((item) => item.product_id === productId)?.qty || 0;
-  
+
       const totalOtherQty = Object.keys(updatedState[dealerId]).reduce(
         (sum, dealerKey) => {
           if (dealerKey !== "0" && dealerKey !== subDealerId.toString()) {
@@ -407,10 +407,10 @@ export default function WorkPlanSaleBySubDealer() {
         },
         0
       );
-  
+
       const maxQty = originalPlan - totalOtherQty;
       const finalQty = Math.min(newQty, Math.max(0, maxQty));
-  
+
       // Update the state for the current sub-dealer
       if (!updatedState[dealerId][subDealerId][productId]) {
         updatedState[dealerId][subDealerId][productId] = {};
@@ -419,13 +419,13 @@ export default function WorkPlanSaleBySubDealer() {
         qty: Number(finalQty) || 0,
         value: (Number(finalQty) || 0) * (Number(unitConvertValue) || 0),
       };
-  
+
       updatedState[dealerId][subDealerId].totalAmountTarget = Object.values(
         updatedState[dealerId][subDealerId]
       )
         .filter((product) => typeof product === "object")
         .reduce((sum, product) => sum + (Number(product.value) || 0), 0);
-  
+
       const remainingQty =
         originalPlan -
         Object.keys(updatedState[dealerId]).reduce((sum, dealerKey) => {
@@ -437,7 +437,7 @@ export default function WorkPlanSaleBySubDealer() {
           }
           return sum;
         }, 0);
-  
+
       if (!updatedState[dealerId][0]) {
         updatedState[dealerId][0] = { totalAmountTarget: 0 };
       }
@@ -448,18 +448,18 @@ export default function WorkPlanSaleBySubDealer() {
         qty: Number(remainingQty) || 0,
         value: (Number(remainingQty) || 0) * (Number(unitConvertValue) || 0),
       };
-  
+
       updatedState[dealerId][0].totalAmountTarget = Object.values(
         updatedState[dealerId][0]
       )
         .filter((product) => typeof product === "object")
         .reduce((sum, product) => sum + (Number(product.value) || 0), 0);
-  
+
       console.log(updatedState);
       return updatedState;
     });
   };
-  
+
 
   const handleSave = async (mode) => {
     setLoading(true); // เริ่มโหลดข้อมูล
@@ -578,7 +578,7 @@ export default function WorkPlanSaleBySubDealer() {
               </div>
             </div>
             <div>
-              <div>Work Plan</div>
+              <div>Amount Target</div>
               <div className="">
                 <InputNumber
                   disabled
@@ -588,6 +588,31 @@ export default function WorkPlanSaleBySubDealer() {
                   value={
                     dealers.find((dealer) => dealer.dealer_id === activeKey)
                       ?.amount_target || 0
+                  }
+                  formatter={(value) =>
+                    `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                />
+              </div>
+            </div>
+            <div>
+              <div>Work Plan</div>
+              <div className="">
+                <InputNumber
+                  disabled
+                  suffix="THB"
+                  className="w-full"
+                  min={0}
+                  value={
+                    Object.values(localQtyState).reduce((sum, obj) => {
+                      return (
+                        sum +
+                        Object.values(obj).reduce(
+                          (nestedSum, item) => nestedSum + (item.totalAmountTarget || 0),
+                          0
+                        )
+                      );
+                    }, 0)
                   }
                   formatter={(value) =>
                     `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
@@ -623,7 +648,10 @@ export default function WorkPlanSaleBySubDealer() {
                       min={0}
                       value={totalValue}
                       formatter={(value) =>
-                        `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        `${parseInt(value)}`.replace(
+                          /\B(?=(\d{3})+(?!\d))/g,
+                          ","
+                        )
                       }
                       style={{ backgroundColor: "white" }}
                     />

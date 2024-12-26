@@ -11,7 +11,6 @@ import { AuthContext } from "../../../contexts/AuthContext";
 import Title from "../../../components/title/Title";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 
-
 export default function WorkPlanSaleByDealer() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -101,6 +100,10 @@ export default function WorkPlanSaleByDealer() {
         showNotification("error", "เกิดข้อผิดพลาด");
       });
   }, []);
+
+  useEffect(() => {
+    console.log(localQtyState);
+  }, [localQtyState]);
 
   const columns = [
     {
@@ -193,10 +196,7 @@ export default function WorkPlanSaleByDealer() {
               disabled
               value={text}
               formatter={(value) =>
-                `${parseInt(value)}`.replace(
-                  /\B(?=(\d{3})+(?!\d))/g,
-                  ","
-                )
+                `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
             />
           ),
@@ -205,7 +205,10 @@ export default function WorkPlanSaleByDealer() {
     },
     ...dealer.map((dealerItem, index) => ({
       title: (
-        <Text ellipsis={{ tooltip: dealerItem.dealer_name }} className="text-white">
+        <Text
+          ellipsis={{ tooltip: dealerItem.dealer_name }}
+          className="text-white"
+        >
           {dealerItem.dealer_name}
         </Text>
       ),
@@ -244,12 +247,9 @@ export default function WorkPlanSaleByDealer() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={localData.qty || 0 }
+                value={localData.qty || 0}
                 formatter={(value) =>
-                  `${parseInt(value)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
                 onChange={(value) =>
                   handleQtyChange(
@@ -270,7 +270,10 @@ export default function WorkPlanSaleByDealer() {
     // Loop สำหรับ Value (THB)
     ...dealer.map((dealerItem, index) => ({
       title: (
-        <Text ellipsis={{ tooltip: dealerItem.dealer_name }} className="text-white">
+        <Text
+          ellipsis={{ tooltip: dealerItem.dealer_name }}
+          className="text-white"
+        >
           {dealerItem.dealer_name}
         </Text>
       ),
@@ -313,10 +316,7 @@ export default function WorkPlanSaleByDealer() {
                 disabled
                 value={localData.value}
                 formatter={(value) =>
-                  `${parseInt(value)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
             );
@@ -489,12 +489,10 @@ export default function WorkPlanSaleByDealer() {
       <MainLayout loading={loading} childrenStyle={""}>
         <Title prefix="Sale By Dealer" showYear={yearName} />
 
-
         <BoxPrimary>
           <div className="flex  gap-5">
             <div>
-              <div>Work Plan</div>
-
+              <div>Amount Target</div>
               <InputNumber
                 disabled
                 suffix="THB"
@@ -502,10 +500,23 @@ export default function WorkPlanSaleByDealer() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${parseInt(value)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+              />
+            </div>
+            <div>
+              <div>Work Plan</div>
+              <InputNumber
+                disabled
+                suffix="THB"
+                className="w-full"
+                min={0}
+                value={Object.values(localQtyState).reduce(
+                  (sum, value) => sum + (value.amount_target || 0),
+                  0
+                )}
+                formatter={(value) =>
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
             </div>
@@ -603,7 +614,6 @@ export default function WorkPlanSaleByDealer() {
                   year_code: location?.state?.year_code,
                   user_id: location?.state?.user_id,
                   mode: location?.state?.mode,
-
                 },
               })
             }
@@ -633,7 +643,6 @@ export default function WorkPlanSaleByDealer() {
                     year_code: location?.state?.year_code,
                     user_id: location?.state?.user_id,
                     mode: location?.state?.mode,
-
                   },
                 })
               }
