@@ -28,6 +28,7 @@ export default function WorkPlanSaleBySubDealer() {
   const totalDealers = subDealers.length;
   const [message, setMessage] = useState("");
   const { Text } = Typography;
+  const [data, setData] = useState({});
 
   useEffect(() => {
     getMasterDealer();
@@ -122,8 +123,7 @@ export default function WorkPlanSaleBySubDealer() {
             });
 
             setLocalQtyState(newLocalQtyState);
-
-            console.log(subDealerData);
+            setData(response.data);
 
             const newData = response.data.data_items.map((item, index) => ({
               key: index++,
@@ -708,11 +708,13 @@ export default function WorkPlanSaleBySubDealer() {
             text="Back"
             mode="back"
             onClick={() =>
-              navigate("/sale-plan/work-plan-sale/sale-by-dealer", {
+              navigate("/sale-plan/work-plan-sale/sale-by-dealer-month", {
                 state: {
                   year_code: location?.state?.year_code,
                   user_id: location?.state?.user_id,
-                  mode: location?.state?.mode,
+                  workplan_header_id: data?.workplan_header_id,
+                  workplan_area_header_id: data?.workplan_area_header_id,
+                  workplan_sale_header_id: data?.workplan_sale_header_id,
                 },
               })
             }
