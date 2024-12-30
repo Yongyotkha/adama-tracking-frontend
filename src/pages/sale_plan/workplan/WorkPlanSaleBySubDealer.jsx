@@ -41,10 +41,14 @@ export default function WorkPlanSaleBySubDealer() {
 
   const getMasterDealer = () => {
     useServiceAPI
-      .get(paths.pathWorkPlanSaleSubDealerList, {
-        year_code: location?.state?.year_code,
-        user_id: location?.state?.user_id,
-      })
+      .get(
+        paths.pathWorkPlanSaleSubDealerList,
+        {
+          year_code: location?.state?.year_code,
+          user_id: location?.state?.user_id,
+        },
+        
+      )
       .then((response) => {
         if (response.status === 200) {
           setDealers(response.data.dealer_items);
@@ -455,6 +459,7 @@ export default function WorkPlanSaleBySubDealer() {
     });
   };
 
+
   const handleSave = async (mode) => {
     setLoading(true); // เริ่มโหลดข้อมูล
 
@@ -597,16 +602,17 @@ export default function WorkPlanSaleBySubDealer() {
                   suffix="THB"
                   className="w-full"
                   min={0}
-                  value={Object.values(localQtyState).reduce((sum, obj) => {
-                    return (
-                      sum +
-                      Object.values(obj).reduce(
-                        (nestedSum, item) =>
-                          nestedSum + (item.totalAmountTarget || 0),
-                        0
-                      )
-                    );
-                  }, 0)}
+                  value={
+                    Object.values(localQtyState).reduce((sum, obj) => {
+                      return (
+                        sum +
+                        Object.values(obj).reduce(
+                          (nestedSum, item) => nestedSum + (item.totalAmountTarget || 0),
+                          0
+                        )
+                      );
+                    }, 0)
+                  }
                   formatter={(value) =>
                     `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                   }

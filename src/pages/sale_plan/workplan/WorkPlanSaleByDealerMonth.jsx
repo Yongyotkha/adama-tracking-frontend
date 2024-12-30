@@ -391,7 +391,7 @@ export default function WorkPlanSaleByDealerMonth() {
 
         const dealerProducts = localQtyState[month.month_id] || {};
         const updatedDataItems = Object.keys(dealerProducts)
-          .filter((key) => key !== "amount_target")
+          .filter((key) => key !== "actual_amount_target")
           .map((productId) => ({
             product_id: productId,
             qty: dealerProducts[productId]?.qty || 0,
@@ -424,6 +424,7 @@ export default function WorkPlanSaleByDealerMonth() {
         };
       });
    
+
 
       await useServiceAPI
         .put(paths.pathRollingForecastDealerMonth, {
