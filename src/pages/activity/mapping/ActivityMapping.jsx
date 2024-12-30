@@ -36,6 +36,7 @@ export default function ActivityMapping() {
   const [dataterritory, setDataTerritory] = useState([]);
   const [dataArea, setDataArea] = useState([]);
   const [dataYear, setDataYear] = useState([]);
+
   const [currentLocation, setCurrentLocation] = useState({
     lat: 0.0,
     lng: 0.0,
@@ -50,7 +51,7 @@ export default function ActivityMapping() {
     const loadDataMappingList = async () => {
       setLoading(true);
       try {
-        const [mapping, activity, dealers, areas, years] = await Promise.all([
+        const [mapping, activity, dealers, areas, years, subdealers] = await Promise.all([
           useServiceAPI.post(paths.pathActivityMapList, {
             keyword: "",
             activity_type: [],
@@ -64,6 +65,7 @@ export default function ActivityMapping() {
           useServiceAPI.get(paths.pathMasterDealerAll, {}),
           useServiceAPI.get(paths.pathMasterAreas, {}),
           useServiceAPI.get(paths.pathMasterYear, {}),
+          useServiceAPI.get(paths.pathMasterSubDealer, {}),          
         ]);
 
         // Mapping Detail
@@ -146,6 +148,20 @@ export default function ActivityMapping() {
             }))
         );
 
+        setDataSubDealer(
+          subdealers.data
+            .filter(
+              (value, index, self) =>
+                self.findIndex((item) => item.sub_dealer_name === value.sub_dealer_name) === index
+            )
+            .map((data, index) => ({
+              key: index,
+              id: data.sub_dealer_id,
+              name: data.sub_dealer_name,
+            }))
+        );
+
+
       } catch (error) {
         // showMsg("error", error.message || "เกิดข้อผิดพลาด");
         console.log(error);
@@ -179,6 +195,14 @@ export default function ActivityMapping() {
       filter_type_name: "Dealer",
       data: dataDealer,
     },
+    {
+      key: 3,
+      filter_type: "subdealer",
+      filter_type_name: "SubDealer",
+      data: dataSubDealer,
+    },
+
+    
   ];
 
   // Initialize all checkboxes as selected on page load
@@ -385,16 +409,44 @@ export default function ActivityMapping() {
 
   }, [checkedFilters]);
 
+  // const handleSearch = (text) => {
+  //   console.log(text);
+    
+  //   if (text) {
+  //     // Filter names from dataMapping
+  //     const results = dataMapping.filter((item) =>
+  //       item.location_address.toLowerCase().includes(text.toLowerCase())
+  //     );
+ 
+  //     // Update search options for AutoComplete
+  //     setSearchOptions(
+  //       results.map((item) => ({
+  //         value: item.location_address,
+  //         lat: parseFloat(item.location_latitude),
+  //         lng: parseFloat(item.location_longitude),
+  //       }))
+  //     );
+  //   } else {
+  //     setSearchOptions([]);
+  //   }
+  // };
+
   const handleSearch = (text) => {
-    console.log(text);
     
     if (text) {
-      // Filter names from dataMapping
-      const results = dataMapping.filter((item) =>
-        item.location_address.toLowerCase().includes(text.toLowerCase())
+      // ใช้ RegExp เพื่อค้นหาข้อความที่คล้ายกัน
+      const regex = new RegExp(text, "i"); // 'i' หมายถึง case-insensitive
+      console.log(regex);
+      
+      // ค้นหาใน dataMapping
+      const results = dataMapping.filter(
+        (item) =>
+          item.location_address && regex.test(item.location_address) // ค้นหาข้อความใน location_address
       );
- 
-      // Update search options for AutoComplete
+  
+      console.log(results);
+      
+      // อัปเดต options สำหรับ AutoComplete
       setSearchOptions(
         results.map((item) => ({
           value: item.location_address,
@@ -402,11 +454,28 @@ export default function ActivityMapping() {
           lng: parseFloat(item.location_longitude),
         }))
       );
+  
+      // อัปเดต checkbox ให้ตรงกับผลลัพธ์
+      const updatedFilters = { ...checkedFilters };
+      mockFilters.forEach((filterCategory) => {
+        const matchingIds = results
+          .map((result) => result[filterCategory.filter_type + "_id"])
+          .filter((id) => id !== undefined); // ลบค่าที่เป็น undefined
+  
+        updatedFilters[filterCategory.filter_type] = [
+          ...(updatedFilters[filterCategory.filter_type] || []),
+          ...matchingIds,
+        ].filter((id, index, self) => self.indexOf(id) === index); // ลบค่าซ้ำ
+      });
+  
+      setCheckedFilters(updatedFilters);
     } else {
       setSearchOptions([]);
     }
   };
-
+  
+  
+  
   const handleSelect = (value, option) => {    
     // Set the map center to the selected lat and lng
     setCurrentLocation({ lat: option.lat, lng: option.lng });

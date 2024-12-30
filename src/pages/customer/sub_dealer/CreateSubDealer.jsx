@@ -4,7 +4,6 @@ import FormUser from "../../../components/form_user/FormUser";
 import DynamicButton from "../../../components/button/DynamicButton";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
-// import { Form } from "antd";
 import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
 import { AuthContext } from "../../../contexts/AuthContext";
@@ -15,31 +14,30 @@ import {
   DatePicker,
   Col,
   Row,
-  Dropdown,
   Tabs,
   Form,
   Select,
   TimePicker,
 } from "antd";
-import { values } from "lodash";
 import dayjs from "dayjs";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import TableComponent from "../../../components/table/TableComponent";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
-import DynamicModal from "../../../components/modal/DynamicModal"; // Adjust path if needed
-import { GoogleMap, LoadScript, Marker} from "@react-google-maps/api";
+import DynamicModal from "../../../components/modal/DynamicModal"; 
+import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 
 const { Option } = Select;
 
 export default function CreateSubDealer() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { showMsg, showNotification } = useContext(AuthContext);
+
+  // ---------- State สำหรับแท็บ Profile ----------
   const [cropOptions, setCropOptions] = useState([]);
   const [form] = Form.useForm();
-  const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); // กำหนด state สำหรับ defaultSelectedCrops
+  const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]);
   const [personalInfoData, setPersonalInfoData] = useState({});
-  // const [personalInfo, setPersonalInfo] = useState([]);
-  const { showMsg, showNotification } = useContext(AuthContext);
   const [cropData, setCropData] = useState([]);
   const [contactsData, setContactsData] = useState([]);
   const [dataApiKey, setDataApiKay] = useState("AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik");
@@ -67,148 +65,32 @@ export default function CreateSubDealer() {
     },
   ]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [crops] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterCrop, {}),
-        ]);
-        setCropOptions(crops.data);
-      } catch (error) {
-        console.log(error.message);
-        showNotification("เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+  // ---------- State สำหรับแท็บ Network (ตัวอย่าง) ----------
+  const [networkList, setNetworkList] = useState([]); // รายการ network
+  const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
+  const [userList, setUserList] = useState([]); // สำหรับ TableComponent ใน Modal
 
-  // const [formFields, setFormFields] = useState([
-  //   {
-  //     label: "",
-  //     name: "profile",
-  //     type: "picture", // เพิ่มรูปภาพในลูป
-  //     required: false,
-  //     col: 24,
-  //   },
-  //   {
-  //     label: "Shop Name",
-  //     name: "shop_name",
-  //     type: "text",
-  //     required: true,
-  //     col: 6,
-  //   },
-  //   {
-  //     label: "Mobile Phone",
-  //     name: "mobile_phone",
-  //     type: "text",
-  //     required: false,
-  //     col: 6,
-  //   },
-  //   {
-  //     label: "Address",
-  //     name: "address",
-  //     type: "text",
-  //     required: false,
-  //     col: 12,
-  //   },
-  //   {
-  //     label: "Office Hours",
-  //     name: "day_of_week",
-  //     type: "multiple",
-  //     options: [
-  //       { name: "Monday", id: "Monday", selected: true },
-  //       { name: "Tuesday", id: "Tuesday", selected: false },
-  //       { name: "Wednesday", id: "Wednesday", selected: false },
-  //       { name: "Thursday", id: "Thursday", selected: false },
-  //       { name: "Friday", id: "Friday", selected: false },
-  //       { name: "Saturday", id: "Saturday", selected: false },
-  //       { name: "Sunday", id: "Sunday", selected: false },
-  //     ],
-  //     required: false,
-  //     col: 6,
-  //     iconSrc: "/img/icons/calendar.png",
-  //     iconPosition: "right",
-  //   },
-  //   {
-  //     label: "Start Time",
-  //     name: "start_time",
-  //     type: "time",
-  //     required: false,
-  //     col: 6,
-  //     value: null,
-  //   },
-  //   {
-  //     label: "End Time",
-  //     name: "end_time",
-  //     type: "time",
-  //     required: false,
-  //     col: 6,
-  //     value: "",
-  //   },
-  //   {
-  //     label: "Business Size",
-  //     name: "business_size",
-  //     type: "select",
-  //     required: true,
-  //     col: 6,
-  //     options: [
-  //       { name: "Small", id: "Small", selected: true },
-  //       { name: "Medium", id: "Medium", selected: false },
-  //       { name: "Large", id: "Large", selected: false },
-  //     ],
-  //   },
-  //   {
-  //     label: "Email",
-  //     name: "email",
-  //     type: "email",
-  //     required: false,
-  //     col: 6,
-  //     value: "",
-  //   },
-  //   {
-  //     label: "Outlet Location",
-  //     name: "outlet_location",
-  //     type: "text",
-  //     required: false,
-  //     col: 6,
-  //     value: "",
-  //     iconSrc: "/img/icons/location.png",
-  //     iconPosition: "right",
-  //   },
-  //   {
-  //     label: "T-Shirt Size",
-  //     name: "tshirt_size",
-  //     type: "text",
-  //     required: false,
-  //     col: 6,
-  //     value: "",
-  //   },
-  //   {
-  //     label: "Anniversary",
-  //     name: "anniversary",
-  //     type: "date",
-  //     required: false,
-  //     col: 6,
-  //     value: "",
-  //   },
-  //   {
-  //     label: "Remark",
-  //     name: "remark",
-  //     type: "text",
-  //     required: false,
-  //     col: 24,
-  //     value: "",
-  //   },
-  // ]);
+  // columns ของตาราง Network (ตัวอย่าง)
+  const networkHeader = [
+    { title: "No", dataIndex: "no", key: "no", width: 50, align: "center" },
+    { title: "Name", dataIndex: "name", key: "name", width: 150 },
+    { title: "Contact Person", dataIndex: "contactperson", key: "contactperson", width: 150 },
+    { title: "Status", dataIndex: "status", key: "status", width: 120, align: "center" },
+    { title: "Action", dataIndex: "action", key: "action", width: 100, align: "center" },
+  ];
 
+  // จัดการแท็บ
+  const [activeTabKey, setActiveTabKey] = useState("profile");
+  const handleTabChange = (key) => {
+    setActiveTabKey(key);
+  };
+
+  // แบ่งฟิลด์ในฟอร์ม
   const [formFields, setFormFields] = useState([
     {
       label: "",
-      name: "profile", 
-      type: "picture", 
+      name: "profile",
+      type: "picture",
       required: false,
       col: 24,
     },
@@ -265,19 +147,6 @@ export default function CreateSubDealer() {
       required: false,
       col: 6,
     },
-    // {
-    //   label: "Business Size",
-    //   name: "business_size",
-    //   type: "select",
-    //   options: [
-    //     { name: "Small", id: 1, selected: true },
-    //     { name: "Medium", id: 2, selected: false },
-    //     { name: "Large", id: 3, selected: false },
-    //   ],
-    //   required: false,
-    //   col: 6,
-    //   value: companyinfo.business_size,
-    // },
     {
       label: "Email",
       name: "email",
@@ -320,53 +189,110 @@ export default function CreateSubDealer() {
       iconPosition: "right",
       disabled: true,
     },
-    // {
-    //   label: "Remark",
-    //   name: "remark",
-    //   type: "text",
-    //   required: false,
-    //   col: 24,
-    // },
   ]);
 
+  // โหลดข้อมูลเบื้องต้น เช่น รายการพืช (crops)
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [crops] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterCrop, {}),
+        ]);
+        setCropOptions(crops.data);
+      } catch (error) {
+        console.log(error.message);
+        showNotification("เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
-  const transformedCropOptions = cropOptions.map((option) => ({
-    label: option.name, // เปลี่ยนจาก name เป็น label
-    value: option.id, // คงค่า value เดิมไว้
-  }));
+  // ดึงข้อมูลใช้งานใน Modal (กรณีอยากให้มี Modal สำหรับเลือก Network)
+  const fetchUserList = async () => {
+    setLoading(true);
+    try {
+      // ตัวอย่างการดึงข้อมูล sub_dealer หรือ network ต่าง ๆ
+      // สมมติเรียก API getUserList()
+      const response = await useServiceAPI.get(paths.pathMasterSubDealer, {});
+      if (response.status === 200) {
+        const data = response.data || [];
+        // แปลง data เป็นรูปที่ใช้ในตาราง
+        const userListData = data.map((item, index) => ({
+          key: item.sub_dealer_id,
+          no: index + 1,
+          name: item.sub_dealer_name || "-",
+          contactperson: item.sub_dealer_contact_phone_number || "-",
+          status: (
+            <BadgeStatus
+              text={item.sub_dealer_channel_type_name}
+              bgColor={item.sub_dealer_channel_type_bg_color}
+              textColor={item.sub_dealer_channel_type_color}
+            />
+          ),
+        }));
+        setUserList(userListData);
+      }
+    } catch (error) {
+      console.error("fetchUserList error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const [personalInfo, setPersonalInfo] = useState({
-    shop_name: "",
-    mobile_phone: "",
-    address: "",
-    email: "",
-    office_hours: [],
-    start_time: "",
-    end_time: "",
-    business_size: "",
-    outlet_location: "",
-    tshirt_size: "",
-    anniversary: null,
-    remark: "",
-  });
+  // ฟังก์ชันเพิ่มรายการลงในตาราง Network
+  const handleAddSelectedRows = (selectedRows) => {
+    if (!Array.isArray(selectedRows)) {
+      console.error("selectedRows is not an array:", selectedRows);
+      return;
+    }
+    const newRows = selectedRows.map((row) => ({
+      key: row.key,
+      no: networkList.length + 1,
+      name: row.name || "-",
+      contactperson: row.contactperson || "-",
+      status: row.status || "-",
+      action: (
+        <DynamicButton
+          iconSrc="/img/icons/delete.png"
+          onClick={() => handleDeleteNetworkItem(row.key)}
+        />
+      ),
+    }));
 
-  // const [contacts, setContacts] = useState([
-  //   {
-  //     name_en: "",
-  //     name_th: "",
-  //     nickname: "",
-  //     date_of_birth: null,
-  //     t_shirt_size: "",
-  //     relationship: "",
-  //     duty: "",
-  //     tel1: "",
-  //     tel2: "",
-  //     contact_number: "",
-  //     email: "",
-  //     line_id: "",
-  //   },
-  // ]);
+    // เช็คว่าเคยถูกเพิ่มแล้วหรือยัง
+    setNetworkList((prev) => {
+      const existingKeys = prev.map((item) => item.key);
+      const filteredNewRows = newRows.filter(
+        (row) => !existingKeys.includes(row.key)
+      );
+      if (filteredNewRows.length === 0) {
+        showNotification("error", "This record has already been added.");
+        return prev;
+      }
+      showNotification("success", "Add network success.");
+      return [...prev, ...filteredNewRows];
+    });
+  };
 
+  // ฟังก์ชันลบรายการในตาราง
+  const handleDeleteNetworkItem = (key) => {
+    setNetworkList((prevList) => prevList.filter((item) => item.key !== key));
+    showNotification("success", "Deleted network item");
+  };
+
+  // เปิด/ปิด Modal
+  const handleOpenTerritoryModal = async () => {
+    await fetchUserList();
+    setIsTerritoryModalVisible(true);
+  };
+  const handleCloseTerritoryModal = () => {
+    setIsTerritoryModalVisible(false);
+  };
+
+  // ฟังก์ชันจัดการ Contact Person
   const addContact = () => {
     setContacts((prevContacts) => [
       ...prevContacts,
@@ -386,79 +312,58 @@ export default function CreateSubDealer() {
       },
     ]);
   };
-  
-  // const updateContact = (index, field, value) => {
-  //   setContacts((prevContacts) =>
-  //     prevContacts.map((contact, i) =>
-  //       i === index ? { ...contact, [field]: value } : contact
-  //     )
-  //   );
-  // };
-
   const updateContact = (index, field, value) => {
     setContacts((prevContacts) =>
       prevContacts.map((contact, i) => {
         if (i === index) {
           const updatedContact = { ...contact, [field]: value };
-  
-          // หากฟิลด์ที่เปลี่ยนคือ date_of_birth ให้คำนวณอายุ
+          // หากเป็น date_of_birth ให้คำนวณอายุ
           if (field === "date_of_birth" && value) {
             const birthDate = dayjs(value);
             const currentYear = dayjs().year();
-            const age = currentYear - birthDate.year(); // คำนวณอายุ
-            updatedContact.age = age;
+            updatedContact.age = currentYear - birthDate.year();
           }
-  
           return updatedContact;
         }
         return contact;
       })
     );
   };
-  
-
-
-  const handlePersonalInfoChange = (field, value) => {
-    console.log(field,value);
-    
-    setPersonalInfo((prevInfo) => ({
-      ...prevInfo,
-      [field]: value, // อัปเดตค่าฟิลด์ที่กำหนด
-    }));
-  };
-  
   const handleRemoveContact = (index) => {
     setContacts((prevContacts) => prevContacts.filter((_, i) => i !== index));
   };
 
+  // แปลงตัวเลือกพืช (crops)
+  const transformedCropOptions = cropOptions.map((option) => ({
+    label: option.name,
+    value: option.id,
+  }));
+
+  // Google Map
   const mapContainerStyle = {
     width: "100%",
     height: "30vh",
   };
-
-
   const handleMarkerDragEnd = async (event) => {
     const lat = event.latLng.lat();
     const lng = event.latLng.lng();
-
     const geocoder = new window.google.maps.Geocoder();
     const latlng = { lat, lng };
-    
+
     try {
       const response = await geocoder.geocode({ location: latlng });
       if (response.results && response.results.length > 0) {
         const locationName = response.results[0].formatted_address;
-        // อัปเดต Outlet Location
+        // อัปเดตฟอร์ม
         form.setFieldsValue({ outlet_location: locationName });
+        // อัปเดต state
         setcompanyinfo((prev) => ({
           ...prev,
           outlet_location: locationName,
         }));
-  
-        showNotification("success", `Location updated: ${locationName}`);
-        // อัปเดตตำแหน่งปัจจุบันใน State
+        // ตั้งค่าพิกัดใหม่
         setCurrentLocation({ lat, lng });
-        
+        showNotification("success", `Location updated: ${locationName}`);
       } else {
         showNotification("error", "No address found for this location.");
       }
@@ -466,9 +371,7 @@ export default function CreateSubDealer() {
       console.error(error);
       showNotification("error", "Unable to fetch location name.");
     }
-  
   };
-  
   useEffect(() => {
     const checkGoogleMaps = () => {
       if (window.google && window.google.maps) {
@@ -485,40 +388,37 @@ export default function CreateSubDealer() {
     checkGoogleMaps();
   }, []);
 
-
+  // ฟังก์ชันบันทึกข้อมูลสุดท้าย
   const handleSave = () => {
     form
       .validateFields()
       .then((values) => {
-        // console.log(values);
         const payload = {
           use_flag: 1,
           name: values.shop_name || "",
           mobile_phone: values.mobile_phone || "",
           address: values.address || "",
           email: values.email || "",
-          day_of_week: values.day_of_week ,
+          day_of_week: values.day_of_week,
           start_time: values.start_time
-          ? dayjs(values.start_time).format("HH:mm")
-          : "",
+            ? dayjs(values.start_time).format("HH:mm")
+            : "",
           end_time: values.end_time
-          ? dayjs(values.end_time).format("HH:mm")
-          : "",
+            ? dayjs(values.end_time).format("HH:mm")
+            : "",
           business_size: values.business_size || "",
-          // outlet_location: values.outlet_location || "",
           location_address: values.outlet_location || "",
           location_longitude: currentLocation.lng || "",
-          location_latitude: currentLocation.lat  || "",
+          location_latitude: currentLocation.lat || "",
           t_shirt_size: values.tshirt_size || "",
           anniversary: values.anniversary
             ? dayjs(values.anniversary).format("YYYY-MM-DD")
             : null,
           remark: values.remark || "",
-          photo_path: values.profile, // ตัวอย่าง placeholder
-          fertilizer_business: values.fertilizer_businessfertilizer_business,
+          photo_path: values.profile,
+          fertilizer_business: values.fertilizer_business,
           seed_business: values.seed_business,
           pesticides_business: values.pesticides_business,
-
           contact_items: contacts.map((contact) => ({
             name_en: contact.name_en || "",
             contact_number: contact.contact_number || "",
@@ -537,10 +437,10 @@ export default function CreateSubDealer() {
           })),
           crop_list: defaultSelectedCrops || [],
         };
-  
+
         console.log("Payload to be sent:", payload);
-  
-        // ส่งข้อมูลไปยัง API
+
+        // เรียก API
         useServiceAPI
           .post(paths.pathCreateSubDealer, payload, setLoading)
           .then((response) => {
@@ -563,68 +463,49 @@ export default function CreateSubDealer() {
         showNotification("error", "Please complete all required fields.");
       });
   };
-  
-  useEffect(() => {
-    // console.log(defaultSelectedCrops)
-  }, [defaultSelectedCrops]);
 
-
-  return (
+  // ---------- เนื้อหาในแท็บ “Profile” ----------
+  const profileTabContent = (
     <Form form={form} layout="vertical">
+      <FormUser title="Personal Info" fields={formFields} form={form} />
 
-    <MainLayout loading={loading}>
-    <div className="title-page">Create Sub Dealer</div>
-      <FormUser 
-        title="Personal Info" 
-        fields={formFields} 
-        form={form}
-      />
-
-      <div className={`bg-white p-4`}
+      <div
+        className="bg-white p-4"
         style={{
-          boxShadow: "rgba(0, 0, 0, 0.1)", // Optional for a subtle shadow
+          boxShadow: "rgba(0, 0, 0, 0.1)",
           marginTop: "-20px",
         }}
       >
-      <div className="text-[#00783F] text-lg font-semibold mb-3">
+        <div className="text-[#00783F] text-lg font-semibold mb-3">
+          <LoadScript googleMapsApiKey={dataApiKey}>
+            <GoogleMap
+              mapContainerStyle={mapContainerStyle}
+              center={currentLocation}
+              zoom={dataMapZoom}
+              onClick={(e) => {
+                const lat = e.latLng.lat();
+                const lng = e.latLng.lng();
+                setCurrentLocation({ lat, lng });
+              }}
+            >
+              {isGoogleLoaded && (
+                <Marker
+                  position={currentLocation}
+                  icon={{
+                    scaledSize: { width: 30, height: 30 },
+                  }}
+                  draggable={true}
+                  onDragEnd={handleMarkerDragEnd}
+                />
+              )}
+            </GoogleMap>
+          </LoadScript>
 
-        <LoadScript googleMapsApiKey={dataApiKey}>
-          <GoogleMap
-            mapContainerStyle={mapContainerStyle}
-            center={currentLocation}
-            zoom={dataMapZoom}
-            onClick={(e) => {
-              const lat = e.latLng.lat();
-              const lng = e.latLng.lng();
-              setCurrentLocation({ lat, lng });
-            }}
-          >
-            {isGoogleLoaded && (
-              <Marker 
-                position={currentLocation}
-                icon={{
-                  // url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
-                  scaledSize: { width: 30, height: 30 },
-                }}
-                draggable={true}
-                onDragEnd={handleMarkerDragEnd} 
-              />
-            )}
-          </GoogleMap>
-        </LoadScript>
-
-
-        <Form.Item 
-          label="Remark" 
-          name="remark"
-          className="mt-3"
-        >
-          <Input placeholder="Enter Remark" />
-        </Form.Item>
-
+          <Form.Item label="Remark" name="remark" className="mt-3">
+            <Input placeholder="Enter Remark" />
+          </Form.Item>
         </div>
       </div>
-
 
       <BoxPrimary title="Crop">
         <Select
@@ -633,9 +514,9 @@ export default function CreateSubDealer() {
           placeholder="Select Crop(s)"
           optionFilterProp="children"
           className="w-full"
-          value={defaultSelectedCrops} 
-          onChange={(value) => setDefaultSelectedCrops(value)} 
-          options={transformedCropOptions} 
+          value={defaultSelectedCrops}
+          onChange={(value) => setDefaultSelectedCrops(value)}
+          options={transformedCropOptions}
         />
       </BoxPrimary>
 
@@ -648,16 +529,18 @@ export default function CreateSubDealer() {
         </div>
         {contacts.map((contact, index) => (
           <div key={index}>
-              <div className="flex justify-between mb-4">
-                <span className="text-[#00783F] text-md">{`Person ${index + 1}`}</span>
-                {index > 0 && (
-                  <ActionButton
-                    mode="delete"
-                    text="Delete"
-                    onClick={() => handleRemoveContact(index)}
-                  />
-                )}
-              </div>
+            <div className="flex justify-between mb-4">
+              <span className="text-[#00783F] text-md">{`Person ${
+                index + 1
+              }`}</span>
+              {index > 0 && (
+                <ActionButton
+                  mode="delete"
+                  text="Delete"
+                  onClick={() => handleRemoveContact(index)}
+                />
+              )}
+            </div>
             <Row gutter={[16, 16]} className="mt-3">
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Input
@@ -702,11 +585,13 @@ export default function CreateSubDealer() {
                 <Input
                   placeholder="Age"
                   value={contact.age || ""}
-                  onChange={(e) => updateContact(index, "age", e.target.value)}
+                  onChange={(e) =>
+                    updateContact(index, "age", e.target.value)
+                  }
                   disabled={true}
                 />
               </Col>
-              
+
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Input
                   placeholder="T-Shirt Size"
@@ -759,18 +644,14 @@ export default function CreateSubDealer() {
                 <Input
                   placeholder="Email"
                   value={contact.email}
-                  onChange={(e) =>
-                    updateContact(index, "email", e.target.value)
-                  }
+                  onChange={(e) => updateContact(index, "email", e.target.value)}
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Input
                   placeholder="Line ID"
                   value={contact.line_id}
-                  onChange={(e) =>
-                    updateContact(index, "line_id", e.target.value)
-                  }
+                  onChange={(e) => updateContact(index, "line_id", e.target.value)}
                 />
               </Col>
               <Col xs={24} sm={18} md={18} lg={18}>
@@ -786,7 +667,6 @@ export default function CreateSubDealer() {
         ))}
       </BoxPrimary>
 
-      {/* Action Buttons */}
       <div className="flex justify-end space-x-4 mt-6">
         <ActionButton
           mode="back"
@@ -795,10 +675,73 @@ export default function CreateSubDealer() {
         />
         <ActionButton text="Save" mode="save" onClick={handleSave} />
       </div>
-    </MainLayout>
     </Form>
+  );
 
+  // ---------- เนื้อหาในแท็บ “Network” ----------
+  const networkTabContent = (
+    <>
+      <BoxPrimary>
+        <div className="flex justify-between space-x-4 mb-3">
+          <span className="text-[#00783F] text-lg font-semibold">Network</span>
+          <ActionButton mode="add" text="Add" onClick={handleOpenTerritoryModal} />
+        </div>
+        <TableComponent header={networkHeader} dataSource={networkList} />
+      </BoxPrimary>
+      <div className="flex justify-end space-x-4 mt-6 mb-6">
+        <ActionButton
+          mode="back"
+          text="Back"
+          onClick={() => navigate("/customer/sub-dealer")}
+        />
+        <ActionButton
+          text="Update"
+          mode="update"
+          onClick={() =>
+            showNotification("success", "Network updated (placeholder)")
+          }
+        />
+      </div>
+    </>
+  );
 
+  return (
+    <MainLayout loading={loading}>
+      <div className="title-page">Create Sub Dealer</div>
+      <Tabs
+        activeKey={activeTabKey}
+        onChange={handleTabChange}
+        className="custom-tabs"
+        items={[
+          {
+            key: "profile",
+            label: <span className="tab-title">Profile</span>,
+            children: profileTabContent,
+          },
+          {
+            key: "network",
+            label: <span className="tab-title">Network</span>,
+            children: networkTabContent,
+          },
+        ]}
+      />
 
+      {/* DynamicModal สำหรับเลือก network เพิ่มเติม */}
+      <DynamicModal
+        title="Add Network"
+        isVisible={isTerritoryModalVisible}
+        onClose={handleCloseTerritoryModal}
+        header={[
+          { title: "No", dataIndex: "no", key: "no", width: 50 },
+          { title: "Name", dataIndex: "name", key: "name", width: 150 },
+          { title: "Contact", dataIndex: "contactperson", key: "contactperson", width: 150 },
+          { title: "Status", dataIndex: "status", key: "status", width: 120 },
+        ]}
+        dataSource={userList}
+        width="1200px"
+        onAddSelected={handleAddSelectedRows}
+        type="add"
+      />
+    </MainLayout>
   );
 }

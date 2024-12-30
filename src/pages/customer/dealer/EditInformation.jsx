@@ -488,11 +488,68 @@ export default function EditInformation() {
     setIsTerritoryModalVisible(false);
   };
 
+  // const handleAddSelectedRows = (selectedRows) => {
+  //   const newRows = selectedRows.map((row, index) => ({
+  //     // key: networkList.length + index + 1, 
+  //     key: row.key,
+  //     // no: networkList.length + index + 1, 
+  //     no: (networkList?.length || 0) + index + 1,
+  //     name: row.name || "-",
+  //     contactperson: row.contactperson || "-",
+  //     mobilePhone: row.territory || "-",
+  //     onshop: row.onshop || false,
+  //     status: (
+  //       <BadgeStatus
+  //         text={row.position || "-"}
+  //         bgColor={row.statusBgColor || "#E0E0E0"}
+  //         textColor={row.statusTextColor || "#000000"}
+  //       />
+  //     ),
+  //     action: (
+  //       // <Dropdown menu={{ items: actionItems }} placement="bottom">
+  //       //   <a onClick={(e) => e.preventDefault()}>
+  //       //     <img
+  //       //       src="/img/icons/action.png"
+  //       //       alt="Actions icon"
+  //       //       className="inline-block w-5 h-5"
+  //       //     />
+  //       //   </a>
+  //       // </Dropdown>
+  //       <>
+  //         <DynamicButton
+  //           iconSrc="/img/icons/delete.png"
+  //           onClick={() =>
+  //             handleDeleteItem(row.sub_dealer_id)
+  //           }
+  //         />
+  //       </>
+  //     ),
+  //   }));
+
+  //   // setNetworkList((prevList) => [...prevList, ...newRows]); 
+
+  //   setNetworkList((prevList) => {
+  //     const existingKeys = prevList.map((item) => item.key); // ดึง key ของรายการที่มีอยู่
+  //     const filteredNewRows = newRows.filter((row) => !existingKeys.includes(row.key)); // กรองเฉพาะ key ที่ยังไม่มีใน list
+  //     if (filteredNewRows.length === 0) {
+  //       showNotification("error", "Sale Territory has already been added.");
+  //       return [...prevList, ...filteredNewRows]; 
+  //     }else{
+  //       showNotification("success", "Add sale territory success.");
+  //       return [...prevList, ...filteredNewRows]; 
+  //     }
+  //   });
+  // };
+
   const handleAddSelectedRows = (selectedRows) => {
+    if (!Array.isArray(selectedRows)) {
+      console.error("selectedRows is not an array:", selectedRows);
+      return;
+    }
+  
     const newRows = selectedRows.map((row, index) => ({
-      // key: networkList.length + index + 1, 
       key: row.key,
-      no: networkList.length + index + 1, 
+      no: (networkList?.length || 0) + index + 1,
       name: row.name || "-",
       contactperson: row.contactperson || "-",
       mobilePhone: row.territory || "-",
@@ -505,41 +562,27 @@ export default function EditInformation() {
         />
       ),
       action: (
-        // <Dropdown menu={{ items: actionItems }} placement="bottom">
-        //   <a onClick={(e) => e.preventDefault()}>
-        //     <img
-        //       src="/img/icons/action.png"
-        //       alt="Actions icon"
-        //       className="inline-block w-5 h-5"
-        //     />
-        //   </a>
-        // </Dropdown>
-        <>
-          <DynamicButton
-            iconSrc="/img/icons/delete.png"
-            onClick={() =>
-              handleDeleteItem(row.sub_dealer_id)
-            }
-          />
-        </>
+        <DynamicButton
+          iconSrc="/img/icons/delete.png"
+          onClick={() => handleDeleteItem(row.key)}
+        />
       ),
     }));
-
-    // setNetworkList((prevList) => [...prevList, ...newRows]); 
-
+  
     setNetworkList((prevList) => {
-      const existingKeys = prevList.map((item) => item.key); // ดึง key ของรายการที่มีอยู่
-      const filteredNewRows = newRows.filter((row) => !existingKeys.includes(row.key)); // กรองเฉพาะ key ที่ยังไม่มีใน list
+      const existingKeys = (prevList || []).map((item) => item.key); // ป้องกัน undefined
+      const filteredNewRows = newRows.filter((row) => !existingKeys.includes(row.key));
       if (filteredNewRows.length === 0) {
         showNotification("error", "Sale Territory has already been added.");
-        return [...prevList, ...filteredNewRows]; 
-      }else{
+        return prevList || [];
+      } else {
         showNotification("success", "Add sale territory success.");
-        return [...prevList, ...filteredNewRows]; 
+        return [...(prevList || []), ...filteredNewRows];
       }
     });
   };
 
+  
   const fetchUserList = async (page_size = 20, page_length = 1) => {
     setLoading(true);
     const requestData = {
@@ -975,7 +1018,7 @@ export default function EditInformation() {
               dataSource={networkList} 
             />
           </BoxPrimary>
-          <div className="flex justify-end space-x-4 mt-6">
+          <div className="flex justify-end space-x-4 mt-6 mb-6">
             <ActionButton
               mode="back"
               text="Back"
@@ -986,15 +1029,45 @@ export default function EditInformation() {
             <ActionButton text="Update" mode="update" onClick={networkhandleSave} />
             )
           }
-
-            {/* <ActionButton
-              mode="update"
-              text="Update"
-              // onClick={() => navigate("/customer/dealer")}
-              onClick={networkhandleSave} 
-
-            /> */}
           </div>
+          
+          {/* Farmer List */}
+
+          <BoxPrimary>
+            <div className="flex justify-between space-x-4 mb-3">
+              <span className="text-[#00783F] text-lg font-semibold">
+                Farmer List
+              </span>
+              {
+                !isViewMode && (
+                  <div className="flex space-x-2">
+                  <ActionButton
+                    mode="add"
+                    text="Add Farmer"
+                    // onClick={handleOpenTerritoryModal}
+                  />
+                </div>
+                )
+              }
+            </div>
+            <TableComponent 
+              header={[]} 
+              dataSource={[]} 
+            />
+          </BoxPrimary>
+          <div className="flex justify-end space-x-4 mt-6">
+            <ActionButton
+              mode="back"
+              text="Back"
+              onClick={() => navigate("/customer/farners")}
+            />
+          {
+          !isViewMode && (
+            <ActionButton text="Update" mode="update" onClick={networkhandleSave} />
+            )
+          }
+          </div>
+
         </>
       ),
     },
@@ -1006,7 +1079,6 @@ export default function EditInformation() {
         return field;
       }else if(field.key === 'profile'){
         return field;
-
       }
       return {
         ...field,
