@@ -104,10 +104,6 @@ export default function WorkPlanSaleByDealer() {
       });
   }, []);
 
-  useEffect(() => {
-    console.log(dataSource);
-  }, [dataSource]);
-
   const columns = [
     {
       title: "Dealer", // Row 3

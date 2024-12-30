@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import { Input, InputNumber, Table } from "antd";
+import { Input, InputNumber, Table, Tabs } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import TableCustomComponent from "../../../components/table/TableCustomComponent";
 import ActionButton from "../../../components/button/ActionButton";
@@ -16,7 +16,8 @@ export default function RollingForecastQuarter() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const { showNotification, formatNumber } = useContext(AuthContext);
-
+  const [activeKey, setActiveKey] = useState("");
+  const [dealers, setDealers] = useState([]);
   const [quarter, setQuarter] = useState([]);
   const [permission, setPermission] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
@@ -29,6 +30,58 @@ export default function RollingForecastQuarter() {
   const [name, setName] = useState([]);
 
   useEffect(() => {
+    getMasterDealer();
+  }, []);
+  useEffect(() => {
+    if (activeKey || activeKey == "") {
+      getQuarterDetails();
+    }
+  }, [activeKey]);
+
+  const getMasterDealer = () => {
+    useServiceAPI
+      .get(
+        paths.pathRollingForecastDealer,
+        {
+          year_code: location?.state?.year_code,
+          user_id: location?.state?.user_id,
+          workplan_header_id: location?.state?.workplan_header_id,
+          workplan_area_header_id: location?.state?.workplan_area_header_id,
+          workplan_sale_header_id: location?.state?.workplan_sale_header_id,
+        }
+      )
+      .then((response) => {
+        console.log(response);
+        if (response.status === 200) {
+
+
+          const dealerItems = response.data.dealer_items;
+
+          // เพิ่มตัวเลือก "All"
+          const allDealerOption = {
+            dealer_id: "",
+            dealer_name: "All",
+            amount_target: "0.00", // หรือค่าที่เหมาะสม
+            user_id: null, // หรือค่าที่เหมาะสม
+            workplan_header_id: null,
+            workplan_area_header_id: null,
+            workplan_sale_header_id: null,
+          };
+  
+          const updatedDealers = [allDealerOption, ...dealerItems];
+          setDealers(updatedDealers);
+          if (updatedDealers.length > 0) {
+            setActiveKey(updatedDealers[0].dealer_id);
+          }
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        showNotification("error", "เกิดข้อผิดพลาด");
+      });
+  };
+
+  const getQuarterDetails = () => {
     useServiceAPI
       .get(
         paths.pathRollingForecastQuarter,
@@ -39,6 +92,7 @@ export default function RollingForecastQuarter() {
           workplan_sale_header_id: location?.state?.workplan_sale_header_id,
           user_id: location?.state?.user_id,
           month_id: location?.state?.month_id,
+          dealer_id: activeKey,
         },
         setLoading
       )
@@ -100,7 +154,7 @@ export default function RollingForecastQuarter() {
         console.error(error);
         showNotification("error", "เกิดข้อผิดพลาด");
       });
-  }, []);
+  };
 
   const defaultHeaderDynamic = (bgColor) => ({
     style: {
@@ -236,10 +290,7 @@ export default function RollingForecastQuarter() {
                 style={{ backgroundColor: "white" }}
                 value={item.amount_target}
                 formatter={(value) =>
-                  `${parseInt(value)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
               <InputNumber
@@ -248,10 +299,7 @@ export default function RollingForecastQuarter() {
                 style={{ backgroundColor: "white" }}
                 value={localQtyState[item.quarter_id]?.total_value || 0}
                 formatter={(value) =>
-                  `${parseInt(value)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
               <InputNumber
@@ -260,10 +308,7 @@ export default function RollingForecastQuarter() {
                 style={{ backgroundColor: "white" }}
                 value={item.actual_amount_target || 0}
                 formatter={(value) =>
-                  `${parseInt(value)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
             </div>
@@ -433,8 +478,6 @@ export default function RollingForecastQuarter() {
     });
   };
 
-
-
   const handleSave = async (mode) => {
     setLoading(true); // เริ่มโหลดข้อมูล
 
@@ -518,6 +561,7 @@ export default function RollingForecastQuarter() {
             month_id: location?.state?.month_id,
             action_code: mode,
             quarter_items: updatedQuarterData,
+            dealer_id: activeKey,
           })
           .then((response) => {
             if (response.status === 200) {
@@ -547,6 +591,18 @@ export default function RollingForecastQuarter() {
     }
   };
 
+  const items = [
+    ...dealers.map((dealer) => ({
+      key: dealer.dealer_id,
+      label: <span className="tab-title">{dealer.dealer_name}</span>,
+    })),
+  ];
+
+  // Handle tab change
+  const handleTabChange = (key) => {
+    setActiveKey(key);
+  };
+
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
@@ -554,6 +610,13 @@ export default function RollingForecastQuarter() {
           prefix="Rolling Forecast"
           showYear={yearName}
           showMonth={month.name}
+        />
+
+        <Tabs
+          onChange={handleTabChange}
+          className="custom-tabs"
+          items={items}
+          defaultActiveKey={activeKey}
         />
 
         <BoxPrimary>
@@ -568,10 +631,7 @@ export default function RollingForecastQuarter() {
                   min={0}
                   value={totalValue}
                   formatter={(value) =>
-                    `${parseInt(value)}`.replace(
-                      /\B(?=(\d{3})+(?!\d))/g,
-                      ","
-                    )
+                    `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                   }
                 />
               </div>
@@ -593,6 +653,7 @@ export default function RollingForecastQuarter() {
             dataSource={dataSource}
             pagination={false}
             scroll={true}
+            loading={loading}
             footer={() => (
               <Table.Summary fixed>
                 <Table.Summary.Row className="custom-summary-row">
@@ -694,20 +755,6 @@ export default function RollingForecastQuarter() {
               text="Save"
               mode="save"
               onClick={() => handleSave("save")}
-            />
-          )}
-          {permission.btn_next && (
-            <ActionButton
-              text="Next"
-              mode="save"
-              onClick={() =>
-                navigate("/sale-plan/work-plan-sale/sale-by-crop", {
-                  state: {
-                    year_code: location?.state?.year_code,
-                    user_id: location?.state?.user_id,
-                  },
-                })
-              }
             />
           )}
         </div>
