@@ -1020,72 +1020,72 @@ const [formFields, setFormFields] = useState([
         </>
       ),
     },
-    {
-      key: "seb_dealer_list",
-      label: <span className="tab-title">Farmer List</span>,
-      children: (
-        <>
-          <BoxPrimary>
-            <div className="flex justify-between space-x-4 mb-3">
-              <span className="text-[#00783F] text-lg font-semibold">
-                Sub Dealer List
-              </span>
-              {
-                !isViewMode && (
-                  <div className="flex space-x-2">
-                  <ActionButton
-                    mode="add"
-                    text="Add Sub Dealer"
-                    onClick={handleOpenTerritoryModal}
-                  />
-                </div>
-                )
-              }
-            </div>
-            <TableComponent 
-              header={sub_dealer} 
-              dataSource={networkList} 
-            />
-          </BoxPrimary>
+    // {
+    //   key: "seb_dealer_list",
+    //   label: <span className="tab-title">Farmer List</span>,
+    //   children: (
+    //     <>
+    //       <BoxPrimary>
+    //         <div className="flex justify-between space-x-4 mb-3">
+    //           <span className="text-[#00783F] text-lg font-semibold">
+    //             Sub Dealer List
+    //           </span>
+    //           {
+    //             !isViewMode && (
+    //               <div className="flex space-x-2">
+    //               <ActionButton
+    //                 mode="add"
+    //                 text="Add Sub Dealer"
+    //                 onClick={handleOpenTerritoryModal}
+    //               />
+    //             </div>
+    //             )
+    //           }
+    //         </div>
+    //         <TableComponent 
+    //           header={sub_dealer} 
+    //           dataSource={networkList} 
+    //         />
+    //       </BoxPrimary>
 
 
-          <BoxPrimary>
-            <div className="flex justify-between space-x-4 mb-3">
-              <span className="text-[#00783F] text-lg font-semibold">
-                Farmer List
-              </span>
-              {
-                !isViewMode && (
-                  <div className="flex space-x-2">
-                  <ActionButton
-                    mode="add"
-                    text="Add Farmer"
-                    onClick={handleOpenTerritoryModal}
-                  />
-                </div>
-                )
-              }
-            </div>
-            <TableComponent 
-              header={header} 
-              dataSource={networkList} 
-            />
-          </BoxPrimary>
-          <div className="flex justify-end space-x-4 mt-6">
-            <ActionButton
-              mode="back"
-              text="Back"
-              onClick={() => navigate("/customer/farners")}
-            />
-          {
-          !isViewMode && (
-            <ActionButton text="Update" mode="update" onClick={networkhandleSave} />
-            )
-          }
-          </div>
-        </>
-      ),
-    },
+    //       <BoxPrimary>
+    //         <div className="flex justify-between space-x-4 mb-3">
+    //           <span className="text-[#00783F] text-lg font-semibold">
+    //             Farmer List
+    //           </span>
+    //           {
+    //             !isViewMode && (
+    //               <div className="flex space-x-2">
+    //               <ActionButton
+    //                 mode="add"
+    //                 text="Add Farmer"
+    //                 onClick={handleOpenTerritoryModal}
+    //               />
+    //             </div>
+    //             )
+    //           }
+    //         </div>
+    //         <TableComponent 
+    //           header={header} 
+    //           dataSource={networkList} 
+    //         />
+    //       </BoxPrimary>
+    //       <div className="flex justify-end space-x-4 mt-6">
+    //         <ActionButton
+    //           mode="back"
+    //           text="Back"
+    //           onClick={() => navigate("/customer/farners")}
+    //         />
+    //       {
+    //       !isViewMode && (
+    //         <ActionButton text="Update" mode="update" onClick={networkhandleSave} />
+    //         )
+    //       }
+    //       </div>
+    //     </>
+    //   ),
+    // },
 
   ];
 
