@@ -417,9 +417,7 @@ export default function Dashboard() {
             <div className="flex flex-wrap justify-between items-center">
               <h3 className="text-lg font-bold text-[#00783F]">Expense</h3>
               <div className="flex flex-wrap gap-2">
-                {/* <Select className="w-36" defaultValue="All Sub Dealer">
-                  <Select.Option value="All Sub Dealer">All Sub Dealer</Select.Option>
-                </Select> */}
+
                 <Select
                   className="w-36"
                   value={selectedSubdealer}

@@ -1082,14 +1082,6 @@ const [formFields, setFormFields] = useState([
             <ActionButton text="Update" mode="update" onClick={networkhandleSave} />
             )
           }
-
-            {/* <ActionButton
-              mode="update"
-              text="Update"
-              // onClick={() => navigate("/customer/farners")}
-              onClick={networkhandleSave} 
-
-            /> */}
           </div>
         </>
       ),
