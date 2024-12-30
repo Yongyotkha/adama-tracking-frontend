@@ -23,6 +23,7 @@ export default function WorkPlanSaleByDealer() {
   const [totalValue, setTotalValue] = useState(0);
   const [localQtyState, setLocalQtyState] = useState({});
   const [yearName, setYearName] = useState([]);
+  const [data, setData] = useState({});
   const totalDealers = dealer.length;
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
@@ -71,9 +72,11 @@ export default function WorkPlanSaleByDealer() {
             },
             {}
           );
-
+          setData(response.data);
           // Update the state
           setLocalQtyState(newLocalState);
+
+          console.log(response.data);
 
           const newData = response.data.data_items.map((item) => ({
             key: item.product_id,
@@ -100,10 +103,6 @@ export default function WorkPlanSaleByDealer() {
         showNotification("error", "เกิดข้อผิดพลาด");
       });
   }, []);
-
-  useEffect(() => {
-    console.log(localQtyState);
-  }, [localQtyState]);
 
   const columns = [
     {
@@ -457,11 +456,13 @@ export default function WorkPlanSaleByDealer() {
                 response.data.message,
                 response.data.message_line
               ).then(() => {
-                navigate("/sale-plan/work-plan-sale/sale-by-subdealer", {
+                navigate("/sale-plan/work-plan-sale/sale-by-dealer-month", {
                   state: {
                     year_code: location?.state?.year_code,
                     user_id: location?.state?.user_id,
-                    mode: location?.state?.mode,
+                    workplan_header_id: data?.workplan_header_id,
+                    workplan_area_header_id: data?.workplan_area_header_id,
+                    workplan_sale_header_id: data?.workplan_sale_header_id,
                   },
                 });
               });
@@ -638,11 +639,13 @@ export default function WorkPlanSaleByDealer() {
               text="Next"
               mode="save"
               onClick={() =>
-                navigate("/sale-plan/work-plan-sale/sale-by-subdealer", {
+                navigate("/sale-plan/work-plan-sale/sale-by-dealer-month", {
                   state: {
                     year_code: location?.state?.year_code,
                     user_id: location?.state?.user_id,
-                    mode: location?.state?.mode,
+                    workplan_header_id: data?.workplan_header_id,
+                    workplan_area_header_id: data?.workplan_area_header_id,
+                    workplan_sale_header_id: data?.workplan_sale_header_id,
                   },
                 })
               }
