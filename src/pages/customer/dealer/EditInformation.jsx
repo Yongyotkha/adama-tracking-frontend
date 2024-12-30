@@ -1044,15 +1044,15 @@ export default function EditInformation() {
                   <ActionButton
                     mode="add"
                     text="Add Farmer"
-                    onClick={handleOpenTerritoryModal}
+                    // onClick={handleOpenTerritoryModal}
                   />
                 </div>
                 )
               }
             </div>
             <TableComponent 
-              header={header} 
-              dataSource={networkList} 
+              header={[]} 
+              dataSource={[]} 
             />
           </BoxPrimary>
           <div className="flex justify-end space-x-4 mt-6">
