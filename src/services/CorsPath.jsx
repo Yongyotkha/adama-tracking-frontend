@@ -32,6 +32,7 @@ export const paths = {
   pathMasterSubDealerCustomer: "master/sub-dealer-customer",
   pathMasterPermission: "master/permission",
   pathMasterProductUnit: "master/product-unit",
+  pathMasterFammer: "master/farmer-all",
   // pathMasterShop: "master/shop",
   pathMasterStatus: "master/status",
   pathMasterHeadofsale: "master/headofsale",
@@ -50,9 +51,12 @@ export const paths = {
   pathCustomerDealer: "sale-customer-dealer/list",
   pathCustomerDealerDetail: "sale-customer-dealer/detail",
   pathCustomerNetworkDelete: "sale-customer-dealer/network-delete",
+  pathFarmerNetworkDelete: "sale-customer-dealer/network-farmer-delete",
+
   pathCustomerSubDealerList: "sale-customer-subdealer/list",
   pathCustomerSubDealerUpdate: "sale-customer-dealer/update",
   pathCustomerSubDealerNetworkUpdate: "sale-customer-dealer/network-create",
+  pathCustomerSubDealerFarmerUpdate: "sale-customer-dealer/network-farmer-create",
 
   
   // Farners

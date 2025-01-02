@@ -337,6 +337,7 @@ export default function ProfileUser() {
             {isEditingPassword ? "Cancel" : "Edit"}
           </Button>
         </div>
+
         <Form layout="vertical" form={form}>
           <Row gutter={[16, 16]} className="mt-3">
             <Col xs={24} sm={12} md={12} lg={8}>
@@ -359,10 +360,26 @@ export default function ProfileUser() {
                 className="mb-3"
                 name="new_password"
                 label="New password"
+                validateTrigger="onBlur"
                 rules={[
                   {
                     required: isEditingPassword,
                     message: "Please input your new password!",
+                  },
+                  {
+                    validator: (_, value) => {
+                      if (!value) return Promise.resolve();
+                      const errors = [];
+                      if (value.length < 8) errors.push("At least 8 characters");
+                      if (!/[a-z]/.test(value)) errors.push("Contains a lowercase letter");
+                      if (!/[A-Z]/.test(value)) errors.push("Contains an uppercase letter");
+                      if (!/\d/.test(value)) errors.push("Contains a digit");
+                      if (!/[@$!%*?&#^(){}[\]:;<>,.?~_+=|\\/-]/.test(value))
+                        errors.push("Contains a symbol");
+
+                      if (errors.length > 0) return Promise.reject(errors.join(", "));
+                      return Promise.resolve();
+                    },
                   },
                 ]}
               >
@@ -386,9 +403,7 @@ export default function ProfileUser() {
                         return Promise.resolve();
                       }
                       return Promise.reject(
-                        new Error(
-                          "The two passwords that you entered do not match!"
-                        )
+                        new Error("The two passwords that you entered do not match!")
                       );
                     },
                   }),
@@ -399,6 +414,8 @@ export default function ProfileUser() {
             </Col>
           </Row>
         </Form>
+
+        
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
