@@ -80,10 +80,10 @@ export default function ProfileUser() {
     form
       .validateFields()
       .then(async (values) => {
-        if (!values.profile) {
-          showNotification("error", "No data update!");
-          return; // หยุดการทำงานหาก profile เป็น null
-        }
+        // if (!values.profile) {
+        //   showNotification("error", "No data update!");
+        //   return; // หยุดการทำงานหาก profile เป็น null
+        // }
 
         const {
           current_password,
@@ -131,7 +131,7 @@ export default function ProfileUser() {
           // ตรวจสอบผลลัพธ์ของ API แต่ละตัว
           responses.forEach((response) => {
             console.log(response);
-            if (response.status === 200 && response.result) {
+            if (response.status === 200 ) {
               if (profile) {
                 console.log(updateimg?.profile);
                 console.log(userInfo?.profile_image, "info");
