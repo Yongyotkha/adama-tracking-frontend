@@ -50,7 +50,7 @@ export default function DealerList() {
         setPosition(producttype.data);
         setRoles(roles.data);
       } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        showMsg("error", error.message || "error");
       } finally {
         setLoading(false);
       }

@@ -683,7 +683,7 @@ export default function CreateSubDealer() {
     <>
       <BoxPrimary>
         <div className="flex justify-between space-x-4 mb-3">
-          <span className="text-[#00783F] text-lg font-semibold">Network</span>
+          <span className="text-[#00783F] text-lg font-semibold">Fammer</span>
           <ActionButton mode="add" text="Add" onClick={handleOpenTerritoryModal} />
         </div>
         <TableComponent header={networkHeader} dataSource={networkList} />
@@ -720,7 +720,7 @@ export default function CreateSubDealer() {
           },
           {
             key: "network",
-            label: <span className="tab-title">Network</span>,
+            label: <span className="tab-title">Fammer</span>,
             children: networkTabContent,
           },
         ]}
@@ -728,7 +728,7 @@ export default function CreateSubDealer() {
 
       {/* DynamicModal สำหรับเลือก network เพิ่มเติม */}
       <DynamicModal
-        title="Add Network"
+        title="Add Fammer"
         isVisible={isTerritoryModalVisible}
         onClose={handleCloseTerritoryModal}
         header={[

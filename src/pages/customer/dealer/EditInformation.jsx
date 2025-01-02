@@ -43,7 +43,11 @@ export default function EditInformation() {
   const [contactItems, setContactItems] = useState([]); // State for contact items
   const [form] = Form.useForm();
   const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
+  const [isTerritoryModalFarmer, setIsTerritoryModalFarmer ] = useState(false);
+
   const [userList, setUserList] = useState([]);
+  const [farmerList, setFarmerList] = useState([]);
+
   const [personitem, setpersonitem] = useState([]);
   const [cropOptions, setCropOptions] = useState([]);
   const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); // กำหนด state สำหรับ defaultSelectedCrops
@@ -64,7 +68,6 @@ export default function EditInformation() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // console.log(location.state.mod);
         await fetchDealerDetails(location.state.id);
         const [crops] = await Promise.all([
           useServiceAPI.get(paths.pathMasterCrop, {}),
@@ -206,27 +209,22 @@ export default function EditInformation() {
   ];
 
   const header = [
-    // { title: "No", width: 50, dataIndex: "key", align: "center" },
     { title: "No", width: 50, dataIndex: "no", align: "center" },
     { title: "Sub Dealer Name", width: 100, dataIndex: "name", align: "left" },
     { title: "Contact Person", width: 200,  dataIndex: "contactperson", align: "left",},
     { title: "NO",  width: 150, dataIndex: "mobilePhone", align: "center",},
-    // {
-    //   title: "On Shop",
-    //   width: 150,
-    //   dataIndex: "onshop",
-    //   align: "center",
-    //   render: (isOnShop, record) => (
-    //     <Checkbox
-    //       checked={isOnShop} // กำหนดค่าเริ่มต้นของ Checkbox
-    //       onChange={() => handleCheckboxChange(record.key)} // ฟังก์ชันเปลี่ยนสถานะเมื่อคลิก
-    //     >
-    //     </Checkbox>
-    //   ),
-    // },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
+
+  const headerFammer = [
+    { title: "No", dataIndex: "no", align: "center" },
+    { title: "Farmer Name", dataIndex: "name", align: "left" },
+    { title: "Contact Number", dataIndex: "mobilePhone", align: "center" },
+    { title: "Status", width: 100, dataIndex: "status", align: "center" },
+    { title: "Action", width: 100, dataIndex: "action", align: "center" },
+  ];
+
 
   const actionItems = [
     {
@@ -242,7 +240,7 @@ export default function EditInformation() {
     try {
       const requestData = {
         dealer_id:location.state.id,
-        sub_dealer_id: record, // ส่ง ID ที่ต้องการลบ
+        sub_dealer_id: record, 
       };
 
       const response = await useServiceAPI.delete(
@@ -270,6 +268,36 @@ export default function EditInformation() {
     }
   };
 
+  const handleDeleteFarmer = async (record) => {    
+    try {
+      const requestData = {
+        dealer_id:location.state.id,
+        farmer_id: record, 
+      };
+
+      const response = await useServiceAPI.delete(
+        paths.pathFarmerNetworkDelete,
+        requestData
+      );
+
+      if (response.status === 200) {
+        await fetchDealerDetails(location.state.id);
+
+        showNotification(
+          "success",
+          response.data.message,
+          response.data.message_line
+        );
+      } else {
+        console.error("Failed to delete record:", response.message);
+        showNotification("error", response.message, response.message_line);
+      }
+    } catch (error) {
+      console.error("Error deleting record:", error);
+
+      showNotification("error", error.message, error.message_line);
+    }
+  };
 
   const fetchDealerDetails = async (id) => {
     setLoading(true);
@@ -303,15 +331,6 @@ export default function EditInformation() {
             />
           ),
           action: (
-            // <Dropdown menu={{ items: actionItems }} placement="bottom">
-            //   <a onClick={(e) => e.preventDefault()}>
-            //     <img
-            //       src="/img/icons/action.png"
-            //       alt="Actions icon"
-            //       className="inline-block w-5 h-5"
-            //     />
-            //   </a>
-            // </Dropdown>
             <>
               <DynamicButton
                 iconSrc="/img/icons/delete.png"
@@ -323,6 +342,36 @@ export default function EditInformation() {
           ),
         }));
         setNetworkList(newDataNetwork);
+
+
+
+        const FarmerDataNetwork = data.network_farmer_list?.map((item, index) => ({
+          key: item.farmer_id,
+          no: index + 1,
+          name: item.farmer_name || "-",
+          contactperson: item.farmer_contact_name || "-",
+          mobilePhone: item.farmer_contact_phone_number || "-",
+          onshop: item.is_on_shop || false,
+          status: (
+            <BadgeStatus
+              text={item.farmer_channel_type}
+              bgColor={item.farmer_channel_type_bg_color}
+              textColor={item.farmer_channel_type_color}
+            />
+          ),
+          action: (
+            <>
+              <DynamicButton
+                iconSrc="/img/icons/delete.png"
+                onClick={() =>
+                  handleDeleteFarmer(item.farmer_id)
+                }
+              />
+            </>
+          ),
+        }));
+        setFarmerList(FarmerDataNetwork);
+        
       } else {
         console.error("Failed to fetch data:", response.message);
       }
@@ -488,58 +537,16 @@ export default function EditInformation() {
     setIsTerritoryModalVisible(false);
   };
 
-  // const handleAddSelectedRows = (selectedRows) => {
-  //   const newRows = selectedRows.map((row, index) => ({
-  //     // key: networkList.length + index + 1, 
-  //     key: row.key,
-  //     // no: networkList.length + index + 1, 
-  //     no: (networkList?.length || 0) + index + 1,
-  //     name: row.name || "-",
-  //     contactperson: row.contactperson || "-",
-  //     mobilePhone: row.territory || "-",
-  //     onshop: row.onshop || false,
-  //     status: (
-  //       <BadgeStatus
-  //         text={row.position || "-"}
-  //         bgColor={row.statusBgColor || "#E0E0E0"}
-  //         textColor={row.statusTextColor || "#000000"}
-  //       />
-  //     ),
-  //     action: (
-  //       // <Dropdown menu={{ items: actionItems }} placement="bottom">
-  //       //   <a onClick={(e) => e.preventDefault()}>
-  //       //     <img
-  //       //       src="/img/icons/action.png"
-  //       //       alt="Actions icon"
-  //       //       className="inline-block w-5 h-5"
-  //       //     />
-  //       //   </a>
-  //       // </Dropdown>
-  //       <>
-  //         <DynamicButton
-  //           iconSrc="/img/icons/delete.png"
-  //           onClick={() =>
-  //             handleDeleteItem(row.sub_dealer_id)
-  //           }
-  //         />
-  //       </>
-  //     ),
-  //   }));
 
-  //   // setNetworkList((prevList) => [...prevList, ...newRows]); 
+  const handleOpenFarmerModal = async () => {
+    await fetchUserFamer(); 
+    setIsTerritoryModalFarmer(true); 
+  };
 
-  //   setNetworkList((prevList) => {
-  //     const existingKeys = prevList.map((item) => item.key); // ดึง key ของรายการที่มีอยู่
-  //     const filteredNewRows = newRows.filter((row) => !existingKeys.includes(row.key)); // กรองเฉพาะ key ที่ยังไม่มีใน list
-  //     if (filteredNewRows.length === 0) {
-  //       showNotification("error", "Sale Territory has already been added.");
-  //       return [...prevList, ...filteredNewRows]; 
-  //     }else{
-  //       showNotification("success", "Add sale territory success.");
-  //       return [...prevList, ...filteredNewRows]; 
-  //     }
-  //   });
-  // };
+  const handleCloseFarmerModal = () => {
+    setIsTerritoryModalFarmer(false);
+  };
+
 
   const handleAddSelectedRows = (selectedRows) => {
     if (!Array.isArray(selectedRows)) {
@@ -583,6 +590,49 @@ export default function EditInformation() {
   };
 
   
+  const handleAddSelectedRowsFammer = (selectedRows) => {
+    if (!Array.isArray(selectedRows)) {
+      console.error("selectedRows is not an array:", selectedRows);
+      return;
+    }
+  
+    const newRows = selectedRows.map((row, index) => ({
+      key: row.key, // Unique identifier
+      no: (farmerList?.length || 0) + index + 1, // Row number
+      name: row.name || "-", // Farmer Name
+      mobilePhone: row.territory || "-", // Contact Number
+      status: (
+        <BadgeStatus
+          text={row.positionText || "-"} // Status text
+          bgColor={row.statusBgColor || "#E0E0E0"} // Background color
+          textColor={row.statusTextColor || "#000000"} // Text color
+        />
+      ),
+      action: (
+        <DynamicButton
+          iconSrc="/img/icons/delete.png"
+          onClick={() => handleDeleteFarmer(row.key)} // Delete handler
+        />
+      ),
+    }));
+  
+    setNetworkList((prevList) => {
+      const existingKeys = (prevList || []).map((item) => item.key); // ป้องกัน undefined
+      const filteredNewRows = newRows.filter((row) => !existingKeys.includes(row.key));
+      if (filteredNewRows.length === 0) {
+        showNotification("error", "Sale Territory has already been added.");
+        return prevList || [];
+      } else {
+        showNotification("success", "Add sale territory success.");
+        return [...(prevList || []), ...filteredNewRows];
+      }
+    });
+
+
+  };
+  
+  
+
   const fetchUserList = async (page_size = 20, page_length = 1) => {
     setLoading(true);
     const requestData = {
@@ -592,11 +642,7 @@ export default function EditInformation() {
     };
 
     try {
-      const response = await useServiceAPI.get(
-        paths.pathMasterSubDealer,
-        requestData
-      );
-
+      const response = await useServiceAPI.get(paths.pathMasterSubDealer,requestData);
       if (response.status === 200) {
         const data = response.data;      
         const territoryData = data.map((item, index) => ({
@@ -623,6 +669,45 @@ export default function EditInformation() {
       setLoading(false);
     }
   };
+
+  const fetchUserFamer = async (page_size = 20, page_length = 1) => {
+    setLoading(true);
+    const requestData = {
+      platform: "web",
+      page_size,
+      page_length,
+    };
+    try {
+      const response = await useServiceAPI.get(
+        paths.pathMasterFammer,
+        requestData
+      );
+
+      if (response.status === 200) {
+        const data = response.data;              
+        const territoryFammerData = data.map((item, index) => ({
+          key: item.farmer_id,
+          no: index + 1,
+          name: item.farmer_contact_name,
+          territory: item.farmer_contact_phone_number,
+          position: (
+            <BadgeStatus
+              text={item.farmer_channel_type_name}
+              bgColor={item.farmer_channel_type_bg_color}
+              textColor={item.farmer_channel_type_color}
+            />
+          ),
+
+        }));
+        setFarmerList(territoryFammerData);
+      }
+    } catch (error) {
+      console.error("Error fetching Fammer list:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const handleAddContact = () => {
     // เพิ่ม object ใหม่ลงใน contactItems state
@@ -696,9 +781,7 @@ export default function EditInformation() {
             line_id: item.line_id || null,
           })),
           crop_list: defaultSelectedCrops || [],
-        };
-        console.log(formattedData);
-        
+        };        
         useServiceAPI
           .put(paths.pathCustomerSubDealerUpdate, formattedData)
           .then((response) => {
@@ -758,12 +841,41 @@ export default function EditInformation() {
       });
   };
 
+  const FarmerhandleSave = () => {
+    // Validate form fields if needed
+    form
+      .validateFields()
+      .then(() => {
+        const formattedData = {
+          id: location.state.id,
+          network_list: farmerList.map((item) => ({
+            farmer_id: item.key, 
+            is_on_shop: true, 
+          })),
+        };
   
-  // const handleBankAccountChange = (index, field, value) => {
-  //   const updatedAccounts = [...companyinfo.bank_account_items];
-  //   updatedAccounts[index][field] = value;
-  //   setcompanyinfo({ ...companyinfo, bank_account_items: updatedAccounts });
-  // };
+        useServiceAPI
+          .put(paths.pathCustomerSubDealerFarmerUpdate, formattedData) // paths.pathNetworkSave = URL API
+          .then((response) => {
+            if (response.status === 200) {
+              navigate("/customer/dealer");
+              showNotification(
+                "success",
+                response.data.message,
+                response.data.message_line
+              );
+
+            }
+          })
+          .catch((error) => {
+            console.error("Save failed:", error);
+          });
+      })
+      .catch((errorInfo) => {
+        console.error("Validation Failed:", errorInfo);
+      });
+  };
+
 
   const handleBankAccountChange = (index, field, value) => {
     const updatedAccounts = companyinfo.bank_account_items?.length
@@ -778,12 +890,7 @@ export default function EditInformation() {
       setcompanyinfo({ ...companyinfo, bank_account_items: updatedAccounts });
   };
   
-  // const handleContactChange = (index, field, value) => {
-  //   const updatedContacts = [...contactItems];
-  //   updatedContacts[index][field] = value;
-  //   setContactItems(updatedContacts);
-  // };
-  
+
   const handleContactChange = (index, field, value) => {
     const updatedContacts = [...contactItems];
   
@@ -791,7 +898,6 @@ export default function EditInformation() {
       const birthDate = dayjs(value);
       const currentYear = dayjs().year();
       const age = currentYear - birthDate.year(); // คำนวณอายุ
-  
       updatedContacts[index][field] = value; // อัปเดตวันเกิด
       updatedContacts[index]["age"] = age; // อัปเดตอายุ
     } else {
@@ -1019,14 +1125,9 @@ export default function EditInformation() {
             />
           </BoxPrimary>
           <div className="flex justify-end space-x-4 mt-6 mb-6">
-            <ActionButton
-              mode="back"
-              text="Back"
-              onClick={() => navigate("/customer/dealer")}
-            />
           {
           !isViewMode && (
-            <ActionButton text="Update" mode="update" onClick={networkhandleSave} />
+            <ActionButton text="Update Network" mode="update" onClick={networkhandleSave} />
             )
           }
           </div>
@@ -1038,23 +1139,22 @@ export default function EditInformation() {
               <span className="text-[#00783F] text-lg font-semibold">
                 Farmer List
               </span>
-              {
-                !isViewMode && (
-                  <div className="flex space-x-2">
+              {!isViewMode && (
+                <div className="flex space-x-2">
                   <ActionButton
                     mode="add"
                     text="Add Farmer"
-                    // onClick={handleOpenTerritoryModal}
+                    onClick={handleOpenFarmerModal}
                   />
                 </div>
-                )
-              }
+              )}
             </div>
             <TableComponent 
-              header={[]} 
-              dataSource={[]} 
+              header={headerFammer} 
+              dataSource={farmerList} 
             />
           </BoxPrimary>
+
           <div className="flex justify-end space-x-4 mt-6">
             <ActionButton
               mode="back"
@@ -1063,7 +1163,7 @@ export default function EditInformation() {
             />
           {
           !isViewMode && (
-            <ActionButton text="Update" mode="update" onClick={networkhandleSave} />
+            <ActionButton text="Update Farmer" mode="update" onClick={FarmerhandleSave} />
             )
           }
           </div>
@@ -1096,6 +1196,8 @@ export default function EditInformation() {
         className="custom-tabs"
         items={items}
       />
+
+
       <DynamicModal
         title="Add Sale Territory"
         isVisible={isTerritoryModalVisible}
@@ -1111,6 +1213,25 @@ export default function EditInformation() {
         onAddSelected={handleAddSelectedRows}
         type="add"
       />
+
+      <DynamicModal
+        title="Farmer List"
+        isVisible={isTerritoryModalFarmer}
+        onClose={handleCloseFarmerModal}
+        header={[
+          { title: "No", dataIndex: "no", key: "no", width: 50 },
+          { title: "Farmer Name", dataIndex: "name", key: "name", width: 150 },
+          { title: "contact number",  dataIndex: "territory", key: "territory", width: 150,},
+          { title: "Status",  dataIndex: "position",  key: "position",  width: 150,},
+        ]}
+        dataSource={farmerList}
+        width="1200px"
+        onAddSelected={handleAddSelectedRowsFammer}
+        type="add"
+      />
+
+
+
     </MainLayout>
   );
 }
