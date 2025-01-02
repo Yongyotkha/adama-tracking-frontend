@@ -627,6 +627,13 @@ export default function WorkPlanSaleByDealer() {
               onClick={() => handleSave("draft")}
             />
           )}
+          {permission.save && (
+            <ActionButton
+              text="Save and Next"
+              mode="save"
+              onClick={() => handleSave("save")}
+            />
+          )}
           {permission.btn_save_and_next && (
             <ActionButton
               text="Save and Next"
