@@ -22,7 +22,12 @@ export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState({ dealer_count: 0, sub_dealer_count: 0 });
   const [dashboardDataExpense, setDashboardDataExpense] = useState({total_expense_actual_sale: 0, total_expense_actual_exp: 0, total_expense_advance:0 });
   const [dashboardDataOrder, setDashboardDataOrder] = useState({ total_order: 0, total_order_amonth: 0 });
-
+  const [dealerPlanData, setDealerPlanData] = useState([]);
+  const [topActivityData, setTopActivityData] = useState([]);
+  const [listActivityData, setListActivityData] = useState([]);
+  const [subDealerPlanData, setSubDealerPlanData] = useState([]);
+  const [saleCropData, setSaleCropData] = useState([]);
+  const [totalSaleValue, setTotalSaleValue] = useState(0); // เก็บค่ารวมทั้งหมด
 
   const [loading, setLoading] = useState(false);
   const chartSetting = {
@@ -175,7 +180,6 @@ export default function Dashboard() {
     return `${value} Million`;
   }
 
-
   // Pie Chart Data
   const pieData = [
     { value: 20000, label: "Rice", color: "#8B5CF6", name: "Rice" },
@@ -216,6 +220,11 @@ export default function Dashboard() {
     fetchDashboardData();
     fetchDashboardDataExpense();
     fetchDashboardDataOrder();
+    fetchDealerPlanData();
+    fetchTopActivityData();
+    fetchListActivityData();
+    fetchSubDealerPlanData();
+    fetchSaleCropData();
   }, []);
 
 
@@ -236,14 +245,17 @@ export default function Dashboard() {
     }
   };
   
-  
   const handleYearChange = (value) => {
     setSelectedYear(value); // อัปเดตค่า state
     fetchDashboardData(value);
     fetchDashboardDataExpense(value)
     fetchDashboardDataOrder(value);
+    fetchDealerPlanData(value);
+    fetchTopActivityData(value);
+    fetchListActivityData(value);
+    fetchSubDealerPlanData(value);
+    fetchSaleCropData(value);
   };
-
 
   // เลือเดือน
   const fetchMonth = async () => {
@@ -252,8 +264,8 @@ export default function Dashboard() {
       const response = await useServiceAPI.get(paths.pathMasterMonths);
       if (response.status === 200) {
         const monthsData = response.data || [];
-        setMonths(monthsData);
-        setSelectedMonths(monthsData[0]?.id); // ตั้งค่า default เป็นเดือนแรก
+        setMonths([{ id: "all", name: "All Month" }, ...monthsData]); // เพิ่ม "All Month"
+        setSelectedMonths("all"); // ตั้งค่า default เป็น "All Month"
       }
     } catch (error) {
       console.error("Error fetching months:", error);
@@ -262,35 +274,37 @@ export default function Dashboard() {
     }
   };
 
-
   // เช็คค่าทีเลือก Expense mount
   const handleMonthChangeExpense = (value) => {
-    setSelectedMonths(value); // อัปเดตค่าเดือนที่เลือก
-    console.log("Selected Month ID:", value); // Log ค่าที่เลือก
+    setSelectedMonths(value === "all" ? "" : value); // ถ้าเลือก "All Month" ให้ส่งค่าเปล่า
+    fetchDashboardDataExpense(selectedYear, value === "all" ? "" : value, selectedSubdealer); // ส่งค่า Month ที่เลือก
   };
+  
 
-    // เลือก subdealer
-    const fetchSubdealer = async () => {
-      setLoading(true);
-      try {
-        const response = await useServiceAPI.get(paths.pathMasterSubDealer);
-        if (response.status === 200) {
-          const subDealerData = response.data || [];
-          setSubdealer(subDealerData);
-          setSelectedSubdealer(subDealerData[0]?.sub_dealer_id); // ตั้งค่า default เป็น sub dealer แรก
-        }
-      } catch (error) {
-        console.error("Error fetching subdealers:", error);
-      } finally {
-        setLoading(false);
+  // เลือก subdealer
+  const fetchSubdealer = async () => {
+    setLoading(true);
+    try {
+      const response = await useServiceAPI.get(paths.pathMasterSubDealer);
+      if (response.status === 200) {
+        const subDealerData = response.data || [];
+        setSubdealer([{ sub_dealer_id: "all", sub_dealer_name: "All Sub Dealer" }, ...subDealerData]);
+        setSelectedSubdealer("all"); // ตั้งค่า default เป็น "All Sub Dealer"
+
       }
-    };
+    } catch (error) {
+      console.error("Error fetching subdealers:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubdealerChangeExpense = (value) => {
-    setSelectedSubdealer(value); // อัปเดตค่า Sub Dealer ที่เลือก
-    console.log("Selected Sub Dealer ID:", value); // Log ค่าที่เลือก
+    setSelectedSubdealer(value === "all" ? "" : value);
+    fetchDashboardDataExpense(selectedYear, selectedMonths, value === "all" ? "" : value); // ส่งค่า Sub Dealer ที่เลือก
   };
 
+  // ฟังก์ชันสำหรับดึงข้อมูล Sub Dealer
   const fetchDashboardData = async (year) => {
     setLoading(true);
     try {
@@ -311,11 +325,17 @@ export default function Dashboard() {
     }
   };
 
-
-  const fetchDashboardDataExpense = async (year = new Date().getFullYear()) => {
+  // ฟังก์ชันสำหรับดึงข้อมูล Expense
+  const fetchDashboardDataExpense = async (year = new Date().getFullYear(), month = selectedMonths, subDealerId = selectedSubdealer ) => {
     setLoading(true);
     try {
-      const response = await useServiceAPI.get(paths.pathDashBordExpense, { year_code: year });
+      const payload = {
+        year_code: year,
+        sub_dealer_id: subDealerId === "all" ? "" : subDealerId,
+        month_id: month === "all" ? "" : month,
+      };
+
+      const response = await useServiceAPI.get(paths.pathDashBordExpense,payload);
       if (response.status === 200) {
         const data = response.data || {};
         setDashboardDataExpense({
@@ -335,10 +355,21 @@ export default function Dashboard() {
   };
 
 
-  const fetchDashboardDataOrder = async (year = new Date().getFullYear()) => {
+  // ฟังก์ชันสำหรับดึงข้อมูล Order
+  const fetchDashboardDataOrder = async (
+    year = new Date().getFullYear(),
+    month = selectedMonths,
+    subDealerId = selectedSubdealer  
+  ) => {
     setLoading(true);
     try {
-      const response = await useServiceAPI.get(paths.pathDashBordOrder, { year_code: year });
+      const payload = {
+        year_code: year,
+        sub_dealer_id: subDealerId === "all" ? "" : subDealerId,
+        month_id: month === "all" ? "" : month,
+      };
+
+      const response = await useServiceAPI.get(paths.pathDashBordOrder, payload);
       if (response.status === 200) {
         const data = response.data || {};
         setDashboardDataOrder({
@@ -356,14 +387,158 @@ export default function Dashboard() {
     }
   };
 
+  const handleSubdealerChangeOrder = (value) => {
+    setSelectedSubdealer(value === "all" ? "" : value);
+    fetchDashboardDataOrder(selectedYear, selectedMonths, value === "all" ? "" : value);
+  };
+  
+  const handleMonthChangeOrder = (value) => {
+    setSelectedMonths(value === "all" ? "" : value);
+    fetchDashboardDataOrder(selectedYear, value === "all" ? "" : value, selectedSubdealer);
+  };
+
+  
+
+  // ฟังก์ชันสำหรับดึงข้อมูล Dealer Plan
+  const fetchDealerPlanData = async (year = new Date().getFullYear()) => {
+    setLoading(true);
+    try {
+      const response = await useServiceAPI.get(paths.pathDashBordPlan,{ year_code: year });
+      if (response.status === 200 && response.data) {
+        const data = response.data.map((item) => ({
+          month: item.name,
+          plan: item.work_plan_value,
+          actual: item.work_actual_value,
+        }));
+        setDealerPlanData(data); // อัปเดต State
+      } else {
+        console.error("Failed to fetch Dealer Plan data:", response.message);
+      }
+    } catch (error) {
+      console.error("Error fetching Dealer Plan data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ฟังก์ชันสำหรับดึงข้อมูล Top Activity
+  const fetchTopActivityData = async (year = new Date().getFullYear()) => {
+    setLoading(true);
+    try {
+      const response = await useServiceAPI.get(paths.pathDashBordTopActivity,{ year_code: year });
+      if (response.status === 200 && response.data) {
+        const data = response.data.map((item) => ({
+          activity: item.activity_type_name,
+          value: parseInt(item.total_activity_count, 10),
+        }));
+        setTopActivityData(data); // อัปเดต State
+      } else {
+        console.error("Failed to fetch Top Activity data:", response.message);
+      }
+    } catch (error) {
+      console.error("Error fetching Top Activity data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // ฟังก์ชันสำหรับดึงข้อมูล Activity
+  const fetchListActivityData = async (year = new Date().getFullYear()) => {
+    setLoading(true);
+    try {
+      const response = await useServiceAPI.get(paths.pathDashBordListActivity,{ year_code: year });
+      if (response.status === 200 && response.data) {
+        const data = response.data.map((item) => ({
+          type: item.activity_type_name,
+          plan: parseInt(item.total_activity_plan_count, 10),
+          actual: parseInt(item.total_activity_actual_count, 10),
+          icon: item.activity_image,
+        }));
+        setListActivityData(data); // อัปเดต State
+      } else {
+        console.error("Failed to fetch List Activity data:", response.message);
+      }
+    } catch (error) {
+      console.error("Error fetching List Activity data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ฟังก์ชันสำหรับดึงข้อมูล Sub Dealer Plan
+  const fetchSubDealerPlanData = async (
+    year = new Date().getFullYear(),
+    month = selectedMonths,
+    subDealerId = selectedSubdealer
+  ) => {
+    setLoading(true);
+    try {
+      const payload = {
+        year_code: year,
+        sub_dealer_id: subDealerId === "all" ? "" : subDealerId,
+        month_id: month === "all" ? "" : month,
+      };
+
+      const response = await useServiceAPI.get(paths.pathDashBordSubDealerList,payload);
+      if (response.status === 200 && response.data) {
+        const data = response.data.map((item) => ({
+          month: item.product_name, // ใช้ product_name แทน month
+          plan: item.work_plan_value,
+          actual: item.work_actual_value,
+        }));
+        setSubDealerPlanData(data); // อัปเดต State
+      } else {
+        console.error("Failed to fetch Sub Dealer Plan data:", response.message);
+      }
+    } catch (error) {
+      console.error("Error fetching Sub Dealer Plan data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubdealerChangeSubDealerPlan = (value) => {
+    setSelectedSubdealer(value === "all" ? "" : value);
+    fetchSubDealerPlanData(selectedYear, selectedMonths, value === "all" ? "" : value);
+  };
+  
+  const handleMonthChangeSubDealerPlan = (value) => {
+    setSelectedMonths(value === "all" ? "" : value);
+    fetchSubDealerPlanData(selectedYear, value === "all" ? "" : value, selectedSubdealer);
+  };
+
+  
+
+  // ฟังก์ชันสำหรับดึงข้อมูล Sale By Crop
+  const fetchSaleCropData = async (year = new Date().getFullYear()) => {
+    setLoading(true);
+    try {
+      const response = await useServiceAPI.get(paths.pathDashBordSaleCrop,{ year_code: year });
+      if (response.status === 200 && response.data) {
+        const data = response.data.map((item) => ({
+          value: item.value,
+          label: item.name,
+          color: item.color.trim(),
+          name: item.name,
+        }));
+        setSaleCropData(data); // อัปเดต State
+        const totalValue = data.reduce((sum, crop) => sum + crop.value, 0);
+        setTotalSaleValue(totalValue); // อัปเดตค่ารวม
+      } else {
+        console.error("Failed to fetch Sale By Crop data:", response.message);
+      }
+    } catch (error) {
+      console.error("Error fetching Sale By Crop data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Dashboard</div>
-        {/* <Select defaultValue="2024">
-          <Select.Option value="2024">Year 2024</Select.Option>
-        </Select> */}
       <Select
         className="w-40"
         value={selectedYear}
@@ -377,6 +552,7 @@ export default function Dashboard() {
           </Select.Option>
         ))}
       </Select>
+
       </div>
       {/* Row 1: Dealer, Sub Dealer, Expense, Order */}
       <Row gutter={[16, 16]} className="mb-4">
@@ -417,10 +593,9 @@ export default function Dashboard() {
             <div className="flex flex-wrap justify-between items-center">
               <h3 className="text-lg font-bold text-[#00783F]">Expense</h3>
               <div className="flex flex-wrap gap-2">
-
                 <Select
                   className="w-36"
-                  value={selectedSubdealer}
+                  value={selectedSubdealer }
                   onChange={handleSubdealerChangeExpense}
                   placeholder={loading ? "Loading..." : "Select sub dealer"}
                   disabled={loading}
@@ -435,17 +610,16 @@ export default function Dashboard() {
                 <Select
                   className="w-36"
                   value={selectedMonths}
-                  onChange={handleSubdealerChangeExpense}
+                  onChange={handleMonthChangeExpense} // เรียกใช้ฟังก์ชันจัดการที่อัปเดต
                   placeholder={loading ? "Loading..." : "Select Month"}
                   disabled={loading}
                 >
                   {months.map((month) => (
                     <Select.Option key={month.id} value={month.id}>
-                      {`months ${month.name}`}
+                      {month.name}
                     </Select.Option>
                   ))}
                 </Select>
-
               </div>
             </div>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-300">
@@ -469,12 +643,32 @@ export default function Dashboard() {
             <div className="flex flex-wrap justify-between items-center w-full">
               <h3 className="text-lg font-bold text-[#00783F]">Order</h3>
               <div className="flex flex-wrap gap-2">
-                <Select className="w-36" defaultValue="All Sub Dealer">
-                  <Select.Option value="All Sub Dealer">All Sub Dealer</Select.Option>
-                </Select>
-                <Select className="w-36" defaultValue="All Month">
-                  <Select.Option value="All Month">All Month</Select.Option>
-                </Select>
+              <Select
+                className="w-36"
+                value={selectedSubdealer}
+                onChange={handleSubdealerChangeOrder}
+                placeholder={loading ? "Loading..." : "Select Sub Dealer"}
+                disabled={loading}
+              >
+                {subdealer.map((dealer) => (
+                  <Select.Option key={dealer.sub_dealer_id} value={dealer.sub_dealer_id}>
+                    {dealer.sub_dealer_name}
+                  </Select.Option>
+                ))}
+              </Select>
+              <Select
+                className="w-36"
+                value={selectedMonths}
+                onChange={handleMonthChangeOrder}
+                placeholder={loading ? "Loading..." : "Select Month"}
+                disabled={loading}
+              >
+                {months.map((month) => (
+                  <Select.Option key={month.id} value={month.id}>
+                    {month.name}
+                  </Select.Option>
+                ))}
+              </Select>
               </div>
             </div>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 w-full">
@@ -498,7 +692,7 @@ export default function Dashboard() {
           <Row gutter={[16, 16]}>
             {/* Dealer Plan Chart */}
             <Col xs={24} lg={24} xl={12}>
-              <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
+            <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
                 <div className="flex flex-wrap items-center justify-between">
                   <h3 className="text-[#00783F] text-lg font-semibold mb-3">Dealer Plan</h3>
                   <div className="flex flex-wrap gap-2">
@@ -510,10 +704,10 @@ export default function Dashboard() {
                     </Select>
                   </div>
                 </div>
-                {/* Placeholder for Chart */}
-                <div className="h-full rounded ">
+                {/* แสดง Bar Chart ด้วยข้อมูลจาก Dealer Plan */}
+                <div className="h-full rounded">
                   <BarChart
-                    dataset={dataset}
+                    dataset={dealerPlanData}
                     xAxis={[{ scaleType: 'band', dataKey: 'month' }]}
                     series={[
                       { dataKey: 'plan', label: 'Plan', valueFormatter },
@@ -547,35 +741,30 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="h-full rounded">
+                  {/* แสดง Bar Chart ด้วยข้อมูลจาก Top Activity */}
                   <BarChart
-                    dataset={[
-                      { activity: "Demo Plot", value: 90 },
-                      { activity: "ADAMA Day", value: 80 },
-                      { activity: "Field Day", value: 70 },
-                      { activity: "Visit", value: 50 },
-                      { activity: "Knock Door", value: 30 },
-                    ]}
+                    dataset={topActivityData}
                     xAxis={[
                       {
                         dataKey: "activity",
-                        scaleType: "band", // Set the type to 'band'
+                        scaleType: "band",
                         label: "Activity",
                       },
                     ]}
                     series={[
                       {
                         dataKey: "value",
-                        label: "Million",
+                        label: "Activity Count",
                         color: "#8BC34A",
                       },
                     ]}
                     yAxis={[
                       {
-                        label: "Million",
+                        label: "Count",
                       },
                     ]}
                     height={304}
-                    slotProps={{ legend: { hidden: true } }} // Hides the legend
+                    slotProps={{ legend: { hidden: true } }} // ซ่อน legend
                     sx={{
                       ".MuiBar-root": {
                         borderRadius: "4px",
@@ -595,188 +784,192 @@ export default function Dashboard() {
 
             {/* Sale Dealer Plan */}
             <Col xs={24} lg={24} xl={12}>
-              <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
-                <div className="flex flex-wrap items-center justify-between">
-                  <h3 className="text-[#00783F] text-lg font-semibold mb-3">Sub Dealer Plan</h3>
-                  <div className="flex flex-wrap gap-2">
-                    <Select className="mb-4" defaultValue="All Sub Dealer">
-                      <Select.Option value="All Sub Dealer">All Sub Dealer</Select.Option>
-                    </Select>
-                    <Select className="mb-4" defaultValue="All Month">
-                      <Select.Option value="All Month">All Month</Select.Option>
-                    </Select>
-                  </div>
+            <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
+              <div className="flex flex-wrap items-center justify-between">
+                <h3 className="text-[#00783F] text-lg font-semibold mb-3">Sub Dealer Plan</h3>
+                <div className="flex flex-wrap gap-2">
+                <Select
+                  className="mb-4 w-36"
+                  value={selectedSubdealer}
+                  onChange={handleSubdealerChangeSubDealerPlan}
+                  placeholder={loading ? "Loading..." : "Select Sub Dealer"}
+                  disabled={loading}
+                >
+                  {subdealer.map((dealer) => (
+                    <Select.Option key={dealer.sub_dealer_id} value={dealer.sub_dealer_id}>
+                      {dealer.sub_dealer_name}
+                    </Select.Option>
+                  ))}
+                </Select>
+
+                <Select
+                  className="mb-4 w-36"
+                  value={selectedMonths}
+                  onChange={handleMonthChangeSubDealerPlan}
+                  placeholder={loading ? "Loading..." : "Select Month"}
+                  disabled={loading}
+                >
+                  {months.map((month) => (
+                    <Select.Option key={month.id} value={month.id}>
+                      {month.name}
+                    </Select.Option>
+                  ))}
+                </Select>
                 </div>
-                {/* Overlapping Horizontal Bar Chart */}
-                <div className="h-full rounded">
-                  <BarChart
-                    dataset={[
-                      { month: "Apopo 20%SE", plan: 92, actual: 73 },
-                      { month: "Atranex 90WG", plan: 92, actual: 73 },
-                      { month: "Baloric 320EC", plan: 92, actual: 73 },
-                      { month: "Bla-S", plan: 92, actual: 73 },
-                      { month: "Bumper P", plan: 92, actual: 99 },
-                      { month: "Custodia", plan: 103, actual: 144 },
-                      { month: "Fiesta", plan: 105, actual: 319 },
-                      { month: "Formass 480SL", plan: 95, actual: 131 },
-                      { month: "Hamper 300SC", plan: 97, actual: 55 },
-                      { month: "Hexaron", plan: 76, actual: 48 },
-                    ]}
-                    yAxis={[
-                      {
-                        scaleType: "band",
-                        dataKey: "month",
-                        label: "Month",
-                      },
-                    ]}
-                    xAxis={[
-                      {
-                        label: "Million",
-                      },
-                    ]}
-                    series={[
-                      {
-                        dataKey: "plan",
-                        label: "Plan",
-                        color: "#3B82F6", // Blue for Plan
-                        stack: "overlap", // Allows stacking
-                      },
-                      {
-                        dataKey: "actual",
-                        label: "Actual",
-                        color: "#10B981", // Green for Actual
-                        stack: "overlap", // Allows stacking
-                      },
-                    ]}
-                    layout="horizontal"
-                    height={400}
-                    slotProps={{
-                      legend: {
-                        direction: "row",
-                        position: { vertical: "top", horizontal: "right" },
-                        padding: 0,
-                      },
-                    }}
-                    sx={{
-                      ".MuiBar-root": {
-                        borderRadius: "4px",
-                      },
-                      ".MuiAxis-left .MuiAxis-label": {
-                        fontSize: "12px",
-                        fill: "#6B7280",
-                      },
-                    }}
-                  />
-                </div>
-              </Card>
+              </div>
+              {/* แสดง Bar Chart ด้วยข้อมูลจาก Sub Dealer Plan */}
+              <div className="h-full rounded">
+                <BarChart
+                  dataset={subDealerPlanData}
+                  yAxis={[
+                    {
+                      scaleType: "band",
+                      dataKey: "month",
+                      label: "Product",
+                    },
+                  ]}
+                  xAxis={[
+                    {
+                      label: "Value",
+                    },
+                  ]}
+                  series={[
+                    {
+                      dataKey: "plan",
+                      label: "Plan",
+                      color: "#3B82F6", // Blue for Plan
+                      stack: "overlap", // Allows stacking
+                    },
+                    {
+                      dataKey: "actual",
+                      label: "Actual",
+                      color: "#10B981", // Green for Actual
+                      stack: "overlap", // Allows stacking
+                    },
+                  ]}
+                  layout="horizontal"
+                  height={400}
+                  slotProps={{
+                    legend: {
+                      direction: "row",
+                      position: { vertical: "top", horizontal: "right" },
+                      padding: 0,
+                    },
+                  }}
+                  sx={{
+                    ".MuiBar-root": {
+                      borderRadius: "4px",
+                    },
+                    ".MuiAxis-left .MuiAxis-label": {
+                      fontSize: "12px",
+                      fill: "#6B7280",
+                    },
+                  }}
+                />
+              </div>
+            </Card>
+
+
             </Col>
 
             {/* Sale By Crop */}
             <Col xs={24} lg={24} xl={12}>
-              <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
-                <div className="flex flex-wrap items-center justify-between">
-                  <h3 className="text-[#00783F] text-lg font-semibold mb-3">Sale By Crop</h3>
-                  <div className="flex flex-wrap gap-2">
-                    <Select className="mb-4" defaultValue="All Sales">
-                      <Select.Option value="All Sales">All Sales</Select.Option>
-                    </Select>
-                    <Select className="mb-4" defaultValue="All Month">
-                      <Select.Option value="All Month">All Month</Select.Option>
-                    </Select>
-                  </div>
+            <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
+              <div className="flex flex-wrap items-center justify-between">
+                <h3 className="text-[#00783F] text-lg font-semibold mb-3">Sale By Crop</h3>
+                <div className="flex flex-wrap gap-2">
+                  <Select className="mb-4" defaultValue="All Sales">
+                    <Select.Option value="All Sales">All Sales</Select.Option>
+                  </Select>
+                  <Select className="mb-4" defaultValue="All Month">
+                    <Select.Option value="All Month">All Month</Select.Option>
+                  </Select>
                 </div>
-                <div className="flex justify-center items-center">
-                  {/* Pie Chart */}
-                  <div className="flex-grow flex justify-center items-center">
-                    <PieChart
-                      series={[
-                        {
-                          data: pieData.map((item) => ({
-                            ...item,
-                            tooltip: `${item.name} (${((item.value / totalValue) * 100).toFixed(1)}%)<br>${item.value.toLocaleString()}`,
-                          })),
-                          innerRadius: 120,
-                          outerRadius: 150,
-                          colorField: "color",
-                          labelField: "name", // Legend shows only names
-                          label: { formatter: (item) => item.name }, // Ensure labels are formatted correctly
-                        },
-                      ]}
-                      height={400}
+              </div>
+              <div className="flex justify-center items-center">
+                {/* Pie Chart */}
+                <div className="flex-grow flex justify-center items-center">
+                  <PieChart
+                    series={[
+                      {
+                        data: saleCropData.map((item) => ({
+                          ...item,
+                          tooltip: `${item.name} (${((item.value / totalSaleValue) * 100).toFixed(1)}%)<br>${item.value.toLocaleString()}`,
+                        })),
+                        innerRadius: 120,
+                        outerRadius: 150,
+                        colorField: "color",
+                        labelField: "name", // Legend shows only names
+                        label: { formatter: (item) => item.name }, // Ensure labels are formatted correctly
+                      },
+                    ]}
+                    height={400}
+                  >
+                    {/* แสดงค่ารวมตรงกลาง Pie Chart */}
+                    <text
+                      x="50%"
+                      y="50%"
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      style={{ fontSize: "20px", fill: "#333" }}
                     >
-                      <PieCenterLabel>{totalValue.toLocaleString()}</PieCenterLabel>
-                    </PieChart>
-                  </div>
-
+                      {totalSaleValue.toLocaleString()}
+                    </text>
+                  </PieChart>
                 </div>
-              </Card>
+              </div>
+            </Card>
             </Col>
           </Row>
         </Col>
 
         {/* Activity Section */}
         <Col xs={24} lg={24} xl={6}>
-          <BoxPrimary className="h-full">
-            <div className="flex flex-wrap items-center justify-between mb-4">
-              <h3 className="text-[#00783F] text-lg font-semibold">Activity</h3>
-              <div className="flex flex-wrap gap-2">
-                <Select className="mb-4" defaultValue="All Sales">
-                  <Select.Option value="All Sales">All Sales</Select.Option>
-                </Select>
-                <Select className="mb-4" defaultValue="All Month">
-                  <Select.Option value="All Month">All Month</Select.Option>
-                </Select>
-              </div>
+        <BoxPrimary className="h-full">
+          <div className="flex flex-wrap items-center justify-between mb-4">
+            <h3 className="text-[#00783F] text-lg font-semibold">Activity</h3>
+            <div className="flex flex-wrap gap-2">
+              <Select className="mb-4" defaultValue="All Sales">
+                <Select.Option value="All Sales">All Sales</Select.Option>
+              </Select>
+              <Select className="mb-4" defaultValue="All Month">
+                <Select.Option value="All Month">All Month</Select.Option>
+              </Select>
             </div>
-            <table className="w-full table-auto border-collapse">
-              <thead>
-                <tr className="border-b border-gray-300">
-                  <th className="text-left py-2 font-semibold">Type</th>
-                  <th className="text-left py-2 font-semibold">Plan</th>
-                  <th className="text-left py-2 font-semibold">Actual</th>
+          </div>
+          <table className="w-full table-auto border-collapse">
+            <thead>
+              <tr className="border-b border-gray-300">
+                <th className="text-left py-2 font-semibold">Type</th>
+                <th className="text-left py-2 font-semibold">Plan</th>
+                <th className="text-left py-2 font-semibold">Actual</th>
+              </tr>
+            </thead>
+            <tbody>
+              {listActivityData.map((item, index) => (
+                <tr
+                  key={index}
+                  className="border-b border-gray-200 hover:bg-gray-100"
+                >
+                  <td className="py-2 flex gap-2">
+                    <img
+                      src={item.icon}
+                      alt={item.type}
+                      className="w-6 h-6"
+                    />
+                    <span>{item.type}</span>
+                  </td>
+                  <td className="py-2 text-gray-700">
+                    {item.plan.toLocaleString()}
+                  </td>
+                  <td className="py-2 text-gray-700">
+                    {item.actual.toLocaleString()}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {[
-                  { type: "Demo Plot", plan: 10000000, actual: 20000000, icon: "up" },
-                  { type: "Field Day", plan: 10000000, actual: 20000000, icon: "up" },
-                  { type: "Knock Door", plan: 10000000, actual: 5000000, icon: "down" },
-                  { type: "Other", plan: 10000000, actual: 7000000, icon: "down" },
-                  { type: "Visit", plan: 10000000, actual: 20000000, icon: "up" },
-                ].map((item, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-gray-200 hover:bg-gray-100"
-                  >
-                    <td className="py-2 flex gap-2">
-                      <img
-                        src={`/img/icons/${item.type.toLowerCase().replace(" ", "-")}.png`}
-                        alt=""
-                        className="w-6 h-6"
-                      />
-                      <span>{item.type}</span>
-                    </td>
-                    <td className="py-2 text-gray-700">
-                      {item.plan.toLocaleString()}
-                    </td>
-                    <td className="py-2 flex gap-1">
-                      <img
-                        src={`/img/icons/${item.icon}.png`}
-                        alt={item.icon}
-                        className="w-4 h-4"
-                      />
-                      <span
-                        className={`${item.icon === "up" ? "text-green-500" : "text-[#752157]"
-                          } font-semibold`}
-                      >
-                        {item.actual.toLocaleString()}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </BoxPrimary>
+              ))}
+            </tbody>
+          </table>
+        </BoxPrimary>
         </Col>
 
 

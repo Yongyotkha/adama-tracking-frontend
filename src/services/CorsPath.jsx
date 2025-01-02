@@ -75,6 +75,11 @@ export const paths = {
   pathDashBordCustomer: "dashboard/customer",
   pathDashBordExpense: "dashboard/expense",
   pathDashBordOrder: "dashboard/order",
+  pathDashBordPlan:"dashboard/dealer/plan",
+  pathDashBordTopActivity:"dashboard/activity/top",
+  pathDashBordListActivity:"dashboard/activity/list",
+  pathDashBordSubDealerList:"dashboard/sub_dealer/plan",
+  pathDashBordSaleCrop:"dashboard/sale/crop",
 
   // Sale
   pathSaleManagementDetail: "sale-management/sale-team/detail",
