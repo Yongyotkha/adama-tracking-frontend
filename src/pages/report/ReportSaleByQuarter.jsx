@@ -13,7 +13,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import Title from "../../components/title/Title";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
 
-export default function ReportSaleByMonth() {
+export default function ReportSaleByQuarter() {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
@@ -89,7 +89,7 @@ export default function ReportSaleByMonth() {
 
     try {
       const response = await useServiceAPI.get(
-        paths.pathReportSaleByMonth,
+        paths.pathReportSaleByQuarter,
         requestData
       );
 
@@ -211,7 +211,7 @@ export default function ReportSaleByMonth() {
 
   const header = [
     {
-      title: "Month", // Row 3
+      title: "Quarter", // Row 3
       onHeaderCell: () => ({
         style: {
           backgroundColor: "#00783F", // สีเขียวเข้ม
@@ -428,7 +428,7 @@ export default function ReportSaleByMonth() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Work Plan" />
+        <Title prefix="Sales Report By Quater " />
 
         <Filter
           onSearch={handleSearch}

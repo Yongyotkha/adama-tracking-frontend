@@ -133,9 +133,6 @@ export default function WorkPlanAreaCreate() {
       });
   }, []);
 
-
-  
-
   const applyTopLevelAndSpecificChildrenStyles = (columns) =>
     columns.map((col, index) => {
       const backgroundColor = index % 2 === 0 ? "#00783F" : "#009845"; // Alternating color for top-level columns
@@ -376,7 +373,6 @@ export default function WorkPlanAreaCreate() {
       0
     );
 
-    // เปรียบเทียบกับ totalValue
     if (Number(calculatedTotalAmountTarget) < Number(totalValue)) {
       confirm({
         title: "Do you want to save ?",
@@ -397,6 +393,11 @@ export default function WorkPlanAreaCreate() {
           createPlan(mode);
         },
       });
+    } else if (Number(calculatedTotalAmountTarget) > Number(totalValue)) {
+      showNotification("error", "Work Plan is more than Original Plan", [
+        `Original Plan: ${formatNumber(totalValue)}`,
+        `Current Total: ${formatNumber(calculatedTotalAmountTarget)}`,
+      ],5);
     } else {
       createPlan(mode);
     }

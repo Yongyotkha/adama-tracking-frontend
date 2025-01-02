@@ -428,7 +428,7 @@ export default function ReportSaleByMonth() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Work Plan" />
+        <Title prefix="Sales Report By Month" />
 
         <Filter
           onSearch={handleSearch}

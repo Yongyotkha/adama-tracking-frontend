@@ -218,7 +218,7 @@ export default function WorkPlanSaleCreate() {
                       disabled
                       value={text || 0}
                       formatter={(value) =>
-                        `${parseInt(value) }`.replace(
+                        `${parseInt(value)}`.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
                         )
@@ -367,65 +367,6 @@ export default function WorkPlanSaleCreate() {
 
   const columns = applyTopLevelAndSpecificChildrenStyles(baseColumns);
 
-  // const handleQtyChange = (
-  //   quarterId,
-  //   monthId,
-  //   productId,
-  //   newQty,
-  //   record
-  //   // unitConvertValue
-  // ) => {
-  //   setLocalQtyState((prevState) => {
-  //     console.log(record);
-  //     console.log(record.qty);
-  //     const newValue = parseFloat(newQty || 0) * parseFloat(record.unit_convert_value || 0);
-
-  //     const updatedState = {
-  //       ...prevState,
-  //       [quarterId]: {
-  //         ...prevState[quarterId],
-  //         months: {
-  //           ...prevState[quarterId]?.months,
-  //           [monthId]: {
-  //             ...prevState[quarterId]?.months?.[monthId],
-  //             products: {
-  //               ...prevState[quarterId]?.months?.[monthId]?.products,
-  //               [productId]: {
-  //                 qty: newQty || 0,
-  //                 value: newValue,
-  //               },
-  //             },
-  //           },
-  //         },
-  //       },
-  //     };
-
-  //     // คำนวณ total_qty และ total_value ของ month
-  //     const totalMonth = Object.values(
-  //       updatedState[quarterId]?.months?.[monthId]?.products || {}
-  //     ).reduce(
-  //       (acc, product) => ({
-  //         qty: acc.qty + parseFloat(product.qty || 0),
-  //         value: acc.value + parseFloat(product.value || 0),
-  //       }),
-  //       { qty: 0, value: 0 }
-  //     );
-
-  //     updatedState[quarterId].months[monthId].total_qty = totalMonth.qty;
-  //     updatedState[quarterId].months[monthId].total_value = totalMonth.value;
-
-  //     // คำนวณ total_value ของ quarter
-  //     const totalQuarterValue = Object.values(
-  //       updatedState[quarterId]?.months || {}
-  //     ).reduce((sum, month) => sum + parseFloat(month.total_value || 0), 0);
-
-  //     updatedState[quarterId].total_value = totalQuarterValue;
-
-  //     console.log(updatedState);
-  //     return updatedState;
-  //   });
-  // };
-
   const handleQtyChange = (quarterId, monthId, productId, newQty, record) => {
     setLocalQtyState((prevState) => {
       console.log(record);
@@ -517,6 +458,7 @@ export default function WorkPlanSaleCreate() {
     }, 0);
 
     if (Number(totalValue) > Number(calculatedTotalAmountTarget)) {
+      console.log(Number(totalValue), Number(calculatedTotalAmountTarget));
       confirm({
         title: "Do you want to save ?",
         icon: <ExclamationCircleFilled />,
@@ -536,6 +478,11 @@ export default function WorkPlanSaleCreate() {
           createPlan(mode);
         },
       });
+    } else if (Number(totalValue) < Number(calculatedTotalAmountTarget)) {
+      showNotification("error", "Work Plan is more than Original Plan", [
+        `Original Plan: ${formatNumber(totalValue)}`,
+        `Current Total: ${formatNumber(calculatedTotalAmountTarget)}`,
+      ],5);
     } else {
       createPlan(mode);
     }
@@ -633,7 +580,6 @@ export default function WorkPlanSaleCreate() {
     }
   };
 
-
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
@@ -668,7 +614,6 @@ export default function WorkPlanSaleCreate() {
                 formatter={(value) =>
                   `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
-
               />
             </div>
             <div>
