@@ -36,6 +36,14 @@ export default function Dashboard() {
   const [selectedSubdealerOrder, setSelectedSubdealerOrder] = useState(null);
   const [selectedMonthsExpense, setSelectedMonthsExpense] = useState(null);
   const [selectedMonthsOrder, setSelectedMonthsOrder] = useState(null);
+  const [selectedMonthsDealerPlan, setSelectedMonthsDealerPlan] = useState(null);
+  const [selectedMonthsTopActivity, setSelectedMonthsTopActivity] = useState(null);
+  const [selectedMonthsSubDealerPlan, setSelectedMonthsSubDealerPlan] = useState(null);
+  const [selectedMonthsSaleByCrop, setSelectedMonthsSaleByCrop] = useState(null);
+  const [selectedMonthsActivity, setSelectedMonthsActivity] = useState(null);
+  const [selectedSaleByCrop, setSelectedSaleByCrop] = useState(null);
+  const [selectedSaleActivity, setSelectedSaleActivity] = useState(null);
+
 
   const chartSetting = {
     yAxis: [
@@ -868,9 +876,12 @@ export default function Dashboard() {
                     ))}
                   </Select>
                   <Select
-                    className="mb-4 w-36"
-                    value={selectedMonths}
-                    onChange={handleMonthChangeDealerPlan}
+                    className="w-36"
+                    value={selectedMonthsDealerPlan} // ใช้ state ที่แยกออกมา
+                    onChange={(value) => {
+                      setSelectedMonthsDealerPlan(value === "all" ? "" : value); // อัปเดต state สำหรับ Dealer Plan
+                      fetchDealerPlanData(selectedYear, value === "all" ? "" : value, selectedDealer);
+                    }}
                     placeholder={loading ? "Loading..." : "Select Month"}
                     disabled={loading}
                   >
@@ -880,6 +891,7 @@ export default function Dashboard() {
                       </Select.Option>
                     ))}
                   </Select>
+
                   </div>
                 </div>
                 {/* แสดง Bar Chart ด้วยข้อมูลจาก Dealer Plan */}
@@ -925,8 +937,11 @@ export default function Dashboard() {
                   </Select>
                   <Select
                     className="w-36"
-                    value={selectedMonths}
-                    onChange={handleMonthChangeTopActivity}
+                    value={selectedMonthsTopActivity} // ใช้ state ที่แยกออกมา
+                    onChange={(value) => {
+                      setSelectedMonthsTopActivity(value === "all" ? "" : value); // อัปเดต state สำหรับ Top 5 Activity
+                      fetchTopActivityData(selectedYear, selectedDealer, value === "all" ? "" : value);
+                    }}
                     placeholder={loading ? "Loading..." : "Select Month"}
                     disabled={loading}
                   >
@@ -1001,9 +1016,12 @@ export default function Dashboard() {
                 </Select>
 
                 <Select
-                  className="mb-4 w-36"
-                  value={selectedMonths}
-                  onChange={handleMonthChangeSubDealerPlan}
+                  className="w-36"
+                  value={selectedMonthsSubDealerPlan} // ใช้ state ที่แยกออกมา
+                  onChange={(value) => {
+                    setSelectedMonthsSubDealerPlan(value === "all" ? "" : value); // อัปเดต state สำหรับ Sub Dealer Plan
+                    fetchSubDealerPlanData(selectedYear, value === "all" ? "" : value, selectedSubdealer);
+                  }}
                   placeholder={loading ? "Loading..." : "Select Month"}
                   disabled={loading}
                 >
@@ -1013,6 +1031,7 @@ export default function Dashboard() {
                     </Select.Option>
                   ))}
                 </Select>
+
                 </div>
               </div>
               {/* แสดง Bar Chart ด้วยข้อมูลจาก Sub Dealer Plan */}
@@ -1078,8 +1097,11 @@ export default function Dashboard() {
                 <div className="flex flex-wrap gap-2">
                 <Select
                   className="mb-4 w-36"
-                  value={selectedSale}
-                  onChange={handleSaleChange}
+                  value={selectedSaleByCrop} // ใช้ state ที่แยกออกมา
+                  onChange={(value) => {
+                    setSelectedSaleByCrop(value); // อัปเดต state สำหรับ Sale By Crop
+                    fetchSaleCropData(selectedYear, value, selectedMonthsSaleByCrop);
+                  }}
                   placeholder={loading ? "Loading..." : "Select Sale"}
                   disabled={loading}
                 >
@@ -1090,9 +1112,12 @@ export default function Dashboard() {
                   ))}
                 </Select>
                 <Select
-                  className="mb-4 w-36"
-                  value={selectedMonths}
-                  onChange={handleMonthChangeSaleByCrop}
+                  className="w-36"
+                  value={selectedMonthsSaleByCrop} // ใช้ state ที่แยกออกมา
+                  onChange={(value) => {
+                    setSelectedMonthsSaleByCrop(value === "all" ? "" : value); // อัปเดต state สำหรับ Sale By Crop
+                    fetchSaleCropData(selectedYear, selectedDealer, value === "all" ? "" : value);
+                  }}
                   placeholder={loading ? "Loading..." : "Select Month"}
                   disabled={loading}
                 >
@@ -1102,6 +1127,7 @@ export default function Dashboard() {
                     </Select.Option>
                   ))}
                 </Select>
+
                 </div>
               </div>
               <div className="flex justify-center items-center">
@@ -1149,8 +1175,11 @@ export default function Dashboard() {
             <div className="flex flex-wrap gap-2">
             <Select
               className="mb-4 w-36"
-              value={selectedSale}
-              onChange={handleSaleChangeActivity}
+              value={selectedSaleActivity} // ใช้ state ที่แยกออกมา
+              onChange={(value) => {
+                setSelectedSaleActivity(value); // อัปเดต state สำหรับ Activity
+                fetchListActivityData(selectedYear, value, selectedMonthsActivity);
+              }}
               placeholder={loading ? "Loading..." : "Select Sale"}
               disabled={loading}
             >
@@ -1160,10 +1189,15 @@ export default function Dashboard() {
                 </Select.Option>
               ))}
             </Select>
+
+
             <Select
-              className="mb-4 w-36"
-              value={selectedMonths}
-              onChange={handleMonthChangeActivity}
+              className="w-36"
+              value={selectedMonthsActivity} // ใช้ state ที่แยกออกมา
+              onChange={(value) => {
+                setSelectedMonthsActivity(value === "all" ? "" : value); // อัปเดต state สำหรับ Activity
+                fetchListActivityData(selectedYear, selectedSale, value === "all" ? "" : value);
+              }}
               placeholder={loading ? "Loading..." : "Select Month"}
               disabled={loading}
             >
@@ -1173,6 +1207,7 @@ export default function Dashboard() {
                 </Select.Option>
               ))}
             </Select>
+
             </div>
           </div>
           <table className="w-full table-auto border-collapse">
