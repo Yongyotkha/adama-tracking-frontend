@@ -80,6 +80,9 @@ import ActivityPlanDealer from "./pages/activity/activity_plan/ActivityPlanDeale
 import ActivityPlanSubDealer from "./pages/activity/activity_plan/ActivityPlanSubDealer";
 import RollingForecastDealer from "./pages/sale_plan/rolling_forecast/RollingForecastDealer";
 import WorkPlanSaleByDealerMonth from "./pages/sale_plan/workplan/WorkPlanSaleByDealerMonth";
+import ReportSaleByMonth from "./pages/report/ReportSaleByMonth";
+import ReportSaleByQuarter from "./pages/report/ReportSaleByQuarter";
+import ReportSaleByYear from "./pages/report/ReportSaleByYear";
 // END ------------- Activity ------------- END
 
 
@@ -193,6 +196,13 @@ const App = () => {
           <Route path="/setting/promotion" element={<SettingPromotion />} />
           <Route path="/setting/promotion/create" element={<CreatePromotion />} />
           <Route path="/setting/promotion/edit" element={<EditPromotion />} />
+
+
+          {/* Report Route */}
+          <Route path="/report/monthly" element={<ReportSaleByMonth />} />
+          <Route path="/report/quarterly" element={<ReportSaleByQuarter />} />
+          <Route path="/report/yearly" element={<ReportSaleByYear />} />
+
         </Route>	
 
 
