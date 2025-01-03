@@ -32,8 +32,10 @@ export default function Dashboard() {
   const [sales, setSales] = useState([]);
   const [selectedSale, setSelectedSale] = useState(null);
   const [loading, setLoading] = useState(false);
-const [selectedSubdealerExpense, setSelectedSubdealerExpense] = useState(null);
-const [selectedSubdealerOrder, setSelectedSubdealerOrder] = useState(null);
+  const [selectedSubdealerExpense, setSelectedSubdealerExpense] = useState(null);
+  const [selectedSubdealerOrder, setSelectedSubdealerOrder] = useState(null);
+  const [selectedMonthsExpense, setSelectedMonthsExpense] = useState(null);
+  const [selectedMonthsOrder, setSelectedMonthsOrder] = useState(null);
 
   const chartSetting = {
     yAxis: [
@@ -734,9 +736,13 @@ const [selectedSubdealerOrder, setSelectedSubdealerOrder] = useState(null);
               <div className="flex flex-wrap gap-2">
                 <Select
                   className="w-36"
-                  value={selectedSubdealer }
-                  onChange={handleSubdealerChangeExpense}
-                  placeholder={loading ? "Loading..." : "Select sub dealer"}
+                  value={selectedSubdealerExpense }
+                  // onChange={handleSubdealerChangeExpense}
+                  onChange={(value) => {
+                    setSelectedSubdealerExpense(value === "all" ? "" : value);
+                    fetchDashboardDataExpense(selectedYear, selectedMonths, value === "all" ? "" : value);
+                  }}
+                  placeholder={loading ? "Loading..." : "All sub dealer"}
                   disabled={loading}
                 >
                   {subdealer.map((sudealer) => (
@@ -748,8 +754,12 @@ const [selectedSubdealerOrder, setSelectedSubdealerOrder] = useState(null);
 
                 <Select
                   className="w-36"
-                  value={selectedMonths}
-                  onChange={handleMonthChangeExpense} // เรียกใช้ฟังก์ชันจัดการที่อัปเดต
+                  value={selectedMonthsExpense}
+                  // onChange={handleMonthChangeExpense} 
+                  onChange={(value) => {
+                    setSelectedMonthsExpense(value === "all" ? "" : value); // อัปเดต state สำหรับ Expense
+                    fetchDashboardDataExpense(selectedYear, value === "all" ? "" : value, selectedSubdealerExpense);
+                  }}
                   placeholder={loading ? "Loading..." : "Select Month"}
                   disabled={loading}
                 >
@@ -784,9 +794,13 @@ const [selectedSubdealerOrder, setSelectedSubdealerOrder] = useState(null);
               <div className="flex flex-wrap gap-2">
               <Select
                 className="w-36"
-                value={selectedSubdealer}
-                onChange={handleSubdealerChangeOrder}
-                placeholder={loading ? "Loading..." : "Select Sub Dealer"}
+                value={selectedSubdealerOrder}
+                // onChange={handleSubdealerChangeOrder}
+                onChange={(value) => {
+                  setSelectedSubdealerOrder(value === "all" ? "" : value);
+                  fetchDashboardDataOrder(selectedYear, selectedMonths, value === "all" ? "" : value);
+                }}
+                placeholder={loading ? "Loading..." : "All Sub Dealer"}
                 disabled={loading}
               >
                 {subdealer.map((dealer) => (
@@ -795,10 +809,15 @@ const [selectedSubdealerOrder, setSelectedSubdealerOrder] = useState(null);
                   </Select.Option>
                 ))}
               </Select>
+
               <Select
                 className="w-36"
-                value={selectedMonths}
-                onChange={handleMonthChangeOrder}
+                value={selectedMonthsOrder}
+                // onChange={handleMonthChangeOrder}
+                onChange={(value) => {
+                  setSelectedMonthsOrder(value === "all" ? "" : value); // อัปเดต state สำหรับ Order
+                  fetchDashboardDataOrder(selectedYear, value === "all" ? "" : value, selectedSubdealerOrder);
+                }}
                 placeholder={loading ? "Loading..." : "Select Month"}
                 disabled={loading}
               >
