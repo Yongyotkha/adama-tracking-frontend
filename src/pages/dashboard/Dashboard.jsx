@@ -43,7 +43,9 @@ export default function Dashboard() {
   const [selectedMonthsActivity, setSelectedMonthsActivity] = useState(null);
   const [selectedSaleByCrop, setSelectedSaleByCrop] = useState(null);
   const [selectedSaleActivity, setSelectedSaleActivity] = useState(null);
-
+  const [selectedDealerPlan, setSelectedDealerPlan] = useState(null);
+  const [selectedDealerTopActivity, setSelectedDealerTopActivity] = useState(null);
+  
 
   const chartSetting = {
     yAxis: [
@@ -864,8 +866,11 @@ export default function Dashboard() {
                   <div className="flex flex-wrap gap-2">
                   <Select
                     className="mb-4 w-36"
-                    value={selectedDealer}
-                    onChange={handleDealerChangeDealerPlan}
+                    value={selectedDealerPlan} // ใช้ state แยก
+                    onChange={(value) => {
+                      setSelectedDealerPlan(value); // อัปเดต state ของ Dealer Plan
+                      fetchDealerPlanData(selectedYear, selectedMonths, value); // เรียก API สำหรับ Dealer Plan
+                    }}
                     placeholder={loading ? "Loading..." : "Select Dealer"}
                     disabled={loading}
                   >
@@ -923,9 +928,12 @@ export default function Dashboard() {
                   <h3 className="text-[#00783F] text-lg font-semibold">Top 5 Activity</h3>
                   <div className="flex flex-wrap gap-2">
                   <Select
-                    className="w-36"
-                    value={selectedDealer}
-                    onChange={handleDealerChangeTopActivity}
+                    className="mb-4 w-36"
+                    value={selectedDealerTopActivity} // ใช้ state แยก
+                    onChange={(value) => {
+                      setSelectedDealerTopActivity(value); // อัปเดต state ของ Top 5 Activity
+                      fetchTopActivityData(selectedYear, value, selectedMonths); // เรียก API สำหรับ Top 5 Activity
+                    }}
                     placeholder={loading ? "Loading..." : "Select Dealer"}
                     disabled={loading}
                   >
