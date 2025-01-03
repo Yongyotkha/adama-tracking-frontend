@@ -46,6 +46,8 @@ export default function Dashboard() {
   const [selectedDealerPlan, setSelectedDealerPlan] = useState(null);
   const [selectedDealerTopActivity, setSelectedDealerTopActivity] = useState(null);
   
+  const [selectedSubdealerPlan, setSelectedSubdealerPlan] = useState(null);
+
 
   const chartSetting = {
     yAxis: [
@@ -341,6 +343,12 @@ export default function Dashboard() {
     setSelectedSubdealer(value === "all" ? "" : value);
     fetchDashboardDataExpense(selectedYear, selectedMonths, value === "all" ? "" : value); // ส่งค่า Sub Dealer ที่เลือก
   };
+
+  const handleSubdealerChangePlan = (value) => {
+    setSelectedSubdealerPlan(value === "all" ? "" : value);
+    // fetchDashboardDataOrder(selectedYear, selectedMonths, value === "all" ? "" : value);
+  };
+
 
   // ฟังก์ชันสำหรับดึงข้อมูล Sub Dealer
   const fetchDashboardData = async (year) => {
@@ -943,6 +951,11 @@ export default function Dashboard() {
                       </Select.Option>
                     ))}
                   </Select>
+
+
+
+
+
                   <Select
                     className="w-36"
                     value={selectedMonthsTopActivity} // ใช้ state ที่แยกออกมา
