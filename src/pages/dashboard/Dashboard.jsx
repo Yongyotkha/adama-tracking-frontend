@@ -217,6 +217,7 @@ export default function Dashboard() {
     fetchYears(); // ดึงปี
     fetchMonth(); // ดึงเดือน
     fetchSubdealer();
+    fetchDealers();
     fetchDashboardData();
     fetchDashboardDataExpense();
     fetchDashboardDataOrder();
@@ -298,6 +299,27 @@ export default function Dashboard() {
       setLoading(false);
     }
   };
+
+  // เลือก dealer
+  const fetchDealers = async () => {
+    setLoading(true);
+    try {
+      const response = await useServiceAPI.get(paths.pathMasterDealerAll);
+      if (response.status === 200) {
+        const dealerData = response.data || [];
+        console.log();
+        
+        setSubdealer([{ id: "all", name: "All Dealer" }, ...dealerData]);
+        setSelectedSubdealer("all"); // ตั้งค่า default เป็น "All Dealer"
+      }
+    } catch (error) {
+      console.error("Error fetching dealers:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  
 
   const handleSubdealerChangeExpense = (value) => {
     setSelectedSubdealer(value === "all" ? "" : value);
@@ -398,12 +420,21 @@ export default function Dashboard() {
   };
 
   
-
   // ฟังก์ชันสำหรับดึงข้อมูล Dealer Plan
-  const fetchDealerPlanData = async (year = new Date().getFullYear()) => {
+  const fetchDealerPlanData = async (
+    year = new Date().getFullYear(),
+    month = selectedMonths,
+    subDealerId = selectedSubdealer
+  
+  ) => {
     setLoading(true);
     try {
-      const response = await useServiceAPI.get(paths.pathDashBordPlan,{ year_code: year });
+      const payload = {
+        year_code: year,
+        sub_dealer_id: subDealerId === "all" ? "" : subDealerId,
+        month_id: month === "all" ? "" : month,
+      };
+      const response = await useServiceAPI.get(paths.pathDashBordPlan,payload);
       if (response.status === 200 && response.data) {
         const data = response.data.map((item) => ({
           month: item.name,
@@ -420,6 +451,20 @@ export default function Dashboard() {
       setLoading(false);
     }
   };
+
+  const handleSubdealerChangeDealerPlan = (value) => {
+    setSelectedSubdealer(value === "all" ? "" : value);
+    fetchDealerPlanData(selectedYear, selectedMonths, value === "all" ? "" : value);
+    console.log(value);
+    
+  };
+  
+  const handleMonthChangeDealerPlan = (value) => {
+    setSelectedMonths(value === "all" ? "" : value);
+    fetchDealerPlanData(selectedYear, value === "all" ? "" : value, selectedSubdealer);
+  };
+
+  
 
   // ฟังก์ชันสำหรับดึงข้อมูล Top Activity
   const fetchTopActivityData = async (year = new Date().getFullYear()) => {
@@ -696,12 +741,36 @@ export default function Dashboard() {
                 <div className="flex flex-wrap items-center justify-between">
                   <h3 className="text-[#00783F] text-lg font-semibold mb-3">Dealer Plan</h3>
                   <div className="flex flex-wrap gap-2">
-                    <Select className="mb-4" defaultValue="All Dealer">
-                      <Select.Option value="All Dealer">All Dealer</Select.Option>
-                    </Select>
-                    <Select className="mb-4" defaultValue="All Month">
-                      <Select.Option value="All Month">All Month</Select.Option>
-                    </Select>
+                  <Select
+                    className="mb-4 w-36"
+                    value={selectedSubdealer}
+                    onChange={handleSubdealerChangeDealerPlan}
+                    placeholder={loading ? "Loading..." : "Select Dealer"}
+                    disabled={loading}
+                  >
+                    {subdealer.map((dealer) => (
+                      <Select.Option key={dealer.id} value={dealer.id}>
+                        {dealer.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
+
+
+
+
+                  <Select
+                    className="mb-4 w-36"
+                    value={selectedMonths}
+                    onChange={handleMonthChangeDealerPlan}
+                    placeholder={loading ? "Loading..." : "Select Month"}
+                    disabled={loading}
+                  >
+                    {months.map((month) => (
+                      <Select.Option key={month.id} value={month.id}>
+                        {month.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
                   </div>
                 </div>
                 {/* แสดง Bar Chart ด้วยข้อมูลจาก Dealer Plan */}
