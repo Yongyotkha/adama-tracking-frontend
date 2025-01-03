@@ -26,7 +26,7 @@ export const paths = {
   pathMasterProductByCrop: "master/product-by-crop",
   pathMasterSaleAll: "master/sale-all/list",
   pathMasterDealerCustomer: "master/dealer/customer",
-  pathMasterSubDealer: "master/sub-dealer", 
+  pathMasterSubDealer: "master/sub-dealer",
   pathMasterSubDealerAll: "master/sub-dealer-all",
   pathMasterSubDealerCrop: "master/sub-dealer-crop",
   pathMasterSubDealerCustomer: "master/sub-dealer-customer",
@@ -58,7 +58,6 @@ export const paths = {
   pathCustomerSubDealerNetworkUpdate: "sale-customer-dealer/network-create",
   pathCustomerSubDealerFarmerUpdate: "sale-customer-dealer/network-farmer-create",
 
-  
   // Farners
   pathCustomerFarmers: "sale-customer-farmer/list",
   pathCustomerFarmersCreate: "sale-customer-farmer/create",
@@ -116,7 +115,7 @@ export const paths = {
   pathMasterUsers: "users/list",
   pathMasterUsersDetail: "users/detail",
   pathMasterUsersEdit: "user-update",
-  pathProfileChangePassword :"confirmChangePassword",
+  pathProfileChangePassword: "confirmChangePassword",
   pathProfileProfileimg: "user-update-image",
 
   //promotion
@@ -167,7 +166,7 @@ export const paths = {
   pathActivitySubDealer: "/activity-plan/sale/dealer/detail",
   pathActivitySummary: "/activity-plan/sale/activity-summary",
   pathActivitySubDealerDetail: "/activity-plan/sale/dealer/sub-dealer/detail",
-  
+
   pathActivityList: "/activity/list",
   pathActivityCreate: "/activity/create",
   pathActivityDetail: "/activity/detail",
@@ -203,5 +202,10 @@ export const paths = {
   pathClaimList: "claim/list",
   pathClaimCreate: "claim/create",
   pathClaimDetail: "claim/detail",
-  pathClaimUpdate: "claim/update"
+  pathClaimUpdate: "claim/update",
+
+  //report
+  pathReportSaleByMonth: "report/sale/month",
+  pathReportSaleByQuarter: "report/sale/quarter",
+  pathReportSaleByYear: "report/sale/year",
 };

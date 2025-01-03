@@ -19,6 +19,8 @@ export default function Dashboard() {
   const [selectedMonths, setSelectedMonths] = useState(null);
   const [subdealer, setSubdealer] = useState([]);
   const [selectedSubdealer, setSelectedSubdealer] = useState(null);
+  const [dealer, setDealer] = useState([]);
+  const [selectedDealer, setSelectedDealer] = useState(null);
   const [dashboardData, setDashboardData] = useState({ dealer_count: 0, sub_dealer_count: 0 });
   const [dashboardDataExpense, setDashboardDataExpense] = useState({total_expense_actual_sale: 0, total_expense_actual_exp: 0, total_expense_advance:0 });
   const [dashboardDataOrder, setDashboardDataOrder] = useState({ total_order: 0, total_order_amonth: 0 });
@@ -28,7 +30,8 @@ export default function Dashboard() {
   const [subDealerPlanData, setSubDealerPlanData] = useState([]);
   const [saleCropData, setSaleCropData] = useState([]);
   const [totalSaleValue, setTotalSaleValue] = useState(0); // เก็บค่ารวมทั้งหมด
-
+  const [sales, setSales] = useState([]);
+  const [selectedSale, setSelectedSale] = useState(null);
   const [loading, setLoading] = useState(false);
   const chartSetting = {
     yAxis: [
@@ -218,6 +221,7 @@ export default function Dashboard() {
     fetchMonth(); // ดึงเดือน
     fetchSubdealer();
     fetchDealers();
+    fetchSalesDropdown();
     fetchDashboardData();
     fetchDashboardDataExpense();
     fetchDashboardDataOrder();
@@ -306,11 +310,9 @@ export default function Dashboard() {
     try {
       const response = await useServiceAPI.get(paths.pathMasterDealerAll);
       if (response.status === 200) {
-        const dealerData = response.data || [];
-        console.log();
-        
-        setSubdealer([{ id: "all", name: "All Dealer" }, ...dealerData]);
-        setSelectedSubdealer("all"); // ตั้งค่า default เป็น "All Dealer"
+        const dealerData = response.data || [];        
+        setDealer([{ id: "all", name: "All Dealer" }, ...dealerData]);
+        setSelectedDealer("all"); // ตั้งค่า default เป็น "All Dealer"
       }
     } catch (error) {
       console.error("Error fetching dealers:", error);
@@ -424,17 +426,16 @@ export default function Dashboard() {
   const fetchDealerPlanData = async (
     year = new Date().getFullYear(),
     month = selectedMonths,
-    subDealerId = selectedSubdealer
-  
+    dealerId = selectedDealer
   ) => {
     setLoading(true);
     try {
       const payload = {
         year_code: year,
-        sub_dealer_id: subDealerId === "all" ? "" : subDealerId,
+        dealer_id: dealerId === "all" ? "" : dealerId,
         month_id: month === "all" ? "" : month,
       };
-      const response = await useServiceAPI.get(paths.pathDashBordPlan,payload);
+      const response = await useServiceAPI.get(paths.pathDashBordPlan, payload);
       if (response.status === 200 && response.data) {
         const data = response.data.map((item) => ({
           month: item.name,
@@ -452,11 +453,9 @@ export default function Dashboard() {
     }
   };
 
-  const handleSubdealerChangeDealerPlan = (value) => {
-    setSelectedSubdealer(value === "all" ? "" : value);
+  const handleDealerChangeDealerPlan = (value) => {
+    setSelectedDealer(value === "all" ? "" : value);
     fetchDealerPlanData(selectedYear, selectedMonths, value === "all" ? "" : value);
-    console.log(value);
-    
   };
   
   const handleMonthChangeDealerPlan = (value) => {
@@ -467,10 +466,21 @@ export default function Dashboard() {
   
 
   // ฟังก์ชันสำหรับดึงข้อมูล Top Activity
-  const fetchTopActivityData = async (year = new Date().getFullYear()) => {
+  const fetchTopActivityData = async (
+    year = new Date().getFullYear(),
+    dealerId = selectedDealer,
+    monthId = selectedMonths
+  
+  ) => {
     setLoading(true);
     try {
-      const response = await useServiceAPI.get(paths.pathDashBordTopActivity,{ year_code: year });
+      const payload = {
+        year_code: year,
+        dealer_id: dealerId === "all" ? "" : dealerId,
+        month_id: monthId === "all" ? "" : monthId,
+      };
+
+      const response = await useServiceAPI.get(paths.pathDashBordTopActivity,payload);
       if (response.status === 200 && response.data) {
         const data = response.data.map((item) => ({
           activity: item.activity_type_name,
@@ -487,12 +497,34 @@ export default function Dashboard() {
     }
   };
 
+  // ฟังก์ชันจัดการการเปลี่ยนค่า Dealer
+  const handleDealerChangeTopActivity = (value) => {
+    setSelectedDealer(value);
+    fetchTopActivityData(selectedYear, value, selectedMonths);
+  };
+
+  // ฟังก์ชันจัดการการเปลี่ยนค่า Month
+  const handleMonthChangeTopActivity = (value) => {
+    setSelectedMonths(value);
+    fetchTopActivityData(selectedYear, selectedDealer, value);
+  };
 
   // ฟังก์ชันสำหรับดึงข้อมูล Activity
-  const fetchListActivityData = async (year = new Date().getFullYear()) => {
+  const fetchListActivityData = async (
+    year = new Date().getFullYear(),
+    saleId = selectedSale,
+    monthId = selectedMonths
+
+  ) => {
     setLoading(true);
     try {
-      const response = await useServiceAPI.get(paths.pathDashBordListActivity,{ year_code: year });
+      const payload = {
+        year_code: year,
+        sale_id: saleId === "all" ? "" : saleId,
+        month_id: monthId === "all" ? "" : monthId,
+      };
+
+      const response = await useServiceAPI.get(paths.pathDashBordListActivity, payload);
       if (response.status === 200 && response.data) {
         const data = response.data.map((item) => ({
           type: item.activity_type_name,
@@ -510,6 +542,19 @@ export default function Dashboard() {
       setLoading(false);
     }
   };
+
+  // ฟังก์ชันเปลี่ยนค่า Sale
+  const handleSaleChangeActivity = (value) => {
+    setSelectedSale(value);
+    fetchListActivityData(selectedYear, value, selectedMonths);
+  };
+
+  // ฟังก์ชันเปลี่ยนค่า Month
+  const handleMonthChangeActivity = (value) => {
+    setSelectedMonths(value);
+    fetchListActivityData(selectedYear, selectedSale, value);
+  };
+
 
   // ฟังก์ชันสำหรับดึงข้อมูล Sub Dealer Plan
   const fetchSubDealerPlanData = async (
@@ -556,10 +601,21 @@ export default function Dashboard() {
   
 
   // ฟังก์ชันสำหรับดึงข้อมูล Sale By Crop
-  const fetchSaleCropData = async (year = new Date().getFullYear()) => {
+  const fetchSaleCropData = async (
+    year = new Date().getFullYear(),
+    dealerId = selectedDealer,
+    monthId = selectedMonths
+
+  ) => {
     setLoading(true);
     try {
-      const response = await useServiceAPI.get(paths.pathDashBordSaleCrop,{ year_code: year });
+      const payload = {
+        year_code: year,
+        dealer_id: dealerId === "all" ? "" : dealerId,
+        month_id: monthId === "all" ? "" : monthId,
+      };
+      
+      const response = await useServiceAPI.get(paths.pathDashBordSaleCrop,payload);
       if (response.status === 200 && response.data) {
         const data = response.data.map((item) => ({
           value: item.value,
@@ -579,6 +635,42 @@ export default function Dashboard() {
       setLoading(false);
     }
   };
+
+  // ฟังก์ชันจัดการการเปลี่ยนค่า Sale
+  const handleSaleChange = (value) => {
+    setSelectedSale(value);
+    fetchSaleCropData(selectedYear, value, selectedMonths);
+  };
+
+
+  // ฟังก์ชันจัดการการเปลี่ยนค่า Dealer
+  const handleDealerChangeSaleByCrop = (value) => {
+    setSelectedDealer(value);
+    fetchSaleCropData(selectedYear, value, selectedMonths);
+  };
+
+  // ฟังก์ชันจัดการการเปลี่ยนค่า Month
+  const handleMonthChangeSaleByCrop = (value) => {
+    setSelectedMonths(value);
+    fetchSaleCropData(selectedYear, selectedDealer, value);
+  };
+
+  const fetchSalesDropdown = async () => {
+    setLoading(true);
+    try {
+      const response = await useServiceAPI.get(paths.pathMasterSaleDropdown);
+      if (response.status === 200) {
+        const salesData = response.data || [];
+        setSales([{ id: "all", name: "All Sales" }, ...salesData]); // เพิ่ม "All Sales"
+        setSelectedSale("all"); // ตั้งค่า default เป็น "All Sales"
+      }
+    } catch (error) {
+      console.error("Error fetching sales dropdown:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <MainLayout loading={loading}>
@@ -743,21 +835,17 @@ export default function Dashboard() {
                   <div className="flex flex-wrap gap-2">
                   <Select
                     className="mb-4 w-36"
-                    value={selectedSubdealer}
-                    onChange={handleSubdealerChangeDealerPlan}
+                    value={selectedDealer}
+                    onChange={handleDealerChangeDealerPlan}
                     placeholder={loading ? "Loading..." : "Select Dealer"}
                     disabled={loading}
                   >
-                    {subdealer.map((dealer) => (
+                    {dealer.map((dealer) => (
                       <Select.Option key={dealer.id} value={dealer.id}>
                         {dealer.name}
                       </Select.Option>
                     ))}
                   </Select>
-
-
-
-
                   <Select
                     className="mb-4 w-36"
                     value={selectedMonths}
@@ -801,12 +889,32 @@ export default function Dashboard() {
                 <div className="flex flex-wrap items-center justify-between mb-3">
                   <h3 className="text-[#00783F] text-lg font-semibold">Top 5 Activity</h3>
                   <div className="flex flex-wrap gap-2">
-                    <Select defaultValue="All Dealer" className="w-40">
-                      <Select.Option value="All Dealer">All Dealer</Select.Option>
-                    </Select>
-                    <Select defaultValue="All Month" className="w-40">
-                      <Select.Option value="All Month">All Month</Select.Option>
-                    </Select>
+                  <Select
+                    className="w-36"
+                    value={selectedDealer}
+                    onChange={handleDealerChangeTopActivity}
+                    placeholder={loading ? "Loading..." : "Select Dealer"}
+                    disabled={loading}
+                  >
+                    {dealer.map((dealer) => (
+                      <Select.Option key={dealer.id} value={dealer.id}>
+                        {dealer.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                  <Select
+                    className="w-36"
+                    value={selectedMonths}
+                    onChange={handleMonthChangeTopActivity}
+                    placeholder={loading ? "Loading..." : "Select Month"}
+                    disabled={loading}
+                  >
+                    {months.map((month) => (
+                      <Select.Option key={month.id} value={month.id}>
+                        {month.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
                   </div>
                 </div>
                 <div className="h-full rounded">
@@ -947,12 +1055,32 @@ export default function Dashboard() {
               <div className="flex flex-wrap items-center justify-between">
                 <h3 className="text-[#00783F] text-lg font-semibold mb-3">Sale By Crop</h3>
                 <div className="flex flex-wrap gap-2">
-                  <Select className="mb-4" defaultValue="All Sales">
-                    <Select.Option value="All Sales">All Sales</Select.Option>
-                  </Select>
-                  <Select className="mb-4" defaultValue="All Month">
-                    <Select.Option value="All Month">All Month</Select.Option>
-                  </Select>
+                <Select
+                  className="mb-4 w-36"
+                  value={selectedSale}
+                  onChange={handleSaleChange}
+                  placeholder={loading ? "Loading..." : "Select Sale"}
+                  disabled={loading}
+                >
+                  {sales.map((sale) => (
+                    <Select.Option key={sale.id} value={sale.id}>
+                      {sale.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+                <Select
+                  className="mb-4 w-36"
+                  value={selectedMonths}
+                  onChange={handleMonthChangeSaleByCrop}
+                  placeholder={loading ? "Loading..." : "Select Month"}
+                  disabled={loading}
+                >
+                  {months.map((month) => (
+                    <Select.Option key={month.id} value={month.id}>
+                      {month.name}
+                    </Select.Option>
+                  ))}
+                </Select>
                 </div>
               </div>
               <div className="flex justify-center items-center">
@@ -998,12 +1126,32 @@ export default function Dashboard() {
           <div className="flex flex-wrap items-center justify-between mb-4">
             <h3 className="text-[#00783F] text-lg font-semibold">Activity</h3>
             <div className="flex flex-wrap gap-2">
-              <Select className="mb-4" defaultValue="All Sales">
-                <Select.Option value="All Sales">All Sales</Select.Option>
-              </Select>
-              <Select className="mb-4" defaultValue="All Month">
-                <Select.Option value="All Month">All Month</Select.Option>
-              </Select>
+            <Select
+              className="mb-4 w-36"
+              value={selectedSale}
+              onChange={handleSaleChangeActivity}
+              placeholder={loading ? "Loading..." : "Select Sale"}
+              disabled={loading}
+            >
+              {sales.map((sale) => (
+                <Select.Option key={sale.id} value={sale.id}>
+                  {sale.name}
+                </Select.Option>
+              ))}
+            </Select>
+            <Select
+              className="mb-4 w-36"
+              value={selectedMonths}
+              onChange={handleMonthChangeActivity}
+              placeholder={loading ? "Loading..." : "Select Month"}
+              disabled={loading}
+            >
+              {months.map((month) => (
+                <Select.Option key={month.id} value={month.id}>
+                  {month.name}
+                </Select.Option>
+              ))}
+            </Select>
             </div>
           </div>
           <table className="w-full table-auto border-collapse">

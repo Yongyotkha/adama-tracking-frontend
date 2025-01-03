@@ -672,9 +672,11 @@ export default function WorkPlanSaleByDealerMonth() {
               onClick={() => handleSave("save")}
             />
           )}
+
           {permission.btn_next && (
             <ActionButton
               text="Next"
+              mode="save"
               onClick={() =>
                 navigate("/sale-plan/work-plan-sale/sale-by-subdealer", {
                   state: {

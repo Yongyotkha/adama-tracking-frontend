@@ -68,12 +68,17 @@ const Filter = ({ onSearch, onClear, onChange, filters }) => {
                     onChange={(value) => handleFilterChange(filter.key, value)}
                     placeholder={filter.placeholder || "Select"}
                     className="w-full"
+                    allowClear
+                    showSearch
+                    optionFilterProp="label"
                   >
                     <Option value="">{filter.placeholder || "All"}</Option>
                     {filter.options.map((option, key) => (
                       <Option
                         key={key}
-                        value={filter.key === "status" ? option.code : option.id}
+                        value={
+                          filter.key === "status" ? option.code : option.id
+                        }
                       >
                         {option.name}
                       </Option>

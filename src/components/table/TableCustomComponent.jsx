@@ -11,6 +11,7 @@ const TableCustomComponent = ({
   scroll,
   loading,
   className,
+  onChange,
 }) => {
   return (
     <ConfigProvider
@@ -33,16 +34,18 @@ const TableCustomComponent = ({
       }}
     >
       <Table
-        
+        onChange={onChange}
         className="custom-scrollbar"
         columns={header}
         dataSource={dataSource}
         pagination={
-          pagination == false ? pagination : { pageSize: pageSize ?? 10 }
+          pagination 
+          // pagination == false ? pagination : { pageSize: pageSize ?? 10 }
         }
         scroll={{
           x: scroll ? "max-content" : 1000,
-          y: 70 * 7,
+          // y: 70*7,
+          y: "60vh",
         }}
         // footer={footer ? () => footer : null}
         summary={footer}
