@@ -14,7 +14,6 @@ import { paths } from "../../services/CorsPath";
 export default function Dashboard() {
   const [years, setYears] = useState([]);
   const [selectedYear, setSelectedYear] = useState({});
-
   const [months, setMonths] = useState([]);
   const [selectedMonths, setSelectedMonths] = useState(null);
   const [subdealer, setSubdealer] = useState([]);
@@ -33,6 +32,9 @@ export default function Dashboard() {
   const [sales, setSales] = useState([]);
   const [selectedSale, setSelectedSale] = useState(null);
   const [loading, setLoading] = useState(false);
+const [selectedSubdealerExpense, setSelectedSubdealerExpense] = useState(null);
+const [selectedSubdealerOrder, setSelectedSubdealerOrder] = useState(null);
+
   const chartSetting = {
     yAxis: [
       {
