@@ -576,7 +576,7 @@ export default function WorkPlanSaleBySubDealer() {
                 />
               </div>
             </div>
-            <div>
+            {/* <div>
               <div>Amount Target</div>
               <div className="">
                 <InputNumber
@@ -593,7 +593,7 @@ export default function WorkPlanSaleBySubDealer() {
                   }
                 />
               </div>
-            </div>
+            </div> */}
             <div>
               <div>Work Plan</div>
               <div className="">

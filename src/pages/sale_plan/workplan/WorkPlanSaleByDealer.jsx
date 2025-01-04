@@ -255,7 +255,8 @@ export default function WorkPlanSaleByDealer() {
                     dealerItem.dealer_id,
                     record.product_id,
                     value,
-                    record.unit_convert_value || 0
+                    record.unit_convert_value || 0,
+                    record
                   )
                 }
                 disabled={!permission.edit}
@@ -325,16 +326,48 @@ export default function WorkPlanSaleByDealer() {
     })),
   ];
 
-  const handleQtyChange = (dealerId, productId, qty, unitConvertValue) => {
+  const handleQtyChange = (
+    dealerId,
+    productId,
+    qty,
+    unitConvertValue,
+    record
+  ) => {
     setLocalQtyState((prevState) => {
       // Calculate the new value
-      const value = Number(qty || 0) * Number(unitConvertValue || 0);
+      const newQty = Number(qty || 0);
+      const maxQty = Number(record.qty || 0);
+
+      // Aggregate the current qty for this product across all dealers
+      const totalQtyForProduct = Object.values(prevState).reduce(
+        (sum, dealer) => {
+          if (dealer[productId] && dealerId !== dealer.id) {
+            return sum + Number(dealer[productId].qty || 0);
+          }
+          return sum;
+        },
+        0
+      );
+
+      // // Check if the new qty exceeds the record.qty
+      // if ( totalQtyForProduct  > maxQty) {
+      //   showNotification(
+      //     "warning",
+      //     record.product_name,
+      //     `${totalQtyForProduct + newQty} > ${maxQty}`,
+      //     2
+      //   );
+      //   return prevState; // ยกเลิกการเปลี่ยนแปลง
+      // }
+
+      // Calculate the value
+      const value = newQty * Number(unitConvertValue || 0);
 
       // Update the dealer's product information
       const updatedDealerProducts = {
         ...prevState[dealerId],
         [productId]: {
-          qty,
+          qty: newQty,
           value,
         },
       };
@@ -344,6 +377,8 @@ export default function WorkPlanSaleByDealer() {
         (sum, product) => sum + Number(product.value || 0),
         0
       );
+
+     
 
       return {
         ...prevState,
@@ -492,7 +527,7 @@ export default function WorkPlanSaleByDealer() {
 
         <BoxPrimary>
           <div className="flex  gap-5">
-            <div>
+            {/* <div>
               <div>Amount Target</div>
               <InputNumber
                 disabled
@@ -504,7 +539,7 @@ export default function WorkPlanSaleByDealer() {
                   `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
-            </div>
+            </div> */}
             <div>
               <div>Work Plan</div>
               <InputNumber

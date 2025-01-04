@@ -520,7 +520,7 @@ export default function WorkPlanSaleByDealerMonth() {
                 />
               </div>
             </div>
-            <div>
+            {/* <div>
               <div>Amount Target</div>
               <div className="">
                 <InputNumber
@@ -537,7 +537,7 @@ export default function WorkPlanSaleByDealerMonth() {
                   }
                 />
               </div>
-            </div>
+            </div> */}
             <div>
               <div>Work Plan</div>
               <div className="">

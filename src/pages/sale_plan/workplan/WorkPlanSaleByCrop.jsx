@@ -76,10 +76,7 @@ export default function WorkPlanSaleByCrop() {
           min={0}
           value={text}
           formatter={(value) =>
-            `${parseInt(value)}`.replace(
-              /\B(?=(\d{3})+(?!\d))/g,
-              ","
-            )
+            `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
           onChange={(value) => handleQtyChange(value, record.key)}
         />
@@ -106,10 +103,7 @@ export default function WorkPlanSaleByCrop() {
           min={0}
           value={text}
           formatter={(value) =>
-            `${parseInt(value)}`.replace(
-              /\B(?=(\d{3})+(?!\d))/g,
-              ","
-            )
+            `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
           onChange={(value) => handleQtyChange(value, record.key)}
         />
@@ -177,10 +171,7 @@ export default function WorkPlanSaleByCrop() {
           value={localQtyState[cropItem.crop_id]?.[record.product_id]?.qty || 0}
           disabled
           formatter={(value) =>
-            `${parseInt(value)}`.replace(
-              /\B(?=(\d{3})+(?!\d))/g,
-              ","
-            )
+            `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
         />
       ),
@@ -212,10 +203,7 @@ export default function WorkPlanSaleByCrop() {
           }
           disabled
           formatter={(value) =>
-            `${parseInt(value)}`.replace(
-              /\B(?=(\d{3})+(?!\d))/g,
-              ","
-            )
+            `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
         />
       ),
@@ -399,9 +387,9 @@ export default function WorkPlanSaleByCrop() {
 
           return {
             ...product, // ข้อมูลตั้งต้น
-            percentage: localProductData.percentage || product.percentage || 0,
-            qty: localProductData.qty || product.qty || 0,
-            value: localProductData.value || product.value || 0,
+            percentage: localProductData.percentage  || 0,
+            qty: localProductData.qty || 0,
+            value: localProductData.value  || 0,
           };
         });
 
@@ -471,8 +459,7 @@ export default function WorkPlanSaleByCrop() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-      <Title prefix="Work Plan" showYear={yearName} />
-
+        <Title prefix="Work Plan" showYear={yearName} />
 
         <BoxPrimary>
           <div className="flex gap-5">
@@ -485,10 +472,7 @@ export default function WorkPlanSaleByCrop() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${parseInt(value)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
             </div>
