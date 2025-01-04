@@ -345,7 +345,7 @@ export default function WorkPlan() {
             <div className="title-page">Work Plan (Area)</div>
           )}
           {pathName == "sale" && (
-            <div className="title-page">Work Plan (Sale)</div>
+            <div className="title-page">Work Plan (Sales)</div>
           )}
 
           {permission.btn_select && (

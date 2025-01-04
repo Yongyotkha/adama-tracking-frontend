@@ -511,7 +511,7 @@ export default function WorkPlanAreaCreate() {
         </BoxPrimary>
 
         <BoxPrimary>
-          <div className="text-[#00783F] text-xl pb-5">Sale By Territory</div>
+          <div className="text-[#00783F] text-xl pb-5">Sales By Territory</div>
 
           <TableCustomComponent
             header={columns}

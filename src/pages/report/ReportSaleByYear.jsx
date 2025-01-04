@@ -79,7 +79,7 @@ export default function ReportSaleByYear() {
 
     const requestData = {
       keyword: filters.keyword || "",
-      // year_code: filters.year_code,
+      year_code: filters.year_code,
       user_id: filters.user_id,
       dealer_id: filters.dealer_id,
       crop_id: filters.crop_id,
