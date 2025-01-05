@@ -172,14 +172,11 @@ export default function ActivityPlanSubDealer() {
 
             return (
               <InputNumber
-                value={localData.qty}
+                value={localData.qty || 0}
                 className="w-full"
                 min={0}
                 formatter={(value) =>
-                  `${parseInt(value)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
                 disabled={!permission.edit}
                 onChange={(value) =>
@@ -200,12 +197,12 @@ export default function ActivityPlanSubDealer() {
 
   const handleQtyChange = (month_id, activity_id, qty, unitConvertValue) => {
     setLocalQtyState((prevState) => {
-      const value = qty * unitConvertValue;
+      const value = Number(qty) * Number(unitConvertValue);
 
       // อัปเดตข้อมูลของเดือนและ activity
       const updatedMonth = {
         ...prevState[month_id],
-        [activity_id]: { qty, value },
+        [activity_id]: { qty: qty || 0, value: value || 0 },
       };
 
       // คำนวณค่า amount_target สำหรับเดือนนั้น
@@ -218,14 +215,11 @@ export default function ActivityPlanSubDealer() {
 
       // คำนวณผลรวมของ amount_target และเซ็ตค่าใน Expense
       const totalAmountTarget = Object.values(newState).reduce((sum, month) => {
-        return sum + (month.amount_target || 0);
+        return sum + Number(month.amount_target || 0);
       }, 0);
 
-      setExpense(
-        ((Number(totalAmountTarget) / Number(totalValue)) * 100).toFixed(2)
-      );
-      console.log(totalAmountTarget, totalValue);
-      setEstimate(totalAmountTarget);
+      setExpense((Number(totalAmountTarget) / Number(totalValue || 0)) * 100);
+      setEstimate(totalAmountTarget || 0);
 
       return newState;
     });
@@ -283,7 +277,7 @@ export default function ActivityPlanSubDealer() {
                 </p>
               </>
             ),
-            centered: true, 
+            centered: true,
             onOk() {
               createPlan("draft", updatedActivity);
             },
@@ -301,7 +295,6 @@ export default function ActivityPlanSubDealer() {
   };
 
   const createPlan = async (mode, updatedActivity) => {
-  
     await useServiceAPI
       .post(paths.pathActivitySubDealerDetail, {
         action_code: mode,
@@ -346,10 +339,7 @@ export default function ActivityPlanSubDealer() {
                 min={0}
                 value={totalValue}
                 formatter={(value) =>
-                  `${parseInt(value)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
             </div>
@@ -360,10 +350,7 @@ export default function ActivityPlanSubDealer() {
                 className="w-full"
                 value={estimate}
                 formatter={(value) =>
-                  `${parseInt(value)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
             </div>
@@ -372,8 +359,8 @@ export default function ActivityPlanSubDealer() {
               <InputNumber
                 disabled
                 className="w-full"
-                value={expense}
-                formatter={(value) => `${Number(value)}%`}
+                value={expense || 0}
+                formatter={(value) => `${Number(value).toFixed(2)}%`}
               />
             </div>
             <div className="w-1/4">

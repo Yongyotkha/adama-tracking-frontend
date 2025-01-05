@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import { Input, InputNumber, Table, Tabs, Typography } from "antd";
+import { Input, InputNumber, Table, Tabs, Typography, Modal } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import TableCustomComponent from "../../../components/table/TableCustomComponent";
 import ActionButton from "../../../components/button/ActionButton";
@@ -9,6 +9,7 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import Title from "../../../components/title/Title";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 
 export default function WorkPlanSaleBySubDealer() {
   const location = useLocation();
@@ -16,7 +17,7 @@ export default function WorkPlanSaleBySubDealer() {
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-  const { showNotification } = useContext(AuthContext);
+  const { showNotification, formatNumber } = useContext(AuthContext);
   const [dealers, setDealers] = useState([]);
   const [activeKey, setActiveKey] = useState(0);
   const [subDealers, setSubDealers] = useState([]);
@@ -29,6 +30,7 @@ export default function WorkPlanSaleBySubDealer() {
   const [message, setMessage] = useState("");
   const { Text } = Typography;
   const [data, setData] = useState({});
+  const { confirm } = Modal;
 
   useEffect(() => {
     getMasterDealer();
@@ -41,14 +43,10 @@ export default function WorkPlanSaleBySubDealer() {
 
   const getMasterDealer = () => {
     useServiceAPI
-      .get(
-        paths.pathWorkPlanSaleSubDealerList,
-        {
-          year_code: location?.state?.year_code,
-          user_id: location?.state?.user_id,
-        },
-        
-      )
+      .get(paths.pathWorkPlanSaleSubDealerList, {
+        year_code: location?.state?.year_code,
+        user_id: location?.state?.user_id,
+      })
       .then((response) => {
         if (response.status === 200) {
           setDealers(response.data.dealer_items);
@@ -459,11 +457,46 @@ export default function WorkPlanSaleBySubDealer() {
     });
   };
 
-
   const handleSave = async (mode) => {
-    setLoading(true); // เริ่มโหลดข้อมูล
+    const totalAmountTarget = Object.values(localQtyState).reduce(
+      (sum, obj) => {
+        return (
+          sum +
+          Object.values(obj).reduce(
+            (nestedSum, item) => nestedSum + (item.totalAmountTarget || 0),
+            0
+          )
+        );
+      },
+      0
+    );
 
+    if (Number(totalValue) > Number(totalAmountTarget)) {
+      confirm({
+        title: "Do you want to save ?",
+        icon: <ExclamationCircleFilled />,
+        content: (
+          <>
+            <p>Work Plan is less than Original Plan</p>
+            <p>Original Plan: {formatNumber(totalValue)}</p>
+            <p>Current Total: {formatNumber(totalAmountTarget)}</p>
+            <p>Difference: {formatNumber(totalValue - totalAmountTarget)}</p>
+          </>
+        ),
+        centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+        onOk() {
+          createPlan(mode);
+        },
+      });
+    } else {
+      createPlan(mode);
+    }
+  };
+
+  const createPlan = async (mode) => {
     try {
+      setLoading(true); // เริ่มโหลดข้อมูล
+
       const updatedSubDealers = subDealers.map((subDealer) => {
         const localData =
           localQtyState[activeKey]?.[subDealer.sub_dealer_id] || {};
@@ -602,17 +635,16 @@ export default function WorkPlanSaleBySubDealer() {
                   suffix="THB"
                   className="w-full"
                   min={0}
-                  value={
-                    Object.values(localQtyState).reduce((sum, obj) => {
-                      return (
-                        sum +
-                        Object.values(obj).reduce(
-                          (nestedSum, item) => nestedSum + (item.totalAmountTarget || 0),
-                          0
-                        )
-                      );
-                    }, 0)
-                  }
+                  value={Object.values(localQtyState).reduce((sum, obj) => {
+                    return (
+                      sum +
+                      Object.values(obj).reduce(
+                        (nestedSum, item) =>
+                          nestedSum + (item.totalAmountTarget || 0),
+                        0
+                      )
+                    );
+                  }, 0)}
                   formatter={(value) =>
                     `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                   }

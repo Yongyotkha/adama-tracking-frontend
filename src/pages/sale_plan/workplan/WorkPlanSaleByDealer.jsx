@@ -326,62 +326,54 @@ export default function WorkPlanSaleByDealer() {
     })),
   ];
 
-  const handleQtyChange = (
-    dealerId,
-    productId,
-    qty,
-    unitConvertValue,
-    record
-  ) => {
+  const handleQtyChange = (dealerId, productId, qty, unitConvertValue, record) => {
+    const newQty = Number(qty || 0); // แปลงค่าที่กรอกเป็นตัวเลข
+    const maxQty = Number(record.qty || 0); // จำนวนสูงสุดที่อนุญาต
+    const value = newQty * Number(unitConvertValue || 0); // คำนวณ value
+  
     setLocalQtyState((prevState) => {
-      // Calculate the new value
-      const newQty = Number(qty || 0);
-      const maxQty = Number(record.qty || 0);
-
-      // Aggregate the current qty for this product across all dealers
-      const totalQtyForProduct = Object.values(prevState).reduce(
-        (sum, dealer) => {
-          if (dealer[productId] && dealerId !== dealer.id) {
-            return sum + Number(dealer[productId].qty || 0);
-          }
-          return sum;
-        },
-        0
-      );
-
-      // // Check if the new qty exceeds the record.qty
-      // if ( totalQtyForProduct  > maxQty) {
-      //   showNotification(
-      //     "warning",
-      //     record.product_name,
-      //     `${totalQtyForProduct + newQty} > ${maxQty}`,
-      //     2
-      //   );
-      //   return prevState; // ยกเลิกการเปลี่ยนแปลง
-      // }
-
-      // Calculate the value
-      const value = newQty * Number(unitConvertValue || 0);
-
-      // Update the dealer's product information
-      const updatedDealerProducts = {
-        ...prevState[dealerId],
-        [productId]: {
-          qty: newQty,
-          value,
+      // สร้างสำเนาของสถานะปัจจุบัน
+      const tempState = {
+        ...prevState,
+        [dealerId]: {
+          ...prevState[dealerId],
+          [productId]: {
+            qty: newQty,
+            value,
+          },
         },
       };
-
-      // Recalculate amount_target for the dealer
+  
+      // คำนวณค่ารวมของ qty สำหรับ productId
+      const totalQtyForProduct = Object.values(tempState).reduce(
+        (sum, dealer) =>
+          dealer[productId] ? sum + Number(dealer[productId].qty || 0) : sum,
+        0
+      );
+  
+      // ตรวจสอบว่าค่ารวมเกินจำนวนที่กำหนดไว้ใน record หรือไม่
+      if (totalQtyForProduct > maxQty) {
+        showNotification(
+          "warning",
+          record.product_name,
+          `The total quantity (${totalQtyForProduct}) exceeds the maximum allowed (${maxQty}).`,
+          2
+        );
+  
+        // ย้อนกลับเป็นสถานะก่อนหน้า
+        return prevState;
+      }
+  
+      // คำนวณ amount_target ใหม่สำหรับ dealer
+      const updatedDealerProducts = tempState[dealerId];
       const amountTarget = Object.values(updatedDealerProducts).reduce(
         (sum, product) => sum + Number(product.value || 0),
         0
       );
-
-     
-
+  
+      // อัปเดต state ใหม่
       return {
-        ...prevState,
+        ...tempState,
         [dealerId]: {
           ...updatedDealerProducts,
           amount_target: amountTarget,
@@ -389,6 +381,8 @@ export default function WorkPlanSaleByDealer() {
       };
     });
   };
+    
+  
 
   const handleSave = async (mode) => {
     const totalAmountTarget = Object.values(localQtyState).reduce(
