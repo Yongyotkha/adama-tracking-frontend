@@ -428,13 +428,6 @@ export default function OrderList() {
       <div className="flex justify-between items-center">
         <div className="title-page">Order List</div>
         <div className="flex gap-2">
-        {permission.btn_create && (
-          <ActionButton
-            mode="create"
-            text="Create"
-            onClick={(e) => navigate("/order/create")}
-          />
-        )}
         <Select
           showSearch
           allowClear
@@ -449,6 +442,13 @@ export default function OrderList() {
           // onChange={(value) => setDefaultOption(value)}
           onChange={(value) => handleChange(value)}
         />
+        {permission.btn_create && (
+          <ActionButton
+            mode="create"
+            text="Create"
+            onClick={(e) => navigate("/order/create")}
+          />
+        )}
         </div>
       </div>
 
