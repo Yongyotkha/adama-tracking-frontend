@@ -124,6 +124,7 @@ export default function SubDealerList() {
         contactName: data.contact_name,
         address: data.contact_address,
         phone: data.mobile_phone,
+        sale:data.sale,
           status: (
             <BadgeStatus
               text={data.status_name}
@@ -261,6 +262,7 @@ export default function SubDealerList() {
     { title: "Contact Name", width: 200, dataIndex: "contactName", align: "left" },
     { title: "Address", width: 300, dataIndex: "address", align: "left" },
     { title: "Phone", width: 150, dataIndex: "phone", align: "center" },
+    { title: "By Sale", width: 150, dataIndex: "sale", align: "center" },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
@@ -274,67 +276,22 @@ export default function SubDealerList() {
     });
   };
 
-  
-  // useEffect(() => {
-  //   const dataSource = [
-  //     {
-  //       key: 1,
-  //       subDealerName: "เพื่อนชาวนา",
-  //       contactName: "นางสาวกรกชสุดา นิตรสัมพันธ์",
-  //       address: "เลขที่ 71 หมู่1 ต.สาลี อ.บางปลาม้า จ.สุพรรณบุรี",
-  //       phone: "081-639 9745",
-  //       status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
-  //       action: (
-  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
-  //           <a onClick={(e) => e.preventDefault()}>
-  //             <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-  //           </a>
-  //         </Dropdown>
-  //       ),
-  //     },
-  //     {
-  //       key: 2,
-  //       subDealerName: "ดอนโพธิ์ทอง",
-  //       contactName: "นางสาวประภาพรรณ ปลั่งพานิช",
-  //       address: "เลขที่ 216 หมู่1 ต.ดอนโพธิ์ทอง อ.เมือง จ.สุพรรณบุรี",
-  //       phone: "081-1922292",
-  //       status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
-  //       action: (
-  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
-  //           <a onClick={(e) => e.preventDefault()}>
-  //             <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-  //           </a>
-  //         </Dropdown>
-  //       ),
-  //     },
-  //     {
-  //       key: 3,
-  //       subDealerName: "จุ้ยพันธุ์ข้าว",
-  //       contactName: "นางสาวนิตา นำประเสริฐสุข",
-  //       address: "เลขที่ 17 หมู่2 ต.ตลิ่งชัน อ.เมือง จ.สุพรรณบุรี",
-  //       phone: "080-9963214",
-  //       status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
-  //       action: (
-  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
-  //           <a onClick={(e) => e.preventDefault()}>
-  //             <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-  //           </a>
-  //         </Dropdown>
-  //       ),
-  //     },
-  //   ];
-  
-  //   setDataSource(dataSource);
-  // }, []);
-
-
 
   return (
     <MainLayout loading={loading}>
 
       <div className="flex items-center justify-between">
         <div className="title-page">Sub Dealer</div>
-        <ActionButton mode="create" text="Create" onClick={(e) => navigate("/customer/sub-dealer/create")} />
+        <ActionButton mode="create" text="Create" 
+          onClick={() => 
+            navigate("/customer/sub-dealer/create", { 
+              state: { 
+                mode: "Create" 
+              } 
+            }) 
+          } 
+        />
+
       </div>
 
       <Filter

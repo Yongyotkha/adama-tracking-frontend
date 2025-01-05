@@ -10,6 +10,7 @@ import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import { Hidden } from "@mui/material";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const [years, setYears] = useState([]);
@@ -45,14 +46,11 @@ export default function Dashboard() {
   const [selectedSaleActivity, setSelectedSaleActivity] = useState(null);
   const [selectedDealerPlan, setSelectedDealerPlan] = useState(null);
   const [selectedDealerTopActivity, setSelectedDealerTopActivity] = useState(null);
-  
   const [selectedSubdealerPlan, setSelectedSubdealerPlan] = useState(null);
-
-
   const chartSetting = {
     yAxis: [
       {
-        label: 'Million',
+        label: 'Million (MB)',
       },
     ],
     // width: 500,
@@ -64,137 +62,8 @@ export default function Dashboard() {
     },
   };
 
-  const chartSetting2 = {
-    xAxis: [
-      {
-        label: 'rainfall (mm)',
-      },
-    ],
-    // width: 500,
-    height: 400,
-  };
-
-  const dataset = [
-    {
-      plan: 92,
-      actual: 73,
-      month: "Jan",
-    },
-    {
-      plan: 92,
-      actual: 73,
-      month: "Feb",
-    },
-    {
-      plan: 92,
-      actual: 73,
-      month: "Mar",
-    },
-    {
-      plan: 92,
-      actual: 73,
-      month: "Apr",
-    },
-    {
-      plan: 92,
-      actual: 99,
-      month: "May",
-    },
-    {
-      plan: 103,
-      actual: 144,
-      month: "June",
-    },
-    {
-      plan: 105,
-      actual: 319,
-      month: "July",
-    },
-    {
-      plan: 106,
-      actual: 249,
-      month: "Aug",
-    },
-    {
-      plan: 95,
-      actual: 131,
-      month: "Sept",
-    },
-    {
-      plan: 97,
-      actual: 55,
-      month: "Oct",
-    },
-    {
-      plan: 76,
-      actual: 48,
-      month: "Nov",
-    },
-    {
-      plan: 103,
-      actual: 25,
-      month: "Dec",
-    },
-  ];
-
-  const dataset2 = [
-    {
-      plan: 92,
-      actual: 73,
-      month: "Apopo 20%SE",
-    },
-    {
-      plan: 92,
-      actual: 73,
-      month: "Atranex 90WG",
-    },
-    {
-      plan: 92,
-      actual: 73,
-      month: "Baloric 320EC",
-    },
-    {
-      plan: 92,
-      actual: 73,
-      month: "Bla-S",
-    },
-    {
-      plan: 92,
-      actual: 99,
-      month: "Bumper P",
-    },
-    {
-      plan: 103,
-      actual: 144,
-      month: "Custodia",
-    },
-    {
-      plan: 105,
-      actual: 319,
-      month: "Fiesta",
-    },
-    {
-      plan: 106,
-      actual: 249,
-      month: "Fiesta",
-    },
-    {
-      plan: 95,
-      actual: 131,
-      month: "Formass 480SL",
-    },
-    {
-      plan: 97,
-      actual: 55,
-      month: "Hamper 300SC",
-    },
-    {
-      plan: 76,
-      actual: 48,
-      month: "Hexaron",
-    },
-  ];
-
+  const navigate = useNavigate();
+  
   function valueFormatter(value) {
     return `${value} Million`;
   }
@@ -387,7 +256,8 @@ export default function Dashboard() {
         setDashboardDataExpense({
           total_expense_advance: data["total_expense_advance "] || 0,
           total_expense_actual_exp:  data["total_expense_actual_exp "] || 0,
-          total_expense_actual_sale:  data["total_expense_actual_sale "] || 0,
+          total_expense_actual_sale:  data["total_expense_actual_sale"] || 0,
+          
         });
 
       } else {
@@ -726,7 +596,14 @@ export default function Dashboard() {
                 </div>
               </div>
               <div>
-                <img src="/img/icons/dealer.png" alt="" className="w-[4.5rem] h-[4.5rem]" />
+                {/* <img src="/img/icons/dealer.png" alt="" className="w-[4.5rem] h-[4.5rem]" /> */}
+                <img
+                  src="/img/icons/dealer.png"
+                  alt="Dealer Icon"
+                  className="w-[4.5rem] h-[4.5rem] cursor-pointer" // Add cursor-pointer for UX
+                  onClick={() => navigate("/customer/dealer")} // Add navigation on click
+                />
+
               </div>
             </div>
           </BoxPrimary>
@@ -742,7 +619,13 @@ export default function Dashboard() {
                 </div>
               </div>
               <div>
-                <img src="/img/icons/sub-dealer.png" alt="" className="w-[4.5rem] h-[4.5rem]" />
+                <img
+                  src="/img/icons/sub-dealer.png"
+                  alt="Sub Dealer"
+                  className="w-[4.5rem] h-[4.5rem] cursor-pointer" // Add cursor-pointer for UX
+                  onClick={() => navigate("/customer/sub-dealer")} // Add navigation on click
+                />
+
               </div>
             </div>
           </BoxPrimary>
@@ -1068,7 +951,7 @@ export default function Dashboard() {
                   ]}
                   xAxis={[
                     {
-                      label: "Value",
+                      label: "Value (baht)",
                     },
                   ]}
                   series={[
@@ -1148,7 +1031,6 @@ export default function Dashboard() {
                     </Select.Option>
                   ))}
                 </Select>
-
                 </div>
               </div>
               <div className="flex justify-center items-center">
@@ -1187,7 +1069,6 @@ export default function Dashboard() {
             </Col>
           </Row>
         </Col>
-
         {/* Activity Section */}
         <Col xs={24} lg={24} xl={6}>
         <BoxPrimary className="h-full">
@@ -1210,8 +1091,6 @@ export default function Dashboard() {
                 </Select.Option>
               ))}
             </Select>
-
-
             <Select
               className="w-36"
               value={selectedMonthsActivity} // ใช้ state ที่แยกออกมา
@@ -1265,9 +1144,6 @@ export default function Dashboard() {
           </table>
         </BoxPrimary>
         </Col>
-
-
-
       </Row>
     </MainLayout>
   );

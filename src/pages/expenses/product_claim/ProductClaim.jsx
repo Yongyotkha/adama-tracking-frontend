@@ -141,7 +141,7 @@ export default function ProductClaim() {
     { title: "Claim Date", width: 150, dataIndex: "claimDate", align: "center" },
     { title: "Dealer Name", width: 200, dataIndex: "dealerName", align: "left" },
     { title: "Product", width: 100, dataIndex: "product", align: "center" },
-    { title: "Status", width: 150, dataIndex: "status", align: "center" },
+    // { title: "Status", width: 150, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
@@ -193,7 +193,7 @@ export default function ProductClaim() {
             claimDate: row.document_date,
             dealerName: row.dealer_name,
             product: <BadgeStatus text={row.product_count} bgColor="#F89E18" textColor="#FFFFFF" />,
-            status: <BadgeStatus text={row.status_transaction_name} bgColor={row.status_transaction_bg_color} textColor={row.status_transaction_color} />,
+            // status: <BadgeStatus text={row.status_transaction_name} bgColor={row.status_transaction_bg_color} textColor={row.status_transaction_color} />,
             action: (
               <Dropdown menu={{ items: actionItems }} placement="bottomRight">
                 <a onClick={(e) => e.preventDefault()}>

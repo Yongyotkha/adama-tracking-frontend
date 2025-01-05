@@ -489,6 +489,15 @@ const [formFields, setFormFields] = useState([
               disabled={isViewMode}
             />
           </Col>
+
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Input
+              placeholder="Age"
+              value={contact.age || ""}
+              disabled={true} // ทำให้ไม่สามารถแก้ไขได้
+            />
+          </Col>
+
           <Col xs={24} sm={12} md={8} lg={6}>
             <Input
               placeholder="T-Shirt Size"
@@ -553,6 +562,14 @@ const [formFields, setFormFields] = useState([
               disabled={isViewMode}
             />
           </Col>
+          <Col xs={24} sm={18} md={18} lg={18}>
+          <Input
+            placeholder="Hobby"
+            value={contact.hobby || ""}
+            onChange={(e) => handleContactChange(index, "hobby", e.target.value)}
+            disabled={isViewMode}
+          />
+        </Col>
         </Row>
         <hr className="my-4" />
       </div>
@@ -733,6 +750,8 @@ const [formFields, setFormFields] = useState([
             tel2: item.tel2 || "",
             email: item.email || null,
             line_id: item.line_id || null,
+            hobby: item.hobby || "", 
+            age: item.age || "",     
           })),
           crop_list: defaultSelectedCrops || [],
         };
@@ -843,11 +862,26 @@ const [formFields, setFormFields] = useState([
       setcompanyinfo({ ...companyinfo, bank_account_items: updatedAccounts });
   };
   
+  // const handleContactChange = (index, field, value) => {
+  //   const updatedContacts = [...contactItems];
+  //   updatedContacts[index][field] = value;
+  //   setContactItems(updatedContacts);
+  // };
+  
   const handleContactChange = (index, field, value) => {
     const updatedContacts = [...contactItems];
     updatedContacts[index][field] = value;
+  
+    // คำนวณอายุเมื่อเปลี่ยน `date_of_birth`
+    if (field === "date_of_birth" && value) {
+      const birthYear = dayjs(value).year();
+      const currentYear = dayjs().year();
+      updatedContacts[index].age = currentYear - birthYear;
+    }
+  
     setContactItems(updatedContacts);
   };
+
   
   const mapContainerStyle = {
     width: "100%",

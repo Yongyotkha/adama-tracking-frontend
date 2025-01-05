@@ -81,6 +81,15 @@ export default function SettingProduct() {
     JSON.stringify(tableParams.filters),
   ]);
 
+  const formatPackingUnitSize = (value) => {
+    if (!value) return "-";
+    let number = parseFloat(value);
+    // Use the logic for formatting
+    number = (number === 0 ? 0 : number.toFixed(2).replace(/\.00$/, ""));
+    return number;
+  };
+
+
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -101,9 +110,7 @@ export default function SettingProduct() {
         requestData
       );
 
-      if (response.status === 200) {
-        console.log(response.data);
-        
+      if (response.status === 200) {        
         const { data, records_filtered } = response.data;
         const newDataSource = data.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
@@ -115,7 +122,8 @@ export default function SettingProduct() {
           baht_per_lt_kg: item.bath_ltkg,
           baht_per_unit: item.net_price,
           sub_dealer: item.bath_unit,
-          farmer: item.farmer || "-",
+          farmer: formatPackingUnitSize(item.packing_unit_size),
+
           crop: (
             <BadgeStatus
               text={item.crop_count}

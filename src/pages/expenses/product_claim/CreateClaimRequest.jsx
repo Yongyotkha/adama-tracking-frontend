@@ -108,6 +108,8 @@ export default function CreateClaimRequest() {
   const setupData = async (data) => {
     const products = data.products;
     let newData = [];
+    console.log(products);
+    
     await products.forEach((element) => {
       const key = element.document_item;
       const item = {
@@ -115,6 +117,7 @@ export default function CreateClaimRequest() {
         no: key,
         sku: element.product_code,
         productName: element.product_name,
+        packsize: element.packing_list ?? "",
         product: element,
         lotNo: element.lot_number,
         reason: element.reason ?? "",
@@ -216,10 +219,11 @@ export default function CreateClaimRequest() {
     { title: "No", dataIndex: "no", key: "no", align: "center" },
     { title: "SKU", dataIndex: "sku", key: "sku", align: "center" },
     { title: "Product Name", dataIndex: "productName", key: "productName", align: "center" },
+    { title: "Pack Size", dataIndex: "packsize", key: "packsize", align: "center" },
     { title: "Batch", dataIndex: "lotNo", key: "lotNo", align: "center" },
     { title: "Reason", dataIndex: "reason", key: "reason", align: "center" },
     {
-      title: <div className="text-center">QTY (ctn)</div>,
+      title: <div className="text-center">QTY (Unit)</div>,
       dataIndex: "quantity",
       key: "quantity",
       render: (_, record) => (
@@ -237,24 +241,24 @@ export default function CreateClaimRequest() {
         </div>
       ),
     },
-    { 
-      title: <div className="text-center">Product Unit</div>,
-      dataIndex: "product_unit", // แทนที่ "name" ด้วย "dataIndex"
-      key: "product_unit",
-      render: (_, record) => (
-        <select
-          className="ant-input css-dev-only-do-not-override-5ck91v ant-input-outlined border border-solid border-[#00783F] text-[#00783F] text-center mx-2 min-w-24"
-          value={record.product_unit}
-          onChange={(e) => handleChangeDealer(record.key, e.target.value)}
-        >
-          {dataProductUnits.map((product_unit) => (
-            <option key={product_unit.id} value={product_unit.id}>
-              {product_unit.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
+    // { 
+    //   title: <div className="text-center">Product Unit</div>,
+    //   dataIndex: "product_unit", // แทนที่ "name" ด้วย "dataIndex"
+    //   key: "product_unit",
+    //   render: (_, record) => (
+    //     <select
+    //       className="ant-input css-dev-only-do-not-override-5ck91v ant-input-outlined border border-solid border-[#00783F] text-[#00783F] text-center mx-2 min-w-24"
+    //       value={record.product_unit}
+    //       onChange={(e) => handleChangeDealer(record.key, e.target.value)}
+    //     >
+    //       {dataProductUnits.map((product_unit) => (
+    //         <option key={product_unit.id} value={product_unit.id}>
+    //           {product_unit.name}
+    //         </option>
+    //       ))}
+    //     </select>
+    //   ),
+    // },
     {
       title: <div className="text-center">Label</div>,
       key: "label",
@@ -318,7 +322,7 @@ export default function CreateClaimRequest() {
   const footerOrderList = () => (
     <tr className="bg-[#978B87]">
       <td colSpan={13} className="text-right pr-2 text-white">
-        Item: {dataSource.length} &nbsp; QTY (ctn): {dataSource.reduce((total, item) => total + Math.floor(item.quantity), 0)}
+        Item: {dataSource.length} &nbsp; QTY (Unit): {dataSource.reduce((total, item) => total + Math.floor(item.quantity), 0)}
       </td>
     </tr>
   );
@@ -332,6 +336,9 @@ export default function CreateClaimRequest() {
   };
 
   const handleAdd = (data) => {
+    console.log(data);
+    console.log(data.product.packing_list);
+
     handleCloseAddOrderModal();
     const key = dataSource.length + 1;
     const newData = {
@@ -339,6 +346,7 @@ export default function CreateClaimRequest() {
       no: key,
       sku: data.product.product_code,
       productName: data.product.product_name,
+      packsize: data.product.packing_list,
       product: data.product,
       lotNo: data.lotNo,
       reason: data.reason ?? "",

@@ -64,6 +64,11 @@ export default function CreateSubDealer() {
       line_id: "",
     },
   ]);
+  const location = useLocation();
+  const mode = location.state.mode; 
+  const isViewMode = mode === "View";
+  const [photoPath, setPhotoPath] = useState(""); // State สำหรับเก็บ URL รูปภาพ
+
 
   // ---------- State สำหรับแท็บ Network (ตัวอย่าง) ----------
   const [networkList, setNetworkList] = useState([]); // รายการ network
@@ -79,6 +84,109 @@ export default function CreateSubDealer() {
     { title: "Action", dataIndex: "action", key: "action", width: 100, align: "center" },
   ];
 
+
+  // โหลดข้อมูลเบื้องต้น เช่น รายการพืช (crops)
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+
+        if (mode === "Edit" || "View") {
+          // เรียกใช้ฟังก์ชันดึงรายละเอียด SubDealer
+          await fetchSubDealerDetails(location.state.id);
+        }
+  
+        const [crops] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterCrop, {}),
+        ]);
+        setCropOptions(crops.data);
+      } catch (error) {
+        console.log(error.message);
+        showNotification("เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const fetchSubDealerDetails = async (id) => {
+    setLoading(true);
+    try {
+      const response = await useServiceAPI.get(
+        `${paths.pathSubDealerDetail}?id=${id}`
+      );
+
+      if (response.status === 200) {
+        const { data } = response;
+        
+        setPhotoPath(data.photo_path || "");
+
+        // ตั้งค่า location
+        const lat = parseFloat(data.location_latitude) || 13.9572612;
+        const lng = parseFloat(data.location_longitude) || 100.6222401;
+        setCurrentLocation({ lat, lng });
+
+        // อัปเดต state และ form
+        setcompanyinfo(data);
+        form.setFieldsValue({
+          shop_name: data.name,
+          mobile_phone: data.mobile_phone,
+          address: data.address,
+          email: data.email,
+          day_of_week: data.day_of_week,
+          start_time: data.start_time ? dayjs(data.start_time, "HH:mm") : null,
+          end_time: data.end_time ? dayjs(data.end_time, "HH:mm") : null,
+          remark: data.remark,
+          outlet_location: data.location_address,
+          fertilizer_business: data.fertilizer_business,
+          seed_business: data.seed_business,
+          pesticides_business: data.pesticides_business,
+        });
+
+        // ตั้งค่า Crop List
+        const cropIds = data.crop_list?.map((crop) => Number(crop.id)) || [];
+        setDefaultSelectedCrops(cropIds);
+
+        // ตั้งค่า farmers
+        const farmers = data.network_farmer_list?.map((farmer, index) => ({
+          key: farmer.farmer_id,
+          no: index + 1,
+          name: farmer.farmer_name || "-",
+          contactperson: farmer.farmer_contact_name || "-",
+          status: (
+            <BadgeStatus
+              text={farmer.farmer_channel_type_name}
+              bgColor={farmer.farmer_channel_type_bg_color}
+              textColor={farmer.farmer_channel_type_color}
+            />
+          ),
+          action: (
+            <>
+              <DynamicButton
+                iconSrc="/img/icons/delete.png"
+                onClick={() =>
+                  handleDeleteNetworkItem(farmer.farmer_id)
+                }
+              />
+            </>
+          ),
+        })) || [];
+        setNetworkList(farmers); // อัปเดต state networkList
+        console.log(farmers);
+        
+      } else {
+        console.error("Failed to fetch SubDealer details:", response.message);
+      }
+    } catch (error) {
+      console.error("Error fetching SubDealer details:", error);
+      showNotification("error", "เกิดข้อผิดพลาดในการโหลดข้อมูล");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
   // จัดการแท็บ
   const [activeTabKey, setActiveTabKey] = useState("profile");
   const handleTabChange = (key) => {
@@ -93,6 +201,7 @@ export default function CreateSubDealer() {
       type: "picture",
       required: false,
       col: 24,
+      disabled: isViewMode,
     },
     {
       label: "Shop Name",
@@ -100,6 +209,7 @@ export default function CreateSubDealer() {
       type: "text",
       required: false,
       col: 6,
+      disabled: isViewMode,
     },
     {
       label: "Mobile Phone",
@@ -107,6 +217,7 @@ export default function CreateSubDealer() {
       type: "text",
       required: false,
       col: 6,
+      disabled: isViewMode,
     },
     {
       label: "Address",
@@ -114,6 +225,7 @@ export default function CreateSubDealer() {
       type: "text",
       required: false,
       col: 12,
+      disabled: isViewMode,
     },
     {
       label: "Office Hours",
@@ -139,6 +251,7 @@ export default function CreateSubDealer() {
       type: "time",
       required: false,
       col: 6,
+      disabled: isViewMode,
     },
     {
       label: "End Time",
@@ -146,6 +259,7 @@ export default function CreateSubDealer() {
       type: "time",
       required: false,
       col: 6,
+      disabled: isViewMode,
     },
     {
       label: "Email",
@@ -153,6 +267,7 @@ export default function CreateSubDealer() {
       type: "email",
       required: false,
       col: 6,
+      disabled: isViewMode,
     },
     {
       label: "Fertilizer Business",
@@ -161,6 +276,7 @@ export default function CreateSubDealer() {
       required: false,
       col: 6,
       value: companyinfo.fertilizer_business,
+      disabled: isViewMode,
     },
     {
       label: "Seed Business",
@@ -169,6 +285,7 @@ export default function CreateSubDealer() {
       required: false,
       col: 6,
       value: companyinfo.seed_business,
+      disabled: isViewMode,
     },
     {
       label: "Pesticides Business",
@@ -177,6 +294,7 @@ export default function CreateSubDealer() {
       required: false,
       col: 6,
       value: companyinfo.pesticides_business,
+      disabled: isViewMode,
     },
     {
       label: "Outlet Location",
@@ -191,24 +309,6 @@ export default function CreateSubDealer() {
     },
   ]);
 
-  // โหลดข้อมูลเบื้องต้น เช่น รายการพืช (crops)
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [crops] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterCrop, {}),
-        ]);
-        setCropOptions(crops.data);
-      } catch (error) {
-        console.log(error.message);
-        showNotification("เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
 
   // ดึงข้อมูลใช้งานใน Modal (กรณีอยากให้มี Modal สำหรับเลือก Network)
   const fetchUserList = async () => {
@@ -216,22 +316,24 @@ export default function CreateSubDealer() {
     try {
       // ตัวอย่างการดึงข้อมูล sub_dealer หรือ network ต่าง ๆ
       // สมมติเรียก API getUserList()
-      const response = await useServiceAPI.get(paths.pathMasterSubDealer, {});
+      const response = await useServiceAPI.get(paths.pathMasterFammer, {});
       if (response.status === 200) {
         const data = response.data || [];
         // แปลง data เป็นรูปที่ใช้ในตาราง
         const userListData = data.map((item, index) => ({
-          key: item.sub_dealer_id,
+          key: item.farmer_id,
           no: index + 1,
-          name: item.sub_dealer_name || "-",
-          contactperson: item.sub_dealer_contact_phone_number || "-",
+          name: item.farmer_name,
+          contactperson: item.farmer_contact_phone_number,
           status: (
             <BadgeStatus
-              text={item.sub_dealer_channel_type_name}
-              bgColor={item.sub_dealer_channel_type_bg_color}
-              textColor={item.sub_dealer_channel_type_color}
+              text={item.farmer_channel_type_name}
+              bgColor={item.farmer_channel_type_bg_color}
+              textColor={item.farmer_channel_type_color}
             />
           ),
+
+
         }));
         setUserList(userListData);
       }
@@ -278,9 +380,35 @@ export default function CreateSubDealer() {
   };
 
   // ฟังก์ชันลบรายการในตาราง
-  const handleDeleteNetworkItem = (key) => {
-    setNetworkList((prevList) => prevList.filter((item) => item.key !== key));
-    showNotification("success", "Deleted network item");
+  const handleDeleteNetworkItem = async (record) => {    
+    try {
+      const requestData = {
+        sub_dealer_id:location.state.id,
+        farmer_id: record, 
+      };
+
+      const response = await useServiceAPI.delete(
+        paths.pathSubDealerDetailDeleteFarmer,
+        requestData
+      );
+
+      if (response.status === 200) {
+        await fetchSubDealerDetails(location.state.id);
+
+        showNotification(
+          "success",
+          response.data.message,
+          response.data.message_line
+        );
+      } else {
+        console.error("Failed to delete record:", response.message);
+        showNotification("error", response.message, response.message_line);
+      }
+    } catch (error) {
+      console.error("Error deleting record:", error);
+
+      showNotification("error", error.message, error.message_line);
+    }
   };
 
   // เปิด/ปิด Modal
@@ -312,6 +440,7 @@ export default function CreateSubDealer() {
       },
     ]);
   };
+
   const updateContact = (index, field, value) => {
     setContacts((prevContacts) =>
       prevContacts.map((contact, i) => {
@@ -329,6 +458,7 @@ export default function CreateSubDealer() {
       })
     );
   };
+
   const handleRemoveContact = (index) => {
     setContacts((prevContacts) => prevContacts.filter((_, i) => i !== index));
   };
@@ -344,6 +474,7 @@ export default function CreateSubDealer() {
     width: "100%",
     height: "30vh",
   };
+
   const handleMarkerDragEnd = async (event) => {
     const lat = event.latLng.lat();
     const lng = event.latLng.lng();
@@ -372,6 +503,7 @@ export default function CreateSubDealer() {
       showNotification("error", "Unable to fetch location name.");
     }
   };
+  
   useEffect(() => {
     const checkGoogleMaps = () => {
       if (window.google && window.google.maps) {
@@ -393,13 +525,14 @@ export default function CreateSubDealer() {
     form
       .validateFields()
       .then((values) => {
+        
         const payload = {
-          use_flag: 1,
+          id: location.state.id, 
           name: values.shop_name || "",
           mobile_phone: values.mobile_phone || "",
           address: values.address || "",
           email: values.email || "",
-          day_of_week: values.day_of_week,
+          day_of_week: values.day_of_week || "",
           start_time: values.start_time
             ? dayjs(values.start_time).format("HH:mm")
             : "",
@@ -407,18 +540,20 @@ export default function CreateSubDealer() {
             ? dayjs(values.end_time).format("HH:mm")
             : "",
           business_size: values.business_size || "",
-          location_address: values.outlet_location || "",
+          outlet_location: values.outlet_location || "",
           location_longitude: currentLocation.lng || "",
           location_latitude: currentLocation.lat || "",
+          location_address: values.outlet_location || "", // หรือใช้ location_address
           t_shirt_size: values.tshirt_size || "",
           anniversary: values.anniversary
             ? dayjs(values.anniversary).format("YYYY-MM-DD")
             : null,
           remark: values.remark || "",
           photo_path: values.profile,
-          fertilizer_business: values.fertilizer_business,
-          seed_business: values.seed_business,
-          pesticides_business: values.pesticides_business,
+          use_flag: 1, // กำหนดค่าเริ่มต้น
+          fertilizer_business: values.fertilizer_business || "",
+          seed_business: values.seed_business || "",
+          pesticides_business: values.pesticides_business || "",
           contact_items: contacts.map((contact) => ({
             name_en: contact.name_en || "",
             contact_number: contact.contact_number || "",
@@ -434,13 +569,31 @@ export default function CreateSubDealer() {
             tel2: contact.tel2 || "",
             email: contact.email || null,
             line_id: contact.line_id || null,
+            hobby: contact.hobby || null,
+            age: contact.age || null,
           })),
-          crop_list: defaultSelectedCrops || [],
+          crop_list: defaultSelectedCrops || [], // ใช้ crop_list เป็น array ของ id
         };
+          
+        if (mode === 'Edit') {
+        useServiceAPI
+          .put(paths.pathSubDealerDetailUpdate, payload, setLoading)
+          .then((response) => {
+            if (response.status === 200) {
+              showNotification("success", response.data.message).then(() => {
+                navigate("/customer/sub-dealer");
+              });
+            }
+          })
+          .catch((error) => {
+            console.error("API Error:", error);
+            showNotification(
+              "error",
+              error.response?.data?.message || "An unexpected error occurred."
+            );
+          });
 
-        console.log("Payload to be sent:", payload);
-
-        // เรียก API
+        } else {
         useServiceAPI
           .post(paths.pathCreateSubDealer, payload, setLoading)
           .then((response) => {
@@ -457,6 +610,10 @@ export default function CreateSubDealer() {
               error.response?.data?.message || "An unexpected error occurred."
             );
           });
+
+        }
+
+
       })
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
@@ -467,7 +624,7 @@ export default function CreateSubDealer() {
   // ---------- เนื้อหาในแท็บ “Profile” ----------
   const profileTabContent = (
     <Form form={form} layout="vertical">
-      <FormUser title="Personal Info" fields={formFields} form={form} />
+      <FormUser title="Personal Info" profile={photoPath} fields={formFields} form={form} />
 
       <div
         className="bg-white p-4"
@@ -517,6 +674,7 @@ export default function CreateSubDealer() {
           value={defaultSelectedCrops}
           onChange={(value) => setDefaultSelectedCrops(value)}
           options={transformedCropOptions}
+          disabled={isViewMode}
         />
       </BoxPrimary>
 
@@ -525,7 +683,11 @@ export default function CreateSubDealer() {
           <span className="text-[#00783F] text-lg font-semibold">
             Contact Person
           </span>
-          <ActionButton mode="add" text="Add" onClick={addContact} />
+          {/* <ActionButton mode="add" text="Add" onClick={addContact} /> */}
+          {!isViewMode && (
+            <ActionButton mode="add" text="Add" onClick={addContact} />
+          )}
+
         </div>
         {contacts.map((contact, index) => (
           <div key={index}>
@@ -549,6 +711,8 @@ export default function CreateSubDealer() {
                   onChange={(e) =>
                     updateContact(index, "name_en", e.target.value)
                   }
+                  disabled={isViewMode}
+
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
@@ -558,6 +722,8 @@ export default function CreateSubDealer() {
                   onChange={(e) =>
                     updateContact(index, "name_th", e.target.value)
                   }
+                  disabled={isViewMode}
+
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
@@ -567,6 +733,8 @@ export default function CreateSubDealer() {
                   onChange={(e) =>
                     updateContact(index, "nickname", e.target.value)
                   }
+                  disabled={isViewMode}
+
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
@@ -579,6 +747,8 @@ export default function CreateSubDealer() {
                   onChange={(date) =>
                     updateContact(index, "date_of_birth", date)
                   }
+                  disabled={isViewMode}
+
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
@@ -599,6 +769,8 @@ export default function CreateSubDealer() {
                   onChange={(e) =>
                     updateContact(index, "t_shirt_size", e.target.value)
                   }
+                  disabled={isViewMode}
+
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
@@ -608,6 +780,8 @@ export default function CreateSubDealer() {
                   onChange={(e) =>
                     updateContact(index, "relationship", e.target.value)
                   }
+                  disabled={isViewMode}
+
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
@@ -615,6 +789,8 @@ export default function CreateSubDealer() {
                   placeholder="Duty"
                   value={contact.duty}
                   onChange={(e) => updateContact(index, "duty", e.target.value)}
+                  disabled={isViewMode}
+
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
@@ -622,6 +798,8 @@ export default function CreateSubDealer() {
                   placeholder="Tel 1"
                   value={contact.tel1}
                   onChange={(e) => updateContact(index, "tel1", e.target.value)}
+                  disabled={isViewMode}
+
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
@@ -629,6 +807,8 @@ export default function CreateSubDealer() {
                   placeholder="Tel 2"
                   value={contact.tel2}
                   onChange={(e) => updateContact(index, "tel2", e.target.value)}
+                  disabled={isViewMode}
+
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
@@ -638,6 +818,8 @@ export default function CreateSubDealer() {
                   onChange={(e) =>
                     updateContact(index, "contact_number", e.target.value)
                   }
+                  disabled={isViewMode}
+
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
@@ -645,6 +827,8 @@ export default function CreateSubDealer() {
                   placeholder="Email"
                   value={contact.email}
                   onChange={(e) => updateContact(index, "email", e.target.value)}
+                  disabled={isViewMode}
+
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
@@ -652,6 +836,8 @@ export default function CreateSubDealer() {
                   placeholder="Line ID"
                   value={contact.line_id}
                   onChange={(e) => updateContact(index, "line_id", e.target.value)}
+                  disabled={isViewMode}
+
                 />
               </Col>
               <Col xs={24} sm={18} md={18} lg={18}>
@@ -659,6 +845,8 @@ export default function CreateSubDealer() {
                   placeholder="hobby"
                   value={contact.hobby || ""}
                   onChange={(e) => updateContact(index, "hobby", e.target.value)}
+                  disabled={isViewMode}
+
                 />
               </Col>
             </Row>
@@ -679,6 +867,42 @@ export default function CreateSubDealer() {
   );
 
   // ---------- เนื้อหาในแท็บ “Network” ----------
+
+  const FarmerhandleSave = () => {
+    // Validate form fields if needed
+    form
+      .validateFields()
+      .then(() => {
+        const formattedData = {
+          id: location.state.id,
+          network_list: networkList.map((item) => ({
+            farmer_id: item.key, 
+            is_on_shop: true, 
+          })),
+        };
+  
+        useServiceAPI
+          .put(paths.pathSubDealerDetailUpdateFarmer, formattedData) // paths.pathNetworkSave = URL API
+          .then((response) => {
+            if (response.status === 200) {
+              navigate("/customer/sub-dealer");
+              showNotification(
+                "success",
+                response.data.message,
+                response.data.message_line
+              );
+
+            }
+          })
+          .catch((error) => {
+            console.error("Save failed:", error);
+          });
+      })
+      .catch((errorInfo) => {
+        console.error("Validation Failed:", errorInfo);
+      });
+  };
+
   const networkTabContent = (
     <>
       <BoxPrimary>
@@ -688,22 +912,24 @@ export default function CreateSubDealer() {
         </div>
         <TableComponent header={networkHeader} dataSource={networkList} />
       </BoxPrimary>
-      <div className="flex justify-end space-x-4 mt-6 mb-6">
-        <ActionButton
-          mode="back"
-          text="Back"
-          onClick={() => navigate("/customer/sub-dealer")}
-        />
-        <ActionButton
-          text="Update"
-          mode="update"
-          onClick={() =>
-            showNotification("success", "Network updated (placeholder)")
+
+      <div className="flex justify-end space-x-4 mt-6">
+            <ActionButton
+              mode="back"
+              text="Back"
+              onClick={() => navigate("/customer/sub-dealer")}
+            />
+          {
+          !isViewMode && (
+            <ActionButton text="Update Farmer" mode="update"  onClick={FarmerhandleSave}/>
+            )
           }
-        />
-      </div>
+          </div>
+
     </>
   );
+
+  
 
   return (
     <MainLayout loading={loading}>

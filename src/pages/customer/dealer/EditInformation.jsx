@@ -47,7 +47,10 @@ export default function EditInformation() {
 
   const [userList, setUserList] = useState([]);
   const [farmerList, setFarmerList] = useState([]);
+  const [farmerListItem, setFarmerListItem] = useState([]);
 
+
+  
   const [personitem, setpersonitem] = useState([]);
   const [cropOptions, setCropOptions] = useState([]);
   const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); // กำหนด state สำหรับ defaultSelectedCrops
@@ -370,7 +373,7 @@ export default function EditInformation() {
             </>
           ),
         }));
-        setFarmerList(FarmerDataNetwork);
+        setFarmerListItem(FarmerDataNetwork);
         
       } else {
         console.error("Failed to fetch data:", response.message);
@@ -591,6 +594,8 @@ export default function EditInformation() {
 
   
   const handleAddSelectedRowsFammer = (selectedRows) => {
+    console.log(selectedRows);
+    
     if (!Array.isArray(selectedRows)) {
       console.error("selectedRows is not an array:", selectedRows);
       return;
@@ -598,14 +603,14 @@ export default function EditInformation() {
   
     const newRows = selectedRows.map((row, index) => ({
       key: row.key, // Unique identifier
-      no: (farmerList?.length || 0) + index + 1, // Row number
+      no: (farmerListItem?.length || 0) + index + 1, // Row number
       name: row.name || "-", // Farmer Name
-      mobilePhone: row.territory || "-", // Contact Number
-      status: (
+      territory: row.territory || "-", // Contact Number
+      position: (
         <BadgeStatus
-          text={row.positionText || "-"} // Status text
-          bgColor={row.statusBgColor || "#E0E0E0"} // Background color
-          textColor={row.statusTextColor || "#000000"} // Text color
+          text={row.farmer_channel_type_name || "-"} // Status text
+          bgColor={row.farmer_channel_type_bg_color || "#E0E0E0"} // Background color
+          textColor={row.farmer_channel_type_color || "#000000"} // Text color
         />
       ),
       action: (
@@ -616,9 +621,12 @@ export default function EditInformation() {
       ),
     }));
   
-    setNetworkList((prevList) => {
+    setFarmerListItem((prevList) => {
+
       const existingKeys = (prevList || []).map((item) => item.key); // ป้องกัน undefined
       const filteredNewRows = newRows.filter((row) => !existingKeys.includes(row.key));
+      console.log(filteredNewRows);
+
       if (filteredNewRows.length === 0) {
         showNotification("error", "Sale Territory has already been added.");
         return prevList || [];
@@ -627,8 +635,6 @@ export default function EditInformation() {
         return [...(prevList || []), ...filteredNewRows];
       }
     });
-
-
   };
   
   
@@ -684,11 +690,13 @@ export default function EditInformation() {
       );
 
       if (response.status === 200) {
-        const data = response.data;              
+        const data = response.data;      
+        console.log(data);
+                
         const territoryFammerData = data.map((item, index) => ({
           key: item.farmer_id,
           no: index + 1,
-          name: item.farmer_contact_name,
+          name: item.farmer_name,
           territory: item.farmer_contact_phone_number,
           position: (
             <BadgeStatus
@@ -717,14 +725,7 @@ export default function EditInformation() {
     ]);
   };
 
-  const handleCheckboxChange = (key) => {
-    setNetworkList((prevList) =>
-      prevList.map((item) =>
-        item.key === key ? { ...item, onshop: !item.onshop } : item
-      )
-    );
-    showNotification("success", "Add on shop success");
-  };
+
 
   const transformedCropOptions = cropOptions.map((option) => ({
     label: option.name, // เปลี่ยนจาก name เป็น label
@@ -779,6 +780,8 @@ export default function EditInformation() {
             tel2: item.tel2 || "",
             email: item.email || null,
             line_id: item.line_id || null,
+            age: item.age || null,
+            hobby: item.hobby || null, 
           })),
           crop_list: defaultSelectedCrops || [],
         };        
@@ -848,7 +851,7 @@ export default function EditInformation() {
       .then(() => {
         const formattedData = {
           id: location.state.id,
-          network_list: farmerList.map((item) => ({
+          network_list: farmerListItem.map((item) => ({
             farmer_id: item.key, 
             is_on_shop: true, 
           })),
@@ -1151,7 +1154,7 @@ export default function EditInformation() {
             </div>
             <TableComponent 
               header={headerFammer} 
-              dataSource={farmerList} 
+              dataSource={farmerListItem} 
             />
           </BoxPrimary>
 
