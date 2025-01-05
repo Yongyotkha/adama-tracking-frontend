@@ -99,7 +99,7 @@ export default function DealerList() {
           contactName: data.contact_name,
           mobilePhone: data.contact_phone_number || "-",
           groupCode: data.group_code,
-          sale: data.sale,
+          sale: data.sale_list_name,
           status: <BadgeStatus text={data.status_name} bgColor={data.status_bg_color} textColor={data.status_color} />,
           action: (
             <Dropdown

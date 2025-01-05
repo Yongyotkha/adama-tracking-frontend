@@ -122,7 +122,8 @@ export default function SettingProduct() {
           baht_per_lt_kg: item.bath_ltkg,
           baht_per_unit: item.net_price,
           sub_dealer: item.bath_unit,
-          farmer: formatPackingUnitSize(item.packing_unit_size),
+          // farmer: formatPackingUnitSize(item.packing_list),
+          farmer: item.packing_list,
 
           crop: (
             <BadgeStatus
@@ -231,7 +232,7 @@ export default function SettingProduct() {
       dataIndex: "sub_dealer",
       align: "right",
     },
-    { title: "Farmer", width: 100, dataIndex: "farmer", align: "right" },
+    { title: "Pack Size", width: 160, dataIndex: "farmer", align: "center" },
     { title: "Crop", width: 100, dataIndex: "crop", align: "center" },
     {
       title: "Status",
