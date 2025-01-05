@@ -587,7 +587,7 @@ export default function WorkPlanSaleCreate() {
 
         <BoxPrimary>
           <div className="flex gap-5">
-            <div>
+            {/* <div>
               <div>Amount Target</div>
               <InputNumber
                 disabled
@@ -599,7 +599,7 @@ export default function WorkPlanSaleCreate() {
                   `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
-            </div>
+            </div> */}
             <div>
               <div>Work Plan</div>
               <InputNumber

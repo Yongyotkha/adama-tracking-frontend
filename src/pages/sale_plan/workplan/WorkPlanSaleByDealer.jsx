@@ -255,7 +255,8 @@ export default function WorkPlanSaleByDealer() {
                     dealerItem.dealer_id,
                     record.product_id,
                     value,
-                    record.unit_convert_value || 0
+                    record.unit_convert_value || 0,
+                    record
                   )
                 }
                 disabled={!permission.edit}
@@ -325,28 +326,54 @@ export default function WorkPlanSaleByDealer() {
     })),
   ];
 
-  const handleQtyChange = (dealerId, productId, qty, unitConvertValue) => {
+  const handleQtyChange = (dealerId, productId, qty, unitConvertValue, record) => {
+    const newQty = Number(qty || 0); // แปลงค่าที่กรอกเป็นตัวเลข
+    const maxQty = Number(record.qty || 0); // จำนวนสูงสุดที่อนุญาต
+    const value = newQty * Number(unitConvertValue || 0); // คำนวณ value
+  
     setLocalQtyState((prevState) => {
-      // Calculate the new value
-      const value = Number(qty || 0) * Number(unitConvertValue || 0);
-
-      // Update the dealer's product information
-      const updatedDealerProducts = {
-        ...prevState[dealerId],
-        [productId]: {
-          qty,
-          value,
+      // สร้างสำเนาของสถานะปัจจุบัน
+      const tempState = {
+        ...prevState,
+        [dealerId]: {
+          ...prevState[dealerId],
+          [productId]: {
+            qty: newQty,
+            value,
+          },
         },
       };
-
-      // Recalculate amount_target for the dealer
+  
+      // คำนวณค่ารวมของ qty สำหรับ productId
+      const totalQtyForProduct = Object.values(tempState).reduce(
+        (sum, dealer) =>
+          dealer[productId] ? sum + Number(dealer[productId].qty || 0) : sum,
+        0
+      );
+  
+      // ตรวจสอบว่าค่ารวมเกินจำนวนที่กำหนดไว้ใน record หรือไม่
+      if (totalQtyForProduct > maxQty) {
+        showNotification(
+          "warning",
+          record.product_name,
+          `The total quantity (${totalQtyForProduct}) exceeds the maximum allowed (${maxQty}).`,
+          2
+        );
+  
+        // ย้อนกลับเป็นสถานะก่อนหน้า
+        return prevState;
+      }
+  
+      // คำนวณ amount_target ใหม่สำหรับ dealer
+      const updatedDealerProducts = tempState[dealerId];
       const amountTarget = Object.values(updatedDealerProducts).reduce(
         (sum, product) => sum + Number(product.value || 0),
         0
       );
-
+  
+      // อัปเดต state ใหม่
       return {
-        ...prevState,
+        ...tempState,
         [dealerId]: {
           ...updatedDealerProducts,
           amount_target: amountTarget,
@@ -354,6 +381,8 @@ export default function WorkPlanSaleByDealer() {
       };
     });
   };
+    
+  
 
   const handleSave = async (mode) => {
     const totalAmountTarget = Object.values(localQtyState).reduce(
@@ -492,7 +521,7 @@ export default function WorkPlanSaleByDealer() {
 
         <BoxPrimary>
           <div className="flex  gap-5">
-            <div>
+            {/* <div>
               <div>Amount Target</div>
               <InputNumber
                 disabled
@@ -504,7 +533,7 @@ export default function WorkPlanSaleByDealer() {
                   `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
-            </div>
+            </div> */}
             <div>
               <div>Work Plan</div>
               <InputNumber

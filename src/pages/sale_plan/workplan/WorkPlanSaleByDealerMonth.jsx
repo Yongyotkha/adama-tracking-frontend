@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import { Input, InputNumber, Table, Tabs, Typography } from "antd";
+import { Input, InputNumber, Table, Tabs, Typography, Modal } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import TableCustomComponent from "../../../components/table/TableCustomComponent";
 import ActionButton from "../../../components/button/ActionButton";
@@ -9,6 +9,7 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import Title from "../../../components/title/Title";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 
 export default function WorkPlanSaleByDealerMonth() {
   const location = useLocation();
@@ -16,7 +17,7 @@ export default function WorkPlanSaleByDealerMonth() {
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-  const { showNotification } = useContext(AuthContext);
+  const { showNotification ,formatNumber} = useContext(AuthContext);
   const [dealers, setDealers] = useState([]);
   const [activeKey, setActiveKey] = useState(0);
   const [permission, setPermission] = useState([]);
@@ -25,7 +26,7 @@ export default function WorkPlanSaleByDealerMonth() {
   const [yearName, setYearName] = useState([]);
   const [message, setMessage] = useState("");
   const [months, setMonths] = useState([]);
-
+  const { confirm } = Modal;
   const { Text } = Typography;
 
   useEffect(() => {
@@ -35,7 +36,7 @@ export default function WorkPlanSaleByDealerMonth() {
     if (activeKey) {
       getMonthDetails();
     }
-  }, [activeKey]); 
+  }, [activeKey]);
   useEffect(() => {
     console.log(localQtyState);
   }, [localQtyState]);
@@ -383,6 +384,35 @@ export default function WorkPlanSaleByDealerMonth() {
   };
 
   const handleSave = async (mode) => {
+    const totalAmountTarget = Object.values(localQtyState).reduce(
+      (sum, value) => sum + (value.actual_amount_target || 0),
+      0
+    );
+
+    console.log(totalValue, totalAmountTarget);
+    if (Number(totalValue) > Number(totalAmountTarget)) {
+      confirm({
+        title: "Do you want to save ?",
+        icon: <ExclamationCircleFilled />,
+        content: (
+          <>
+            <p>Work Plan is less than Original Plan</p>
+            <p>Original Plan: {formatNumber(totalValue)}</p>
+            <p>Current Total: {formatNumber(totalAmountTarget)}</p>
+            <p>Difference: {formatNumber(totalValue - totalAmountTarget)}</p>
+          </>
+        ),
+        centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+        onOk() {
+          createPlan(mode);
+        },
+      });
+    } else {
+      createPlan(mode);
+    }
+  };
+
+  const createPlan = async (mode) => {
     setLoading(true);
 
     try {
@@ -418,13 +448,14 @@ export default function WorkPlanSaleByDealerMonth() {
         return {
           ...month,
           month_id: month.month_id,
-          actual_amount_target:
-            Number(dealerProducts.actual_amount_target || month.actual_amount_target || 0),
+          actual_amount_target: Number(
+            dealerProducts.actual_amount_target ||
+              month.actual_amount_target ||
+              0
+          ),
           data_items: mergedDataItems,
         };
       });
-   
-
 
       await useServiceAPI
         .put(paths.pathRollingForecastDealerMonth, {
@@ -435,7 +466,7 @@ export default function WorkPlanSaleByDealerMonth() {
           workplan_header_id: location?.state?.workplan_header_id,
           workplan_area_header_id: location?.state?.workplan_area_header_id,
           workplan_sale_header_id: location?.state?.workplan_sale_header_id,
-          month_items: mappedMonth, 
+          month_items: mappedMonth,
         })
         .then((response) => {
           console.log(response, mode);
@@ -520,7 +551,7 @@ export default function WorkPlanSaleByDealerMonth() {
                 />
               </div>
             </div>
-            <div>
+            {/* <div>
               <div>Amount Target</div>
               <div className="">
                 <InputNumber
@@ -537,7 +568,7 @@ export default function WorkPlanSaleByDealerMonth() {
                   }
                 />
               </div>
-            </div>
+            </div> */}
             <div>
               <div>Work Plan</div>
               <div className="">

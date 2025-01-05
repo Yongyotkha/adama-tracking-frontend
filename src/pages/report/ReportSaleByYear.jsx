@@ -275,11 +275,15 @@ export default function ReportSaleByYear() {
             },
           }),
           render: (_, record) => {
+            const itemData =
+              month.items.find(
+                (product) => product.product_id == record.productId
+              ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
-                value={month.work_plan_kg}
+                value={itemData.work_plan_kg}
                 formatter={(value) =>
                   `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -301,11 +305,15 @@ export default function ReportSaleByYear() {
             },
           }),
           render: (_, record) => {
+            const itemData =
+              month.items.find(
+                (product) => product.product_id == record.productId
+              ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
-                value={month.workplan_value}
+                value={itemData.workplan_value}
                 formatter={(value) =>
                   `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -327,11 +335,15 @@ export default function ReportSaleByYear() {
             },
           }),
           render: (_, record) => {
+            const itemData =
+              month.items.find(
+                (product) => product.product_id == record.productId
+              ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
-                value={month.rolling_frecase_kg}
+                value={itemData.rolling_frecase_kg}
                 formatter={(value) =>
                   `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -353,11 +365,15 @@ export default function ReportSaleByYear() {
             },
           }),
           render: (_, record) => {
+            const itemData =
+              month.items.find(
+                (product) => product.product_id == record.productId
+              ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
-                value={month.rolling_frecase_value}
+                value={itemData.rolling_frecase_value}
                 formatter={(value) =>
                   `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -379,11 +395,15 @@ export default function ReportSaleByYear() {
             },
           }),
           render: (_, record) => {
+            const itemData =
+              month.items.find(
+                (product) => product.product_id == record.productId
+              ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
-                value={month.actual_kg}
+                value={itemData.actual_kg}
                 formatter={(value) =>
                   `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -405,11 +425,15 @@ export default function ReportSaleByYear() {
             },
           }),
           render: (_, record) => {
+            const itemData =
+              month.items.find(
+                (product) => product.product_id == record.productId
+              ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
-                value={month.actual_value}
+                value={itemData.actual_value}
                 formatter={(value) =>
                   `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }

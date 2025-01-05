@@ -212,4 +212,5 @@ export const paths = {
   pathReportSaleByMonth: "report/sale/month",
   pathReportSaleByQuarter: "report/sale/quarter",
   pathReportSaleByYear: "report/sale/year",
+  pathReportSaleByActivity: "report/sale/activity",
 };
