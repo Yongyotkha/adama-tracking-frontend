@@ -425,6 +425,7 @@ export default function CreateClaimRequest() {
         "product_code": element.product.product_code,
         "product_name": element.product.product_name,
         "product_unit": element.product.packing_list,
+        "packing_list": element.product.packing_list,
         "product_unit_thb": element.product.bath_unit,
         "quantity": document.getElementById(`qty-${element.product.id}`).value,
         "unit": selectedProductUnit,
