@@ -377,7 +377,10 @@ export default function Dashboard() {
         const data = response.data.map((item) => ({
           activity: item.activity_type_name,
           value: parseInt(item.total_activity_count, 10),
+          color: item.activity_color,
         }));
+        console.log(data);
+        
         setTopActivityData(data); // อัปเดต State
       } else {
         console.error("Failed to fetch Top Activity data:", response.message);
@@ -872,7 +875,7 @@ export default function Dashboard() {
                       {
                         dataKey: "value",
                         label: "Activity Count",
-                        color: "#8BC34A",
+                        getColor: (data) => data.color,
                       },
                     ]}
                     yAxis={[
