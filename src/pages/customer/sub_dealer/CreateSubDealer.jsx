@@ -67,7 +67,7 @@ export default function CreateSubDealer() {
   const location = useLocation();
   const mode = location.state.mode; 
   const isViewMode = mode === "View";
-  const [photoPath, setPhotoPath] = useState(""); // State สำหรับเก็บ URL รูปภาพ
+  const [profileImage, setProfileImage] = useState(""); // State สำหรับเก็บ URL รูปภาพ
 
 
   // ---------- State สำหรับแท็บ Network (ตัวอย่าง) ----------
@@ -119,8 +119,9 @@ export default function CreateSubDealer() {
 
       if (response.status === 200) {
         const { data } = response;
+        console.log(data.photo_path);
         
-        setPhotoPath(data.photo_path || "");
+        setProfileImage(data.photo_path || "");
 
         // ตั้งค่า location
         const lat = parseFloat(data.location_latitude) || 13.9572612;
@@ -624,8 +625,19 @@ export default function CreateSubDealer() {
   // ---------- เนื้อหาในแท็บ “Profile” ----------
   const profileTabContent = (
     <Form form={form} layout="vertical">
-      <FormUser title="Personal Info" profile={photoPath} fields={formFields} form={form} />
 
+      {/* <FormUser title="Personal Info" profile={profileImage} fields={formFields} form={form} /> */}
+      {loading ? (
+        <div style={{ textAlign: "center", padding: "20px" }}>Loading...</div>
+      ) : (
+        <FormUser
+          title="Personal Info"
+          profile={profileImage}
+          fields={formFields}
+          form={form}
+        />
+      )}
+      
       <div
         className="bg-white p-4"
         style={{

@@ -837,11 +837,6 @@ export default function Dashboard() {
                       </Select.Option>
                     ))}
                   </Select>
-
-
-
-
-
                   <Select
                     className="w-36"
                     value={selectedMonthsTopActivity} // ใช้ state ที่แยกออกมา
