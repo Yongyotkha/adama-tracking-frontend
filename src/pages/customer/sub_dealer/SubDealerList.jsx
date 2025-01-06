@@ -124,7 +124,7 @@ export default function SubDealerList() {
         contactName: data.contact_name,
         address: data.contact_address,
         phone: data.mobile_phone,
-        sale:data.sale,
+        sale:data.sale_list_name,
           status: (
             <BadgeStatus
               text={data.status_name}
