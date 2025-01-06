@@ -118,9 +118,7 @@ export default function CreateSubDealer() {
       );
 
       if (response.status === 200) {
-        const { data } = response;
-        console.log(data.photo_path);
-        
+        const { data } = response;        
         setProfileImage(data.photo_path || "");
 
         // ตั้งค่า location
@@ -174,8 +172,28 @@ export default function CreateSubDealer() {
           ),
         })) || [];
         setNetworkList(farmers); // อัปเดต state networkList
-        console.log(farmers);
         
+      // ตั้งค่า Contact Person จาก contact_items
+      const contactList = data.contact_items?.map((item) => ({
+        name_en: item.name_en || "",
+        name_th: item.name_th || "",
+        nickname: item.nickname || "",
+        date_of_birth: item.date_of_birth
+          ? dayjs(item.date_of_birth, "YYYY-MM-DD")
+          : null,
+        t_shirt_size: item.t_shirt_size || "",
+        relationship: item.relationship || "",
+        duty: item.duty || "",
+        tel1: item.tel1 || "",
+        tel2: item.tel2 || "",
+        contact_number: item.contact_number || "",
+        email: item.email || "",
+        line_id: item.line_id || "",
+        hobby: item.hobby || "",
+        age: item.age || "",
+      })) || [];
+      setContacts(contactList);
+
       } else {
         console.error("Failed to fetch SubDealer details:", response.message);
       }
@@ -526,6 +544,80 @@ export default function CreateSubDealer() {
     form
       .validateFields()
       .then((values) => {
+        const payload = {
+          name: values.shop_name || "",
+          mobile_phone: values.mobile_phone || "",
+          address: values.address || "",
+          email: values.email || "",
+          day_of_week: values.day_of_week || "",
+          start_time: values.start_time
+            ? dayjs(values.start_time).format("HH:mm")
+            : "",
+          end_time: values.end_time
+            ? dayjs(values.end_time).format("HH:mm")
+            : "",
+          business_size: values.business_size || "",
+          outlet_location: values.outlet_location || "",
+          location_longitude: currentLocation.lng || "",
+          location_latitude: currentLocation.lat || "",
+          location_address: values.outlet_location || "", // หรือใช้ location_address
+          t_shirt_size: values.tshirt_size || "",
+          anniversary: values.anniversary
+            ? dayjs(values.anniversary).format("YYYY-MM-DD")
+            : null,
+          remark: values.remark || "",
+          photo_path: values.profile,
+          use_flag: 1, // กำหนดค่าเริ่มต้น
+          fertilizer_business: values.fertilizer_business || "",
+          seed_business: values.seed_business || "",
+          pesticides_business: values.pesticides_business || "",
+          contact_items: contacts.map((contact) => ({
+            name_en: contact.name_en || "",
+            contact_number: contact.contact_number || "",
+            name_th: contact.name_th || "",
+            nickname: contact.nickname || null,
+            date_of_birth: contact.date_of_birth
+              ? dayjs(contact.date_of_birth).format("YYYY-MM-DD")
+              : null,
+            t_shirt_size: contact.t_shirt_size || null,
+            relationship: contact.relationship || null,
+            duty: contact.duty || null,
+            tel1: contact.tel1 || "",
+            tel2: contact.tel2 || "",
+            email: contact.email || null,
+            line_id: contact.line_id || null,
+            hobby: contact.hobby || null,
+            age: contact.age || null,
+          })),
+          crop_list: defaultSelectedCrops || [], // ใช้ crop_list เป็น array ของ id
+        };
+        useServiceAPI
+          .post(paths.pathCreateSubDealer, payload, setLoading)
+          .then((response) => {
+            if (response.status === 200) {
+              showNotification("success", response.data.message).then(() => {
+                navigate("/customer/sub-dealer");
+              });
+            }
+          })
+          .catch((error) => {
+            console.error("API Error:", error);
+            showNotification(
+              "error",
+              error.response?.data?.message || "An unexpected error occurred."
+            );
+          });
+      })
+      .catch((errorInfo) => {
+        console.error("Validation Failed:", errorInfo);
+        showNotification("error", "Please complete all required fields.");
+      });
+  };
+
+  const handleSaveEdit = () => {
+    form
+      .validateFields()
+      .then((values) => {
         
         const payload = {
           id: location.state.id, 
@@ -574,9 +666,12 @@ export default function CreateSubDealer() {
             age: contact.age || null,
           })),
           crop_list: defaultSelectedCrops || [], // ใช้ crop_list เป็น array ของ id
+          network_list: networkList.map((item) => ({
+            farmer_id: item.key, // ใช้ `key` เป็น `farmer_id`
+            is_on_shop: true, // กำหนดค่าตามที่ต้องการ
+          })),
+
         };
-          
-        if (mode === 'Edit') {
         useServiceAPI
           .put(paths.pathSubDealerDetailUpdate, payload, setLoading)
           .then((response) => {
@@ -593,28 +688,6 @@ export default function CreateSubDealer() {
               error.response?.data?.message || "An unexpected error occurred."
             );
           });
-
-        } else {
-        useServiceAPI
-          .post(paths.pathCreateSubDealer, payload, setLoading)
-          .then((response) => {
-            if (response.status === 200) {
-              showNotification("success", response.data.message).then(() => {
-                navigate("/customer/sub-dealer");
-              });
-            }
-          })
-          .catch((error) => {
-            console.error("API Error:", error);
-            showNotification(
-              "error",
-              error.response?.data?.message || "An unexpected error occurred."
-            );
-          });
-
-        }
-
-
       })
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
@@ -873,7 +946,13 @@ export default function CreateSubDealer() {
           text="Back"
           onClick={() => navigate("/customer/sub-dealer")}
         />
-        <ActionButton text="Save" mode="save" onClick={handleSave} />
+          {mode === "Edit" ? (
+            <ActionButton text="Edit" mode="save" onClick={handleSaveEdit} />
+            ) : (
+              <ActionButton text="Save" mode="save" onClick={handleSave} />
+          )}
+
+        {/* <ActionButton text="Save" mode="save" onClick={handleSave} /> */}
       </div>
     </Form>
   );
@@ -931,11 +1010,9 @@ export default function CreateSubDealer() {
               text="Back"
               onClick={() => navigate("/customer/sub-dealer")}
             />
-          {
-          !isViewMode && (
-            <ActionButton text="Update Farmer" mode="update"  onClick={FarmerhandleSave}/>
-            )
-          }
+            {mode !== "Create" && !isViewMode && (
+              <ActionButton text="Update Farmer" mode="update" onClick={FarmerhandleSave} />
+            )}
           </div>
 
     </>
