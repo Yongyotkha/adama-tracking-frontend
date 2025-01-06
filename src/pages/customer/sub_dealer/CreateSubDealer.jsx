@@ -697,7 +697,7 @@ export default function CreateSubDealer() {
 
   // ---------- เนื้อหาในแท็บ “Profile” ----------
   const profileTabContent = (
-    <Form form={form} layout="vertical">
+    <Form form={form} layout="vertical" component={false}>
 
       {/* <FormUser title="Personal Info" profile={profileImage} fields={formFields} form={form} /> */}
       {loading ? (
