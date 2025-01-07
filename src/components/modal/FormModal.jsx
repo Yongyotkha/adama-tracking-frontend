@@ -16,6 +16,7 @@ const FormModal = ({
   title = "Mapping",
   dataSource,
   perceptionData,
+  isReadOnly = false,
 }) => {
   const [formData, setFormData] = useState({
     documentNumber: "",
@@ -29,12 +30,14 @@ const FormModal = ({
     remark: "",
     date: null,
     photo: null, // will store the captured image
+    gps: "",
   });
 
   const [locationCurrent, setLocationCurrent] = useState({
     latitude: "",
     longitude: "",
   });
+  const [perceptionError, setPerceptionError] = useState("");
 
   const webcamRef = useRef(null);
   const [capturedImage, setCapturedImage] = useState(null);
@@ -118,6 +121,13 @@ const FormModal = ({
   }, [webcamRef]);
 
   const handleSubmit = () => {
+
+    setPerceptionError("");
+    if (!formData.perception) {
+      setPerceptionError("Please select a perception.");
+      return; // ไม่ต้อง proceed ต่อ
+    }
+    
     if (onOk) {
       // Pass capturedImage and formData
       onOk({ ...formData, photo: capturedImage });
@@ -200,6 +210,10 @@ const FormModal = ({
               </Option>
             ))}
           </Select>
+          {perceptionError && (
+          <div className="text-red-500 mt-1">{perceptionError}</div>
+        )}
+
         </div>
         <div className="col-span-4">
           <label className="block mb-2 font-medium text-gray-700">Address</label>
@@ -266,9 +280,28 @@ const FormModal = ({
             videoConstraints={{ facingMode: "user" }}
             style={{ width: "100%", maxHeight: "300px" }}
           />
-          <Button onClick={captureImage} className="w-full mt-2">
+          {/* <Button onClick={captureImage} className="w-full mt-2">
             Capture Photo
-          </Button>
+          </Button> */}
+
+          {!isReadOnly && (
+            <>
+              <Webcam
+                audio={false}
+                ref={webcamRef}
+                screenshotFormat="image/jpeg"
+                videoConstraints={{ facingMode: "user" }}
+                style={{ width: "100%", maxHeight: "300px" }}
+              />
+              <Button
+                onClick={captureImage}
+                className="w-full mt-2"
+                disabled={isReadOnly}
+              >
+                Capture Photo
+              </Button>
+            </>
+          )}
           {capturedImage && (
             <img src={capturedImage} alt="Captured" className="w-full mt-2" />
           )}
@@ -277,6 +310,7 @@ const FormModal = ({
         <div className="col-span-4 md:col-span-4">
           <label className="block mb-2 font-medium text-gray-700">Remark</label>
           <Input.TextArea
+            disabled={isReadOnly}
             className="w-full"
             rows={4}
             value={formData.remark || dataSource.remark}

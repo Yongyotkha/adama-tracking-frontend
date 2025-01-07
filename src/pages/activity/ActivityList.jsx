@@ -38,13 +38,23 @@ export default function ActivityList() {
   const [mappingData, setMappingData] = useState({});
   const [mappingDataSave, setMappingDataSave] = useState({});
   const [mappingperception , setMappingmappingperception] = useState({});
-
   const [perceptionData, setPerceptionData] = useState([]);
-
   const [isProductModalVisible, setIsProductModalVisible] = useState(false);
   const [isMappingModalVisible, setIsMappingModalVisible] = useState(false);
-
   const navigate = useNavigate();
+  const [isFormModalReadOnly, setIsFormModalReadOnly] = useState(false);
+
+
+  const handleBadgeClick = (rowData) => {
+    // เช็คสถานะ
+    if (rowData.status_mapping_name === "Complete") {
+      setIsFormModalReadOnly(true);
+    } else {
+      setIsFormModalReadOnly(false);
+    }
+    setMappingData(rowData);
+    setIsMappingModalVisible(true);
+  };
 
   // Get Master
   useEffect(() => {
@@ -337,13 +347,13 @@ export default function ActivityList() {
             },
           ];
 
-          const handleBadgeClick = (data) => {
-            if (row.status_mapping_name !== 'complete') {
-              handleShowMappingModal(data);
-            } else {
-              console.log("Action not allowed for 'complete' status.");
-            }
-          };
+          // const handleBadgeClick = (data) => {
+          //   if (row.status_mapping_name !== 'complete') {
+          //     handleShowMappingModal(data);
+          //   } else {
+          //     console.log("Action not allowed for 'complete' status.");
+          //   }
+          // };
 
           return {
             key: index + 1 + (current - 1) * pageSize,
@@ -475,6 +485,8 @@ export default function ActivityList() {
         title="Mapping"
         dataSource={mappingData}
         perceptionData={perceptionData}
+        isReadOnly={isFormModalReadOnly}
+
       />
     </MainLayout>
   );
