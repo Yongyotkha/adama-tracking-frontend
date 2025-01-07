@@ -70,7 +70,8 @@ export default function ActivityMapping() {
 
         // Mapping Detail
         setDataMapping(mapping.data);
-
+        console.log(mapping.data);
+        
         // Set Locations
         const newLocations = mapping.data.map((data, index) => ({
           key: locations.length + 1,
@@ -93,6 +94,7 @@ export default function ActivityMapping() {
           crop_id_list: data.crop_id_list,
           document_date_display: data.document_date_display,
         }));
+        console.log(newLocations);
         
         setLocations(newLocations);
 
