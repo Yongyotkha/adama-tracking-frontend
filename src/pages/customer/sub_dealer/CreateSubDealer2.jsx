@@ -316,16 +316,31 @@ export default function CreateSubDealer() {
       disabled: isViewMode,
     },
     {
+      label: "Status",
+      name: "use_flag",
+      type: "select",
+      required: true,
+      col: 6,
+      options: [
+        { name: "New", id: 1, selected: true },
+      ],
+      value: companyinfo.status || 1,
+
+    },
+    {
       label: "Outlet Location",
       name: "outlet_location",
       type: "text",
       required: false,
-      col: 24,
+      col: 18,
       value: companyinfo.location_address,
       iconSrc: "/img/icons/location.png",
       iconPosition: "right",
       disabled: true,
     },
+
+    
+
   ]);
 
 
@@ -539,7 +554,7 @@ export default function CreateSubDealer() {
     checkGoogleMaps();
   }, []);
 
-  // ฟังก์ชันบันทึกข้อมูลสุดท้าย
+  // ฟังก์ชันบันทึกข้อมูล
   const handleSave = () => {
     form
       .validateFields()
@@ -697,7 +712,7 @@ export default function CreateSubDealer() {
 
   // ---------- เนื้อหาในแท็บ “Profile” ----------
   const profileTabContent = (
-    <Form form={form} layout="vertical">
+    <Form form={form} layout="vertical" component={false}>
 
       {/* <FormUser title="Personal Info" profile={profileImage} fields={formFields} form={form} /> */}
       {loading ? (
@@ -958,7 +973,6 @@ export default function CreateSubDealer() {
   );
 
   // ---------- เนื้อหาในแท็บ “Network” ----------
-
   const FarmerhandleSave = () => {
     // Validate form fields if needed
     form
