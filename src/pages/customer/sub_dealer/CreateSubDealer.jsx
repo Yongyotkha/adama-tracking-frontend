@@ -25,6 +25,7 @@ import TableComponent from "../../../components/table/TableComponent";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import DynamicModal from "../../../components/modal/DynamicModal"; 
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+import FormSubDealer from "../../../components/form_user/FormSubDealer";
 
 const { Option } = Select;
 
@@ -718,7 +719,7 @@ export default function CreateSubDealer() {
       {loading ? (
         <div style={{ textAlign: "center", padding: "20px" }}>Loading...</div>
       ) : (
-        <FormUser
+        <FormSubDealer
           title="Personal Info"
           profile={profileImage}
           fields={formFields}

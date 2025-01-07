@@ -59,9 +59,11 @@ export default function EditInformation() {
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
 
     // อ่านสถานะ mod จาก state
-    const mode = location.state?.mod; 
+    const mode = location.state.mode; 
     const isViewMode = mode === "View";
 
+    console.log(mode);
+    
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -101,6 +103,8 @@ export default function EditInformation() {
         required: false,
         col: 6,
         disabled: isViewMode,
+        value: companyinfo.name,
+
       },
       {
         label: "Mobile Phone",
@@ -220,20 +224,12 @@ export default function EditInformation() {
 
   const header = [
     { title: "No", width: 50, dataIndex: "no", align: "center" },
-    { title: "Sub Dealer Name", width: 100, dataIndex: "name", align: "left" },
-    { title: "Contact Person", width: 200,  dataIndex: "contactperson", align: "left",},
-    { title: "NO",  width: 150, dataIndex: "mobilePhone", align: "center",},
+    { title: "Name", width: 100, dataIndex: "name", align: "left" },
+    { title: "Contact Person	",  width: 150, dataIndex: "mobilePhone", align: "center",},
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-  const headerFammer = [
-    { title: "No", dataIndex: "no", align: "center" },
-    { title: "Farmer Name", dataIndex: "name", align: "left" },
-    { title: "Contact Number", dataIndex: "mobilePhone", align: "center" },
-    { title: "Status", width: 100, dataIndex: "status", align: "center" },
-    { title: "Action", width: 100, dataIndex: "action", align: "center" },
-  ];
 
 
   const actionItems = [
@@ -313,24 +309,27 @@ export default function EditInformation() {
     setLoading(true);
     try {
       const response = await useServiceAPI.get(
-        `${paths.pathCustomerDealerDetail}?id=${id}`
+        `${paths.pathSubDealerDetail}?id=${id}`
       );
       if (response.status === 200) {
         const { data } = response;        
         setcompanyinfo(data);
+        console.log(data);
+        
         setContactItems(data.contact_items);
         setProfileImage(data.photo_path)
         setCropOptions(data.crop_list || []);
+
         const cropNames = data.crop_list?.map((crop) => Number(crop.id)) || [];
         setDefaultSelectedCrops(cropNames);
         const lat = parseFloat(data.location_latitude) || 13.9572612; 
         const lng = parseFloat(data.location_longitude) || 100.6222401;           
         setCurrentLocation({ lat, lng });
+
         const newDataNetwork = data.network_list?.map((item, index) => ({
           key: item.sub_dealer_id,
           no: index + 1,
           name: item.sub_dealer_name || "-",
-          contactperson: item.sub_dealer_contact_name || "-",
           mobilePhone: item.sub_dealer_contact_phone_number || "-",
           onshop: item.is_on_shop || false,
           status: (
@@ -359,7 +358,6 @@ export default function EditInformation() {
           key: item.farmer_id,
           no: index + 1,
           name: item.farmer_name || "-",
-          contactperson: item.farmer_contact_name || "-",
           mobilePhone: item.farmer_contact_phone_number || "-",
           onshop: item.is_on_shop || false,
           status: (
@@ -574,8 +572,8 @@ export default function EditInformation() {
       status: (
         <BadgeStatus
           text={row.position || "-"}
-          bgColor={row.statusBgColor || "#E0E0E0"}
-          textColor={row.statusTextColor || "#000000"}
+          bgColor={row.statusBgColor }
+          textColor={row.statusTextColor }
         />
       ),
       action: (
@@ -616,8 +614,8 @@ export default function EditInformation() {
       position: (
         <BadgeStatus
           text={row.farmer_channel_type_name || "-"} // Status text
-          bgColor={row.farmer_channel_type_bg_color || "#E0E0E0"} // Background color
-          textColor={row.farmer_channel_type_color || "#000000"} // Text color
+          bgColor={row.farmer_channel_type_bg_color} // Background color
+          textColor={row.farmer_channel_type_color} // Text color
         />
       ),
       action: (
@@ -655,20 +653,19 @@ export default function EditInformation() {
     };
 
     try {
-      const response = await useServiceAPI.get(paths.pathMasterSubDealer,requestData);
+      const response = await useServiceAPI.get(paths.pathMasterFammer,requestData);
       if (response.status === 200) {
         const data = response.data;      
         const territoryData = data.map((item, index) => ({
-          key: item.sub_dealer_id,
+          key: item.farmer_id,
           no: index + 1,
-          name: item.sub_dealer_name,
-          territory: item.sub_dealer_contact_phone_number,
-          positionText: item.sub_dealer_channel_type_name,
+          name: item.farmer_name,
+          territory: item.farmer_contact_phone_number,
           position: (
             <BadgeStatus
-              text={item.sub_dealer_channel_type_name}
-              bgColor={item.sub_dealer_channel_type_bg_color}
-              textColor={item.sub_dealer_channel_type_color}
+              text={item.farmer_channel_type_name}
+              bgColor={item.farmer_channel_type_bg_color}
+              textColor={item.farmer_channel_type_color}
             />
           ),
 
@@ -1083,9 +1080,7 @@ export default function EditInformation() {
         <>
           <BoxPrimary>
             <div className="flex justify-between space-x-4 mb-3">
-              <span className="text-[#00783F] text-lg font-semibold">
-                Network
-              </span>
+              <span className="text-[#00783F] text-lg font-semibold"> Fammer </span>
               {
                 !isViewMode && (
                   <div className="flex space-x-2">
@@ -1143,7 +1138,7 @@ export default function EditInformation() {
 
 
       <DynamicModal
-        title="Add Sale Territory"
+        title="Farmer List"
         isVisible={isTerritoryModalVisible}
         onClose={handleCloseTerritoryModal}
         header={[
@@ -1157,24 +1152,6 @@ export default function EditInformation() {
         onAddSelected={handleAddSelectedRows}
         type="add"
       />
-
-      <DynamicModal
-        title="Farmer List"
-        isVisible={isTerritoryModalFarmer}
-        onClose={handleCloseFarmerModal}
-        header={[
-          { title: "No", dataIndex: "no", key: "no", width: 50 },
-          { title: "Farmer Name", dataIndex: "name", key: "name", width: 150 },
-          { title: "contact number",  dataIndex: "territory", key: "territory", width: 150,},
-          { title: "Status",  dataIndex: "position",  key: "position",  width: 150,},
-        ]}
-        dataSource={farmerList}
-        width="1200px"
-        onAddSelected={handleAddSelectedRowsFammer}
-        type="add"
-      />
-
-
 
     </MainLayout>
   );
