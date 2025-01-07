@@ -589,7 +589,8 @@ export default function Dashboard() {
       {/* Row 1: Dealer, Sub Dealer, Expense, Order */}
       <Row gutter={[16, 16]} className="mb-4">
 
-        <Col xs={24} sm={12} lg={12} xxl={6}>
+        {/* Dealer */}
+        <Col xs={12} sm={6} lg={6} xxl={4}>
           <BoxPrimary className="h-full flex items-center justify-between">
             <div className="flex items-center justify-between w-full">
               <div>
@@ -612,7 +613,8 @@ export default function Dashboard() {
           </BoxPrimary>
         </Col>
         
-        <Col xs={24} sm={12} lg={12} xxl={6}>
+        {/* Sub Dealer */}
+        <Col xs={12} sm={6} lg={6} xxl={4}>
           <BoxPrimary className="h-full flex items-center justify-between">
             <div className="flex items-center justify-between w-full">
               <div>
@@ -633,6 +635,8 @@ export default function Dashboard() {
             </div>
           </BoxPrimary>
         </Col>
+        
+        {/* Expense */}
         <Col xs={24} sm={12} lg={12} xxl={6}>
           <BoxPrimary className="h-full">
             <div className="flex flex-wrap justify-between items-center">
@@ -691,7 +695,9 @@ export default function Dashboard() {
             </div>
           </BoxPrimary>
         </Col>
-        <Col xs={24} sm={12} lg={12} xxl={6}>
+
+        {/* Order */}
+        <Col xs={24} sm={12} lg={12} xxl={5}>
           <BoxPrimary className="h-full items-center flex flex-col">
             <div className="flex flex-wrap justify-between items-center w-full">
               <h3 className="text-lg font-bold text-[#00783F]">Order</h3>
@@ -745,6 +751,63 @@ export default function Dashboard() {
             </div>
           </BoxPrimary>
         </Col>
+
+        {/* Sale */}
+        <Col xs={24} sm={12} lg={12} xxl={5}>
+          <BoxPrimary className="h-full items-center flex flex-col">
+            <div className="flex flex-wrap justify-between items-center w-full">
+              <h3 className="text-lg font-bold text-[#00783F]">Sale</h3>
+              <div className="flex flex-wrap gap-2">
+              <Select
+                className="w-36"
+                value={selectedSubdealerOrder}
+                // onChange={handleSubdealerChangeOrder}
+                onChange={(value) => {
+                  setSelectedSubdealerOrder(value === "all" ? "" : value);
+                  fetchDashboardDataOrder(selectedYear, selectedMonths, value === "all" ? "" : value);
+                }}
+                placeholder={loading ? "Loading..." : "All Sub Dealer"}
+                disabled={loading}
+              >
+                {subdealer.map((dealer) => (
+                  <Select.Option key={dealer.sub_dealer_id} value={dealer.sub_dealer_id}>
+                    {dealer.sub_dealer_name}
+                  </Select.Option>
+                ))}
+              </Select>
+
+              <Select
+                className="w-36"
+                value={selectedMonthsOrder}
+                // onChange={handleMonthChangeOrder}
+                onChange={(value) => {
+                  setSelectedMonthsOrder(value === "all" ? "" : value); // อัปเดต state สำหรับ Order
+                  fetchDashboardDataOrder(selectedYear, value === "all" ? "" : value, selectedSubdealerOrder);
+                }}
+                placeholder={loading ? "Loading..." : "Select Month"}
+                disabled={loading}
+              >
+                {months.map((month) => (
+                  <Select.Option key={month.id} value={month.id}>
+                    {month.name}
+                  </Select.Option>
+                ))}
+              </Select>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 w-full">
+              <div className="text-center p-2">
+                <div className="text-md font-bold text-[#00783F]"> {dashboardDataOrder.total_order} </div>
+                <div className="text-sm text-gray-500">Estimate</div>
+              </div>
+              <div className="text-center p-2">
+                <div className="text-md font-bold text-[#00783F]"> {dashboardDataOrder.total_order_amonth} </div>
+                <div className="text-sm text-gray-500">Acual</div>
+              </div>
+            </div>
+          </BoxPrimary>
+        </Col>
+
       </Row>
 
       {/* Row 2: Charts and Activity */}
@@ -1044,14 +1107,14 @@ export default function Dashboard() {
                         innerRadius: 120,
                         outerRadius: 150,
                         colorField: "color",
-                        labelField: "name", // Legend shows only names
+                        labelField: "name",
                         label: { formatter: (item) => item.name }, // Ensure labels are formatted correctly
                       },
                     ]}
                     height={400}
                   >
                     {/* แสดงค่ารวมตรงกลาง Pie Chart */}
-                    <text
+                    {/* <text
                       x="50%"
                       y="50%"
                       textAnchor="middle"
@@ -1059,7 +1122,7 @@ export default function Dashboard() {
                       style={{ fontSize: "20px", fill: "#333" }}
                     >
                       {totalSaleValue.toLocaleString()}
-                    </text>
+                    </text> */}
                   </PieChart>
                 </div>
               </div>
@@ -1067,6 +1130,7 @@ export default function Dashboard() {
             </Col>
           </Row>
         </Col>
+        
         {/* Activity Section */}
         <Col xs={24} lg={24} xl={6}>
         <BoxPrimary className="h-full">
