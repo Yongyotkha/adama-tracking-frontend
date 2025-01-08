@@ -33,7 +33,6 @@ export default function CreateSubDealer() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { showMsg, showNotification } = useContext(AuthContext);
-
   // ---------- State สำหรับแท็บ Profile ----------
   const [cropOptions, setCropOptions] = useState([]);
   const [form] = Form.useForm();
@@ -69,8 +68,10 @@ export default function CreateSubDealer() {
   const mode = location.state.mode; 
   const isViewMode = mode === "View";
   const [profileImage, setProfileImage] = useState(""); // State สำหรับเก็บ URL รูปภาพ
+  const [isMapEnabled, setIsMapEnabled] = useState(false);
 
-
+  console.log(mode);
+  
   // ---------- State สำหรับแท็บ Network (ตัวอย่าง) ----------
   const [networkList, setNetworkList] = useState([]); // รายการ network
   const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
@@ -147,7 +148,6 @@ export default function CreateSubDealer() {
         // ตั้งค่า Crop List
         const cropIds = data.crop_list?.map((crop) => Number(crop.id)) || [];
         setDefaultSelectedCrops(cropIds);
-
         // ตั้งค่า farmers
         const farmers = data.network_farmer_list?.map((farmer, index) => ({
           key: farmer.farmer_id,
@@ -261,26 +261,26 @@ export default function CreateSubDealer() {
         { name: "Sunday", id: "Sunday", selected: false },
       ],
       required: false,
-      col: 12,
+      col: 18,
       iconSrc: "/img/icons/calendar.png",
       iconPosition: "right",
     },
-    {
-      label: "Start Time",
-      name: "start_time",
-      type: "time",
-      required: false,
-      col: 6,
-      disabled: isViewMode,
-    },
-    {
-      label: "End Time",
-      name: "end_time",
-      type: "time",
-      required: false,
-      col: 6,
-      disabled: isViewMode,
-    },
+    // {
+    //   label: "Start Time",
+    //   name: "start_time",
+    //   type: "time",
+    //   required: false,
+    //   col: 6,
+    //   disabled: isViewMode,
+    // },
+    // {
+    //   label: "End Time",
+    //   name: "end_time",
+    //   type: "time",
+    //   required: false,
+    //   col: 6,
+    //   disabled: isViewMode,
+    // },
     {
       label: "Email",
       name: "email",
@@ -333,15 +333,12 @@ export default function CreateSubDealer() {
       name: "outlet_location",
       type: "text",
       required: false,
-      col: 18,
+      col: 24,
       value: companyinfo.location_address,
       iconSrc: "/img/icons/location.png",
       iconPosition: "right",
       disabled: true,
     },
-
-    
-
   ]);
 
 
@@ -451,6 +448,7 @@ export default function CreateSubDealer() {
     await fetchUserList();
     setIsTerritoryModalVisible(true);
   };
+
   const handleCloseTerritoryModal = () => {
     setIsTerritoryModalVisible(false);
   };
@@ -510,12 +508,12 @@ export default function CreateSubDealer() {
     height: "30vh",
   };
 
+
   const handleMarkerDragEnd = async (event) => {
     const lat = event.latLng.lat();
     const lng = event.latLng.lng();
     const geocoder = new window.google.maps.Geocoder();
     const latlng = { lat, lng };
-
     try {
       const response = await geocoder.geocode({ location: latlng });
       if (response.results && response.results.length > 0) {
@@ -630,6 +628,99 @@ export default function CreateSubDealer() {
       });
   };
 
+    // Get Current Location on mount
+    useEffect(() => {
+      handleGetLocation();
+    }, []);
+
+  //--- ฟังก์ชันดึงตำแหน่งปัจจุบัน ---//
+  const getUserCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      showNotification("error", "Geolocation is not supported by this browser.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setCurrentLocation({ lat: latitude, lng: longitude });
+        
+        // เรียกใช้ geocoder เพื่อแปลง lat,lng => ชื่อสถานที่
+        try {
+          const geocoder = new window.google.maps.Geocoder();
+          const latlng = { lat: latitude, lng: longitude };
+          const response = await geocoder.geocode({ location: latlng });
+          if (response.results && response.results.length > 0) {
+            const locationName = response.results[0].formatted_address;
+            // เซ็ตค่าลงในฟอร์ม
+            form.setFieldsValue({ outlet_location: locationName });
+            showNotification("success", `Current location: ${locationName}`);
+          }
+        } catch (error) {
+          console.error(error);
+          showNotification("error", "Unable to fetch location name.");
+        }
+      },
+      (error) => {
+        console.error(error);
+        showNotification("error", "Unable to retrieve your location");
+      }
+    );
+  };
+
+
+  const handleToggleMap = () => {
+    setIsMapEnabled((prev) => {
+      const newState = !prev;
+      // หากกำลังจะเปิด Map แต่ไม่ใช่โหมด Edit => ดึงพิกัดปัจจุบัน
+      if (newState === true && mode !== "Edit") {
+        getUserCurrentLocation();
+      }
+      return newState;
+    });
+  };
+
+    
+    // ดึงที่อยู่จาก Google Maps Geocoding API
+    const fetchAddress = async (lat, lng) => {
+      const apiKey = "AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik";
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
+  
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+  
+        if (data.status === "OK" && data.results.length > 0) {
+          // return data.results[0].formatted_address; // คืนค่าที่อยู่
+          console.log(data.results[0].formatted_address);
+          setFormData({...formData,gps:data.results[0].formatted_address})
+        } else {
+          console.error("Geocoding API error:", data.status);
+          return "Address not found";
+        }
+      } catch (error) {
+        console.error("Error fetching address:", error);
+        return "Error fetching address";
+      }
+    };
+
+    const handleGetLocation = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            fetchAddress(latitude, longitude );
+          },
+          (error) => {
+            console.error("Error fetching location:", error.message);
+          }
+        );
+      } else {
+        console.error("Geolocation is not supported by this browser.");
+      }
+    };
+
+
+
   const handleSaveEdit = () => {
     form
       .validateFields()
@@ -735,6 +826,15 @@ export default function CreateSubDealer() {
         }}
       >
         <div className="text-[#00783F] text-lg font-semibold mb-3">
+        <div className="flex justify-end space-x-4 mb-2">
+          <ActionButton 
+            text={isMapEnabled ? "Close Google" : "Open Google"}
+            mode="update" 
+            // onClick={() => setIsMapEnabled((prev) => !prev)} 
+            onClick={handleToggleMap}
+            />
+        </div>
+
           <LoadScript googleMapsApiKey={dataApiKey}>
             <GoogleMap
               mapContainerStyle={mapContainerStyle}
@@ -754,6 +854,8 @@ export default function CreateSubDealer() {
                   }}
                   draggable={true}
                   onDragEnd={handleMarkerDragEnd}
+                  options={{ disableDefaultUI: !isMapEnabled, draggable: isMapEnabled }}
+
                 />
               )}
             </GoogleMap>
@@ -1037,7 +1139,7 @@ export default function CreateSubDealer() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Create Sub Dealer</div>
+      <div className="title-page">{isViewMode ? "View Sub Dealer" : "Edit Sub Dealer"}</div>
       <Tabs
         activeKey={activeTabKey}
         onChange={handleTabChange}

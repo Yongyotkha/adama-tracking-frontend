@@ -590,7 +590,7 @@ export default function Dashboard() {
       <Row gutter={[16, 16]} className="mb-4">
 
         {/* Dealer */}
-        <Col xs={12} sm={6} lg={6} xxl={4}>
+        <Col xs={12} sm={6} lg={6} xxl={5}>
           <BoxPrimary className="h-full flex items-center justify-between">
             <div className="flex items-center justify-between w-full">
               <div>
@@ -637,7 +637,7 @@ export default function Dashboard() {
         </Col>
         
         {/* Expense */}
-        <Col xs={24} sm={12} lg={12} xxl={6}>
+        <Col xs={24} sm={12} lg={12} xxl={5}>
           <BoxPrimary className="h-full">
             <div className="flex flex-wrap justify-between items-center">
               <h3 className="text-lg font-bold text-[#00783F]">Expense</h3>
@@ -680,15 +680,15 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-300">
-              <div className="text-center py-2">
+              <div className="text-center py-4">
                 <div className="text-md font-bold text-[#00783F]">  {dashboardDataExpense.total_expense_advance} </div>
                 <div className="text-sm text-gray-500">Advance</div>
               </div>
-              <div className="text-center py-2">
+              {/* <div className="text-center py-2">
                 <div className="text-md font-bold text-[#00783F]">  {dashboardDataExpense.total_expense_actual_exp} </div>
                 <div className="text-sm text-gray-500">Estimate</div>
-              </div>
-              <div className="text-center py-2">
+              </div> */}
+              <div className="text-center py-4">
                 <div className="text-md font-bold text-[#00783F]">  {dashboardDataExpense.total_expense_actual_sale} </div>
                 <div className="text-sm text-gray-500">Actual</div>
               </div>
@@ -862,7 +862,7 @@ export default function Dashboard() {
                     dataset={dealerPlanData}
                     xAxis={[{ scaleType: 'band', dataKey: 'month' }]}
                     series={[
-                      { dataKey: 'plan', label: 'Plan', valueFormatter },
+                      { dataKey: 'plan', label: 'Work Plan', valueFormatter },
                       { dataKey: 'actual', label: 'Actual', valueFormatter },
                     ]}
                     slotProps={{
@@ -1012,7 +1012,7 @@ export default function Dashboard() {
                   ]}
                   xAxis={[
                     {
-                      label: "Value (baht)",
+                      label: "Value (THB))",
                     },
                   ]}
                   series={[

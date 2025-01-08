@@ -151,7 +151,12 @@ export default function FormSubDealer({ fields, title, profile, form, onChange }
                     }
                     suffix={
                       field.iconPosition === "right" && field.iconSrc ? (
-                        <img src={field.iconSrc} alt={`${field.label} Icon`} style={{ width: '20px', height: '20px' }} />
+                        <img 
+                          src={field.iconSrc} 
+                          alt={`${field.label} Icon`} 
+                          style={{ width: '20px', height: '20px' }} 
+                          onClick={() => handleIconClick(field)}
+                        />
                       ) : null
                     }
                   />
