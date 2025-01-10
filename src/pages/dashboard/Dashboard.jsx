@@ -331,8 +331,11 @@ export default function Dashboard() {
       if (response.status === 200 && response.data) {
         const data = response.data.map((item) => ({
           month: item.name,
-          plan: item.work_plan_value,
-          actual: item.work_actual_value,
+          // plan: item.work_plan_value,
+          // actual: item.work_actual_value,
+          plan: parseFloat(item.work_plan_value), 
+          actual: parseFloat(item.work_actual_value), 
+
         }));
         setDealerPlanData(data); // อัปเดต State
       } else {
