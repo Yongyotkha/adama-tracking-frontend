@@ -33,6 +33,23 @@ const FormModal = ({
     gps: "",
   });
 
+
+  const stopWebcam = () => {
+    if (webcamRef.current && webcamRef.current.stream) {
+      const tracks = webcamRef.current.stream.getTracks();
+      tracks.forEach((track) => track.stop());
+    }
+  };
+  
+
+  
+  const handleClose = () => {
+    stopWebcam(); // หยุดกล้องเมื่อปิด Modal
+    onClose();    // เรียกฟังก์ชันปิด Modal ที่ส่งมาจาก Props
+  };
+
+  
+
   const [locationCurrent, setLocationCurrent] = useState({
     latitude: "",
     longitude: "",
@@ -109,8 +126,10 @@ const FormModal = ({
 
   // Get Current Location on mount
   useEffect(() => {
-    handleGetLocation();
-  }, []);
+    if (isVisible && !isReadOnly) {
+      handleGetLocation();
+    }
+  }, [isVisible, isReadOnly]);
 
   const captureImage = useCallback(() => {
     if (webcamRef.current) {
@@ -139,7 +158,7 @@ const FormModal = ({
     <Modal
       title={title}
       visible={isVisible}
-      onCancel={onClose}
+      onCancel={handleClose}
       onOk={handleSubmit}
       width="1200px"
       className="ant-modal"
@@ -273,13 +292,13 @@ const FormModal = ({
         {/* Webcam Capture Section */}
         <div className="col-span-4 md:col-span-4">
           <label className="block mb-2 font-medium text-gray-700">Photo</label>
-          <Webcam
+          {/* <Webcam
             audio={false}
             ref={webcamRef}
             screenshotFormat="image/jpeg"
             videoConstraints={{ facingMode: "user" }}
             style={{ width: "100%", maxHeight: "300px" }}
-          />
+          /> */}
           {/* <Button onClick={captureImage} className="w-full mt-2">
             Capture Photo
           </Button> */}
