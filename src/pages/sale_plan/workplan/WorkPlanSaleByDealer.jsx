@@ -122,7 +122,7 @@ export default function WorkPlanSaleByDealer() {
           key: "productName",
           fixed: "left",
           width: 150,
-          align: "center",
+          align: "left",
           onHeaderCell: () => ({
             style: {
               backgroundColor: "#00783F", // สีเขียวเข้ม
