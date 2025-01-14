@@ -91,7 +91,7 @@ export default function ViewTraveling() {
             cashPetrol: parseFloat(data.cash_petrol),
             hotel: parseFloat(data.hotel),
             allowance: parseFloat(data.allowance),
-            tollFee:parseFloat(data.toll_fee),
+            tollFee: parseFloat(data.toll_fee),
             entertain: parseFloat(data.entertain),
             others: parseFloat(data.others),
             total: parseFloat(data.total),
@@ -138,7 +138,7 @@ export default function ViewTraveling() {
               user_id: saleId
             }),
           ]);
-          
+
           const dataItems = traveling.data.data_items;
           const transformedData = dataItems.map((item, index) => ({
             key: `${index + 1}`,
@@ -439,8 +439,8 @@ export default function ViewTraveling() {
       title: <span className="text-nowrap">Remark</span>,
       dataIndex: "remark",
       key: "remark",
-      render: (text) => <Input style={{ width: 250 }} defaultValue={text} 
-      disabled 
+      render: (text) => <Input style={{ width: 250 }} defaultValue={text}
+        disabled
       />,
     },
   ];
@@ -607,6 +607,11 @@ export default function ViewTraveling() {
           mode="back"
           text="Back"
           onClick={() => navigate("/expenses/traveling")}
+        />
+        <ActionButton
+          mode="saveDraft"
+          text="Export PDF"
+          onClick={() => window.open("/expenses/traveling/pdf", "_blank")}
         />
       </div>
     </MainLayout>

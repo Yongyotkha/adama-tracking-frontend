@@ -55,6 +55,7 @@ import EditClaimRequest from "./pages/expenses/product_claim/EditClaimRequest";
 import Traveling from "./pages/expenses/traveling/Traveling";
 import CreateTraveling from "./pages/expenses/traveling/CreateTraveling";
 import EditTraveling from "./pages/expenses/traveling/EditTraveling";
+import PdfTraveling from "./pages/pdf/ViewPDF";
 import ClearingExpense from "./pages/expenses/clearing/ClearingExpense";
 import CreateClearing from "./pages/expenses/clearing/CreateClearingExpense";
 import EditClearing from "./pages/expenses/clearing/EditClearingExpense";
@@ -164,6 +165,8 @@ const App = () => {
           <Route path="/expenses/traveling/create" element={<CreateTraveling />} />
           <Route path="/expenses/traveling/edit" element={<EditTraveling />} />
           <Route path="/expenses/traveling/view" element={<ViewTraveling />} />
+          <Route path="/expenses/traveling/view" element={<ViewTraveling />} />
+          <Route path="/expenses/traveling/pdf" element={<PdfTraveling />} />
           <Route path="/expenses/clearing" element={<ClearingExpense />} />
           <Route path="/expenses/clearing/create" element={<CreateClearing />} />
           <Route path="/expenses/clearing/edit" element={<EditClearing />} />
@@ -217,6 +220,10 @@ const App = () => {
         <Route path="/error/500" element={<Error500 />} />
         <Route path="/error/503" element={<Error503 />} />
         <Route path="/wiki" element={<Wiki />} />
+
+
+        {/* PDF Route */}
+        
 
 
         </Routes>
