@@ -993,7 +993,6 @@ const [formFields, setFormFields] = useState([
 
       <BoxPrimary>
         <span className="text-[#00783F] text-lg font-semibold">Crop</span>
-
           <Select
             mode="multiple"
             showSearch

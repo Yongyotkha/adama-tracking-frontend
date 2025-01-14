@@ -57,6 +57,7 @@ export default function EditInformation() {
   const [currentLocation, setCurrentLocation] = useState({});
   const [dataMapZoom, setDataMapZoom] = useState(15);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+  const [isMapEnabled, setIsMapEnabled] = useState(false);
 
     // อ่านสถานะ mod จาก state
     const mode = location.state.mode; 
@@ -68,6 +69,7 @@ export default function EditInformation() {
     const fetchData = async () => {
       setLoading(true);
       try {
+        
         await fetchDealerDetails(location.state.id);
         const [crops] = await Promise.all([
           useServiceAPI.get(paths.pathMasterCrop, {}),
@@ -121,6 +123,7 @@ export default function EditInformation() {
         required: false,
         col: 12,
         disabled: isViewMode,
+        value: companyinfo.address,
       },
       {
         label: "Office Hours",
@@ -136,25 +139,9 @@ export default function EditInformation() {
           { name: "Sunday", id: "Sunday", selected: false },
         ],
         required: false,
-        col: 12,
+        col: 18,
         iconSrc: "/img/icons/calendar.png",
         iconPosition: "right",
-      },
-      {
-        label: "Start Time",
-        name: "start_time",
-        type: "time",
-        required: false,
-        col: 6,
-        disabled: isViewMode,
-      },
-      {
-        label: "End Time",
-        name: "end_time",
-        type: "time",
-        required: false,
-        col: 6,
-        disabled: isViewMode,
       },
       {
         label: "Email",
@@ -208,14 +195,12 @@ export default function EditInformation() {
         name: "outlet_location",
         type: "text",
         required: false,
-        col: 18,
+        col: 24,
         value: companyinfo.location_address,
         iconSrc: "/img/icons/location.png",
         iconPosition: "right",
         disabled: true,
       },
-  
-      
   
     ]);
 
@@ -313,8 +298,7 @@ export default function EditInformation() {
       );
       if (response.status === 200) {
         const { data } = response;        
-        setcompanyinfo(data);
-        console.log(data);
+        setcompanyinfo(data);        
         
         setContactItems(data.contact_items);
         setProfileImage(data.photo_path)
@@ -352,33 +336,6 @@ export default function EditInformation() {
         }));
         setNetworkList(newDataNetwork);
 
-
-
-        const FarmerDataNetwork = data.network_farmer_list?.map((item, index) => ({
-          key: item.farmer_id,
-          no: index + 1,
-          name: item.farmer_name || "-",
-          mobilePhone: item.farmer_contact_phone_number || "-",
-          onshop: item.is_on_shop || false,
-          status: (
-            <BadgeStatus
-              text={item.farmer_channel_type}
-              bgColor={item.farmer_channel_type_bg_color}
-              textColor={item.farmer_channel_type_color}
-            />
-          ),
-          action: (
-            <>
-              <DynamicButton
-                iconSrc="/img/icons/delete.png"
-                onClick={() =>
-                  handleDeleteFarmer(item.farmer_id)
-                }
-              />
-            </>
-          ),
-        }));
-        setFarmerListItem(FarmerDataNetwork);
         
       } else {
         console.error("Failed to fetch data:", response.message);
@@ -741,77 +698,104 @@ export default function EditInformation() {
     // console.log(defaultSelectedCrops)
   }, [defaultSelectedCrops]);
 
-  const handleSave = () => { 
+  // ฟังก์ชันบันทึกข้อมูล
+  const handleSave = () => {
     form
       .validateFields()
       .then((values) => {
         console.log(values);
 
-        let useFlagValue;
-        if (values.use_flag === 1 || values.use_flag === 0) {
-          useFlagValue = values.use_flag; // ถ้าค่าเป็น 1 หรือ 0 อยู่แล้ว ใช้ค่าเดิม
-        } else {
-          useFlagValue = values.use_flag === "Active" ? 1 : 0; // แปลงค่าจาก "Active" หรือ "Inactive"
-        }
-        const formattedData = {
-          id: location.state.id, 
-          dealer_name_en: values.dealer_name_en || "",
-          dealer_name_th: values.dealer_name_th || "",
-          dealer_code: values.dealer_code || "",
-          tax_id: values.tax_id || "",
-          contact_number: values.contact_number || "",
+        const payload = {
+          id: location.state?.id || undefined,
+          name: values.shop_name || "",
+          mobile_phone: values.mobile_phone || "",
           address: values.address || "",
-          group_code: values.group_code || "",
-          date_of_anniversary: values.date_of_anniversary || "",
-          date_of_joining: values.date_of_joining || "",
-          photo_path: values.profile || "",
-          location_address: values.outlet_location || "",
+          email: values.email || "",
+          day_of_week: values.day_of_week || "",
+          start_time: values.start_time
+            ? dayjs(values.start_time).format("HH:mm")
+            : "",
+          end_time: values.end_time
+            ? dayjs(values.end_time).format("HH:mm")
+            : "",
+          business_size: values.business_size || "",
+          outlet_location: values.outlet_location || "",
           location_longitude: currentLocation.lng || "",
-          location_latitude: currentLocation.lat  || "",
-          use_flag: useFlagValue,
-          bank_account_items: companyinfo.bank_account_items || [],
-          
-          contact_items: contactItems.map((item) => ({
-            name_en: item.name_en || "",
-            contact_number: item.contact_number || "",
-            name_th: item.name_th || "",
-            nickname: item.nickname || null,
-            date_of_birth: item.date_of_birth || null,
-            t_shirt_size: item.t_shirt_size || null,
-            relationship: item.relationship || null,
-            duty: item.duty || null,
-            tel1: item.tel1 || "",
-            tel2: item.tel2 || "",
-            email: item.email || null,
-            line_id: item.line_id || null,
-            age: item.age || null,
-            hobby: item.hobby || null, 
+          location_latitude: currentLocation.lat || "",
+          location_address: values.outlet_location || "", // หรือใช้ location_address
+          t_shirt_size: values.tshirt_size || "",
+          anniversary: values.anniversary
+            ? dayjs(values.anniversary).format("YYYY-MM-DD")
+            : null,
+          remark: values.remark || "",
+          photo_path: values.profile,
+          use_flag: 1, // กำหนดค่าเริ่มต้น
+          fertilizer_business: values.fertilizer_business || "",
+          seed_business: values.seed_business || "",
+          pesticides_business: values.pesticides_business || "",
+          contact_items: contactItems.map((contact) => ({
+            name_en: contact.name_en || "",
+            contact_number: contact.contact_number || "",
+            name_th: contact.name_th || "",
+            nickname: contact.nickname || null,
+            date_of_birth: contact.date_of_birth
+              ? dayjs(contact.date_of_birth).format("YYYY-MM-DD")
+              : null,
+            t_shirt_size: contact.t_shirt_size || null,
+            relationship: contact.relationship || null,
+            duty: contact.duty || null,
+            tel1: contact.tel1 || "",
+            tel2: contact.tel2 || "",
+            email: contact.email || null,
+            line_id: contact.line_id || null,
+            hobby: contact.hobby || null,
+            age: contact.age || null,
           })),
-          crop_list: defaultSelectedCrops || [],
-        };        
-        useServiceAPI
-          .put(paths.pathCustomerSubDealerUpdate, formattedData)
+          crop_list: defaultSelectedCrops || [], // ใช้ crop_list เป็น array ของ id
+        };
+
+        if (mode === 'Edit') {
+          useServiceAPI
+          .put(paths.pathSubDealerDetailUpdate, payload, setLoading)
           .then((response) => {
             if (response.status === 200) {
-              navigate("/customer/dealer");
-              showNotification(
-                "success",
-                response.data.message,
-                response.data.message_line
-              );
-              // console.log("Save successful:", response.data);
-              // navigate("/customer/dealer"); 
+              showNotification("success", response.data.message).then(() => {
+                navigate("/customer/sub-dealer");
+              });
             }
           })
           .catch((error) => {
-            console.error("Save failed:", error);
+            console.error("API Error:", error);
+            showNotification(
+              "error",
+              error.response?.data?.message || "An unexpected error occurred."
+            );
           });
+        }else{
+          useServiceAPI
+          .post(paths.pathCreateSubDealer, payload, setLoading)
+          .then((response) => {
+            if (response.status === 200) {
+              showNotification("success", response.data.message).then(() => {
+                navigate("/customer/sub-dealer");
+              });
+            }
+          })
+          .catch((error) => {
+            console.error("API Error:", error);
+            showNotification(
+              "error",
+              error.response?.data?.message || "An unexpected error occurred."
+            );
+          });
+        }
+
       })
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
+        showNotification("error", "Please complete all required fields.");
       });
   };
-
 
   const networkhandleSave = () => {
     // Validate form fields if needed
@@ -900,7 +884,6 @@ export default function EditInformation() {
 
   const handleContactChange = (index, field, value) => {
     const updatedContacts = [...contactItems];
-  
     if (field === "date_of_birth") {
       const birthDate = dayjs(value);
       const currentYear = dayjs().year();
@@ -910,7 +893,6 @@ export default function EditInformation() {
     } else {
       updatedContacts[index][field] = value; // อัปเดตฟิลด์อื่นๆ
     }
-  
     setContactItems(updatedContacts); // อัปเดต state
   };
 
@@ -918,6 +900,95 @@ export default function EditInformation() {
   const mapContainerStyle = {
     width: "100%",
     height: "30vh",
+  };
+
+  //--- ฟังก์ชันดึงตำแหน่งปัจจุบัน ---//
+  const getUserCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      showNotification("error", "Geolocation is not supported by this browser.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setCurrentLocation({ lat: latitude, lng: longitude });
+        
+        // เรียกใช้ geocoder เพื่อแปลง lat,lng => ชื่อสถานที่
+        try {
+          const geocoder = new window.google.maps.Geocoder();
+          const latlng = { lat: latitude, lng: longitude };
+          const response = await geocoder.geocode({ location: latlng });
+          if (response.results && response.results.length > 0) {
+            const locationName = response.results[0].formatted_address;
+            // เซ็ตค่าลงในฟอร์ม
+            form.setFieldsValue({ outlet_location: locationName });
+            showNotification("success", `Current location: ${locationName}`);
+          }
+        } catch (error) {
+          console.error(error);
+          showNotification("error", "Unable to fetch location name.");
+        }
+      },
+      (error) => {
+        console.error(error);
+        showNotification("error", "Unable to retrieve your location");
+      }
+    );
+  };
+
+  const handleToggleMap = () => {
+    setIsMapEnabled((prev) => {
+      const newState = !prev;
+      // หากกำลังจะเปิด Map แต่ไม่ใช่โหมด Edit => ดึงพิกัดปัจจุบัน
+      if (newState === true && mode !== "Edit") {
+        getUserCurrentLocation();
+      }
+      return newState;
+    });
+  };
+
+  // ดึงที่อยู่จาก Google Maps Geocoding API
+  const fetchAddress = async (lat, lng) => {
+    const apiKey = "AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik";
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.status === "OK" && data.results.length > 0) {
+        // return data.results[0].formatted_address; // คืนค่าที่อยู่
+        console.log(data.results[0].formatted_address);
+        // setFormData({...formData,gps:data.results[0].formatted_address})
+      } else {
+        console.error("Geocoding API error:", data.status);
+        return "Address not found";
+      }
+    } catch (error) {
+      console.error("Error fetching address:", error);
+      return "Error fetching address";
+    }
+  };
+
+    // Get Current Location on mount
+    useEffect(() => {
+      handleGetLocation();
+    }, []);
+    
+  const handleGetLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          fetchAddress(latitude, longitude );
+        },
+        (error) => {
+          console.error("Error fetching location:", error.message);
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
   };
 
   const handleMarkerDragEnd = async (event) => {
@@ -986,7 +1057,13 @@ export default function EditInformation() {
         }}
       >
       <div className="text-[#00783F] text-lg font-semibold mb-3">
-
+      <div className="flex justify-end space-x-4 mb-2">
+          <ActionButton 
+            text={isMapEnabled ? "Close Google" : "Open Google"}
+            mode="update" 
+            onClick={handleToggleMap}
+            />
+        </div>
 
         <LoadScript googleMapsApiKey={dataApiKey}>
           <GoogleMap
@@ -1008,6 +1085,8 @@ export default function EditInformation() {
                 }}
                 draggable={true}
                 onDragEnd={handleMarkerDragEnd} 
+                options={{ disableDefaultUI: !isMapEnabled, draggable: isMapEnabled }}
+
               />
             )}
           </GoogleMap>
@@ -1105,8 +1184,6 @@ export default function EditInformation() {
             )
           }
           </div>
-          
-
         </>
       ),
     },
@@ -1128,15 +1205,13 @@ export default function EditInformation() {
   
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">{isViewMode ? "View Information" : "Edit Information"}</div>
+      <div className="title-page">{isViewMode ? "View Sub Dealer" : "Edit Sub Dealer"}</div>
       <Tabs
         activeKey={activeTabKey}
         onChange={handleTabChange}
         className="custom-tabs"
         items={items}
       />
-
-
       <DynamicModal
         title="Farmer List"
         isVisible={isTerritoryModalVisible}

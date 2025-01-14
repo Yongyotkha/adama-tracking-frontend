@@ -93,9 +93,9 @@ export default function CreateSubDealer() {
       setLoading(true);
       try {
 
-        if (mode === "Edit" || "View") {
-          // เรียกใช้ฟังก์ชันดึงรายละเอียด SubDealer
+        if (mode ==='Edit' || mode=== 'View') {
           await fetchSubDealerDetails(location.state.id);
+
         }
   
         const [crops] = await Promise.all([
@@ -115,6 +115,7 @@ export default function CreateSubDealer() {
   const fetchSubDealerDetails = async (id) => {
     setLoading(true);
     try {
+
       const response = await useServiceAPI.get(
         `${paths.pathSubDealerDetail}?id=${id}`
       );

@@ -4,7 +4,6 @@ import FormUser from "../../../components/form_user/FormUser";
 import DynamicButton from "../../../components/button/DynamicButton";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
-// import { Form } from "antd";
 import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
 import { AuthContext } from "../../../contexts/AuthContext";
@@ -15,67 +14,94 @@ import {
   DatePicker,
   Col,
   Row,
-  Dropdown,
   Tabs,
   Form,
   Select,
-  Checkbox,
+  TimePicker,
 } from "antd";
-import { values } from "lodash";
 import dayjs from "dayjs";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import TableComponent from "../../../components/table/TableComponent";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import DynamicModal from "../../../components/modal/DynamicModal"; 
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+import FormSubDealer from "../../../components/form_user/FormSubDealer";
 
 const { Option } = Select;
 
-export default function EditInformation() {
+export default function CreateSubDealer() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const [dataSource, setDataSource] = useState([]);
-  const [activeTabKey, setActiveTabKey] = useState("profile");
-  const [tableLoading, setTableLoading] = useState(false);
-  const location = useLocation();
-  const [networkList, setNetworkList] = useState([]); // Default state for network list
-  const [companyinfo, setcompanyinfo] = useState([]);
-  const [contactItems, setContactItems] = useState([]); // State for contact items
-  const [form] = Form.useForm();
-  const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
-  const [isTerritoryModalFarmer, setIsTerritoryModalFarmer ] = useState(false);
-  const [userList, setUserList] = useState([]);
-  const [farmerList, setFarmerList] = useState([]);
-  const [farmerListItem, setFarmerListItem] = useState([]);
-  const [personitem, setpersonitem] = useState([]);
+  const { showMsg, showNotification } = useContext(AuthContext);
+  // ---------- State สำหรับแท็บ Profile ----------
   const [cropOptions, setCropOptions] = useState([]);
-  const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); // กำหนด state สำหรับ defaultSelectedCrops
-  const [profileImage, setProfileImage] = useState("/img/profile.jpg"); // Default value
-  const [dataLoaded, setDataLoaded] = useState(false);
-  const { userInfo, showNotification } = useContext(AuthContext);
+  const [form] = Form.useForm();
+  const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]);
+  const [personalInfoData, setPersonalInfoData] = useState({});
+  const [cropData, setCropData] = useState([]);
+  const [contactsData, setContactsData] = useState([]);
   const [dataApiKey, setDataApiKay] = useState("AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik");
-  const [currentLocation, setCurrentLocation] = useState({});
-  const [dataMapZoom, setDataMapZoom] = useState(15);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+  const [companyinfo, setcompanyinfo] = useState([]);
+  const [currentLocation, setCurrentLocation] = useState({
+    lat: 13.9572612,
+    lng: 100.6222401,
+  });
+  const [dataMapZoom, setDataMapZoom] = useState(15);
+  const [contacts, setContacts] = useState([
+    {
+      name_en: "",
+      name_th: "",
+      nickname: "",
+      date_of_birth: null,
+      t_shirt_size: "",
+      relationship: "",
+      duty: "",
+      tel1: "",
+      tel2: "",
+      contact_number: "",
+      email: "",
+      line_id: "",
+    },
+  ]);
+  const location = useLocation();
+  const mode = location.state.mode; 
+  const isViewMode = mode === "View";
+  const [profileImage, setProfileImage] = useState(""); // State สำหรับเก็บ URL รูปภาพ
+  const [isMapEnabled, setIsMapEnabled] = useState(false);
 
-    // อ่านสถานะ mod จาก state
-    const mode = location.state.mode; 
-    const isViewMode = mode === "View";
+  console.log(mode);
+  
+  // ---------- State สำหรับแท็บ Network (ตัวอย่าง) ----------
+  const [networkList, setNetworkList] = useState([]); // รายการ network
+  const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
+  const [userList, setUserList] = useState([]); // สำหรับ TableComponent ใน Modal
 
-    console.log(mode);
-    
+  // columns ของตาราง Network (ตัวอย่าง)
+  const networkHeader = [
+    { title: "No", dataIndex: "no", key: "no", width: 50, align: "center" },
+    { title: "Name", dataIndex: "name", key: "name", width: 150 },
+    { title: "Contact Person", dataIndex: "contactperson", key: "contactperson", width: 150 },
+    { title: "Status", dataIndex: "status", key: "status", width: 120, align: "center" },
+    { title: "Action", dataIndex: "action", key: "action", width: 100, align: "center" },
+  ];
+
+
+  // โหลดข้อมูลเบื้องต้น เช่น รายการพืช (crops)
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        await fetchDealerDetails(location.state.id);
+
+        if (mode === "Edit" || "View") {
+          // เรียกใช้ฟังก์ชันดึงรายละเอียด SubDealer
+          await fetchSubDealerDetails(location.state.id);
+        }
+  
         const [crops] = await Promise.all([
           useServiceAPI.get(paths.pathMasterCrop, {}),
         ]);
         setCropOptions(crops.data);
-        setDataLoaded(true);
-
-        // setCropList(crops.data || []);
       } catch (error) {
         console.log(error.message);
         showNotification("เกิดข้อผิดพลาด");
@@ -86,257 +112,53 @@ export default function EditInformation() {
     fetchData();
   }, []);
 
- 
-    const [formFields, setFormFields] = useState([
-      {
-        label: "",
-        name: "profile",
-        type: "picture",
-        required: false,
-        col: 24,
-        disabled: isViewMode,
-      },
-      {
-        label: "Shop Name",
-        name: "shop_name",
-        type: "text",
-        required: false,
-        col: 6,
-        disabled: isViewMode,
-        value: companyinfo.name,
-
-      },
-      {
-        label: "Mobile Phone",
-        name: "mobile_phone",
-        type: "text",
-        required: false,
-        col: 6,
-        disabled: isViewMode,
-      },
-      {
-        label: "Address",
-        name: "address",
-        type: "text",
-        required: false,
-        col: 12,
-        disabled: isViewMode,
-      },
-      {
-        label: "Office Hours",
-        name: "day_of_week",
-        type: "multiple",
-        options: [
-          { name: "Monday", id: "Monday", selected: true },
-          { name: "Tuesday", id: "Tuesday", selected: false },
-          { name: "Wednesday", id: "Wednesday", selected: false },
-          { name: "Thursday", id: "Thursday", selected: false },
-          { name: "Friday", id: "Friday", selected: false },
-          { name: "Saturday", id: "Saturday", selected: false },
-          { name: "Sunday", id: "Sunday", selected: false },
-        ],
-        required: false,
-        col: 12,
-        iconSrc: "/img/icons/calendar.png",
-        iconPosition: "right",
-      },
-      {
-        label: "Start Time",
-        name: "start_time",
-        type: "time",
-        required: false,
-        col: 6,
-        disabled: isViewMode,
-      },
-      {
-        label: "End Time",
-        name: "end_time",
-        type: "time",
-        required: false,
-        col: 6,
-        disabled: isViewMode,
-      },
-      {
-        label: "Email",
-        name: "email",
-        type: "email",
-        required: false,
-        col: 6,
-        disabled: isViewMode,
-      },
-      {
-        label: "Fertilizer Business",
-        name: "tshirt_size",
-        type: "text",
-        required: false,
-        col: 6,
-        value: companyinfo.fertilizer_business,
-        disabled: isViewMode,
-      },
-      {
-        label: "Seed Business",
-        name: "seed_business",
-        type: "text",
-        required: false,
-        col: 6,
-        value: companyinfo.seed_business,
-        disabled: isViewMode,
-      },
-      {
-        label: "Pesticides Business",
-        name: "pesticides_business",
-        type: "text",
-        required: false,
-        col: 6,
-        value: companyinfo.pesticides_business,
-        disabled: isViewMode,
-      },
-      {
-        label: "Status",
-        name: "use_flag",
-        type: "select",
-        required: true,
-        col: 6,
-        options: [
-          { name: "New", id: 1, selected: true },
-        ],
-        value: companyinfo.status || 1,
-  
-      },
-      {
-        label: "Outlet Location",
-        name: "outlet_location",
-        type: "text",
-        required: false,
-        col: 18,
-        value: companyinfo.location_address,
-        iconSrc: "/img/icons/location.png",
-        iconPosition: "right",
-        disabled: true,
-      },
-  
-      
-  
-    ]);
-
-
-
-
-  const header = [
-    { title: "No", width: 50, dataIndex: "no", align: "center" },
-    { title: "Name", width: 100, dataIndex: "name", align: "left" },
-    { title: "Contact Person	",  width: 150, dataIndex: "mobilePhone", align: "center",},
-    { title: "Status", width: 100, dataIndex: "status", align: "center" },
-    { title: "Action", width: 100, dataIndex: "action", align: "center" },
-  ];
-
-
-
-  const actionItems = [
-    {
-      key: "1",
-      label: <ItemDropDown mode="edit" link="/customer/dealer/edit-info" />,
-    },
-  ];
-
-  const handleDeleteItem = async (record) => {
-    console.log("id", location.state.id);
-    console.log(record);
-    
-    try {
-      const requestData = {
-        dealer_id:location.state.id,
-        sub_dealer_id: record, 
-      };
-
-      const response = await useServiceAPI.delete(
-        paths.pathCustomerNetworkDelete,
-        requestData
-      );
-
-      if (response.status === 200) {
-        // fetchData();
-        await fetchDealerDetails(location.state.id);
-
-        showNotification(
-          "success",
-          response.data.message,
-          response.data.message_line
-        );
-      } else {
-        console.error("Failed to delete record:", response.message);
-        showNotification("error", response.message, response.message_line);
-      }
-    } catch (error) {
-      console.error("Error deleting record:", error);
-
-      showNotification("error", error.message, error.message_line);
-    }
-  };
-
-  const handleDeleteFarmer = async (record) => {    
-    try {
-      const requestData = {
-        dealer_id:location.state.id,
-        farmer_id: record, 
-      };
-
-      const response = await useServiceAPI.delete(
-        paths.pathFarmerNetworkDelete,
-        requestData
-      );
-
-      if (response.status === 200) {
-        await fetchDealerDetails(location.state.id);
-
-        showNotification(
-          "success",
-          response.data.message,
-          response.data.message_line
-        );
-      } else {
-        console.error("Failed to delete record:", response.message);
-        showNotification("error", response.message, response.message_line);
-      }
-    } catch (error) {
-      console.error("Error deleting record:", error);
-
-      showNotification("error", error.message, error.message_line);
-    }
-  };
-
-  const fetchDealerDetails = async (id) => {
+  const fetchSubDealerDetails = async (id) => {
     setLoading(true);
     try {
       const response = await useServiceAPI.get(
         `${paths.pathSubDealerDetail}?id=${id}`
       );
+
       if (response.status === 200) {
         const { data } = response;        
-        setcompanyinfo(data);
-        console.log(data);
-        
-        setContactItems(data.contact_items);
-        setProfileImage(data.photo_path)
-        setCropOptions(data.crop_list || []);
+        setProfileImage(data.photo_path || "");
 
-        const cropNames = data.crop_list?.map((crop) => Number(crop.id)) || [];
-        setDefaultSelectedCrops(cropNames);
-        const lat = parseFloat(data.location_latitude) || 13.9572612; 
-        const lng = parseFloat(data.location_longitude) || 100.6222401;           
+        // ตั้งค่า location
+        const lat = parseFloat(data.location_latitude) || 13.9572612;
+        const lng = parseFloat(data.location_longitude) || 100.6222401;
         setCurrentLocation({ lat, lng });
 
-        const newDataNetwork = data.network_list?.map((item, index) => ({
-          key: item.sub_dealer_id,
+        // อัปเดต state และ form
+        setcompanyinfo(data);
+        form.setFieldsValue({
+          shop_name: data.name,
+          mobile_phone: data.mobile_phone,
+          address: data.address,
+          email: data.email,
+          day_of_week: data.day_of_week,
+          start_time: data.start_time ? dayjs(data.start_time, "HH:mm") : null,
+          end_time: data.end_time ? dayjs(data.end_time, "HH:mm") : null,
+          remark: data.remark,
+          outlet_location: data.location_address,
+          fertilizer_business: data.fertilizer_business,
+          seed_business: data.seed_business,
+          pesticides_business: data.pesticides_business,
+        });
+
+        // ตั้งค่า Crop List
+        const cropIds = data.crop_list?.map((crop) => Number(crop.id)) || [];
+        setDefaultSelectedCrops(cropIds);
+        // ตั้งค่า farmers
+        const farmers = data.network_farmer_list?.map((farmer, index) => ({
+          key: farmer.farmer_id,
           no: index + 1,
-          name: item.sub_dealer_name || "-",
-          mobilePhone: item.sub_dealer_contact_phone_number || "-",
-          onshop: item.is_on_shop || false,
+          name: farmer.farmer_name || "-",
+          contactperson: farmer.farmer_contact_name || "-",
           status: (
             <BadgeStatus
-              text={item.sub_dealer_channel_type_name}
-              bgColor={item.sub_dealer_channel_type_bg_color}
-              textColor={item.sub_dealer_channel_type_color}
+              text={farmer.farmer_channel_type_name}
+              bgColor={farmer.farmer_channel_type_bg_color}
+              textColor={farmer.farmer_channel_type_color}
             />
           ),
           action: (
@@ -344,510 +166,915 @@ export default function EditInformation() {
               <DynamicButton
                 iconSrc="/img/icons/delete.png"
                 onClick={() =>
-                  handleDeleteItem(item.sub_dealer_id)
+                  handleDeleteNetworkItem(farmer.farmer_id)
                 }
               />
             </>
           ),
-        }));
-        setNetworkList(newDataNetwork);
+        })) || [];
+        setNetworkList(farmers); // อัปเดต state networkList
+        
+      // ตั้งค่า Contact Person จาก contact_items
+      const contactList = data.contact_items?.map((item) => ({
+        name_en: item.name_en || "",
+        name_th: item.name_th || "",
+        nickname: item.nickname || "",
+        date_of_birth: item.date_of_birth
+          ? dayjs(item.date_of_birth, "YYYY-MM-DD")
+          : null,
+        t_shirt_size: item.t_shirt_size || "",
+        relationship: item.relationship || "",
+        duty: item.duty || "",
+        tel1: item.tel1 || "",
+        tel2: item.tel2 || "",
+        contact_number: item.contact_number || "",
+        email: item.email || "",
+        line_id: item.line_id || "",
+        hobby: item.hobby || "",
+        age: item.age || "",
+      })) || [];
+      setContacts(contactList);
+
+      } else {
+        console.error("Failed to fetch SubDealer details:", response.message);
+      }
+    } catch (error) {
+      console.error("Error fetching SubDealer details:", error);
+      showNotification("error", "เกิดข้อผิดพลาดในการโหลดข้อมูล");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
+  // จัดการแท็บ
+  const [activeTabKey, setActiveTabKey] = useState("profile");
+  const handleTabChange = (key) => {
+    setActiveTabKey(key);
+  };
+
+  // แบ่งฟิลด์ในฟอร์ม
+  const [formFields, setFormFields] = useState([
+    {
+      label: "",
+      name: "profile",
+      type: "picture",
+      required: false,
+      col: 24,
+      disabled: isViewMode,
+    },
+    {
+      label: "Shop Name",
+      name: "shop_name",
+      type: "text",
+      required: false,
+      col: 6,
+      disabled: isViewMode,
+    },
+    {
+      label: "Mobile Phone",
+      name: "mobile_phone",
+      type: "text",
+      required: false,
+      col: 6,
+      disabled: isViewMode,
+    },
+    {
+      label: "Address",
+      name: "address",
+      type: "text",
+      required: false,
+      col: 12,
+      disabled: isViewMode,
+    },
+    {
+      label: "Office Hours",
+      name: "day_of_week",
+      type: "multiple",
+      options: [
+        { name: "Monday", id: "Monday", selected: true },
+        { name: "Tuesday", id: "Tuesday", selected: false },
+        { name: "Wednesday", id: "Wednesday", selected: false },
+        { name: "Thursday", id: "Thursday", selected: false },
+        { name: "Friday", id: "Friday", selected: false },
+        { name: "Saturday", id: "Saturday", selected: false },
+        { name: "Sunday", id: "Sunday", selected: false },
+      ],
+      required: false,
+      col: 18,
+      iconSrc: "/img/icons/calendar.png",
+      iconPosition: "right",
+    },
+    // {
+    //   label: "Start Time",
+    //   name: "start_time",
+    //   type: "time",
+    //   required: false,
+    //   col: 6,
+    //   disabled: isViewMode,
+    // },
+    // {
+    //   label: "End Time",
+    //   name: "end_time",
+    //   type: "time",
+    //   required: false,
+    //   col: 6,
+    //   disabled: isViewMode,
+    // },
+    {
+      label: "Email",
+      name: "email",
+      type: "email",
+      required: false,
+      col: 6,
+      disabled: isViewMode,
+    },
+    {
+      label: "Fertilizer Business",
+      name: "tshirt_size",
+      type: "text",
+      required: false,
+      col: 6,
+      value: companyinfo.fertilizer_business,
+      disabled: isViewMode,
+    },
+    {
+      label: "Seed Business",
+      name: "seed_business",
+      type: "text",
+      required: false,
+      col: 6,
+      value: companyinfo.seed_business,
+      disabled: isViewMode,
+    },
+    {
+      label: "Pesticides Business",
+      name: "pesticides_business",
+      type: "text",
+      required: false,
+      col: 6,
+      value: companyinfo.pesticides_business,
+      disabled: isViewMode,
+    },
+    {
+      label: "Status",
+      name: "use_flag",
+      type: "select",
+      required: true,
+      col: 6,
+      options: [
+        { name: "New", id: 1, selected: true },
+      ],
+      value: companyinfo.status || 1,
+
+    },
+    {
+      label: "Outlet Location",
+      name: "outlet_location",
+      type: "text",
+      required: false,
+      col: 24,
+      value: companyinfo.location_address,
+      iconSrc: "/img/icons/location.png",
+      iconPosition: "right",
+      disabled: true,
+    },
+  ]);
 
 
-
-        const FarmerDataNetwork = data.network_farmer_list?.map((item, index) => ({
+  // ดึงข้อมูลใช้งานใน Modal (กรณีอยากให้มี Modal สำหรับเลือก Network)
+  const fetchUserList = async () => {
+    setLoading(true);
+    try {
+      // ตัวอย่างการดึงข้อมูล sub_dealer หรือ network ต่าง ๆ
+      // สมมติเรียก API getUserList()
+      const response = await useServiceAPI.get(paths.pathMasterFammer, {});
+      if (response.status === 200) {
+        const data = response.data || [];
+        // แปลง data เป็นรูปที่ใช้ในตาราง
+        const userListData = data.map((item, index) => ({
           key: item.farmer_id,
           no: index + 1,
-          name: item.farmer_name || "-",
-          mobilePhone: item.farmer_contact_phone_number || "-",
-          onshop: item.is_on_shop || false,
+          name: item.farmer_name,
+          contactperson: item.farmer_contact_phone_number,
           status: (
             <BadgeStatus
-              text={item.farmer_channel_type}
+              text={item.farmer_channel_type_name}
               bgColor={item.farmer_channel_type_bg_color}
               textColor={item.farmer_channel_type_color}
             />
           ),
-          action: (
-            <>
-              <DynamicButton
-                iconSrc="/img/icons/delete.png"
-                onClick={() =>
-                  handleDeleteFarmer(item.farmer_id)
-                }
-              />
-            </>
-          ),
+
+
         }));
-        setFarmerListItem(FarmerDataNetwork);
-        
-      } else {
-        console.error("Failed to fetch data:", response.message);
+        setUserList(userListData);
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("fetchUserList error:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRemoveContact = (index) => {
-    setContactItems((prev) => prev.filter((_, i) => i !== index));
-  };
-  
-  const renderContactItems = () =>
-    contactItems.map((contact, index) => (
-      <div key={index} className="mb-6">
-        <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-md">{`Person ${index + 1}`}</span>
-        {index > 0 && !isViewMode && (
-          <ActionButton
-            mode="delete"
-            text="Delete"
-            onClick={() => handleRemoveContact(index)}
-            disabled={isViewMode}
-          />
-        )}
-        </div>
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Name (EN)"
-              value={contact.name_en || ""}
-              onChange={(e) => handleContactChange(index, "name_en", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Name (TH)"
-              value={contact.name_th || ""}
-              onChange={(e) => handleContactChange(index, "name_th", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Nickname"
-              value={contact.nickname || ""}
-              onChange={(e) => handleContactChange(index, "nickname", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <DatePicker
-              className="w-full"
-              placeholder="Date of Birth"
-              value={contact.date_of_birth ? dayjs(contact.date_of_birth) : null}
-              onChange={(date, dateString) =>
-                handleContactChange(index, "date_of_birth", dateString)
-              }
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Age"
-              value={contact.age || ""}
-              onChange={(e) => handleContactChange(index, "age", e.target.value)}
-              disabled={true}
-            />
-          </Col>
+  // ฟังก์ชันเพิ่มรายการลงในตาราง Network
+  const handleAddSelectedRows = (selectedRows) => {
+    if (!Array.isArray(selectedRows)) {
+      console.error("selectedRows is not an array:", selectedRows);
+      return;
+    }
+    const newRows = selectedRows.map((row) => ({
+      key: row.key,
+      no: networkList.length + 1,
+      name: row.name || "-",
+      contactperson: row.contactperson || "-",
+      status: row.status || "-",
+      action: (
+        <DynamicButton
+          iconSrc="/img/icons/delete.png"
+          onClick={() => handleDeleteNetworkItem(row.key)}
+        />
+      ),
+    }));
 
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="T-Shirt Size"
-              value={contact.t_shirt_size || ""}
-              onChange={(e) => handleContactChange(index, "t_shirt_size", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Relationship"
-              value={contact.relationship || ""}
-              onChange={(e) => handleContactChange(index, "relationship", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Duty"
-              value={contact.duty || ""}
-              onChange={(e) => handleContactChange(index, "duty", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Tel 1"
-              value={contact.tel1 || ""}
-              onChange={(e) => handleContactChange(index, "tel1", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Tel 2"
-              value={contact.tel2 || ""}
-              onChange={(e) => handleContactChange(index, "tel2", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Contact Number"
-              value={contact.contact_number || ""}
-              onChange={(e) => handleContactChange(index, "contact_number", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Email"
-              value={contact.email || ""}
-              onChange={(e) => handleContactChange(index, "email", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Line ID"
-              value={contact.line_id || ""}
-              onChange={(e) => handleContactChange(index, "line_id", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={18} md={18} lg={18}>
-            <Input
-              placeholder="hobby"
-              value={contact.hobby || ""}
-              onChange={(e) => handleContactChange(index, "hobby", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-
-        </Row>
-        <hr className="my-4" />
-      </div>
-    ));
-  
-
-  const handleTabChange = (key) => {
-    setActiveTabKey(key);
+    // เช็คว่าเคยถูกเพิ่มแล้วหรือยัง
+    setNetworkList((prev) => {
+      const existingKeys = prev.map((item) => item.key);
+      const filteredNewRows = newRows.filter(
+        (row) => !existingKeys.includes(row.key)
+      );
+      if (filteredNewRows.length === 0) {
+        showNotification("error", "This record has already been added.");
+        return prev;
+      }
+      showNotification("success", "Add network success.");
+      return [...prev, ...filteredNewRows];
+    });
   };
 
+  // ฟังก์ชันลบรายการในตาราง
+  const handleDeleteNetworkItem = async (record) => {    
+    try {
+      const requestData = {
+        sub_dealer_id:location.state.id,
+        farmer_id: record, 
+      };
+
+      const response = await useServiceAPI.delete(
+        paths.pathSubDealerDetailDeleteFarmer,
+        requestData
+      );
+
+      if (response.status === 200) {
+        await fetchSubDealerDetails(location.state.id);
+
+        showNotification(
+          "success",
+          response.data.message,
+          response.data.message_line
+        );
+      } else {
+        console.error("Failed to delete record:", response.message);
+        showNotification("error", response.message, response.message_line);
+      }
+    } catch (error) {
+      console.error("Error deleting record:", error);
+
+      showNotification("error", error.message, error.message_line);
+    }
+  };
+
+  // เปิด/ปิด Modal
   const handleOpenTerritoryModal = async () => {
-    await fetchUserList(); // ดึงข้อมูลผู้ใช้ก่อนเปิดโมดอล
-    setIsTerritoryModalVisible(true); // แสดงโมดอลหลังข้อมูลพร้อม
+    await fetchUserList();
+    setIsTerritoryModalVisible(true);
   };
 
   const handleCloseTerritoryModal = () => {
     setIsTerritoryModalVisible(false);
   };
 
-
-  const handleOpenFarmerModal = async () => {
-    await fetchUserFamer(); 
-    setIsTerritoryModalFarmer(true); 
-  };
-
-  const handleCloseFarmerModal = () => {
-    setIsTerritoryModalFarmer(false);
-  };
-
-
-  const handleAddSelectedRows = (selectedRows) => {
-    if (!Array.isArray(selectedRows)) {
-      console.error("selectedRows is not an array:", selectedRows);
-      return;
-    }
-  
-    const newRows = selectedRows.map((row, index) => ({
-      key: row.key,
-      no: (networkList?.length || 0) + index + 1,
-      name: row.name || "-",
-      contactperson: row.contactperson || "-",
-      mobilePhone: row.territory || "-",
-      onshop: row.onshop || false,
-      status: (
-        <BadgeStatus
-          text={row.position || "-"}
-          bgColor={row.statusBgColor }
-          textColor={row.statusTextColor }
-        />
-      ),
-      action: (
-        <DynamicButton
-          iconSrc="/img/icons/delete.png"
-          onClick={() => handleDeleteItem(row.key)}
-        />
-      ),
-    }));
-  
-    setNetworkList((prevList) => {
-      const existingKeys = (prevList || []).map((item) => item.key); // ป้องกัน undefined
-      const filteredNewRows = newRows.filter((row) => !existingKeys.includes(row.key));
-      if (filteredNewRows.length === 0) {
-        showNotification("error", "Sale Territory has already been added.");
-        return prevList || [];
-      } else {
-        showNotification("success", "Add sale territory success.");
-        return [...(prevList || []), ...filteredNewRows];
-      }
-    });
-  };
-
-  
-  const handleAddSelectedRowsFammer = (selectedRows) => {
-    console.log(selectedRows);
-    
-    if (!Array.isArray(selectedRows)) {
-      console.error("selectedRows is not an array:", selectedRows);
-      return;
-    }
-  
-    const newRows = selectedRows.map((row, index) => ({
-      key: row.key, // Unique identifier
-      no: (farmerListItem?.length || 0) + index + 1, // Row number
-      name: row.name || "-", // Farmer Name
-      territory: row.territory || "-", // Contact Number
-      position: (
-        <BadgeStatus
-          text={row.farmer_channel_type_name || "-"} // Status text
-          bgColor={row.farmer_channel_type_bg_color} // Background color
-          textColor={row.farmer_channel_type_color} // Text color
-        />
-      ),
-      action: (
-        <DynamicButton
-          iconSrc="/img/icons/delete.png"
-          onClick={() => handleDeleteFarmer(row.key)} // Delete handler
-        />
-      ),
-    }));
-  
-    setFarmerListItem((prevList) => {
-
-      const existingKeys = (prevList || []).map((item) => item.key); // ป้องกัน undefined
-      const filteredNewRows = newRows.filter((row) => !existingKeys.includes(row.key));
-      console.log(filteredNewRows);
-
-      if (filteredNewRows.length === 0) {
-        showNotification("error", "Sale Territory has already been added.");
-        return prevList || [];
-      } else {
-        showNotification("success", "Add sale territory success.");
-        return [...(prevList || []), ...filteredNewRows];
-      }
-    });
-  };
-  
-  
-
-  const fetchUserList = async (page_size = 20, page_length = 1) => {
-    setLoading(true);
-    const requestData = {
-      platform: "web",
-      page_size,
-      page_length,
-    };
-
-    try {
-      const response = await useServiceAPI.get(paths.pathMasterFammer,requestData);
-      if (response.status === 200) {
-        const data = response.data;      
-        const territoryData = data.map((item, index) => ({
-          key: item.farmer_id,
-          no: index + 1,
-          name: item.farmer_name,
-          territory: item.farmer_contact_phone_number,
-          position: (
-            <BadgeStatus
-              text={item.farmer_channel_type_name}
-              bgColor={item.farmer_channel_type_bg_color}
-              textColor={item.farmer_channel_type_color}
-            />
-          ),
-
-        }));
-        setUserList(territoryData);
-
-      }
-    } catch (error) {
-      console.error("Error fetching user list:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchUserFamer = async (page_size = 20, page_length = 1) => {
-    setLoading(true);
-    const requestData = {
-      platform: "web",
-      page_size,
-      page_length,
-    };
-    try {
-      const response = await useServiceAPI.get(
-        paths.pathMasterFammer,
-        requestData
-      );
-
-      if (response.status === 200) {
-        const data = response.data;      
-        console.log(data);
-                
-        const territoryFammerData = data.map((item, index) => ({
-          key: item.farmer_id,
-          no: index + 1,
-          name: item.farmer_name,
-          territory: item.farmer_contact_phone_number,
-          position: (
-            <BadgeStatus
-              text={item.farmer_channel_type_name}
-              bgColor={item.farmer_channel_type_bg_color}
-              textColor={item.farmer_channel_type_color}
-            />
-          ),
-
-        }));
-        setFarmerList(territoryFammerData);
-      }
-    } catch (error) {
-      console.error("Error fetching Fammer list:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
-  const handleAddContact = () => {
-    // เพิ่ม object ใหม่ลงใน contactItems state
-    setContactItems((prev) => [
-      ...prev,
-      { id: prev.length + 1, name: "", phone: "" },
+  // ฟังก์ชันจัดการ Contact Person
+  const addContact = () => {
+    setContacts((prevContacts) => [
+      ...prevContacts,
+      {
+        name_en: "",
+        name_th: "",
+        nickname: "",
+        date_of_birth: null,
+        t_shirt_size: "",
+        relationship: "",
+        duty: "",
+        tel1: "",
+        tel2: "",
+        contact_number: "",
+        email: "",
+        line_id: "",
+      },
     ]);
   };
 
+  const updateContact = (index, field, value) => {
+    setContacts((prevContacts) =>
+      prevContacts.map((contact, i) => {
+        if (i === index) {
+          const updatedContact = { ...contact, [field]: value };
+          // หากเป็น date_of_birth ให้คำนวณอายุ
+          if (field === "date_of_birth" && value) {
+            const birthDate = dayjs(value);
+            const currentYear = dayjs().year();
+            updatedContact.age = currentYear - birthDate.year();
+          }
+          return updatedContact;
+        }
+        return contact;
+      })
+    );
+  };
 
+  const handleRemoveContact = (index) => {
+    setContacts((prevContacts) => prevContacts.filter((_, i) => i !== index));
+  };
 
+  // แปลงตัวเลือกพืช (crops)
   const transformedCropOptions = cropOptions.map((option) => ({
-    label: option.name, // เปลี่ยนจาก name เป็น label
-    value: option.id, // คงค่า value เดิมไว้
+    label: option.name,
+    value: option.id,
   }));
 
+  // Google Map
+  const mapContainerStyle = {
+    width: "100%",
+    height: "30vh",
+  };
 
+
+  const handleMarkerDragEnd = async (event) => {
+    const lat = event.latLng.lat();
+    const lng = event.latLng.lng();
+    const geocoder = new window.google.maps.Geocoder();
+    const latlng = { lat, lng };
+    try {
+      const response = await geocoder.geocode({ location: latlng });
+      if (response.results && response.results.length > 0) {
+        const locationName = response.results[0].formatted_address;
+        // อัปเดตฟอร์ม
+        form.setFieldsValue({ outlet_location: locationName });
+        // อัปเดต state
+        setcompanyinfo((prev) => ({
+          ...prev,
+          outlet_location: locationName,
+        }));
+        // ตั้งค่าพิกัดใหม่
+        setCurrentLocation({ lat, lng });
+        showNotification("success", `Location updated: ${locationName}`);
+      } else {
+        showNotification("error", "No address found for this location.");
+      }
+    } catch (error) {
+      console.error(error);
+      showNotification("error", "Unable to fetch location name.");
+    }
+  };
+  
   useEffect(() => {
-    // console.log(defaultSelectedCrops)
-  }, [defaultSelectedCrops]);
+    const checkGoogleMaps = () => {
+      if (window.google && window.google.maps) {
+        setIsGoogleLoaded(true);
+      } else {
+        const interval = setInterval(() => {
+          if (window.google && window.google.maps) {
+            clearInterval(interval);
+            setIsGoogleLoaded(true);
+          }
+        }, 500);
+      }
+    };
+    checkGoogleMaps();
+  }, []);
 
-  const handleSave = () => { 
+  // ฟังก์ชันบันทึกข้อมูล
+  const handleSave = () => {
     form
       .validateFields()
       .then((values) => {
-        console.log(values);
-
-        let useFlagValue;
-        if (values.use_flag === 1 || values.use_flag === 0) {
-          useFlagValue = values.use_flag; // ถ้าค่าเป็น 1 หรือ 0 อยู่แล้ว ใช้ค่าเดิม
-        } else {
-          useFlagValue = values.use_flag === "Active" ? 1 : 0; // แปลงค่าจาก "Active" หรือ "Inactive"
-        }
-        const formattedData = {
-          id: location.state.id, 
-          dealer_name_en: values.dealer_name_en || "",
-          dealer_name_th: values.dealer_name_th || "",
-          dealer_code: values.dealer_code || "",
-          tax_id: values.tax_id || "",
-          contact_number: values.contact_number || "",
+        const payload = {
+          name: values.shop_name || "",
+          mobile_phone: values.mobile_phone || "",
           address: values.address || "",
-          group_code: values.group_code || "",
-          date_of_anniversary: values.date_of_anniversary || "",
-          date_of_joining: values.date_of_joining || "",
-          photo_path: values.profile || "",
-          location_address: values.outlet_location || "",
+          email: values.email || "",
+          day_of_week: values.day_of_week || "",
+          start_time: values.start_time
+            ? dayjs(values.start_time).format("HH:mm")
+            : "",
+          end_time: values.end_time
+            ? dayjs(values.end_time).format("HH:mm")
+            : "",
+          business_size: values.business_size || "",
+          outlet_location: values.outlet_location || "",
           location_longitude: currentLocation.lng || "",
-          location_latitude: currentLocation.lat  || "",
-          use_flag: useFlagValue,
-          bank_account_items: companyinfo.bank_account_items || [],
-          
-          contact_items: contactItems.map((item) => ({
-            name_en: item.name_en || "",
-            contact_number: item.contact_number || "",
-            name_th: item.name_th || "",
-            nickname: item.nickname || null,
-            date_of_birth: item.date_of_birth || null,
-            t_shirt_size: item.t_shirt_size || null,
-            relationship: item.relationship || null,
-            duty: item.duty || null,
-            tel1: item.tel1 || "",
-            tel2: item.tel2 || "",
-            email: item.email || null,
-            line_id: item.line_id || null,
-            age: item.age || null,
-            hobby: item.hobby || null, 
+          location_latitude: currentLocation.lat || "",
+          location_address: values.outlet_location || "", // หรือใช้ location_address
+          t_shirt_size: values.tshirt_size || "",
+          anniversary: values.anniversary
+            ? dayjs(values.anniversary).format("YYYY-MM-DD")
+            : null,
+          remark: values.remark || "",
+          photo_path: values.profile,
+          use_flag: 1, // กำหนดค่าเริ่มต้น
+          fertilizer_business: values.fertilizer_business || "",
+          seed_business: values.seed_business || "",
+          pesticides_business: values.pesticides_business || "",
+          contact_items: contacts.map((contact) => ({
+            name_en: contact.name_en || "",
+            contact_number: contact.contact_number || "",
+            name_th: contact.name_th || "",
+            nickname: contact.nickname || null,
+            date_of_birth: contact.date_of_birth
+              ? dayjs(contact.date_of_birth).format("YYYY-MM-DD")
+              : null,
+            t_shirt_size: contact.t_shirt_size || null,
+            relationship: contact.relationship || null,
+            duty: contact.duty || null,
+            tel1: contact.tel1 || "",
+            tel2: contact.tel2 || "",
+            email: contact.email || null,
+            line_id: contact.line_id || null,
+            hobby: contact.hobby || null,
+            age: contact.age || null,
           })),
-          crop_list: defaultSelectedCrops || [],
-        };        
+          crop_list: defaultSelectedCrops || [], // ใช้ crop_list เป็น array ของ id
+        };
         useServiceAPI
-          .put(paths.pathCustomerSubDealerUpdate, formattedData)
+          .post(paths.pathCreateSubDealer, payload, setLoading)
           .then((response) => {
             if (response.status === 200) {
-              navigate("/customer/dealer");
-              showNotification(
-                "success",
-                response.data.message,
-                response.data.message_line
-              );
-              // console.log("Save successful:", response.data);
-              // navigate("/customer/dealer"); 
+              showNotification("success", response.data.message).then(() => {
+                navigate("/customer/sub-dealer");
+              });
             }
           })
           .catch((error) => {
-            console.error("Save failed:", error);
+            console.error("API Error:", error);
+            showNotification(
+              "error",
+              error.response?.data?.message || "An unexpected error occurred."
+            );
           });
       })
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
+        showNotification("error", "Please complete all required fields.");
       });
   };
 
+    // Get Current Location on mount
+    useEffect(() => {
+      handleGetLocation();
+    }, []);
 
-  const networkhandleSave = () => {
-    // Validate form fields if needed
+  //--- ฟังก์ชันดึงตำแหน่งปัจจุบัน ---//
+  const getUserCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      showNotification("error", "Geolocation is not supported by this browser.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setCurrentLocation({ lat: latitude, lng: longitude });
+        
+        // เรียกใช้ geocoder เพื่อแปลง lat,lng => ชื่อสถานที่
+        try {
+          const geocoder = new window.google.maps.Geocoder();
+          const latlng = { lat: latitude, lng: longitude };
+          const response = await geocoder.geocode({ location: latlng });
+          if (response.results && response.results.length > 0) {
+            const locationName = response.results[0].formatted_address;
+            // เซ็ตค่าลงในฟอร์ม
+            form.setFieldsValue({ outlet_location: locationName });
+            showNotification("success", `Current location: ${locationName}`);
+          }
+        } catch (error) {
+          console.error(error);
+          showNotification("error", "Unable to fetch location name.");
+        }
+      },
+      (error) => {
+        console.error(error);
+        showNotification("error", "Unable to retrieve your location");
+      }
+    );
+  };
+
+
+  const handleToggleMap = () => {
+    setIsMapEnabled((prev) => {
+      const newState = !prev;
+      // หากกำลังจะเปิด Map แต่ไม่ใช่โหมด Edit => ดึงพิกัดปัจจุบัน
+      if (newState === true && mode !== "Edit") {
+        getUserCurrentLocation();
+      }
+      return newState;
+    });
+  };
+
+    
+    // ดึงที่อยู่จาก Google Maps Geocoding API
+    const fetchAddress = async (lat, lng) => {
+      const apiKey = "AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik";
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
+  
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+  
+        if (data.status === "OK" && data.results.length > 0) {
+          // return data.results[0].formatted_address; // คืนค่าที่อยู่
+          console.log(data.results[0].formatted_address);
+          setFormData({...formData,gps:data.results[0].formatted_address})
+        } else {
+          console.error("Geocoding API error:", data.status);
+          return "Address not found";
+        }
+      } catch (error) {
+        console.error("Error fetching address:", error);
+        return "Error fetching address";
+      }
+    };
+
+    const handleGetLocation = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            fetchAddress(latitude, longitude );
+          },
+          (error) => {
+            console.error("Error fetching location:", error.message);
+          }
+        );
+      } else {
+        console.error("Geolocation is not supported by this browser.");
+      }
+    };
+
+
+
+  const handleSaveEdit = () => {
     form
       .validateFields()
-      .then(() => {
-        const formattedData = {
-          id: location.state.id,
-          network_list: networkList.map((item) => ({
-            sub_dealer_id: item.key, 
-            is_on_shop: item.onshop, 
+      .then((values) => {
+        
+        const payload = {
+          id: location.state.id, 
+          name: values.shop_name || "",
+          mobile_phone: values.mobile_phone || "",
+          address: values.address || "",
+          email: values.email || "",
+          day_of_week: values.day_of_week || "",
+          start_time: values.start_time
+            ? dayjs(values.start_time).format("HH:mm")
+            : "",
+          end_time: values.end_time
+            ? dayjs(values.end_time).format("HH:mm")
+            : "",
+          business_size: values.business_size || "",
+          outlet_location: values.outlet_location || "",
+          location_longitude: currentLocation.lng || "",
+          location_latitude: currentLocation.lat || "",
+          location_address: values.outlet_location || "", // หรือใช้ location_address
+          t_shirt_size: values.tshirt_size || "",
+          anniversary: values.anniversary
+            ? dayjs(values.anniversary).format("YYYY-MM-DD")
+            : null,
+          remark: values.remark || "",
+          photo_path: values.profile,
+          use_flag: 1, // กำหนดค่าเริ่มต้น
+          fertilizer_business: values.fertilizer_business || "",
+          seed_business: values.seed_business || "",
+          pesticides_business: values.pesticides_business || "",
+          contact_items: contacts.map((contact) => ({
+            name_en: contact.name_en || "",
+            contact_number: contact.contact_number || "",
+            name_th: contact.name_th || "",
+            nickname: contact.nickname || null,
+            date_of_birth: contact.date_of_birth
+              ? dayjs(contact.date_of_birth).format("YYYY-MM-DD")
+              : null,
+            t_shirt_size: contact.t_shirt_size || null,
+            relationship: contact.relationship || null,
+            duty: contact.duty || null,
+            tel1: contact.tel1 || "",
+            tel2: contact.tel2 || "",
+            email: contact.email || null,
+            line_id: contact.line_id || null,
+            hobby: contact.hobby || null,
+            age: contact.age || null,
           })),
+          crop_list: defaultSelectedCrops || [], // ใช้ crop_list เป็น array ของ id
+          network_list: networkList.map((item) => ({
+            farmer_id: item.key, // ใช้ `key` เป็น `farmer_id`
+            is_on_shop: true, // กำหนดค่าตามที่ต้องการ
+          })),
+
         };
-  
         useServiceAPI
-          .put(paths.pathCustomerSubDealerNetworkUpdate, formattedData) // paths.pathNetworkSave = URL API
+          .put(paths.pathSubDealerDetailUpdate, payload, setLoading)
           .then((response) => {
             if (response.status === 200) {
-              navigate("/customer/dealer");
-              showNotification(
-                "success",
-                response.data.message,
-                response.data.message_line
-              );
-
+              showNotification("success", response.data.message).then(() => {
+                navigate("/customer/sub-dealer");
+              });
             }
           })
           .catch((error) => {
-            console.error("Save failed:", error);
+            console.error("API Error:", error);
+            showNotification(
+              "error",
+              error.response?.data?.message || "An unexpected error occurred."
+            );
           });
       })
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
+        showNotification("error", "Please complete all required fields.");
       });
   };
 
+  // ---------- เนื้อหาในแท็บ “Profile” ----------
+  const profileTabContent = (
+    <Form form={form} layout="vertical" component={false}>
+
+      {/* <FormUser title="Personal Info" profile={profileImage} fields={formFields} form={form} /> */}
+      {loading ? (
+        <div style={{ textAlign: "center", padding: "20px" }}>Loading...</div>
+      ) : (
+        <FormSubDealer
+          title="Personal Info"
+          profile={profileImage}
+          fields={formFields}
+          form={form}
+        />
+      )}
+      
+      <div
+        className="bg-white p-4"
+        style={{
+          boxShadow: "rgba(0, 0, 0, 0.1)",
+          marginTop: "-20px",
+        }}
+      >
+        <div className="text-[#00783F] text-lg font-semibold mb-3">
+        <div className="flex justify-end space-x-4 mb-2">
+          <ActionButton 
+            text={isMapEnabled ? "Close Google" : "Open Google"}
+            mode="update" 
+            onClick={handleToggleMap}
+            />
+        </div>
+
+          <LoadScript googleMapsApiKey={dataApiKey}>
+            <GoogleMap
+              mapContainerStyle={mapContainerStyle}
+              center={currentLocation}
+              zoom={dataMapZoom}
+              onClick={(e) => {
+                const lat = e.latLng.lat();
+                const lng = e.latLng.lng();
+                setCurrentLocation({ lat, lng });
+              }}
+            >
+              {isGoogleLoaded && (
+                <Marker
+                  position={currentLocation}
+                  icon={{
+                    scaledSize: { width: 30, height: 30 },
+                  }}
+                  draggable={true}
+                  onDragEnd={handleMarkerDragEnd}
+                  options={{ disableDefaultUI: !isMapEnabled, draggable: isMapEnabled }}
+
+                />
+              )}
+            </GoogleMap>
+          </LoadScript>
+
+          <Form.Item label="Remark" name="remark" className="mt-3">
+            <Input placeholder="Enter Remark" />
+          </Form.Item>
+        </div>
+      </div>
+
+      <BoxPrimary title="Crop">
+        <Select
+          mode="multiple"
+          showSearch
+          placeholder="Select Crop(s)"
+          optionFilterProp="children"
+          className="w-full"
+          value={defaultSelectedCrops}
+          onChange={(value) => setDefaultSelectedCrops(value)}
+          options={transformedCropOptions}
+          disabled={isViewMode}
+        />
+      </BoxPrimary>
+
+      <BoxPrimary>
+        <div className="flex justify-between mb-4">
+          <span className="text-[#00783F] text-lg font-semibold">
+            Contact Person
+          </span>
+          {/* <ActionButton mode="add" text="Add" onClick={addContact} /> */}
+          {!isViewMode && (
+            <ActionButton mode="add" text="Add" onClick={addContact} />
+          )}
+
+        </div>
+        {contacts.map((contact, index) => (
+          <div key={index}>
+            <div className="flex justify-between mb-4">
+              <span className="text-[#00783F] text-md">{`Person ${
+                index + 1
+              }`}</span>
+              {index > 0 && (
+                <ActionButton
+                  mode="delete"
+                  text="Delete"
+                  onClick={() => handleRemoveContact(index)}
+                />
+              )}
+            </div>
+            <Row gutter={[16, 16]} className="mt-3">
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Name (EN)"
+                  value={contact.name_en}
+                  onChange={(e) =>
+                    updateContact(index, "name_en", e.target.value)
+                  }
+                  disabled={isViewMode}
+
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Name (TH)"
+                  value={contact.name_th}
+                  onChange={(e) =>
+                    updateContact(index, "name_th", e.target.value)
+                  }
+                  disabled={isViewMode}
+
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Nickname"
+                  value={contact.nickname}
+                  onChange={(e) =>
+                    updateContact(index, "nickname", e.target.value)
+                  }
+                  disabled={isViewMode}
+
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <DatePicker
+                  className="w-full"
+                  placeholder="Date of Birth"
+                  value={
+                    contact.date_of_birth ? dayjs(contact.date_of_birth) : null
+                  }
+                  onChange={(date) =>
+                    updateContact(index, "date_of_birth", date)
+                  }
+                  disabled={isViewMode}
+
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Age"
+                  value={contact.age || ""}
+                  onChange={(e) =>
+                    updateContact(index, "age", e.target.value)
+                  }
+                  disabled={true}
+                />
+              </Col>
+
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="T-Shirt Size"
+                  value={contact.t_shirt_size}
+                  onChange={(e) =>
+                    updateContact(index, "t_shirt_size", e.target.value)
+                  }
+                  disabled={isViewMode}
+
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Relationship"
+                  value={contact.relationship}
+                  onChange={(e) =>
+                    updateContact(index, "relationship", e.target.value)
+                  }
+                  disabled={isViewMode}
+
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Duty"
+                  value={contact.duty}
+                  onChange={(e) => updateContact(index, "duty", e.target.value)}
+                  disabled={isViewMode}
+
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Tel 1"
+                  value={contact.tel1}
+                  onChange={(e) => updateContact(index, "tel1", e.target.value)}
+                  disabled={isViewMode}
+
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Tel 2"
+                  value={contact.tel2}
+                  onChange={(e) => updateContact(index, "tel2", e.target.value)}
+                  disabled={isViewMode}
+
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Contact Number"
+                  value={contact.contact_number}
+                  onChange={(e) =>
+                    updateContact(index, "contact_number", e.target.value)
+                  }
+                  disabled={isViewMode}
+
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Email"
+                  value={contact.email}
+                  onChange={(e) => updateContact(index, "email", e.target.value)}
+                  disabled={isViewMode}
+
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Line ID"
+                  value={contact.line_id}
+                  onChange={(e) => updateContact(index, "line_id", e.target.value)}
+                  disabled={isViewMode}
+
+                />
+              </Col>
+              <Col xs={24} sm={18} md={18} lg={18}>
+                <Input
+                  placeholder="hobby"
+                  value={contact.hobby || ""}
+                  onChange={(e) => updateContact(index, "hobby", e.target.value)}
+                  disabled={isViewMode}
+
+                />
+              </Col>
+            </Row>
+            {index < contacts.length - 1 && <hr className="my-4" />}
+          </div>
+        ))}
+      </BoxPrimary>
+
+      <div className="flex justify-end space-x-4 mt-6">
+        <ActionButton
+          mode="back"
+          text="Back"
+          onClick={() => navigate("/customer/sub-dealer")}
+        />
+          {mode === "Edit" ? (
+            <ActionButton text="Edit" mode="save" onClick={handleSaveEdit} />
+            ) : (
+              <ActionButton text="Save" mode="save" onClick={handleSave} />
+          )}
+
+        {/* <ActionButton text="Save" mode="save" onClick={handleSave} /> */}
+      </div>
+    </Form>
+  );
+
+  // ---------- เนื้อหาในแท็บ “Network” ----------
   const FarmerhandleSave = () => {
     // Validate form fields if needed
     form
@@ -855,17 +1082,17 @@ export default function EditInformation() {
       .then(() => {
         const formattedData = {
           id: location.state.id,
-          network_list: farmerListItem.map((item) => ({
+          network_list: networkList.map((item) => ({
             farmer_id: item.key, 
             is_on_shop: true, 
           })),
         };
   
         useServiceAPI
-          .put(paths.pathCustomerSubDealerFarmerUpdate, formattedData) // paths.pathNetworkSave = URL API
+          .put(paths.pathSubDealerDetailUpdateFarmer, formattedData) // paths.pathNetworkSave = URL API
           .then((response) => {
             if (response.status === 200) {
-              navigate("/customer/dealer");
+              navigate("/customer/sub-dealer");
               showNotification(
                 "success",
                 response.data.message,
@@ -883,276 +1110,69 @@ export default function EditInformation() {
       });
   };
 
-
-  const handleBankAccountChange = (index, field, value) => {
-    const updatedAccounts = companyinfo.bank_account_items?.length
-      ? [...companyinfo.bank_account_items]
-      : Array(2).fill({ account_title: "", account_number: "", bank_name: "", bank_branch: "" });
-  
-    // อัปเดตค่าของฟิลด์ที่เปลี่ยนแปลงในรายการที่เลือก
-    updatedAccounts[index] = {
-      ...updatedAccounts[index],
-      [field]: value,
-    };
-      setcompanyinfo({ ...companyinfo, bank_account_items: updatedAccounts });
-  };
-  
-
-  const handleContactChange = (index, field, value) => {
-    const updatedContacts = [...contactItems];
-  
-    if (field === "date_of_birth") {
-      const birthDate = dayjs(value);
-      const currentYear = dayjs().year();
-      const age = currentYear - birthDate.year(); // คำนวณอายุ
-      updatedContacts[index][field] = value; // อัปเดตวันเกิด
-      updatedContacts[index]["age"] = age; // อัปเดตอายุ
-    } else {
-      updatedContacts[index][field] = value; // อัปเดตฟิลด์อื่นๆ
-    }
-  
-    setContactItems(updatedContacts); // อัปเดต state
-  };
-
-  
-  const mapContainerStyle = {
-    width: "100%",
-    height: "30vh",
-  };
-
-  const handleMarkerDragEnd = async (event) => {
-    const lat = event.latLng.lat();
-    const lng = event.latLng.lng();
-    const geocoder = new window.google.maps.Geocoder();
-    const latlng = { lat, lng };
-  
-    try {
-      const response = await geocoder.geocode({ location: latlng });
-      if (response.results && response.results.length > 0) {
-        const locationName = response.results[0].formatted_address;
-        // อัปเดต Outlet Location
-        form.setFieldsValue({ location_address: locationName });
-        setcompanyinfo((prev) => ({
-          ...prev,
-          location_address: locationName,
-        }));
-  
-        showNotification("success", `Location updated: ${locationName}`);
-        // อัปเดตตำแหน่งปัจจุบันใน State
-        setCurrentLocation({ lat, lng });
-      } else {
-        showNotification("error", "No address found for this location.");
-      }
-    } catch (error) {
-      console.error("Geocoder failed due to:", error);
-      showNotification("error", "Unable to fetch location name.");
-    }
-  
-
-  };
-  
-    useEffect(() => {
-      const checkGoogleMaps = () => {
-        if (window.google && window.google.maps) {
-          setIsGoogleLoaded(true);
-        } else {
-          const interval = setInterval(() => {
-            if (window.google && window.google.maps) {
-              clearInterval(interval);
-              setIsGoogleLoaded(true);
-            }
-          }, 500);
-        }
-      };
-      checkGoogleMaps();
-    }, []);
-    
-  let items = [
-    {
-      key: "profile",
-      label: <span className="tab-title">Profile</span>,
-      children: (
-      <>
-      {dataLoaded ? (
-        <FormUser profile={profileImage} fields={formFields} form={form} />
-      ) : (
-        <div></div>
-      )}
-
-      <div className={`bg-white p-4`}
-        style={{
-          boxShadow: "rgba(0, 0, 0, 0.1)", // Optional for a subtle shadow
-          marginTop: "-20px",
-        }}
-      >
-      <div className="text-[#00783F] text-lg font-semibold mb-3">
-
-
-        <LoadScript googleMapsApiKey={dataApiKey}>
-          <GoogleMap
-            mapContainerStyle={mapContainerStyle}
-            center={ currentLocation}
-            zoom={dataMapZoom}
-            onClick={(e) => {
-              const lat = e.latLng.lat();
-              const lng = e.latLng.lng();
-              setCurrentLocation({ lat, lng });
-            }}
-          >
-            {isGoogleLoaded && (
-              <Marker
-                position={currentLocation}
-                icon={{
-                  url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
-                  scaledSize: { width: 30, height: 30 },
-                }}
-                draggable={true}
-                onDragEnd={handleMarkerDragEnd} 
-              />
-            )}
-          </GoogleMap>
-        </LoadScript>
-        </div>
-      </div>
-
-
+  const networkTabContent = (
+    <>
       <BoxPrimary>
-          <Select
-            mode="multiple"
-            showSearch
-            placeholder="Select Crop(s)"
-            optionFilterProp="children"
-            className="w-full"
-            value={defaultSelectedCrops} 
-            onChange={(value) => setDefaultSelectedCrops(value)} // จัดการการเปลี่ยนแปลงค่า
-            options={transformedCropOptions} 
-            disabled={isViewMode}
-          />
+        <div className="flex justify-between space-x-4 mb-3">
+          <span className="text-[#00783F] text-lg font-semibold">Fammer</span>
+          <ActionButton mode="add" text="Add" onClick={handleOpenTerritoryModal} />
+        </div>
+        <TableComponent header={networkHeader} dataSource={networkList} />
       </BoxPrimary>
 
-      <BoxPrimary>
-        <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-lg font-semibold">Contact Person</span>
-          {!isViewMode && ( 
+      <div className="flex justify-end space-x-4 mt-6">
             <ActionButton
-              mode="add"
-              text="Add"
-              onClick={() => {
-                setContactItems([
-                  ...contactItems,
-                  {
-                    name: "",
-                    phone: "",
-                    email: "",
-                    position: ""
-                  }
-                ]);
-              }}
+              mode="back"
+              text="Back"
+              onClick={() => navigate("/customer/sub-dealer")}
             />
-          )}
-        </div>
-        {contactItems.length > 0 ? (
-          renderContactItems()
-        ) : (
-          <div className="text-gray-500">No contact person information available</div>
-        )}
-      </BoxPrimary>
-
-        <div className="flex justify-end space-x-4 mt-6">
-          <ActionButton
-            mode="back"
-            text="Back"
-            onClick={() => navigate("/customer/dealer")}
-          />
-        {
-        !isViewMode && (
-          <ActionButton text="Update" mode="update" onClick={handleSave} />
-          )
-        }
-        </div>
-        </>
-      ),
-    },
-    {
-      key: "network",
-      label: <span className="tab-title">Network</span>,
-      children: (
-        <>
-          <BoxPrimary>
-            <div className="flex justify-between space-x-4 mb-3">
-              <span className="text-[#00783F] text-lg font-semibold"> Fammer </span>
-              {
-                !isViewMode && (
-                  <div className="flex space-x-2">
-                  <ActionButton
-                    mode="add"
-                    text="Add"
-                    onClick={handleOpenTerritoryModal}
-                  />
-                </div>
-                )
-              }
-            </div>
-            <TableComponent 
-              header={header} 
-              dataSource={networkList} 
-            />
-          </BoxPrimary>
-          <div className="flex justify-end space-x-4 mt-6 mb-6">
-          {
-          !isViewMode && (
-            <ActionButton text="Update Network" mode="update" onClick={networkhandleSave} />
-            )
-          }
+            {mode !== "Create" && !isViewMode && (
+              <ActionButton text="Update Farmer" mode="update" onClick={FarmerhandleSave} />
+            )}
           </div>
-          
 
-        </>
-      ),
-    },
-  ];
+    </>
+  );
 
-  if (isViewMode) {
-    items = items.map(field => {
-      if (field.key === 'network') {
-        return field;
-      }else if(field.key === 'profile'){
-        return field;
-      }
-      return {
-        ...field,
-        disabled: true
-      };
-    });
-  }
   
+
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">{isViewMode ? "View Information" : "Edit Information"}</div>
+      <div className="title-page">{isViewMode ? "View Sub Dealer" : "Edit Sub Dealer"}</div>
       <Tabs
         activeKey={activeTabKey}
         onChange={handleTabChange}
         className="custom-tabs"
-        items={items}
+        items={[
+          {
+            key: "profile",
+            label: <span className="tab-title">Profile</span>,
+            children: profileTabContent,
+          },
+          {
+            key: "network",
+            label: <span className="tab-title">Fammer</span>,
+            children: networkTabContent,
+          },
+        ]}
       />
 
-
+      {/* DynamicModal สำหรับเลือก network เพิ่มเติม */}
       <DynamicModal
-        title="Farmer List"
+        title="Add Fammer"
         isVisible={isTerritoryModalVisible}
         onClose={handleCloseTerritoryModal}
         header={[
           { title: "No", dataIndex: "no", key: "no", width: 50 },
           { title: "Name", dataIndex: "name", key: "name", width: 150 },
-          { title: "contact number",  dataIndex: "territory", key: "territory", width: 150,},
-          { title: "Status",  dataIndex: "position",  key: "position",  width: 150,},
+          { title: "Contact", dataIndex: "contactperson", key: "contactperson", width: 150 },
+          { title: "Status", dataIndex: "status", key: "status", width: 120 },
         ]}
         dataSource={userList}
         width="1200px"
         onAddSelected={handleAddSelectedRows}
         type="add"
       />
-
     </MainLayout>
   );
 }

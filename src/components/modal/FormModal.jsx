@@ -152,6 +152,7 @@ const FormModal = ({
       onOk({ ...formData, photo: capturedImage });
     }
     onClose();
+    
   };
 
   return (
@@ -173,14 +174,16 @@ const FormModal = ({
       }}
     >
       <div className="grid grid-cols-4 gap-4 py-4">
-        <div className="col-span-4 md:col-span-1 hidden">
+        <div className="col-span-4 md:col-span-1 ">
           <label className="block mb-2 font-medium text-gray-700">
             Document Number
           </label>
           <Input
             disabled
             value={formData.documentNumber || dataSource.document_number}
-            onChange={(e) => handleInputChange("documentNumber", e.target.value)}
+            // onChange={(e) => handleInputChange("documentNumber", e.target.value)}
+            onChange={(value) => handleInputChange("documentNumber", value)}
+
           />
         </div>
         <div className="col-span-4 md:col-span-1">
