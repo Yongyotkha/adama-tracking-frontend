@@ -76,21 +76,27 @@ const styles = StyleSheet.create({
     display: "table",
     width: "auto",
     borderStyle: "solid",
-    borderWidth: 1,
+    borderTop: 1,
+    borderRight: 1,
     borderColor: "#000",
     marginBottom: 5, // Reduce margin between elements
   },
   tableRow: {
     flexDirection: "row",
+    // borderStyle: "solid",
+    // borderWidth: 1,
+    // borderTop: 0,
   },
   tableCell: {
     borderStyle: "solid",
     borderWidth: 1,
+    borderTop: 0,
+    borderRight: 0,
     borderColor: "#000",
     paddingLeft: 2, // Reduce padding
     paddingRight: 2, // Reduce padding
-    paddingTop: 1, // Reduce padding
-    paddingBottom: 1, // Reduce padding
+    paddingTop: 1.25, // Reduce padding
+    paddingBottom: 1.25, // Reduce padding
     flexGrow: 1,
   },
   footer: {
@@ -119,7 +125,7 @@ const styles = StyleSheet.create({
   },
   footerInfoCell: {
     width: "50%", // Ensure cells are evenly distributed
-    height: 40, // Ensure cells are evenly distributed
+    height: 50, // Ensure cells are evenly distributed
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#000",
