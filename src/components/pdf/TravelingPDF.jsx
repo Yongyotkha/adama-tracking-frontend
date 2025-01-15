@@ -24,7 +24,7 @@ Font.register({
 const styles = StyleSheet.create({
   page: {
     padding: 5,
-    fontSize: 7,
+    fontSize: 8,
     fontFamily: "BrownLLHeb", // Use the registered font
   },
   header: {
@@ -68,7 +68,8 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#000",
-    padding: 2, // Reduce padding
+    paddingLeft: 1, // Reduce padding
+    paddingRight: 1, // Reduce padding
     flexGrow: 1,
   },
   footer: {
@@ -98,6 +99,7 @@ const styles = StyleSheet.create({
   },
   footerInfoCell: {
     width: "50%", // Ensure cells are evenly distributed
+    height: 60, // Ensure cells are evenly distributed
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#000",
@@ -167,7 +169,7 @@ const TravelingPDF = ({ title }) => {
               <Text style={[styles.tableCell, { width: "10%" }]}>Toll Way</Text>
               <Text style={[styles.tableCell, { width: "10%" }]}>Entertain</Text>
               <Text style={[styles.tableCell, { width: "10%" }]}>Others</Text>
-              <Text style={[styles.tableCell, { width: "10%" }]}>Remark</Text>
+              <Text style={[styles.tableCell, { width: "20%" }]}>Remark</Text>
             </View>
 
             {/* Data Rows */}
@@ -183,7 +185,7 @@ const TravelingPDF = ({ title }) => {
                 <Text style={[styles.tableCell, { width: "10%" }]}>{row.tollWay || "-"}</Text>
                 <Text style={[styles.tableCell, { width: "10%" }]}>{row.entertain || "-"}</Text>
                 <Text style={[styles.tableCell, { width: "10%" }]}>{row.others || "-"}</Text>
-                <Text style={[styles.tableCell, { width: "10%" }]}>{row.remarks || "-"}</Text>
+                <Text style={[styles.tableCell, { width: "20%" }]}>{row.remarks || "-"}</Text>
               </View>
             ))}
           </View>
