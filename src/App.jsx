@@ -49,6 +49,7 @@ import AdvanceExpense from "./pages/expenses/advance/AdvanceExpense";
 import CreateAdvanceExpense from "./pages/expenses/advance/CreateAdvanceExpense";
 import EditAdvanceExpense from "./pages/expenses/advance/EditAdvanceExpense";
 import ViewAdvanceExpense from "./pages/expenses/advance/ViewAdvanceExpense";
+import PdfAdvanceExpense from "./pages/pdf/ViewAdvanceExpense";
 import ProductClaim from "./pages/expenses/product_claim/ProductClaim";
 import CreateClaimRequest from "./pages/expenses/product_claim/CreateClaimRequest";
 import EditClaimRequest from "./pages/expenses/product_claim/EditClaimRequest";
@@ -157,6 +158,7 @@ const App = () => {
           <Route path="/expenses/advance/create" element={<CreateAdvanceExpense />} />
           <Route path="/expenses/advance/edit" element={<EditAdvanceExpense />} />
           <Route path="/expenses/advance/view" element={<ViewAdvanceExpense />} />
+          <Route path="/expenses/advance/pdf" element={<PdfAdvanceExpense />} />
           <Route path="/expenses/product-claim-list" element={<ProductClaim />} />
           <Route path="/expenses/product-claim-waiting-list" element={<ProductClaim />} />
           <Route path="/expenses/product-claim/create" element={<CreateClaimRequest />} />
