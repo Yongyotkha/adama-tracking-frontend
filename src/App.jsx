@@ -55,7 +55,7 @@ import EditClaimRequest from "./pages/expenses/product_claim/EditClaimRequest";
 import Traveling from "./pages/expenses/traveling/Traveling";
 import CreateTraveling from "./pages/expenses/traveling/CreateTraveling";
 import EditTraveling from "./pages/expenses/traveling/EditTraveling";
-import PdfTraveling from "./pages/pdf/ViewPDF";
+import PdfTraveling from "./pages/pdf/ViewTraveling";
 import ClearingExpense from "./pages/expenses/clearing/ClearingExpense";
 import CreateClearing from "./pages/expenses/clearing/CreateClearingExpense";
 import EditClearing from "./pages/expenses/clearing/EditClearingExpense";
