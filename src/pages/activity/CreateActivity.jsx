@@ -1698,6 +1698,8 @@ export default function CreateActivity() {
             onClick={() => handleSave("save")}
           />
         )}
+        {/* Export PDF Button */}
+        <ActionButton mode="saveDraft" text="Export PDF" onClick={() => window.open("/expenses/advance/pdf", "_blank")} />
       </div>
 
       {/* Modal for Add Participant */}
