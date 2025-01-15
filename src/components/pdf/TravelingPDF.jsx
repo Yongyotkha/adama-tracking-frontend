@@ -10,29 +10,48 @@ import {
   Font,
 } from "@react-pdf/renderer";
 
-// Register the BrownLLHeb font family
+// Register the fonts with correct paths
 Font.register({
-  family: "BrownLLHeb",
+  family: "Anuphan",
   fonts: [
-    { src: "/font/BrownLLHeb/BrownLLHebTT-Regular.ttf" },
-    { src: "/font/BrownLLHeb/BrownLLHebTT-Bold.ttf", fontWeight: "bold" },
-    { src: "/font/BrownLLHeb/BrownLLHebTT-Italic.ttf", fontStyle: "italic" },
-    { src: "/font/BrownLLHeb/BrownLLHebTT-BoldItalic.ttf", fontWeight: "bold", fontStyle: "italic" },
+    { src: "/font/Anuphan/Anuphan-Regular.ttf" },
+    { src: "/font/Anuphan/Anuphan-Bold.ttf", fontWeight: "bold" },
+    { src: "/font/Anuphan/Anuphan-Light.ttf", fontWeight: "300" },
+    { src: "/font/Anuphan/Anuphan-Medium.ttf", fontWeight: "500" },
+    { src: "/font/Anuphan/Anuphan-SemiBold.ttf", fontWeight: "600" },
+    { src: "/font/Anuphan/Anuphan-Thin.ttf", fontWeight: "100" },
+  ],
+});
+
+Font.register({
+  family: "Sarabun",
+  fonts: [
+    { src: "/font/Sarabun/Sarabun-Regular.ttf" },
+    { src: "/font/Sarabun/Sarabun-Bold.ttf", fontWeight: "bold" },
+    { src: "/font/Sarabun/Sarabun-Italic.ttf", fontStyle: "italic" },
+    { src: "/font/Sarabun/Sarabun-BoldItalic.ttf", fontWeight: "bold", fontStyle: "italic" },
+    { src: "/font/Sarabun/Sarabun-ExtraLight.ttf", fontWeight: "200" },
+    { src: "/font/Sarabun/Sarabun-Light.ttf", fontWeight: "300" },
+    { src: "/font/Sarabun/Sarabun-Medium.ttf", fontWeight: "500" },
+    { src: "/font/Sarabun/Sarabun-SemiBold.ttf", fontWeight: "600" },
+    { src: "/font/Sarabun/Sarabun-Thin.ttf", fontWeight: "100" },
   ],
 });
 
 const styles = StyleSheet.create({
   page: {
-    padding: 5,
-    fontSize: 8,
-    fontFamily: "BrownLLHeb", // Use the registered font
+    paddingTop: 5,
+    paddingRight: 5,
+    paddingLeft: 5,
+    fontSize: 7,
+    fontFamily: "Sarabun", // Use the registered font
   },
   header: {
     display: "flex",
     flexDirection: "row", // Align items in a row
     justifyContent: "space-between", // Space between items
     alignItems: "center", // Align items vertically to the center
-    marginBottom: 8, // Add spacing below the header
+    marginBottom: 7, // Add spacing below the header
     lineHeight: 0.6,
   },
   logo: {
@@ -68,12 +87,13 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#000",
-    paddingLeft: 1, // Reduce padding
-    paddingRight: 1, // Reduce padding
+    paddingLeft: 2, // Reduce padding
+    paddingRight: 2, // Reduce padding
+    paddingTop: 1, // Reduce padding
+    paddingBottom: 1, // Reduce padding
     flexGrow: 1,
   },
   footer: {
-    marginTop: 2,
     fontSize: 8,
   },
   footerRow: {
@@ -99,7 +119,7 @@ const styles = StyleSheet.create({
   },
   footerInfoCell: {
     width: "50%", // Ensure cells are evenly distributed
-    height: 60, // Ensure cells are evenly distributed
+    height: 40, // Ensure cells are evenly distributed
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#000",
