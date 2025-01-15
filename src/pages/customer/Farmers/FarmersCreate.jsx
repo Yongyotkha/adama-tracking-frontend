@@ -1,9 +1,10 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import FormUser from "../../../components/form_user/FormUser";
 import DynamicButton from "../../../components/button/DynamicButton";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
+// import { Form } from "antd";
 import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
 import { AuthContext } from "../../../contexts/AuthContext";
@@ -18,66 +19,69 @@ import {
   Tabs,
   Form,
   Select,
-  Checkbox,
+  TimePicker,
 } from "antd";
 import { values } from "lodash";
 import dayjs from "dayjs";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import TableComponent from "../../../components/table/TableComponent";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
-import DynamicModal from "../../../components/modal/DynamicModal"; 
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+import DynamicModal from "../../../components/modal/DynamicModal"; // Adjust path if needed
+import { GoogleMap, LoadScript, Marker} from "@react-google-maps/api";
 
 const { Option } = Select;
 
-export default function EditInformation() {
+export default function CreateSubDealer() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const [dataSource, setDataSource] = useState([]);
-  const [activeTabKey, setActiveTabKey] = useState("profile");
-  const [tableLoading, setTableLoading] = useState(false);
-  const location = useLocation();
-  const [networkList, setNetworkList] = useState([]); 
-  const [companyinfo, setcompanyinfo] = useState([]);
-  const [contactItems, setContactItems] = useState([]); 
-  const [form] = Form.useForm();
-  const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
-  const [userList, setUserList] = useState([]);
-  const [personitem, setpersonitem] = useState([]);
   const [cropOptions, setCropOptions] = useState([]);
-  const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); 
-  const [profileImage, setProfileImage] = useState("/img/profile.jpg"); 
-  const [dataLoaded, setDataLoaded] = useState(false);
-  const { userInfo, showNotification } = useContext(AuthContext);
+  const [form] = Form.useForm();
+  const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); // กำหนด state สำหรับ defaultSelectedCrops
+  const [personalInfoData, setPersonalInfoData] = useState({});
+  // const [personalInfo, setPersonalInfo] = useState([]);
+  const { showMsg, showNotification } = useContext(AuthContext);
+  const [cropData, setCropData] = useState([]);
+  const [contactsData, setContactsData] = useState([]);
   const [dataApiKey, setDataApiKay] = useState("AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik");
-  const [currentLocation, setCurrentLocation] = useState({
-    lat: 13.9572612,
-    lng: 100.6222401,
-  });
-  const [dataMapZoom, setDataMapZoom] = useState(15);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
-  const [defaultIdFarmers, setDefaultFarmers] = useState([]); 
-  const [isMapEnabled, setIsMapEnabled] = useState(true);
-
-    // อ่านสถานะ mod จาก state
-    const mode = location.state?.mod; 
-    const isViewMode = mode === "View";
-
+  const [companyinfo, setcompanyinfo] = useState([]);
+  const [currentLocation, setCurrentLocation] = useState({lat: 13.9572612,lng: 100.6222401,});
+  const [dataMapZoom, setDataMapZoom] = useState(15);
+  const [contacts, setContacts] = useState([
+    {
+      name_en: "",
+      name_th: "",
+      nickname: "",
+      date_of_birth: null,
+      t_shirt_size: "",
+      relationship: "",
+      duty: "",
+      tel1: "",
+      tel2: "",
+      contact_number: "",
+      email: "",
+      line_id: "",
+    },
+  ]);
+  const location = useLocation();
+  const [isMapEnabled, setIsMapEnabled] = useState(false);
+  const [profileImage, setProfileImage] = useState("/img/profile.jpg"); // Default value
+  
+  const mode = location.state.mod; 
+  const isViewMode = mode === "View";
+  
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        console.log(location.state.mod);
-        console.log(location.state.id);
-        setDefaultFarmers(location.state.id)
-        // await fetchFarnersDetails(location.state.id);
+        
+        if (mode ==='Edit' || mode=== 'View') {
+          await fetchFarmersDetails(location.state.id);
+        }
         const [crops] = await Promise.all([
           useServiceAPI.get(paths.pathMasterCrop, {}),
         ]);
         setCropOptions(crops.data);
-        setDataLoaded(true);
-
-        // setCropList(crops.data || []);
       } catch (error) {
         console.log(error.message);
         showNotification("เกิดข้อผิดพลาด");
@@ -88,167 +92,73 @@ export default function EditInformation() {
     fetchData();
   }, []);
 
-  // const fetchFarnersDetails = async (id) => {
-  //   setLoading(true);
-  //   try {
-  //     const response = await useServiceAPI.get(
-  //       `${paths.pathCustomerFarmersDetail}?id=${id}`
-  //     );
-  //     if (response.status === 200) {
-  //       const { data } = response;
-        
-  //       form.setFieldsValue({
-  //         name: data.name || "",
-  //         mobile_phone: data.mobile_phone || "",
-  //         address: data.address || "",
-  //         email: data.email || "",
-  //         day_of_week: data.day_of_week || [],
-  //         start_time: data.start_time ? dayjs(data.start_time, "HH:mm") : null,
-  //         end_time: data.end_time ? dayjs(data.end_time, "HH:mm") : null,
-  //         business_size: data.business_size || "",
-  //         outlet_location: data.outlet_location || "",
-  //         t_shirt_size: data.t_shirt_size || "",
-  //         anniversary: data.anniversary
-  //           ? dayjs(data.anniversary, "YYYY-MM-DD")
-  //           : null,
-  //         location_address: data.location_address || "",
-  //         use_flag: parseInt(data.use_flag, 10) === 1 ? "Active" : "Inactive",
-  //         remark: data.remark || "",
-  //       });
-
-  //       setcompanyinfo(data);
-  //       setContactItems(data.contact_items);
-  //       setProfileImage(data.photo_path)
-  //       setCropOptions(data.crop_list || []);
-  //       const cropNames = data.crop_list?.map((crop) => Number(crop.id)) || [];
-  //       setDefaultSelectedCrops(cropNames);
-  //       const lat = parseFloat(data.location_latitude) || 13.9572612; 
-  //       const lng = parseFloat(data.location_longitude) || 100.6222401;   
-  //       setCurrentLocation({ lat, lng });
-
-
-  //       // const newDataNetwork = data.network_list.map((item, index) => ({
-  //       //   key: item.sub_dealer_id,
-  //       //   no: index + 1,
-  //       //   name: item.sub_dealer_name || "-",
-  //       //   contactperson: item.sub_dealer_contact_name || "-",
-  //       //   mobilePhone: item.sub_dealer_contact_phone_number || "-",
-  //       //   onshop: item.is_on_shop || false,
-  //       //   status: (
-  //       //     <BadgeStatus
-  //       //       text={item.sub_dealer_channel_type_name}
-  //       //       bgColor={item.sub_dealer_channel_type_bg_color}
-  //       //       textColor={item.sub_dealer_channel_type_color}
-  //       //     />
-  //       //   ),
-  //       //   action: (
-  //       //     <>
-  //       //       <DynamicButton
-  //       //         iconSrc="/img/icons/delete.png"
-  //       //         onClick={() =>
-  //       //           handleDeleteItem(item.sub_dealer_id)
-  //       //         }
-  //       //       />
-  //       //     </>
-  //       //   ),
-  //       // }));
-  //       // setNetworkList(newDataNetwork);
-  //     } else {
-  //       console.error("Failed to fetch data:", response.message);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  useEffect(() => {
-    const fetchData = async () => {
-
-      if (mode === "create") {
-        form.resetFields(); // ล้างฟอร์มสำหรับโหมดสร้างใหม่
-        setDataLoaded(true); // ตั้งค่าข้อมูลว่าโหลดเสร็จแล้ว
-        return;
-      }
-
-      setLoading(true);
-      try {
-        // ดึงข้อมูล Farmers Details
-        const farmerResponse = await useServiceAPI.get(
-          `${paths.pathCustomerFarmersDetail}?id=${location.state.id}`
+  const fetchFarmersDetails = async (id) => {
+    setLoading(true);
+    try {
+      const response = await useServiceAPI.get(
+        `${paths.pathCustomerFarmersDetail}?id=${id}`
+      );
+      if (response.status === 200) {
+        const { data } = response;
+        setProfileImage(data.photo_path)
+        // ตั้งค่า Default Values
+        form.setFieldsValue({
+          name: data.name || "",
+          mobile_phone: data.mobile_phone || "",
+          address: data.address || "",
+          email: data.email || "",
+          day_of_week: data.day_of_week || [],
+          start_time: data.start_time ? dayjs(data.start_time, "HH:mm") : null,
+          end_time: data.end_time ? dayjs(data.end_time, "HH:mm") : null,
+          remark: data.remark || "",
+          outlet_location: data.location_address || "",
+          use_flag: data.use_flag === "1" ? "Active" : "Inactive",
+        });
+          
+        // ตั้งค่ารายละเอียดอื่น ๆ
+        setCurrentLocation({
+          lat: parseFloat(data.location_latitude) || 13.9572612,
+          lng: parseFloat(data.location_longitude) || 100.6222401,
+        });
+        setDefaultSelectedCrops(
+          data.crop_list?.map((crop) => Number(crop.id)) || []
         );
-  
-        // ตรวจสอบว่า API ส่งข้อมูลกลับมาสำเร็จหรือไม่
-        if (farmerResponse.status === 200) {
-          const farmerData = farmerResponse.data;
-  
-          // ตั้งค่า default values ลงในฟอร์ม
-          form.setFieldsValue({
-
-            name: farmerData.name || "",
-            mobile_phone: farmerData.mobile_phone || "",
-            profile: farmerData.photo_path || "",
-            address: farmerData.address || "",
-            email: farmerData.email || "",
-            day_of_week: farmerData.day_of_week || [],
-            start_time: farmerData.start_time
-              ? dayjs(farmerData.start_time, "HH:mm")
+        setContacts(
+          data.contact_items?.map((contact) => ({
+            name_en: contact.name_en || "",
+            name_th: contact.name_th || "",
+            nickname: contact.nickname || "",
+            date_of_birth: contact.date_of_birth
+              ? dayjs(contact.date_of_birth, "YYYY-MM-DD")
               : null,
-            end_time: farmerData.end_time
-              ? dayjs(farmerData.end_time, "HH:mm")
-              : null,
-            // business_size: farmerData.business_size || "",
-            business_size: parseInt(farmerData.business_size, 10),
-            outlet_location: farmerData.outlet_location || "",
-            t_shirt_size: farmerData.t_shirt_size || "",
-            anniversary: farmerData.anniversary
-              ? dayjs(farmerData.anniversary, "YYYY-MM-DD")
-              : null,
-            location_address: farmerData.location_address || "",
-            use_flag:
-              parseInt(farmerData.use_flag, 10) === 1 ? "Active" : "Inactive",
-            remark: farmerData.remark || "",
-          });
-  
-          // ตั้งค่า state ของข้อมูลอื่น ๆ
-          setcompanyinfo(farmerData);
-          setContactItems(farmerData.contact_items || []);
-          setDefaultSelectedCrops(
-            farmerData.crop_list?.map((crop) => Number(crop.id)) || []
-          );
-          setProfileImage(farmerData.photo_path);
-          setCurrentLocation({
-            lat: parseFloat(farmerData.location_latitude) || 13.9572612,
-            lng: parseFloat(farmerData.location_longitude) || 100.6222401,
-          });
-        } else {
-          console.error("Failed to fetch farmer data:", farmerResponse.message);
-          showNotification("error", "Failed to load farmer details");
-        }
-  
-        // ดึงข้อมูล Crop Options
-        const cropResponse = await useServiceAPI.get(paths.pathMasterCrop, {});
-        if (cropResponse.status === 200) {
-          setCropOptions(cropResponse.data || []);
-        } else {
-          console.error("Failed to fetch crop data:", cropResponse.message);
-        }
-      } catch (error) {
-        console.error("Error loading data:", error);
-        showNotification("error", "Error occurred while loading data");
-      } finally {
-        setLoading(false);
-        setDataLoaded(true); // ตั้งค่าเพื่อบอกว่าโหลดข้อมูลเสร็จแล้ว
+            t_shirt_size: contact.t_shirt_size || "",
+            relationship: contact.relationship || "",
+            duty: contact.duty || "",
+            tel1: contact.tel1 || "",
+            tel2: contact.tel2 || "",
+            contact_number: contact.contact_number || "",
+            email: contact.email || "",
+            line_id: contact.line_id || "",
+            hobby: contact.hobby || "",
+            age: contact.age || "",
+          })) || []
+        );
+      } else {
+        console.error("Failed to fetch details:", response.message);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching details:", error);
+      showNotification("error", "เกิดข้อผิดพลาดในการโหลดข้อมูล");
+    } finally {
+      setLoading(false);
+    }
+  };
   
-    fetchData();
-  }, [location.state.id]);
-  
-const [formFields, setFormFields] = useState([
 
-  {
+
+
+  const [formFields, setFormFields] = useState([
+    {
       label: "",
       name: "profile", // ชื่อฟิลด์ในฟอร์ม
       type: "picture", // ประเภทฟิลด์
@@ -331,9 +241,8 @@ const [formFields, setFormFields] = useState([
       col: 6,
     },
     {
-      label: "Outlet Location Please select a location on the map" ,
-      // labelColor: "red",
-      name: "location_address",
+      label: "Outlet Location",
+      name: "outlet_location",
       type: "text",
       required: false,
       col: 6,
@@ -342,6 +251,7 @@ const [formFields, setFormFields] = useState([
       iconPosition: "right",
       disabled: true,
     },
+
     {
       label: "T-Shirt Size",
       name: "t_shirt_size",
@@ -375,328 +285,222 @@ const [formFields, setFormFields] = useState([
       required: false,
       col: 24,
     },
+  ]);
 
-])
-
-
-  const header = [
-    // { title: "No", width: 50, dataIndex: "key", align: "center" },
-    { title: "No", width: 50, dataIndex: "no", align: "center" },
-    { title: "Farmer Name", width: 100, dataIndex: "name", align: "left" },
-    { title: "Contact Person", width: 200,  dataIndex: "contactperson", align: "left",},
-    { title: "Phone No",  width: 150, dataIndex: "mobilePhone", align: "center",},
-    { title: "Status", width: 100, dataIndex: "status", align: "center" },
-    { title: "Action", width: 100, dataIndex: "action", align: "center" },
-  ];
-
-  const sub_dealer = [
-    { title: "No", width: 50, dataIndex: "no", align: "center" },
-    { title: "Sub Dealer List", width: 100, dataIndex: "name", align: "left" },
-    { title: "Contact Person", width: 200,  dataIndex: "contactperson", align: "left",},
-    { title: "Phone No",  width: 150, dataIndex: "mobilePhone", align: "center",},
-    { title: "Status", width: 100, dataIndex: "status", align: "center" },
-    { title: "Action", width: 100, dataIndex: "action", align: "center" },
-  ];
-
-
-  const handleDeleteItem = async (record) => {
-    console.log("id", location.state.id);
-    console.log(record);
-    
-    try {
-      const requestData = {
-        dealer_id:location.state.id,
-        sub_dealer_id: record, // ส่ง ID ที่ต้องการลบ
-      };
-
-      const response = await useServiceAPI.delete(
-        paths.pathCustomerNetworkDelete,
-        requestData
-      );
-
-      if (response.status === 200) {
-        // fetchData();
-        await fetchFarnersDetails(location.state.id);
-
-        showNotification(
-          "success",
-          response.data.message,
-          response.data.message_line
-        );
-      } else {
-        console.error("Failed to delete record:", response.message);
-        showNotification("error", response.message, response.message_line);
-      }
-    } catch (error) {
-      console.error("Error deleting record:", error);
-
-      showNotification("error", error.message, error.message_line);
-    }
-  };
-
-
-  const handleRemoveContact = (index) => {
-    setContactItems((prev) => prev.filter((_, i) => i !== index));
-  };
-  
-  const renderContactItems = () =>
-    contactItems.map((contact, index) => (
-      <div key={index} className="mb-6">
-        <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-md">{`Person ${index + 1}`}</span>
-        {index > 0 && !isViewMode && (
-          <ActionButton
-            mode="delete"
-            text="Delete"
-            onClick={() => handleRemoveContact(index)}
-            disabled={isViewMode}
-          />
-        )}
-        </div>
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Name (EN)"
-              value={contact.name_en || ""}
-              onChange={(e) => handleContactChange(index, "name_en", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Name (TH)"
-              value={contact.name_th || ""}
-              onChange={(e) => handleContactChange(index, "name_th", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Nickname"
-              value={contact.nickname || ""}
-              onChange={(e) => handleContactChange(index, "nickname", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <DatePicker
-              className="w-full"
-              placeholder="Date of Birth"
-              value={contact.date_of_birth ? dayjs(contact.date_of_birth) : null}
-              onChange={(date, dateString) =>
-                handleContactChange(index, "date_of_birth", dateString)
-              }
-              disabled={isViewMode}
-            />
-          </Col>
-
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Age"
-              value={contact.age || ""}
-              disabled={true} // ทำให้ไม่สามารถแก้ไขได้
-            />
-          </Col>
-
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="T-Shirt Size"
-              value={contact.t_shirt_size || ""}
-              onChange={(e) => handleContactChange(index, "t_shirt_size", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Relationship"
-              value={contact.relationship || ""}
-              onChange={(e) => handleContactChange(index, "relationship", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Duty"
-              value={contact.duty || ""}
-              onChange={(e) => handleContactChange(index, "duty", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Tel 1"
-              value={contact.tel1 || ""}
-              onChange={(e) => handleContactChange(index, "tel1", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Tel 2"
-              value={contact.tel2 || ""}
-              onChange={(e) => handleContactChange(index, "tel2", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Contact Number"
-              value={contact.contact_number || ""}
-              onChange={(e) => handleContactChange(index, "contact_number", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Email"
-              value={contact.email || ""}
-              onChange={(e) => handleContactChange(index, "email", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Line ID"
-              value={contact.line_id || ""}
-              onChange={(e) => handleContactChange(index, "line_id", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Col>
-          <Col xs={24} sm={18} md={18} lg={18}>
-          <Input
-            placeholder="Hobby"
-            value={contact.hobby || ""}
-            onChange={(e) => handleContactChange(index, "hobby", e.target.value)}
-            disabled={isViewMode}
-          />
-        </Col>
-        </Row>
-        <hr className="my-4" />
-      </div>
-    ));
-  
-
-  const handleTabChange = (key) => {
-    setActiveTabKey(key);
-  };
-
-  const handleOpenTerritoryModal = async () => {
-    await fetchUserList(); 
-    setIsTerritoryModalVisible(true); 
-  };
-
-  const handleCloseTerritoryModal = () => {
-    setIsTerritoryModalVisible(false);
-  };
-
-  const handleAddSelectedRows = (selectedRows) => {
-    const newRows = selectedRows.map((row, index) => ({
-      // key: networkList.length + index + 1, 
-      key: row.key,
-      no: networkList.length + index + 1, 
-      name: row.name || "-",
-      contactperson: row.contactperson || "-",
-      mobilePhone: row.territory || "-",
-      onshop: row.onshop || false,
-      status: (
-        <BadgeStatus
-          text={row.position || "-"}
-          bgColor={row.statusBgColor || "#E0E0E0"}
-          textColor={row.statusTextColor || "#000000"}
-        />
-      ),
-      action: (
-        <>
-          <DynamicButton
-            iconSrc="/img/icons/delete.png"
-            onClick={() =>
-              handleDeleteItem(row.sub_dealer_id)
-            }
-          />
-        </>
-      ),
-    }));
-
-    setNetworkList((prevList) => {
-      const existingKeys = prevList.map((item) => item.key); // ดึง key ของรายการที่มีอยู่
-      const filteredNewRows = newRows.filter((row) => !existingKeys.includes(row.key)); // กรองเฉพาะ key ที่ยังไม่มีใน list
-      if (filteredNewRows.length === 0) {
-        showNotification("error", "Sale Territory has already been added.");
-        return [...prevList, ...filteredNewRows]; 
-      }else{
-        showNotification("success", "Add sale territory success.");
-        return [...prevList, ...filteredNewRows]; 
-      }
-    });
-  };
-
-  const fetchUserList = async (page_size = 20, page_length = 1) => {
-    setLoading(true);
-    const requestData = {
-      platform: "web",
-      page_size,
-      page_length,
-    };
-
-    try {
-      const response = await useServiceAPI.get(
-        paths.pathMasterSubDealer,
-        requestData
-      );
-
-      if (response.status === 200) {
-        const data = response.data;      
-        const territoryData = data.map((item, index) => ({
-          key: item.sub_dealer_id,
-          no: index + 1,
-          name: item.sub_dealer_name,
-          territory: item.sub_dealer_contact_phone_number,
-          // position: item.sub_dealer_channel_type_name,
-          position: (
-            <BadgeStatus
-              text={item.sub_dealer_channel_type_name}
-              bgColor={item.sub_dealer_channel_type_bg_color}
-              textColor={item.sub_dealer_channel_type_color}
-            />
-          ),
-
-        }));
-        setUserList(territoryData);
-
-      }
-    } catch (error) {
-      console.error("Error fetching user list:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddContact = () => {
-    // เพิ่ม object ใหม่ลงใน contactItems state
-    setContactItems((prev) => [
-      ...prev,
-      { id: prev.length + 1, name: "", phone: "" },
-    ]);
-  };
-
-  const handleCheckboxChange = (key) => {
-    setNetworkList((prevList) =>
-      prevList.map((item) =>
-        item.key === key ? { ...item, onshop: !item.onshop } : item
-      )
-    );
-    showNotification("success", "Add on shop success");
-  };
 
   const transformedCropOptions = cropOptions.map((option) => ({
-    label: option.name, // เปลี่ยนจาก name เป็น label
-    value: option.id, // คงค่า value เดิมไว้
+    label: option.name,
+    value: option.id, 
   }));
 
+  const [personalInfo, setPersonalInfo] = useState({
+    shop_name: "",
+    mobile_phone: "",
+    address: "",
+    email: "",
+    office_hours: [],
+    start_time: "",
+    end_time: "",
+    business_size: "",
+    outlet_location: "",
+    tshirt_size: "",
+    anniversary: null,
+    remark: "",
+  });
 
+  const addContact = () => {
+    setContacts((prevContacts) => [
+      ...prevContacts,
+      {
+        name_en: "",
+        name_th: "",
+        nickname: "",
+        date_of_birth: null,
+        t_shirt_size: "",
+        relationship: "",
+        duty: "",
+        tel1: "",
+        tel2: "",
+        contact_number: "",
+        email: "",
+        line_id: "",
+      },
+    ]);
+  };
+  
+  const updateContact = (index, field, value) => {
+    setContacts((prevContacts) =>
+      prevContacts.map((contact, i) => {
+        if (i === index) {
+          const updatedContact = { ...contact, [field]: value };
+  
+          // หากฟิลด์ที่เปลี่ยนคือ date_of_birth ให้คำนวณอายุ
+          if (field === "date_of_birth" && value) {
+            const birthDate = dayjs(value);
+            const currentYear = dayjs().year();
+            const age = currentYear - birthDate.year(); // คำนวณอายุ
+            updatedContact.age = age;
+          }
+  
+          return updatedContact;
+        }
+        return contact;
+      })
+    );
+  };
+  
+  const handlePersonalInfoChange = (field, value) => {
+    console.log(field,value);
+    
+    setPersonalInfo((prevInfo) => ({
+      ...prevInfo,
+      [field]: value, // อัปเดตค่าฟิลด์ที่กำหนด
+    }));
+  };
+  
+  const handleRemoveContact = (index) => {
+    setContacts((prevContacts) => prevContacts.filter((_, i) => i !== index));
+  };
+
+  const mapContainerStyle = {
+    width: "100%",
+    height: "30vh",
+  };
+
+
+  const handleMarkerDragEnd = async (event) => {
+    const lat = event.latLng.lat();
+    const lng = event.latLng.lng();
+
+    const geocoder = new window.google.maps.Geocoder();
+    const latlng = { lat, lng };
+    
+    try {
+      const response = await geocoder.geocode({ location: latlng });
+      if (response.results && response.results.length > 0) {
+        const locationName = response.results[0].formatted_address;
+        // อัปเดต Outlet Location
+        form.setFieldsValue({ outlet_location: locationName });
+        setcompanyinfo((prev) => ({
+          ...prev,
+          outlet_location: locationName,
+        }));
+  
+        showNotification("success", `Location updated: ${locationName}`);
+        // อัปเดตตำแหน่งปัจจุบันใน State
+        setCurrentLocation({ lat, lng });
+        
+      } else {
+        showNotification("error", "No address found for this location.");
+      }
+    } catch (error) {
+      console.error(error);
+      showNotification("error", "Unable to fetch location name.");
+    }
+  
+  };
+  
   useEffect(() => {
-    // console.log(defaultSelectedCrops)
-  }, [defaultSelectedCrops]);
+    const checkGoogleMaps = () => {
+      if (window.google && window.google.maps) {
+        setIsGoogleLoaded(true);
+      } else {
+        const interval = setInterval(() => {
+          if (window.google && window.google.maps) {
+            clearInterval(interval);
+            setIsGoogleLoaded(true);
+          }
+        }, 500);
+      }
+    };
+    checkGoogleMaps();
+  }, []);
+
+    //--- ฟังก์ชันดึงตำแหน่งปัจจุบัน ---//
+    const getUserCurrentLocation = () => {
+      if (!navigator.geolocation) {
+        showNotification("error", "Geolocation is not supported by this browser.");
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          setCurrentLocation({ lat: latitude, lng: longitude });
+          
+          // เรียกใช้ geocoder เพื่อแปลง lat,lng => ชื่อสถานที่
+          try {
+            const geocoder = new window.google.maps.Geocoder();
+            const latlng = { lat: latitude, lng: longitude };
+            const response = await geocoder.geocode({ location: latlng });
+            if (response.results && response.results.length > 0) {
+              const locationName = response.results[0].formatted_address;
+              // เซ็ตค่าลงในฟอร์ม
+              form.setFieldsValue({ outlet_location: locationName });
+              showNotification("success", `Current location: ${locationName}`);
+            }
+          } catch (error) {
+            console.error(error);
+            showNotification("error", "Unable to fetch location name.");
+          }
+        },
+        (error) => {
+          console.error(error);
+          showNotification("error", "Unable to retrieve your location");
+        }
+      );
+    };
+  
+  
+    const handleToggleMap = () => {
+      setIsMapEnabled((prev) => {
+        const newState = !prev;
+        // หากกำลังจะเปิด Map แต่ไม่ใช่โหมด Edit => ดึงพิกัดปัจจุบัน
+        if (newState === true && mode !== "Edit") {
+          getUserCurrentLocation();
+        }
+        return newState;
+      });
+    };
+  
+      
+      // ดึงที่อยู่จาก Google Maps Geocoding API
+      const fetchAddress = async (lat, lng) => {
+        const apiKey = "AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik";
+        const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
+    
+        try {
+          const response = await fetch(url);
+          const data = await response.json();
+    
+          if (data.status === "OK" && data.results.length > 0) {
+            // return data.results[0].formatted_address; // คืนค่าที่อยู่
+            console.log(data.results[0].formatted_address);
+            setFormData({...formData,gps:data.results[0].formatted_address})
+          } else {
+            console.error("Geocoding API error:", data.status);
+            return "Address not found";
+          }
+        } catch (error) {
+          console.error("Error fetching address:", error);
+          return "Error fetching address";
+        }
+      };
+  
+      const handleGetLocation = () => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const { latitude, longitude } = position.coords;
+              fetchAddress(latitude, longitude );
+            },
+            (error) => {
+              console.error("Error fetching location:", error.message);
+            }
+          );
+        } else {
+          console.error("Geolocation is not supported by this browser.");
+        }
+      };
 
   const handleSave = () => { 
     form
@@ -711,8 +515,8 @@ const [formFields, setFormFields] = useState([
         }
 
         console.log(values);
+        
         const formattedData = {
-          id: location.state.id, 
           photo_path: values.profile,
           name: values.name || "",
           mobile_phone: values.mobile_phone || "",
@@ -737,7 +541,7 @@ const [formFields, setFormFields] = useState([
           use_flag: useFlagValue,
           remark: values.remark,
           bank_account_items: companyinfo.bank_account_items || [],
-          contact_items: contactItems.map((item) => ({
+          contact_items: contacts.map((item) => ({
             name_en: item.name_en || "",
             contact_number: item.contact_number || "",
             name_th: item.name_th || "",
@@ -759,7 +563,7 @@ const [formFields, setFormFields] = useState([
         console.log(formattedData);
         
 
-        if (location.state.mod === "create") {
+        if (mode === "create") {
             useServiceAPI
             .post(paths.pathCustomerFarmersCreate, formattedData)
             .then((response) => {
@@ -777,14 +581,14 @@ const [formFields, setFormFields] = useState([
             .catch((error) => {
               console.error("Save failed:", error);
             });
-
-            
         }else{
           useServiceAPI
           .put(paths.pathCustomerFarmersUpdate, formattedData)
           .then((response) => {
             if (response.status === 200) {
               navigate("/customer/farners");
+              console.log( response.data.message);
+              
               showNotification(
                 "success",
                 response.data.message,
@@ -807,147 +611,24 @@ const [formFields, setFormFields] = useState([
   };
 
 
-  const networkhandleSave = () => {
-    // Validate form fields if needed
-    form
-      .validateFields()
-      .then(() => {
-        const formattedData = {
-          id: location.state.id,
-          network_list: networkList.map((item) => ({
-            sub_dealer_id: item.key, 
-            is_on_shop: item.onshop, 
-          })),
-        };
-  
-        useServiceAPI
-          .put(paths.pathCustomerSubDealerNetworkUpdate, formattedData) // paths.pathNetworkSave = URL API
-          .then((response) => {
-            if (response.status === 200) {
-              navigate("/customer/farners");
-              showNotification(
-                "success",
-                response.data.message,
-                response.data.message_line
-              );
-
-            }
-          })
-          .catch((error) => {
-            console.error("Save failed:", error);
-          });
-      })
-      .catch((errorInfo) => {
-        console.error("Validation Failed:", errorInfo);
-      });
-  };
 
   
-  // const handleBankAccountChange = (index, field, value) => {
-  //   const updatedAccounts = [...companyinfo.bank_account_items];
-  //   updatedAccounts[index][field] = value;
-  //   setcompanyinfo({ ...companyinfo, bank_account_items: updatedAccounts });
-  // };
+  useEffect(() => {
+    // console.log(defaultSelectedCrops)
+  }, [defaultSelectedCrops]);
 
-  const handleBankAccountChange = (index, field, value) => {
-    const updatedAccounts = companyinfo.bank_account_items?.length
-      ? [...companyinfo.bank_account_items]
-      : Array(2).fill({ account_title: "", account_number: "", bank_name: "", bank_branch: "" });
-  
-    // อัปเดตค่าของฟิลด์ที่เปลี่ยนแปลงในรายการที่เลือก
-    updatedAccounts[index] = {
-      ...updatedAccounts[index],
-      [field]: value,
-    };
-      setcompanyinfo({ ...companyinfo, bank_account_items: updatedAccounts });
-  };
-  
-  // const handleContactChange = (index, field, value) => {
-  //   const updatedContacts = [...contactItems];
-  //   updatedContacts[index][field] = value;
-  //   setContactItems(updatedContacts);
-  // };
-  
-  const handleContactChange = (index, field, value) => {
-    const updatedContacts = [...contactItems];
-    updatedContacts[index][field] = value;
-  
-    // คำนวณอายุเมื่อเปลี่ยน `date_of_birth`
-    if (field === "date_of_birth" && value) {
-      const birthYear = dayjs(value).year();
-      const currentYear = dayjs().year();
-      updatedContacts[index].age = currentYear - birthYear;
-    }
-  
-    setContactItems(updatedContacts);
-  };
 
-  
-  const mapContainerStyle = {
-    width: "100%",
-    height: "30vh",
-  };
-
-  const handleMarkerDragEnd = async (event) => {
-    const lat = event.latLng.lat();
-    const lng = event.latLng.lng();
-    const geocoder = new window.google.maps.Geocoder();
-    const latlng = { lat, lng };
-  
-    try {
-      const response = await geocoder.geocode({ location: latlng });
-      if (response.results && response.results.length > 0) {
-        const locationName = response.results[0].formatted_address;
-  
-        // อัปเดต Outlet Location
-        form.setFieldsValue({ location_address: locationName });
-        setcompanyinfo((prev) => ({
-          ...prev,
-          location_address: locationName,
-        }));
-  
-        showNotification("success", `Location updated: ${locationName}`);
-        // อัปเดตตำแหน่งปัจจุบันใน State
-        setCurrentLocation({ lat, lng });
-      } else {
-        showNotification("error", "No address found for this location.");
-      }
-    } catch (error) {
-      console.error("Geocoder failed due to:", error);
-      showNotification("error", "Unable to fetch location name.");
-    }
-  
-
-  };
-  
-    useEffect(() => {
-      const checkGoogleMaps = () => {
-        if (window.google && window.google.maps) {
-          setIsGoogleLoaded(true);
-        } else {
-          const interval = setInterval(() => {
-            if (window.google && window.google.maps) {
-              clearInterval(interval);
-              setIsGoogleLoaded(true);
-            }
-          }, 500);
-        }
-      };
-      checkGoogleMaps();
-    }, []);
-    
-  let items = [
-    {
-      key: "profile",
-      label: <span className="tab-title">Profile</span>,
-      children: (
-      <>
-      {dataLoaded ? (
-        <FormUser profile={profileImage} fields={formFields} form={form} />
-      ) : (
-        <div></div>
-      )}
-
+  return (
+    <Form form={form} layout="vertical" component={false}>
+    <MainLayout loading={loading}>
+    <div className="title-page">Create Farmers</div>
+      <FormUser 
+        title="Personal Info" 
+        profile={profileImage}
+        fields={formFields} 
+        form={form}
+      />
+      
       <div className={`bg-white p-4`}
         style={{
           boxShadow: "rgba(0, 0, 0, 0.1)", // Optional for a subtle shadow
@@ -955,12 +636,15 @@ const [formFields, setFormFields] = useState([
         }}
       >
       <div className="text-[#00783F] text-lg font-semibold mb-3">
-        {/* <div className="flex justify-end space-x-4 mb-2">
-            <ActionButton
-              text={isMapEnabled ? "Close Google" : "Open Google"}
-              mode="update" 
-              onClick={() => setIsMapEnabled((prev) => !prev)} />
-          </div> */}
+
+      <div className="flex justify-end space-x-4 mb-2">
+          <ActionButton 
+            text={isMapEnabled ? "Close Google" : "Open Google"}
+            mode="update" 
+            // onClick={() => setIsMapEnabled((prev) => !prev)} 
+            onClick={handleToggleMap}
+            />
+        </div>
 
         <LoadScript googleMapsApiKey={dataApiKey}>
           <GoogleMap
@@ -974,15 +658,16 @@ const [formFields, setFormFields] = useState([
             }}
           >
             {isGoogleLoaded && (
-              <Marker
+              <Marker 
                 position={currentLocation}
                 icon={{
-                  url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
+                  // url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
                   scaledSize: { width: 30, height: 30 },
                 }}
                 draggable={true}
                 onDragEnd={handleMarkerDragEnd} 
-                // options={{ disableDefaultUI: !isMapEnabled, draggable: isMapEnabled }}
+                options={{ disableDefaultUI: !isMapEnabled, draggable: isMapEnabled }}
+
               />
             )}
           </GoogleMap>
@@ -991,189 +676,180 @@ const [formFields, setFormFields] = useState([
       </div>
 
 
-      <BoxPrimary>
-        <span className="text-[#00783F] text-lg font-semibold">Crop</span>
-          <Select
-            mode="multiple"
-            showSearch
-            placeholder="Select Crop(s)"
-            optionFilterProp="children"
-            className="w-full"
-            value={defaultSelectedCrops} 
-            onChange={(value) => setDefaultSelectedCrops(value)} // จัดการการเปลี่ยนแปลงค่า
-            options={transformedCropOptions} 
-            disabled={isViewMode}
-          />
+      <BoxPrimary title="Crop">
+        <Select
+          mode="multiple"
+          showSearch
+          placeholder="Select Crop(s)"
+          optionFilterProp="children"
+          className="w-full"
+          value={defaultSelectedCrops} 
+          onChange={(value) => setDefaultSelectedCrops(value)} 
+          options={transformedCropOptions} 
+        />
       </BoxPrimary>
 
       <BoxPrimary>
         <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-lg font-semibold">Contact Person</span>
-          {!isViewMode && ( 
-            <ActionButton
-              mode="add"
-              text="Add"
-              onClick={() => {
-                setContactItems([
-                  ...contactItems,
-                  {
-                    name: "",
-                    phone: "",
-                    email: "",
-                    position: ""
+          <span className="text-[#00783F] text-lg font-semibold">
+            Contact Person
+          </span>
+          <ActionButton mode="add" text="Add" onClick={addContact} />
+        </div>
+        {contacts.map((contact, index) => (
+          <div key={index}>
+              <div className="flex justify-between mb-4">
+                <span className="text-[#00783F] text-md">{`Person ${index + 1}`}</span>
+                {index > 0 && (
+                  <ActionButton
+                    mode="delete"
+                    text="Delete"
+                    onClick={() => handleRemoveContact(index)}
+                  />
+                )}
+              </div>
+            <Row gutter={[16, 16]} className="mt-3">
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Name (EN)"
+                  value={contact.name_en}
+                  onChange={(e) =>
+                    updateContact(index, "name_en", e.target.value)
                   }
-                ]);
-              }}
-            />
-          )}
-        </div>
-        {contactItems.length > 0 ? (
-          renderContactItems()
-        ) : (
-          <div className="text-gray-500">No contact person information available</div>
-        )}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Name (TH)"
+                  value={contact.name_th}
+                  onChange={(e) =>
+                    updateContact(index, "name_th", e.target.value)
+                  }
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Nickname"
+                  value={contact.nickname}
+                  onChange={(e) =>
+                    updateContact(index, "nickname", e.target.value)
+                  }
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <DatePicker
+                  className="w-full"
+                  placeholder="Date of Birth"
+                  value={
+                    contact.date_of_birth ? dayjs(contact.date_of_birth) : null
+                  }
+                  onChange={(date) =>
+                    updateContact(index, "date_of_birth", date)
+                  }
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Age"
+                  value={contact.age || ""}
+                  onChange={(e) => updateContact(index, "age", e.target.value)}
+                  disabled={true}
+                />
+              </Col>
+              
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="T-Shirt Size"
+                  value={contact.t_shirt_size}
+                  onChange={(e) =>
+                    updateContact(index, "t_shirt_size", e.target.value)
+                  }
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Relationship"
+                  value={contact.relationship}
+                  onChange={(e) =>
+                    updateContact(index, "relationship", e.target.value)
+                  }
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Duty"
+                  value={contact.duty}
+                  onChange={(e) => updateContact(index, "duty", e.target.value)}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Tel 1"
+                  value={contact.tel1}
+                  onChange={(e) => updateContact(index, "tel1", e.target.value)}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Tel 2"
+                  value={contact.tel2}
+                  onChange={(e) => updateContact(index, "tel2", e.target.value)}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Contact Number"
+                  value={contact.contact_number}
+                  onChange={(e) =>
+                    updateContact(index, "contact_number", e.target.value)
+                  }
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Email"
+                  value={contact.email}
+                  onChange={(e) =>
+                    updateContact(index, "email", e.target.value)
+                  }
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Input
+                  placeholder="Line ID"
+                  value={contact.line_id}
+                  onChange={(e) =>
+                    updateContact(index, "line_id", e.target.value)
+                  }
+                />
+              </Col>
+              <Col xs={24} sm={18} md={18} lg={18}>
+                <Input
+                  placeholder="hobby"
+                  value={contact.hobby || ""}
+                  onChange={(e) => updateContact(index, "hobby", e.target.value)}
+                />
+              </Col>
+            </Row>
+            {index < contacts.length - 1 && <hr className="my-4" />}
+          </div>
+        ))}
       </BoxPrimary>
-        <div className="flex justify-end space-x-4 mt-6">
-          <ActionButton
-            mode="back"
-            text="Back"
-            onClick={() => navigate("/customer/farners")}
-          />
-          {/* <ActionButton
-            mode="update"
-            text="Update"
-            onClick={handleSave} 
-          /> */}
-        {
-        !isViewMode && (
-          <ActionButton text="Update" mode="update" onClick={handleSave} />
-          )
-        }
-        </div>
-        </>
-      ),
-    },
-    // {
-    //   key: "seb_dealer_list",
-    //   label: <span className="tab-title">Farmer List</span>,
-    //   children: (
-    //     <>
-    //       <BoxPrimary>
-    //         <div className="flex justify-between space-x-4 mb-3">
-    //           <span className="text-[#00783F] text-lg font-semibold">
-    //             Sub Dealer List
-    //           </span>
-    //           {
-    //             !isViewMode && (
-    //               <div className="flex space-x-2">
-    //               <ActionButton
-    //                 mode="add"
-    //                 text="Add Sub Dealer"
-    //                 onClick={handleOpenTerritoryModal}
-    //               />
-    //             </div>
-    //             )
-    //           }
-    //         </div>
-    //         <TableComponent 
-    //           header={sub_dealer} 
-    //           dataSource={networkList} 
-    //         />
-    //       </BoxPrimary>
 
-
-    //       <BoxPrimary>
-    //         <div className="flex justify-between space-x-4 mb-3">
-    //           <span className="text-[#00783F] text-lg font-semibold">
-    //             Farmer List
-    //           </span>
-    //           {
-    //             !isViewMode && (
-    //               <div className="flex space-x-2">
-    //               <ActionButton
-    //                 mode="add"
-    //                 text="Add Farmer"
-    //                 onClick={handleOpenTerritoryModal}
-    //               />
-    //             </div>
-    //             )
-    //           }
-    //         </div>
-    //         <TableComponent 
-    //           header={header} 
-    //           dataSource={networkList} 
-    //         />
-    //       </BoxPrimary>
-    //       <div className="flex justify-end space-x-4 mt-6">
-    //         <ActionButton
-    //           mode="back"
-    //           text="Back"
-    //           onClick={() => navigate("/customer/farners")}
-    //         />
-    //       {
-    //       !isViewMode && (
-    //         <ActionButton text="Update" mode="update" onClick={networkhandleSave} />
-    //         )
-    //       }
-    //       </div>
-    //     </>
-    //   ),
-    // },
-
-  ];
-
-  if (isViewMode) {
-    items = items.map(field => {
-      if (field.key === 'network' || field.key === 'profile') {
-        return field; 
-      }
-      return {
-        ...field,
-        disabled: true
-      };
-    });
-  } else {
-    items = items.map(field => ({
-      ...field,
-      disabled: false 
-    }));
-  }
-  
-
-  
-  
-  return (
-    <MainLayout loading={loading}>
-      {/* <div className="title-page">{isViewMode ? "Create Farmers" : "Edit Farmers"}</div> */}
-      <div className="title-page">
-        {mode === "create"
-          ? "Create Farmers"
-          : mode === "edit"
-          ? "Edit Farmers"
-          : "View Farmers"}
+      {/* Action Buttons */}
+      <div className="flex justify-end space-x-4 mt-6">
+        <ActionButton
+          mode="back"
+          text="Back"
+          onClick={() => navigate("/customer/farners")}
+        />
+        <ActionButton text="Save" mode="save" onClick={handleSave} />
       </div>
-
-      <Tabs
-        activeKey={activeTabKey}
-        onChange={handleTabChange}
-        className="custom-tabs"
-        items={items}
-      />
-      <DynamicModal
-        title="Farmer List"
-        isVisible={isTerritoryModalVisible}
-        onClose={handleCloseTerritoryModal}
-        header={[
-          { title: "No", dataIndex: "no", key: "no", width: 50 },
-          { title: "Name", dataIndex: "name", key: "name", width: 150 },
-          { title: "contact number",  dataIndex: "territory", key: "territory", width: 150,},
-          { title: "Status",  dataIndex: "position",  key: "position",  width: 150,},
-        ]}
-        dataSource={userList}
-        width="1200px"
-        onAddSelected={handleAddSelectedRows}
-        type="add"
-      />
     </MainLayout>
+    </Form>
+
+
+
   );
+
 }
