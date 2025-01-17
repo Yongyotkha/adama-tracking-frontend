@@ -23,7 +23,7 @@ Font.register({
 
 const styles = StyleSheet.create({
   page: {
-    padding: 5,
+    padding: 20,
     fontSize: 8,
     fontFamily: "BrownLLHeb", // Use the registered font
   },
@@ -32,6 +32,15 @@ const styles = StyleSheet.create({
     flexDirection: "row", // Align items in a row
     justifyContent: "space-between", // Space between items
     alignItems: "center", // Align items vertically to the center
+    marginBottom: 8, // Add spacing below the header
+    lineHeight: 0.6,
+  },
+  headercenter: {
+    display: "flex",
+    flexDirection: "row", // Align items in a row
+    justifyContent: "center", // Space between items
+    alignItems: "center", // Align items vertically to the center
+    marginTop: 8,
     marginBottom: 8, // Add spacing below the header
     lineHeight: 0.6,
   },
@@ -50,6 +59,13 @@ const styles = StyleSheet.create({
     marginLeft: "auto", // Push this section to the far right
     lineHeight: 0.6,
   },
+  formDetailsCenter: {
+    minWidth: 200, // Set minimum width to 200px
+    textAlign: "center", // Align text to the right
+    marginLeft: "auto", // Push this section to the far right
+    lineHeight: 0.6,
+  },
+
   bold: {
     fontWeight: "bold",
   },
@@ -64,14 +80,34 @@ const styles = StyleSheet.create({
   tableRow: {
     flexDirection: "row",
   },
+  // tableCell: {
+  //   borderStyle: "solid",
+  //   borderWidth: 1,
+  //   borderColor: "#000",
+  //   paddingLeft: 1, // Reduce padding
+  //   paddingRight: 1, // Reduce padding
+  //   flexGrow: 1,
+  // },
   tableCell: {
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#000",
+    borderBottomWidth: 1, 
+    borderColor: "#000", 
+    borderStyle: "solid", 
+    paddingLeft: 1, 
+    paddingRight: 1, 
+    paddingTop: 2, 
+    paddingBottom: 2, 
+    flexGrow: 1, 
+  },
+  tableCellTd: {
+    borderColor: "#000", // กำหนดสีของเส้นขอบ
+    borderStyle: "solid", // กำหนดรูปแบบของเส้นขอบ
     paddingLeft: 1, // Reduce padding
-    paddingRight: 1, // Reduce padding
+    paddingRight: 1, 
+    paddingBottom: 4,
     flexGrow: 1,
   },
+
+  
   footer: {
     marginTop: 2,
     fontSize: 8,
@@ -83,14 +119,13 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   footerCell: {
+    borderTopWidth: 1,
     borderStyle: "solid",
-    borderWidth: 1,
     borderColor: "#000",
     padding: 2,
-    marginLeft: 2,
-    marginRight: 2,
-    flex: 1, // Ensure equal width for all cells
-    textAlign: "center",
+    paddingLeft: 2,
+    flex: 1, 
+    textAlign: "left",
   },
   footerInfo: {
     flexDirection: "row",
@@ -107,6 +142,20 @@ const styles = StyleSheet.create({
     margin: 2,
     textAlign: "left",
   },
+  footerTableInfoCell: {
+    width: "25%", // Ensure cells are evenly distributed
+    height: 60, // Ensure cells are evenly distributed
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderColor: "#000",
+    padding: 2,
+    margin: 2,
+    textAlign: "left",
+  },
+  marginBottom: {
+    marginBottom: 4
+  },
+
 });
 
 
@@ -148,57 +197,57 @@ const AdvanceExpensePDF = ({ title }) => {
               <Text>Nonsi Rd., Chongnonsi, Yannawa, Bangkok 10120 Thailand</Text>
               <Text>Tel: +662 681 1979 Fax: +662 681 1977</Text>
             </View>
-            <View style={styles.formDetails}>
-              <Text style={styles.bold}>Name: Kitti S.</Text>
-              <Text>Department: BD</Text>
-              <Text style={styles.bold}>Car no.: </Text>
+          </View>
+
+            <View style={styles.headercenter}>
+            <Text style={[styles.bold, { fontSize: 13 }]}>Advance Expense</Text>
+            </View>
+
+          <View style={styles.header}> 
+            <View style={styles.companyDetails}>
+              <Text>Advance Expense No: AE2025010073</Text>
+              <Text>Activity Type: Smaill Farmer Meeting</Text>
+              <Text>Shop: SP สาขาเขาปั๊ป</Text>
+              <Text>Product: Product</Text>
+            </View>
+            <View style={[styles.formDetails,{ marginBottom: 10 }]}>
+              <Text>Sale: Chainarong Jitsawaeng</Text>
+              <Text>Date: 11/01/2025 </Text>
+              <Text> </Text>
             </View>
           </View>
+
 
           {/* Table */}
           <View style={styles.table}>
             {/* Header Row */}
             <View style={[styles.tableRow, styles.bold]}>
-              <Text style={[styles.tableCell, { width: "10%" }]}>Date</Text>
-              <Text style={[styles.tableCell, { width: "15%" }]}>Travelling From</Text>
-              <Text style={[styles.tableCell, { width: "15%" }]}>To</Text>
-              <Text style={[styles.tableCell, { width: "10%" }]}>Petrol</Text>
-              <Text style={[styles.tableCell, { width: "10%" }]}>Cash Petrol</Text>
-              <Text style={[styles.tableCell, { width: "10%" }]}>Hotel</Text>
-              <Text style={[styles.tableCell, { width: "10%" }]}>Allowance</Text>
-              <Text style={[styles.tableCell, { width: "10%" }]}>Toll Way</Text>
-              <Text style={[styles.tableCell, { width: "10%" }]}>Entertain</Text>
-              <Text style={[styles.tableCell, { width: "10%" }]}>Others</Text>
-              <Text style={[styles.tableCell, { width: "20%" }]}>Remark</Text>
+              <Text style={[styles.tableCell, { width: "10%" }]}>Product Name</Text>
+              <Text style={[styles.tableCell, { width: "15%" }]}>Pack Size</Text>
+              <Text style={[styles.tableCell, { width: "15%" }]}>Estimate Sale (KG,IT)</Text>
+              <Text style={[styles.tableCell, { width: "10%" }]}>Acutal Sale (KG,IT)</Text>
             </View>
 
             {/* Data Rows */}
             {data.map((row, index) => (
               <View key={index} style={styles.tableRow}>
-                <Text style={[styles.tableCell, { width: "10%" }]}>{row.date}</Text>
-                <Text style={[styles.tableCell, { width: "15%" }]}>{row.from}</Text>
-                <Text style={[styles.tableCell, { width: "15%" }]}>{row.to}</Text>
-                <Text style={[styles.tableCell, { width: "10%" }]}>{row.petrol}</Text>
-                <Text style={[styles.tableCell, { width: "10%" }]}>{row.cashPetrol}</Text>
-                <Text style={[styles.tableCell, { width: "10%" }]}>{row.hotel || "-"}</Text>
-                <Text style={[styles.tableCell, { width: "10%" }]}>{row.allowance || "-"}</Text>
-                <Text style={[styles.tableCell, { width: "10%" }]}>{row.tollWay || "-"}</Text>
-                <Text style={[styles.tableCell, { width: "10%" }]}>{row.entertain || "-"}</Text>
-                <Text style={[styles.tableCell, { width: "10%" }]}>{row.others || "-"}</Text>
-                <Text style={[styles.tableCell, { width: "20%" }]}>{row.remarks || "-"}</Text>
+                <Text style={[styles.tableCellTd, { width: "10%" }]}>{row.date}</Text>
+                <Text style={[styles.tableCellTd, { width: "15%" }]}>{row.from}</Text>
+                <Text style={[styles.tableCellTd, { width: "15%" }]}>{row.to}</Text>
+                <Text style={[styles.tableCellTd, { width: "10%" }]}>{row.petrol}</Text>
               </View>
             ))}
+            <View style={styles.footerRow}>
+              <Text style={[styles.footerCell]}>Total (THB): {totals.petrol}</Text>
+            </View>
           </View>
 
           {/* Footer */}
           <View style={styles.footer}>
             {/* Totals Row */}
-            <View style={styles.footerRow}>
-              <Text style={[styles.footerCell]}>Total Petrol: {totals.petrol}</Text>
-              <Text style={[styles.footerCell]}>Total Cash Petrol: {totals.cashPetrol}</Text>
-              <Text style={[styles.footerCell]}>Total Toll Way: {totals.tollWay}</Text>
-              <Text style={[styles.footerCell]}>Total Others: {totals.others}</Text>
-            </View>
+            {/* <View style={styles.footerRow}>
+              <Text style={[styles.footerCell]}>Total (THB): {totals.petrol}</Text>
+            </View> */}
 
             {/* Approval Section */}
             <View style={styles.footerInfo}>
@@ -209,14 +258,26 @@ const AdvanceExpensePDF = ({ title }) => {
                 <Text>Checked By</Text>
               </View>
             </View>
+
             <View style={styles.footerInfo}>
-              <View style={styles.footerInfoCell}>
+              <View style={styles.footerTableInfoCell}>
+                <Text>Approved By</Text>
                 <Text>Approved By</Text>
               </View>
-              <View style={styles.footerInfoCell}>
+              <View style={styles.footerTableInfoCell}>
                 <Text>Received By</Text>
+                <Text>Approved By</Text>
+              </View>
+              <View style={styles.footerTableInfoCell}>
+                <Text>Received By</Text>
+                <Text>Approved By</Text>
+              </View>              
+              <View style={styles.footerTableInfoCell}>
+                <Text>Received By</Text>
+                <Text>Approved By</Text>
               </View>
             </View>
+            
           </View>
         </Page>
       </Document>
