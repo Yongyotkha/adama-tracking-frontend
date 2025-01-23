@@ -89,11 +89,13 @@ import ReportActivity from "./pages/report/ReportActivity";
 // END ------------- Activity ------------- END
 
 // Phase 2
-// import CreateMaterial from "./pages/settings/material/CreateMaterial";
-// import EditMaterial from "./pages/settings/material/EditMaterial";
-// import ViewMaterial from "./pages/settings/material/ViewMaterial";
 import Material from "./pages/settings/material/Material";
 import ActionMaterial from "./pages/settings/material/ActionMaterial";
+import MaterialExpense from "./pages/expenses/material_expense/MaterialExpense";
+import ActionMaterialExpense from "./pages/expenses/material_expense/ActionMaterialExpense";
+import SampleExpense from "./pages/expenses/sample_expense/SampleExpense";
+import ActionSampleExpense from "./pages/expenses/sample_expense/ActionSampleExpense";
+import Transection from "./pages/settings/material/Transection";
 
 const App = () => {
   return (
@@ -179,6 +181,12 @@ const App = () => {
             <Route path="/expenses/clearing/create" element={<CreateClearing />} />
             <Route path="/expenses/clearing/edit" element={<EditClearing />} />
 
+            <Route path="/expenses/sample" element={<SampleExpense />} />
+            <Route path="/expenses/sample/:mode" element={<ActionSampleExpense />} />
+
+            <Route path="/expenses/material" element={<MaterialExpense />} />
+            <Route path="/expenses/material/:mode" element={<ActionMaterialExpense />} />
+
             {/* Customer Route */}
             <Route path="/customer/dealer" element={<Dealer />} />
             <Route path="/customer/dealer/edit-info" element={<EditInformation />} />
@@ -213,9 +221,7 @@ const App = () => {
             <Route path="/setting/promotion/edit" element={<EditPromotion />} />
 
             <Route path="/setting/material" element={<Material />} />
-            {/* <Route path="/setting/material/create" element={<CreateMaterial />} /> */}
-            {/* <Route path="/setting/material/edit" element={<EditMaterial />} /> */}
-            {/* <Route path="/setting/material/view" element={<ViewMaterial />} /> */}
+            <Route path="/setting/material/transection" element={<Transection />} />
             <Route path="/setting/material/:mode" element={<ActionMaterial />} />
 
             {/* Report Route */}

@@ -7,6 +7,7 @@ import { ExclamationCircleFilled } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
+import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 
 export default function MaterialExpense() {
   const { confirm } = Modal;
@@ -14,9 +15,9 @@ export default function MaterialExpense() {
   const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const [materialList, setMaterialList] = useState([
-    { id: "1", name: "Material Name 1" },
-    { id: "2", name: "Material Name 2" },
-    { id: "3", name: "Material Name 3" },
+    { id: "1", name: "All" },
+    { id: "2", name: "Rice" },
+    { id: "3", name: "Corn" },
   ]);
   const navigate = useNavigate();
 
@@ -42,16 +43,15 @@ export default function MaterialExpense() {
   };
 
   const header = [
-    { title: "Code", dataIndex: "code", align: "left" },
-    { title: "Name", dataIndex: "name", align: "left" },
-    { title: "Product", dataIndex: "product", align: "left" },
-    { title: "Crop", dataIndex: "crop", align: "center" },
-    { title: "Stock", dataIndex: "stock", align: "center" },
-    { title: "Price", dataIndex: "price", align: "right" },
+    { title: "Code", dataIndex: "code", align: "left", width: 120 },
+    { title: "Date", dataIndex: "date", align: "left", width: 150 },
+    { title: "Total Value", dataIndex: "totalValue", align: "right", width: 150 },
+    { title: "Crop", dataIndex: "crop", align: "center", width: 150 },
     {
       title: "Action",
       dataIndex: "action",
       align: "center",
+      width: 120,
       render: (_, record) => {
         const actionItems = [
           {
@@ -59,7 +59,9 @@ export default function MaterialExpense() {
             label: (
               <ItemDropDown
                 mode="edit"
-                link={`/setting/material/edit?documentNumber=${encodeURIComponent(record.code)}`}
+                link={`/expenses/material/edit?documentNumber=${encodeURIComponent(
+                  record.code
+                )}`}
               />
             ),
           },
@@ -68,7 +70,9 @@ export default function MaterialExpense() {
             label: (
               <ItemDropDown
                 mode="view"
-                link={`/setting/material/view?documentNumber=${encodeURIComponent(record.code)}`}
+                link={`/expenses/material/view?documentNumber=${encodeURIComponent(
+                  record.code
+                )}`}
               />
             ),
           },
@@ -112,30 +116,24 @@ export default function MaterialExpense() {
   const mockData = [
     {
       key: 1,
-      code: "MT0003",
-      name: "Material Name 1",
-      product: "Apopo",
+      code: "SE0003",
+      date: "01/01/2025",
+      totalValue: "30,000",
       crop: "Rice",
-      stock: 50,
-      price: "30,000",
     },
     {
       key: 2,
-      code: "MT0002",
-      name: "Material Name 2",
-      product: "Bumper P 490 ดา",
+      code: "SE0002",
+      date: "01/01/2025",
+      totalValue: "30,000",
       crop: "Rice",
-      stock: 50,
-      price: "30,000",
     },
     {
       key: 3,
-      code: "MT0001",
-      name: "Material Name 3",
-      product: "Hamper 300 SC",
+      code: "SE0001",
+      date: "01/01/2025",
+      totalValue: "30,000",
       crop: "Rice",
-      stock: 50,
-      price: "30,000",
     },
   ];
 
@@ -146,11 +144,11 @@ export default function MaterialExpense() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Material</div>
+        <div className="title-page">Material Expense</div>
         <ActionButton
           mode="create"
           text="Create"
-          onClick={() => navigate("/setting/material/create")}
+          onClick={() => navigate("/expenses/material/create")}
         />
       </div>
       <Filter
@@ -159,13 +157,14 @@ export default function MaterialExpense() {
         onClear={() => console.log("Clear filters")}
         onChange={() => {}}
       />
-      <TableComponent
-        header={header}
-        dataSource={dataSource}
-        loading={tableLoading}
-        pagination={{ pageSize: 10 }}
-        scroll
-      />
+      <BoxPrimary>
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          loading={tableLoading}
+          pagination={{ pageSize: 10 }}
+        />
+      </BoxPrimary>
     </MainLayout>
   );
 }

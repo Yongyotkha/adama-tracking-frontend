@@ -87,7 +87,7 @@ export default function ActionMaterial() {
     {
       label: "Photo",
       name: "photo",
-      type: "custom",
+      type: "photo",
       col: 24,
       component: (
         <FileUploadComponent

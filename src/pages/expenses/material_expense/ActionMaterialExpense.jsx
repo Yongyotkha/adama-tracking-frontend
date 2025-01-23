@@ -1,343 +1,340 @@
 import React, { useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import MainLayout from "../../../layouts/MainLayout";
-import { useNavigate } from "react-router-dom";
-import { Form, Input, Col, Row, Select } from "antd";
+import FormCustom from "../../../components/form_custom/FormCustom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import FormCustom from "../../../components/form_custom/FormCustom";
 import TableComponent from "../../../components/table/TableComponent";
 import FileUploadComponent from "../../../components/file_upload/FileUploadComponent";
+import { Input, message, Select, Upload } from "antd";
 import DynamicButton from "../../../components/button/DynamicButton";
-import DynamicModal from "../../../components/modal/DynamicModal";
 
-const { Option } = Select;
-
-export default function CreateMaterialExpense(mode) {
-  const [loading, setLoading] = useState(false);
-  const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
+export default function ActionMaterialExpense() {
+  const { mode } = useParams(); // Get the mode from the URL
   const navigate = useNavigate();
+  const isViewMode = mode === "view";
+  const [loading, setLoading] = useState(false);
+  const [fileList, setFileList] = useState([]);
 
-  const [formCustom] = Form.useForm();
-  const [customerForm] = Form.useForm();
-  const [expenseForm] = Form.useForm();
-  const [participantForm] = Form.useForm();
+  const handleUploadChange = (info) => {
+    const { file, fileList: updatedFileList } = info;
 
-  const fileUploadRef = useRef(null); // Reference for FileUploadComponent
-
-  const handleUploadClick = () => {
-    // Call triggerUpload from FileUploadComponent
-    if (fileUploadRef.current) {
-      fileUploadRef.current.triggerUpload();
+    if (file.status === "done") {
+      message.success(`${file.name} file uploaded successfully.`);
+      // Update state with new file list
+      setFileList(updatedFileList.map((file) => ({
+        uid: file.uid,
+        name: file.name,
+        status: file.status,
+        url: file.response?.url || file.url,
+      })));
+    } else if (file.status === "error") {
+      message.error(`${file.name} file upload failed.`);
+    } else {
+      setFileList(updatedFileList);
     }
   };
 
-  // Example file list to be passed as dataFile
-  const [fileList, setFileList] = useState([
-    {
-      uid: '-1',
-      name: 'image.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    },
-    {
-      uid: '-2',
-      name: 'image.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    },
-    {
-      uid: '-3',
-      name: 'image.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    },
-    {
-      uid: '-4',
-      name: 'image.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    },
-  ]);
-
-  const handleUpdate = async () => {
-    try {
-      const formCustomData = await formCustom.validateFields();
-      const customerData = await customerForm.validateFields();
-      const expenseData = await expenseForm.validateFields();
-      const participantData = await participantForm.validateFields();
-
-      const combinedData = {
-        ...formCustomData,
-        ...customerData,
-        ...expenseData,
-        ...participantData
-      };
-
-      console.log("Combined Form Data:", combinedData);
-      navigate("/expenses/advance");
-    } catch (error) {
-      console.error("Validation failed:", error);
-    }
+  const handleQuantityChange = (key, newQuantity) => {
+    setDataSource((prev) =>
+      prev.map((item) =>
+        item.key === key
+          ? { ...item, quantity: newQuantity, value: (newQuantity * 11500).toLocaleString() }
+          : item
+      )
+    );
   };
 
-  const formFields = [
-    { label: "Activity Reference", name: "activity_reference", type: "text", required: false, col: 24, value: "202400000000001", iconSrc: "/img/icons/search-table.png", iconPosition: "left" },
-    { label: "Activity Type", name: "activity_type", type: "select", options: ["FMT"], disabled: false, required: true, col: 6, value: "FMT" },
-    { label: "Shop", name: "shop", type: "select", options: ["Chaifar"], disabled: false, required: true, col: 6, value: "Chaifar" },
-    { label: "Crop", name: "crop", type: "select", options: ["Rice"], disabled: false, required: true, col: 6, value: "Rice" },
-    { label: "Date", name: "date", type: "date", disabled: false, required: true, col: 6, value: "2024-01-01" },
-    { label: "Start Time", name: "start_time", type: "time", disabled: false, required: true, col: 6, value: "09:00" },
-    { label: "End Time", name: "end_time", type: "time", disabled: false, required: true, col: 6, value: "11:00" },
-    { label: "Location", name: "location", type: "text", disabled: false, required: false, col: 12, value: "2/80 ถนนพาดาวรี ต.ท่าอิฐ อ.เมืองอุดรธานี จ.อุดรธานี", iconSrc: "/img/icons/location.png", iconPosition: "left" },
-    { label: "Description", name: "description", type: "text-editor", disabled: false, required: false, col: 24, placeholder: "Add description", value: "" }
-  ];
-
-  const header = [
-    { title: "Product Name", dataIndex: "productName", key: "productName", align: "left" },
-    { title: "Pack Size", dataIndex: "packSize", key: "packSize", align: "center" },
+  const listHeader = [
+    { title: "No", dataIndex: "no", key: "no" },
     {
-      title: "Estimate Sale (Kg/Lt)", dataIndex: "estimateSale", key: "estimateSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" defaultValue={record.estimateSale} />
-      )
-    },
-    {
-      title: "Actual Sale (Kg/Lt)", dataIndex: "actualSale", key: "actualSale", align: "center", render: (_, record) => (
-        <Input placeholder="0" disabled defaultValue={record.actualSale} />
-      )
-    },
-  ];
-
-  const dataSource = [
-    { key: "1", productName: "Ossinate 15%SL", packSize: "1Kg.", estimateSale: "0", actualSale: "0" },
-    { key: "2", productName: "Apopo 20%SE", packSize: "1Lt.", estimateSale: "0", actualSale: "0" },
-    { key: "3", productName: "Atranex 90WG", packSize: "5Kg.", estimateSale: "0", actualSale: "0" },
-    { key: "4", productName: "Baloric 320EC", packSize: "0.5Lt.", estimateSale: "0", actualSale: "0" },
-  ];
-
-  const footerOrderList = () => (
-    <tr className="bg-[#978B87]">
-      <td colSpan={2} className="text-left pr-2 text-white">Total (THB)</td>
-      <td colSpan={1} className="text-center">
-        <Input placeholder="0" readOnly className="border-0" />
-      </td>
-      <td colSpan={1} className="text-center">
-        <Input placeholder="0" readOnly className="border-0" />
-      </td>
-    </tr>
-  );
-
-  const [participants, setParticipants] = useState([
-    { key: '1', no: 1, name: 'Kornkan Induang', position: 'Sales Executive', department: 'Sales Team', territory: 'Left North', permission: 'Individual and BD/Assist' },
-    { key: '2', no: 2, name: 'Phaisan Jethuen', position: 'Sales Executive', department: 'Sales Team', territory: 'Left Lower North', permission: 'Individual and BD/Assist' },
-    { key: '3', no: 3, name: 'Manupong Wongpuang', position: 'Sales Executive', department: 'Sales Team', territory: 'Lower North', permission: 'Individual and BD/Assist' },
-    { key: '4', no: 4, name: 'Kriangkrai Kraikaew', position: 'Sales Executive', department: 'Sales Team', territory: 'Central Left North', permission: 'Individual and BD/Assist' },
-    { key: '5', no: 5, name: 'Charoenpong Khunawatcharakun', position: 'Sales Executive', department: 'Sales Team', territory: 'Central Right North', permission: 'Individual and BD/Assist' },
-  ]);
-
-  const participantColumns = [
-    { title: 'No', dataIndex: 'no', key: 'no', align: 'center' },
-    { title: 'Name', dataIndex: 'name', key: 'name' },
-    { title: 'Position', dataIndex: 'position', key: 'position' },
-    { title: 'Department', dataIndex: 'department', key: 'department' },
-    { title: 'Territory', dataIndex: 'territory', key: 'territory' },
-    { title: 'Permission', dataIndex: 'permission', key: 'permission' },
-    {
-      title: 'Action', key: 'action', align: 'center',
+      title: "Photo",
+      dataIndex: "photo",
+      key: "photo",
       render: (_, record) => (
-        <DynamicButton iconSrc="/img/icons/delete.png" onClick={() => removeParticipant(record.key)} />
+        <img
+          src={record.photo || "/img/default-placeholder.png"}
+          alt="product"
+          className="w-10 h-10 object-cover rounded-full shadow-lg"
+        />
       ),
     },
+    { title: "Material Code", dataIndex: "materialCode", key: "materialCode" },
+    { title: "Material Name", dataIndex: "materialName", key: "materialName" },
+    { title: "Price", dataIndex: "price", key: "price" },
+    { title: "Stock", dataIndex: "stock", key: "stock" },
+    {
+      title: <div className="text-center">QTY (unit)</div>,
+      dataIndex: "quantity",
+      key: "quantity",
+      render: (_, record) =>
+        isViewMode ? (
+          record.quantity
+        ) : (
+          <div className="quantity-control flex justify-center items-center">
+            <img
+              src="/img/icons/collapse.png"
+              alt="decrease"
+              className="cursor-pointer w-6 h-6"
+              onClick={() => handleQuantityChange(record.key, record.quantity - 1)}
+            />
+            <Input
+              inputMode="numeric"
+              min={1}
+              value={record.quantity}
+              onChange={(e) =>
+                handleQuantityChange(record.key, parseInt(e.target.value) || 1)
+              }
+              className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
+            />
+            <img
+              src="/img/icons/expand.png"
+              alt="increase"
+              className="cursor-pointer w-6 h-6"
+              onClick={() => handleQuantityChange(record.key, record.quantity + 1)}
+            />
+          </div>
+        ),
+    },
+    { title: "Value", dataIndex: "value", key: "value" },
+    {
+      title: "Warehouse Send",
+      dataIndex: "warehouseSend",
+      key: "warehouseSend",
+      render: (_, record) =>
+        isViewMode ? (
+          record.warehouseSend
+        ) : (
+          <Input
+            value={record.warehouseSend}
+            onChange={(e) =>
+              setDataSource((prev) =>
+                prev.map((item) =>
+                  item.key === record.key
+                    ? { ...item, warehouseSend: e.target.value }
+                    : item
+                )
+              )
+            }
+          />
+        ),
+    },
+    {
+      title: "Receive",
+      dataIndex: "receive",
+      key: "receive",
+      render: (_, record) =>
+        isViewMode ? (
+          record.receive
+        ) : (
+          <Input
+            value={record.receive}
+            onChange={(e) =>
+              setDataSource((prev) =>
+                prev.map((item) =>
+                  item.key === record.key
+                    ? { ...item, receive: e.target.value }
+                    : item
+                )
+              )
+            }
+          />
+        ),
+    },
+    {
+      title: "Action",
+      dataIndex: "action",
+      key: "action",
+      render: (_, record) =>
+        isViewMode ? null : (
+          <DynamicButton
+            iconSrc="/img/icons/delete.png"
+            onClick={() =>
+              setDataSource((prev) => prev.filter((item) => item.key !== record.key))
+            }
+          />
+        ),
+    },
   ];
 
-  let counter = 1;
-  const salesData = [
-    { key: `sales-${counter++}`, no: 1, name: "Kornkan Induang", position: "Sales Executive", territory: "Left North" },
-    { key: `sales-${counter++}`, no: 2, name: "Phaisan Jethuen", position: "Sales Executive", territory: "Left Lower North" },
-    { key: `sales-${counter++}`, no: 3, name: "Manupong Wongpuang", position: "Sales Executive", territory: "Lower North" },
-    { key: `sales-${counter++}`, no: 4, name: "Kriangkrai Kraikeaw", position: "Sales Executive", territory: "Central Left North" },
-    { key: `sales-${counter++}`, no: 5, name: "Charoenpong Khunawatcharakun", position: "Sales Executive", territory: "Central Right North" },
-    { key: `sales-${counter++}`, no: 6, name: "Amorn Sriworakul", position: "Sales Executive", territory: "Right Lower North" },
-    { key: `sales-${counter++}`, no: 7, name: "Nitchapan Akkaraketsawad", position: "Sales Executive", territory: "Upper Central" },
-    { key: `sales-${counter++}`, no: 8, name: "Manus Nakkhum", position: "Sales Executive", territory: "Central" },
-  ];
+  const [dataSource, setDataSource] = useState([
+    {
+      key: 1,
+      no: 1,
+      photo: "/img/products/product1.png",
+      materialCode: "M000001",
+      materialName: "Name 1",
+      price: "10,000",
+      stock: 100,
+      quantity: 10,
+      value: "100,000.00",
+      warehouseSend: "",
+      receive: "",
+    },
+    {
+      key: 2,
+      no: 2,
+      photo: "/img/products/product2.png",
+      materialCode: "M000002",
+      materialName: "Name 2",
+      price: "10,000",
+      stock: 100,
+      quantity: 10,
+      value: "100,000.00",
+      warehouseSend: "",
+      receive: "",
+    },
+  ]);
 
-  const handleOpenTeamModal = () => {
-    setIsTeamModalVisible(true);
-  };
-
-  const handleCloseTeamModal = () => {
-    setIsTeamModalVisible(false);
-  };
-
-  const handleAddSelectedRows = (selectedRows) => {
-    setParticipants((prev) => {
-      // Filter out any selected rows that already exist in participants based on their key
-      const newRows = selectedRows.filter(
-        (row) => !prev.some((participant) => participant.key === row.key)
-      );
-      return [...prev, ...newRows];
-    });
-  };
-
-  const removeParticipant = (key) => {
-    setParticipants(participants.filter(item => item.key !== key));
+  const footerSummary = () => {
+    const totalQty = dataSource.reduce((sum, item) => sum + item.quantity, 0);
+    const totalValue = dataSource.reduce(
+      (sum, item) => sum + parseFloat(item.value.replace(/,/g, "")),
+      0
+    );
+    return (
+      <tr className="bg-gray-200">
+        <td colSpan={11} className="text-right font-semibold">
+          Item: {dataSource.length} &nbsp; QTY: {totalQty} &nbsp; Total:{" "}
+          {totalValue.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+        </td>
+      </tr>
+    );
   };
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Create Material</div>
+      <div className="title-page">
+        {mode === "create"
+          ? "Create Material Expense"
+          : mode === "edit"
+            ? "Edit Material Expense"
+            : "View Material Expense"}
+      </div>
+      
+      <BoxPrimary>
+        <div className="grid gap-4 mb-4 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1">
+          <div>
+            <label className="block mb-1 text-sm">
+              Material Code
+            </label>
+            <Input value={'123'} disabled className="w-full" />
+          </div>
 
-      <FormCustom fields={formFields} form={formCustom} />
+          <div>
+            <label className="block mb-1 text-sm">
+              Crop
+            </label>
+            <Input value={'123'} disabled className="w-full" />
+          </div>
 
-      <BoxPrimary title="Sale Plan">
+          <div>
+            <label className="block mb-1 text-sm">Product</label>
+            <Input value={'123'} disabled className="w-full" />
+          </div>
+        </div>
+      </BoxPrimary>
+
+      {!isViewMode &&
+        <BoxPrimary title="Material">
+
+          <div className="mb-3 flex justify-end">
+            <Select
+              showSearch
+              placeholder="Search Product"
+              optionFilterProp="label"
+              className="w-full"
+            // onChange={onChangeProduct}
+            // onSearch={onSearchProduct}
+            // options={searchProductData}
+            />
+          </div>
+        </BoxPrimary>
+      }
+
+      <BoxPrimary title="List">
         <TableComponent
-          header={header}
+          header={listHeader}
           dataSource={dataSource}
-          pageSize={10}
-          footer={footerOrderList}
-          pagination={false}
+          footer={footerSummary}
         />
       </BoxPrimary>
 
       <BoxPrimary>
-        <span className="text-[#00783F] text-lg font-semibold mb-3">Customer</span>
-        <Form
-          layout="vertical"
-          form={customerForm}
-          initialValues={{
-            supportCustomerName: "Chaifar",
-            address: "2/80 ถนนพาดาวรี ต.ท่าอิฐ อ.เมืองอุดรธานี จ.อุดรธานี",
-            perception: "Good"
-          }}
-        >
-          <Row gutter={[16, 16]} className="mt-3">
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Support Customer Name" name="supportCustomerName">
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Place of Owner" name="placeOfOwner">
-                <Input placeholder="-" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={12}>
-              <Form.Item className="mb-3" label="Address" name="address">
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Phone Number" name="phoneNumber">
-                <Input placeholder="Enter phone number" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Place of GPS" name="placeOfGPS">
-                <Input placeholder="Enter GPS location" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Perception" name="perception">
-                <Select>
-                  <Option value="Good">Good</Option>
-                  <Option value="Average">Average</Option>
-                  <Option value="Poor">Poor</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
-      </BoxPrimary>
-
-      <BoxPrimary title='Expense'>
-        <Form
-          layout="vertical"
-          form={expenseForm} // Use the new expenseForm instance here
-          initialValues={{
-            actual_exp: "0",
-            actual_sale: "0"
-          }}
-        >
-          <Row gutter={[16, 16]} className="mt-3">
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Actual exp" name="actual_exp">
-                <Input placeholder="0" disabled />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Actual sale" name="actual_sale">
-                <Input placeholder="0" disabled />
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
-      </BoxPrimary>
-
-      <BoxPrimary>
-        <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
-          <ActionButton mode="add" text="Upload File" onClick={handleUploadClick} />
+        <div className="flex flex-col items-end space-y-4">
+          <div className="flex items-center space-x-4">
+            <label className="text-sm font-medium text-gray-700">
+              Total Value Request:
+            </label>
+            <Input
+              value="200.00" // Replace with dynamic data
+              disabled
+              className="w-40 text-right border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
+            />
+          </div>
+          <div className="flex items-center space-x-4">
+            <label className="text-sm font-medium text-gray-700">
+              Total Value Warehouse Send:
+            </label>
+            <Input
+              value="0.00" // Replace with dynamic data
+              disabled
+              className="w-40 text-right border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
+            />
+          </div>
+          <div className="flex items-center space-x-4">
+            <label className="text-sm font-medium text-gray-700">
+              Total Value Receive:
+            </label>
+            <Input
+              value="0.00" // Replace with dynamic data
+              disabled
+              className="w-40 text-right border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
+            />
+          </div>
         </div>
-        <FileUploadComponent ref={fileUploadRef} dataFile={fileList} />
       </BoxPrimary>
 
-      {/* Participant Section */}
-      <BoxPrimary>
-        <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">Participant</div>
-          <ActionButton mode="add" text="Add" onClick={handleOpenTeamModal} />
-        </div>
 
-        <Form
-          layout="vertical"
-          form={participantForm}
-          initialValues={{
-            estimate_participant: "0",
-            actual_participant: "0"
-          }}
+      <BoxPrimary title="Attach File" className="pb-[56px]">
+        <Upload.Dragger
+          name="file"
+          multiple={false}
+          action="/upload" // Replace with your actual upload endpoint
+          onChange={handleUploadChange}
+          className="w-full"
+          listType="picture"
+          maxCount={1}
+          accept="application/pdf"
+          disabled={isViewMode} // Disable upload in view mode
         >
-          <Row gutter={[16, 16]} className="mt-3">
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Estimate Participant " name="actual_exp">
-                <Input placeholder="0" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Form.Item className="mb-3" label="Actual Participant" name="actual_sale">
-                <Input placeholder="0" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <TableComponent
-            header={participantColumns}
-            dataSource={participants}
-            pagination={false}
+          <p className="text-[#978B87]">Choose a file or drag & Drop it here</p>
+          <p className="text-[#978B87]">PDF</p>
+          <DynamicButton
+            className="text-white mt-2 px-4 py-1 rounded-[4px] bg-[#009845]"
+            text={"Browse File"}
+            type={"button"}
           />
-        </Form>
+        </Upload.Dragger>
       </BoxPrimary>
 
-      <div className="flex justify-end space-x-4 mt-6">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/setting/material")} />
-        <ActionButton mode="update" text="Save" onClick={handleUpdate} />
-      </div>
+      <BoxPrimary title="Remark">
+        <Input.TextArea placeholder="Remark" rows={3} disabled={isViewMode} />
+      </BoxPrimary>
 
-      {/* Modal for Add Participant */}
-      <DynamicModal
-        title="Add Participant"
-        isVisible={isTeamModalVisible}
-        onClose={handleCloseTeamModal}
-        header={[
-          { title: "No", dataIndex: "no", key: "no", width: 50 },
-          { title: "Name", dataIndex: "name", key: "name", width: 150 },
-          { title: "Territory", dataIndex: "territory", key: "territory", width: 150 },
-          { title: "Position", dataIndex: "position", key: "position", width: 150 },
-        ]}
-        dataSource={salesData}
-        width="1200px"
-        onAddSelected={handleAddSelectedRows}
-        type="add"
-      />
+      {!isViewMode && (
+        <div className="flex justify-end space-x-4 mt-6">
+          <ActionButton
+            mode="back"
+            text="Back"
+            onClick={() => navigate("/expenses/material")}
+          />
+          <ActionButton
+            mode="save"
+            text={mode === "create" ? "Create" : "Save"}
+          />
+        </div>
+      )}
     </MainLayout>
   );
 }

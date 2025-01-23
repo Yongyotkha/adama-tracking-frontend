@@ -7,6 +7,7 @@ import { ExclamationCircleFilled } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
+import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 
 export default function Material() {
   const { confirm } = Modal;
@@ -76,10 +77,20 @@ export default function Material() {
             key: "3",
             label: (
               <ItemDropDown
+                mode="approve"
+                text="Transection"
+                link="material/transection"
+              />
+            ),
+          },
+          {
+            key: "4",
+            label: (
+              <ItemDropDown
                 mode="delete"
-                link="#"
                 onClick={() => handleDelete(record.code)}
               />
+
             ),
           },
         ];
@@ -157,15 +168,17 @@ export default function Material() {
         filters={filters}
         onSearch={(filters) => console.log("Search filters:", filters)}
         onClear={() => console.log("Clear filters")}
-        onChange={() => {}}
+        onChange={() => { }}
       />
-      <TableComponent
-        header={header}
-        dataSource={dataSource}
-        loading={tableLoading}
-        pagination={{ pageSize: 10 }}
-        scroll
-      />
+      <BoxPrimary>
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          loading={tableLoading}
+          pagination={{ pageSize: 10 }}
+          scroll
+        />
+      </BoxPrimary>
     </MainLayout>
   );
 }

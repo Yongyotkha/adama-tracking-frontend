@@ -7,6 +7,7 @@ import { ExclamationCircleFilled } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
+import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 
 export default function SampleExpense() {
   const { confirm } = Modal;
@@ -42,12 +43,11 @@ export default function SampleExpense() {
   };
 
   const header = [
-    { title: "Code", dataIndex: "code", align: "center" },
-    { title: "Name", dataIndex: "name", align: "left" },
-    { title: "Product", dataIndex: "product", align: "left" },
+    { title: "Code", dataIndex: "code", align: "left" },
+    { title: "Date", dataIndex: "date", align: "left" },
+    { title: "Sub Dealer", dataIndex: "subDealer", align: "left" },
     { title: "Crop", dataIndex: "crop", align: "center" },
-    { title: "Stock", dataIndex: "stock", align: "center" },
-    { title: "Price", dataIndex: "price", align: "right" },
+    { title: "Value", dataIndex: "value", align: "right" },
     {
       title: "Action",
       dataIndex: "action",
@@ -59,7 +59,7 @@ export default function SampleExpense() {
             label: (
               <ItemDropDown
                 mode="edit"
-                link={`/setting/material/edit?documentNumber=${encodeURIComponent(record.code)}`}
+                link={`/expenses/sample/edit?documentNumber=${encodeURIComponent(record.code)}`}
               />
             ),
           },
@@ -68,7 +68,7 @@ export default function SampleExpense() {
             label: (
               <ItemDropDown
                 mode="view"
-                link={`/setting/material/view?documentNumber=${encodeURIComponent(record.code)}`}
+                link={`/expenses/sample/view?documentNumber=${encodeURIComponent(record.code)}`}
               />
             ),
           },
@@ -112,32 +112,30 @@ export default function SampleExpense() {
   const mockData = [
     {
       key: 1,
-      code: "MT0003",
-      name: "Material Name 1",
-      product: "Apopo",
+      code: "SE0003",
+      date: "01/01/2025",
+      subDealer: "จิตรสมาน",
       crop: "Rice",
-      stock: 50,
-      price: "30,000",
+      value: "30,000",
     },
     {
       key: 2,
-      code: "MT0002",
-      name: "Material Name 2",
-      product: "Bumper P 490 ดา",
+      code: "SE0002",
+      date: "01/01/2025",
+      subDealer: "จินดาเกษตรภัณฑ์",
       crop: "Rice",
-      stock: 50,
-      price: "30,000",
+      value: "30,000",
     },
     {
       key: 3,
-      code: "MT0001",
-      name: "Material Name 3",
-      product: "Hamper 300 SC",
+      code: "SE0001",
+      date: "01/01/2025",
+      subDealer: "จุฑาพร",
       crop: "Rice",
-      stock: 50,
-      price: "30,000",
+      value: "30,000",
     },
   ];
+
 
   useEffect(() => {
     setDataSource(mockData);
@@ -146,26 +144,28 @@ export default function SampleExpense() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Material</div>
+        <div className="title-page">Sample Expense</div>
         <ActionButton
           mode="create"
           text="Create"
-          onClick={() => navigate("/setting/material/create")}
+          onClick={() => navigate("/expenses/sample/create")}
         />
       </div>
       <Filter
         filters={filters}
         onSearch={(filters) => console.log("Search filters:", filters)}
         onClear={() => console.log("Clear filters")}
-        onChange={() => {}}
+        onChange={() => { }}
       />
-      <TableComponent
-        header={header}
-        dataSource={dataSource}
-        loading={tableLoading}
-        pagination={{ pageSize: 10 }}
-        scroll
-      />
+      <BoxPrimary>
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          loading={tableLoading}
+          pagination={{ pageSize: 10 }}
+          scroll
+        />
+      </BoxPrimary>
     </MainLayout>
   );
 }
