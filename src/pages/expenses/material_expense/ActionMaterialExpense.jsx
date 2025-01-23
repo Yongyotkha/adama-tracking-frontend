@@ -211,7 +211,7 @@ export default function ActionMaterialExpense() {
             ? "Edit Material Expense"
             : "View Material Expense"}
       </div>
-      
+
       <BoxPrimary>
         <div className="grid gap-4 mb-4 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1">
           <div>
@@ -322,19 +322,21 @@ export default function ActionMaterialExpense() {
         <Input.TextArea placeholder="Remark" rows={3} disabled={isViewMode} />
       </BoxPrimary>
 
-      {!isViewMode && (
-        <div className="flex justify-end space-x-4 mt-6">
-          <ActionButton
-            mode="back"
-            text="Back"
-            onClick={() => navigate("/expenses/material")}
-          />
+
+      <div className="flex justify-end space-x-4 mt-6">
+        <ActionButton
+          mode="back"
+          text="Back"
+          onClick={() => navigate("/expenses/material")}
+        />
+        {!isViewMode && (
           <ActionButton
             mode="save"
             text={mode === "create" ? "Create" : "Save"}
           />
-        </div>
-      )}
+        )}
+      </div>
+
     </MainLayout>
   );
 }
