@@ -611,7 +611,16 @@ export default function ViewTraveling() {
         <ActionButton
           mode="saveDraft"
           text="Export PDF"
-          onClick={() => window.open("/expenses/traveling/pdf", "_blank")}
+          // onClick={() => window.open("/expenses/traveling/pdf", "_blank")}
+          onClick={() => {
+            navigate("/expenses/traveling/pdf", {
+              state: {
+                year_code: getYearCode,
+                month_code: getMonthCode,
+                user_id: getUserId,
+              },
+            });
+          }}
         />
       </div>
     </MainLayout>

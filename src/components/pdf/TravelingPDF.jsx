@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Page,
   Image,
@@ -9,6 +9,9 @@ import {
   PDFViewer,
   Font,
 } from "@react-pdf/renderer";
+import { useLocation } from "react-router-dom";
+import useServiceAPI from "../../services/CorsService";
+import { paths } from "../../services/CorsPath";
 
 // Register the fonts with correct paths
 Font.register({
@@ -135,31 +138,88 @@ const styles = StyleSheet.create({
   },
 });
 
-
 const TravelingPDF = ({ title }) => {
-  const data = Array.from({ length: 31 }, (_, index) => {
-    const date = `${index + 1}-Apr-2024`;
-    const from = "Chanthaburi";
-    const to = "Chanthaburi";
-    const petrol = Math.floor(Math.random() * 2000) + 500; // Random petrol cost between 500 and 2500
-    const cashPetrol = Math.floor(Math.random() * 500) + 100; // Random cash petrol between 100 and 600
-    const hotel = Math.random() > 0.5 ? Math.floor(Math.random() * 2000) + 500 : "-";
-    const allowance = Math.random() > 0.5 ? Math.floor(Math.random() * 500) + 100 : "-";
-    const tollWay = Math.random() > 0.5 ? Math.floor(Math.random() * 300) + 50 : "-";
-    const entertain = Math.random() > 0.5 ? Math.floor(Math.random() * 1000) + 100 : "-";
-    const others = Math.random() > 0.5 ? Math.floor(Math.random() * 100) + 1 : "-";
-    const remarks = Math.random() > 0.7 ? "ค่าซื้อเอกสาร" : "";
-
-    return { date, from, to, petrol, cashPetrol, hotel, allowance, tollWay, entertain, others, remarks };
+  const [loading, setLoading] = useState(false);
+  const location = useLocation();
+  const [data, setData] = useState([]);
+  const [dataItems, setDataItems] = useState([]);
+  const [totals, setTotals] = useState({
+    petrol: 0,
+    cashPetrol: 0,
+    tollWay: 0,
+    others: 0,
   });
+  // Set Data
+  const [getUserId, setGetUserId] = useState(location.state.user_id);
+  const [getYearCode, setGetYearCode] = useState(location.state.year_code);
+  const [getMonthCode, setGetMonthCode] = useState(location.state.month_code);
 
-  const totals = {
-    petrol: data.reduce((sum, row) => (row.petrol !== "-" ? sum + Number(row.petrol) : sum), 0),
-    cashPetrol: data.reduce((sum, row) => (row.cashPetrol !== "-" ? sum + Number(row.cashPetrol) : sum), 0),
-    tollWay: data.reduce((sum, row) => (row.tollWay !== "-" ? sum + Number(row.tollWay) : sum), 0),
-    others: data.reduce((sum, row) => (row.others !== "-" ? sum + Number(row.others) : sum), 0),
-  };
+  useEffect(() => {
+    console.log(location);
+  }, []);
 
+  // Extract parameters from location.state
+
+  useEffect(() => {
+    if (getUserId && getUserId && getUserId) {
+      const loadDataTraveling = async () => {
+        setLoading(true);
+        try {
+          const [traveling] = await Promise.all([
+            useServiceAPI.get(paths.pathGetExpenseTravelingDetail, {
+              year_code: getYearCode,
+              month_code: getMonthCode,
+              user_id: getUserId,
+            }),
+          ]);
+
+          const dataItems = traveling.data.data_items || [];
+          const calculatedTotals = {
+            petrol: 0,
+            cashPetrol: 0,
+            tollFee: 0,
+            others: 0,
+          };
+
+          const transformedData = dataItems.map((item, index) => {
+            calculatedTotals.petrol += parseFloat(item.petrol || 0);
+            calculatedTotals.cashPetrol += parseFloat(item.cash_petrol || 0);
+            calculatedTotals.tollFee += parseFloat(item.toll_fee || 0);
+            calculatedTotals.others += parseFloat(item.others || 0);
+
+            return {
+              key: `${index + 1}`,
+              date: item.date || "-",
+              from: item.traveling_from || "-",
+              to: item.traveling_to || "-",
+              mileage: item.mileage || "0",
+              petrol: item.petrol || "0",
+              cashPetrol: item.cash_petrol || "0",
+              hotel: item.hotel || "0",
+              allowance: item.allowance || "0",
+              tollFee: item.toll_fee || "0",
+              entertain: item.entertain || "0",
+              others: item.others || "0",
+              total: item.total || "0",
+              remark: item.remark || "-",
+            };
+          });
+
+          setDataItems(transformedData);
+          console.log(transformedData);
+          setTotals(calculatedTotals);
+        } catch (error) {
+          console.error("Error fetching traveling data:", error.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadDataTraveling();
+    } else {
+      setDataItems([]);
+    }
+  }, [getUserId, getUserId, getUserId]);
 
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
@@ -199,19 +259,18 @@ const TravelingPDF = ({ title }) => {
             </View>
 
             {/* Data Rows */}
-            {data.map((row, index) => (
+            {dataItems.map((row, index) => (
               <View key={index} style={styles.tableRow}>
                 <Text style={[styles.tableCell, { width: "10%" }]}>{row.date}</Text>
                 <Text style={[styles.tableCell, { width: "15%" }]}>{row.from}</Text>
                 <Text style={[styles.tableCell, { width: "15%" }]}>{row.to}</Text>
                 <Text style={[styles.tableCell, { width: "10%" }]}>{row.petrol}</Text>
                 <Text style={[styles.tableCell, { width: "10%" }]}>{row.cashPetrol}</Text>
-                <Text style={[styles.tableCell, { width: "10%" }]}>{row.hotel || "-"}</Text>
-                <Text style={[styles.tableCell, { width: "10%" }]}>{row.allowance || "-"}</Text>
-                <Text style={[styles.tableCell, { width: "10%" }]}>{row.tollWay || "-"}</Text>
-                <Text style={[styles.tableCell, { width: "10%" }]}>{row.entertain || "-"}</Text>
-                <Text style={[styles.tableCell, { width: "10%" }]}>{row.others || "-"}</Text>
-                <Text style={[styles.tableCell, { width: "20%" }]}>{row.remarks || "-"}</Text>
+                <Text style={[styles.tableCell, { width: "10%" }]}>{row.hotel}</Text>
+                <Text style={[styles.tableCell, { width: "10%" }]}>{row.allowance}</Text>
+                <Text style={[styles.tableCell, { width: "10%" }]}>{row.tollFee}</Text>
+                <Text style={[styles.tableCell, { width: "10%" }]}>{row.others}</Text>
+                <Text style={[styles.tableCell, { width: "10%" }]}>{row.remark}</Text>
               </View>
             ))}
           </View>
