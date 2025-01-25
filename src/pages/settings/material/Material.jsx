@@ -78,8 +78,8 @@ export default function Material() {
             label: (
               <ItemDropDown
                 mode="approve"
-                text="Transection"
-                link="material/transection"
+                text="Transaction"
+                link="material/transaction"
               />
             ),
           },

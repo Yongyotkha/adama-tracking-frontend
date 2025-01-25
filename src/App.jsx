@@ -95,7 +95,7 @@ import MaterialExpense from "./pages/expenses/material_expense/MaterialExpense";
 import ActionMaterialExpense from "./pages/expenses/material_expense/ActionMaterialExpense";
 import SampleExpense from "./pages/expenses/sample_expense/SampleExpense";
 import ActionSampleExpense from "./pages/expenses/sample_expense/ActionSampleExpense";
-import Transection from "./pages/settings/material/Transection";
+import Transaction from "./pages/settings/material/transaction";
 
 const App = () => {
   return (
@@ -221,7 +221,7 @@ const App = () => {
             <Route path="/setting/promotion/edit" element={<EditPromotion />} />
 
             <Route path="/setting/material" element={<Material />} />
-            <Route path="/setting/material/transection" element={<Transection />} />
+            <Route path="/setting/material/transaction" element={<Transaction />} />
             <Route path="/setting/material/:mode" element={<ActionMaterial />} />
 
             {/* Report Route */}
