@@ -34,30 +34,26 @@ const FormModal = ({
   });
 
 
+  const [locationCurrent, setLocationCurrent] = useState({
+    latitude: "",
+    longitude: "",
+  });
+  const [perceptionError, setPerceptionError] = useState("");
+  const webcamRef = useRef(null);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [photoError, setPhotoError] = useState("");
+
   const stopWebcam = () => {
     if (webcamRef.current && webcamRef.current.stream) {
       const tracks = webcamRef.current.stream.getTracks();
       tracks.forEach((track) => track.stop());
     }
   };
-  
 
-  
   const handleClose = () => {
     stopWebcam(); // หยุดกล้องเมื่อปิด Modal
     onClose();    // เรียกฟังก์ชันปิด Modal ที่ส่งมาจาก Props
   };
-
-  
-
-  const [locationCurrent, setLocationCurrent] = useState({
-    latitude: "",
-    longitude: "",
-  });
-  const [perceptionError, setPerceptionError] = useState("");
-
-  const webcamRef = useRef(null);
-  const [capturedImage, setCapturedImage] = useState(null);
 
   // Update formData when dataSource changes
   useEffect(() => {
@@ -74,35 +70,35 @@ const FormModal = ({
         remark: dataSource.remark || "",
         date: dataSource.date ? dayjs(dataSource.date) : null,
         photo: dataSource.photo || null,
-        gps: dataSource.location_address
+        gps: dataSource.location_address,
       });
     }
     console.log(dataSource);
-    
+
   }, [dataSource]);
 
-    // ดึงที่อยู่จาก Google Maps Geocoding API
-    const fetchAddress = async (lat, lng) => {
-      const apiKey = "AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik"; // ใส่ Google Maps API Key ของคุณ
-      const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
-  
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
-  
-        if (data.status === "OK" && data.results.length > 0) {
-          // return data.results[0].formatted_address; // คืนค่าที่อยู่
-          console.log(data.results[0].formatted_address);
-          setFormData({...formData,gps:data.results[0].formatted_address})
-        } else {
-          console.error("Geocoding API error:", data.status);
-          return "Address not found";
-        }
-      } catch (error) {
-        console.error("Error fetching address:", error);
-        return "Error fetching address";
+  // ดึงที่อยู่จาก Google Maps Geocoding API
+  const fetchAddress = async (lat, lng) => {
+    const apiKey = "AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik"; // ใส่ Google Maps API Key ของคุณ
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.status === "OK" && data.results.length > 0) {
+        // return data.results[0].formatted_address; // คืนค่าที่อยู่
+        console.log(data.results[0].formatted_address);
+        setFormData({ ...formData, gps: data.results[0].formatted_address })
+      } else {
+        console.error("Geocoding API error:", data.status);
+        return "Address not found";
       }
-    };
+    } catch (error) {
+      console.error("Error fetching address:", error);
+      return "Error fetching address";
+    }
+  };
 
   const handleInputChange = (key, value) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
@@ -113,7 +109,7 @@ const FormModal = ({
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          fetchAddress(latitude, longitude );
+          fetchAddress(latitude, longitude);
         },
         (error) => {
           console.error("Error fetching location:", error.message);
@@ -136,23 +132,29 @@ const FormModal = ({
       const imageSrc = webcamRef.current.getScreenshot();
       setCapturedImage(imageSrc);
       setFormData((prev) => ({ ...prev, photo: imageSrc }));
+      setPhotoError(""); // Clear error if an image is captured
     }
   }, [webcamRef]);
 
   const handleSubmit = () => {
-
     setPerceptionError("");
+    setPhotoError("");
+
     if (!formData.perception) {
       setPerceptionError("Please select a perception.");
-      return; // ไม่ต้อง proceed ต่อ
+      return;
     }
-    
+
+    if (!formData.photo) {
+      setPhotoError("Please capture a photo.");
+      return;
+    }
+
     if (onOk) {
-      // Pass capturedImage and formData
-      onOk({ ...formData, photo: capturedImage });
+      onOk({ ...formData });
     }
+    stopWebcam(); // Stop the webcam after saving
     onClose();
-    
   };
 
   return (
@@ -233,8 +235,8 @@ const FormModal = ({
             ))}
           </Select>
           {perceptionError && (
-          <div className="text-red-500 mt-1">{perceptionError}</div>
-        )}
+            <div className="text-red-500 mt-1">{perceptionError}</div>
+          )}
 
         </div>
         <div className="col-span-4">
@@ -293,7 +295,7 @@ const FormModal = ({
         </div>
 
         {/* Webcam Capture Section */}
-        <div className="col-span-4 md:col-span-4">
+        <div className="col-span-4 md:col-span-4 flex flex-col">
           <label className="block mb-2 font-medium text-gray-700">Photo</label>
           {/* <Webcam
             audio={false}
@@ -317,7 +319,7 @@ const FormModal = ({
               />
               <Button
                 onClick={captureImage}
-                className="w-full mt-2"
+                className="w-[auto] mt-2 mx-auto"
                 disabled={isReadOnly}
               >
                 Capture Photo
@@ -325,8 +327,9 @@ const FormModal = ({
             </>
           )}
           {capturedImage && (
-            <img src={capturedImage} alt="Captured" className="w-full mt-2" />
+            <img src={capturedImage} alt="Captured" className="w-fit max-h-[300px] mt-2 mx-auto" />
           )}
+          {photoError && <div className="text-red-500 mt-1">{photoError}</div>}
         </div>
 
         <div className="col-span-4 md:col-span-4">
