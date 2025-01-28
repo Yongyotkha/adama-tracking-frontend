@@ -261,13 +261,13 @@ export default function ActivityPlanSubDealer() {
         createPlan(mode, updatedActivity);
       } else {
         console.log(expense);
-        if (Number(expense) >= 3) {
+        if (Number(expense) >= 4) {
           confirm({
             title: "Unable to save",
             icon: <ExclamationCircleFilled />,
             content: (
               <>
-                <p>Estimate must be Less than 3 %</p>
+                <p>Estimate must be Less than 4 %</p>
                 <p>Estimate: {expense}%</p>
                 <p>
                   <b>
