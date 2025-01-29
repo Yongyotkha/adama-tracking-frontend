@@ -42,9 +42,7 @@ export default function Traveling() {
       setLoading(true);
       try {
         const [sale, year, month, status] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {
-            status: "",
-          }),
+          useServiceAPI.get(paths.pathMasterUserAll),
           useServiceAPI.get(paths.pathMasterYear, {}),
           useServiceAPI.get(paths.pathMasterMonths, {}),
           useServiceAPI.get(paths.pathMasterStatus, {
@@ -79,7 +77,7 @@ export default function Traveling() {
   const filters = [
     {
       key: "sale",
-      label: "Sale",
+      label: "Name",
       name: "sale",
       type: "select",
       options: dataSale,

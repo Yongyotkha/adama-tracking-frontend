@@ -47,9 +47,8 @@ export default function EditTraveling() {
       setLoading(true);
       try {
         const [sale, year, month] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {
-            status: ""
-          }),
+          useServiceAPI.get(paths.pathMasterUserAll),
+
           useServiceAPI.get(paths.pathMasterYear, {}),
           useServiceAPI.get(paths.pathMasterMonths, {}),
         ]);
@@ -272,7 +271,7 @@ export default function EditTraveling() {
   
   const formFields = [
     {
-      label: "Sale",
+      label: "Name",
       name: "sale",
       type: "select",
       options: dataSale,

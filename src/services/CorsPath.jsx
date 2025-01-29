@@ -13,6 +13,7 @@ export const paths = {
   pathCustomerSubDealer: "sale-customer-subdealer/list",
 
   // Master
+  pathMasterUserAll: "master/sale-user-all",
   pathMasterPosition: "master/position",
   pathMasterDepartments: "master/departments",
   pathMasterTerritory: "master/territory",
