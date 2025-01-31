@@ -43,10 +43,12 @@ Font.register({
 
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 5,
-    paddingRight: 5,
-    paddingLeft: 5,
-    fontSize: 7,
+    // paddingTop: 5,
+    // paddingRight: 5,
+    // paddingBottom: 5,
+    // paddingLeft: 5,
+    padding: 15,
+    fontSize: 8,
     fontFamily: "Sarabun", // Use the registered font
   },
   header: {
@@ -82,7 +84,7 @@ const styles = StyleSheet.create({
     borderTop: 1,
     borderRight: 1,
     borderColor: "#000",
-    marginBottom: 5,
+    marginBottom: 4,
   },
   tableRow: {
     flexDirection: "row",
@@ -104,33 +106,55 @@ const styles = StyleSheet.create({
   },
   footerRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 2,
+    alignItems: "flex-start",
+    justifyContent: 'space-between'
+  },
+  footerTotalsRow: {
+    flexDirection: "column",
+    gap: 4,
+  },
+  footerRemarkRow: {
+    flexDirection: "column",
+    gap: 4,
+  },
+  footerRemarkCell: {
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderColor: "#000",
+    padding: 5,
+    marginLeft: 2,
+    marginRight: 2,
+    textAlign: "left",
+    width: 200,
+    height: 49,
   },
   footerCell: {
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#000",
-    padding: 2,
+    padding: 5,
     marginLeft: 2,
     marginRight: 2,
-    flex: 1,
-    textAlign: "center",
+    textAlign: "left",
+    width: 200,
+  },
+  footerInfoRow: {
+    flexDirection: "row",
   },
   footerInfo: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 2,
+    flexDirection: "column",
+    justifyContent: 'center',
   },
   footerInfoCell: {
-    width: "50%",
-    height: 50,
+    width: 200,
+    height: 49,
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#000",
-    padding: 2,
-    margin: 2,
+    padding: 4,
+    marginLeft: 2,
+    marginRight: 2,
+    marginBottom: 4,
     textAlign: "left",
   },
 });
@@ -140,12 +164,6 @@ const TravelingPDF = ({ title }) => {
   const location = useLocation();
   const [data, setData] = useState([]);
   const [dataItems, setDataItems] = useState([]);
-  const [totals, setTotals] = useState({
-    petrol: 0,
-    cashPetrol: 0,
-    tollFee: 0,
-    others: 0,
-  });
 
   const columns = [
     { title: "Date", dataIndex: "date", width: "10%" },
@@ -158,6 +176,7 @@ const TravelingPDF = ({ title }) => {
     { title: "Toll Way", dataIndex: "tollFee", width: "10%" },
     { title: "Entertain", dataIndex: "entertain", width: "10%" },
     { title: "Others", dataIndex: "others", width: "10%" },
+    { title: "Total", dataIndex: "total", width: "10%" },
     { title: "Remark", dataIndex: "remark", width: "20%" },
   ];
 
@@ -179,39 +198,26 @@ const TravelingPDF = ({ title }) => {
           setData(response.data); // Store response data
           const dataItems = response.data.data_items || [];
 
-          const calculatedTotals = {
-            petrol: 0,
-            cashPetrol: 0,
-            tollFee: 0,
-            others: 0,
-          };
-
           const transformedData = dataItems.map((item, index) => {
-            calculatedTotals.petrol += parseFloat(item.petrol || 0);
-            calculatedTotals.cashPetrol += parseFloat(item.cash_petrol || 0);
-            calculatedTotals.tollFee += parseFloat(item.toll_fee || 0);
-            calculatedTotals.others += parseFloat(item.others || 0);
-
             return {
               key: `${index + 1}`,
               date: item.date || "-",
               from: item.traveling_from || "-",
               to: item.traveling_to || "-",
-              mileage: item.mileage || "0",
-              petrol: item.petrol || "0",
-              cashPetrol: item.cash_petrol || "0",
-              hotel: item.hotel || "0",
-              allowance: item.allowance || "0",
-              tollFee: item.toll_fee || "0",
-              entertain: item.entertain || "0",
-              others: item.others || "0",
-              total: item.total || "0",
+              mileage: item.mileage || "",
+              petrol: item.petrol || "",
+              cashPetrol: item.cash_petrol || "",
+              hotel: item.hotel || "",
+              allowance: item.allowance || "",
+              tollFee: item.toll_fee || "",
+              entertain: item.entertain || "",
+              others: item.others || "",
+              total: item.total || "",
               remark: item.remark || "-",
             };
           });
 
           setDataItems(transformedData);
-          setTotals(calculatedTotals);
         }
       } catch (error) {
         console.error("Error fetching traveling data:", error.message);
@@ -270,29 +276,46 @@ const TravelingPDF = ({ title }) => {
           <View style={styles.footer}>
             {/* Totals Row */}
             <View style={styles.footerRow}>
-              <Text style={[styles.footerCell]}>Total Petrol: {totals.petrol}</Text>
-              <Text style={[styles.footerCell]}>Total Cash Petrol: {totals.cashPetrol}</Text>
-              <Text style={[styles.footerCell]}>Total Toll Fee: {totals.tollFee}</Text>
-              <Text style={[styles.footerCell]}>Total Others: {totals.others}</Text>
+              <View style={styles.footerRemarkRow}>
+                <Text style={[styles.footerRemarkCell]}>Remark: {data.remark}</Text>
+              </View>
+              <View style={styles.footerTotalsRow}>
+                <Text style={[styles.footerCell]}>
+                  Total Advanced: {parseFloat(data.total_advanced) === 0 ? "0" : data.total_advanced}
+                </Text>
+                <Text style={[styles.footerCell]}>
+                  Total Expenses: {parseFloat(data.total_expenses) === 0 ? "0" : data.total_expenses}
+                </Text>
+                <Text style={[styles.footerCell]}>
+                  Return to Company: {parseFloat(data.total_return_to_company) === 0 ? "0" : data.total_return_to_company}
+                </Text>
+                <Text style={[styles.footerCell]}>
+                  Return to Staff: {parseFloat(data.total_to_staff) === 0 ? "0" : data.total_to_staff}
+                </Text>
+
+              </View>
+
+              {/* Approval Section */}
+              <View style={styles.footerInfoRow}>
+                <View style={styles.footerInfo}>
+                  <View style={styles.footerInfoCell}>
+                    <Text>Requested By</Text>
+                  </View>
+                  <View style={styles.footerInfoCell}>
+                    <Text>Checked By</Text>
+                  </View>
+                </View>
+                <View style={styles.footerInfo}>
+                  <View style={styles.footerInfoCell}>
+                    <Text>Approved By</Text>
+                  </View>
+                  <View style={styles.footerInfoCell}>
+                    <Text>Received By</Text>
+                  </View>
+                </View>
+              </View>
             </View>
 
-            {/* Approval Section */}
-            <View style={styles.footerInfo}>
-              <View style={styles.footerInfoCell}>
-                <Text>Requested By</Text>
-              </View>
-              <View style={styles.footerInfoCell}>
-                <Text>Checked By</Text>
-              </View>
-            </View>
-            <View style={styles.footerInfo}>
-              <View style={styles.footerInfoCell}>
-                <Text>Approved By</Text>
-              </View>
-              <View style={styles.footerInfoCell}>
-                <Text>Received By</Text>
-              </View>
-            </View>
           </View>
         </Page>
       </Document>
