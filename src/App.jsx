@@ -241,7 +241,11 @@ const App = () => {
           <Route path="/wiki" element={<Wiki />} />
 
 
-          {/* PDF Route */}
+          {/* Mobile Line OA Routes */}
+          {/* <Route path="/mobile/monthly" element={< />} />
+          <Route path="/mobile/quarterly" element={< />} />
+          <Route path="/mobile/yearly" element={< />} />
+          <Route path="/mobile/activity" element={< />} /> */}
 
 
 
