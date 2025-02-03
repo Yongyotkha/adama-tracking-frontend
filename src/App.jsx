@@ -96,6 +96,7 @@ import ActionMaterialExpense from "./pages/expenses/material_expense/ActionMater
 import SampleExpense from "./pages/expenses/sample_expense/SampleExpense";
 import ActionSampleExpense from "./pages/expenses/sample_expense/ActionSampleExpense";
 import Transaction from "./pages/settings/material/transaction";
+import Account from "./pages/mobile/account/Account";
 
 const App = () => {
   return (
@@ -246,6 +247,7 @@ const App = () => {
           <Route path="/mobile/quarterly" element={< />} />
           <Route path="/mobile/yearly" element={< />} />
           <Route path="/mobile/activity" element={< />} /> */}
+          <Route path="/mobile/account" element={< Account/>} />
 
 
 
