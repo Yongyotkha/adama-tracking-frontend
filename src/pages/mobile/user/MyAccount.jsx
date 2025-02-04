@@ -3,15 +3,15 @@ import { Card } from "antd";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { useNavigate } from "react-router-dom";
 
-export default function Account() {
+export default function MobileAccount() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
   return (
     <MobileLayout loading={loading}>
-      <div className="flex flex-col items-center p-4">
-        <div className="bg-white shadow-lg rounded-lg w-full p-6">
+      <div className="flex flex-col items-center">
+        <div className="w-full p-6">
           <div className="flex flex-col items-center">
             <div className="w-20 h-20 bg-gray-300 rounded-full"></div>
             <h2 className="text-lg font-semibold mt-2">คุณ Krairoek Ruangkol</h2>

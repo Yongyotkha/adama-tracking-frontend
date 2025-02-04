@@ -59,6 +59,39 @@
     font-style: italic;
 }
 
+@font-face {
+  font-family: 'Sarabun';
+  src: url('/font/Sarabun/Sarabun-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Sarabun';
+  src: url('/font/Sarabun/Sarabun-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Sarabun';
+  src: url('/font/Sarabun/Sarabun-Italic.ttf') format('truetype');
+  font-weight: normal;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Sarabun';
+  src: url('/font/Sarabun/Sarabun-BoldItalic.ttf') format('truetype');
+  font-weight: bold;
+  font-style: italic;
+}
+
+.sarabun-font {
+  font-family: 'Sarabun', sans-serif !important;
+}
+
+
 * {
     font-family: "BrownLLHeb", sans-serif;
   }
@@ -78,4 +111,5 @@
 *:lang(th) {
   font-family: "Anuphan", sans-serif !important;
 }
+
 

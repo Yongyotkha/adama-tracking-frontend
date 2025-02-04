@@ -96,7 +96,9 @@ import ActionMaterialExpense from "./pages/expenses/material_expense/ActionMater
 import SampleExpense from "./pages/expenses/sample_expense/SampleExpense";
 import ActionSampleExpense from "./pages/expenses/sample_expense/ActionSampleExpense";
 import Transaction from "./pages/settings/material/transaction";
-import Account from "./pages/mobile/account/Account";
+import MyAccount from "./pages/mobile/user/MyAccount";
+import VerifyOA from "./pages/mobile/auth/VerifyOA";
+import OtpOA from "./pages/mobile/auth/OtpOA";
 
 const App = () => {
   return (
@@ -243,11 +245,9 @@ const App = () => {
 
 
           {/* Mobile Line OA Routes */}
-          {/* <Route path="/mobile/monthly" element={< />} />
-          <Route path="/mobile/quarterly" element={< />} />
-          <Route path="/mobile/yearly" element={< />} />
-          <Route path="/mobile/activity" element={< />} /> */}
-          <Route path="/mobile/account" element={< Account/>} />
+          <Route path="/mobile/verify" element={<VerifyOA />} />
+          <Route path="/mobile/otp" element={<OtpOA />} />
+          <Route path="/mobile/account" element={< MyAccount />} />
 
 
 

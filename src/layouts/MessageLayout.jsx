@@ -6,7 +6,7 @@ export default function MessageLayout({ children, loading, childrenStyle }) {
     <>
       <Spin tip="Loading" size="large" fullscreen="true" spinning={loading} />
       <div
-        className={`w-[100vw] h-lvh bg-[url('/img/Bg-massage.png')] bg-no-repeat bg-center bg-fixed bg-[length:100%_100%]`}
+        className={`w-[100vw] h-lvh bg-[#ffff] bg-no-repeat bg-center bg-fixed bg-[length:100%_100%]`}
       >
         <div className={` ${childrenStyle}`}>{children}</div>
       </div>
