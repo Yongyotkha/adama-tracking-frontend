@@ -23,12 +23,7 @@ dayjs.extend(customParseFormat);
 const { Option } = Select;
 
 export default function CreateActivity() {
-  const locationParam = useLocation();
-  const searchParams = new URLSearchParams(locationParam.search);
-  const documentNumber = searchParams.get("documentNumber");
-  const pageCode = searchParams.get("pageCode");
-  const pathSegments = location.pathname.split("/");
-  const viewSegment = pathSegments[2] === "view";
+
 
   const [loading, setLoading] = useState(false);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
@@ -85,25 +80,6 @@ export default function CreateActivity() {
     setFileList((prevFileList) => [...prevFileList, fileUpload]);
   };
 
-  const handleUpdate = async () => {
-    try {
-      const formCustomData = await formCustom.validateFields();
-      const customerData = await customerForm.validateFields();
-      const expenseData = await expenseForm.validateFields();
-      const participantData = await participantForm.validateFields();
-
-      const combinedData = {
-        ...formCustomData,
-        ...customerData,
-        ...expenseData,
-        ...participantData,
-      };
-
-      navigate("/expenses/advance");
-    } catch (error) {
-      console.error("Validation failed:", error);
-    }
-  };
 
   const menuTitle =
     pageCode == "expense_advance"
@@ -225,28 +201,6 @@ export default function CreateActivity() {
       col: pageCode != "activity_transaction" ? 6 : 8,
       value: activityDetail.document_date ?? dayjs().format("YYYY-MM-DD"),
     },
-    // {
-    //   label: "Start Time",
-    //   name: "time_start",
-    //   type: "select",
-    //   typeMode: "string",
-    //   options: timeList,
-    //   disabled: viewSegment ?? false,
-    //   // required: true,
-    //   col: pageCode != "activity_transaction" ? 6 : 8,
-    //   value: activityDetail.time_start ?? "",
-    // },
-    // {
-    //   label: "End Time",
-    //   name: "time_end",
-    //   type: "select",
-    //   typeMode: "string",
-    //   options: timeList,
-    //   disabled: viewSegment ?? false,
-    //   // required: true,
-    //   col: pageCode != "activity_transaction" ? 6 : 8,
-    //   value: activityDetail.time_end ?? "",
-    // },
     {
       label: "Location",
       name: "location_address",
@@ -424,91 +378,6 @@ export default function CreateActivity() {
     return parts.pop(); // Get the last part of the URL
   };
 
-  // const handleChange = (attribue, value) => {
-  //   console.log(attribue, value);
-  //   const getMasterSelect = async () => {
-  //     try {
-  //       if (attribue == "user_id") {
-  //         activityDetail.user_id = value;
-  //         await setupDealer(value);
-  //       } else if (attribue == "dealer_id") {
-  //         activityDetail.dealer_id = value;
-  //         if (value) {
-  //           await setupCropAndDealerCustomer(value);
-  //         }
-  //       } else if (attribue == "crop_id_list") {
-  //         if (value.length > 0) {
-  //           await setupCrop(value);
-  //         }
-  //       } else if (attribue == "activity_type_id") {
-  //         activityDetail.activity_type_id = value;
-  //       } else if (attribue == "activity_reference") {
-  //         setLoading(true);
-
-  //         try {
-  //           const [response] = await Promise.all([
-  //             useServiceAPI.get(paths.pathActivityDetail, {
-  //               document_number: value,
-  //             }),
-  //           ]);
-  //           const activityDetailData = response.data;
-  //           setActivityDetail(activityDetailData);
-  //           //set crop list
-  //           let cropData = [];
-  //           await activityDetailData.crop_id_list.forEach((element) => {
-  //             cropData.push(element.id);
-  //           });
-  //           setCropDetailList(cropData);
-
-  //           await setupDealer(activityDetailData.user_id);
-  //           await setupCropAndDealerCustomer(activityDetailData.dealer_id);
-  //           await setupCrop(cropData);
-
-  //           //set assign list
-  //           let assignData = [];
-  //           await activityDetailData.assing_user_list.forEach((element) => {
-  //             assignData.push(element.id);
-  //           });
-  //           setAssignList(assignData);
-  //         } catch (error) {
-  //         } finally {
-  //           setLoading(false);
-  //         }
-  //       } else if (attribue == "time_start" || attribue == "time_end") {
-  //         activityDetail[attribue] = value;
-  //         const timeStart = activityDetail.time_start;
-  //         const timeEnd = activityDetail.time_end;
-
-  //         if (timeStart != undefined && timeEnd != undefined) {
-  //           if (timeStart >= timeEnd) {
-  //             showNotification(
-  //               "warning",
-  //               "Invalid Time Range",
-  //               [
-  //                 "Time End cannot be earlier than Time Start. Please adjust the times.",
-  //               ],
-  //               3
-  //             );
-  //           }
-  //         }
-  //       } else if (attribue == "product_list") {
-  //         setProductDetailList(value);
-  //       } else if (attribue == "location_address") {
-  //         activityDetail.location_address = value;
-  //       } else if (attribue == "description") {
-  //         activityDetail.description = value;
-  //       } else if (attribue == "assing_user_list") {
-  //         setAssignList(value);
-  //       }
-  //     } catch (error) {
-  //       console.log(error);
-  //     }
-  //   };
-
-  //   getMasterSelect();
-  // };
-
-
   const handleChange = (attribue, value) => {
     console.log(attribue, value);
     const getMasterSelect = async () => {
@@ -592,7 +461,6 @@ export default function CreateActivity() {
     } else {
       setDealerList([]);
     }
-
   };
 
   const setupCropAndDealerCustomer = async (value) => {
@@ -608,39 +476,7 @@ export default function CreateActivity() {
     setDealerCustomer(dealerCustomerData.data);
   };
 
-  // const setupCrop = async (value) => {
-  //   if (!isSalePlanEdit) {
-  //     setCropDetailList(value);
-  //     const [productCrop] = await Promise.all([
-  //       useServiceAPI.get(paths.pathMasterProductByCrop, {
-  //         crop_list: value,
-  //       }),
-  //     ]);
 
-  //     let productCropList = [];
-  //     let productList = [];
-  //     productCrop.data.forEach((element, key) => {
-  //       productCropList.push({
-  //         key: key + 1,
-  //         productName: element.product_name,
-  //         packSize: element.packing_list,
-  //         estimateSale: "0",
-  //         actualSale: "0",
-  //         bath_ltkg: element.bath_ltkg,
-  //         prodectCode: element.product_code,
-  //         productId: element.id,
-  //       });
-  //       productList.push({
-  //         key: key + 1,
-  //         name: element.product_name + " (" + element.packing_list + ")",
-  //         id: element.id,
-  //       });
-  //     });
-  //     setProductCropList(productCropList);
-  //     setProductList(productList);
-  //   }
-  //   setIsSalePlanEdit(false);
-  // };
 
   const setupCrop = async (value) => {
     setCropDetailList(value);
@@ -886,46 +722,6 @@ export default function CreateActivity() {
     },
   ];
 
-  const handleOpenTeamModal = () => {
-    setIsTeamModalVisible(true);
-    getParticipant();
-  };
-
-  const getParticipant = async () => {
-    setTableLoading(true);
-    const [participant] = await Promise.all([
-      useServiceAPI.get(paths.pathMasterSaleAll, {
-        page_size: 1,
-        page_length: 1000,
-      }),
-    ]);
-
-    let participantData = [];
-    setParticipantList([]);
-    let count = 0;
-    participant.data.data.forEach((element, key) => {
-      const id = element.id;
-      // ตรวจสอบว่ามี key อยู่ใน participantList แล้วหรือยัง
-      const isExisting = participants.some((item) => item.id === id);
-      if (!isExisting) {
-        count++;
-        const newKey = `sales-${element.id}`;
-        participantData.push({
-          id: element.id,
-          key: newKey,
-          no: count,
-          name: element.name,
-          position: element.position_name,
-          department: element.department_name,
-          territory: element.territory_name,
-          permission: element.permission_name,
-        });
-      }
-    });
-
-    // เพิ่มเฉพาะข้อมูลใหม่เข้าไปใน participantList
-    setParticipantList((prevList) => [...prevList, ...participantData]);
-  };
 
   const handleCloseTeamModal = () => {
     setIsTeamModalVisible(false);

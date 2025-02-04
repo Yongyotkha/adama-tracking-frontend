@@ -37,13 +37,12 @@ export default function ActivityList() {
 
   const [mappingData, setMappingData] = useState({});
   const [mappingDataSave, setMappingDataSave] = useState({});
-  const [mappingperception , setMappingmappingperception] = useState({});
+  const [mappingperception, setMappingmappingperception] = useState({});
   const [perceptionData, setPerceptionData] = useState([]);
   const [isProductModalVisible, setIsProductModalVisible] = useState(false);
   const [isMappingModalVisible, setIsMappingModalVisible] = useState(false);
   const navigate = useNavigate();
   const [isFormModalReadOnly, setIsFormModalReadOnly] = useState(false);
-
 
   const handleBadgeClick = (rowData) => {
     // เช็คสถานะ
@@ -67,7 +66,6 @@ export default function ActivityList() {
 
         // Set State
         setPerceptionData(perception.data);
-
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -86,11 +84,11 @@ export default function ActivityList() {
       try {
         const [mapping] = await Promise.all([
           useServiceAPI.get(paths.pathActivityMappingStatusDetail, {
-            document_number: data.document_number
+            document_number: data.document_number,
           }),
-        ]);    
+        ]);
 
-        setMappingmappingperception(mapping.data.customer_perception_id)
+        setMappingmappingperception(mapping.data.customer_perception_id);
         setMappingData(mapping.data);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -105,7 +103,7 @@ export default function ActivityList() {
     const dataInfo = data;
     setIsMappingModalVisible(false);
     console.log(dataInfo);
-    
+
     // Mapping Save
     const updateMappingDetail = async () => {
       try {
@@ -129,7 +127,6 @@ export default function ActivityList() {
         ).then(() => {
           fetchData();
         });
-
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       }
@@ -141,8 +138,7 @@ export default function ActivityList() {
   // Handle Upload File Image
   const handleChangeFileUpload = (data) => {
     console.log(data);
-    
-  }
+  };
 
   const filters = [
     {
@@ -153,14 +149,14 @@ export default function ActivityList() {
     },
     {
       key: "activity_type",
-      type: 'select',
+      type: "select",
       label: "Activity Type",
       placeholder: "All",
       options: activityList,
     },
     {
       key: "sale",
-      type: 'select',
+      type: "select",
       label: "Sale",
       placeholder: "All",
       options: saleList,
@@ -168,14 +164,14 @@ export default function ActivityList() {
     },
     {
       key: "shop",
-      type: 'select',
+      type: "select",
       label: "Shop",
       placeholder: "All",
       options: dealerList,
     },
     {
       key: "Date",
-      type: 'date',
+      type: "date",
       label: "Date",
     },
   ];
@@ -187,7 +183,7 @@ export default function ActivityList() {
       pagination: {
         current: 1,
         pageSize: 10,
-      }
+      },
     });
   };
 
@@ -204,7 +200,7 @@ export default function ActivityList() {
         try {
           const [dealer] = await Promise.all([
             useServiceAPI.get(paths.pathMasterDealerDropdown, {
-              user_id: filter.sale
+              user_id: filter.sale,
             }),
           ]);
 
@@ -230,7 +226,9 @@ export default function ActivityList() {
         try {
           // Call API to delete the event
           const response = await useServiceAPI.delete(
-            `/activity/delete?document_number=${encodeURIComponent(documentNumber)}`
+            `/activity/delete?document_number=${encodeURIComponent(
+              documentNumber
+            )}`
           );
           await fetchData();
           if (response.status === 200) {
@@ -271,8 +269,18 @@ export default function ActivityList() {
   };
 
   const productModalData = [
-    { key: 1, name: "Tossaphon Suphaksitthikorn", territory: "Left North", position: "Business Development Executive" },
-    { key: 2, name: "Panudech Srithong", territory: "Left Lower North", position: "Business Development Executive" },
+    {
+      key: 1,
+      name: "Tossaphon Suphaksitthikorn",
+      territory: "Left North",
+      position: "Business Development Executive",
+    },
+    {
+      key: 2,
+      name: "Panudech Srithong",
+      territory: "Left Lower North",
+      position: "Business Development Executive",
+    },
   ];
 
   const productModalHeader = [
@@ -283,17 +291,37 @@ export default function ActivityList() {
   ];
 
   const header = [
-    { title: "Activity No", width: 150, dataIndex: "activityNo", align: "start" },
-    { title: "Activity Type", width: 150, dataIndex: "activityType", align: "start" },
+    {
+      title: "Activity No",
+      width: 150,
+      dataIndex: "activityNo",
+      align: "start",
+    },
+    {
+      title: "Activity Type",
+      width: 150,
+      dataIndex: "activityType",
+      align: "start",
+    },
     { title: "Sale", width: 150, dataIndex: "sale", align: "start" },
     { title: "Shop", width: 150, dataIndex: "shop", align: "start" },
     { title: "Date", width: 150, dataIndex: "date", align: "start" },
     // { title: "Time", width: 100, dataIndex: "time", align: "start", className: "text-nowrap" },
-    { title: "Create Date", width: 100, dataIndex: "createdAt", align: "start", className: "text-nowrap" },
-    { title: "Mapping", width: 150, dataIndex: "mappingStatus", align: "start" },
+    {
+      title: "Create Date",
+      width: 100,
+      dataIndex: "createdAt",
+      align: "start",
+      className: "text-nowrap",
+    },
+    {
+      title: "Mapping",
+      width: 150,
+      dataIndex: "mappingStatus",
+      align: "start",
+    },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
-
 
   const fetchData = async () => {
     setTableLoading(true);
@@ -325,42 +353,12 @@ export default function ActivityList() {
         const { data, records_filtered } = response.data;
 
         const newDataSource = data.map((row, index) => {
-          const actionItems = [
-            {
-              key: "1",
-              label: (
-                <ItemDropDown
-                  mode="edit"
-                  link={`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`}
-                />
-              )
-            },
-            {
-              key: "2",
-              label: (
-                <ItemDropDown
-                  mode="delete"
-                  link={`#`}
-                  onClick={() => handleDelete(row.document_number)}
-                />
-              )
-            },
-          ];
-
-          // const handleBadgeClick = (data) => {
-          //   if (row.status_mapping_name !== 'complete') {
-          //     handleShowMappingModal(data);
-          //   } else {
-          //     console.log("Action not allowed for 'complete' status.");
-          //   }
-          // };
-
           return {
             key: index + 1 + (current - 1) * pageSize,
             activityNo: row.document_number,
             activityType: row.activity_type_name,
-            shop: row.dealer_name ?? '-',
-            sale: row.user_name ?? '-',
+            shop: row.dealer_name ?? "-",
+            sale: row.user_name ?? "-",
             date: row.document_date,
             time: row.time,
             createdAt: dayjs(row.created_at).format("YYYY-MM-DD"),
@@ -372,13 +370,46 @@ export default function ActivityList() {
                 onClick={() => {
                   handleBadgeClick(row);
                 }}
-              // style={{ cursor: row.status_mapping_name !== 'complete' ? 'pointer' : 'not-allowed' }}
               />
             ),
             action: (
-              <Dropdown menu={{ items: actionItems }} placement="bottomRight">
+              <Dropdown
+                menu={{
+                  items: row.action.map((actionItem, actionIndex) => {
+                    return {
+                      key: actionIndex,
+                      label: (
+                        <ItemDropDown
+                          mode={actionItem.action.toLowerCase()}
+                          onClick={() => {
+                            if (actionItem.action.toLowerCase() === "delete") {
+                              handleDelete(row.document_number);
+                            } else {
+                              navigate(
+                                `/activity/${actionItem.action.toLowerCase()}`,
+                                {
+                                  state: {
+                                    mode: actionItem.action.toLowerCase(),
+                                    documentNumber: row.document_number,
+                                    pageCode: row.page_code,
+                                  },
+                                }
+                              );
+                            }
+                          }}
+                        />
+                      ),
+                    };
+                  }),
+                }}
+                placement="bottom"
+              >
                 <a onClick={(e) => e.preventDefault()}>
-                  <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+                  <img
+                    src="/img/icons/action.png"
+                    alt="Actions icon"
+                    className="inline-block w-5 h-5"
+                  />
                 </a>
               </Dropdown>
             ),
@@ -423,7 +454,6 @@ export default function ActivityList() {
         setActivityList(activityType.data);
         setSaleList(sale.data);
       } catch (error) {
-
       } finally {
         setLoading(false);
       }
@@ -445,10 +475,20 @@ export default function ActivityList() {
 
   return (
     <MainLayout loading={loading}>
-
       <div className="flex items-center justify-between">
         <div className="title-page">Activity List</div>
-        <ActionButton mode="create" text="Create" onClick={(e) => navigate("/activity/create?pageCode=activity_transaction")} />
+        <ActionButton
+          mode="create"
+          text="Create"
+          onClick={() =>
+            navigate("/activity/create", {
+              state: {
+                mode: "create",
+                pageCode: "activity_transaction",
+              },
+            })
+          }
+        />
       </div>
 
       <Filter
@@ -486,7 +526,6 @@ export default function ActivityList() {
         dataSource={mappingData}
         perceptionData={perceptionData}
         isReadOnly={isFormModalReadOnly}
-
       />
     </MainLayout>
   );
