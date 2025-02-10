@@ -13,7 +13,7 @@ import {
 } from "@ant-design/icons";
 import BackButton from "../../../components/mobile/button/BackButton";
 
-export default function MobileAccount() {
+export default function MyAccount() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 

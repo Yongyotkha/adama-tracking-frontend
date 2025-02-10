@@ -16,7 +16,7 @@ const MobileLayout = ({ children, loading, childrenStyle = '' }) => {
       <Spin tip="Loading" size="large" fullscreen spinning={loading} />
       <div className="max-w-screen flex flex-col h-screen pt-16 bg-[#009845] sarabun-font">
         <NavbarMobile />
-        <div className={`flex flex-col p-5 bg-white rounded-tr-[80px] h-full sarabun-font ${childrenStyle}`}>
+        <div className={`flex flex-col p-4 bg-white rounded-tr-[80px] h-full sarabun-font ${childrenStyle}`}>
           {children}
         </div>
       </div>
