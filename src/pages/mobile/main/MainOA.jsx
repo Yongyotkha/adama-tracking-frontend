@@ -32,9 +32,15 @@ export default function MainOA() {
             </div>
           </div>
           {/* Info Button */}
-          <Button className="bg-[#FFB347] text-white rounded-full p-1 sarabun-font text-xs" type="button">
+          {/* Info Button */}
+          <Button
+            className="bg-[#FFB347] text-white rounded-full p-1 sarabun-font text-xs"
+            type="button"
+            onClick={() => navigate("/mobile/account")} // ✅ Navigate to account page
+          >
             <span className="sarabun-font text-xs">ข้อมูลของฉัน</span>
           </Button>
+
         </div>
 
         {/* Points Section */}

@@ -259,7 +259,9 @@ const App = () => {
 
           <Route path="/mobile/main" element={< MainOA />} />
           <Route path="/mobile/scan-collect" element={< MainOA />} />
-          <Route path="/mobile/redeem-point" element={< MainOA />} />
+          <Route path="/mobile/redeem" element={< MainOA />} />
+          <Route path="/mobile/history-purchase" element={< MainOA />} />
+          <Route path="/mobile/history-redeem" element={< MainOA />} />
           
         </Routes>
       </AuthProvider>
