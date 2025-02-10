@@ -1,11 +1,14 @@
 import React, { useContext, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Form, Input, Typography } from "antd";
+import { LeftOutlined } from "@ant-design/icons"; // นำเข้าไอคอน Back
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css"; // Import styles
 import MessageLayout from "../../../layouts/MessageLayout";
 import DynamicButton from "../../../components/button/DynamicButton";
 import { AuthContext } from "../../../contexts/AuthContext";
+import LogoGray from "../../../components/logo/LogoGray";
+import BackTopLeftButton from "../../../components/mobile/button/BackTopLeftButton";
 
 export default function VerifyOA() {
   const location = useLocation();
@@ -28,8 +31,13 @@ export default function VerifyOA() {
   return (
     <MessageLayout
       loading={loading}
-      childrenStyle="flex flex-col items-center justify-center h-full max-w-xs mx-auto p-6 sarabun-font"
+      childrenStyle="flex flex-col items-center justify-center h-full mx-auto p-6 sarabun-font relative"
     >
+      {/* ปุ่ม Back ที่มุมซ้ายบน */}
+      <BackTopLeftButton />
+
+      <LogoGray width="w-[100%]" className="mb-10 max-w-xs" />
+
       <Title level={4} className="text-gray-800 font-bold sarabun-font">
         ยืนยันตัวตนของคุณ
       </Title>
@@ -53,11 +61,11 @@ export default function VerifyOA() {
           htmlType="submit"
           text="ตกลง"
           disabled={loading || !phoneNumber}
-          />
+        />
       </Form>
 
       <div className="text-center mt-4">
-        <Text className="text-green-600 text-sm cursor-pointer hover:underline">
+        <Text className="text-green-600 text-sm cursor-pointer hover:underline sarabun-font">
           เปลี่ยนหมายเลขโทรศัพท์ของคุณหรือ ลืมหมายเลขของคุณ?
         </Text>
       </div>

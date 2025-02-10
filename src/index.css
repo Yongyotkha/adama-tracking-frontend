@@ -60,56 +60,53 @@
 }
 
 @font-face {
-  font-family: 'Sarabun';
-  src: url('/font/Sarabun/Sarabun-Regular.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
+    font-family: "Sarabun";
+    src: url("/font/Sarabun/Sarabun-Regular.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
 }
 
 @font-face {
-  font-family: 'Sarabun';
-  src: url('/font/Sarabun/Sarabun-Bold.ttf') format('truetype');
-  font-weight: bold;
-  font-style: normal;
+    font-family: "Sarabun";
+    src: url("/font/Sarabun/Sarabun-Bold.ttf") format("truetype");
+    font-weight: bold;
+    font-style: normal;
 }
 
 @font-face {
-  font-family: 'Sarabun';
-  src: url('/font/Sarabun/Sarabun-Italic.ttf') format('truetype');
-  font-weight: normal;
-  font-style: italic;
+    font-family: "Sarabun";
+    src: url("/font/Sarabun/Sarabun-Italic.ttf") format("truetype");
+    font-weight: normal;
+    font-style: italic;
 }
 
 @font-face {
-  font-family: 'Sarabun';
-  src: url('/font/Sarabun/Sarabun-BoldItalic.ttf') format('truetype');
-  font-weight: bold;
-  font-style: italic;
+    font-family: "Sarabun";
+    src: url("/font/Sarabun/Sarabun-BoldItalic.ttf") format("truetype");
+    font-weight: bold;
+    font-style: italic;
 }
 
 .sarabun-font {
-  font-family: 'Sarabun', sans-serif !important;
+    font-family: "Sarabun", sans-serif !important;
 }
-
 
 * {
     font-family: "BrownLLHeb", sans-serif;
-  }
+}
 
 .title-page {
-  color: #00783F;
-  font-weight: bold;
-  font-size: 25px;
-  padding-top: 10px;
+    color: #00783f;
+    font-weight: bold;
+    font-size: 25px;
+    padding-top: 10px;
 }
 
 .ant-modal-content {
-  border-top: 10px solid #00783F !important;
+    border-top: 10px solid #00783f !important;
 }
 
 /* ฟอนต์ Anuphan สำหรับข้อความภาษาไทย */
 *:lang(th) {
-  font-family: "Anuphan", sans-serif !important;
+    font-family: "Anuphan", sans-serif !important;
 }
-
-

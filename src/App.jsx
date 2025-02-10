@@ -99,6 +99,9 @@ import Transaction from "./pages/settings/material/transaction";
 import MyAccount from "./pages/mobile/user/MyAccount";
 import VerifyOA from "./pages/mobile/auth/VerifyOA";
 import OtpOA from "./pages/mobile/auth/OtpOA";
+import UserDetail from "./pages/mobile/user/UserDetail";
+import EditUserOA from "./pages/mobile/user/EditUserOA";
+import RegisterOA from "./pages/mobile/register/RegisterOA";
 
 const App = () => {
   return (
@@ -248,7 +251,9 @@ const App = () => {
           <Route path="/mobile/verify" element={<VerifyOA />} />
           <Route path="/mobile/otp" element={<OtpOA />} />
           <Route path="/mobile/account" element={< MyAccount />} />
-
+          <Route path="/mobile/user/detail" element={< UserDetail />} />
+          <Route path="/mobile/user/edit" element={< EditUserOA />} />
+          <Route path="/mobile/register" element={< RegisterOA />} />
 
 
         </Routes>
