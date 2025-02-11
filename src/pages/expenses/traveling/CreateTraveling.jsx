@@ -13,7 +13,7 @@ import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import dayjs from "dayjs";
 import { convertLegacyProps } from "antd/es/button";
-import TableComponentCustomer from "../../../components/table/TableComponentCustomer";
+import TableComponentTraveling from "../../../components/table/TableComponentTraveling";
 
 export default function CreateTraveling() {
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ export default function CreateTraveling() {
   const [dataYear, setDataYear] = useState([]);
   const [dataMonth, setDataMonth] = useState([]);
   const { showMsg, showNotification } = useContext(AuthContext);
-  
+
   const [saleId, setSaleId] = useState("");
   const [yearCode, setYearCode] = useState("");
   const [monthCode, setMonthCode] = useState("");
@@ -87,7 +87,7 @@ export default function CreateTraveling() {
               user_id: saleId
             }),
           ]);
-          
+
           const dataItems = traveling.data.data_items;
           const transformedData = dataItems.map((item, index) => ({
             key: `${index + 1}`,
@@ -105,7 +105,7 @@ export default function CreateTraveling() {
             total: item.total || "",
             remark: item.remark || "",
           }));
-  
+
           // ตั้งค่า state
           setDataSource(transformedData);
 
@@ -115,7 +115,7 @@ export default function CreateTraveling() {
           setLoading(false);
         }
       };
-  
+
       // Load Data
       loadDataTraveling();
 
@@ -124,7 +124,7 @@ export default function CreateTraveling() {
       setDataSource([]);
     }
   }, [saleId, yearCode, monthCode])
-  
+
   // Function to add a new row
   const addRow = () => {
     const newRow = {
@@ -147,30 +147,30 @@ export default function CreateTraveling() {
   };
 
   const formFields = [
-    { 
-      label: "Name", 
-      name: "sale", 
-      type: "select", 
+    {
+      label: "Name",
+      name: "sale",
+      type: "select",
       options: dataSale,
-      required: false, 
+      required: false,
       col: 6,
       value: saleId,
     },
-    { 
-      label: "Year", 
-      name: "year", 
-      type: "select", 
-      options: dataYear, 
-      required: false, 
+    {
+      label: "Year",
+      name: "year",
+      type: "select",
+      options: dataYear,
+      required: false,
       col: 6,
       value: yearCode,
     },
-    { 
-      label: "Month", 
-      name: "month", 
-      type: "select", 
-      options: dataMonth, 
-      required: false, 
+    {
+      label: "Month",
+      name: "month",
+      type: "select",
+      options: dataMonth,
+      required: false,
       col: 6,
       value: monthCode,
     },
@@ -329,8 +329,12 @@ export default function CreateTraveling() {
       title: <span className="text-nowrap">Remark</span>,
       dataIndex: "remark",
       key: "remark",
-      render: (text) => (
-        <Input style={{ width: 250 }} defaultValue={text} />
+      render: (value, record) => (
+        <Input
+          style={{ width: 250 }}
+          value={value}
+          onChange={(e) => updateField(record.key, "remark", e.target.value)}
+        />
       ),
     },
   ];
@@ -347,10 +351,10 @@ export default function CreateTraveling() {
         prevData.map((item) =>
           item.key === key
             ? {
-                ...item,
-                [field]: value, // อัพเดตฟิลด์ที่ถูกเลือก
-                total: calculateTotal({ ...item, [field]: value }) // คำนวณค่า total ใหม่
-              }
+              ...item,
+              [field]: value, // อัพเดตฟิลด์ที่ถูกเลือก
+              total: calculateTotal({ ...item, [field]: value }) // คำนวณค่า total ใหม่
+            }
             : item
         )
       );
@@ -362,15 +366,15 @@ export default function CreateTraveling() {
     [
       // "mileage", 
       // "petrol", 
-      "cashPetrol", 
-      "hotel", 
-      "allowance", 
-      "tollFee", 
-      "entertain", 
+      "cashPetrol",
+      "hotel",
+      "allowance",
+      "tollFee",
+      "entertain",
       "others"
     ]
   ).reduce((acc, field) => acc + parseFloat(item[field] || 0), 0);
-  
+
   // Calculate total for the footer
   const calculateFooterTotal = (field) => {
     return dataSource.reduce((acc, item) => acc + parseFloat(item[field] || 0), 0);
@@ -391,33 +395,33 @@ export default function CreateTraveling() {
     // setReturnToStaff(returnToStaff);
   }, [dataSource, dataTotalExpenses]);
 
-    useEffect(() => {
-      if (dataTotalAdvanced > dataTotalExpenses) {
-        setReturnToCompany(dataTotalAdvanced - dataTotalExpenses);
-        setReturnToStaff(0);
-      } else if (dataTotalAdvanced < dataTotalExpenses) {
-        setReturnToStaff(dataTotalExpenses - dataTotalAdvanced);
-        setReturnToCompany(0);
-      } else {
-        setReturnToCompany(0);
-        setReturnToStaff(0);
-      }
-    }, [dataTotalAdvanced, dataTotalExpenses]);
+  useEffect(() => {
+    if (dataTotalAdvanced > dataTotalExpenses) {
+      setReturnToCompany(dataTotalAdvanced - dataTotalExpenses);
+      setReturnToStaff(0);
+    } else if (dataTotalAdvanced < dataTotalExpenses) {
+      setReturnToStaff(dataTotalExpenses - dataTotalAdvanced);
+      setReturnToCompany(0);
+    } else {
+      setReturnToCompany(0);
+      setReturnToStaff(0);
+    }
+  }, [dataTotalAdvanced, dataTotalExpenses]);
 
 
 
   const footerOrderList = () => (
     <tr className="bg-[#978B87] text-white text-start">
       <td colSpan={3}>Total (THB)</td>
-      <td><Input value={calculateFooterTotal("mileage")} readOnly hidden /></td>
-      <td><Input value={calculateFooterTotal("petrol")} readOnly /></td>
-      <td><Input value={calculateFooterTotal("cashPetrol")} readOnly /></td>
-      <td><Input value={calculateFooterTotal("hotel")} readOnly /></td>
-      <td><Input value={calculateFooterTotal("allowance")} readOnly /></td>
-      <td><Input value={calculateFooterTotal("tollFee")} readOnly /></td>
-      <td><Input value={calculateFooterTotal("entertain")} readOnly /></td>
-      <td><Input value={calculateFooterTotal("others")} readOnly /></td>
-      <td><Input value={calculateFooterTotal("total")} readOnly /></td>
+      <td><Input style={{ width: 100 }} value={calculateFooterTotal("mileage")} readOnly hidden /></td>
+      <td><Input style={{ width: 100 }} value={calculateFooterTotal("petrol")} readOnly /></td>
+      <td><Input style={{ width: 100 }} value={calculateFooterTotal("cashPetrol")} readOnly /></td>
+      <td><Input style={{ width: 100 }} value={calculateFooterTotal("hotel")} readOnly /></td>
+      <td><Input style={{ width: 100 }} value={calculateFooterTotal("allowance")} readOnly /></td>
+      <td><Input style={{ width: 100 }} value={calculateFooterTotal("tollFee")} readOnly /></td>
+      <td><Input style={{ width: 100 }} value={calculateFooterTotal("entertain")} readOnly /></td>
+      <td><Input style={{ width: 100 }} value={calculateFooterTotal("others")} readOnly /></td>
+      <td><Input style={{ width: 100 }} value={calculateFooterTotal("total")} readOnly /></td>
       <td></td>
     </tr>
   );
@@ -453,7 +457,7 @@ export default function CreateTraveling() {
           total_expenses: dataTotalExpenses,
           total_return_to_company: returnToCompany,
           total_to_staff: returnToStaff,
-          remark: dataRemark,
+          remark: dataRemark,  // ✅ ใช้ค่าจาก state ที่อัปเดตล่าสุด
           data_items: transformedData
         };
         console.log(body);
@@ -464,7 +468,7 @@ export default function CreateTraveling() {
             const [response] = await Promise.all([
               useServiceAPI.put(paths.pathGetExpenseTravelingCreate, body),
             ]);
-    
+
             showNotification(
               "success",
               response.data.message,
@@ -487,7 +491,7 @@ export default function CreateTraveling() {
         console.error("Validation Failed:", errorInfo);
       });
   };
-  
+
   return (
     <MainLayout loading={loading}>
       <div className="flex justify-between">
@@ -505,12 +509,16 @@ export default function CreateTraveling() {
         </div>
 
 
-        <TableComponentCustomer
+        <TableComponentTraveling
           header={header}
           dataSource={dataSource}
           pageSize={31}
           footer={footerOrderList}
+          scroll={{
+            x: 100, // กำหนดให้เลื่อนแนวนอนได้ถ้ากว้างเกิน
+          }}
         />
+
       </BoxPrimary>
 
       {/* Total Expense Summary */}
@@ -519,7 +527,7 @@ export default function CreateTraveling() {
           <div className="flex justify-end">Total Advanced:</div>
           {/* <NumericInput value={dataTotalAdvanced} disabled /> */}
           <NumericInput
-            value = {dataTotalAdvanced}
+            value={dataTotalAdvanced}
             onChange={(value) => setDataTotalAdvanced(parseFloat(value) || 0)}
           />
 

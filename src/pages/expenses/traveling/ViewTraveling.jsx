@@ -6,7 +6,7 @@ import FormUser from "../../../components/form_user/FormUser";
 import { useNavigate, useLocation } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import TableComponent from "../../../components/table/TableComponent";
+import TableComponentTraveling from "../../../components/table/TableComponentTraveling";
 import NumericInput from "../../../components/numeric_input/NumericInput";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
@@ -337,7 +337,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={value > 0 ? value : 0}
           onChange={(val) => updateField(record.key, "petrol", val)}
           disabled
         />
@@ -350,7 +350,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={value > 0 ? value : 0}
           onChange={(val) => updateField(record.key, "cashPetrol", val)}
           disabled
         />
@@ -363,7 +363,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={value > 0 ? value : 0}
           onChange={(val) => updateField(record.key, "hotel", val)}
           disabled
         />
@@ -376,7 +376,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={value > 0 ? value : 0}
           onChange={(val) => updateField(record.key, "allowance", val)}
           disabled
         />
@@ -389,7 +389,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={value > 0 ? value : 0}
           onChange={(val) => updateField(record.key, "tollFee", val)}
           disabled
         />
@@ -402,7 +402,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={value > 0 ? value : 0}
           onChange={(val) => updateField(record.key, "entertain", val)}
           disabled
         />
@@ -415,7 +415,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={value > 0 ? value : 0}
           onChange={(val) => updateField(record.key, "others", val)}
           disabled
         />
@@ -428,7 +428,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={value > 0 ? value : 0}
           onChange={(val) => updateField(record.key, "total", val)}
           disabled
         />
@@ -448,31 +448,31 @@ export default function ViewTraveling() {
     <tr className="bg-[#978B87] text-white text-start">
       <td colSpan={3}>Total (THB)</td>
       <td>
-        <Input value={calculateFooterTotal("mileage")} readOnly hidden />
+        <Input style={{ width: 100 }} value={calculateFooterTotal("mileage")} readOnly hidden />
       </td>
       <td>
-        <Input value={calculateFooterTotal("petrol")} readOnly />
+        <Input style={{ width: 100 }} value={calculateFooterTotal("petrol")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("cashPetrol")} readOnly />
+        <Input style={{ width: 100 }} value={calculateFooterTotal("cashPetrol")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("hotel")} readOnly />
+        <Input style={{ width: 100 }} value={calculateFooterTotal("hotel")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("allowance")} readOnly />
+        <Input style={{ width: 100 }} value={calculateFooterTotal("allowance")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("tollFee")} readOnly />
+        <Input style={{ width: 100 }} value={calculateFooterTotal("tollFee")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("entertain")} readOnly />
+        <Input style={{ width: 100 }} value={calculateFooterTotal("entertain")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("others")} readOnly />
+        <Input style={{ width: 100 }} value={calculateFooterTotal("others")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("total")} readOnly />
+        <Input style={{ width: 100 }} value={calculateFooterTotal("total")} readOnly />
       </td>
       <td></td>
     </tr>
@@ -564,11 +564,15 @@ export default function ViewTraveling() {
           </span>
           {/* <ActionButton mode="add" text="Add" onClick={addRow} /> */}
         </div>
-        <TableComponent
+        <TableComponentTraveling
           header={header}
           dataSource={dataSource}
-          pageSize={10}
+          pagination={false}
           footer={footerOrderList}
+          pageSize={31}
+          scroll={{
+            x: 100, // กำหนดให้เลื่อนแนวนอนได้ถ้ากว้างเกิน
+          }}
         />
       </BoxPrimary>
 

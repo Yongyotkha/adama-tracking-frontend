@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     // paddingBottom: 5,
     // paddingLeft: 5,
     padding: 15,
-    fontSize: 8,
+    fontSize: 7,
     fontFamily: "Sarabun", // Use the registered font
   },
   header: {
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     marginRight: 2,
     textAlign: "left",
     width: 200,
-    height: 49,
+    height: 102,
   },
   footerCell: {
     borderStyle: "solid",
