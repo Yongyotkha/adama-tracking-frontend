@@ -126,13 +126,13 @@ const styles = StyleSheet.create({
     marginRight: 2,
     textAlign: "left",
     width: 200,
-    height: 102,
+    height: 91,
   },
   footerCell: {
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#000",
-    padding: 5,
+    padding: 3.5,
     marginLeft: 2,
     marginRight: 2,
     textAlign: "left",
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   },
   footerInfoCell: {
     width: 200,
-    height: 49,
+    height: 43,
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#000",
@@ -167,18 +167,51 @@ const TravelingPDF = ({ title }) => {
 
   const columns = [
     { title: "Date", dataIndex: "date", width: "10%" },
-    { title: "Travelling From", dataIndex: "from", width: "15%" },
+    { title: "Traveling From", dataIndex: "from", width: "15%" },
     { title: "To", dataIndex: "to", width: "15%" },
     { title: "Petrol", dataIndex: "petrol", width: "10%" },
     { title: "Cash Petrol", dataIndex: "cashPetrol", width: "10%" },
     { title: "Hotel", dataIndex: "hotel", width: "10%" },
     { title: "Allowance", dataIndex: "allowance", width: "10%" },
-    { title: "Toll Way", dataIndex: "tollFee", width: "10%" },
+    { title: "Toll Fee", dataIndex: "tollFee", width: "10%" },
     { title: "Entertain", dataIndex: "entertain", width: "10%" },
     { title: "Others", dataIndex: "others", width: "10%" },
-    { title: "Total", dataIndex: "total", width: "10%" },
+    // { title: "Total", dataIndex: "total", width: "10%" },
     { title: "Remark", dataIndex: "remark", width: "20%" },
   ];
+
+  const columnsTotal = [
+    { title: "Total Petrol", dataIndex: "total_petrol", width: "10%" },
+    { title: "Total Cash Petrol", dataIndex: "total_cashPetrol", width: "10%" },
+    { title: "Total Hotel", dataIndex: "total_hotel", width: "10%" },
+    { title: "Total Allowance", dataIndex: "total_allowance", width: "10%" },
+    { title: "Total Toll Way", dataIndex: "total_tollFee", width: "10%" },
+    { title: "Total Entertain", dataIndex: "total_entertain", width: "10%" },
+    { title: "Total Others", dataIndex: "total_others", width: "10%" },
+    { title: "Remark", dataIndex: "remark", width: "20%" },
+  ];
+
+  const totalValues = dataItems.reduce(
+    (totals, item) => {
+      totals.total_petrol += parseFloat(item.petrol) || 0;
+      totals.total_cashPetrol += parseFloat(item.cashPetrol) || 0;
+      totals.total_hotel += parseFloat(item.hotel) || 0;
+      totals.total_allowance += parseFloat(item.allowance) || 0;
+      totals.total_tollFee += parseFloat(item.tollFee) || 0;
+      totals.total_entertain += parseFloat(item.entertain) || 0;
+      totals.total_others += parseFloat(item.others) || 0;
+      return totals;
+    },
+    {
+      total_petrol: 0,
+      total_cashPetrol: 0,
+      total_hotel: 0,
+      total_allowance: 0,
+      total_tollFee: 0,
+      total_entertain: 0,
+      total_others: 0,
+    }
+  );
 
   const [getUserId, setGetUserId] = useState(location.state.user_id);
   const [getYearCode, setGetYearCode] = useState(location.state.year_code);
@@ -265,12 +298,29 @@ const TravelingPDF = ({ title }) => {
               <View key={index} style={styles.tableRow}>
                 {columns.map((col, colIndex) => (
                   <Text key={colIndex} style={[styles.tableCell, { width: col.width }]}>
-                    {row[col.dataIndex] || "-"}
+                    {row[col.dataIndex] || " "}
                   </Text>
                 ))}
               </View>
             ))}
+
+            {/* Total Row (Footer at Bottom of Table) */}
+
+
+            {/* Total Row (Footer at Bottom of Table) */}
+            <View style={styles.tableRow}>
+              <Text style={[styles.tableCell, { width: '40%', textAlign: 'center' }]}>
+                Total(THB)
+              </Text>
+              {columnsTotal.map((col, colIndex) => (
+                <Text key={colIndex} style={[styles.tableCell, { width: col.width }]}>
+                  {totalValues[col.dataIndex]?.toFixed(2) || "-"}
+                </Text>
+              ))}
+            </View>
+
           </View>
+
 
           {/* Footer */}
           <View style={styles.footer}>
