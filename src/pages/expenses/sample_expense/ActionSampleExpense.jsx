@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import MainLayout from "../../../layouts/MainLayout";
 import FormCustom from "../../../components/form_custom/FormCustom";
@@ -17,10 +17,33 @@ export default function ActionSampleExpense() {
   const navigate = useNavigate();
   const isViewMode = mode === "view";
   const [loading, setLoading] = useState(false);
+  const [dealer, setDealer] = useState([]);
   const [fileList, setFileList] = useState([]);
   const [searchProductData, setSearchProductData] = useState([]);
-  const { showNotification } = useContext(AuthContext);
+  const { showNotification, userInfo } = useContext(AuthContext);
   const [isSubDealerDisabled, setIsSubDealerDisabled] = useState(false);
+  const [dataSource, setDataSource] = useState([]);
+
+  useEffect(() => {
+    const getMasterDealer = async () => {
+      try {
+        const [dealer] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterDealerAll),
+        ]);
+
+        const formattedDealers = dealer?.data.map((item) => ({
+          value: item.id,
+          label: item.name,
+        }));
+
+        setDealer(formattedDealers);
+      } catch (error) {
+        showNotification("error", error.message || "เกิดข้อผิดพลาด");
+      }
+    };
+    // console.log(userInfo);
+    getMasterDealer();
+  }, []);
 
   const handleUploadChange = (info) => {
     const { file, fileList: updatedFileList } = info;
@@ -41,47 +64,6 @@ export default function ActionSampleExpense() {
     } else {
       setFileList(updatedFileList);
     }
-  };
-
-  const [dataSource, setDataSource] = useState([
-    // {
-    //   key: 1,
-    //   no: 1,
-    //   sku: "3027200113",
-    //   productName: "Bumper P",
-    //   packSize: "0.5 lt x20",
-    //   quantity: 10,
-    //   value: "115,000.00",
-    //   remark: "",
-    //   warehouseSend: "",
-    //   receive: "",
-    // },
-    // {
-    //   key: 2,
-    //   no: 2,
-    //   sku: "207920011520",
-    //   productName: "Memory 300EC",
-    //   packSize: "1lt x20",
-    //   quantity: 10,
-    //   value: "68,000.00",
-    //   remark: "",
-    //   warehouseSend: "",
-    //   receive: "",
-    // },
-  ]);
-
-  const handleQuantityChange = (key, newQuantity) => {
-    setDataSource((prev) =>
-      prev.map((item) =>
-        item.key === key
-          ? {
-              ...item,
-              quantity: newQuantity,
-              value: (newQuantity * 11500).toLocaleString(),
-            }
-          : item
-      )
-    );
   };
 
   const productHeader = [
@@ -132,7 +114,16 @@ export default function ActionSampleExpense() {
       dataIndex: "remark",
       key: "remark",
       render: (_, record) =>
-        isViewMode ? record.remark : <Input value={record.remark} />,
+        isViewMode ? (
+          record.remark
+        ) : (
+          <Input
+            value={record.remark}
+            onChange={(e) =>
+              handleInputChange(record.key, "remark", e.target.value)
+            }
+          />
+        ),
     },
     {
       title: "Warehouse Send",
@@ -142,7 +133,13 @@ export default function ActionSampleExpense() {
         isViewMode ? (
           record.warehouseSend
         ) : (
-          <Input value={record.warehouseSend} />
+          <Input
+            value={record.warehouseSend}
+            onChange={(e) =>
+              handleInputChange(record.key, "warehouseSend", e.target.value)
+            }
+            disabled={true}
+          />
         ),
     },
     {
@@ -150,7 +147,17 @@ export default function ActionSampleExpense() {
       dataIndex: "receive",
       key: "receive",
       render: (_, record) =>
-        isViewMode ? record.receive : <Input value={record.receive} />,
+        isViewMode ? (
+          record.receive
+        ) : (
+          <Input
+            value={record.receive}
+            onChange={(e) =>
+              handleInputChange(record.key, "receive", e.target.value)
+            }
+            disabled={true}
+          />
+        ),
     },
     {
       title: "Action",
@@ -170,82 +177,90 @@ export default function ActionSampleExpense() {
     },
   ];
 
-  const footerSummary = () => {
-    // const totalQty = dataSource.reduce((sum, item) => sum + item.quantity, 0);
-    // const totalValue = dataSource.reduce(
-    //   (sum, item) => sum + parseFloat(item.value.replace(/,/g, "")),
-    //   0
-    // );
-    // return (
-    //   <tr className="bg-gray-200">
-    //     <td colSpan={10} className="text-right font-semibold">
-    //       Item: {dataSource.length} &nbsp; QTY: {totalQty} &nbsp; Total:{" "}
-    //       {totalValue.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-    //     </td>
-    //   </tr>
-    // );
+  const handleInputChange = (key, field, value) => {
+    setDataSource((prev) =>
+      prev.map((item) =>
+        item.key === key ? { ...item, [field]: value } : item
+      )
+    );
   };
 
-  
-  const handleCheckboxChange = (e) => {
-    setIsSubDealerDisabled(e.target.checked);
+  const handleQuantityChange = (key, newQuantity) => {
+    if (newQuantity !== 0) {
+      setDataSource((prev) =>
+        prev.map((item) =>
+          item.key === key
+            ? {
+                ...item,
+                quantity: newQuantity,
+              }
+            : item
+        )
+      );
+    }
+  };
+
+  const footerSummary = () => {
+    const totalQty = dataSource.reduce(
+      (sum, item) => sum + (item.quantity || 0),
+      0
+    );
+
+    const totalValue = dataSource.reduce((sum, item) => {
+      const numericValue =
+        typeof item.value === "string"
+          ? parseFloat(item.value.replace(/,/g, ""))
+          : parseFloat(item.value) || 0; // แปลงค่าให้เป็นตัวเลข ถ้าไม่สามารถแปลงได้ให้เป็น 0
+      return sum + (isNaN(numericValue) ? 0 : numericValue);
+    }, 0);
+
+    return (
+      <tr className="bg-gray-200">
+        <td colSpan={10} className="text-right font-semibold">
+          Item: {dataSource.length} &nbsp; QTY: {totalQty} &nbsp; Total:{" "}
+          {totalValue.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+        </td>
+      </tr>
+    );
   };
 
   const onChangeProduct = (value) => {
     setSearchProductData([]);
-  
+
     const loadProductDetail = async () => {
       setLoading(true);
       try {
         const [productDetail] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterProductDetail, { product_id: value }),
+          useServiceAPI.get(paths.pathMasterProductDetail, {
+            product_id: value,
+          }),
         ]);
-  
+
         const data = productDetail.data;
-  
+
         console.log(data);
-  
+
         // Check for duplicate product_code
         const existingProductIndex = dataSource.findIndex(
           (item) => item.sku === data.sku
         );
-  
+
         if (existingProductIndex !== -1) {
-          // If product_code exists, update the quantity and value
-          const updatedDataSource = dataSource.map((item, index) => {
-            if (index === existingProductIndex) {
-              const updatedQuantity = item.quantity + 1; // Increment quantity
-  
-              // Assuming you have product price in 'data' and format the value
-              const updatedValue = (
-                updatedQuantity * parseFloat(item.product_unit_thb.replace(/,/g, ""))
-              ).toFixed(2);
-  
-              return {
-                ...item,
-                quantity: updatedQuantity,
-                value: updatedValue, // Update value
-              };
-            }
-            return item;
-          });
-  
-          setDataSource(updatedDataSource);
+          showNotification("error", "Existing Product", [], 2);
         } else {
-          // If product_code does not exist, add a new entry
           const newProductDataDetail = {
             key: dataSource.length + 1,
             no: dataSource.length + 1,
-            sku: data.sku, // SKU from the API response
-            productName: data.product_name, // Product name from the API response
-            packSize: data.pack_size, // Pack size from the API response
-            quantity: 1, // Initial quantity
-            value: data.product_unit_thb,
-            remark: "", // Set default remark
-            warehouseSend: "", // Set default warehouseSend
-            receive: "", // Set default receive
+            sku: data.product_code,
+            productName: data.product_name,
+            packSize: data.packing_list,
+            quantity: 1,
+            value: data.unit_convert_value,
+            remark: "",
+            warehouseSend: "",
+            receive: "",
           };
-  
+
           setDataSource([...dataSource, newProductDataDetail]); // Add new product data to dataSource
         }
       } catch (error) {
@@ -254,13 +269,11 @@ export default function ActionSampleExpense() {
         setLoading(false);
       }
     };
-  
+
     loadProductDetail();
   };
-  
 
   const onSearchProduct = (value) => {
-
     if (value.length >= 3) {
       const loadProducts = async () => {
         // setLoading(true);
@@ -333,15 +346,20 @@ export default function ActionSampleExpense() {
                 disabled={isViewMode || isSubDealerDisabled}
                 placeholder="Select"
                 className="w-full border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
-              >
-                <Select.Option value="1">Sub Dealer 1</Select.Option>
-                <Select.Option value="2">Sub Dealer 2</Select.Option>
-              </Select>
+                options={dealer}
+                showSearch
+                optionFilterProp="label"
+              ></Select>
             </div>
           </div>
 
           <div className="grid items-end">
-            <Checkbox onChange={handleCheckboxChange} disabled={isViewMode}>
+            <Checkbox
+              onChange={(e) => {
+                setIsSubDealerDisabled(e.target.checked);
+              }}
+              disabled={isViewMode}
+            >
               No Sub Dealer
             </Checkbox>
           </div>
@@ -350,13 +368,13 @@ export default function ActionSampleExpense() {
           <div>
             <label className="block mb-1 text-sm">Dealer</label>
             <Select
-              disabled
+              disabled={!isSubDealerDisabled}
               placeholder="Dealer"
               className="w-full border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
-            >
-              <Select.Option value="1">Dealer 1</Select.Option>
-              <Select.Option value="2">Dealer 2</Select.Option>
-            </Select>
+              options={dealer}
+              showSearch
+              optionFilterProp="label"
+            ></Select>
           </div>
 
           {/* Crop Field */}
@@ -396,6 +414,7 @@ export default function ActionSampleExpense() {
           header={productHeader}
           dataSource={dataSource}
           footer={footerSummary}
+          pagination={false}
         />
       </BoxPrimary>
 
@@ -434,7 +453,7 @@ export default function ActionSampleExpense() {
         </div>
       </BoxPrimary>
 
-      <BoxPrimary title="Attach File" className="pb-[56px]">
+      <BoxPrimary title="Attach File" className="pb-[56px] hidden">
         <Upload.Dragger
           name="file"
           multiple={false}

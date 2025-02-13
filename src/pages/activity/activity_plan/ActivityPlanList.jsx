@@ -94,7 +94,7 @@ export default function ActivityPlanList() {
     selectedYear,
   ]);
 
-  useEffect(() => {}, [selectedYear]);
+
 
   const fetchActivitySummary = async () => {
     try {

@@ -57,7 +57,8 @@ export const paths = {
   pathCustomerSubDealerList: "sale-customer-subdealer/list",
   pathCustomerSubDealerUpdate: "sale-customer-dealer/update",
   pathCustomerSubDealerNetworkUpdate: "sale-customer-dealer/network-create",
-  pathCustomerSubDealerFarmerUpdate: "sale-customer-dealer/network-farmer-create",
+  pathCustomerSubDealerFarmerUpdate:
+    "sale-customer-dealer/network-farmer-create",
 
   // Farners
   pathCustomerFarmers: "sale-customer-farmer/list",
@@ -70,20 +71,20 @@ export const paths = {
   pathDeleteSubDealer: "sale-customer-subdealer/delete",
   pathSubDealerDetail: "sale-customer-subdealer/detail",
   pathSubDealerDetailUpdate: "sale-customer-subdealer/update",
-  pathSubDealerDetailUpdateFarmer : "sale-customer-subdealer/network-farmer-create",
-  pathSubDealerDetailDeleteFarmer : "sale-customer-subdealer/network-farmer-delete",
-
-  
+  pathSubDealerDetailUpdateFarmer:
+    "sale-customer-subdealer/network-farmer-create",
+  pathSubDealerDetailDeleteFarmer:
+    "sale-customer-subdealer/network-farmer-delete",
 
   // dashbord
   pathDashBordCustomer: "dashboard/customer",
   pathDashBordExpense: "dashboard/expense",
   pathDashBordOrder: "dashboard/order",
-  pathDashBordPlan:"dashboard/dealer/plan",
-  pathDashBordTopActivity:"dashboard/activity/top",
-  pathDashBordListActivity:"dashboard/activity/list",
-  pathDashBordSubDealerList:"dashboard/sub_dealer/plan",
-  pathDashBordSaleCrop:"dashboard/sale/crop",
+  pathDashBordPlan: "dashboard/dealer/plan",
+  pathDashBordTopActivity: "dashboard/activity/top",
+  pathDashBordListActivity: "dashboard/activity/list",
+  pathDashBordSubDealerList: "dashboard/sub_dealer/plan",
+  pathDashBordSaleCrop: "dashboard/sale/crop",
 
   // Sale
   pathSaleManagementDetail: "sale-management/sale-team/detail",
@@ -202,6 +203,10 @@ export const paths = {
   pathGetExpenseTravelingDetail: "expense/traveling/detail",
   pathGetExpenseTravelingCreate: "expense/traveling/detail",
   pathGetExpenseTravelingUpdate: "expense/traveling/detail",
+
+  // Expense Sample
+  pathSampleExpenseList: "expense/sample/list",
+  pathSampleExpenseDetails: "expense/sample/create",
 
   // Claim
   pathClaimList: "claim/list",
