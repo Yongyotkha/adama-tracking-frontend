@@ -15,6 +15,8 @@ export default function VerifyOA() {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [popupText, setPopupText] = useState(""); // State for dynamic text
+  const [popupImage, setPopupImage] = useState(""); // State for dynamic image if needed
   const navigate = useNavigate();
   const [phoneNumber, setPhoneNumber] = useState("");
   const { userInfo } = useContext(AuthContext);
@@ -25,9 +27,19 @@ export default function VerifyOA() {
   }, [location]);
 
   const onFinish = () => {
+    if (phoneNumber === '0800000001') {
+      // Dynamic text for phone number 0800000001
+      setPopupText("<p class='text-[#978B87] text-center sarabun-font'>ร้านค้านี้มีการลงทะเบียนในระบบแล้ว</p>");
+      setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png"); // Set image path if needed
+      setIsModalVisible(true); // Trigger the modal visibility
+      return;
+    }
+
     if (!phoneNumber) {
       // If no phone number, show the modal
-      setIsModalVisible(true);
+      setPopupText("<p class='text-[#978B87] text-center sarabun-font'>ไม่พบข้อมูลของคุณในระบบ กรุณาติดต่อเจ้าหน้าที่</p>");
+      setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png"); // Set image path if needed
+      setIsModalVisible(true); // Trigger the modal visibility
       return;
     }
 
@@ -47,7 +59,7 @@ export default function VerifyOA() {
       <LogoGray width="w-[100%]" className="mb-10 max-w-xs" />
 
       <Title level={4}>
-        <span  className="text-[#8A8A8A] font-bold sarabun-font">ยืนยันตัวตนของคุณ</span>
+        <span className="text-[#8A8A8A] font-bold sarabun-font">ยืนยันตัวตนของคุณ</span>
       </Title>
       <Text className="text-[#8A8A8A] mb-4 sarabun-font">กรุณากรอกเบอร์โทรศัพท์</Text>
 
@@ -83,14 +95,20 @@ export default function VerifyOA() {
         visible={isModalVisible}
         onConfirm={() => {
           setIsModalVisible(false);
-          navigate("/mobile/contact"); // Navigate to "ติดต่อเจ้าหน้าที่" page
+          if (phoneNumber === '0800000001') {
+            // Handle the case for phone number 0800000001
+            setIsModalVisible(false);
+          } else {
+            navigate("/mobile/contact"); // Navigate to "ติดต่อเจ้าหน้าที่" page
+          }
         }}
         onCancel={() => setIsModalVisible(false)}
-        src="/logo/Logo-Adama-Smile-2-New 1.png" // Replace with actual image path
-        text="<p class='text-[#978B87] text-center sarabun-font'>ไม่พบข้อมูลของคุณในระบบ กรุณาติดต่อเจ้าหน้าที่</p>"
-        confirmText="ติดต่อเจ้าหน้าที่"
+        src={popupImage} // Dynamically set image path
+        text={popupText} // Dynamically set text content
+        confirmText="ตกลง"
         cancelText="ปิดหน้าต่าง"
       />
     </MessageLayout>
   );
 }
+

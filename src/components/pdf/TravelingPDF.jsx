@@ -47,8 +47,8 @@ const styles = StyleSheet.create({
     // paddingRight: 5,
     // paddingBottom: 5,
     // paddingLeft: 5,
-    padding: 15,
-    fontSize: 7,
+    padding: 16,
+    fontSize: 8,
     fontFamily: "Sarabun", // Use the registered font
   },
   header: {
@@ -109,8 +109,12 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     justifyContent: 'space-between'
   },
-  footerTotalsRow: {
+  footerColTotalsRow: {
     flexDirection: "column",
+    gap: 4,
+  },
+  footerTotalsRow: {
+    flexDirection: "row",
     gap: 4,
   },
   footerRemarkRow: {
@@ -142,7 +146,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   footerInfo: {
-    flexDirection: "column",
+    flexDirection: "row",
     justifyContent: 'center',
   },
   footerInfoCell: {
@@ -213,6 +217,12 @@ const TravelingPDF = ({ title }) => {
     }
   );
 
+  const formatValue = (value) => {
+    if (value === ".00") return '0'; // Replace .00 with 0
+    if (!isNaN(value)) return parseFloat(value); // Otherwise, return as float
+    return value; // If it's neither, return the value as is
+  };
+
   const [getUserId, setGetUserId] = useState(location.state.user_id);
   const [getYearCode, setGetYearCode] = useState(location.state.year_code);
   const [getMonthCode, setGetMonthCode] = useState(location.state.month_code);
@@ -238,14 +248,14 @@ const TravelingPDF = ({ title }) => {
               from: item.traveling_from || "-",
               to: item.traveling_to || "-",
               mileage: item.mileage || "",
-              petrol: item.petrol || "",
-              cashPetrol: item.cash_petrol || "",
-              hotel: item.hotel || "",
-              allowance: item.allowance || "",
-              tollFee: item.toll_fee || "",
-              entertain: item.entertain || "",
-              others: item.others || "",
-              total: item.total || "",
+              petrol: formatValue(item.petrol),
+              cashPetrol: formatValue(item.cash_petrol),
+              hotel: formatValue(item.hotel),
+              allowance: formatValue(item.allowance),
+              tollFee: formatValue(item.toll_fee),
+              entertain: formatValue(item.entertain),
+              others: formatValue(item.others),
+              total: formatValue(item.total),
               remark: item.remark || "-",
             };
           });
@@ -326,23 +336,26 @@ const TravelingPDF = ({ title }) => {
           <View style={styles.footer}>
             {/* Totals Row */}
             <View style={styles.footerRow}>
-              <View style={styles.footerRemarkRow}>
+              {/* <View style={styles.footerRemarkRow}>
                 <Text style={[styles.footerRemarkCell]}>Remark: {data.remark}</Text>
-              </View>
-              <View style={styles.footerTotalsRow}>
-                <Text style={[styles.footerCell]}>
-                  Total Advanced: {parseFloat(data.total_advanced) === 0 ? "0" : data.total_advanced}
-                </Text>
-                <Text style={[styles.footerCell]}>
-                  Total Expenses: {parseFloat(data.total_expenses) === 0 ? "0" : data.total_expenses}
-                </Text>
-                <Text style={[styles.footerCell]}>
-                  Return to Company: {parseFloat(data.total_return_to_company) === 0 ? "0" : data.total_return_to_company}
-                </Text>
-                <Text style={[styles.footerCell]}>
-                  Return to Staff: {parseFloat(data.total_to_staff) === 0 ? "0" : data.total_to_staff}
-                </Text>
-
+              </View> */}
+              <View style={styles.footerColTotalsRow}>
+                <View style={styles.footerTotalsRow}>
+                  <Text style={[styles.footerCell]}>
+                    Total Advanced: {parseFloat(data.total_advanced) === 0 ? "0" : data.total_advanced}
+                  </Text>
+                  <Text style={[styles.footerCell]}>
+                    Total Expenses: {parseFloat(data.total_expenses) === 0 ? "0" : data.total_expenses}
+                  </Text>
+                </View>
+                <View style={styles.footerTotalsRow}>
+                  <Text style={[styles.footerCell]}>
+                    Return to Company: {parseFloat(data.total_return_to_company) === 0 ? "0" : data.total_return_to_company}
+                  </Text>
+                  <Text style={[styles.footerCell]}>
+                    Return to Staff: {parseFloat(data.total_to_staff) === 0 ? "0" : data.total_to_staff}
+                  </Text>
+                </View>
               </View>
 
               {/* Approval Section */}
