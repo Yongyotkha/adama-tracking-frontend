@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useContext, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import MainLayout from "../../../layouts/MainLayout";
 import FormCustom from "../../../components/form_custom/FormCustom";
@@ -8,6 +8,9 @@ import TableComponent from "../../../components/table/TableComponent";
 import FileUploadComponent from "../../../components/file_upload/FileUploadComponent";
 import { Checkbox, DatePicker, Input, message, Select, Upload } from "antd";
 import DynamicButton from "../../../components/button/DynamicButton";
+import { AuthContext } from "../../../contexts/AuthContext";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
 
 export default function ActionSampleExpense() {
   const { mode } = useParams(); // Get the mode from the URL
@@ -15,6 +18,9 @@ export default function ActionSampleExpense() {
   const isViewMode = mode === "view";
   const [loading, setLoading] = useState(false);
   const [fileList, setFileList] = useState([]);
+  const [searchProductData, setSearchProductData] = useState([]);
+  const { showNotification } = useContext(AuthContext);
+  const [isSubDealerDisabled, setIsSubDealerDisabled] = useState(false);
 
   const handleUploadChange = (info) => {
     const { file, fileList: updatedFileList } = info;
@@ -22,12 +28,14 @@ export default function ActionSampleExpense() {
     if (file.status === "done") {
       message.success(`${file.name} file uploaded successfully.`);
       // Update state with new file list
-      setFileList(updatedFileList.map((file) => ({
-        uid: file.uid,
-        name: file.name,
-        status: file.status,
-        url: file.response?.url || file.url,
-      })));
+      setFileList(
+        updatedFileList.map((file) => ({
+          uid: file.uid,
+          name: file.name,
+          status: file.status,
+          url: file.response?.url || file.url,
+        }))
+      );
     } else if (file.status === "error") {
       message.error(`${file.name} file upload failed.`);
     } else {
@@ -35,41 +43,42 @@ export default function ActionSampleExpense() {
     }
   };
 
-
   const [dataSource, setDataSource] = useState([
-    {
-      key: 1,
-      no: 1,
-      sku: "3027200113",
-      productName: "Bumper P",
-      packSize: "0.5 lt x20",
-      quantity: 10,
-      value: "115,000.00",
-      remark: "",
-      warehouseSend: "",
-      receive: "",
-    },
-    {
-      key: 2,
-      no: 2,
-      sku: "207920011520",
-      productName: "Memory 300EC",
-      packSize: "1lt x20",
-      quantity: 10,
-      value: "68,000.00",
-      remark: "",
-      warehouseSend: "",
-      receive: "",
-    },
+    // {
+    //   key: 1,
+    //   no: 1,
+    //   sku: "3027200113",
+    //   productName: "Bumper P",
+    //   packSize: "0.5 lt x20",
+    //   quantity: 10,
+    //   value: "115,000.00",
+    //   remark: "",
+    //   warehouseSend: "",
+    //   receive: "",
+    // },
+    // {
+    //   key: 2,
+    //   no: 2,
+    //   sku: "207920011520",
+    //   productName: "Memory 300EC",
+    //   packSize: "1lt x20",
+    //   quantity: 10,
+    //   value: "68,000.00",
+    //   remark: "",
+    //   warehouseSend: "",
+    //   receive: "",
+    // },
   ]);
-
-
 
   const handleQuantityChange = (key, newQuantity) => {
     setDataSource((prev) =>
       prev.map((item) =>
         item.key === key
-          ? { ...item, quantity: newQuantity, value: (newQuantity * 11500).toLocaleString() }
+          ? {
+              ...item,
+              quantity: newQuantity,
+              value: (newQuantity * 11500).toLocaleString(),
+            }
           : item
       )
     );
@@ -93,7 +102,9 @@ export default function ActionSampleExpense() {
               src="/img/icons/collapse.png"
               alt="decrease"
               className="cursor-pointer w-6 h-6"
-              onClick={() => handleQuantityChange(record.key, record.quantity - 1)}
+              onClick={() =>
+                handleQuantityChange(record.key, record.quantity - 1)
+              }
             />
             <Input
               inputMode="numeric"
@@ -108,7 +119,9 @@ export default function ActionSampleExpense() {
               src="/img/icons/expand.png"
               alt="increase"
               className="cursor-pointer w-6 h-6"
-              onClick={() => handleQuantityChange(record.key, record.quantity + 1)}
+              onClick={() =>
+                handleQuantityChange(record.key, record.quantity + 1)
+              }
             />
           </div>
         ),
@@ -119,11 +132,7 @@ export default function ActionSampleExpense() {
       dataIndex: "remark",
       key: "remark",
       render: (_, record) =>
-        isViewMode ? (
-          record.remark
-        ) : (
-          <Input value={record.remark} />
-        ),
+        isViewMode ? record.remark : <Input value={record.remark} />,
     },
     {
       title: "Warehouse Send",
@@ -141,11 +150,7 @@ export default function ActionSampleExpense() {
       dataIndex: "receive",
       key: "receive",
       render: (_, record) =>
-        isViewMode ? (
-          record.receive
-        ) : (
-          <Input value={record.receive} />
-        ),
+        isViewMode ? record.receive : <Input value={record.receive} />,
     },
     {
       title: "Action",
@@ -156,7 +161,9 @@ export default function ActionSampleExpense() {
           <DynamicButton
             iconSrc="/img/icons/delete.png"
             onClick={() =>
-              setDataSource(dataSource.filter((item) => item.key !== record.key))
+              setDataSource(
+                dataSource.filter((item) => item.key !== record.key)
+              )
             }
           />
         ),
@@ -164,24 +171,127 @@ export default function ActionSampleExpense() {
   ];
 
   const footerSummary = () => {
-    const totalQty = dataSource.reduce((sum, item) => sum + item.quantity, 0);
-    const totalValue = dataSource.reduce(
-      (sum, item) => sum + parseFloat(item.value.replace(/,/g, "")),
-      0
-    );
-    return (
-      <tr className="bg-gray-200">
-        <td colSpan={10} className="text-right font-semibold">
-          Item: {dataSource.length} &nbsp; QTY: {totalQty} &nbsp; Total:{" "}
-          {totalValue.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-        </td>
-      </tr>
-    );
+    // const totalQty = dataSource.reduce((sum, item) => sum + item.quantity, 0);
+    // const totalValue = dataSource.reduce(
+    //   (sum, item) => sum + parseFloat(item.value.replace(/,/g, "")),
+    //   0
+    // );
+    // return (
+    //   <tr className="bg-gray-200">
+    //     <td colSpan={10} className="text-right font-semibold">
+    //       Item: {dataSource.length} &nbsp; QTY: {totalQty} &nbsp; Total:{" "}
+    //       {totalValue.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+    //     </td>
+    //   </tr>
+    // );
   };
 
-  const [isSubDealerDisabled, setIsSubDealerDisabled] = useState(false);
+  
   const handleCheckboxChange = (e) => {
     setIsSubDealerDisabled(e.target.checked);
+  };
+
+  const onChangeProduct = (value) => {
+    setSearchProductData([]);
+  
+    const loadProductDetail = async () => {
+      setLoading(true);
+      try {
+        const [productDetail] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterProductDetail, { product_id: value }),
+        ]);
+  
+        const data = productDetail.data;
+  
+        console.log(data);
+  
+        // Check for duplicate product_code
+        const existingProductIndex = dataSource.findIndex(
+          (item) => item.sku === data.sku
+        );
+  
+        if (existingProductIndex !== -1) {
+          // If product_code exists, update the quantity and value
+          const updatedDataSource = dataSource.map((item, index) => {
+            if (index === existingProductIndex) {
+              const updatedQuantity = item.quantity + 1; // Increment quantity
+  
+              // Assuming you have product price in 'data' and format the value
+              const updatedValue = (
+                updatedQuantity * parseFloat(item.product_unit_thb.replace(/,/g, ""))
+              ).toFixed(2);
+  
+              return {
+                ...item,
+                quantity: updatedQuantity,
+                value: updatedValue, // Update value
+              };
+            }
+            return item;
+          });
+  
+          setDataSource(updatedDataSource);
+        } else {
+          // If product_code does not exist, add a new entry
+          const newProductDataDetail = {
+            key: dataSource.length + 1,
+            no: dataSource.length + 1,
+            sku: data.sku, // SKU from the API response
+            productName: data.product_name, // Product name from the API response
+            packSize: data.pack_size, // Pack size from the API response
+            quantity: 1, // Initial quantity
+            value: data.product_unit_thb,
+            remark: "", // Set default remark
+            warehouseSend: "", // Set default warehouseSend
+            receive: "", // Set default receive
+          };
+  
+          setDataSource([...dataSource, newProductDataDetail]); // Add new product data to dataSource
+        }
+      } catch (error) {
+        console.error("Error loading product detail:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    loadProductDetail();
+  };
+  
+
+  const onSearchProduct = (value) => {
+
+    if (value.length >= 3) {
+      const loadProducts = async () => {
+        // setLoading(true);
+        try {
+          const [product] = await Promise.all([
+            useServiceAPI.get(paths.pathMasterProducts, {
+              keyword: value,
+            }),
+          ]);
+
+          const newProductData = [];
+          product.data.map((data, index) => {
+            newProductData.push({
+              value: data.id,
+              label: data.name,
+            });
+          });
+
+          // Set Data
+          setSearchProductData(newProductData);
+        } catch (error) {
+          showNotification("error", error.message || "เกิดข้อผิดพลาด");
+        } finally {
+          // setLoading(false);
+        }
+      };
+
+      loadProducts();
+    } else {
+      setSearchProductData([]);
+    }
   };
 
   return (
@@ -190,8 +300,8 @@ export default function ActionSampleExpense() {
         {mode === "create"
           ? "Create Sample Expense"
           : mode === "edit"
-            ? "Edit Sample Expense"
-            : "View Sample Expense"}
+          ? "Edit Sample Expense"
+          : "View Sample Expense"}
       </div>
 
       <BoxPrimary>
@@ -261,24 +371,24 @@ export default function ActionSampleExpense() {
               <Select.Option value="2">Corn</Select.Option>
             </Select>
           </div>
-
         </div>
       </BoxPrimary>
 
       <BoxPrimary title="Product Sample">
-        {!isViewMode &&
+        {!isViewMode && (
           <div className="mb-3 flex justify-end">
             <Select
               showSearch
               placeholder="Search Product"
               optionFilterProp="label"
               className="w-full"
-              // onChange={onChangeProduct}
-              // onSearch={onSearchProduct}
-              // options={searchProductData}
+              onChange={onChangeProduct}
+              onSearch={onSearchProduct}
+              options={searchProductData}
               value=""
             />
-          </div>}
+          </div>
+        )}
       </BoxPrimary>
 
       <BoxPrimary title="List">
@@ -324,7 +434,6 @@ export default function ActionSampleExpense() {
         </div>
       </BoxPrimary>
 
-
       <BoxPrimary title="Attach File" className="pb-[56px]">
         <Upload.Dragger
           name="file"
@@ -351,7 +460,6 @@ export default function ActionSampleExpense() {
         <Input.TextArea placeholder="Remark" rows={3} disabled={isViewMode} />
       </BoxPrimary>
 
-
       <div className="flex justify-end space-x-4 mt-6">
         <ActionButton
           mode="back"
@@ -362,9 +470,9 @@ export default function ActionSampleExpense() {
           <ActionButton
             mode="save"
             text={mode === "create" ? "Create" : "Save"}
-          />)}
+          />
+        )}
       </div>
-
     </MainLayout>
   );
 }

@@ -382,6 +382,7 @@ export default function WorkPlanSaleBySubDealer() {
     setLocalQtyState((prevState) => {
       const updatedState = { ...prevState };
 
+      // Ensure the structure exists for dealer and subDealer
       if (!updatedState[dealerId]) {
         updatedState[dealerId] = {};
       }
@@ -389,9 +390,11 @@ export default function WorkPlanSaleBySubDealer() {
         updatedState[dealerId][subDealerId] = { totalAmountTarget: 0 };
       }
 
+      // Get the original plan value from the data source
       const originalPlan =
         dataSource.find((item) => item.product_id === productId)?.qty || 0;
 
+      // Calculate the total quantity of other sub-dealers for this product, including totalAmountTarget
       const totalOtherQty = Object.keys(updatedState[dealerId]).reduce(
         (sum, dealerKey) => {
           if (dealerKey !== "0" && dealerKey !== subDealerId.toString()) {
@@ -405,16 +408,24 @@ export default function WorkPlanSaleBySubDealer() {
         0
       );
 
-      const maxQty = originalPlan - totalOtherQty;
-      const finalQty = Math.min(newQty, Math.max(0, maxQty));
+      // Including totalAmountTarget from the current subDealer
+      const totalSubDealerQty =
+        totalOtherQty +
+        (updatedState[dealerId][subDealerId]?.totalAmountTarget || 0);
 
-      // Update the state for the current sub-dealer
+      // Calculate the remaining quantity that can be assigned to the current sub-dealer
+      const remainingQty = originalPlan - totalSubDealerQty;
+
+      // Update qty for the subDealer
+      const finalQty = newQty; // Allowing newQty to go over the originalPlan
+
       if (!updatedState[dealerId][subDealerId][productId]) {
         updatedState[dealerId][subDealerId][productId] = {};
       }
+
       updatedState[dealerId][subDealerId][productId] = {
-        qty: Number(finalQty) || 0,
-        value: (Number(finalQty) || 0) * (Number(unitConvertValue) || 0),
+        qty: finalQty, // Update sub-dealer quantity to whatever is input
+        value: finalQty * (Number(unitConvertValue) || 0),
       };
 
       updatedState[dealerId][subDealerId].totalAmountTarget = Object.values(
@@ -423,27 +434,15 @@ export default function WorkPlanSaleBySubDealer() {
         .filter((product) => typeof product === "object")
         .reduce((sum, product) => sum + (Number(product.value) || 0), 0);
 
-      const remainingQty =
-        originalPlan -
-        Object.keys(updatedState[dealerId]).reduce((sum, dealerKey) => {
-          if (dealerKey !== "0") {
-            return (
-              sum +
-              (Number(updatedState[dealerId][dealerKey][productId]?.qty) || 0)
-            );
-          }
-          return sum;
-        }, 0);
-
-      if (!updatedState[dealerId][0]) {
-        updatedState[dealerId][0] = { totalAmountTarget: 0 };
-      }
-      if (!updatedState[dealerId][0][productId]) {
-        updatedState[dealerId][0][productId] = {};
-      }
-      updatedState[dealerId][0][productId] = {
-        qty: Number(remainingQty) || 0,
-        value: (Number(remainingQty) || 0) * (Number(unitConvertValue) || 0),
+      // Update the quantity for dealerId["0"], if it goes negative, set it to 0
+      updatedState[dealerId]["0"] = updatedState[dealerId]["0"] || {};
+      updatedState[dealerId]["0"][productId] = {
+        qty: Math.max(0, originalPlan - totalOtherQty - finalQty), // Ensure it doesn't go below 0
+        value: Math.max(
+          0,
+          (originalPlan - totalOtherQty - finalQty) *
+            (Number(unitConvertValue) || 0)
+        ),
       };
 
       updatedState[dealerId][0].totalAmountTarget = Object.values(
@@ -452,45 +451,45 @@ export default function WorkPlanSaleBySubDealer() {
         .filter((product) => typeof product === "object")
         .reduce((sum, product) => sum + (Number(product.value) || 0), 0);
 
-      console.log(updatedState);
       return updatedState;
     });
   };
 
   const handleSave = async (mode) => {
-    const totalAmountTarget = Object.values(localQtyState).reduce(
-      (sum, obj) => {
-        return (
-          sum +
-          Object.values(obj).reduce(
-            (nestedSum, item) => nestedSum + (item.totalAmountTarget || 0),
-            0
-          )
-        );
-      },
-      0
-    );
+    // const totalAmountTarget = Object.values(localQtyState).reduce(
+    //   (sum, obj) => {
+    //     return (
+    //       sum +
+    //       Object.values(obj).reduce(
+    //         (nestedSum, item) => nestedSum + (item.totalAmountTarget || 0),
+    //         0
+    //       )
+    //     );
+    //   },
+    //   0
+    // );
 
-    if (Number(totalValue) > Number(totalAmountTarget)) {
-      confirm({
-        title: "Do you want to save ?",
-        icon: <ExclamationCircleFilled />,
-        content: (
-          <>
-            <p>Work Plan is less than Original Plan</p>
-            <p>Original Plan: {formatNumber(totalValue)}</p>
-            <p>Current Total: {formatNumber(totalAmountTarget)}</p>
-            <p>Difference: {formatNumber(totalValue - totalAmountTarget)}</p>
-          </>
-        ),
-        centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
-        onOk() {
-          createPlan(mode);
-        },
-      });
-    } else {
-      createPlan(mode);
-    }
+    // if (Number(totalValue) > Number(totalAmountTarget)) {
+    //   confirm({
+    //     title: "Do you want to save ?",
+    //     icon: <ExclamationCircleFilled />,
+    //     content: (
+    //       <>
+    //         <p>Work Plan is less than Original Plan</p>
+    //         <p>Original Plan: {formatNumber(totalValue)}</p>
+    //         <p>Current Total: {formatNumber(totalAmountTarget)}</p>
+    //         <p>Difference: {formatNumber(totalValue - totalAmountTarget)}</p>
+    //       </>
+    //     ),
+    //     centered: true,
+    //     onOk() {
+    //       createPlan(mode);
+    //     },
+    //   });
+    // } else {
+    //   createPlan(mode);
+    // }
+    createPlan(mode);
   };
 
   const createPlan = async (mode) => {
@@ -582,6 +581,23 @@ export default function WorkPlanSaleBySubDealer() {
     setActiveKey(key);
   };
 
+  const totalAmountTarget = Object.values(localQtyState).reduce((sum, obj) => {
+    return (
+      sum +
+      Object.values(obj).reduce(
+        (nestedSum, item) => nestedSum + (item.totalAmountTarget || 0),
+        0
+      )
+    );
+  }, 0);
+
+  const dealerAmountTarget =
+    dealers.find((dealer) => dealer.dealer_id === activeKey)?.amount_target ||
+    0;
+
+  const percent =
+    dealerAmountTarget > 0 ? (totalAmountTarget * 100) / dealerAmountTarget : 0;
+
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
@@ -609,24 +625,21 @@ export default function WorkPlanSaleBySubDealer() {
                 />
               </div>
             </div>
-            {/* <div>
-              <div>Amount Target</div>
+            <div>
+              <div>Sub Dealer Sale Plan</div>
               <div className="">
                 <InputNumber
                   disabled
                   suffix="THB"
                   className="w-full"
                   min={0}
-                  value={
-                    dealers.find((dealer) => dealer.dealer_id === activeKey)
-                      ?.amount_target || 0
-                  }
+                  value={dealerAmountTarget}
                   formatter={(value) =>
                     `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                   }
                 />
               </div>
-            </div> */}
+            </div>
             <div>
               <div>Work Plan</div>
               <div className="">
@@ -635,19 +648,26 @@ export default function WorkPlanSaleBySubDealer() {
                   suffix="THB"
                   className="w-full"
                   min={0}
-                  value={Object.values(localQtyState).reduce((sum, obj) => {
-                    return (
-                      sum +
-                      Object.values(obj).reduce(
-                        (nestedSum, item) =>
-                          nestedSum + (item.totalAmountTarget || 0),
-                        0
-                      )
-                    );
-                  }, 0)}
+                  value={totalAmountTarget}
                   formatter={(value) =>
                     `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                   }
+                />
+              </div>
+            </div>
+            <div>
+              <div>Percent %</div>
+              <div className="">
+                <InputNumber
+                  disabled
+                  // suffix="THB"
+                  className=""
+                  min={0}
+                  value={percent}
+                  formatter={(value) =>
+                    `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  addonAfter="%"
                 />
               </div>
             </div>
