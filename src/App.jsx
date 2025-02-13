@@ -96,12 +96,14 @@ import ActionMaterialExpense from "./pages/expenses/material_expense/ActionMater
 import SampleExpense from "./pages/expenses/sample_expense/SampleExpense";
 import ActionSampleExpense from "./pages/expenses/sample_expense/ActionSampleExpense";
 import Transaction from "./pages/settings/material/transaction";
-import MyAccount from "./pages/mobile/user/MyAccount";
+import MyAccountMobile from "./pages/mobile/user/MyAccount";
 import VerifyOA from "./pages/mobile/auth/VerifyOA";
 import OtpOA from "./pages/mobile/auth/OtpOA";
 import UserDetail from "./pages/mobile/user/UserDetail";
 import EditUserOA from "./pages/mobile/user/EditUserOA";
 import RegisterOA from "./pages/mobile/register/RegisterOA";
+import ContactOA from "./pages/mobile/contact/ContactOA";
+import MainOA from "./pages/mobile/main/MainOA";
 
 const App = () => {
   return (
@@ -248,16 +250,21 @@ const App = () => {
           <Route path="/error/503" element={<Error503 />} />
           <Route path="/wiki" element={<Wiki />} />
 
-
           {/* Mobile Line OA Routes */}
           <Route path="/mobile/verify" element={<VerifyOA />} />
           <Route path="/mobile/otp" element={<OtpOA />} />
-          <Route path="/mobile/account" element={< MyAccount />} />
+          <Route path="/mobile/account" element={< MyAccountMobile />} />
           <Route path="/mobile/user/detail" element={< UserDetail />} />
           <Route path="/mobile/user/edit" element={< EditUserOA />} />
           <Route path="/mobile/register" element={< RegisterOA />} />
+          <Route path="/mobile/contact" element={< ContactOA />} />
 
-
+          <Route path="/mobile/main" element={< MainOA />} />
+          <Route path="/mobile/scan-collect" element={< MainOA />} />
+          <Route path="/mobile/redeem" element={< MainOA />} />
+          <Route path="/mobile/history-purchase" element={< MainOA />} />
+          <Route path="/mobile/history-redeem" element={< MainOA />} />
+          
         </Routes>
       </AuthProvider>
     </Router>

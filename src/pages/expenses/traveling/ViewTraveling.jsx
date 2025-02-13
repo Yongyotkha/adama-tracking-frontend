@@ -6,7 +6,7 @@ import FormUser from "../../../components/form_user/FormUser";
 import { useNavigate, useLocation } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import TableComponent from "../../../components/table/TableComponent";
+import TableComponentTraveling from "../../../components/table/TableComponentTraveling";
 import NumericInput from "../../../components/numeric_input/NumericInput";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
@@ -229,19 +229,23 @@ export default function ViewTraveling() {
   };
 
   // Update Footer Totals when Data Source Changes
+  // คำนวณค่า Total Expenses, Total Advanced, Return to Company, Return to Staff
   useEffect(() => {
-    const totalExpenses = calculateFooterTotal("total");
-    const totalAdvanced = calculateFooterTotal("total"); // Adjust field as per requirement
+    // คำนวณค่าจาก dataSource
+    const totalExpenses = dataSource.reduce((acc, item) => acc + parseFloat(item.total || 0), 0);
+    const totalAdvanced = dataSourceDetail.total_advanced || 0;
+
+    // คำนวณยอดที่ต้องคืนบริษัทและพนักงาน
+    const returnToCompany = totalAdvanced > totalExpenses ? totalAdvanced - totalExpenses : 0;
+    const returnToStaff = totalExpenses > totalAdvanced ? totalExpenses - totalAdvanced : 0;
+
+    // อัปเดต State
     setDataTotalExpenses(totalExpenses);
     setDataTotalAdvanced(totalAdvanced);
+    setReturnToCompany(returnToCompany);
+    setReturnToStaff(returnToStaff);
+  }, [dataSource, dataSourceDetail]);
 
-    // Optionally calculate "Return to Company" and "Return to Staff"
-    // const returnToCompany = totalAdvanced - totalExpenses > 0 ? totalAdvanced - totalExpenses : 0;
-    // const returnToStaff = totalExpenses - totalAdvanced > 0 ? totalExpenses - totalAdvanced : 0;
-
-    // setReturnToCompany(returnToCompany);
-    // setReturnToStaff(returnToStaff);
-  }, [dataSource, dataTotalExpenses, dataTotalAdvanced]);
 
   const formFields = [
     {
@@ -337,7 +341,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={value > 0 ? value : 0}
           onChange={(val) => updateField(record.key, "petrol", val)}
           disabled
         />
@@ -350,7 +354,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={value > 0 ? value : 0}
           onChange={(val) => updateField(record.key, "cashPetrol", val)}
           disabled
         />
@@ -363,7 +367,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={value > 0 ? value : 0}
           onChange={(val) => updateField(record.key, "hotel", val)}
           disabled
         />
@@ -376,7 +380,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={value > 0 ? value : 0}
           onChange={(val) => updateField(record.key, "allowance", val)}
           disabled
         />
@@ -389,7 +393,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={value > 0 ? value : 0}
           onChange={(val) => updateField(record.key, "tollFee", val)}
           disabled
         />
@@ -402,7 +406,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={value > 0 ? value : 0}
           onChange={(val) => updateField(record.key, "entertain", val)}
           disabled
         />
@@ -415,7 +419,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={value > 0 ? value : 0}
           onChange={(val) => updateField(record.key, "others", val)}
           disabled
         />
@@ -428,7 +432,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={value > 0 ? value : 0}
           onChange={(val) => updateField(record.key, "total", val)}
           disabled
         />
@@ -448,100 +452,36 @@ export default function ViewTraveling() {
     <tr className="bg-[#978B87] text-white text-start">
       <td colSpan={3}>Total (THB)</td>
       <td>
-        <Input value={calculateFooterTotal("mileage")} readOnly hidden />
+        <Input style={{ width: 100 }} value={calculateFooterTotal("mileage")} readOnly hidden />
       </td>
       <td>
-        <Input value={calculateFooterTotal("petrol")} readOnly />
+        <Input style={{ width: 100 }} value={calculateFooterTotal("petrol")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("cashPetrol")} readOnly />
+        <Input style={{ width: 100 }} value={calculateFooterTotal("cashPetrol")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("hotel")} readOnly />
+        <Input style={{ width: 100 }} value={calculateFooterTotal("hotel")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("allowance")} readOnly />
+        <Input style={{ width: 100 }} value={calculateFooterTotal("allowance")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("tollFee")} readOnly />
+        <Input style={{ width: 100 }} value={calculateFooterTotal("tollFee")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("entertain")} readOnly />
+        <Input style={{ width: 100 }} value={calculateFooterTotal("entertain")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("others")} readOnly />
+        <Input style={{ width: 100 }} value={calculateFooterTotal("others")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("total")} readOnly />
+        <Input style={{ width: 100 }} value={calculateFooterTotal("total")} readOnly />
       </td>
       <td></td>
     </tr>
   );
 
-  const handleSave = () => {
-    formCustom
-      .validateFields()
-      .then((values) => {
-        //
-        const transformedData = dataSource.map((item, index) => ({
-          key: `${index + 1}`,
-          date: item.date || "",
-          traveling_from: item.from || "",
-          traveling_to: item.to || "",
-          mileage: item.mileage || "0",
-          petrol: item.petrol || "0",
-          cash_petrol: item.cashPetrol || "0",
-          hotel: item.hotel || "0",
-          allowance: item.allowance || "0",
-          toll_fee: item.tollFee || "0",
-          entertain: item.entertain || "0",
-          others: item.others || "0",
-          total: item.total || "0",
-          remark: item.remark || "",
-        }));
-
-        const body = {
-          action_code: "save",
-          year_code: yearCode,
-          month_code: monthCode,
-          user_id: saleId,
-          total_advanced: dataTotalAdvanced,
-          total_expenses: dataTotalExpenses,
-          total_return_to_company: returnToCompany,
-          total_to_staff: returnToStaff,
-          remark: dataRemark,
-          data_items: transformedData,
-        };
-        // console.log(body);
-        // return;
-        const saveExpensesTraveling = async () => {
-          setLoading(true);
-          try {
-            const [response] = await Promise.all([
-              useServiceAPI.put(paths.pathGetExpenseTravelingUpdate, body),
-            ]);
-
-            showNotification(
-              "success",
-              response.data.message,
-              response.data.message_line
-            ).then(() => {
-              navigate("/expenses/traveling");
-            });
-          } catch (error) {
-            // showMsg("error", error.message || "เกิดข้อผิดพลาด");
-            console.log(error);
-          } finally {
-            setLoading(false);
-          }
-        };
-        //
-        saveExpensesTraveling();
-      })
-      .catch((errorInfo) => {
-        console.error("Validation Failed:", errorInfo);
-      });
-  };
 
   return (
     <MainLayout loading={loading}>
@@ -564,11 +504,15 @@ export default function ViewTraveling() {
           </span>
           {/* <ActionButton mode="add" text="Add" onClick={addRow} /> */}
         </div>
-        <TableComponent
+        <TableComponentTraveling
           header={header}
           dataSource={dataSource}
-          pageSize={10}
+          pagination={false}
           footer={footerOrderList}
+          pageSize={31}
+          scroll={{
+            x: 100, // กำหนดให้เลื่อนแนวนอนได้ถ้ากว้างเกิน
+          }}
         />
       </BoxPrimary>
 
@@ -588,6 +532,7 @@ export default function ViewTraveling() {
           <NumericInput value={returnToStaff} disabled />
         </div>
       </BoxPrimary>
+
 
       {/* Remark Section */}
       <BoxPrimary title="Remark">

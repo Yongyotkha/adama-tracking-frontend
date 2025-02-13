@@ -11,7 +11,7 @@ import NumericInput from "../../../components/numeric_input/NumericInput";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
-import TableComponentCustomer from "../../../components/table/TableComponentCustomer";
+import TableComponentTraveling from "../../../components/table/TableComponentTraveling";
 
 export default function EditTraveling() {
   const navigate = useNavigate();
@@ -140,6 +140,7 @@ export default function EditTraveling() {
           ]);
           
           const dataItems = traveling.data.data_items;
+          console.log(traveling);
           const transformedData = dataItems.map((item, index) => ({
             key: `${index + 1}`,
             date: item.date || "",
@@ -218,6 +219,7 @@ export default function EditTraveling() {
       );
     }
   };
+  
 
   // Calculate total for each row
   const calculateTotal = (item) => (
@@ -452,7 +454,13 @@ export default function EditTraveling() {
       title: <span className="text-nowrap">Remark</span>,
       dataIndex: "remark",
       key: "remark",
-      render: (text) => <Input style={{ width: 250 }} defaultValue={text} />,
+      render: (value, record) => (
+        <Input
+          style={{ width: 250 }}
+          value={value}
+          onChange={(e) => updateField(record.key, "remark", e.target.value)}
+        />
+      ),
     },
   ];
 
@@ -460,31 +468,31 @@ export default function EditTraveling() {
     <tr className="bg-[#978B87] text-white text-start">
       <td colSpan={3}>Total (THB)</td>
       <td>
-        <Input value={calculateFooterTotal("mileage")} readOnly hidden />
+        <Input style={{ width: 100 }}  value={calculateFooterTotal("mileage")} readOnly hidden />
       </td>
       <td>
-        <Input value={calculateFooterTotal("petrol")} readOnly />
+        <Input style={{ width: 100 }}  value={calculateFooterTotal("petrol")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("cashPetrol")} readOnly />
+        <Input style={{ width: 100 }}  value={calculateFooterTotal("cashPetrol")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("hotel")} readOnly />
+        <Input style={{ width: 100 }}  value={calculateFooterTotal("hotel")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("allowance")} readOnly />
+        <Input style={{ width: 100 }}  value={calculateFooterTotal("allowance")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("tollFee")} readOnly />
+        <Input style={{ width: 100 }}  value={calculateFooterTotal("tollFee")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("entertain")} readOnly />
+        <Input style={{ width: 100 }}  value={calculateFooterTotal("entertain")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("others")} readOnly />
+        <Input style={{ width: 100 }}  value={calculateFooterTotal("others")} readOnly />
       </td>
       <td>
-        <Input value={calculateFooterTotal("total")} readOnly />
+        <Input style={{ width: 100 }}  value={calculateFooterTotal("total")} readOnly />
       </td>
       <td></td>
     </tr>
@@ -524,7 +532,7 @@ export default function EditTraveling() {
           remark: dataRemark,
           data_items: transformedData,
         };
-        // console.log(body);
+        console.log(body);
         // return;
         const saveExpensesTraveling = async () => {
           setLoading(true);
@@ -576,7 +584,7 @@ export default function EditTraveling() {
           </span>
           {/* <ActionButton mode="add" text="Add" onClick={addRow} /> */}
         </div>
-        <TableComponentCustomer
+        <TableComponentTraveling
           header={header}
           dataSource={dataSource}
           pageSize={31}
