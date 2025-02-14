@@ -89,7 +89,9 @@ export default function SampleExpense() {
         const newDataSource = data.map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           document_number: row.document_number,
+          document_datetime: row.document_datetime,
           sub_dealer_name: row.sub_dealer_name,
+          dealer_name: row.dealer_name,
           value: row.value,
           crop_name: row.crop_name,
           action: (
@@ -171,6 +173,7 @@ export default function SampleExpense() {
     { title: "Code", dataIndex: "document_number", align: "left" },
     { title: "Date", dataIndex: "document_datetime", align: "left" },
     { title: "Sub Dealer", dataIndex: "sub_dealer_name", align: "left" },
+    { title: "Dealer", dataIndex: "dealer_name", align: "left" },
     { title: "Crop", dataIndex: "crop_name", align: "center" },
     { title: "Value", dataIndex: "value", align: "right" },
     { title: "Status", dataIndex: "status", align: "center" },
