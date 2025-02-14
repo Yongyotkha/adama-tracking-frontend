@@ -446,7 +446,7 @@ export default function ActionSampleExpense() {
       .then((response) => {
         if (response.status === 200) {
           const successCallback = () => {
-            navigate("/sale-plan/work-plan");
+            navigate("/expenses/sample");
           };
           showNotification(
             "success",
