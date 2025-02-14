@@ -13,7 +13,7 @@ import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
 import dayjs from "dayjs";
-import FormModal from "../../components/modal/FormModal";
+import FormMappingModal from "../../components/modal/FormMappingModal";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 
 export default function ActivityList() {
@@ -37,7 +37,7 @@ export default function ActivityList() {
 
   const [mappingData, setMappingData] = useState({});
   const [mappingDataSave, setMappingDataSave] = useState({});
-  const [mappingperception , setMappingmappingperception] = useState({});
+  const [mappingperception, setMappingmappingperception] = useState({});
   const [perceptionData, setPerceptionData] = useState([]);
   const [isProductModalVisible, setIsProductModalVisible] = useState(false);
   const [isMappingModalVisible, setIsMappingModalVisible] = useState(false);
@@ -88,7 +88,7 @@ export default function ActivityList() {
           useServiceAPI.get(paths.pathActivityMappingStatusDetail, {
             document_number: data.document_number
           }),
-        ]);    
+        ]);
 
         setMappingmappingperception(mapping.data.customer_perception_id)
         setMappingData(mapping.data);
@@ -100,24 +100,15 @@ export default function ActivityList() {
     getMappingData();
   };
 
-  // Handle Close Modal & Save
   const handleOKMappingModal = (data) => {
-    const dataInfo = data;
-    setIsMappingModalVisible(false);
-    console.log(dataInfo);
-    
-    // Mapping Save
+    const body = {
+      document_number: mappingData.document_number,
+      image_list: data.image_list || ["defaultImage"], // Set a default or retrieve it from data
+      perception_id: data.perception || mappingData.perception_id || "1", // Use data or a default value
+    };
+
     const updateMappingDetail = async () => {
       try {
-        const body = {
-          document_number: dataInfo.documentNumber,
-          location_longitude: dataInfo.longitude,
-          location_latitude: dataInfo.latitude,
-          location_address: dataInfo.address,
-          perception_id: dataInfo.perception,
-          image_list: ["localhost"],
-        };
-
         const [mapping] = await Promise.all([
           useServiceAPI.put(paths.pathActivityMappingStatusDetailUpdate, body),
         ]);
@@ -135,13 +126,16 @@ export default function ActivityList() {
       }
     };
 
+    setIsMappingModalVisible(false);
     updateMappingDetail();
   };
+
+
 
   // Handle Upload File Image
   const handleChangeFileUpload = (data) => {
     console.log(data);
-    
+
   }
 
   const filters = [
@@ -477,8 +471,8 @@ export default function ActivityList() {
         width="1200px" // Customize the width to make it extra-large
       />
 
-      {/* FormModal */}
-      <FormModal
+      {/* FormMappingModal */}
+      <FormMappingModal
         isVisible={isMappingModalVisible}
         onClose={() => setIsMappingModalVisible(false)} // Handling closing of modal
         onOk={handleOKMappingModal} // Pass the function directly

@@ -9,7 +9,7 @@ dayjs.extend(customParseFormat);
 
 const { Option } = Select;
 
-const FormModal = ({
+const FormMappingModal = ({
   isVisible,
   onClose,
   onOk,
@@ -347,4 +347,4 @@ const FormModal = ({
   );
 };
 
-export default FormModal;
+export default FormMappingModal;
