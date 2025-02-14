@@ -207,6 +207,7 @@ export const paths = {
   // Expense Sample
   pathSampleExpenseList: "expense/sample/list",
   pathSampleExpenseDetails: "expense/sample/create",
+  pathSampleGetDealer: "expense/sample/get-dealer-id",
 
   // Claim
   pathClaimList: "claim/list",

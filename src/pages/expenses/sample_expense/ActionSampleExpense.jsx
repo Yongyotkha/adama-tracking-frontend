@@ -1,34 +1,61 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import MainLayout from "../../../layouts/MainLayout";
-import FormCustom from "../../../components/form_custom/FormCustom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
-import FileUploadComponent from "../../../components/file_upload/FileUploadComponent";
-import { Checkbox, DatePicker, Input, message, Select, Upload } from "antd";
+import {
+  Checkbox,
+  DatePicker,
+  Input,
+  InputNumber,
+  message,
+  Select,
+  Upload,
+} from "antd";
 import DynamicButton from "../../../components/button/DynamicButton";
 import { AuthContext } from "../../../contexts/AuthContext";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import dayjs from "dayjs";
 
 export default function ActionSampleExpense() {
   const { mode } = useParams(); // Get the mode from the URL
   const navigate = useNavigate();
   const isViewMode = mode === "view";
   const [loading, setLoading] = useState(false);
-  const [dealer, setDealer] = useState([]);
+  const [dealers, setDealers] = useState([]);
+  const [crops, setCrops] = useState([]);
+  const [crop, setCrop] = useState([]);
+  const [dealer, setDealer] = useState();
+  const [subDealers, setSubDealers] = useState([]);
+  const [subDealer, setSubDealer] = useState();
   const [fileList, setFileList] = useState([]);
   const [searchProductData, setSearchProductData] = useState([]);
   const { showNotification, userInfo } = useContext(AuthContext);
   const [isSubDealerDisabled, setIsSubDealerDisabled] = useState(false);
   const [dataSource, setDataSource] = useState([]);
 
+  const [data, setData] = useState({
+    document_datetime: dayjs(),
+    dealer_id: null,
+    sub_dealer_id: null,
+    crop_id: null,
+    request_value: null,
+    warehouse_value: null,
+    receive_value: null,
+    url_file_list: [],
+    file_name_list: [],
+    remark: null,
+    products: [],
+  });
+
   useEffect(() => {
     const getMasterDealer = async () => {
       try {
-        const [dealer] = await Promise.all([
+        const [dealer, subDealer] = await Promise.all([
           useServiceAPI.get(paths.pathMasterDealerAll),
+          useServiceAPI.get(paths.pathMasterSubDealer),
         ]);
 
         const formattedDealers = dealer?.data.map((item) => ({
@@ -36,7 +63,13 @@ export default function ActionSampleExpense() {
           label: item.name,
         }));
 
-        setDealer(formattedDealers);
+        const formattedSubDealer = subDealer?.data.map((item) => ({
+          value: item.sub_dealer_id,
+          label: item.sub_dealer_name,
+        }));
+
+        setDealers(formattedDealers);
+        setSubDealers(formattedSubDealer);
       } catch (error) {
         showNotification("error", error.message || "เกิดข้อผิดพลาด");
       }
@@ -44,6 +77,67 @@ export default function ActionSampleExpense() {
     // console.log(userInfo);
     getMasterDealer();
   }, []);
+
+  useEffect(() => {
+    const getDealerId = () => {
+      useServiceAPI
+        .post(paths.pathSampleGetDealer, { sub_dealer_id: data?.sub_dealer_id })
+        .then((response) => {
+          if (response.status === 200) {
+            console.log(response);
+            setData({
+              ...data,
+              dealer_id: response.data.id,
+            });
+          }
+        })
+        .catch((error) => {
+          if (error.status === 422) {
+            showNotification("error", error.message);
+          } else {
+            showNotification("error", "เกิดข้อผิดพลาด");
+          }
+        });
+    };
+
+    if (data?.sub_dealer_id) {
+      getDealerId();
+    }
+  }, [data?.sub_dealer_id]);
+
+  useEffect(() => {
+    const getMasterCrop = () => {
+      useServiceAPI
+        .get(paths.pathMasterCrop, { dealer_id: data?.dealer_id })
+        .then((response) => {
+          if (response.status === 200) {
+            console.log(response);
+
+            const formattedCrops = response?.data.map((item) => ({
+              value: item.id,
+              label: item.name,
+            }));
+
+            setData({
+              ...data,
+              crop_id: null,
+            });
+            setCrops(formattedCrops);
+          }
+        })
+        .catch((error) => {
+          if (error.status === 422) {
+            showNotification("error", error.message);
+          } else {
+            showNotification("error", "เกิดข้อผิดพลาด");
+          }
+        });
+    };
+
+    if (data?.dealer_id) {
+      getMasterCrop();
+    }
+  }, [data?.dealer_id]);
 
   const handleUploadChange = (info) => {
     const { file, fileList: updatedFileList } = info;
@@ -186,17 +280,27 @@ export default function ActionSampleExpense() {
   };
 
   const handleQuantityChange = (key, newQuantity) => {
-    if (newQuantity !== 0) {
-      setDataSource((prev) =>
-        prev.map((item) =>
-          item.key === key
-            ? {
-                ...item,
-                quantity: newQuantity,
-              }
-            : item
-        )
+    // ปรับ quantity และคำนวณ totalValue ใหม่
+    if (newQuantity) {
+      const updatedDataSource = dataSource.map((item) => {
+        if (item.key === key) {
+          const newTotalValue = newQuantity * item.value;
+          return { ...item, quantity: newQuantity, totalValue: newTotalValue };
+        }
+        return item;
+      });
+
+      setDataSource(updatedDataSource); // อัปเดต dataSource
+
+      // คำนวณยอดรวม request_value ใหม่
+      const totalRequestValue = updatedDataSource.reduce(
+        (acc, item) => acc + item.totalValue,
+        0
       );
+      setData((prevData) => ({
+        ...prevData,
+        request_value: totalRequestValue, // อัปเดตค่า request_value
+      }));
     }
   };
 
@@ -208,9 +312,9 @@ export default function ActionSampleExpense() {
 
     const totalValue = dataSource.reduce((sum, item) => {
       const numericValue =
-        typeof item.value === "string"
-          ? parseFloat(item.value.replace(/,/g, ""))
-          : parseFloat(item.value) || 0; // แปลงค่าให้เป็นตัวเลข ถ้าไม่สามารถแปลงได้ให้เป็น 0
+        typeof item.totalValue === "string"
+          ? parseFloat(item.totalValue.replace(/,/g, ""))
+          : parseFloat(item.totalValue) || 0; // แปลงค่าให้เป็นตัวเลข ถ้าไม่สามารถแปลงได้ให้เป็น 0
       return sum + (isNaN(numericValue) ? 0 : numericValue);
     }, 0);
 
@@ -252,16 +356,29 @@ export default function ActionSampleExpense() {
             key: dataSource.length + 1,
             no: dataSource.length + 1,
             sku: data.product_code,
+            productId: data.id,
             productName: data.product_name,
             packSize: data.packing_list,
-            quantity: 1,
-            value: data.unit_convert_value,
+            quantity: 1, // ตั้งค่า quantity เป็น 1 เมื่อเพิ่มสินค้าใหม่
+            value: data.unit_convert_value, // ราคาของสินค้า
+            totalValue: 1 * data.unit_convert_value, // คำนวณ totalValue ตอนเพิ่ม
             remark: "",
             warehouseSend: "",
             receive: "",
           };
 
-          setDataSource([...dataSource, newProductDataDetail]); // Add new product data to dataSource
+          const updatedDataSource = [...dataSource, newProductDataDetail];
+          setDataSource(updatedDataSource); // Add new product data to dataSource
+
+          // คำนวณยอดรวม request_value
+          const totalRequestValue = updatedDataSource.reduce(
+            (acc, item) => acc + item.totalValue,
+            0
+          );
+          setData((prevData) => ({
+            ...prevData,
+            request_value: totalRequestValue, // อัปเดตค่า request_value
+          }));
         }
       } catch (error) {
         console.error("Error loading product detail:", error);
@@ -307,6 +424,46 @@ export default function ActionSampleExpense() {
     }
   };
 
+  const handleSave = () => {
+    const formattedProduct = dataSource?.map((item) => ({
+      product_id: item.productId,
+      product_code: item.sku,
+      product_name: item.productName,
+      pack_size: item.packSize,
+      qty: item.quantity,
+      value: item.value,
+      remark: item.remark,
+      warehouse_send: item.warehouseSend,
+      receive: item.receive,
+    }));
+
+    data.products = formattedProduct;
+
+    console.log(data);
+
+    useServiceAPI
+      .post(paths.pathSampleExpenseDetails, data, setLoading)
+      .then((response) => {
+        if (response.status === 200) {
+          const successCallback = () => {
+            navigate("/sale-plan/work-plan");
+          };
+          showNotification(
+            "success",
+            response.data.message,
+            response.data.message_line
+          ).then(successCallback);
+        }
+      })
+      .catch((error) => {
+        if (error.status === 422) {
+          showNotification("error", error.message);
+        } else {
+          showNotification("error", "เกิดข้อผิดพลาด");
+        }
+      });
+  };
+
   return (
     <MainLayout loading={loading}>
       <div className="title-page">
@@ -320,11 +477,12 @@ export default function ActionSampleExpense() {
       <BoxPrimary>
         <div className="grid gap-4 mb-4 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1">
           {/* Date Field */}
-          <div>
+          <div className="">
             <label className="block mb-1 text-sm">Date</label>
             <DatePicker
               disabled
               className="w-full border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
+              value={data.document_datetime}
             />
           </div>
 
@@ -346,9 +504,17 @@ export default function ActionSampleExpense() {
                 disabled={isViewMode || isSubDealerDisabled}
                 placeholder="Select"
                 className="w-full border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
-                options={dealer}
+                options={subDealers}
                 showSearch
                 optionFilterProp="label"
+                onChange={(value) => {
+                  // setSubDealer(value);
+                  setData({
+                    ...data,
+                    sub_dealer_id: value,
+                  });
+                }}
+                value={data?.sub_dealer_id}
               ></Select>
             </div>
           </div>
@@ -357,6 +523,13 @@ export default function ActionSampleExpense() {
             <Checkbox
               onChange={(e) => {
                 setIsSubDealerDisabled(e.target.checked);
+                setData({
+                  ...data,
+                  crop_id: null,
+                  sub_dealer_id: null,
+                  dealer_id: null,
+                });
+                setCrops([]);
               }}
               disabled={isViewMode}
             >
@@ -371,9 +544,17 @@ export default function ActionSampleExpense() {
               disabled={!isSubDealerDisabled}
               placeholder="Dealer"
               className="w-full border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
-              options={dealer}
+              options={dealers}
               showSearch
               optionFilterProp="label"
+              onChange={(value) => {
+                setDealer(value);
+                setData({
+                  ...data,
+                  dealer_id: value,
+                });
+              }}
+              value={data?.dealer_id}
             ></Select>
           </div>
 
@@ -384,10 +565,26 @@ export default function ActionSampleExpense() {
               disabled={isViewMode}
               placeholder="Select"
               className="w-full border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
-            >
-              <Select.Option value="1">Rice</Select.Option>
-              <Select.Option value="2">Corn</Select.Option>
-            </Select>
+              showSearch
+              optionFilterProp="label"
+              options={crops}
+              onChange={(value) => {
+                // เช็คว่าค่าที่เลือกมีอยู่ใน crops หรือไม่
+                const isValidCrop = crops.some((crop) => crop.value === value);
+                if (isValidCrop) {
+                  setData({
+                    ...data,
+                    crop_id: value,
+                  });
+                } else {
+                  setData({
+                    ...data,
+                    crop_id: null,
+                  });
+                }
+              }}
+              value={data?.crop_id}
+            />
           </div>
         </div>
       </BoxPrimary>
@@ -424,30 +621,51 @@ export default function ActionSampleExpense() {
             <label className="text-sm font-medium text-gray-700">
               Total Value Request:
             </label>
-            <Input
-              value="200.00" // Replace with dynamic data
-              disabled
+            <InputNumber
               className="w-40 text-right border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
+              min={0}
+              value={data.request_value || 0}
+              formatter={(value) =>
+                `${parseFloat(value).toFixed(2)}`.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  ","
+                )
+              }
+              disabled={true}
             />
           </div>
           <div className="flex items-center space-x-4">
             <label className="text-sm font-medium text-gray-700">
               Total Value Warehouse Send:
             </label>
-            <Input
-              value="0.00" // Replace with dynamic data
-              disabled
+            <InputNumber
               className="w-40 text-right border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
+              min={0}
+              value={data.warehouse_value || 0}
+              formatter={(value) =>
+                `${parseFloat(value).toFixed(2)}`.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  ","
+                )
+              }
+              disabled={true}
             />
           </div>
           <div className="flex items-center space-x-4">
             <label className="text-sm font-medium text-gray-700">
               Total Value Receive:
             </label>
-            <Input
-              value="0.00" // Replace with dynamic data
-              disabled
+            <InputNumber
               className="w-40 text-right border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
+              min={0}
+              value={data.receive_value || 0}
+              formatter={(value) =>
+                `${parseFloat(value).toFixed(2)}`.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  ","
+                )
+              }
+              disabled={true}
             />
           </div>
         </div>
@@ -476,7 +694,17 @@ export default function ActionSampleExpense() {
       </BoxPrimary>
 
       <BoxPrimary title="Remark">
-        <Input.TextArea placeholder="Remark" rows={3} disabled={isViewMode} />
+        <Input.TextArea
+          placeholder="Remark"
+          rows={3}
+          disabled={isViewMode}
+          onChange={(e) =>
+            setData({
+              ...data,
+              remark: e.target.value,
+            })
+          }
+        />
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4 mt-6">
@@ -489,6 +717,7 @@ export default function ActionSampleExpense() {
           <ActionButton
             mode="save"
             text={mode === "create" ? "Create" : "Save"}
+            onClick={handleSave}
           />
         )}
       </div>

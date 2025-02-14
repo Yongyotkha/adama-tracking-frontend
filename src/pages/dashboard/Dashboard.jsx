@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Card, Row, Col, Select } from "antd";
 import MainLayout from "../../layouts/MainLayout";
-import { BarChart } from '@mui/x-charts/BarChart';
-import { axisClasses } from '@mui/x-charts/ChartsAxis';
-import { useDrawingArea } from '@mui/x-charts/hooks';
-import { styled } from '@mui/material/styles';
+import { BarChart } from "@mui/x-charts/BarChart";
+import { axisClasses } from "@mui/x-charts/ChartsAxis";
+import { useDrawingArea } from "@mui/x-charts/hooks";
+import { styled } from "@mui/material/styles";
 import { PieChart } from "@mui/x-charts";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import { Hidden } from "@mui/material";
@@ -21,9 +21,19 @@ export default function Dashboard() {
   const [selectedSubdealer, setSelectedSubdealer] = useState(null);
   const [dealer, setDealer] = useState([]);
   const [selectedDealer, setSelectedDealer] = useState(null);
-  const [dashboardData, setDashboardData] = useState({ dealer_count: 0, sub_dealer_count: 0 });
-  const [dashboardDataExpense, setDashboardDataExpense] = useState({ total_expense_actual_sale: 0, total_expense_actual_exp: 0, total_expense_advance: 0 });
-  const [dashboardDataOrder, setDashboardDataOrder] = useState({ total_order: 0, total_order_amonth: 0 });
+  const [dashboardData, setDashboardData] = useState({
+    dealer_count: 0,
+    sub_dealer_count: 0,
+  });
+  const [dashboardDataExpense, setDashboardDataExpense] = useState({
+    total_expense_actual_sale: 0,
+    total_expense_actual_exp: 0,
+    total_expense_advance: 0,
+  });
+  const [dashboardDataOrder, setDashboardDataOrder] = useState({
+    total_order: 0,
+    total_order_amonth: 0,
+  });
   const [dealerPlanData, setDealerPlanData] = useState([]);
   const [topActivityData, setTopActivityData] = useState([]);
   const [listActivityData, setListActivityData] = useState([]);
@@ -33,31 +43,40 @@ export default function Dashboard() {
   const [sales, setSales] = useState([]);
   const [selectedSale, setSelectedSale] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [selectedSubdealerExpense, setSelectedSubdealerExpense] = useState(null);
+  const [selectedSubdealerExpense, setSelectedSubdealerExpense] =
+    useState(null);
   const [selectedSubdealerOrder, setSelectedSubdealerOrder] = useState(null);
   const [selectedMonthsExpense, setSelectedMonthsExpense] = useState(null);
   const [selectedMonthsOrder, setSelectedMonthsOrder] = useState(null);
-  const [selectedMonthsDealerPlan, setSelectedMonthsDealerPlan] = useState(null);
-  const [selectedMonthsTopActivity, setSelectedMonthsTopActivity] = useState(null);
-  const [selectedMonthsSubDealerPlan, setSelectedMonthsSubDealerPlan] = useState(null);
-  const [selectedMonthsSaleByCrop, setSelectedMonthsSaleByCrop] = useState(null);
+  const [selectedMonthsDealerPlan, setSelectedMonthsDealerPlan] =
+    useState(null);
+  const [selectedMonthsTopActivity, setSelectedMonthsTopActivity] =
+    useState(null);
+  const [selectedMonthsSubDealerPlan, setSelectedMonthsSubDealerPlan] =
+    useState(null);
+  const [selectedMonthsSaleByCrop, setSelectedMonthsSaleByCrop] =
+    useState(null);
   const [selectedMonthsActivity, setSelectedMonthsActivity] = useState(null);
   const [selectedSaleByCrop, setSelectedSaleByCrop] = useState(null);
   const [selectedSaleActivity, setSelectedSaleActivity] = useState(null);
   const [selectedDealerPlan, setSelectedDealerPlan] = useState(null);
-  const [selectedDealerTopActivity, setSelectedDealerTopActivity] = useState(null);
+  const [selectedDealerTopActivity, setSelectedDealerTopActivity] =
+    useState(null);
   const [selectedSubdealerPlan, setSelectedSubdealerPlan] = useState(null);
+  const [selectedSdByD, setSelectedSdByD] = useState(null);
+  const [selectedMonthSdByD, setSelectedMonthSdByD] =
+  useState(null);
   const chartSetting = {
     yAxis: [
       {
-        label: 'Million (MB)',
+        label: "Million (MB)",
       },
     ],
     // width: 500,
     height: 300,
     sx: {
       [`.${axisClasses.left} .${axisClasses.label}`]: {
-        transform: 'translate(-10px, 0)',
+        transform: "translate(-10px, 0)",
       },
     },
   };
@@ -100,7 +119,6 @@ export default function Dashboard() {
     );
   }
 
-
   useEffect(() => {
     fetchYears(); // ดึงปี
     fetchMonth(); // ดึงเดือน
@@ -116,7 +134,6 @@ export default function Dashboard() {
     fetchSubDealerPlanData();
     fetchSaleCropData();
   }, []);
-
 
   // เลือกปี
   const fetchYears = async () => {
@@ -138,7 +155,7 @@ export default function Dashboard() {
   const handleYearChange = (value) => {
     setSelectedYear(value); // อัปเดตค่า state
     fetchDashboardData(value);
-    fetchDashboardDataExpense(value)
+    fetchDashboardDataExpense(value);
     fetchDashboardDataOrder(value);
     fetchDealerPlanData(value);
     fetchTopActivityData(value);
@@ -167,9 +184,12 @@ export default function Dashboard() {
   // เช็คค่าทีเลือก Expense mount
   const handleMonthChangeExpense = (value) => {
     setSelectedMonths(value === "all" ? "" : value); // ถ้าเลือก "All Month" ให้ส่งค่าเปล่า
-    fetchDashboardDataExpense(selectedYear, value === "all" ? "" : value, selectedSubdealer); // ส่งค่า Month ที่เลือก
+    fetchDashboardDataExpense(
+      selectedYear,
+      value === "all" ? "" : value,
+      selectedSubdealer
+    ); // ส่งค่า Month ที่เลือก
   };
-
 
   // เลือก subdealer
   const fetchSubdealer = async () => {
@@ -178,9 +198,11 @@ export default function Dashboard() {
       const response = await useServiceAPI.get(paths.pathMasterSubDealer);
       if (response.status === 200) {
         const subDealerData = response.data || [];
-        setSubdealer([{ sub_dealer_id: "all", sub_dealer_name: "All Sub Dealer" }, ...subDealerData]);
+        setSubdealer([
+          { sub_dealer_id: "all", sub_dealer_name: "All Sub Dealer" },
+          ...subDealerData,
+        ]);
         setSelectedSubdealer("all"); // ตั้งค่า default เป็น "All Sub Dealer"
-
       }
     } catch (error) {
       console.error("Error fetching subdealers:", error);
@@ -206,11 +228,13 @@ export default function Dashboard() {
     }
   };
 
-
-
   const handleSubdealerChangeExpense = (value) => {
     setSelectedSubdealer(value === "all" ? "" : value);
-    fetchDashboardDataExpense(selectedYear, selectedMonths, value === "all" ? "" : value); // ส่งค่า Sub Dealer ที่เลือก
+    fetchDashboardDataExpense(
+      selectedYear,
+      selectedMonths,
+      value === "all" ? "" : value
+    ); // ส่งค่า Sub Dealer ที่เลือก
   };
 
   const handleSubdealerChangePlan = (value) => {
@@ -218,12 +242,13 @@ export default function Dashboard() {
     // fetchDashboardDataOrder(selectedYear, selectedMonths, value === "all" ? "" : value);
   };
 
-
   // ฟังก์ชันสำหรับดึงข้อมูล Sub Dealer
   const fetchDashboardData = async (year) => {
     setLoading(true);
     try {
-      const response = await useServiceAPI.get(paths.pathDashBordCustomer, { year_code: year });
+      const response = await useServiceAPI.get(paths.pathDashBordCustomer, {
+        year_code: year,
+      });
       if (response.status === 200) {
         const data = response.data || {};
         setDashboardData({
@@ -241,7 +266,11 @@ export default function Dashboard() {
   };
 
   // ฟังก์ชันสำหรับดึงข้อมูล Expense
-  const fetchDashboardDataExpense = async (year = new Date().getFullYear(), month = selectedMonths, subDealerId = selectedSubdealer) => {
+  const fetchDashboardDataExpense = async (
+    year = new Date().getFullYear(),
+    month = selectedMonths,
+    subDealerId = selectedSubdealer
+  ) => {
     setLoading(true);
     try {
       const payload = {
@@ -250,16 +279,17 @@ export default function Dashboard() {
         month_id: month === "all" ? "" : month,
       };
 
-      const response = await useServiceAPI.get(paths.pathDashBordExpense, payload);
+      const response = await useServiceAPI.get(
+        paths.pathDashBordExpense,
+        payload
+      );
       if (response.status === 200) {
         const data = response.data || {};
         setDashboardDataExpense({
           total_expense_advance: data["total_expense_advance "] || 0,
           total_expense_actual_exp: data["total_expense_actual_exp "] || 0,
           total_expense_actual_sale: data["total_expense_actual_sale"] || 0,
-
         });
-
       } else {
         console.error("Failed to fetch dashboard data:", response.message);
       }
@@ -269,7 +299,6 @@ export default function Dashboard() {
       setLoading(false);
     }
   };
-
 
   // ฟังก์ชันสำหรับดึงข้อมูล Order
   const fetchDashboardDataOrder = async (
@@ -285,14 +314,16 @@ export default function Dashboard() {
         month_id: month === "all" ? "" : month,
       };
 
-      const response = await useServiceAPI.get(paths.pathDashBordOrder, payload);
+      const response = await useServiceAPI.get(
+        paths.pathDashBordOrder,
+        payload
+      );
       if (response.status === 200) {
         const data = response.data || {};
         setDashboardDataOrder({
           total_order: data["total_order "] || 0,
           total_order_amonth: data["total_order_amonth "] || 0,
         });
-
       } else {
         console.error("Failed to fetch dashboard data:", response.message);
       }
@@ -305,14 +336,21 @@ export default function Dashboard() {
 
   const handleSubdealerChangeOrder = (value) => {
     setSelectedSubdealer(value === "all" ? "" : value);
-    fetchDashboardDataOrder(selectedYear, selectedMonths, value === "all" ? "" : value);
+    fetchDashboardDataOrder(
+      selectedYear,
+      selectedMonths,
+      value === "all" ? "" : value
+    );
   };
 
   const handleMonthChangeOrder = (value) => {
     setSelectedMonths(value === "all" ? "" : value);
-    fetchDashboardDataOrder(selectedYear, value === "all" ? "" : value, selectedSubdealer);
+    fetchDashboardDataOrder(
+      selectedYear,
+      value === "all" ? "" : value,
+      selectedSubdealer
+    );
   };
-
 
   // ฟังก์ชันสำหรับดึงข้อมูล Dealer Plan
   const fetchDealerPlanData = async (
@@ -335,7 +373,6 @@ export default function Dashboard() {
           // actual: item.work_actual_value,
           plan: parseFloat(item.work_plan_value),
           actual: parseFloat(item.work_actual_value),
-
         }));
         setDealerPlanData(data); // อัปเดต State
       } else {
@@ -350,22 +387,27 @@ export default function Dashboard() {
 
   const handleDealerChangeDealerPlan = (value) => {
     setSelectedDealer(value === "all" ? "" : value);
-    fetchDealerPlanData(selectedYear, selectedMonths, value === "all" ? "" : value);
+    fetchDealerPlanData(
+      selectedYear,
+      selectedMonths,
+      value === "all" ? "" : value
+    );
   };
 
   const handleMonthChangeDealerPlan = (value) => {
     setSelectedMonths(value === "all" ? "" : value);
-    fetchDealerPlanData(selectedYear, value === "all" ? "" : value, selectedSubdealer);
+    fetchDealerPlanData(
+      selectedYear,
+      value === "all" ? "" : value,
+      selectedSubdealer
+    );
   };
-
-
 
   // ฟังก์ชันสำหรับดึงข้อมูล Top Activity
   const fetchTopActivityData = async (
     year = new Date().getFullYear(),
     dealerId = selectedDealer,
     monthId = selectedMonths
-
   ) => {
     setLoading(true);
     try {
@@ -375,7 +417,10 @@ export default function Dashboard() {
         month_id: monthId === "all" ? "" : monthId,
       };
 
-      const response = await useServiceAPI.get(paths.pathDashBordTopActivity, payload);
+      const response = await useServiceAPI.get(
+        paths.pathDashBordTopActivity,
+        payload
+      );
       if (response.status === 200 && response.data) {
         const data = response.data.map((item) => ({
           activity: item.activity_type_name,
@@ -412,7 +457,6 @@ export default function Dashboard() {
     year = new Date().getFullYear(),
     saleId = selectedSale,
     monthId = selectedMonths
-
   ) => {
     setLoading(true);
     try {
@@ -422,7 +466,10 @@ export default function Dashboard() {
         month_id: monthId === "all" ? "" : monthId,
       };
 
-      const response = await useServiceAPI.get(paths.pathDashBordListActivity, payload);
+      const response = await useServiceAPI.get(
+        paths.pathDashBordListActivity,
+        payload
+      );
       if (response.status === 200 && response.data) {
         const data = response.data.map((item) => ({
           type: item.activity_type_name,
@@ -453,7 +500,6 @@ export default function Dashboard() {
     fetchListActivityData(selectedYear, selectedSale, value);
   };
 
-
   // ฟังก์ชันสำหรับดึงข้อมูล Sub Dealer Plan
   const fetchSubDealerPlanData = async (
     year = new Date().getFullYear(),
@@ -468,7 +514,10 @@ export default function Dashboard() {
         month_id: month === "all" ? "" : month,
       };
 
-      const response = await useServiceAPI.get(paths.pathDashBordSubDealerList, payload);
+      const response = await useServiceAPI.get(
+        paths.pathDashBordSubDealerList,
+        payload
+      );
       if (response.status === 200 && response.data) {
         const data = response.data.map((item) => ({
           month: item.product_name, // ใช้ product_name แทน month
@@ -477,11 +526,13 @@ export default function Dashboard() {
 
           plan: parseFloat(item.work_plan_value),
           actual: parseFloat(item.amount_target),
-
         }));
         setSubDealerPlanData(data); // อัปเดต State
       } else {
-        console.error("Failed to fetch Sub Dealer Plan data:", response.message);
+        console.error(
+          "Failed to fetch Sub Dealer Plan data:",
+          response.message
+        );
       }
     } catch (error) {
       console.error("Error fetching Sub Dealer Plan data:", error);
@@ -492,21 +543,27 @@ export default function Dashboard() {
 
   const handleSubdealerChangeSubDealerPlan = (value) => {
     setSelectedSubdealer(value === "all" ? "" : value);
-    fetchSubDealerPlanData(selectedYear, selectedMonths, value === "all" ? "" : value);
+    fetchSubDealerPlanData(
+      selectedYear,
+      selectedMonths,
+      value === "all" ? "" : value
+    );
   };
 
   const handleMonthChangeSubDealerPlan = (value) => {
     setSelectedMonths(value === "all" ? "" : value);
-    fetchSubDealerPlanData(selectedYear, value === "all" ? "" : value, selectedSubdealer);
+    fetchSubDealerPlanData(
+      selectedYear,
+      value === "all" ? "" : value,
+      selectedSubdealer
+    );
   };
-
 
   // ฟังก์ชันสำหรับดึงข้อมูล Sale By Crop
   const fetchSaleCropData = async (
     year = new Date().getFullYear(),
     dealerId = selectedDealer,
     monthId = selectedMonths
-
   ) => {
     setLoading(true);
     try {
@@ -516,7 +573,10 @@ export default function Dashboard() {
         month_id: monthId === "all" ? "" : monthId,
       };
 
-      const response = await useServiceAPI.get(paths.pathDashBordSaleCrop, payload);
+      const response = await useServiceAPI.get(
+        paths.pathDashBordSaleCrop,
+        payload
+      );
       if (response.status === 200 && response.data) {
         const data = response.data.map((item) => ({
           value: item.value,
@@ -542,7 +602,6 @@ export default function Dashboard() {
     setSelectedSale(value);
     fetchSaleCropData(selectedYear, value, selectedMonths);
   };
-
 
   // ฟังก์ชันจัดการการเปลี่ยนค่า Dealer
   const handleDealerChangeSaleByCrop = (value) => {
@@ -581,6 +640,23 @@ export default function Dashboard() {
     { value: 5, label: "On shop", color: "#EC407A" },
   ];
 
+
+  // const fetchSalesDropdown = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const response = await useServiceAPI.get(paths.pathMasterSaleDropdown);
+  //     if (response.status === 200) {
+  //       const salesData = response.data || [];
+  //       setSales([{ id: "all", name: "All Sales" }, ...salesData]); // เพิ่ม "All Sales"
+  //       setSelectedSale("all"); // ตั้งค่า default เป็น "All Sales"
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching sales dropdown:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -598,11 +674,9 @@ export default function Dashboard() {
             </Select.Option>
           ))}
         </Select>
-
       </div>
       {/* Row 1: Dealer, Sub Dealer, Expense, Order */}
       <Row gutter={[16, 16]} className="mb-4">
-
         {/* Dealer */}
         <Col xs={12} sm={6} lg={6} xxl={5}>
           <BoxPrimary className="h-full flex items-center justify-between">
@@ -621,7 +695,6 @@ export default function Dashboard() {
                   className="w-[4.5rem] h-[4.5rem] cursor-pointer" // Add cursor-pointer for UX
                   onClick={() => navigate("/customer/dealer")} // Add navigation on click
                 />
-
               </div>
             </div>
           </BoxPrimary>
@@ -644,7 +717,6 @@ export default function Dashboard() {
                   className="w-[4.5rem] h-[4.5rem] cursor-pointer" // Add cursor-pointer for UX
                   onClick={() => navigate("/customer/sub-dealer")} // Add navigation on click
                 />
-
               </div>
             </div>
           </BoxPrimary>
@@ -662,13 +734,20 @@ export default function Dashboard() {
                   // onChange={handleSubdealerChangeExpense}
                   onChange={(value) => {
                     setSelectedSubdealerExpense(value === "all" ? "" : value);
-                    fetchDashboardDataExpense(selectedYear, selectedMonths, value === "all" ? "" : value);
+                    fetchDashboardDataExpense(
+                      selectedYear,
+                      selectedMonths,
+                      value === "all" ? "" : value
+                    );
                   }}
                   placeholder={loading ? "Loading..." : "All sub dealer"}
                   disabled={loading}
                 >
                   {subdealer.map((sudealer) => (
-                    <Select.Option key={sudealer.sub_dealer_id} value={sudealer.sub_dealer_id}>
+                    <Select.Option
+                      key={sudealer.sub_dealer_id}
+                      value={sudealer.sub_dealer_id}
+                    >
                       {`${sudealer.sub_dealer_name}`}
                     </Select.Option>
                   ))}
@@ -677,10 +756,14 @@ export default function Dashboard() {
                 <Select
                   className="w-36"
                   value={selectedMonthsExpense}
-                  // onChange={handleMonthChangeExpense} 
+                  // onChange={handleMonthChangeExpense}
                   onChange={(value) => {
                     setSelectedMonthsExpense(value === "all" ? "" : value); // อัปเดต state สำหรับ Expense
-                    fetchDashboardDataExpense(selectedYear, value === "all" ? "" : value, selectedSubdealerExpense);
+                    fetchDashboardDataExpense(
+                      selectedYear,
+                      value === "all" ? "" : value,
+                      selectedSubdealerExpense
+                    );
                   }}
                   placeholder={loading ? "Loading..." : "Select Month"}
                   disabled={loading}
@@ -695,7 +778,10 @@ export default function Dashboard() {
             </div>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-300">
               <div className="text-center py-4">
-                <div className="text-md font-bold text-[#00783F]">  {dashboardDataExpense.total_expense_advance} </div>
+                <div className="text-md font-bold text-[#00783F]">
+                  {" "}
+                  {dashboardDataExpense.total_expense_advance}{" "}
+                </div>
                 <div className="text-sm text-gray-500">Advance</div>
               </div>
               {/* <div className="text-center py-2">
@@ -703,7 +789,10 @@ export default function Dashboard() {
                 <div className="text-sm text-gray-500">Estimate</div>
               </div> */}
               <div className="text-center py-4">
-                <div className="text-md font-bold text-[#00783F]">  {dashboardDataExpense.total_expense_actual_sale} </div>
+                <div className="text-md font-bold text-[#00783F]">
+                  {" "}
+                  {dashboardDataExpense.total_expense_actual_sale}{" "}
+                </div>
                 <div className="text-sm text-gray-500">Actual</div>
               </div>
             </div>
@@ -722,13 +811,20 @@ export default function Dashboard() {
                   // onChange={handleSubdealerChangeOrder}
                   onChange={(value) => {
                     setSelectedSubdealerOrder(value === "all" ? "" : value);
-                    fetchDashboardDataOrder(selectedYear, selectedMonths, value === "all" ? "" : value);
+                    fetchDashboardDataOrder(
+                      selectedYear,
+                      selectedMonths,
+                      value === "all" ? "" : value
+                    );
                   }}
                   placeholder={loading ? "Loading..." : "All Sub Dealer"}
                   disabled={loading}
                 >
                   {subdealer.map((dealer) => (
-                    <Select.Option key={dealer.sub_dealer_id} value={dealer.sub_dealer_id}>
+                    <Select.Option
+                      key={dealer.sub_dealer_id}
+                      value={dealer.sub_dealer_id}
+                    >
                       {dealer.sub_dealer_name}
                     </Select.Option>
                   ))}
@@ -740,7 +836,11 @@ export default function Dashboard() {
                   // onChange={handleMonthChangeOrder}
                   onChange={(value) => {
                     setSelectedMonthsOrder(value === "all" ? "" : value); // อัปเดต state สำหรับ Order
-                    fetchDashboardDataOrder(selectedYear, value === "all" ? "" : value, selectedSubdealerOrder);
+                    fetchDashboardDataOrder(
+                      selectedYear,
+                      value === "all" ? "" : value,
+                      selectedSubdealerOrder
+                    );
                   }}
                   placeholder={loading ? "Loading..." : "Select Month"}
                   disabled={loading}
@@ -755,11 +855,17 @@ export default function Dashboard() {
             </div>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 w-full">
               <div className="text-center p-2">
-                <div className="text-md font-bold text-[#00783F]"> {dashboardDataOrder.total_order} </div>
+                <div className="text-md font-bold text-[#00783F]">
+                  {" "}
+                  {dashboardDataOrder.total_order}{" "}
+                </div>
                 <div className="text-sm text-gray-500">Order</div>
               </div>
               <div className="text-center p-2">
-                <div className="text-md font-bold text-[#00783F]"> {dashboardDataOrder.total_order_amonth} </div>
+                <div className="text-md font-bold text-[#00783F]">
+                  {" "}
+                  {dashboardDataOrder.total_order_amonth}{" "}
+                </div>
                 <div className="text-sm text-gray-500">Estimate</div>
               </div>
             </div>
@@ -778,13 +884,20 @@ export default function Dashboard() {
                   // onChange={handleSubdealerChangeOrder}
                   onChange={(value) => {
                     setSelectedSubdealerOrder(value === "all" ? "" : value);
-                    fetchDashboardDataOrder(selectedYear, selectedMonths, value === "all" ? "" : value);
+                    fetchDashboardDataOrder(
+                      selectedYear,
+                      selectedMonths,
+                      value === "all" ? "" : value
+                    );
                   }}
                   placeholder={loading ? "Loading..." : "All Sub Dealer"}
                   disabled={loading}
                 >
                   {subdealer.map((dealer) => (
-                    <Select.Option key={dealer.sub_dealer_id} value={dealer.sub_dealer_id}>
+                    <Select.Option
+                      key={dealer.sub_dealer_id}
+                      value={dealer.sub_dealer_id}
+                    >
                       {dealer.sub_dealer_name}
                     </Select.Option>
                   ))}
@@ -796,7 +909,11 @@ export default function Dashboard() {
                   // onChange={handleMonthChangeOrder}
                   onChange={(value) => {
                     setSelectedMonthsOrder(value === "all" ? "" : value); // อัปเดต state สำหรับ Order
-                    fetchDashboardDataOrder(selectedYear, value === "all" ? "" : value, selectedSubdealerOrder);
+                    fetchDashboardDataOrder(
+                      selectedYear,
+                      value === "all" ? "" : value,
+                      selectedSubdealerOrder
+                    );
                   }}
                   placeholder={loading ? "Loading..." : "Select Month"}
                   disabled={loading}
@@ -811,36 +928,46 @@ export default function Dashboard() {
             </div>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 w-full">
               <div className="text-center p-2">
-                <div className="text-md font-bold text-[#00783F]"> {dashboardDataOrder.total_order} </div>
+                <div className="text-md font-bold text-[#00783F]">
+                  {" "}
+                  {dashboardDataOrder.total_order}{" "}
+                </div>
                 <div className="text-sm text-gray-500">Estimate</div>
               </div>
               <div className="text-center p-2">
-                <div className="text-md font-bold text-[#00783F]"> {dashboardDataOrder.total_order_amonth} </div>
+                <div className="text-md font-bold text-[#00783F]">
+                  {" "}
+                  {dashboardDataOrder.total_order_amonth}{" "}
+                </div>
                 <div className="text-sm text-gray-500">Acual</div>
               </div>
             </div>
           </BoxPrimary>
         </Col>
-
       </Row>
 
       {/* Row 2: Charts and Activity */}
       <Row gutter={[16, 16]}>
-
         <Col xs={24} lg={24} xl={18}>
           <Row gutter={[16, 16]}>
             {/* Dealer Plan Chart */}
             <Col xs={24} lg={24} xl={24}>
               <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
                 <div className="flex flex-wrap items-center justify-between">
-                  <h3 className="text-[#00783F] text-lg font-semibold mb-3">Dealer Plan</h3>
+                  <h3 className="text-[#00783F] text-lg font-semibold mb-3">
+                    Dealer Plan
+                  </h3>
                   <div className="flex flex-wrap gap-2">
                     <Select
                       className="mb-4 w-36"
                       value={selectedDealerPlan} // ใช้ state แยก
                       onChange={(value) => {
                         setSelectedDealerPlan(value); // อัปเดต state ของ Dealer Plan
-                        fetchDealerPlanData(selectedYear, selectedMonths, value); // เรียก API สำหรับ Dealer Plan
+                        fetchDealerPlanData(
+                          selectedYear,
+                          selectedMonths,
+                          value
+                        ); // เรียก API สำหรับ Dealer Plan
                       }}
                       placeholder={loading ? "Loading..." : "Select Dealer"}
                       disabled={loading}
@@ -855,8 +982,14 @@ export default function Dashboard() {
                       className="w-36"
                       value={selectedMonthsDealerPlan} // ใช้ state ที่แยกออกมา
                       onChange={(value) => {
-                        setSelectedMonthsDealerPlan(value === "all" ? "" : value); // อัปเดต state สำหรับ Dealer Plan
-                        fetchDealerPlanData(selectedYear, value === "all" ? "" : value, selectedDealer);
+                        setSelectedMonthsDealerPlan(
+                          value === "all" ? "" : value
+                        ); // อัปเดต state สำหรับ Dealer Plan
+                        fetchDealerPlanData(
+                          selectedYear,
+                          value === "all" ? "" : value,
+                          selectedDealer
+                        );
                       }}
                       placeholder={loading ? "Loading..." : "Select Month"}
                       disabled={loading}
@@ -867,22 +1000,21 @@ export default function Dashboard() {
                         </Select.Option>
                       ))}
                     </Select>
-
                   </div>
                 </div>
                 {/* แสดง Bar Chart ด้วยข้อมูลจาก Dealer Plan */}
                 <div className="h-full rounded">
                   <BarChart
                     dataset={dealerPlanData}
-                    xAxis={[{ scaleType: 'band', dataKey: 'month' }]}
+                    xAxis={[{ scaleType: "band", dataKey: "month" }]}
                     series={[
-                      { dataKey: 'plan', label: 'Work Plan', valueFormatter },
-                      { dataKey: 'actual', label: 'Actual', valueFormatter },
+                      { dataKey: "plan", label: "Work Plan", valueFormatter },
+                      { dataKey: "actual", label: "Actual", valueFormatter },
                     ]}
                     slotProps={{
                       legend: {
-                        direction: 'row',
-                        position: { vertical: 'bottom', horizontal: 'middle' },
+                        direction: "row",
+                        position: { vertical: "bottom", horizontal: "middle" },
                         padding: 0,
                       },
                     }}
@@ -896,14 +1028,20 @@ export default function Dashboard() {
             <Col xs={24} lg={24} xl={12}>
               <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
                 <div className="flex flex-wrap items-center justify-between">
-                  <h3 className="text-[#00783F] text-lg font-semibold">Top 5 Activity</h3>
+                  <h3 className="text-[#00783F] text-lg font-semibold">
+                    Top 5 Activity
+                  </h3>
                   <div className="flex flex-wrap gap-2">
                     <Select
                       className="mb-4 w-36"
                       value={selectedDealerTopActivity} // ใช้ state แยก
                       onChange={(value) => {
                         setSelectedDealerTopActivity(value); // อัปเดต state ของ Top 5 Activity
-                        fetchTopActivityData(selectedYear, value, selectedMonths); // เรียก API สำหรับ Top 5 Activity
+                        fetchTopActivityData(
+                          selectedYear,
+                          value,
+                          selectedMonths
+                        ); // เรียก API สำหรับ Top 5 Activity
                       }}
                       placeholder={loading ? "Loading..." : "Select Dealer"}
                       disabled={loading}
@@ -918,8 +1056,14 @@ export default function Dashboard() {
                       className="w-36"
                       value={selectedMonthsTopActivity} // ใช้ state ที่แยกออกมา
                       onChange={(value) => {
-                        setSelectedMonthsTopActivity(value === "all" ? "" : value); // อัปเดต state สำหรับ Top 5 Activity
-                        fetchTopActivityData(selectedYear, selectedDealer, value === "all" ? "" : value);
+                        setSelectedMonthsTopActivity(
+                          value === "all" ? "" : value
+                        ); // อัปเดต state สำหรับ Top 5 Activity
+                        fetchTopActivityData(
+                          selectedYear,
+                          selectedDealer,
+                          value === "all" ? "" : value
+                        );
                       }}
                       placeholder={loading ? "Loading..." : "Select Month"}
                       disabled={loading}
@@ -975,7 +1119,9 @@ export default function Dashboard() {
             <Col xs={24} lg={24} xl={12}>
               <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
                 <div className="flex flex-wrap items-center justify-between">
-                  <h3 className="text-[#00783F] text-lg font-semibold mb-3">Sub Dealer Plan</h3>
+                  <h3 className="text-[#00783F] text-lg font-semibold mb-3">
+                    Sub Dealer Plan
+                  </h3>
                   <div className="flex flex-wrap gap-2">
                     <Select
                       className="mb-4 w-36"
@@ -985,7 +1131,10 @@ export default function Dashboard() {
                       disabled={loading}
                     >
                       {subdealer.map((dealer) => (
-                        <Select.Option key={dealer.sub_dealer_id} value={dealer.sub_dealer_id}>
+                        <Select.Option
+                          key={dealer.sub_dealer_id}
+                          value={dealer.sub_dealer_id}
+                        >
                           {dealer.sub_dealer_name}
                         </Select.Option>
                       ))}
@@ -995,8 +1144,14 @@ export default function Dashboard() {
                       className="w-36"
                       value={selectedMonthsSubDealerPlan} // ใช้ state ที่แยกออกมา
                       onChange={(value) => {
-                        setSelectedMonthsSubDealerPlan(value === "all" ? "" : value); // อัปเดต state สำหรับ Sub Dealer Plan
-                        fetchSubDealerPlanData(selectedYear, value === "all" ? "" : value, selectedSubdealer);
+                        setSelectedMonthsSubDealerPlan(
+                          value === "all" ? "" : value
+                        ); // อัปเดต state สำหรับ Sub Dealer Plan
+                        fetchSubDealerPlanData(
+                          selectedYear,
+                          value === "all" ? "" : value,
+                          selectedSubdealer
+                        );
                       }}
                       placeholder={loading ? "Loading..." : "Select Month"}
                       disabled={loading}
@@ -1007,7 +1162,6 @@ export default function Dashboard() {
                         </Select.Option>
                       ))}
                     </Select>
-
                   </div>
                 </div>
                 {/* แสดง Bar Chart ด้วยข้อมูลจาก Sub Dealer Plan */}
@@ -1067,30 +1221,42 @@ export default function Dashboard() {
             <Col xs={24} lg={24} xl={12}>
               <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
                 <div className="flex flex-wrap items-center justify-between">
-                  <h3 className="text-[#00783F] text-lg font-semibold mb-3">Sub Dealer By Dealer</h3>
+                  <h3 className="text-[#00783F] text-lg font-semibold mb-3">
+                    Sub Dealer By Dealer
+                  </h3>
                   <div className="flex flex-wrap gap-2">
                     <Select
                       className="mb-4 w-36"
-                      value={selectedSaleByCrop} // ใช้ state ที่แยกออกมา
+                      value={selectedSdByD} // ใช้ state ที่แยกออกมา
                       onChange={(value) => {
-                        setSelectedSaleByCrop(value); // อัปเดต state สำหรับ Sale By Crop
-                        fetchSaleCropData(selectedYear, value, selectedMonthsSaleByCrop);
+                        setSelectedSdByD(value); // อัปเดต state สำหรับ Sale By Crop
+                        // fetchSaleCropData(
+                        //   selectedYear,
+                        //   value,
+                        //   selectedMonthsSaleByCrop
+                        // );
                       }}
-                      placeholder={loading ? "Loading..." : "Select Sale"}
+                      placeholder={loading ? "Loading..." : "Select Dealer"}
                       disabled={loading}
                     >
-                      {sales.map((sale) => (
-                        <Select.Option key={sale.id} value={sale.id}>
-                          {sale.name}
+                      {dealer.map((dealer) => (
+                        <Select.Option key={dealer.id} value={dealer.id}>
+                          {dealer.name}
                         </Select.Option>
                       ))}
                     </Select>
                     <Select
                       className="w-36"
-                      value={selectedMonthsSaleByCrop} // ใช้ state ที่แยกออกมา
+                      value={selectedMonthSdByD} // ใช้ state ที่แยกออกมา
                       onChange={(value) => {
-                        setSelectedMonthsSaleByCrop(value === "all" ? "" : value); // อัปเดต state สำหรับ Sale By Crop
-                        fetchSaleCropData(selectedYear, selectedDealer, value === "all" ? "" : value);
+                        setSelectedMonthSdByD(
+                          value === "all" ? "" : value
+                        ); // อัปเดต state สำหรับ Sale By Crop
+                        // fetchSaleCropData(
+                        //   selectedYear,
+                        //   selectedDealer,
+                        //   value === "all" ? "" : value
+                        // );
                       }}
                       placeholder={loading ? "Loading..." : "Select Month"}
                       disabled={loading}
@@ -1123,14 +1289,20 @@ export default function Dashboard() {
             <Col xs={24} lg={24} xl={12}>
               <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
                 <div className="flex flex-wrap items-center justify-between">
-                  <h3 className="text-[#00783F] text-lg font-semibold mb-3">Sale By Crop</h3>
+                  <h3 className="text-[#00783F] text-lg font-semibold mb-3">
+                    Sale By Crop
+                  </h3>
                   <div className="flex flex-wrap gap-2">
                     <Select
                       className="mb-4 w-36"
                       value={selectedSaleByCrop} // ใช้ state ที่แยกออกมา
                       onChange={(value) => {
                         setSelectedSaleByCrop(value); // อัปเดต state สำหรับ Sale By Crop
-                        fetchSaleCropData(selectedYear, value, selectedMonthsSaleByCrop);
+                        fetchSaleCropData(
+                          selectedYear,
+                          value,
+                          selectedMonthsSaleByCrop
+                        );
                       }}
                       placeholder={loading ? "Loading..." : "Select Sale"}
                       disabled={loading}
@@ -1145,8 +1317,14 @@ export default function Dashboard() {
                       className="w-36"
                       value={selectedMonthsSaleByCrop} // ใช้ state ที่แยกออกมา
                       onChange={(value) => {
-                        setSelectedMonthsSaleByCrop(value === "all" ? "" : value); // อัปเดต state สำหรับ Sale By Crop
-                        fetchSaleCropData(selectedYear, selectedDealer, value === "all" ? "" : value);
+                        setSelectedMonthsSaleByCrop(
+                          value === "all" ? "" : value
+                        ); // อัปเดต state สำหรับ Sale By Crop
+                        fetchSaleCropData(
+                          selectedYear,
+                          selectedDealer,
+                          value === "all" ? "" : value
+                        );
                       }}
                       placeholder={loading ? "Loading..." : "Select Month"}
                       disabled={loading}
@@ -1167,7 +1345,10 @@ export default function Dashboard() {
                         {
                           data: saleCropData.map((item) => ({
                             ...item,
-                            tooltip: `${item.name} (${((item.value / totalSaleValue) * 100).toFixed(1)}%)<br>${item.value.toLocaleString()}`,
+                            tooltip: `${item.name} (${(
+                              (item.value / totalSaleValue) *
+                              100
+                            ).toFixed(1)}%)<br>${item.value.toLocaleString()}`,
                           })),
                           innerRadius: 120,
                           outerRadius: 150,
@@ -1194,7 +1375,6 @@ export default function Dashboard() {
               </Card>
             </Col>
           </Row>
-
         </Col>
 
         {/* Activity Section */}
@@ -1208,7 +1388,11 @@ export default function Dashboard() {
                   value={selectedSaleActivity} // ใช้ state ที่แยกออกมา
                   onChange={(value) => {
                     setSelectedSaleActivity(value); // อัปเดต state สำหรับ Activity
-                    fetchListActivityData(selectedYear, value, selectedMonthsActivity);
+                    fetchListActivityData(
+                      selectedYear,
+                      value,
+                      selectedMonthsActivity
+                    );
                   }}
                   placeholder={loading ? "Loading..." : "Select Sale"}
                   disabled={loading}
@@ -1224,7 +1408,11 @@ export default function Dashboard() {
                   value={selectedMonthsActivity} // ใช้ state ที่แยกออกมา
                   onChange={(value) => {
                     setSelectedMonthsActivity(value === "all" ? "" : value); // อัปเดต state สำหรับ Activity
-                    fetchListActivityData(selectedYear, selectedSale, value === "all" ? "" : value);
+                    fetchListActivityData(
+                      selectedYear,
+                      selectedSale,
+                      value === "all" ? "" : value
+                    );
                   }}
                   placeholder={loading ? "Loading..." : "Select Month"}
                   disabled={loading}
@@ -1235,7 +1423,6 @@ export default function Dashboard() {
                     </Select.Option>
                   ))}
                 </Select>
-
               </div>
             </div>
             <table className="w-full table-auto border-collapse">
