@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import MainLayout from "../../../layouts/MainLayout";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
@@ -23,20 +23,19 @@ export default function ActionSampleExpense() {
   const { mode } = useParams(); // Get the mode from the URL
   const navigate = useNavigate();
   const isViewMode = mode === "view";
+  const [initial, setInitial] = useState(true);
   const [loading, setLoading] = useState(false);
   const [dealers, setDealers] = useState([]);
   const [crops, setCrops] = useState([]);
-  const [crop, setCrop] = useState([]);
-  const [dealer, setDealer] = useState();
   const [subDealers, setSubDealers] = useState([]);
-  const [subDealer, setSubDealer] = useState();
   const [fileList, setFileList] = useState([]);
   const [searchProductData, setSearchProductData] = useState([]);
   const { showNotification, userInfo } = useContext(AuthContext);
   const [isSubDealerDisabled, setIsSubDealerDisabled] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-
+  const location = useLocation();
   const [data, setData] = useState({
+    document_number: null,
     document_datetime: dayjs(),
     dealer_id: null,
     sub_dealer_id: null,
@@ -49,6 +48,68 @@ export default function ActionSampleExpense() {
     remark: null,
     products: [],
   });
+
+  useEffect(() => {
+    const getDataSample = () => {
+      useServiceAPI
+        .get(paths.pathSampleExpenseDetails, {
+          document_number: location?.state?.document_number,
+        })
+        .then((response) => {
+          if (response.status === 200) {
+            console.log(response);
+
+            const responseData = response.data;
+            const productData = response.data.products;
+            const newProductDataDetails = productData.map((data, index) => {
+              return {
+                key: index + 1, // กำหนด key ที่ไม่ซ้ำ
+                no: index + 1, // กำหนดเลขที่สินค้าตามลำดับ
+                sku: data.product_code,
+                productId: data.id,
+                productName: data.product_name,
+                packSize: data.pack_size,
+                quantity: data.qty || 0, // ตั้งค่า quantity เป็น 1 เมื่อเพิ่มสินค้าใหม่
+                value: data.value || 0, // ราคาของสินค้า
+                totalValue: data.qty * data.unit_convert_value,
+                remark: data.remark,
+                warehouseSend: data.warehouse_send || 0,
+                receive: data.receive || 0,
+              };
+            });
+
+            const updatedDataSource = [...dataSource, ...newProductDataDetails];
+            setDataSource(updatedDataSource);
+
+            setData({
+              ...data,
+              document_number: responseData.document_number,
+              // document_datetime: responseData.document_datetime,
+              dealer_id: responseData.dealer_id,
+              sub_dealer_id: responseData.sub_dealer_id,
+              crop_id: responseData.crop_id,
+              request_value: responseData.value,
+              warehouse_value: responseData.warehouse_value,
+              receive_value: responseData.receive_value,
+              url_file_list: responseData.url_file_list,
+              file_name_list: responseData.file_name_list,
+              remark: responseData.document_number,
+            });
+          }
+        })
+        .catch((error) => {
+          if (error.status === 422) {
+            showNotification("error", error.message);
+          } else {
+            showNotification("error", "เกิดข้อผิดพลาด");
+          }
+        });
+    };
+
+    if (location?.state?.document_number) {
+      getDataSample();
+    }
+  }, []);
 
   useEffect(() => {
     const getMasterDealer = async () => {
@@ -118,10 +179,10 @@ export default function ActionSampleExpense() {
               label: item.name,
             }));
 
-            setData({
-              ...data,
-              crop_id: null,
-            });
+            // setData({
+            //   ...data,
+            //   crop_id: null,
+            // });
             setCrops(formattedCrops);
           }
         })
@@ -280,7 +341,6 @@ export default function ActionSampleExpense() {
   };
 
   const handleQuantityChange = (key, newQuantity) => {
-    // ปรับ quantity และคำนวณ totalValue ใหม่
     if (newQuantity) {
       const updatedDataSource = dataSource.map((item) => {
         if (item.key === key) {
@@ -290,39 +350,32 @@ export default function ActionSampleExpense() {
         return item;
       });
 
-      setDataSource(updatedDataSource); // อัปเดต dataSource
+      setDataSource(updatedDataSource);
 
-      // คำนวณยอดรวม request_value ใหม่
       const totalRequestValue = updatedDataSource.reduce(
         (acc, item) => acc + item.totalValue,
         0
       );
       setData((prevData) => ({
         ...prevData,
-        request_value: totalRequestValue, // อัปเดตค่า request_value
+        request_value: totalRequestValue,
       }));
     }
   };
 
   const footerSummary = () => {
     const totalQty = dataSource.reduce(
-      (sum, item) => sum + (item.quantity || 0),
+      (sum, item) => sum + Number(item.quantity || 0),
       0
     );
 
-    const totalValue = dataSource.reduce((sum, item) => {
-      const numericValue =
-        typeof item.totalValue === "string"
-          ? parseFloat(item.totalValue.replace(/,/g, ""))
-          : parseFloat(item.totalValue) || 0; // แปลงค่าให้เป็นตัวเลข ถ้าไม่สามารถแปลงได้ให้เป็น 0
-      return sum + (isNaN(numericValue) ? 0 : numericValue);
-    }, 0);
+    const totalValue = data?.request_value || 0;
 
     return (
       <tr className="bg-gray-200">
         <td colSpan={10} className="text-right font-semibold">
           Item: {dataSource.length} &nbsp; QTY: {totalQty} &nbsp; Total:{" "}
-          {totalValue.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+          {totalValue}
         </td>
       </tr>
     );
@@ -548,7 +601,6 @@ export default function ActionSampleExpense() {
               showSearch
               optionFilterProp="label"
               onChange={(value) => {
-                setDealer(value);
                 setData({
                   ...data,
                   dealer_id: value,
@@ -568,23 +620,15 @@ export default function ActionSampleExpense() {
               showSearch
               optionFilterProp="label"
               options={crops}
-              onChange={(value) => {
-                // เช็คว่าค่าที่เลือกมีอยู่ใน crops หรือไม่
-                const isValidCrop = crops.some((crop) => crop.value === value);
-                if (isValidCrop) {
-                  setData({
-                    ...data,
-                    crop_id: value,
-                  });
-                } else {
-                  setData({
-                    ...data,
-                    crop_id: null,
-                  });
-                }
-              }}
-              value={data?.crop_id}
+              onChange={(value) =>
+                setData({
+                  ...data,
+                  crop_id: value,
+                })
+              }
+              value={Number(data?.crop_id)}
             />
+
           </div>
         </div>
       </BoxPrimary>

@@ -104,18 +104,14 @@ export default function SampleExpense() {
                       <ItemDropDown
                         mode={actionItem.action.toLowerCase()}
                         onClick={() => {
-                          navigate("/activity/plan/dealer", {
-                            state: {
-                              year_code: row.year_code,
-                              workplan_header_id: row.workplan_header_id,
-                              workplan_area_header_id:
-                                row.workplan_area_header_id,
-                              workplan_sale_header_id:
-                                row.workplan_sale_header_id,
-                              user_id: row.user_id,
-                              dealer_id: row.dealer_id,
-                            },
-                          });
+                          navigate(
+                            `/expenses/sample/${actionItem.action.toLowerCase()}`,
+                            {
+                              state: {
+                                document_number: row.document_number,
+                              },
+                            }
+                          );
                         }}
                       />
                     ),
