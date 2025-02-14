@@ -102,7 +102,11 @@ const FormMappingModal = ({
 
   const handleInputChange = (key, value) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
+    if (key === "perception" && dataSource) {
+      dataSource.perception = value;
+    }
   };
+  
 
   const handleGetLocation = () => {
     if (navigator.geolocation) {
@@ -131,10 +135,17 @@ const FormMappingModal = ({
     if (webcamRef.current) {
       const imageSrc = webcamRef.current.getScreenshot();
       setCapturedImage(imageSrc);
-      setFormData((prev) => ({ ...prev, photo: imageSrc }));
+      setFormData((prev) => ({
+        ...prev,
+        photo: imageSrc,
+      }));
+      // Update dataSource with the captured image
+      if (dataSource) {
+        dataSource.photo = imageSrc;
+      }
       setPhotoError(""); // Clear error if an image is captured
     }
-  }, [webcamRef]);
+  }, [webcamRef, dataSource]);
 
   const handleSubmit = () => {
     setPerceptionError("");
