@@ -84,6 +84,17 @@ export default function CreateActivity() {
     // ใช้ callback เพื่ออัปเดต state อย่างถูกต้อง
     setFileList((prevFileList) => [...prevFileList, fileUpload]);
   };
+  
+  useEffect(() => {
+    const urlDate = searchParams.get("date");
+    if (urlDate) {
+      setActivityDetail((prevDetail) => ({
+        ...prevDetail,
+        document_date: urlDate, // Set the date from URL
+      }));
+      formCustom.setFieldsValue({ document_date: dayjs(urlDate).format("YYYY-MM-DD") });
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!documentNumber) {
@@ -103,14 +114,14 @@ export default function CreateActivity() {
     pageCode == "expense_advance"
       ? "Advance Expense"
       : pageCode == "expense_clearing"
-      ? "Clearing Expense"
-      : "Activity";
+        ? "Clearing Expense"
+        : "Activity";
   const menuURL =
     pageCode == "expense_advance"
       ? "/expenses/advance"
       : pageCode == "expense_clearing"
-      ? "/expenses/clearing"
-      : "/activity/list";
+        ? "/expenses/clearing"
+        : "/activity/list";
 
   const formFields = [
     {
@@ -171,14 +182,14 @@ export default function CreateActivity() {
       )
         ? dealerList
         : activityDetail.dealer_id && activityDetail.dealer_name
-        ? [
+          ? [
             ...dealerList,
             {
               id: activityDetail.dealer_id,
               name: activityDetail.dealer_name,
             },
           ]
-        : dealerList,
+          : dealerList,
       disabled: viewSegment ?? false,
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
@@ -963,7 +974,7 @@ export default function CreateActivity() {
             2
           ).then(successCallback);
         })
-        .catch((error) => {});
+        .catch((error) => { });
     } else {
       useServiceAPI
         .post(paths.pathActivityExpenseCreate, body, setLoading)
@@ -992,7 +1003,7 @@ export default function CreateActivity() {
             2
           ).then(successCallback);
         })
-        .catch((error) => {});
+        .catch((error) => { });
     }
   };
 
@@ -1090,8 +1101,8 @@ export default function CreateActivity() {
       />
 
       {isBtnExpenseActive ||
-      pageCode == "expense_advance" ||
-      pageCode == "expense_clearing" ? (
+        pageCode == "expense_advance" ||
+        pageCode == "expense_clearing" ? (
         <>
           <div className="flex items-center justify-between">
             <div className="title-page">Advance Expense</div>
