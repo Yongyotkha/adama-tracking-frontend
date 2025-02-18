@@ -703,7 +703,7 @@ export default function Dashboard() {
               <div className="text-center py-4">
                 <div className="text-md font-bold text-[#00783F]">
                   {" "}
-                  {dashboardDataExpense.total_expense_actual_exp }{" "}
+                  {dashboardDataExpense.total_expense_actual_exp}{" "}
                   <br />{"100%"}
                 </div>
                 <div className="text-sm text-gray-500">Actual</div>
@@ -732,11 +732,11 @@ export default function Dashboard() {
                   placeholder={loading ? "Loading..." : "All Dealer"}
                   disabled={loading}
                 >
-                    {dealer.map((dealer) => (
-                        <Select.Option key={dealer.id} value={dealer.id}>
-                          {dealer.name}
-                        </Select.Option>
-                      ))}
+                  {dealer.map((dealer) => (
+                    <Select.Option key={dealer.id} value={dealer.id}>
+                      {dealer.name}
+                    </Select.Option>
+                  ))}
                 </Select>
 
                 <Select
@@ -921,6 +921,12 @@ export default function Dashboard() {
                         valueFormatter: valueFormatterMB,
                       },
                       {
+                        dataKey: "rolling_forecast",
+                        label: "Rolling Forecast",
+                        valueFormatter: valueFormatterMB,
+                        color: "#F59E0B", // Orange
+                      },
+                      {
                         dataKey: "actual",
                         label: "Actual",
                         valueFormatter: valueFormatterMB,
@@ -932,9 +938,6 @@ export default function Dashboard() {
                         position: { vertical: "bottom", horizontal: "middle" },
                         padding: 0,
                       },
-                      // bar: {
-                      //   barLabel: (props) => `${valueFormatterMB(props.value)}`, // Show label
-                      // },
                     }}
                     sx={{
                       ".MuiChartsBar-label": {
@@ -943,8 +946,13 @@ export default function Dashboard() {
                         fontWeight: "bold",
                       },
                     }}
+                    barLabel={(item, context) => {
+                      if ((item.value ?? 0) > 0) {
+                        return valueFormatterMB(item.value); // Format as M.B.
+                      }
+                      return null; // Hide label if value is zero or undefined
+                    }}
                     {...chartSetting}
-
                   />
                 </div>
               </Card>
@@ -1104,33 +1112,30 @@ export default function Dashboard() {
                 <div className="h-full rounded">
                   <BarChart
                     dataset={subDealerPlanData}
-                    yAxis={[
+                    xAxis={[
                       {
                         scaleType: "band",
                         dataKey: "month",
-                        label: null,
+                        label: "Month",
                       },
                     ]}
-                    xAxis={[
+                    yAxis={[
                       {
-                        label: "Value (THB))",
+                        label: "Value (THB)",
                       },
                     ]}
                     series={[
                       {
                         dataKey: "plan",
                         label: "Plan",
-                        color: "#3B82F6", // Blue for Plan
-                        stack: "overlap", // Allows stacking
+                        color: "#3B82F6", // Blue
                       },
                       {
                         dataKey: "actual",
                         label: "Actual",
-                        color: "#10B981", // Green for Actual
-                        stack: "overlap", // Allows stacking
+                        color: "#10B981", // Green
                       },
                     ]}
-                    layout="horizontal"
                     height={400}
                     slotProps={{
                       legend: {
