@@ -919,6 +919,7 @@ export default function Dashboard() {
                         dataKey: "plan",
                         label: "Work Plan",
                         valueFormatter: valueFormatterMB,
+                        color: "#10B981", // Orange
                       },
                       {
                         dataKey: "rolling_forecast",
@@ -930,6 +931,7 @@ export default function Dashboard() {
                         dataKey: "actual",
                         label: "Actual",
                         valueFormatter: valueFormatterMB,
+                        color: "#3B82F6", // Orange
                       },
                     ]}
                     slotProps={{
@@ -1040,7 +1042,8 @@ export default function Dashboard() {
                     ]}
                     yAxis={[
                       {
-                        label: "Count",
+                        // label: "Count",
+                        label: null,
                       },
                     ]}
                     height={400}
@@ -1121,18 +1124,27 @@ export default function Dashboard() {
                     ]}
                     yAxis={[
                       {
-                        label: "Value (THB)",
+                        // label: "Value (THB)",
+                        label: null,
                       },
                     ]}
                     series={[
                       {
                         dataKey: "plan",
                         label: "Plan",
+                        valueFormatter: valueFormatterMB,
                         color: "#3B82F6", // Blue
+                      },
+                      {
+                        dataKey: "rolling_forecast",
+                        label: "Rolling Forecast",
+                        valueFormatter: valueFormatterMB,
+                        color: "#F59E0B", // Orange
                       },
                       {
                         dataKey: "actual",
                         label: "Actual",
+                        valueFormatter: valueFormatterMB,
                         color: "#10B981", // Green
                       },
                     ]}
@@ -1144,6 +1156,7 @@ export default function Dashboard() {
                         padding: 0,
                       },
                     }}
+                    margin={{ left: 85 }}
                     sx={{
                       ".MuiBar-root": {
                         borderRadius: "4px",
