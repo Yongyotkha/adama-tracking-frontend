@@ -442,18 +442,6 @@ export default function Dashboard() {
     }
   };
 
-  // ฟังก์ชันจัดการการเปลี่ยนค่า Dealer
-  const handleDealerChangeTopActivity = (value) => {
-    setSelectedDealer(value);
-    fetchTopActivityData(selectedYear, value, selectedMonths);
-  };
-
-  // ฟังก์ชันจัดการการเปลี่ยนค่า Month
-  const handleMonthChangeTopActivity = (value) => {
-    setSelectedMonths(value);
-    fetchTopActivityData(selectedYear, selectedDealer, value);
-  };
-
   // ฟังก์ชันสำหรับดึงข้อมูล Activity
   const fetchListActivityData = async (
     year = new Date().getFullYear(),
@@ -490,17 +478,7 @@ export default function Dashboard() {
     }
   };
 
-  // ฟังก์ชันเปลี่ยนค่า Sale
-  const handleSaleChangeActivity = (value) => {
-    setSelectedSale(value);
-    fetchListActivityData(selectedYear, value, selectedMonths);
-  };
 
-  // ฟังก์ชันเปลี่ยนค่า Month
-  const handleMonthChangeActivity = (value) => {
-    setSelectedMonths(value);
-    fetchListActivityData(selectedYear, selectedSale, value);
-  };
 
   // ฟังก์ชันสำหรับดึงข้อมูล Sub Dealer Plan
   const fetchSubDealerPlanData = async (
@@ -552,14 +530,6 @@ export default function Dashboard() {
     );
   };
 
-  const handleMonthChangeSubDealerPlan = (value) => {
-    setSelectedMonths(value === "all" ? "" : value);
-    fetchSubDealerPlanData(
-      selectedYear,
-      value === "all" ? "" : value,
-      selectedSubdealer
-    );
-  };
 
   // ฟังก์ชันสำหรับดึงข้อมูล Sale By Crop
   const fetchSaleCropData = async (
@@ -599,24 +569,6 @@ export default function Dashboard() {
     }
   };
 
-  // ฟังก์ชันจัดการการเปลี่ยนค่า Sale
-  const handleSaleChange = (value) => {
-    setSelectedSale(value);
-    fetchSaleCropData(selectedYear, value, selectedMonths);
-  };
-
-  // ฟังก์ชันจัดการการเปลี่ยนค่า Dealer
-  const handleDealerChangeSaleByCrop = (value) => {
-    setSelectedDealer(value);
-    fetchSaleCropData(selectedYear, value, selectedMonths);
-  };
-
-  // ฟังก์ชันจัดการการเปลี่ยนค่า Month
-  const handleMonthChangeSaleByCrop = (value) => {
-    setSelectedMonths(value);
-    fetchSaleCropData(selectedYear, selectedDealer, value);
-  };
-
   const fetchSalesDropdown = async () => {
     setLoading(true);
     try {
@@ -642,22 +594,6 @@ export default function Dashboard() {
     { value: 5, label: "On shop", color: "#EC407A" },
   ];
 
-  // const fetchSalesDropdown = async () => {
-  //   setLoading(true);
-  //   try {
-  //     const response = await useServiceAPI.get(paths.pathMasterSaleDropdown);
-  //     if (response.status === 200) {
-  //       const salesData = response.data || [];
-  //       setSales([{ id: "all", name: "All Sales" }, ...salesData]); // เพิ่ม "All Sales"
-  //       setSelectedSale("all"); // ตั้งค่า default เป็น "All Sales"
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching sales dropdown:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -676,7 +612,6 @@ export default function Dashboard() {
           ))}
         </Select>
       </div>
-      {/* Row 1: Dealer, Sub Dealer, Expense, Order */}
       <Row gutter={[16, 16]} className="mb-4">
         {/* Dealer */}
         <Col xs={12} sm={6} lg={6} xxl={5}>
@@ -689,7 +624,6 @@ export default function Dashboard() {
                 </div>
               </div>
               <div>
-                {/* <img src="/img/icons/dealer.png" alt="" className="w-[4.5rem] h-[4.5rem]" /> */}
                 <img
                   src="/img/icons/dealer.png"
                   alt="Dealer Icon"
@@ -757,7 +691,6 @@ export default function Dashboard() {
                 <Select
                   className="w-36"
                   value={selectedMonthsExpense}
-                  // onChange={handleMonthChangeExpense}
                   onChange={(value) => {
                     setSelectedMonthsExpense(value === "all" ? "" : value); // อัปเดต state สำหรับ Expense
                     fetchDashboardDataExpense(
@@ -780,7 +713,6 @@ export default function Dashboard() {
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-300">
               <div className="text-center py-4">
                 <div className="text-md font-bold text-[#00783F]">
-                  {" "}
                   {dashboardDataExpense.total_expense_advance}{" "}
                 </div>
                 <div className="text-sm text-gray-500">Advance</div>
@@ -804,12 +736,11 @@ export default function Dashboard() {
         <Col xs={24} sm={12} lg={12} xxl={5}>
           <BoxPrimary className="h-full items-center flex flex-col">
             <div className="flex flex-wrap justify-between items-center w-full">
-              <h3 className="text-lg font-bold text-[#00783F]">Order</h3>
+              <h3 className="text-lg font-bold text-[#00783F]">Sales By Dealer</h3>
               <div className="flex flex-wrap gap-2">
                 <Select
                   className="w-36"
                   value={selectedSubdealerOrder}
-                  // onChange={handleSubdealerChangeOrder}
                   onChange={(value) => {
                     setSelectedSubdealerOrder(value === "all" ? "" : value);
                     fetchDashboardDataOrder(
@@ -818,23 +749,19 @@ export default function Dashboard() {
                       value === "all" ? "" : value
                     );
                   }}
-                  placeholder={loading ? "Loading..." : "All Sub Dealer"}
+                  placeholder={loading ? "Loading..." : "All Dealer"}
                   disabled={loading}
                 >
-                  {subdealer.map((dealer) => (
-                    <Select.Option
-                      key={dealer.sub_dealer_id}
-                      value={dealer.sub_dealer_id}
-                    >
-                      {dealer.sub_dealer_name}
-                    </Select.Option>
-                  ))}
+                    {dealer.map((dealer) => (
+                        <Select.Option key={dealer.id} value={dealer.id}>
+                          {dealer.name}
+                        </Select.Option>
+                      ))}
                 </Select>
 
                 <Select
                   className="w-36"
                   value={selectedMonthsOrder}
-                  // onChange={handleMonthChangeOrder}
                   onChange={(value) => {
                     setSelectedMonthsOrder(value === "all" ? "" : value); // อัปเดต state สำหรับ Order
                     fetchDashboardDataOrder(
@@ -860,14 +787,14 @@ export default function Dashboard() {
                   {" "}
                   {dashboardDataOrder.total_order}{" "}
                 </div>
-                <div className="text-sm text-gray-500">Order</div>
+                <div className="text-sm text-gray-500">Plan</div>
               </div>
               <div className="text-center p-2">
                 <div className="text-md font-bold text-[#00783F]">
                   {" "}
                   {dashboardDataOrder.total_order_amonth}{" "}
                 </div>
-                <div className="text-sm text-gray-500">Estimate</div>
+                <div className="text-sm text-gray-500">Actual</div>
               </div>
             </div>
           </BoxPrimary>
@@ -882,7 +809,6 @@ export default function Dashboard() {
                 <Select
                   className="w-36"
                   value={selectedSubdealerOrder}
-                  // onChange={handleSubdealerChangeOrder}
                   onChange={(value) => {
                     setSelectedSubdealerOrder(value === "all" ? "" : value);
                     fetchDashboardDataOrder(
@@ -907,7 +833,6 @@ export default function Dashboard() {
                 <Select
                   className="w-36"
                   value={selectedMonthsOrder}
-                  // onChange={handleMonthChangeOrder}
                   onChange={(value) => {
                     setSelectedMonthsOrder(value === "all" ? "" : value); // อัปเดต state สำหรับ Order
                     fetchDashboardDataOrder(

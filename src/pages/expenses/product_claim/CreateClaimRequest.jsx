@@ -18,11 +18,11 @@ import { ExclamationCircleFilled } from "@ant-design/icons";
 export default function CreateClaimRequest() {
   const locationParam = useLocation();
   const searchParams = new URLSearchParams(locationParam.search);
-  const pathSegments = location.pathname.split('/');
+  const pathSegments = location.pathname.split("/");
   const documentNumber = searchParams.get("documentNumber");
   const { confirm } = Modal;
 
-  const { showMsg, showNotification } = useContext(AuthContext);
+  const { showMsg, showNotification, userInfo } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [isAddOrderModalVisible, setIsAddOrderModalVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,26 +40,40 @@ export default function CreateClaimRequest() {
   const valueFormCustom = formCustom.getFieldsValue();
 
   const formFields = [
-    { 
-      label: "Sale", 
-      name: "sale", 
-      type: "select", 
-      options: dataSale, 
-      disabled: false, 
-      required: false, 
+    {
+      label: "Sale",
+      name: "sale",
+      type: "select",
+      options: dataSale,
+      disabled: false,
+      required: false,
       value: dataClaim?.user_id ?? "",
     },
-    { 
-      label: "Dealer", 
-      name: "dealer", 
-      type: "select", 
-      options: dataDealer, 
-      disabled: false, 
-      required: false, 
-      value: dataClaim?.dealer_id ?? "" 
+    {
+      label: "Dealer",
+      name: "dealer",
+      type: "select",
+      options: dataDealer,
+      disabled: false,
+      required: false,
+      value: dataClaim?.dealer_id ?? "",
     },
-    { label: "Claim No", name: "claim_no", type: "text", disabled: true, required: false, value: dataClaim?.document_number ??"Generate Auto" },
-    { label: "Create Date", name: "create_date", type: "date", disabled: false, required: true, value: valueFormCustom?.create_date ?? dayjs().format("YYYY-MM-DD")},
+    {
+      label: "Claim No",
+      name: "claim_no",
+      type: "text",
+      disabled: true,
+      required: false,
+      value: dataClaim?.document_number ?? "Generate Auto",
+    },
+    {
+      label: "Create Date",
+      name: "create_date",
+      type: "date",
+      disabled: false,
+      required: true,
+      value: valueFormCustom?.create_date ?? dayjs().format("YYYY-MM-DD"),
+    },
   ];
 
   // Get Master
@@ -84,13 +98,13 @@ export default function CreateClaimRequest() {
     getMaster();
 
     //เชคว่าเป็น mode edit หรือป่าว
-    if(documentNumber){
+    if (documentNumber) {
       const getDetail = async () => {
         setLoading(true);
         try {
           const [claimDetail] = await Promise.all([
             useServiceAPI.get(paths.pathClaimDetail, {
-              'document_number': documentNumber
+              document_number: documentNumber,
             }),
           ]);
 
@@ -100,7 +114,7 @@ export default function CreateClaimRequest() {
           setLoading(false);
         }
       };
-  
+
       getDetail();
     }
   }, []);
@@ -109,7 +123,7 @@ export default function CreateClaimRequest() {
     const products = data.products;
     let newData = [];
     console.log(products);
-    
+
     await products.forEach((element) => {
       const key = element.document_item;
       const item = {
@@ -132,8 +146,21 @@ export default function CreateClaimRequest() {
     setDataSource(newData);
   };
 
+  useEffect(() => {
+    if (!documentNumber) {
+      const exists = dataSale.some((item) => item.id === userInfo.id);
+      if (exists) {
+        handleChange("sale", userInfo.id);
+        formCustom.setFieldsValue({
+          ...values,
+          sale: userInfo.id, 
+        });
+      }
+    }
+  }, [dataSale]);
+
   const handleChange = (filter, value) => {
-    if (filter == 'sale') {
+    if (filter == "sale") {
       dataClaim.user_id = value;
       const getMasterDealer = async () => {
         setLoading(true);
@@ -144,7 +171,6 @@ export default function CreateClaimRequest() {
             }),
           ]);
           setDataDealer(dealer.data);
-          
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
         } finally {
@@ -153,23 +179,21 @@ export default function CreateClaimRequest() {
       };
 
       getMasterDealer();
-    }else if(filter == 'dealer'){
+    } else if (filter == "dealer") {
       dataClaim.dealer_id = value;
-    }else if(filter == 'create_date'){
+    } else if (filter == "create_date") {
       dataClaim.create_date = value;
     }
   };
-
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [product_unit] =
-          await Promise.all([
-            useServiceAPI.get(paths.pathMasterProductUnit, {}),
-          ]);
-          setDataProductUnits(product_unit.data)
+        const [product_unit] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterProductUnit, {}),
+        ]);
+        setDataProductUnits(product_unit.data);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -179,7 +203,7 @@ export default function CreateClaimRequest() {
 
     fetchData();
   }, []);
-    
+
   const handleQuantityChange = (key, newQuantity) => {
     setDataSource((prevData) =>
       prevData.map((item) => {
@@ -201,25 +225,21 @@ export default function CreateClaimRequest() {
     setModalContent("");
   };
 
-  const handleChangeDealer = (key, value) => {
-    console.log(key);
-    console.log(value);
-
-    setDataSource((prevData) =>
-      prevData.map((item) =>
-        item.key === key ? { ...item, product_unit: value } : item
-      )
-    
-      
-    );
-  };
-
-  
   const header = [
     { title: "No", dataIndex: "no", key: "no", align: "center" },
     { title: "SKU", dataIndex: "sku", key: "sku", align: "center" },
-    { title: "Product Name", dataIndex: "productName", key: "productName", align: "center" },
-    { title: "Pack Size", dataIndex: "packsize", key: "packsize", align: "center" },
+    {
+      title: "Product Name",
+      dataIndex: "productName",
+      key: "productName",
+      align: "center",
+    },
+    {
+      title: "Pack Size",
+      dataIndex: "packsize",
+      key: "packsize",
+      align: "center",
+    },
     { title: "Batch", dataIndex: "lotNo", key: "lotNo", align: "center" },
     { title: "Reason", dataIndex: "reason", key: "reason", align: "center" },
     {
@@ -228,20 +248,36 @@ export default function CreateClaimRequest() {
       key: "quantity",
       render: (_, record) => (
         <div className="quantity-control flex justify-between items-center">
-          <img src="/img/icons/collapse.png" alt="+" className="cursor-pointer w-6 h-6" onClick={() => handleQuantityChange(record.key, record.quantity - 1)} />
+          <img
+            src="/img/icons/collapse.png"
+            alt="+"
+            className="cursor-pointer w-6 h-6"
+            onClick={() =>
+              handleQuantityChange(record.key, record.quantity - 1)
+            }
+          />
           <Input
             inputMode="numeric"
             min={0}
             value={Math.floor(record.quantity)}
-            onChange={(e) => handleQuantityChange(record.key, parseInt(e.target.value) || 0)}
-            id={`qty-${record.product.id}`} 
+            onChange={(e) =>
+              handleQuantityChange(record.key, parseInt(e.target.value) || 0)
+            }
+            id={`qty-${record.product.id}`}
             className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 min-w-24"
           />
-          <img src="/img/icons/expand.png" alt="+" className="cursor-pointer w-6 h-6" onClick={() => handleQuantityChange(record.key, record.quantity + 1)} />
+          <img
+            src="/img/icons/expand.png"
+            alt="+"
+            className="cursor-pointer w-6 h-6"
+            onClick={() =>
+              handleQuantityChange(record.key, record.quantity + 1)
+            }
+          />
         </div>
       ),
     },
-    // { 
+    // {
     //   title: <div className="text-center">Product Unit</div>,
     //   dataIndex: "product_unit", // แทนที่ "name" ด้วย "dataIndex"
     //   key: "product_unit",
@@ -262,46 +298,78 @@ export default function CreateClaimRequest() {
     {
       title: <div className="text-center">Label</div>,
       key: "label",
-      render: (_, record) => (
-        record.url_label ?
-        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick(record.url_label)}>
-          <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
-        </button>
-        : "-"
-      ),
+      render: (_, record) =>
+        record.url_label ? (
+          <button
+            className="view-button flex justify-center mx-auto"
+            onClick={() => handleViewClick(record.url_label)}
+          >
+            <img
+              src="/img/icons/view-table.png"
+              alt="view"
+              className="w-6 h-6"
+            />
+          </button>
+        ) : (
+          "-"
+        ),
     },
     {
       title: <div className="text-center">Product</div>,
       key: "product",
-      render: (_, record) => (
-        record.url_product ?
-        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick(record.url_product)}>
-          <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
-        </button>
-        : "-"
-      ),
+      render: (_, record) =>
+        record.url_product ? (
+          <button
+            className="view-button flex justify-center mx-auto"
+            onClick={() => handleViewClick(record.url_product)}
+          >
+            <img
+              src="/img/icons/view-table.png"
+              alt="view"
+              className="w-6 h-6"
+            />
+          </button>
+        ) : (
+          "-"
+        ),
     },
     {
       title: <div className="text-center">Overall</div>,
       key: "overall",
-      render: (_, record) => (
-        record.url_overall ?
-        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick(record.url_overall)}>
-          <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
-        </button>
-        : "-"
-      ),
+      render: (_, record) =>
+        record.url_overall ? (
+          <button
+            className="view-button flex justify-center mx-auto"
+            onClick={() => handleViewClick(record.url_overall)}
+          >
+            <img
+              src="/img/icons/view-table.png"
+              alt="view"
+              className="w-6 h-6"
+            />
+          </button>
+        ) : (
+          "-"
+        ),
     },
     {
       title: <div className="text-center">Other</div>,
       key: "other",
-      render: (_, record) => (
-        record.url_other ?
-        <button className="view-button flex justify-center mx-auto" onClick={() => handleViewClick(record.url_other)}>
-          <img src="/img/icons/view-table.png" alt="view" className="w-6 h-6" />
-        </button>
-        : "-"
-      ),
+      render: (_, record) =>
+        record.url_other ? (
+          <button
+            className="view-button flex justify-center mx-auto"
+            onClick={() => handleViewClick(record.url_other)}
+          >
+            <img
+              src="/img/icons/view-table.png"
+              alt="view"
+              className="w-6 h-6"
+            />
+          </button>
+        ) : (
+          "-"
+        ),
     },
     {
       title: <div className="text-center">Action</div>,
@@ -312,7 +380,11 @@ export default function CreateClaimRequest() {
             src="/img/icons/delete.png"
             alt="delete"
             className="cursor-pointer w-6 h-6"
-            onClick={() => setDataSource(dataSource.filter((item) => item.key !== record.key))}
+            onClick={() =>
+              setDataSource(
+                dataSource.filter((item) => item.key !== record.key)
+              )
+            }
           />
         </button>
       ),
@@ -322,7 +394,11 @@ export default function CreateClaimRequest() {
   const footerOrderList = () => (
     <tr className="bg-[#978B87]">
       <td colSpan={13} className="text-right pr-2 text-white">
-        Item: {dataSource.length} &nbsp; QTY (Unit): {dataSource.reduce((total, item) => total + Math.floor(item.quantity), 0)}
+        Item: {dataSource.length} &nbsp; QTY (Unit):{" "}
+        {dataSource.reduce(
+          (total, item) => total + Math.floor(item.quantity),
+          0
+        )}
       </td>
     </tr>
   );
@@ -354,7 +430,7 @@ export default function CreateClaimRequest() {
       url_product: data.files.products[0],
       url_overall: data.files.overall[0],
       url_other: data.files.others[0],
-      quantity: 0
+      quantity: 0,
     };
     setDataSource((prev) => [...prev, newData]);
   };
@@ -377,18 +453,21 @@ export default function CreateClaimRequest() {
         try {
           // Call API to delete the event
           const response = await useServiceAPI.put(
-            `/claim/status?document_number=${encodeURIComponent(documentNumber)}&status_code=${encodeURIComponent("ODC")}&remark=${encodeURIComponent("อนุมัติ")}`
+            `/claim/status?document_number=${encodeURIComponent(
+              documentNumber
+            )}&status_code=${encodeURIComponent(
+              "ODC"
+            )}&remark=${encodeURIComponent("อนุมัติ")}`
           );
           if (response.status === 200) {
             // Show success notification
-            showNotification("success", 
-              response.data.message|| "Event deleted successfully!", 
+            showNotification(
+              "success",
+              response.data.message || "Event deleted successfully!",
               response.data.message_line || ["The event has been removed."]
             ).then(() => {
               navigate("/expenses/product-claim-list"); // นำทางไปยังหน้าล็อกอิน
-            })
-
-
+            });
           } else {
             // Show error notification if response is not 200
             console.error("Failed to approve event:", response.message);
@@ -411,107 +490,118 @@ export default function CreateClaimRequest() {
     });
   };
 
-
-
   const saveClaim = () => {
     let allValuesBasic = formCustom.getFieldsValue();
-    allValuesBasic.create_date = dayjs(allValuesBasic.create_date).format('YYYY-MM-DD');
+    allValuesBasic.create_date = dayjs(allValuesBasic.create_date).format(
+      "YYYY-MM-DD"
+    );
     let products = [];
 
-    dataSource.forEach(element => {
-      const selectedProductUnit = element.product_unit || dataProductUnits[0]?.id;
+    dataSource.forEach((element) => {
+      const selectedProductUnit =
+        element.product_unit || dataProductUnits[0]?.id;
       const data = {
-        "product_id": element.product.product_id ?? element.product.id,
-        "product_code": element.product.product_code,
-        "product_name": element.product.product_name,
-        "product_unit": element.product.packing_list,
-        "packing_list": element.product.packing_list,
-        "product_unit_thb": element.product.bath_unit,
-        "quantity": document.getElementById(`qty-${element.product.id}`).value,
-        "unit": selectedProductUnit,
-        "lot_number": element.lotNo,
-        "reason": element.reason,
-        "label_list": element.url_label ? [element.url_label] : [],
-        "product_list": element.url_product ? [element.url_product] : [],
-        "overall_list": element.url_overall ? [element.url_overall] : [],
-        "other_list": element.url_other ? [element.url_other] : []
+        product_id: element.product.product_id ?? element.product.id,
+        product_code: element.product.product_code,
+        product_name: element.product.product_name,
+        product_unit: element.product.packing_list,
+        packing_list: element.product.packing_list,
+        product_unit_thb: element.product.bath_unit,
+        quantity: document.getElementById(`qty-${element.product.id}`).value,
+        unit: selectedProductUnit,
+        lot_number: element.lotNo,
+        reason: element.reason,
+        label_list: element.url_label ? [element.url_label] : [],
+        product_list: element.url_product ? [element.url_product] : [],
+        overall_list: element.url_overall ? [element.url_overall] : [],
+        other_list: element.url_other ? [element.url_other] : [],
       };
-      products.push(data);      
+      products.push(data);
     });
     const body = {
-      "document_number": documentNumber ?? null,
-      "document_date": allValuesBasic.create_date,
-      "user_id": allValuesBasic.sale,
-      "dealer_id": allValuesBasic.dealer,
-      "remark": formValues["remark"],
-      "products": products
+      document_number: documentNumber ?? null,
+      document_date: allValuesBasic.create_date,
+      user_id: allValuesBasic.sale,
+      dealer_id: allValuesBasic.dealer,
+      remark: formValues["remark"],
+      products: products,
     };
 
-    if(documentNumber){
+    if (documentNumber) {
       useServiceAPI
-      .put(paths.pathClaimUpdate, body, setLoading)
-      .then((response) => {
-        const successCallback = () => {
-          if(response.result){
-            navigate("/expenses/product-claim-list");
-          }
-        };
-        showNotification(
-          "success",
-          response.data.message,
-          response.data.message_line
-        ).then(successCallback);
-  
-        console.log(response);
-        
-      })
-      .catch((error) => {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      });
-    }else{
+        .put(paths.pathClaimUpdate, body, setLoading)
+        .then((response) => {
+          const successCallback = () => {
+            if (response.result) {
+              navigate("/expenses/product-claim-list");
+            }
+          };
+          showNotification(
+            "success",
+            response.data.message,
+            response.data.message_line
+          ).then(successCallback);
+
+          console.log(response);
+        })
+        .catch((error) => {
+          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        });
+    } else {
       useServiceAPI
-      .post(paths.pathClaimCreate, body, setLoading)
-      .then((response) => {
-        const successCallback = () => {
-          if(response.result){
-            navigate("/expenses/product-claim-list");
-          }
-        };
-        showNotification(
-          "success",
-          response.data.message,
-          response.data.message_line
-        ).then(successCallback);
-  
-        console.log(response);
-        
-      })
-      .catch((error) => {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      });
+        .post(paths.pathClaimCreate, body, setLoading)
+        .then((response) => {
+          const successCallback = () => {
+            if (response.result) {
+              navigate("/expenses/product-claim-list");
+            }
+          };
+          showNotification(
+            "success",
+            response.data.message,
+            response.data.message_line
+          ).then(successCallback);
+
+          console.log(response);
+        })
+        .catch((error) => {
+          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        });
     }
-  }
+  };
 
   const backClaim = () => {
     navigate("/expenses/product-claim-list");
-  }
+  };
 
   return (
     <MainLayout loading={loading}>
       <div className="flex justify-between">
         <div className="title-page">
-          {mode === "approve" ? "Approve Claim Request" : "Create Claim Request"}
+          {mode === "approve"
+            ? "Approve Claim Request"
+            : "Create Claim Request"}
         </div>
       </div>
 
       {/* Form Section */}
-      <FormCustom fields={formFields} form={formCustom} onChange={handleChange} />
+      <FormCustom
+        fields={formFields}
+        form={formCustom}
+        onChange={handleChange}
+      />
 
       {/* Order List Section */}
       <BoxPrimary>
         <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-lg font-semibold">Order List</span>
-          <ActionButton mode="add" text="Add" onClick={handleShowAddOrderModal} />
+          <span className="text-[#00783F] text-lg font-semibold">
+            Order List
+          </span>
+          <ActionButton
+            mode="add"
+            text="Add"
+            onClick={handleShowAddOrderModal}
+          />
         </div>
         <TableComponent
           header={header}
@@ -531,10 +621,7 @@ export default function CreateClaimRequest() {
           ]}
         >
           <div>
-            <img
-              src={modalContent}
-              className=""
-            />
+            <img src={modalContent} className="" />
           </div>
         </Modal>
       </BoxPrimary>
@@ -542,7 +629,12 @@ export default function CreateClaimRequest() {
       {/* Remark Section */}
       <BoxPrimary title="Remark">
         <div className="mb-3 flex justify-end">
-          <Input.TextArea placeholder="Remark" rows={2} onChange={(e) => handleInputChange("remark", e.target.value)} value={dataClaim?.ref_remark ?? (formValues["remark"] || "") }/>
+          <Input.TextArea
+            placeholder="Remark"
+            rows={2}
+            onChange={(e) => handleInputChange("remark", e.target.value)}
+            value={dataClaim?.ref_remark ?? (formValues["remark"] || "")}
+          />
         </div>
       </BoxPrimary>
 
@@ -559,11 +651,14 @@ export default function CreateClaimRequest() {
         <ActionButton mode="back" text="Back" onClick={backClaim} />
         {/* <ActionButton mode="save" text="Save" onClick={saveClaim} /> */}
         {mode === "approve" ? (
-        <ActionButton mode="save" text="Approve" onClick={() => handleApprove(documentNumber)} />
+          <ActionButton
+            mode="save"
+            text="Approve"
+            onClick={() => handleApprove(documentNumber)}
+          />
         ) : (
           <ActionButton mode="save" text="Save" onClick={saveClaim} />
         )}
-
       </div>
     </MainLayout>
   );
