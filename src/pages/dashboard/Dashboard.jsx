@@ -1119,7 +1119,7 @@ export default function Dashboard() {
                       {
                         scaleType: "band",
                         dataKey: "month",
-                        label: "Month",
+                        // label: "Month",
                       },
                     ]}
                     yAxis={[
