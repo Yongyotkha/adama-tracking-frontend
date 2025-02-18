@@ -64,8 +64,7 @@ export default function Dashboard() {
     useState(null);
   const [selectedSubdealerPlan, setSelectedSubdealerPlan] = useState(null);
   const [selectedSdByD, setSelectedSdByD] = useState(null);
-  const [selectedMonthSdByD, setSelectedMonthSdByD] =
-  useState(null);
+  const [selectedMonthSdByD, setSelectedMonthSdByD] = useState(null);
   const chartSetting = {
     yAxis: [
       {
@@ -424,9 +423,12 @@ export default function Dashboard() {
       if (response.status === 200 && response.data) {
         const data = response.data.map((item) => ({
           activity: item.activity_type_name,
-          value: parseInt(item.total_activity_count, 10),
+          total_activity_actual: parseInt(item.total_activity_actual, 10),
+          total_activity_list: parseInt(item.total_activity_list, 10),
+          total_activity_plan: parseInt(item.total_activity_plan, 10),
           color: item.activity_color,
         }));
+
         console.log(data);
 
         setTopActivityData(data); // อัปเดต State
@@ -639,7 +641,6 @@ export default function Dashboard() {
     { value: 20, label: "Kantar Co.,Ltd.", color: "#AB47BC" },
     { value: 5, label: "On shop", color: "#EC407A" },
   ];
-
 
   // const fetchSalesDropdown = async () => {
   //   setLoading(true);
@@ -1089,9 +1090,19 @@ export default function Dashboard() {
                     ]}
                     series={[
                       {
-                        dataKey: "value",
-                        label: "Activity Count",
-                        getColor: (data) => data.color,
+                        dataKey: "total_activity_plan",
+                        label: "Activity Plan",
+                        // getColor: (data) => data.color,
+                      },
+                      {
+                        dataKey: "total_activity_list",
+                        label: "Activity List",
+                        // getColor: (data) => data.color,
+                      },
+                      {
+                        dataKey: "total_activity_actual",
+                        label: "Activity Actual",
+                        // getColor: (data) => data.color,
                       },
                     ]}
                     yAxis={[
@@ -1249,9 +1260,7 @@ export default function Dashboard() {
                       className="w-36"
                       value={selectedMonthSdByD} // ใช้ state ที่แยกออกมา
                       onChange={(value) => {
-                        setSelectedMonthSdByD(
-                          value === "all" ? "" : value
-                        ); // อัปเดต state สำหรับ Sale By Crop
+                        setSelectedMonthSdByD(value === "all" ? "" : value); // อัปเดต state สำหรับ Sale By Crop
                         // fetchSaleCropData(
                         //   selectedYear,
                         //   selectedDealer,
