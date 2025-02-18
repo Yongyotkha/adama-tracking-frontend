@@ -96,7 +96,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   const valueFormatterMB = (value) => {
-    return `${(value / 1_000_000).toFixed(1)} MB`; // Convert to MB
+    return `${(value / 1_000_000).toFixed(1)} M.B.`; // Convert to MB
   };
 
   // Pie Chart Data
@@ -1194,7 +1194,7 @@ export default function Dashboard() {
                     </Select>
 
                     <Select
-                      className="w-36"
+                      className="w-36 hidden"
                       value={selectedMonthsSubDealerPlan} // ใช้ state ที่แยกออกมา
                       onChange={(value) => {
                         setSelectedMonthsSubDealerPlan(
