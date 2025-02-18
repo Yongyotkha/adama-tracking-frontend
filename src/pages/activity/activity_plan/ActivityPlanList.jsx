@@ -94,8 +94,6 @@ export default function ActivityPlanList() {
     selectedYear,
   ]);
 
-
-
   const fetchActivitySummary = async () => {
     try {
       const response = await useServiceAPI.get(paths.pathActivitySummary, {
@@ -213,11 +211,9 @@ export default function ActivityPlanList() {
     try {
       let path = paths.pathActivityPlan;
       const response = await useServiceAPI.get(path, requestData);
-      console.log(response);
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
 
-        console.log(data);
         const newDataSource = data.map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           workPlan: formatNumber(row.amount_target),
@@ -226,13 +222,28 @@ export default function ActivityPlanList() {
             <Dropdown
               menu={{
                 items: row.action.map((actionItem, actionIndex) => {
+                  let path = "";
+                  let mode = null;
+                  let text = null;
+                  if (
+                    actionItem.action.toLowerCase() == "edit" ||
+                    actionItem.action.toLowerCase() == "view"
+                  ) {
+                    path = "/activity/plan/dealer";
+                    mode = actionItem.action.toLowerCase();
+                  } else {
+                    path = "/activity/plan/dealer/month/edit";
+                    text = actionItem.action;
+                  }
+
                   return {
                     key: actionIndex,
                     label: (
                       <ItemDropDown
-                        mode={actionItem.action.toLowerCase()}
+                        mode={mode}
+                        text={text}
                         onClick={() => {
-                          navigate("/activity/plan/dealer", {
+                          navigate(path, {
                             state: {
                               year_code: row.year_code,
                               workplan_header_id: row.workplan_header_id,

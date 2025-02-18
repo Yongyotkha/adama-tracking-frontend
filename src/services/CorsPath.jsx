@@ -85,6 +85,7 @@ export const paths = {
   pathDashBordListActivity: "dashboard/activity/list",
   pathDashBordSubDealerList: "dashboard/sub_dealer/plan",
   pathDashBordSaleCrop: "dashboard/sale/crop",
+  pathDashBordSaleByDealer: "dashboard/sale/sale_by_dealer",
 
   // Sale
   pathSaleManagementDetail: "sale-management/sale-team/detail",
@@ -169,6 +170,7 @@ export const paths = {
   //Activity
   pathActivityPlan: "/activity-plan/sale/list",
   pathActivitySubDealerList: "/activity-plan/sale/dealer/list",
+  pathActivityDealerUpdate: "/activity-plan/sale/dealer/dealer/detail",
   pathActivitySubDealer: "/activity-plan/sale/dealer/detail",
   pathActivitySummary: "/activity-plan/sale/activity-summary",
   pathActivitySubDealerDetail: "/activity-plan/sale/dealer/sub-dealer/detail",

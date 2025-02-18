@@ -1,6 +1,16 @@
 import { useEffect, useState, useRef } from "react";
 import { ReloadOutlined } from "@ant-design/icons";
-import { DatePicker, Form, Input, Select, Col, Row, TimePicker, Upload, message } from "antd";
+import {
+  DatePicker,
+  Form,
+  Input,
+  Select,
+  Col,
+  Row,
+  TimePicker,
+  Upload,
+  message,
+} from "antd";
 import BoxPrimary from "../box_primary/BoxPrimary";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -30,7 +40,11 @@ const toolbarOptions = [
 
 export default function FormCustom({ fields, form, title, onChange, mode }) {
   const [formValues, setFormValues] = useState({});
-  const [location, setLocation] = useState({ lat: null, long: null, address: "" });
+  const [location, setLocation] = useState({
+    lat: null,
+    long: null,
+    address: "",
+  });
   const isInitialSet = useRef(false);
   const [loading, setLoading] = useState(false); // เพิ่ม state สำหรับควบคุมการหมุน
   const dateFormat = "YYYY-MM-DD";
@@ -40,9 +54,13 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
     const initialValues = fields.reduce((values, field) => {
       if (field.value !== undefined) {
         if (field.type === "date") {
-          values[field.name] = field.value ? dayjs(field.value, "YYYY-MM-DD") : null;
+          values[field.name] = field.value
+            ? dayjs(field.value, "YYYY-MM-DD")
+            : null;
         } else if (field.type === "month") {
-          values[field.name] = field.value ? dayjs(field.value, "YYYY-MM") : null;
+          values[field.name] = field.value
+            ? dayjs(field.value, "YYYY-MM")
+            : null;
         } else if (field.type === "time") {
           values[field.name] = field.value ? dayjs(field.value, "HH:mm") : null;
         } else if (field.type === "location") {
@@ -65,11 +83,14 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
   }, [fields, form, location]);
 
   useEffect(() => {
-    if (mode == 'edit') {
+    if (mode == "edit") {
       const initialValues = fields.reduce((acc, field) => {
-        acc[field.name] = field.type === "date"
-          ? field.value ? dayjs(field.value, dateFormat) : null
-          : field.value || null;
+        acc[field.name] =
+          field.type === "date"
+            ? field.value
+              ? dayjs(field.value, dateFormat)
+              : null
+            : field.value || null;
         return acc;
       }, {});
 
@@ -82,7 +103,10 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
       if (field.type === "location") {
         getLocation();
       } else if (field.type === "select") {
-        if (formValues[field.name] != undefined && formValues[field.name].length > 0) {
+        if (
+          formValues[field.name] != undefined &&
+          formValues[field.name].length > 0
+        ) {
           if (!selecteValue) {
             handleChange(field.name, formValues[field.name]);
             setSelectedValue(true);
@@ -128,7 +152,8 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
       const response = await fetch(url);
       const data = await response.json();
       if (data.status === "OK") {
-        const fetchedAddress = data.results[0]?.formatted_address || "Address not found";
+        const fetchedAddress =
+          data.results[0]?.formatted_address || "Address not found";
         setLocation((prev) => ({ ...prev, address: fetchedAddress }));
         setFormValues((prev) => ({
           ...prev,
@@ -162,7 +187,8 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
   const handlePhotoUpload = (info, name) => {
     if (info.file.status === "done") {
       message.success(`${info.file.name} uploaded successfully.`);
-      const fileUrl = info.file.response?.url || URL.createObjectURL(info.file.originFileObj);
+      const fileUrl =
+        info.file.response?.url || URL.createObjectURL(info.file.originFileObj);
       handleChange(name, fileUrl);
     } else if (info.file.status === "error") {
       message.error(`${info.file.name} upload failed.`);
@@ -175,17 +201,18 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
       getLocation();
       setLoading(false);
     }, 2000); // ตั้งค่าความล่าช้าตามที่ต้องการ
-
   };
 
   return (
     <BoxPrimary>
-      {title && <div className="text-[#00783F] text-lg font-semibold mb-3">{title}</div>}
+      {title && (
+        <div className="text-[#00783F] text-lg font-semibold mb-3">{title}</div>
+      )}
       <Form layout="vertical" form={form} initialValues={{ formValues }}>
         <Row gutter={16} align="middle">
-          {fields.map((field, index) => (
-            field.type !== "hidden" ?
-              (<Col
+          {fields.map((field, index) =>
+            field.type !== "hidden" ? (
+              <Col
                 xs={24}
                 sm={field.col || 12}
                 md={field.col || 8}
@@ -214,12 +241,14 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                       maxCount={1}
                       accept="image/jpeg,image/png"
                     >
-                      <p className="text-[#978B87]">Choose a file or drag & drop it here</p>
+                      <p className="text-[#978B87]">
+                        Choose a file or drag & drop it here
+                      </p>
                       <p className="text-[#978B87]">JPEG, PNG</p>
                       <DynamicButton
                         className="text-white mt-2 px-4 py-1 rounded-[4px] bg-[#009845]"
-                        text={'Browse File'}
-                        type={'button'}
+                        text={"Browse File"}
+                        type={"button"}
                       />
                     </Upload.Dragger>
                   ) : field.type === "text" ||
@@ -229,20 +258,23 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                     <>
                       <Input
                         type={field.type}
-                        placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                        placeholder={
+                          field.placeholder ||
+                          `Enter ${field.label.toLowerCase()}`
+                        }
                         value={formValues[field.name] || ""}
                         disabled={field.disabled}
-                        onChange={(e) => handleChange(field.name, e.target.value)}
-                      />
-                      {" "}
+                        onChange={(e) =>
+                          handleChange(field.name, e.target.value)
+                        }
+                      />{" "}
                     </>
                   ) : field.type === "search" ? (
                     <>
                       <Search
                         placeholder="Search"
                         onSearch={(value) => handleChange(field.name, value)}
-                      />
-                      {" "}
+                      />{" "}
                     </>
                   ) : field.type === "date" ? (
                     <>
@@ -252,8 +284,7 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                         onChange={(date) => handleChange(field.name, date)}
                         format="YYYY-MM-DD"
                         disabled={field.disabled}
-                      />
-                      {" "}
+                      />{" "}
                     </>
                   ) : field.type === "month" ? (
                     <>
@@ -263,8 +294,7 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                         value={formValues[field.name] || null}
                         onChange={(date) => handleChange(field.name, date)}
                         format="YYYY-MM"
-                      />
-                      {" "}
+                      />{" "}
                     </>
                   ) : field.type === "time" ? (
                     <>
@@ -274,15 +304,29 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                         value={formValues[field.name] || null}
                         onChange={(time) => handleChange(field.name, time)}
                         format="HH:mm"
-                      />
-                      {" "}
+                      />{" "}
                     </>
                   ) : field.type === "select" ? (
                     <>
                       <Select
-                        mode={field.mode === "multiple" ? "multiple" : undefined}
-                        value={formValues[field.name] || []} // ใช้ค่าจาก state
-                        onChange={(value) => handleChange(field.name, value)} // เรียก handleChange
+                        mode={
+                          field.mode === "multiple" ? "multiple" : undefined
+                        }
+                        value={(() => {
+                          const firstOption = field.options?.[0]?.id; // ดึงค่าตัวแรกของ options
+                          const selectedValue = formValues[field.name];
+
+                          if (!Array.isArray(selectedValue)) {
+                            return typeof firstOption === "number"
+                              ? [Number(selectedValue)].filter(Boolean) // ถ้าเป็น number, แปลงเป็น array
+                              : [String(selectedValue)].filter(Boolean); // ถ้าเป็น string, แปลงเป็น array
+                          }
+
+                          return typeof firstOption === "number"
+                            ? selectedValue.map(Number) // ถ้า options เป็น number, ให้แปลง value เป็น number
+                            : selectedValue.map(String); // ถ้า options เป็น string, ให้แปลง value เป็น string
+                        })()}
+                        onChange={(value) => handleChange(field.name, value)}
                         placeholder={`Select ${field.label.toLowerCase()}`}
                         disabled={field.disabled}
                         allowClear
@@ -291,10 +335,9 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                         options={field.options.map((option, index) => ({
                           key: index,
                           label: option.name,
-                          value: field.typeMode == 'string' ? option?.id?.toString() : parseInt(option.id, 10),
+                          value: option.id, // ใช้ค่า id ตรงๆ
                         }))}
-                      />
-                      {" "}
+                      />{" "}
                     </>
                   ) : field.type === "text-editor" ? (
                     <>
@@ -305,8 +348,7 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                         readOnly={field.disabled}
                         modules={{ toolbar: toolbarOptions }}
                         onChange={(value) => handleChange(field.name, value)}
-                      />
-                      {" "}
+                      />{" "}
                     </>
                   ) : field.type === "location" ? (
                     <div>
@@ -324,7 +366,9 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                             type="text"
                             placeholder="Address"
                             value={formValues["location_address"] || ""}
-                            onChange={(e) => handleChange("location_address", e.target.value)}
+                            onChange={(e) =>
+                              handleChange("location_address", e.target.value)
+                            }
                             disabled={field.disabled}
                             style={{
                               width: "100%",
@@ -333,10 +377,9 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                               border: "1px solid #d9d9d9",
                               borderRadius: "4px",
                               padding: "8px 12px",
-                              boxSizing: "border-box"
+                              boxSizing: "border-box",
                             }}
-                          />
-                          {" "}
+                          />{" "}
                         </Form.Item>
                         <div
                           onClick={handleReload}
@@ -353,7 +396,9 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                           <ReloadOutlined
                             style={{
                               fontSize: "18px",
-                              animation: loading ? "spin 1s linear infinite" : "none", // เปิด/ปิดการหมุน
+                              animation: loading
+                                ? "spin 1s linear infinite"
+                                : "none", // เปิด/ปิดการหมุน
                             }}
                           />
                         </div>
@@ -370,36 +415,29 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                             `}</style>
                       </div>
 
-                      <Form.Item
-                        name="location_latitude"
-                        hidden
-                      >
+                      <Form.Item name="location_latitude" hidden>
                         <Input
                           type="hidden"
                           placeholder="Latitude"
                           value={formValues["location_latitude"] || ""}
                           disabled
-                        />
-                        {" "}
+                        />{" "}
                       </Form.Item>
 
-                      <Form.Item
-                        name="location_longitude"
-                        hidden
-                      >
+                      <Form.Item name="location_longitude" hidden>
                         <Input
                           type="hidden"
                           placeholder="Longitude"
                           value={formValues["location_longitude"] || ""}
                           disabled
-                        />
-                        {" "}
+                        />{" "}
                       </Form.Item>
                     </div>
                   ) : null}
                 </Form.Item>
-              </Col>) : null
-          ))}
+              </Col>
+            ) : null
+          )}
         </Row>
       </Form>
     </BoxPrimary>

@@ -1,11 +1,9 @@
 import React, { useEffect } from "react";
 
 export default function ItemDropDown({ text, link, onClick, mode }) {
-
-
   return (
     <>
-      { (mode == "edit" || mode == "rolling forecast (summary)") && (
+      {(mode == "edit" || mode == "rolling forecast (summary)") && (
         <a
           rel="noopener noreferrer"
           href={link}
@@ -52,6 +50,7 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
           <span className="text-[#978B87] ms-3">{text || "View"}</span>
         </a>
       )}
+
       {mode == "history" && (
         <a
           rel="noopener noreferrer"
@@ -67,7 +66,8 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
           <span className="text-[#978B87] ms-3">{text || "History"}</span>
         </a>
       )}
-      { (mode == "create" || mode == "rolling forecast (dealer)") && (
+
+      {(mode == "create" || mode == "rolling forecast (dealer)") && (
         <a
           rel="noopener noreferrer"
           href={link}
@@ -96,6 +96,22 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
             className="inline-block h-4 m-auto"
           />
           <span className="text-[#978B87] ms-3">{text || "Approve"}</span>
+        </a>
+      )}
+
+      {!mode && (
+        <a
+          rel="noopener noreferrer"
+          href={link}
+          onClick={onClick}
+          className="block gap-1"
+        >
+          <img
+            src="/img/icons/edit.png"
+            alt="Approve icon"
+            className="inline-block h-4 m-auto"
+          />
+          <span className="text-[#978B87] ms-3">{text}</span>
         </a>
       )}
     </>

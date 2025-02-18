@@ -104,6 +104,7 @@ import EditUserOA from "./pages/mobile/user/EditUserOA";
 import RegisterOA from "./pages/mobile/register/RegisterOA";
 import ContactOA from "./pages/mobile/contact/ContactOA";
 import MainOA from "./pages/mobile/main/MainOA";
+import ActivityPlanDealerMonth from "./pages/activity/activity_plan/ActivityPlanDealerMonth";
 
 const App = () => {
   return (
@@ -152,6 +153,7 @@ const App = () => {
             <Route path="/activity/plan" element={<ActivityPlanList />} />
             <Route path="/activity/plan/dealer" element={<ActivityPlanDealer />} />
             <Route path="/activity/plan/sub-dealer" element={<ActivityPlanSubDealer />} />
+            <Route path="/activity/plan/dealer/month/:mode" element={<ActivityPlanDealerMonth />} />
 
             <Route path="/activity/list" element={<ActivityList />} />
             <Route path="/activity/create" element={<CreateActivity />} />

@@ -226,7 +226,6 @@ export default function ActivityPlanSubDealer() {
   };
 
   const handleSave = async (mode) => {
-    setLoading(true);
     try {
       const updatedActivity = activity.map((month) => {
         const dealerProducts = localQtyState[month.month_id] || {};
@@ -254,8 +253,6 @@ export default function ActivityPlanSubDealer() {
           data_items: updatedDataItems,
         };
       });
-
-      console.log(updatedActivity);
 
       if (mode == "draft") {
         createPlan(mode, updatedActivity);
@@ -289,12 +286,12 @@ export default function ActivityPlanSubDealer() {
     } catch (error) {
       console.error("Unexpected error:", error);
       showNotification("error", "An unexpected error occurred");
-    } finally {
-      setLoading(false);
     }
   };
 
   const createPlan = async (mode, updatedActivity) => {
+    setLoading(true);
+
     await useServiceAPI
       .post(paths.pathActivitySubDealerDetail, {
         action_code: mode,
@@ -313,21 +310,24 @@ export default function ActivityPlanSubDealer() {
       .then((response) => {
         if (response.status === 200) {
           showNotification("success", response.data.message).then(() => {
+            setLoading(false);
+
             navigate("/activity/plan");
           });
         }
       })
       .catch((error) => {
         console.error(error);
+        setLoading(false);
         showNotification("error", "An error occurred");
       });
+    setLoading(false);
   };
 
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
         <Title prefix="Create Activity By Sub Dealer" showYear={yearName} />
-
         <BoxPrimary>
           <div className="flex flex-wrap items-center w-screen gap-4">
             <div className="w-1/4">
