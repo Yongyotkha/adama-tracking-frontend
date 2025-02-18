@@ -1248,7 +1248,7 @@ export default function Dashboard() {
                       ))}
                     </Select>
                     <Select
-                      className="w-36"
+                      className="w-36 hidden"
                       value={selectedMonthsSaleByCrop} // ใช้ state ที่แยกออกมา
                       onChange={(value) => {
                         setSelectedMonthsSaleByCrop(
