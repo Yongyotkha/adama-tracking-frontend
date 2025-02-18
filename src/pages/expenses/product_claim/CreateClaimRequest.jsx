@@ -526,7 +526,6 @@ export default function CreateClaimRequest() {
       remark: formValues["remark"],
       products: products,
     };
-
     if (documentNumber) {
       useServiceAPI
         .put(paths.pathClaimUpdate, body, setLoading)

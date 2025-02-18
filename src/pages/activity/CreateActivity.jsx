@@ -61,7 +61,7 @@ export default function CreateActivity() {
   const [assignList, setAssignList] = useState([]);
   const [isSalePlanEdit, setIsSalePlanEdit] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
-  const { showMsg, showNotification } = useContext(AuthContext);
+  const { showMsg, showNotification, userInfo } = useContext(AuthContext);
   const [actualParticipantCount, setActualParticipantCount] = useState("0");
   const [timeselect, setTimeSelect] = useState([]);
 
@@ -85,25 +85,19 @@ export default function CreateActivity() {
     setFileList((prevFileList) => [...prevFileList, fileUpload]);
   };
 
-  const handleUpdate = async () => {
-    try {
-      const formCustomData = await formCustom.validateFields();
-      const customerData = await customerForm.validateFields();
-      const expenseData = await expenseForm.validateFields();
-      const participantData = await participantForm.validateFields();
-
-      const combinedData = {
-        ...formCustomData,
-        ...customerData,
-        ...expenseData,
-        ...participantData,
-      };
-
-      navigate("/expenses/advance");
-    } catch (error) {
-      console.error("Validation failed:", error);
+  useEffect(() => {
+    if (!documentNumber) {
+      const exists = saleList.some((item) => item.id === userInfo.id);
+      if (exists) {
+        console.log(123123);
+        handleChange("user_id", userInfo.user_data_id);
+        formCustom.setFieldsValue({
+          ...formCustom,
+          sale: userInfo.user_data_id,
+        });
+      }
     }
-  };
+  }, [saleList]);
 
   const menuTitle =
     pageCode == "expense_advance"
@@ -158,7 +152,7 @@ export default function CreateActivity() {
       label: "Sale",
       name: "user_id",
       type: "select",
-      typeMode: "string",
+      // typeMode: "string",
       options: saleList,
       disabled: viewSegment ?? false,
       required: true,
@@ -225,28 +219,6 @@ export default function CreateActivity() {
       col: pageCode != "activity_transaction" ? 6 : 8,
       value: activityDetail.document_date ?? dayjs().format("YYYY-MM-DD"),
     },
-    // {
-    //   label: "Start Time",
-    //   name: "time_start",
-    //   type: "select",
-    //   typeMode: "string",
-    //   options: timeList,
-    //   disabled: viewSegment ?? false,
-    //   // required: true,
-    //   col: pageCode != "activity_transaction" ? 6 : 8,
-    //   value: activityDetail.time_start ?? "",
-    // },
-    // {
-    //   label: "End Time",
-    //   name: "time_end",
-    //   type: "select",
-    //   typeMode: "string",
-    //   options: timeList,
-    //   disabled: viewSegment ?? false,
-    //   // required: true,
-    //   col: pageCode != "activity_transaction" ? 6 : 8,
-    //   value: activityDetail.time_end ?? "",
-    // },
     {
       label: "Location",
       name: "location_address",
@@ -424,91 +396,6 @@ export default function CreateActivity() {
     return parts.pop(); // Get the last part of the URL
   };
 
-  // const handleChange = (attribue, value) => {
-  //   console.log(attribue, value);
-  //   const getMasterSelect = async () => {
-  //     try {
-  //       if (attribue == "user_id") {
-  //         activityDetail.user_id = value;
-  //         await setupDealer(value);
-  //       } else if (attribue == "dealer_id") {
-  //         activityDetail.dealer_id = value;
-  //         if (value) {
-  //           await setupCropAndDealerCustomer(value);
-  //         }
-  //       } else if (attribue == "crop_id_list") {
-  //         if (value.length > 0) {
-  //           await setupCrop(value);
-  //         }
-  //       } else if (attribue == "activity_type_id") {
-  //         activityDetail.activity_type_id = value;
-  //       } else if (attribue == "activity_reference") {
-  //         setLoading(true);
-
-  //         try {
-  //           const [response] = await Promise.all([
-  //             useServiceAPI.get(paths.pathActivityDetail, {
-  //               document_number: value,
-  //             }),
-  //           ]);
-  //           const activityDetailData = response.data;
-  //           setActivityDetail(activityDetailData);
-  //           //set crop list
-  //           let cropData = [];
-  //           await activityDetailData.crop_id_list.forEach((element) => {
-  //             cropData.push(element.id);
-  //           });
-  //           setCropDetailList(cropData);
-
-  //           await setupDealer(activityDetailData.user_id);
-  //           await setupCropAndDealerCustomer(activityDetailData.dealer_id);
-  //           await setupCrop(cropData);
-
-  //           //set assign list
-  //           let assignData = [];
-  //           await activityDetailData.assing_user_list.forEach((element) => {
-  //             assignData.push(element.id);
-  //           });
-  //           setAssignList(assignData);
-  //         } catch (error) {
-  //         } finally {
-  //           setLoading(false);
-  //         }
-  //       } else if (attribue == "time_start" || attribue == "time_end") {
-  //         activityDetail[attribue] = value;
-  //         const timeStart = activityDetail.time_start;
-  //         const timeEnd = activityDetail.time_end;
-
-  //         if (timeStart != undefined && timeEnd != undefined) {
-  //           if (timeStart >= timeEnd) {
-  //             showNotification(
-  //               "warning",
-  //               "Invalid Time Range",
-  //               [
-  //                 "Time End cannot be earlier than Time Start. Please adjust the times.",
-  //               ],
-  //               3
-  //             );
-  //           }
-  //         }
-  //       } else if (attribue == "product_list") {
-  //         setProductDetailList(value);
-  //       } else if (attribue == "location_address") {
-  //         activityDetail.location_address = value;
-  //       } else if (attribue == "description") {
-  //         activityDetail.description = value;
-  //       } else if (attribue == "assing_user_list") {
-  //         setAssignList(value);
-  //       }
-  //     } catch (error) {
-  //       console.log(error);
-  //     }
-  //   };
-
-  //   getMasterSelect();
-  // };
-
-
   const handleChange = (attribue, value) => {
     console.log(attribue, value);
     const getMasterSelect = async () => {
@@ -530,7 +417,7 @@ export default function CreateActivity() {
           activityDetail.activity_type_id = value;
         } else if (attribue === "activity_reference") {
           setLoading(true);
-  
+
           try {
             const [response] = await Promise.all([
               useServiceAPI.get(paths.pathActivityDetail, {
@@ -539,19 +426,19 @@ export default function CreateActivity() {
             ]);
             const activityDetailData = response.data;
             setActivityDetail(activityDetailData);
-  
+
             // ตั้งค่า Crop list
             let cropData = [];
             await activityDetailData.crop_id_list.forEach((element) => {
               cropData.push(element.id);
             });
             setCropDetailList(cropData);
-  
+
             // เรียกข้อมูล Dealer และ Crop
             await setupDealer(activityDetailData.user_id);
             await setupCropAndDealerCustomer(activityDetailData.dealer_id);
             await setupCrop(cropData);
-  
+
             // ตั้งค่า Assign list
             let assignData = [];
             await activityDetailData.assing_user_list.forEach((element) => {
@@ -567,11 +454,10 @@ export default function CreateActivity() {
         console.log(error);
       }
     };
-  
+
     getMasterSelect();
   };
 
-  
   //handleChangeFunction
   const setupDealer = async (value) => {
     const [dealer] = await Promise.all([
@@ -586,13 +472,12 @@ export default function CreateActivity() {
         name: element.sub_dealer_name,
       });
     });
-    // setDealerList((prevList) => [...prevList, ...subDealerAll]);
+
     if (subDealerAll && value) {
       setDealerList(subDealerAll);
     } else {
       setDealerList([]);
     }
-
   };
 
   const setupCropAndDealerCustomer = async (value) => {
@@ -608,40 +493,6 @@ export default function CreateActivity() {
     setDealerCustomer(dealerCustomerData.data);
   };
 
-  // const setupCrop = async (value) => {
-  //   if (!isSalePlanEdit) {
-  //     setCropDetailList(value);
-  //     const [productCrop] = await Promise.all([
-  //       useServiceAPI.get(paths.pathMasterProductByCrop, {
-  //         crop_list: value,
-  //       }),
-  //     ]);
-
-  //     let productCropList = [];
-  //     let productList = [];
-  //     productCrop.data.forEach((element, key) => {
-  //       productCropList.push({
-  //         key: key + 1,
-  //         productName: element.product_name,
-  //         packSize: element.packing_list,
-  //         estimateSale: "0",
-  //         actualSale: "0",
-  //         bath_ltkg: element.bath_ltkg,
-  //         prodectCode: element.product_code,
-  //         productId: element.id,
-  //       });
-  //       productList.push({
-  //         key: key + 1,
-  //         name: element.product_name + " (" + element.packing_list + ")",
-  //         id: element.id,
-  //       });
-  //     });
-  //     setProductCropList(productCropList);
-  //     setProductList(productList);
-  //   }
-  //   setIsSalePlanEdit(false);
-  // };
-
   const setupCrop = async (value) => {
     setCropDetailList(value);
     const [productCrop] = await Promise.all([
@@ -649,7 +500,7 @@ export default function CreateActivity() {
         crop_list: value,
       }),
     ]);
-  
+
     let productCropList = [];
     let productList = [];
     productCrop.data.forEach((element, key) => {
@@ -673,7 +524,6 @@ export default function CreateActivity() {
     setProductList(productList);
   };
 
-  
   function NumberFormatter(number) {
     return number.toLocaleString(undefined, { maximumFractionDigits: 2 });
   }
@@ -886,11 +736,6 @@ export default function CreateActivity() {
     },
   ];
 
-  const handleOpenTeamModal = () => {
-    setIsTeamModalVisible(true);
-    getParticipant();
-  };
-
   const getParticipant = async () => {
     setTableLoading(true);
     const [participant] = await Promise.all([
@@ -989,7 +834,7 @@ export default function CreateActivity() {
     allValuesBasic.document_date = dayjs(allValuesBasic.document_date).format(
       "YYYY-MM-DD"
     );
-    const actionCode = modeSave == "convert" ? "convert_clearing" : "draft";
+
     //File Upload
     const imageLists = [];
     fileList.forEach((element) => {
@@ -1043,17 +888,6 @@ export default function CreateActivity() {
     const expenseCustomerLocationAddress = customerForm.getFieldValue(
       "location_customer_address"
     );
-
-    const expenseActualExp = expenseForm.getFieldValue("actual_exp");
-    const expenseActualSale = expenseForm.getFieldValue("actual_sale");
-    const expenseAdvance = expenseForm.getFieldValue("advance_expense");
-
-    const expenseParticipantEstimate = participantForm.getFieldValue(
-      "estimate_participant"
-    );
-    const expenseParticapantActual =
-      participantForm.getFieldValue("actual_participant");
-
     let expenseParticapantUserList = [];
     let particapantList = [];
     participantUsers.forEach((element) => {
@@ -1101,7 +935,7 @@ export default function CreateActivity() {
       particapant_list: particapantList,
     };
     console.log(body);
-    // return;
+    return;
     if (documentNumber) {
       useServiceAPI
         .put(paths.pathActivityExpenseDetail, body, setLoading)
@@ -1699,7 +1533,11 @@ export default function CreateActivity() {
           />
         )}
         {/* Export PDF Button */}
-        <ActionButton mode="saveDraft" text="Export PDF" onClick={() => window.open("/expenses/advance/pdf", "_blank")} />
+        <ActionButton
+          mode="saveDraft"
+          text="Export PDF"
+          onClick={() => window.open("/expenses/advance/pdf", "_blank")}
+        />
       </div>
 
       {/* Modal for Add Participant */}

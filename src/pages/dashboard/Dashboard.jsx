@@ -193,16 +193,6 @@ export default function Dashboard() {
     }
   };
 
-  // เช็คค่าทีเลือก Expense mount
-  const handleMonthChangeExpense = (value) => {
-    setSelectedMonths(value === "all" ? "" : value); // ถ้าเลือก "All Month" ให้ส่งค่าเปล่า
-    fetchDashboardDataExpense(
-      selectedYear,
-      value === "all" ? "" : value,
-      selectedSubdealer
-    ); // ส่งค่า Month ที่เลือก
-  };
-
   // เลือก subdealer
   const fetchSubdealer = async () => {
     setLoading(true);
@@ -346,23 +336,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleSubdealerChangeOrder = (value) => {
-    setSelectedSubdealer(value === "all" ? "" : value);
-    fetchDashboardDataOrder(
-      selectedYear,
-      selectedMonths,
-      value === "all" ? "" : value
-    );
-  };
 
-  const handleMonthChangeOrder = (value) => {
-    setSelectedMonths(value === "all" ? "" : value);
-    fetchDashboardDataOrder(
-      selectedYear,
-      value === "all" ? "" : value,
-      selectedSubdealer
-    );
-  };
 
   // ฟังก์ชันสำหรับดึงข้อมูล Dealer Plan
   const fetchDealerPlanData = async (
@@ -397,23 +371,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleDealerChangeDealerPlan = (value) => {
-    setSelectedDealer(value === "all" ? "" : value);
-    fetchDealerPlanData(
-      selectedYear,
-      selectedMonths,
-      value === "all" ? "" : value
-    );
-  };
 
-  const handleMonthChangeDealerPlan = (value) => {
-    setSelectedMonths(value === "all" ? "" : value);
-    fetchDealerPlanData(
-      selectedYear,
-      value === "all" ? "" : value,
-      selectedSubdealer
-    );
-  };
 
   // ฟังก์ชันสำหรับดึงข้อมูล Top Activity
   const fetchTopActivityData = async (
@@ -679,7 +637,6 @@ export default function Dashboard() {
                 <Select
                   className="w-36 hidden"
                   value={selectedSubdealerExpense}
-                  // onChange={handleSubdealerChangeExpense}
                   onChange={(value) => {
                     setSelectedSubdealerExpense(value === "all" ? "" : value);
                     fetchDashboardDataExpense(
@@ -726,7 +683,7 @@ export default function Dashboard() {
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-300">
               <div className="text-center py-4">
                 <div className="text-md font-bold text-[#00783F]">
-                  {"123"}
+                  {"รอข้อมูล"}
                   {/* {dashboardDataExpense.total_expense_advance}{" "} */}
                   <br />{"100%"}
                 </div>
@@ -746,7 +703,7 @@ export default function Dashboard() {
               <div className="text-center py-4">
                 <div className="text-md font-bold text-[#00783F]">
                   {" "}
-                  {dashboardDataExpense.total_expense_actual_sale}{" "}
+                  {dashboardDataExpense.total_expense_actual_exp }{" "}
                   <br />{"100%"}
                 </div>
                 <div className="text-sm text-gray-500">Actual</div>
@@ -1414,7 +1371,6 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {listActivityData.map((item, index) => {
-                  console.log("Activity Item:", item); // Log each item
                   return (
                     <tr
                       key={index}
