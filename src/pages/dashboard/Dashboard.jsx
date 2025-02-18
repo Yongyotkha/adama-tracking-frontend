@@ -1136,12 +1136,6 @@ export default function Dashboard() {
                         color: "#3B82F6", // Blue
                       },
                       {
-                        dataKey: "rolling_forecast",
-                        label: "Rolling Forecast",
-                        valueFormatter: valueFormatterMB,
-                        color: "#F59E0B", // Orange
-                      },
-                      {
                         dataKey: "actual",
                         label: "Actual",
                         valueFormatter: valueFormatterMB,
