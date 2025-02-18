@@ -791,6 +791,13 @@ export default function Dashboard() {
                         dataKey: "plan",
                         label: "Work Plan",
                         valueFormatter: valueFormatterMB,
+                        color: "#10B981", // Orange
+                      },
+                      {
+                        dataKey: "rolling_forecast",
+                        label: "Rolling Forecast",
+                        valueFormatter: valueFormatterMB,
+                        color: "#F59E0B", // Orange
                       },
                       {
                         dataKey: "rolling",
@@ -801,6 +808,7 @@ export default function Dashboard() {
                         dataKey: "actual",
                         label: "Actual",
                         valueFormatter: valueFormatterMB,
+                        color: "#3B82F6", // Orange
                       },
                     ]}
                     slotProps={{
@@ -809,9 +817,6 @@ export default function Dashboard() {
                         position: { vertical: "bottom", horizontal: "middle" },
                         padding: 0,
                       },
-                      // bar: {
-                      //   barLabel: (props) => `${valueFormatterMB(props.value)}`, // Show label
-                      // },
                     }}
                     sx={{
                       ".MuiChartsBar-label": {
@@ -819,6 +824,12 @@ export default function Dashboard() {
                         fontSize: "12px",
                         fontWeight: "bold",
                       },
+                    }}
+                    barLabel={(item, context) => {
+                      if ((item.value ?? 0) > 0) {
+                        return valueFormatterMB(item.value); // Format as M.B.
+                      }
+                      return null; // Hide label if value is zero or undefined
                     }}
                     {...chartSetting}
                   />
@@ -906,7 +917,8 @@ export default function Dashboard() {
                     ]}
                     yAxis={[
                       {
-                        label: "Count",
+                        // label: "Count",
+                        label: null,
                       },
                     ]}
                     height={400}
@@ -978,33 +990,33 @@ export default function Dashboard() {
                 <div className="h-full rounded">
                   <BarChart
                     dataset={subDealerPlanData}
-                    yAxis={[
+                    xAxis={[
                       {
                         scaleType: "band",
                         dataKey: "month",
-                        label: null,
+                        // label: "Month",
                       },
                     ]}
-                    xAxis={[
+                    yAxis={[
                       {
-                        label: "Value (THB))",
+                        // label: "Value (THB)",
+                        label: null,
                       },
                     ]}
                     series={[
                       {
                         dataKey: "plan",
                         label: "Plan",
-                        color: "#3B82F6", // Blue for Plan
-                        stack: "overlap", // Allows stacking
+                        valueFormatter: valueFormatterMB,
+                        color: "#3B82F6", // Blue
                       },
                       {
                         dataKey: "actual",
                         label: "Actual",
-                        color: "#10B981", // Green for Actual
-                        stack: "overlap", // Allows stacking
+                        valueFormatter: valueFormatterMB,
+                        color: "#10B981", // Green
                       },
                     ]}
-                    layout="horizontal"
                     height={400}
                     slotProps={{
                       legend: {
@@ -1013,6 +1025,7 @@ export default function Dashboard() {
                         padding: 0,
                       },
                     }}
+                    margin={{ left: 85 }}
                     sx={{
                       ".MuiBar-root": {
                         borderRadius: "4px",
@@ -1120,7 +1133,7 @@ export default function Dashboard() {
                       ))}
                     </Select>
                     <Select
-                      className="w-36"
+                      className="w-36 hidden"
                       value={selectedMonthsSaleByCrop} // ใช้ state ที่แยกออกมา
                       onChange={(value) => {
                         setSelectedMonthsSaleByCrop(
