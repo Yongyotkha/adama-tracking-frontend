@@ -81,7 +81,7 @@ export default function Dashboard() {
       },
     ],
     height: 300,
-    margin: { left: 85 }, // Increase left margin for large numbers
+    margin: { left: 100 }, // Increase left margin for large numbers
     sx: {
       [`.${axisClasses.left} .${axisClasses.label}`]: {
         transform: "translate(-10px, 0)",
@@ -735,7 +735,7 @@ export default function Dashboard() {
             {/* Dealer Plan Chart */}
             <Col xs={24} lg={24} xl={24}>
               <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
-                <div className="flex flex-wrap items-center justify-between">
+                <div className="flex flex-wrap justify-between">
                   <h3 className="text-[#00783F] text-lg font-semibold mb-3">
                     Dealer Plan
                   </h3>
@@ -793,15 +793,16 @@ export default function Dashboard() {
                         valueFormatter: valueFormatterMB,
                         color: "#10B981", // Orange
                       },
-                      {
-                        dataKey: "rolling_forecast",
-                        label: "Rolling Forecast",
-                        valueFormatter: valueFormatterMB,
-                        color: "#F59E0B", // Orange
-                      },
+                      // {
+                      //   dataKey: "rolling_forecast",
+                      //   label: "Rolling Forecast",
+                      //   valueFormatter: valueFormatterMB,
+                      //   color: "#F59E0B", // Orange
+                      // },
                       {
                         dataKey: "rolling",
                         label: "Rolling Forecast",
+                        color: "#F59E0B", // Orange
                         valueFormatter: valueFormatterMB,
                       },
                       {
@@ -840,7 +841,7 @@ export default function Dashboard() {
             {/* Top 5 Activity */}
             <Col xs={24} lg={24} xl={12}>
               <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
-                <div className="flex flex-wrap items-center justify-between">
+                <div className="flex flex-wrap justify-between">
                   <h3 className="text-[#00783F] text-lg font-semibold">
                     Top 5 Activity
                   </h3>
@@ -1107,7 +1108,7 @@ export default function Dashboard() {
             {/* Sale By Crop */}
             <Col xs={24} lg={24} xl={12}>
               <Card className="bg-gray-100 shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
-                <div className="flex flex-wrap items-center justify-between">
+                <div className="flex flex-wrap justify-between">
                   <h3 className="text-[#00783F] text-lg font-semibold mb-3">
                     Sale By Crop
                   </h3>
@@ -1199,7 +1200,7 @@ export default function Dashboard() {
         {/* Activity Section */}
         <Col xs={24} lg={24} xl={6}>
           <BoxPrimary className="h-full">
-            <div className="flex flex-wrap items-center justify-between mb-4">
+            <div className="flex flex-wrap justify-between mb-4">
               <h3 className="text-[#00783F] text-lg font-semibold">Activity</h3>
               <div className="flex flex-wrap gap-2">
                 <Select
@@ -1261,7 +1262,7 @@ export default function Dashboard() {
                       key={index}
                       className="border-b border-gray-200 hover:bg-gray-100"
                     >
-                      <td className="py-2 flex gap-2">
+                      <td className="py-2 flex items-end gap-2">
                         <img
                           src={item.icon}
                           alt={item.type}
