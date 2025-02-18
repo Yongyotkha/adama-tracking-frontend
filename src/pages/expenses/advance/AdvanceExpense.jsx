@@ -184,7 +184,7 @@ export default function AdvanceExpense() {
     { title: "Activity Reference", dataIndex: "activityReference", align: "left" },
     { title: "Type of Meeting", dataIndex: "typeOfMeeting", align: "center" },
     { title: "Date", dataIndex: "date", align: "center" },
-    { title: "Status", dataIndex: "status", align: "center" },
+    // { title: "Status", dataIndex: "status", align: "center" },
     { title: "Action", dataIndex: "action", align: "center" },
   ];
 

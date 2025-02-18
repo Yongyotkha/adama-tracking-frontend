@@ -84,7 +84,7 @@ export default function CreateActivity() {
     // ใช้ callback เพื่ออัปเดต state อย่างถูกต้อง
     setFileList((prevFileList) => [...prevFileList, fileUpload]);
   };
-  
+
   useEffect(() => {
     const urlDate = searchParams.get("date");
     if (urlDate) {
@@ -1543,10 +1543,10 @@ export default function CreateActivity() {
             onClick={() => handleSave("save")}
           />
         )}
-        {/* Export PDF Button */}
         <ActionButton
           mode="saveDraft"
           text="Export PDF"
+          className={pageCode === "expense_advance" || pageCode === "expense_clearing" ? "" : "hidden"}
           onClick={() => window.open("/expenses/advance/pdf", "_blank")}
         />
       </div>

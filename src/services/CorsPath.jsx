@@ -60,7 +60,7 @@ export const paths = {
   pathCustomerSubDealerFarmerUpdate:
     "sale-customer-dealer/network-farmer-create",
 
-  // Farners
+  // Farmers
   pathCustomerFarmers: "sale-customer-farmer/list",
   pathCustomerFarmersCreate: "sale-customer-farmer/create",
   pathCustomerFarmersUpdate: "sale-customer-farmer/update",

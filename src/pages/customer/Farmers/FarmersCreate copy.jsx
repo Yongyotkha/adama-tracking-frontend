@@ -70,7 +70,7 @@ export default function EditInformation() {
         console.log(location.state.mod);
         console.log(location.state.id);
         setDefaultFarmers(location.state.id)
-        // await fetchFarnersDetails(location.state.id);
+        // await fetchFarmersDetails(location.state.id);
         const [crops] = await Promise.all([
           useServiceAPI.get(paths.pathMasterCrop, {}),
         ]);
@@ -88,7 +88,7 @@ export default function EditInformation() {
     fetchData();
   }, []);
 
-  // const fetchFarnersDetails = async (id) => {
+  // const fetchFarmersDetails = async (id) => {
   //   setLoading(true);
   //   try {
   //     const response = await useServiceAPI.get(
@@ -415,7 +415,7 @@ const [formFields, setFormFields] = useState([
 
       if (response.status === 200) {
         // fetchData();
-        await fetchFarnersDetails(location.state.id);
+        await fetchFarmersDetails(location.state.id);
 
         showNotification(
           "success",
@@ -763,14 +763,14 @@ const [formFields, setFormFields] = useState([
             .post(paths.pathCustomerFarmersCreate, formattedData)
             .then((response) => {
               if (response.status === 200) {
-                navigate("/customer/farners");
+                navigate("/customer/farmers");
                 showNotification(
                   "success",
                   response.data.message,
                   response.data.message_line
                 );
                 // console.log("Save successful:", response.data);
-                // navigate("/customer/farners"); 
+                // navigate("/customer/farmers"); 
               }
             })
             .catch((error) => {
@@ -783,14 +783,14 @@ const [formFields, setFormFields] = useState([
           .put(paths.pathCustomerFarmersUpdate, formattedData)
           .then((response) => {
             if (response.status === 200) {
-              navigate("/customer/farners");
+              navigate("/customer/farmers");
               showNotification(
                 "success",
                 response.data.message,
                 response.data.message_line
               );
               // console.log("Save successful:", response.data);
-              // navigate("/customer/farners"); 
+              // navigate("/customer/farmers"); 
             }
           })
           .catch((error) => {
@@ -823,7 +823,7 @@ const [formFields, setFormFields] = useState([
           .put(paths.pathCustomerSubDealerNetworkUpdate, formattedData) // paths.pathNetworkSave = URL API
           .then((response) => {
             if (response.status === 200) {
-              navigate("/customer/farners");
+              navigate("/customer/farmers");
               showNotification(
                 "success",
                 response.data.message,
@@ -1036,7 +1036,7 @@ const [formFields, setFormFields] = useState([
           <ActionButton
             mode="back"
             text="Back"
-            onClick={() => navigate("/customer/farners")}
+            onClick={() => navigate("/customer/farmers")}
           />
           {/* <ActionButton
             mode="update"
@@ -1107,7 +1107,7 @@ const [formFields, setFormFields] = useState([
     //         <ActionButton
     //           mode="back"
     //           text="Back"
-    //           onClick={() => navigate("/customer/farners")}
+    //           onClick={() => navigate("/customer/farmers")}
     //         />
     //       {
     //       !isViewMode && (

@@ -568,14 +568,14 @@ export default function CreateSubDealer() {
             .post(paths.pathCustomerFarmersCreate, formattedData)
             .then((response) => {
               if (response.status === 200) {
-                navigate("/customer/farners");
+                navigate("/customer/farmers");
                 showNotification(
                   "success",
                   response.data.message,
                   response.data.message_line
                 );
                 // console.log("Save successful:", response.data);
-                // navigate("/customer/farners"); 
+                // navigate("/customer/farmers"); 
               }
             })
             .catch((error) => {
@@ -586,7 +586,7 @@ export default function CreateSubDealer() {
           .put(paths.pathCustomerFarmersUpdate, formattedData)
           .then((response) => {
             if (response.status === 200) {
-              navigate("/customer/farners");
+              navigate("/customer/farmers");
               console.log( response.data.message);
               
               showNotification(
@@ -595,7 +595,7 @@ export default function CreateSubDealer() {
                 response.data.message_line
               );
               // console.log("Save successful:", response.data);
-              // navigate("/customer/farners"); 
+              // navigate("/customer/farmers"); 
             }
           })
           .catch((error) => {
@@ -841,7 +841,7 @@ export default function CreateSubDealer() {
         <ActionButton
           mode="back"
           text="Back"
-          onClick={() => navigate("/customer/farners")}
+          onClick={() => navigate("/customer/farmers")}
         />
         <ActionButton text="Save" mode="save" onClick={handleSave} />
       </div>

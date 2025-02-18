@@ -119,7 +119,7 @@ export default function DealerList() {
                       mode={actionItem.action.toLowerCase()}
                       onClick={() => {
                         if (actionItem.action.toLowerCase() === "edit") {
-                          navigate("/customer/farners/create", {
+                          navigate("/customer/farmers/create", {
                             state: {
                               id: data.id,
                               mod: actionItem.action,
@@ -128,7 +128,7 @@ export default function DealerList() {
                         } else if (actionItem.action.toLowerCase() === "view") {
                           console.log(2222222222222222);
                           
-                          navigate("/customer/farners/create", {
+                          navigate("/customer/farmers/create", {
                             state: {
                               id: data.id,
                               mod: actionItem.action,
@@ -283,13 +283,13 @@ export default function DealerList() {
         {/* <ActionButton
           mode="create"
           text="Create"
-          onClick={(e) => navigate("/customer/farners/create")}
+          onClick={(e) => navigate("/customer/farmers/create")}
         /> */}
         <ActionButton
           text="Create"
           mode="create"
           onClick={() =>
-            navigate("/customer/farners/create", {
+            navigate("/customer/farmers/create", {
                 state: { 
                     mod: "create" 
                 },

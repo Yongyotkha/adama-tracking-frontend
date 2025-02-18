@@ -1162,7 +1162,7 @@ export default function EditInformation() {
             <ActionButton
               mode="back"
               text="Back"
-              onClick={() => navigate("/customer/farners")}
+              onClick={() => navigate("/customer/farmers")}
             />
           {
           !isViewMode && (

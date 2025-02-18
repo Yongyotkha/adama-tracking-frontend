@@ -42,8 +42,8 @@ import EditInformation from "./pages/customer/dealer/EditInformation";
 import SubDealer from "./pages/customer/sub_dealer/SubDealerList";
 import CreateSubDealer from "./pages/customer/sub_dealer/CreateSubDealer";
 import EditSubDealer from "./pages/customer/sub_dealer/EditSubDealer";
-import Farners from "./pages/customer/Farmers/FarmersList";
-import FarnersCreate from "./pages/customer/Farmers/FarmersCreate";
+import Farmer from "./pages/customer/Farmers/FarmersList";
+import FarmerCreate from "./pages/customer/Farmers/FarmersCreate";
 
 import AdvanceExpense from "./pages/expenses/advance/AdvanceExpense";
 import CreateAdvanceExpense from "./pages/expenses/advance/CreateAdvanceExpense";
@@ -212,8 +212,8 @@ const App = () => {
             {/* <Route path="/customer/sub-dealer/edit" element={<EditSubDealer />} /> */}
             {/* <Route path="/customer/sub-dealer/view" element={<EditSubDealer />} /> */}
 
-            <Route path="/customer/farners" element={<Farners />} />
-            <Route path="/customer/farners/create" element={<FarnersCreate />} />
+            <Route path="/customer/farmers" element={<Farmer />} />
+            <Route path="/customer/farmers/create" element={<FarmerCreate />} />
 
             {/* Setting Route */}
             <Route path="/setting/role" element={<SettingRole />} />
