@@ -68,11 +68,24 @@ export default function Dashboard() {
   const chartSetting = {
     yAxis: [
       {
-        label: "Million (MB)",
+        label: null,
+        tickLabelStyle: {
+          fontSize: 12,
+          whiteSpace: "nowrap",
+          overflow: "visible",
+          textAlign: "right",
+        },
       },
     ],
-    // width: 500,
+    xAxis: [
+      {
+        scaleType: "band",
+        dataKey: "month",
+        tickLabelStyle: { fontSize: 12 },
+      },
+    ],
     height: 300,
+    margin: { left: 85 }, // Increase left margin for large numbers
     sx: {
       [`.${axisClasses.left} .${axisClasses.label}`]: {
         transform: "translate(-10px, 0)",
@@ -82,9 +95,9 @@ export default function Dashboard() {
 
   const navigate = useNavigate();
 
-  function valueFormatter(value) {
-    return `${value} Million`;
-  }
+  const valueFormatterMB = (value) => {
+    return `${(value / 1_000_000).toFixed(1)} MB`; // Convert to MB
+  };
 
   // Pie Chart Data
   const pieData = [
@@ -664,7 +677,7 @@ export default function Dashboard() {
               <h3 className="text-lg font-bold text-[#00783F]">Expense</h3>
               <div className="flex flex-wrap gap-2">
                 <Select
-                  className="w-36"
+                  className="w-36 hidden"
                   value={selectedSubdealerExpense}
                   // onChange={handleSubdealerChangeExpense}
                   onChange={(value) => {
@@ -713,6 +726,15 @@ export default function Dashboard() {
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-300">
               <div className="text-center py-4">
                 <div className="text-md font-bold text-[#00783F]">
+                  {"123"}
+                  {/* {dashboardDataExpense.total_expense_advance}{" "} */}
+                  <br />{"100%"}
+                </div>
+                <div className="text-sm text-gray-500">Activity Plan</div>
+              </div>
+              <div className="text-center py-4 flex flex-col justify-between">
+                <div className="text-md font-bold text-[#00783F]">
+                  {" "}
                   {dashboardDataExpense.total_expense_advance}{" "}
                 </div>
                 <div className="text-sm text-gray-500">Advance</div>
@@ -725,6 +747,7 @@ export default function Dashboard() {
                 <div className="text-md font-bold text-[#00783F]">
                   {" "}
                   {dashboardDataExpense.total_expense_actual_sale}{" "}
+                  <br />{"100%"}
                 </div>
                 <div className="text-sm text-gray-500">Actual</div>
               </div>
@@ -732,7 +755,7 @@ export default function Dashboard() {
           </BoxPrimary>
         </Col>
 
-        {/* Order */}
+        {/* Sale By Dealer */}
         <Col xs={24} sm={12} lg={12} xxl={5}>
           <BoxPrimary className="h-full items-center flex flex-col">
             <div className="flex flex-wrap justify-between items-center w-full">
@@ -929,13 +952,22 @@ export default function Dashboard() {
                   </div>
                 </div>
                 {/* แสดง Bar Chart ด้วยข้อมูลจาก Dealer Plan */}
+
                 <div className="h-full rounded">
                   <BarChart
                     dataset={dealerPlanData}
                     xAxis={[{ scaleType: "band", dataKey: "month" }]}
                     series={[
-                      { dataKey: "plan", label: "Work Plan", valueFormatter },
-                      { dataKey: "actual", label: "Actual", valueFormatter },
+                      {
+                        dataKey: "plan",
+                        label: "Work Plan",
+                        valueFormatter: valueFormatterMB,
+                      },
+                      {
+                        dataKey: "actual",
+                        label: "Actual",
+                        valueFormatter: valueFormatterMB,
+                      },
                     ]}
                     slotProps={{
                       legend: {
@@ -943,8 +975,19 @@ export default function Dashboard() {
                         position: { vertical: "bottom", horizontal: "middle" },
                         padding: 0,
                       },
+                      // bar: {
+                      //   barLabel: (props) => `${valueFormatterMB(props.value)}`, // Show label
+                      // },
+                    }}
+                    sx={{
+                      ".MuiChartsBar-label": {
+                        fill: "#333", // Ensure text is visible
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                      },
                     }}
                     {...chartSetting}
+
                   />
                 </div>
               </Card>
@@ -1108,7 +1151,7 @@ export default function Dashboard() {
                       {
                         scaleType: "band",
                         dataKey: "month",
-                        label: "Product",
+                        label: null,
                       },
                     ]}
                     xAxis={[
@@ -1364,32 +1407,40 @@ export default function Dashboard() {
                 <tr className="border-b border-gray-300">
                   <th className="text-left py-2 font-semibold">Type</th>
                   <th className="text-left py-2 font-semibold">Plan</th>
+                  <th className="text-left py-2 font-semibold">Value</th>
                   <th className="text-left py-2 font-semibold">Actual</th>
+                  <th className="text-left py-2 font-semibold">Value</th>
                 </tr>
               </thead>
               <tbody>
-                {listActivityData.map((item, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-gray-200 hover:bg-gray-100"
-                  >
-                    <td className="py-2 flex gap-2">
-                      <img
-                        src={item.icon}
-                        alt={item.type}
-                        className="w-6 h-6"
-                      />
-                      <span>{item.type}</span>
-                    </td>
-                    <td className="py-2 text-gray-700">
-                      {item.plan.toLocaleString()}
-                    </td>
-                    <td className="py-2 text-gray-700">
-                      {item.actual.toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
+                {listActivityData.map((item, index) => {
+                  console.log("Activity Item:", item); // Log each item
+                  return (
+                    <tr
+                      key={index}
+                      className="border-b border-gray-200 hover:bg-gray-100"
+                    >
+                      <td className="py-2 flex gap-2">
+                        <img
+                          src={item.icon}
+                          alt={item.type}
+                          className="w-6 h-6"
+                        />
+                        <span>{item.type}</span>
+                      </td>
+                      <td className="text-center py-2 text-gray-700">
+                        {item.plan.toLocaleString()}
+                      </td>
+                      <td className="text-center py-2 text-gray-700">10</td>
+                      <td className="text-center py-2 text-gray-700">
+                        {item.actual.toLocaleString()}
+                      </td>
+                      <td className="text-center py-2 text-gray-700">10</td>
+                    </tr>
+                  );
+                })}
               </tbody>
+
             </table>
           </BoxPrimary>
         </Col>
