@@ -555,7 +555,7 @@ export default function EditInformation() {
   };
 
   
-  const handleAddSelectedRowsFammer = (selectedRows) => {
+  const handleAddSelectedRowsFarmer = (selectedRows) => {
     console.log(selectedRows);
     
     if (!Array.isArray(selectedRows)) {
@@ -610,7 +610,7 @@ export default function EditInformation() {
     };
 
     try {
-      const response = await useServiceAPI.get(paths.pathMasterFammer,requestData);
+      const response = await useServiceAPI.get(paths.pathMasterFarmer,requestData);
       if (response.status === 200) {
         const data = response.data;      
         const territoryData = data.map((item, index) => ({
@@ -646,7 +646,7 @@ export default function EditInformation() {
     };
     try {
       const response = await useServiceAPI.get(
-        paths.pathMasterFammer,
+        paths.pathMasterFarmer,
         requestData
       );
 
@@ -654,7 +654,7 @@ export default function EditInformation() {
         const data = response.data;      
         console.log(data);
                 
-        const territoryFammerData = data.map((item, index) => ({
+        const territoryFarmerData = data.map((item, index) => ({
           key: item.farmer_id,
           no: index + 1,
           name: item.farmer_name,
@@ -668,10 +668,10 @@ export default function EditInformation() {
           ),
 
         }));
-        setFarmerList(territoryFammerData);
+        setFarmerList(territoryFarmerData);
       }
     } catch (error) {
-      console.error("Error fetching Fammer list:", error);
+      console.error("Error fetching Farmer list:", error);
     } finally {
       setLoading(false);
     }
@@ -1159,7 +1159,7 @@ export default function EditInformation() {
         <>
           <BoxPrimary>
             <div className="flex justify-between space-x-4 mb-3">
-              <span className="text-[#00783F] text-lg font-semibold"> Fammer </span>
+              <span className="text-[#00783F] text-lg font-semibold"> Farmer </span>
               {
                 !isViewMode && (
                   <div className="flex space-x-2">

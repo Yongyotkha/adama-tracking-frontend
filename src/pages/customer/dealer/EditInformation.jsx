@@ -220,7 +220,7 @@ export default function EditInformation() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-  const headerFammer = [
+  const headerFarmer = [
     { title: "No", dataIndex: "no", align: "center" },
     { title: "Farmer Name", dataIndex: "name", align: "left" },
     { title: "Contact Number", dataIndex: "mobilePhone", align: "center" },
@@ -593,7 +593,7 @@ export default function EditInformation() {
   };
 
   
-  const handleAddSelectedRowsFammer = (selectedRows) => {
+  const handleAddSelectedRowsFarmer = (selectedRows) => {
     console.log(selectedRows);
     
     if (!Array.isArray(selectedRows)) {
@@ -685,7 +685,7 @@ export default function EditInformation() {
     };
     try {
       const response = await useServiceAPI.get(
-        paths.pathMasterFammer,
+        paths.pathMasterFarmer,
         requestData
       );
 
@@ -693,7 +693,7 @@ export default function EditInformation() {
         const data = response.data;      
         console.log(data);
                 
-        const territoryFammerData = data.map((item, index) => ({
+        const territoryFarmerData = data.map((item, index) => ({
           key: item.farmer_id,
           no: index + 1,
           name: item.farmer_name,
@@ -707,10 +707,10 @@ export default function EditInformation() {
           ),
 
         }));
-        setFarmerList(territoryFammerData);
+        setFarmerList(territoryFarmerData);
       }
     } catch (error) {
-      console.error("Error fetching Fammer list:", error);
+      console.error("Error fetching Farmer list:", error);
     } finally {
       setLoading(false);
     }
@@ -1153,7 +1153,7 @@ export default function EditInformation() {
               )}
             </div>
             <TableComponent 
-              header={headerFammer} 
+              header={headerFarmer} 
               dataSource={farmerListItem} 
             />
           </BoxPrimary>
@@ -1229,7 +1229,7 @@ export default function EditInformation() {
         ]}
         dataSource={farmerList}
         width="1200px"
-        onAddSelected={handleAddSelectedRowsFammer}
+        onAddSelected={handleAddSelectedRowsFarmer}
         type="add"
       />
 
