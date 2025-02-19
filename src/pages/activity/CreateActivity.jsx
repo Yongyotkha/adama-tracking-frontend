@@ -1546,7 +1546,7 @@ export default function CreateActivity() {
         <ActionButton
           mode="saveDraft"
           text="Export PDF"
-          className={pageCode === "expense_advance" || pageCode === "expense_clearing" ? "" : "hidden"}
+          className={pageCode === "expense_advance" || pageCode === "expense_clearing" ? "hidden" : "hidden"}
           onClick={() => window.open("/expenses/advance/pdf", "_blank")}
         />
       </div>
