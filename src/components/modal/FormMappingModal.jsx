@@ -84,10 +84,18 @@ const FormMappingModal = ({
   const fetchActivityListDetails = async (documentNumber) => {
     setLoading(true);    
     try {
-      const response = await useServiceAPI.get(`${paths.pathActivityDetail}/?document_number=${documentNumber}`);      
+      const response = await useServiceAPI.get(`${paths.pathActivityMappingStatusDetail}/?document_number=${documentNumber}`);      
       if (response.status === 200) {
         const { data } = response;         
-        
+        console.log(data);
+        setFormData((prevFormData) => ({
+          ...prevFormData,
+          customerName: data.customer_name || prevFormData.customerName, 
+          placeOfOwner: data.customer_place_of_owner || prevFormData.placeOfOwner, 
+          phoneNumber: data.customer_phone_number || prevFormData.phoneNumber, 
+          address: data.customer_address || prevFormData.address, 
+          Remark: data.remark || prevFormData.remark, 
+        }));
 
       } else {
         console.error("Failed to fetch details:", response.message);
