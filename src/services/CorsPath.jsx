@@ -33,7 +33,7 @@ export const paths = {
   pathMasterSubDealerCustomer: "master/sub-dealer-customer",
   pathMasterPermission: "master/permission",
   pathMasterProductUnit: "master/product-unit",
-  pathMasterFammer: "master/farmer-all",
+  pathMasterFarmer: "master/farmer-all",
   // pathMasterShop: "master/shop",
   pathMasterStatus: "master/status",
   pathMasterHeadofsale: "master/headofsale",
