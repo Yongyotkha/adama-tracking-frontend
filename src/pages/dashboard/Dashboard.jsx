@@ -146,7 +146,6 @@ export default function Dashboard() {
     fetchAllData();
   }, []);
 
-
   useEffect(() => {
     const fetchDashboardData = async () => {
       setLoading(true);
@@ -242,9 +241,19 @@ export default function Dashboard() {
         if (response.status === 200 && response.data) {
           const data = response.data.map((item) => ({
             month: item.name,
-            plan: parseFloat(item.work_plan_value || 0),
-            rolling: parseFloat(item.work_rolling_plan_value || 0),
-            actual: parseFloat(item.work_actual_value || 0),
+            plan:
+              parseFloat(
+                String(item.work_plan_value || "0").replace(/,/g, "")
+              ) || 0,
+
+            rolling:
+              parseFloat(
+                String(item.work_rolling_plan_value || "0").replace(/,/g, "")
+              ) || 0,
+            actual:
+              parseFloat(
+                String(item.work_actual_value || "0").replace(/,/g, "")
+              ) || 0,
           }));
 
           console.log(data);
@@ -276,11 +285,22 @@ export default function Dashboard() {
           }
         );
         if (response.status === 200 && response.data) {
+          console.log(response.data);
+
           const data = response.data.map((item) => ({
             activity: item.activity_type_name,
-            total_activity_actual: parseInt(item.total_activity_actual, 10),
-            total_activity_list: parseInt(item.total_activity_list, 10),
-            total_activity_plan: parseInt(item.total_activity_plan, 10),
+            total_activity_actual:
+              parseFloat(
+                String(item.total_activity_actual || "0").replace(/,/g, "")
+              ) || 0,
+            total_activity_list:
+              parseFloat(
+                String(item.total_activity_list || "0").replace(/,/g, "")
+              ) || 0,
+            total_activity_plan:
+              parseFloat(
+                String(item.total_activity_plan || "0").replace(/,/g, "")
+              ) || 0,
             color: item.activity_color,
           }));
 
@@ -313,8 +333,14 @@ export default function Dashboard() {
         if (response.status === 200 && response.data) {
           const data = response.data.map((item) => ({
             month: item.product_name,
-            plan: parseFloat(item.work_plan_value),
-            actual: parseFloat(item.work_actual_value),
+            plan:
+              parseFloat(
+                String(item.work_plan_value || "0").replace(/,/g, "")
+              ) || 0,
+            actual:
+              parseFloat(
+                String(item.work_actual_value || "0").replace(/,/g, "")
+              ) || 0,
           }));
           setSubDealerPlanData(data); // อัปเดต State
         } else {
@@ -347,7 +373,10 @@ export default function Dashboard() {
         );
         if (response.status === 200 && response.data) {
           const data = response?.data?.items?.map((item) => ({
-            value: parseFloat(item.total_amount_target.replace(/,/g, "")),
+            value:
+              parseFloat(
+                String(item.total_amount_target || "0").replace(/,/g, "")
+              ) || 0,
             label: item.sub_dealer_name,
             percentage: item.percentage,
           }));
