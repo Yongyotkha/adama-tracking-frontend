@@ -95,6 +95,8 @@ export default function EditProduct() {
       setLoading(false);
     }
   };
+
+  
   const updatedFields = useMemo(() => [
     { label: "", name: "profile", type: "picture", required: false, col: 24, value: userinfo.product_image },
     { label: "Product Code", name: "product_code", type: "text", required: true, col: 6, disabled: true, value: userinfo.product_code },

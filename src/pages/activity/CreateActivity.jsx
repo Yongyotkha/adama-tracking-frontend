@@ -946,7 +946,7 @@ export default function CreateActivity() {
       particapant_list: particapantList,
     };
     console.log(body);
-    return;
+
     if (documentNumber) {
       useServiceAPI
         .put(paths.pathActivityExpenseDetail, body, setLoading)

@@ -4,6 +4,8 @@ import { EnvironmentOutlined } from "@ant-design/icons";
 import Webcam from "react-webcam";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import useServiceAPI from "../../services/CorsService";
+import { paths } from "../../services/CorsPath";
 
 dayjs.extend(customParseFormat);
 
@@ -42,6 +44,7 @@ const FormMappingModal = ({
   const webcamRef = useRef(null);
   const [capturedImage, setCapturedImage] = useState(null);
   const [photoError, setPhotoError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const stopWebcam = () => {
     if (webcamRef.current && webcamRef.current.stream) {
@@ -54,6 +57,8 @@ const FormMappingModal = ({
     stopWebcam(); // หยุดกล้องเมื่อปิด Modal
     onClose();    // เรียกฟังก์ชันปิด Modal ที่ส่งมาจาก Props
   };
+
+
 
   // Update formData when dataSource changes
   useEffect(() => {
@@ -73,9 +78,27 @@ const FormMappingModal = ({
         gps: dataSource.location_address,
       });
     }
-    console.log(dataSource);
-
+    fetchActivityListDetails(dataSource.document_number); // เรียกใช้ฟังก์ชันนี้เมื่อข้อมูลใน dataSource เปลี่ยน
   }, [dataSource]);
+
+  const fetchActivityListDetails = async (documentNumber) => {
+    setLoading(true);    
+    try {
+      const response = await useServiceAPI.get(`${paths.pathActivityDetail}/?document_number=${documentNumber}`);      
+      if (response.status === 200) {
+        const { data } = response;         
+        
+
+      } else {
+        console.error("Failed to fetch details:", response.message);
+      }
+    } catch (error) {
+      console.error("Error fetching details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   // ดึงที่อยู่จาก Google Maps Geocoding API
   const fetchAddress = async (lat, lng) => {
