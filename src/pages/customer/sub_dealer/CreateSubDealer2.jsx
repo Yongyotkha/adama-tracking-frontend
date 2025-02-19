@@ -348,7 +348,7 @@ export default function CreateSubDealer() {
     try {
       // ตัวอย่างการดึงข้อมูล sub_dealer หรือ network ต่าง ๆ
       // สมมติเรียก API getUserList()
-      const response = await useServiceAPI.get(paths.pathMasterFammer, {});
+      const response = await useServiceAPI.get(paths.pathMasterFarmer, {});
       if (response.status === 200) {
         const data = response.data || [];
         // แปลง data เป็นรูปที่ใช้ในตาราง
@@ -1114,7 +1114,7 @@ export default function CreateSubDealer() {
     <>
       <BoxPrimary>
         <div className="flex justify-between space-x-4 mb-3">
-          <span className="text-[#00783F] text-lg font-semibold">Fammer</span>
+          <span className="text-[#00783F] text-lg font-semibold">Farmer</span>
           <ActionButton mode="add" text="Add" onClick={handleOpenTerritoryModal} />
         </div>
         <TableComponent header={networkHeader} dataSource={networkList} />
@@ -1151,7 +1151,7 @@ export default function CreateSubDealer() {
           },
           {
             key: "network",
-            label: <span className="tab-title">Fammer</span>,
+            label: <span className="tab-title">Farmer</span>,
             children: networkTabContent,
           },
         ]}
@@ -1159,7 +1159,7 @@ export default function CreateSubDealer() {
 
       {/* DynamicModal สำหรับเลือก network เพิ่มเติม */}
       <DynamicModal
-        title="Add Fammer"
+        title="Add Farmer"
         isVisible={isTerritoryModalVisible}
         onClose={handleCloseTerritoryModal}
         header={[

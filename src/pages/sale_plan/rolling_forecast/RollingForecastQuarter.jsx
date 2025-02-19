@@ -40,21 +40,16 @@ export default function RollingForecastQuarter() {
 
   const getMasterDealer = () => {
     useServiceAPI
-      .get(
-        paths.pathRollingForecastDealer,
-        {
-          year_code: location?.state?.year_code,
-          user_id: location?.state?.user_id,
-          workplan_header_id: location?.state?.workplan_header_id,
-          workplan_area_header_id: location?.state?.workplan_area_header_id,
-          workplan_sale_header_id: location?.state?.workplan_sale_header_id,
-        }
-      )
+      .get(paths.pathRollingForecastDealer, {
+        year_code: location?.state?.year_code,
+        user_id: location?.state?.user_id,
+        workplan_header_id: location?.state?.workplan_header_id,
+        workplan_area_header_id: location?.state?.workplan_area_header_id,
+        workplan_sale_header_id: location?.state?.workplan_sale_header_id,
+      })
       .then((response) => {
         console.log(response);
         if (response.status === 200) {
-
-
           const dealerItems = response.data.dealer_items;
 
           // เพิ่มตัวเลือก "All"
@@ -67,7 +62,7 @@ export default function RollingForecastQuarter() {
             workplan_area_header_id: null,
             workplan_sale_header_id: null,
           };
-  
+
           const updatedDealers = [allDealerOption, ...dealerItems];
           setDealers(updatedDealers);
           if (updatedDealers.length > 0) {
@@ -481,10 +476,11 @@ export default function RollingForecastQuarter() {
   const handleSave = async (mode) => {
     setLoading(true); // เริ่มโหลดข้อมูล
 
-    // อัพเดตข้อมูล quarter ด้วยข้อมูลใน localQtyState
     try {
       const updatedQuarterData = quarter.map((item) => {
         const localQuarter = localQtyState[item.quarter_id] || {};
+        const rollingforecast_amount_target = localQuarter.total_value || 0;
+
         const updatedMonths = item.data_items.map((month) => {
           const localMonth = localQuarter.months?.[month.month_id] || {};
           return {
@@ -506,10 +502,14 @@ export default function RollingForecastQuarter() {
             }),
           };
         });
-        return { ...item, data_items: updatedMonths };
+        return {
+          ...item,
+          rollingforecast_amount_target,
+          data_items: updatedMonths,
+        };
       });
 
-      console.log(localQtyState);
+  
 
       const found = updatedQuarterData.some((quarter) => {
         const matchingItem = quarter.data_items.find(

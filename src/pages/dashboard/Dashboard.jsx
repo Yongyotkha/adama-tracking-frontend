@@ -79,9 +79,9 @@ export default function Dashboard() {
 
   const valueFormatterMB = (value) => {
     if (typeof value !== "number" || isNaN(value)) {
-      return "0.0 M.B."; // ถ้าค่าไม่ถูกต้อง ให้ return ค่าปลอดภัย
+      return "0.0 M THB"; // ถ้าค่าไม่ถูกต้อง ให้ return ค่าปลอดภัย
     }
-    return `${(value / 1_000_000).toFixed(1)} M.B.`; // แปลงเป็น MB
+    return `${(value / 1_000_000).toFixed(1)} M THB`; // แปลงเป็น MB
   };
 
   useEffect(() => {
