@@ -626,7 +626,7 @@ export default function WorkPlanSaleBySubDealer() {
               </div>
             </div>
             <div>
-              <div>Dealer Plan</div>
+              <div>Sub Dealer Sale Plan</div>
               <div className="">
                 <InputNumber
                   disabled
@@ -678,7 +678,7 @@ export default function WorkPlanSaleBySubDealer() {
         </BoxPrimary>
 
         <BoxPrimary>
-          <div className="text-[#00783F] text-xl pb-5">Sub Dealer Plan</div>
+          <div className="text-[#00783F] text-xl pb-5">Work Plan</div>
 
           <TableCustomComponent
             header={columns}
