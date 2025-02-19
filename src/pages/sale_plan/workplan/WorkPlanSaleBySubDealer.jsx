@@ -626,7 +626,7 @@ export default function WorkPlanSaleBySubDealer() {
               </div>
             </div>
             <div>
-              <div>Sub Dealer Sale Plan</div>
+              <div>Dealer Plan</div>
               <div className="">
                 <InputNumber
                   disabled
@@ -641,7 +641,7 @@ export default function WorkPlanSaleBySubDealer() {
               </div>
             </div>
             <div>
-              <div>Work Plan</div>
+              <div>Sub Dealer Plan</div>
               <div className="">
                 <InputNumber
                   disabled
