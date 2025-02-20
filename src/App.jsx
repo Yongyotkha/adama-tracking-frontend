@@ -105,6 +105,7 @@ import RegisterOA from "./pages/mobile/register/RegisterOA";
 import ContactOA from "./pages/mobile/contact/ContactOA";
 import MainOA from "./pages/mobile/main/MainOA";
 import ActivityPlanDealerMonth from "./pages/activity/activity_plan/ActivityPlanDealerMonth";
+import PDFClearingExpense from "./pages/pdf/PDFClearingExpense";
 
 const App = () => {
   return (
@@ -190,7 +191,7 @@ const App = () => {
             <Route path="/expenses/clearing" element={<ClearingExpense />} />
             <Route path="/expenses/clearing/create" element={<CreateClearing />} />
             <Route path="/expenses/clearing/edit" element={<EditClearing />} />
-
+            <Route path="/expenses/clearing/pdf" element={<PDFClearingExpense />} />
 
 
             <Route path="/expenses/sample" element={<SampleExpense />} />
