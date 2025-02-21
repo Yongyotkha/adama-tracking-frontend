@@ -477,7 +477,7 @@ export default function WorkPlanSaleByCrop() {
               />
             </div>
             <div>
-              <div>Sale</div>
+              <div>Sales</div>
               <InputNumber disabled className="w-[300px]" value={name} />
             </div>
           </div>

@@ -315,7 +315,7 @@ export default function WorkPlan() {
       : []),
     
     {
-      title: "Last modified",
+      title: "Last Modified",
       width: "20%",
       dataIndex: "lastModified",
       align: "left",

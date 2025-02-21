@@ -551,7 +551,7 @@ export default function WorkPlanSaleByDealer() {
               />
             </div>
             <div>
-              <div>Sale</div>
+              <div>Sales</div>
               <InputNumber disabled className="w-[300px]" value={name} />
             </div>
             <div className="self-end">

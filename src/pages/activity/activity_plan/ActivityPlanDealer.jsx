@@ -678,7 +678,7 @@ export default function ActivityPlanDealer() {
         <BoxPrimary>
           <div className="flex gap-4">
             <div>
-              <div>Sale</div>
+              <div>Sales</div>
               <div className="">
                 <Input disabled className="w-[300px]" value={sale} />
               </div>
