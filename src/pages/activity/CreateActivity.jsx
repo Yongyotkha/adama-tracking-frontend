@@ -87,6 +87,7 @@ export default function CreateActivity() {
 
   useEffect(() => {
     const urlDate = searchParams.get("date");
+
     if (urlDate) {
       setActivityDetail((prevDetail) => ({
         ...prevDetail,
@@ -96,6 +97,7 @@ export default function CreateActivity() {
     }
   }, [searchParams]);
 
+  
   useEffect(() => {
     if (!documentNumber) {
       const exists = saleList.some((item) => item.id === userInfo.id);
@@ -1548,15 +1550,14 @@ export default function CreateActivity() {
           text="Export PDF"
           className={pageCode === "expense_advance" || pageCode === "expense_clearing" ? "" : "hidden"}
           onClick={() => {
-            const targetUrl = pageCode === "expense_clearing"
-              ? "/expenses/clearing/pdf"
-              : "/expenses/advance/pdf";
-
+            const targetUrl = "/expenses/advance/pdf";
             navigate(targetUrl, {
               state: {
-                // year_code: getYearCode,
-                // month_code: getMonthCode,
-                // user_id: getUserId,
+                // year_code: 1111,
+                // month_code: 1111,
+                // user_id: 111,
+                document_number: activityDetail.document_number,
+                page_code: pageCode,
               },
             });
           }}

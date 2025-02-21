@@ -1,4 +1,4 @@
-import React from "react";
+import React,{ useState, useEffect } from "react";
 import {
   Page,
   Image,
@@ -9,6 +9,9 @@ import {
   PDFViewer,
   Font,
 } from "@react-pdf/renderer";
+import { useLocation } from "react-router-dom";
+import useServiceAPI from "../../services/CorsService";
+import { paths } from "../../services/CorsPath";
 
 // Register Sarabun Font
 Font.register({
@@ -30,7 +33,9 @@ const styles = StyleSheet.create({
   companyDetails: { flex: 1, paddingLeft: 10, fontSize: 8 },
   title: { textAlign: "center", fontSize: 14, fontWeight: "bold", marginBottom: 10 },
   section: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10, borderStyle: "solid", borderWidth: 1, borderColor: "#000", padding: 5, lineHeight: 1 },
-  sectionColumn: { width: "48%" },
+  sectionColumn: { width: "68%" },
+  sectionColumn2: { width: "68%" },
+
   table: { display: "table", width: "100%", borderStyle: "solid", borderWidth: 1, borderColor: "#000" },
   tableRow: { flexDirection: "row" },
   tableCellHeader: { borderBottomWidth: 1, padding: 5, fontWeight: "bold", textAlign: "center", flex: 1, borderRightWidth: 1 },
@@ -54,6 +59,43 @@ const styles = StyleSheet.create({
 });
 
 const AdvanceExpensePDF = () => {
+    const location = useLocation();
+    const [loading, setLoading] = useState(false);
+    const [getDocumentNumber, setGetDocumentNumber] = useState(location.state.document_number);
+    const [getPageCode, setGetPageCode] = useState(location.state.page_code);
+    const [getAdvanceDetail, setAdvanceDetail] = useState(location.state.page_code);
+    const [dataItems, setDataItems] = useState([]);
+    const [dataHeader, setDataHeader] = useState([]);
+    const [dataCrop, setDataCrop] = useState([]);
+
+    console.log(location.state);
+
+  console.log(dataItems);
+  
+  useEffect(() => {
+    const loadDataAdvance = async () => {
+      setLoading(true);
+      try {
+        const response = await useServiceAPI.get(paths.pathActivityExpenseDetail, {
+          document_number: getDocumentNumber,
+          page_code: getPageCode,
+        });  
+        if (response.status == 200) {
+          console.log(response.data);
+          setDataItems(response.data.expense_product_data_list); // เซ็ตค่าให้กับ state
+          setDataHeader(response.data);
+          setDataCrop(response.data.crop_id_list)          
+        }
+      } catch (error) {
+        console.error("Error fetching traveling data:", error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDataAdvance();
+  }, [getDocumentNumber, getPageCode]);
+
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
       <Document>
@@ -74,23 +116,43 @@ const AdvanceExpensePDF = () => {
           {/* Details Section */}
           <View style={styles.section}>
             <View style={styles.sectionColumn}>
-              <Text>Advance No: AE2025010073</Text>
-              <Text>Activity Type: Small Farmer Meeting</Text>
-              <Text>Shop Name: SP สาขาเขาปั๊ป</Text>
-              <Text>Crop: Fruits</Text>
-              <Text>Sale Name: Chainarong Jitsawaeng</Text>
+              <Text>Advance No: {location.state.document_number}</Text>
+              <Text>Activity Type: {dataHeader.activity_type_name}</Text>
+              <Text>Shop Name: {dataHeader.dealer_name}</Text>
+              <Text>
+                Crop:{" "}
+                {dataCrop.map((crop, index) => (
+                  <Text key={index}>{crop.name}{index < dataCrop.length - 1 && ", "}</Text> // ใช้เครื่องหมาย , หลังแต่ละรายการ
+                ))}
+              </Text>
+              <Text>Sale Name: {dataHeader.user_name}</Text>
             </View>
+            
             <View style={styles.sectionColumn}>
-              <Text>Event Date: 20/01/2025</Text>
-              <Text>Est. Participant: Person</Text>
-              <Text>Actual Participant: Person</Text>
-              <Text>Advance Exp: THB</Text>
-              <Text>Actual Exp: THB</Text>
+              <Text>Event Date:  {dataHeader.document_date} </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={{ marginRight: '60px' }}>Est. Participant: {dataHeader.participant_estimate} </Text>
+                <Text>Actual Participant: 0</Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={{ marginRight: '60px' }}>Advance Exp: {dataHeader.expense_advance}  </Text>
+                <Text>Actual Exp: {dataHeader.expense_actual_exp} </Text>
+              </View>
+
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={{ marginRight: '60px' }}>Exp: 0 %</Text>
+                <Text>Exp: 0 %</Text>
+              </View>
+
             </View>
+            
           </View>
 
+
+
+
           {/* Table */}
-          <View style={styles.table}>
+          {/* <View style={styles.table}>
             <View style={styles.tableRow}>
               <Text style={styles.tableCellHeader}>Product Name</Text>
               <Text style={styles.tableCellHeader}>Pack Size</Text>
@@ -126,7 +188,28 @@ const AdvanceExpensePDF = () => {
               <Text style={styles.tableCell}>6,548</Text>
               <Text style={[styles.tableCell, styles.tableCellLast]}></Text>
             </View>
+          </View> */}
+
+
+        <View style={styles.table}>
+          {/* Header ของ Table */}
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCellHeader}>Product Name</Text>
+            <Text style={styles.tableCellHeader}>Pack Size</Text>
+            <Text style={styles.tableCellHeader}>Plan QTY (KG)</Text>
+            <Text style={styles.tableCellHeader}>Plan Value (THB)</Text>
+            <Text style={[styles.tableCellHeader, styles.tableCellLast]}>Actual QTY (KG)</Text>
           </View>
+          {dataItems.map((item, index) => (
+            <View style={styles.tableRow} key={index}>
+              <Text style={styles.tableCell}>{Number(item.estimate_sale_qty) ? item.product_name :''}</Text>
+              <Text style={styles.tableCell}>{Number(item.estimate_sale_qty) ? item.packing_list : ''}</Text>
+              <Text style={styles.tableCell}>{Number(item.estimate_sale_qty) !== 0 ? item.estimate_sale_qty : ''}</Text> 
+              <Text style={styles.tableCell}>{Number(item.estimate_sale_qty) ? item.bath_ltkg : ''}</Text> {/* แสดงค่า Plan Value ถ้ามี */}
+              <Text style={[styles.tableCell, styles.tableCellLast]}>{Number(item.estimate_sale_qty) ? item.actual_qty_kg : ""}</Text> {/* แสดงค่า Actual QTY ถ้ามี */}
+            </View>
+          ))}
+        </View>
 
           {/* Footer */}
           <View style={styles.footer}>
@@ -135,10 +218,8 @@ const AdvanceExpensePDF = () => {
               <View style={styles.footerSection}>
                 <Text style={styles.footerLabel}>Advance</Text>
                 <View style={styles.footerContentRow}>
-                  <Text>Request By :</Text>
-                  <Text>Chainarong Jitsawaeng</Text>
-                  <Text>Date</Text>
-                  <Text>19/2/2568</Text>
+                  <Text>Request By :  {dataHeader.user_name}</Text>
+                  <Text>Date: {dataHeader.document_date}</Text>
                 </View>
                 <View style={styles.footerContentRow}>
                   <Text>Approved By :</Text>
