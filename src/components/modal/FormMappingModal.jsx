@@ -45,6 +45,7 @@ const FormMappingModal = ({
   const [capturedImage, setCapturedImage] = useState(null);
   const [photoError, setPhotoError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectPerception, setPerception ] = useState({});
 
   const stopWebcam = () => {
     if (webcamRef.current && webcamRef.current.stream) {
@@ -88,6 +89,9 @@ const FormMappingModal = ({
       if (response.status === 200) {
         const { data } = response;         
         console.log(data);
+
+        setPerception(data.customer_perception_id);
+
         setFormData((prevFormData) => ({
           ...prevFormData,
           customerName: data.customer_name || prevFormData.customerName, 
@@ -266,7 +270,7 @@ const FormMappingModal = ({
           </label>
           <Select
             className="w-full"
-            value={formData.perception}
+            value={selectPerception}
             onChange={(value) => handleInputChange("perception", value)}
             placeholder="Select"
           >
@@ -281,6 +285,14 @@ const FormMappingModal = ({
           )}
 
         </div>
+
+
+
+
+
+
+
+
         <div className="col-span-4">
           <label className="block mb-2 font-medium text-gray-700">Address</label>
           <Input
