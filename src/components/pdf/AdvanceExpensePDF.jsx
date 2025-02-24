@@ -1,4 +1,4 @@
-import React,{ useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Page,
   Image,
@@ -32,10 +32,9 @@ const styles = StyleSheet.create({
   logo: { width: 60, height: 60 },
   companyDetails: { flex: 1, paddingLeft: 10, fontSize: 8 },
   title: { textAlign: "center", fontSize: 14, fontWeight: "bold", marginBottom: 10 },
-  section: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10, borderStyle: "solid", borderWidth: 1, borderColor: "#000", padding: 5, lineHeight: 1 },
-  sectionColumn: { width: "68%" },
-  sectionColumn2: { width: "68%" },
-
+  section: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10, borderStyle: "solid", lineHeight: 1 },
+  sectionColumn: { width: "68%", borderWidth: 1, borderColor: "#000", padding: 5 },
+  sectionColumn2: { width: "68%", borderWidth: 1, borderColor: "#000", padding: 5, borderLeft: 0 },
   table: { display: "table", width: "100%", borderStyle: "solid", borderWidth: 1, borderColor: "#000" },
   tableRow: { flexDirection: "row" },
   tableCellHeader: { borderBottomWidth: 1, padding: 5, fontWeight: "bold", textAlign: "center", flex: 1, borderRightWidth: 1 },
@@ -50,7 +49,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#000",
   },
-  footerRow: { flexDirection: "row" ,lineHeight: 1},
+  footerRow: { flexDirection: "row", lineHeight: 1 },
   footerSection: { flex: 1, padding: 5, borderRightWidth: 1 },
   footerSectionLast: { flex: 1, padding: 5 },
   footerText: { marginBottom: 3 },
@@ -59,19 +58,15 @@ const styles = StyleSheet.create({
 });
 
 const AdvanceExpensePDF = () => {
-    const location = useLocation();
-    const [loading, setLoading] = useState(false);
-    const [getDocumentNumber, setGetDocumentNumber] = useState(location.state.document_number);
-    const [getPageCode, setGetPageCode] = useState(location.state.page_code);
-    const [getAdvanceDetail, setAdvanceDetail] = useState(location.state.page_code);
-    const [dataItems, setDataItems] = useState([]);
-    const [dataHeader, setDataHeader] = useState([]);
-    const [dataCrop, setDataCrop] = useState([]);
+  const location = useLocation();
+  const [loading, setLoading] = useState(false);
+  const [getDocumentNumber, setGetDocumentNumber] = useState(location.state.document_number);
+  const [getPageCode, setGetPageCode] = useState(location.state.page_code);
+  const [getAdvanceDetail, setAdvanceDetail] = useState(location.state.page_code);
+  const [dataItems, setDataItems] = useState([]);
+  const [dataHeader, setDataHeader] = useState([]);
+  const [dataCrop, setDataCrop] = useState([]);
 
-    console.log(location.state);
-
-  console.log(dataItems);
-  
   useEffect(() => {
     const loadDataAdvance = async () => {
       setLoading(true);
@@ -79,12 +74,12 @@ const AdvanceExpensePDF = () => {
         const response = await useServiceAPI.get(paths.pathActivityExpenseDetail, {
           document_number: getDocumentNumber,
           page_code: getPageCode,
-        });  
+        });
         if (response.status == 200) {
           console.log(response.data);
           setDataItems(response.data.expense_product_data_list); // เซ็ตค่าให้กับ state
           setDataHeader(response.data);
-          setDataCrop(response.data.crop_id_list)          
+          setDataCrop(response.data.crop_id_list)
         }
       } catch (error) {
         console.error("Error fetching traveling data:", error.message);
@@ -111,7 +106,15 @@ const AdvanceExpensePDF = () => {
               <Text style={{ fontSize: 8, lineHeight: 1.5 }}>Tel: +66 2 681 1979 Fax: +66 2 681 1977</Text>
             </View>
           </View>
-          <Text style={styles.title}>Advance Expense</Text>
+          <Text style={styles.title}>
+            {location.state.page_code === 'expense_clearing'
+              ? 'Clearing Expense'
+              : location.state.page_code === 'expense_advance'
+                ? 'Advance Expense'
+                : location.state.page_code}
+          </Text>
+
+          <Text style={{ marginLeft: 'auto', paddingBottom: 5 }} >Date : {dataHeader.created_at}</Text>
 
           {/* Details Section */}
           <View style={styles.section}>
@@ -127,8 +130,8 @@ const AdvanceExpensePDF = () => {
               </Text>
               <Text>Sale Name: {dataHeader.user_name}</Text>
             </View>
-            
-            <View style={styles.sectionColumn}>
+
+            <View style={styles.sectionColumn2}>
               <Text>Event Date:  {dataHeader.document_date} </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Text style={{ marginRight: '60px' }}>Est. Participant: {dataHeader.participant_estimate} </Text>
@@ -139,17 +142,12 @@ const AdvanceExpensePDF = () => {
                 <Text>Actual Exp: {dataHeader.expense_actual_exp} </Text>
               </View>
 
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'between' }}>
                 <Text style={{ marginRight: '60px' }}>Exp: 0 %</Text>
                 <Text>Exp: 0 %</Text>
               </View>
-
             </View>
-            
           </View>
-
-
-
 
           {/* Table */}
           {/* <View style={styles.table}>
@@ -190,26 +188,40 @@ const AdvanceExpensePDF = () => {
             </View>
           </View> */}
 
-
-        <View style={styles.table}>
-          {/* Header ของ Table */}
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCellHeader}>Product Name</Text>
-            <Text style={styles.tableCellHeader}>Pack Size</Text>
-            <Text style={styles.tableCellHeader}>Plan QTY (KG)</Text>
-            <Text style={styles.tableCellHeader}>Plan Value (THB)</Text>
-            <Text style={[styles.tableCellHeader, styles.tableCellLast]}>Actual QTY (KG)</Text>
-          </View>
-          {dataItems.map((item, index) => (
-            <View style={styles.tableRow} key={index}>
-              <Text style={styles.tableCell}>{Number(item.estimate_sale_qty) ? item.product_name :''}</Text>
-              <Text style={styles.tableCell}>{Number(item.estimate_sale_qty) ? item.packing_list : ''}</Text>
-              <Text style={styles.tableCell}>{Number(item.estimate_sale_qty) !== 0 ? item.estimate_sale_qty : ''}</Text> 
-              <Text style={styles.tableCell}>{Number(item.estimate_sale_qty) ? item.bath_ltkg : ''}</Text> {/* แสดงค่า Plan Value ถ้ามี */}
-              <Text style={[styles.tableCell, styles.tableCellLast]}>{Number(item.estimate_sale_qty) ? item.actual_qty_kg : ""}</Text> {/* แสดงค่า Actual QTY ถ้ามี */}
+          <View style={styles.table}>
+            {/* Header ของ Table */}
+            <View style={styles.tableRow}>
+              <Text style={styles.tableCellHeader}>Product Name</Text>
+              <Text style={styles.tableCellHeader}>Pack Size</Text>
+              <Text style={styles.tableCellHeader}>Plan QTY (KG)</Text>
+              <Text style={styles.tableCellHeader}>Plan Value (THB)</Text>
+              <Text style={styles.tableCellHeader}>Actual QTY (KG)</Text>
+              <Text style={[styles.tableCellHeader, styles.tableCellLast]}>Actual Value (THB)</Text>
             </View>
-          ))}
-        </View>
+            {dataItems.filter(item => Number(item.estimate_sale_qty) !== 0).length > 0 ? (
+              dataItems.map((item, index) =>
+                Number(item.estimate_sale_qty) !== 0 && (
+                  <View style={styles.tableRow} key={index}>
+                    <Text style={styles.tableCell}>{item.product_name}</Text>
+                    <Text style={styles.tableCell}>{item.packing_list}</Text>
+                    <Text style={styles.tableCell}>{item.estimate_sale_qty}</Text>
+                    <Text style={styles.tableCell}>{item.bath_ltkg}</Text> {/* Plan Value */}
+                    <Text style={styles.tableCell}>{item.actual_qty_kg}</Text> {/* Actual QTY */}
+                    <Text style={[styles.tableCell, styles.tableCellLast]}>{item.actual_qty_kg}</Text> {/* Actual Value */}
+                  </View>
+                )
+              )
+            ) : (
+              <View style={styles.tableRow}>
+                <Text style={styles.tableCell}>-</Text>
+                <Text style={styles.tableCell}>-</Text>
+                <Text style={styles.tableCell}>-</Text>
+                <Text style={styles.tableCell}>-</Text>
+                <Text style={styles.tableCell}>-</Text>
+                <Text style={[styles.tableCell, styles.tableCellLast]}>-</Text>
+              </View>
+            )}
+          </View>
 
           {/* Footer */}
           <View style={styles.footer}>
