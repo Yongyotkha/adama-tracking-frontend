@@ -18,8 +18,8 @@ export default function ActivityPlanList() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-  const [dataSourceSumary, setDataSourceSummary] = useState([]);
-  const [dataSumary, setDataSummary] = useState([]);
+  const [dataSourceSummary, setDataSourceSummary] = useState([]);
+  const [dataSummary, setDataSummary] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const [years, setYears] = useState([]);
   const [status, setStatus] = useState([]);
@@ -107,7 +107,7 @@ export default function ActivityPlanList() {
         const newDataSource = data?.activity_type.map((activity, index) => {
           // Create a row object with type and qty for each month
           const monthData = activity.data_items.reduce((acc, item) => {
-            acc[`month_${item.month_id}`] = item.qty || 0;
+            acc[`month_${item.month_id}`] = item.qty || '-';
             return acc;
           }, {});
           return {
@@ -183,8 +183,8 @@ export default function ActivityPlanList() {
   const columnsSummary = [
     { title: "Type", width: 150, dataIndex: "type", align: "start" },
 
-    ...(Array.isArray(dataSumary?.month_items)
-      ? dataSumary.month_items.map((month_item) => ({
+    ...(Array.isArray(dataSummary?.month_items)
+      ? dataSummary.month_items.map((month_item) => ({
           title: month_item.month_name,
           dataIndex: `month_${month_item.month_id}`, // Dynamically map month data
           key: `month_${month_item.month_id}`,
@@ -423,7 +423,7 @@ export default function ActivityPlanList() {
       </div> */}
 
       <TableComponent
-        dataSource={dataSourceSumary}
+        dataSource={dataSourceSummary}
         header={columnsSummary}
         pagination={false}
         loading={tableLoading}
