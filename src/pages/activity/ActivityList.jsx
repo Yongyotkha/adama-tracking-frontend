@@ -44,14 +44,8 @@ export default function ActivityList() {
   const navigate = useNavigate();
   const [isFormModalReadOnly, setIsFormModalReadOnly] = useState(false);
 
-
   const handleBadgeClick = (rowData) => {
-    // เช็คสถานะ
-    if (rowData.status_mapping_name === "Complete") {
-      setIsFormModalReadOnly(true);
-    } else {
-      setIsFormModalReadOnly(false);
-    }
+    console.log(rowData);
     setMappingData(rowData);
     setIsMappingModalVisible(true);
   };
@@ -67,7 +61,6 @@ export default function ActivityList() {
 
         // Set State
         setPerceptionData(perception.data);
-
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -86,11 +79,11 @@ export default function ActivityList() {
       try {
         const [mapping] = await Promise.all([
           useServiceAPI.get(paths.pathActivityMappingStatusDetail, {
-            document_number: data.document_number
+            document_number: data.document_number,
           }),
         ]);
 
-        setMappingmappingperception(mapping.data.customer_perception_id)
+        setMappingmappingperception(mapping.data.customer_perception_id);
         setMappingData(mapping.data);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -101,42 +94,39 @@ export default function ActivityList() {
   };
 
   const handleOKMappingModal = (data) => {
-    const body = {
-      document_number: mappingData.document_number,
-      image_list: data.image_list || ["defaultImage"], // Set a default or retrieve it from data
-      perception_id: data.perception || mappingData.perception_id || "1", // Use data or a default value
-    };
+    console.log(data);
+    // const body = {
+    //   document_number: mappingData.document_number,
+    //   image_list: data.image_list || ["defaultImage"], // Set a default or retrieve it from data
+    //   perception_id: data.perception || mappingData.perception_id || "1", // Use data or a default value
+    // };
 
-    const updateMappingDetail = async () => {
-      try {
-        const [mapping] = await Promise.all([
-          useServiceAPI.put(paths.pathActivityMappingStatusDetailUpdate, body),
-        ]);
+    // const updateMappingDetail = async () => {
+    //   try {
+    //     const [mapping] = await Promise.all([
+    //       useServiceAPI.put(paths.pathActivityMappingStatusDetailUpdate, body),
+    //     ]);
 
-        showNotification(
-          "success",
-          mapping.data.message,
-          mapping.data.message_line
-        ).then(() => {
-          fetchData();
-        });
+    //     showNotification(
+    //       "success",
+    //       mapping.data.message,
+    //       mapping.data.message_line
+    //     ).then(() => {
+    //       fetchData();
+    //     });
+    //   } catch (error) {
+    //     showMsg("error", error.message || "เกิดข้อผิดพลาด");
+    //   }
+    // };
 
-      } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      }
-    };
-
-    setIsMappingModalVisible(false);
-    updateMappingDetail();
+    // setIsMappingModalVisible(false);
+    // updateMappingDetail();
   };
-
-
 
   // Handle Upload File Image
   const handleChangeFileUpload = (data) => {
     console.log(data);
-
-  }
+  };
 
   const filters = [
     {
@@ -147,14 +137,14 @@ export default function ActivityList() {
     },
     {
       key: "activity_type",
-      type: 'select',
+      type: "select",
       label: "Activity Type",
       placeholder: "All",
       options: activityList,
     },
     {
       key: "sale",
-      type: 'select',
+      type: "select",
       label: "Sale",
       placeholder: "All",
       options: saleList,
@@ -162,14 +152,14 @@ export default function ActivityList() {
     },
     {
       key: "shop",
-      type: 'select',
+      type: "select",
       label: "Shop",
       placeholder: "All",
       options: dealerList,
     },
     {
       key: "Date",
-      type: 'date',
+      type: "date",
       label: "Date",
     },
   ];
@@ -181,7 +171,7 @@ export default function ActivityList() {
       pagination: {
         current: 1,
         pageSize: 10,
-      }
+      },
     });
   };
 
@@ -198,7 +188,7 @@ export default function ActivityList() {
         try {
           const [dealer] = await Promise.all([
             useServiceAPI.get(paths.pathMasterDealerDropdown, {
-              user_id: filter.sale
+              user_id: filter.sale,
             }),
           ]);
 
@@ -224,7 +214,9 @@ export default function ActivityList() {
         try {
           // Call API to delete the event
           const response = await useServiceAPI.delete(
-            `/activity/delete?document_number=${encodeURIComponent(documentNumber)}`
+            `/activity/delete?document_number=${encodeURIComponent(
+              documentNumber
+            )}`
           );
           await fetchData();
           if (response.status === 200) {
@@ -265,8 +257,18 @@ export default function ActivityList() {
   };
 
   const productModalData = [
-    { key: 1, name: "Tossaphon Suphaksitthikorn", territory: "Left North", position: "Business Development Executive" },
-    { key: 2, name: "Panudech Srithong", territory: "Left Lower North", position: "Business Development Executive" },
+    {
+      key: 1,
+      name: "Tossaphon Suphaksitthikorn",
+      territory: "Left North",
+      position: "Business Development Executive",
+    },
+    {
+      key: 2,
+      name: "Panudech Srithong",
+      territory: "Left Lower North",
+      position: "Business Development Executive",
+    },
   ];
 
   const productModalHeader = [
@@ -277,17 +279,37 @@ export default function ActivityList() {
   ];
 
   const header = [
-    { title: "Activity No", width: 150, dataIndex: "activityNo", align: "start" },
-    { title: "Activity Type", width: 150, dataIndex: "activityType", align: "start" },
+    {
+      title: "Activity No",
+      width: 150,
+      dataIndex: "activityNo",
+      align: "start",
+    },
+    {
+      title: "Activity Type",
+      width: 150,
+      dataIndex: "activityType",
+      align: "start",
+    },
     { title: "Sale", width: 150, dataIndex: "sale", align: "start" },
     { title: "Shop", width: 150, dataIndex: "shop", align: "start" },
     { title: "Date", width: 150, dataIndex: "date", align: "start" },
     // { title: "Time", width: 100, dataIndex: "time", align: "start", className: "text-nowrap" },
-    { title: "Create Date", width: 100, dataIndex: "createdAt", align: "start", className: "text-nowrap" },
-    { title: "Mapping", width: 150, dataIndex: "mappingStatus", align: "start" },
+    {
+      title: "Create Date",
+      width: 100,
+      dataIndex: "createdAt",
+      align: "start",
+      className: "text-nowrap",
+    },
+    {
+      title: "Mapping",
+      width: 150,
+      dataIndex: "mappingStatus",
+      align: "start",
+    },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
-
 
   const fetchData = async () => {
     setTableLoading(true);
@@ -325,9 +347,11 @@ export default function ActivityList() {
               label: (
                 <ItemDropDown
                   mode="edit"
-                  link={`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`}
+                  link={`/activity/edit?documentNumber=${encodeURIComponent(
+                    row.document_number
+                  )}&pageCode=${encodeURIComponent(row.page_code)}`}
                 />
-              )
+              ),
             },
             {
               key: "2",
@@ -337,7 +361,7 @@ export default function ActivityList() {
                   link={`#`}
                   onClick={() => handleDelete(row.document_number)}
                 />
-              )
+              ),
             },
           ];
 
@@ -353,8 +377,8 @@ export default function ActivityList() {
             key: index + 1 + (current - 1) * pageSize,
             activityNo: row.document_number,
             activityType: row.activity_type_name,
-            shop: row.dealer_name ?? '-',
-            sale: row.user_name ?? '-',
+            shop: row.dealer_name ?? "-",
+            sale: row.user_name ?? "-",
             date: row.document_date,
             time: row.time,
             createdAt: dayjs(row.created_at).format("YYYY-MM-DD"),
@@ -366,13 +390,17 @@ export default function ActivityList() {
                 onClick={() => {
                   handleBadgeClick(row);
                 }}
-              // style={{ cursor: row.status_mapping_name !== 'complete' ? 'pointer' : 'not-allowed' }}
+                // style={{ cursor: row.status_mapping_name !== 'complete' ? 'pointer' : 'not-allowed' }}
               />
             ),
             action: (
               <Dropdown menu={{ items: actionItems }} placement="bottomRight">
                 <a onClick={(e) => e.preventDefault()}>
-                  <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+                  <img
+                    src="/img/icons/action.png"
+                    alt="Actions icon"
+                    className="inline-block w-5 h-5"
+                  />
                 </a>
               </Dropdown>
             ),
@@ -417,7 +445,6 @@ export default function ActivityList() {
         setActivityList(activityType.data);
         setSaleList(sale.data);
       } catch (error) {
-
       } finally {
         setLoading(false);
       }
@@ -439,10 +466,15 @@ export default function ActivityList() {
 
   return (
     <MainLayout loading={loading}>
-
       <div className="flex items-center justify-between">
         <div className="title-page">Activity List</div>
-        <ActionButton mode="create" text="Create" onClick={(e) => navigate("/activity/create?pageCode=activity_transaction")} />
+        <ActionButton
+          mode="create"
+          text="Create"
+          onClick={(e) =>
+            navigate("/activity/create?pageCode=activity_transaction")
+          }
+        />
       </div>
 
       <Filter
@@ -468,19 +500,17 @@ export default function ActivityList() {
         onClose={handleCloseProductModal}
         header={productModalHeader}
         dataSource={productModalData}
-        width="1200px" // Customize the width to make it extra-large
+        width="1200px"
       />
 
       {/* FormMappingModal */}
       <FormMappingModal
         isVisible={isMappingModalVisible}
-        onClose={() => setIsMappingModalVisible(false)} // Handling closing of modal
-        onOk={handleOKMappingModal} // Pass the function directly
+        onClose={() => setIsMappingModalVisible(false)}
+        onOk={handleOKMappingModal}
         title="Mapping"
         dataSource={mappingData}
         perceptionData={perceptionData}
-        isReadOnly={isFormModalReadOnly}
-
       />
     </MainLayout>
   );

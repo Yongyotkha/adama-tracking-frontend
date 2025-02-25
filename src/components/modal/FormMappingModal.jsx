@@ -31,10 +31,9 @@ const FormMappingModal = ({
     perception: "",
     remark: "",
     date: null,
-    photo: null, // will store the captured image
+    photo: null,
     gps: "",
   });
-
 
   const [locationCurrent, setLocationCurrent] = useState({
     latitude: "",
@@ -45,7 +44,7 @@ const FormMappingModal = ({
   const [capturedImage, setCapturedImage] = useState(null);
   const [photoError, setPhotoError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [selectPerception, setPerception ] = useState({});
+  const [selectPerception, setPerception] = useState({});
 
   const stopWebcam = () => {
     if (webcamRef.current && webcamRef.current.stream) {
@@ -55,52 +54,59 @@ const FormMappingModal = ({
   };
 
   const handleClose = () => {
-    stopWebcam(); // หยุดกล้องเมื่อปิด Modal
-    onClose();    // เรียกฟังก์ชันปิด Modal ที่ส่งมาจาก Props
+    stopWebcam();
+    onClose();
   };
 
-
-
-  // Update formData when dataSource changes
   useEffect(() => {
     if (dataSource) {
-      setFormData({
-        documentNumber: dataSource.document_number || "",
-        customerName: dataSource.customer_name || "",
-        placeOfOwner: dataSource.customer_place_of_owner || "",
-        phoneNumber: dataSource.customer_phone_number || "",
-        address: dataSource.customer_address || "",
-        longitude: dataSource.location_latitude || "",
-        latitude: dataSource.location_longitude || "",
-        perception: dataSource.perception || "",
-        remark: dataSource.remark || "",
-        date: dataSource.date ? dayjs(dataSource.date) : null,
-        photo: dataSource.photo || null,
-        gps: dataSource.location_address,
-      });
+      console.log(dataSource, 1111111);
+      fetchActivityListDetails();
+    } else {
+      console.log(dataSource, 222222);
     }
-    fetchActivityListDetails(dataSource.document_number); // เรียกใช้ฟังก์ชันนี้เมื่อข้อมูลใน dataSource เปลี่ยน
+
+    // if (dataSource) {
+    //   setFormData({
+    //     documentNumber: dataSource.document_number || "",
+    //     customerName: dataSource.customer_name || "",
+    //     placeOfOwner: dataSource.customer_place_of_owner || "",
+    //     phoneNumber: dataSource.customer_phone_number || "",
+    //     address: dataSource.customer_address || "",
+    //     longitude: dataSource.location_latitude || "",
+    //     latitude: dataSource.location_longitude || "",
+    //     perception: dataSource.perception || "",
+    //     remark: dataSource.remark || "",
+    //     date: dataSource.date ? dayjs(dataSource.date) : null,
+    //     photo: dataSource.photo || null,
+    //     gps: dataSource.location_address,
+    //   });
+    //   fetchActivityListDetails(dataSource.document_number);
+    // }
   }, [dataSource]);
 
-  const fetchActivityListDetails = async (documentNumber) => {
-    setLoading(true);    
+  const fetchActivityListDetails = async () => {
+    setLoading(true);
     try {
-      const response = await useServiceAPI.get(`${paths.pathActivityMappingStatusDetail}/?document_number=${documentNumber}`);      
+      const response = await useServiceAPI.get(
+        paths.pathActivityMappingStatusDetail,
+        { document_number: dataSource.document_number }
+      );
       if (response.status === 200) {
-        const { data } = response;         
+        const { data } = response;
         console.log(data);
 
         setPerception(data.customer_perception_id);
 
         setFormData((prevFormData) => ({
           ...prevFormData,
-          customerName: data.customer_name || prevFormData.customerName, 
-          placeOfOwner: data.customer_place_of_owner || prevFormData.placeOfOwner, 
-          phoneNumber: data.customer_phone_number || prevFormData.phoneNumber, 
-          address: data.customer_address || prevFormData.address, 
-          Remark: data.remark || prevFormData.remark, 
+          customerName: data.customer_name || prevFormData.customerName,
+          placeOfOwner:
+            data.customer_place_of_owner || prevFormData.placeOfOwner,
+          phoneNumber: data.customer_phone_number || prevFormData.phoneNumber,
+          address: data.customer_address || prevFormData.address,
+          Remark: data.remark || prevFormData.remark,
         }));
-
       } else {
         console.error("Failed to fetch details:", response.message);
       }
@@ -111,8 +117,6 @@ const FormMappingModal = ({
     }
   };
 
-
-  // ดึงที่อยู่จาก Google Maps Geocoding API
   const fetchAddress = async (lat, lng) => {
     const apiKey = "AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik"; // ใส่ Google Maps API Key ของคุณ
     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
@@ -124,7 +128,7 @@ const FormMappingModal = ({
       if (data.status === "OK" && data.results.length > 0) {
         // return data.results[0].formatted_address; // คืนค่าที่อยู่
         console.log(data.results[0].formatted_address);
-        setFormData({ ...formData, gps: data.results[0].formatted_address })
+        setFormData({ ...formData, gps: data.results[0].formatted_address });
       } else {
         console.error("Geocoding API error:", data.status);
         return "Address not found";
@@ -141,7 +145,6 @@ const FormMappingModal = ({
       dataSource.perception = value;
     }
   };
-  
 
   const handleGetLocation = () => {
     if (navigator.geolocation) {
@@ -231,7 +234,6 @@ const FormMappingModal = ({
             value={formData.documentNumber || dataSource.document_number}
             // onChange={(e) => handleInputChange("documentNumber", e.target.value)}
             onChange={(value) => handleInputChange("documentNumber", value)}
-
           />
         </div>
         <div className="col-span-4 md:col-span-1">
@@ -283,18 +285,12 @@ const FormMappingModal = ({
           {perceptionError && (
             <div className="text-red-500 mt-1">{perceptionError}</div>
           )}
-
         </div>
 
-
-
-
-
-
-
-
         <div className="col-span-4">
-          <label className="block mb-2 font-medium text-gray-700">Address</label>
+          <label className="block mb-2 font-medium text-gray-700">
+            Address
+          </label>
           <Input
             disabled
             value={formData.address || dataSource.customer_address}
@@ -351,17 +347,7 @@ const FormMappingModal = ({
         {/* Webcam Capture Section */}
         <div className="col-span-4 md:col-span-4 flex flex-col">
           <label className="block mb-2 font-medium text-gray-700">Photo</label>
-          {/* <Webcam
-            audio={false}
-            ref={webcamRef}
-            screenshotFormat="image/jpeg"
-            videoConstraints={{ facingMode: "user" }}
-            style={{ width: "100%", maxHeight: "300px" }}
-          /> */}
-          {/* <Button onClick={captureImage} className="w-full mt-2">
-            Capture Photo
-          </Button> */}
-
+          
           {!isReadOnly && (
             <>
               <Webcam
@@ -381,7 +367,11 @@ const FormMappingModal = ({
             </>
           )}
           {capturedImage && (
-            <img src={capturedImage} alt="Captured" className="w-fit max-h-[300px] mt-2 mx-auto" />
+            <img
+              src={capturedImage}
+              alt="Captured"
+              className="w-fit max-h-[300px] mt-2 mx-auto"
+            />
           )}
           {photoError && <div className="text-red-500 mt-1">{photoError}</div>}
         </div>
