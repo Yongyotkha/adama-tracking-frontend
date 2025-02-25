@@ -221,7 +221,7 @@ export default function DealerList() {
       align: "left",
     },
     {
-      title: "Mobile Phone",
+      title: "Phone No.",
       width: 150,
       dataIndex: "mobilePhone",
       align: "center",

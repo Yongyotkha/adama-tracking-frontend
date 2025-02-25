@@ -41,7 +41,7 @@ export default function CreateClaimRequest() {
 
   const formFields = [
     {
-      label: "Sale",
+      label: "Sales",
       name: "sale",
       type: "select",
       options: dataSale,

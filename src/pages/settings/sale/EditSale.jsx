@@ -445,7 +445,7 @@ export default function CreateSale() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Edit Sale Management</div>
+      <div className="title-page">Edit Sales Management</div>
 
       <BoxPrimary>
         <div className="grid gap-4 mb-4 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1">

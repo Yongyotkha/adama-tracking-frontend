@@ -23,6 +23,7 @@ export default function CreateTraveling() {
   const [dataYear, setDataYear] = useState([]);
   const [dataMonth, setDataMonth] = useState([]);
   const { showMsg, showNotification } = useContext(AuthContext);
+  const { userInfo } = useContext(AuthContext);
 
   const [saleId, setSaleId] = useState("");
   const [yearCode, setYearCode] = useState("");
@@ -89,6 +90,7 @@ export default function CreateTraveling() {
           ]);
 
           const dataItems = traveling.data.data_items;
+          console.log(dataItems);
           const transformedData = dataItems.map((item, index) => ({
             key: `${index + 1}`,
             date: item.date || "",
@@ -108,7 +110,6 @@ export default function CreateTraveling() {
 
           // ตั้งค่า state
           setDataSource(transformedData);
-
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
         } finally {
@@ -154,7 +155,7 @@ export default function CreateTraveling() {
       options: dataSale,
       required: false,
       col: 6,
-      value: saleId,
+      value: userInfo.id,
     },
     {
       label: "Year",

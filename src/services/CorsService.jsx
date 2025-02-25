@@ -9,7 +9,7 @@ export const axiosInstance = axios.create({
     "Content-Type": "application/json",
   },
   limit: "50mb",
-  timeout: 30000,
+  timeout: 300000,
 });
 
 axiosInstance.interceptors.request.use(

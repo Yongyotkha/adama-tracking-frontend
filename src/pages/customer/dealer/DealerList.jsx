@@ -225,9 +225,9 @@ export default function DealerList() {
     { title: "Dealer Name", width: 200, dataIndex: "dealerName", align: "left" },
     { title: "Address", width: 300, dataIndex: "address", align: "left" },
     { title: "Contact Name", width: 200, dataIndex: "contactName", align: "left" },
-    { title: "Mobile Phone", width: 150, dataIndex: "mobilePhone", align: "center" },
+    { title: "Phone No.", width: 150, dataIndex: "mobilePhone", align: "center" },
     { title: "Group Code", width: 150, dataIndex: "groupCode", align: "center" },
-    { title: "By Sale", width: 150, dataIndex: "sale", align: "center" },
+    { title: "By Sales", width: 150, dataIndex: "sale", align: "center" },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];

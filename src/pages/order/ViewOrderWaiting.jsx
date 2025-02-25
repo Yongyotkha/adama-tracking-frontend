@@ -55,7 +55,7 @@ export default function ViewOrderWaiting() {
 
   const formFieldData = [
     {
-      label: "Sale",
+      label: "Sales",
       name: "sale",
       type: "text",
       disabled: true,

@@ -38,7 +38,7 @@ export default function ClearingExpense() {
     {
       key: "sale",
       type: 'select',
-      label: "Sale",
+      label: "Sales",
       placeholder: "All",
       options: saleList,
       moderef: true,

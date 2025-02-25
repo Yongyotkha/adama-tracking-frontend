@@ -434,7 +434,7 @@ export default function SettingSale() {
       align: "left",
     },
     { title: "Area", width: 100, dataIndex: "area", align: "left" },
-    { title: "Sale", width: 100, dataIndex: "sale", align: "center" },
+    { title: "Sales", width: 100, dataIndex: "sale", align: "center" },
     {
       title: "Business Development",
       width: 150,
@@ -458,7 +458,7 @@ export default function SettingSale() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Sale Management</div>
+        <div className="title-page">Sales Management</div>
         {
         permission.btn_create !== false && ( 
         <ActionButton

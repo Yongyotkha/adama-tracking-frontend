@@ -383,7 +383,7 @@ const [formFields, setFormFields] = useState([
     { title: "No", width: 50, dataIndex: "no", align: "center" },
     { title: "Farmer Name", width: 100, dataIndex: "name", align: "left" },
     { title: "Contact Person", width: 200,  dataIndex: "contactperson", align: "left",},
-    { title: "Phone No",  width: 150, dataIndex: "mobilePhone", align: "center",},
+    { title: "Phone No.",  width: 150, dataIndex: "mobilePhone", align: "center",},
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
@@ -392,7 +392,7 @@ const [formFields, setFormFields] = useState([
     { title: "No", width: 50, dataIndex: "no", align: "center" },
     { title: "Sub Dealer List", width: 100, dataIndex: "name", align: "left" },
     { title: "Contact Person", width: 200,  dataIndex: "contactperson", align: "left",},
-    { title: "Phone No",  width: 150, dataIndex: "mobilePhone", align: "center",},
+    { title: "Phone No.",  width: 150, dataIndex: "mobilePhone", align: "center",},
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
@@ -1165,7 +1165,7 @@ const [formFields, setFormFields] = useState([
         header={[
           { title: "No", dataIndex: "no", key: "no", width: 50 },
           { title: "Name", dataIndex: "name", key: "name", width: 150 },
-          { title: "contact number",  dataIndex: "territory", key: "territory", width: 150,},
+          { title: "Contact Number",  dataIndex: "territory", key: "territory", width: 150,},
           { title: "Status",  dataIndex: "position",  key: "position",  width: 150,},
         ]}
         dataSource={userList}

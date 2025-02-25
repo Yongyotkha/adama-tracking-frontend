@@ -162,7 +162,7 @@ export default function CreateActivity() {
       value: activityDetail.activity_type_id ?? "",
     },
     {
-      label: "Sale",
+      label: "Sales",
       name: "user_id",
       type: "select",
       // typeMode: "string",
@@ -1340,11 +1340,11 @@ export default function CreateActivity() {
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item
                     className="mb-3"
-                    label="Actual expense"
+                    label="Actual Expense"
                     name="actual_expense"
                   >
                     <InputNumber
-                      placeholder="Actual expense"
+                      placeholder="Actual Expense"
                       className="w-full"
                       min={0}
                       formatter={(value) =>
