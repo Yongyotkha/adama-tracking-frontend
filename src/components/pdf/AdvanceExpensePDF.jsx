@@ -115,7 +115,7 @@ const AdvanceExpensePDF = () => {
                 : location.state.page_code}
           </Text>
 
-          <Text style={{ marginLeft: 'auto', paddingBottom: 5 }} ><Text style={{fontWeight:'bold'}}>Date</Text> : {dataHeader.created_at}</Text>
+          <Text style={{ marginLeft: 'auto', paddingBottom: 5 }} ><Text style={{ fontWeight: 'bold' }}>Date</Text> : {dataHeader.created_at}</Text>
 
           {/* Details Section */}
           <View style={styles.section}>
@@ -139,8 +139,15 @@ const AdvanceExpensePDF = () => {
                 <Text>Actual Participant: 0</Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'between', width: '100%' }}>
-                <Text style={{ width: '140px' }}>Advance Exp: {dataHeader.expense_advance}  </Text>
-                <Text>Actual Exp: {dataHeader.expense_actual_exp} </Text>
+                {/* <Text style={{ width: '140px' }}>
+                  Advance Exp: {parseFloat(dataHeader.expense_advance).toLocaleString()}
+                </Text> */}
+                <Text style={{ width: '140px' }}>
+                  Advance Exp: {parseFloat(dataHeader.expense_advance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Text>
+                <Text>
+                  Actual Exp: {parseFloat(dataHeader.expense_actual_exp).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Text>
               </View>
 
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'between', width: '100%' }}>
@@ -224,8 +231,8 @@ const AdvanceExpensePDF = () => {
               dataItems.map((item, index) =>
                 Number(item.estimate_sale_qty) !== 0 && (
                   <View style={styles.tableRow} key={index}>
-                    <Text style={[styles.tableCell, { flex: 2, minWidth: 21,textAlign:'start' }]}>{item.product_name}</Text>
-                    <Text style={[styles.tableCell, { flex: 2, minWidth: 21,textAlign:'start' }]}>{item.packing_list}</Text>
+                    <Text style={[styles.tableCell, { flex: 2, minWidth: 21, textAlign: 'start' }]}>{item.product_name}</Text>
+                    <Text style={[styles.tableCell, { flex: 2, minWidth: 21, textAlign: 'start' }]}>{item.packing_list}</Text>
                     <Text style={styles.tableCell}>{item.estimate_sale_qty}</Text>
                     <Text style={styles.tableCell}>{item.bath_ltkg}</Text>
                     <Text style={styles.tableCell}>{item.actual_qty_kg || '-'}</Text>
@@ -235,8 +242,8 @@ const AdvanceExpensePDF = () => {
               )
             ) : (
               <View style={styles.tableRow}>
-                <Text style={[styles.tableCell, { flex: 2, minWidth: 21,textAlign:'start' }]}>-</Text>
-                <Text style={[styles.tableCell, { flex: 2, minWidth: 21,textAlign:'start' }]}>-</Text>
+                <Text style={[styles.tableCell, { flex: 2, minWidth: 21, textAlign: 'start' }]}>-</Text>
+                <Text style={[styles.tableCell, { flex: 2, minWidth: 21, textAlign: 'start' }]}>-</Text>
                 <Text style={[styles.tableCell, { flex: 1 }]}>-</Text>
                 <Text style={[styles.tableCell, { flex: 1 }]}>-</Text>
                 <Text style={[styles.tableCell, { flex: 1 }]}>-</Text>
@@ -246,7 +253,7 @@ const AdvanceExpensePDF = () => {
 
             {/* Total Row */}
             <View style={[styles.tableRow, { borderTopWidth: 1 }]}>
-              <Text style={[styles.tableCell, { flex: 4, minWidth: 42, borderRightWidth: 1, textAlign: 'start', fontWeight:'bold' }]}>Total (THB)</Text>
+              <Text style={[styles.tableCell, { flex: 4, minWidth: 42, borderRightWidth: 1, textAlign: 'start', fontWeight: 'bold' }]}>Total (THB)</Text>
               <Text style={[styles.tableCell]}>{dataHeader.total_plan_value_thb || '-'}</Text>
               <Text style={[styles.tableCell]}>-</Text>
               <Text style={[styles.tableCell]}>-</Text>

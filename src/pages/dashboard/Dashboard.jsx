@@ -49,33 +49,33 @@ export default function Dashboard() {
     useState(null);
   const [selectedSubdealerPlan, setSelectedSubdealerPlan] = useState(null);
   const [selectedSdByD, setSelectedSdByD] = useState(null);
-  const chartSetting = {
-    yAxis: [
-      {
-        label: null,
-        tickLabelStyle: {
-          fontSize: 12,
-          whiteSpace: "nowrap",
-          overflow: "visible",
-          textAlign: "right",
-        },
-      },
-    ],
-    xAxis: [
-      {
-        scaleType: "band",
-        dataKey: "month",
-        tickLabelStyle: { fontSize: 12 },
-      },
-    ],
-    height: 300,
-    margin: { left: 100 }, // Increase left margin for large numbers
-    sx: {
-      [`.${axisClasses.left} .${axisClasses.label}`]: {
-        transform: "translate(-10px, 0)",
-      },
-    },
-  };
+  // const chartSetting = {
+  //   yAxis: [
+  //     {
+  //       label: null,
+  //       tickLabelStyle: {
+  //         fontSize: 12,
+  //         whiteSpace: "nowrap",
+  //         overflow: "visible",
+  //         textAlign: "right",
+  //       },
+  //     },
+  //   ],
+  //   xAxis: [
+  //     {
+  //       scaleType: "band",
+  //       dataKey: "month",
+  //       tickLabelStyle: { fontSize: 12 },
+  //     },
+  //   ],
+  //   height: 300,
+  //   margin: { left: 100 }, // Increase left margin for large numbers
+  //   sx: {
+  //     [`.${axisClasses.left} .${axisClasses.label}`]: {
+  //       transform: "translate(-10px, 0)",
+  //     },
+  //   },
+  // };
 
   const valueFormatterMB = (value) => {
     if (typeof value !== "number" || isNaN(value)) {
@@ -702,7 +702,9 @@ export default function Dashboard() {
                 <div className="h-full rounded">
                   <BarChart
                     dataset={dealerPlanData}
-                    xAxis={[{ scaleType: "band", dataKey: "month" }]}
+                    layout="horizontal" // Set layout to horizontal
+                    yAxis={[{ dataKey: "month", scaleType: "band", label: "Month" }]} // Ensure Y-axis uses the category
+                    // xAxis={[{ label: "Value" }]} // X-axis should be the value axis
                     series={[
                       {
                         dataKey: "plan",
@@ -730,6 +732,8 @@ export default function Dashboard() {
                         padding: 0,
                       },
                     }}
+                    height={400}
+                    margin={{ left: 50 }} // Adjust left margin to fit labels
                     sx={{
                       ".MuiChartsBar-label": {
                         fill: "#333", // Ensure text is visible
@@ -744,7 +748,7 @@ export default function Dashboard() {
                     //   }
                     //   return null; // Hide label if value is zero or undefined
                     // }}
-                    {...chartSetting}
+                    // {...chartSetting}
                   />
                 </div>
               </Card>
