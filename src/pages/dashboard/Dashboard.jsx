@@ -702,9 +702,17 @@ export default function Dashboard() {
                 <div className="h-full rounded">
                   <BarChart
                     dataset={dealerPlanData}
-                    layout="horizontal" // Set layout to horizontal
-                    yAxis={[{ dataKey: "month", scaleType: "band", label: "Month" }]} // Ensure Y-axis uses the category
-                    // xAxis={[{ label: "Value" }]} // X-axis should be the value axis
+                    // layout="horizontal" // Set layout to horizontal
+                    xAxis={[{ dataKey: "month", scaleType: "band"}]} // Ensure Y-axis uses the category
+                    // yAxis={[
+                    //   {
+                    //     id: "logAxis",
+                    //     scaleType: "log", // Set logarithmic scale
+                    //     label: "Sales (M THB)", // Add label for clarity
+                    //     domain: [1, "auto"], // Prevents issues with zero values
+                    //   },
+                    // ]}
+                    // leftAxis="logAxis"
                     series={[
                       {
                         dataKey: "plan",
@@ -733,7 +741,7 @@ export default function Dashboard() {
                       },
                     }}
                     height={400}
-                    margin={{ left: 50 }} // Adjust left margin to fit labels
+                    margin={{ left: 100 }} // Adjust left margin to fit labels
                     sx={{
                       ".MuiChartsBar-label": {
                         fill: "#333", // Ensure text is visible
