@@ -824,10 +824,6 @@ export default function CreateActivity() {
     setActualParticipantCount(participants.length - 1);
   };
 
-  useEffect(() => {
-    console.log(expenseForm);
-  }, []);
-
   //บันทึกข้อมูล
   const handleSave = async (modeSave) => {
     try {
