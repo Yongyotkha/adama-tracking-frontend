@@ -55,7 +55,9 @@ export default function CreateActivity() {
 
   const [isBtnExpenseActive, setIsBtnExpenseActive] = useState(false);
 
-  const [activityDetail, setActivityDetail] = useState([]);
+  const [activityDetail, setActivityDetail] = useState({
+    product_list: []
+  });
   const [cropDetailList, setCropDetailList] = useState([]);
   const [productDetailList, setProductDetailList] = useState([]);
   const [assignList, setAssignList] = useState([]);
@@ -104,12 +106,11 @@ export default function CreateActivity() {
     if (!documentNumber) {
       const exists = saleList.some((item) => item.id === userInfo.id);
       if (exists) {
-        console.log(123123);
         handleChange("user_id", userInfo.user_data_id);
-        formCustom.setFieldsValue({
-          ...formCustom,
-          sale: userInfo.user_data_id,
-        });
+        // formCustom.setFieldsValue({
+        //   ...formCustom,
+        //   sale: userInfo.user_data_id,
+        // });
       }
     }
   }, [saleList]);
@@ -223,7 +224,7 @@ export default function CreateActivity() {
       disabled: viewSegment ?? false,
       required: true,
       col: pageCode != "activity_transaction" ? 18 : 24,
-      value: productDetailList,
+      value: activityDetail.product_list,
     },
     {
       label: "Date",
@@ -416,22 +417,23 @@ export default function CreateActivity() {
     const getMasterSelect = async () => {
       try {
         if (attribue === "user_id") {
-          activityDetail.user_id = value;
+          setActivityDetail((prevState) => ({ ...prevState, user_id: value }));
           await setupDealer(value);
         } else if (attribue === "dealer_id") {
-          activityDetail.dealer_id = value;
+          setActivityDetail((prevState) => ({ ...prevState, dealer_id: value }));
           if (value) {
             await setupCropAndDealerCustomer(value);
           }
         } else if (attribue === "crop_id_list") {
           if (value.length > 0) {
-            // ตั้งค่า CropDetailList
             await setupCrop(value);
+            setActivityDetail((prevState) => ({ ...prevState, crop_id_list: value }));
           }
         } else if (attribue === "activity_type_id") {
-          activityDetail.activity_type_id = value;
+          setActivityDetail((prevState) => ({ ...prevState, activity_type_id: value }));
         } else if (attribue === "product_list") {
-          activityDetail.product_list.push(value);
+          setActivityDetail((prevState) => ({ ...prevState, product_list: value }));
+
         } else if (attribue === "activity_reference") {
           setLoading(true);
 
