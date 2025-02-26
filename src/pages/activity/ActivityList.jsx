@@ -95,32 +95,37 @@ export default function ActivityList() {
 
   const handleOKMappingModal = (data) => {
     console.log(data);
-    // const body = {
-    //   document_number: mappingData.document_number,
-    //   image_list: data.image_list || ["defaultImage"], // Set a default or retrieve it from data
-    //   perception_id: data.perception || mappingData.perception_id || "1", // Use data or a default value
-    // };
 
-    // const updateMappingDetail = async () => {
-    //   try {
-    //     const [mapping] = await Promise.all([
-    //       useServiceAPI.put(paths.pathActivityMappingStatusDetailUpdate, body),
-    //     ]);
+    const body = {
+      document_number: data.document_number,
+      location_longitude: data.location_longitude,
+      location_latitude: data.location_latitude,
+      location_address: data.location_address,
+      perception_id: data.perception_id,
+      image_list: data.image_list || ["defaultImage"], // Set a default or retrieve it from data
+      // perception_id: data.perception || mappingData.perception_id || "1", // Use data or a default value
+    };
 
-    //     showNotification(
-    //       "success",
-    //       mapping.data.message,
-    //       mapping.data.message_line
-    //     ).then(() => {
-    //       fetchData();
-    //     });
-    //   } catch (error) {
-    //     showMsg("error", error.message || "เกิดข้อผิดพลาด");
-    //   }
-    // };
+    const updateMappingDetail = async () => {
+      try {
+        const [mapping] = await Promise.all([
+          useServiceAPI.put(paths.pathActivityMappingStatusDetailUpdate, body),
+        ]);
 
-    // setIsMappingModalVisible(false);
-    // updateMappingDetail();
+        showNotification(
+          "success",
+          mapping.data.message,
+          mapping.data.message_line
+        ).then(() => {
+          fetchData();
+        });
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      }
+    };
+
+    setIsMappingModalVisible(false);
+    updateMappingDetail();
   };
 
   // Handle Upload File Image
