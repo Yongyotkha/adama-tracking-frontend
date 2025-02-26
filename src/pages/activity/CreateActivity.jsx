@@ -61,9 +61,11 @@ export default function CreateActivity() {
   const [assignList, setAssignList] = useState([]);
   const [isSalePlanEdit, setIsSalePlanEdit] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
-  const { showMsg, showNotification, userInfo } = useContext(AuthContext);
+  const { showNotification, userInfo } = useContext(AuthContext);
   const [actualParticipantCount, setActualParticipantCount] = useState("0");
   const [timeselect, setTimeSelect] = useState([]);
+  const [participants, setParticipants] = useState([]);
+  const [participantUsers, setParticipantUsers] = useState([]);
 
   const handleUploadClick = async () => {
     // Call triggerUpload from FileUploadComponent
@@ -81,7 +83,6 @@ export default function CreateActivity() {
       url: data.file_url,
     };
 
-    // ใช้ callback เพื่ออัปเดต state อย่างถูกต้อง
     setFileList((prevFileList) => [...prevFileList, fileUpload]);
   };
 
@@ -93,11 +94,12 @@ export default function CreateActivity() {
         ...prevDetail,
         document_date: urlDate, // Set the date from URL
       }));
-      formCustom.setFieldsValue({ document_date: dayjs(urlDate).format("YYYY-MM-DD") });
+      formCustom.setFieldsValue({
+        document_date: dayjs(urlDate).format("YYYY-MM-DD"),
+      });
     }
   }, [searchParams]);
 
-  
   useEffect(() => {
     if (!documentNumber) {
       const exists = saleList.some((item) => item.id === userInfo.id);
@@ -116,14 +118,14 @@ export default function CreateActivity() {
     pageCode == "expense_advance"
       ? "Advance Expense"
       : pageCode == "expense_clearing"
-        ? "Clearing Expense"
-        : "Activity";
+      ? "Clearing Expense"
+      : "Activity";
   const menuURL =
     pageCode == "expense_advance"
       ? "/expenses/advance"
       : pageCode == "expense_clearing"
-        ? "/expenses/clearing"
-        : "/activity/list";
+      ? "/expenses/clearing"
+      : "/activity/list";
 
   const formFields = [
     {
@@ -184,14 +186,14 @@ export default function CreateActivity() {
       )
         ? dealerList
         : activityDetail.dealer_id && activityDetail.dealer_name
-          ? [
+        ? [
             ...dealerList,
             {
               id: activityDetail.dealer_id,
               name: activityDetail.dealer_name,
             },
           ]
-          : dealerList,
+        : dealerList,
       disabled: viewSegment ?? false,
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
@@ -428,6 +430,8 @@ export default function CreateActivity() {
           }
         } else if (attribue === "activity_type_id") {
           activityDetail.activity_type_id = value;
+        } else if (attribue === "product_list") {
+          activityDetail.product_list.push(value);
         } else if (attribue === "activity_reference") {
           setLoading(true);
 
@@ -643,6 +647,8 @@ export default function CreateActivity() {
       });
     }
 
+    console.log(productCropList, "ProductCropList");
+
     setProductCropList(updatedData);
   };
 
@@ -684,14 +690,13 @@ export default function CreateActivity() {
     </tr>
   );
 
-  const [participants, setParticipants] = useState([]);
-  const [participantUsers, setParticipantUsers] = useState([]);
   const handleInputParticipantChange = (key, field, value) => {
     const updatedParticipants = participants.map((participant) =>
       participant.key === key ? { ...participant, [field]: value } : participant
     );
     setParticipants(updatedParticipants);
   };
+
   const participantColumns = [
     { title: "No", dataIndex: "no", key: "no", align: "center" },
     {
@@ -824,249 +829,179 @@ export default function CreateActivity() {
   }, []);
 
   //บันทึกข้อมูล
-  const handleSave = (modeSave) => {
-    formCustom.validateFields();
-    const timeStart = activityDetail.time_start;
-    const timeEnd = activityDetail.time_end;
-
-    if (timeStart != undefined && timeEnd != undefined) {
-      if (timeStart >= timeEnd) {
-        showNotification(
-          "warning",
-          "Invalid Time Range",
-          [
-            "Time End cannot be earlier than Time Start. Please adjust the times.",
-          ],
-          3
-        );
-        return;
-      }
-    }
-    //Form Basic Activity
-    let allValuesBasic = formCustom.getFieldsValue();
-    allValuesBasic.document_date = dayjs(allValuesBasic.document_date).format(
-      "YYYY-MM-DD"
-    );
-
-    //File Upload
-    const imageLists = [];
-    fileList.forEach((element) => {
-      imageLists.push(element.url);
-    });
-    //เปิด Expense หรือไม่?
-    const isExpense =
-      isBtnExpenseActive ||
-      pageCode == "expense_advance" ||
-      pageCode == "expense_clearing";
-
-    //ส่วนของ Sale Plan
-    const expenseProductTotalEstimateSale = calculateGrandTotal("estimateSale");
-    const expenseProductTotalAcutalSale = calculateGrandTotal("actualSale");
-    let expenseProductDataList = [];
-    productCropList.forEach((element) => {
-      expenseProductDataList.push({
-        product_id: element.productId,
-        product_code: element.prodectCode,
-        product_name: element.productName,
-        packing_list: element.packSize,
-        bath_ltkg: element.bath_ltkg,
-        estimate_sale_qty: element.estimateSale,
-        acutal_sale_qty: element.actualSale,
-      });
-    });
-
-    //ส่วนของ Customer
-    const expenseCustomerDealerId = dealerCustomer.dealer_id;
-    const expenseCustomerDealerCode = dealerCustomer.dealer_code;
-    const expenseCustomerName = dealerCustomer.customer_name;
-    const expenseCustomerPlaceOfOwner = dealerCustomer.customer_place_of_owner;
-    const expenseCustomerPhoneNumber = dealerCustomer.customer_phone_number;
-    const expenseCustomerAddress = dealerCustomer.customer_address;
-    const expenseCustomerPerceptionId =
-      customerForm.getFieldValue("perception") == "Good"
-        ? 1
-        : customerForm.getFieldValue("perception");
-    let expenseCustomerPerceptionName = perceptionList.find(
-      (option) => option.id === expenseCustomerPerceptionId
-    );
-    expenseCustomerPerceptionName = expenseCustomerPerceptionName
-      ? expenseCustomerPerceptionName.name
-      : "Good";
-    const expenseCustomerLocationLongitude = customerForm.getFieldValue(
-      "location_customer_longitude"
-    );
-    const expenseCustomerLocationLatitude = customerForm.getFieldValue(
-      "location_customer_latitude"
-    );
-    const expenseCustomerLocationAddress = customerForm.getFieldValue(
-      "location_customer_address"
-    );
-    let expenseParticapantUserList = [];
-    let particapantList = [];
-    participantUsers.forEach((element) => {
-      expenseParticapantUserList.push(element.id);
-    });
-    participants.forEach((element) => {
-      particapantList.push({
-        name: element.name,
-        address: element.address,
-        phone: element.phone,
-      });
-    });
-    // console.log(advance_expense);
-    const body = {
-      page_code: pageCode,
-      document_number_referrent:
-        activityDetail?.document_number_referrent ?? null,
-      action_code: modeSave,
-      ...allValuesBasic,
-      image_list: imageLists,
-      is_expense: isExpense,
-      expense_product_total_estimate_sale: expenseProductTotalEstimateSale,
-      expense_product_total_acutal_sale: expenseProductTotalAcutalSale,
-      expense_product_data_list: expenseProductDataList,
-      expense_customer_dealer_id: expenseCustomerDealerId,
-      expense_customer_dealer_code: expenseCustomerDealerCode,
-      expense_customer_name: expenseCustomerName,
-      expense_customer_place_of_owner: expenseCustomerPlaceOfOwner,
-      expense_customer_phone_number: expenseCustomerPhoneNumber,
-      expense_customer_address: expenseCustomerAddress,
-      expense_customer_perception_id: expenseCustomerPerceptionId,
-      expense_customer_perception_name: expenseCustomerPerceptionName,
-      expense_customer_location_longitude: expenseCustomerLocationLongitude,
-      expense_customer_location_latitude: expenseCustomerLocationLatitude,
-      expense_customer_location_address: expenseCustomerLocationAddress,
-      expense_actual_exp: activityDetail?.expense_actual_exp,
-      expense_actual_sale: activityDetail?.expense_actual_sale,
-      expense_advance: activityDetail?.expense_advance,
-      expense_actual: activityDetail?.expense_actual,
-      expense_file_list: [],
-      expense_participant_estimate:
-        activityDetail?.expense_participant_estimate,
-      expense_particapant_actual: activityDetail?.expense_particapant_actual,
-      expense_particapant_user_list: expenseParticapantUserList,
-      particapant_list: particapantList,
-    };
-    console.log(body);
-
-    if (documentNumber) {
-      useServiceAPI
-        .put(paths.pathActivityExpenseDetail, body, setLoading)
-        .then((response) => {
-          const successCallback = () => {
-            if (response.result) {
-              if (pageCode == "expense_clearing") {
-                navigate("/expenses/clearing");
-              } else if (pageCode == "expense_advance") {
-                if (modeSave == "convert_clearing") {
-                  // navigate(`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`)
-                  navigate("/expenses/clearing");
-                } else {
-                  navigate("/expenses/advance");
-                }
-              } else {
-                navigate("/activity/list");
-              }
-            }
-          };
-          showNotification(
-            "success",
-            response.data.message,
-            response.data.message_line,
-            2
-          ).then(successCallback);
-        })
-        .catch((error) => { });
-    } else {
-      useServiceAPI
-        .post(paths.pathActivityExpenseCreate, body, setLoading)
-        .then((response) => {
-          const successCallback = () => {
-            if (response.result) {
-              if (pageCode == "expense_clearing") {
-                navigate("/expenses/clearing");
-              } else if (pageCode == "expense_advance") {
-                if (modeSave == "convert_clearing") {
-                  navigate("/expenses/clearing");
-
-                  // navigate(`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`)
-                } else {
-                  navigate("/expenses/advance");
-                }
-              } else {
-                navigate("/activity/list");
-              }
-            }
-          };
-          showNotification(
-            "success",
-            response.data.message,
-            response.data.message_line,
-            2
-          ).then(successCallback);
-        })
-        .catch((error) => { });
-    }
-  };
-
-  const showLayoutExpense = () => {
-    setIsBtnExpenseActive(isBtnExpenseActive ? false : true);
-  };
-
-  //Location Customer
-  useEffect(() => {
-    getLocation();
-  }, []);
-
-  useEffect(() => {
-    if (locationCustomer.lat && locationCustomer.long) {
-      // เรียก getAddress เมื่อ lat และ long มีค่า
-      getAddress(locationCustomer.lat, locationCustomer.long);
-    }
-  }, [locationCustomer.lat, locationCustomer.long]);
-
-  const getLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const lat = position.coords.latitude;
-        const long = position.coords.longitude;
-        getAddress(lat, long);
-      });
-    } else {
-      console.error("Geolocation is not supported by your browser.");
-    }
-  };
-
-  const getAddress = async (lat, long) => {
-    const apiKey = "AIzaSyAF-YpYX1gu-kPeKxVdCTh9f_9nXXlZaPc";
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${apiKey}`;
-
+  const handleSave = async (modeSave) => {
     try {
-      const response = await fetch(url);
-      const data = await response.json();
-      if (data.status === "OK") {
-        const fetchedAddress =
-          data.results[0]?.formatted_address || "Address not found";
-        setLocationCustomer((prev) => ({
-          ...prev,
-          address: fetchedAddress,
-          lat: lat,
-          long: long,
-        }));
+      await formCustom.validateFields();
+
+      let allValuesBasic = formCustom.getFieldsValue();
+      allValuesBasic.document_date = dayjs(allValuesBasic.document_date).format(
+        "YYYY-MM-DD"
+      );
+
+      //File Upload
+      const imageLists = [];
+      fileList.forEach((element) => {
+        imageLists.push(element.url);
+      });
+      //เปิด Expense หรือไม่?
+      const isExpense =
+        isBtnExpenseActive ||
+        pageCode == "expense_advance" ||
+        pageCode == "expense_clearing";
+
+      //ส่วนของ Sale Plan
+      const expenseProductTotalEstimateSale =
+        calculateGrandTotal("estimateSale");
+      const expenseProductTotalAcutalSale = calculateGrandTotal("actualSale");
+      let expenseProductDataList = [];
+      productCropList.forEach((element) => {
+        expenseProductDataList.push({
+          product_id: element.productId,
+          product_code: element.prodectCode,
+          product_name: element.productName,
+          packing_list: element.packSize,
+          bath_ltkg: element.bath_ltkg,
+          estimate_sale_qty: element.estimateSale,
+          acutal_sale_qty: element.actualSale,
+        });
+      });
+
+      //ส่วนของ Customer
+      const expenseCustomerDealerId = dealerCustomer.dealer_id;
+      const expenseCustomerDealerCode = dealerCustomer.dealer_code;
+      const expenseCustomerName = dealerCustomer.customer_name;
+      const expenseCustomerPlaceOfOwner =
+        dealerCustomer.customer_place_of_owner;
+      const expenseCustomerPhoneNumber = dealerCustomer.customer_phone_number;
+      const expenseCustomerAddress = dealerCustomer.customer_address;
+      const expenseCustomerPerceptionId =
+        customerForm.getFieldValue("perception") == "Good"
+          ? 1
+          : customerForm.getFieldValue("perception");
+      let expenseCustomerPerceptionName = perceptionList.find(
+        (option) => option.id === expenseCustomerPerceptionId
+      );
+      expenseCustomerPerceptionName = expenseCustomerPerceptionName
+        ? expenseCustomerPerceptionName.name
+        : "Good";
+      const expenseCustomerLocationLongitude = customerForm.getFieldValue(
+        "location_customer_longitude"
+      );
+      const expenseCustomerLocationLatitude = customerForm.getFieldValue(
+        "location_customer_latitude"
+      );
+      const expenseCustomerLocationAddress = customerForm.getFieldValue(
+        "location_customer_address"
+      );
+      let expenseParticapantUserList = [];
+      let particapantList = [];
+      participantUsers.forEach((element) => {
+        expenseParticapantUserList.push(element.id);
+      });
+      participants.forEach((element) => {
+        particapantList.push({
+          name: element.name,
+          address: element.address,
+          phone: element.phone,
+        });
+      });
+      // console.log(advance_expense);
+      const body = {
+        page_code: pageCode,
+        document_number_referrent:
+          activityDetail?.document_number_referrent ?? null,
+        action_code: modeSave,
+        ...allValuesBasic,
+        image_list: imageLists,
+        is_expense: isExpense,
+        expense_product_total_estimate_sale: expenseProductTotalEstimateSale,
+        expense_product_total_acutal_sale: expenseProductTotalAcutalSale,
+        expense_product_data_list: expenseProductDataList,
+        expense_customer_dealer_id: expenseCustomerDealerId,
+        expense_customer_dealer_code: expenseCustomerDealerCode,
+        expense_customer_name: expenseCustomerName,
+        expense_customer_place_of_owner: expenseCustomerPlaceOfOwner,
+        expense_customer_phone_number: expenseCustomerPhoneNumber,
+        expense_customer_address: expenseCustomerAddress,
+        expense_customer_perception_id: expenseCustomerPerceptionId,
+        expense_customer_perception_name: expenseCustomerPerceptionName,
+        expense_customer_location_longitude: expenseCustomerLocationLongitude,
+        expense_customer_location_latitude: expenseCustomerLocationLatitude,
+        expense_customer_location_address: expenseCustomerLocationAddress,
+        expense_actual_exp: activityDetail?.expense_actual_exp,
+        expense_actual_sale: activityDetail?.expense_actual_sale,
+        expense_advance: activityDetail?.expense_advance,
+        expense_actual: activityDetail?.expense_actual,
+        expense_file_list: [],
+        expense_participant_estimate:
+          activityDetail?.expense_participant_estimate,
+        expense_particapant_actual: activityDetail?.expense_particapant_actual,
+        expense_particapant_user_list: expenseParticapantUserList,
+        particapant_list: particapantList,
+      };
+      console.log(body);
+      return;
+      if (documentNumber) {
+        useServiceAPI
+          .put(paths.pathActivityExpenseDetail, body, setLoading)
+          .then((response) => {
+            const successCallback = () => {
+              if (response.result) {
+                if (pageCode == "expense_clearing") {
+                  navigate("/expenses/clearing");
+                } else if (pageCode == "expense_advance") {
+                  if (modeSave == "convert_clearing") {
+                    // navigate(`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`)
+                    navigate("/expenses/clearing");
+                  } else {
+                    navigate("/expenses/advance");
+                  }
+                } else {
+                  navigate("/activity/list");
+                }
+              }
+            };
+            showNotification(
+              "success",
+              response.data.message,
+              response.data.message_line,
+              2
+            ).then(successCallback);
+          })
+          .catch((error) => {});
       } else {
-        console.error("Failed to fetch address");
+        useServiceAPI
+          .post(paths.pathActivityExpenseCreate, body, setLoading)
+          .then((response) => {
+            const successCallback = () => {
+              if (response.result) {
+                if (pageCode == "expense_clearing") {
+                  navigate("/expenses/clearing");
+                } else if (pageCode == "expense_advance") {
+                  if (modeSave == "convert_clearing") {
+                    navigate("/expenses/clearing");
+
+                    // navigate(`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`)
+                  } else {
+                    navigate("/expenses/advance");
+                  }
+                } else {
+                  navigate("/activity/list");
+                }
+              }
+            };
+            showNotification(
+              "success",
+              response.data.message,
+              response.data.message_line,
+              2
+            ).then(successCallback);
+          })
+          .catch((error) => {});
       }
     } catch (err) {
       console.error("Error fetching address:", err);
     }
-  };
-
-  const handleReload = () => {
-    setLoading(true);
-    setTimeout(() => {
-      getLocation();
-      setLoading(false);
-    }, 2000); // ตั้งค่าความล่าช้าตามที่ต้องการ
   };
 
   return (
@@ -1082,13 +1017,13 @@ export default function CreateActivity() {
             <ActionButton
               mode="create"
               text="Add Advance Expense"
-              onClick={showLayoutExpense}
+              onClick={() => setIsBtnExpenseActive(!isBtnExpenseActive)}
             />
           ) : (
             <ActionButton
               mode="hide"
               text="Hide Advance Expense"
-              onClick={showLayoutExpense}
+              onClick={() => setIsBtnExpenseActive(!isBtnExpenseActive)}
             />
           )
         ) : null}
@@ -1103,8 +1038,8 @@ export default function CreateActivity() {
       />
 
       {isBtnExpenseActive ||
-        pageCode == "expense_advance" ||
-        pageCode == "expense_clearing" ? (
+      pageCode == "expense_advance" ||
+      pageCode == "expense_clearing" ? (
         <>
           <div className="flex items-center justify-between">
             <div className="title-page">Advance Expense</div>
@@ -1240,7 +1175,7 @@ export default function CreateActivity() {
                       </Form.Item>
 
                       <div
-                        onClick={handleReload}
+                        // onClick={handleReload}
                         style={{
                           position: "absolute",
                           top: "76%",
@@ -1548,7 +1483,11 @@ export default function CreateActivity() {
         <ActionButton
           mode="saveDraft"
           text="Export PDF"
-          className={pageCode === "expense_advance" || pageCode === "expense_clearing" ? "" : "hidden"}
+          className={
+            pageCode === "expense_advance" || pageCode === "expense_clearing"
+              ? ""
+              : "hidden"
+          }
           onClick={() => {
             const targetUrl = "/expenses/advance/pdf";
             navigate(targetUrl, {
@@ -1562,7 +1501,6 @@ export default function CreateActivity() {
             });
           }}
         />
-
       </div>
 
       {/* Modal for Add Participant */}
