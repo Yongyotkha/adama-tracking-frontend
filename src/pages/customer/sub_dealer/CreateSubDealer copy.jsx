@@ -1205,7 +1205,7 @@ export default function EditInformation() {
   
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">{isViewMode ? "View Sub Dealer" : "Edit Sub Dealer"}</div>
+      <div className="title-page">{isViewMode ? "View Sub Dealer" : "Create Sub Dealer"}</div>
       <Tabs
         activeKey={activeTabKey}
         onChange={handleTabChange}

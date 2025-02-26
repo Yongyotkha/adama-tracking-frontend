@@ -23,7 +23,7 @@ import dayjs from "dayjs";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import TableComponent from "../../../components/table/TableComponent";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
-import DynamicModal from "../../../components/modal/DynamicModal"; 
+import DynamicModal from "../../../components/modal/DynamicModal";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import FormSubDealer from "../../../components/form_user/FormSubDealer";
 
@@ -65,13 +65,15 @@ export default function CreateSubDealer() {
     },
   ]);
   const location = useLocation();
-  const mode = location.state.mode; 
+  const mode = location.state.mode;
+  console.log(mode);
   const isViewMode = mode === "View";
+  const isEditMode = mode === "Edit";
   const [profileImage, setProfileImage] = useState(""); // State สำหรับเก็บ URL รูปภาพ
   const [isMapEnabled, setIsMapEnabled] = useState(false);
 
   console.log(mode);
-  
+
   // ---------- State สำหรับแท็บ Network (ตัวอย่าง) ----------
   const [networkList, setNetworkList] = useState([]); // รายการ network
   const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
@@ -93,11 +95,11 @@ export default function CreateSubDealer() {
       setLoading(true);
       try {
 
-        if (mode ==='Edit' || mode=== 'View') {
+        if (mode === 'Edit' || mode === 'View') {
           await fetchSubDealerDetails(location.state.id);
 
         }
-  
+
         const [crops] = await Promise.all([
           useServiceAPI.get(paths.pathMasterCrop, {}),
         ]);
@@ -121,7 +123,7 @@ export default function CreateSubDealer() {
       );
 
       if (response.status === 200) {
-        const { data } = response;        
+        const { data } = response;
         setProfileImage(data.photo_path || "");
 
         // ตั้งค่า location
@@ -174,27 +176,27 @@ export default function CreateSubDealer() {
           ),
         })) || [];
         setNetworkList(farmers); // อัปเดต state networkList
-        
-      // ตั้งค่า Contact Person จาก contact_items
-      const contactList = data.contact_items?.map((item) => ({
-        name_en: item.name_en || "",
-        name_th: item.name_th || "",
-        nickname: item.nickname || "",
-        date_of_birth: item.date_of_birth
-          ? dayjs(item.date_of_birth, "YYYY-MM-DD")
-          : null,
-        t_shirt_size: item.t_shirt_size || "",
-        relationship: item.relationship || "",
-        duty: item.duty || "",
-        tel1: item.tel1 || "",
-        tel2: item.tel2 || "",
-        contact_number: item.contact_number || "",
-        email: item.email || "",
-        line_id: item.line_id || "",
-        hobby: item.hobby || "",
-        age: item.age || "",
-      })) || [];
-      setContacts(contactList);
+
+        // ตั้งค่า Contact Person จาก contact_items
+        const contactList = data.contact_items?.map((item) => ({
+          name_en: item.name_en || "",
+          name_th: item.name_th || "",
+          nickname: item.nickname || "",
+          date_of_birth: item.date_of_birth
+            ? dayjs(item.date_of_birth, "YYYY-MM-DD")
+            : null,
+          t_shirt_size: item.t_shirt_size || "",
+          relationship: item.relationship || "",
+          duty: item.duty || "",
+          tel1: item.tel1 || "",
+          tel2: item.tel2 || "",
+          contact_number: item.contact_number || "",
+          email: item.email || "",
+          line_id: item.line_id || "",
+          hobby: item.hobby || "",
+          age: item.age || "",
+        })) || [];
+        setContacts(contactList);
 
       } else {
         console.error("Failed to fetch SubDealer details:", response.message);
@@ -206,7 +208,7 @@ export default function CreateSubDealer() {
       setLoading(false);
     }
   };
-  
+
 
   // จัดการแท็บ
   const [activeTabKey, setActiveTabKey] = useState("profile");
@@ -413,11 +415,11 @@ export default function CreateSubDealer() {
   };
 
   // ฟังก์ชันลบรายการในตาราง
-  const handleDeleteNetworkItem = async (record) => {    
+  const handleDeleteNetworkItem = async (record) => {
     try {
       const requestData = {
-        sub_dealer_id:location.state.id,
-        farmer_id: record, 
+        sub_dealer_id: location.state.id,
+        farmer_id: record,
       };
 
       const response = await useServiceAPI.delete(
@@ -537,7 +539,7 @@ export default function CreateSubDealer() {
       showNotification("error", "Unable to fetch location name.");
     }
   };
-  
+
   useEffect(() => {
     const checkGoogleMaps = () => {
       if (window.google && window.google.maps) {
@@ -629,10 +631,10 @@ export default function CreateSubDealer() {
       });
   };
 
-    // Get Current Location on mount
-    useEffect(() => {
-      handleGetLocation();
-    }, []);
+  // Get Current Location on mount
+  useEffect(() => {
+    handleGetLocation();
+  }, []);
 
   //--- ฟังก์ชันดึงตำแหน่งปัจจุบัน ---//
   const getUserCurrentLocation = () => {
@@ -644,7 +646,7 @@ export default function CreateSubDealer() {
       async (position) => {
         const { latitude, longitude } = position.coords;
         setCurrentLocation({ lat: latitude, lng: longitude });
-        
+
         // เรียกใช้ geocoder เพื่อแปลง lat,lng => ชื่อสถานที่
         try {
           const geocoder = new window.google.maps.Geocoder();
@@ -680,45 +682,45 @@ export default function CreateSubDealer() {
     });
   };
 
-    
-    // ดึงที่อยู่จาก Google Maps Geocoding API
-    const fetchAddress = async (lat, lng) => {
-      const apiKey = "AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik";
-      const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
-  
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
-  
-        if (data.status === "OK" && data.results.length > 0) {
-          // return data.results[0].formatted_address; // คืนค่าที่อยู่
-          console.log(data.results[0].formatted_address);
-          setFormData({...formData,gps:data.results[0].formatted_address})
-        } else {
-          console.error("Geocoding API error:", data.status);
-          return "Address not found";
-        }
-      } catch (error) {
-        console.error("Error fetching address:", error);
-        return "Error fetching address";
-      }
-    };
 
-    const handleGetLocation = () => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            fetchAddress(latitude, longitude );
-          },
-          (error) => {
-            console.error("Error fetching location:", error.message);
-          }
-        );
+  // ดึงที่อยู่จาก Google Maps Geocoding API
+  const fetchAddress = async (lat, lng) => {
+    const apiKey = "AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik";
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.status === "OK" && data.results.length > 0) {
+        // return data.results[0].formatted_address; // คืนค่าที่อยู่
+        console.log(data.results[0].formatted_address);
+        setFormData({ ...formData, gps: data.results[0].formatted_address })
       } else {
-        console.error("Geolocation is not supported by this browser.");
+        console.error("Geocoding API error:", data.status);
+        return "Address not found";
       }
-    };
+    } catch (error) {
+      console.error("Error fetching address:", error);
+      return "Error fetching address";
+    }
+  };
+
+  const handleGetLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          fetchAddress(latitude, longitude);
+        },
+        (error) => {
+          console.error("Error fetching location:", error.message);
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
+  };
 
 
 
@@ -726,9 +728,9 @@ export default function CreateSubDealer() {
     form
       .validateFields()
       .then((values) => {
-        
+
         const payload = {
-          id: location.state.id, 
+          id: location.state.id,
           name: values.shop_name || "",
           mobile_phone: values.mobile_phone || "",
           address: values.address || "",
@@ -818,7 +820,7 @@ export default function CreateSubDealer() {
           form={form}
         />
       )}
-      
+
       <div
         className="bg-white p-4"
         style={{
@@ -827,14 +829,14 @@ export default function CreateSubDealer() {
         }}
       >
         <div className="text-[#00783F] text-lg font-semibold mb-3">
-        <div className="flex justify-end space-x-4 mb-2">
-          <ActionButton 
-            text={isMapEnabled ? "Close Google" : "Open Google"}
-            mode="update" 
-            // onClick={() => setIsMapEnabled((prev) => !prev)} 
-            onClick={handleToggleMap}
+          <div className="flex justify-end space-x-4 mb-2">
+            <ActionButton
+              text={isMapEnabled ? "Close Google" : "Open Google"}
+              mode="update"
+              // onClick={() => setIsMapEnabled((prev) => !prev)} 
+              onClick={handleToggleMap}
             />
-        </div>
+          </div>
 
           <LoadScript googleMapsApiKey={dataApiKey}>
             <GoogleMap
@@ -896,9 +898,8 @@ export default function CreateSubDealer() {
         {contacts.map((contact, index) => (
           <div key={index}>
             <div className="flex justify-between mb-4">
-              <span className="text-[#00783F] text-md">{`Person ${
-                index + 1
-              }`}</span>
+              <span className="text-[#00783F] text-md">{`Person ${index + 1
+                }`}</span>
               {index > 0 && (
                 <ActionButton
                   mode="delete"
@@ -1065,11 +1066,11 @@ export default function CreateSubDealer() {
           text="Back"
           onClick={() => navigate("/customer/sub-dealer")}
         />
-          {mode === "Edit" ? (
-            <ActionButton text="Edit" mode="save" onClick={handleSaveEdit} />
-            ) : (
-              <ActionButton text="Save" mode="save" onClick={handleSave} />
-          )}
+        {mode === "Edit" ? (
+          <ActionButton text="Edit" mode="save" onClick={handleSaveEdit} />
+        ) : (
+          <ActionButton text="Save" mode="save" onClick={handleSave} />
+        )}
 
         {/* <ActionButton text="Save" mode="save" onClick={handleSave} /> */}
       </div>
@@ -1085,11 +1086,11 @@ export default function CreateSubDealer() {
         const formattedData = {
           id: location.state.id,
           network_list: networkList.map((item) => ({
-            farmer_id: item.key, 
-            is_on_shop: true, 
+            farmer_id: item.key,
+            is_on_shop: true,
           })),
         };
-  
+
         useServiceAPI
           .put(paths.pathSubDealerDetailUpdateFarmer, formattedData) // paths.pathNetworkSave = URL API
           .then((response) => {
@@ -1123,24 +1124,24 @@ export default function CreateSubDealer() {
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4 mt-6">
-            <ActionButton
-              mode="back"
-              text="Back"
-              onClick={() => navigate("/customer/sub-dealer")}
-            />
-            {mode !== "Create" && !isViewMode && (
-              <ActionButton text="Update Farmer" mode="update" onClick={FarmerhandleSave} />
-            )}
-          </div>
+        <ActionButton
+          mode="back"
+          text="Back"
+          onClick={() => navigate("/customer/sub-dealer")}
+        />
+        {mode !== "Create" && !isViewMode && (
+          <ActionButton text="Update Farmer" mode="update" onClick={FarmerhandleSave} />
+        )}
+      </div>
 
     </>
   );
 
-  
+
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">{isViewMode ? "View Sub Dealer" : "Edit Sub Dealer"}</div>
+      <div className="title-page">{isViewMode ? "View Sub Dealer" : isEditMode ? "Edit Sub Dealer" : "Create Sub Dealer"}</div>
       <Tabs
         activeKey={activeTabKey}
         onChange={handleTabChange}
