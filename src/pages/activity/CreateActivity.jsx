@@ -31,6 +31,7 @@ export default function CreateActivity() {
   const viewSegment = pathSegments[2] === "view";
 
   const [loading, setLoading] = useState(false);
+  const [firstCallData, setFirstCallData] = useState(false);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
   const [activityList, setActivityList] = useState([]);
   const [saleList, setSaleList] = useState([]);
@@ -39,7 +40,6 @@ export default function CreateActivity() {
   const [cropList, setCropList] = useState([]);
   const [productCropList, setProductCropList] = useState([]);
   const [productList, setProductList] = useState([]);
-  const [timeList, setTimeList] = useState([]);
   const [participantList, setParticipantList] = useState([]);
   const navigate = useNavigate();
 
@@ -56,16 +56,12 @@ export default function CreateActivity() {
   const [isBtnExpenseActive, setIsBtnExpenseActive] = useState(false);
 
   const [activityDetail, setActivityDetail] = useState({
-    product_list: []
+    product_list: [],
+    crop_id_list: [],
+    expense_product_data_list: [],
   });
-  const [cropDetailList, setCropDetailList] = useState([]);
-  const [productDetailList, setProductDetailList] = useState([]);
-  const [assignList, setAssignList] = useState([]);
-  const [isSalePlanEdit, setIsSalePlanEdit] = useState(false);
-  const [tableLoading, setTableLoading] = useState(false);
   const { showNotification, userInfo } = useContext(AuthContext);
   const [actualParticipantCount, setActualParticipantCount] = useState("0");
-  const [timeselect, setTimeSelect] = useState([]);
   const [participants, setParticipants] = useState([]);
   const [participantUsers, setParticipantUsers] = useState([]);
 
@@ -211,8 +207,8 @@ export default function CreateActivity() {
       disabled: viewSegment ?? false,
       required: true,
       col: 6,
-      value: cropDetailList,
-      moderef: true,
+      value: activityDetail.crop_id_list,
+      // moderef: true,
     },
     {
       label: "Product",
@@ -233,7 +229,7 @@ export default function CreateActivity() {
       disabled: viewSegment ?? false,
       required: true,
       col: pageCode != "activity_transaction" ? 6 : 8,
-      value: activityDetail.document_date ?? dayjs().format("YYYY-MM-DD"),
+      value: activityDetail.document_date,
     },
     {
       label: "Location",
@@ -266,7 +262,7 @@ export default function CreateActivity() {
       disabled: viewSegment ?? false,
       required: false,
       col: 24,
-      value: assignList,
+      value: activityDetail.assing_user_list,
     },
   ];
 
@@ -275,21 +271,18 @@ export default function CreateActivity() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [activityType, sale, saleAll, time, perception] =
-          await Promise.all([
-            useServiceAPI.get(paths.pathMasterActivityType, {}),
-            useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
-            useServiceAPI.get(paths.pathMasterSaleDropdown, {
-              status: "all",
-            }),
-            useServiceAPI.get(paths.pathMasterTime, {}),
-            useServiceAPI.get(paths.pathMasterPerception, {}),
-          ]);
+        const [activityType, sale, saleAll, perception] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterActivityType, {}),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {
+            status: "all",
+          }),
+          useServiceAPI.get(paths.pathMasterPerception, {}),
+        ]);
         setActivityList(activityType.data);
         setSaleList(sale.data);
 
         setSaleAllList(saleAll.data);
-        setTimeList(time.data);
         setPerceptionList(perception.data);
       } finally {
         setLoading(false);
@@ -297,114 +290,79 @@ export default function CreateActivity() {
     };
 
     getMaster();
-
-    //เชคว่าเป็น mode edit หรือป่าว
-    if (documentNumber) {
-      const getDetail = async () => {
-        setLoading(true);
-        try {
-          const [activityDetail] = await Promise.all([
-            useServiceAPI.get(paths.pathActivityExpenseDetail, {
-              document_number: documentNumber,
-              page_code: pageCode,
-            }),
-          ]);
-
-          const activityDetailData = activityDetail.data;
-          console.log(activityDetailData);
-
-          setIsBtnExpenseActive(activityDetailData.is_expense);
-          setActivityDetail(activityDetailData);
-          await setupData(activityDetailData);
-        } finally {
-          setLoading(false);
-          setIsSalePlanEdit(true);
-        }
-      };
-
-      getDetail();
-    }
   }, []);
 
-  const setupData = async (activityDetailData) => {
-    //set crop list
-    console.log(activityDetailData);
+  useEffect(() => {
+    const getDetail = async () => {
+      setLoading(true);
+      try {
+        const [activityDetail] = await Promise.all([
+          useServiceAPI.get(paths.pathActivityExpenseDetail, {
+            document_number: documentNumber,
+            page_code: pageCode,
+          }),
+        ]);
 
-    let cropData = [];
-    await activityDetailData?.crop_id_list?.forEach((element) => {
-      cropData.push(element.id);
-    });
-    setCropDetailList(cropData);
+        const activityDetailData = activityDetail.data;
+        console.log(activityDetailData);
 
-    //set assign list
-    let assignData = [];
-    await activityDetailData?.assing_user_list?.forEach((element) => {
-      assignData.push(element.id);
-    });
-    setAssignList(assignData);
+        const productListIds = activityDetailData.product_list.map(
+          (product) => product.id
+        );
+        const userListIds = activityDetailData.assing_user_list.map(
+          (product) => product.id
+        );
+        const cropListIds = activityDetailData.crop_id_list.map(
+          (product) => product.id
+        );
 
-    //set images list
-    let imageList = [];
-    await activityDetailData?.image_list?.forEach((element, key) => {
-      imageList.push({
-        uid: key,
-        name: getFileNameWithExtension(element),
-        status: "done",
-        url: element,
-      });
-    });
-    setFileList(imageList);
-
-    let productDetails = [];
-    await activityDetailData?.product_list?.forEach((element) => {
-      // productDetails.push(element.name);
-      productDetails.push(element.id);
-    });
-    setProductDetailList(productDetails);
-    console.log(productDetails);
-
-    let participantData = [];
-    let count = 0;
-    await activityDetailData?.particapant_list?.forEach((element, key) => {
-      count++;
-      const newKey = `sales-${key + 1}`;
-      participantData.push({
-        no: key + 1,
-        id: key + 1,
-        key: newKey,
-        name: element.name,
-        address: element.address,
-        phone: element.phone,
-      });
-    });
-
-    // เพิ่มเฉพาะข้อมูลใหม่เข้าไปใน participantList
-    setParticipants(participantData);
-
-    let productCropLists = [];
-    let productLists = [];
-    await activityDetailData?.expense_product_data_list?.forEach(
-      (element, key) => {
-        productCropLists.push({
-          key: key + 1,
-          productName: element.product_name,
-          packSize: element.packing_list,
-          estimateSale: element.estimate_sale_qty,
-          actualSale: element.acutal_sale_qty,
-          bath_ltkg: element.bath_ltkg,
-          prodectCode: element.product_code,
-          productId: element.product_id,
+        let participantData = [];
+        let count = 0;
+        await activityDetailData?.particapant_list?.forEach((element, key) => {
+          count++;
+          const newKey = `sales-${key + 1}`;
+          participantData.push({
+            no: key + 1,
+            id: key + 1,
+            key: newKey,
+            name: element.name,
+            address: element.address,
+            phone: element.phone,
+          });
         });
-        productLists.push({
-          key: key + 1,
-          name: element.product_name + " (" + element.packing_list + ")",
-          id: element.product_id,
+
+        let imageList = [];
+        await activityDetailData?.image_list?.forEach((element, key) => {
+          imageList.push({
+            uid: key,
+            name: getFileNameWithExtension(element),
+            status: "done",
+            url: element,
+          });
         });
+        setFileList(imageList);
+
+        setParticipants(participantData);
+
+        setIsBtnExpenseActive(activityDetailData.is_expense);
+        setActivityDetail((prevState) => ({
+          ...activityDetailData,
+          crop_id_list: cropListIds,
+          product_list: productListIds,
+          assing_user_list: userListIds,
+          expense_actual_exp: activityDetailData.expense_expense_actual_exp,
+        }));
+      } finally {
+        setLoading(false);
       }
-    );
-    setProductCropList(productCropLists);
-    setProductList(productLists);
-  };
+    };
+    if (documentNumber) {
+      setFirstCallData(true);
+      getDetail();
+    } else {
+      handleChange("document_date", dayjs().format("YYYY-MM-DD"));
+    }
+  }, []);
 
   // Function to extract the full filename
   const getFileNameWithExtension = (url) => {
@@ -420,20 +378,48 @@ export default function CreateActivity() {
           setActivityDetail((prevState) => ({ ...prevState, user_id: value }));
           await setupDealer(value);
         } else if (attribue === "dealer_id") {
-          setActivityDetail((prevState) => ({ ...prevState, dealer_id: value }));
+          setActivityDetail((prevState) => ({
+            ...prevState,
+            dealer_id: value,
+          }));
           if (value) {
             await setupCropAndDealerCustomer(value);
           }
         } else if (attribue === "crop_id_list") {
-          if (value.length > 0) {
-            await setupCrop(value);
-            setActivityDetail((prevState) => ({ ...prevState, crop_id_list: value }));
-          }
+          setActivityDetail((prevState) => ({
+            ...prevState,
+            crop_id_list: value,
+          }));
         } else if (attribue === "activity_type_id") {
-          setActivityDetail((prevState) => ({ ...prevState, activity_type_id: value }));
+          setActivityDetail((prevState) => ({
+            ...prevState,
+            activity_type_id: value,
+          }));
         } else if (attribue === "product_list") {
-          setActivityDetail((prevState) => ({ ...prevState, product_list: value }));
-
+          setActivityDetail((prevState) => ({
+            ...prevState,
+            product_list: value,
+          }));
+        } else if (attribue === "assing_user_list") {
+          setActivityDetail((prevState) => ({
+            ...prevState,
+            assing_user_list: value,
+          }));
+        } else if (attribue === "location_address") {
+          setActivityDetail((prevState) => ({
+            ...prevState,
+            location_address: value,
+          }));
+        } else if (attribue === "description") {
+          setActivityDetail((prevState) => ({
+            ...prevState,
+            description: value,
+          }));
+        } else if (attribue === "document_date") {
+          setActivityDetail((prevState) => ({
+            ...prevState,
+            document_date: dayjs(value).format("YYYY-MM-DD"),
+          }));
         } else if (attribue === "activity_reference") {
           setLoading(true);
 
@@ -451,7 +437,6 @@ export default function CreateActivity() {
             await activityDetailData.crop_id_list.forEach((element) => {
               cropData.push(element.id);
             });
-            setCropDetailList(cropData);
 
             // เรียกข้อมูล Dealer และ Crop
             await setupDealer(activityDetailData.user_id);
@@ -463,7 +448,6 @@ export default function CreateActivity() {
             await activityDetailData.assing_user_list.forEach((element) => {
               assignData.push(element.id);
             });
-            setAssignList(assignData);
           } catch (error) {
           } finally {
             setLoading(false);
@@ -476,6 +460,23 @@ export default function CreateActivity() {
 
     getMasterSelect();
   };
+
+  useEffect(() => {
+    if (activityDetail.crop_id_list.length > 0) {
+      setupCrop(activityDetail.crop_id_list);
+      console.log('setupCrop',11111111);
+      
+    } else {
+      console.log('setupCrop',222222);
+
+      setActivityDetail((prevState) => ({
+        ...prevState,
+        expense_product_data_list: [],
+        product_list: [],
+      }));
+      setProductList([]);
+    }
+  }, [activityDetail.crop_id_list]);
 
   //handleChangeFunction
   const setupDealer = async (value) => {
@@ -513,7 +514,6 @@ export default function CreateActivity() {
   };
 
   const setupCrop = async (value) => {
-    setCropDetailList(value);
     const [productCrop] = await Promise.all([
       useServiceAPI.get(paths.pathMasterProductByCrop, {
         crop_list: value,
@@ -525,13 +525,13 @@ export default function CreateActivity() {
     productCrop.data.forEach((element, key) => {
       productCropList.push({
         key: key + 1,
-        productName: element.product_name,
-        packSize: element.packing_list,
+        product_name: element.product_name,
+        packing_list: element.packing_list,
         estimateSale: "0",
         actualSale: "0",
         bath_ltkg: element.bath_ltkg,
-        prodectCode: element.product_code,
-        productId: element.id,
+        product_code: element.product_code,
+        id: element.id,
       });
       productList.push({
         key: key + 1,
@@ -539,8 +539,20 @@ export default function CreateActivity() {
         id: element.id,
       });
     });
-    setProductCropList(productCropList);
+
     setProductList(productList);
+
+    if (!firstCallData) {
+      console.log('firstCallData',11111111);
+
+      setActivityDetail((prevState) => ({
+        ...prevState,
+        expense_product_data_list: productCropList,
+      }));
+    } else {
+      console.log('firstCallData',22222222);
+      setFirstCallData(false);
+    }
   };
 
   function NumberFormatter(number) {
@@ -550,26 +562,26 @@ export default function CreateActivity() {
   const header = [
     {
       title: "Product Name",
-      dataIndex: "productName",
+      dataIndex: "product_name",
       key: "productName",
       align: "left",
     },
     {
       title: "Pack Size",
-      dataIndex: "packSize",
+      dataIndex: "packing_list",
       key: "packSize",
       align: "center",
     },
     {
       title: "Estimate Sale (Kg/Lt)",
-      dataIndex: "estimateSale",
+      dataIndex: "estimate_sale_qty",
       key: "estimateSale",
       align: "center",
       render: (_, record) => (
         <InputNumber
           className="w-full"
           min={0}
-          value={record.estimateSale}
+          value={record.estimate_sale_qty}
           disabled={
             pageCode == "expense_clearing" ? true : viewSegment ?? false
           }
@@ -590,14 +602,14 @@ export default function CreateActivity() {
     },
     {
       title: "Actual Sale (Kg/Lt)",
-      dataIndex: "actualSale",
+      dataIndex: "acutal_sale_qty",
       key: "actualSale",
       align: "center",
       render: (_, record) => (
         <InputNumber
           className="w-full"
           min={0}
-          value={record.actualSale}
+          value={record.acutal_sale_qty}
           disabled={
             pageCode != "expense_clearing" ? true : viewSegment ?? false
           }
@@ -619,39 +631,37 @@ export default function CreateActivity() {
   ];
 
   const handleInputChange = (value, key, field, bath_ltkg, record) => {
-    const updatedData = productCropList.map((item) => {
-      if (item.key === key) {
-        const numericValue = parseFloat(value) || 0;
-        const newTotal = numericValue * bath_ltkg;
-        return { ...item, [field]: numericValue, total: newTotal };
+    // Update the product data list with the new value and total
+    const updatedData = activityDetail?.expense_product_data_list.map(
+      (item) => {
+        if (item.key === key) {
+          const numericValue = parseFloat(value) || 0;
+          const newTotal = numericValue * bath_ltkg;
+          return { ...item, [field]: numericValue, total: newTotal };
+        }
+        return item;
       }
-      return item;
-    });
+    );
 
-    record.field = value;
+    // Update the field in the record (if necessary)
+    record[field] = value;
 
+    // Calculate the total sum
     const sumTotal = updatedData.reduce(
       (acc, item) => acc + (item.total || 0),
       0
     );
 
-    if (field === "estimateSale") {
-      setActivityDetail({
-        ...activityDetail,
-        expense_product_total_estimate_sale: sumTotal,
-        expense_actual_exp: sumTotal,
-      });
-    } else {
-      setActivityDetail({
-        ...activityDetail,
-        expense_product_total_acutal_sale: sumTotal,
-        expense_actual_sale: sumTotal,
-      });
-    }
-
-    console.log(productCropList, "ProductCropList");
-
-    setProductCropList(updatedData);
+    // Consolidate all state updates into a single call
+    setActivityDetail((prevState) => ({
+      ...prevState,
+      expense_product_data_list: updatedData,
+      [field === "estimateSale"
+        ? "expense_product_total_estimate_sale"
+        : "expense_product_total_acutal_sale"]: sumTotal,
+      [field === "estimateSale" ? "expense_actual_exp" : "expense_actual_sale"]:
+        sumTotal,
+    }));
   };
 
   const calculateGrandTotal = (field) => {
@@ -671,10 +681,13 @@ export default function CreateActivity() {
         <InputNumber
           className="w-full"
           min={0}
-          value={activityDetail?.expense_product_total_estimate_sale}
+          value={activityDetail?.expense_product_total_estimate_sale || 0}
           readOnly
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          formatter={
+            (value) =>
+              Number(value)
+                .toFixed(2) // Round to 2 decimal places
+                .replace(/\B(?=(\d{3})+(?!\d))/g, ",") // Add thousand separator
           }
         />
       </td>
@@ -682,10 +695,13 @@ export default function CreateActivity() {
         <InputNumber
           className="w-full"
           min={0}
-          value={activityDetail?.expense_product_total_acutal_sale}
+          value={activityDetail?.expense_product_total_acutal_sale || 0}
           readOnly
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          formatter={
+            (value) =>
+              Number(value)
+                .toFixed(2) // Round to 2 decimal places
+                .replace(/\B(?=(\d{3})+(?!\d))/g, ",") // Add thousand separator
           }
         />
       </td>
@@ -852,7 +868,8 @@ export default function CreateActivity() {
         calculateGrandTotal("estimateSale");
       const expenseProductTotalAcutalSale = calculateGrandTotal("actualSale");
       let expenseProductDataList = [];
-      productCropList.forEach((element) => {
+
+      activityDetail?.expense_product_data_list.forEach((element) => {
         expenseProductDataList.push({
           product_id: element.productId,
           product_code: element.prodectCode,
@@ -864,33 +881,6 @@ export default function CreateActivity() {
         });
       });
 
-      //ส่วนของ Customer
-      const expenseCustomerDealerId = dealerCustomer.dealer_id;
-      const expenseCustomerDealerCode = dealerCustomer.dealer_code;
-      const expenseCustomerName = dealerCustomer.customer_name;
-      const expenseCustomerPlaceOfOwner =
-        dealerCustomer.customer_place_of_owner;
-      const expenseCustomerPhoneNumber = dealerCustomer.customer_phone_number;
-      const expenseCustomerAddress = dealerCustomer.customer_address;
-      const expenseCustomerPerceptionId =
-        customerForm.getFieldValue("perception") == "Good"
-          ? 1
-          : customerForm.getFieldValue("perception");
-      let expenseCustomerPerceptionName = perceptionList.find(
-        (option) => option.id === expenseCustomerPerceptionId
-      );
-      expenseCustomerPerceptionName = expenseCustomerPerceptionName
-        ? expenseCustomerPerceptionName.name
-        : "Good";
-      const expenseCustomerLocationLongitude = customerForm.getFieldValue(
-        "location_customer_longitude"
-      );
-      const expenseCustomerLocationLatitude = customerForm.getFieldValue(
-        "location_customer_latitude"
-      );
-      const expenseCustomerLocationAddress = customerForm.getFieldValue(
-        "location_customer_address"
-      );
       let expenseParticapantUserList = [];
       let particapantList = [];
       participantUsers.forEach((element) => {
@@ -903,37 +893,27 @@ export default function CreateActivity() {
           phone: element.phone,
         });
       });
-      // console.log(advance_expense);
+
       const body = {
+        ...activityDetail,
         page_code: pageCode,
-        document_number_referrent:
-          activityDetail?.document_number_referrent ?? null,
+        // document_number_referrent:
+        //   activityDetail?.document_number_referrent ?? null,
         action_code: modeSave,
-        ...allValuesBasic,
         image_list: imageLists,
         is_expense: isExpense,
         expense_product_total_estimate_sale: expenseProductTotalEstimateSale,
         expense_product_total_acutal_sale: expenseProductTotalAcutalSale,
-        expense_product_data_list: expenseProductDataList,
-        expense_customer_dealer_id: expenseCustomerDealerId,
-        expense_customer_dealer_code: expenseCustomerDealerCode,
-        expense_customer_name: expenseCustomerName,
-        expense_customer_place_of_owner: expenseCustomerPlaceOfOwner,
-        expense_customer_phone_number: expenseCustomerPhoneNumber,
-        expense_customer_address: expenseCustomerAddress,
-        expense_customer_perception_id: expenseCustomerPerceptionId,
-        expense_customer_perception_name: expenseCustomerPerceptionName,
-        expense_customer_location_longitude: expenseCustomerLocationLongitude,
-        expense_customer_location_latitude: expenseCustomerLocationLatitude,
-        expense_customer_location_address: expenseCustomerLocationAddress,
-        expense_actual_exp: activityDetail?.expense_actual_exp,
-        expense_actual_sale: activityDetail?.expense_actual_sale,
-        expense_advance: activityDetail?.expense_advance,
-        expense_actual: activityDetail?.expense_actual,
+        // expense_product_data_list: expenseProductDataList,
+
+        // expense_actual_exp: activityDetail?.expense_actual_exp,
+        // expense_actual_sale: activityDetail?.expense_actual_sale,
+        // expense_advance: activityDetail?.expense_advance,
+        // expense_actual: activityDetail?.expense_actual,
         expense_file_list: [],
-        expense_participant_estimate:
-          activityDetail?.expense_participant_estimate,
-        expense_particapant_actual: activityDetail?.expense_particapant_actual,
+        // expense_participant_estimate:
+        //   activityDetail?.expense_participant_estimate,
+        // expense_particapant_actual: activityDetail?.expense_particapant_actual,
         expense_particapant_user_list: expenseParticapantUserList,
         particapant_list: particapantList,
       };
@@ -1045,9 +1025,13 @@ export default function CreateActivity() {
           <BoxPrimary title="Sale Plan">
             <TableComponent
               header={header}
-              dataSource={productCropList}
+              dataSource={activityDetail?.expense_product_data_list}
               pageSize={10}
-              footer={productCropList.length > 0 ? footerOrderList : null}
+              footer={
+                activityDetail?.expense_product_data_list.length > 0
+                  ? footerOrderList
+                  : null
+              }
               pagination={false}
             />
           </BoxPrimary>
