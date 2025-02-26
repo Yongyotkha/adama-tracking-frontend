@@ -59,7 +59,7 @@ const FormMappingModal = ({
   };
 
   useEffect(() => {
-    if (dataSource) {
+    if (dataSource && Object.keys(dataSource).length > 0) {
       console.log(dataSource, 1111111);
       fetchActivityListDetails();
     } else {
