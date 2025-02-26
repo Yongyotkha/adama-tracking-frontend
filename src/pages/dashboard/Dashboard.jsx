@@ -492,12 +492,12 @@ export default function Dashboard() {
     }
   }, [selectedYear, selectedSaleActivity, selectedMonthsActivity]);
 
-  const cleanedDealerPlanData = dealerPlanData.map((item) => ({
-    ...item,
-    plan: item.plan > 0 ? item.plan : 1,
-    rolling: item.rolling > 0 ? item.rolling : 1,
-    actual: item.actual > 0 ? item.actual : 1,
-  }));
+  // const cleanedDealerPlanData = dealerPlanData.map((item) => ({
+  //   ...item,
+  //   plan: item.plan > 0 ? item.plan : 1,
+  //   rolling: item.rolling > 0 ? item.rolling : 1,
+  //   actual: item.actual > 0 ? item.actual : 1,
+  // }));
 
 
   return (
@@ -709,38 +709,37 @@ export default function Dashboard() {
                 </div>
                 <div className="h-full rounded">
                   <BarChart
-                    dataset={cleanedDealerPlanData} // Use cleaned data
+                    dataset={dealerPlanData} 
                     xAxis={[
                       {
                         dataKey: "month",
                         scaleType: "band",
-                        label: "Month",
                       },
                     ]}
-                    yAxis={[
-                      {
-                        id: "logAxis",
-                        scaleType: "log",
-                      },
-                    ]}
-                    leftAxis="logAxis"
+                    // yAxis={[
+                    //   {
+                    //     id: "logAxis",
+                    //     scaleType: "log",
+                    //   },
+                    // ]}
+                    // leftAxis="logAxis"
                     series={[
                       {
-                        yAxisKey: "logAxis",
+                        // yAxisKey: "logAxis",
                         dataKey: "plan",
                         label: "Work Plan",
                         valueFormatter: valueFormatterMB,
                         color: "#10B981",
                       },
                       {
-                        yAxisKey: "logAxis",
+                        // yAxisKey: "logAxis",
                         dataKey: "rolling",
                         label: "Rolling Forecast",
                         valueFormatter: valueFormatterMB,
                         color: "#F59E0B",
                       },
                       {
-                        yAxisKey: "logAxis",
+                        // yAxisKey: "logAxis",
                         dataKey: "actual",
                         label: "Actual",
                         valueFormatter: valueFormatterMB,
