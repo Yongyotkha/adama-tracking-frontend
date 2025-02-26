@@ -205,7 +205,7 @@ export default function CreateOrder() {
 
   const formFields = [
     { 
-      label: "Sale", 
+      label: "Sales", 
       name: "sale", 
       type: "select", 
       options: dataSale, 

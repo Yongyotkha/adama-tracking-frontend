@@ -58,7 +58,7 @@ export default function ViewOrder() {
   
   const formFieldData = [
     {
-      label: "Sale",
+      label: "Sales",
       name: "sale",
       type: "text",
       disabled: true,

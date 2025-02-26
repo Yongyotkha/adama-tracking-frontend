@@ -194,7 +194,7 @@ export default function EditOrder() {
   
   const formFieldData = [
     {
-      label: "Sale",
+      label: "Sales",
       name: "sale",
       type: "text",
       disabled: true,

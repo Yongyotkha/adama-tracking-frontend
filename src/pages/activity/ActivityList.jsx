@@ -144,8 +144,8 @@ export default function ActivityList() {
     },
     {
       key: "sale",
-      type: "select",
-      label: "Sale",
+      type: 'select',
+      label: "Sales",
       placeholder: "All",
       options: saleList,
       moderef: true,
@@ -279,19 +279,9 @@ export default function ActivityList() {
   ];
 
   const header = [
-    {
-      title: "Activity No",
-      width: 150,
-      dataIndex: "activityNo",
-      align: "start",
-    },
-    {
-      title: "Activity Type",
-      width: 150,
-      dataIndex: "activityType",
-      align: "start",
-    },
-    { title: "Sale", width: 150, dataIndex: "sale", align: "start" },
+    { title: "Activity No", width: 150, dataIndex: "activityNo", align: "start" },
+    { title: "Activity Type", width: 150, dataIndex: "activityType", align: "start" },
+    { title: "Sales", width: 150, dataIndex: "sale", align: "start" },
     { title: "Shop", width: 150, dataIndex: "shop", align: "start" },
     { title: "Date", width: 150, dataIndex: "date", align: "start" },
     // { title: "Time", width: 100, dataIndex: "time", align: "start", className: "text-nowrap" },

@@ -83,7 +83,7 @@ export default function OrderList() {
     // {
     //   key: "sale",
     //   type: "select",
-    //   label: "Sale",
+    //   label: "Sales",
     //   placeholder: "All",
     //   options: dataSale,
     //   moderef: true,
@@ -116,7 +116,7 @@ export default function OrderList() {
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
     { title: "Order No", width: 150, dataIndex: "orderNo", align: "left" },
-    { title: "Sale", width: 200, dataIndex: "sale", align: "left" },
+    { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
     { title: "Dealer", width: 200, dataIndex: "dealer", align: "left" },
     { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
     {

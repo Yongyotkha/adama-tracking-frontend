@@ -37,7 +37,7 @@ export default function EditClaimRequest() {
 
   const formFields = [
     { label: "Dealer", name: "dealer", type: "select", options: ["Dealer 1", "Dealer 2"], disabled: false, required: true, value: "Select" },
-    { label: "By Sale", name: "by_sale", type: "select", options: ["Sale 1", "Sale 2"], disabled: false, required: true, value: "Select" },
+    { label: "By Sales", name: "by_sale", type: "select", options: ["Sale 1", "Sale 2"], disabled: false, required: true, value: "Select" },
     { label: "Claim No", name: "claim_no", type: "text", disabled: true, required: false, value: "Generate Auto" },
     { label: "Create Date", name: "create_date", type: "date", disabled: false, required: true, value: "" },
   ];

@@ -152,7 +152,7 @@ export default function OrderDetail() {
   const formFields = [
     {
       key: "sale",
-      label: "Sale",
+      label: "Sales",
       name: "sale",
       type: "select",
       disabled: true,

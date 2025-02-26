@@ -138,7 +138,7 @@ export default function WorkPlanCreateStepTwo() {
 
   const baseColumns = [
     {
-      title: "Area Sale Manager Name",
+      title: "Area Sales Manager Name",
       children: [
         {
           title: "Position",
