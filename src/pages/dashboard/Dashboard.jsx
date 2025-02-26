@@ -49,33 +49,33 @@ export default function Dashboard() {
     useState(null);
   const [selectedSubdealerPlan, setSelectedSubdealerPlan] = useState(null);
   const [selectedSdByD, setSelectedSdByD] = useState(null);
-  const chartSetting = {
-    yAxis: [
-      {
-        label: null,
-        tickLabelStyle: {
-          fontSize: 12,
-          whiteSpace: "nowrap",
-          overflow: "visible",
-          textAlign: "right",
-        },
-      },
-    ],
-    xAxis: [
-      {
-        scaleType: "band",
-        dataKey: "month",
-        tickLabelStyle: { fontSize: 12 },
-      },
-    ],
-    height: 300,
-    margin: { left: 100 }, // Increase left margin for large numbers
-    sx: {
-      [`.${axisClasses.left} .${axisClasses.label}`]: {
-        transform: "translate(-10px, 0)",
-      },
-    },
-  };
+  // const chartSetting = {
+  //   yAxis: [
+  //     {
+  //       label: null,
+  //       tickLabelStyle: {
+  //         fontSize: 12,
+  //         whiteSpace: "nowrap",
+  //         overflow: "visible",
+  //         textAlign: "right",
+  //       },
+  //     },
+  //   ],
+  //   xAxis: [
+  //     {
+  //       scaleType: "band",
+  //       dataKey: "month",
+  //       tickLabelStyle: { fontSize: 12 },
+  //     },
+  //   ],
+  //   height: 300,
+  //   margin: { left: 100 }, // Increase left margin for large numbers
+  //   sx: {
+  //     [`.${axisClasses.left} .${axisClasses.label}`]: {
+  //       transform: "translate(-10px, 0)",
+  //     },
+  //   },
+  // };
 
   const valueFormatterMB = (value) => {
     if (typeof value !== "number" || isNaN(value)) {
@@ -492,6 +492,14 @@ export default function Dashboard() {
     }
   }, [selectedYear, selectedSaleActivity, selectedMonthsActivity]);
 
+  const cleanedDealerPlanData = dealerPlanData.map((item) => ({
+    ...item,
+    plan: item.plan > 0 ? item.plan : 1,
+    rolling: item.rolling > 0 ? item.rolling : 1,
+    actual: item.actual > 0 ? item.actual : 1,
+  }));
+
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -701,22 +709,38 @@ export default function Dashboard() {
                 </div>
                 <div className="h-full rounded">
                   <BarChart
-                    dataset={dealerPlanData}
-                    xAxis={[{ scaleType: "band", dataKey: "month" }]}
+                    dataset={cleanedDealerPlanData} // Use cleaned data
+                    xAxis={[
+                      {
+                        dataKey: "month",
+                        scaleType: "band",
+                        label: "Month",
+                      },
+                    ]}
+                    yAxis={[
+                      {
+                        id: "logAxis",
+                        scaleType: "log",
+                      },
+                    ]}
+                    leftAxis="logAxis"
                     series={[
                       {
+                        yAxisKey: "logAxis",
                         dataKey: "plan",
                         label: "Work Plan",
                         valueFormatter: valueFormatterMB,
                         color: "#10B981",
                       },
                       {
+                        yAxisKey: "logAxis",
                         dataKey: "rolling",
                         label: "Rolling Forecast",
-                        color: "#F59E0B",
                         valueFormatter: valueFormatterMB,
+                        color: "#F59E0B",
                       },
                       {
+                        yAxisKey: "logAxis",
                         dataKey: "actual",
                         label: "Actual",
                         valueFormatter: valueFormatterMB,
@@ -730,22 +754,17 @@ export default function Dashboard() {
                         padding: 0,
                       },
                     }}
+                    height={400}
+                    margin={{ left: 100 }} // Adjust for large numbers
                     sx={{
                       ".MuiChartsBar-label": {
-                        fill: "#333", // Ensure text is visible
+                        fill: "#333", // Ensure text visibility
                         fontSize: "12px",
                         fontWeight: "bold",
                       },
                     }}
-                    // barLabel={(item, context) => {
-
-                    //   if ((item.value ?? 0) > 0) {
-                    //     return valueFormatterMB(item.value); // Format as M.B.
-                    //   }
-                    //   return null; // Hide label if value is zero or undefined
-                    // }}
-                    {...chartSetting}
                   />
+
                 </div>
               </Card>
             </Col>

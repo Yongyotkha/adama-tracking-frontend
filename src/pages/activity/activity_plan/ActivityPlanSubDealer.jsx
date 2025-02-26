@@ -327,7 +327,7 @@ export default function ActivityPlanSubDealer() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Create Activity By Sub Dealer" showYear={yearName} />
+        <Title prefix="Activity By Sub Dealer" showYear={yearName} />
         <BoxPrimary>
           <div className="flex flex-wrap items-center w-screen gap-4">
             <div className="w-1/4">
