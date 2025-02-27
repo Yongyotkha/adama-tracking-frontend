@@ -80,6 +80,8 @@ const AdvanceExpensePDF = () => {
           // console.log(response.data);
           setDataItems(response.data.expense_product_data_list); // เซ็ตค่าให้กับ state
           setDataHeader(response.data);
+          console.log(response.data);
+
           setDataCrop(response.data.crop_id_list)
         }
       } catch (error) {
@@ -118,6 +120,7 @@ const AdvanceExpensePDF = () => {
           <Text style={{ marginLeft: 'auto', paddingBottom: 5 }} ><Text style={{ fontWeight: 'bold' }}>Date</Text> : {dataHeader.created_at}</Text>
 
           {/* Details Section */}
+          
           <View style={styles.section}>
             <View style={styles.sectionColumn}>
               <Text>Advance No: {location.state.document_number}</Text>
@@ -234,7 +237,7 @@ const AdvanceExpensePDF = () => {
                     <Text style={[styles.tableCell, { flex: 2, minWidth: 21, textAlign: 'start' }]}>{item.product_name}</Text>
                     <Text style={[styles.tableCell, { flex: 2, minWidth: 21, textAlign: 'start' }]}>{item.packing_list}</Text>
                     <Text style={styles.tableCell}>{item.estimate_sale_qty}</Text>
-                    <Text style={styles.tableCell}>{item.bath_ltkg}</Text>
+                    <Text style={styles.tableCell}>{dataHeader.product_total_estimate_sale}</Text>
                     <Text style={styles.tableCell}>{item.actual_qty_kg || '-'}</Text>
                     <Text style={[styles.tableCell, styles.tableCellLast]}>{item.actual_value_thb || '-'}</Text>
                   </View>
