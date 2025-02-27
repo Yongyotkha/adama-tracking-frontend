@@ -84,19 +84,19 @@ export default function CreateActivity() {
     setFileList((prevFileList) => [...prevFileList, fileUpload]);
   };
 
-  useEffect(() => {
-    const urlDate = searchParams.get("date");
+  // useEffect(() => {
+  //   const urlDate = searchParams.get("date");
 
-    if (urlDate) {
-      setActivityDetail((prevDetail) => ({
-        ...prevDetail,
-        document_date: urlDate, // Set the date from URL
-      }));
-      formCustom.setFieldsValue({
-        document_date: dayjs(urlDate).format("YYYY-MM-DD"),
-      });
-    }
-  }, [searchParams]);
+  //   if (urlDate) {
+  //     setActivityDetail((prevDetail) => ({
+  //       ...prevDetail,
+  //       document_date: urlDate, // Set the date from URL
+  //     }));
+  //     formCustom.setFieldsValue({
+  //       document_date: dayjs(urlDate).format("YYYY-MM-DD"),
+  //     });
+  //   }
+  // }, [searchParams]);
 
   useEffect(() => {
     if (!documentNumber) {
@@ -108,6 +108,7 @@ export default function CreateActivity() {
         //   sale: userInfo.user_data_id,
         // });
       }
+      
     }
   }, [saleList]);
 
@@ -304,7 +305,6 @@ export default function CreateActivity() {
         ]);
 
         const activityDetailData = activityDetail.data;
-        console.log(activityDetailData);
 
         const productListIds = activityDetailData.product_list.map(
           (product) => product.id
@@ -360,7 +360,9 @@ export default function CreateActivity() {
       setFirstCallData(true);
       getDetail();
     } else {
-      handleChange("document_date", dayjs().format("YYYY-MM-DD"));
+      // handleChange("document_date", dayjs().toISOString());
+      handleChange("document_date", dayjs());
+      console.log(123123);
     }
   }, []);
 
@@ -418,7 +420,7 @@ export default function CreateActivity() {
         } else if (attribue === "document_date") {
           setActivityDetail((prevState) => ({
             ...prevState,
-            document_date: dayjs(value).format("YYYY-MM-DD"),
+            document_date: value,
           }));
         } else if (attribue === "activity_reference") {
           setLoading(true);
@@ -527,10 +529,11 @@ export default function CreateActivity() {
         key: key + 1,
         product_name: element.product_name,
         packing_list: element.packing_list,
-        estimateSale: "0",
-        actualSale: "0",
+        estimate_sale_qty: "0",
+        acutal_sale_qty: "0",
         bath_ltkg: element.bath_ltkg,
         product_code: element.product_code,
+        product_id: element.id,
         id: element.id,
       });
       productList.push({
@@ -917,7 +920,7 @@ export default function CreateActivity() {
         expense_particapant_user_list: expenseParticapantUserList,
         particapant_list: particapantList,
       };
-      // console.log(body);
+      console.log(body);
       // return;
       if (documentNumber) {
         useServiceAPI
@@ -979,6 +982,8 @@ export default function CreateActivity() {
       }
     } catch (err) {
       console.error("Error fetching address:", err);
+      console.log(activityDetail);
+
     }
   };
 
