@@ -18,25 +18,22 @@ const FormMappingModal = ({
   title = "Mapping",
   dataSource,
   perceptionData,
-  isReadOnly = false,
 }) => {
-  
-  const [formData, setFormData] = useState({
-    // document_number: "",
-    // perception_id: "",
-    // image_list: [],
-    // location_latitude: "",
-    // location_longitude: "",
-    // location_address: "",
-    // remark: "",
-  });
-
-  
+  const [formData, setFormData] = useState({});
+  const [permission, setPermission] = useState({});
   const webcamRef = useRef(null);
-  const [capturedImage, setCapturedImage] = useState(null);
   const [photoError, setPhotoError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [selectPerception, setPerception] = useState({});
+  const [perceptionError, setPerceptionError] = useState("");
+
+  useEffect(() => {
+    if (
+      formData.location_latitude &&
+      formData.location_longitude &&
+      permission.edit
+    ) {
+      fetchAddress();
+    }
+  }, [formData.location_latitude, formData.location_longitude, permission]);
 
   const stopWebcam = () => {
     if (webcamRef.current && webcamRef.current.stream) {
@@ -50,82 +47,54 @@ const FormMappingModal = ({
     onClose();
   };
 
-
-
   useEffect(() => {
-
     if (dataSource && Object.keys(dataSource).length > 0) {
       fetchActivityListDetails();
-      console.log(dataSource);
-    } else {
-      console.log(dataSource);
     }
-
   }, [dataSource]);
 
   const fetchActivityListDetails = async () => {
-    setLoading(true);
     try {
       const response = await useServiceAPI.get(
         paths.pathActivityMappingStatusDetail,
         { document_number: dataSource.document_number }
       );
       if (response.status === 200) {
-        const { data } = response;
-        console.log(data);
-        setFormData(data)
+        const { data, permission } = response;
 
-        // setPerception(data.customer_perception_id_id);
-        // setFormData((prevFormData) => ({
-        //   ...prevFormData,
-        //   customerName: data.customer_name || prevFormData.customerName,
-        //   placeOfOwner:
-        //     data.customer_place_of_owner || prevFormData.placeOfOwner,
-        //   phoneNumber: data.customer_phone_number || prevFormData.phoneNumber,
-        //   address: data.customer_address || prevFormData.address,
-        //   Remark: data.remark || prevFormData.remark,
-        // }));
-
-
+        setPermission(permission);
+        if (permission.edit) {
+          setFormData((prev) => ({
+            ...prev,
+            ...data,
+            image_list: [],
+          }));
+          handleGetLocation();
+        } else {
+          setFormData((prev) => ({
+            ...prev,
+            ...data,
+          }));
+        }
       } else {
         console.error("Failed to fetch details:", response.message);
       }
     } catch (error) {
       console.error("Error fetching details:", error);
     } finally {
-      setLoading(false);
     }
   };
 
-  const fetchAddress = async (lat, lng) => {
-    const apiKey = "AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik"; 
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
-
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (data.status === "OK" && data.results.length > 0) {        
-        setFormData({ ...formData, location_address: data.results[0].formatted_address , location_longitude: lng, location_latitude:lat });
-      } else {
-        console.error("Geocoding API error:", data.status);
-        return "Address not found";
-      }
-    } catch (error) {
-      console.error("Error fetching address:", error);
-      return "Error fetching address";
-    }
-  };
-
-
-
-  const handleGetLocation = () => {
+  const handleGetLocation = async () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          setFormData({location_longitude: latitude, location_latitude:longitude});
-          fetchAddress(latitude, longitude);          
+          setFormData((prev) => ({
+            ...prev,
+            location_latitude: latitude,
+            location_longitude: longitude,
+          }));
         },
         (error) => {
           console.error("Error fetching location:", error.message);
@@ -136,118 +105,88 @@ const FormMappingModal = ({
     }
   };
 
-  useEffect(() => {
-    if (isVisible && !isReadOnly) {
-      handleGetLocation();
+  const fetchAddress = async () => {
+    const apiKey = "AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik";
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${formData.location_latitude},${formData.location_longitude}&key=${apiKey}`;
 
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.status === "OK" && data.results.length > 0) {
+        setFormData((prev) => ({
+          ...prev,
+          location_address: data.results[0].formatted_address,
+        }));
+      } else {
+        console.error("Geocoding API error:", data.status);
+        return "Address not found";
+      }
+    } catch (error) {
+      console.error("Error fetching address:", error);
+      return "Error fetching address";
     }
-  }, [isVisible, isReadOnly]);
-
-  // const captureImage = useCallback(() => {
-  //   if (webcamRef.current) {
-  //     const imageSrc = webcamRef.current.getScreenshot();
-  //     setCapturedImage(imageSrc);
-  //     // console.log(imageSrc);
-  //     console.log(imageSrc);
-  //     setFormData((prev) => ({
-  //       ...prev,
-  //       image_list: imageSrc,
-  //     }));
-      
-  //     // if (formData) {
-  //     //   formData.image_list = imageSrc;
-  //     // }
-  //     setPhotoError(""); 
-  //   }
-  // }, [webcamRef, formData]);
-
-
-  // const handleImageChange = async (e) => {
-  //   const file = e.target.files[0];
-  //   setImagePreview(URL.createObjectURL(file));
-
-  //   const formData = new FormData();
-  //   formData.append("file", file);
-  //   formData.append("mode", "profile");
-
-  //   try {
-  //     const response = await useServiceAPI.post(
-  //       paths.pathUpload,
-  //       formData,
-  //       setLoading
-  //     );
-  //     form?.setFieldsValue({
-  //       profile: response.data.file_url,
-  //     });
-  //   } catch (error) {
-  //     console.error("Error uploading form data:", error);
-  //     showMsg("error", "เกิดข้อผิดพลาด");
-  //   }
-  // };
-
+  };
 
   const captureImage = useCallback(async () => {
     if (webcamRef.current) {
-        const imageSrc = webcamRef.current.getScreenshot();
-        console.log(imageSrc); // แสดงค่า imageSrc ใน console
-        setCapturedImage(imageSrc);
+      const imageSrc = webcamRef.current.getScreenshot();
+      // setCapturedImage(imageSrc);
+      if (imageSrc) {
+        try {
+          // เรียก handleImageChange และรอค่ากลับมา
+          const uploadedImageUrl = await handleImageChange(imageSrc);
 
-        if (imageSrc) {
-            try {
-                // เรียก handleImageChange และรอค่ากลับมา
-                const uploadedImageUrl = await handleImageChange(imageSrc);
-                
-                // นำค่าที่ได้จาก handleImageChange ไปอัปเดต state formData
-                setFormData((prev) => ({
-                    ...prev,
-                    image_list: uploadedImageUrl, // ใช้ URL ที่อัปโหลดแทนค่า imageSrc เดิม
-                }));
-            } catch (error) {
-                console.error("Error uploading image:", error);
-            }
+          // นำค่าที่ได้จาก handleImageChange ไปอัปเดต state formData
+          setFormData((prev) => ({
+            ...prev,
+            image_list: [uploadedImageUrl], // ใช้ URL ที่อัปโหลดแทนค่า imageSrc เดิม
+          }));
+        } catch (error) {
+          console.error("Error uploading image:", error);
         }
+      }
     }
   }, [webcamRef]);
 
   const handleImageChange = async (imageSrc) => {
-      const blob = await fetch(imageSrc).then((res) => res.blob());
-      const file = new File([blob], "captured-image.jpg", { type: "image/jpeg" });
+    const blob = await fetch(imageSrc).then((res) => res.blob());
+    const file = new File([blob], "captured-image.jpg", { type: "image/jpeg" });
 
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("mode", "profile");
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("mode", "profile");
 
-      try {
-          const response = await useServiceAPI.post(paths.pathUpload, formData, setLoading);
+    try {
+      const response = await useServiceAPI.post(paths.pathUpload, formData);
 
-          if (response?.data?.file_url) {
-              console.log("Uploaded Image URL:", response.data.file_url);
-              return response.data.file_url; // ส่งค่า URL กลับไปใช้ใน captureImage
-          } else {
-              throw new Error("Upload failed");
-          }
-      } catch (error) {
-          console.error("Error uploading image:", error);
-          throw error;
+      if (response?.data?.file_url) {
+        console.log("Uploaded Image URL:", response.data.file_url);
+        return response.data.file_url; // ส่งค่า URL กลับไปใช้ใน captureImage
+      } else {
+        throw new Error("Upload failed");
       }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      throw error;
+    }
   };
 
-
   const handleSubmit = () => {
-    console.log(formData);
-    // return;
+    setPerceptionError("");
     setPhotoError("");
 
-    // if (!formData.perception_id) {
-    //   setPerceptionError("Please select a perception_id.");
-    //   return;
-    // } 
-    // if (!formData.photo) {
-    //   setPhotoError("Please capture a photo.");
-    //   return;
-    // }
+    if (!formData.perception_id) {
+      setPerceptionError("Please select a perception_id.");
+      return;
+    }
+    if (formData.image_list.length <= 0) {
+      setPhotoError("Please capture a photo.");
+      return;
+    }
 
     if (onOk) {
+      console.log(41243123)
       onOk({ ...formData });
     }
     stopWebcam(); // Stop the webcam after saving
@@ -269,6 +208,7 @@ const FormMappingModal = ({
           backgroundColor: "#00783F",
           borderColor: "#00783F",
           color: "#ffffff",
+          display: `${permission.edit ? "" : "none"}`,
         },
       }}
     >
@@ -277,37 +217,25 @@ const FormMappingModal = ({
           <label className="block mb-2 font-medium text-gray-700">
             Document Number
           </label>
-          <Input
-            disabled
-            value={formData.document_number}
-          />
+          <Input disabled value={formData.document_number} />
         </div>
         <div className="col-span-4 md:col-span-1">
           <label className="block mb-2 font-medium text-gray-700">
             Support Customer Name
           </label>
-          <Input
-            disabled
-            value={formData.customer_name}
-          />
+          <Input disabled value={formData.customer_name} />
         </div>
         <div className="col-span-4 md:col-span-1">
           <label className="block mb-2 font-medium text-gray-700">
             Place of Owner
           </label>
-          <Input
-            disabled
-            value={formData.customer_place_of_owner}
-          />
+          <Input disabled value={formData.customer_place_of_owner} />
         </div>
         <div className="col-span-4 md:col-span-1">
           <label className="block mb-2 font-medium text-gray-700">
             Phone Number
           </label>
-          <Input
-            disabled
-            value={formData.customer_phone_number}
-          />
+          <Input disabled value={formData.customer_phone_number} />
         </div>
 
         <div className="col-span-4 md:col-span-1">
@@ -317,7 +245,9 @@ const FormMappingModal = ({
           <Select
             className="w-full"
             value={formData.perception_id}
-            onChange={(value) => setFormData({...formData, perception_id: value})}
+            onChange={(value) =>
+              setFormData({ ...formData, perception_id: value })
+            }
             placeholder="Select"
           >
             {perceptionData.map((data, index) => (
@@ -326,35 +256,28 @@ const FormMappingModal = ({
               </Option>
             ))}
           </Select>
+          {perceptionError && (
+            <div className="text-red-500 mt-1">{perceptionError}</div>
+          )}
         </div>
-
 
         <div className="col-span-4">
           <label className="block mb-2 font-medium text-gray-700">
             Address
           </label>
-          <Input
-            disabled
-            value={formData.customer_address}
-          />
+          <Input disabled value={formData.customer_address} />
         </div>
         <div className="col-span-4 hidden">
           <label className="block mb-2 font-medium text-gray-700">
             Latitude
           </label>
-          <Input
-            disabled
-            value={formData.latitude}
-          />
+          <Input disabled value={formData.latitude} />
         </div>
         <div className="col-span-4 hidden">
           <label className="block mb-2 font-medium text-gray-700">
             Longitude
           </label>
-          <Input
-            disabled
-            value={formData.longitude}
-          />
+          <Input disabled value={formData.longitude} />
         </div>
         <div className="col-span-4 md:col-span-4">
           <label className="block mb-2 font-medium text-gray-700">
@@ -385,8 +308,8 @@ const FormMappingModal = ({
         {/* Webcam Capture Section */}
         <div className="col-span-4 md:col-span-4 flex flex-col">
           <label className="block mb-2 font-medium text-gray-700">Photo</label>
-          
-          {!isReadOnly && (
+
+          {permission.edit && (
             <>
               <Webcam
                 audio={false}
@@ -395,32 +318,32 @@ const FormMappingModal = ({
                 videoConstraints={{ facingMode: "user" }}
                 style={{ width: "100%", maxHeight: "300px" }}
               />
-              <Button
-                onClick={captureImage}
-                className="w-[auto] mt-2 mx-auto"
-                disabled={isReadOnly}
-              >
+              <Button onClick={captureImage} className="w-[auto] mt-2 mx-auto">
                 Capture Photo
               </Button>
             </>
           )}
-          {capturedImage && (
+          {formData?.image_list?.length > 0 && (
             <img
-              src={capturedImage}
+              src={formData?.image_list[0]}
               alt="Captured"
               className="w-fit max-h-[300px] mt-2 mx-auto"
             />
           )}
-          {photoError && <div className="text-red-500 mt-1">{photoError}</div>}
+          {photoError && (
+            <div className="text-red-500 mt-1 text-center">{photoError}</div>
+          )}
         </div>
 
         <div className="col-span-4 md:col-span-4">
           <label className="block mb-2 font-medium text-gray-700">Remark</label>
           <Input.TextArea
-            disabled={isReadOnly}
             className="w-full"
             rows={4}
             value={formData.remark}
+            onChange={(e) =>
+              setFormData({ ...formData, remark: e.target.value })
+            }
           />
         </div>
       </div>

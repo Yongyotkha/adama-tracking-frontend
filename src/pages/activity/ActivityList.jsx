@@ -45,7 +45,6 @@ export default function ActivityList() {
   const [isFormModalReadOnly, setIsFormModalReadOnly] = useState(false);
 
   const handleBadgeClick = (rowData) => {
-    console.log(rowData);
     setMappingData(rowData);
     setIsMappingModalVisible(true);
   };
@@ -58,8 +57,6 @@ export default function ActivityList() {
         const [perception] = await Promise.all([
           useServiceAPI.get(paths.pathMasterPerception, {}),
         ]);
-
-        // Set State
         setPerceptionData(perception.data);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -71,41 +68,18 @@ export default function ActivityList() {
     getMaster();
   }, []);
 
-  // Handle Open Modal & Get Data
-  const handleShowMappingModal = (data) => {
-    setIsMappingModalVisible(true);
-    // Fetch Data: Mapping Detail
-    const getMappingData = async () => {
-      try {
-        const [mapping] = await Promise.all([
-          useServiceAPI.get(paths.pathActivityMappingStatusDetail, {
-            document_number: data.document_number,
-          }),
-        ]);
-
-        setMappingmappingperception(mapping.data.customer_perception_id);
-        setMappingData(mapping.data);
-      } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      }
-    };
-
-    getMappingData();
-  };
-
   const handleOKMappingModal = (data) => {
-    console.log(data);
-
     const body = {
       document_number: data.document_number,
       location_longitude: data.location_longitude,
       location_latitude: data.location_latitude,
       location_address: data.location_address,
       perception_id: data.perception_id,
+      remark: data.remark,
       image_list: data.image_list || ["defaultImage"], // Set a default or retrieve it from data
-      // perception_id: data.perception || mappingData.perception_id || "1", // Use data or a default value
+   
     };
-
+ 
     const updateMappingDetail = async () => {
       try {
         const [mapping] = await Promise.all([
@@ -126,11 +100,6 @@ export default function ActivityList() {
 
     setIsMappingModalVisible(false);
     updateMappingDetail();
-  };
-
-  // Handle Upload File Image
-  const handleChangeFileUpload = (data) => {
-    console.log(data);
   };
 
   const filters = [
@@ -253,10 +222,6 @@ export default function ActivityList() {
     });
   };
 
-  const handleShowProductModal = () => {
-    setIsProductModalVisible(true);
-  };
-
   const handleCloseProductModal = () => {
     setIsProductModalVisible(false);
   };
@@ -360,14 +325,6 @@ export default function ActivityList() {
             },
           ];
 
-          // const handleBadgeClick = (data) => {
-          //   if (row.status_mapping_name !== 'complete') {
-          //     handleShowMappingModal(data);
-          //   } else {
-          //     console.log("Action not allowed for 'complete' status.");
-          //   }
-          // };
-
           return {
             key: index + 1 + (current - 1) * pageSize,
             activityNo: row.document_number,
@@ -421,13 +378,12 @@ export default function ActivityList() {
   const handleTableChange = (pagination, filters, sorter) => {
     setTableParams({
       pagination,
-      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+      filters: tableParams.filters,
       sortOrder: sorter.order === "descend" ? "desc" : "asc",
       sortField: sorter.field,
     });
   };
 
-  // Master
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
@@ -448,7 +404,6 @@ export default function ActivityList() {
     getMaster();
   }, []);
 
-  // Table Activity
   useEffect(() => {
     fetchData();
   }, [
@@ -489,14 +444,14 @@ export default function ActivityList() {
         />
       </BoxPrimary>
 
-      <DynamicModal
+      {/* <DynamicModal
         title="Sale Team"
         isVisible={isProductModalVisible}
         onClose={handleCloseProductModal}
         header={productModalHeader}
         dataSource={productModalData}
         width="1200px"
-      />
+      /> */}
 
       {/* FormMappingModal */}
       <FormMappingModal
