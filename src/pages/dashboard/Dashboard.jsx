@@ -709,7 +709,7 @@ export default function Dashboard() {
                 </div>
                 <div className="h-full rounded">
                   <BarChart
-                    dataset={dealerPlanData} 
+                    dataset={dealerPlanData}
                     xAxis={[
                       {
                         dataKey: "month",
@@ -953,10 +953,17 @@ export default function Dashboard() {
                   <PieChart
                     series={[
                       {
-                        paddingAngle: 5,
-                        outerRadius: 180,
-                        data: subdealerByDealerData,
-                        arcLabel: (params) => `${params.percentage}%)`,
+                        innerRadius: 120,
+                        outerRadius: 150,
+                        paddingAngle: 1,
+                        data: subdealerByDealerData.map((item, index) => ({
+                          ...item,
+                          color: ["#10B981", "#F59E0B", "#3B82F6", "#EF4444", "#8B5CF6"][
+                            index % 5
+                          ], // Assign colors dynamically
+                          tooltip: `${item.label} ${item.percentage}% (${item.value.toLocaleString()})`,
+                        })),
+                        arcLabel: (params) => `${params.percentage}%`, // Show label + percentage
                       },
                     ]}
                     slotProps={{
@@ -964,6 +971,7 @@ export default function Dashboard() {
                     }}
                     height={400}
                   />
+
                 </div>
               </Card>
             </Col>
