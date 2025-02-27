@@ -15,7 +15,6 @@ import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { useLocation } from "react-router-dom";
 import { ReloadOutlined } from "@ant-design/icons";
-import { convertLegacyProps } from "antd/es/button";
 import { AuthContext } from "../../contexts/AuthContext";
 
 dayjs.extend(customParseFormat);
@@ -31,7 +30,7 @@ export default function CreateActivity() {
   const viewSegment = pathSegments[2] === "view";
 
   const [loading, setLoading] = useState(false);
-  const [firstCallData, setFirstCallData] = useState(false);
+  const [firstCallData, setFirstCallData] = useState(true);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
   const [activityList, setActivityList] = useState([]);
   const [saleList, setSaleList] = useState([]);
@@ -103,12 +102,7 @@ export default function CreateActivity() {
       const exists = saleList.some((item) => item.id === userInfo.id);
       if (exists) {
         handleChange("user_id", userInfo.user_data_id);
-        // formCustom.setFieldsValue({
-        //   ...formCustom,
-        //   sale: userInfo.user_data_id,
-        // });
       }
-      
     }
   }, [saleList]);
 
@@ -362,6 +356,9 @@ export default function CreateActivity() {
     } else {
       // handleChange("document_date", dayjs().toISOString());
       handleChange("document_date", dayjs());
+      formCustom.setFieldsValue({
+        document_date: dayjs(),
+      });
       console.log(123123);
     }
   }, []);
@@ -466,10 +463,9 @@ export default function CreateActivity() {
   useEffect(() => {
     if (activityDetail.crop_id_list.length > 0) {
       setupCrop(activityDetail.crop_id_list);
-      console.log('setupCrop',11111111);
-      
+      console.log("setupCrop", 11111111);
     } else {
-      console.log('setupCrop',222222);
+      console.log("setupCrop", 222222);
 
       setActivityDetail((prevState) => ({
         ...prevState,
@@ -544,18 +540,10 @@ export default function CreateActivity() {
     });
 
     setProductList(productList);
-
-    if (!firstCallData) {
-      console.log('firstCallData',11111111);
-
-      setActivityDetail((prevState) => ({
-        ...prevState,
-        expense_product_data_list: productCropList,
-      }));
-    } else {
-      console.log('firstCallData',22222222);
-      setFirstCallData(false);
-    }
+    setActivityDetail((prevState) => ({
+      ...prevState,
+      expense_product_data_list: productCropList,
+    }));
   };
 
   function NumberFormatter(number) {
@@ -566,20 +554,21 @@ export default function CreateActivity() {
     {
       title: "Product Name",
       dataIndex: "product_name",
-      key: "productName",
+      key: "product_name",
       align: "left",
     },
     {
       title: "Pack Size",
       dataIndex: "packing_list",
-      key: "packSize",
+      key: "packing_list",
       align: "center",
     },
     {
       title: "Estimate Sale (Kg/Lt)",
       dataIndex: "estimate_sale_qty",
-      key: "estimateSale",
+      key: "estimate_sale_qty",
       align: "center",
+
       render: (_, record) => (
         <InputNumber
           className="w-full"
@@ -592,7 +581,7 @@ export default function CreateActivity() {
             handleInputChange(
               value,
               record.key,
-              "estimateSale",
+              "estimate_sale_qty",
               record.bath_ltkg,
               record
             )
@@ -606,7 +595,7 @@ export default function CreateActivity() {
     {
       title: "Actual Sale (Kg/Lt)",
       dataIndex: "acutal_sale_qty",
-      key: "actualSale",
+      key: "acutal_sale_qty",
       align: "center",
       render: (_, record) => (
         <InputNumber
@@ -620,7 +609,7 @@ export default function CreateActivity() {
             handleInputChange(
               value,
               record.key,
-              "actualSale",
+              "acutal_sale_qty",
               record.bath_ltkg,
               record
             )
@@ -634,37 +623,47 @@ export default function CreateActivity() {
   ];
 
   const handleInputChange = (value, key, field, bath_ltkg, record) => {
-    // Update the product data list with the new value and total
-    const updatedData = activityDetail?.expense_product_data_list.map(
-      (item) => {
+    setActivityDetail((prevState) => {
+      const updatedData = prevState.expense_product_data_list.map((item) => {
         if (item.key === key) {
           const numericValue = parseFloat(value) || 0;
           const newTotal = numericValue * bath_ltkg;
-          return { ...item, [field]: numericValue, total: newTotal };
+
+          console.log("Updating:", field, "New Value:", numericValue);
+          console.log("Updated Record:", {
+            ...item,
+            [field]: numericValue, // ✅ Ensure correct field is updated
+            total: newTotal,
+          });
+
+          return {
+            ...item,
+            [field]: numericValue,
+            total: newTotal,
+          };
         }
         return item;
-      }
-    );
+      });
 
-    // Update the field in the record (if necessary)
-    record[field] = value;
+      // Calculate new totals
+      const sumEstimateTotal = updatedData.reduce(
+        (acc, item) => acc + (item.estimate_sale_qty || 0) * item.bath_ltkg,
+        0
+      );
+      const sumActualTotal = updatedData.reduce(
+        (acc, item) => acc + (item.acutal_sale_qty || 0) * item.bath_ltkg,
+        0
+      );
 
-    // Calculate the total sum
-    const sumTotal = updatedData.reduce(
-      (acc, item) => acc + (item.total || 0),
-      0
-    );
-
-    // Consolidate all state updates into a single call
-    setActivityDetail((prevState) => ({
-      ...prevState,
-      expense_product_data_list: updatedData,
-      [field === "estimateSale"
-        ? "expense_product_total_estimate_sale"
-        : "expense_product_total_acutal_sale"]: sumTotal,
-      [field === "estimateSale" ? "expense_actual_exp" : "expense_actual_sale"]:
-        sumTotal,
-    }));
+      return {
+        ...prevState,
+        expense_product_data_list: updatedData,
+        expense_product_total_estimate_sale: sumEstimateTotal,
+        expense_product_total_acutal_sale: sumActualTotal,
+        expense_actual_exp: sumEstimateTotal,
+        expense_actual_sale: sumActualTotal,
+      };
+    });
   };
 
   const calculateGrandTotal = (field) => {
@@ -776,7 +775,6 @@ export default function CreateActivity() {
   ];
 
   const getParticipant = async () => {
-    setTableLoading(true);
     const [participant] = await Promise.all([
       useServiceAPI.get(paths.pathMasterSaleAll, {
         page_size: 1,
@@ -832,10 +830,8 @@ export default function CreateActivity() {
 
   const removeParticipant = (key) => {
     setParticipants((prevList) => {
-      // Filter out the removed participant
       const updatedList = prevList.filter((item) => item.key !== key);
 
-      // Reassign 'no' to ensure the indices are sequential
       return updatedList.map((item, index) => ({
         ...item,
         no: parseInt(index) + 1, // Reset the 'no' based on the new order
@@ -870,19 +866,6 @@ export default function CreateActivity() {
       const expenseProductTotalEstimateSale =
         calculateGrandTotal("estimateSale");
       const expenseProductTotalAcutalSale = calculateGrandTotal("actualSale");
-      let expenseProductDataList = [];
-
-      activityDetail?.expense_product_data_list.forEach((element) => {
-        expenseProductDataList.push({
-          product_id: element.productId,
-          product_code: element.prodectCode,
-          product_name: element.productName,
-          packing_list: element.packSize,
-          bath_ltkg: element.bath_ltkg,
-          estimate_sale_qty: element.estimateSale,
-          acutal_sale_qty: element.actualSale,
-        });
-      });
 
       let expenseParticapantUserList = [];
       let particapantList = [];
@@ -897,6 +880,8 @@ export default function CreateActivity() {
         });
       });
 
+      console.log(activityDetail);
+
       const body = {
         ...activityDetail,
         page_code: pageCode,
@@ -905,8 +890,8 @@ export default function CreateActivity() {
         action_code: modeSave,
         image_list: imageLists,
         is_expense: isExpense,
-        expense_product_total_estimate_sale: expenseProductTotalEstimateSale,
-        expense_product_total_acutal_sale: expenseProductTotalAcutalSale,
+        // expense_product_total_estimate_sale: expenseProductTotalEstimateSale,
+        // expense_product_total_acutal_sale: expenseProductTotalAcutalSale,
         // expense_product_data_list: expenseProductDataList,
 
         // expense_actual_exp: activityDetail?.expense_actual_exp,
@@ -983,7 +968,6 @@ export default function CreateActivity() {
     } catch (err) {
       console.error("Error fetching address:", err);
       console.log(activityDetail);
-
     }
   };
 
@@ -1295,8 +1279,11 @@ export default function CreateActivity() {
                       placeholder="0"
                       value={activityDetail?.expense_actual_exp || 0}
                       disabled={true}
-                      formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      formatter={
+                        (value) =>
+                          Number(value)
+                            .toFixed(2) // Round to 2 decimal places
+                            .replace(/\B(?=(\d{3})+(?!\d))/g, ",") // Add thousand separator
                       }
                     />{" "}
                   </Form.Item>
@@ -1313,8 +1300,11 @@ export default function CreateActivity() {
                       placeholder="0"
                       value={activityDetail?.expense_actual_sale || 0}
                       disabled={true}
-                      formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      formatter={
+                        (value) =>
+                          Number(value)
+                            .toFixed(2) // Round to 2 decimal places
+                            .replace(/\B(?=(\d{3})+(?!\d))/g, ",") // Add thousand separator
                       }
                     />{" "}
                   </Form.Item>

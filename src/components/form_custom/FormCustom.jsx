@@ -54,9 +54,8 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
     const initialValues = fields.reduce((values, field) => {
       if (field.value !== undefined) {
         if (field.type === "date") {
-          values[field.name] = field.value
-            ? dayjs(field.value, "YYYY-MM-DD")
-            : null;
+ 
+          values[field.name] = field.value ? dayjs(field.value, "YYYY-MM-DD") : null;
         } else if (field.type === "month") {
           values[field.name] = field.value
             ? dayjs(field.value, "YYYY-MM")
@@ -73,7 +72,7 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
       }
       return values;
     }, {});
-
+   
     setFormValues(initialValues);
 
     if (!isInitialSet.current && form) {
