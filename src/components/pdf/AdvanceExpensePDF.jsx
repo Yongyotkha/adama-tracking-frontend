@@ -237,7 +237,7 @@ const AdvanceExpensePDF = () => {
                     <Text style={[styles.tableCell, { flex: 2, minWidth: 21, textAlign: 'start' }]}>{item.product_name}</Text>
                     <Text style={[styles.tableCell, { flex: 2, minWidth: 21, textAlign: 'start' }]}>{item.packing_list}</Text>
                     <Text style={styles.tableCell}>{item.estimate_sale_qty}</Text>
-                    <Text style={styles.tableCell}>{dataHeader.product_total_estimate_sale}</Text>
+                    <Text style={styles.tableCell}>{parseFloat(dataHeader.product_total_estimate_sale).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
                     <Text style={styles.tableCell}>{item.actual_qty_kg || '-'}</Text>
                     <Text style={[styles.tableCell, styles.tableCellLast]}>{item.actual_value_thb || '-'}</Text>
                   </View>
