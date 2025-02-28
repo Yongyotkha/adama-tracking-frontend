@@ -1208,7 +1208,7 @@ export default function EditInformation() {
         header={[
           { title: "No", dataIndex: "no", key: "no", width: 50 },
           { title: "Name", dataIndex: "name", key: "name", width: 150 },
-          { title: "Contact Number",  dataIndex: "territory", key: "territory", width: 150,},
+          { title: "Phone No",  dataIndex: "territory", key: "territory", width: 150,},
           { title: "Status",  dataIndex: "position",  key: "position",  width: 150,},
         ]}
         dataSource={userList}
@@ -1224,7 +1224,7 @@ export default function EditInformation() {
         header={[
           { title: "No", dataIndex: "no", key: "no", width: 50 },
           { title: "Farmer Name", dataIndex: "name", key: "name", width: 150 },
-          { title: "Contact Number",  dataIndex: "territory", key: "territory", width: 150,},
+          { title: "Phone No",  dataIndex: "territory", key: "territory", width: 150,},
           { title: "Status",  dataIndex: "position",  key: "position",  width: 150,},
         ]}
         dataSource={farmerList}

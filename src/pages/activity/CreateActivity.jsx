@@ -337,7 +337,7 @@ export default function CreateActivity() {
           product_list: productListIds,
           assing_user_list: userListIds,
           // expense_actual_exp: activityDetailData.expense_expense_actual_exp,
-        })
+        });
       } finally {
         setLoading(false);
       }
@@ -540,7 +540,7 @@ export default function CreateActivity() {
   };
 
   useEffect(() => {
-    console.log('firstCallData',firstCallData);
+    console.log("firstCallData", firstCallData);
   }, [firstCallData]);
 
   function NumberFormatter(number) {
@@ -1455,7 +1455,7 @@ export default function CreateActivity() {
             onClick={() => handleSave("save")}
           />
         )}
-        <ActionButton
+        {/* <ActionButton
           mode="saveDraft"
           text="Export PDF"
           className={
@@ -1474,6 +1474,19 @@ export default function CreateActivity() {
                 page_code: pageCode,
               },
             });
+          }}
+        /> */}
+        <ActionButton
+          mode="saveDraft"
+          text="Export PDF"
+          className={
+            pageCode === "expense_advance" || pageCode === "expense_clearing"
+              ? ""
+              : "hidden"
+          }
+          onClick={() => {
+            const targetUrl = `/expenses/advance/pdf?document_number=${activityDetail.document_number}&page_code=${pageCode}`;
+            window.open(targetUrl, "_blank"); // เปิดในแท็บใหม่
           }}
         />
       </div>

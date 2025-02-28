@@ -124,7 +124,8 @@ export default function Dashboard() {
           }));
 
           setDealer(formattedDealers);
-          setSelectedSdByD(formattedDealers[0].value);
+          // setSelectedSdByD(formattedDealers[0].value);
+
         }
         if (sales.data.length > 0) {
           const formattedSales = sales.data.map((item) => ({
@@ -709,7 +710,7 @@ export default function Dashboard() {
                 </div>
                 <div className="h-full rounded">
                   <BarChart
-                    dataset={dealerPlanData} 
+                    dataset={dealerPlanData}
                     xAxis={[
                       {
                         dataKey: "month",
@@ -865,12 +866,12 @@ export default function Dashboard() {
                       onChange={(value) => {
                         setSelectedSubdealerPlan(value);
                       }}
-                      placeholder={loading ? "Loading..." : "Select Sub Dealer"}
+                      placeholder={loading ? "Loading..." : "Select Dealer"}
                       disabled={loading}
                       showSearch
                       allowClear
                       optionFilterProp="label"
-                      options={subdealer}
+                      options={dealer}
                     ></Select>
                   </div>
                 </div>
@@ -953,17 +954,25 @@ export default function Dashboard() {
                   <PieChart
                     series={[
                       {
-                        paddingAngle: 5,
-                        outerRadius: 180,
-                        data: subdealerByDealerData,
-                        arcLabel: (params) => `${params.percentage}%)`,
+                        innerRadius: 120,
+                        outerRadius: 150,
+                        // paddingAngle: 1,
+                        data: subdealerByDealerData.map((item, index) => ({
+                          ...item,
+                          color: ["#10B981", "#F59E0B", "#3B82F6", "#EF4444", "#8B5CF6"][
+                            index % 5
+                          ], // Assign colors dynamically
+                          tooltip: `${item.label} ${item.percentage}% (${item.value.toLocaleString()})`,
+                        })),
+                        // arcLabel: (params) => `${params.percentage}%`, // Show label + percentage
                       },
                     ]}
-                    slotProps={{
-                      legend: { hidden: true },
-                    }}
+                    // slotProps={{
+                    //   legend: { hidden: true },
+                    // }}
                     height={400}
                   />
+
                 </div>
               </Card>
             </Col>

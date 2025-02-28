@@ -61,6 +61,7 @@ const FormMappingModal = ({
       );
       if (response.status === 200) {
         const { data, permission } = response;
+        console.log(permission.edit)
 
         setPermission(permission);
         if (permission.edit) {
@@ -249,6 +250,8 @@ const FormMappingModal = ({
               setFormData({ ...formData, perception_id: value })
             }
             placeholder="Select"
+            disabled = {!permission.edit} 
+
           >
             {perceptionData.map((data, index) => (
               <Option key={index} value={data.id}>
@@ -310,6 +313,7 @@ const FormMappingModal = ({
           <label className="block mb-2 font-medium text-gray-700">Photo</label>
 
           {permission.edit && (
+            
             <>
               <Webcam
                 audio={false}
@@ -341,6 +345,7 @@ const FormMappingModal = ({
             className="w-full"
             rows={4}
             value={formData.remark}
+            disabled = {!permission.edit} 
             onChange={(e) =>
               setFormData({ ...formData, remark: e.target.value })
             }

@@ -84,14 +84,14 @@ export default function ActivityCalendar() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="flex items-center justify-between">
+      {/* <div className="flex items-center justify-between">
         <div className="title-page">Calendar</div>
         <ActionButton
           mode="create"
           text="Create"
           onClick={() => navigate("/activity/create?pageCode=activity_transaction")}
         />
-      </div>
+      </div> */}
 
       <DynamicCalendar
         events={events}
