@@ -95,6 +95,20 @@ const AdvanceExpensePDF = () => {
     loadDataAdvance();
   }, [getDocumentNumber, getPageCode]);
 
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // เดือนเริ่มจาก 0
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+  
+    return `${day}-${month}-${year}`;
+  };
+
+  
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
       <Document>
@@ -114,7 +128,7 @@ const AdvanceExpensePDF = () => {
             {getPageCode === "expense_clearing" ? "Clearing Expense" : getPageCode === "expense_advance" ? "Advance Expense" : getPageCode}
           </Text>
 
-          <Text style={{ marginLeft: 'auto', paddingBottom: 5 }} ><Text style={{ fontWeight: 'bold' }}>Date</Text> : {dataHeader.created_at}</Text>
+          <Text style={{ marginLeft: 'auto', paddingBottom: 5 }} ><Text style={{ fontWeight: 'bold' }}>Date</Text> : {formatDate(dataHeader.created_at)}</Text>
 
           {/* Details Section */}
           
@@ -133,7 +147,7 @@ const AdvanceExpensePDF = () => {
             </View>
 
             <View style={styles.sectionColumn2}>
-              <Text>Event Date:  {dataHeader.document_date} </Text>
+              <Text>Event Date: {formatDate(dataHeader.document_date)}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'between', width: '100%' }}>
                 <Text style={{ width: '140px' }}>Est. Participant: {dataHeader.participant_estimate} </Text>
                 <Text>Actual Participant: 0</Text>
@@ -151,8 +165,8 @@ const AdvanceExpensePDF = () => {
               </View>
 
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'between', width: '100%' }}>
-                <Text style={{ width: '140px' }}>Exp: 0 %</Text>
-                <Text>Exp: 0 %</Text>
+                <Text style={{ width: '140px' }}>actual: 0 %</Text>
+                <Text>actual: 0 %</Text>
               </View>
             </View>
           </View>
@@ -269,7 +283,7 @@ const AdvanceExpensePDF = () => {
                 <Text style={styles.footerLabel}>Advance</Text>
                 <View style={styles.footerContentRow}>
                   <Text>Request By :  {dataHeader.user_name}</Text>
-                  <Text>Date: {dataHeader.document_date}</Text>
+                  <Text>Date: {dataHeader.document_date} {formatDate(dataHeader.document_date)}</Text>
                 </View>
                 <View style={styles.footerContentRow}>
                   <Text>Approved By :</Text>
@@ -288,7 +302,7 @@ const AdvanceExpensePDF = () => {
                   <Text>Request By :</Text>
                   <Text>Chainarong Jitsawaeng</Text>
                   <Text>Date</Text>
-                  <Text>19/2/2568</Text>
+                  <Text>{formatDate(dataHeader.document_date)}</Text>
                 </View>
                 <View style={styles.footerContentRow}>
                   <Text>Approved By :</Text>
