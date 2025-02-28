@@ -25,7 +25,7 @@ export default function CreateTraveling() {
   const { showMsg, showNotification } = useContext(AuthContext);
   const { userInfo } = useContext(AuthContext);
 
-  const [saleId, setSaleId] = useState("");
+  const [saleId, setSaleId] = useState(userInfo.id);
   const [yearCode, setYearCode] = useState("");
   const [monthCode, setMonthCode] = useState("");
 
@@ -52,6 +52,7 @@ export default function CreateTraveling() {
         setDataSale(sale.data)
         setDataYear(year.data);
         setDataMonth(month.data);
+        
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -63,8 +64,11 @@ export default function CreateTraveling() {
   }, []);
 
   const handleMonthChange = (filter, value) => {
+    console.log(value);
+    
     if (filter == 'sale') {
       setSaleId(value);
+
     }
     if (filter == 'year') {
       setYearCode(value);
@@ -78,6 +82,9 @@ export default function CreateTraveling() {
   // Fetch API Table Add Rows
   useEffect(() => {
     if (saleId && yearCode && monthCode) {
+      console.log(saleId && yearCode && monthCode);
+      console.log(11111111111111111111111);
+      
       const loadDataTraveling = async () => {
         setLoading(true);
         try {
@@ -155,7 +162,7 @@ export default function CreateTraveling() {
       options: dataSale,
       required: false,
       col: 6,
-      value: userInfo.id,
+      value: saleId,
     },
     {
       label: "Year",

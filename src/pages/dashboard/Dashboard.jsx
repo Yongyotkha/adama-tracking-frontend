@@ -124,7 +124,8 @@ export default function Dashboard() {
           }));
 
           setDealer(formattedDealers);
-          setSelectedSdByD(formattedDealers[0].value);
+          // setSelectedSdByD(formattedDealers[0].value);
+
         }
         if (sales.data.length > 0) {
           const formattedSales = sales.data.map((item) => ({
@@ -865,12 +866,12 @@ export default function Dashboard() {
                       onChange={(value) => {
                         setSelectedSubdealerPlan(value);
                       }}
-                      placeholder={loading ? "Loading..." : "Select Sub Dealer"}
+                      placeholder={loading ? "Loading..." : "Select Dealer"}
                       disabled={loading}
                       showSearch
                       allowClear
                       optionFilterProp="label"
-                      options={subdealer}
+                      options={dealer}
                     ></Select>
                   </div>
                 </div>
