@@ -10,6 +10,7 @@ import {
   Font,
 } from "@react-pdf/renderer";
 import { useLocation } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 
@@ -61,9 +62,9 @@ const styles = StyleSheet.create({
 const AdvanceExpensePDF = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
-  const [getDocumentNumber, setGetDocumentNumber] = useState(location.state.document_number);
-  const [getPageCode, setGetPageCode] = useState(location.state.page_code);
-  const [getAdvanceDetail, setAdvanceDetail] = useState(location.state.page_code);
+  const [searchParams] = useSearchParams();
+  const getDocumentNumber = searchParams.get("document_number"); // ดึงค่าจาก query params
+  const getPageCode = searchParams.get("page_code");
   const [dataItems, setDataItems] = useState([]);
   const [dataHeader, setDataHeader] = useState([]);
   const [dataCrop, setDataCrop] = useState([]);
@@ -110,11 +111,7 @@ const AdvanceExpensePDF = () => {
             </View>
           </View>
           <Text style={styles.title}>
-            {location.state.page_code === 'expense_clearing'
-              ? 'Clearing Expense'
-              : location.state.page_code === 'expense_advance'
-                ? 'Advance Expense'
-                : location.state.page_code}
+            {getPageCode === "expense_clearing" ? "Clearing Expense" : getPageCode === "expense_advance" ? "Advance Expense" : getPageCode}
           </Text>
 
           <Text style={{ marginLeft: 'auto', paddingBottom: 5 }} ><Text style={{ fontWeight: 'bold' }}>Date</Text> : {dataHeader.created_at}</Text>
@@ -123,7 +120,7 @@ const AdvanceExpensePDF = () => {
           
           <View style={styles.section}>
             <View style={styles.sectionColumn}>
-              <Text>Advance No: {location.state.document_number}</Text>
+              <Text>Advance No: {getDocumentNumber}</Text>
               <Text>Activity Type: {dataHeader.activity_type_name}</Text>
               <Text>Shop Name: {dataHeader.dealer_name}</Text>
               <Text>

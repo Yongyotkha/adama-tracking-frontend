@@ -108,7 +108,7 @@ export default function CreateActivity() {
         //   sale: userInfo.user_data_id,
         // });
       }
-      
+
     }
   }, [saleList]);
 
@@ -116,14 +116,14 @@ export default function CreateActivity() {
     pageCode == "expense_advance"
       ? "Advance Expense"
       : pageCode == "expense_clearing"
-      ? "Clearing Expense"
-      : "Activity";
+        ? "Clearing Expense"
+        : "Activity";
   const menuURL =
     pageCode == "expense_advance"
       ? "/expenses/advance"
       : pageCode == "expense_clearing"
-      ? "/expenses/clearing"
-      : "/activity/list";
+        ? "/expenses/clearing"
+        : "/activity/list";
 
   const formFields = [
     {
@@ -184,14 +184,14 @@ export default function CreateActivity() {
       )
         ? dealerList
         : activityDetail.dealer_id && activityDetail.dealer_name
-        ? [
+          ? [
             ...dealerList,
             {
               id: activityDetail.dealer_id,
               name: activityDetail.dealer_name,
             },
           ]
-        : dealerList,
+          : dealerList,
       disabled: viewSegment ?? false,
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
@@ -466,10 +466,10 @@ export default function CreateActivity() {
   useEffect(() => {
     if (activityDetail.crop_id_list.length > 0) {
       setupCrop(activityDetail.crop_id_list);
-      console.log('setupCrop',11111111);
-      
+      console.log('setupCrop', 11111111);
+
     } else {
-      console.log('setupCrop',222222);
+      console.log('setupCrop', 222222);
 
       setActivityDetail((prevState) => ({
         ...prevState,
@@ -546,14 +546,14 @@ export default function CreateActivity() {
     setProductList(productList);
 
     if (!firstCallData) {
-      console.log('firstCallData',11111111);
+      console.log('firstCallData', 11111111);
 
       setActivityDetail((prevState) => ({
         ...prevState,
         expense_product_data_list: productCropList,
       }));
     } else {
-      console.log('firstCallData',22222222);
+      console.log('firstCallData', 22222222);
       setFirstCallData(false);
     }
   };
@@ -949,7 +949,7 @@ export default function CreateActivity() {
               2
             ).then(successCallback);
           })
-          .catch((error) => {});
+          .catch((error) => { });
       } else {
         useServiceAPI
           .post(paths.pathActivityExpenseCreate, body, setLoading)
@@ -978,7 +978,7 @@ export default function CreateActivity() {
               2
             ).then(successCallback);
           })
-          .catch((error) => {});
+          .catch((error) => { });
       }
     } catch (err) {
       console.error("Error fetching address:", err);
@@ -1021,8 +1021,8 @@ export default function CreateActivity() {
       />
 
       {isBtnExpenseActive ||
-      pageCode == "expense_advance" ||
-      pageCode == "expense_clearing" ? (
+        pageCode == "expense_advance" ||
+        pageCode == "expense_clearing" ? (
         <>
           <div className="flex items-center justify-between">
             <div className="title-page">Advance Expense</div>
@@ -1467,7 +1467,7 @@ export default function CreateActivity() {
             onClick={() => handleSave("save")}
           />
         )}
-        <ActionButton
+        {/* <ActionButton
           mode="saveDraft"
           text="Export PDF"
           className={
@@ -1487,7 +1487,21 @@ export default function CreateActivity() {
               },
             });
           }}
+        /> */}
+        <ActionButton
+          mode="saveDraft"
+          text="Export PDF"
+          className={
+            pageCode === "expense_advance" || pageCode === "expense_clearing"
+              ? ""
+              : "hidden"
+          }
+          onClick={() => {
+            const targetUrl = `/expenses/advance/pdf?document_number=${activityDetail.document_number}&page_code=${pageCode}`;
+            window.open(targetUrl, "_blank"); // เปิดในแท็บใหม่
+          }}
         />
+
       </div>
 
       {/* Modal for Add Participant */}

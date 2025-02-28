@@ -955,7 +955,7 @@ export default function Dashboard() {
                       {
                         innerRadius: 120,
                         outerRadius: 150,
-                        paddingAngle: 1,
+                        // paddingAngle: 1,
                         data: subdealerByDealerData.map((item, index) => ({
                           ...item,
                           color: ["#10B981", "#F59E0B", "#3B82F6", "#EF4444", "#8B5CF6"][
@@ -963,12 +963,12 @@ export default function Dashboard() {
                           ], // Assign colors dynamically
                           tooltip: `${item.label} ${item.percentage}% (${item.value.toLocaleString()})`,
                         })),
-                        arcLabel: (params) => `${params.percentage}%`, // Show label + percentage
+                        // arcLabel: (params) => `${params.percentage}%`, // Show label + percentage
                       },
                     ]}
-                    slotProps={{
-                      legend: { hidden: true },
-                    }}
+                    // slotProps={{
+                    //   legend: { hidden: true },
+                    // }}
                     height={400}
                   />
 
