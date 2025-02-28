@@ -328,16 +328,7 @@ export default function CreateActivity() {
           crop_id_list: cropListIds,
           product_list: productListIds,
           assing_user_list: userListIds,
-          // expense_actual_exp: activityDetailData.expense_expense_actual_exp,
         }));
-
-        console.log({
-          // ...activityDetailData,
-          crop_id_list: cropListIds,
-          product_list: productListIds,
-          assing_user_list: userListIds,
-          // expense_actual_exp: activityDetailData.expense_expense_actual_exp,
-        });
       } finally {
         setLoading(false);
       }
@@ -531,10 +522,10 @@ export default function CreateActivity() {
         expense_product_data_list: productCropList,
         expense_product_total_acutal_sale: 0,
         expense_product_total_estimate_sale: 0,
-        expense_participant_estimate: 0,
-        expense_particapant_actual: 0,
         expense_expense_actual_exp: 0,
         expense_expense_actual_sale: 0,
+        expense_actual_sale: 0,
+        expense_actual_exp: 0,
       }));
     }
   };
@@ -659,6 +650,8 @@ export default function CreateActivity() {
         expense_product_total_acutal_sale: sumActualTotal,
         expense_actual_exp: sumEstimateTotal,
         expense_actual_sale: sumActualTotal,
+        expense_expense_actual_exp: sumEstimateTotal,
+        expense_expense_actual_sale: sumActualTotal,
       };
     });
   };
@@ -971,8 +964,7 @@ export default function CreateActivity() {
 
   useEffect(() => {
     console.log(activityDetail);
-  }, [activityDetail])
-  
+  }, [activityDetail]);
 
   return (
     <MainLayout loading={loading}>
@@ -1280,7 +1272,11 @@ export default function CreateActivity() {
                       className="w-full"
                       min={0}
                       placeholder="0"
-                      value={activityDetail?.expense_actual_exp || activityDetail?.expense_expense_actual_exp || 0}
+                      value={
+                        activityDetail?.expense_actual_exp ||
+                        activityDetail?.expense_expense_actual_exp ||
+                        0
+                      }
                       disabled={true}
                       formatter={
                         (value) =>
@@ -1301,7 +1297,11 @@ export default function CreateActivity() {
                       className="w-full"
                       min={0}
                       placeholder="0"
-                      value={activityDetail?.expense_actual_sale || activityDetail?.expense_expense_actual_sale || 0}
+                      value={
+                        activityDetail?.expense_actual_sale ||
+                        activityDetail?.expense_expense_actual_sale ||
+                        0
+                      }
                       disabled={true}
                       formatter={
                         (value) =>
