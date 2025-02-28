@@ -969,6 +969,11 @@ export default function CreateActivity() {
     }
   };
 
+  useEffect(() => {
+    console.log(activityDetail);
+  }, [activityDetail])
+  
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -1275,7 +1280,7 @@ export default function CreateActivity() {
                       className="w-full"
                       min={0}
                       placeholder="0"
-                      value={activityDetail?.expense_actual_exp || 0}
+                      value={activityDetail?.expense_actual_exp || activityDetail?.expense_expense_actual_exp || 0}
                       disabled={true}
                       formatter={
                         (value) =>
@@ -1296,7 +1301,7 @@ export default function CreateActivity() {
                       className="w-full"
                       min={0}
                       placeholder="0"
-                      value={activityDetail?.expense_actual_sale || 0}
+                      value={activityDetail?.expense_actual_sale || activityDetail?.expense_expense_actual_sale || 0}
                       disabled={true}
                       formatter={
                         (value) =>
