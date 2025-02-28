@@ -83,20 +83,6 @@ export default function CreateActivity() {
     setFileList((prevFileList) => [...prevFileList, fileUpload]);
   };
 
-  // useEffect(() => {
-  //   const urlDate = searchParams.get("date");
-
-  //   if (urlDate) {
-  //     setActivityDetail((prevDetail) => ({
-  //       ...prevDetail,
-  //       document_date: urlDate, // Set the date from URL
-  //     }));
-  //     formCustom.setFieldsValue({
-  //       document_date: dayjs(urlDate).format("YYYY-MM-DD"),
-  //     });
-  //   }
-  // }, [searchParams]);
-
   useEffect(() => {
     if (!documentNumber) {
       const exists = saleList.some((item) => item.id === userInfo.id);
@@ -335,31 +321,34 @@ export default function CreateActivity() {
           });
         });
         setFileList(imageList);
-
         setParticipants(participantData);
-
         setIsBtnExpenseActive(activityDetailData.is_expense);
         setActivityDetail((prevState) => ({
           ...activityDetailData,
           crop_id_list: cropListIds,
           product_list: productListIds,
           assing_user_list: userListIds,
-          expense_actual_exp: activityDetailData.expense_expense_actual_exp,
+          // expense_actual_exp: activityDetailData.expense_expense_actual_exp,
         }));
+
+        console.log({
+          // ...activityDetailData,
+          crop_id_list: cropListIds,
+          product_list: productListIds,
+          assing_user_list: userListIds,
+          // expense_actual_exp: activityDetailData.expense_expense_actual_exp,
+        })
       } finally {
         setLoading(false);
       }
     };
     if (documentNumber) {
-      setFirstCallData(true);
       getDetail();
     } else {
-      // handleChange("document_date", dayjs().toISOString());
       handleChange("document_date", dayjs());
       formCustom.setFieldsValue({
         document_date: dayjs(),
       });
-      console.log(123123);
     }
   }, []);
 
@@ -463,10 +452,7 @@ export default function CreateActivity() {
   useEffect(() => {
     if (activityDetail.crop_id_list.length > 0) {
       setupCrop(activityDetail.crop_id_list);
-      console.log("setupCrop", 11111111);
     } else {
-      console.log("setupCrop", 222222);
-
       setActivityDetail((prevState) => ({
         ...prevState,
         expense_product_data_list: [],
@@ -518,10 +504,18 @@ export default function CreateActivity() {
       }),
     ]);
 
-    let productCropList = [];
-    let productList = [];
-    productCrop.data.forEach((element, key) => {
-      productCropList.push({
+    let productList = productCrop.data.map((element, key) => ({
+      key: key + 1,
+      name: `${element.product_name} (${element.packing_list})`,
+      id: element.id,
+    }));
+
+    setProductList(productList);
+
+    if (documentNumber && firstCallData) {
+      setFirstCallData(!firstCallData);
+    } else {
+      let productCropList = productCrop.data.map((element, key) => ({
         key: key + 1,
         product_name: element.product_name,
         packing_list: element.packing_list,
@@ -531,20 +525,23 @@ export default function CreateActivity() {
         product_code: element.product_code,
         product_id: element.id,
         id: element.id,
-      });
-      productList.push({
-        key: key + 1,
-        name: `${element.product_name} (${element.packing_list})`,
-        id: element.id,
-      });
-    });
-
-    setProductList(productList);
-    setActivityDetail((prevState) => ({
-      ...prevState,
-      expense_product_data_list: productCropList,
-    }));
+      }));
+      setActivityDetail((prevState) => ({
+        ...prevState,
+        expense_product_data_list: productCropList,
+        expense_product_total_acutal_sale: 0,
+        expense_product_total_estimate_sale: 0,
+        expense_participant_estimate: 0,
+        expense_particapant_actual: 0,
+        expense_expense_actual_exp: 0,
+        expense_expense_actual_sale: 0,
+      }));
+    }
   };
+
+  useEffect(() => {
+    console.log('firstCallData',firstCallData);
+  }, [firstCallData]);
 
   function NumberFormatter(number) {
     return number.toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -907,6 +904,7 @@ export default function CreateActivity() {
       };
       console.log(body);
       // return;
+
       if (documentNumber) {
         useServiceAPI
           .put(paths.pathActivityExpenseDetail, body, setLoading)
