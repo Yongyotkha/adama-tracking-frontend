@@ -631,9 +631,11 @@ export default function ActivityMapping() {
                         area_name: location.area_name,
                         crop_list: location.crop_id_list,
                         document_date_display: location.document_date_display,
+                        
                       };                      
                       setlocationWindowInfo(newLocationWindowInfo);
-
+                      console.log(newLocationWindowInfo);
+                      
                     }}
                   />
 
@@ -648,7 +650,7 @@ export default function ActivityMapping() {
                   >
                     <div>
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src="https://api-uat.adama.co.th/images/activity-type-mark-location/DemoPlot.png" className="w-6 h-6" alt="" />{locationWindowInfo.activity_type_name || "No Activity Type"}
+                        <img src= {locations.activity_image || "https://api-uat.adama.co.th/images/activity-type-mark-location/DemoPlot.png"} className="w-6 h-6" alt="" />{locationWindowInfo.activity_type_name || "No Activity Type"}
                       </div>
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img src="/img/icons/shop.png" className="w-6 h-6" alt="" />{locationWindowInfo.dealer_name || "No Dealer Name"}
