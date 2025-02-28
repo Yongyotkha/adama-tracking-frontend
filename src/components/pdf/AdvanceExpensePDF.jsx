@@ -108,6 +108,17 @@ const AdvanceExpensePDF = () => {
     return `${day}-${month}-${year}`;
   };
 
+  const calculatePercentage = (estimateSale, advanceExpense) => {
+    if (!estimateSale || !advanceExpense || advanceExpense === 0) return "0 %"; // ป้องกันการหารด้วย 0
+    const percentage = (parseFloat(estimateSale) / parseFloat(advanceExpense)) * 100;
+    return `${percentage.toFixed(2)} %`; // ให้แสดงผลเป็นทศนิยม 2 ตำแหน่ง
+  };
+
+  const calculateActualPercentage = (actualSale, actualExpense) => {
+    if (!actualSale || !actualExpense || actualExpense === 0) return "0 %"; // ป้องกันการหารด้วย 0
+    const percentage = (parseFloat(actualSale) / parseFloat(actualExpense)) * 100;
+    return `${percentage.toFixed(2)} %`; // ให้แสดงผลเป็นทศนิยม 2 ตำแหน่ง
+  };
   
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
@@ -160,13 +171,15 @@ const AdvanceExpensePDF = () => {
                   Advance Exp: {parseFloat(dataHeader.expense_advance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </Text>
                 <Text>
-                  Actual Exp: {parseFloat(dataHeader.expense_actual_exp).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  Actual Exp: {parseFloat(dataHeader.expense_actual || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </Text>
               </View>
 
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'between', width: '100%' }}>
-                <Text style={{ width: '140px' }}>actual: 0 %</Text>
-                <Text>actual: 0 %</Text>
+                <Text style={{ width: '140px' }}>
+                    actual: {calculatePercentage(dataHeader.product_total_estimate_sale, dataHeader.expense_advance)}
+                </Text>
+                <Text> actual: {calculateActualPercentage(dataHeader.expense_actual_sale, dataHeader.expense_actual)} </Text>
               </View>
             </View>
           </View>
