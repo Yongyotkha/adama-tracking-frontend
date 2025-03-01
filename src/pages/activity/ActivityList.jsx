@@ -77,9 +77,8 @@ export default function ActivityList() {
       perception_id: data.perception_id,
       remark: data.remark,
       image_list: data.image_list || ["defaultImage"], // Set a default or retrieve it from data
-   
     };
- 
+
     const updateMappingDetail = async () => {
       try {
         const [mapping] = await Promise.all([
@@ -118,7 +117,7 @@ export default function ActivityList() {
     },
     {
       key: "sale",
-      type: 'select',
+      type: "select",
       label: "Sales",
       placeholder: "All",
       options: saleList,
@@ -249,8 +248,18 @@ export default function ActivityList() {
   ];
 
   const header = [
-    { title: "Activity No", width: 150, dataIndex: "activityNo", align: "start" },
-    { title: "Activity Type", width: 150, dataIndex: "activityType", align: "start" },
+    {
+      title: "Activity No",
+      width: 150,
+      dataIndex: "activityNo",
+      align: "start",
+    },
+    {
+      title: "Activity Type",
+      width: 150,
+      dataIndex: "activityType",
+      align: "start",
+    },
     { title: "Sales", width: 150, dataIndex: "sale", align: "start" },
     { title: "Shop", width: 150, dataIndex: "shop", align: "start" },
     { title: "Date", width: 150, dataIndex: "date", align: "start" },
@@ -346,7 +355,40 @@ export default function ActivityList() {
               />
             ),
             action: (
-              <Dropdown menu={{ items: actionItems }} placement="bottomRight">
+              // <Dropdown menu={{ items: actionItems }} placement="bottomRight">
+              <Dropdown
+                menu={{
+                  items: row.action.map((actionItem, actionIndex) => {
+                    let path = "";
+                    let mode = actionItem.action.toLowerCase();
+                    let onClickHandler = null;
+
+                    if (
+                      actionItem.action.toLowerCase() == "edit" ||
+                      actionItem.action.toLowerCase() == "view"
+                    ) {
+                      path = `/activity/${actionItem.action.toLowerCase()}`;
+                      onClickHandler = () => {
+                        navigate(path, {
+                          state: {
+                            documentNumber: row.document_number,
+                            pageCode: row.page_code,
+                          },
+                        });
+                      };
+                    } else {
+                      onClickHandler = () => handleDelete(row.document_number);
+                    }
+                    return {
+                      key: actionIndex,
+                      label: (
+                        <ItemDropDown mode={mode} onClick={onClickHandler} />
+                      ),
+                    };
+                  }),
+                }}
+                placement="bottomRight"
+              >
                 <a onClick={(e) => e.preventDefault()}>
                   <img
                     src="/img/icons/action.png"
@@ -422,7 +464,11 @@ export default function ActivityList() {
           mode="create"
           text="Create"
           onClick={(e) =>
-            navigate("/activity/create?pageCode=activity_transaction")
+            navigate("/activity/create", {
+              state: {
+                pageCode: "activity_transaction",
+              },
+            })
           }
         />
       </div>

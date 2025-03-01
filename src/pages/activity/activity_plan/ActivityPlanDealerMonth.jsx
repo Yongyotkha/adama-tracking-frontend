@@ -40,7 +40,7 @@ export default function ActivityPlanDealerMonth() {
 
     useServiceAPI
       .get(
-        paths.pathActivitySubDealerDetail,
+        paths.pathActivityDealerUpdate,
         {
           year_code: location?.state?.year_code,
           user_id: location?.state?.user_id,

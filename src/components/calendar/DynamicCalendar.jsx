@@ -3,7 +3,12 @@ import { Select } from "antd";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { Button, Tooltip, Popconfirm } from "antd";
-import { LeftOutlined, RightOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import {
+  LeftOutlined,
+  RightOutlined,
+  EditOutlined,
+  DeleteOutlined,
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
 import ActionButton from "../button/ActionButton";
@@ -23,7 +28,9 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   const navigate = useNavigate(); // Initialize useNavigate
 
   const handleEdit = (documentNumber) => {
-    const link = `/activity/edit?document_number=${encodeURIComponent(documentNumber)}`;
+    const link = `/activity/edit?document_number=${encodeURIComponent(
+      documentNumber
+    )}`;
     navigate(link); // Redirect to the edit page
   };
 
@@ -47,7 +54,6 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
         newDate.setMonth(newDate.getMonth());
         setCurrentDate(newDate);
         fetchEvents(newDate.getMonth() + 1, newDate.getFullYear());
-
       } else {
         // Show error notification if response is not 200
         console.error("Failed to delete event:", response.message);
@@ -60,19 +66,26 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
     } catch (error) {
       // Handle errors and show an error notification
       console.error("Error deleting event:", error);
-      showNotification(
-        "error",
-        "An error occurred while deleting the event.",
-        ["Please try again later."]
-      );
+      showNotification("error", "An error occurred while deleting the event.", [
+        "Please try again later.",
+      ]);
     }
   };
 
   const handleActionButtonClick = () => {
-    // Adjusted URL to be relative to the base URL of your application
-    const url = `/activity/create?pageCode=activity_transaction&date=${encodeURIComponent(selectedDate)}&page=activity/calendar`;
-    navigate(url); // Using react-router-dom's navigate function to redirect
+    // const url = `/activity/create?pageCode=activity_transaction&date=${encodeURIComponent(selectedDate)}&page=activity/calendar`;
+    // navigate(url);
+    navigate("/activity/create", {
+      state: {
+        pageCode: "activity_transaction",
+        fronCalendar: selectedDate,
+      },
+    });
   };
+
+  useEffect(() => {
+    console.log(selectedDate);
+  }, [selectedDate]);
 
   useEffect(() => {
     // Fetch Sale Territory options on mount
@@ -110,7 +123,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
           setShopOptions(
             response.data.map((item) => ({
               label: item.sub_dealer_name, // Use sub_dealer_name for display
-              value: item.sub_dealer_id,  // Use sub_dealer_id as the value
+              value: item.sub_dealer_id, // Use sub_dealer_id as the value
             }))
           );
         } else {
@@ -143,7 +156,6 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
     setSelectedShop(null); // Reset UI for ShopID dropdown
   };
 
-
   const handleShopChange = (shopId) => {
     setSelectedShop(shopId);
 
@@ -151,7 +163,6 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
       shopId,
     });
   };
-
 
   const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -167,7 +178,6 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   );
   const daysInMonth = endOfMonth.getDate();
   const startDayOfWeek = (startOfMonth.getDay() + 6) % 7; // Adjust for Monday start
-
 
   const months = [
     "January",
@@ -198,7 +208,6 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
     fetchEvents(newDate.getMonth() + 1, newDate.getFullYear());
   };
 
-
   const handleDateClick = (date) => {
     const correctedDate = new Date(date);
     correctedDate.setDate(correctedDate.getDate() + 1); // Adjust the date
@@ -213,7 +222,8 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
     return (
       <div className="flex flex-col gap-1 mt-2 w-full">
         {dateEvents.slice(0, 2).map((event, index) => (
-          <div lang="th"
+          <div
+            lang="th"
             key={index}
             className="flex items-center justify-between px-2 py-1 rounded-[10px] text-white text-sm"
             style={{ backgroundColor: event.color }}
@@ -317,7 +327,6 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                 Month
               </button> */}
             </div>
-
           </div>
         </div>
       </header>
@@ -386,30 +395,34 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
 
                   const correctedDate = new Date(date);
                   correctedDate.setDate(correctedDate.getDate() + 1); // Add the same adjustment here
-                  const isActive = selectedDate === correctedDate.toISOString().split("T")[0];
+                  const isActive =
+                    selectedDate === correctedDate.toISOString().split("T")[0];
 
                   return (
                     <div
                       key={`current-${index}`}
-                      className={`border p-2 rounded cursor-pointer flex flex-col items-center justify-start min-h-[170px] transition ${isActive
-                        ? "bg-gray-100 border-[#009845]"
-                        : "bg-gray-50 hover:bg-green-100"
-                        }`}
+                      className={`border p-2 rounded cursor-pointer flex flex-col items-center justify-start min-h-[170px] transition ${
+                        isActive
+                          ? "bg-gray-100 border-[#009845]"
+                          : "bg-gray-50 hover:bg-green-100"
+                      }`}
                       onClick={() =>
                         handleDateClick(date.toISOString().split("T")[0])
                       }
                     >
                       <div
-                        className={`text-start font-bold w-full ${isActive ? "text-[#009845]" : "text-gray-700"
-                          }`}
+                        className={`text-start font-bold w-full ${
+                          isActive ? "text-[#009845]" : "text-gray-700"
+                        }`}
                       >
                         {index + 1}
                       </div>
-                      {renderEventsForDate(correctedDate.toISOString().split("T")[0])}
+                      {renderEventsForDate(
+                        correctedDate.toISOString().split("T")[0]
+                      )}
                     </div>
                   );
                 })}
-
 
                 {/* Fill up remaining cells to ensure 5 rows */}
                 {Array.from({
@@ -439,9 +452,10 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
         </div>
 
         {/* Right Side: Event Details */}
-        <div className="col-span-1 md:col-span-1 lg:col-span-3 bg-[#F5F3F3] mb-5" >
+        <div className="col-span-1 md:col-span-1 lg:col-span-3 bg-[#F5F3F3] mb-5">
           <div className="flex justify-end items-center gap-4 pb-4">
-            <Select lang="th"
+            <Select
+              lang="th"
               className="min-w-[150px]"
               placeholder="Select a Sale Territory"
               options={[{ label: "All", value: "" }, ...saleOptions]}
@@ -449,7 +463,8 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
               onChange={handleSaleChange}
             />
 
-            <Select lang="th"
+            <Select
+              lang="th"
               className="min-w-[150px]"
               placeholder="Select a Shop"
               options={[{ label: "All", value: "" }, ...shopOptions]}
@@ -457,7 +472,6 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
               onChange={handleShopChange}
               disabled={!selectedSale || selectedSale === ""} // Disable if no Sale is selected or "All" is selected
             />
-
           </div>
           {selectedDate ? (
             <>
@@ -473,7 +487,8 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                       month: "long",
                     })}
                   </h3>
-                  {events.filter((event) => event.date === selectedDate).length === 0 && (
+                  {events.filter((event) => event.date === selectedDate)
+                    .length === 0 && (
                     <ActionButton
                       mode="add"
                       className="min-w-fit h-6"
@@ -483,11 +498,11 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                   )}
                 </div>
                 <div className="space-y-4">
-                  {events.filter((event) => event.date === selectedDate).length > 0 ? (
+                  {events.filter((event) => event.date === selectedDate)
+                    .length > 0 ? (
                     events
                       .filter((event) => event.date === selectedDate)
                       .map((event, index) => (
-
                         <div
                           key={index}
                           className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md"
@@ -495,7 +510,9 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                           <div className="flex items-start gap-4 w-full">
                             <div className="w-full">
                               <div className="flex justify-between">
-                                <div className={`h-10 flex items-center justify-center`}>
+                                <div
+                                  className={`h-10 flex items-center justify-center`}
+                                >
                                   <img
                                     src={event.icon}
                                     alt={event.title}
@@ -509,26 +526,34 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                   {event.time}
                                 </span>
                               </div>
-                              <p lang="th" className="text-sm text-gray-600 flex">
+                              <p
+                                lang="th"
+                                className="text-sm text-gray-600 flex"
+                              >
                                 <img
                                   src="/img/icons/location.png"
                                   className="h-6 w-6 me-2"
                                   alt=""
                                 />{" "}
-                                {event.location_address || '-' }
+                                {event.location_address || "-"}
                               </p>
                               <div className="flex items-center justify-between gap-2 mt-2">
                                 <div className="flex items-center -space-x-2">
-                                  {event.attendees.slice(0, 3).map((attendee, idx) => (
-                                    <img
-                                      key={idx}
-                                      src={attendee.avatar}
-                                      alt={attendee.name}
-                                      className="w-6 h-6 rounded-full border-2 border-white shadow-md"
-                                    />
-                                  ))}
+                                  {event.attendees
+                                    .slice(0, 3)
+                                    .map((attendee, idx) => (
+                                      <img
+                                        key={idx}
+                                        src={attendee.avatar}
+                                        alt={attendee.name}
+                                        className="w-6 h-6 rounded-full border-2 border-white shadow-md"
+                                      />
+                                    ))}
                                   {event.attendees.length > 3 && (
-                                    <span lang="th" className="text-xs font-bold w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-md">
+                                    <span
+                                      lang="th"
+                                      className="text-xs font-bold w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-md"
+                                    >
                                       +{event.attendees.length - 3}
                                     </span>
                                   )}
@@ -553,17 +578,22 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                             lang="th"
                                             className="my-2 px-3 py-1 border rounded-full text-sm text-gray-600 flex items-center w-fit"
                                           >
-                                            {new Date(event.date).toLocaleDateString("th-TH", {
+                                            {new Date(
+                                              event.date
+                                            ).toLocaleDateString("th-TH", {
                                               weekday: "short",
                                               year: "numeric",
                                               month: "2-digit",
                                               day: "2-digit",
-                                            })} 
+                                            })}
                                             {/* <span className="mx-1">|</span> */}
                                             {/* {event.time || "-"} */}
                                           </p>
 
-                                          <p lang="th" className="flex gap-1 mb-2 items-center">
+                                          <p
+                                            lang="th"
+                                            className="flex gap-1 mb-2 items-center"
+                                          >
                                             <img
                                               src="/img/icons/shop.png"
                                               className="h-6 w-6 me-2"
@@ -572,7 +602,10 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                             {event.dealer_name || "-"}
                                           </p>
 
-                                          <p lang="th" className="flex gap-1 mb-2 items-center">
+                                          <p
+                                            lang="th"
+                                            className="flex gap-1 mb-2 items-center"
+                                          >
                                             <img
                                               src="/img/icons/location.png"
                                               className="h-6 w-6 me-2"
@@ -599,7 +632,9 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                             />
                                             <span
                                               dangerouslySetInnerHTML={{
-                                                __html: event.description || "<span>No description available</span>",
+                                                __html:
+                                                  event.description ||
+                                                  "<span>No description available</span>",
                                               }}
                                             />
                                           </p>
@@ -616,21 +651,34 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                             </p> */}
                                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                               {event.attendees.length > 0 ? (
-                                                event.attendees.map((attendee, index) => (
-                                                  <div
-                                                    key={attendee.id || index}
-                                                    className="flex items-center gap-2 px-2 py-1 bg-gray-100 rounded-lg shadow-md"
-                                                  >
-                                                    <img
-                                                      src={attendee.avatar || "/img/default-avatar.png"}
-                                                      alt={attendee.name || "No Name"}
-                                                      className="w-8 h-8 rounded-full border border-gray-300"
-                                                    />
-                                                    <span className="text-sm text-gray-600">{attendee.name || "Unknown"}</span>
-                                                  </div>
-                                                ))
+                                                event.attendees.map(
+                                                  (attendee, index) => (
+                                                    <div
+                                                      key={attendee.id || index}
+                                                      className="flex items-center gap-2 px-2 py-1 bg-gray-100 rounded-lg shadow-md"
+                                                    >
+                                                      <img
+                                                        src={
+                                                          attendee.avatar ||
+                                                          "/img/default-avatar.png"
+                                                        }
+                                                        alt={
+                                                          attendee.name ||
+                                                          "No Name"
+                                                        }
+                                                        className="w-8 h-8 rounded-full border border-gray-300"
+                                                      />
+                                                      <span className="text-sm text-gray-600">
+                                                        {attendee.name ||
+                                                          "Unknown"}
+                                                      </span>
+                                                    </div>
+                                                  )
+                                                )
                                               ) : (
-                                                <span className="text-gray-500">No attendees available</span>
+                                                <span className="text-gray-500">
+                                                  No attendees available
+                                                </span>
                                               )}
                                             </div>
                                           </div>
@@ -640,7 +688,11 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                             <Button
                                               className="me-2 mt-2 border border-[#00783F] text-[#00783F] !border-[#00783F] !text-[#00783F] hover:!border-[#005f32] hover:!text-[#005f32]"
                                               icon={<EditOutlined />}
-                                              onClick={() => handleEdit(event.document_number)} // Pass document_number
+                                              onClick={() =>
+                                                handleEdit(
+                                                  event.document_number
+                                                )
+                                              } // Pass document_number
                                             >
                                               Edit
                                             </Button>
@@ -649,16 +701,23 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                             <Button
                                               className="me-2 border border-[#978B87] text-[#978B87] !border-[#978B87] !text-[#978B87] hover:!border-[red] hover:!text-[red]"
                                               icon={<DeleteOutlined />}
-                                              onClick={() => handleDelete(event.document_number)} // Pass document_number
+                                              onClick={() =>
+                                                handleDelete(
+                                                  event.document_number
+                                                )
+                                              } // Pass document_number
                                             >
                                               Delete
                                             </Button>
                                           )}
                                         </div>
                                       }
-
-                                      okButtonProps={{ style: { display: "none" } }} // Hide ok button
-                                      cancelButtonProps={{ style: { display: "none" } }} // Hide cancel button
+                                      okButtonProps={{
+                                        style: { display: "none" },
+                                      }} // Hide ok button
+                                      cancelButtonProps={{
+                                        style: { display: "none" },
+                                      }} // Hide cancel button
                                     >
                                       <img
                                         src="/img/icons/view.png"
@@ -666,7 +725,6 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                         className="w-6 h-6 rounded-full border-2 border-white cursor-pointer"
                                       />
                                     </Popconfirm>
-
                                   </Tooltip>
                                 </div>
                               </div>
@@ -681,7 +739,9 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                         alt="No Events"
                         className="max-w-[150px] mt-4"
                       />
-                      <p className="text-gray-500 mt-2">Nothing was planned for the day.</p>
+                      <p className="text-gray-500 mt-2">
+                        Nothing was planned for the day.
+                      </p>
                     </div>
                   )}
                 </div>
@@ -697,10 +757,11 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                 alt="No Events"
                 className="max-w-[150px] mt-4"
               />
-              <p className="text-gray-500 mt-2">Select a date to view events.</p>
+              <p className="text-gray-500 mt-2">
+                Select a date to view events.
+              </p>
             </div>
           )}
-
         </div>
       </main>
     </div>

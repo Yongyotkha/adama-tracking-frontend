@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Form, Input, Col, Row, Select, InputNumber } from "antd";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -22,12 +22,18 @@ dayjs.extend(customParseFormat);
 const { Option } = Select;
 
 export default function CreateActivity() {
+  // const locationParam = useLocation();
+  // const searchParams = new URLSearchParams(locationParam.search);
+  // const documentNumber = searchParams.get("documentNumber");
+  // const pageCode = searchParams.get("pageCode");
+  // const pathSegments = location.pathname.split("/");
+  // const viewSegment = pathSegments[2] === "view";
+
   const locationParam = useLocation();
-  const searchParams = new URLSearchParams(locationParam.search);
-  const documentNumber = searchParams.get("documentNumber");
-  const pageCode = searchParams.get("pageCode");
-  const pathSegments = location.pathname.split("/");
-  const viewSegment = pathSegments[2] === "view";
+  const { mode } = useParams();
+  const documentNumber = locationParam?.state?.documentNumber;
+  const pageCode = locationParam?.state?.pageCode;
+  const viewSegment = mode === "view";
 
   const [loading, setLoading] = useState(false);
   const [firstCallData, setFirstCallData] = useState(true);
@@ -58,6 +64,7 @@ export default function CreateActivity() {
     product_list: [],
     crop_id_list: [],
     expense_product_data_list: [],
+    assing_user_list: [],
   });
   const { showNotification, userInfo } = useContext(AuthContext);
   const [actualParticipantCount, setActualParticipantCount] = useState("0");
@@ -65,7 +72,6 @@ export default function CreateActivity() {
   const [participantUsers, setParticipantUsers] = useState([]);
 
   const handleUploadClick = async () => {
-    // Call triggerUpload from FileUploadComponent
     if (fileUploadRef.current) {
       fileUploadRef.current.triggerUpload();
     }
@@ -88,6 +94,7 @@ export default function CreateActivity() {
       const exists = saleList.some((item) => item.id === userInfo.id);
       if (exists) {
         handleChange("user_id", userInfo.user_data_id);
+        // handleChange("assing_user_list", userInfo.user_data_id);
       }
     }
   }, [saleList]);
@@ -286,6 +293,8 @@ export default function CreateActivity() {
 
         const activityDetailData = activityDetail.data;
 
+        console.log(activityDetailData);
+
         const productListIds = activityDetailData.product_list.map(
           (product) => product.id
         );
@@ -296,9 +305,24 @@ export default function CreateActivity() {
           (product) => product.id
         );
 
+        const expense_product_data_list =
+          activityDetailData.expense_product_data_list.map((element, key) => ({
+            key: key + 1,
+            product_name: element.product_name,
+            packing_list: element.packing_list,
+            estimate_sale_qty: element.estimate_sale_qty,
+            acutal_sale_qty: element.acutal_sale_qty,
+            bath_ltkg: element.bath_ltkg,
+            product_code: element.product_code,
+            product_id: element.product_id,
+            id: element.id,
+          }));
+
+        console.log("expense_product_data_list", expense_product_data_list);
+
         let participantData = [];
         let count = 0;
-        await activityDetailData?.particapant_list?.forEach((element, key) => {
+        activityDetailData?.particapant_list?.forEach((element, key) => {
           count++;
           const newKey = `sales-${key + 1}`;
           participantData.push({
@@ -312,7 +336,7 @@ export default function CreateActivity() {
         });
 
         let imageList = [];
-        await activityDetailData?.image_list?.forEach((element, key) => {
+        activityDetailData?.image_list?.forEach((element, key) => {
           imageList.push({
             uid: key,
             name: getFileNameWithExtension(element),
@@ -328,6 +352,7 @@ export default function CreateActivity() {
           crop_id_list: cropListIds,
           product_list: productListIds,
           assing_user_list: userListIds,
+          expense_product_data_list: expense_product_data_list,
         }));
       } finally {
         setLoading(false);
@@ -336,9 +361,13 @@ export default function CreateActivity() {
     if (documentNumber) {
       getDetail();
     } else {
-      handleChange("document_date", dayjs());
+      console.log(locationParam?.state?.fronCalendar);
+      handleChange(
+        "document_date",
+        locationParam?.state?.fronCalendar || dayjs()
+      );
       formCustom.setFieldsValue({
-        document_date: dayjs(),
+        document_date: locationParam?.state?.fronCalendar || dayjs(),
       });
     }
   }, []);
@@ -610,19 +639,25 @@ export default function CreateActivity() {
     },
   ];
 
+  useEffect(() => {
+    console.log(activityDetail?.expense_product_data_list);
+  }, [activityDetail?.expense_product_data_list]);
+
   const handleInputChange = (value, key, field, bath_ltkg, record) => {
+    console.log(value, key, field, bath_ltkg, record);
     setActivityDetail((prevState) => {
       const updatedData = prevState.expense_product_data_list.map((item) => {
         if (item.key === key) {
           const numericValue = parseFloat(value) || 0;
           const newTotal = numericValue * bath_ltkg;
 
-          console.log("Updating:", field, "New Value:", numericValue);
-          console.log("Updated Record:", {
-            ...item,
-            [field]: numericValue, // ✅ Ensure correct field is updated
-            total: newTotal,
-          });
+          // console.log("item.key:", item.key, "key:", key);
+          // console.log("Updating:", field, "New Value:", numericValue);
+          // console.log("Updated Record:", {
+          //   ...item,
+          //   [field]: numericValue, // ✅ Ensure correct field is updated
+          //   total: newTotal,
+          // });
 
           return {
             ...item,
@@ -1012,7 +1047,7 @@ export default function CreateActivity() {
               dataSource={activityDetail?.expense_product_data_list}
               pageSize={10}
               footer={
-                activityDetail?.expense_product_data_list.length > 0
+                activityDetail?.expense_product_data_list?.length > 0
                   ? footerOrderList
                   : null
               }
@@ -1234,7 +1269,7 @@ export default function CreateActivity() {
                           expense_advance: value,
                         });
                       }}
-                      disabled={pageCode == "expense_clearing"}
+                      disabled={pageCode == "expense_clearing" || viewSegment}
                     />{" "}
                   </Form.Item>
                 </Col>
@@ -1258,7 +1293,7 @@ export default function CreateActivity() {
                           expense_actual: value,
                         });
                       }}
-                      disabled={pageCode != "expense_clearing"}
+                      disabled={pageCode != "expense_clearing" || viewSegment}
                     />{" "}
                   </Form.Item>
                 </Col>
