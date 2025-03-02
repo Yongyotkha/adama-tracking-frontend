@@ -77,6 +77,10 @@ export default function CreateActivity() {
     }
   };
 
+  useEffect(() => {
+    console.log(activityDetail);
+  }, [activityDetail]);
+
   const handleUploadSuccess = (response) => {
     const data = response.data;
     const fileUpload = {
@@ -1481,20 +1485,46 @@ export default function CreateActivity() {
           text="Back"
           onClick={() => navigate(menuURL)}
         />
-        {viewSegment ? null : pageCode == "expense_advance" ? (
+        {/* {viewSegment ? null : pageCode == "expense_advance" ? (
           <ActionButton
             mode="saveDraft"
             text="Convert to Clearing"
             onClick={() => handleSave("convert_clearing")}
           />
-        ) : null}
-        {viewSegment ? null : (
+        ) : null} */}
+        {/* {viewSegment ? null : (
+          <ActionButton
+            mode="save"
+            text="Save"
+            onClick={() => handleSave("save")}
+          />
+        )} */}
+
+        {activityDetail?.permission?.btn_convert && (
+          <ActionButton
+            mode="saveDraft"
+            text="Convert to Clearing"
+            onClick={() => handleSave("convert_clearing")}
+          />
+        )}
+        {(activityDetail?.permission?.btn_save|| mode === 'create') && (
           <ActionButton
             mode="save"
             text="Save"
             onClick={() => handleSave("save")}
           />
         )}
+        {activityDetail?.permission?.btn_pdf && (
+          <ActionButton
+            mode="saveDraft"
+            text="Export PDF"
+            onClick={() => {
+              const targetUrl = `/expenses/advance/pdf?document_number=${activityDetail.document_number}&page_code=${pageCode}`;
+              window.open(targetUrl, "_blank"); // เปิดในแท็บใหม่
+            }}
+          />
+        )}
+
         {/* <ActionButton
           mode="saveDraft"
           text="Export PDF"
@@ -1516,7 +1546,7 @@ export default function CreateActivity() {
             });
           }}
         /> */}
-        <ActionButton
+        {/* <ActionButton
           mode="saveDraft"
           text="Export PDF"
           className={
@@ -1528,7 +1558,7 @@ export default function CreateActivity() {
             const targetUrl = `/expenses/advance/pdf?document_number=${activityDetail.document_number}&page_code=${pageCode}`;
             window.open(targetUrl, "_blank"); // เปิดในแท็บใหม่
           }}
-        />
+        /> */}
       </div>
 
       {/* Modal for Add Participant */}
