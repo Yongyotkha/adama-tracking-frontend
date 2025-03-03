@@ -24,6 +24,7 @@ const FormMappingModal = ({
   const webcamRef = useRef(null);
   const [photoError, setPhotoError] = useState("");
   const [perceptionError, setPerceptionError] = useState("");
+  const [isCameraOn, setIsCameraOn] = useState(false);
 
   useEffect(() => {
     if (
@@ -36,22 +37,29 @@ const FormMappingModal = ({
   }, [formData.location_latitude, formData.location_longitude, permission]);
 
   const stopWebcam = () => {
-    if (webcamRef.current && webcamRef.current.stream) {
-      const tracks = webcamRef.current.stream.getTracks();
+    if (webcamRef.current?.video?.srcObject) {
+      const stream = webcamRef.current.video.srcObject;
+      const tracks = stream.getTracks();
       tracks.forEach((track) => track.stop());
+      webcamRef.current.video.srcObject = null;
     }
   };
 
   const handleClose = () => {
-    stopWebcam();
     onClose();
   };
 
   useEffect(() => {
-    if (dataSource && Object.keys(dataSource).length > 0) {
+    if (isVisible) {
+      setFormData({});
+      setIsCameraOn(false);
       fetchActivityListDetails();
+      setTimeout(() => setIsCameraOn(true), 300);
+    } else {
+      stopWebcam();
+      setIsCameraOn(false);
     }
-  }, [dataSource]);
+  }, [isVisible]);
 
   const fetchActivityListDetails = async () => {
     try {
@@ -61,7 +69,7 @@ const FormMappingModal = ({
       );
       if (response.status === 200) {
         const { data, permission } = response;
-        console.log(permission.edit)
+        console.log(permission.edit);
 
         setPermission(permission);
         if (permission.edit) {
@@ -75,6 +83,7 @@ const FormMappingModal = ({
           setFormData((prev) => ({
             ...prev,
             ...data,
+            perception_id: data.customer_perception_id,
           }));
         }
       } else {
@@ -187,7 +196,6 @@ const FormMappingModal = ({
     }
 
     if (onOk) {
-      console.log(41243123)
       onOk({ ...formData });
     }
     stopWebcam(); // Stop the webcam after saving
@@ -250,8 +258,7 @@ const FormMappingModal = ({
               setFormData({ ...formData, perception_id: value })
             }
             placeholder="Select"
-            disabled = {!permission.edit} 
-
+            disabled={!permission.edit}
           >
             {perceptionData.map((data, index) => (
               <Option key={index} value={data.id}>
@@ -313,29 +320,45 @@ const FormMappingModal = ({
           <label className="block mb-2 font-medium text-gray-700">Photo</label>
 
           {permission.edit && (
-            
             <>
-              <Webcam
+              {/* <Webcam
                 audio={false}
                 ref={webcamRef}
                 screenshotFormat="image/jpeg"
                 videoConstraints={{ facingMode: "user" }}
                 style={{ width: "100%", maxHeight: "300px" }}
-              />
+              /> */}
+              {isCameraOn && (
+                <Webcam
+                  key={isVisible} // ใช้ key เพื่อ remount ใหม่ทุกครั้งที่ modal เปิด
+                  audio={false}
+                  ref={webcamRef}
+                  screenshotFormat="image/jpeg"
+                  videoConstraints={{ facingMode: "user" }}
+                  style={{ width: "100%", maxHeight: "300px" }}
+                />
+              )}
+              {photoError && (
+                <div className="text-red-500 mt-1 text-center">
+                  {photoError}
+                </div>
+              )}
               <Button onClick={captureImage} className="w-[auto] mt-2 mx-auto">
                 Capture Photo
               </Button>
             </>
           )}
           {formData?.image_list?.length > 0 && (
-            <img
-              src={formData?.image_list[0]}
-              alt="Captured"
-              className="w-fit max-h-[300px] mt-2 mx-auto"
-            />
-          )}
-          {photoError && (
-            <div className="text-red-500 mt-1 text-center">{photoError}</div>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {formData.image_list.map((image, index) => (
+                <img
+                  key={index} 
+                  src={image}
+                  alt={`Captured ${index + 1}`}
+                  className="w-[200px] h-auto max-h-[300px] rounded-lg shadow-md"
+                />
+              ))}
+            </div>
           )}
         </div>
 
@@ -345,7 +368,7 @@ const FormMappingModal = ({
             className="w-full"
             rows={4}
             value={formData.remark}
-            disabled = {!permission.edit} 
+            disabled={!permission.edit}
             onChange={(e) =>
               setFormData({ ...formData, remark: e.target.value })
             }

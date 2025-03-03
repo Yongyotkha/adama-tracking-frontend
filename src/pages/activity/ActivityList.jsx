@@ -36,13 +36,10 @@ export default function ActivityList() {
   });
 
   const [mappingData, setMappingData] = useState({});
-  const [mappingDataSave, setMappingDataSave] = useState({});
-  const [mappingperception, setMappingmappingperception] = useState({});
   const [perceptionData, setPerceptionData] = useState([]);
   const [isProductModalVisible, setIsProductModalVisible] = useState(false);
   const [isMappingModalVisible, setIsMappingModalVisible] = useState(false);
   const navigate = useNavigate();
-  const [isFormModalReadOnly, setIsFormModalReadOnly] = useState(false);
 
   const handleBadgeClick = (rowData) => {
     setMappingData(rowData);
@@ -77,9 +74,8 @@ export default function ActivityList() {
       perception_id: data.perception_id,
       remark: data.remark,
       image_list: data.image_list || ["defaultImage"], // Set a default or retrieve it from data
-   
     };
- 
+
     const updateMappingDetail = async () => {
       try {
         const [mapping] = await Promise.all([
@@ -118,7 +114,7 @@ export default function ActivityList() {
     },
     {
       key: "sale",
-      type: 'select',
+      type: "select",
       label: "Sales",
       placeholder: "All",
       options: saleList,
@@ -183,10 +179,9 @@ export default function ActivityList() {
       title: "Do you want to delete ?",
       icon: <ExclamationCircleFilled />,
       content: [],
-      centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+      centered: true,
       async onOk() {
         try {
-          // Call API to delete the event
           const response = await useServiceAPI.delete(
             `/activity/delete?document_number=${encodeURIComponent(
               documentNumber
@@ -194,14 +189,12 @@ export default function ActivityList() {
           );
           await fetchData();
           if (response.status === 200) {
-            // Show success notification
             showNotification(
               "success",
               response.data.message || "Event deleted successfully!",
               response.data.message_line || ["The event has been removed."]
             );
           } else {
-            // Show error notification if response is not 200
             console.error("Failed to delete event:", response.message);
             showNotification(
               "error",
@@ -210,7 +203,6 @@ export default function ActivityList() {
             );
           }
         } catch (error) {
-          // Handle errors and show an error notification
           console.error("Error deleting event:", error);
           showNotification(
             "error",
@@ -222,39 +214,22 @@ export default function ActivityList() {
     });
   };
 
-  const handleCloseProductModal = () => {
-    setIsProductModalVisible(false);
-  };
-
-  const productModalData = [
-    {
-      key: 1,
-      name: "Tossaphon Suphaksitthikorn",
-      territory: "Left North",
-      position: "Business Development Executive",
-    },
-    {
-      key: 2,
-      name: "Panudech Srithong",
-      territory: "Left Lower North",
-      position: "Business Development Executive",
-    },
-  ];
-
-  const productModalHeader = [
-    { title: "No", dataIndex: "key", key: "key", width: 50 },
-    { title: "Name", dataIndex: "name", key: "name" },
-    { title: "Territory", dataIndex: "territory", key: "territory" },
-    { title: "Position", dataIndex: "position", key: "position" },
-  ];
-
   const header = [
-    { title: "Activity No", width: 150, dataIndex: "activityNo", align: "start" },
-    { title: "Activity Type", width: 150, dataIndex: "activityType", align: "start" },
+    {
+      title: "Activity No",
+      width: 150,
+      dataIndex: "activityNo",
+      align: "start",
+    },
+    {
+      title: "Activity Type",
+      width: 150,
+      dataIndex: "activityType",
+      align: "start",
+    },
     { title: "Sales", width: 150, dataIndex: "sale", align: "start" },
     { title: "Shop", width: 150, dataIndex: "shop", align: "start" },
     { title: "Date", width: 150, dataIndex: "date", align: "start" },
-    // { title: "Time", width: 100, dataIndex: "time", align: "start", className: "text-nowrap" },
     {
       title: "Create Date",
       width: 100,
@@ -301,29 +276,6 @@ export default function ActivityList() {
         const { data, records_filtered } = response.data;
 
         const newDataSource = data.map((row, index) => {
-          const actionItems = [
-            {
-              key: "1",
-              label: (
-                <ItemDropDown
-                  mode="edit"
-                  link={`/activity/edit?documentNumber=${encodeURIComponent(
-                    row.document_number
-                  )}&pageCode=${encodeURIComponent(row.page_code)}`}
-                />
-              ),
-            },
-            {
-              key: "2",
-              label: (
-                <ItemDropDown
-                  mode="delete"
-                  link={`#`}
-                  onClick={() => handleDelete(row.document_number)}
-                />
-              ),
-            },
-          ];
 
           return {
             key: index + 1 + (current - 1) * pageSize,
@@ -342,11 +294,43 @@ export default function ActivityList() {
                 onClick={() => {
                   handleBadgeClick(row);
                 }}
-                // style={{ cursor: row.status_mapping_name !== 'complete' ? 'pointer' : 'not-allowed' }}
               />
             ),
             action: (
-              <Dropdown menu={{ items: actionItems }} placement="bottomRight">
+              // <Dropdown menu={{ items: actionItems }} placement="bottomRight">
+              <Dropdown
+                menu={{
+                  items: row.action.map((actionItem, actionIndex) => {
+                    let path = "";
+                    let mode = actionItem.action.toLowerCase();
+                    let onClickHandler = null;
+
+                    if (
+                      actionItem.action.toLowerCase() == "edit" ||
+                      actionItem.action.toLowerCase() == "view"
+                    ) {
+                      path = `/activity/${actionItem.action.toLowerCase()}`;
+                      onClickHandler = () => {
+                        navigate(path, {
+                          state: {
+                            documentNumber: row.document_number,
+                            pageCode: row.page_code,
+                          },
+                        });
+                      };
+                    } else {
+                      onClickHandler = () => handleDelete(row.document_number);
+                    }
+                    return {
+                      key: actionIndex,
+                      label: (
+                        <ItemDropDown mode={mode} onClick={onClickHandler} />
+                      ),
+                    };
+                  }),
+                }}
+                placement="bottomRight"
+              >
                 <a onClick={(e) => e.preventDefault()}>
                   <img
                     src="/img/icons/action.png"
@@ -422,7 +406,11 @@ export default function ActivityList() {
           mode="create"
           text="Create"
           onClick={(e) =>
-            navigate("/activity/create?pageCode=activity_transaction")
+            navigate("/activity/create", {
+              state: {
+                pageCode: "activity_transaction",
+              },
+            })
           }
         />
       </div>
@@ -444,16 +432,6 @@ export default function ActivityList() {
         />
       </BoxPrimary>
 
-      {/* <DynamicModal
-        title="Sale Team"
-        isVisible={isProductModalVisible}
-        onClose={handleCloseProductModal}
-        header={productModalHeader}
-        dataSource={productModalData}
-        width="1200px"
-      /> */}
-
-      {/* FormMappingModal */}
       <FormMappingModal
         isVisible={isMappingModalVisible}
         onClose={() => setIsMappingModalVisible(false)}

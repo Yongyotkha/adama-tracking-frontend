@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Form, Input, Col, Row, Select, InputNumber } from "antd";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -15,7 +15,6 @@ import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { useLocation } from "react-router-dom";
 import { ReloadOutlined } from "@ant-design/icons";
-import { convertLegacyProps } from "antd/es/button";
 import { AuthContext } from "../../contexts/AuthContext";
 
 dayjs.extend(customParseFormat);
@@ -23,15 +22,21 @@ dayjs.extend(customParseFormat);
 const { Option } = Select;
 
 export default function CreateActivity() {
+  // const locationParam = useLocation();
+  // const searchParams = new URLSearchParams(locationParam.search);
+  // const documentNumber = searchParams.get("documentNumber");
+  // const pageCode = searchParams.get("pageCode");
+  // const pathSegments = location.pathname.split("/");
+  // const viewSegment = pathSegments[2] === "view";
+
   const locationParam = useLocation();
-  const searchParams = new URLSearchParams(locationParam.search);
-  const documentNumber = searchParams.get("documentNumber");
-  const pageCode = searchParams.get("pageCode");
-  const pathSegments = location.pathname.split("/");
-  const viewSegment = pathSegments[2] === "view";
+  const { mode } = useParams();
+  const documentNumber = locationParam?.state?.documentNumber;
+  const pageCode = locationParam?.state?.pageCode;
+  const viewSegment = mode === "view";
 
   const [loading, setLoading] = useState(false);
-  const [firstCallData, setFirstCallData] = useState(false);
+  const [firstCallData, setFirstCallData] = useState(true);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
   const [activityList, setActivityList] = useState([]);
   const [saleList, setSaleList] = useState([]);
@@ -59,6 +64,7 @@ export default function CreateActivity() {
     product_list: [],
     crop_id_list: [],
     expense_product_data_list: [],
+    assing_user_list: [],
   });
   const { showNotification, userInfo } = useContext(AuthContext);
   const [actualParticipantCount, setActualParticipantCount] = useState("0");
@@ -66,11 +72,14 @@ export default function CreateActivity() {
   const [participantUsers, setParticipantUsers] = useState([]);
 
   const handleUploadClick = async () => {
-    // Call triggerUpload from FileUploadComponent
     if (fileUploadRef.current) {
       fileUploadRef.current.triggerUpload();
     }
   };
+
+  useEffect(() => {
+    console.log(activityDetail);
+  }, [activityDetail]);
 
   const handleUploadSuccess = (response) => {
     const data = response.data;
@@ -84,31 +93,13 @@ export default function CreateActivity() {
     setFileList((prevFileList) => [...prevFileList, fileUpload]);
   };
 
-  // useEffect(() => {
-  //   const urlDate = searchParams.get("date");
-
-  //   if (urlDate) {
-  //     setActivityDetail((prevDetail) => ({
-  //       ...prevDetail,
-  //       document_date: urlDate, // Set the date from URL
-  //     }));
-  //     formCustom.setFieldsValue({
-  //       document_date: dayjs(urlDate).format("YYYY-MM-DD"),
-  //     });
-  //   }
-  // }, [searchParams]);
-
   useEffect(() => {
     if (!documentNumber) {
       const exists = saleList.some((item) => item.id === userInfo.id);
       if (exists) {
         handleChange("user_id", userInfo.user_data_id);
-        // formCustom.setFieldsValue({
-        //   ...formCustom,
-        //   sale: userInfo.user_data_id,
-        // });
+        handleChange("assing_user_list", [userInfo.user_data_id]);
       }
-
     }
   }, [saleList]);
 
@@ -116,14 +107,14 @@ export default function CreateActivity() {
     pageCode == "expense_advance"
       ? "Advance Expense"
       : pageCode == "expense_clearing"
-        ? "Clearing Expense"
-        : "Activity";
+      ? "Clearing Expense"
+      : "Activity";
   const menuURL =
     pageCode == "expense_advance"
       ? "/expenses/advance"
       : pageCode == "expense_clearing"
-        ? "/expenses/clearing"
-        : "/activity/list";
+      ? "/expenses/clearing"
+      : "/activity/list";
 
   const formFields = [
     {
@@ -184,14 +175,14 @@ export default function CreateActivity() {
       )
         ? dealerList
         : activityDetail.dealer_id && activityDetail.dealer_name
-          ? [
+        ? [
             ...dealerList,
             {
               id: activityDetail.dealer_id,
               name: activityDetail.dealer_name,
             },
           ]
-          : dealerList,
+        : dealerList,
       disabled: viewSegment ?? false,
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
@@ -316,9 +307,22 @@ export default function CreateActivity() {
           (product) => product.id
         );
 
+        const expense_product_data_list =
+          activityDetailData.expense_product_data_list.map((element, key) => ({
+            key: key + 1,
+            product_name: element.product_name,
+            packing_list: element.packing_list,
+            estimate_sale_qty: element.estimate_sale_qty,
+            acutal_sale_qty: element.acutal_sale_qty,
+            bath_ltkg: element.bath_ltkg,
+            product_code: element.product_code,
+            product_id: element.product_id,
+            id: element.id,
+          }));
+
         let participantData = [];
         let count = 0;
-        await activityDetailData?.particapant_list?.forEach((element, key) => {
+        activityDetailData?.particapant_list?.forEach((element, key) => {
           count++;
           const newKey = `sales-${key + 1}`;
           participantData.push({
@@ -332,7 +336,7 @@ export default function CreateActivity() {
         });
 
         let imageList = [];
-        await activityDetailData?.image_list?.forEach((element, key) => {
+        activityDetailData?.image_list?.forEach((element, key) => {
           imageList.push({
             uid: key,
             name: getFileNameWithExtension(element),
@@ -341,28 +345,30 @@ export default function CreateActivity() {
           });
         });
         setFileList(imageList);
-
         setParticipants(participantData);
-
         setIsBtnExpenseActive(activityDetailData.is_expense);
         setActivityDetail((prevState) => ({
           ...activityDetailData,
           crop_id_list: cropListIds,
           product_list: productListIds,
           assing_user_list: userListIds,
-          expense_actual_exp: activityDetailData.expense_expense_actual_exp,
+          expense_product_data_list: expense_product_data_list,
         }));
       } finally {
         setLoading(false);
       }
     };
     if (documentNumber) {
-      setFirstCallData(true);
       getDetail();
     } else {
-      // handleChange("document_date", dayjs().toISOString());
-      handleChange("document_date", dayjs());
-      console.log(123123);
+      console.log(locationParam?.state?.fronCalendar);
+      handleChange(
+        "document_date",
+        locationParam?.state?.fronCalendar || dayjs()
+      );
+      formCustom.setFieldsValue({
+        document_date: locationParam?.state?.fronCalendar || dayjs(),
+      });
     }
   }, []);
 
@@ -466,11 +472,7 @@ export default function CreateActivity() {
   useEffect(() => {
     if (activityDetail.crop_id_list.length > 0) {
       setupCrop(activityDetail.crop_id_list);
-      console.log('setupCrop', 11111111);
-
     } else {
-      console.log('setupCrop', 222222);
-
       setActivityDetail((prevState) => ({
         ...prevState,
         expense_product_data_list: [],
@@ -522,10 +524,18 @@ export default function CreateActivity() {
       }),
     ]);
 
-    let productCropList = [];
-    let productList = [];
-    productCrop.data.forEach((element, key) => {
-      productCropList.push({
+    let productList = productCrop.data.map((element, key) => ({
+      key: key + 1,
+      name: `${element.product_name} (${element.packing_list})`,
+      id: element.id,
+    }));
+
+    setProductList(productList);
+
+    if (documentNumber && firstCallData) {
+      setFirstCallData(!firstCallData);
+    } else {
+      let productCropList = productCrop.data.map((element, key) => ({
         key: key + 1,
         product_name: element.product_name,
         packing_list: element.packing_list,
@@ -535,28 +545,20 @@ export default function CreateActivity() {
         product_code: element.product_code,
         product_id: element.id,
         id: element.id,
-      });
-      productList.push({
-        key: key + 1,
-        name: `${element.product_name} (${element.packing_list})`,
-        id: element.id,
-      });
-    });
-
-    setProductList(productList);
-
-    if (!firstCallData) {
-      console.log('firstCallData', 11111111);
-
+      }));
       setActivityDetail((prevState) => ({
         ...prevState,
         expense_product_data_list: productCropList,
+        expense_product_total_acutal_sale: 0,
+        expense_product_total_estimate_sale: 0,
+        expense_expense_actual_exp: 0,
+        expense_expense_actual_sale: 0,
+        expense_actual_sale: 0,
+        expense_actual_exp: 0,
       }));
-    } else {
-      console.log('firstCallData', 22222222);
-      setFirstCallData(false);
     }
   };
+
 
   function NumberFormatter(number) {
     return number.toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -566,20 +568,21 @@ export default function CreateActivity() {
     {
       title: "Product Name",
       dataIndex: "product_name",
-      key: "productName",
+      key: "product_name",
       align: "left",
     },
     {
       title: "Pack Size",
       dataIndex: "packing_list",
-      key: "packSize",
+      key: "packing_list",
       align: "center",
     },
     {
       title: "Estimate Sale (Kg/Lt)",
       dataIndex: "estimate_sale_qty",
-      key: "estimateSale",
+      key: "estimate_sale_qty",
       align: "center",
+
       render: (_, record) => (
         <InputNumber
           className="w-full"
@@ -592,7 +595,7 @@ export default function CreateActivity() {
             handleInputChange(
               value,
               record.key,
-              "estimateSale",
+              "estimate_sale_qty",
               record.bath_ltkg,
               record
             )
@@ -606,7 +609,7 @@ export default function CreateActivity() {
     {
       title: "Actual Sale (Kg/Lt)",
       dataIndex: "acutal_sale_qty",
-      key: "actualSale",
+      key: "acutal_sale_qty",
       align: "center",
       render: (_, record) => (
         <InputNumber
@@ -620,7 +623,7 @@ export default function CreateActivity() {
             handleInputChange(
               value,
               record.key,
-              "actualSale",
+              "acutal_sale_qty",
               record.bath_ltkg,
               record
             )
@@ -633,38 +636,56 @@ export default function CreateActivity() {
     },
   ];
 
+  useEffect(() => {
+    console.log(activityDetail?.expense_product_data_list);
+  }, [activityDetail?.expense_product_data_list]);
+
   const handleInputChange = (value, key, field, bath_ltkg, record) => {
-    // Update the product data list with the new value and total
-    const updatedData = activityDetail?.expense_product_data_list.map(
-      (item) => {
+    console.log(value, key, field, bath_ltkg, record);
+    setActivityDetail((prevState) => {
+      const updatedData = prevState.expense_product_data_list.map((item) => {
         if (item.key === key) {
           const numericValue = parseFloat(value) || 0;
           const newTotal = numericValue * bath_ltkg;
-          return { ...item, [field]: numericValue, total: newTotal };
+
+          // console.log("item.key:", item.key, "key:", key);
+          // console.log("Updating:", field, "New Value:", numericValue);
+          // console.log("Updated Record:", {
+          //   ...item,
+          //   [field]: numericValue, // ✅ Ensure correct field is updated
+          //   total: newTotal,
+          // });
+
+          return {
+            ...item,
+            [field]: numericValue,
+            total: newTotal,
+          };
         }
         return item;
-      }
-    );
+      });
 
-    // Update the field in the record (if necessary)
-    record[field] = value;
+      // Calculate new totals
+      const sumEstimateTotal = updatedData.reduce(
+        (acc, item) => acc + (item.estimate_sale_qty || 0) * item.bath_ltkg,
+        0
+      );
+      const sumActualTotal = updatedData.reduce(
+        (acc, item) => acc + (item.acutal_sale_qty || 0) * item.bath_ltkg,
+        0
+      );
 
-    // Calculate the total sum
-    const sumTotal = updatedData.reduce(
-      (acc, item) => acc + (item.total || 0),
-      0
-    );
-
-    // Consolidate all state updates into a single call
-    setActivityDetail((prevState) => ({
-      ...prevState,
-      expense_product_data_list: updatedData,
-      [field === "estimateSale"
-        ? "expense_product_total_estimate_sale"
-        : "expense_product_total_acutal_sale"]: sumTotal,
-      [field === "estimateSale" ? "expense_actual_exp" : "expense_actual_sale"]:
-        sumTotal,
-    }));
+      return {
+        ...prevState,
+        expense_product_data_list: updatedData,
+        expense_product_total_estimate_sale: sumEstimateTotal,
+        expense_product_total_acutal_sale: sumActualTotal,
+        expense_actual_exp: sumEstimateTotal,
+        expense_actual_sale: sumActualTotal,
+        expense_expense_actual_exp: sumEstimateTotal,
+        expense_expense_actual_sale: sumActualTotal,
+      };
+    });
   };
 
   const calculateGrandTotal = (field) => {
@@ -776,7 +797,6 @@ export default function CreateActivity() {
   ];
 
   const getParticipant = async () => {
-    setTableLoading(true);
     const [participant] = await Promise.all([
       useServiceAPI.get(paths.pathMasterSaleAll, {
         page_size: 1,
@@ -832,10 +852,8 @@ export default function CreateActivity() {
 
   const removeParticipant = (key) => {
     setParticipants((prevList) => {
-      // Filter out the removed participant
       const updatedList = prevList.filter((item) => item.key !== key);
 
-      // Reassign 'no' to ensure the indices are sequential
       return updatedList.map((item, index) => ({
         ...item,
         no: parseInt(index) + 1, // Reset the 'no' based on the new order
@@ -870,19 +888,6 @@ export default function CreateActivity() {
       const expenseProductTotalEstimateSale =
         calculateGrandTotal("estimateSale");
       const expenseProductTotalAcutalSale = calculateGrandTotal("actualSale");
-      let expenseProductDataList = [];
-
-      activityDetail?.expense_product_data_list.forEach((element) => {
-        expenseProductDataList.push({
-          product_id: element.productId,
-          product_code: element.prodectCode,
-          product_name: element.productName,
-          packing_list: element.packSize,
-          bath_ltkg: element.bath_ltkg,
-          estimate_sale_qty: element.estimateSale,
-          acutal_sale_qty: element.actualSale,
-        });
-      });
 
       let expenseParticapantUserList = [];
       let particapantList = [];
@@ -897,6 +902,8 @@ export default function CreateActivity() {
         });
       });
 
+      console.log(activityDetail);
+
       const body = {
         ...activityDetail,
         page_code: pageCode,
@@ -905,8 +912,8 @@ export default function CreateActivity() {
         action_code: modeSave,
         image_list: imageLists,
         is_expense: isExpense,
-        expense_product_total_estimate_sale: expenseProductTotalEstimateSale,
-        expense_product_total_acutal_sale: expenseProductTotalAcutalSale,
+        // expense_product_total_estimate_sale: expenseProductTotalEstimateSale,
+        // expense_product_total_acutal_sale: expenseProductTotalAcutalSale,
         // expense_product_data_list: expenseProductDataList,
 
         // expense_actual_exp: activityDetail?.expense_actual_exp,
@@ -922,6 +929,7 @@ export default function CreateActivity() {
       };
       console.log(body);
       // return;
+
       if (documentNumber) {
         useServiceAPI
           .put(paths.pathActivityExpenseDetail, body, setLoading)
@@ -949,7 +957,7 @@ export default function CreateActivity() {
               2
             ).then(successCallback);
           })
-          .catch((error) => { });
+          .catch((error) => {});
       } else {
         useServiceAPI
           .post(paths.pathActivityExpenseCreate, body, setLoading)
@@ -978,22 +986,23 @@ export default function CreateActivity() {
               2
             ).then(successCallback);
           })
-          .catch((error) => { });
+          .catch((error) => {});
       }
     } catch (err) {
       console.error("Error fetching address:", err);
       console.log(activityDetail);
-
     }
   };
+
+  useEffect(() => {
+    console.log(activityDetail);
+  }, [activityDetail]);
 
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">
-          {documentNumber
-            ? "Edit" + " " + menuTitle
-            : "Create" + " " + menuTitle}
+        <div className="title-page capitalize">
+          {mode} {menuTitle}
         </div>
         {pageCode != "expense_advance" && pageCode != "expense_clearing" ? (
           !isBtnExpenseActive ? (
@@ -1021,8 +1030,8 @@ export default function CreateActivity() {
       />
 
       {isBtnExpenseActive ||
-        pageCode == "expense_advance" ||
-        pageCode == "expense_clearing" ? (
+      pageCode == "expense_advance" ||
+      pageCode == "expense_clearing" ? (
         <>
           <div className="flex items-center justify-between">
             <div className="title-page">Advance Expense</div>
@@ -1033,7 +1042,7 @@ export default function CreateActivity() {
               dataSource={activityDetail?.expense_product_data_list}
               pageSize={10}
               footer={
-                activityDetail?.expense_product_data_list.length > 0
+                activityDetail?.expense_product_data_list?.length > 0
                   ? footerOrderList
                   : null
               }
@@ -1255,7 +1264,7 @@ export default function CreateActivity() {
                           expense_advance: value,
                         });
                       }}
-                      disabled={pageCode == "expense_clearing"}
+                      disabled={pageCode == "expense_clearing" || viewSegment}
                     />{" "}
                   </Form.Item>
                 </Col>
@@ -1279,7 +1288,7 @@ export default function CreateActivity() {
                           expense_actual: value,
                         });
                       }}
-                      disabled={pageCode != "expense_clearing"}
+                      disabled={pageCode != "expense_clearing" || viewSegment}
                     />{" "}
                   </Form.Item>
                 </Col>
@@ -1293,10 +1302,17 @@ export default function CreateActivity() {
                       className="w-full"
                       min={0}
                       placeholder="0"
-                      value={activityDetail?.expense_actual_exp || 0}
+                      value={
+                        activityDetail?.expense_actual_exp ||
+                        activityDetail?.expense_expense_actual_exp ||
+                        0
+                      }
                       disabled={true}
-                      formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      formatter={
+                        (value) =>
+                          Number(value)
+                            .toFixed(2) // Round to 2 decimal places
+                            .replace(/\B(?=(\d{3})+(?!\d))/g, ",") // Add thousand separator
                       }
                     />{" "}
                   </Form.Item>
@@ -1311,10 +1327,17 @@ export default function CreateActivity() {
                       className="w-full"
                       min={0}
                       placeholder="0"
-                      value={activityDetail?.expense_actual_sale || 0}
+                      value={
+                        activityDetail?.expense_actual_sale ||
+                        activityDetail?.expense_expense_actual_sale ||
+                        0
+                      }
                       disabled={true}
-                      formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      formatter={
+                        (value) =>
+                          Number(value)
+                            .toFixed(2) // Round to 2 decimal places
+                            .replace(/\B(?=(\d{3})+(?!\d))/g, ",") // Add thousand separator
                       }
                     />{" "}
                   </Form.Item>
@@ -1453,20 +1476,46 @@ export default function CreateActivity() {
           text="Back"
           onClick={() => navigate(menuURL)}
         />
-        {viewSegment ? null : pageCode == "expense_advance" ? (
+        {/* {viewSegment ? null : pageCode == "expense_advance" ? (
           <ActionButton
             mode="saveDraft"
             text="Convert to Clearing"
             onClick={() => handleSave("convert_clearing")}
           />
-        ) : null}
-        {viewSegment ? null : (
+        ) : null} */}
+        {/* {viewSegment ? null : (
+          <ActionButton
+            mode="save"
+            text="Save"
+            onClick={() => handleSave("save")}
+          />
+        )} */}
+
+        {activityDetail?.permission?.btn_convert && (
+          <ActionButton
+            mode="saveDraft"
+            text="Convert to Clearing"
+            onClick={() => handleSave("convert_clearing")}
+          />
+        )}
+        {(activityDetail?.permission?.btn_save || mode === "create") && (
           <ActionButton
             mode="save"
             text="Save"
             onClick={() => handleSave("save")}
           />
         )}
+        {activityDetail?.permission?.btn_pdf && (
+          <ActionButton
+            mode="saveDraft"
+            text="Export PDF"
+            onClick={() => {
+              const targetUrl = `/expenses/advance/pdf?document_number=${activityDetail.document_number}&page_code=${pageCode}`;
+              window.open(targetUrl, "_blank"); // เปิดในแท็บใหม่
+            }}
+          />
+        )}
+
         {/* <ActionButton
           mode="saveDraft"
           text="Export PDF"
@@ -1488,7 +1537,7 @@ export default function CreateActivity() {
             });
           }}
         /> */}
-        <ActionButton
+        {/* <ActionButton
           mode="saveDraft"
           text="Export PDF"
           className={
@@ -1500,8 +1549,7 @@ export default function CreateActivity() {
             const targetUrl = `/expenses/advance/pdf?document_number=${activityDetail.document_number}&page_code=${pageCode}`;
             window.open(targetUrl, "_blank"); // เปิดในแท็บใหม่
           }}
-        />
-
+        /> */}
       </div>
 
       {/* Modal for Add Participant */}

@@ -37,7 +37,7 @@ export default function AdvanceExpense() {
   const filters = [
     {
       key: "sale",
-      type: 'select',
+      type: "select",
       label: "Sales",
       placeholder: "All",
       options: saleList,
@@ -67,7 +67,7 @@ export default function AdvanceExpense() {
       type: "select",
       label: "Type of Meeting",
       placeholder: "All",
-      options: activityList
+      options: activityList,
     },
     {
       key: "date",
@@ -76,7 +76,7 @@ export default function AdvanceExpense() {
       placeholder: "YYYY-MM-DD",
     },
   ];
-  
+
   const handleSearch = (filters) => {
     setTableParams({
       ...tableParams,
@@ -97,16 +97,16 @@ export default function AdvanceExpense() {
         try {
           const [dealer] = await Promise.all([
             useServiceAPI.get(paths.pathMasterDealerDropdown, {
-              user_id: filter.sale
+              user_id: filter.sale,
             }),
           ]);
-  
+
           setDealerList(dealer.data);
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
         }
       };
-  
+
       getMasterDealer();
     } else {
       handleClear();
@@ -123,7 +123,9 @@ export default function AdvanceExpense() {
         try {
           // Call API to delete the event
           const response = await useServiceAPI.delete(
-            `/activity-expense/delete?document_number=${encodeURIComponent(documentNumber)}&page_code=${encodeURIComponent("expense_advance")}`
+            `/activity-expense/delete?document_number=${encodeURIComponent(
+              documentNumber
+            )}&page_code=${encodeURIComponent("expense_advance")}`
           );
           await fetchData();
           if (response.status === 200) {
@@ -168,7 +170,6 @@ export default function AdvanceExpense() {
         setActivityList(activityType.data);
         setSaleList(sale.data);
       } catch (error) {
-        
       } finally {
         setLoading(false);
       }
@@ -181,10 +182,14 @@ export default function AdvanceExpense() {
     { title: "No", dataIndex: "key", align: "center" },
     { title: "Customer", dataIndex: "customer", align: "left" },
     { title: "Expense No", dataIndex: "expenseNo", align: "left" },
-    { title: "Activity Reference", dataIndex: "activityReference", align: "left" },
+    {
+      title: "Activity Reference",
+      dataIndex: "activityReference",
+      align: "left",
+    },
     { title: "Type of Meeting", dataIndex: "typeOfMeeting", align: "center" },
     { title: "Date", dataIndex: "date", align: "center" },
-    // { title: "Status", dataIndex: "status", align: "center" },
+    { title: "Status", dataIndex: "status", align: "center" },
     { title: "Action", dataIndex: "action", align: "center" },
   ];
 
@@ -197,14 +202,14 @@ export default function AdvanceExpense() {
     const sortField = tableParams.sortField || "document_number";
 
     const requestData = {
-      page_code:"expense_advance",
+      page_code: "expense_advance",
       keyword: filters.keyword || "",
-      use_flag : "1",
-      user_id : filters.sale,
-      dealer_id : filters.customer,
-      activity_type_id : filters.type_of_meeting,
-      document_number_referrent :filters.activity_reference,
-      customer_name :"",
+      use_flag: "1",
+      user_id: filters.sale,
+      dealer_id: filters.customer,
+      activity_type_id: filters.type_of_meeting,
+      document_number_referrent: filters.activity_reference,
+      customer_name: "",
       page: "all",
       orderby_column: sortField,
       orderby: sortOrder,
@@ -220,14 +225,43 @@ export default function AdvanceExpense() {
 
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
-        
+
         const newDataSource = data.map((row, index) => {
           const actionItems = [
-            { key: "1", label: <ItemDropDown mode="edit" link={`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`} /> },
-            { key: "2", label: <ItemDropDown mode="view" link={`/activity/view?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`} /> },
-            { key: "3", label: <ItemDropDown mode="delete" link="#"  onClick={() => handleDelete(row.document_number)} /> },
+            {
+              key: "1",
+              label: (
+                <ItemDropDown
+                  mode="edit"
+                  link={`/activity/edit?documentNumber=${encodeURIComponent(
+                    row.document_number
+                  )}&pageCode=${encodeURIComponent(row.page_code)}`}
+                />
+              ),
+            },
+            {
+              key: "2",
+              label: (
+                <ItemDropDown
+                  mode="view"
+                  link={`/activity/view?documentNumber=${encodeURIComponent(
+                    row.document_number
+                  )}&pageCode=${encodeURIComponent(row.page_code)}`}
+                />
+              ),
+            },
+            {
+              key: "3",
+              label: (
+                <ItemDropDown
+                  mode="delete"
+                  link="#"
+                  onClick={() => handleDelete(row.document_number)}
+                />
+              ),
+            },
           ];
-        
+
           return {
             key: index + 1 + (current - 1) * pageSize,
             customer: row.customer_name,
@@ -235,17 +269,59 @@ export default function AdvanceExpense() {
             activityReference: row.document_number_referrent,
             typeOfMeeting: row.activity_type_name,
             date: row.document_date,
-            status: <BadgeStatus text={row.transaction_status_name} bgColor={row.transaction_status_bg_color} textColor={row.transaction_status_color} />,
+            status: (
+              <BadgeStatus
+                text={row.transaction_status_name}
+                bgColor={row.transaction_status_bg_color}
+                textColor={row.transaction_status_color}
+              />
+            ),
             action: (
-              <Dropdown menu={{ items: actionItems }} placement="bottom">
+              // <Dropdown menu={{ items: actionItems }} placement="bottom">
+              <Dropdown
+                menu={{
+                  items: row.action.map((actionItem, actionIndex) => {
+                    let path = "";
+                    let mode = actionItem.action.toLowerCase();
+                    let onClickHandler = null;
+
+                    if (
+                      actionItem.action.toLowerCase() == "edit" ||
+                      actionItem.action.toLowerCase() == "view"
+                    ) {
+                      path = `/activity/${actionItem.action.toLowerCase()}`;
+                      onClickHandler = () => {
+                        navigate(path, {
+                          state: {
+                            documentNumber: row.document_number,
+                            pageCode: row.page_code,
+                          },
+                        });
+                      };
+                    } else {
+                      onClickHandler = () => handleDelete(row.document_number);
+                    }
+                    return {
+                      key: actionIndex,
+                      label: (
+                        <ItemDropDown mode={mode} onClick={onClickHandler} />
+                      ),
+                    };
+                  }),
+                }}
+                placement="bottom"
+              >
                 <a onClick={(e) => e.preventDefault()}>
-                  <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+                  <img
+                    src="/img/icons/action.png"
+                    alt="Actions icon"
+                    className="inline-block w-5 h-5"
+                  />
                 </a>
               </Dropdown>
             ),
           };
         });
-        
 
         setDataSource(newDataSource);
 
@@ -263,7 +339,7 @@ export default function AdvanceExpense() {
       setTableLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchData();
   }, [
@@ -287,7 +363,18 @@ export default function AdvanceExpense() {
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Advance Expense</div>
-        <ActionButton mode="create" text="Create" onClick={(e) => navigate("/activity/create?pageCode=expense_advance")} />
+        <ActionButton
+          mode="create"
+          text="Create"
+          onClick={(e) => 
+            navigate("/activity/create", {
+              state: {
+                pageCode: "expense_advance",
+              },
+            })
+
+          }
+        />
       </div>
       <Filter
         onSearch={handleSearch}
@@ -296,13 +383,13 @@ export default function AdvanceExpense() {
         filters={filters}
       />
       <BoxPrimary>
-      <TableComponent 
-        header={header}
-        dataSource={dataSource}
-        pagination={tableParams.pagination}
-        loading={tableLoading}
-        onChange={handleTableChange}
-      />
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pagination={tableParams.pagination}
+          loading={tableLoading}
+          onChange={handleTableChange}
+        />
       </BoxPrimary>
     </MainLayout>
   );

@@ -107,7 +107,7 @@ export default function ActivityPlanList() {
         const newDataSource = data?.activity_type.map((activity, index) => {
           // Create a row object with type and qty for each month
           const monthData = activity.data_items.reduce((acc, item) => {
-            acc[`month_${item.month_id}`] = item.qty || '-';
+            acc[`month_${item.month_id}`] = item.qty || "-";
             return acc;
           }, {});
           return {
