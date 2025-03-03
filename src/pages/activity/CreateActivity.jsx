@@ -98,7 +98,7 @@ export default function CreateActivity() {
       const exists = saleList.some((item) => item.id === userInfo.id);
       if (exists) {
         handleChange("user_id", userInfo.user_data_id);
-        // handleChange("assing_user_list", userInfo.user_data_id);
+        handleChange("assing_user_list", [userInfo.user_data_id]);
       }
     }
   }, [saleList]);
@@ -297,8 +297,6 @@ export default function CreateActivity() {
 
         const activityDetailData = activityDetail.data;
 
-        console.log(activityDetailData);
-
         const productListIds = activityDetailData.product_list.map(
           (product) => product.id
         );
@@ -321,8 +319,6 @@ export default function CreateActivity() {
             product_id: element.product_id,
             id: element.id,
           }));
-
-        console.log("expense_product_data_list", expense_product_data_list);
 
         let participantData = [];
         let count = 0;
@@ -563,9 +559,6 @@ export default function CreateActivity() {
     }
   };
 
-  useEffect(() => {
-    console.log("firstCallData", firstCallData);
-  }, [firstCallData]);
 
   function NumberFormatter(number) {
     return number.toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -1008,10 +1001,8 @@ export default function CreateActivity() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">
-          {documentNumber
-            ? "Edit" + " " + menuTitle
-            : "Create" + " " + menuTitle}
+        <div className="title-page capitalize">
+          {mode} {menuTitle}
         </div>
         {pageCode != "expense_advance" && pageCode != "expense_clearing" ? (
           !isBtnExpenseActive ? (
@@ -1507,7 +1498,7 @@ export default function CreateActivity() {
             onClick={() => handleSave("convert_clearing")}
           />
         )}
-        {(activityDetail?.permission?.btn_save|| mode === 'create') && (
+        {(activityDetail?.permission?.btn_save || mode === "create") && (
           <ActionButton
             mode="save"
             text="Save"
