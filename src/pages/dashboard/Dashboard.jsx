@@ -124,8 +124,7 @@ export default function Dashboard() {
           }));
 
           setDealer(formattedDealers);
-          // setSelectedSdByD(formattedDealers[0].value);
-
+          setSelectedSdByD(formattedDealers[0].value);
         }
         if (sales.data.length > 0) {
           const formattedSales = sales.data.map((item) => ({
@@ -395,6 +394,7 @@ export default function Dashboard() {
     };
 
     if (selectedYear && selectedSdByD) {
+      // if (selectedYear) {
       fetchSubDealerByDealerData();
     }
   }, [selectedYear, selectedSdByD]);
@@ -411,6 +411,9 @@ export default function Dashboard() {
         if (response.status === 200 && response.data) {
           const data = response.data.map((item) => ({
             value: item.value,
+            amount_target:
+              parseFloat(String(item.amount_target || "0").replace(/,/g, "")) ||
+              0,
             label: item.name,
             color: item.color.trim(),
             name: item.name,
@@ -500,7 +503,6 @@ export default function Dashboard() {
   //   actual: item.actual > 0 ? item.actual : 1,
   // }));
 
-
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -524,7 +526,7 @@ export default function Dashboard() {
       </div>
       <Row gutter={[16, 16]} className="mb-4">
         {/* Dealer */}
-        <Col xs={12} sm={6} lg={6} xxl={6}>
+        <Col xs={12} sm={12} lg={12} xxl={6}>
           <BoxPrimary className="h-full flex items-center justify-between">
             <div className="flex items-center justify-between w-full">
               <div>
@@ -546,7 +548,7 @@ export default function Dashboard() {
         </Col>
 
         {/* Sub Dealer */}
-        <Col xs={12} sm={6} lg={6} xxl={6}>
+        <Col xs={12} sm={12} lg={12} xxl={6}>
           <BoxPrimary className="h-full flex items-center justify-between">
             <div className="flex items-center justify-between w-full">
               <div>
@@ -568,7 +570,7 @@ export default function Dashboard() {
         </Col>
 
         {/* Expense */}
-        <Col xs={12} sm={6} lg={6} xxl={6}>
+        <Col xs={12} sm={12} lg={12} xxl={6}>
           <BoxPrimary className="h-full">
             <div className="flex flex-wrap justify-between items-center">
               <h3 className="text-lg font-bold text-[#00783F]">Expense</h3>
@@ -615,7 +617,7 @@ export default function Dashboard() {
         </Col>
 
         {/* Sale By Dealer */}
-        <Col xs={12} sm={6} lg={6} xxl={6}>
+        <Col xs={12} sm={12} lg={12} xxl={6}>
           <BoxPrimary className="h-full items-center flex flex-col">
             <div className="flex flex-wrap justify-between items-center w-full">
               <h3 className="text-lg font-bold text-[#00783F]">
@@ -764,7 +766,6 @@ export default function Dashboard() {
                       },
                     }}
                   />
-
                 </div>
               </Card>
             </Col>
@@ -926,134 +927,6 @@ export default function Dashboard() {
                 </div>
               </Card>
             </Col>
-
-            {/* Sub Dealer by Dealer */}
-            <Col xs={24} lg={24} xl={12}>
-              <Card className=" shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
-                <div className="flex flex-wrap items-center justify-between">
-                  <h3 className="text-[#00783F] text-lg font-semibold mb-3">
-                    Sub Dealer By Dealer
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    <Select
-                      className="mb-4 w-36"
-                      value={selectedSdByD}
-                      onChange={(value) => {
-                        setSelectedSdByD(value);
-                      }}
-                      placeholder={loading ? "Loading..." : "Select Sub Dealer"}
-                      disabled={loading}
-                      showSearch
-                      allowClear
-                      optionFilterProp="label"
-                      options={dealer}
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-center items-center">
-                  <PieChart
-                    series={[
-                      {
-                        innerRadius: 120,
-                        outerRadius: 150,
-                        // paddingAngle: 1,
-                        data: subdealerByDealerData.map((item, index) => ({
-                          ...item,
-                          color: ["#10B981", "#F59E0B", "#3B82F6", "#EF4444", "#8B5CF6"][
-                            index % 5
-                          ], // Assign colors dynamically
-                          tooltip: `${item.label} ${item.percentage}% (${item.value.toLocaleString()})`,
-                        })),
-                        // arcLabel: (params) => `${params.percentage}%`, // Show label + percentage
-                      },
-                    ]}
-                    // slotProps={{
-                    //   legend: { hidden: true },
-                    // }}
-                    slotProps={{
-                      legend: {
-                        direction: 'row', // Stack items in a column to prevent overlap
-                        position: { vertical: 'bottom', horizontal: 'middle' }, // Place it at the bottom
-                        padding: 0,
-                      },
-                    }}
-                    height={400}
-                  />
-
-                </div>
-              </Card>
-            </Col>
-
-            {/* Sale By Crop */}
-            <Col xs={24} lg={24} xl={12}>
-              <Card className=" shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
-                <div className="flex flex-wrap justify-between">
-                  <h3 className="text-[#00783F] text-lg font-semibold mb-3">
-                    Sale By Crop
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    <Select
-                      className="mb-4 w-36"
-                      value={selectedSaleByCrop}
-                      onChange={(value) => {
-                        setSelectedSaleByCrop(value);
-                      }}
-                      placeholder={loading ? "Loading..." : "Select Sale"}
-                      disabled={loading}
-                      options={sales}
-                      showSearch
-                      allowClear
-                      optionFilterProp="label"
-                    />
-                    <Select
-                      className="w-36 hidden"
-                      value={selectedMonthsSaleByCrop}
-                      onChange={(value) => {
-                        setSelectedMonthsSaleByCrop(value);
-                      }}
-                      placeholder={loading ? "Loading..." : "Select Month"}
-                      disabled={loading}
-                      options={months}
-                      showSearch
-                      allowClear
-                      optionFilterProp="label"
-                    ></Select>
-                  </div>
-                </div>
-                <div className="flex justify-center items-center">
-                  {/* Pie Chart */}
-                  <div className="flex-grow flex justify-center items-center">
-                    <PieChart
-                      series={[
-                        {
-                          data: saleCropData.map((item) => ({
-                            ...item,
-                            tooltip: `${item.name} (${(
-                              (item.value / totalSaleValue) *
-                              100
-                            ).toFixed(1)}%)<br>${item.value.toLocaleString()}`,
-                          })),
-                          innerRadius: 120,
-                          outerRadius: 150,
-                          colorField: "color",
-                          labelField: "name",
-                          label: { formatter: (item) => item.name }, // Ensure labels are formatted correctly
-                        },
-                      ]}
-                      margin={{ top: 0, bottom: 100, left: 100, right:100 }}
-                      slotProps={{
-                        legend: {
-                          direction: 'row', // Stack items in a column to prevent overlap
-                          position: { vertical: 'bottom', horizontal: 'middle' }, // Place it at the bottom
-                          padding: 0,
-                        },
-                      }}
-                      height={400} // Increase height to give space for legend
-                    ></PieChart>
-                  </div>
-                </div>
-              </Card>
-            </Col>
           </Row>
         </Col>
 
@@ -1134,6 +1007,132 @@ export default function Dashboard() {
               </tbody>
             </table>
           </BoxPrimary>
+        </Col>
+      </Row>
+
+      <Row gutter={[16, 16]} className="mb-4">
+        {/* Sub Dealer by Dealer */}
+        <Col xs={24} lg={24} xl={12}>
+          <Card className=" shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
+            <div className="flex flex-wrap items-center justify-between">
+              <h3 className="text-[#00783F] text-lg font-semibold mb-3">
+                Sub Dealer By Dealer
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                <Select
+                  className="mb-4 w-36"
+                  value={selectedSdByD}
+                  onChange={(value) => {
+                    setSelectedSdByD(value);
+                  }}
+                  placeholder={loading ? "Loading..." : "Select Sub Dealer"}
+                  disabled={loading}
+                  showSearch
+                  allowClear
+                  optionFilterProp="label"
+                  options={dealer}
+                />
+              </div>
+            </div>
+            <div className="flex justify-center items-center">
+              <PieChart
+                series={[
+                  {
+                    innerRadius: 120,
+                    outerRadius: 150,
+                    // arcLabel: (item) => `${item.value}%`,
+                    data: subdealerByDealerData.map((item, index) => ({
+                      ...item,
+                    })),
+                    valueFormatter: (item) =>
+                      `${item.value.toLocaleString()} ( ${item.percentage} % )`,
+                  },
+                ]}
+                margin={{ top: 0, bottom: 100, left: 100, right: 100 }}
+                
+                slotProps={{
+                  legend: {
+                    direction: "row",
+                    position: { vertical: "bottom", horizontal: "center" },
+                    padding: 0,
+                  },
+                }}
+                style={{ width: "100%", height: "auto", minHeight: 400 }}
+              />
+            </div>
+          </Card>
+        </Col>
+
+        {/* Sale By Crop */}
+        <Col xs={24} lg={24} xl={12}>
+          <Card className=" shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
+            <div className="flex flex-wrap justify-between">
+              <h3 className="text-[#00783F] text-lg font-semibold mb-3">
+                Sale By Crop
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                <Select
+                  className="mb-4 w-36"
+                  value={selectedSaleByCrop}
+                  onChange={(value) => {
+                    setSelectedSaleByCrop(value);
+                  }}
+                  placeholder={loading ? "Loading..." : "Select Sale"}
+                  disabled={loading}
+                  options={sales}
+                  showSearch
+                  allowClear
+                  optionFilterProp="label"
+                />
+                <Select
+                  className="w-36 hidden"
+                  value={selectedMonthsSaleByCrop}
+                  onChange={(value) => {
+                    setSelectedMonthsSaleByCrop(value);
+                  }}
+                  placeholder={loading ? "Loading..." : "Select Month"}
+                  disabled={loading}
+                  options={months}
+                  showSearch
+                  allowClear
+                  optionFilterProp="label"
+                ></Select>
+              </div>
+            </div>
+            <div className="flex justify-center items-center">
+              {/* Pie Chart */}
+              <div className="flex-grow flex justify-center items-center">
+              <div className="relative">
+              </div>
+                <PieChart
+                  series={[
+                    {
+                      data: saleCropData
+                        .filter((item) => item.value > 0)
+                        .map((item) => ({
+                          ...item,
+                        })),
+                      innerRadius: 120,
+                      outerRadius: 150,
+                      colorField: "color",
+                      labelField: "name",
+                      valueFormatter: (item) =>
+                        `${item.amount_target.toLocaleString()} ( ${item.value.toFixed(2)} % )`,
+                    },
+                  ]}
+                  margin={{ top: 0, bottom: 100, left: 100, right: 100 }}
+                  slotProps={{
+                    legend: {
+                      direction: "row",
+                      position: { vertical: "bottom", horizontal: "center" },
+                      padding: 0,
+                    },
+                  }}
+                  style={{ width: "100%", height: "auto", minHeight: 400 }}
+                />
+              </div>
+            </div>
+          </Card>
         </Col>
       </Row>
     </MainLayout>
