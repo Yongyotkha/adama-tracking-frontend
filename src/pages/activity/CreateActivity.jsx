@@ -101,6 +101,13 @@ export default function CreateActivity() {
     }
   }, [saleList]);
 
+  useEffect(() => {
+    if (documentNumber && isBtnExpenseActive && pageCode == "Activity") {
+      console.log(44);
+      setupCrop();
+    }
+  }, [isBtnExpenseActive]);
+
   const menuTitle =
     pageCode == "expense_advance"
       ? "Advance Expense"
@@ -455,7 +462,6 @@ export default function CreateActivity() {
               assing_user_list: userListIds,
               document_number: "",
             }));
-          
           } catch (error) {
             console.log(error);
           } finally {
@@ -472,7 +478,7 @@ export default function CreateActivity() {
 
   useEffect(() => {
     if (activityDetail.crop_id_list.length > 0) {
-      setupCrop(activityDetail.crop_id_list);
+      setupCrop();
     } else {
       setActivityDetail((prevState) => ({
         ...prevState,
@@ -524,10 +530,10 @@ export default function CreateActivity() {
     }
   };
 
-  const setupCrop = async (value) => {
+  const setupCrop = async () => {
     const [productCrop] = await Promise.all([
       useServiceAPI.get(paths.pathMasterProductByCrop, {
-        crop_list: value,
+        crop_list: activityDetail.crop_id_list,
       }),
     ]);
 
@@ -921,7 +927,7 @@ export default function CreateActivity() {
         particapant_list: particapantList,
       };
       console.log(body);
-      // return;
+      return;
 
       if (documentNumber) {
         useServiceAPI
