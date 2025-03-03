@@ -606,7 +606,6 @@ export default function ActivityMapping() {
                 ],}}
               >
                 {locationMarkerIcon.map((location, locationIndex) => (
-                 
                   <Marker
                     key={locationIndex}
                     position={{ lat: parseFloat(location.lat) , lng: parseFloat(location.lng) }}
@@ -621,6 +620,7 @@ export default function ActivityMapping() {
                     onClick={() => {
                       // Set the location information for the InfoWindow   
                       const newLocationWindowInfo = {
+                        url_img: location.activity_image_location,
                         lat: parseFloat(location.lat),
                         lng: parseFloat(location.lng),
                         address: location.address,
@@ -631,11 +631,8 @@ export default function ActivityMapping() {
                         area_name: location.area_name,
                         crop_list: location.crop_id_list,
                         document_date_display: location.document_date_display,
-                        
                       };                      
-                      setlocationWindowInfo(newLocationWindowInfo);
-                      console.log(newLocationWindowInfo);
-                      
+                      setlocationWindowInfo(newLocationWindowInfo);                      
                     }}
                   />
 
@@ -650,7 +647,7 @@ export default function ActivityMapping() {
                   >
                     <div>
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src= {locations.activity_image || "https://api-uat.adama.co.th/images/activity-type-mark-location/DemoPlot.png"} className="w-6 h-6" alt="" />{locationWindowInfo.activity_type_name || "No Activity Type"}
+                        <img src= {locationWindowInfo.url_img } className="w-6 h-6" alt="" />{locationWindowInfo.activity_type_name || "No Activity Type"}
                       </div>
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img src="/img/icons/shop.png" className="w-6 h-6" alt="" />{locationWindowInfo.dealer_name || "No Dealer Name"}
