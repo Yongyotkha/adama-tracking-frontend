@@ -1045,16 +1045,26 @@ export default function Dashboard() {
                       ...item,
                     })),
                     valueFormatter: (item) =>
-                      `${item.value.toLocaleString()} ( ${item.percentage} % )`,
+                      `${item.label} ${item.value.toLocaleString()} ( ${item.percentage} % )`,
                   },
                 ]}
                 margin={{ top: 0, bottom: 100, left: 100, right: 100 }}
-                
+
                 slotProps={{
                   legend: {
                     direction: "row",
                     position: { vertical: "bottom", horizontal: "center" },
                     padding: 0,
+                  },
+                  popper: {
+                    sx: {
+                      ["& .MuiChartsTooltip-labelCell"]: {
+                        display: "none",
+                      },
+                      ["& .MuiChartsTooltip-cell.MuiChartsTooltip-valueCell"]: {
+                        paddingLeft: "15px",
+                      },
+                    },
                   },
                 }}
                 style={{ width: "100%", height: "auto", minHeight: 400 }}
@@ -1102,8 +1112,8 @@ export default function Dashboard() {
             <div className="flex justify-center items-center">
               {/* Pie Chart */}
               <div className="flex-grow flex justify-center items-center">
-              <div className="relative">
-              </div>
+                <div className="relative">
+                </div>
                 <PieChart
                   series={[
                     {
@@ -1117,7 +1127,7 @@ export default function Dashboard() {
                       colorField: "color",
                       labelField: "name",
                       valueFormatter: (item) =>
-                        `${item.amount_target.toLocaleString()} ( ${item.value.toFixed(2)} % )`,
+                        `${item.label} ${item.amount_target.toLocaleString()} ( ${item.value.toFixed(2)} % )`,
                     },
                   ]}
                   margin={{ top: 0, bottom: 100, left: 100, right: 100 }}
@@ -1126,6 +1136,16 @@ export default function Dashboard() {
                       direction: "row",
                       position: { vertical: "bottom", horizontal: "center" },
                       padding: 0,
+                    },
+                    popper: {
+                      sx: {
+                        ["& .MuiChartsTooltip-labelCell"]: {
+                          display: "none",
+                        },
+                        ["& .MuiChartsTooltip-cell.MuiChartsTooltip-valueCell"]: {
+                          paddingLeft: "15px",
+                        },
+                      },
                     },
                   }}
                   style={{ width: "100%", height: "auto", minHeight: 400 }}

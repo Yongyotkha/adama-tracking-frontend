@@ -70,7 +70,7 @@ export default function ActivityMapping() {
 
         // Mapping Detail
         setDataMapping(mapping.data);
-        console.log(mapping.data);
+        console.log("11111111111111",mapping.data);
         
         // Set Locations
         const newLocations = mapping.data.map((data, index) => ({
@@ -93,6 +93,7 @@ export default function ActivityMapping() {
           activity_image_location: data.activity_image_location,
           crop_id_list: data.crop_id_list,
           document_date_display: data.document_date_display,
+          assing_user_list:data.assing_user_list,
         }));
         console.log(newLocations);
         
@@ -288,6 +289,7 @@ export default function ActivityMapping() {
     if (locations.length < 0) {
       renderMarkerLocation();
     } 
+    
   }, [locations]);
 
 
@@ -314,6 +316,7 @@ export default function ActivityMapping() {
         activity_image_location: data.activity_image_location,
         crop_id_list: data.crop_id_list,
         document_date_display: data.document_date_display,
+        assing_user_list: data.assing_user_list,
       }))
     );
   }
@@ -486,9 +489,7 @@ export default function ActivityMapping() {
 
 
   useEffect(() => {
-   
-    setLocationMarkerIcon(locations);
-
+    setLocationMarkerIcon(locations);    
   }, [locations]);
 
 
@@ -606,6 +607,7 @@ export default function ActivityMapping() {
                 ],}}
               >
                 {locationMarkerIcon.map((location, locationIndex) => (
+                  
                   <Marker
                     key={locationIndex}
                     position={{ lat: parseFloat(location.lat) , lng: parseFloat(location.lng) }}
@@ -631,8 +633,12 @@ export default function ActivityMapping() {
                         area_name: location.area_name,
                         crop_list: location.crop_id_list,
                         document_date_display: location.document_date_display,
+                        assing_user_list: location.assing_user_list ,
+
                       };                      
-                      setlocationWindowInfo(newLocationWindowInfo);                      
+                      setlocationWindowInfo(newLocationWindowInfo);         
+                      console.log(newLocationWindowInfo);
+                                   
                     }}
                   />
 
@@ -655,9 +661,16 @@ export default function ActivityMapping() {
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img src="/img/icons/location.png" className="w-6 h-6" alt="" />{locationWindowInfo.address || "No Address Available"}
                       </div>
+                      {/* <div className="flex items-center gap-2 mb-1 border-b pb-2">
+                        <img src="/img/icons/crops.png" className="w-6 h-6" alt="" />{locationWindowInfo.crop_id_list || "No Crops Listed"}
+                      </div> */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src="/img/icons/crops.png" className="w-6 h-6" alt="" />{locationWindowInfo.crop_list || "No Crops Listed"}
+                        <img src="/img/icons/crops.png" className="w-6 h-6" alt="" />
+                        {locationWindowInfo.crop_list && locationWindowInfo.crop_list.length > 0
+                          ? locationWindowInfo.crop_list.join(", ") // แสดงค่าใน array
+                          : "No Crops Listed"}
                       </div>
+
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img src="/img/icons/details.png" className="w-6 h-6" alt="" />{locationWindowInfo.document_date_display || "No Date Available"}
                       </div>
@@ -672,8 +685,12 @@ export default function ActivityMapping() {
                           alt={"No Name"}
                           className="w-6 h-6 rounded-full border border-gray-300"
                         />
-                        <span>{"Unknown"}</span>
-                      </div>
+                        <span>
+                          {locationWindowInfo.assing_user_list && locationWindowInfo.assing_user_list.length > 0
+                            ? locationWindowInfo.assing_user_list.map((user) => user.name).join(", ")
+                            : "Unknown"}
+                        </span>
+                        </div>
                     </div>
                   </InfoWindow>
                 )}
