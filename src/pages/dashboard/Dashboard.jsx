@@ -970,6 +970,13 @@ export default function Dashboard() {
                     // slotProps={{
                     //   legend: { hidden: true },
                     // }}
+                    slotProps={{
+                      legend: {
+                        direction: 'row', // Stack items in a column to prevent overlap
+                        position: { vertical: 'bottom', horizontal: 'middle' }, // Place it at the bottom
+                        padding: 0,
+                      },
+                    }}
                     height={400}
                   />
 
@@ -1033,7 +1040,15 @@ export default function Dashboard() {
                           label: { formatter: (item) => item.name }, // Ensure labels are formatted correctly
                         },
                       ]}
-                      height={400}
+                      margin={{ top: 0, bottom: 100, left: 100, right:100 }}
+                      slotProps={{
+                        legend: {
+                          direction: 'row', // Stack items in a column to prevent overlap
+                          position: { vertical: 'bottom', horizontal: 'middle' }, // Place it at the bottom
+                          padding: 0,
+                        },
+                      }}
+                      height={400} // Increase height to give space for legend
                     ></PieChart>
                   </div>
                 </div>
