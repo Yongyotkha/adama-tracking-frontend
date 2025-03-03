@@ -367,7 +367,7 @@ export default function ActivityPlanDealerMonth() {
                 value={data.dealer_name}
               />
             </div>
-            <div className="w-1/4">
+            <div className="w-1/4 hidden">
               <div>Sub Dealer</div>
               <InputNumber
                 disabled
