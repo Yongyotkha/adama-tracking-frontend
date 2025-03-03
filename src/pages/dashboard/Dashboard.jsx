@@ -968,10 +968,10 @@ export default function Dashboard() {
               <thead>
                 <tr className="border-b border-gray-300">
                   <th className="text-left py-2 font-semibold">Type</th>
-                  <th className="text-left py-2 font-semibold">Plan</th>
-                  <th className="text-left py-2 font-semibold">Value</th>
+                  <th className="text-center py-2 font-semibold">Plan</th>
+                  <th className="text-center py-2 font-semibold">Value</th>
                   <th className="text-left py-2 font-semibold">Actual</th>
-                  <th className="text-left py-2 font-semibold">Value</th>
+                  <th className="text-center py-2 font-semibold">Value</th>
                 </tr>
               </thead>
               <tbody>

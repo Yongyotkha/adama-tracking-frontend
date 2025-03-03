@@ -67,6 +67,8 @@ const AdvanceExpensePDF = () => {
   const getPageCode = searchParams.get("page_code");
   const [dataItems, setDataItems] = useState([]);
   const [dataHeader, setDataHeader] = useState([]);
+  const [dataClearing, setDataClearing] = useState([]);
+
   const [dataCrop, setDataCrop] = useState([]);
 
   useEffect(() => {
@@ -81,7 +83,7 @@ const AdvanceExpensePDF = () => {
           // console.log(response.data);
           setDataItems(response.data.expense_product_data_list); // เซ็ตค่าให้กับ state
           setDataHeader(response.data);
-          console.log(response.data);
+          setDataClearing(response.data);
 
           setDataCrop(response.data.crop_id_list)
         }
@@ -161,7 +163,7 @@ const AdvanceExpensePDF = () => {
               <Text>Event Date: {formatDate(dataHeader.document_date)}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'between', width: '100%' }}>
                 <Text style={{ width: '140px' }}>Est. Participant: {dataHeader.participant_estimate} </Text>
-                <Text>Actual Participant: 0</Text>
+                <Text>Actual Participant: {dataHeader.particapant_actual}</Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'between', width: '100%' }}>
                 {/* <Text style={{ width: '140px' }}>
@@ -177,9 +179,9 @@ const AdvanceExpensePDF = () => {
 
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'between', width: '100%' }}>
                 <Text style={{ width: '140px' }}>
-                    actual: {calculatePercentage(dataHeader.product_total_estimate_sale, dataHeader.expense_advance)}
+                    EXP: {calculatePercentage(dataHeader.product_total_estimate_sale, dataHeader.expense_advance)}
                 </Text>
-                <Text> actual: {calculateActualPercentage(dataHeader.expense_actual_sale, dataHeader.expense_actual)} </Text>
+                <Text> EXP: {calculateActualPercentage(dataHeader.expense_actual_sale, dataHeader.expense_actual)} </Text>
               </View>
             </View>
           </View>
@@ -254,16 +256,27 @@ const AdvanceExpensePDF = () => {
               </View>
             </View>
             {/* Data Rows */}
-            {dataItems.filter(item => Number(item.estimate_sale_qty) !== 0).length > 0 ? (
+            {dataItems.filter(item => Number(item.estimate_sale_qty) != 0).length > 0 ? (
               dataItems.map((item, index) =>
-                Number(item.estimate_sale_qty) !== 0 && (
+                Number(item.estimate_sale_qty) != 0 && (
                   <View style={styles.tableRow} key={index}>
                     <Text style={[styles.tableCell, { flex: 2, minWidth: 21, textAlign: 'start' }]}>{item.product_name}</Text>
                     <Text style={[styles.tableCell, { flex: 2, minWidth: 21, textAlign: 'start' }]}>{item.packing_list}</Text>
                     <Text style={styles.tableCell}>{item.estimate_sale_qty}</Text>
-                    <Text style={styles.tableCell}>{parseFloat(dataHeader.product_total_estimate_sale).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
-                    <Text style={styles.tableCell}>{item.actual_qty_kg || '-'}</Text>
-                    <Text style={[styles.tableCell, styles.tableCellLast]}>{item.actual_value_thb || '-'}</Text>
+                    <Text style={styles.tableCell}>
+                      {(item.bath_ltkg && item.estimate_sale_qty) 
+                        ? (Number(item.bath_ltkg) * Number(item.estimate_sale_qty)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) 
+                        : '-'}
+                    </Text>
+
+                    {/* <Text style={styles.tableCell}>{parseFloat(dataHeader.product_total_estimate_sale).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text> */}
+                    <Text style={styles.tableCell}>{item.acutal_sale_qty }</Text>
+
+                    <Text style={[styles.tableCell, styles.tableCellLast]}>
+                        {(item.bath_ltkg && item.acutal_sale_qty) 
+                        ? (Number(item.bath_ltkg) * Number(item.acutal_sale_qty)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) 
+                        : '-'}
+                    </Text>
                   </View>
                 )
               )
@@ -276,15 +289,16 @@ const AdvanceExpensePDF = () => {
                 <Text style={[styles.tableCell, { flex: 1 }]}>-</Text>
                 <Text style={[styles.tableCell, styles.tableCellLast]}>-</Text>
               </View>
+              
             )}
 
             {/* Total Row */}
             <View style={[styles.tableRow, { borderTopWidth: 1 }]}>
-              <Text style={[styles.tableCell, { flex: 4, minWidth: 42, borderRightWidth: 1, textAlign: 'start', fontWeight: 'bold' }]}>Total (THB)</Text>
-              <Text style={[styles.tableCell]}>{dataHeader.total_plan_value_thb || '-'}</Text>
+              <Text style={[styles.tableCell, { flex: 4, minWidth: 42, borderRightWidth: 1, textAlign: 'start', fontWeight: 'bold' }]}>Total (THB) </Text>
               <Text style={[styles.tableCell]}>-</Text>
+              <Text style={[styles.tableCell]}> {dataHeader.expense_expense_actual_exp || '-'}</Text>
               <Text style={[styles.tableCell]}>-</Text>
-              <Text style={[styles.tableCell, styles.tableCellLast]}>-</Text>
+              <Text style={[styles.tableCell, styles.tableCellLast]}>  {dataHeader.expense_actual_sale || '-'} </Text>
             </View>
           </View>
 
@@ -295,15 +309,15 @@ const AdvanceExpensePDF = () => {
               <View style={styles.footerSection}>
                 <Text style={styles.footerLabel}>Advance</Text>
                 <View style={styles.footerContentRow}>
-                  <Text>Request By :  {dataHeader.user_name}</Text>
-                  <Text>Date: {dataHeader.document_date} {formatDate(dataHeader.document_date)}</Text>
+                  <Text>Request By :  {dataHeader.user_name || "-"}</Text>
+                  <Text>Date: {formatDate(dataHeader.document_date)}</Text>
                 </View>
                 <View style={styles.footerContentRow}>
                   <Text>Approved By :</Text>
                   <Text>Date</Text>
                 </View>
                 <View style={styles.footerContentRow}>
-                  <Text>Clearing By :</Text>
+                  <Text>Clearing By : {dataHeader.activity_type_name || "-"}</Text>
                   <Text>Date</Text>
                 </View>
               </View>
@@ -313,7 +327,7 @@ const AdvanceExpensePDF = () => {
                 <Text style={styles.footerLabel}>Clearing</Text>
                 <View style={styles.footerContentRow}>
                   <Text>Request By :</Text>
-                  <Text>Chainarong Jitsawaeng</Text>
+                  <Text> {dataHeader.activity_type_name || "-"}</Text>
                   <Text>Date</Text>
                   <Text>{formatDate(dataHeader.document_date)}</Text>
                 </View>
@@ -323,7 +337,7 @@ const AdvanceExpensePDF = () => {
                 </View>
                 <View style={styles.footerContentRow}>
                   <Text>Clearing By :</Text>
-                  <Text>Chainarong Jitsawaeng</Text>
+                  <Text>{dataHeader.activity_type_name || "-"}</Text>
                   <Text>Date</Text>
                 </View>
               </View>
