@@ -31,7 +31,9 @@ export default function CreateActivity() {
 
   const locationParam = useLocation();
   const { mode } = useParams();
-  const documentNumber = locationParam?.state?.documentNumber;
+  const [documentNumber, setDocumentNumber] = useState(
+    locationParam?.state?.documentNumber
+  );
   const pageCode = locationParam?.state?.pageCode;
   const viewSegment = mode === "view";
 
@@ -76,10 +78,6 @@ export default function CreateActivity() {
       fileUploadRef.current.triggerUpload();
     }
   };
-
-  useEffect(() => {
-    console.log(activityDetail);
-  }, [activityDetail]);
 
   const handleUploadSuccess = (response) => {
     const data = response.data;
@@ -361,14 +359,15 @@ export default function CreateActivity() {
     if (documentNumber) {
       getDetail();
     } else {
-      console.log(locationParam?.state?.fronCalendar);
-      handleChange(
-        "document_date",
-        locationParam?.state?.fronCalendar || dayjs()
-      );
-      formCustom.setFieldsValue({
-        document_date: locationParam?.state?.fronCalendar || dayjs(),
-      });
+      if (locationParam?.state?.fronCalendar) {
+        handleChange(
+          "document_date",
+          locationParam?.state?.fronCalendar || dayjs()
+        );
+        formCustom.setFieldsValue({
+          document_date: locationParam?.state?.fronCalendar || dayjs(),
+        });
+      }
     }
   }, []);
 
@@ -390,9 +389,6 @@ export default function CreateActivity() {
             ...prevState,
             dealer_id: value,
           }));
-          if (value) {
-            await setupCropAndDealerCustomer(value);
-          }
         } else if (attribue === "crop_id_list") {
           setActivityDetail((prevState) => ({
             ...prevState,
@@ -438,25 +434,30 @@ export default function CreateActivity() {
               }),
             ]);
             const activityDetailData = response.data;
-            setActivityDetail(activityDetailData);
 
-            // ตั้งค่า Crop list
-            let cropData = [];
-            await activityDetailData.crop_id_list.forEach((element) => {
-              cropData.push(element.id);
-            });
+            // let productListIds = [];
+            const productListIds = activityDetailData?.product_list?.map(
+              (product) => product.id
+            );
+            const userListIds = activityDetailData.assing_user_list.map(
+              (product) => product.id
+            );
+            const cropListIds = activityDetailData.crop_id_list.map(
+              (product) => product.id
+            );
 
-            // เรียกข้อมูล Dealer และ Crop
-            await setupDealer(activityDetailData.user_id);
-            await setupCropAndDealerCustomer(activityDetailData.dealer_id);
-            await setupCrop(cropData);
-
-            // ตั้งค่า Assign list
-            let assignData = [];
-            await activityDetailData.assing_user_list.forEach((element) => {
-              assignData.push(element.id);
-            });
+            setIsBtnExpenseActive(activityDetailData.is_expense);
+            setActivityDetail((prevState) => ({
+              ...prevState,
+              ...activityDetailData,
+              crop_id_list: cropListIds,
+              product_list: productListIds,
+              assing_user_list: userListIds,
+              document_number: "",
+            }));
+          
           } catch (error) {
+            console.log(error);
           } finally {
             setLoading(false);
           }
@@ -482,6 +483,25 @@ export default function CreateActivity() {
     }
   }, [activityDetail.crop_id_list]);
 
+  useEffect(() => {
+    const setupCropAndDealerCustomer = async () => {
+      const [crop, dealerCustomerData] = await Promise.all([
+        useServiceAPI.get(paths.pathMasterSubDealerCrop, {
+          sub_dealer_id: activityDetail.dealer_id,
+        }),
+        useServiceAPI.get(paths.pathMasterSubDealerCustomer, {
+          sub_delaer_id: activityDetail.dealer_id,
+        }),
+      ]);
+      setCropList(crop.data);
+      setDealerCustomer(dealerCustomerData.data);
+    };
+
+    if (activityDetail.dealer_id) {
+      setupCropAndDealerCustomer();
+    }
+  }, [activityDetail.dealer_id]);
+
   //handleChangeFunction
   const setupDealer = async (value) => {
     const [dealer] = await Promise.all([
@@ -502,19 +522,6 @@ export default function CreateActivity() {
     } else {
       setDealerList([]);
     }
-  };
-
-  const setupCropAndDealerCustomer = async (value) => {
-    const [crop, dealerCustomerData] = await Promise.all([
-      useServiceAPI.get(paths.pathMasterSubDealerCrop, {
-        sub_dealer_id: value,
-      }),
-      useServiceAPI.get(paths.pathMasterSubDealerCustomer, {
-        sub_delaer_id: value,
-      }),
-    ]);
-    setCropList(crop.data);
-    setDealerCustomer(dealerCustomerData.data);
   };
 
   const setupCrop = async (value) => {
@@ -558,7 +565,6 @@ export default function CreateActivity() {
       }));
     }
   };
-
 
   function NumberFormatter(number) {
     return number.toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -636,10 +642,6 @@ export default function CreateActivity() {
     },
   ];
 
-  useEffect(() => {
-    console.log(activityDetail?.expense_product_data_list);
-  }, [activityDetail?.expense_product_data_list]);
-
   const handleInputChange = (value, key, field, bath_ltkg, record) => {
     console.log(value, key, field, bath_ltkg, record);
     setActivityDetail((prevState) => {
@@ -647,15 +649,6 @@ export default function CreateActivity() {
         if (item.key === key) {
           const numericValue = parseFloat(value) || 0;
           const newTotal = numericValue * bath_ltkg;
-
-          // console.log("item.key:", item.key, "key:", key);
-          // console.log("Updating:", field, "New Value:", numericValue);
-          // console.log("Updated Record:", {
-          //   ...item,
-          //   [field]: numericValue, // ✅ Ensure correct field is updated
-          //   total: newTotal,
-          // });
-
           return {
             ...item,
             [field]: numericValue,
@@ -993,10 +986,6 @@ export default function CreateActivity() {
       console.log(activityDetail);
     }
   };
-
-  useEffect(() => {
-    console.log(activityDetail);
-  }, [activityDetail]);
 
   return (
     <MainLayout loading={loading}>
