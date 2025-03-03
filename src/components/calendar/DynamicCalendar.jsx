@@ -28,10 +28,12 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   const navigate = useNavigate(); // Initialize useNavigate
 
   const handleEdit = (documentNumber) => {
-    const link = `/activity/edit?document_number=${encodeURIComponent(
-      documentNumber
-    )}`;
-    navigate(link); // Redirect to the edit page
+    navigate('/activity/edit', {
+      state: {
+        documentNumber: documentNumber,
+        pageCode: 'activity_transaction',
+      },
+    });
   };
 
   const handleDelete = async (documentNumber) => {
@@ -73,8 +75,6 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   };
 
   const handleActionButtonClick = () => {
-    // const url = `/activity/create?pageCode=activity_transaction&date=${encodeURIComponent(selectedDate)}&page=activity/calendar`;
-    // navigate(url);
     navigate("/activity/create", {
       state: {
         pageCode: "activity_transaction",
@@ -82,10 +82,6 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
       },
     });
   };
-
-  useEffect(() => {
-    console.log(selectedDate);
-  }, [selectedDate]);
 
   useEffect(() => {
     // Fetch Sale Territory options on mount

@@ -102,7 +102,7 @@ export default function CreateActivity() {
   }, [saleList]);
 
   useEffect(() => {
-    if (documentNumber && isBtnExpenseActive && pageCode == "Activity") {
+    if (documentNumber && isBtnExpenseActive && pageCode == "activity_transaction") {
       console.log(44);
       setupCrop();
     }
@@ -927,7 +927,7 @@ export default function CreateActivity() {
         particapant_list: particapantList,
       };
       console.log(body);
-      return;
+      // return;
 
       if (documentNumber) {
         useServiceAPI
@@ -1500,7 +1500,7 @@ export default function CreateActivity() {
             onClick={() => handleSave("save")}
           />
         )}
-        {activityDetail?.permission?.btn_pdf && (
+        {/* {activityDetail?.permission?.btn_pdf && ( */}
           <ActionButton
             mode="saveDraft"
             text="Export PDF"
@@ -1509,7 +1509,7 @@ export default function CreateActivity() {
               window.open(targetUrl, "_blank"); // เปิดในแท็บใหม่
             }}
           />
-        )}
+        {/* )} */}
 
         {/* <ActionButton
           mode="saveDraft"

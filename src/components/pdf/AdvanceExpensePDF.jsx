@@ -12,6 +12,7 @@ import {
 import { useLocation } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import useServiceAPI from "../../services/CorsService";
+import formatNumber from "../../utils/number";
 import { paths } from "../../services/CorsPath";
 
 // Register Sarabun Font
@@ -34,8 +35,8 @@ const styles = StyleSheet.create({
   companyDetails: { flex: 1, paddingLeft: 10, fontSize: 8 },
   title: { textAlign: "center", fontSize: 14, fontWeight: "bold", marginBottom: 10 },
   section: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10, borderStyle: "solid", lineHeight: 1 },
-  sectionColumn: { width: "68%", borderWidth: 1, borderColor: "#000", padding: 5 },
-  sectionColumn2: { width: "68%", borderWidth: 1, borderColor: "#000", padding: 5, borderLeft: 0 },
+  sectionColumn: { width: "100%", borderWidth: 1, borderColor: "#000", padding: 5 },
+  sectionColumn2: { width: "100%", borderWidth: 1, borderColor: "#000", padding: 5, borderLeft: 0 },
   table: { display: "table", width: "100%", borderStyle: "solid", borderWidth: 1, borderColor: "#000" },
   tableRow: { flexDirection: "row" },
   tableCellMainHeader: { borderBottomWidth: 1, padding: 5, fontWeight: "bold", textAlign: "center", borderRightWidth: 1 },
@@ -56,7 +57,12 @@ const styles = StyleSheet.create({
   footerSectionLast: { flex: 1, padding: 5 },
   footerText: { marginBottom: 3 },
   footerLabel: { fontWeight: "bold" },
-  footerContentRow: { flexDirection: "row", justifyContent: "space-between" },
+  // footerContentRow: { flexDirection: "row", justifyContent: "space-between" },
+  footerContentRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",  // เพื่อให้คอลัมน์กระจายตัวออกไป
+    width: "100%", // ทำให้แถวเต็มความกว้าง
+  },
 });
 
 const AdvanceExpensePDF = () => {
@@ -138,7 +144,7 @@ const AdvanceExpensePDF = () => {
             </View>
           </View>
           <Text style={styles.title}>
-            {getPageCode === "expense_clearing" ? "Clearing Expense" : getPageCode === "expense_advance" ? "Advance Expense" : getPageCode}
+            {getPageCode === "expense_clearing" ? "Clearing Expense" :  "Advance Expense" }
           </Text>
 
           <Text style={{ marginLeft: 'auto', paddingBottom: 5 }} ><Text style={{ fontWeight: 'bold' }}>Date</Text> : {formatDate(dataHeader.created_at)}</Text>
@@ -147,41 +153,56 @@ const AdvanceExpensePDF = () => {
           
           <View style={styles.section}>
             <View style={styles.sectionColumn}>
-              <Text>Advance No: {getDocumentNumber}</Text>
+              {/* <Text>Advance No: {getDocumentNumber}</Text>
               <Text>Activity Type: {dataHeader.activity_type_name}</Text>
               <Text>Shop Name: {dataHeader.dealer_name}</Text>
-              <Text>
-                Crop:{" "}
-                {dataCrop.map((crop, index) => (
-                  <Text key={index}>{crop.name}{index < dataCrop.length - 1 && ", "}</Text> // ใช้เครื่องหมาย , หลังแต่ละรายการ
-                ))}
-              </Text>
-              <Text>Sale Name: {dataHeader.user_name}</Text>
+              <Text>Crop: {dataCrop.map(crop => crop.name).join(" , ")}</Text>
+              <Text>Sale Name: {dataHeader.user_name}</Text> */}
+              <View style={{flexDirection: "row", justifyContent: "space-between",width: "100%", }}>
+                  <Text style={{flex: 2,textAlign: "start"}}>Advance No:</Text>
+                  <Text style={{flex: 7,textAlign: "start"}}>{getDocumentNumber}</Text>
+              </View>
+              <View style={{flexDirection: "row", justifyContent: "space-between",width: "100%", }}>
+                  <Text style={{flex: 2,textAlign: "start"}}>Activity Type :</Text>
+                  <Text style={{flex: 7,textAlign: "start"}}>{dataHeader.activity_type_name}</Text>
+              </View>
+              <View style={{flexDirection: "row", justifyContent: "space-between",width: "100%", }}>
+                  <Text style={{flex: 2,textAlign: "start"}}>Shop Name :</Text>
+                  <Text style={{flex: 7,textAlign: "start"}}>{dataHeader.dealer_name}</Text>
+              </View>
+              <View style={{flexDirection: "row", justifyContent: "space-between",width: "100%", }}>
+                  <Text style={{flex: 2,textAlign: "start"}}>Crop :</Text>
+                  <Text style={{flex: 7,textAlign: "start"}}>{dataCrop.map(crop => crop.name).join(" , ")}</Text>
+              </View>
+              <View style={{flexDirection: "row", justifyContent: "space-between",width: "100%", }}>
+                  <Text style={{flex: 2,textAlign: "start"}}>Sale Name :</Text>
+                  <Text style={{flex: 7,textAlign: "start"}}>{dataHeader.user_name}</Text>
+              </View>
             </View>
 
             <View style={styles.sectionColumn2}>
               <Text>Event Date: {formatDate(dataHeader.document_date)}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'between', width: '100%' }}>
-                <Text style={{ width: '140px' }}>Est. Participant: {dataHeader.participant_estimate} </Text>
-                <Text>Actual Participant: {dataHeader.particapant_actual}</Text>
+                <Text style={{ width: '140px' }}>Est. Participant: {formatNumber(dataHeader.participant_estimate)} </Text>
+                <Text>Actual Participant: {formatNumber(dataHeader.particapant_actual)}</Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'between', width: '100%' }}>
                 {/* <Text style={{ width: '140px' }}>
                   Advance Exp: {parseFloat(dataHeader.expense_advance).toLocaleString()}
                 </Text> */}
                 <Text style={{ width: '140px' }}>
-                  Advance Exp: {parseFloat(dataHeader.expense_advance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  Advance Exp: {formatNumber(dataHeader.expense_advance || 0)}
                 </Text>
                 <Text>
-                  Actual Exp: {parseFloat(dataHeader.expense_actual || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  Actual Exp: {formatNumber(dataHeader.expense_actual)}
                 </Text>
               </View>
 
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'between', width: '100%' }}>
                 <Text style={{ width: '140px' }}>
-                    EXP: {calculatePercentage(dataHeader.product_total_estimate_sale, dataHeader.expense_advance)}
+                    EXP: {calculatePercentage(Number(dataHeader.expense_advance),Number(dataHeader.product_total_estimate_sale) )}
                 </Text>
-                <Text> EXP: {calculateActualPercentage(dataHeader.expense_actual_sale, dataHeader.expense_actual)} </Text>
+                <Text>EXP: {calculateActualPercentage(Number(dataHeader.expense_actual), Number(dataHeader.product_total_acutal_sale))}</Text>
               </View>
             </View>
           </View>
@@ -262,21 +283,10 @@ const AdvanceExpensePDF = () => {
                   <View style={styles.tableRow} key={index}>
                     <Text style={[styles.tableCell, { flex: 2, minWidth: 21, textAlign: 'start' }]}>{item.product_name}</Text>
                     <Text style={[styles.tableCell, { flex: 2, minWidth: 21, textAlign: 'start' }]}>{item.packing_list}</Text>
-                    <Text style={styles.tableCell}>{item.estimate_sale_qty}</Text>
-                    <Text style={styles.tableCell}>
-                      {(item.bath_ltkg && item.estimate_sale_qty) 
-                        ? (Number(item.bath_ltkg) * Number(item.estimate_sale_qty)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) 
-                        : '-'}
-                    </Text>
-
-                    {/* <Text style={styles.tableCell}>{parseFloat(dataHeader.product_total_estimate_sale).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text> */}
-                    <Text style={styles.tableCell}>{item.acutal_sale_qty }</Text>
-
-                    <Text style={[styles.tableCell, styles.tableCellLast]}>
-                        {(item.bath_ltkg && item.acutal_sale_qty) 
-                        ? (Number(item.bath_ltkg) * Number(item.acutal_sale_qty)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) 
-                        : '-'}
-                    </Text>
+                    <Text style={styles.tableCell}>{formatNumber(item.estimate_sale_qty)}</Text>
+                    <Text style={styles.tableCell}>{formatNumber(Number(item.bath_ltkg || 1) * Number(item.estimate_sale_qty || 0))}</Text>
+                    <Text style={styles.tableCell}>{formatNumber(item.acutal_sale_qty)}</Text>
+                    <Text style={[styles.tableCell, styles.tableCellLast]}>{formatNumber(Number(item.bath_ltkg || 1) * Number(item.acutal_sale_qty || 0))}</Text>
                   </View>
                 )
               )
@@ -296,9 +306,9 @@ const AdvanceExpensePDF = () => {
             <View style={[styles.tableRow, { borderTopWidth: 1 }]}>
               <Text style={[styles.tableCell, { flex: 4, minWidth: 42, borderRightWidth: 1, textAlign: 'start', fontWeight: 'bold' }]}>Total (THB) </Text>
               <Text style={[styles.tableCell]}>-</Text>
-              <Text style={[styles.tableCell]}> {dataHeader.expense_expense_actual_exp || '-'}</Text>
+              <Text style={[styles.tableCell]}> {formatNumber(dataHeader.expense_expense_actual_exp || 0)}</Text>
               <Text style={[styles.tableCell]}>-</Text>
-              <Text style={[styles.tableCell, styles.tableCellLast]}>  {dataHeader.expense_actual_sale || '-'} </Text>
+              <Text style={[styles.tableCell, styles.tableCellLast]}> { formatNumber(dataHeader.expense_actual_sale || 0)} </Text>
             </View>
           </View>
 
@@ -309,16 +319,22 @@ const AdvanceExpensePDF = () => {
               <View style={styles.footerSection}>
                 <Text style={styles.footerLabel}>Advance</Text>
                 <View style={styles.footerContentRow}>
-                  <Text>Request By :  {dataHeader.user_name || "-"}</Text>
-                  <Text>Date: {formatDate(dataHeader.document_date)}</Text>
+                  <Text style={{flex: 2,textAlign: "start"}}>Request By :</Text>
+                  <Text style={{flex: 4,textAlign: "start"}}>{dataHeader.user_name}</Text>
+                  <Text style={{flex: 1,textAlign: "start"}}>Date</Text>
+                  <Text style={{flex: 2,textAlign: "start"}}>{formatDate(dataHeader.document_date)}</Text>
                 </View>
                 <View style={styles.footerContentRow}>
-                  <Text>Approved By :</Text>
-                  <Text>Date</Text>
+                  <Text style={{flex: 2,textAlign: "start"}}>Approved By :</Text>
+                  <Text style={{flex: 4,textAlign: "start"}}> </Text>
+                  <Text style={{flex: 1,textAlign: "start"}}>Date</Text>
+                  <Text style={{flex: 2,textAlign: "start"}}> </Text>
                 </View>
                 <View style={styles.footerContentRow}>
-                  <Text>Clearing By : {dataHeader.activity_type_name || "-"}</Text>
-                  <Text>Date</Text>
+                  <Text style={{flex: 2,textAlign: "start"}}>Clearing By :</Text>
+                  <Text style={{flex: 4,textAlign: "start"}}> </Text>
+                  <Text style={{flex: 1,textAlign: "start"}}>Date</Text>
+                  <Text style={{flex: 2,textAlign: "start"}}> </Text>
                 </View>
               </View>
 
@@ -326,19 +342,22 @@ const AdvanceExpensePDF = () => {
               <View style={styles.footerSectionLast}>
                 <Text style={styles.footerLabel}>Clearing</Text>
                 <View style={styles.footerContentRow}>
-                  <Text>Request By :</Text>
-                  <Text> {dataHeader.activity_type_name || "-"}</Text>
-                  <Text>Date</Text>
-                  <Text>{formatDate(dataHeader.document_date)}</Text>
+                  <Text style={{flex: 2,textAlign: "start"}}>Request By :</Text>
+                  <Text style={{flex: 4,textAlign: "start"}}></Text>
+                  <Text style={{flex: 1,textAlign: "start"}}>Date</Text>
+                  <Text style={{flex: 2,textAlign: "start"}}></Text>
                 </View>
                 <View style={styles.footerContentRow}>
-                  <Text>Approved By :</Text>
-                  <Text>Date</Text>
+                  <Text style={{flex: 2,textAlign: "start"}}>Approved By :</Text>
+                  <Text style={{flex: 4,textAlign: "start"}}> </Text>
+                  <Text style={{flex: 1,textAlign: "start"}}>Date</Text>
+                  <Text style={{flex: 2,textAlign: "start"}}> </Text>
                 </View>
                 <View style={styles.footerContentRow}>
-                  <Text>Clearing By :</Text>
-                  <Text>{dataHeader.activity_type_name || "-"}</Text>
-                  <Text>Date</Text>
+                <Text style={{flex: 2,textAlign: "start"}}>Clearing By :</Text>
+                  <Text style={{flex: 4,textAlign: "start"}}> </Text>
+                  <Text style={{flex: 1,textAlign: "start"}}>Date</Text>
+                  <Text style={{flex: 2,textAlign: "start"}}> </Text>
                 </View>
               </View>
             </View>
