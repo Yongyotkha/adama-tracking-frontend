@@ -531,7 +531,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                   className="h-6 w-6 me-2"
                                   alt=""
                                 />{" "}
-                                {event.location_address || "-"}
+                                {event.location || "-"}
                               </p>
                               <div className="flex items-center justify-between gap-2 mt-2">
                                 <div className="flex items-center -space-x-2">
@@ -607,9 +607,9 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                               className="h-6 w-6 me-2"
                                               alt=""
                                             />
-                                            {event.location_address || "-"}
+                                            {event.location || "-"}
                                           </p>
-                                          <p className="flex gap-1 mb-2 items-center mt-2">
+                                          <p className="flex  gap-1 mb-2 items-center mt-2">
                                             <img
                                               src="/img/icons/crops.png"
                                               className="h-6 w-6 me-2"
@@ -619,7 +619,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                           </p>
                                           <p
                                             lang="th"
-                                            className="flex gap-1 mb-2 items-center mt-2 max-w-md"
+                                            className="flex gap-1 mb-2 items-top mt-2 max-w-md"
                                           >
                                             <img
                                               src="/img/icons/details.png"

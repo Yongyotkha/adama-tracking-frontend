@@ -53,6 +53,8 @@ export default function ActivityCalendar() {
           dealer_name: item.dealer_name,
         }));
         setEvents(formattedEvents);
+
+        
       } else {
         console.error("Error fetching events:", response.message);
         setEvents([]);
