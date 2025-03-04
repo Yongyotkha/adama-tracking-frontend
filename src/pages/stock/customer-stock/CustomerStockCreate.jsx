@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import FormCustom from "../../../components/form_custom/FormCustom";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +11,7 @@ import { paths } from "../../../services/CorsPath";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import formatNumber from "../../../utils/number";
+import FileUploadComponent from "../../../components/file_upload/FileUploadComponent";
 
 dayjs.extend(customParseFormat);
 
@@ -18,36 +19,21 @@ export default function CustomerStockCreate() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-  const [dataSourceOther, setDataSourceOther] = useState([]);
-  const [dataSale, setDataSale] = useState([]);
-  const [dataSaleId, setDataSaleId] = useState("");
-  const [dealerId, setDealerId] = useState("");
-  const [dataDealer, setDataDealer] = useState([]);
+  const [dealers, setDalers] = useState([]);
   const [searchProductData, setSearchProductData] = useState([]);
-  const [inputRemark, setInputRemark] = useState("");
-  const [userInfo, setUserInfo] = useState(
-    JSON.parse(localStorage.getItem("users"))
-  );
-
   const [formCustom] = Form.useForm();
+  const [fileList, setFileList] = useState([]);
+  const fileUploadRef = useRef(null); // Reference for FileUploadComponent
 
-  // Get Master
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [sale] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {
-            status: "",
-          }),
+        const [dealer] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterDealerAll),
         ]);
 
-        setDataSale(sale.data);
-
-        const checkSaleId = sale.data.find((item) => item.id === userInfo.id);
-        if (checkSaleId) {
-          setDataSaleId(userInfo.id);
-        }
+        setDalers(dealer.data);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -58,26 +44,44 @@ export default function CustomerStockCreate() {
     getMaster();
   }, []);
 
+  const handleUploadClick = async () => {
+    if (fileUploadRef.current) {
+      fileUploadRef.current.triggerUpload();
+    }
+  };
+
+  const handleUploadSuccess = (response) => {
+    const data = response.data;
+    const fileUpload = {
+      uid: data.file_key,
+      name: data.file_name,
+      status: "done",
+      url: data.file_url,
+    };
+
+    setFileList((prevFileList) => [...prevFileList, fileUpload]);
+  };
+
   const formFields = [
     {
       label: "Dealer",
       name: "dealer",
       type: "select",
-      options: dataSale,
+      options: dealers,
       disabled: false,
       required: true,
       moderef: true,
-      value: dataSaleId,
+      // value: dataSaleId,
     },
     {
       label: "Sub Dealer",
       name: "sub_dealer",
       type: "select",
-      options: dataDealer,
+      options: dealers,
       disabled: false,
       required: false,
       moderef: false,
-      value: dealerId,
+      // value: dealerId,
     },
     {
       label: "Date",
@@ -90,29 +94,8 @@ export default function CustomerStockCreate() {
     },
   ];
 
-  const getMasterDealer = async () => {
-    try {
-      const [dealer] = await Promise.all([
-        useServiceAPI.get(paths.pathMasterDealerDropdown, {
-          user_id: dataSaleId,
-        }),
-      ]);
-
-      setDataDealer(dealer.data);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleChange = (filter, value) => {
     console.log("filter", filter, "value", value);
-    if (filter == "sale") {
-      setDataSaleId(value);
-    } else if (filter == "dealer") {
-      setDealerId(value);
-    }
   };
 
   const handleQuantityChange = (key, newQuantity) => {
@@ -334,12 +317,8 @@ export default function CustomerStockCreate() {
       .validateFields()
       .then((values) => {
         const body = {
-          document_date: values.order_date,
-          user_id: dataSaleId,
-          dealer_id: dealerId,
-          remark: inputRemark,
+          document_date: values.date,
           products: dataSource,
-          others: dataSourceOther,
         };
 
         // navigate("/order/detail", {
@@ -401,6 +380,22 @@ export default function CustomerStockCreate() {
         />
       </BoxPrimary>
 
+      <BoxPrimary>
+        <div className="flex items-center justify-between">
+          <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
+          <ActionButton
+            mode="add"
+            text="Upload File"
+            onClick={handleUploadClick}
+          />
+        </div>
+        <FileUploadComponent
+          ref={fileUploadRef}
+          dataFile={fileList}
+          onUploadSuccess={handleUploadSuccess}
+        />
+      </BoxPrimary>
+
       <BoxPrimary title="Remark">
         <div className="mb-3 flex justify-end">
           <Input.TextArea
@@ -410,6 +405,8 @@ export default function CustomerStockCreate() {
           />
         </div>
       </BoxPrimary>
+
+      
 
       <div className="flex justify-end space-x-4">
         <ActionButton
