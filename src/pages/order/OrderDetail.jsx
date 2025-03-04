@@ -292,7 +292,13 @@ export default function OrderDetail() {
         <ActionButton
           mode="back"
           text="Back"
-          onClick={() => navigate("/order/list")}
+          onClick={() => 
+            navigate("/order/create", {
+              state: {
+                data: location?.state?.data,
+              },
+            })
+          }
         />
         <ActionButton
           mode="save"
