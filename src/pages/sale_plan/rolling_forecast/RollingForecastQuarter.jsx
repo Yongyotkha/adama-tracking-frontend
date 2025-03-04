@@ -121,7 +121,6 @@ export default function RollingForecastQuarter() {
           );
 
           setLocalQtyState(initialQtyState);
-          console.log(initialQtyState);
           const newData = response.data.data_items.map((item) => ({
             key: item.product_id,
             product_id: item.product_id,
@@ -509,8 +508,6 @@ export default function RollingForecastQuarter() {
         };
       });
 
-  
-
       const found = updatedQuarterData.some((quarter) => {
         const matchingItem = quarter.data_items.find(
           (item) => item.month_id === month.id
@@ -570,7 +567,11 @@ export default function RollingForecastQuarter() {
                 response.data.message,
                 response.data.message_line
               ).then(() => {
-                navigate(-1);
+                if (mode == "save") {
+                  navigate(-1);
+                } else {
+                  getQuarterDetails();
+                }
               });
             }
           })
@@ -736,13 +737,13 @@ export default function RollingForecastQuarter() {
               navigate(-1);
             }}
           />
-          {permission.btn_draft && (
-            <ActionButton
-              text="Save Draft"
-              mode="saveDraft"
-              onClick={() => handleSave("draft")}
-            />
-          )}
+          {/* {permission.btn_draft && ( */}
+          <ActionButton
+            text="Save Draft"
+            mode="saveDraft"
+            onClick={() => handleSave("draft")}
+          />
+          {/* )} */}
           {permission.btn_save_and_next && (
             <ActionButton
               text="Save and Next"

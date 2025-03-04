@@ -4,20 +4,20 @@ import FormCustom from "../../../components/form_custom/FormCustom";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import { Form, Input, Select } from "antd";
+import { Form, Input, InputNumber, Select } from "antd";
 import TableComponent from "../../../components/table/TableComponent";
 import DynamicModal from "../../../components/modal/DynamicModal";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import formatNumber from "../../../utils/number";
 
 dayjs.extend(customParseFormat);
 
 export default function CustomerStockCreate() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [dataSourceOther, setDataSourceOther] = useState([]);
   const [dataSale, setDataSale] = useState([]);
@@ -25,7 +25,6 @@ export default function CustomerStockCreate() {
   const [dealerId, setDealerId] = useState("");
   const [dataDealer, setDataDealer] = useState([]);
   const [searchProductData, setSearchProductData] = useState([]);
-  const [getOtherProductData, setGetOtherProductData] = useState([]);
   const [inputRemark, setInputRemark] = useState("");
   const [userInfo, setUserInfo] = useState(
     JSON.parse(localStorage.getItem("users"))
@@ -60,38 +59,26 @@ export default function CustomerStockCreate() {
     getMaster();
   }, []);
 
-
   const formFields = [
-    {
-      label: "Sales",
-      name: "sale",
-      type: "select",
-      options: dataSale,
-      disabled: false,
-      required: false,
-      moderef: true,
-      // value: parseInt(dataSaleId, 10),
-      value: dataSaleId,
-    },
     {
       label: "Dealer",
       name: "dealer",
+      type: "select",
+      options: dataSale,
+      disabled: false,
+      required: true,
+      moderef: true,
+      value: dataSaleId,
+    },
+    {
+      label: "Sub Dealer",
+      name: "sub_dealer",
       type: "select",
       options: dataDealer,
       disabled: false,
       required: false,
       moderef: false,
       value: dealerId,
-    },
-    {
-      label: "Order No",
-      name: "order_no",
-      type: "text",
-      disabled: true,
-      required: false,
-      moderef: false,
-      placeholder: "Generate order no",
-      value: "",
     },
     {
       label: "Date",
@@ -105,7 +92,6 @@ export default function CustomerStockCreate() {
   ];
 
   const getMasterDealer = async () => {
-    // setLoading(true);
     try {
       const [dealer] = await Promise.all([
         useServiceAPI.get(paths.pathMasterDealerDropdown, {
@@ -115,17 +101,11 @@ export default function CustomerStockCreate() {
 
       setDataDealer(dealer.data);
     } catch (error) {
-      // showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      console.log(error);
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (dataSaleId) {
-      getMasterDealer();
-    }
-  }, [dataSaleId]);
 
   const handleChange = (filter, value) => {
     console.log("filter", filter, "value", value);
@@ -135,31 +115,6 @@ export default function CustomerStockCreate() {
       setDealerId(value);
     }
   };
-
-  useEffect(() => {
-    const getMasterDealer = async () => {
-      setLoading(true);
-      try {
-        const [dealer] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterDealerDropdown, {
-            user_id: dataSaleId,
-          }),
-        ]);
-
-        setDataDealer(dealer.data);
-      } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (dataSaleId) {
-      getMasterDealer();
-    }else{
-      setDataDealer([]);
-      setDealerId("");
-    }
-  }, [dataSaleId]);
 
   const handleQuantityChange = (key, newQuantity) => {
     setDataSource((prevData) =>
@@ -177,22 +132,11 @@ export default function CustomerStockCreate() {
     );
   };
 
- 
-
   const header = [
     { title: "No", dataIndex: "no", key: "no" },
     { title: "SKU", dataIndex: "product_code", key: "product_code" },
     { title: "Product Name", dataIndex: "product_name", key: "product_name" },
     { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
-    {
-      title: "THB/Unit",
-      dataIndex: "product_unit_thb",
-      key: "product_unit_thb",
-      render: (text) =>
-        parseFloat(text || 0).toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-        }),
-    },
     {
       title: <div className="text-center">QTY (ctn)</div>,
       dataIndex: "quantity",
@@ -290,8 +234,6 @@ export default function CustomerStockCreate() {
       </tr>
     );
   };
-
-
 
   const onChangeProduct = (value) => {
     // Set Empty
@@ -420,13 +362,12 @@ export default function CustomerStockCreate() {
           products: dataSource,
           others: dataSourceOther,
         };
-        console.log(body);
-        return;
-        navigate("/order/detail", {
-          state: {
-            data: body,
-          },
-        });
+
+        // navigate("/order/detail", {
+        //   state: {
+        //     data: body,
+        //   },
+        // });
       })
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
@@ -475,6 +416,18 @@ export default function CustomerStockCreate() {
             onChange={(e) => setInputRemark(e.target.value)}
           />
         </div>
+        <InputNumber
+          className="w-full"
+          min={0}
+          // value={}
+         formatter={(value) =>
+            `${parseInt(value)}`.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ","
+            )
+          }
+  
+        />
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
@@ -489,8 +442,6 @@ export default function CustomerStockCreate() {
           onClick={() => handleNavigateToOrderView()}
         />
       </div>
-
-     
     </MainLayout>
   );
 }
