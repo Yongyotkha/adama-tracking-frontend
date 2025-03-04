@@ -103,24 +103,25 @@ export default function CreateTraveling() {
             from: item.traveling_from || "",
             to: item.traveling_to || "",
             mileage: item.mileage || "",
-            petrol: formatNumber(item.petrol) == 0 ? "0" : formatNumber(item.petrol)|| "", 
-            cashPetrol: formatNumber(item.cash_petrol) == 0 ? "0" : formatNumber(item.cash_petrol)|| "", 
-            hotel: formatNumber(item.hotel) == 0 ? "0" : formatNumber(item.hotel)|| "", 
-            allowance: formatNumber(item.allowance) == 0 ? "0" : formatNumber(item.allowance)|| "", 
-            tollFee: formatNumber(item.tollFee) == 0 ? "0" : formatNumber(item.tollFee)|| "", 
-            entertain: formatNumber(item.entertain) == 0 ? "0" : formatNumber(item.entertain)|| "", 
-            others: formatNumber(item.others) == 0 ? "0" : formatNumber(item.others)|| "", 
-            total: formatNumber(item.total) == 0 ? "0" : formatNumber(item.total) || "", 
+            // petrol: formatNumber(item.petrol) == 0 ? "0" : formatNumber(item.petrol)|| "", 
+            // cashPetrol: formatNumber(item.cash_petrol) == 0 ? "0" : formatNumber(item.cash_petrol)|| "", 
+            // hotel: formatNumber(item.hotel) == 0 ? "0" : formatNumber(item.hotel)|| "", 
+            // allowance: formatNumber(item.allowance) == 0 ? "0" : formatNumber(item.allowance)|| "", 
+            // tollFee: formatNumber(item.tollFee) == 0 ? "0" : formatNumber(item.tollFee)|| "", 
+            // entertain: formatNumber(item.entertain) == 0 ? "0" : formatNumber(item.entertain)|| "", 
+            // others: formatNumber(item.others) == 0 ? "0" : formatNumber(item.others)|| "", 
+            // total: formatNumber(item.total) == 0 ? "0" : formatNumber(item.total) || "", 
             remark: item.remark || "",
             
-            // petrol: item.petrol || "",
-            // cashPetrol: item.cash_petrol || "",
-            // hotel: item.hotel || "",
-            // allowance: item.allowance || "",
-            // tollFee: item.toll_fee || "",
-            // entertain: item.entertain || "",
-            // others: item.others || "",
-            // total: item.total || "",
+            petrol: item.petrol == 0.00 ? 0 : item.petrol || "",
+            cashPetrol: item.cash_petrol == 0.00 ? 0 : item.cash_petrol || "",
+            hotel: item.hotel == 0.00 ? 0 : item.hotel || "",
+            allowance: item.allowance == 0.00 ? 0 : item.allowance || "",
+            tollFee: item.toll_fee == 0.00 ? 0 : item.toll_fee || "",
+            entertain: item.entertain == 0.00 ? 0 : item.entertain || "",
+            others: item.others == 0.00 ? 0 : item.others || "",
+            total: item.total == 0.00 ? 0 : item.total || "",
+            
           }));
 
           // ตั้งค่า state
@@ -442,6 +443,8 @@ export default function CreateTraveling() {
     </tr>
   );
 
+  const removeComma = (value) => (typeof value === "string" ? value.replace(/,/g, "") : value);
+
   const handleSave = () => {
     formCustom
       .validateFields()
@@ -453,14 +456,14 @@ export default function CreateTraveling() {
           traveling_from: item.from || "",
           traveling_to: item.to || "",
           mileage: item.mileage || "",
-          petrol: item.petrol || "",
-          cash_petrol: item.cashPetrol || "",
-          hotel: item.hotel || "",
-          allowance: item.allowance || "",
-          toll_fee: item.tollFee || "",
-          entertain: item.entertain || "",
-          others: item.others || "",
-          total: item.total || "",
+          petrol: removeComma(item.petrol) || "",
+          cash_petrol: removeComma(item.cashPetrol) || "",
+          hotel: removeComma(item.hotel) || "",
+          allowance: removeComma(item.allowance) || "",
+          toll_fee: removeComma(item.tollFee) || "",
+          entertain: removeComma(item.entertain) || "",
+          others: removeComma(item.others) || "",
+          total: removeComma(item.total) || "",
           remark: item.remark || "",
         }));
 

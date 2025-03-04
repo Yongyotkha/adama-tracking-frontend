@@ -12,6 +12,7 @@ import {
 import { useLocation } from "react-router-dom";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
+import formatNumber from "../../utils/number";
 
 // Register the fonts with correct paths
 Font.register({
@@ -251,14 +252,14 @@ const TravelingPDF = ({ title }) => {
               from: item.traveling_from || "-",
               to: item.traveling_to || "-",
               mileage: item.mileage || "",
-              petrol: formatValue(item.petrol) || "-",
-              cashPetrol: formatValue(item.cash_petrol) || "-",
-              hotel: formatValue(item.hotel) || "-",
-              allowance: formatValue(item.allowance) || "-",
-              tollFee: formatValue(item.toll_fee) || "-",
-              entertain: formatValue(item.entertain) || "-",
-              others: formatValue(item.others) || "-",
-              total: formatValue(item.total) || "-",
+              petrol: formatNumber(formatValue(item.petrol)) || "-",
+              cashPetrol: formatNumber(formatValue(item.cash_petrol) ) || "-",
+              hotel:  formatNumber(formatValue(item.hotel)) || "-",
+              allowance:  formatNumber(formatValue(item.allowance)) || "-",
+              tollFee:  formatNumber(formatValue(item.toll_fee)) || "-",
+              entertain:  formatNumber(formatValue(item.entertain)) || "-",
+              others:  formatNumber(formatValue(item.others)) || "-",
+              total:  formatNumber(formatValue(item.total)) || "-",
               remark: item.remark || "-",
             };
           });
@@ -327,7 +328,7 @@ const TravelingPDF = ({ title }) => {
               </Text>
               {columnsTotal.map((col, colIndex) => (
                 <Text key={colIndex} style={[styles.tableCell, { width: col.width }]}>
-                  {totalValues[col.dataIndex]?.toFixed(2) || "-"}
+                  {formatNumber(totalValues[col.dataIndex]) || "-"}
                 </Text>
               ))}
             </View>
@@ -345,18 +346,18 @@ const TravelingPDF = ({ title }) => {
               <View style={styles.footerColTotalsRow}>
                 <View style={styles.footerTotalsRow}>
                   <Text style={[styles.footerCell]}>
-                    Total Advanced: {parseFloat(data.total_advanced) === 0 ? "-" : data.total_advanced}
+                    Total Advanced: {formatNumber(parseFloat(data.total_advanced) === 0 ? "-" : data.total_advanced)}
                   </Text>
                   <Text style={[styles.footerCell]}>
-                    Total Expenses: {parseFloat(data.total_expenses) === 0 ? "-" : data.total_expenses}
+                    Total Expenses: {formatNumber(parseFloat(data.total_expenses) === 0 ? "-" : data.total_expenses)}
                   </Text>
                 </View>
                 <View style={styles.footerTotalsRow}>
                   <Text style={[styles.footerCell]}>
-                    Return to Company: {parseFloat(data.total_return_to_company) === 0 ? "-" : data.total_return_to_company}
+                    Return to Company: {formatNumber(parseFloat(data.total_return_to_company) === 0 ? "-" : data.total_return_to_company)}
                   </Text>
                   <Text style={[styles.footerCell]}>
-                    Return to Staff: {parseFloat(data.total_to_staff) === 0 ? "-" : data.total_to_staff}
+                    Return to Staff: {formatNumber(parseFloat(data.total_to_staff) === 0 ? "-" : data.total_to_staff)}
                   </Text>
                 </View>
               </View>

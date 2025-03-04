@@ -11,6 +11,7 @@ import NumericInput from "../../../components/numeric_input/NumericInput";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
+import formatNumber from "../../../utils/number";
 
 export default function ViewTraveling() {
   const navigate = useNavigate();
@@ -341,7 +342,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value > 0 ? value : 0}
+          value={formatNumber(value)}
           onChange={(val) => updateField(record.key, "petrol", val)}
           disabled
         />
@@ -354,7 +355,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value > 0 ? value : 0}
+          value={formatNumber(value)}
           onChange={(val) => updateField(record.key, "cashPetrol", val)}
           disabled
         />
@@ -367,7 +368,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value > 0 ? value : 0}
+          value={formatNumber(value)}
           onChange={(val) => updateField(record.key, "hotel", val)}
           disabled
         />
@@ -380,7 +381,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value > 0 ? value : 0}
+          value={formatNumber(value)}
           onChange={(val) => updateField(record.key, "allowance", val)}
           disabled
         />
@@ -393,7 +394,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value > 0 ? value : 0}
+          value={formatNumber(value)}
           onChange={(val) => updateField(record.key, "tollFee", val)}
           disabled
         />
@@ -406,7 +407,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value > 0 ? value : 0}
+          value={formatNumber(value)}
           onChange={(val) => updateField(record.key, "entertain", val)}
           disabled
         />
@@ -419,7 +420,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value > 0 ? value : 0}
+          value={formatNumber(value)}
           onChange={(val) => updateField(record.key, "others", val)}
           disabled
         />
@@ -432,7 +433,7 @@ export default function ViewTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value > 0 ? value : 0}
+          value={formatNumber(value)}
           onChange={(val) => updateField(record.key, "total", val)}
           disabled
         />
@@ -455,28 +456,28 @@ export default function ViewTraveling() {
         <Input style={{ width: 100 }} value={calculateFooterTotal("mileage")} readOnly hidden />
       </td>
       <td>
-        <Input style={{ width: 100 }} value={calculateFooterTotal("petrol")} readOnly />
+        <Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("petrol"))} readOnly />
       </td>
       <td>
-        <Input style={{ width: 100 }} value={calculateFooterTotal("cashPetrol")} readOnly />
+        <Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("cashPetrol"))} readOnly />
       </td>
       <td>
-        <Input style={{ width: 100 }} value={calculateFooterTotal("hotel")} readOnly />
+        <Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("hotel"))} readOnly />
       </td>
       <td>
-        <Input style={{ width: 100 }} value={calculateFooterTotal("allowance")} readOnly />
+        <Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("allowance"))} readOnly />
       </td>
       <td>
-        <Input style={{ width: 100 }} value={calculateFooterTotal("tollFee")} readOnly />
+        <Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("tollFee"))} readOnly />
       </td>
       <td>
-        <Input style={{ width: 100 }} value={calculateFooterTotal("entertain")} readOnly />
+        <Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("entertain"))} readOnly />
       </td>
       <td>
-        <Input style={{ width: 100 }} value={calculateFooterTotal("others")} readOnly />
+        <Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("others"))} readOnly />
       </td>
       <td>
-        <Input style={{ width: 100 }} value={calculateFooterTotal("total")} readOnly />
+        <Input style={{ width: 100 }} value={formatNumber( calculateFooterTotal("total"))} readOnly />
       </td>
       <td></td>
     </tr>
@@ -520,16 +521,16 @@ export default function ViewTraveling() {
       <BoxPrimary>
         <div className="grid grid-cols-2 gap-4">
           <div className="flex justify-end">Total Advanced:</div>
-          <NumericInput value={dataTotalAdvanced} disabled />
+          <NumericInput value={formatNumber(dataTotalAdvanced)} disabled />
 
           <div className="flex justify-end">Total Expenses:</div>
-          <NumericInput value={dataTotalExpenses} disabled />
+          <NumericInput value={formatNumber(dataTotalExpenses) } disabled />
 
           <div className="flex justify-end">Return to Company:</div>
-          <NumericInput value={returnToCompany} disabled />
+          <NumericInput value={formatNumber(returnToCompany) } disabled />
 
           <div className="flex justify-end">Return to Staff:</div>
-          <NumericInput value={returnToStaff} disabled />
+          <NumericInput value={formatNumber(returnToStaff) } disabled />
         </div>
       </BoxPrimary>
 
