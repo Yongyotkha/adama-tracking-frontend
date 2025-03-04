@@ -119,13 +119,13 @@ const AdvanceExpensePDF = () => {
   const calculatePercentage = (estimateSale, advanceExpense) => {
     if (!estimateSale || !advanceExpense || advanceExpense === 0) return "0 %"; // ป้องกันการหารด้วย 0
     const percentage = (parseFloat(estimateSale) / parseFloat(advanceExpense)) * 100;
-    return `${percentage.toFixed(2)} %`; // ให้แสดงผลเป็นทศนิยม 2 ตำแหน่ง
+    return `${formatNumber(percentage)} %`; // ให้แสดงผลเป็นทศนิยม 2 ตำแหน่ง
   };
 
   const calculateActualPercentage = (actualSale, actualExpense) => {
     if (!actualSale || !actualExpense || actualExpense === 0) return "0 %"; // ป้องกันการหารด้วย 0
     const percentage = (parseFloat(actualSale) / parseFloat(actualExpense)) * 100;
-    return `${percentage.toFixed(2)} %`; // ให้แสดงผลเป็นทศนิยม 2 ตำแหน่ง
+    return `${formatNumber(percentage)} %`; // ให้แสดงผลเป็นทศนิยม 2 ตำแหน่ง
   };
   
   return (
@@ -168,7 +168,7 @@ const AdvanceExpensePDF = () => {
               </View>
               <View style={{flexDirection: "row", justifyContent: "space-between",width: "100%", }}>
                   <Text style={{flex: 2,textAlign: "start"}}>Shop Name :</Text>
-                  <Text style={{flex: 7,textAlign: "start"}}>{dataHeader.dealer_name}</Text>
+                  <Text style={{flex: 7,textAlign: "start"}}>{dataHeader?.dealer_name?.trim()}</Text>
               </View>
               <View style={{flexDirection: "row", justifyContent: "space-between",width: "100%", }}>
                   <Text style={{flex: 2,textAlign: "start"}}>Crop :</Text>
@@ -320,9 +320,9 @@ const AdvanceExpensePDF = () => {
                 <Text style={styles.footerLabel}>Advance</Text>
                 <View style={styles.footerContentRow}>
                   <Text style={{flex: 2,textAlign: "start"}}>Request By :</Text>
-                  <Text style={{flex: 4,textAlign: "start"}}>{dataHeader.user_name}</Text>
+                  <Text style={{flex: 4,textAlign: "start"}}></Text>
                   <Text style={{flex: 1,textAlign: "start"}}>Date</Text>
-                  <Text style={{flex: 2,textAlign: "start"}}>{formatDate(dataHeader.document_date)}</Text>
+                  <Text style={{flex: 2,textAlign: "start"}}></Text>
                 </View>
                 <View style={styles.footerContentRow}>
                   <Text style={{flex: 2,textAlign: "start"}}>Approved By :</Text>
