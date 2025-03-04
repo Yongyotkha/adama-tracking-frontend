@@ -1,14 +1,13 @@
-function formatNumber(input) {
-  // ตรวจสอบว่า input เป็น number หรือ string ที่สามารถแปลงเป็น number ได้
+function formatNumber(input, digi = 2) {
   const number = parseFloat(input);
-  
-  // ตรวจสอบว่า number ไม่ใช่ NaN
+
   if (!isNaN(number)) {
-    return number.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return number.toLocaleString("en-US", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: digi,
+    });
   } else {
-    return '0.00'; // ถ้าไม่ใช่ number หรือ string ที่สามารถแปลงเป็น number ได้
+    return "0"; 
   }
 }
 export default formatNumber;
-
-

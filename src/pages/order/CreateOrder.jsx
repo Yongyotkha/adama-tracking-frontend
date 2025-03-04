@@ -702,8 +702,8 @@ export default function CreateOrder() {
           products: dataSource,
           others: dataSourceOther,
         };
-        console.log(body);
-        return;
+        // console.log(body);
+        // return;
         navigate("/order/detail", {
           state: {
             data: body,
