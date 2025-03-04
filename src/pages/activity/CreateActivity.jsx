@@ -103,7 +103,6 @@ export default function CreateActivity() {
 
   useEffect(() => {
     if (documentNumber && isBtnExpenseActive && pageCode == "activity_transaction") {
-      console.log(44);
       setupCrop();
     }
   }, [isBtnExpenseActive]);
@@ -366,7 +365,7 @@ export default function CreateActivity() {
     if (documentNumber) {
       getDetail();
     } else {
-      if (locationParam?.state?.fronCalendar) {
+      // if (locationParam?.state?.fronCalendar) {
         handleChange(
           "document_date",
           locationParam?.state?.fronCalendar || dayjs()
@@ -374,7 +373,7 @@ export default function CreateActivity() {
         formCustom.setFieldsValue({
           document_date: locationParam?.state?.fronCalendar || dayjs(),
         });
-      }
+      // }
     }
   }, []);
 
