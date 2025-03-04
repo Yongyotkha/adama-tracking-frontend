@@ -74,7 +74,7 @@ export default function ActivityMapping() {
         
         // Set Locations
         const newLocations = mapping.data.map((data, index) => ({
-          key: locations.length + 1,
+          key: index + 1,
           id: locations.length + 1,
           document_number: data.document_number,
           title: data.activity_type_name,
@@ -94,10 +94,11 @@ export default function ActivityMapping() {
           crop_id_list: data.crop_id_list,
           document_date_display: data.document_date_display,
           assing_user_list:data.assing_user_list,
+          remark : data.remark,
         }));
         
         setLocations(newLocations);
-
+        
         setActivityType(
           activity.data
             .filter(
@@ -285,18 +286,25 @@ export default function ActivityMapping() {
   
 
   useEffect(() => {
-    if (locations.length < 0) {
+    if (locations.length > 0) {      
       renderMarkerLocation();
-    } 
+    }
+    console.log("locations",locations);
     
   }, [locations]);
 
+
+  useEffect(() => {
+    
+    console.log("locationMarkerIcon",locationMarkerIcon);
+    
+  }, [locationMarkerIcon]);
 
   const renderMarkerLocation = () => {
     // Set MarkerLocation
     setLocationMarkerIcon(
       locations.map((data, index) => ({
-        key: locations.length + 1,
+        key: index + 1,
         id: locations.length + 1,
         document_number: data.document_number,
         title: data.activity_type_name,
@@ -316,8 +324,10 @@ export default function ActivityMapping() {
         crop_id_list: data.crop_id_list,
         document_date_display: data.document_date_display,
         assing_user_list: data.assing_user_list,
+        remark : data.remark
       }))
     );
+    
   }
 
 
@@ -472,11 +482,6 @@ export default function ActivityMapping() {
   };
 
 
-  useEffect(() => {
-    setLocationMarkerIcon(locations);    
-  }, [locations]);
-
-
   return (
     <MainLayout loading={loading}>
       <Layout>
@@ -590,44 +595,41 @@ export default function ActivityMapping() {
                   },
                 ],}}
               >
-                {locationMarkerIcon.map((location, locationIndex) => (
-                  
-                  <Marker
-                    key={locationIndex}
-                    position={{ lat: parseFloat(location.lat) , lng: parseFloat(location.lng) }}
-                    // position={{ lat: (parseFloat(location.lat) -(Math.random() - 0.5) * 0.00002), lng: (parseFloat(location.lng)-(Math.random() - 0.5) * 0.00002)}}
-                    icon={{
-                      url: location.activity_image_location,
-                      scaledSize: { width: 30, height: 30 },
-                    }}
-                    options={{
-                      suppressInfoWindow: true, // ปิดการแสดง InfoWindow เริ่มต้น
-                    }}
-                    onClick={() => {
-                      // Set the location information for the InfoWindow   
-                      const newLocationWindowInfo = {
-                        url_img: location.activity_image_location,
-                        lat: parseFloat(location.lat),
-                        lng: parseFloat(location.lng),
-                        address: location.address,
-                        title: location.title || "No Title",
-                        details: location.details || "No Details",
-                        activity_type_name: location.activity_type_name,
-                        dealer_name: location.dealer_name,
-                        area_name: location.area_name,
-                        crop_list: location.crop_id_list,
-                        document_date_display: location.document_date_display,
-                        assing_user_list: location.assing_user_list ,
-                        remark: location.remark,
-                      };                      
-                      setlocationWindowInfo(newLocationWindowInfo);         
-                      console.log(newLocationWindowInfo);
-                                   
-                    }}
-                  />
-
-
-                ))}
+                {locationMarkerIcon.length > 0 &&
+                  locationMarkerIcon.map((location, locationIndex) => (
+                    <Marker
+                      key={crypto.randomUUID()}
+                      position={{ lat: parseFloat(location.lat), lng: parseFloat(location.lng) }}
+                      icon={{
+                        url: location.activity_image,
+                        scaledSize: { width: 30, height: 30 },
+                      }}
+                      options={{
+                        suppressInfoWindow: true, // ปิดการแสดง InfoWindow เริ่มต้น
+                      }}
+                      onClick={() => {
+                        const newLocationWindowInfo = {
+                          url_img: location.activity_image,
+                          lat: parseFloat(location.lat),
+                          lng: parseFloat(location.lng),
+                          address: location.address,
+                          title: location.title || "No Title",
+                          details: location.details || "No Details",
+                          activity_type_name: location.activity_type_name,
+                          dealer_name: location.dealer_name,
+                          area_name: location.area_name,
+                          crop_list: location.crop_id_list,
+                          document_date_display: location.document_date_display,
+                          assing_user_list: location.assing_user_list,
+                          remark: location.remark
+                        };
+                        setlocationWindowInfo(newLocationWindowInfo);
+                        console.log("newLocationWindowInfo",newLocationWindowInfo);
+                        
+                      }}
+                    />
+                  ))
+                }
 
                 {locationWindowInfo && (
                   <InfoWindow
@@ -650,9 +652,10 @@ export default function ActivityMapping() {
                       </div> */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img src="/img/icons/crops.png" className="w-6 h-6" alt="" />
-                        {locationWindowInfo.crop_list && locationWindowInfo.crop_list.length > 0
-                          ? locationWindowInfo.crop_list.join(", ") // แสดงค่าใน array
-                          : "No Crops Listed"}
+                          {locationWindowInfo.crop_list && locationWindowInfo.crop_list.length > 0
+                            ? locationWindowInfo.crop_list.map((crop) => crop.name).join(", ")
+                            : "No Crops Listed"}
+
                       </div>
 
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
