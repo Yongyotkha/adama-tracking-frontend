@@ -618,7 +618,7 @@ export default function ActivityMapping() {
                         crop_list: location.crop_id_list,
                         document_date_display: location.document_date_display,
                         assing_user_list: location.assing_user_list ,
-
+                        remark: location.remark,
                       };                      
                       setlocationWindowInfo(newLocationWindowInfo);         
                       console.log(newLocationWindowInfo);
@@ -660,7 +660,7 @@ export default function ActivityMapping() {
                       </div>
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img src="/img/icons/shop.png" className="w-6 h-6" alt="" />
-                        {locationWindowInfo.details || "No Description"}
+                        {locationWindowInfo.remark || "No Description"}
                       </div>
 
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
