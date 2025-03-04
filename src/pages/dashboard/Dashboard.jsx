@@ -12,6 +12,9 @@ import { paths } from "../../services/CorsPath";
 import { useNavigate } from "react-router-dom";
 import PieChartComponent from "../../components/charts/PieChartComponent";
 import DoughnutChartComponent from "../../components/charts/DoughnutChartComponent";
+import formatNumber from "../../utils/number";
+import convertNumber from "../../utils/convertNumber";
+import percentage from "../../utils/percentage";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -51,33 +54,10 @@ export default function Dashboard() {
     useState(null);
   const [selectedSubdealerPlan, setSelectedSubdealerPlan] = useState(null);
   const [selectedSdByD, setSelectedSdByD] = useState(null);
-  // const chartSetting = {
-  //   yAxis: [
-  //     {
-  //       label: null,
-  //       tickLabelStyle: {
-  //         fontSize: 12,
-  //         whiteSpace: "nowrap",
-  //         overflow: "visible",
-  //         textAlign: "right",
-  //       },
-  //     },
-  //   ],
-  //   xAxis: [
-  //     {
-  //       scaleType: "band",
-  //       dataKey: "month",
-  //       tickLabelStyle: { fontSize: 12 },
-  //     },
-  //   ],
-  //   height: 300,
-  //   margin: { left: 100 }, // Increase left margin for large numbers
-  //   sx: {
-  //     [`.${axisClasses.left} .${axisClasses.label}`]: {
-  //       transform: "translate(-10px, 0)",
-  //     },
-  //   },
-  // };
+  const [calPercentage, setCalPercentage] = useState({
+    plan: "",
+    actual: "",
+  });
 
   const valueFormatterMB = (value) => {
     if (typeof value !== "number" || isNaN(value)) {
@@ -176,27 +156,27 @@ export default function Dashboard() {
     }
   }, [selectedYear]);
 
-  useEffect(() => {
-    const fetchDashboardDataExpense = async () => {
-      setLoading(true);
-      try {
-        const response = await useServiceAPI.get(paths.pathDashBordExpense, {
-          year_code: selectedYear,
-          month_id: selectedMonthsExpense,
-        });
-        if (response.status === 200) {
-          const data = response.data || {};
-          setDashboardDataExpense(data);
-        } else {
-          console.error("Failed to fetch dashboard data:", response.message);
-        }
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      } finally {
-        setLoading(false);
+  const fetchDashboardDataExpense = async () => {
+    setLoading(true);
+    try {
+      const response = await useServiceAPI.get(paths.pathDashBordExpense, {
+        year_code: selectedYear,
+        month_id: selectedMonthsExpense,
+      });
+      if (response.status === 200) {
+        const data = response.data || {};
+        setDashboardDataExpense(data);
+      } else {
+        console.error("Failed to fetch dashboard data:", response.message);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (selectedYear) {
       fetchDashboardDataExpense();
     }
@@ -230,6 +210,46 @@ export default function Dashboard() {
       fetchDashboardDataSalesByDealer();
     }
   }, [selectedYear, selectedSalesByDealer, selectedMonthsSalesByDealer]);
+
+  useEffect(() => {
+    if (
+      selectedMonthsSalesByDealer &&
+      selectedMonthsSalesByDealer === selectedMonthsExpense &&
+      selectedSalesByDealer
+    ) {
+      const total_amount_target_plan = convertNumber(
+        dashboardDataOrder.total_amount_target_plan
+      );
+      const total_amount_target_actual = convertNumber(
+        dashboardDataOrder.total_amount_target_actual
+      );
+      const total_expense_activity_plan = convertNumber(
+        dashboardDataExpense.total_expense_activity_plan
+      );
+      const total_expense_actual_exp = convertNumber(
+        dashboardDataExpense.total_expense_actual_exp
+      );
+
+      const planPercentage = percentage(
+        total_expense_activity_plan,
+        total_amount_target_plan
+      );
+      const actualPercentage = percentage(
+        total_expense_actual_exp,
+        total_amount_target_actual
+      );
+
+      setCalPercentage({
+        actual: `${formatNumber(actualPercentage)}%`,
+        plan: `${formatNumber(planPercentage)}%`,
+      });
+    } else {
+      setCalPercentage({
+        actual: "",
+        plan: "",
+      });
+    }
+  }, [dashboardDataOrder, dashboardDataExpense]);
 
   useEffect(() => {
     const fetchDealerPlanData = async () => {
@@ -590,20 +610,20 @@ export default function Dashboard() {
                 <div className="text-md font-bold text-[#00783F]">
                   {dashboardDataExpense.total_expense_activity_plan}
                   <br />
-                  {dashboardDataExpense.total_expense_activity_plan_percentage}
+                  {calPercentage.plan||dashboardDataExpense.total_expense_activity_plan_percentage}
                 </div>
                 <div className="text-sm text-gray-500">Activity Plan</div>
               </div>
               <div className="text-center py-4 flex flex-col justify-between">
                 <div className="text-md font-bold text-[#00783F]">
-                  {dashboardDataExpense.total_expense_advance}{" "}
+                  {dashboardDataExpense.total_expense_advance}
                 </div>
                 <div className="text-sm text-gray-500">Advance</div>
               </div>
               <div className="text-center py-4">
                 <div className="text-md font-bold text-[#00783F]">
                   {dashboardDataExpense.total_expense_actual_exp} <br />
-                  {dashboardDataExpense.total_expense_actual_exp_percentage}
+                  {calPercentage.actual||dashboardDataExpense.total_expense_actual_exp_percentage}
                 </div>
                 <div className="text-sm text-gray-500">Actual</div>
               </div>
@@ -1068,7 +1088,7 @@ export default function Dashboard() {
                 }}
                 style={{ width: "100%", height: "auto", minHeight: 400 }}
               /> */}
-               <DoughnutChartComponent data={subdealerByDealerData} />
+              <DoughnutChartComponent data={subdealerByDealerData} />
             </div>
           </Card>
         </Col>
@@ -1155,7 +1175,7 @@ export default function Dashboard() {
                   }}
                   style={{ width: "100%", height: "auto", minHeight: 400 }}
                 /> */}
-                 <DoughnutChartComponent data={saleCropData} />
+                <DoughnutChartComponent data={saleCropData} />
               </div>
             </div>
           </Card>

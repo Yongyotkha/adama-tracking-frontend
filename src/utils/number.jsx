@@ -10,4 +10,7 @@ function formatNumber(input, digi = 2) {
     return "0"; 
   }
 }
+
+  
+
 export default formatNumber;
