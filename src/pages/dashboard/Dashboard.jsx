@@ -10,6 +10,8 @@ import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { useNavigate } from "react-router-dom";
+import PieChartComponent from "../../components/charts/PieChartComponent";
+import DoughnutChartComponent from "../../components/charts/DoughnutChartComponent";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -495,13 +497,6 @@ export default function Dashboard() {
       fetchListActivityData();
     }
   }, [selectedYear, selectedSaleActivity, selectedMonthsActivity]);
-
-  // const cleanedDealerPlanData = dealerPlanData.map((item) => ({
-  //   ...item,
-  //   plan: item.plan > 0 ? item.plan : 1,
-  //   rolling: item.rolling > 0 ? item.rolling : 1,
-  //   actual: item.actual > 0 ? item.actual : 1,
-  // }));
 
   return (
     <MainLayout loading={loading}>
@@ -1013,7 +1008,7 @@ export default function Dashboard() {
       <Row gutter={[16, 16]} className="mb-4">
         {/* Sub Dealer by Dealer */}
         <Col xs={24} lg={24} xl={12}>
-          <Card className=" shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
+          <Card className=" shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
             <div className="flex flex-wrap items-center justify-between">
               <h3 className="text-[#00783F] text-lg font-semibold mb-3">
                 Sub Dealer By Dealer
@@ -1035,7 +1030,7 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="flex justify-center items-center">
-              <PieChart
+              {/* <PieChart
                 series={[
                   {
                     innerRadius: 120,
@@ -1072,7 +1067,8 @@ export default function Dashboard() {
                   },
                 }}
                 style={{ width: "100%", height: "auto", minHeight: 400 }}
-              />
+              /> */}
+               <DoughnutChartComponent data={subdealerByDealerData} />
             </div>
           </Card>
         </Col>
@@ -1117,7 +1113,7 @@ export default function Dashboard() {
               {/* Pie Chart */}
               <div className="flex-grow flex justify-center items-center">
                 <div className="relative"></div>
-                <PieChart
+                {/* <PieChart
                   series={[
                     {
                       data: saleCropData
@@ -1151,14 +1147,15 @@ export default function Dashboard() {
                           display: "none",
                         },
                         ["& .MuiChartsTooltip-cell.MuiChartsTooltip-valueCell"]:
-                          {
-                            paddingLeft: "15px",
-                          },
+                        {
+                          paddingLeft: "15px",
+                        },
                       },
                     },
                   }}
                   style={{ width: "100%", height: "auto", minHeight: 400 }}
-                />
+                /> */}
+                 <DoughnutChartComponent data={saleCropData} />
               </div>
             </div>
           </Card>
