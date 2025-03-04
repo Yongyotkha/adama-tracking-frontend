@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import FormCustom from "../../components/form_custom/FormCustom";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import ActionButton from "../../components/button/ActionButton";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import { Form, Input, Select } from "antd";
@@ -17,6 +17,8 @@ dayjs.extend(customParseFormat);
 
 export default function CreateOrder() {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [loading, setLoading] = useState(false);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
   const [dataSource, setDataSource] = useState([]);
@@ -33,6 +35,22 @@ export default function CreateOrder() {
   );
 
   const [formCustom] = Form.useForm();
+
+  useEffect(() => {
+    if (location.state?.data) {
+      const { user_id, others, products, remark } = location.state?.data;
+      setDataSaleId(user_id);
+      setDataSource(products);
+      setDataSourceOther(others);
+      setInputRemark(remark);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    if (dataSale.length > 0 && location.state?.data) {
+      setDealerId(location.state?.data?.dealer_id);
+    }
+  }, [dataSale]);
 
   // Get Master
   useEffect(() => {
@@ -304,7 +322,7 @@ export default function CreateOrder() {
     };
     if (dataSaleId) {
       getMasterDealer();
-    }else{
+    } else {
       setDataDealer([]);
       setDealerId("");
     }

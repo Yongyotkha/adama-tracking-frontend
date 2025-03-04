@@ -6,7 +6,6 @@ import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import { Form, Input, InputNumber, Select } from "antd";
 import TableComponent from "../../../components/table/TableComponent";
-import DynamicModal from "../../../components/modal/DynamicModal";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import dayjs from "dayjs";
@@ -171,16 +170,6 @@ export default function CustomerStockCreate() {
         </div>
       ),
     },
-    { title: "FOC (ctn)", dataIndex: "foc", key: "foc" },
-    {
-      title: "Sub Total (THB)",
-      dataIndex: "net_amount",
-      key: "net_amount",
-      render: (text) =>
-        parseFloat(text || 0).toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-        }),
-    },
     {
       title: <div className="text-center">Action</div>,
       key: "action",
@@ -215,21 +204,11 @@ export default function CustomerStockCreate() {
       (total, item) => total + parseFloat(item.quantity),
       0
     );
-    const totalFOC = dataSource.reduce(
-      (total, item) => total + parseFloat(item.foc),
-      0
-    );
-    const totalAmount = dataSource.reduce(
-      (total, item) => total + parseFloat(item.net_amount || 0),
-      0
-    );
 
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
-          Item: {dataSource.length} &nbsp; QTY (ctn): {totalQuantity}+{totalFOC}{" "}
-          &nbsp; Total:{" "}
-          {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+          Item: {dataSource.length} &nbsp; QTY: {totalQuantity}&nbsp;
         </td>
       </tr>
     );
@@ -376,7 +355,7 @@ export default function CustomerStockCreate() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Create Order</div>
+      <div className="title-page">Create Customer Stock</div>
 
       <FormCustom
         fields={formFields}
@@ -399,12 +378,26 @@ export default function CustomerStockCreate() {
         </div>
       </BoxPrimary>
 
-      <BoxPrimary title="Order List">
+      <BoxPrimary title="List">
         <TableComponent
           header={header}
           dataSource={dataSource}
-          pageSize={10}
+          pagination={false}
+          // pageSize={10}
           footer={footerOrderList}
+        />
+      </BoxPrimary>
+
+      <BoxPrimary className="flex gap-2 justify-end items-center">
+        <div>Total Value :</div>
+        <InputNumber
+          className="w-[200px]"
+          min={0}
+          disabled={true}
+          // value={}
+          formatter={(value) =>
+            `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
         />
       </BoxPrimary>
 
@@ -416,25 +409,13 @@ export default function CustomerStockCreate() {
             onChange={(e) => setInputRemark(e.target.value)}
           />
         </div>
-        <InputNumber
-          className="w-full"
-          min={0}
-          // value={}
-         formatter={(value) =>
-            `${parseInt(value)}`.replace(
-              /\B(?=(\d{3})+(?!\d))/g,
-              ","
-            )
-          }
-  
-        />
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
         <ActionButton
           mode="back"
           text="Back"
-          onClick={() => navigate("/order/list")}
+          onClick={() => navigate("/customer-stock/list")}
         />
         <ActionButton
           mode="save"
