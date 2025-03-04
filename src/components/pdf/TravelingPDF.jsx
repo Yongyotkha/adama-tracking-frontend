@@ -263,7 +263,6 @@ const TravelingPDF = ({ title }) => {
             };
           });
           console.log(transformedData);
-          
           setDataItems(transformedData);
         }
       } catch (error) {
@@ -291,7 +290,7 @@ const TravelingPDF = ({ title }) => {
             </View>
             <View style={styles.formDetails}>
               <Text style={styles.bold}>Name: {data.user_name || "-"}</Text>
-              <Text>Department: BD</Text>
+              <Text>Department: {data.department_name || "-"}</Text>
               <Text style={styles.bold}>Car no.: </Text>
             </View>
           </View>
