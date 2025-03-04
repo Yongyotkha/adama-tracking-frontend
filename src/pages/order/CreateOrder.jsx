@@ -38,11 +38,14 @@ export default function CreateOrder() {
 
   useEffect(() => {
     if (location.state?.data) {
+      
       const { user_id, others, products, remark } = location.state?.data;
       setDataSaleId(user_id);
       setDataSource(products);
       setDataSourceOther(others);
       setInputRemark(remark);
+      console.log(remark);
+      
     }
   }, [location.state]);
 
@@ -787,6 +790,7 @@ export default function CreateOrder() {
           <Input.TextArea
             placeholder="Remark"
             rows={2}
+            value={inputRemark}
             onChange={(e) => setInputRemark(e.target.value)}
           />
         </div>
