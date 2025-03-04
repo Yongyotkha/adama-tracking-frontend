@@ -45,6 +45,7 @@ export default function ActivityMapping() {
 
   const [searchOptions, setSearchOptions] = useState([]);
   const [filteredData, setFilteredData] = useState("");
+  const [searchKeyword, setSearchKeyword] = useState("");
 
   // Fetch Data
   useEffect(() => {
@@ -58,6 +59,7 @@ export default function ActivityMapping() {
             dealer: [],
             area: [],
             year: [],
+            sub_dealers: [],
           }),
           useServiceAPI.get(paths.pathMasterActivityType, {
             status: "",
@@ -67,10 +69,8 @@ export default function ActivityMapping() {
           useServiceAPI.get(paths.pathMasterYear, {}),
           useServiceAPI.get(paths.pathMasterSubDealer, {}),          
         ]);
-
         // Mapping Detail
         setDataMapping(mapping.data);
-        console.log("11111111111111",mapping.data);
         
         // Set Locations
         const newLocations = mapping.data.map((data, index) => ({
@@ -95,7 +95,6 @@ export default function ActivityMapping() {
           document_date_display: data.document_date_display,
           assing_user_list:data.assing_user_list,
         }));
-        console.log(newLocations);
         
         setLocations(newLocations);
 
@@ -200,7 +199,7 @@ export default function ActivityMapping() {
     },
     {
       key: 3,
-      filter_type: "subdealer",
+      filter_type: "sub_dealers",
       filter_type_name: "SubDealer",
       data: dataSubDealer,
     },
@@ -359,14 +358,19 @@ export default function ActivityMapping() {
             Array.isArray(checkedFilters.year) && checkedFilters.year.length > 0
               ? checkedFilters.year
               : [];
-
+          const sub_dealers =
+            Array.isArray(checkedFilters.sub_dealers) && checkedFilters.sub_dealers.length > 0
+              ? checkedFilters.sub_dealers
+              : [];
+              
           const [mapping] = await Promise.all([
             useServiceAPI.post(paths.pathActivityMapList, {
-              keyword: "",
+              keyword: searchKeyword,
               activity_type: activityType,
               dealer: dealer,
               area: area,
               year: year,
+              sub_dealers: sub_dealers,
             }),
           ]);
 
@@ -414,30 +418,10 @@ export default function ActivityMapping() {
 
   }, [checkedFilters]);
 
-  // const handleSearch = (text) => {
-  //   console.log(text);
-    
-  //   if (text) {
-  //     // Filter names from dataMapping
-  //     const results = dataMapping.filter((item) =>
-  //       item.location_address.toLowerCase().includes(text.toLowerCase())
-  //     );
- 
-  //     // Update search options for AutoComplete
-  //     setSearchOptions(
-  //       results.map((item) => ({
-  //         value: item.location_address,
-  //         lat: parseFloat(item.location_latitude),
-  //         lng: parseFloat(item.location_longitude),
-  //       }))
-  //     );
-  //   } else {
-  //     setSearchOptions([]);
-  //   }
-  // };
 
   const handleSearch = (text) => {
-    
+    setSearchKeyword(text);
+
     if (text) {
       // ใช้ RegExp เพื่อค้นหาข้อความที่คล้ายกัน
       const regex = new RegExp(text, "i"); // 'i' หมายถึง case-insensitive
