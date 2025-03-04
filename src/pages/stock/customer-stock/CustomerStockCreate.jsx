@@ -204,20 +204,11 @@ export default function CustomerStockCreate() {
       (total, item) => total + parseFloat(item.quantity),
       0
     );
-    const totalFOC = dataSource.reduce(
-      (total, item) => total + parseFloat(item.foc),
-      0
-    );
-    const totalAmount = dataSource.reduce(
-      (total, item) => total + parseFloat(item.net_amount || 0),
-      0
-    );
 
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
-          Item: {dataSource.length} &nbsp; 
-          QTY (ctn): {totalQuantity}&nbsp;
+          Item: {dataSource.length} &nbsp; QTY: {totalQuantity}&nbsp;
         </td>
       </tr>
     );
@@ -391,13 +382,23 @@ export default function CustomerStockCreate() {
         <TableComponent
           header={header}
           dataSource={dataSource}
-          pageSize={10}
+          pagination={false}
+          // pageSize={10}
           footer={footerOrderList}
         />
       </BoxPrimary>
 
-      <BoxPrimary className="">
-        
+      <BoxPrimary className="flex gap-2 justify-end items-center">
+        <div>Total Value :</div>
+        <InputNumber
+          className="w-[200px]"
+          min={0}
+          disabled={true}
+          // value={}
+          formatter={(value) =>
+            `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
+        />
       </BoxPrimary>
 
       <BoxPrimary title="Remark">

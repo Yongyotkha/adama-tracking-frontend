@@ -356,6 +356,7 @@ export default function CreateActivity() {
           crop_id_list: cropListIds,
           product_list: productListIds,
           assing_user_list: userListIds,
+          expense_actual_exp: activityDetailData.expense_expense_actual_exp,
           expense_product_data_list: expense_product_data_list,
         }));
       } finally {
