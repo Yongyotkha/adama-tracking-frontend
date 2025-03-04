@@ -1500,7 +1500,7 @@ export default function CreateActivity() {
             onClick={() => handleSave("save")}
           />
         )}
-        {/* {activityDetail?.permission?.btn_pdf && ( */}
+        {activityDetail?.permission?.btn_pdf && (
           <ActionButton
             mode="saveDraft"
             text="Export PDF"
@@ -1509,7 +1509,7 @@ export default function CreateActivity() {
               window.open(targetUrl, "_blank"); // เปิดในแท็บใหม่
             }}
           />
-        {/* )} */}
+        )} 
 
         {/* <ActionButton
           mode="saveDraft"
