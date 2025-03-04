@@ -44,7 +44,7 @@ export default function CreateOrder() {
       setDataSourceOther(others);
       setInputRemark(remark);
     }
-  }, [location]);
+  }, [location.state]);
 
   useEffect(() => {
     if (dataSale.length > 0 && location.state?.data) {
