@@ -106,6 +106,8 @@ import ContactOA from "./pages/mobile/contact/ContactOA";
 import MainOA from "./pages/mobile/main/MainOA";
 import ActivityPlanDealerMonth from "./pages/activity/activity_plan/ActivityPlanDealerMonth";
 import PDFClearingExpense from "./pages/pdf/PDFClearingExpense";
+import CustomerStockCreate from "./pages/stock/customer-stock/CustomerStockCreate";
+import CustomerStock from "./pages/stock/customer-stock/CustomerStock";
 
 const App = () => {
   return (
@@ -171,6 +173,11 @@ const App = () => {
             <Route path="/order/view" element={<ViewOrder />} />
             <Route path="/order-waiting/list" element={<OrderWaitingList />} />
             <Route path="/order-waiting/view" element={<ViewOrderWaiting />} />
+
+            {/* Customer Stock List */}
+            <Route path="/customer-stock/list" element={<CustomerStock />} />
+            <Route path="/customer-stock/:mode" element={<CustomerStockCreate />} />
+
 
             {/* Expenses Route */}
             <Route path="/expenses/advance" element={<AdvanceExpense />} />
