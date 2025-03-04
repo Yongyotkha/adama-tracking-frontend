@@ -12,6 +12,7 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import TableComponentTraveling from "../../../components/table/TableComponentTraveling";
+import formatNumber from "../../../utils/number";
 
 export default function EditTraveling() {
   const navigate = useNavigate();
@@ -444,7 +445,7 @@ export default function EditTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={parseFloat(value)}
+          value={formatNumber(value)}
           onChange={(val) => updateField(record.key, "total", val)}
           disabled
         />
@@ -471,33 +472,34 @@ export default function EditTraveling() {
         <Input style={{ width: 100 }}  value={calculateFooterTotal("mileage")} readOnly hidden />
       </td>
       <td>
-        <Input style={{ width: 100 }}  value={calculateFooterTotal("petrol")} readOnly />
+        <Input style={{ width: 100 }}  value={formatNumber(calculateFooterTotal("petrol"))} readOnly />
       </td>
       <td>
-        <Input style={{ width: 100 }}  value={calculateFooterTotal("cashPetrol")} readOnly />
+        <Input style={{ width: 100 }}  value={formatNumber(calculateFooterTotal("cashPetrol"))} readOnly />
       </td>
       <td>
-        <Input style={{ width: 100 }}  value={calculateFooterTotal("hotel")} readOnly />
+        <Input style={{ width: 100 }}  value={formatNumber(calculateFooterTotal("hotel"))} readOnly />
       </td>
       <td>
-        <Input style={{ width: 100 }}  value={calculateFooterTotal("allowance")} readOnly />
+        <Input style={{ width: 100 }}  value={formatNumber(calculateFooterTotal("allowance"))} readOnly />
       </td>
       <td>
-        <Input style={{ width: 100 }}  value={calculateFooterTotal("tollFee")} readOnly />
+        <Input style={{ width: 100 }}  value={formatNumber(calculateFooterTotal("tollFee"))} readOnly />
       </td>
       <td>
-        <Input style={{ width: 100 }}  value={calculateFooterTotal("entertain")} readOnly />
+        <Input style={{ width: 100 }}  value={formatNumber(calculateFooterTotal("entertain"))} readOnly />
       </td>
       <td>
-        <Input style={{ width: 100 }}  value={calculateFooterTotal("others")} readOnly />
+        <Input style={{ width: 100 }}  value={formatNumber(calculateFooterTotal("others"))} readOnly />
       </td>
       <td>
-        <Input style={{ width: 100 }}  value={calculateFooterTotal("total")} readOnly />
+        <Input style={{ width: 100 }}  value={formatNumber(calculateFooterTotal("total"))} readOnly />
       </td>
       <td></td>
     </tr>
   );
 
+  const removeComma = (value) => (typeof value === "string" ? value.replace(/,/g, "") : value);
   const handleSave = () => {
     formCustom
       .validateFields()
@@ -509,14 +511,14 @@ export default function EditTraveling() {
           traveling_from: item.from || "",
           traveling_to: item.to || "",
           mileage: item.mileage || "0",
-          petrol: item.petrol || "0",
-          cash_petrol: item.cashPetrol || "0",
-          hotel: item.hotel || "0",
-          allowance: item.allowance || "0",
-          toll_fee: item.tollFee || "0",
-          entertain: item.entertain || "0",
-          others: item.others || "0",
-          total: item.total || "0",
+          petrol: removeComma(item.petrol) || "0",
+          cash_petrol: removeComma(item.cashPetrol) || "0",
+          hotel: removeComma(item.hotel) || "0",
+          allowance: removeComma(item.allowance) || "0",
+          toll_fee: removeComma(item.tollFee) || "0",
+          entertain: removeComma(item.entertain) || "0",
+          others: removeComma(item.others) || "0",
+          total: removeComma(item.total) || "0",
           remark: item.remark || "",
         }));
 
@@ -622,13 +624,13 @@ export default function EditTraveling() {
           />
 
           <div className="flex justify-end">Total Expenses:</div>
-          <NumericInput value={dataTotalExpenses} disabled />
+          <NumericInput value={formatNumber(dataTotalExpenses)} disabled />
 
           <div className="flex justify-end">Return to Company:</div>
-          <NumericInput value={returnToCompany} disabled />
+          <NumericInput value={formatNumber(returnToCompany)} disabled />
 
           <div className="flex justify-end">Return to Staff:</div>
-          <NumericInput value={returnToStaff} disabled />
+          <NumericInput value={formatNumber(returnToStaff)} disabled />
         </div>
       </BoxPrimary>
 
