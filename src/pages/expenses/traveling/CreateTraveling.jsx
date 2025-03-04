@@ -14,6 +14,7 @@ import { AuthContext } from "../../../contexts/AuthContext";
 import dayjs from "dayjs";
 import { convertLegacyProps } from "antd/es/button";
 import TableComponentTraveling from "../../../components/table/TableComponentTraveling";
+import formatNumber from "../../../utils/number";
 
 export default function CreateTraveling() {
   const navigate = useNavigate();
@@ -82,9 +83,7 @@ export default function CreateTraveling() {
   // Fetch API Table Add Rows
   useEffect(() => {
     if (saleId && yearCode && monthCode) {
-      console.log(saleId && yearCode && monthCode);
-      console.log(11111111111111111111111);
-      
+      console.log(saleId && yearCode && monthCode);      
       const loadDataTraveling = async () => {
         setLoading(true);
         try {
@@ -98,21 +97,30 @@ export default function CreateTraveling() {
 
           const dataItems = traveling.data.data_items;
           console.log(dataItems);
-          const transformedData = dataItems.map((item, index) => ({
+          const transformedData = dataItems.map((item, index) => ({            
             key: `${index + 1}`,
             date: item.date || "",
             from: item.traveling_from || "",
             to: item.traveling_to || "",
             mileage: item.mileage || "",
-            petrol: item.petrol || "",
-            cashPetrol: item.cash_petrol || "",
-            hotel: item.hotel || "",
-            allowance: item.allowance || "",
-            tollFee: item.toll_fee || "",
-            entertain: item.entertain || "",
-            others: item.others || "",
-            total: item.total || "",
+            petrol: formatNumber(item.petrol) == 0 ? "0" : formatNumber(item.petrol)|| "", 
+            cashPetrol: formatNumber(item.cash_petrol) == 0 ? "0" : formatNumber(item.cash_petrol)|| "", 
+            hotel: formatNumber(item.hotel) == 0 ? "0" : formatNumber(item.hotel)|| "", 
+            allowance: formatNumber(item.allowance) == 0 ? "0" : formatNumber(item.allowance)|| "", 
+            tollFee: formatNumber(item.tollFee) == 0 ? "0" : formatNumber(item.tollFee)|| "", 
+            entertain: formatNumber(item.entertain) == 0 ? "0" : formatNumber(item.entertain)|| "", 
+            others: formatNumber(item.others) == 0 ? "0" : formatNumber(item.others)|| "", 
+            total: formatNumber(item.total) == 0 ? "0" : formatNumber(item.total) || "", 
             remark: item.remark || "",
+            
+            // petrol: item.petrol || "",
+            // cashPetrol: item.cash_petrol || "",
+            // hotel: item.hotel || "",
+            // allowance: item.allowance || "",
+            // tollFee: item.toll_fee || "",
+            // entertain: item.entertain || "",
+            // others: item.others || "",
+            // total: item.total || "",
           }));
 
           // ตั้งค่า state
@@ -242,7 +250,7 @@ export default function CreateTraveling() {
       key: "petrol",
       render: (value, record) => (
         <NumericInput
-          style={{ width: 100 }}
+          style={{width: 100 }}
           value={value}
           onChange={(val) => updateField(record.key, 'petrol', val)}
         />
@@ -327,7 +335,7 @@ export default function CreateTraveling() {
       render: (value, record) => (
         <NumericInput
           style={{ width: 100 }}
-          value={value}
+          value={formatNumber(value)}
           onChange={(val) => updateField(record.key, 'total', val)}
           disabled
         />
@@ -422,14 +430,14 @@ export default function CreateTraveling() {
     <tr className="bg-[#978B87] text-white text-start">
       <td colSpan={3}>Total (THB)</td>
       <td><Input style={{ width: 100 }} value={calculateFooterTotal("mileage")} readOnly hidden /></td>
-      <td><Input style={{ width: 100 }} value={calculateFooterTotal("petrol")} readOnly /></td>
-      <td><Input style={{ width: 100 }} value={calculateFooterTotal("cashPetrol")} readOnly /></td>
-      <td><Input style={{ width: 100 }} value={calculateFooterTotal("hotel")} readOnly /></td>
-      <td><Input style={{ width: 100 }} value={calculateFooterTotal("allowance")} readOnly /></td>
-      <td><Input style={{ width: 100 }} value={calculateFooterTotal("tollFee")} readOnly /></td>
-      <td><Input style={{ width: 100 }} value={calculateFooterTotal("entertain")} readOnly /></td>
-      <td><Input style={{ width: 100 }} value={calculateFooterTotal("others")} readOnly /></td>
-      <td><Input style={{ width: 100 }} value={calculateFooterTotal("total")} readOnly /></td>
+      <td><Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("petrol")) } readOnly /></td>
+      <td><Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("cashPetrol"))} readOnly /></td>
+      <td><Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("hotel"))} readOnly /></td>
+      <td><Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("allowance"))} readOnly /></td>
+      <td><Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("tollFee"))} readOnly /></td>
+      <td><Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("entertain"))} readOnly /></td>
+      <td><Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("others"))} readOnly /></td>
+      <td><Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("total"))} readOnly /></td>
       <td></td>
     </tr>
   );
@@ -538,15 +546,14 @@ export default function CreateTraveling() {
             value={dataTotalAdvanced}
             onChange={(value) => setDataTotalAdvanced(parseFloat(value) || 0)}
           />
-
           <div className="flex justify-end">Total Expenses:</div>
-          <NumericInput value={dataTotalExpenses} disabled />
+          <NumericInput value={formatNumber(dataTotalExpenses)} disabled />
 
           <div className="flex justify-end">Return to Company:</div>
-          <NumericInput value={returnToCompany} disabled />
+          <NumericInput value={formatNumber(returnToCompany)} disabled />
 
           <div className="flex justify-end">Return to Staff:</div>
-          <NumericInput value={returnToStaff} disabled />
+          <NumericInput value={formatNumber (returnToStaff)} disabled />
         </div>
       </BoxPrimary>
 
