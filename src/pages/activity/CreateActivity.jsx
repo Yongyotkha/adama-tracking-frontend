@@ -3,6 +3,8 @@ import MainLayout from "../../layouts/MainLayout";
 import { useNavigate, useParams } from "react-router-dom";
 import { Form, Input, Col, Row, Select, InputNumber } from "antd";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import ActionButton from "../../components/button/ActionButton";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
@@ -18,6 +20,8 @@ import { ReloadOutlined } from "@ant-design/icons";
 import { AuthContext } from "../../contexts/AuthContext";
 
 dayjs.extend(customParseFormat);
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const { Option } = Select;
 
@@ -111,14 +115,14 @@ export default function CreateActivity() {
     pageCode == "expense_advance"
       ? "Advance Expense"
       : pageCode == "expense_clearing"
-      ? "Clearing Expense"
-      : "Activity";
+        ? "Clearing Expense"
+        : "Activity";
   const menuURL =
     pageCode == "expense_advance"
       ? "/expenses/advance"
       : pageCode == "expense_clearing"
-      ? "/expenses/clearing"
-      : "/activity/list";
+        ? "/expenses/clearing"
+        : "/activity/list";
 
   const formFields = [
     {
@@ -179,14 +183,14 @@ export default function CreateActivity() {
       )
         ? dealerList
         : activityDetail.dealer_id && activityDetail.dealer_name
-        ? [
+          ? [
             ...dealerList,
             {
               id: activityDetail.dealer_id,
               name: activityDetail.dealer_name,
             },
           ]
-        : dealerList,
+          : dealerList,
       disabled: viewSegment ?? false,
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
@@ -367,13 +371,13 @@ export default function CreateActivity() {
       getDetail();
     } else {
       // if (locationParam?.state?.fronCalendar) {
-        handleChange(
-          "document_date",
-          locationParam?.state?.fronCalendar || dayjs()
-        );
-        formCustom.setFieldsValue({
-          document_date: locationParam?.state?.fronCalendar || dayjs(),
-        });
+      handleChange(
+        "document_date",
+        locationParam?.state?.fronCalendar || dayjs()
+      );
+      formCustom.setFieldsValue({
+        document_date: locationParam?.state?.fronCalendar || dayjs(),
+      });
       // }
     }
   }, []);
@@ -863,27 +867,166 @@ export default function CreateActivity() {
   };
 
   //บันทึกข้อมูล
+  // const handleSave = async (modeSave) => {
+  //   try {
+  //     await formCustom.validateFields();
+
+  //     let allValuesBasic = formCustom.getFieldsValue();
+  //     // allValuesBasic.document_date = dayjs(allValuesBasic.document_date).format(
+  //     //   "YYYY-MM-DD"
+  //     // );
+
+  //     // ✅ Convert `document_date` to Asia/Bangkok timezone and format it
+  //     allValuesBasic.document_date = dayjs(allValuesBasic.document_date)
+  //       .tz("Asia/Bangkok", true) // Convert to +7 timezone
+  //       .format("YYYY-MM-DD HH:mm:ss.SSS"); // Format as required
+
+  //     //File Upload
+  //     const imageLists = [];
+  //     fileList.forEach((element) => {
+  //       imageLists.push(element.url);
+  //     });
+  //     //เปิด Expense หรือไม่?
+  //     const isExpense =
+  //       isBtnExpenseActive ||
+  //       pageCode == "expense_advance" ||
+  //       pageCode == "expense_clearing";
+
+  //     //ส่วนของ Sale Plan
+  //     const expenseProductTotalEstimateSale =
+  //       calculateGrandTotal("estimateSale");
+  //     const expenseProductTotalAcutalSale = calculateGrandTotal("actualSale");
+
+  //     let expenseParticapantUserList = [];
+  //     let particapantList = [];
+  //     participantUsers.forEach((element) => {
+  //       expenseParticapantUserList.push(element.id);
+  //     });
+  //     participants.forEach((element) => {
+  //       particapantList.push({
+  //         name: element.name,
+  //         address: element.address,
+  //         phone: element.phone,
+  //       });
+  //     });
+
+  //     console.log(activityDetail);
+
+  //     const body = {
+  //       ...activityDetail,
+  //       page_code: pageCode,
+  //       // document_number_referrent:
+  //       //   activityDetail?.document_number_referrent ?? null,
+  //       action_code: modeSave,
+  //       image_list: imageLists,
+  //       is_expense: isExpense,
+  //       // expense_product_total_estimate_sale: expenseProductTotalEstimateSale,
+  //       // expense_product_total_acutal_sale: expenseProductTotalAcutalSale,
+  //       // expense_product_data_list: expenseProductDataList,
+
+  //       // expense_actual_exp: activityDetail?.expense_actual_exp,
+  //       // expense_actual_sale: activityDetail?.expense_actual_sale,
+  //       // expense_advance: activityDetail?.expense_advance,
+  //       // expense_actual: activityDetail?.expense_actual,
+  //       expense_file_list: [],
+  //       // expense_participant_estimate:
+  //       //   activityDetail?.expense_participant_estimate,
+  //       // expense_particapant_actual: activityDetail?.expense_particapant_actual,
+  //       expense_particapant_user_list: expenseParticapantUserList,
+  //       particapant_list: particapantList,
+  //     };
+  //     console.log(body);
+  //     // return;
+
+  //     if (documentNumber) {
+  //       useServiceAPI
+  //         .put(paths.pathActivityExpenseDetail, body, setLoading)
+  //         .then((response) => {
+  //           const successCallback = () => {
+  //             if (response.result) {
+  //               if (pageCode == "expense_clearing") {
+  //                 navigate("/expenses/clearing");
+  //               } else if (pageCode == "expense_advance") {
+  //                 if (modeSave == "convert_clearing") {
+  //                   // navigate(`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`)
+  //                   navigate("/expenses/clearing");
+  //                 } else {
+  //                   navigate("/expenses/advance");
+  //                 }
+  //               } else {
+  //                 navigate("/activity/list");
+  //               }
+  //             }
+  //           };
+  //           showNotification(
+  //             "success",
+  //             response.data.message,
+  //             response.data.message_line,
+  //             2
+  //           ).then(successCallback);
+  //         })
+  //         .catch((error) => { });
+  //     } else {
+  //       useServiceAPI
+  //         .post(paths.pathActivityExpenseCreate, body, setLoading)
+  //         .then((response) => {
+  //           const successCallback = () => {
+  //             if (response.result) {
+  //               if (pageCode == "expense_clearing") {
+  //                 navigate("/expenses/clearing");
+  //               } else if (pageCode == "expense_advance") {
+  //                 if (modeSave == "convert_clearing") {
+  //                   navigate("/expenses/clearing");
+
+  //                   // navigate(`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`)
+  //                 } else {
+  //                   navigate("/expenses/advance");
+  //                 }
+  //               } else {
+  //                 navigate("/activity/list");
+  //               }
+  //             }
+  //           };
+  //           showNotification(
+  //             "success",
+  //             response.data.message,
+  //             response.data.message_line,
+  //             2
+  //           ).then(successCallback);
+  //         })
+  //         .catch((error) => { });
+  //     }
+  //   } catch (err) {
+  //     console.error("Error fetching address:", err);
+  //     console.log(activityDetail);
+  //   }
+  // };
+
+  // บันทึกข้อมูล
   const handleSave = async (modeSave) => {
     try {
       await formCustom.validateFields();
 
       let allValuesBasic = formCustom.getFieldsValue();
-      allValuesBasic.document_date = dayjs(allValuesBasic.document_date).format(
-        "YYYY-MM-DD"
-      );
 
-      //File Upload
+      // ✅ Convert `document_date` to Asia/Bangkok timezone and format it
+      allValuesBasic.document_date = dayjs(allValuesBasic.document_date)
+        .tz("Asia/Bangkok", true) // Convert to +7 timezone
+        .format("YYYY-MM-DD HH:mm:ss.SSS"); // Format as required
+
+      // File Upload
       const imageLists = [];
       fileList.forEach((element) => {
         imageLists.push(element.url);
       });
-      //เปิด Expense หรือไม่?
+
+      // เปิด Expense หรือไม่?
       const isExpense =
         isBtnExpenseActive ||
         pageCode == "expense_advance" ||
         pageCode == "expense_clearing";
 
-      //ส่วนของ Sale Plan
+      // ส่วนของ Sale Plan
       const expenseProductTotalEstimateSale =
         calculateGrandTotal("estimateSale");
       const expenseProductTotalAcutalSale = calculateGrandTotal("actualSale");
@@ -906,28 +1049,16 @@ export default function CreateActivity() {
       const body = {
         ...activityDetail,
         page_code: pageCode,
-        // document_number_referrent:
-        //   activityDetail?.document_number_referrent ?? null,
         action_code: modeSave,
         image_list: imageLists,
         is_expense: isExpense,
-        // expense_product_total_estimate_sale: expenseProductTotalEstimateSale,
-        // expense_product_total_acutal_sale: expenseProductTotalAcutalSale,
-        // expense_product_data_list: expenseProductDataList,
-
-        // expense_actual_exp: activityDetail?.expense_actual_exp,
-        // expense_actual_sale: activityDetail?.expense_actual_sale,
-        // expense_advance: activityDetail?.expense_advance,
-        // expense_actual: activityDetail?.expense_actual,
         expense_file_list: [],
-        // expense_participant_estimate:
-        //   activityDetail?.expense_participant_estimate,
-        // expense_particapant_actual: activityDetail?.expense_particapant_actual,
         expense_particapant_user_list: expenseParticapantUserList,
         particapant_list: particapantList,
+        document_date: allValuesBasic.document_date, // ✅ Updated timezone +7 format
       };
-      console.log(body);
-      // return;
+
+      console.log("Sending Body:", body);
 
       if (documentNumber) {
         useServiceAPI
@@ -939,7 +1070,6 @@ export default function CreateActivity() {
                   navigate("/expenses/clearing");
                 } else if (pageCode == "expense_advance") {
                   if (modeSave == "convert_clearing") {
-                    // navigate(`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`)
                     navigate("/expenses/clearing");
                   } else {
                     navigate("/expenses/advance");
@@ -956,7 +1086,7 @@ export default function CreateActivity() {
               2
             ).then(successCallback);
           })
-          .catch((error) => {});
+          .catch((error) => { });
       } else {
         useServiceAPI
           .post(paths.pathActivityExpenseCreate, body, setLoading)
@@ -968,8 +1098,6 @@ export default function CreateActivity() {
                 } else if (pageCode == "expense_advance") {
                   if (modeSave == "convert_clearing") {
                     navigate("/expenses/clearing");
-
-                    // navigate(`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`)
                   } else {
                     navigate("/expenses/advance");
                   }
@@ -985,13 +1113,14 @@ export default function CreateActivity() {
               2
             ).then(successCallback);
           })
-          .catch((error) => {});
+          .catch((error) => { });
       }
     } catch (err) {
       console.error("Error fetching address:", err);
       console.log(activityDetail);
     }
   };
+
 
   return (
     <MainLayout loading={loading}>
@@ -1025,8 +1154,8 @@ export default function CreateActivity() {
       />
 
       {isBtnExpenseActive ||
-      pageCode == "expense_advance" ||
-      pageCode == "expense_clearing" ? (
+        pageCode == "expense_advance" ||
+        pageCode == "expense_clearing" ? (
         <>
           <div className="flex items-center justify-between">
             <div className="title-page">Advance Expense</div>
@@ -1509,7 +1638,7 @@ export default function CreateActivity() {
               window.open(targetUrl, "_blank"); // เปิดในแท็บใหม่
             }}
           />
-        )} 
+        )}
 
         {/* <ActionButton
           mode="saveDraft"
