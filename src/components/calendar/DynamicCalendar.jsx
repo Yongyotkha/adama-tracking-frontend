@@ -397,19 +397,17 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                   return (
                     <div
                       key={`current-${index}`}
-                      className={`border p-2 rounded cursor-pointer flex flex-col items-center justify-start min-h-[170px] transition ${
-                        isActive
+                      className={`border p-2 rounded cursor-pointer flex flex-col items-center justify-start min-h-[170px] transition ${isActive
                           ? "bg-gray-100 border-[#009845]"
                           : "bg-gray-50 hover:bg-green-100"
-                      }`}
+                        }`}
                       onClick={() =>
                         handleDateClick(date.toISOString().split("T")[0])
                       }
                     >
                       <div
-                        className={`text-start font-bold w-full ${
-                          isActive ? "text-[#009845]" : "text-gray-700"
-                        }`}
+                        className={`text-start font-bold w-full ${isActive ? "text-[#009845]" : "text-gray-700"
+                          }`}
                       >
                         {index + 1}
                       </div>
@@ -483,15 +481,14 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                       month: "long",
                     })}
                   </h3>
-                  {events.filter((event) => event.date === selectedDate)
-                    .length === 0 && (
+                  {/* {events.filter((event) => event.date === selectedDate).length === 0 && ( */}
                     <ActionButton
                       mode="add"
                       className="min-w-fit h-6"
                       style={{ gap: "0" }}
                       onClick={handleActionButtonClick} // Add onClick event handler
                     />
-                  )}
+                  {/* )} */}
                 </div>
                 <div className="space-y-4">
                   {events.filter((event) => event.date === selectedDate)
