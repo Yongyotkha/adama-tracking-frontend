@@ -108,6 +108,15 @@ import ActivityPlanDealerMonth from "./pages/activity/activity_plan/ActivityPlan
 import PDFClearingExpense from "./pages/pdf/PDFClearingExpense";
 import CustomerStockCreate from "./pages/stock/customer-stock/CustomerStockCreate";
 import CustomerStock from "./pages/stock/customer-stock/CustomerStock";
+import ScanCollectPoint from "./pages/mobile/scan_collect/ScanCollectPoint";
+import RedeemPoint from "./pages/mobile/redeem_point/RedeemPoint";
+import RedeemPointDetail from "./pages/mobile/redeem_point/RedeemPointDetail";
+import PurchaseHistory from "./pages/mobile/purchase_history/PurchaseHistory";
+import PurchaseHistoryDetail from "./pages/mobile/purchase_history/PurchasehistoryDetail";
+import Promotion from "./pages/mobile/promotion/Promotion";
+import PromotionDetail from "./pages/mobile/promotion/PromotionDetail";
+import RedeemHistory from "./pages/mobile/redeem_history/RedeemHistory";
+import RedeemHistoryDetail from "./pages/mobile/redeem_history/RedeemHistoryDetail";
 
 const App = () => {
   return (
@@ -270,11 +279,16 @@ const App = () => {
           <Route path="/mobile/contact" element={< ContactOA />} />
 
           <Route path="/mobile/main" element={< MainOA />} />
-          <Route path="/mobile/scan-collect" element={< MainOA />} />
-          <Route path="/mobile/redeem" element={< MainOA />} />
-          <Route path="/mobile/history-purchase" element={< MainOA />} />
-          <Route path="/mobile/history-redeem" element={< MainOA />} />
-          
+          <Route path="/mobile/scan-collect" element={< ScanCollectPoint />} />
+          <Route path="/mobile/redeem-point" element={< RedeemPoint />} />
+          <Route path="/mobile/redeem-point/detail/:id" element={<RedeemPointDetail />} />
+          <Route path="/mobile/history-purchase" element={< PurchaseHistory />} />
+          <Route path="/mobile/history-purchase/detail/:id" element={<PurchaseHistoryDetail />} />
+          <Route path="/mobile/promotion" element={< Promotion />} />
+          <Route path="/mobile/promotion/detail/:id" element={<PromotionDetail />} />
+          <Route path="/mobile/redeem-history" element={< RedeemHistory />} />
+          <Route path="/mobile/redeem-history/detail/:id" element={< RedeemHistoryDetail />} />
+
         </Routes>
       </AuthProvider>
     </Router>
