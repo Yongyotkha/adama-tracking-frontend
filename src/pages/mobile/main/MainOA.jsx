@@ -3,7 +3,6 @@ import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { useNavigate } from "react-router-dom";
 import HeadSectionUser from "../../../components/mobile/head_section_user/HeadSectionUser";
 import UserPointsSection from "../../../components/mobile/user_points_section/UserPointsSection";
-import MenuButton from "../../../components/mobile/button/MenuButton";
 import MainMenu from "../../../components/mobile/main_menu/MainMenu";
 
 export default function MainOA() {

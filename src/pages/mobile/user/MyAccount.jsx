@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Card } from "antd";
+import { Modal, Button } from "antd";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { useNavigate } from "react-router-dom";
 import {
@@ -10,18 +10,33 @@ import {
   PhoneOutlined,
   LogoutOutlined,
   RightOutlined,
+  HomeOutlined,
 } from "@ant-design/icons";
 import BackButton from "../../../components/mobile/button/BackButton";
+import MainButton from "../../../components/mobile/button/MainButton";
+import LogOutPopUp from "../../../components/mobile/popup/LogOutPopUp";
 
 export default function MyAccount() {
   const [loading, setLoading] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+    setIsLogoutModalOpen(true); // Open the modal
+  };
+
+  const confirmLogout = () => {
+    setIsLogoutModalOpen(false);
+    // Perform actual logout logic here
+    console.log("User logged out");
+    navigate("/mobile/verify"); // Redirect to login page
+  };
 
   return (
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
         {/* Header Section */}
-        <div className="w-full rounded-b-[40px] flex items-center relative gap-2 max-w-md ">
+        <div className="w-full rounded-b-[40px] flex items-center relative gap-2 max-w-md">
           <div className="w-24 h-24 bg-gray-300 rounded-full overflow-hidden shadow">
             <img
               src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsynwv-5qtogtOwJbIjaPFJUmHpzhxgqIAug&s"
@@ -39,50 +54,48 @@ export default function MyAccount() {
 
         {/* Content Section */}
         <div className="w-full max-w-md mt-6 flex flex-col flex-grow">
-          {/* Personal Info */}
-          <a href="/mobile/user/detail" className="flex items-center space-x-3 cursor-pointer border p-4 rounded-[6px]">
-            <UserOutlined className="text-lg text-gray-500" />
-            <span className="text-gray-700 sarabun-font flex-1">ข้อมูลส่วนตัว</span>
-            <RightOutlined className="text-lg text-gray-500" />
-          </a>
 
-          {/* Settings Section */}
           <div className="mt-4 space-y-2">
+            {/* Personal Info */}
+            <MainButton
+              type="link"
+              to="/mobile/main"
+              icon={<HomeOutlined className="text-lg text-gray-500" />}
+              label="หน้าหลัก"
+            />
+            <MainButton
+              type="link"
+              to="/mobile/user/detail"
+              icon={<UserOutlined className="text-lg text-gray-500" />}
+              label="ข้อมูลส่วนตัว"
+            />
+
+            {/* Settings Section */}
             <div className="sarabun-font pt-2">การตั้งค่า</div>
+            <MainButton type="link" to="/mobile/terms-conditions" icon={<FileTextOutlined className="text-lg text-gray-500" />} label="ข้อตกลงและเงื่อนไข" />
+            <MainButton type="link" to="/mobile/privacy-policy" icon={<LockOutlined className="text-lg text-gray-500" />} label="นโยบายความเป็นส่วนตัว" />
+            <MainButton type="link" to="/mobile/faq" icon={<QuestionCircleOutlined className="text-lg text-gray-500" />} label="คำถามที่พบบ่อย" />
+            <MainButton type="link" to="/mobile/contact-us" icon={<PhoneOutlined className="text-lg text-gray-500" />} label="ติดต่อเรา" />
 
-            <a href="" className="flex items-center space-x-3 cursor-pointer border p-4 rounded-[6px]">
-              <FileTextOutlined className="text-lg text-gray-500" />
-              <span className="text-gray-700 sarabun-font flex-1">ข้อตกลงและเงื่อนไข</span>
-              <RightOutlined className="text-lg text-gray-500" />
-            </a>
-
-            <a href="" className="flex items-center space-x-3 cursor-pointer border p-4 rounded-[6px]">
-              <LockOutlined className="text-lg text-gray-500" />
-              <span className="text-gray-700 sarabun-font flex-1">นโยบายความเป็นส่วนตัว</span>
-              <RightOutlined className="text-lg text-gray-500" />
-            </a>
-
-            <a href="" className="flex items-center space-x-3 cursor-pointer border p-4 rounded-[6px]">
-              <QuestionCircleOutlined className="text-lg text-gray-500" />
-              <span className="text-gray-700 sarabun-font flex-1">คำถามที่พบบ่อย</span>
-              <RightOutlined className="text-lg text-gray-500" />
-            </a>
-
-            <a href="" className="flex items-center space-x-3 cursor-pointer border p-4 rounded-[6px]">
-              <PhoneOutlined className="text-lg text-gray-500" />
-              <span className="text-gray-700 sarabun-font flex-1">ติดต่อเรา</span>
-              <RightOutlined className="text-lg text-gray-500" />
-            </a>
-
-            <a href="" className="flex items-center space-x-3 cursor-pointer border p-4 rounded-[6px]">
-              <LogoutOutlined className="text-lg text-red-500" />
-              <span className="text-red-500 sarabun-font flex-1">ออกจากระบบ</span>
-              <RightOutlined className="text-lg text-red-500" />
-            </a>
+            {/* Logout Button */}
+            <MainButton
+              type="button"
+              icon={<LogoutOutlined className="text-lg text-red-500" />}
+              label="ออกจากระบบ"
+              onClick={handleLogout}
+              className="text-red-500"
+            />
           </div>
         </div>
 
-        {/* Back Button - Stays at the Bottom */}
+        {/* Logout Confirmation Modal */}
+        <LogOutPopUp
+          isOpen={isLogoutModalOpen}
+          onCancel={() => setIsLogoutModalOpen(false)}
+          onConfirm={confirmLogout}
+        />
+
+        {/* Back Button */}
         <BackButton />
       </div>
     </MobileLayout>
