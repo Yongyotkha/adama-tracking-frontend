@@ -117,6 +117,7 @@ import Promotion from "./pages/mobile/promotion/Promotion";
 import PromotionDetail from "./pages/mobile/promotion/PromotionDetail";
 import RedeemHistory from "./pages/mobile/redeem_history/RedeemHistory";
 import RedeemHistoryDetail from "./pages/mobile/redeem_history/RedeemHistoryDetail";
+import ReportStock from "./pages/report/ReportStock";
 
 const App = () => {
   return (
@@ -258,6 +259,10 @@ const App = () => {
             <Route path="/report/quarterly" element={<ReportSaleByQuarter />} />
             <Route path="/report/yearly" element={<ReportSaleByYear />} />
             <Route path="/report/activity" element={<ReportActivity />} />
+
+
+
+            <Route path="/report/stock-report" element={<ReportStock />} />
 
           </Route>
 

@@ -28,7 +28,7 @@ const Filter = ({ onSearch, onClear, onChange, filters }) => {
   };
 
   const handleSearch = () => {
-    console.log(filterValues)
+    console.log(filterValues);
     onSearch(filterValues);
   };
 
@@ -60,7 +60,7 @@ const Filter = ({ onSearch, onClear, onChange, filters }) => {
                 xs={24}
                 sm={12}
                 md={8}
-                lg={6}
+                lg={filter.size || 6}
               >
                 <label className="block text-gray-700">{filter.label}</label>
                 {filter.type === "select" && (
