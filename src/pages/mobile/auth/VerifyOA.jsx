@@ -84,7 +84,6 @@ export default function VerifyOA() {
     initLIFF();
   }, []);
   
-
   return (
     <MessageLayout
       loading={loading}

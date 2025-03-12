@@ -270,7 +270,6 @@ const App = () => {
 
           </Route>
 
-
           {/* Error Route */}
           <Route path="/error/403" element={<Error403 />} />
           <Route path="*" element={<Error404 />} />
