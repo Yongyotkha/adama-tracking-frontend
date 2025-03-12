@@ -1,13 +1,19 @@
 import React from "react";
 import { Modal, Button } from "antd";
+import { useNavigate } from "react-router-dom";
 
-/**
- * LogOutPopUp Component
- * @param {boolean} isOpen - Whether the modal is open
- * @param {function} onCancel - Function to close the modal
- * @param {function} onConfirm - Function to confirm logout
- */
-export default function LogOutPopUp({ isOpen, onCancel, onConfirm }) {
+export default function LogOutPopUp({ isOpen, onCancel }) {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // ลบ Token หรือข้อมูลผู้ใช้
+    localStorage.removeItem("authToken"); // ถ้ามีการใช้ Token
+    sessionStorage.removeItem("authSession"); // ถ้ามีการใช้ Session
+
+    // ไปที่หน้า Login
+    navigate("/mobile/verify");
+  };
+
   return (
     <Modal open={isOpen} footer={null} centered closable={false}>
       <div className="flex flex-col justify-between items-center min-h-[250px]">
@@ -28,7 +34,7 @@ export default function LogOutPopUp({ isOpen, onCancel, onConfirm }) {
             <span className="sarabun-font">ยกเลิก</span>
           </Button>
           <Button
-            onClick={onConfirm}
+            onClick={handleLogout}
             className="w-1/2 bg-[#009845] text-white py-3 rounded-md"
           >
             <span className="sarabun-font">ยืนยัน</span>
