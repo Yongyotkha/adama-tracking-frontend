@@ -51,27 +51,6 @@ export default function VerifyOA() {
   };
 
   
-  useEffect(() => {
-    const initLIFF = async () => {
-      try {
-        await liff.init({ liffId: "2007054859-ln0D549D", withLoginOnExternalBrowser: true });
-  
-        if (liff.isLoggedIn()) {
-          const profile = await liff.getProfile();
-          console.log("LINE Profile:", profile);
-          setUserName(profile.displayName); // เก็บชื่อผู้ใช้ใน State
-
-
-        } else {
-          liff.login();
-        }
-      } catch (error) {
-        console.error("LIFF Initialization Failed:", error);
-      }
-    };
-
-  }, []);
-  
   return (
     <MessageLayout
       loading={loading}

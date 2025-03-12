@@ -123,6 +123,7 @@ import FaqOA from "./pages/mobile/user/settings/faq/Faq";
 import PrivacyPolicy from "./pages/mobile/user/settings/privacy_policy/PrivacyPolicy";
 import TermsConditions from "./pages/mobile/user/settings/terms_conditions/TermsConditions";
 import CheckLogin from "./pages/mobile/auth/CheckLogin";
+import { LineOARoute } from "./components/auth/LineOARoute";
 
 const App = () => {
   return (
@@ -278,31 +279,34 @@ const App = () => {
           <Route path="/error/503" element={<Error503 />} />
           <Route path="/wiki" element={<Wiki />} />
 
-          {/* Mobile Line OA Routes */}
-          <Route path="/mobile/verify" element={<VerifyOA />} />
-          <Route path="/mobile/otp" element={<OtpOA />} />
-          <Route path="/mobile/account" element={< MyAccountMobile />} />
-          <Route path="/mobile/user/detail" element={< UserDetail />} />
-          <Route path="/mobile/user/edit" element={< EditUserOA />} />
-          <Route path="/mobile/register" element={< RegisterOA />} />
-          <Route path="/mobile/contact-staff" element={< ContactStaff />} />
-          <Route path="/mobile/contact-us" element={< ContactUs />} />
-          <Route path="/mobile/faq" element={< FaqOA />} />
-          <Route path="/mobile/privacy-policy" element={< PrivacyPolicy />} />
-          <Route path="/mobile/terms-conditions" element={< TermsConditions />} />
 
-          <Route path="/mobile/main" element={< MainOA />} />
-          <Route path="/mobile/scan-collect" element={< ScanCollectPoint />} />
-          <Route path="/mobile/redeem-point" element={< RedeemPoint />} />
-          <Route path="/mobile/redeem-point/detail/:id" element={<RedeemPointDetail />} />
-          <Route path="/mobile/history-purchase" element={< PurchaseHistory />} />
-          <Route path="/mobile/history-purchase/detail/:id" element={<PurchaseHistoryDetail />} />
-          <Route path="/mobile/promotion" element={< Promotion />} />
-          <Route path="/mobile/promotion/detail/:id" element={<PromotionDetail />} />
-          <Route path="/mobile/redeem-history" element={< RedeemHistory />} />
-          <Route path="/mobile/redeem-history/detail/:id" element={< RedeemHistoryDetail />} />
-          
-          <Route path="/mobile/check-login" element={< CheckLogin />} />
+          <Route element={<LineOARoute />}>
+            {/* Mobile LineOA Routes */}
+            <Route path="/mobile/verify" element={<VerifyOA />} />
+            <Route path="/mobile/otp" element={<OtpOA />} />
+            <Route path="/mobile/account" element={< MyAccountMobile />} />
+            <Route path="/mobile/user/detail" element={< UserDetail />} />
+            <Route path="/mobile/user/edit" element={< EditUserOA />} />
+            <Route path="/mobile/register" element={< RegisterOA />} />
+            <Route path="/mobile/contact-staff" element={< ContactStaff />} />
+            <Route path="/mobile/contact-us" element={< ContactUs />} />
+            <Route path="/mobile/faq" element={< FaqOA />} />
+            <Route path="/mobile/privacy-policy" element={< PrivacyPolicy />} />
+            <Route path="/mobile/terms-conditions" element={< TermsConditions />} />
+
+            <Route path="/mobile/main" element={< MainOA />} />
+            <Route path="/mobile/scan-collect" element={< ScanCollectPoint />} />
+            <Route path="/mobile/redeem-point" element={< RedeemPoint />} />
+            <Route path="/mobile/redeem-point/detail/:id" element={<RedeemPointDetail />} />
+            <Route path="/mobile/history-purchase" element={< PurchaseHistory />} />
+            <Route path="/mobile/history-purchase/detail/:id" element={<PurchaseHistoryDetail />} />
+            <Route path="/mobile/promotion" element={< Promotion />} />
+            <Route path="/mobile/promotion/detail/:id" element={<PromotionDetail />} />
+            <Route path="/mobile/redeem-history" element={< RedeemHistory />} />
+            <Route path="/mobile/redeem-history/detail/:id" element={< RedeemHistoryDetail />} />
+
+            <Route path="/mobile/check-login" element={< CheckLogin />} />
+          </Route>
 
         </Routes>
       </AuthProvider>
