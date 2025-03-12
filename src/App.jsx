@@ -305,7 +305,7 @@ const App = () => {
             <Route path="/mobile/redeem-history" element={< RedeemHistory />} />
             <Route path="/mobile/redeem-history/detail/:id" element={< RedeemHistoryDetail />} />
 
-            <Route path="/mobile/check-login" element={< CheckLogin />} />
+            <Route path="/mobile/login" element={< CheckLogin />} />
           </Route>
 
         </Routes>
