@@ -72,7 +72,6 @@ export default function VerifyOA() {
 
   }, []);
   
-
   return (
     <MessageLayout
       loading={loading}
