@@ -50,6 +50,8 @@ export default function Dashboard() {
   const [selectedSaleByCrop, setSelectedSaleByCrop] = useState(null);
   const [selectedSaleActivity, setSelectedSaleActivity] = useState(null);
   const [selectedDealerPlan, setSelectedDealerPlan] = useState(null);
+  const [selectedDealerActivity , setSelectedDealerActivity ] = useState(null);
+
   const [selectedDealerTopActivity, setSelectedDealerTopActivity] =
     useState(null);
   const [selectedSubdealerPlan, setSelectedSubdealerPlan] = useState(null);
@@ -165,7 +167,12 @@ export default function Dashboard() {
       });
       if (response.status === 200) {
         const data = response.data || {};
-        setDashboardDataExpense(data);
+        setDashboardDataExpense({...data,
+          total_expense_activity_plan: convertNumber(data.total_expense_activity_plan),
+          total_expense_actual_exp: convertNumber(data.total_expense_actual_exp),
+          total_expense_actual_sale: convertNumber(data.total_expense_actual_sale),
+          total_expense_advance: convertNumber(data.total_expense_advance)
+        });
       } else {
         console.error("Failed to fetch dashboard data:", response.message);
       }
@@ -466,6 +473,7 @@ export default function Dashboard() {
           year_code: selectedYear,
           sale_id: selectedSaleActivity,
           month_id: selectedMonthsActivity,
+          dealer :selectedDealerActivity
         };
 
         const response = await useServiceAPI.get(
@@ -516,7 +524,7 @@ export default function Dashboard() {
     if (selectedYear) {
       fetchListActivityData();
     }
-  }, [selectedYear, selectedSaleActivity, selectedMonthsActivity]);
+  }, [selectedYear, selectedSaleActivity, selectedMonthsActivity,selectedDealerActivity]);
 
   return (
     <MainLayout loading={loading}>
@@ -608,7 +616,7 @@ export default function Dashboard() {
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-300">
               <div className="text-center py-4">
                 <div className="text-md font-bold text-[#00783F]">
-                  {dashboardDataExpense.total_expense_activity_plan}
+                  {formatNumber(dashboardDataExpense.total_expense_activity_plan)}
                   <br />
                   {calPercentage.plan||dashboardDataExpense.total_expense_activity_plan_percentage}
                 </div>
@@ -616,13 +624,15 @@ export default function Dashboard() {
               </div>
               <div className="text-center py-4 flex flex-col justify-between">
                 <div className="text-md font-bold text-[#00783F]">
-                  {dashboardDataExpense.total_expense_advance}
+                {formatNumber(dashboardDataExpense.total_expense_advance)}
+
+                  {/* {dashboardDataExpense.total_expense_advance} */}
                 </div>
                 <div className="text-sm text-gray-500">Advance</div>
               </div>
               <div className="text-center py-4">
                 <div className="text-md font-bold text-[#00783F]">
-                  {dashboardDataExpense.total_expense_actual_exp} <br />
+                  {formatNumber(dashboardDataExpense.total_expense_actual_exp)} <br />
                   {calPercentage.actual||dashboardDataExpense.total_expense_actual_exp_percentage}
                 </div>
                 <div className="text-sm text-gray-500">Actual</div>
@@ -977,6 +987,23 @@ export default function Dashboard() {
                   allowClear
                   optionFilterProp="label"
                 ></Select>
+
+
+                <Select
+                  className="w-36"
+                  value={selectedDealerActivity}
+                  onChange={(value) => {
+                    setSelectedDealerActivity(value);
+                  }}
+                  placeholder={loading ? "Loading..." : "Select Dealer"}
+                  disabled={loading}
+                  options={dealer}
+                  showSearch
+                  allowClear
+                  optionFilterProp="label"
+                ></Select>
+
+
               </div>
             </div>
             <table className="w-full table-auto border-collapse">
@@ -1040,7 +1067,7 @@ export default function Dashboard() {
                   onChange={(value) => {
                     setSelectedSdByD(value);
                   }}
-                  placeholder={loading ? "Loading..." : "Select Sub Dealer"}
+                  placeholder={loading ? "Loading..." : "Select by Dealer "}
                   disabled={loading}
                   showSearch
                   allowClear
