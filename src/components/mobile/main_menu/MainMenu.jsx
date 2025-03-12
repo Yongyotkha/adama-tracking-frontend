@@ -26,7 +26,7 @@ const MainMenu = () => {
   ];
 
   return (
-    <div className="w-full max-w-md mt-6 flex flex-col space-y-3">
+    <div className="w-full max-w-md my-4 pb-4 flex flex-col space-y-3">
       {menuItems.map((item, index) => (
         <MenuButton key={index} icon={item.icon} text={item.text} url={item.url} />
       ))}

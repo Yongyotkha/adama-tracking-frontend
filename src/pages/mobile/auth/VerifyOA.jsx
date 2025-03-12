@@ -99,7 +99,7 @@ export default function VerifyOA() {
             // Handle the case for phone number 0800000001
             setIsModalVisible(false);
           } else {
-            navigate("/mobile/contact"); // Navigate to "ติดต่อเจ้าหน้าที่" page
+            navigate("/mobile/contact-staff"); // Navigate to "ติดต่อเจ้าหน้าที่" page
           }
         }}
         onCancel={() => setIsModalVisible(false)}

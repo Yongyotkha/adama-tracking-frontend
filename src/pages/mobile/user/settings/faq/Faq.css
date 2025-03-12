@@ -1,0 +1,9 @@
+span.ant-collapse-header-text {
+  color: white;
+  font-family: 'Sarabun';
+  padding: 10px;
+}
+
+.ant-collapse-content-box p {
+  font-family: 'Sarabun';
+}

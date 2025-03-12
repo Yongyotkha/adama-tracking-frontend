@@ -102,7 +102,7 @@ import OtpOA from "./pages/mobile/auth/OtpOA";
 import UserDetail from "./pages/mobile/user/UserDetail";
 import EditUserOA from "./pages/mobile/user/EditUserOA";
 import RegisterOA from "./pages/mobile/register/RegisterOA";
-import ContactOA from "./pages/mobile/contact/ContactOA";
+import ContactStaff from "./pages/mobile/contact_staff/ContactStaff";
 import MainOA from "./pages/mobile/main/MainOA";
 import ActivityPlanDealerMonth from "./pages/activity/activity_plan/ActivityPlanDealerMonth";
 import PDFClearingExpense from "./pages/pdf/PDFClearingExpense";
@@ -118,6 +118,10 @@ import PromotionDetail from "./pages/mobile/promotion/PromotionDetail";
 import RedeemHistory from "./pages/mobile/redeem_history/RedeemHistory";
 import RedeemHistoryDetail from "./pages/mobile/redeem_history/RedeemHistoryDetail";
 import ReportStock from "./pages/report/ReportStock";
+import ContactUs from "./pages/mobile/user/settings/contact_us/ContactUs";
+import FaqOA from "./pages/mobile/user/settings/faq/Faq";
+import PrivacyPolicy from "./pages/mobile/user/settings/privacy_policy/PrivacyPolicy";
+import TermsConditions from "./pages/mobile/user/settings/terms_conditions/TermsConditions";
 
 const App = () => {
   return (
@@ -281,7 +285,11 @@ const App = () => {
           <Route path="/mobile/user/detail" element={< UserDetail />} />
           <Route path="/mobile/user/edit" element={< EditUserOA />} />
           <Route path="/mobile/register" element={< RegisterOA />} />
-          <Route path="/mobile/contact" element={< ContactOA />} />
+          <Route path="/mobile/contact-staff" element={< ContactStaff />} />
+          <Route path="/mobile/contact-us" element={< ContactUs />} />
+          <Route path="/mobile/faq" element={< FaqOA />} />
+          <Route path="/mobile/privacy-policy" element={< PrivacyPolicy />} />
+          <Route path="/mobile/terms-conditions" element={< TermsConditions />} />
 
           <Route path="/mobile/main" element={< MainOA />} />
           <Route path="/mobile/scan-collect" element={< ScanCollectPoint />} />
@@ -293,6 +301,7 @@ const App = () => {
           <Route path="/mobile/promotion/detail/:id" element={<PromotionDetail />} />
           <Route path="/mobile/redeem-history" element={< RedeemHistory />} />
           <Route path="/mobile/redeem-history/detail/:id" element={< RedeemHistoryDetail />} />
+          
 
         </Routes>
       </AuthProvider>

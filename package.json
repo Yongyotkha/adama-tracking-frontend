@@ -18,6 +18,7 @@
     "@mui/x-charts": "^7.23.2",
     "@react-google-maps/api": "^2.20.3",
     "@react-pdf/renderer": "^4.1.6",
+    "@splidejs/react-splide": "^0.7.12",
     "antd": "^5.22.2",
     "apexcharts": "^4.5.0",
     "axios": "^1.7.7",

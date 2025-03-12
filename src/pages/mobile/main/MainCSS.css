@@ -1,0 +1,12 @@
+/* Custom Splide Pagination */
+.splide__pagination {
+  bottom: -25px !important; /* Moves the dots further down */
+}
+
+.splide__pagination__page.is-active {
+  background-color: #00783F !important; /* Green active dot */
+}
+
+.splide__track {
+  border-radius: 0.75rem;
+}
