@@ -1,9 +1,12 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate  } from "react-router-dom";
 import { useEffect, useState } from "react";
 import liff from "@line/liff"; // ตรวจสอบให้แน่ใจว่ามีการติดตั้ง `@line/liff`
 
 const LineOARoute = () => {
-  const [userName, setUserName] = useState("");
+  const navigate = useNavigate(); // ใช้เพื่อเปลี่ยนเส้นทางไปยัง CheckLogin
+  const [userId, setUserId] = useState("");
+
+
 
   useEffect(() => {
     const initLIFF = async () => {
@@ -12,8 +15,10 @@ const LineOARoute = () => {
 
         if (liff.isLoggedIn()) {
           const profile = await liff.getProfile();
-          console.log("LINE Profile:", profile);
-          setUserName(profile.displayName);
+          // console.log("LINE Profile:", profile);
+          console.log(profile.userId);
+          setUserId(profile.userId);
+          
         } else {
           liff.login();
         }
@@ -22,9 +27,41 @@ const LineOARoute = () => {
       }
     };
 
+
     initLIFF();
   }, []);
 
+  // const fetchCheckLoging = async (userId) => {
+  //   try {
+  //     const response = await useServiceAPI.get(`${paths.pathMasterUsersDetail}/${userId}`);
+  //     if (response.status === 200) {
+  //       const { data } = response;
+
+  //     } else {
+  //       console.error(response.message);
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
+
+
+  const fetchCheckLoging = async (userId) => {
+    try {
+      const response = await useServiceAPI.get(`${paths.pathSaleManagementProductsUpdate}/${userId}`);
+      if (response.status === 200) {
+        navigate("/dashboard"); // ไปที่หน้า Dashboard ถ้าพบข้อมูล
+      } else {
+        navigate("/mobile/verify"); // ไปที่หน้า verify ถ้าไม่พบข้อมูล
+      }
+    } catch (error) {
+      console.error("Error checking userId:", error);
+      navigate("/mobile/verify"); // กรณี error ก็ให้ไปหน้า verify
+    }
+  };
+
+
+  
   return <Outlet />;
 };
 
