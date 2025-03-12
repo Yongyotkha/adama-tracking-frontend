@@ -117,6 +117,7 @@ import Promotion from "./pages/mobile/promotion/Promotion";
 import PromotionDetail from "./pages/mobile/promotion/PromotionDetail";
 import RedeemHistory from "./pages/mobile/redeem_history/RedeemHistory";
 import RedeemHistoryDetail from "./pages/mobile/redeem_history/RedeemHistoryDetail";
+import ReportStock from "./pages/report/ReportStock";
 import ContactUs from "./pages/mobile/user/settings/contact_us/ContactUs";
 import FaqOA from "./pages/mobile/user/settings/faq/Faq";
 import PrivacyPolicy from "./pages/mobile/user/settings/privacy_policy/PrivacyPolicy";
@@ -262,6 +263,10 @@ const App = () => {
             <Route path="/report/quarterly" element={<ReportSaleByQuarter />} />
             <Route path="/report/yearly" element={<ReportSaleByYear />} />
             <Route path="/report/activity" element={<ReportActivity />} />
+
+
+
+            <Route path="/report/stock-report" element={<ReportStock />} />
 
           </Route>
 
