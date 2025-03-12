@@ -122,6 +122,7 @@ import ContactUs from "./pages/mobile/user/settings/contact_us/ContactUs";
 import FaqOA from "./pages/mobile/user/settings/faq/Faq";
 import PrivacyPolicy from "./pages/mobile/user/settings/privacy_policy/PrivacyPolicy";
 import TermsConditions from "./pages/mobile/user/settings/terms_conditions/TermsConditions";
+import CheckLogin from "./pages/mobile/auth/CheckLogin";
 
 const App = () => {
   return (
@@ -301,6 +302,7 @@ const App = () => {
           <Route path="/mobile/redeem-history" element={< RedeemHistory />} />
           <Route path="/mobile/redeem-history/detail/:id" element={< RedeemHistoryDetail />} />
           
+          <Route path="/mobile/check-login" element={< CheckLogin />} />
 
         </Routes>
       </AuthProvider>
