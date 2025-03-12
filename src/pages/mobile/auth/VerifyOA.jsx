@@ -22,6 +22,8 @@ export default function VerifyOA() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const { userInfo } = useContext(AuthContext);
   const { Title, Text } = Typography;
+  const [userName, setUserName] = useState(""); // เก็บชื่อผู้ใช้
+
 
   useEffect(() => {
     console.log(location.state);
@@ -57,22 +59,9 @@ export default function VerifyOA() {
         if (liff.isLoggedIn()) {
           const profile = await liff.getProfile();
           console.log("LINE Profile:", profile);
-  
-          const accessToken = liff.getAccessToken();
-          if (accessToken) {
-            fetch("https://api.line.me/v2/profile", {
-              method: "GET",
-              headers: { Authorization: `Bearer ${accessToken}` },
-            })
-              .then((res) => res.json())
-              .then((data) => {
-                if (data.phone) {
-                  const formattedPhone = data.phone.startsWith("+66") ? "0" + data.phone.slice(3) : data.phone;
-                  setPhoneNumber(formattedPhone);
-                }
-              })
-              .catch((err) => console.error("Error fetching phone number:", err));
-          }
+          setUserName(profile.displayName); // เก็บชื่อผู้ใช้ใน State
+
+
         } else {
           liff.login();
         }
@@ -80,8 +69,7 @@ export default function VerifyOA() {
         console.error("LIFF Initialization Failed:", error);
       }
     };
-  
-    initLIFF();
+
   }, []);
   
 
