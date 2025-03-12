@@ -10,6 +10,7 @@ import { AuthContext } from "../../../contexts/AuthContext";
 import LogoGray from "../../../components/logo/LogoGray";
 import BackTopLeftButton from "../../../components/mobile/button/BackTopLeftButton";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp"; // Import Modal Popup
+import liff from "@line/liff";
 
 export default function VerifyOA() {
   const location = useLocation();
@@ -28,19 +29,17 @@ export default function VerifyOA() {
   }, [location, phoneNumber]);
 
   const onFinish = () => {
-    if (phoneNumber === '0800000001' || phoneNumber === '+66800000001') {
-      // Dynamic text for phone number 0800000001
-      setPopupText("<p class='text-[#978B87] text-center sarabun-font'>ร้านค้านี้มีการลงทะเบียนในระบบแล้ว</p>");
-      setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png"); // Set image path if needed
-      setIsModalVisible(true); // Trigger the modal visibility
+    if (!phoneNumber) {
+      setPopupText("<p class='text-[#978B87] text-center sarabun-font'>ไม่พบข้อมูลของคุณในระบบ กรุณาติดต่อเจ้าหน้าที่</p>");
+      setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png");
+      setIsModalVisible(true);
       return;
     }
 
-    if (!phoneNumber) {
-      // If no phone number, show the modal
-      setPopupText("<p class='text-[#978B87] text-center sarabun-font'>ไม่พบข้อมูลของคุณในระบบ กรุณาติดต่อเจ้าหน้าที่</p>");
-      setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png"); // Set image path if needed
-      setIsModalVisible(true); // Trigger the modal visibility
+    if (phoneNumber === '0800000001' || phoneNumber === '+66800000001') {
+      setPopupText("<p class='text-[#978B87] text-center sarabun-font'>ร้านค้านี้มีการลงทะเบียนในระบบแล้ว</p>");
+      setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png");
+      setIsModalVisible(true);
       return;
     }
 
@@ -48,6 +47,43 @@ export default function VerifyOA() {
     setLoading(false);
     navigate("/mobile/otp");
   };
+
+  
+  useEffect(() => {
+    const initLIFF = async () => {
+      try {
+        await liff.init({ liffId: "2007054859-ln0D549D", withLoginOnExternalBrowser: true });
+  
+        if (liff.isLoggedIn()) {
+          const profile = await liff.getProfile();
+          console.log("LINE Profile:", profile);
+  
+          const accessToken = liff.getAccessToken();
+          if (accessToken) {
+            fetch("https://api.line.me/v2/profile", {
+              method: "GET",
+              headers: { Authorization: `Bearer ${accessToken}` },
+            })
+              .then((res) => res.json())
+              .then((data) => {
+                if (data.phone) {
+                  const formattedPhone = data.phone.startsWith("+66") ? "0" + data.phone.slice(3) : data.phone;
+                  setPhoneNumber(formattedPhone);
+                }
+              })
+              .catch((err) => console.error("Error fetching phone number:", err));
+          }
+        } else {
+          liff.login();
+        }
+      } catch (error) {
+        console.error("LIFF Initialization Failed:", error);
+      }
+    };
+  
+    initLIFF();
+  }, []);
+  
 
   return (
     <MessageLayout
