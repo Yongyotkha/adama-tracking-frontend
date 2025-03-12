@@ -28,7 +28,6 @@ export default function MyAccount() {
 
   const confirmLogout = async () => {
     setIsLogoutModalOpen(false);
-  
     try {
       if (liff.isLoggedIn()) {
         await liff.logout(); // ออกจาก LIFF
@@ -37,13 +36,12 @@ export default function MyAccount() {
     } catch (error) {
       console.error("LIFF Logout Error:", error);
     }
-  
     // ลบ Token หรือข้อมูลผู้ใช้ใน LocalStorage
     localStorage.removeItem("authToken");
     sessionStorage.removeItem("authSession");
-  
     // Redirect ไปหน้า Login
     navigate("/mobile/login");
+    window.location.reload();
   };
 
   return (
