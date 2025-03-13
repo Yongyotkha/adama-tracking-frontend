@@ -15,6 +15,7 @@ import {
 import BackButton from "../../../components/mobile/button/BackButton";
 import MainButton from "../../../components/mobile/button/MainButton";
 import LogOutPopUp from "../../../components/mobile/popup/LogOutPopUp";
+import liff from "@line/liff";
 
 export default function MyAccount() {
   const [loading, setLoading] = useState(false);
@@ -25,11 +26,22 @@ export default function MyAccount() {
     setIsLogoutModalOpen(true); // Open the modal
   };
 
-  const confirmLogout = () => {
+  const confirmLogout = async () => {
     setIsLogoutModalOpen(false);
-    // Perform actual logout logic here
-    console.log("User logged out");
-    navigate("/mobile/verify"); // Redirect to login page
+    try {
+      if (liff.isLoggedIn()) {
+        await liff.logout(); // ออกจาก LIFF
+        console.log("User logged out from LIFF");
+      }
+    } catch (error) {
+      console.error("LIFF Logout Error:", error);
+    }
+    // ลบ Token หรือข้อมูลผู้ใช้ใน LocalStorage
+    localStorage.removeItem("authToken");
+    sessionStorage.removeItem("authSession");
+    // Redirect ไปหน้า Login
+    navigate("/mobile/login");
+    window.location.reload();
   };
 
   return (

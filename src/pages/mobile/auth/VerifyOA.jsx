@@ -10,6 +10,7 @@ import { AuthContext } from "../../../contexts/AuthContext";
 import LogoGray from "../../../components/logo/LogoGray";
 import BackTopLeftButton from "../../../components/mobile/button/BackTopLeftButton";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp"; // Import Modal Popup
+import liff from "@line/liff";
 
 export default function VerifyOA() {
   const location = useLocation();
@@ -21,25 +22,26 @@ export default function VerifyOA() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const { userInfo } = useContext(AuthContext);
   const { Title, Text } = Typography;
+  const [userName, setUserName] = useState(""); // เก็บชื่อผู้ใช้
+
 
   useEffect(() => {
     console.log(location.state);
-  }, [location]);
+    console.log(phoneNumber);
+  }, [location, phoneNumber]);
 
   const onFinish = () => {
-    if (phoneNumber === '0800000001') {
-      // Dynamic text for phone number 0800000001
-      setPopupText("<p class='text-[#978B87] text-center sarabun-font'>ร้านค้านี้มีการลงทะเบียนในระบบแล้ว</p>");
-      setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png"); // Set image path if needed
-      setIsModalVisible(true); // Trigger the modal visibility
+    if (!phoneNumber) {
+      setPopupText("<p class='text-[#978B87] text-center sarabun-font'>ไม่พบข้อมูลของคุณในระบบ กรุณาติดต่อเจ้าหน้าที่</p>");
+      setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png");
+      setIsModalVisible(true);
       return;
     }
 
-    if (!phoneNumber) {
-      // If no phone number, show the modal
-      setPopupText("<p class='text-[#978B87] text-center sarabun-font'>ไม่พบข้อมูลของคุณในระบบ กรุณาติดต่อเจ้าหน้าที่</p>");
-      setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png"); // Set image path if needed
-      setIsModalVisible(true); // Trigger the modal visibility
+    if (phoneNumber === '0800000001' || phoneNumber === '+66800000001') {
+      setPopupText("<p class='text-[#978B87] text-center sarabun-font'>ร้านค้านี้มีการลงทะเบียนในระบบแล้ว</p>");
+      setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png");
+      setIsModalVisible(true);
       return;
     }
 
@@ -48,6 +50,7 @@ export default function VerifyOA() {
     navigate("/mobile/otp");
   };
 
+  
   return (
     <MessageLayout
       loading={loading}
@@ -71,7 +74,7 @@ export default function VerifyOA() {
             value={phoneNumber}
             onChange={setPhoneNumber}
             className="w-full border rounded-lg px-3 py-2 text-[#8A8A8A] text-lg focus:ring-green-500 focus:border-green-500 sarabun-font"
-            placeholder="088xxxxxxx"
+            placeholder="088 xxx xxxx"
           />
         </div>
 
@@ -82,6 +85,7 @@ export default function VerifyOA() {
           text="ตกลง"
           disabled={loading}
         />
+
       </Form>
 
       <div className="text-center mt-10">

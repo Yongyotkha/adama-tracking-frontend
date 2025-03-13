@@ -1,21 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { useNavigate } from "react-router-dom";
 import SectionHeader from "../../../components/mobile/section_header/SectionHeader";
 import HeadSectionUser from "../../../components/mobile/head_section_user/HeadSectionUser";
 import UserPointsSection from "../../../components/mobile/user_points_section/UserPointsSection";
 import BackButton from "../../../components/mobile/button/BackButton";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
 
 export default function Promotion() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("news");
+  const [categories, setCategories] = useState([]);
+  const [activeTab, setActiveTab] = useState("");
+  const [promotions, setPromotions] = useState([]);
 
   // User Data
   const userData = {
     name: "คุณ Krairoek Ruangkol",
     memberId: "123456",
-    profileImage: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsynwv-5qtogtOwJbIjaPFJUmHpzhxgqIAug&s",
+    profileImage:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsynwv-5qtogtOwJbIjaPFJUmHpzhxgqIAug&s",
   };
 
   // Points Data
@@ -25,40 +30,54 @@ export default function Promotion() {
     expiryDate: "31 ธ.ค. 67",
   };
 
-  const tabs = [
-    { id: "news", label: "ข่าวสาร" },
-    { id: "promotion", label: "โปรโมชั่น" },
-  ];
+  // ✅ Fetch categories (Using GET instead of POST)
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setLoading(true);
+      try {
+        const response = await useServiceAPI.get(paths.pathNewsPublicCategory);
 
-  // Mock Data
-  const promotions = [
-    {
-      id: 1,
-      category: "promotion",
-      title: "ภารกิจพิเศษรางวัล 6 ฟรี 1",
-      image: "/img/promotion-exam.png",
-      description: "ซื้อสะสมไอศกรีมวอลล์ครบ 6 ชิ้น รับฟรีสติกเกอร์ 1 ชิ้น",
-      validity: "24 ม.ค. - 23 ก.พ. 2568",
-    },
-    {
-      id: 2,
-      category: "promotion",
-      title: "ภารกิจพิเศษรางวัล 6 ฟรี 1",
-      image: "/img/promotion-exam.png",
-      description: "ซื้อสะสมไอศกรีมวอลล์ครบ 6 ชิ้น รับฟรีสติกเกอร์ 1 ชิ้น",
-      validity: "24 ม.ค. - 23 ก.พ. 2568",
-    },
-    {
-      id: 3,
-      category: "news",
-      title: "ภารกิจพิเศษรางวัล 6 ฟรี 1",
-      image: "/img/promotion-exam.png",
-      description: "ซื้อสะสมไอศกรีมวอลล์ครบ 6 ชิ้น รับฟรีสติกเกอร์ 1 ชิ้น",
-      validity: "24 ม.ค. - 23 ก.พ. 2568",
-    },
-  ];
+        if (response.status === 200 && response.result) {
+          setCategories(response.data);
+          setActiveTab(response.data[0]?.id || "1"); // Default tab to first category
+        } else {
+          console.error("Failed to fetch categories:", response);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const filteredPromotions = promotions.filter((promo) => promo.category === activeTab);
+    fetchCategories();
+  }, []);
+
+  // ✅ Fetch promotions (Using GET instead of POST)
+  useEffect(() => {
+    if (!activeTab) return;
+
+    const fetchPromotions = async () => {
+      setLoading(true);
+      try {
+        const response = await useServiceAPI.get(paths.pathNewsPublicListByCategory, {
+          category_id: activeTab,
+        });
+
+        if (response.status === 200 && response.result) {
+          setPromotions(response.data);
+        } else {
+          console.error("Failed to fetch promotions:", response);
+        }
+      } catch (error) {
+        console.error("Error fetching promotions:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPromotions();
+  }, [activeTab]);
 
   return (
     <MobileLayout loading={loading}>
@@ -74,35 +93,38 @@ export default function Promotion() {
 
         {/* Tabs */}
         <div className="w-full max-w-md mt-4 flex space-x-3">
-          {tabs.map((tab) => (
+          {categories.map((category) => (
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold sarabun-font ${activeTab === tab.id
-                ? "bg-[#FFB347] text-white"
-                : "bg-gray-300 text-gray-700"
-                }`}
+              key={category.id}
+              onClick={() => setActiveTab(category.id)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold sarabun-font ${
+                activeTab === category.id ? "bg-[#FFB347] text-white" : "bg-gray-300 text-gray-700"
+              }`}
             >
-              {tab.label}
+              {category.name}
             </button>
           ))}
         </div>
 
         {/* Promotions List */}
         <div className="w-full max-w-md mt-4 px-4">
-          {filteredPromotions.map((promo) => (
-            <div
-              key={promo.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer mb-3"
-              onClick={() => navigate(`/mobile/promotion/detail/${promo.id}`)}
-            >
-              <img src={promo.image} alt={promo.title} className="w-full object-cover" />
-              {/* <div className="p-3">
-                <p className="text-sm text-gray-500">{promo.validity}</p>
-                <h3 className="font-semibold text-gray-800 sarabun-font">{promo.title}</h3>
-              </div> */}
-            </div>
-          ))}
+          {promotions.length > 0 ? (
+            promotions.map((promo) => (
+              <div
+                key={promo.id}
+                className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer mb-3"
+                onClick={() => navigate(`/mobile/promotion/detail/${promo.id}`)}
+              >
+                <img src={promo.logo} alt={promo.name} className="w-full object-cover" />
+                <div className="p-3">
+                  <p className="text-sm text-gray-500">{promo.description_shot}</p>
+                  <h3 className="font-semibold text-gray-800 sarabun-font">{promo.name}</h3>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-center text-gray-500 mt-4">ไม่มีโปรโมชั่นในขณะนี้</p>
+          )}
         </div>
 
         {/* Back Button at Bottom */}
