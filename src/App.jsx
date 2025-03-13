@@ -282,7 +282,7 @@ const App = () => {
 
           <Route element={<LineOARoute />}>
             {/* Mobile LineOA Routes */}
-            <Route path="/mobile/verify" element={<VerifyOA />} />
+            <Route path="/mobile/verify" element={<LineOARoute />} />
             <Route path="/mobile/otp" element={<OtpOA />} />
             <Route path="/mobile/account" element={< MyAccountMobile />} />
             <Route path="/mobile/user/detail" element={< UserDetail />} />
