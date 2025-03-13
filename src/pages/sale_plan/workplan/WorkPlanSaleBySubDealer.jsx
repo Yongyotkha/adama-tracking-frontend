@@ -304,7 +304,11 @@ export default function WorkPlanSaleBySubDealer() {
                     record.unit_convert_value || 1
                   )
                 }
-                disabled={!permission.edit || dealerItem.sub_dealer_id == 0}
+                disabled={
+                  !dealerItem.is_edit ||
+                  !permission.edit ||
+                  dealerItem.sub_dealer_id == 0
+                }
               />
             );
           },
@@ -455,21 +459,8 @@ export default function WorkPlanSaleBySubDealer() {
   };
 
   const handleSave = async (mode) => {
-    // const totalAmountTarget = Object.values(localQtyState).reduce(
-    //   (sum, obj) => {
-    //     return (
-    //       sum +
-    //       Object.values(obj).reduce(
-    //         (nestedSum, item) => nestedSum + (item.totalAmountTarget || 0),
-    //         0
-    //       )
-    //     );
-    //   },
-    //   0
-    // );
-
     if (mode === "save") {
-      mode = userInfo.role_id != 4 ?? "draft";
+      mode = userInfo.role_id != 4 ? "draft" : mode;
       confirm({
         title: "Do you want to save ?",
         icon: <ExclamationCircleFilled />,
@@ -488,12 +479,9 @@ export default function WorkPlanSaleBySubDealer() {
           createPlan(mode);
         },
       });
-    }else{
+    } else {
       createPlan(mode);
     }
-    // else {
-    //   createPlan(mode);
-    // }
   };
 
   const createPlan = async (mode) => {
@@ -526,7 +514,7 @@ export default function WorkPlanSaleBySubDealer() {
           amount_target: totalAmountTarget, // Update total_amount_target
         };
       });
-
+  
       await useServiceAPI
         .post(paths.pathWorkPlanSaleSubDealer, {
           year_code: location?.state?.year_code,
