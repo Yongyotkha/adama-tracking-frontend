@@ -124,6 +124,11 @@ import PrivacyPolicy from "./pages/mobile/user/settings/privacy_policy/PrivacyPo
 import TermsConditions from "./pages/mobile/user/settings/terms_conditions/TermsConditions";
 import CheckLogin from "./pages/mobile/auth/CheckLogin";
 import { LineOARoute } from "./components/auth/LineOARoute";
+import PromotionLineList from "./pages/settings/mobile/promotion/PromotionLineList";
+import CustomerLineList from "./pages/settings/mobile/customer/CustomerLineList";
+import CreateCustomerLine from "./pages/settings/mobile/customer/CreateCustomerLine";
+import CreatePromotionLine from "./pages/settings/mobile/promotion/CreatePromotionLine";
+import ExpirePointList from "./pages/settings/mobile/expire_point/ExpirePointList";
 
 const App = () => {
   return (
@@ -260,6 +265,17 @@ const App = () => {
             <Route path="/setting/material/transaction" element={<Transaction />} />
             <Route path="/setting/material/:mode" element={<ActionMaterial />} />
 
+            {/* Line OA Settings */}
+            <Route path="/setting/line/promotion" element={<PromotionLineList />} />
+            <Route path="/setting/line/promotion/create" element={<CreatePromotionLine />} />
+            {/* <Route path="/setting/line/promotion/edit" element={<EditPromotion />} /> */}
+
+            <Route path="/setting/line/customer" element={<CustomerLineList />} />
+            <Route path="/setting/line/customer/create" element={<CreateCustomerLine />} />
+            {/* <Route path="/setting/line/customer/edit" element={<EditCustomerLine />} /> */}
+            
+            <Route path="/setting/line/expire-point" element={<ExpirePointList />} />
+
             {/* Report Route */}
             <Route path="/report/monthly" element={<ReportSaleByMonth />} />
             <Route path="/report/quarterly" element={<ReportSaleByQuarter />} />
@@ -272,16 +288,7 @@ const App = () => {
 
           </Route>
 
-          {/* Error Route */}
-          <Route path="/error/403" element={<Error403 />} />
-          <Route path="*" element={<Error404 />} />
-          <Route path="/error/500" element={<Error500 />} />
-          <Route path="/error/503" element={<Error503 />} />
-          <Route path="/wiki" element={<Wiki />} />
-
-
-          {/* <Route element={<LineOARoute />}> */}
-            {/* Mobile LineOA Routes */}
+          <Route element={<LineOARoute />}>
             <Route path="/mobile/verify" element={<VerifyOA />} />
             <Route path="/mobile/otp" element={<OtpOA />} />
             <Route path="/mobile/account" element={< MyAccountMobile />} />
@@ -308,7 +315,15 @@ const App = () => {
             <Route path="/mobile/redeem-history" element={< RedeemHistory />} />
 
             <Route path="/mobile/login" element={< CheckLogin />} />
-          {/* </Route> */}
+          </Route>
+
+          
+          {/* Error Route */}
+          <Route path="/error/403" element={<Error403 />} />
+          <Route path="*" element={<Error404 />} />
+          <Route path="/error/500" element={<Error500 />} />
+          <Route path="/error/503" element={<Error503 />} />
+          <Route path="/wiki" element={<Wiki />} />
 
         </Routes>
       </AuthProvider>

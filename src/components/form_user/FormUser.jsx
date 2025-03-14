@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Form, Input, DatePicker, TimePicker, Select, Col, Row, Button } from "antd";
+import { Form, Input, DatePicker, TimePicker, Select, Col, Row, Button, Radio } from "antd";
 import BoxPrimary from "../box_primary/BoxPrimary";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -234,6 +234,18 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
                     }))}
                     onChange={(value) => handleFieldChange(field.name, value)}
                   />
+                ) : field.type === "radio" ? (
+                  <Radio.Group
+                    onChange={(e) => handleChange(field.name, e.target.value)}
+                    value={form.getFieldValue(field.name)}
+                    disabled={field.disabled}
+                  >
+                    {field.options.map((option) => (
+                      <Radio key={option.id} value={option.id}>
+                        {option.name}
+                      </Radio>
+                    ))}
+                  </Radio.Group>
                 ) : null}
               </Form.Item>
             </Col>
