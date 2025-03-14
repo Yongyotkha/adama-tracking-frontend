@@ -106,7 +106,11 @@ export default function CreateActivity() {
   }, [saleList]);
 
   useEffect(() => {
-    if (documentNumber && isBtnExpenseActive && pageCode == "activity_transaction") {
+    if (
+      documentNumber &&
+      isBtnExpenseActive &&
+      pageCode == "activity_transaction"
+    ) {
       setupCrop();
     }
   }, [isBtnExpenseActive]);
@@ -115,14 +119,14 @@ export default function CreateActivity() {
     pageCode == "expense_advance"
       ? "Advance Expense"
       : pageCode == "expense_clearing"
-        ? "Clearing Expense"
-        : "Activity";
+      ? "Clearing Expense"
+      : "Activity";
   const menuURL =
     pageCode == "expense_advance"
       ? "/expenses/advance"
       : pageCode == "expense_clearing"
-        ? "/expenses/clearing"
-        : "/activity/list";
+      ? "/expenses/clearing"
+      : "/activity/list";
 
   const formFields = [
     {
@@ -183,14 +187,14 @@ export default function CreateActivity() {
       )
         ? dealerList
         : activityDetail.dealer_id && activityDetail.dealer_name
-          ? [
+        ? [
             ...dealerList,
             {
               id: activityDetail.dealer_id,
               name: activityDetail.dealer_name,
             },
           ]
-          : dealerList,
+        : dealerList,
       disabled: viewSegment ?? false,
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
@@ -273,9 +277,10 @@ export default function CreateActivity() {
       try {
         const [activityType, sale, saleAll, perception] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" }),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {
             status: "all",
+            mode: "all",
           }),
           useServiceAPI.get(paths.pathMasterPerception, {}),
         ]);
@@ -966,7 +971,7 @@ export default function CreateActivity() {
               2
             ).then(successCallback);
           })
-          .catch((error) => { });
+          .catch((error) => {});
       } else {
         useServiceAPI
           .post(paths.pathActivityExpenseCreate, body, setLoading)
@@ -995,7 +1000,7 @@ export default function CreateActivity() {
               2
             ).then(successCallback);
           })
-          .catch((error) => { });
+          .catch((error) => {});
       }
     } catch (err) {
       console.error("Error fetching address:", err);
@@ -1122,7 +1127,6 @@ export default function CreateActivity() {
   //   }
   // };
 
-
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -1155,8 +1159,8 @@ export default function CreateActivity() {
       />
 
       {isBtnExpenseActive ||
-        pageCode == "expense_advance" ||
-        pageCode == "expense_clearing" ? (
+      pageCode == "expense_advance" ||
+      pageCode == "expense_clearing" ? (
         <>
           <div className="flex items-center justify-between">
             <div className="title-page">Advance Expense</div>
