@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import SectionHeader from "../../../components/mobile/section_header/SectionHeader";
 import BackButton from "../../../components/mobile/button/BackButton";
@@ -59,6 +59,8 @@ export default function RedeemPointDetail() {
   const { id } = useParams(); // ✅ Get ID from URL
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("conditions"); // ✅ Default to 'conditions'
+  const location = useLocation();
+  console.log(location.state.id);
 
   // Find reward by ID
   const reward = rewards.find((item) => item.id === parseInt(id));

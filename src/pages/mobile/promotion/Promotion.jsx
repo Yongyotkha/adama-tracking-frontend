@@ -55,10 +55,8 @@ export default function Promotion() {
     fetchCategories();
   }, []);
 
-  // ✅ Fetch promotions (Using GET instead of POST)
   useEffect(() => {
     // if (!activeTab) return;
-
     const fetchPromotions = async () => {
       setLoading(true);
       try {
@@ -115,7 +113,14 @@ export default function Promotion() {
               <div
                 key={promo.id}
                 className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer mb-3"
-                onClick={() => navigate(`/mobile/promotion/detail/${promo.id}`)}
+                // onClick={() => navigate(`/mobile/promotion/detail/${promo.id}`)}
+                onClick={() => 
+                  navigate("/mobile/promotion/detail/", {
+                    state: {
+                      id: promo.id,
+                    },
+                  })
+                }
               >
                 <img src={promo.logo} alt={promo.name} className="w-full object-cover" />
                 <div className="p-3">

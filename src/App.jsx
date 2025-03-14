@@ -280,7 +280,7 @@ const App = () => {
           <Route path="/wiki" element={<Wiki />} />
 
 
-          <Route element={<LineOARoute />}>
+          {/* <Route element={<LineOARoute />}> */}
             {/* Mobile LineOA Routes */}
             <Route path="/mobile/verify" element={<VerifyOA />} />
             <Route path="/mobile/otp" element={<OtpOA />} />
@@ -293,20 +293,22 @@ const App = () => {
             <Route path="/mobile/faq" element={< FaqOA />} />
             <Route path="/mobile/privacy-policy" element={< PrivacyPolicy />} />
             <Route path="/mobile/terms-conditions" element={< TermsConditions />} />
-
             <Route path="/mobile/main" element={< MainOA />} />
             <Route path="/mobile/scan-collect" element={< ScanCollectPoint />} />
             <Route path="/mobile/redeem-point" element={< RedeemPoint />} />
-            <Route path="/mobile/redeem-point/detail/:id" element={<RedeemPointDetail />} />
+            {/* <Route path="/mobile/redeem-point/detail/:id" element={<RedeemPointDetail />} /> */}
+            <Route path="/mobile/redeem-point/detail" element={<RedeemPointDetail />} />
             <Route path="/mobile/history-purchase" element={< PurchaseHistory />} />
             <Route path="/mobile/history-purchase/detail/:id" element={<PurchaseHistoryDetail />} />
             <Route path="/mobile/promotion" element={< Promotion />} />
-            <Route path="/mobile/promotion/detail/:id" element={<PromotionDetail />} />
+            {/* <Route path="/mobile/promotion/detail/:id" element={<PromotionDetail />} /> */}
+            {/* <Route path="/mobile/redeem-history/detail/:id" element={< RedeemHistoryDetail />} /> */}
+            <Route path="/mobile/redeem-history/detail" element={< RedeemHistoryDetail />} />
+            <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
             <Route path="/mobile/redeem-history" element={< RedeemHistory />} />
-            <Route path="/mobile/redeem-history/detail/:id" element={< RedeemHistoryDetail />} />
 
             <Route path="/mobile/login" element={< CheckLogin />} />
-          </Route>
+          {/* </Route> */}
 
         </Routes>
       </AuthProvider>

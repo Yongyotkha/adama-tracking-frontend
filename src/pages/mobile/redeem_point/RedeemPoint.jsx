@@ -75,7 +75,15 @@ export default function RedeemPoint() {
             <div
               key={reward.id}
               className="bg-white rounded-xl shadow-lg cursor-pointer"
-              onClick={() => navigate(`/mobile/redeem-point/detail/${reward.id}`)} // ✅ Pass reward ID to Detail Page
+              // onClick={() => navigate(`/mobile/redeem-point/detail/${reward.id}`)} 
+              onClick={() => 
+                navigate("/mobile/redeem-point/detail/", {
+                  state: {
+                    id: reward.id,
+                  },
+                })
+              }
+
             >
               {/* Image Section */}
               <div className="relative rounded-xl overflow-hidden shadow">

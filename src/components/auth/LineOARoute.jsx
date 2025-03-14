@@ -36,7 +36,7 @@ const LineOARoute = () => {
     if (userId) {
       fetchCheckLoging(userId);
     }
-  }, [userId]); // ทำให้ fetchCheckLoging ทำงานเมื่อ userId เปลี่ยนแปลง
+  }, [userId]); 
 
   
   const fetchCheckLoging = async (userId) => {
