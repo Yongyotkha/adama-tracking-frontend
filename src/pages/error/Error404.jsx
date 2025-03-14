@@ -25,9 +25,12 @@ export default function Error404() {
           htmlType="button"
           text="Back"
           disabled={loading}
-          onClick={() => navigate("/")}
-          style={{ 'max-width': "260px" }}
-          />
+          onClick={() => {
+            navigate(-1); 
+          }}
+          style={{ maxWidth: "260px" }}
+        />
+
       </MainLayout>
     </>
   );

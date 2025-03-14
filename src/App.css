@@ -1,6 +1,14 @@
 .ant-form-item-label > label {
   font-size: 16px;
 }
+
+.ant-radio-wrapper .ant-radio-checked .ant-radio-inner {
+  border-color: #00783F;
+  background-color: #00783F;
+}
+.ant-radio-wrapper:hover .ant-radio-inner {
+  border-color: #00783F;
+}
 .delete-button {
   display: flex;
   justify-content: center;
