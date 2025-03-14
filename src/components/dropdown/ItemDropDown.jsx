@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 export default function ItemDropDown({ text, link, onClick, mode }) {
   return (
     <>
-      {(mode == "edit" || mode == "rolling forecast (summary)") && (
+      {(mode == "edit" || mode == "rolling forecast (summary)" || mode == "sub dealer by dealer") && (
         <a
           rel="noopener noreferrer"
           href={link}

@@ -153,11 +153,18 @@ export default function WorkPlan() {
                     label: (
                       <ItemDropDown
                         mode={actionItem.action.toLowerCase()}
+                        text={actionItem.action}
                         onClick={() => {
                           if (pathRole === "sale") {
-                            navigate("/sale-plan/work-plan-sale/sale-create", {
-                              state,
-                            });
+                            if(actionItem.action.toLowerCase() === "sub dealer by dealer"){
+                              navigate("/sale-plan/work-plan-sale/sale-by-subdealer", {
+                                state,
+                              });
+                            }else{
+                              navigate("/sale-plan/work-plan-sale/sale-create", {
+                                state,
+                              });
+                            }
                           } else if (pathRole === "area") {
                             navigate(
                               "/sale-plan/work-plan-area/sale-area-create",
