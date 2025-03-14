@@ -17,13 +17,12 @@ export default function WorkPlanSaleBySubDealer() {
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-  const { showNotification, formatNumber } = useContext(AuthContext);
+  const { showNotification, userInfo } = useContext(AuthContext);
   const [dealers, setDealers] = useState([]);
   const [activeKey, setActiveKey] = useState(0);
   const [subDealers, setSubDealers] = useState([]);
   const [permission, setPermission] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
-  const [mode, setMode] = useState(location?.state?.mode);
   const [localQtyState, setLocalQtyState] = useState({});
   const [yearName, setYearName] = useState([]);
   const totalDealers = subDealers.length;
@@ -469,27 +468,32 @@ export default function WorkPlanSaleBySubDealer() {
     //   0
     // );
 
-    // if (Number(totalValue) > Number(totalAmountTarget)) {
-    //   confirm({
-    //     title: "Do you want to save ?",
-    //     icon: <ExclamationCircleFilled />,
-    //     content: (
-    //       <>
-    //         <p>Work Plan is less than Original Plan</p>
-    //         <p>Original Plan: {formatNumber(totalValue)}</p>
-    //         <p>Current Total: {formatNumber(totalAmountTarget)}</p>
-    //         <p>Difference: {formatNumber(totalValue - totalAmountTarget)}</p>
-    //       </>
-    //     ),
-    //     centered: true,
-    //     onOk() {
-    //       createPlan(mode);
-    //     },
-    //   });
-    // } else {
+    if (mode === "save") {
+      mode = userInfo.role_id != 4 ?? "draft";
+      confirm({
+        title: "Do you want to save ?",
+        icon: <ExclamationCircleFilled />,
+        content: (
+          <>
+            {userInfo.role_id != 4 && (
+              <>
+                <p>Only sales can Save</p>
+                <p>Do you want to {mode} instead?</p>
+              </>
+            )}
+          </>
+        ),
+        centered: true,
+        onOk() {
+          createPlan(mode);
+        },
+      });
+    }else{
+      createPlan(mode);
+    }
+    // else {
     //   createPlan(mode);
     // }
-    createPlan(mode);
   };
 
   const createPlan = async (mode) => {
@@ -582,12 +586,15 @@ export default function WorkPlanSaleBySubDealer() {
   };
 
   const totalAmountTarget = Object.values(localQtyState).reduce((sum, obj) => {
+    const values = Object.values(obj);
     return (
       sum +
-      Object.values(obj).reduce(
-        (nestedSum, item) => nestedSum + (item.totalAmountTarget || 0),
-        0
-      )
+      values
+        .slice(1)
+        .reduce(
+          (nestedSum, item) => nestedSum + (item.totalAmountTarget || 0),
+          0
+        )
     );
   }, 0);
 

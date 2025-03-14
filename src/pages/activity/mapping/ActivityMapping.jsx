@@ -16,7 +16,6 @@ import DynamicAutoComplete from "../../../components/autocomplete/DynamicAutoCom
 export default function ActivityMapping() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [selected, setSelected] = useState(null);
   const [isFilterCollapsed, setIsFilterCollapsed] = useState(false); // Manage vertical collapse state
   const [checkedFilters, setCheckedFilters] = useState({}); // Manage checked state for all filters
   const [isAllChecked, setIsAllChecked] = useState(true);
@@ -33,7 +32,6 @@ export default function ActivityMapping() {
   const [activityType, setActivityType] = useState([]);
   const [dataDealer, setDataDealer] = useState([]);
   const [dataSubDealer, setDataSubDealer] = useState([]);
-  const [dataterritory, setDataTerritory] = useState([]);
   const [dataArea, setDataArea] = useState([]);
   const [dataYear, setDataYear] = useState([]);
 
@@ -44,7 +42,6 @@ export default function ActivityMapping() {
   const [currentLocationAddress, setCurrentLocationAddress] = useState("");
 
   const [searchOptions, setSearchOptions] = useState([]);
-  const [filteredData, setFilteredData] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
 
   // Fetch Data
@@ -52,26 +49,27 @@ export default function ActivityMapping() {
     const loadDataMappingList = async () => {
       setLoading(true);
       try {
-        const [mapping, activity, dealers, areas, years, subdealers] = await Promise.all([
-          useServiceAPI.post(paths.pathActivityMapList, {
-            keyword: "",
-            activity_type: [],
-            dealer: [],
-            area: [],
-            year: [],
-            sub_dealers: [],
-          }),
-          useServiceAPI.get(paths.pathMasterActivityType, {
-            status: "",
-          }),
-          useServiceAPI.get(paths.pathMasterDealerAll, {}),
-          useServiceAPI.get(paths.pathMasterAreas, {}),
-          useServiceAPI.get(paths.pathMasterYear, {}),
-          useServiceAPI.get(paths.pathMasterSubDealer, {}),          
-        ]);
+        const [mapping, activity, dealers, areas, years, subdealers] =
+          await Promise.all([
+            useServiceAPI.post(paths.pathActivityMapList, {
+              keyword: "",
+              activity_type: [],
+              dealer: [],
+              area: [],
+              year: [],
+              sub_dealers: [],
+            }),
+            useServiceAPI.get(paths.pathMasterActivityType, {
+              status: "",
+            }),
+            useServiceAPI.get(paths.pathMasterDealerAll, {}),
+            useServiceAPI.get(paths.pathMasterAreas, {}),
+            useServiceAPI.get(paths.pathMasterYear, {}),
+            useServiceAPI.get(paths.pathMasterSubDealer, {}),
+          ]);
         // Mapping Detail
         setDataMapping(mapping.data);
-        
+
         // Set Locations
         const newLocations = mapping.data.map((data, index) => ({
           key: index + 1,
@@ -93,12 +91,12 @@ export default function ActivityMapping() {
           activity_image_location: data.activity_image_location,
           crop_id_list: data.crop_id_list,
           document_date_display: data.document_date_display,
-          assing_user_list:data.assing_user_list,
-          remark : data.remark,
+          assing_user_list: data.assing_user_list,
+          remark: data.remark,
         }));
-        
+
         setLocations(newLocations);
-        
+
         setActivityType(
           activity.data
             .filter(
@@ -155,7 +153,9 @@ export default function ActivityMapping() {
           subdealers.data
             .filter(
               (value, index, self) =>
-                self.findIndex((item) => item.sub_dealer_name === value.sub_dealer_name) === index
+                self.findIndex(
+                  (item) => item.sub_dealer_name === value.sub_dealer_name
+                ) === index
             )
             .map((data, index) => ({
               key: index,
@@ -163,8 +163,6 @@ export default function ActivityMapping() {
               name: data.sub_dealer_name,
             }))
         );
-
-
       } catch (error) {
         // showMsg("error", error.message || "เกิดข้อผิดพลาด");
         console.log(error);
@@ -204,8 +202,6 @@ export default function ActivityMapping() {
       filter_type_name: "SubDealer",
       data: dataSubDealer,
     },
-
-    
   ];
 
   // Initialize all checkboxes as selected on page load
@@ -242,7 +238,6 @@ export default function ActivityMapping() {
         }
       );
     }
-
   }, [dataMapping]);
 
   // ดึงที่อยู่จาก Google Maps Geocoding API
@@ -266,38 +261,31 @@ export default function ActivityMapping() {
     }
   };
 
-
   const toggleAll = (isChecked) => {
     const updatedFilters = {};
     mockFilters.forEach((filterItem) => {
       updatedFilters[filterItem.filter_type] = isChecked
-        ? filterItem.data.map((item) => item.id) 
-        : []; 
+        ? filterItem.data.map((item) => item.id)
+        : [];
     });
     setCheckedFilters(updatedFilters);
     setIsAllChecked(isChecked);
     // if (isChecked) {
-      // setLocationMarkerIcon(locations);
+    // setLocationMarkerIcon(locations);
     // } else {
     //   setLocationMarkerIcon([]);
     // }
   };
 
-  
-
   useEffect(() => {
-    if (locations.length > 0) {      
+    if (locations.length > 0) {
       renderMarkerLocation();
     }
-    console.log("locations",locations);
-    
+    console.log("locations", locations);
   }, [locations]);
 
-
   useEffect(() => {
-    
-    console.log("locationMarkerIcon",locationMarkerIcon);
-    
+    console.log("locationMarkerIcon", locationMarkerIcon);
   }, [locationMarkerIcon]);
 
   const renderMarkerLocation = () => {
@@ -324,12 +312,10 @@ export default function ActivityMapping() {
         crop_id_list: data.crop_id_list,
         document_date_display: data.document_date_display,
         assing_user_list: data.assing_user_list,
-        remark : data.remark
+        remark: data.remark,
       }))
     );
-    
-  }
-
+  };
 
   // ฟังก์ชันสำหรับการตรวจสอบว่าเลือกทั้งหมดหรือไม่
   useEffect(() => {
@@ -339,10 +325,8 @@ export default function ActivityMapping() {
       );
     });
 
-
-    setIsAllChecked(allFiltersSelected); 
+    setIsAllChecked(allFiltersSelected);
   }, [checkedFilters]);
-
 
   // Set New Marker
   useEffect(() => {
@@ -352,12 +336,12 @@ export default function ActivityMapping() {
         try {
           const activityType =
             Array.isArray(checkedFilters.activity_type) &&
-              checkedFilters.activity_type.length > 0
+            checkedFilters.activity_type.length > 0
               ? checkedFilters.activity_type
               : [];
           const dealer =
             Array.isArray(checkedFilters.dealer) &&
-              checkedFilters.dealer.length > 0
+            checkedFilters.dealer.length > 0
               ? checkedFilters.dealer
               : [];
           const area =
@@ -369,10 +353,11 @@ export default function ActivityMapping() {
               ? checkedFilters.year
               : [];
           const sub_dealers =
-            Array.isArray(checkedFilters.sub_dealers) && checkedFilters.sub_dealers.length > 0
+            Array.isArray(checkedFilters.sub_dealers) &&
+            checkedFilters.sub_dealers.length > 0
               ? checkedFilters.sub_dealers
               : [];
-              
+
           const [mapping] = await Promise.all([
             useServiceAPI.post(paths.pathActivityMapList, {
               keyword: searchKeyword,
@@ -423,11 +408,7 @@ export default function ActivityMapping() {
 
       loadDataMappingList();
     }
-
-
-
   }, [checkedFilters]);
-
 
   const handleSearch = (text) => {
     setSearchKeyword(text);
@@ -436,15 +417,14 @@ export default function ActivityMapping() {
       // ใช้ RegExp เพื่อค้นหาข้อความที่คล้ายกัน
       const regex = new RegExp(text, "i"); // 'i' หมายถึง case-insensitive
       console.log(regex);
-      
+
       // ค้นหาใน dataMapping
       const results = dataMapping.filter(
-        (item) =>
-          item.location_address && regex.test(item.location_address) // ค้นหาข้อความใน location_address
+        (item) => item.location_address && regex.test(item.location_address) // ค้นหาข้อความใน location_address
       );
-  
+
       console.log(results);
-      
+
       // อัปเดต options สำหรับ AutoComplete
       setSearchOptions(
         results.map((item) => ({
@@ -453,42 +433,44 @@ export default function ActivityMapping() {
           lng: parseFloat(item.location_longitude),
         }))
       );
-  
+
       // อัปเดต checkbox ให้ตรงกับผลลัพธ์
       const updatedFilters = { ...checkedFilters };
       mockFilters.forEach((filterCategory) => {
         const matchingIds = results
           .map((result) => result[filterCategory.filter_type + "_id"])
           .filter((id) => id !== undefined); // ลบค่าที่เป็น undefined
-  
+
         updatedFilters[filterCategory.filter_type] = [
           ...(updatedFilters[filterCategory.filter_type] || []),
           ...matchingIds,
         ].filter((id, index, self) => self.indexOf(id) === index); // ลบค่าซ้ำ
       });
-  
+
       setCheckedFilters(updatedFilters);
     } else {
       setSearchOptions([]);
     }
   };
-  
-  
-  
-  const handleSelect = (value, option) => {    
+
+  const handleSelect = (value, option) => {
     // Set the map center to the selected lat and lng
     setCurrentLocation({ lat: option.lat, lng: option.lng });
     setDataMapZoom(15); // Set a higher zoom level for focusing
   };
 
+  useEffect(() => {
+    console.log(locationWindowInfo);
+  }, [locationWindowInfo]);
 
   return (
     <MainLayout loading={loading}>
       <Layout>
         {/* Filter Section */}
         <div
-          className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${isFilterCollapsed ? "max-h-12" : "max-h-[600px] overflow-y-auto"
-            }`}
+          className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${
+            isFilterCollapsed ? "max-h-12" : "max-h-[600px] overflow-y-auto"
+          }`}
           style={{ width: "300px" }}
         >
           <div className="flex justify-between items-center px-4 py-2 border-b">
@@ -519,21 +501,21 @@ export default function ActivityMapping() {
           </div>
 
           <div
-            className={`transition-all duration-300 ${isFilterCollapsed ? "opacity-0" : "opacity-100"
-              } px-3 pb-4`}
+            className={`transition-all duration-300 ${
+              isFilterCollapsed ? "opacity-0" : "opacity-100"
+            } px-3 pb-4`}
           >
             {/* Master "All" Checkbox */}
             <div className="flex justify-between">
               <Checkbox
-                indeterminate={
-                  Object.keys(checkedFilters).some(
-                    (filterType) =>
-                      checkedFilters[filterType].length > 0 &&
-                      checkedFilters[filterType].length <
-                      mockFilters.find((filter) => filter.filter_type === filterType).data
-                        .length
-                  )
-                }
+                indeterminate={Object.keys(checkedFilters).some(
+                  (filterType) =>
+                    checkedFilters[filterType].length > 0 &&
+                    checkedFilters[filterType].length <
+                      mockFilters.find(
+                        (filter) => filter.filter_type === filterType
+                      ).data.length
+                )}
                 // checked={isAllChecked}
                 onChange={(e) => toggleAll(e.target.checked)}
               >
@@ -550,7 +532,10 @@ export default function ActivityMapping() {
             </div>
 
             {/* Collapsible Filter Categories */}
-            <Collapse defaultActiveKey={["Activity Type"]} className="rounded-lg border-0">
+            <Collapse
+              defaultActiveKey={["Activity Type"]}
+              className="rounded-lg border-0"
+            >
               {mockFilters.map((category) => (
                 <Panel
                   header={category.filter_type_name}
@@ -564,8 +549,8 @@ export default function ActivityMapping() {
                     }))}
                     value={checkedFilters[category.filter_type]}
                     onChange={(list) => {
-                      console.log(list,category.filter_type);
-                      
+                      console.log(list, category.filter_type);
+
                       setCheckedFilters((prevFilters) => ({
                         ...prevFilters,
                         [category.filter_type]: list,
@@ -576,7 +561,6 @@ export default function ActivityMapping() {
                 </Panel>
               ))}
             </Collapse>
-
           </div>
         </div>
 
@@ -588,18 +572,23 @@ export default function ActivityMapping() {
                 mapContainerStyle={mapContainerStyle}
                 center={currentLocation}
                 zoom={dataMapZoom}
-                options={ { styles: [
-                  {
-                    featureType: "poi", // Points of Interest
-                    stylers: [{ visibility: "off" }], // Turn off POI visibility
-                  },
-                ],}}
+                options={{
+                  styles: [
+                    {
+                      featureType: "poi", // Points of Interest
+                      stylers: [{ visibility: "off" }], // Turn off POI visibility
+                    },
+                  ],
+                }}
               >
                 {locationMarkerIcon.length > 0 &&
                   locationMarkerIcon.map((location, locationIndex) => (
                     <Marker
                       key={crypto.randomUUID()}
-                      position={{ lat: parseFloat(location.lat), lng: parseFloat(location.lng) }}
+                      position={{
+                        lat: parseFloat(location.lat),
+                        lng: parseFloat(location.lng),
+                      }}
                       icon={{
                         url: location.activity_image,
                         scaledSize: { width: 30, height: 30 },
@@ -621,48 +610,101 @@ export default function ActivityMapping() {
                           crop_list: location.crop_id_list,
                           document_date_display: location.document_date_display,
                           assing_user_list: location.assing_user_list,
-                          remark: location.remark
+                          remark: location.remark,
+                          document_number: location.document_number,
                         };
                         setlocationWindowInfo(newLocationWindowInfo);
-                        console.log("newLocationWindowInfo",newLocationWindowInfo);
-                        
+                        console.log(
+                          "newLocationWindowInfo",
+                          newLocationWindowInfo
+                        );
                       }}
                     />
-                  ))
-                }
+                  ))}
 
                 {locationWindowInfo && (
                   <InfoWindow
-                    position={{ lat: parseFloat(locationWindowInfo.lat), lng: parseFloat(locationWindowInfo.lng) }}
+                    position={{
+                      lat: parseFloat(locationWindowInfo.lat),
+                      lng: parseFloat(locationWindowInfo.lng),
+                    }}
                     onCloseClick={() => setlocationWindowInfo(null)}
-                    options={{ pixelOffset: new window.google.maps.Size(0, -30) }}
+                    options={{
+                      pixelOffset: new window.google.maps.Size(0, -30),
+                    }}
                   >
                     <div>
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src= {locationWindowInfo.url_img } className="w-6 h-6" alt="" />{locationWindowInfo.activity_type_name || "No Activity Type"}
+                        <img
+                          src={locationWindowInfo.url_img}
+                          className="w-6 h-6"
+                          alt=""
+                        />
+                        {locationWindowInfo.activity_type_name ||
+                          "No Activity Type"}
+                        <img
+                          src="/img/icons/view.png"
+                          alt="View"
+                          className="w-6 h-6 rounded-sm cursor-pointer ms-5"
+                          onClick={() => {
+                            navigate("/activity/view", {
+                              state: {
+                                documentNumber:
+                                  locationWindowInfo.document_number,
+                                pageCode: "activity_transaction",
+                              },
+                            });
+                          }}
+                        />
                       </div>
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src="/img/icons/shop.png" className="w-6 h-6" alt="" />{locationWindowInfo.dealer_name || "No Dealer Name"}
+                        <img
+                          src="/img/icons/shop.png"
+                          className="w-6 h-6"
+                          alt=""
+                        />
+                        {locationWindowInfo.dealer_name || "No Dealer Name"}
                       </div>
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src="/img/icons/location.png" className="w-6 h-6" alt="" />{locationWindowInfo.address || "No Address Available"}
+                        <img
+                          src="/img/icons/location.png"
+                          className="w-6 h-6"
+                          alt=""
+                        />
+                        {locationWindowInfo.address || "No Address Available"}
                       </div>
                       {/* <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img src="/img/icons/crops.png" className="w-6 h-6" alt="" />{locationWindowInfo.crop_id_list || "No Crops Listed"}
                       </div> */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src="/img/icons/crops.png" className="w-6 h-6" alt="" />
-                          {locationWindowInfo.crop_list && locationWindowInfo.crop_list.length > 0
-                            ? locationWindowInfo.crop_list.map((crop) => crop.name).join(", ")
-                            : "No Crops Listed"}
-
+                        <img
+                          src="/img/icons/crops.png"
+                          className="w-6 h-6"
+                          alt=""
+                        />
+                        {locationWindowInfo.crop_list &&
+                        locationWindowInfo.crop_list.length > 0
+                          ? locationWindowInfo.crop_list
+                              .map((crop) => crop.name)
+                              .join(", ")
+                          : "No Crops Listed"}
                       </div>
 
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src="/img/icons/details.png" className="w-6 h-6" alt="" />{locationWindowInfo.document_date_display || "No Date Available"}
+                        <img
+                          src="/img/icons/details.png"
+                          className="w-6 h-6"
+                          alt=""
+                        />
+                        {locationWindowInfo.document_date_display ||
+                          "No Date Available"}
                       </div>
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src="/img/icons/shop.png" className="w-6 h-6" alt="" />
+                        <img
+                          src="/img/icons/shop.png"
+                          className="w-6 h-6"
+                          alt=""
+                        />
                         {locationWindowInfo.remark || "No Description"}
                       </div>
 
@@ -673,16 +715,17 @@ export default function ActivityMapping() {
                           className="w-6 h-6 rounded-full border border-gray-300"
                         />
                         <span>
-                          {locationWindowInfo.assing_user_list && locationWindowInfo.assing_user_list.length > 0
-                            ? locationWindowInfo.assing_user_list.map((user) => user.name).join(", ")
+                          {locationWindowInfo.assing_user_list &&
+                          locationWindowInfo.assing_user_list.length > 0
+                            ? locationWindowInfo.assing_user_list
+                                .map((user) => user.name)
+                                .join(", ")
                             : "Unknown"}
                         </span>
-                        </div>
+                      </div>
                     </div>
                   </InfoWindow>
                 )}
-
-
               </GoogleMap>
             </LoadScript>
           </Content>

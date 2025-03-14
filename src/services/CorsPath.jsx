@@ -223,4 +223,10 @@ export const paths = {
   pathReportSaleByQuarter: "report/sale/quarter",
   pathReportSaleByYear: "report/sale/year",
   pathReportSaleByActivity: "report/sale/activity",
+
+  // Line OA
+  pathNewsPublicCategory: "news/public/category",
+  pathNewsPublicListByCategory: "news/public/list",
+  pathNewsPublicDetail: "news/public/detail",
+
 };
