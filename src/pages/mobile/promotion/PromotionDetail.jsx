@@ -43,6 +43,8 @@ export default function PromotionDetail() {
 
         if (response.status === 200 && response.result) {
           setPromotion(response.data);
+          console.log(response.data);
+          
         } else {
           setError(true);
         }
@@ -89,10 +91,10 @@ export default function PromotionDetail() {
         <UserPointsSection pointsData={pointsData} />
 
         {/* Section Header */}
-        <SectionHeader title="ข่าวสารและโปรโมชั่น" icon="/img/icons/trophy.png" />
+        <SectionHeader title={promotion.category_name} icon="/img/icons/trophy.png" />
 
         {/* Image Section */}
-        <div className="w-full max-w-md rounded-lg overflow-hidden mt-4">
+        <div className="w-full max-w-md rounded-lg overflow mt-4">
           <img src={promotion.logo} alt={promotion.name} className="w-full object-cover" />
         </div>
 

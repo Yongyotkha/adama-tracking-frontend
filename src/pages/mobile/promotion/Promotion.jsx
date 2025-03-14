@@ -38,8 +38,10 @@ export default function Promotion() {
         const response = await useServiceAPI.get(paths.pathNewsPublicCategory);
 
         if (response.status === 200 && response.result) {
+          console.log(response.data);
+          
           setCategories(response.data);
-          setActiveTab(response.data[0]?.id || "1"); // Default tab to first category
+          setActiveTab(response.data[0]?.id); // Default tab to first category
         } else {
           console.error("Failed to fetch categories:", response);
         }
@@ -55,7 +57,7 @@ export default function Promotion() {
 
   // ✅ Fetch promotions (Using GET instead of POST)
   useEffect(() => {
-    if (!activeTab) return;
+    // if (!activeTab) return;
 
     const fetchPromotions = async () => {
       setLoading(true);
@@ -95,13 +97,13 @@ export default function Promotion() {
         <div className="w-full max-w-md mt-4 flex space-x-3">
           {categories.map((category) => (
             <button
-              key={category.id}
+              key={category.id }
               onClick={() => setActiveTab(category.id)}
               className={`px-4 py-2 rounded-full text-sm font-semibold sarabun-font ${
                 activeTab === category.id ? "bg-[#FFB347] text-white" : "bg-gray-300 text-gray-700"
               }`}
             >
-              {category.name}
+              {category.id ? category.name : category.text}
             </button>
           ))}
         </div>
