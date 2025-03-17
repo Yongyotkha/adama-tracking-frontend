@@ -12,6 +12,10 @@ export const paths = {
   pathSetNewPassword: "set-newpassword",
   pathCustomerSubDealer: "sale-customer-subdealer/list",
 
+  // OTP
+  pathOtpShopCall: "/shop-otp/call",
+  pathOtpShopVerify: "/shop-otp/verify",
+  
   // Master
   pathMasterUserAll: "master/sale-user-all",
   pathMasterPosition: "master/position",
