@@ -129,6 +129,7 @@ import CustomerLineList from "./pages/settings/mobile/customer/CustomerLineList"
 import CreateCustomerLine from "./pages/settings/mobile/customer/CreateCustomerLine";
 import CreatePromotionLine from "./pages/settings/mobile/promotion/CreatePromotionLine";
 import ExpirePointList from "./pages/settings/mobile/expire_point/ExpirePointList";
+import CreateActivityManyShop from "./pages/activity/CreateActivityManyShop";
 
 const App = () => {
   return (
@@ -181,6 +182,7 @@ const App = () => {
 
             <Route path="/activity/list" element={<ActivityList />} />
             <Route path="/activity/:mode" element={<CreateActivity />} />
+            <Route path="/activity/create" element={<CreateActivityManyShop />} />
             {/* <Route path="/activity/edit" element={<CreateActivity />} />
             <Route path="/activity/view" element={<CreateActivity />} /> */}
             <Route path="/activity/calendar" element={<ActivityCalendar />} />
