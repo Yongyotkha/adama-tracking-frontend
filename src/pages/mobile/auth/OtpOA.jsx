@@ -19,6 +19,7 @@ export default function VerifyOA() {
   const { userInfo, showMsg } = useContext(AuthContext);
   const { Title, Text } = Typography;
   const messageId = location?.state?.message_id ;
+  const messagePhone = location?.state?.phone_number ;
 
   useEffect(() => {
     console.log(location.state);
@@ -105,8 +106,8 @@ export default function VerifyOA() {
       <Text className="sarabun-font text-gray-500">กรอก OTP ที่ส่งไปที่เบอร์โทรศัพท์</Text>
       <Title level={5} className="pb-3">
         <Text className="sarabun-font text-[#009845]">
-          0820762989
-          {userInfo?.phone_number_display || location?.state?.phone_number_display}
+          {messagePhone}
+          {/* {userInfo?.phone_number_display || location?.state?.phone_number_display} */}
         </Text>
       </Title>
       <Form name="otpVerification" onFinish={onFinish} autoComplete="off">
