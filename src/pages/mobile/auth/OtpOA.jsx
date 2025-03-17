@@ -6,6 +6,8 @@ import DynamicButton from "../../../components/button/DynamicButton";
 import { AuthContext } from "../../../contexts/AuthContext";
 import BackTopLeftButton from "../../../components/mobile/button/BackTopLeftButton";
 import LogoGray from "../../../components/logo/LogoGray";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
 
 export default function VerifyOA() {
   const location = useLocation();
@@ -16,15 +18,43 @@ export default function VerifyOA() {
   const [otpInfo, setOtpInfo] = useState("");
   const { userInfo, showMsg } = useContext(AuthContext);
   const { Title, Text } = Typography;
+  const messageId = location?.state?.message_id ;
+  const messagePhone = location?.state?.phone_number ;
 
   useEffect(() => {
     console.log(location.state);
   }, [location]);
 
   const onFinish = () => {
-    console.log("OTP Submitted:", otp.join(""));
-    setLoading(false);
+    const otpValue = otp.join("");
+    console.log("OTP Submitted:", otpValue);
+
+    setLoading(true);
+    useServiceAPI.post(paths.pathOtpShopVerify, { messageId, otp: otpValue }, setLoading)
+      .then((response) => {
+        if (response.status === 200) {
+          if (response.data.step_number == 0) {
+               navigate("/mobile/contact-staff");
+          } else if (response.data.step_number == 1){
+              navigate("/mobile/register");
+          } else if (response.data.step_number == 2){
+              navigate("/mobile/contact-staff");
+
+          } else if (response.data.step_number == 4){
+            navigate("/mobile/account");
+
+          }
+          console.log("OTP Verification Success:", response.data);
+          // navigate("/mobile/account");
+        }
+      })
+      .catch((error) => {
+        console.error("API Error:", error);
+        // showNotification("error", error.response?.data?.message || "เกิดข้อผิดพลาด", error.response?.data?.message_id);
+      })
+      .finally(() => setLoading(false));
   };
+
 
   const handleChange = (index, event) => {
     const value = event.target.value;
@@ -40,7 +70,7 @@ export default function VerifyOA() {
 
   const handleResend = () => {
     console.log("Resend OTP Triggered");
-    setTimeLeft(30);
+    setTimeLeft(300);
     showMsg("info", "OTP code has been resent!");
   };
 
@@ -59,7 +89,7 @@ export default function VerifyOA() {
 
   useEffect(() => {
     console.log("OTP Call Simulation");
-    setTimeLeft(30);
+    setTimeLeft(300);
   }, []);
 
   return (
@@ -76,8 +106,8 @@ export default function VerifyOA() {
       <Text className="sarabun-font text-gray-500">กรอก OTP ที่ส่งไปที่เบอร์โทรศัพท์</Text>
       <Title level={5} className="pb-3">
         <Text className="sarabun-font text-[#009845]">
-          0820762989
-          {userInfo?.phone_number_display || location?.state?.phone_number_display}
+          {messagePhone}
+          {/* {userInfo?.phone_number_display || location?.state?.phone_number_display} */}
         </Text>
       </Title>
       <Form name="otpVerification" onFinish={onFinish} autoComplete="off">
@@ -126,7 +156,8 @@ export default function VerifyOA() {
             htmlType="submit"
             text="ตกลง"
             disabled={loading}
-            onClick={() => navigate("/mobile/account")}
+            // onClick={() => navigate("/mobile/account")}
+
           />
           {/* <DynamicButton
             type="button"

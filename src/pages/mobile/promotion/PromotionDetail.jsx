@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import SectionHeader from "../../../components/mobile/section_header/SectionHeader";
 import BackButton from "../../../components/mobile/button/BackButton";
@@ -15,6 +15,7 @@ export default function PromotionDetail() {
   const [activeTab, setActiveTab] = useState("conditions");
   const [promotion, setPromotion] = useState(null);
   const [error, setError] = useState(false);
+  const location = useLocation();
 
   // User Data (Static)
   const userData = {
@@ -30,14 +31,15 @@ export default function PromotionDetail() {
     expiringPoints: 15,
     expiryDate: "31 ธ.ค. 67",
   };
+  console.log(location.state.id);
 
   // ✅ **Fix: Use GET instead of POST**
   useEffect(() => {
-    const fetchPromotionDetail = async () => {
+
+    const fetchPromotionDetail = async (id) => {
       setLoading(true);
       try {
         const response = await useServiceAPI.get(paths.pathNewsPublicDetail, {
-          platform: "web",
           id, // ✅ Send as a query parameter, NOT in request body
         });
 
@@ -56,8 +58,8 @@ export default function PromotionDetail() {
       }
     };
 
-    fetchPromotionDetail();
-  }, [id]);
+    fetchPromotionDetail(location.state.id);
+  }, [location.state.id]);
 
   if (loading) {
     return (

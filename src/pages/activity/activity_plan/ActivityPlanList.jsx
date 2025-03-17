@@ -145,6 +145,8 @@ export default function ActivityPlanList() {
   ];
 
   const handleSearch = (filters) => {
+    console.log(filters.dealer);
+
     setTableParams({
       ...tableParams,
       filters,
@@ -206,6 +208,7 @@ export default function ActivityPlanList() {
       user_id: defaultOption,
       page_length: current,
       page_size: pageSize,
+      dealer_id: filters.dealer || "",
     };
 
     try {

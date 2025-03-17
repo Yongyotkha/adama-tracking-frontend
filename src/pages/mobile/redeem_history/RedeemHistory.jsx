@@ -76,7 +76,15 @@ export default function RedeemHistory() {
               return (
                 <div
                   key={order.id}
-                  onClick={() => navigate(`/mobile/redeem-history/detail/${order.id}`)}
+                  // onClick={() => navigate(`/mobile/redeem-history/detail/${order.id}`)}
+                  onClick={() => 
+                    navigate("/mobile/redeem-history/detail", {
+                      state: {
+                        id: order.id,
+                      },
+                    })
+                  }
+
                   className={`flex items-center justify-between p-4 bg-white rounded-lg shadow-md border-l-4 ${tabColor} cursor-pointer`}
                 >
                   <div>

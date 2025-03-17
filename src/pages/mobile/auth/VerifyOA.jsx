@@ -11,6 +11,8 @@ import LogoGray from "../../../components/logo/LogoGray";
 import BackTopLeftButton from "../../../components/mobile/button/BackTopLeftButton";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp"; // Import Modal Popup
 import liff from "@line/liff";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
 
 export default function VerifyOA() {
   const location = useLocation();
@@ -19,7 +21,7 @@ export default function VerifyOA() {
   const [popupText, setPopupText] = useState(""); // State for dynamic text
   const [popupImage, setPopupImage] = useState(""); // State for dynamic image if needed
   const navigate = useNavigate();
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phone_number, setphone_number] = useState("");
   const { userInfo } = useContext(AuthContext);
   const { Title, Text } = Typography;
   const [userName, setUserName] = useState(""); // เก็บชื่อผู้ใช้
@@ -27,27 +29,71 @@ export default function VerifyOA() {
 
   useEffect(() => {
     console.log(location.state);
-    console.log(phoneNumber);
-  }, [location, phoneNumber]);
+    console.log(phone_number);
+  }, [location, phone_number]);
 
   const onFinish = () => {
-    if (!phoneNumber) {
+    if (!phone_number) {
       setPopupText("<p class='text-[#978B87] text-center sarabun-font'>ไม่พบข้อมูลของคุณในระบบ กรุณาติดต่อเจ้าหน้าที่</p>");
       setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png");
       setIsModalVisible(true);
       return;
     }
 
-    if (phoneNumber === '0800000001' || phoneNumber === '+66800000001') {
+    if (phone_number === '0800000001' || phone_number === '+66800000001') {
       setPopupText("<p class='text-[#978B87] text-center sarabun-font'>ร้านค้านี้มีการลงทะเบียนในระบบแล้ว</p>");
       setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png");
       setIsModalVisible(true);
       return;
     }
 
-    console.log("Phone Number Submitted:", phoneNumber);
-    setLoading(false);
-    navigate("/mobile/otp");
+    // console.log("Phone Number Submitted:", phone_number);
+    // setLoading(false);
+    // navigate("/mobile/otp");
+
+    // form
+    // .validateFields()
+    // .then((values) => {
+    //   useServiceAPI
+    //     .post(paths.pathOtpShopCall, values, setLoading)
+    //     .then((response) => {
+    //       if (response.status === 200) {
+    //         navigate("/mobile/otp");
+    //         setLoading(false);
+
+    //       }
+    //     })
+    //     .catch((error) => {
+    //       console.log(error);
+    //       if (error.status === 422) {
+    //         console.log("error", error.message);
+    //       } else {
+    //         // showMsg("error", "เกิดข้อผิดพลาด");
+    //         showNotification("error", response.message, response.message_line);
+
+    //       }
+    //     });
+    // })
+    // .catch((errorInfo) => {
+    //   console.error("Validation Failed:", errorInfo);
+    // });
+
+    setLoading(true);
+    useServiceAPI.post(paths.pathOtpShopCall, { phone_number }, setLoading)
+      .then((response) => {
+        if (response.status == 200 ) {
+          const otpRefNo = response.data.data.otp_ref_no;
+          const message_id = response.data.data.message_id;
+          console.log("OTP Reference Number:", otpRefNo);
+          navigate("/mobile/otp", { state: { phone_number, otpRefNo , message_id} });
+        }
+      })
+      .catch((error) => {
+        console.error("API Error:", error);
+        showNotification("error", error.response?.data?.message || "เกิดข้อผิดพลาด", error.response?.data?.message_id);
+      })
+      .finally(() => setLoading(false));
+
   };
 
   
@@ -71,8 +117,8 @@ export default function VerifyOA() {
           <label className="text-[#978B87] text-sm sarabun-font">เบอร์โทรศัพท์</label>
           <PhoneInput
             defaultCountry="TH"
-            value={phoneNumber}
-            onChange={setPhoneNumber}
+            value={phone_number}
+            onChange={setphone_number}
             className="w-full border rounded-lg px-3 py-2 text-[#8A8A8A] text-lg focus:ring-green-500 focus:border-green-500 sarabun-font"
             placeholder="088 xxx xxxx"
           />
@@ -99,7 +145,7 @@ export default function VerifyOA() {
         visible={isModalVisible}
         onConfirm={() => {
           setIsModalVisible(false);
-          if (phoneNumber === '0800000001') {
+          if (phone_number === '0800000001') {
             // Handle the case for phone number 0800000001
             setIsModalVisible(false);
           } else {

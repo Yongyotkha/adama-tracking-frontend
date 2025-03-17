@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import SectionHeader from "../../../components/mobile/section_header/SectionHeader";
 import BackButton from "../../../components/mobile/button/BackButton";
 import HeadSectionUser from "../../../components/mobile/head_section_user/HeadSectionUser";
 import UserPointsSection from "../../../components/mobile/user_points_section/UserPointsSection";
+
 
 // Mock Data for Orders
 const orders = [
@@ -24,6 +25,9 @@ const orders = [
 ];
 
 export default function RedeemHistoryDetail() {
+  const location = useLocation();
+  console.log(location.state.id);
+
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
