@@ -37,7 +37,7 @@ export default function CreateActivityManyShop() {
     expense_product_data_list: [],
     assing_user_list: [],
   });
-  const { showNotification, userInfo } = useContext(AuthContext);
+  const { showNotification } = useContext(AuthContext);
 
   const formFields = [
     {
@@ -182,9 +182,7 @@ export default function CreateActivityManyShop() {
         ]);
         setActivityList(activityType.data);
         setSaleList(sale.data);
-
         setSaleAllList(saleAll.data);
-        setPerceptionList(perception.data);
       } finally {
         setLoading(false);
       }
