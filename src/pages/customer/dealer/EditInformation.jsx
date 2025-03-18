@@ -26,7 +26,7 @@ import dayjs from "dayjs";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import TableComponent from "../../../components/table/TableComponent";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
-import DynamicModal from "../../../components/modal/DynamicModal"; 
+import DynamicModal from "../../../components/modal/DynamicModal";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 
 const { Option } = Select;
@@ -43,29 +43,29 @@ export default function EditInformation() {
   const [contactItems, setContactItems] = useState([]); // State for contact items
   const [form] = Form.useForm();
   const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
-  const [isTerritoryModalFarmer, setIsTerritoryModalFarmer ] = useState(false);
+  const [isTerritoryModalFarmer, setIsTerritoryModalFarmer] = useState(false);
 
   const [userList, setUserList] = useState([]);
   const [farmerList, setFarmerList] = useState([]);
   const [farmerListItem, setFarmerListItem] = useState([]);
 
-
-  
   const [personitem, setpersonitem] = useState([]);
   const [cropOptions, setCropOptions] = useState([]);
   const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); // กำหนด state สำหรับ defaultSelectedCrops
   const [profileImage, setProfileImage] = useState("/img/profile.jpg"); // Default value
   const [dataLoaded, setDataLoaded] = useState(false);
   const { userInfo, showNotification } = useContext(AuthContext);
-  const [dataApiKey, setDataApiKay] = useState("AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik");
+  const [dataApiKey, setDataApiKay] = useState(
+    "AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik"
+  );
   const [currentLocation, setCurrentLocation] = useState({});
   const [dataMapZoom, setDataMapZoom] = useState(15);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
   const [isMapEnabled, setIsMapEnabled] = useState(false);
 
-    // อ่านสถานะ mod จาก state
-    const mode = location.state?.mod; 
-    const isViewMode = mode === "View";
+  // อ่านสถานะ mod จาก state
+  const mode = location.state?.mod;
+  const isViewMode = mode === "View";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -89,8 +89,6 @@ export default function EditInformation() {
     fetchData();
   }, []);
 
- 
-
   const formFields = [
     {
       label: "",
@@ -99,7 +97,6 @@ export default function EditInformation() {
       required: false,
       col: 24,
       value: companyinfo.photo_path,
-
     },
     {
       label: "Dealer Name (EN)",
@@ -194,10 +191,10 @@ export default function EditInformation() {
         { name: "Active", id: 1, selected: true },
         { name: "Inactive", id: 0, selected: false },
       ],
-      value: parseInt(companyinfo.use_flag,10) === 1 ? "Active" : "Inactive"
+      value: parseInt(companyinfo.use_flag, 10) === 1 ? "Active" : "Inactive",
     },
     {
-      label: "Outlet Location Please select a location on the map" ,
+      label: "Outlet Location Please select a location on the map",
       labelColor: "red",
       name: "outlet_location",
       type: "text",
@@ -208,14 +205,23 @@ export default function EditInformation() {
       iconPosition: "right",
       disabled: true,
     },
-
   ];
 
   const header = [
     { title: "No", width: 50, dataIndex: "no", align: "center" },
     { title: "Sub Dealer Name", width: 100, dataIndex: "name", align: "left" },
-    { title: "Contact Person", width: 200,  dataIndex: "contactperson", align: "left",},
-    { title: "Phone No.",  width: 150, dataIndex: "mobilePhone", align: "center",},
+    {
+      title: "Contact Person",
+      width: 200,
+      dataIndex: "contactperson",
+      align: "left",
+    },
+    {
+      title: "Phone No.",
+      width: 150,
+      dataIndex: "mobilePhone",
+      align: "center",
+    },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
@@ -228,7 +234,6 @@ export default function EditInformation() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-
   const actionItems = [
     {
       key: "1",
@@ -239,11 +244,11 @@ export default function EditInformation() {
   const handleDeleteItem = async (record) => {
     console.log("id", location.state.id);
     console.log(record);
-    
+
     try {
       const requestData = {
-        dealer_id:location.state.id,
-        sub_dealer_id: record, 
+        dealer_id: location.state.id,
+        sub_dealer_id: record,
       };
 
       const response = await useServiceAPI.delete(
@@ -271,11 +276,11 @@ export default function EditInformation() {
     }
   };
 
-  const handleDeleteFarmer = async (record) => {    
+  const handleDeleteFarmer = async (record) => {
     try {
       const requestData = {
-        dealer_id:location.state.id,
-        farmer_id: record, 
+        dealer_id: location.state.id,
+        farmer_id: record,
       };
 
       const response = await useServiceAPI.delete(
@@ -309,15 +314,15 @@ export default function EditInformation() {
         `${paths.pathCustomerDealerDetail}?id=${id}`
       );
       if (response.status === 200) {
-        const { data } = response;        
+        const { data } = response;
         setcompanyinfo(data);
         setContactItems(data.contact_items);
-        setProfileImage(data.photo_path)
+        setProfileImage(data.photo_path);
         setCropOptions(data.crop_list || []);
         const cropNames = data.crop_list?.map((crop) => Number(crop.id)) || [];
         setDefaultSelectedCrops(cropNames);
-        const lat = parseFloat(data.location_latitude) || 13.9572612; 
-        const lng = parseFloat(data.location_longitude) || 100.6222401;           
+        const lat = parseFloat(data.location_latitude) || 13.9572612;
+        const lng = parseFloat(data.location_longitude) || 100.6222401;
         setCurrentLocation({ lat, lng });
         const newDataNetwork = data.network_list?.map((item, index) => ({
           key: item.sub_dealer_id,
@@ -337,44 +342,39 @@ export default function EditInformation() {
             <>
               <DynamicButton
                 iconSrc="/img/icons/delete.png"
-                onClick={() =>
-                  handleDeleteItem(item.sub_dealer_id)
-                }
+                onClick={() => handleDeleteItem(item.sub_dealer_id)}
               />
             </>
           ),
         }));
         setNetworkList(newDataNetwork);
 
-
-
-        const FarmerDataNetwork = data.network_farmer_list?.map((item, index) => ({
-          key: item.farmer_id,
-          no: index + 1,
-          name: item.farmer_name || "-",
-          contactperson: item.farmer_contact_name || "-",
-          mobilePhone: item.farmer_contact_phone_number || "-",
-          onshop: item.is_on_shop || false,
-          status: (
-            <BadgeStatus
-              text={item.farmer_channel_type}
-              bgColor={item.farmer_channel_type_bg_color}
-              textColor={item.farmer_channel_type_color}
-            />
-          ),
-          action: (
-            <>
-              <DynamicButton
-                iconSrc="/img/icons/delete.png"
-                onClick={() =>
-                  handleDeleteFarmer(item.farmer_id)
-                }
+        const FarmerDataNetwork = data.network_farmer_list?.map(
+          (item, index) => ({
+            key: item.farmer_id,
+            no: index + 1,
+            name: item.farmer_name || "-",
+            contactperson: item.farmer_contact_name || "-",
+            mobilePhone: item.farmer_contact_phone_number || "-",
+            onshop: item.is_on_shop || false,
+            status: (
+              <BadgeStatus
+                text={item.farmer_channel_type}
+                bgColor={item.farmer_channel_type_bg_color}
+                textColor={item.farmer_channel_type_color}
               />
-            </>
-          ),
-        }));
+            ),
+            action: (
+              <>
+                <DynamicButton
+                  iconSrc="/img/icons/delete.png"
+                  onClick={() => handleDeleteFarmer(item.farmer_id)}
+                />
+              </>
+            ),
+          })
+        );
         setFarmerListItem(FarmerDataNetwork);
-        
       } else {
         console.error("Failed to fetch data:", response.message);
       }
@@ -388,27 +388,31 @@ export default function EditInformation() {
   const handleRemoveContact = (index) => {
     setContactItems((prev) => prev.filter((_, i) => i !== index));
   };
-  
+
   const renderContactItems = () =>
     contactItems.map((contact, index) => (
       <div key={index} className="mb-6">
         <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-md">{`Person ${index + 1}`}</span>
-        {index > 0 && !isViewMode && (
-          <ActionButton
-            mode="delete"
-            text="Delete"
-            onClick={() => handleRemoveContact(index)}
-            disabled={isViewMode}
-          />
-        )}
+          <span className="text-[#00783F] text-md">{`Person ${
+            index + 1
+          }`}</span>
+          {index > 0 && !isViewMode && (
+            <ActionButton
+              mode="delete"
+              text="Delete"
+              onClick={() => handleRemoveContact(index)}
+              disabled={isViewMode}
+            />
+          )}
         </div>
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} md={8} lg={6}>
             <Input
               placeholder="Name (EN)"
               value={contact.name_en || ""}
-              onChange={(e) => handleContactChange(index, "name_en", e.target.value)}
+              onChange={(e) =>
+                handleContactChange(index, "name_en", e.target.value)
+              }
               disabled={isViewMode}
             />
           </Col>
@@ -416,7 +420,9 @@ export default function EditInformation() {
             <Input
               placeholder="Name (TH)"
               value={contact.name_th || ""}
-              onChange={(e) => handleContactChange(index, "name_th", e.target.value)}
+              onChange={(e) =>
+                handleContactChange(index, "name_th", e.target.value)
+              }
               disabled={isViewMode}
             />
           </Col>
@@ -424,7 +430,9 @@ export default function EditInformation() {
             <Input
               placeholder="Nickname"
               value={contact.nickname || ""}
-              onChange={(e) => handleContactChange(index, "nickname", e.target.value)}
+              onChange={(e) =>
+                handleContactChange(index, "nickname", e.target.value)
+              }
               disabled={isViewMode}
             />
           </Col>
@@ -432,7 +440,9 @@ export default function EditInformation() {
             <DatePicker
               className="w-full"
               placeholder="Date of Birth"
-              value={contact.date_of_birth ? dayjs(contact.date_of_birth) : null}
+              value={
+                contact.date_of_birth ? dayjs(contact.date_of_birth) : null
+              }
               onChange={(date, dateString) =>
                 handleContactChange(index, "date_of_birth", dateString)
               }
@@ -443,7 +453,9 @@ export default function EditInformation() {
             <Input
               placeholder="Age"
               value={contact.age || ""}
-              onChange={(e) => handleContactChange(index, "age", e.target.value)}
+              onChange={(e) =>
+                handleContactChange(index, "age", e.target.value)
+              }
               disabled={true}
             />
           </Col>
@@ -452,7 +464,9 @@ export default function EditInformation() {
             <Input
               placeholder="T-Shirt Size"
               value={contact.t_shirt_size || ""}
-              onChange={(e) => handleContactChange(index, "t_shirt_size", e.target.value)}
+              onChange={(e) =>
+                handleContactChange(index, "t_shirt_size", e.target.value)
+              }
               disabled={isViewMode}
             />
           </Col>
@@ -460,7 +474,9 @@ export default function EditInformation() {
             <Input
               placeholder="Relationship"
               value={contact.relationship || ""}
-              onChange={(e) => handleContactChange(index, "relationship", e.target.value)}
+              onChange={(e) =>
+                handleContactChange(index, "relationship", e.target.value)
+              }
               disabled={isViewMode}
             />
           </Col>
@@ -468,7 +484,9 @@ export default function EditInformation() {
             <Input
               placeholder="Duty"
               value={contact.duty || ""}
-              onChange={(e) => handleContactChange(index, "duty", e.target.value)}
+              onChange={(e) =>
+                handleContactChange(index, "duty", e.target.value)
+              }
               disabled={isViewMode}
             />
           </Col>
@@ -476,7 +494,9 @@ export default function EditInformation() {
             <Input
               placeholder="Tel 1"
               value={contact.tel1 || ""}
-              onChange={(e) => handleContactChange(index, "tel1", e.target.value)}
+              onChange={(e) =>
+                handleContactChange(index, "tel1", e.target.value)
+              }
               disabled={isViewMode}
             />
           </Col>
@@ -484,7 +504,9 @@ export default function EditInformation() {
             <Input
               placeholder="Tel 2"
               value={contact.tel2 || ""}
-              onChange={(e) => handleContactChange(index, "tel2", e.target.value)}
+              onChange={(e) =>
+                handleContactChange(index, "tel2", e.target.value)
+              }
               disabled={isViewMode}
             />
           </Col>
@@ -492,7 +514,9 @@ export default function EditInformation() {
             <Input
               placeholder="Contact Number"
               value={contact.contact_number || ""}
-              onChange={(e) => handleContactChange(index, "contact_number", e.target.value)}
+              onChange={(e) =>
+                handleContactChange(index, "contact_number", e.target.value)
+              }
               disabled={isViewMode}
             />
           </Col>
@@ -500,7 +524,9 @@ export default function EditInformation() {
             <Input
               placeholder="Email"
               value={contact.email || ""}
-              onChange={(e) => handleContactChange(index, "email", e.target.value)}
+              onChange={(e) =>
+                handleContactChange(index, "email", e.target.value)
+              }
               disabled={isViewMode}
             />
           </Col>
@@ -508,7 +534,9 @@ export default function EditInformation() {
             <Input
               placeholder="Line ID"
               value={contact.line_id || ""}
-              onChange={(e) => handleContactChange(index, "line_id", e.target.value)}
+              onChange={(e) =>
+                handleContactChange(index, "line_id", e.target.value)
+              }
               disabled={isViewMode}
             />
           </Col>
@@ -516,16 +544,16 @@ export default function EditInformation() {
             <Input
               placeholder="hobby"
               value={contact.hobby || ""}
-              onChange={(e) => handleContactChange(index, "hobby", e.target.value)}
+              onChange={(e) =>
+                handleContactChange(index, "hobby", e.target.value)
+              }
               disabled={isViewMode}
             />
           </Col>
-
         </Row>
         <hr className="my-4" />
       </div>
     ));
-  
 
   const handleTabChange = (key) => {
     setActiveTabKey(key);
@@ -540,23 +568,21 @@ export default function EditInformation() {
     setIsTerritoryModalVisible(false);
   };
 
-
   const handleOpenFarmerModal = async () => {
-    await fetchUserFamer(); 
-    setIsTerritoryModalFarmer(true); 
+    await fetchUserFamer();
+    setIsTerritoryModalFarmer(true);
   };
 
   const handleCloseFarmerModal = () => {
     setIsTerritoryModalFarmer(false);
   };
 
-
   const handleAddSelectedRows = (selectedRows) => {
     if (!Array.isArray(selectedRows)) {
       console.error("selectedRows is not an array:", selectedRows);
       return;
     }
-  
+
     const newRows = selectedRows.map((row, index) => ({
       key: row.key,
       no: (networkList?.length || 0) + index + 1,
@@ -578,10 +604,12 @@ export default function EditInformation() {
         />
       ),
     }));
-  
+
     setNetworkList((prevList) => {
       const existingKeys = (prevList || []).map((item) => item.key); // ป้องกัน undefined
-      const filteredNewRows = newRows.filter((row) => !existingKeys.includes(row.key));
+      const filteredNewRows = newRows.filter(
+        (row) => !existingKeys.includes(row.key)
+      );
       if (filteredNewRows.length === 0) {
         showNotification("error", "Sale Territory has already been added.");
         return prevList || [];
@@ -592,15 +620,14 @@ export default function EditInformation() {
     });
   };
 
-  
   const handleAddSelectedRowsFarmer = (selectedRows) => {
     console.log(selectedRows);
-    
+
     if (!Array.isArray(selectedRows)) {
       console.error("selectedRows is not an array:", selectedRows);
       return;
     }
-  
+
     const newRows = selectedRows.map((row, index) => ({
       key: row.key, // Unique identifier
       no: (farmerListItem?.length || 0) + index + 1, // Row number
@@ -620,11 +647,12 @@ export default function EditInformation() {
         />
       ),
     }));
-  
-    setFarmerListItem((prevList) => {
 
+    setFarmerListItem((prevList) => {
       const existingKeys = (prevList || []).map((item) => item.key); // ป้องกัน undefined
-      const filteredNewRows = newRows.filter((row) => !existingKeys.includes(row.key));
+      const filteredNewRows = newRows.filter(
+        (row) => !existingKeys.includes(row.key)
+      );
       console.log(filteredNewRows);
 
       if (filteredNewRows.length === 0) {
@@ -636,8 +664,6 @@ export default function EditInformation() {
       }
     });
   };
-  
-  
 
   const fetchUserList = async (page_size = 20, page_length = 1) => {
     setLoading(true);
@@ -645,12 +671,16 @@ export default function EditInformation() {
       platform: "web",
       page_size,
       page_length,
+      mode: "mapping",
     };
 
     try {
-      const response = await useServiceAPI.get(paths.pathMasterSubDealer,requestData);
+      const response = await useServiceAPI.get(
+        paths.pathMasterSubDealer,
+        requestData
+      );
       if (response.status === 200) {
-        const data = response.data;      
+        const data = response.data;
         const territoryData = data.map((item, index) => ({
           key: item.sub_dealer_id,
           no: index + 1,
@@ -664,10 +694,8 @@ export default function EditInformation() {
               textColor={item.sub_dealer_channel_type_color}
             />
           ),
-
         }));
         setUserList(territoryData);
-
       }
     } catch (error) {
       console.error("Error fetching user list:", error);
@@ -690,9 +718,9 @@ export default function EditInformation() {
       );
 
       if (response.status === 200) {
-        const data = response.data;      
+        const data = response.data;
         console.log(data);
-                
+
         const territoryFarmerData = data.map((item, index) => ({
           key: item.farmer_id,
           no: index + 1,
@@ -705,7 +733,6 @@ export default function EditInformation() {
               textColor={item.farmer_channel_type_color}
             />
           ),
-
         }));
         setFarmerList(territoryFarmerData);
       }
@@ -716,7 +743,6 @@ export default function EditInformation() {
     }
   };
 
-
   const handleAddContact = () => {
     // เพิ่ม object ใหม่ลงใน contactItems state
     setContactItems((prev) => [
@@ -725,19 +751,16 @@ export default function EditInformation() {
     ]);
   };
 
-
-
   const transformedCropOptions = cropOptions.map((option) => ({
     label: option.name, // เปลี่ยนจาก name เป็น label
     value: option.id, // คงค่า value เดิมไว้
   }));
 
-
   useEffect(() => {
     // console.log(defaultSelectedCrops)
   }, [defaultSelectedCrops]);
 
-  const handleSave = () => { 
+  const handleSave = () => {
     form
       .validateFields()
       .then((values) => {
@@ -750,7 +773,7 @@ export default function EditInformation() {
           useFlagValue = values.use_flag === "Active" ? 1 : 0; // แปลงค่าจาก "Active" หรือ "Inactive"
         }
         const formattedData = {
-          id: location.state.id, 
+          id: location.state.id,
           dealer_name_en: values.dealer_name_en || "",
           dealer_name_th: values.dealer_name_th || "",
           dealer_code: values.dealer_code || "",
@@ -763,10 +786,10 @@ export default function EditInformation() {
           photo_path: values.profile || "",
           location_address: values.outlet_location || "",
           location_longitude: currentLocation.lng || "",
-          location_latitude: currentLocation.lat  || "",
+          location_latitude: currentLocation.lat || "",
           use_flag: useFlagValue,
           bank_account_items: companyinfo.bank_account_items || [],
-          
+
           contact_items: contactItems.map((item) => ({
             name_en: item.name_en || "",
             contact_number: item.contact_number || "",
@@ -781,10 +804,10 @@ export default function EditInformation() {
             email: item.email || null,
             line_id: item.line_id || null,
             age: item.age || null,
-            hobby: item.hobby || null, 
+            hobby: item.hobby || null,
           })),
           crop_list: defaultSelectedCrops || [],
-        };        
+        };
         useServiceAPI
           .put(paths.pathCustomerSubDealerUpdate, formattedData)
           .then((response) => {
@@ -796,7 +819,7 @@ export default function EditInformation() {
                 response.data.message_line
               );
               // console.log("Save successful:", response.data);
-              // navigate("/customer/dealer"); 
+              // navigate("/customer/dealer");
             }
           })
           .catch((error) => {
@@ -808,7 +831,6 @@ export default function EditInformation() {
       });
   };
 
-
   const networkhandleSave = () => {
     // Validate form fields if needed
     form
@@ -817,11 +839,11 @@ export default function EditInformation() {
         const formattedData = {
           id: location.state.id,
           network_list: networkList.map((item) => ({
-            sub_dealer_id: item.key, 
-            is_on_shop: item.onshop, 
+            sub_dealer_id: item.key,
+            is_on_shop: item.onshop,
           })),
         };
-  
+
         useServiceAPI
           .put(paths.pathCustomerSubDealerNetworkUpdate, formattedData) // paths.pathNetworkSave = URL API
           .then((response) => {
@@ -832,7 +854,6 @@ export default function EditInformation() {
                 response.data.message,
                 response.data.message_line
               );
-
             }
           })
           .catch((error) => {
@@ -852,11 +873,11 @@ export default function EditInformation() {
         const formattedData = {
           id: location.state.id,
           network_list: farmerListItem.map((item) => ({
-            farmer_id: item.key, 
-            is_on_shop: true, 
+            farmer_id: item.key,
+            is_on_shop: true,
           })),
         };
-  
+
         useServiceAPI
           .put(paths.pathCustomerSubDealerFarmerUpdate, formattedData) // paths.pathNetworkSave = URL API
           .then((response) => {
@@ -867,7 +888,6 @@ export default function EditInformation() {
                 response.data.message,
                 response.data.message_line
               );
-
             }
           })
           .catch((error) => {
@@ -879,24 +899,27 @@ export default function EditInformation() {
       });
   };
 
-
   const handleBankAccountChange = (index, field, value) => {
     const updatedAccounts = companyinfo.bank_account_items?.length
       ? [...companyinfo.bank_account_items]
-      : Array(2).fill({ account_title: "", account_number: "", bank_name: "", bank_branch: "" });
-  
+      : Array(2).fill({
+          account_title: "",
+          account_number: "",
+          bank_name: "",
+          bank_branch: "",
+        });
+
     // อัปเดตค่าของฟิลด์ที่เปลี่ยนแปลงในรายการที่เลือก
     updatedAccounts[index] = {
       ...updatedAccounts[index],
       [field]: value,
     };
-      setcompanyinfo({ ...companyinfo, bank_account_items: updatedAccounts });
+    setcompanyinfo({ ...companyinfo, bank_account_items: updatedAccounts });
   };
-  
 
   const handleContactChange = (index, field, value) => {
     const updatedContacts = [...contactItems];
-  
+
     if (field === "date_of_birth") {
       const birthDate = dayjs(value);
       const currentYear = dayjs().year();
@@ -906,11 +929,10 @@ export default function EditInformation() {
     } else {
       updatedContacts[index][field] = value; // อัปเดตฟิลด์อื่นๆ
     }
-  
+
     setContactItems(updatedContacts); // อัปเดต state
   };
 
-  
   const mapContainerStyle = {
     width: "100%",
     height: "30vh",
@@ -921,7 +943,7 @@ export default function EditInformation() {
     const lng = event.latLng.lng();
     const geocoder = new window.google.maps.Geocoder();
     const latlng = { lat, lng };
-  
+
     try {
       const response = await geocoder.geocode({ location: latlng });
       if (response.results && response.results.length > 0) {
@@ -932,7 +954,7 @@ export default function EditInformation() {
           ...prev,
           location_address: locationName,
         }));
-  
+
         showNotification("success", `Location updated: ${locationName}`);
         // อัปเดตตำแหน่งปัจจุบันใน State
         setCurrentLocation({ lat, lng });
@@ -943,160 +965,186 @@ export default function EditInformation() {
       console.error("Geocoder failed due to:", error);
       showNotification("error", "Unable to fetch location name.");
     }
-  
-
   };
-  
-    useEffect(() => {
-      const checkGoogleMaps = () => {
-        if (window.google && window.google.maps) {
-          setIsGoogleLoaded(true);
-        } else {
-          const interval = setInterval(() => {
-            if (window.google && window.google.maps) {
-              clearInterval(interval);
-              setIsGoogleLoaded(true);
-            }
-          }, 500);
-        }
-      };
-      checkGoogleMaps();
-    }, []);
-    
+
+  useEffect(() => {
+    const checkGoogleMaps = () => {
+      if (window.google && window.google.maps) {
+        setIsGoogleLoaded(true);
+      } else {
+        const interval = setInterval(() => {
+          if (window.google && window.google.maps) {
+            clearInterval(interval);
+            setIsGoogleLoaded(true);
+          }
+        }, 500);
+      }
+    };
+    checkGoogleMaps();
+  }, []);
+
   let items = [
     {
       key: "profile",
       label: <span className="tab-title">Profile</span>,
       children: (
-      <>
-      {dataLoaded ? (
-        <FormUser profile={profileImage} fields={formFields} form={form} />
-      ) : (
-        <div></div>
-      )}
+        <>
+          {dataLoaded ? (
+            <FormUser profile={profileImage} fields={formFields} form={form} />
+          ) : (
+            <div></div>
+          )}
 
-      <div className={`bg-white p-4`}
-        style={{
-          boxShadow: "rgba(0, 0, 0, 0.1)", // Optional for a subtle shadow
-          marginTop: "-20px",
-        }}
-      >
-      <div className="text-[#00783F] text-lg font-semibold mb-3">
-        <div className="flex justify-end space-x-4 mb-2">
-          <ActionButton 
-            text={isMapEnabled ? "Close Google" : "Open Google"}
-            mode="update" 
-            onClick={() => setIsMapEnabled((prev) => !prev)} />
-        </div>
-
-        <LoadScript googleMapsApiKey={dataApiKey}>
-          <GoogleMap
-            mapContainerStyle={mapContainerStyle}
-            center={ currentLocation}
-            zoom={dataMapZoom}
-            onClick={(e) => {
-              const lat = e.latLng.lat();
-              const lng = e.latLng.lng();
-              setCurrentLocation({ lat, lng });
+          <div
+            className={`bg-white p-4`}
+            style={{
+              boxShadow: "rgba(0, 0, 0, 0.1)", // Optional for a subtle shadow
+              marginTop: "-20px",
             }}
           >
-            {isGoogleLoaded && (
-              <Marker
-                position={currentLocation}
-                icon={{
-                  url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
-                  scaledSize: { width: 30, height: 30 },
-                }}
-                draggable={true}
-                onDragEnd={handleMarkerDragEnd} 
-                options={{ disableDefaultUI: !isMapEnabled, draggable: isMapEnabled }}
-              />
-            )}
-          </GoogleMap>
-        </LoadScript>
-        </div>
-      </div>
+            <div className="text-[#00783F] text-lg font-semibold mb-3">
+              <div className="flex justify-end space-x-4 mb-2">
+                <ActionButton
+                  text={isMapEnabled ? "Close Google" : "Open Google"}
+                  mode="update"
+                  onClick={() => setIsMapEnabled((prev) => !prev)}
+                />
+              </div>
 
-      <BoxPrimary>
-        {(companyinfo.bank_account_items?.length > 0
-          ? companyinfo.bank_account_items
-          : Array(2).fill({ account_title: "", account_number: "", bank_name: "", bank_branch: "" }) // Default 2 รายการ
-        ).map((account, index) => (
-          <div key={index} className="my-6">
-            <div className="text-[#00783F] text-md">{`Bank Account ${index + 1}`}</div>
-            <Row className="my-3" gutter={[16, 16]}>
-              {["account_title", "account_number", "bank_name", "bank_branch"].map((field) => (
-                <Col xs={24} sm={12} md={8} lg={6} key={field}>
-                  <Input
-                    placeholder={field.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())} // Capitalize placeholder
-                    value={account[field] || ""}
-                    onChange={(e) => handleBankAccountChange(index, field, e.target.value)}
-                    disabled= {true}
-                  />
-                </Col>
-              ))}
-            </Row>
+              <LoadScript googleMapsApiKey={dataApiKey}>
+                <GoogleMap
+                  mapContainerStyle={mapContainerStyle}
+                  center={currentLocation}
+                  zoom={dataMapZoom}
+                  onClick={(e) => {
+                    const lat = e.latLng.lat();
+                    const lng = e.latLng.lng();
+                    setCurrentLocation({ lat, lng });
+                  }}
+                >
+                  {isGoogleLoaded && (
+                    <Marker
+                      position={currentLocation}
+                      icon={{
+                        url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
+                        scaledSize: { width: 30, height: 30 },
+                      }}
+                      draggable={true}
+                      onDragEnd={handleMarkerDragEnd}
+                      options={{
+                        disableDefaultUI: !isMapEnabled,
+                        draggable: isMapEnabled,
+                      }}
+                    />
+                  )}
+                </GoogleMap>
+              </LoadScript>
+            </div>
           </div>
-        ))}
-      </BoxPrimary>
-      <BoxPrimary>
-          <Select
-            mode="multiple"
-            showSearch
-            placeholder="Select Crop(s)"
-            optionFilterProp="children"
-            className="w-full"
-            value={defaultSelectedCrops} 
-            onChange={(value) => setDefaultSelectedCrops(value)} // จัดการการเปลี่ยนแปลงค่า
-            options={transformedCropOptions} 
-            disabled={isViewMode}
-          />
-      </BoxPrimary>
 
-      <BoxPrimary>
-        <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-lg font-semibold">Contact Person</span>
-          {!isViewMode && ( 
-            <ActionButton
-              mode="add"
-              text="Add"
-              onClick={() => {
-                setContactItems([
-                  ...contactItems,
-                  {
-                    name: "",
-                    phone: "",
-                    email: "",
-                    position: ""
-                  }
-                ]);
-              }}
+          <BoxPrimary>
+            {(companyinfo.bank_account_items?.length > 0
+              ? companyinfo.bank_account_items
+              : Array(2).fill({
+                  account_title: "",
+                  account_number: "",
+                  bank_name: "",
+                  bank_branch: "",
+                })
+            ) // Default 2 รายการ
+              .map((account, index) => (
+                <div key={index} className="my-6">
+                  <div className="text-[#00783F] text-md">{`Bank Account ${
+                    index + 1
+                  }`}</div>
+                  <Row className="my-3" gutter={[16, 16]}>
+                    {[
+                      "account_title",
+                      "account_number",
+                      "bank_name",
+                      "bank_branch",
+                    ].map((field) => (
+                      <Col xs={24} sm={12} md={8} lg={6} key={field}>
+                        <Input
+                          placeholder={field
+                            .replace("_", " ")
+                            .replace(/\b\w/g, (c) => c.toUpperCase())} // Capitalize placeholder
+                          value={account[field] || ""}
+                          onChange={(e) =>
+                            handleBankAccountChange(
+                              index,
+                              field,
+                              e.target.value
+                            )
+                          }
+                          disabled={true}
+                        />
+                      </Col>
+                    ))}
+                  </Row>
+                </div>
+              ))}
+          </BoxPrimary>
+          <BoxPrimary>
+            <Select
+              mode="multiple"
+              showSearch
+              placeholder="Select Crop(s)"
+              optionFilterProp="children"
+              className="w-full"
+              value={defaultSelectedCrops}
+              onChange={(value) => setDefaultSelectedCrops(value)} // จัดการการเปลี่ยนแปลงค่า
+              options={transformedCropOptions}
+              disabled={isViewMode}
             />
-          )}
-        </div>
-        {contactItems.length > 0 ? (
-          renderContactItems()
-        ) : (
-          <div className="text-gray-500">No contact person information available</div>
-        )}
-      </BoxPrimary>
-        <div className="flex justify-end space-x-4 mt-6">
-          <ActionButton
-            mode="back"
-            text="Back"
-            onClick={() => navigate("/customer/dealer")}
-          />
-          {/* <ActionButton
+          </BoxPrimary>
+
+          <BoxPrimary>
+            <div className="flex justify-between mb-4">
+              <span className="text-[#00783F] text-lg font-semibold">
+                Contact Person
+              </span>
+              {!isViewMode && (
+                <ActionButton
+                  mode="add"
+                  text="Add"
+                  onClick={() => {
+                    setContactItems([
+                      ...contactItems,
+                      {
+                        name: "",
+                        phone: "",
+                        email: "",
+                        position: "",
+                      },
+                    ]);
+                  }}
+                />
+              )}
+            </div>
+            {contactItems.length > 0 ? (
+              renderContactItems()
+            ) : (
+              <div className="text-gray-500">
+                No contact person information available
+              </div>
+            )}
+          </BoxPrimary>
+          <div className="flex justify-end space-x-4 mt-6">
+            <ActionButton
+              mode="back"
+              text="Back"
+              onClick={() => navigate("/customer/dealer")}
+            />
+            {/* <ActionButton
             mode="update"
             text="Update"
             onClick={handleSave} 
           /> */}
-        {
-        !isViewMode && (
-          <ActionButton text="Update" mode="update" onClick={handleSave} />
-          )
-        }
-        </div>
+            {!isViewMode && (
+              <ActionButton text="Update" mode="update" onClick={handleSave} />
+            )}
+          </div>
         </>
       ),
     },
@@ -1110,31 +1158,28 @@ export default function EditInformation() {
               <span className="text-[#00783F] text-lg font-semibold">
                 Network
               </span>
-              {
-                !isViewMode && (
-                  <div className="flex space-x-2">
+              {!isViewMode && (
+                <div className="flex space-x-2">
                   <ActionButton
                     mode="add"
                     text="Add"
                     onClick={handleOpenTerritoryModal}
                   />
                 </div>
-                )
-              }
+              )}
             </div>
-            <TableComponent 
-              header={header} 
-              dataSource={networkList} 
-            />
+            <TableComponent header={header} dataSource={networkList} />
           </BoxPrimary>
           <div className="flex justify-end space-x-4 mt-6 mb-6">
-          {
-          !isViewMode && (
-            <ActionButton text="Update Network" mode="update" onClick={networkhandleSave} />
-            )
-          }
+            {!isViewMode && (
+              <ActionButton
+                text="Update Network"
+                mode="update"
+                onClick={networkhandleSave}
+              />
+            )}
           </div>
-          
+
           {/* Farmer List */}
 
           <BoxPrimary>
@@ -1152,10 +1197,7 @@ export default function EditInformation() {
                 </div>
               )}
             </div>
-            <TableComponent 
-              header={headerFarmer} 
-              dataSource={farmerListItem} 
-            />
+            <TableComponent header={headerFarmer} dataSource={farmerListItem} />
           </BoxPrimary>
 
           <div className="flex justify-end space-x-4 mt-6">
@@ -1164,42 +1206,44 @@ export default function EditInformation() {
               text="Back"
               onClick={() => navigate("/customer/farmers")}
             />
-          {
-          !isViewMode && (
-            <ActionButton text="Update Farmer" mode="update" onClick={FarmerhandleSave} />
-            )
-          }
+            {!isViewMode && (
+              <ActionButton
+                text="Update Farmer"
+                mode="update"
+                onClick={FarmerhandleSave}
+              />
+            )}
           </div>
-
         </>
       ),
     },
   ];
 
   if (isViewMode) {
-    items = items.map(field => {
-      if (field.key === 'network') {
+    items = items.map((field) => {
+      if (field.key === "network") {
         return field;
-      }else if(field.key === 'profile'){
+      } else if (field.key === "profile") {
         return field;
       }
       return {
         ...field,
-        disabled: true
+        disabled: true,
       };
     });
   }
-  
+
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">{isViewMode ? "View Information" : "Edit Information"}</div>
+      <div className="title-page">
+        {isViewMode ? "View Information" : "Edit Information"}
+      </div>
       <Tabs
         activeKey={activeTabKey}
         onChange={handleTabChange}
         className="custom-tabs"
         items={items}
       />
-
 
       <DynamicModal
         title="Add Sale Territory"
@@ -1208,8 +1252,18 @@ export default function EditInformation() {
         header={[
           { title: "No", dataIndex: "no", key: "no", width: 50 },
           { title: "Name", dataIndex: "name", key: "name", width: 150 },
-          { title: "Phone No",  dataIndex: "territory", key: "territory", width: 150,},
-          { title: "Status",  dataIndex: "position",  key: "position",  width: 150,},
+          {
+            title: "Phone No",
+            dataIndex: "territory",
+            key: "territory",
+            width: 150,
+          },
+          {
+            title: "Status",
+            dataIndex: "position",
+            key: "position",
+            width: 150,
+          },
         ]}
         dataSource={userList}
         width="1200px"
@@ -1224,17 +1278,24 @@ export default function EditInformation() {
         header={[
           { title: "No", dataIndex: "no", key: "no", width: 50 },
           { title: "Farmer Name", dataIndex: "name", key: "name", width: 150 },
-          { title: "Phone No",  dataIndex: "territory", key: "territory", width: 150,},
-          { title: "Status",  dataIndex: "position",  key: "position",  width: 150,},
+          {
+            title: "Phone No",
+            dataIndex: "territory",
+            key: "territory",
+            width: 150,
+          },
+          {
+            title: "Status",
+            dataIndex: "position",
+            key: "position",
+            width: 150,
+          },
         ]}
         dataSource={farmerList}
         width="1200px"
         onAddSelected={handleAddSelectedRowsFarmer}
         type="add"
       />
-
-
-
     </MainLayout>
   );
 }
