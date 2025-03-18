@@ -1,11 +1,16 @@
-import { Outlet, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useContext, useEffect, useState } from "react";
 import liff from "@line/liff";
 import MessageLayout from "../../layouts/MessageLayout";
+import { AuthContext } from "../../contexts/AuthContext";
 
 const LineOARoute = () => {
+  const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const navigate = useNavigate();
+  const [isLineLoggedIn, setIsLineLoggedIn] = useState(false);
+  const queryParams = new URLSearchParams(location.search);
+  const { loginLineUid } = useContext(AuthContext);
+  const [lineProfile, setLineProfile] = useState(null);
 
   useEffect(() => {
     const initLIFF = async () => {
@@ -16,23 +21,39 @@ const LineOARoute = () => {
         });
 
         if (liff.isLoggedIn()) {
-          setIsLoggedIn(true);
-        } else {
-          liff.login();
+          const lineProfile = await liff.getProfile();
+
+          setLineProfile(lineProfile);
+          setIsLineLoggedIn(true);
         }
       } catch (error) {
         console.error("LIFF Initialization Failed:", error);
       }
     };
 
+    if (queryParams.get("richMenu")) {
+      localStorage.setItem("redirectPath", location.pathname);
+    }
+
     initLIFF();
   }, []);
 
-  if (!isLoggedIn) {
+  useEffect(() => {
+    if (lineProfile) {
+      try {
+        const userProfile = loginLineUid(lineProfile.userId);
+        console.log(userProfile);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  }, [lineProfile]);
+
+  if (!isLineLoggedIn && !isLoggedIn) {
     return <MessageLayout loading={true}></MessageLayout>;
   }
 
-  return <Outlet />;
+  return <Outlet context={{ lineProfile }} />;
 };
 
 export { LineOARoute };
