@@ -28,69 +28,74 @@ export default function VerifyOA() {
 
 
   useEffect(() => {
-    console.log(location.state);
-    console.log(phone_number);
+    // console.log(location.state);
+    // console.log(phone_number);
   }, [location, phone_number]);
 
+  // const onFinish = () => {
+
+  //   // if (!phone_number) {
+  //   //   setPopupText("<p class='text-[#978B87] text-center sarabun-font'>ไม่พบข้อมูลของคุณในระบบ กรุณาติดต่อเจ้าหน้าที่</p>");
+  //   //   setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png");
+  //   //   setIsModalVisible(true);
+  //   //   return;
+  //   // }
+
+  //   // if (phone_number === '0800000001' || phone_number === '+66800000001') {
+  //   //   setPopupText("<p class='text-[#978B87] text-center sarabun-font'>ร้านค้านี้มีการลงทะเบียนในระบบแล้ว</p>");
+  //   //   setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png");
+  //   //   setIsModalVisible(true);
+  //   //   return;
+  //   // }
+
+  //   setLoading(true);
+  //   useServiceAPI.post(paths.pathOtpShopCall, { phone_number }, setLoading)
+  //     .then((response) => {
+  //       if (response.status == 200 ) {
+  //         const otpRefNo = response.data.data.otp_ref_no;
+  //         const message_id = response.data.data.message_id;
+  //         console.log("OTP Reference Number:", otpRefNo);
+  //         navigate("/mobile/otp", { state: { phone_number, otpRefNo , message_id} });
+  //       }
+  //     })
+  //     .catch((error) => {
+  //       console.error("API Error:", error);
+  //     })
+  //     .finally(() => setLoading(false));
+
+  // };
+
+
   const onFinish = () => {
-    if (!phone_number) {
-      setPopupText("<p class='text-[#978B87] text-center sarabun-font'>ไม่พบข้อมูลของคุณในระบบ กรุณาติดต่อเจ้าหน้าที่</p>");
-      setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png");
-      setIsModalVisible(true);
-      return;
-    }
-
-    if (phone_number === '0800000001' || phone_number === '+66800000001') {
-      setPopupText("<p class='text-[#978B87] text-center sarabun-font'>ร้านค้านี้มีการลงทะเบียนในระบบแล้ว</p>");
-      setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png");
-      setIsModalVisible(true);
-      return;
-    }
-
-    // console.log("Phone Number Submitted:", phone_number);
-    // setLoading(false);
-    // navigate("/mobile/otp");
-
-    // form
-    // .validateFields()
-    // .then((values) => {
-    //   useServiceAPI
-    //     .post(paths.pathOtpShopCall, values, setLoading)
-    //     .then((response) => {
-    //       if (response.status === 200) {
-    //         navigate("/mobile/otp");
-    //         setLoading(false);
-
-    //       }
-    //     })
-    //     .catch((error) => {
-    //       console.log(error);
-    //       if (error.status === 422) {
-    //         console.log("error", error.message);
-    //       } else {
-    //         // showMsg("error", "เกิดข้อผิดพลาด");
-    //         showNotification("error", response.message, response.message_line);
-
-    //       }
-    //     });
-    // })
-    // .catch((errorInfo) => {
-    //   console.error("Validation Failed:", errorInfo);
-    // });
-
     setLoading(true);
-    useServiceAPI.post(paths.pathOtpShopCall, { phone_number }, setLoading)
-      .then((response) => {
+    useServiceAPI.post(paths.pathOtpverify, { phone_number }, setLoading)
+      .then((response) => {        
         if (response.status == 200 ) {
-          const otpRefNo = response.data.data.otp_ref_no;
-          const message_id = response.data.data.message_id;
-          console.log("OTP Reference Number:", otpRefNo);
-          navigate("/mobile/otp", { state: { phone_number, otpRefNo , message_id} });
+        setLoading(true);
+        const phone_number = response.data.phone_number_otp;
+        useServiceAPI.post(paths.pathOtpShopCall, { phone_number }, setLoading)
+          .then((response) => {
+            if (response.status == 200 ) {
+              const otpRefNo = response.data.data.otp_ref_no;
+              const message_id = response.data.data.message_id;
+              console.log("OTP Reference Number:", otpRefNo);
+              navigate("/mobile/otp", { state: { phone_number, otpRefNo , message_id} });
+            }
+          })
+          .catch((error) => {
+            console.error("API Error:", error);
+          })
+          .finally(() => setLoading(false));
         }
+
       })
       .catch((error) => {
         console.error("API Error:", error);
-        showNotification("error", error.response?.data?.message || "เกิดข้อผิดพลาด", error.response?.data?.message_id);
+          setPopupText("<p class='text-[#978B87] text-center sarabun-font'>ไม่พบข้อมูลของคุณในระบบ กรุณาติดต่อเจ้าหน้าที่</p>");
+          setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png");
+          setIsModalVisible(true);
+          return;
+
       })
       .finally(() => setLoading(false));
 
@@ -104,14 +109,11 @@ export default function VerifyOA() {
     >
       {/* Back Button */}
       <BackTopLeftButton />
-
       <LogoGray width="w-[100%]" className="mb-10 max-w-xs" />
-
       <Title level={4}>
         <span className="text-[#8A8A8A] font-bold sarabun-font">ยืนยันตัวตนของคุณ</span>
       </Title>
       <Text className="text-[#8A8A8A] mb-4 sarabun-font">กรุณากรอกเบอร์โทรศัพท์</Text>
-
       <Form name="phoneVerification" onFinish={onFinish} autoComplete="off">
         <div className="my-4 w-full">
           <label className="text-[#978B87] text-sm sarabun-font">เบอร์โทรศัพท์</label>
@@ -131,7 +133,6 @@ export default function VerifyOA() {
           text="ตกลง"
           disabled={loading}
         />
-
       </Form>
 
       <div className="text-center mt-10">
