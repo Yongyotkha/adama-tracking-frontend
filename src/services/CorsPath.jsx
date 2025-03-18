@@ -15,6 +15,7 @@ export const paths = {
   // OTP
   pathOtpShopCall: "/shop-otp/call",
   pathOtpShopVerify: "/shop-otp/verify",
+  pathOtpverify: "shop-otp/verify-phone",
   
   // Master
   pathMasterUserAll: "master/sale-user-all",
