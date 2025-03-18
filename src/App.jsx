@@ -129,6 +129,8 @@ import CustomerLineList from "./pages/settings/mobile/customer/CustomerLineList"
 import CreateCustomerLine from "./pages/settings/mobile/customer/CreateCustomerLine";
 import CreatePromotionLine from "./pages/settings/mobile/promotion/CreatePromotionLine";
 import ExpirePointList from "./pages/settings/mobile/expire_point/ExpirePointList";
+import ManageNewsList from "./pages/settings/mobile/manage-news/ManageNewsList";
+import ManagePromotionList from "./pages/settings/mobile/manage-promotion/ManagePromotionList";
 
 const App = () => {
   return (
@@ -275,6 +277,8 @@ const App = () => {
             {/* <Route path="/setting/line/customer/edit" element={<EditCustomerLine />} /> */}
             
             <Route path="/setting/line/expire-point" element={<ExpirePointList />} />
+            <Route path="/setting/line/manage-news" element={<ManageNewsList />} />
+            <Route path="/setting/line/manage-promotion" element={<ManagePromotionList />} />
 
             {/* Report Route */}
             <Route path="/report/monthly" element={<ReportSaleByMonth />} />
