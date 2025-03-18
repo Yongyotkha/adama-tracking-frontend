@@ -18,8 +18,10 @@ export default function VerifyOA() {
   const [otpInfo, setOtpInfo] = useState("");
   const { userInfo, showMsg } = useContext(AuthContext);
   const { Title, Text } = Typography;
-  const messageId = location?.state?.message_id ;
-  const messagePhone = location?.state?.phone_number ;
+  const [messageId, setmessageId] = useState(location?.state?.message_id);
+  
+  // const messageId = location?.state?.message_id ;
+  const phone_number = location?.state?.phone_number ;
 
   useEffect(() => {
     console.log(location.state);
@@ -69,9 +71,20 @@ export default function VerifyOA() {
   };
 
   const handleResend = () => {
-    console.log("Resend OTP Triggered");
-    setTimeLeft(300);
-    showMsg("info", "OTP code has been resent!");
+    setTimeLeft(3);
+
+    setLoading(true);
+    useServiceAPI
+      .post(paths.pathOtpShopCall, { phone_number}, setLoading)
+      .then((response) => {
+        if (response.status === 200) {
+          setmessageId(response.data.data.message_id)
+            console.log(response);
+        }
+      })
+
+
+
   };
 
   useEffect(() => {
@@ -89,7 +102,7 @@ export default function VerifyOA() {
 
   useEffect(() => {
     console.log("OTP Call Simulation");
-    setTimeLeft(300);
+    setTimeLeft(3);
   }, []);
 
   return (
@@ -106,7 +119,7 @@ export default function VerifyOA() {
       <Text className="sarabun-font text-gray-500">กรอก OTP ที่ส่งไปที่เบอร์โทรศัพท์</Text>
       <Title level={5} className="pb-3">
         <Text className="sarabun-font text-[#009845]">
-          {messagePhone}
+          {phone_number}
           {/* {userInfo?.phone_number_display || location?.state?.phone_number_display} */}
         </Text>
       </Title>
