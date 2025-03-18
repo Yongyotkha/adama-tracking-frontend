@@ -40,11 +40,8 @@ export default function VerifyOA() {
             .post(paths.pathOtpShopCall, {  phone_number: phone_number_otp }, setLoading)
             .then((response) => {
               if (response.status === 200) {
-                
                 const otpRefNo = response.data.data.otp_ref_no;
                 const message_id = response.data.data.message_id;
-
-
                 navigate("/mobile/otp", { state: {  phone_number: phone_number_otp, otpRefNo, message_id } });
               }
             })
