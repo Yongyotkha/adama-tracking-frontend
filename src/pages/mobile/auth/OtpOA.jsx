@@ -16,10 +16,12 @@ export default function VerifyOA() {
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [timeLeft, setTimeLeft] = useState(0);
   const [otpInfo, setOtpInfo] = useState("");
-  const { userInfo, showMsg } = useContext(AuthContext);
+  const { userInfo, showMsg ,showNotification} = useContext(AuthContext);
   const { Title, Text } = Typography;
-  const messageId = location?.state?.message_id ;
-  const messagePhone = location?.state?.phone_number ;
+  const [messageId, setmessageId] = useState(location?.state?.message_id);
+  
+  const otp_ref_no = location?.state?.otpRefNo ;
+  const phone_number = location?.state?.phone_number ;
 
   useEffect(() => {
     console.log(location.state);
@@ -33,17 +35,21 @@ export default function VerifyOA() {
     useServiceAPI.post(paths.pathOtpShopVerify, { messageId, otp: otpValue }, setLoading)
       .then((response) => {
         if (response.status === 200) {
-          if (response.data.step_number == 0) {
-               navigate("/mobile/contact-staff");
-          } else if (response.data.step_number == 1){
-              navigate("/mobile/register");
-          } else if (response.data.step_number == 2){
-              navigate("/mobile/contact-staff");
+            if (response.result == false) {
+              console.log(" OTP ไม่ถูก");
+              showNotification("error", response.data.Message.Message_Header, response.data.Message.Message_Line);
 
-          } else if (response.data.step_number == 4){
-            navigate("/mobile/account");
-
-          }
+            } else if (response.result == true) {
+              if (response.data.step_number == 0) {
+                navigate("/mobile/contact-staff");
+              } else if (response.data.step_number == 1){
+                  navigate("/mobile/register");
+              } else if (response.data.step_number == 2){
+                  navigate("/mobile/contact-staff");
+              } else if (response.data.step_number == 4){
+                navigate("/mobile/account");
+              }
+            }
           console.log("OTP Verification Success:", response.data);
           // navigate("/mobile/account");
         }
@@ -69,9 +75,20 @@ export default function VerifyOA() {
   };
 
   const handleResend = () => {
-    console.log("Resend OTP Triggered");
     setTimeLeft(300);
-    showMsg("info", "OTP code has been resent!");
+
+    setLoading(true);
+    useServiceAPI
+      .post(paths.pathOtpShopCall, { phone_number}, setLoading)
+      .then((response) => {
+        if (response.status === 200) {
+          setmessageId(response.data.data.message_id)
+            console.log(response);
+        }
+      })
+
+
+
   };
 
   useEffect(() => {
@@ -104,12 +121,13 @@ export default function VerifyOA() {
 
       <Title level={4} className="text-green-700 sarabun-font">กรอกรหัส OTP</Title>
       <Text className="sarabun-font text-gray-500">กรอก OTP ที่ส่งไปที่เบอร์โทรศัพท์</Text>
-      <Title level={5} className="pb-3">
+      <Title level={5}>
         <Text className="sarabun-font text-[#009845]">
-          {messagePhone}
+          {phone_number}
           {/* {userInfo?.phone_number_display || location?.state?.phone_number_display} */}
         </Text>
       </Title>
+      <Text className="sarabun-font text-gray-500 pb-5"> Ref : {otp_ref_no}  </Text>
       <Form name="otpVerification" onFinish={onFinish} autoComplete="off">
         <Row gutter={16} justify="center" className="mb-5">
           {otp.map((digit, index) => (
