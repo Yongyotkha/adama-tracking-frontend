@@ -26,13 +26,6 @@ dayjs.extend(timezone);
 const { Option } = Select;
 
 export default function CreateActivity() {
-  // const locationParam = useLocation();
-  // const searchParams = new URLSearchParams(locationParam.search);
-  // const documentNumber = searchParams.get("documentNumber");
-  // const pageCode = searchParams.get("pageCode");
-  // const pathSegments = location.pathname.split("/");
-  // const viewSegment = pathSegments[2] === "view";
-
   const locationParam = useLocation();
   const { mode } = useParams();
   const [documentNumber, setDocumentNumber] = useState(
@@ -1605,26 +1598,19 @@ export default function CreateActivity() {
           text="Back"
           onClick={() => navigate(menuURL)}
         />
-        {/* {viewSegment ? null : pageCode == "expense_advance" ? (
-          <ActionButton
-            mode="saveDraft"
-            text="Convert to Clearing"
-            onClick={() => handleSave("convert_clearing")}
-          />
-        ) : null} */}
-        {/* {viewSegment ? null : (
-          <ActionButton
-            mode="save"
-            text="Save"
-            onClick={() => handleSave("save")}
-          />
-        )} */}
 
         {activityDetail?.permission?.btn_convert && (
           <ActionButton
             mode="saveDraft"
             text="Convert to Clearing"
             onClick={() => handleSave("convert_clearing")}
+          />
+        )}
+        {(activityDetail?.permission?.btn_draft || mode === "create") && (
+          <ActionButton
+            mode="saveDraft"
+            text="Draft"
+            onClick={() => handleSave("draft")}
           />
         )}
         {(activityDetail?.permission?.btn_save || mode === "create") && (
@@ -1644,41 +1630,6 @@ export default function CreateActivity() {
             }}
           />
         )}
-
-        {/* <ActionButton
-          mode="saveDraft"
-          text="Export PDF"
-          className={
-            pageCode === "expense_advance" || pageCode === "expense_clearing"
-              ? ""
-              : "hidden"
-          }
-          onClick={() => {
-            const targetUrl = "/expenses/advance/pdf";
-            navigate(targetUrl, {
-              state: {
-                // year_code: 1111,
-                // month_code: 1111,
-                // user_id: 111,
-                document_number: activityDetail.document_number,
-                page_code: pageCode,
-              },
-            });
-          }}
-        /> */}
-        {/* <ActionButton
-          mode="saveDraft"
-          text="Export PDF"
-          className={
-            pageCode === "expense_advance" || pageCode === "expense_clearing"
-              ? ""
-              : "hidden"
-          }
-          onClick={() => {
-            const targetUrl = `/expenses/advance/pdf?document_number=${activityDetail.document_number}&page_code=${pageCode}`;
-            window.open(targetUrl, "_blank"); // เปิดในแท็บใหม่
-          }}
-        /> */}
       </div>
 
       {/* Modal for Add Participant */}

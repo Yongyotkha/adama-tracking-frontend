@@ -46,9 +46,6 @@ import Farmer from "./pages/customer/Farmers/FarmersList";
 import FarmerCreate from "./pages/customer/Farmers/FarmersCreate";
 
 import AdvanceExpense from "./pages/expenses/advance/AdvanceExpense";
-import CreateAdvanceExpense from "./pages/expenses/advance/CreateAdvanceExpense";
-import EditAdvanceExpense from "./pages/expenses/advance/EditAdvanceExpense";
-import ViewAdvanceExpense from "./pages/expenses/advance/ViewAdvanceExpense";
 import PdfAdvanceExpense from "./pages/pdf/ViewAdvanceExpense";
 import ProductClaim from "./pages/expenses/product_claim/ProductClaim";
 import CreateClaimRequest from "./pages/expenses/product_claim/CreateClaimRequest";
@@ -58,19 +55,15 @@ import CreateTraveling from "./pages/expenses/traveling/CreateTraveling";
 import EditTraveling from "./pages/expenses/traveling/EditTraveling";
 import PdfTraveling from "./pages/pdf/ViewTraveling";
 import ClearingExpense from "./pages/expenses/clearing/ClearingExpense";
-import CreateClearing from "./pages/expenses/clearing/CreateClearingExpense";
-import EditClearing from "./pages/expenses/clearing/EditClearingExpense";
 import ViewOrder from "./pages/order/ViewOrder";
 import ViewOrderWaiting from "./pages/order/ViewOrderWaiting";
 import { ProtectedRoute, PublicRoute } from "./components/auth/ProtectedRoute";
 import WorkPlanSaleByDealer from "./pages/sale_plan/workplan/WorkPlanSaleByDealer";
-import EditWorkPlan from "./pages/sale_plan/workplan/EditWorkPlan";
 import FirstChangePassword from "./pages/auth/FirstChangePassword";
 
 // START ------------- Activity ------------- START
 import ActivityList from "./pages/activity/ActivityList";
 import CreateActivity from "./pages/activity/CreateActivity";
-import EditActivity from "./pages/activity/EditActivity";
 import ActivityPlanList from "./pages/activity/activity_plan/ActivityPlanList";
 import ActivityCalendar from "./pages/activity/calendar/ActivityCalendar";
 import ViewTraveling from "./pages/expenses/traveling/ViewTraveling";
@@ -129,6 +122,13 @@ import CustomerLineList from "./pages/settings/mobile/customer/CustomerLineList"
 import CreateCustomerLine from "./pages/settings/mobile/customer/CreateCustomerLine";
 import CreatePromotionLine from "./pages/settings/mobile/promotion/CreatePromotionLine";
 import ExpirePointList from "./pages/settings/mobile/expire_point/ExpirePointList";
+import CreateActivityManyShop from "./pages/activity/CreateActivityManyShop";
+import AdvanceExpenseArea from "./pages/expenses/advance/AdvanceExpenseArea";
+import AdvanceExpenseHead from "./pages/expenses/advance/AdvanceExpenseHead";
+import AdvanceExpenseAcct from "./pages/expenses/advance/AdvanceExpenseAcct";
+import ClearingExpenseArea from "./pages/expenses/clearing/ClearingExpenseArea";
+import ClearingExpenseHead from "./pages/expenses/clearing/ClearingExpenseHead";
+import ClearingExpenseAcct from "./pages/expenses/clearing/ClearingExpenseAcct";
 
 const App = () => {
   return (
@@ -181,8 +181,8 @@ const App = () => {
 
             <Route path="/activity/list" element={<ActivityList />} />
             <Route path="/activity/:mode" element={<CreateActivity />} />
-            {/* <Route path="/activity/edit" element={<CreateActivity />} />
-            <Route path="/activity/view" element={<CreateActivity />} /> */}
+            {/* <Route path="/activity/create" element={<CreateActivityManyShop />} /> */}
+ 
             <Route path="/activity/calendar" element={<ActivityCalendar />} />
             <Route path="/activity/mapping" element={<ActivityMapping />} />
 
@@ -202,9 +202,6 @@ const App = () => {
 
             {/* Expenses Route */}
             <Route path="/expenses/advance" element={<AdvanceExpense />} />
-            <Route path="/expenses/advance/create" element={<CreateAdvanceExpense />} />
-            <Route path="/expenses/advance/edit" element={<EditAdvanceExpense />} />
-            <Route path="/expenses/advance/view" element={<ViewAdvanceExpense />} />
             <Route path="/expenses/advance/pdf" element={<PdfAdvanceExpense />} />
             <Route path="/expenses/product-claim-list" element={<ProductClaim />} />
             <Route path="/expenses/product-claim-waiting-list" element={<ProductClaim />} />
@@ -217,16 +214,23 @@ const App = () => {
             <Route path="/expenses/traveling/view" element={<ViewTraveling />} />
             <Route path="/expenses/traveling/pdf" element={<PdfTraveling />} />
             <Route path="/expenses/clearing" element={<ClearingExpense />} />
-            <Route path="/expenses/clearing/create" element={<CreateClearing />} />
-            <Route path="/expenses/clearing/edit" element={<EditClearing />} />
             <Route path="/expenses/clearing/pdf" element={<PDFClearingExpense />} />
-
 
             <Route path="/expenses/sample" element={<SampleExpense />} />
             <Route path="/expenses/sample/:mode" element={<ActionSampleExpense />} />
 
+
             <Route path="/expenses/material" element={<MaterialExpense />} />
             <Route path="/expenses/material/:mode" element={<ActionMaterialExpense />} />
+
+            
+            {/* Approval Expenses Route */}
+            <Route path="/expenses/advance/approval/area" element={<AdvanceExpenseArea />} />
+            <Route path="/expenses/advance/approval/head-of-sales" element={<AdvanceExpenseHead />} />
+            <Route path="/expenses/advance/approval/accounting" element={<AdvanceExpenseAcct />} />
+            <Route path="/expenses/clearing/approval/area" element={<ClearingExpenseArea />} />
+            <Route path="/expenses/clearing/approval/head-of-sales" element={<ClearingExpenseHead />} />
+            <Route path="/expenses/clearing/approval/accounting" element={<ClearingExpenseAcct />} />
 
             {/* Customer Route */}
             <Route path="/customer/dealer" element={<Dealer />} />
