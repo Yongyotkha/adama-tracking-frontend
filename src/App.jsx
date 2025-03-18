@@ -129,6 +129,9 @@ import AdvanceExpenseAcct from "./pages/expenses/advance/AdvanceExpenseAcct";
 import ClearingExpenseArea from "./pages/expenses/clearing/ClearingExpenseArea";
 import ClearingExpenseHead from "./pages/expenses/clearing/ClearingExpenseHead";
 import ClearingExpenseAcct from "./pages/expenses/clearing/ClearingExpenseAcct";
+import ApprovalExpense from "./pages/expenses/advance/ApprovalAdvanceExpense";
+import ApprovalAdvanceExpense from "./pages/expenses/advance/ApprovalAdvanceExpense";
+import ApprovalClearingExpense from "./pages/expenses/clearing/ApprovalClearingExpense";
 
 const App = () => {
   return (
@@ -225,12 +228,16 @@ const App = () => {
 
             
             {/* Approval Expenses Route */}
-            <Route path="/expenses/advance/approval/area" element={<AdvanceExpenseArea />} />
+
+            <Route path="/expenses/advance/approval/:role" element={<ApprovalAdvanceExpense />} />
+            <Route path="/expenses/clearing/approval/:role" element={<ApprovalClearingExpense />} />
+
+            {/* <Route path="/expenses/advance/approval/area" element={<AdvanceExpenseArea />} />
             <Route path="/expenses/advance/approval/head-of-sales" element={<AdvanceExpenseHead />} />
             <Route path="/expenses/advance/approval/accounting" element={<AdvanceExpenseAcct />} />
             <Route path="/expenses/clearing/approval/area" element={<ClearingExpenseArea />} />
             <Route path="/expenses/clearing/approval/head-of-sales" element={<ClearingExpenseHead />} />
-            <Route path="/expenses/clearing/approval/accounting" element={<ClearingExpenseAcct />} />
+            <Route path="/expenses/clearing/approval/accounting" element={<ClearingExpenseAcct />} /> */}
 
             {/* Customer Route */}
             <Route path="/customer/dealer" element={<Dealer />} />

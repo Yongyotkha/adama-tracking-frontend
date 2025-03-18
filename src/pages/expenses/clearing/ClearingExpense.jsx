@@ -211,6 +211,7 @@ export default function ClearingExpense() {
       document_number_referrent: filters.activity_reference,
       customer_name: "",
       page: "all",
+      page_mode: "list",
       orderby_column: sortField,
       orderby: sortOrder,
       page_length: current,

@@ -62,7 +62,7 @@ const Navbar = () => {
             <span
               className={`${
                 location.pathname === `/${item.path}` || 
-                location.pathname.startsWith(`/${item.path}/`)
+                location.pathname.startsWith(`${item.path}/`)
                   ? "pointer-events-none font-bold text-[#009845]"
                   : "text-[#978B87]"
               } py-1`}
