@@ -128,7 +128,7 @@ export default function RedeemHistoryDetail() {
         </div>
 
         {/* Back Button */}
-        <BackButton url="/mobile/history-purchase" />
+        <BackButton />
       </div>
     </MobileLayout>
   );

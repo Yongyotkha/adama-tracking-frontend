@@ -55,20 +55,6 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
-  // ตรวจสอบ Local Storage เมื่อเริ่มต้น
-  // useEffect(() => {
-  //   const storedUser = localStorage.getItem("users");
-  //   const storedToken = localStorage.getItem("accessToken");
-  //   if (storedUser && storedToken) {
-  //     const userInfo = JSON.parse(storedUser);
-
-  //     setUserInfo(userInfo);
-  //     setIsLoggedIn(true);
-  //   } else {
-  //     logout();
-  //   }
-  // }, []);
-
   const login = async (username, password, onLoadingChange = null) => {
     try {
       notifyLoadingState(onLoadingChange, true);
@@ -95,7 +81,34 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       throw error;
     } finally {
-      notifyLoadingState(onLoadingChange, false); // แจ้งว่า loading เสร็จแล้ว
+      notifyLoadingState(onLoadingChange, false); 
+    }
+  };
+
+  const loginLineUid = async (user_id, onLoadingChange = null) => {
+    try {
+      notifyLoadingState(onLoadingChange, true);
+      const response = await axiosInstance.post(`${endPoint}/shop/login`, {
+        user_id,
+      });
+
+      if (response) {
+        const userData = response.data.data.user;
+        const accessToken = response.data.data.token;
+        const expiredToken = response.data.data.token_expired_date;
+        setIsLoggedIn(true);
+        setUserInfo(userData);
+
+        localStorage.setItem("users", JSON.stringify(userData));
+        localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("expiredToken", expiredToken);
+
+        return response.data;
+      }
+    } catch (error) {
+      throw error;
+    } finally {
+      notifyLoadingState(onLoadingChange, false); 
     }
   };
 
@@ -129,6 +142,7 @@ export const AuthProvider = ({ children }) => {
         showMsg,
         showNotification,
         formatNumber,
+        loginLineUid,
       }}
     >
       {contextHolder}

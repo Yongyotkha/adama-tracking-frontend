@@ -107,7 +107,7 @@ export default function CustomerLineList() {
 
   const header = [
     { title: "No", dataIndex: "key", align: "left" },
-    { title: "Image", dataIndex: "image_profile", align: "center" },
+    { title: "", dataIndex: "image_profile", align: "center" },
     { title: "Shop Name", dataIndex: "shop_name", align: "left" },
     { title: "Contact Name", dataIndex: "contact_name", align: "left" },
     { title: "Phone No", dataIndex: "phone", align: "left" },

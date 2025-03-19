@@ -260,6 +260,7 @@ export default function ActivityList() {
       user_id: filters.sale || "",
       dealer_id: filters.shop || "",
       page: "all",
+      page_mode: "list",
       orderby_column: sortField,
       orderby: sortOrder,
       page_length: current,
