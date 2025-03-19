@@ -1,8 +1,37 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Modal, Button } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 
 const ModalRegisterPopup = ({ visible, onConfirm, onCancel }) => {
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
+  const contentRef = useRef(null);
+
+
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (contentRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
+        const isNearBottom = scrollTop + clientHeight >= scrollHeight * 0.7;
+        setIsScrolledToBottom(isNearBottom);
+      }
+    };
+
+    const contentDiv = contentRef.current;
+    if (contentDiv) {
+      contentDiv.addEventListener("scroll", handleScroll);
+      handleScroll(); // เช็คครั้งแรกเผื่อกรณีเปิด modal มาแล้วอ่านไปถึงล่างสุด
+    }
+
+    return () => {
+      if (contentDiv) {
+        contentDiv.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, [visible]); // ให้ useEffect รันใหม่เมื่อ modal ถูกเปิด/ปิด
+
+  console.log(isScrolledToBottom);
+  
   return (
     <Modal
       open={visible}
@@ -10,7 +39,9 @@ const ModalRegisterPopup = ({ visible, onConfirm, onCancel }) => {
       footer={null} // Removing default footer to create a custom one
       centered
     >
-      <div className="sarabun-font text-gray-900 text-sm max-h-screen overflow-y-auto p-2">
+
+      <div className="sarabun-font text-gray-900 text-sm max-h-screen overflow-y-auto p-2" ref={contentRef}>
+        
         <h2 className="sarabun-font text-lg font-semibold text-[#009845] text-start">
           รายละเอียดข้อกำหนดและเงื่อนไข
         </h2>
@@ -52,6 +83,7 @@ const ModalRegisterPopup = ({ visible, onConfirm, onCancel }) => {
           เข้าสู่ข้อมูลของตนเองจำเป็นต้องใช้ชื่อผู้ใช้ที่เป็นสมาชิก และรหัสผ่าน
         </p>
         
+
       </div>
 
       {/* Custom Footer Buttons */}
@@ -65,13 +97,16 @@ const ModalRegisterPopup = ({ visible, onConfirm, onCancel }) => {
           <span className="sarabun-font text-[#A19793]">ปิดหน้าต่าง</span>
         </Button>
 
-        <Button
-          type="button"
-          onClick={onConfirm}
-          className="w-1/2 bg-[#009845] flex items-center justify-center py-5 rounded-md"
-        >
-          <span className="sarabun-font text-white">ตกลง</span>
-        </Button>
+        {isScrolledToBottom  && (
+          <Button
+            type="button"
+            onClick={onConfirm}
+            className="w-1/2 bg-[#009845] flex items-center justify-center py-5 rounded-md"
+          >
+            <span className="sarabun-font text-white">ตกลง</span>
+          </Button>
+        )}
+        
       </div>
     </Modal>
   );

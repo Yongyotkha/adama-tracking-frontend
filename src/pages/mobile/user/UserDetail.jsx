@@ -23,7 +23,7 @@ export default function UserDetail() {
             <div className="flex items-center space-x-4">
               <div className="w-24 h-24 bg-gray-300 rounded-full overflow-hidden shadow">
                 <img
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsynwv-5qtogtOwJbIjaPFJUmHpzhxgqIAug&s"
+                  src="/img/icons/profile.png"
                   alt="Profile"
                   className="w-full h-full object-cover shadow"
                 />

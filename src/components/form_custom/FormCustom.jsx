@@ -230,26 +230,70 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                   className="mb-3"
                 >
                   {field.type === "photo" ? (
-                    <Upload.Dragger
-                      name={field.name}
-                      multiple={false}
-                      action="/upload" // Replace with your upload endpoint
-                      onChange={(info) => handlePhotoUpload(info, field.name)}
-                      className="w-full"
-                      listType="picture"
-                      maxCount={1}
-                      accept="image/jpeg,image/png"
-                    >
-                      <p className="text-[#978B87]">
-                        Choose a file or drag & drop it here
-                      </p>
-                      <p className="text-[#978B87]">JPEG, PNG</p>
-                      <DynamicButton
-                        className="text-white mt-2 px-4 py-1 rounded-[4px] bg-[#009845]"
-                        text={"Browse File"}
-                        type={"button"}
-                      />
-                    </Upload.Dragger>
+                    // <Upload.Dragger
+                    //   name={field.name}
+                    //   multiple={false}
+                    //   action="/upload/create" // Replace with your upload endpoint
+                    //   onChange={(info) => handlePhotoUpload(info, field.name)}
+                    //   className="w-full"
+                    //   listType="picture"
+                    //   maxCount={1}
+                    //   accept="image/jpeg,image/png"
+                    //   data={{ mode: "news" , platform: "web"}} // ส่งค่า mode news ไปพร้อมกับการอัปโหลด
+                    // >
+                    //   <p className="text-[#978B87]">
+                    //     Choose a file or drag & drop it here
+                    //   </p>
+                    //   <p className="text-[#978B87]">JPEG, PNG</p>
+                    //   <DynamicButton
+                    //     className="text-white mt-2 px-4 py-1 rounded-[4px] bg-[#009845]"
+                    //     text={"Browse File"}
+                    //     type={"button"}
+                    //   />
+                    // </Upload.Dragger>
+
+                  <Upload.Dragger
+                    name="file"
+                    multiple={false}
+                    beforeUpload={async (file) => {
+                      const formData = new FormData();
+                      formData.append("file", file);
+                      formData.append("mode", "news"); // ส่ง mode เป็น news
+
+                      try {
+                        setLoading(true);
+                        const response = await useServiceAPI.post(
+                          paths.pathUpload, // ใช้ API ตามที่คุณกำหนด
+                          formData
+                        );
+                        form?.setFieldsValue({
+                          [field.name]: response.data.file_url, // อัปเดตค่าของฟอร์ม
+                        });
+                        message.success(`${file.name} uploaded successfully.`);
+                      } catch (error) {
+                        console.error("Error uploading form data:", error);
+                        message.error("เกิดข้อผิดพลาดในการอัปโหลด");
+                      } finally {
+                        setLoading(false);
+                      }
+
+                      return false; // ป้องกันไม่ให้ `Upload.Dragger` อัปโหลดเอง
+                    }}
+                    className="w-full"
+                    listType="picture"
+                    maxCount={1}
+                    accept="image/jpeg,image/png"
+                  >
+                    <p className="text-[#978B87]">Choose a file or drag & drop it here</p>
+                    <p className="text-[#978B87]">JPEG, PNG</p>
+                    <DynamicButton
+                      className="text-white mt-2 px-4 py-1 rounded-[4px] bg-[#009845]"
+                      text={"Browse File"}
+                      type={"button"}
+                    />
+                  </Upload.Dragger>
+
+
                   ) : field.type === "text" ||
                     field.type === "email" ||
                     field.type === "tel" ||
@@ -338,7 +382,15 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                         }))}
                       />{" "}
                     </>
-                  ) : field.type === "text-editor" ? (
+                  ) : field.type === "textarea" ? (
+                    <Input.TextArea
+                      rows={4}
+                      placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                      value={formValues[field.name] || ""}
+                      disabled={field.disabled}
+                      onChange={(e) => handleChange(field.name, e.target.value)}
+                    />
+                  ): field.type === "text-editor" ? (
                     <>
                       <ReactQuill
                         theme="snow"

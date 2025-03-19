@@ -124,6 +124,8 @@ import CreatePromotionLine from "./pages/settings/mobile/promotion/CreatePromoti
 import ExpirePointList from "./pages/settings/mobile/expire_point/ExpirePointList";
 import ManageNewsList from "./pages/settings/mobile/manage-news/ManageNewsList";
 import ManagePromotionList from "./pages/settings/mobile/manage-promotion/ManagePromotionList";
+import CreateManageNews from "./pages/settings/mobile/manage-news/CreateManageNews";
+import CreateManagePromotion from "./pages/settings/mobile/manage-promotion/CreateManagePromotion";
 import ApprovalAdvanceExpense from "./pages/expenses/advance/ApprovalAdvanceExpense";
 import ApprovalClearingExpense from "./pages/expenses/clearing/ApprovalClearingExpense";
 
@@ -281,7 +283,9 @@ const App = () => {
             
             <Route path="/setting/line/expire-point" element={<ExpirePointList />} />
             <Route path="/setting/line/manage-news" element={<ManageNewsList />} />
+            <Route path="/setting/line/manage-news/create" element={<CreateManageNews />} />
             <Route path="/setting/line/manage-promotion" element={<ManagePromotionList />} />
+            <Route path="/setting/line/manage-promotion/create" element={<CreateManagePromotion />} />
 
             {/* Report Route */}
             <Route path="/report/monthly" element={<ReportSaleByMonth />} />
@@ -302,7 +306,7 @@ const App = () => {
             <Route path="/mobile/user/detail" element={< UserDetail />} />
             <Route path="/mobile/user/edit" element={< EditUserOA />} />
             <Route path="/mobile/register" element={< RegisterOA />} />
-            <Route path="/mobile/contact-staff" element={< ContactStaff />} />
+            <Route path="/mobile/contact-admin" element={< ContactStaff />} />
             <Route path="/mobile/contact-us" element={< ContactUs />} />
             <Route path="/mobile/faq" element={< FaqOA />} />
             <Route path="/mobile/privacy-policy" element={< PrivacyPolicy />} />

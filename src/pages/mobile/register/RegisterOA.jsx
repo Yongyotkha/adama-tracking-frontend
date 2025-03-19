@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { Card, Button, Input, Select, Checkbox } from "antd";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
-import { useNavigate } from "react-router-dom";
-import { EditOutlined } from "@ant-design/icons";
+import { useNavigate, useLocation } from "react-router-dom";
+import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 import BackButton from "../../../components/mobile/button/BackButton";
 import ModalRegisterPopup from "../../../components/mobile/popup/ModalRegisterPopup";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
 
 const { Option } = Select;
 
@@ -14,7 +16,12 @@ export default function RegisterOA() {
   const [isChecked, setIsChecked] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
+  const [isFailModalVisible, setIsFailModalVisible] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [formData, setFormData] = useState(location.state || {});
+
+  console.log("formData", formData);
 
   const handleCheckboxClick = () => {
     setIsModalVisible(true);
@@ -69,6 +76,54 @@ export default function RegisterOA() {
     }
   };
 
+
+  const handleRegister = () => {
+    if (!isChecked) return;
+
+    const formattedData = {
+      shop_name: formData.shop_name,
+      shop_code: formData.shop_code,
+      phone_number: formData.phone_number,
+      first_name: formData.first_name,
+      last_name: formData.last_name,
+      birth_date_day: formData.birth_date_day,
+      birth_date_month: formData.birth_date_month,
+      birth_date_year: formData.birth_date_year,
+      line_id: formData.line_id,
+      address: formData.address,
+      email: formData.email,
+      is_condition: isChecked,
+      // image_url :,
+
+    }
+    setLoading(true);
+    useServiceAPI
+      .post(paths.pathRegisterShop, formattedData)
+      .then((response) => {
+        if (response.status === 200) {
+          setIsSuccessModalVisible(true)
+          navigate('/mobile/main')
+        }
+      })
+      .catch((error) => {
+        setIsFailModalVisible(true)
+        console.error("API Error:", error);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  const [imagePreview, setImagePreview] = useState("/img/icons/profile.png");
+
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
   return (
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
@@ -80,41 +135,46 @@ export default function RegisterOA() {
         {/* Profile Info Section */}
         <div className="w-full max-w-md mt-4">
           <div className="flex justify-start items-center relative">
-            <div className="w-20 h-20 bg-gray-300 rounded-full overflow-hidden shadow">
-              <img
-                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsynwv-5qtogtOwJbIjaPFJUmHpzhxgqIAug&s"
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <Button
-              type="primary"
-              shape="circle"
-              icon={<EditOutlined />}
-              className="absolute bottom-0 bg-[#009845] ms-12"
+            <img
+              src={imagePreview}
+              alt="Profile"
+              onClick={() => document.getElementById("imageUpload").click()}
+              className="w-24 h-24 rounded-full object-cover mb-2 cursor-pointer shadow-lg"
             />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              style={{ display: "none" }}
+              id="imageUpload"
+            />
+            <Button
+              icon={imagePreview !== "/img/icons/profile.png" ? <EditOutlined /> : <PlusOutlined />}
+              onClick={() => document.getElementById("imageUpload").click()}
+              className="text-white absolute bottom-0 bg-[#009845] ms-[65px] rounded-full"
+            >
+            </Button>
           </div>
         </div>
-
         {/* User Details Form */}
         <div className="w-full max-w-md mt-4">
           <form className="space-y-4 sarabun-font">
             {/* ชื่อร้าน */}
             <div>
               <label className="text-gray-500 sarabun-font">ชื่อร้าน</label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value="จุฬารักษ์ทันตะ" disabled />
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.shop_name ? formData.shop_name : "-"} />
             </div>
 
             {/* ชื่อ */}
             <div>
               <label className="text-gray-500 sarabun-font">ชื่อ<span className="text-red-500">*</span></label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value="Krairoek" />
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.first_name ? formData.first_name : "-"} />
             </div>
 
             {/* นามสกุล */}
             <div>
               <label className="text-gray-500 sarabun-font">นามสกุล<span className="text-red-500">*</span></label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value="Ruangkol" />
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.last_name ? formData.first_name : "-"} />
             </div>
 
             {/* วันเดือนปีเกิด */}
@@ -168,13 +228,13 @@ export default function RegisterOA() {
             {/* เบอร์โทร */}
             <div>
               <label className="text-gray-500 sarabun-font">เบอร์โทร<span className="text-red-500">*</span></label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value="02-9110653" />
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.phone_number} />
             </div>
 
             {/* ไลน์ไอดี */}
             <div>
               <label className="text-gray-500 sarabun-font">ไลน์ไอดี</label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value="-" />
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.line_id} />
             </div>
 
             {/* ที่อยู่ */}
@@ -183,7 +243,7 @@ export default function RegisterOA() {
               <Input.TextArea
                 className="mt-1 sarabun-font text-[#A19793]"
                 rows={2}
-                value="54 ซ.วัชรพล ซ.5 รัตนโกสินทร์สมโภชกรุงเทพฯ เขตบางเขน กทม. 10150"
+                value={formData.address}
               />
             </div>
 
@@ -207,7 +267,10 @@ export default function RegisterOA() {
 
           <div className="w-full max-w-md mt-auto py-2">
             <button
-              onClick={() => setIsSuccessModalVisible(true)}
+              // onClick={() => setIsSuccessModalVisible(true)}
+              onClick={handleRegister}
+
+              disabled={!isChecked}
               className="w-full py-3 bg-[#009845] rounded-lg text-white sarabun-font flex items-center justify-center space-x-2"
             >
               <span className="sarabun-font">ลงทะเบียน</span>
@@ -224,6 +287,14 @@ export default function RegisterOA() {
         onConfirm={() => setIsSuccessModalVisible(false)}
         src="/logo/Logo-Adama-Smile-2-New 1.png" // Replace with actual image path
         text="<p class='text-[#978B87] text-center sarabun-font'>คุณได้ลงทะเบียนเรียบร้อยแล้ว</p>"
+        confirmText="ตกลง"
+      />
+
+      <DynamicPopUp
+        visible={isFailModalVisible}
+        onConfirm={() => setIsFailModalVisible(false)}
+        src="/logo/Logo-Adama-Smile-2-New 1.png" // Replace with actual image path
+        text="<p class='text-[#978B87] text-center sarabun-font'>ไม่สารมารถลงทะเบียนได้กรุณาตรวจสอบข้อมูล</p>"
         confirmText="ตกลง"
       />
     </MobileLayout>

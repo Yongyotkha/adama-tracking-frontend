@@ -15,6 +15,7 @@
 }
 
 .ant-input-outlined:hover,
+.ant-picker-outlined:hover,
 .ant-input-outlined:focus-within {
   border-color: #00783F;
 }

@@ -21,49 +21,51 @@ export default function ManagePromotionList() {
     },
   });
 
-  // 🔹 Mock Data
+  // Mock Data
   const mockData = [
     {
       id: 1,
-      promotion_code: "202500001",
-      promotion_name: "Promotion Name 1",
-      period: "01/01/2025 - 01/03/2025",
-      type: "Double Point",
-      target: "Crop",
-      apply_to: "Select Product",
-      point: 10,
+      title: "Name 1",
+      date: "07/03/2025",
+      expire_date: "07/12/2025",
+      value: "100.00",
       status: "Active",
-      status_bg_color: "green",
-      status_color: "white",
+      image: "/img/promotion-exam.png",
     },
     {
       id: 2,
-      promotion_code: "202500002",
-      promotion_name: "Promotion Name 2",
-      period: "01/01/2025 - 01/03/2025",
-      type: "Extra Point",
-      target: "Dealer",
-      apply_to: "All Product",
-      point: 10,
+      title: "Name 2",
+      date: "07/03/2025",
+      expire_date: "07/12/2025",
+      value: "100.00",
       status: "Active",
-      status_bg_color: "green",
-      status_color: "white",
+      image: "/img/promotion-exam.png",
     },
   ];
 
   useEffect(() => {
     setTableLoading(true);
-    
-    // ตั้งค่าข้อมูลจาก mockData ลง dataSource
     setTimeout(() => {
-      const formattedData = mockData.map((promo, index) => ({
+      const formattedData = mockData.map((item, index) => ({
         key: index + 1,
+        image_profile: (
+          <img src={item.image} alt="profile" className="w-8 h-8 rounded-full object-cover" />
+        ),
+        title: (
+          <div className="flex items-center">
+            {item.title}
+          </div>
+        ),
+        date: item.date,
+        expire_date: item.expire_date,
+        value: item.value,
+        status: <BadgeStatus text={item.status} bgColor="green" textColor="white" />,
         action: (
           <Dropdown
             menu={{
               items: [
-                { key: "edit", label: <ItemDropDown mode="edit" onClick={() => navigate(`edit/${promo.id}`)} /> },
-                { key: "view", label: <ItemDropDown mode="view" onClick={() => navigate(`view/${promo.id}`)} /> },
+                { key: "edit", label: <ItemDropDown mode="edit" onClick={() => navigate(`edit/${item.id}`)} /> },
+                { key: "delete", label: <ItemDropDown mode="delete" onClick={() => alert("Delete action")} /> },
               ],
             }}
           >
@@ -72,48 +74,33 @@ export default function ManagePromotionList() {
             </a>
           </Dropdown>
         ),
-        promotion_code: promo.promotion_code,
-        promotion_name: promo.promotion_name,
-        period: promo.period,
-        type: promo.type,
-        target: promo.target,
-        apply_to: promo.apply_to,
-        point: promo.point,
-        status: <BadgeStatus text={promo.status} bgColor={promo.status_bg_color} textColor={promo.status_color} />,
       }));
-
       setDataSource(formattedData);
       setTableLoading(false);
-    }, 500); // Simulate API delay
+    }, 500);
   }, []);
 
-  const handleTableChange = (pagination) => {
-    setTableParams({ pagination });
-  };
-
   const filters = [
-    { key: "promotion_code", type: "text", label: "Promotion Code" },
-    { key: "product_name", type: "text", label: "Product Name" },
-    { key: "period", type: "date", label: "Period" },
+    { key: "reward_code", type: "text", label: "Reward Code" },
+    { key: "reward_name", type: "text", label: "Reward Name" },
+    { key: "date", type: "date", label: "Date" },
   ];
 
   const header = [
-    { title: "No", dataIndex: "key", align: "left" },
-    { title: "Promotion Code", dataIndex: "promotion_code", align: "left" },
-    { title: "Promotion Name", dataIndex: "promotion_name", align: "left" },
-    { title: "Period", dataIndex: "period", align: "left" },
-    { title: "Type", dataIndex: "type", align: "left" },
-    { title: "Target", dataIndex: "target", align: "left" },
-    { title: "Apply To", dataIndex: "apply_to", align: "left" },
-    { title: "Point", dataIndex: "point", align: "left" },
+    { title: "No", dataIndex: "key", align: "left", width: 50 },
+    { title: "", dataIndex: "image_profile", align: "center", width: 80 },
+    { title: "Title", dataIndex: "title", align: "left" },
+    { title: "Date", dataIndex: "date", align: "left" },
+    { title: "Expire Date", dataIndex: "expire_date", align: "left" },
+    { title: "Value", dataIndex: "value", align: "left" },
     { title: "Status", dataIndex: "status", align: "left" },
-    { title: "Action", dataIndex: "action", align: "left" },
+    { title: "Action", dataIndex: "action", align: "center", width: 50 },
   ];
 
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Promotion List</div>
+        <div className="title-page">Manage Promotion</div>
         <ActionButton mode="create" text="Create" onClick={() => navigate("create")} />
       </div>
       <Filter filters={filters} />
@@ -123,7 +110,6 @@ export default function ManagePromotionList() {
           dataSource={dataSource}
           pagination={tableParams.pagination}
           loading={tableLoading}
-          onChange={handleTableChange}
         />
       </BoxPrimary>
     </MainLayout>

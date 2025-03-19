@@ -59,7 +59,7 @@ export default function RedeemHistoryDetail() {
           user={{
             name: "คุณ Krairoek Ruangkol",
             memberId: "123456",
-            profileImage: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsynwv-5qtogtOwJbIjaPFJUmHpzhxgqIAug&s",
+            profileImage: "/img/icons/profile.png",
           }}
         />
 
@@ -128,7 +128,7 @@ export default function RedeemHistoryDetail() {
         </div>
 
         {/* Back Button */}
-        <BackButton url="/mobile/history-purchase" />
+        <BackButton />
       </div>
     </MobileLayout>
   );
