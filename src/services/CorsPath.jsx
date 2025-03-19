@@ -239,5 +239,8 @@ export const paths = {
   pathNewsPublicDetail: "news/public/detail",
 
   pathRegisterShop: "/shop/register",
+  pathCheckLoginShop: "/shop/login",
+
+  
 
 };
