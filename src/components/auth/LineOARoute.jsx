@@ -42,7 +42,7 @@ const LineOARoute = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const userProfile = await loginLineUid(lineProfile.userId);
+        const results = await loginLineUid(lineProfile.userId);
         // const results = await loginLineUid("admin");
         if (results.status === 200) {
           const redirectPath = localStorage.getItem("redirectPath");
