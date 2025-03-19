@@ -29,54 +29,55 @@ export default function VerifyOA() {
   const onFinish = () => {
     const formattedPhoneNumber = formatPhoneNumber(phone_number);
 
-    // setLoading(true);
-    // useServiceAPI
-    //   .post(paths.pathOtpShopCall, {  phone_number: formattedPhoneNumber }, setLoading)
-    //   .then((response) => {
-    //     if (response.status === 200) {
-    //       const otpRefNo = response.data.data.otp_ref_no;
-    //       const message_id = response.data.data.message_id;
-    //       navigate("/mobile/otp", { state: {   otpRefNo, message_id } });
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     console.error("API Error:", error);
-    //   })
-    //   .finally(() => setLoading(false));
-
-      
     setLoading(true);
     useServiceAPI
-      .post(paths.pathOtpverify, {  phone_number: formattedPhoneNumber  }, setLoading)
+      .post(paths.pathOtpShopCall, {  phone_number: formattedPhoneNumber }, setLoading)
       .then((response) => {
         if (response.status === 200) {
-          setLoading(true);
-          const phone_number_otp = response.data.phone_number_otp;
-          useServiceAPI
-            .post(paths.pathOtpShopCall, {  phone_number: phone_number_otp }, setLoading)
-            .then((response) => {
-              if (response.status === 200) {
-                const otpRefNo = response.data.data.otp_ref_no;
-                const message_id = response.data.data.message_id;
-                navigate("/mobile/otp", { state: {  phone_number: phone_number_otp, otpRefNo, message_id } });
-              }
-            })
-            .catch((error) => {
-              console.error("API Error:", error);
-            })
-            .finally(() => setLoading(false));
+          const otpRefNo = response.data.data.otp_ref_no;
+          const message_id = response.data.data.message_id;
+          navigate("/mobile/otp", { state: {   otpRefNo, message_id } });
         }
       })
       .catch((error) => {
         console.error("API Error:", error);
-        setPopupText(
-          "<p class='text-[#978B87] text-center sarabun-font'>ไม่พบข้อมูลของคุณในระบบ กรุณาติดต่อเจ้าหน้าที่</p>"
-        );
-        setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png");
-        setIsModalVisible(true);
-        return;
       })
       .finally(() => setLoading(false));
+
+      
+    // setLoading(true);
+    // useServiceAPI
+    //   .post(paths.pathOtpverify, {  phone_number: formattedPhoneNumber  }, setLoading)
+    //   .then((response) => {
+    //     if (response.status === 200) {
+    //       setLoading(true);
+    //       const phone_number_otp = response.data.phone_number_otp;
+    //       useServiceAPI
+    //         .post(paths.pathOtpShopCall, {  phone_number: phone_number_otp }, setLoading)
+    //         .then((response) => {
+    //           if (response.status === 200) {
+    //             const otpRefNo = response.data.data.otp_ref_no;
+    //             const message_id = response.data.data.message_id;
+    //             navigate("/mobile/otp", { state: {  phone_number: phone_number_otp, otpRefNo, message_id } });
+    //           }
+    //         })
+    //         .catch((error) => {
+    //           console.error("API Error:", error);
+    //         })
+    //         .finally(() => setLoading(false));
+    //     }
+        
+    //   })
+    //   .catch((error) => {
+    //     console.error("API Error:", error);
+    //     setPopupText(
+    //       "<p class='text-[#978B87] text-center sarabun-font'>ไม่พบข้อมูลของคุณในระบบ กรุณาติดต่อเจ้าหน้าที่</p>"
+    //     );
+    //     setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png");
+    //     setIsModalVisible(true);
+    //     return;
+    //   })
+    //   .finally(() => setLoading(false));
   };
 
   return (
