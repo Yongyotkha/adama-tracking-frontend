@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { Card, Button, Input, Select, Checkbox } from "antd";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
-import { useNavigate } from "react-router-dom";
+import { useNavigate ,useLocation } from "react-router-dom";
 import { EditOutlined } from "@ant-design/icons";
 import BackButton from "../../../components/mobile/button/BackButton";
 import ModalRegisterPopup from "../../../components/mobile/popup/ModalRegisterPopup";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
 
 const { Option } = Select;
 
@@ -15,6 +17,9 @@ export default function RegisterOA() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [formData, setFormData] = useState(location.state);
+  console.log("formData",formData);
 
   const handleCheckboxClick = () => {
     setIsModalVisible(true);
@@ -69,6 +74,43 @@ export default function RegisterOA() {
     }
   };
 
+
+  const handleRegister = () => {
+    if (!isChecked) return;
+
+    const formattedData = {
+      shop_name: formData.shop_name ,
+      shop_code: formData.shop_code ,
+      phone_number: formData.phone_number ,
+      first_name: formData.first_name ,
+      last_name: formData.last_name ,
+      birth_date_day: formData.birth_date_day ,
+      birth_date_month: formData.birth_date_month ,
+      birth_date_year: formData.birth_date_year,
+      line_id: formData.line_id ,
+      address: formData.address ,
+      email: formData.email ,
+      is_condition : isChecked,
+      // image_url :,
+
+    }
+    setLoading(true);
+    useServiceAPI
+      .post(paths.pathRegisterShop, formattedData)
+      .then((response) => {
+        if (response.status === 200) {
+            setIsSuccessModalVisible(true)
+
+
+        }
+      })
+      .catch((error) => {
+        console.error("API Error:", error);
+      })
+      .finally(() => setLoading(false));
+  };
+
+
   return (
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
@@ -102,19 +144,19 @@ export default function RegisterOA() {
             {/* ชื่อร้าน */}
             <div>
               <label className="text-gray-500 sarabun-font">ชื่อร้าน</label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value="จุฬารักษ์ทันตะ" disabled />
+              <Input className="mt-1 sarabun-font text-[#A19793]" value= {formData.shop_name} />
             </div>
 
             {/* ชื่อ */}
             <div>
               <label className="text-gray-500 sarabun-font">ชื่อ<span className="text-red-500">*</span></label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value="Krairoek" />
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.first_name}/>
             </div>
 
             {/* นามสกุล */}
             <div>
               <label className="text-gray-500 sarabun-font">นามสกุล<span className="text-red-500">*</span></label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value="Ruangkol" />
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.last_name} />
             </div>
 
             {/* วันเดือนปีเกิด */}
@@ -168,13 +210,13 @@ export default function RegisterOA() {
             {/* เบอร์โทร */}
             <div>
               <label className="text-gray-500 sarabun-font">เบอร์โทร<span className="text-red-500">*</span></label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value="02-9110653" />
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.phone_number} />
             </div>
 
             {/* ไลน์ไอดี */}
             <div>
               <label className="text-gray-500 sarabun-font">ไลน์ไอดี</label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value="-" />
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.line_id} />
             </div>
 
             {/* ที่อยู่ */}
@@ -183,7 +225,7 @@ export default function RegisterOA() {
               <Input.TextArea
                 className="mt-1 sarabun-font text-[#A19793]"
                 rows={2}
-                value="54 ซ.วัชรพล ซ.5 รัตนโกสินทร์สมโภชกรุงเทพฯ เขตบางเขน กทม. 10150"
+                value={formData.address}
               />
             </div>
 
@@ -207,7 +249,10 @@ export default function RegisterOA() {
 
           <div className="w-full max-w-md mt-auto py-2">
             <button
-              onClick={() => setIsSuccessModalVisible(true)}
+              // onClick={() => setIsSuccessModalVisible(true)}
+              onClick={handleRegister}
+
+              disabled={!isChecked}
               className="w-full py-3 bg-[#009845] rounded-lg text-white sarabun-font flex items-center justify-center space-x-2"
             >
               <span className="sarabun-font">ลงทะเบียน</span>

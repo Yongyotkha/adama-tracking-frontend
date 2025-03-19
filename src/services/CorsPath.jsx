@@ -234,4 +234,6 @@ export const paths = {
   pathNewsPublicListByCategory: "news/public/list",
   pathNewsPublicDetail: "news/public/detail",
 
+  pathRegisterShop: "/shop/register",
+
 };

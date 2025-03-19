@@ -35,19 +35,58 @@ export default function VerifyOA() {
     useServiceAPI.post(paths.pathOtpShopVerify, { messageId, otp: otpValue }, setLoading)
       .then((response) => {
         if (response.status === 200) {
+          console.log(response);
+          
             if (response.result == false) {
               console.log(" OTP ไม่ถูก");
               showNotification("error", response.data.Message.Message_Header, response.data.Message.Message_Line);
-
             } else if (response.result == true) {
+              
+              const { 
+                message,
+                token, 
+                token_expired_date, 
+                step_number, 
+                shop_code, 
+                shop_name, 
+                address, 
+                phone_number, 
+                first_name, 
+                last_name, 
+                birth_date_day, 
+                birth_date_month, 
+                birth_date_year, 
+                line_id, 
+                is_condition 
+              } = response.data;
+
+              const stateData = {
+                message,
+                token, 
+                token_expired_date, 
+                step_number, 
+                shop_code, 
+                shop_name, 
+                address, 
+                phone_number, 
+                first_name, 
+                last_name, 
+                birth_date_day, 
+                birth_date_month, 
+                birth_date_year, 
+                line_id, 
+                is_condition 
+                
+              };
+
               if (response.data.step_number == 0) {
-                navigate("/mobile/contact-staff");
+                navigate("/mobile/contact-staff" , { state: stateData });
               } else if (response.data.step_number == 1){
-                  navigate("/mobile/register");
+                  navigate("/mobile/register" , { state: stateData });
               } else if (response.data.step_number == 2){
-                  navigate("/mobile/contact-staff");
+                  navigate("/mobile/contact-staff" , { state: stateData });
               } else if (response.data.step_number == 4){
-                navigate("/mobile/account");
+                navigate("/mobile/account" , { state: stateData });
               }
             }
           console.log("OTP Verification Success:", response.data);
