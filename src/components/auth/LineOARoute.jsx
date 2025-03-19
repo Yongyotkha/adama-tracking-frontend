@@ -5,11 +5,12 @@ import MessageLayout from "../../layouts/MessageLayout";
 import { AuthContext } from "../../contexts/AuthContext";
 
 const LineOARoute = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLineLoggedIn, setIsLineLoggedIn] = useState(false);
   const queryParams = new URLSearchParams(location.search);
-  const { loginLineUid } = useContext(AuthContext);
+  const { loginLineUid, userInfo } = useContext(AuthContext);
   const [lineProfile, setLineProfile] = useState(null);
 
   useEffect(() => {
@@ -39,13 +40,30 @@ const LineOARoute = () => {
   }, []);
 
   useEffect(() => {
-    if (lineProfile) {
+    const fetchUserProfile = async () => {
       try {
-        const userProfile = loginLineUid(lineProfile.userId);
-        console.log(userProfile);
+        const userProfile = await loginLineUid(lineProfile.userId);
+        // const results = await loginLineUid("admin");
+        if (results.status === 200) {
+          const redirectPath = localStorage.getItem("redirectPath");
+          if (redirectPath) {
+            sessionStorage.removeItem("redirectPath");
+            navigate(redirectPath, { replace: true });
+          }
+        }
+        console.log(results);
       } catch (error) {
-        console.log(error);
+        console.error("Error fetching user profile:", error);
+
+        if (error?.response?.status === 401) {
+          navigate("/mobile/verify");
+        }
       }
+    };
+    if (lineProfile && !userInfo) {
+      fetchUserProfile();
+    } else {
+      console.log(userInfo);
     }
   }, [lineProfile]);
 
