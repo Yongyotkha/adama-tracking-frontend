@@ -124,14 +124,6 @@ import CreatePromotionLine from "./pages/settings/mobile/promotion/CreatePromoti
 import ExpirePointList from "./pages/settings/mobile/expire_point/ExpirePointList";
 import ManageNewsList from "./pages/settings/mobile/manage-news/ManageNewsList";
 import ManagePromotionList from "./pages/settings/mobile/manage-promotion/ManagePromotionList";
-import CreateActivityManyShop from "./pages/activity/CreateActivityManyShop";
-import AdvanceExpenseArea from "./pages/expenses/advance/AdvanceExpenseArea";
-import AdvanceExpenseHead from "./pages/expenses/advance/AdvanceExpenseHead";
-import AdvanceExpenseAcct from "./pages/expenses/advance/AdvanceExpenseAcct";
-import ClearingExpenseArea from "./pages/expenses/clearing/ClearingExpenseArea";
-import ClearingExpenseHead from "./pages/expenses/clearing/ClearingExpenseHead";
-import ClearingExpenseAcct from "./pages/expenses/clearing/ClearingExpenseAcct";
-import ApprovalExpense from "./pages/expenses/advance/ApprovalAdvanceExpense";
 import ApprovalAdvanceExpense from "./pages/expenses/advance/ApprovalAdvanceExpense";
 import ApprovalClearingExpense from "./pages/expenses/clearing/ApprovalClearingExpense";
 

@@ -316,6 +316,7 @@ export default function ActivityList() {
                           state: {
                             documentNumber: row.document_number,
                             pageCode: row.page_code,
+                            page_mode: actionItem.action,
                           },
                         });
                       };
