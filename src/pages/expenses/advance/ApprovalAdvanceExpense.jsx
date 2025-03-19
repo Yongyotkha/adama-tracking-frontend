@@ -229,41 +229,6 @@ export default function ApprovalAdvanceExpense() {
         const { data, records_filtered } = response.data;
 
         const newDataSource = data.map((row, index) => {
-          const actionItems = [
-            {
-              key: "1",
-              label: (
-                <ItemDropDown
-                  mode="edit"
-                  link={`/activity/edit?documentNumber=${encodeURIComponent(
-                    row.document_number
-                  )}&pageCode=${encodeURIComponent(row.page_code)}`}
-                />
-              ),
-            },
-            {
-              key: "2",
-              label: (
-                <ItemDropDown
-                  mode="view"
-                  link={`/activity/view?documentNumber=${encodeURIComponent(
-                    row.document_number
-                  )}&pageCode=${encodeURIComponent(row.page_code)}`}
-                />
-              ),
-            },
-            {
-              key: "3",
-              label: (
-                <ItemDropDown
-                  mode="delete"
-                  link="#"
-                  onClick={() => handleDelete(row.document_number)}
-                />
-              ),
-            },
-          ];
-
           return {
             key: index + 1 + (current - 1) * pageSize,
             customer: row.customer_name,
@@ -284,29 +249,28 @@ export default function ApprovalAdvanceExpense() {
                 menu={{
                   items: row.action.map((actionItem, actionIndex) => {
                     let path = "";
+                    let text = "";
                     let mode = actionItem.action.toLowerCase();
                     let onClickHandler = null;
-
-                    if (
-                      actionItem.action.toLowerCase() == "edit" ||
-                      actionItem.action.toLowerCase() == "view"
-                    ) {
-                      path = `/activity/${actionItem.action.toLowerCase()}`;
-                      onClickHandler = () => {
-                        navigate(path, {
-                          state: {
-                            documentNumber: row.document_number,
-                            pageCode: row.page_code,
-                          },
-                        });
-                      };
-                    } else {
-                      onClickHandler = () => handleDelete(row.document_number);
-                    }
+                    path = `/activity/approve`;
+                    text = `View ${role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()}`;
+                    onClickHandler = () => {
+                      navigate(path, {
+                        state: {
+                          documentNumber: row.document_number,
+                          pageCode: row.page_code,
+                          page_mode: actionItem.action.toLowerCase(),
+                        },
+                      });
+                    };
                     return {
                       key: actionIndex,
                       label: (
-                        <ItemDropDown mode={mode} onClick={onClickHandler} />
+                        <ItemDropDown
+                          mode={mode}
+                          onClick={onClickHandler}
+                          text={text}
+                        />
                       ),
                     };
                   }),
@@ -343,7 +307,6 @@ export default function ApprovalAdvanceExpense() {
   };
 
   useEffect(() => {
-  
     fetchData();
   }, [
     location.pathname,

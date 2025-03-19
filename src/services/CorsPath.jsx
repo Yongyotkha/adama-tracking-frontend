@@ -187,6 +187,10 @@ export const paths = {
   pathActivityMappingStatusDetail: "/activity/mapping/detail",
   pathActivityMappingStatusDetailUpdate: "/activity/mapping/detail",
 
+
+  pathAdvanceApproval: "/activity-expense/advancechangestatus",
+  pathClearingApproval: "/activity-expense/clearingchangestatus",
+
   pathActivityExpenseCreate: "/activity-expense/create",
   pathActivityExpenseDetail: "/activity-expense/detail",
   pathActivityExpenseList: "/activity-expense/list",
@@ -235,5 +239,8 @@ export const paths = {
   pathNewsPublicDetail: "news/public/detail",
 
   pathRegisterShop: "/shop/register",
+  pathCheckLoginShop: "/shop/login",
+
+  
 
 };

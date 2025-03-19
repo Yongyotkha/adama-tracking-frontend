@@ -1,23 +1,61 @@
-import React, { useEffect } from "react";
-import MessageLayout from "../../../layouts/MessageLayout";
-import liff from "@line/liff"; // ตรวจสอบให้แน่ใจว่ามีการติดตั้ง `@line/liff`
+import React, { useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
+import MessageLayout from "../../../layouts/MessageLayout";
+import { paths } from "../../../services/CorsPath";
+import useServiceAPI from "../../../services/CorsService";
+import liff from "@line/liff";
 
 export default function CheckLogin() {
   const navigate = useNavigate();
   const { userProfile } = useOutletContext();
+  const [lineProfile, setLineProfile] = useState(null);
 
   useEffect(() => {
-    const redirectPath = localStorage.getItem("redirectPath");
-    if (redirectPath) {
-      sessionStorage.removeItem("redirectPath");
+    const checkLogin = async () => {
+      try {
+        // ตรวจสอบว่า LIFF ถูก init แล้ว
+        if (!liff.isLoggedIn()) {
+          liff.login(); // บังคับให้ login ถ้ายังไม่ได้ login
+          return;
+        }
 
-      // navigate(redirectPath, { replace: true });
-    }
-    console.log("111111111111");
-    
+        // ดึงข้อมูลจาก LIFF Token
+        const idToken = liff.getDecodedIDToken();
+        if (!idToken) {
+          console.error("Failed to retrieve ID Token.");
+          navigate("/mobile/verify", { replace: true });
+          return;
+        }
+
+        // ตั้งค่าข้อมูลโปรไฟล์จาก LIFF
+        const profileData = {
+          name: idToken.name,
+          picture: idToken.picture,
+          user_id: idToken.sub, // `sub` คือ Line User ID
+        };
+        setLineProfile(profileData);
+
+        // เรียก API ส่ง user_id ไปตรวจสอบ
+        const response = await useServiceAPI.post(paths.pathCheckLoginShop, {
+          user_id: profileData.user_id,
+        });
+
+        // ตรวจสอบผลลัพธ์ API
+        if (response.status === 200 && response.result) {
+          navigate("/mobile/main", { replace: true });
+        } else {
+          navigate("/mobile/verify", { replace: true });
+        }
+      } catch (error) {
+        console.error("Error checking login:", error);
+        navigate("/mobile/verify", { replace: true });
+      }
+    };
+
+    checkLogin();
     console.log(userProfile);
-  }, []);
+    console.log(lineProfile);
+  }, [navigate]);
 
   return <MessageLayout loading={true} />;
 }

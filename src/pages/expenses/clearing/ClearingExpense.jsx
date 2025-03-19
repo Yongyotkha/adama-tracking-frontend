@@ -228,30 +228,7 @@ export default function ClearingExpense() {
         const { data, records_filtered } = response.data;
 
         const newDataSource = data.map((row, index) => {
-          const actionItems = [
-            {
-              key: "1",
-              label: (
-                <ItemDropDown
-                  mode="edit"
-                  link={`/activity/edit?documentNumber=${encodeURIComponent(
-                    row.document_number
-                  )}&pageCode=${encodeURIComponent(row.page_code)}`}
-                />
-              ),
-            },
-            {
-              key: "3",
-              label: (
-                <ItemDropDown
-                  mode="delete"
-                  link="#"
-                  onClick={() => handleDelete(row.document_number)}
-                />
-              ),
-            },
-          ];
-
+         
           return {
             key: index + 1 + (current - 1) * pageSize,
             customer: row.customer_name,
@@ -285,6 +262,7 @@ export default function ClearingExpense() {
                           state: {
                             documentNumber: row.document_number,
                             pageCode: row.page_code,
+                            page_mode: actionItem.action,
                           },
                         });
                       };
