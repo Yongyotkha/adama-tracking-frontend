@@ -9,6 +9,15 @@
 .ant-radio-wrapper:hover .ant-radio-inner {
   border-color: #00783F;
 }
+.ant-select:hover .ant-select-selector ,
+.ant-select-focused .ant-select-selector{
+  border-color: #00783F !important;
+}
+
+.ant-input-outlined:hover,
+.ant-input-outlined:focus-within {
+  border-color: #00783F;
+}
 .delete-button {
   display: flex;
   justify-content: center;

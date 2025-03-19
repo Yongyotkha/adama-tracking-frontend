@@ -22,25 +22,27 @@ export default function VerifyOA() {
   const { userInfo } = useContext(AuthContext);
   const { Title, Text } = Typography;
   const [userName, setUserName] = useState("");
+  const formatPhoneNumber = (number) => number.replace(/\s+/g, "");
 
   useEffect(() => { }, [location, phone_number]);
 
   const onFinish = () => {
+    const formattedPhoneNumber = formatPhoneNumber(phone_number);
+
     setLoading(true);
     useServiceAPI
-      .post(paths.pathOtpverify, { phone_number }, setLoading)
+      .post(paths.pathOtpverify, {  phone_number: formattedPhoneNumber  }, setLoading)
       .then((response) => {
         if (response.status === 200) {
           setLoading(true);
-          const phone_number = response.data.phone_number_otp;
+          const phone_number_otp = response.data.phone_number_otp;
           useServiceAPI
-            .post(paths.pathOtpShopCall, { phone_number }, setLoading)
+            .post(paths.pathOtpShopCall, {  phone_number: phone_number_otp }, setLoading)
             .then((response) => {
               if (response.status === 200) {
                 const otpRefNo = response.data.data.otp_ref_no;
                 const message_id = response.data.data.message_id;
-                console.log("OTP Reference Number:", otpRefNo);
-                navigate("/mobile/otp", { state: { phone_number, otpRefNo, message_id } });
+                navigate("/mobile/otp", { state: {  phone_number: phone_number_otp, otpRefNo, message_id } });
               }
             })
             .catch((error) => {
