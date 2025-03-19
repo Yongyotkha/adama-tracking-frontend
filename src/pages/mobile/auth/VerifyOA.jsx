@@ -47,21 +47,21 @@ export default function VerifyOA() {
     //   })
     //   .finally(() => setLoading(false));
 
-      
+
     setLoading(true);
     useServiceAPI
-      .post(paths.pathOtpverify, {  phone_number: formattedPhoneNumber  }, setLoading)
+      .post(paths.pathOtpverify, { phone_number: formattedPhoneNumber }, setLoading)
       .then((response) => {
         if (response.status === 200) {
           setLoading(true);
           const phone_number_otp = response.data.phone_number_otp;
           useServiceAPI
-            .post(paths.pathOtpShopCall, {  phone_number: phone_number_otp }, setLoading)
+            .post(paths.pathOtpShopCall, { phone_number: phone_number_otp }, setLoading)
             .then((response) => {
               if (response.status === 200) {
                 const otpRefNo = response.data.data.otp_ref_no;
                 const message_id = response.data.data.message_id;
-                navigate("/mobile/otp", { state: {  phone_number: phone_number_otp, otpRefNo, message_id } });
+                navigate("/mobile/otp", { state: { phone_number: phone_number_otp, otpRefNo, message_id } });
               }
             })
             .catch((error) => {
@@ -101,10 +101,12 @@ export default function VerifyOA() {
             ]}
           >
             <PhoneInput
+              defaultCountry="TH"
               value={phone_number}
               onChange={setPhoneNumber}
               className="w-full border rounded-lg px-3 py-2 text-[#8A8A8A] text-lg focus:ring-green-500 focus:border-green-500 sarabun-font"
               placeholder="000 000 0000"
+              limitMaxLength={12}
             />
           </Form.Item>
         </div>
