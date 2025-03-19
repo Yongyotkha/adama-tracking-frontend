@@ -1,23 +1,27 @@
 import React, { useState } from "react";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import HeadSectionUser from "../../../components/mobile/head_section_user/HeadSectionUser";
 import UserPointsSection from "../../../components/mobile/user_points_section/UserPointsSection";
 import MainMenu from "../../../components/mobile/main_menu/MainMenu";
 import "@splidejs/splide/dist/css/splide.min.css";
-import './MainCSS.css'
+import "./MainCSS.css";
 
 export default function MainOA() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { userProfile } = useOutletContext();
+
+  useEffect(() => {
+    console.log(userProfile);
+  }, [userProfile]);
 
   // Mock User Data
   const userData = {
     name: "คุณ Krairoek Ruangkol",
     memberId: "123456",
-    profileImage:
-      "/img/icons/profile.png",
+    profileImage: "/img/icons/profile.png",
   };
 
   // Mock Points Data
@@ -29,8 +33,18 @@ export default function MainOA() {
 
   // Sample Promotion Data
   const promotions = [
-    { id: 1, image: "/img/promotion-exam.png", type: "promotion", alt: "Promotion 1" },
-    { id: 2, image: "/img/promotion-exam.png", type: "promotion", alt: "Promotion 2" },
+    {
+      id: 1,
+      image: "/img/promotion-exam.png",
+      type: "promotion",
+      alt: "Promotion 1",
+    },
+    {
+      id: 2,
+      image: "/img/promotion-exam.png",
+      type: "promotion",
+      alt: "Promotion 2",
+    },
     { id: 3, image: "/img/promotion-exam.png", type: "info" }, // No 'alt' provided
   ];
 

@@ -21,11 +21,23 @@ const LineOARoute = () => {
           withLoginOnExternalBrowser: true,
         });
 
-        if (liff.isLoggedIn()) {
-          const lineProfile = await liff.getProfile();
+        if (!liff.isLoggedIn()) {
+          liff.login();
+        } else {
+          const accessToken = liff.getAccessToken();
+          if (!accessToken) {
+            liff.login();
+            return;
+          }
 
-          setLineProfile(lineProfile);
-          setIsLineLoggedIn(true);
+          try {
+            const lineProfile = await liff.getProfile();
+            setLineProfile(lineProfile);
+            setIsLineLoggedIn(true);
+          } catch (profileError) {
+            liff.logout();
+            window.location.reload(); // รีโหลดหน้าเพื่อให้ผู้ใช้ล็อกอินใหม่
+          }
         }
       } catch (error) {
         console.error("LIFF Initialization Failed:", error);
@@ -49,12 +61,12 @@ const LineOARoute = () => {
           if (redirectPath) {
             sessionStorage.removeItem("redirectPath");
             navigate(redirectPath, { replace: true });
+          } else {
+            navigate("/mobile/main");
           }
         }
-        console.log(results);
       } catch (error) {
         console.error("Error fetching user profile:", error);
-
         if (error?.response?.status === 401) {
           navigate("/mobile/verify");
         }
