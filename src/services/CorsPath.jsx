@@ -240,6 +240,8 @@ export const paths = {
 
   pathRegisterShop: "/shop/register",
   pathCheckLoginShop: "/shop/login",
+  pathMasterContactType: "/master/contact_type",
+  pathMasterContactUpdate: "/master/contact/update",
 
   
 
