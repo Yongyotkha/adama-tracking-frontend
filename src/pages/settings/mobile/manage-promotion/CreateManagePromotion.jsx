@@ -15,7 +15,7 @@ export default function CreateManagePromotion() {
 
   // 🔹 Form Fields
   const formFields = [
-    { label: "Banner", name: "banner", type: "photo", required: true, col: 24, accept: "image/png, image/jpeg" },
+    { label: "Banner", name: "file", type: "photo", required: true, col: 24, accept: "image/png, image/jpeg" },
 
     { label: "Date", name: "date", type: "date", required: true, col: 12, value: dayjs().format("YYYY-MM-DD") },
     { label: "Expire Date", name: "expire_date", type: "date", required: true, col: 12, value: dayjs().add(7, "days").format("YYYY-MM-DD") },
