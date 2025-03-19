@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { useNavigate, useParams } from "react-router-dom";
-import { Form, Input, Col, Row, Select, InputNumber } from "antd";
+import { Form, Input, Col, Row, Select, InputNumber, Modal } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -16,7 +16,7 @@ import DynamicModal from "../../components/modal/DynamicModal";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { useLocation } from "react-router-dom";
-import { ReloadOutlined } from "@ant-design/icons";
+import { ExclamationCircleFilled, ReloadOutlined } from "@ant-design/icons";
 import { AuthContext } from "../../contexts/AuthContext";
 
 dayjs.extend(customParseFormat);
@@ -26,11 +26,19 @@ dayjs.extend(timezone);
 const { Option } = Select;
 
 export default function CreateActivity() {
+  const { confirm } = Modal;
+  const { TextArea } = Input;
+
   const locationParam = useLocation();
+  useEffect(() => {
+    console.log(locationParam);
+  }, [locationParam]);
+
   const { mode } = useParams();
   const [documentNumber, setDocumentNumber] = useState(
     locationParam?.state?.documentNumber
   );
+  const [pageMode, setPageMode] = useState(locationParam?.state?.page_mode);
   const pageCode = locationParam?.state?.pageCode;
   const viewSegment = mode === "view";
 
@@ -141,7 +149,7 @@ export default function CreateActivity() {
             ? "hidden"
             : "search"
           : "hidden",
-      disabled: viewSegment ?? false,
+      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
       required: false,
       col: 24,
       value: "",
@@ -152,7 +160,7 @@ export default function CreateActivity() {
       type: "select",
       typeMode: "string",
       options: activityList,
-      disabled: viewSegment ?? false,
+      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
       value: activityDetail.activity_type_id ?? "",
@@ -163,7 +171,7 @@ export default function CreateActivity() {
       type: "select",
       // typeMode: "string",
       options: saleList,
-      disabled: viewSegment ?? false,
+      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
       value: activityDetail.user_id ?? "",
@@ -188,7 +196,7 @@ export default function CreateActivity() {
             },
           ]
         : dealerList,
-      disabled: viewSegment ?? false,
+      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
       value: activityDetail.dealer_id ?? "",
@@ -201,7 +209,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: cropList,
-      disabled: viewSegment ?? false,
+      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
       required: true,
       col: 6,
       value: activityDetail.crop_id_list,
@@ -214,7 +222,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: productList,
-      disabled: viewSegment ?? false,
+      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
       required: true,
       col: pageCode != "activity_transaction" ? 18 : 24,
       value: activityDetail.product_list,
@@ -223,7 +231,7 @@ export default function CreateActivity() {
       label: "Date",
       name: "document_date",
       type: "date",
-      disabled: viewSegment ?? false,
+      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
       required: true,
       col: pageCode != "activity_transaction" ? 6 : 8,
       value: activityDetail.document_date,
@@ -232,7 +240,7 @@ export default function CreateActivity() {
       label: "Location",
       name: "location_address",
       type: "text",
-      disabled: viewSegment ?? false,
+      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
       required: false,
       col: 24,
       value: activityDetail.location_address ?? "",
@@ -243,7 +251,7 @@ export default function CreateActivity() {
       label: "Description",
       name: "description",
       type: "text-editor",
-      disabled: viewSegment ?? false,
+      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
       required: false,
       col: 24,
       placeholder: "Add description",
@@ -256,7 +264,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: saleAllList,
-      disabled: viewSegment ?? false,
+      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
       required: false,
       col: 24,
       value: activityDetail.assing_user_list,
@@ -298,6 +306,7 @@ export default function CreateActivity() {
           useServiceAPI.get(paths.pathActivityExpenseDetail, {
             document_number: documentNumber,
             page_code: pageCode,
+            page_mode: pageMode,
           }),
         ]);
 
@@ -387,7 +396,6 @@ export default function CreateActivity() {
   };
 
   const handleChange = (attribue, value) => {
-    console.log(attribue, value);
     const getMasterSelect = async () => {
       try {
         if (attribue === "user_id") {
@@ -603,7 +611,11 @@ export default function CreateActivity() {
           min={0}
           value={record.estimate_sale_qty}
           disabled={
-            pageCode == "expense_clearing" ? true : viewSegment ?? false
+            pageCode == "expense_clearing"
+              ? true
+              : mode === "create"
+              ? false
+              : !activityDetail?.permission?.edit
           }
           onChange={(value) =>
             handleInputChange(
@@ -631,7 +643,11 @@ export default function CreateActivity() {
           min={0}
           value={record.acutal_sale_qty}
           disabled={
-            pageCode != "expense_clearing" ? true : viewSegment ?? false
+            pageCode != "expense_clearing"
+              ? true
+              : mode === "create"
+              ? false
+              : !activityDetail?.permission?.edit
           }
           onChange={(value) =>
             handleInputChange(
@@ -890,11 +906,6 @@ export default function CreateActivity() {
         pageCode == "expense_advance" ||
         pageCode == "expense_clearing";
 
-      //ส่วนของ Sale Plan
-      const expenseProductTotalEstimateSale =
-        calculateGrandTotal("estimateSale");
-      const expenseProductTotalAcutalSale = calculateGrandTotal("actualSale");
-
       let expenseParticapantUserList = [];
       let particapantList = [];
       participantUsers.forEach((element) => {
@@ -1001,124 +1012,47 @@ export default function CreateActivity() {
     }
   };
 
-  // บันทึกข้อมูล
-  // const handleSave = async (modeSave) => {
-  //   try {
-  //     await formCustom.validateFields();
+  const handleApproval = (action) => {
+    let remark = "";
+    confirm({
+      title: `Do you want to ${action} ?`,
+      icon: <ExclamationCircleFilled />,
+      content: action === "reject" && (
+        <TextArea onChange={(e) => (remark = e.target.value)} />
+      ),
+      centered: true,
+      onOk() {
+        handleCallApprove(remark, action);
+      },
+    });
+  };
 
-  //     let allValuesBasic = formCustom.getFieldsValue();
-
-  //     // ✅ Convert `document_date` to Asia/Bangkok timezone and format it
-  //     allValuesBasic.document_date = dayjs(allValuesBasic.document_date)
-  //       .tz("Asia/Bangkok", true) // Convert to +7 timezone
-  //       .format("YYYY-MM-DD HH:mm:ss.SSS"); // Format as required
-
-  //     // File Upload
-  //     const imageLists = [];
-  //     fileList.forEach((element) => {
-  //       imageLists.push(element.url);
-  //     });
-
-  //     // เปิด Expense หรือไม่?
-  //     const isExpense =
-  //       isBtnExpenseActive ||
-  //       pageCode == "expense_advance" ||
-  //       pageCode == "expense_clearing";
-
-  //     // ส่วนของ Sale Plan
-  //     const expenseProductTotalEstimateSale =
-  //       calculateGrandTotal("estimateSale");
-  //     const expenseProductTotalAcutalSale = calculateGrandTotal("actualSale");
-
-  //     let expenseParticapantUserList = [];
-  //     let particapantList = [];
-  //     participantUsers.forEach((element) => {
-  //       expenseParticapantUserList.push(element.id);
-  //     });
-  //     participants.forEach((element) => {
-  //       particapantList.push({
-  //         name: element.name,
-  //         address: element.address,
-  //         phone: element.phone,
-  //       });
-  //     });
-
-  //     console.log(activityDetail);
-
-  //     const body = {
-  //       ...activityDetail,
-  //       page_code: pageCode,
-  //       action_code: modeSave,
-  //       image_list: imageLists,
-  //       is_expense: isExpense,
-  //       expense_file_list: [],
-  //       expense_particapant_user_list: expenseParticapantUserList,
-  //       particapant_list: particapantList,
-  //       document_date: allValuesBasic.document_date, // ✅ Updated timezone +7 format
-  //     };
-
-  //     console.log("Sending Body:", body);
-
-  //     if (documentNumber) {
-  //       useServiceAPI
-  //         .put(paths.pathActivityExpenseDetail, body, setLoading)
-  //         .then((response) => {
-  //           const successCallback = () => {
-  //             if (response.result) {
-  //               if (pageCode == "expense_clearing") {
-  //                 navigate("/expenses/clearing");
-  //               } else if (pageCode == "expense_advance") {
-  //                 if (modeSave == "convert_clearing") {
-  //                   navigate("/expenses/clearing");
-  //                 } else {
-  //                   navigate("/expenses/advance");
-  //                 }
-  //               } else {
-  //                 navigate("/activity/list");
-  //               }
-  //             }
-  //           };
-  //           showNotification(
-  //             "success",
-  //             response.data.message,
-  //             response.data.message_line,
-  //             2
-  //           ).then(successCallback);
-  //         })
-  //         .catch((error) => { });
-  //     } else {
-  //       useServiceAPI
-  //         .post(paths.pathActivityExpenseCreate, body, setLoading)
-  //         .then((response) => {
-  //           const successCallback = () => {
-  //             if (response.result) {
-  //               if (pageCode == "expense_clearing") {
-  //                 navigate("/expenses/clearing");
-  //               } else if (pageCode == "expense_advance") {
-  //                 if (modeSave == "convert_clearing") {
-  //                   navigate("/expenses/clearing");
-  //                 } else {
-  //                   navigate("/expenses/advance");
-  //                 }
-  //               } else {
-  //                 navigate("/activity/list");
-  //               }
-  //             }
-  //           };
-  //           showNotification(
-  //             "success",
-  //             response.data.message,
-  //             response.data.message_line,
-  //             2
-  //           ).then(successCallback);
-  //         })
-  //         .catch((error) => { });
-  //     }
-  //   } catch (err) {
-  //     console.error("Error fetching address:", err);
-  //     console.log(activityDetail);
-  //   }
-  // };
+  const handleCallApprove = async (remark, action) => {
+    let path =
+      pageCode === "expense_advance"
+        ? paths.pathAdvanceApproval
+        : paths.pathClearingApproval;
+    try {
+      const result = await useServiceAPI.put(path, {
+        document_number: documentNumber,
+        page_mode: pageMode,
+        remark: remark,
+        action_code: action,
+      });
+      showNotification(
+        "success",
+        result.data.Message.Message_Header,
+        result.data.Message.Message_Line,
+        2
+      ).then(() => {
+        navigate(-1);
+      });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <MainLayout loading={loading}>
@@ -1386,7 +1320,15 @@ export default function CreateActivity() {
                           expense_advance: value,
                         });
                       }}
-                      disabled={pageCode == "expense_clearing" || viewSegment}
+                      disabled={
+                        mode === "create" && pageCode === "expense_clearing"
+                          ? true
+                          : pageCode !== "expense_clearing"
+                          ? false
+                          : pageCode === "expense_clearing"
+                          ? true
+                          : !activityDetail?.permission?.edit
+                      }
                     />{" "}
                   </Form.Item>
                 </Col>
@@ -1410,7 +1352,11 @@ export default function CreateActivity() {
                           expense_actual: value,
                         });
                       }}
-                      disabled={pageCode != "expense_clearing" || viewSegment}
+                      disabled={
+                        pageCode != "expense_clearing" || mode === "create"
+                          ? pageCode !== "expense_clearing"
+                          : !activityDetail?.permission?.edit
+                      }
                     />{" "}
                   </Form.Item>
                 </Col>
@@ -1475,17 +1421,26 @@ export default function CreateActivity() {
                   <div className="text-[#00783F] text-lg font-semibold mb-3">
                     File
                   </div>
-                  {viewSegment ? null : (
-                    <ActionButton
-                      mode="add"
-                      text="Upload File"
-                      onClick={handleUploadClick}
-                    />
-                  )}
+                  <ActionButton
+                    mode="add"
+                    text="Upload File"
+                    onClick={handleUploadClick}
+                    disabled={
+                      mode === "create"
+                        ? false
+                        : !activityDetail?.permission?.edit
+                    }
+                  />
                 </div>
                 <FileUploadComponent
                   ref={fileUploadRef}
-                  mode={viewSegment ? "view" : "edit"}
+                  mode={
+                    mode === "create"
+                      ? false
+                      : !activityDetail?.permission?.edit
+                      ? "view"
+                      : "edit"
+                  }
                   dataFile={fileList}
                   modeUpload={pageCode}
                   onUploadSuccess={handleUploadSuccess}
@@ -1535,7 +1490,11 @@ export default function CreateActivity() {
                       min={0}
                       placeholder="0"
                       disabled={
-                        pageCode == "expense_clearing" ? true : viewSegment
+                        pageCode == "expense_clearing"
+                          ? true
+                          : mode === "create"
+                          ? false
+                          : !activityDetail?.permission?.edit
                       }
                       formatter={(value) =>
                         `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
@@ -1627,6 +1586,26 @@ export default function CreateActivity() {
             onClick={() => {
               const targetUrl = `/expenses/advance/pdf?document_number=${activityDetail.document_number}&page_code=${pageCode}`;
               window.open(targetUrl, "_blank"); // เปิดในแท็บใหม่
+            }}
+          />
+        )}
+
+        {activityDetail?.permission?.btn_reject && (
+          <ActionButton
+            mode="reject"
+            text="Reject"
+            onClick={() => {
+              handleApproval("reject");
+            }}
+          />
+        )}
+
+        {activityDetail?.permission?.btn_approved && (
+          <ActionButton
+            mode="save"
+            text="Approve"
+            onClick={() => {
+              handleApproval("approved");
             }}
           />
         )}
