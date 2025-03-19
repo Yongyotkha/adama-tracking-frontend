@@ -51,7 +51,7 @@ export default function MyAccount() {
         <div className="w-full rounded-b-[40px] flex items-center relative gap-2 max-w-md">
           <div className="w-24 h-24 bg-gray-300 rounded-full overflow-hidden shadow">
             <img
-              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsynwv-5qtogtOwJbIjaPFJUmHpzhxgqIAug&s"
+              src="/img/icons/profile.png"
               alt="Profile"
               className="w-full h-full object-cover shadow"
             />

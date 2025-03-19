@@ -29,6 +29,22 @@ export default function VerifyOA() {
   const onFinish = () => {
     const formattedPhoneNumber = formatPhoneNumber(phone_number);
 
+    // setLoading(true);
+    // useServiceAPI
+    //   .post(paths.pathOtpShopCall, {  phone_number: formattedPhoneNumber }, setLoading)
+    //   .then((response) => {
+    //     if (response.status === 200) {
+    //       const otpRefNo = response.data.data.otp_ref_no;
+    //       const message_id = response.data.data.message_id;
+    //       navigate("/mobile/otp", { state: {   otpRefNo, message_id } });
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     console.error("API Error:", error);
+    //   })
+    //   .finally(() => setLoading(false));
+
+      
     setLoading(true);
     useServiceAPI
       .post(paths.pathOtpverify, {  phone_number: formattedPhoneNumber  }, setLoading)
@@ -78,7 +94,7 @@ export default function VerifyOA() {
             name="phone_number"
             rules={[
               { required: true, message: "กรุณากรอกเบอร์โทรศัพท์" },
-              { pattern: /^\d{3} \d{3} \d{4}$/, message: "กรุณากรอกรูปแบบ 000 000 0000" }
+              // { pattern: /^\d{3} \d{3} \d{4}$/, message: "กรุณากรอกรูปแบบ 000 000 0000" }
             ]}
           >
             <PhoneInput

@@ -307,14 +307,14 @@ const App = () => {
 
           </Route>
 
-          <Route element={<LineOARoute />}>
+          {/* <Route element={<LineOARoute />}> */}
             <Route path="/mobile/verify" element={<VerifyOA />} />
             <Route path="/mobile/otp" element={<OtpOA />} />
             <Route path="/mobile/account" element={< MyAccountMobile />} />
             <Route path="/mobile/user/detail" element={< UserDetail />} />
             <Route path="/mobile/user/edit" element={< EditUserOA />} />
             <Route path="/mobile/register" element={< RegisterOA />} />
-            <Route path="/mobile/contact-staff" element={< ContactStaff />} />
+            <Route path="/mobile/contact-admin" element={< ContactStaff />} />
             <Route path="/mobile/contact-us" element={< ContactUs />} />
             <Route path="/mobile/faq" element={< FaqOA />} />
             <Route path="/mobile/privacy-policy" element={< PrivacyPolicy />} />
@@ -334,7 +334,7 @@ const App = () => {
             <Route path="/mobile/redeem-history" element={< RedeemHistory />} />
 
             <Route path="/mobile/login" element={< CheckLogin />} />
-          </Route>
+          {/* </Route> */}
 
           
           {/* Error Route */}

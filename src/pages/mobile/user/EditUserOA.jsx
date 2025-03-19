@@ -80,7 +80,7 @@ export default function EditUserOA() {
           <div className="flex justify-start items-center relative">
             <div className="w-20 h-20 bg-gray-300 rounded-full overflow-hidden shadow">
               <img
-                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsynwv-5qtogtOwJbIjaPFJUmHpzhxgqIAug&s"
+                src="/img/icons/profile.png"
                 alt="Profile"
                 className="w-full h-full object-cover"
               />
