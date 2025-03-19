@@ -1,6 +1,9 @@
 import React, { useContext, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Form, Typography } from "antd";
+import { Form, Input, Typography } from "antd";
+import { LeftOutlined } from "@ant-design/icons";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import MessageLayout from "../../../layouts/MessageLayout";
 import DynamicButton from "../../../components/button/DynamicButton";
 import { AuthContext } from "../../../contexts/AuthContext";
@@ -9,7 +12,7 @@ import BackTopLeftButton from "../../../components/mobile/button/BackTopLeftButt
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
-import PhoneInput from "../../../components/numeric_input/PhoneInput";
+// import PhoneInput from "../../../components/numeric_input/PhoneInput";
 
 export default function VerifyOA() {
   const location = useLocation();
