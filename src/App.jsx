@@ -314,7 +314,7 @@ const App = () => {
             <Route path="/mobile/user/detail" element={< UserDetail />} />
             <Route path="/mobile/user/edit" element={< EditUserOA />} />
             <Route path="/mobile/register" element={< RegisterOA />} />
-            <Route path="/mobile/contact-staff" element={< ContactStaff />} />
+            <Route path="/mobile/contact-admin" element={< ContactStaff />} />
             <Route path="/mobile/contact-us" element={< ContactUs />} />
             <Route path="/mobile/faq" element={< FaqOA />} />
             <Route path="/mobile/privacy-policy" element={< PrivacyPolicy />} />

@@ -22,7 +22,7 @@ export default function PromotionDetail() {
     name: "คุณ Krairoek Ruangkol",
     memberId: "123456",
     profileImage:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsynwv-5qtogtOwJbIjaPFJUmHpzhxgqIAug&s",
+      "/img/icons/profile.png",
   };
 
   // Points Data (Static)

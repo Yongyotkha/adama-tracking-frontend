@@ -80,11 +80,11 @@ export default function VerifyOA() {
               };
 
               if (response.data.step_number == 0) {
-                navigate("/mobile/contact-staff" , { state: stateData });
+                navigate("/mobile/contact-admin" , { state: stateData });
               } else if (response.data.step_number == 1){
                   navigate("/mobile/register" , { state: stateData });
               } else if (response.data.step_number == 2){
-                  navigate("/mobile/contact-staff" , { state: stateData });
+                  navigate("/mobile/contact-admin" , { state: stateData });
               } else if (response.data.step_number == 4){
                 navigate("/mobile/account" , { state: stateData });
               }
