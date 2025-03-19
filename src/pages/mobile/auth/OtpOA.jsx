@@ -41,11 +41,11 @@ export default function VerifyOA() {
 
             } else if (response.result == true) {
               if (response.data.step_number == 0) {
-                navigate("/mobile/contact-staff");
+                navigate("/mobile/contact-admin");
               } else if (response.data.step_number == 1){
                   navigate("/mobile/register");
               } else if (response.data.step_number == 2){
-                  navigate("/mobile/contact-staff");
+                  navigate("/mobile/contact-admin");
               } else if (response.data.step_number == 4){
                 navigate("/mobile/account");
               }

@@ -112,7 +112,7 @@ export default function VerifyOA() {
           if (phone_number === "0800000001") {
             setIsModalVisible(false);
           } else {
-            navigate("/mobile/contact-staff");
+            navigate("/mobile/contact-admin");
           }
         }}
         onCancel={() => setIsModalVisible(false)}
