@@ -30,7 +30,7 @@ const ModalRegisterPopup = ({ visible, onConfirm, onCancel }) => {
     };
   }, [visible]); // ให้ useEffect รันใหม่เมื่อ modal ถูกเปิด/ปิด
 
-  console.log(isScrolledToBottom);
+  // console.log(isScrolledToBottom);
   
   return (
     <Modal
