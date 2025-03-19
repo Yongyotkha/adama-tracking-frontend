@@ -215,6 +215,7 @@ export default function ClearingExpenseHead() {
       orderby: sortOrder,
       page_length: current,
       page_size: pageSize,
+      page_mode: "waiting_head",
     };
 
     try {
