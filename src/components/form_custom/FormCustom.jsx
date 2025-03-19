@@ -338,7 +338,15 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                         }))}
                       />{" "}
                     </>
-                  ) : field.type === "text-editor" ? (
+                  ) : field.type === "textarea" ? (
+                    <Input.TextArea
+                      rows={4}
+                      placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                      value={formValues[field.name] || ""}
+                      disabled={field.disabled}
+                      onChange={(e) => handleChange(field.name, e.target.value)}
+                    />
+                  ): field.type === "text-editor" ? (
                     <>
                       <ReactQuill
                         theme="snow"

@@ -131,6 +131,8 @@ import AdvanceExpenseAcct from "./pages/expenses/advance/AdvanceExpenseAcct";
 import ClearingExpenseArea from "./pages/expenses/clearing/ClearingExpenseArea";
 import ClearingExpenseHead from "./pages/expenses/clearing/ClearingExpenseHead";
 import ClearingExpenseAcct from "./pages/expenses/clearing/ClearingExpenseAcct";
+import CreateManageNews from "./pages/settings/mobile/manage-news/CreateManageNews";
+import CreateManagePromotion from "./pages/settings/mobile/manage-promotion/CreateManagePromotion";
 
 const App = () => {
   return (
@@ -282,7 +284,9 @@ const App = () => {
             
             <Route path="/setting/line/expire-point" element={<ExpirePointList />} />
             <Route path="/setting/line/manage-news" element={<ManageNewsList />} />
+            <Route path="/setting/line/manage-news/create" element={<CreateManageNews />} />
             <Route path="/setting/line/manage-promotion" element={<ManagePromotionList />} />
+            <Route path="/setting/line/manage-promotion/create" element={<CreateManagePromotion />} />
 
             {/* Report Route */}
             <Route path="/report/monthly" element={<ReportSaleByMonth />} />

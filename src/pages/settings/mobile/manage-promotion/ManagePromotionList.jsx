@@ -113,7 +113,7 @@ export default function ManagePromotionList() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Promotion List</div>
+        <div className="title-page">Manage Promotion</div>
         <ActionButton mode="create" text="Create" onClick={() => navigate("create")} />
       </div>
       <Filter filters={filters} />
@@ -126,6 +126,7 @@ export default function ManagePromotionList() {
           onChange={handleTableChange}
         />
       </BoxPrimary>
+      
     </MainLayout>
   );
 }

@@ -8,8 +8,9 @@ import BackButton from "../../../components/mobile/button/BackButton";
 
 export default function RedeemHistory() {
   const [loading, setLoading] = useState(false);
+
+  const [activeTab, setActiveTab] = useState("earned"); // Default tab
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("processing");
 
   // User Data
   const userData = {
@@ -25,20 +26,27 @@ export default function RedeemHistory() {
     expiryDate: "31 ธ.ค. 67",
   };
 
+  // Tabs
   const tabs = [
-    { id: "processing", label: "กำลังดำเนินการ", color: "border-orange-500" },
-    { id: "completed", label: "เสร็จสิ้น", color: "border-green-500" },
-    { id: "canceled", label: "ยกเลิก", color: "border-red-500" },
+    { id: "earned", label: "สะสมคะแนน", color: "border-green-500" },
+    { id: "redeemed", label: "แลกคะแนน", color: "border-red-500" },
+    { id: "expiring", label: "คะแนนใกล้หมดอายุ", color: "border-orange-500" },
   ];
 
-  // Mock Order Data
-  const orders = [
-    { id: 1, status: "processing", date: "31 ธ.ค. 67 16:16", number: "20250000001", total: "฿10,000.00", items: 5 },
-    { id: 2, status: "completed", date: "31 ธ.ค. 67 16:16", number: "20250000002", total: "฿8,000.00", items: 3 },
-    { id: 3, status: "canceled", date: "31 ธ.ค. 67 16:16", number: "20250000003", total: "฿5,500.00", items: 2 },
-  ];
-
-  const filteredOrders = orders.filter((order) => order.status === activeTab);
+  // Mock Transaction Data
+  const transactions = {
+    earned: [
+      { id: 1, date: "3 พ.ย. 67 | 19:17:31", points: "+30 คะแนน" },
+      { id: 2, date: "2 พ.ย. 67 | 19:17:31", points: "+30 คะแนน" },
+      { id: 3, date: "1 พ.ย. 67 | 19:17:31", points: "+30 คะแนน" },
+    ],
+    redeemed: [
+      { id: 4, date: "3 พ.ย. 67 | 19:17:31", item: "Gift Card 1,000 THB", points: "-30 คะแนน" },
+      { id: 5, date: "2 พ.ย. 67 | 19:17:31", item: "Gift Card 1,000 THB", points: "-30 คะแนน" },
+      { id: 6, date: "1 พ.ย. 67 | 19:17:31", item: "Gift Card 1,000 THB", points: "-30 คะแนน" },
+    ],
+    expiring: [{ id: 7, date: "3 พ.ย. 67", points: "15 คะแนน" }],
+  };
 
   return (
     <MobileLayout loading={loading}>
@@ -58,50 +66,33 @@ export default function RedeemHistory() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-2 text-sm font-semibold text-center sarabun-font ${
-                activeTab === tab.id ? "border-b-2 text-green-600 border-green-500" : "text-gray-500"
-              }`}
+              className={`flex-1 py-2 text-sm font-semibold text-center sarabun-font ${activeTab === tab.id ? "border-b-2 text-green-600 border-green-500" : "text-gray-500"
+                }`}
             >
               {tab.label}
             </button>
           ))}
         </div>
 
-        {/* Order List */}
+        {/* Transactions List */}
         <div className="w-full max-w-md mt-4 px-4">
-          <h5 className="sarabun-font text-gray-700">รายการทั้งหมด {filteredOrders.length} รายการ</h5>
-          <div className="mt-2 space-y-3">
-            {filteredOrders.map((order) => {
-              const tabColor = tabs.find((tab) => tab.id === order.status)?.color || "border-gray-300";
-              return (
-                <div
-                  key={order.id}
-                  // onClick={() => navigate(`/mobile/redeem-history/detail/${order.id}`)}
-                  onClick={() => 
-                    navigate("/mobile/redeem-history/detail", {
-                      state: {
-                        id: order.id,
-                      },
-                    })
-                  }
-
-                  className={`flex items-center justify-between p-4 bg-white rounded-lg shadow-md border-l-4 ${tabColor} cursor-pointer`}
-                >
-                  <div>
-                    <p className="text-gray-500 sarabun-font text-sm">{order.date}</p>
-                    <p className="text-gray-900 sarabun-font font-bold">เลขที่ {order.number}</p>
-                    <p className="text-gray-500 sarabun-font text-sm">รายการ {order.items}</p>
-                  </div>
-                  <p className="text-green-700 sarabun-font font-bold">{order.total}</p>
+          {transactions[activeTab].map((item) => (
+            <div key={item.id} className="flex justify-between items-center bg-white p-3 rounded-lg shadow-md mb-2">
+              <div className="flex gap-2 flex-wrap">
+                <img src="/img/icons/point.png" className="h-5 w-5 my-auto" alt="point-icon" />
+                <div>
+                  {item.item && <p className="text-gray-700 font-medium text-sm sarabun-font">{item.item}</p>}
+                  <p className="text-gray-500 text-sm sarabun-font">{item.date}</p>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+              <p className={`font-bold sarabun-font ${activeTab === "redeemed" ? "text-red-500" : "text-green-600"}`}>{item.points}</p>
+            </div>
+          ))}
         </div>
 
         {/* Back Button */}
         <BackButton url="/mobile/main" />
       </div>
-    </MobileLayout>
+    </MobileLayout >
   );
 }
