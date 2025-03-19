@@ -7,7 +7,7 @@ import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 
 const { Option } = Select;
 
-export default function ContactStaff() {
+export default function ContactAdmin() {
   const [loading, setLoading] = useState(false);
   const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
   const navigate = useNavigate();
