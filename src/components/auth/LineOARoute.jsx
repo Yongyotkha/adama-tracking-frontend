@@ -21,11 +21,23 @@ const LineOARoute = () => {
           withLoginOnExternalBrowser: true,
         });
 
-        if (liff.isLoggedIn()) {
-          const lineProfile = await liff.getProfile();
+        if (!liff.isLoggedIn()) {
+          liff.login();
+        } else {
+          const accessToken = liff.getAccessToken();
+          if (!accessToken) {
+            liff.login();
+            return;
+          }
 
-          setLineProfile(lineProfile);
-          setIsLineLoggedIn(true);
+          try {
+            const lineProfile = await liff.getProfile();
+            setLineProfile(lineProfile);
+            setIsLineLoggedIn(true);
+          } catch (profileError) {
+            liff.logout();
+            window.location.reload(); // รีโหลดหน้าเพื่อให้ผู้ใช้ล็อกอินใหม่
+          }
         }
       } catch (error) {
         console.error("LIFF Initialization Failed:", error);
@@ -42,19 +54,19 @@ const LineOARoute = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const userProfile = await loginLineUid(lineProfile.userId);
+        const results = await loginLineUid(lineProfile.userId);
         // const results = await loginLineUid("admin");
         if (results.status === 200) {
           const redirectPath = localStorage.getItem("redirectPath");
           if (redirectPath) {
             sessionStorage.removeItem("redirectPath");
             navigate(redirectPath, { replace: true });
+          } else {
+            navigate("/mobile/main");
           }
         }
-        console.log(results);
       } catch (error) {
         console.error("Error fetching user profile:", error);
-
         if (error?.response?.status === 401) {
           navigate("/mobile/verify");
         }
