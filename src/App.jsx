@@ -95,7 +95,6 @@ import OtpOA from "./pages/mobile/auth/OtpOA";
 import UserDetail from "./pages/mobile/user/UserDetail";
 import EditUserOA from "./pages/mobile/user/EditUserOA";
 import RegisterOA from "./pages/mobile/register/RegisterOA";
-import ContactStaff from "./pages/mobile/contact_staff/ContactStaff";
 import MainOA from "./pages/mobile/main/MainOA";
 import ActivityPlanDealerMonth from "./pages/activity/activity_plan/ActivityPlanDealerMonth";
 import PDFClearingExpense from "./pages/pdf/PDFClearingExpense";
@@ -136,6 +135,7 @@ import ClearingExpenseAcct from "./pages/expenses/clearing/ClearingExpenseAcct";
 import ApprovalExpense from "./pages/expenses/advance/ApprovalAdvanceExpense";
 import ApprovalAdvanceExpense from "./pages/expenses/advance/ApprovalAdvanceExpense";
 import ApprovalClearingExpense from "./pages/expenses/clearing/ApprovalClearingExpense";
+import ContactAdmin from "./pages/mobile/contact_admin/ContactAdmin";
 
 const App = () => {
   return (
@@ -314,7 +314,7 @@ const App = () => {
             <Route path="/mobile/user/detail" element={< UserDetail />} />
             <Route path="/mobile/user/edit" element={< EditUserOA />} />
             <Route path="/mobile/register" element={< RegisterOA />} />
-            <Route path="/mobile/contact-admin" element={< ContactStaff />} />
+            <Route path="/mobile/contact-admin" element={< ContactAdmin />} />
             <Route path="/mobile/contact-us" element={< ContactUs />} />
             <Route path="/mobile/faq" element={< FaqOA />} />
             <Route path="/mobile/privacy-policy" element={< PrivacyPolicy />} />
