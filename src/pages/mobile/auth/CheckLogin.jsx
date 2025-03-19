@@ -14,6 +14,8 @@ export default function CheckLogin() {
 
       // navigate(redirectPath, { replace: true });
     }
+    console.log("111111111111");
+    
     console.log(userProfile);
   }, []);
 

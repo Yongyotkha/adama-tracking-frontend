@@ -307,7 +307,7 @@ const App = () => {
 
           </Route>
 
-          {/* <Route element={<LineOARoute />}> */}
+          <Route element={<LineOARoute />}>
             <Route path="/mobile/verify" element={<VerifyOA />} />
             <Route path="/mobile/otp" element={<OtpOA />} />
             <Route path="/mobile/account" element={< MyAccountMobile />} />
@@ -332,9 +332,8 @@ const App = () => {
             <Route path="/mobile/redeem-history/detail" element={< RedeemHistoryDetail />} />
             <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
             <Route path="/mobile/redeem-history" element={< RedeemHistory />} />
-
             <Route path="/mobile/login" element={< CheckLogin />} />
-          {/* </Route> */}
+          </Route>
 
           
           {/* Error Route */}
