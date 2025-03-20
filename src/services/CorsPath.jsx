@@ -243,6 +243,7 @@ export const paths = {
   pathMasterContactType: "/master/contact_type",
   pathMasterContactUpdate: "/master/contact/update",
 
-  
-
+  pathPointPublicCategory: "point/public/category",
+  pathPointPublicListByCategory: "point/public/list",
+  pathPointPublicDetail: "point/public/detail",
 };
