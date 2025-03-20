@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { useNavigate, useOutletContext } from "react-router-dom";
@@ -11,11 +11,12 @@ import "./MainCSS.css";
 export default function MainOA() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { userProfile } = useOutletContext();
+  
+  // const { userProfile } = useOutletContext();
 
-  useEffect(() => {
-    console.log(userProfile);
-  }, [userProfile]);
+  // useEffect(() => {
+  //   console.log(userProfile);
+  // }, [userProfile]);
 
   // Mock User Data
   const userData = {
