@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import SectionHeader from "../../../components/mobile/section_header/SectionHeader";
 import HeadSectionUser from "../../../components/mobile/head_section_user/HeadSectionUser";
 import UserPointsSection from "../../../components/mobile/user_points_section/UserPointsSection";
@@ -14,13 +14,16 @@ export default function Promotion() {
   const [categories, setCategories] = useState([]);
   const [activeTab, setActiveTab] = useState("");
   const [promotions, setPromotions] = useState([]);
+  const { lineProfile } = useOutletContext();
 
+  useEffect(() => {
+    console.log("lineProfile", lineProfile);
+  }, []);
   // User Data
   const userData = {
     name: "คุณ Krairoek Ruangkol",
     memberId: "123456",
-    profileImage:
-      "/img/icons/profile.png",
+    profileImage: "/img/icons/profile.png",
   };
 
   // Points Data
@@ -39,7 +42,7 @@ export default function Promotion() {
 
         if (response.status === 200 && response.result) {
           console.log(response.data);
-          
+
           setCategories(response.data);
           setActiveTab(response.data[0]?.id); // Default tab to first category
         } else {
@@ -60,9 +63,12 @@ export default function Promotion() {
     const fetchPromotions = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathNewsPublicListByCategory, {
-          category_id: activeTab,
-        });
+        const response = await useServiceAPI.get(
+          paths.pathNewsPublicListByCategory,
+          {
+            category_id: activeTab,
+          }
+        );
 
         if (response.status === 200 && response.result) {
           setPromotions(response.data);
@@ -95,10 +101,12 @@ export default function Promotion() {
         <div className="w-full max-w-md mt-4 flex space-x-3">
           {categories.map((category) => (
             <button
-              key={category.id }
+              key={category.id}
               onClick={() => setActiveTab(category.id)}
               className={`px-4 py-2 rounded-full text-sm font-semibold sarabun-font ${
-                activeTab === category.id ? "bg-[#FFB347] text-white" : "bg-gray-300 text-gray-700"
+                activeTab === category.id
+                  ? "bg-[#FFB347] text-white"
+                  : "bg-gray-300 text-gray-700"
               }`}
             >
               {category.id ? category.name : category.text}
@@ -114,7 +122,7 @@ export default function Promotion() {
                 key={promo.id}
                 className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer mb-3"
                 // onClick={() => navigate(`/mobile/promotion/detail/${promo.id}`)}
-                onClick={() => 
+                onClick={() =>
                   navigate("/mobile/promotion/detail/", {
                     state: {
                       id: promo.id,
@@ -122,15 +130,25 @@ export default function Promotion() {
                   })
                 }
               >
-                <img src={promo.logo} alt={promo.name} className="w-full object-cover" />
+                <img
+                  src={promo.logo}
+                  alt={promo.name}
+                  className="w-full object-cover"
+                />
                 <div className="p-3">
-                  <p className="text-sm text-gray-500">{promo.description_shot}</p>
-                  <h3 className="font-semibold text-gray-800 sarabun-font">{promo.name}</h3>
+                  <p className="text-sm text-gray-500">
+                    {promo.description_shot}
+                  </p>
+                  <h3 className="font-semibold text-gray-800 sarabun-font">
+                    {promo.name}
+                  </h3>
                 </div>
               </div>
             ))
           ) : (
-            <p className="text-center text-gray-500 mt-4">ไม่มีโปรโมชั่นในขณะนี้</p>
+            <p className="text-center text-gray-500 mt-4">
+              ไม่มีโปรโมชั่นในขณะนี้
+            </p>
           )}
         </div>
 

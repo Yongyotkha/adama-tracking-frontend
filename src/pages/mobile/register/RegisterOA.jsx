@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, Button, Input, Select, Checkbox } from "antd";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useOutletContext } from "react-router-dom";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 import BackButton from "../../../components/mobile/button/BackButton";
 import ModalRegisterPopup from "../../../components/mobile/popup/ModalRegisterPopup";
@@ -19,8 +19,33 @@ export default function RegisterOA() {
   const [isFailModalVisible, setIsFailModalVisible] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const [formData, setFormData] = useState(location.state || {});
+  const { lineProfile } = useOutletContext();
 
+  useEffect(() => {
+    console.log("lineProfile", lineProfile);
+
+    setFormData({
+      ...formData,
+      line_id: lineProfile.userId,
+    });
+  }, [lineProfile]);
+
+  // const [formData, setFormData] = useState(location.state || {});
+  const [formData, setFormData] = useState(location.state || {
+    shop_name: "",
+    first_name: "",
+    last_name: "",
+    phone_number: "",
+    line_id: "",
+    address: "",
+    email: "",
+    shop_code: "",
+    birth_date_day: "",
+    birth_date_month: "",
+    birth_date_year: "",
+    shop_type: "",
+  });
+  
   console.log("formData", formData);
 
   const handleCheckboxClick = () => {
@@ -42,12 +67,20 @@ export default function RegisterOA() {
 
   // Function to check if a year is a leap year
   const isLeapYear = (year) => {
-    return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
   };
 
   // Function to determine the number of days in the selected month
   const getDaysInMonth = (month, year) => {
-    const monthsWith31Days = ["January", "March", "May", "July", "August", "October", "December"];
+    const monthsWith31Days = [
+      "January",
+      "March",
+      "May",
+      "July",
+      "August",
+      "October",
+      "December",
+    ];
     const monthsWith30Days = ["April", "June", "September", "November"];
 
     if (monthsWith31Days.includes(month)) return 31;
@@ -77,7 +110,9 @@ export default function RegisterOA() {
   };
 
 
+
   const handleRegister = () => {
+    
     if (!isChecked) return;
 
     const formattedData = {
@@ -94,22 +129,21 @@ export default function RegisterOA() {
       email: formData.email,
       is_condition: isChecked,
       shop_type: formData.shop_type,
-      image_url : imagePreview,
-      line_id_token:"111111", // ต้องแก้
+      image_url: imagePreview,
+      line_id_token: "111111", // ต้องแก้
       line_name: "2222", // ต้องแก้
- 
-    }
+    };
     setLoading(true);
     useServiceAPI
       .post(paths.pathRegisterShop, formattedData)
       .then((response) => {
         if (response.status === 200) {
-          setIsSuccessModalVisible(true)
-          navigate('/mobile/main')
+          setIsSuccessModalVisible(true);
+          navigate("/mobile/main");
         }
       })
       .catch((error) => {
-        setIsFailModalVisible(true)
+        setIsFailModalVisible(true);
         console.error("API Error:", error);
       })
       .finally(() => setLoading(false));
@@ -119,19 +153,18 @@ export default function RegisterOA() {
 
   // const handleImageChange = (event) => {
   //   const file = event.target.files[0];
-  //   if (file) {      
+  //   if (file) {
   //     const reader = new FileReader();
   //     console.log(reader);
 
   //     reader.onload = (e) => {
   //       setImagePreview(e.target.result);
   //       console.log(e.target.result);
-        
+
   //     };
   //     reader.readAsDataURL(file);
   //   }
   // };
-
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -145,12 +178,30 @@ export default function RegisterOA() {
         formData,
         setLoading
       );
-      setImagePreview(response.data.file_url)
+      setImagePreview(response.data.file_url);
     } catch (error) {
       console.error("Error uploading form data:", error);
       showMsg("error", "เกิดข้อผิดพลาด");
     }
   };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    console.log(name,  );
+    
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+  
+  const handleDateChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+  
 
 
   return (
@@ -158,7 +209,9 @@ export default function RegisterOA() {
       <div className="flex flex-col items-center w-full h-full">
         {/* Header Section */}
         <div className="w-full max-w-md py-4 flex justify-between items-center">
-          <h2 className="text-[#009845] text-lg font-semibold sarabun-font">ลงทะเบียน</h2>
+          <h2 className="text-[#009845] text-lg font-semibold sarabun-font">
+            ลงทะเบียน
+          </h2>
         </div>
 
         {/* Profile Info Section */}
@@ -178,11 +231,16 @@ export default function RegisterOA() {
               id="imageUpload"
             />
             <Button
-              icon={imagePreview !== "/img/icons/profile.png" ? <EditOutlined /> : <PlusOutlined />}
+              icon={
+                imagePreview !== "/img/icons/profile.png" ? (
+                  <EditOutlined />
+                ) : (
+                  <PlusOutlined />
+                )
+              }
               onClick={() => document.getElementById("imageUpload").click()}
               className="text-white absolute bottom-0 bg-[#009845] ms-[65px] rounded-full"
-            >
-            </Button>
+            ></Button>
           </div>
         </div>
         {/* User Details Form */}
@@ -191,21 +249,109 @@ export default function RegisterOA() {
             {/* ชื่อร้าน */}
             <div>
               <label className="text-gray-500 sarabun-font">ชื่อร้าน</label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.shop_name ? formData.shop_name : "-"} />
+              <Input 
+                className="mt-1 sarabun-font text-[#A19793]" 
+                value={formData.shop_name} 
+                onChange={handleInputChange}
+                name="shop_name"
+              />
             </div>
 
             {/* ชื่อ */}
             <div>
               <label className="text-gray-500 sarabun-font">ชื่อ<span className="text-red-500">*</span></label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.first_name} />
+              <Input 
+                className="mt-1 sarabun-font text-[#A19793]" 
+                value={formData.first_name} 
+                onChange={handleInputChange}
+                name="first_name"
+              />
             </div>
 
             {/* นามสกุล */}
             <div>
               <label className="text-gray-500 sarabun-font">นามสกุล<span className="text-red-500">*</span></label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.last_name} />
+              <Input 
+                className="mt-1 sarabun-font text-[#A19793]" 
+                value={formData.last_name} 
+                name="last_name"
+                onChange={handleInputChange}
+
+              />
             </div>
 
+            {/* วันเดือนปีเกิด */}
+            {/* <div>
+              <label className="text-gray-500 sarabun-font">วันเดือนปีเกิด</label>
+              <div className="flex gap-2">
+                <Select
+                  className="sarabun-font flex-1 text-center"
+                  value={selectedDay}
+                  onChange={(value) => setSelectedDay(value)}
+                >
+                  {Array.from(
+                    { length: getDaysInMonth(selectedMonth, selectedYear) },
+                    (_, i) => (
+                      <Option
+                        key={i + 1}
+                        className="sarabun-font"
+                        value={i + 1}
+                      >
+                        {i + 1}
+                      </Option>
+                    )
+                  )}
+                </Select>
+                <Select
+                  className="sarabun-font flex-1 text-center"
+                  value={selectedMonth}
+                  onChange={handleMonthChange}
+                >
+                  <Option className="sarabun-font" value="January">
+                    January
+                  </Option>
+                  <Option className="sarabun-font" value="February">
+                    February
+                  </Option>
+                  <Option className="sarabun-font" value="March">
+                    March
+                  </Option>
+                  <Option className="sarabun-font" value="April">
+                    April
+                  </Option>
+                  <Option className="sarabun-font" value="May">
+                    May
+                  </Option>
+                  <Option className="sarabun-font" value="June">
+                    June
+                  </Option>
+                  <Option className="sarabun-font" value="July">
+                    July
+                  </Option>
+                  <Option className="sarabun-font" value="August">
+                    August
+                  </Option>
+                  <Option className="sarabun-font" value="September">
+                    September
+                  </Option>
+                  <Option className="sarabun-font" value="October">
+                    October
+                  </Option>
+                  <Option className="sarabun-font" value="November">
+                    November
+                  </Option>
+                  <Option className="sarabun-font" value="December">
+                    December
+                  </Option>
+                </Select>
+                <Input
+                  className="sarabun-font flex-1 text-center"
+                  type="number"
+                  value={selectedYear}
+                  onChange={handleYearChange}
+                />
+              </div>
+            </div> */}
             {/* วันเดือนปีเกิด */}
             <div>
               <label className="text-gray-500 sarabun-font">วันเดือนปีเกิด</label>
@@ -213,8 +359,8 @@ export default function RegisterOA() {
                 {/* Day Select */}
                 <Select
                   className="sarabun-font flex-1 text-center"
-                  value={selectedDay}
-                  onChange={(value) => setSelectedDay(value)}
+                  value={formData.birth_date_day || ""}
+                  onChange={(value) => handleDateChange("birth_date_day", value)}
                 >
                   {Array.from({ length: getDaysInMonth(selectedMonth, selectedYear) }, (_, i) => (
                     <Option key={i + 1} className="sarabun-font" value={i + 1}>
@@ -226,8 +372,8 @@ export default function RegisterOA() {
                 {/* Month Select */}
                 <Select
                   className="sarabun-font flex-1 text-center"
-                  value={selectedMonth}
-                  onChange={handleMonthChange}
+                  value={formData.birth_date_month || ""}
+                  onChange={(value) => handleDateChange("birth_date_month", value)}
                 >
                   <Option className="sarabun-font" value="January">January</Option>
                   <Option className="sarabun-font" value="February">February</Option>
@@ -247,23 +393,34 @@ export default function RegisterOA() {
                 <Input
                   className="sarabun-font flex-1 text-center"
                   type="number"
-                  value={selectedYear}
-                  onChange={handleYearChange}
+                  value={formData.birth_date_year || ""}
+                  onChange={(e) => handleDateChange("birth_date_year", e.target.value)}
                 />
               </div>
             </div>
 
-
             {/* เบอร์โทร */}
             <div>
               <label className="text-gray-500 sarabun-font">เบอร์โทร<span className="text-red-500">*</span></label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.phone_number} />
+              <Input 
+                className="mt-1 sarabun-font text-[#A19793]" 
+                value={formData.phone_number} 
+                name="phone_number"
+                onChange={handleInputChange}
+
+              />
             </div>
 
             {/* ไลน์ไอดี */}
             <div>
               <label className="text-gray-500 sarabun-font">ไลน์ไอดี</label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.line_id} />
+              <Input 
+                className="mt-1 sarabun-font text-[#A19793]" 
+                value={formData.line_id} 
+                name="line_id"
+                onChange={handleInputChange}
+
+              />
             </div>
 
             {/* ที่อยู่ */}
@@ -273,17 +430,24 @@ export default function RegisterOA() {
                 className="mt-1 sarabun-font text-[#A19793]"
                 rows={2}
                 value={formData.address}
+                name="address"
+                onChange={handleInputChange}
+
               />
             </div>
 
             {/* Terms & Conditions */}
             <div className="mt-4">
               <Checkbox
-                className={`sarabun-font ${isChecked ? "text-[#00783F]" : "text-[#A19793]"}`}
+                className={`sarabun-font ${
+                  isChecked ? "text-[#00783F]" : "text-[#A19793]"
+                }`}
                 checked={isChecked}
                 onClick={handleCheckboxClick}
               >
-                <span className="sarabun-font">ตกลงยินยอมตามรายละเอียดข้อตกลงและเงื่อนไข</span>
+                <span className="sarabun-font">
+                  ตกลงยินยอมตามรายละเอียดข้อตกลงและเงื่อนไข
+                </span>
               </Checkbox>
             </div>
           </form>
@@ -291,14 +455,12 @@ export default function RegisterOA() {
 
         {/* Action Buttons */}
         <div className="w-full max-w-md flex justify-between align-bottom mt-auto space-x-2">
-
           <BackButton />
 
           <div className="w-full max-w-md mt-auto py-2">
             <button
               // onClick={() => setIsSuccessModalVisible(true)}
               onClick={handleRegister}
-
               disabled={!isChecked}
               className="w-full py-3 bg-[#009845] rounded-lg text-white sarabun-font flex items-center justify-center space-x-2"
             >
@@ -309,7 +471,11 @@ export default function RegisterOA() {
       </div>
 
       {/* Modal RegisterPopup */}
-      <ModalRegisterPopup visible={isModalVisible} onConfirm={handleModalConfirm} onCancel={handleModalCancel} />
+      <ModalRegisterPopup
+        visible={isModalVisible}
+        onConfirm={handleModalConfirm}
+        onCancel={handleModalCancel}
+      />
       {/* Success DynamicPopUp */}
       <DynamicPopUp
         visible={isSuccessModalVisible}

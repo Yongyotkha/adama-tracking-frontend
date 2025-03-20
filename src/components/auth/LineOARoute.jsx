@@ -7,11 +7,12 @@ import { AuthContext } from "../../contexts/AuthContext";
 const LineOARoute = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLineLoggedIn, setIsLineLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [lineProfile, setLineProfile] = useState(null);
+  const [redirectPath, setRedirectPath] = useState(null);
   const queryParams = new URLSearchParams(location.search);
   const { loginLineUid, userInfo } = useContext(AuthContext);
-  const [lineProfile, setLineProfile] = useState(null);
 
   useEffect(() => {
     const initLIFF = async () => {
@@ -31,8 +32,8 @@ const LineOARoute = () => {
           }
 
           try {
-            const lineProfile = await liff.getProfile();
-            setLineProfile(lineProfile);
+            const profile = await liff.getProfile();
+            setLineProfile(profile);
             setIsLineLoggedIn(true);
           } catch (profileError) {
             liff.logout();
@@ -55,32 +56,33 @@ const LineOARoute = () => {
     const fetchUserProfile = async () => {
       try {
         const results = await loginLineUid(lineProfile.userId);
-        // const results = await loginLineUid("admin");
         if (results.status === 200) {
-          const redirectPath = localStorage.getItem("redirectPath");
-          if (redirectPath) {
-            sessionStorage.removeItem("redirectPath");
-            navigate(redirectPath, { replace: true });
-          } else {
-            navigate("/mobile/main");
-          }
+          const storedRedirectPath =
+            localStorage.getItem("redirectPath") || "/mobile/main";
+          setRedirectPath(storedRedirectPath);
+          setIsLoggedIn(true);
         }
       } catch (error) {
         console.error("Error fetching user profile:", error);
         if (error?.response?.status === 401) {
-          navigate("/mobile/verify");
+          setRedirectPath("/mobile/verify");
         }
       }
     };
+
     if (lineProfile && !userInfo) {
       fetchUserProfile();
-    } else {
-      console.log(userInfo);
     }
   }, [lineProfile]);
 
+  useEffect(() => {
+    if (redirectPath) {
+      navigate(redirectPath, { replace: true });
+    }
+  }, [redirectPath]);
+
   if (!isLineLoggedIn && !isLoggedIn) {
-    return <MessageLayout loading={true}></MessageLayout>;
+    return <MessageLayout loading={true} />;
   }
 
   return <Outlet context={{ lineProfile }} />;
