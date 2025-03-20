@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { useNavigate, useOutletContext } from "react-router-dom";

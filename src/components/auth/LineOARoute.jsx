@@ -75,7 +75,7 @@ const LineOARoute = () => {
     if (lineProfile && !userInfo) {
       fetchUserProfile();
     } else {
-      console.log(userInfo);
+      console.log('userInfo',userInfo);
     }
   }, [lineProfile]);
 
