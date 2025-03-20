@@ -1,6 +1,9 @@
 import React, { useContext, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Form, Typography } from "antd";
+import { Form, Input, Typography } from "antd";
+import { LeftOutlined } from "@ant-design/icons";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import MessageLayout from "../../../layouts/MessageLayout";
 import DynamicButton from "../../../components/button/DynamicButton";
 import { AuthContext } from "../../../contexts/AuthContext";
@@ -9,7 +12,7 @@ import BackTopLeftButton from "../../../components/mobile/button/BackTopLeftButt
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
-import PhoneInput from "../../../components/numeric_input/PhoneInput";
+// import PhoneInput from "../../../components/numeric_input/PhoneInput";
 
 export default function VerifyOA() {
   const location = useLocation();
@@ -29,54 +32,55 @@ export default function VerifyOA() {
   const onFinish = () => {
     const formattedPhoneNumber = formatPhoneNumber(phone_number);
 
-    // setLoading(true);
-    // useServiceAPI
-    //   .post(paths.pathOtpShopCall, {  phone_number: formattedPhoneNumber }, setLoading)
-    //   .then((response) => {
-    //     if (response.status === 200) {
-    //       const otpRefNo = response.data.data.otp_ref_no;
-    //       const message_id = response.data.data.message_id;
-    //       navigate("/mobile/otp", { state: {   otpRefNo, message_id } });
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     console.error("API Error:", error);
-    //   })
-    //   .finally(() => setLoading(false));
-
-      
     setLoading(true);
     useServiceAPI
-      .post(paths.pathOtpverify, {  phone_number: formattedPhoneNumber  }, setLoading)
+      .post(paths.pathOtpShopCall, {  phone_number: formattedPhoneNumber }, setLoading)
       .then((response) => {
         if (response.status === 200) {
-          setLoading(true);
-          const phone_number_otp = response.data.phone_number_otp;
-          useServiceAPI
-            .post(paths.pathOtpShopCall, {  phone_number: phone_number_otp }, setLoading)
-            .then((response) => {
-              if (response.status === 200) {
-                const otpRefNo = response.data.data.otp_ref_no;
-                const message_id = response.data.data.message_id;
-                navigate("/mobile/otp", { state: {  phone_number: phone_number_otp, otpRefNo, message_id } });
-              }
-            })
-            .catch((error) => {
-              console.error("API Error:", error);
-            })
-            .finally(() => setLoading(false));
+          const otpRefNo = response.data.data.otp_ref_no;
+          const message_id = response.data.data.message_id;
+          navigate("/mobile/otp", { state: {   otpRefNo, message_id } });
         }
       })
       .catch((error) => {
         console.error("API Error:", error);
-        setPopupText(
-          "<p class='text-[#978B87] text-center sarabun-font'>ไม่พบข้อมูลของคุณในระบบ กรุณาติดต่อเจ้าหน้าที่</p>"
-        );
-        setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png");
-        setIsModalVisible(true);
-        return;
       })
       .finally(() => setLoading(false));
+
+      
+    // setLoading(true);
+    // useServiceAPI
+    //   .post(paths.pathOtpverify, {  phone_number: formattedPhoneNumber  }, setLoading)
+    //   .then((response) => {
+    //     if (response.status === 200) {
+    //       setLoading(true);
+    //       const phone_number_otp = response.data.phone_number_otp;
+    //       useServiceAPI
+    //         .post(paths.pathOtpShopCall, {  phone_number: phone_number_otp }, setLoading)
+    //         .then((response) => {
+    //           if (response.status === 200) {
+    //             const otpRefNo = response.data.data.otp_ref_no;
+    //             const message_id = response.data.data.message_id;
+    //             navigate("/mobile/otp", { state: {  phone_number: phone_number_otp, otpRefNo, message_id } });
+    //           }
+    //         })
+    //         .catch((error) => {
+    //           console.error("API Error:", error);
+    //         })
+    //         .finally(() => setLoading(false));
+    //     }
+        
+    //   })
+    //   .catch((error) => {
+    //     console.error("API Error:", error);
+    //     setPopupText(
+    //       "<p class='text-[#978B87] text-center sarabun-font'>ไม่พบข้อมูลของคุณในระบบ กรุณาติดต่อเจ้าหน้าที่</p>"
+    //     );
+    //     setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png");
+    //     setIsModalVisible(true);
+    //     return;
+    //   })
+    //   .finally(() => setLoading(false));
   };
 
   return (
@@ -98,10 +102,12 @@ export default function VerifyOA() {
             ]}
           >
             <PhoneInput
+              defaultCountry="TH"
               value={phone_number}
               onChange={setPhoneNumber}
               className="w-full border rounded-lg px-3 py-2 text-[#8A8A8A] text-lg focus:ring-green-500 focus:border-green-500 sarabun-font"
               placeholder="000 000 0000"
+              limitMaxLength={12}
             />
           </Form.Item>
         </div>

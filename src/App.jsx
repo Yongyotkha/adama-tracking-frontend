@@ -324,7 +324,6 @@ const App = () => {
             <Route path="/mobile/redeem-history/detail" element={< RedeemHistoryDetail />} />
             <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
             <Route path="/mobile/redeem-history" element={< RedeemHistory />} />
-
             <Route path="/mobile/login" element={< CheckLogin />} />
           </Route>
 

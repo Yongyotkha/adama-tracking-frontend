@@ -84,8 +84,8 @@ export default function RegisterOA() {
       shop_name: formData.shop_name,
       shop_code: formData.shop_code,
       phone_number: formData.phone_number,
-      first_name: formData.first_name,
-      last_name: formData.last_name,
+      first_name: formData.shop_name, // ต้องแก้
+      last_name: formData.shop_name, // ต้องแก้
       birth_date_day: formData.birth_date_day,
       birth_date_month: formData.birth_date_month,
       birth_date_year: formData.birth_date_year,
@@ -93,8 +93,11 @@ export default function RegisterOA() {
       address: formData.address,
       email: formData.email,
       is_condition: isChecked,
-      // image_url :,
-
+      shop_type: formData.shop_type,
+      image_url : imagePreview,
+      line_id_token:"111111", // ต้องแก้
+      line_name: "2222", // ต้องแก้
+ 
     }
     setLoading(true);
     useServiceAPI
@@ -114,16 +117,42 @@ export default function RegisterOA() {
 
   const [imagePreview, setImagePreview] = useState("/img/icons/profile.png");
 
-  const handleImageChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target.result);
-      };
-      reader.readAsDataURL(file);
+  // const handleImageChange = (event) => {
+  //   const file = event.target.files[0];
+  //   if (file) {      
+  //     const reader = new FileReader();
+  //     console.log(reader);
+
+  //     reader.onload = (e) => {
+  //       setImagePreview(e.target.result);
+  //       console.log(e.target.result);
+        
+  //     };
+  //     reader.readAsDataURL(file);
+  //   }
+  // };
+
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    setImagePreview(URL.createObjectURL(file));
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("mode", "profile");
+    try {
+      const response = await useServiceAPI.post(
+        paths.pathUpload,
+        formData,
+        setLoading
+      );
+      setImagePreview(response.data.file_url)
+    } catch (error) {
+      console.error("Error uploading form data:", error);
+      showMsg("error", "เกิดข้อผิดพลาด");
     }
   };
+
+
   return (
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
@@ -168,13 +197,13 @@ export default function RegisterOA() {
             {/* ชื่อ */}
             <div>
               <label className="text-gray-500 sarabun-font">ชื่อ<span className="text-red-500">*</span></label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.first_name ? formData.first_name : "-"} />
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.first_name} />
             </div>
 
             {/* นามสกุล */}
             <div>
               <label className="text-gray-500 sarabun-font">นามสกุล<span className="text-red-500">*</span></label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.last_name ? formData.first_name : "-"} />
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.last_name} />
             </div>
 
             {/* วันเดือนปีเกิด */}

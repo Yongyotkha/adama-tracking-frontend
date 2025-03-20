@@ -57,7 +57,8 @@ export default function VerifyOA() {
                 birth_date_month, 
                 birth_date_year, 
                 line_id, 
-                is_condition 
+                is_condition ,
+                shop_type
               } = response.data;
 
               const stateData = {
@@ -75,7 +76,8 @@ export default function VerifyOA() {
                 birth_date_month, 
                 birth_date_year, 
                 line_id, 
-                is_condition 
+                is_condition ,
+                shop_type
                 
               };
 

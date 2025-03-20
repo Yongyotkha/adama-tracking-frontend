@@ -255,3 +255,7 @@ span.ant-popconfirm-message-icon {
   background-color: #eee;
 }
 
+
+.PhoneInputCountry {
+  pointer-events: none;
+}
