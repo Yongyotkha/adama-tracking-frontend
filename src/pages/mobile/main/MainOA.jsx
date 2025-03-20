@@ -11,11 +11,11 @@ import "./MainCSS.css";
 export default function MainOA() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { userProfile } = useOutletContext();
+  const { lineProfile } = useOutletContext();
 
   useEffect(() => {
-    console.log(userProfile);
-  }, [userProfile]);
+    console.log('lineProfile',lineProfile);
+  }, []);
 
   // Mock User Data
   const userData = {
