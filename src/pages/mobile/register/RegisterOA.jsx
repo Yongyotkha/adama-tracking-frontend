@@ -19,7 +19,6 @@ export default function RegisterOA() {
   const [isFailModalVisible, setIsFailModalVisible] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const [formData, setFormData] = useState(location.state || {});
   const { lineProfile } = useOutletContext();
 
   useEffect(() => {
@@ -31,6 +30,22 @@ export default function RegisterOA() {
     });
   }, [lineProfile]);
 
+  // const [formData, setFormData] = useState(location.state || {});
+  const [formData, setFormData] = useState(location.state || {
+    shop_name: "",
+    first_name: "",
+    last_name: "",
+    phone_number: "",
+    line_id: "",
+    address: "",
+    email: "",
+    shop_code: "",
+    birth_date_day: "",
+    birth_date_month: "",
+    birth_date_year: "",
+    shop_type: "",
+  });
+  
   console.log("formData", formData);
 
   const handleCheckboxClick = () => {
@@ -94,7 +109,10 @@ export default function RegisterOA() {
     }
   };
 
+
+
   const handleRegister = () => {
+    
     if (!isChecked) return;
 
     const formattedData = {
@@ -167,6 +185,25 @@ export default function RegisterOA() {
     }
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    console.log(name,  );
+    
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+  
+  const handleDateChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+  
+
+
   return (
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
@@ -212,41 +249,41 @@ export default function RegisterOA() {
             {/* ชื่อร้าน */}
             <div>
               <label className="text-gray-500 sarabun-font">ชื่อร้าน</label>
-              <Input
-                className="mt-1 sarabun-font text-[#A19793]"
-                value={formData.shop_name ? formData.shop_name : "-"}
+              <Input 
+                className="mt-1 sarabun-font text-[#A19793]" 
+                value={formData.shop_name} 
+                onChange={handleInputChange}
+                name="shop_name"
               />
             </div>
 
             {/* ชื่อ */}
             <div>
-              <label className="text-gray-500 sarabun-font">
-                ชื่อ<span className="text-red-500">*</span>
-              </label>
-              <Input
-                className="mt-1 sarabun-font text-[#A19793]"
-                value={formData.first_name}
+              <label className="text-gray-500 sarabun-font">ชื่อ<span className="text-red-500">*</span></label>
+              <Input 
+                className="mt-1 sarabun-font text-[#A19793]" 
+                value={formData.first_name} 
+                onChange={handleInputChange}
+                name="first_name"
               />
             </div>
 
             {/* นามสกุล */}
             <div>
-              <label className="text-gray-500 sarabun-font">
-                นามสกุล<span className="text-red-500">*</span>
-              </label>
-              <Input
-                className="mt-1 sarabun-font text-[#A19793]"
-                value={formData.last_name}
+              <label className="text-gray-500 sarabun-font">นามสกุล<span className="text-red-500">*</span></label>
+              <Input 
+                className="mt-1 sarabun-font text-[#A19793]" 
+                value={formData.last_name} 
+                name="last_name"
+                onChange={handleInputChange}
+
               />
             </div>
 
             {/* วันเดือนปีเกิด */}
-            <div>
-              <label className="text-gray-500 sarabun-font">
-                วันเดือนปีเกิด
-              </label>
+            {/* <div>
+              <label className="text-gray-500 sarabun-font">วันเดือนปีเกิด</label>
               <div className="flex gap-2">
-                {/* Day Select */}
                 <Select
                   className="sarabun-font flex-1 text-center"
                   value={selectedDay}
@@ -265,8 +302,6 @@ export default function RegisterOA() {
                     )
                   )}
                 </Select>
-
-                {/* Month Select */}
                 <Select
                   className="sarabun-font flex-1 text-center"
                   value={selectedMonth}
@@ -309,8 +344,6 @@ export default function RegisterOA() {
                     December
                   </Option>
                 </Select>
-
-                {/* Year Input */}
                 <Input
                   className="sarabun-font flex-1 text-center"
                   type="number"
@@ -318,25 +351,75 @@ export default function RegisterOA() {
                   onChange={handleYearChange}
                 />
               </div>
+            </div> */}
+            {/* วันเดือนปีเกิด */}
+            <div>
+              <label className="text-gray-500 sarabun-font">วันเดือนปีเกิด</label>
+              <div className="flex gap-2">
+                {/* Day Select */}
+                <Select
+                  className="sarabun-font flex-1 text-center"
+                  value={formData.birth_date_day || ""}
+                  onChange={(value) => handleDateChange("birth_date_day", value)}
+                >
+                  {Array.from({ length: getDaysInMonth(selectedMonth, selectedYear) }, (_, i) => (
+                    <Option key={i + 1} className="sarabun-font" value={i + 1}>
+                      {i + 1}
+                    </Option>
+                  ))}
+                </Select>
+
+                {/* Month Select */}
+                <Select
+                  className="sarabun-font flex-1 text-center"
+                  value={formData.birth_date_month || ""}
+                  onChange={(value) => handleDateChange("birth_date_month", value)}
+                >
+                  <Option className="sarabun-font" value="January">January</Option>
+                  <Option className="sarabun-font" value="February">February</Option>
+                  <Option className="sarabun-font" value="March">March</Option>
+                  <Option className="sarabun-font" value="April">April</Option>
+                  <Option className="sarabun-font" value="May">May</Option>
+                  <Option className="sarabun-font" value="June">June</Option>
+                  <Option className="sarabun-font" value="July">July</Option>
+                  <Option className="sarabun-font" value="August">August</Option>
+                  <Option className="sarabun-font" value="September">September</Option>
+                  <Option className="sarabun-font" value="October">October</Option>
+                  <Option className="sarabun-font" value="November">November</Option>
+                  <Option className="sarabun-font" value="December">December</Option>
+                </Select>
+
+                {/* Year Input */}
+                <Input
+                  className="sarabun-font flex-1 text-center"
+                  type="number"
+                  value={formData.birth_date_year || ""}
+                  onChange={(e) => handleDateChange("birth_date_year", e.target.value)}
+                />
+              </div>
             </div>
 
             {/* เบอร์โทร */}
             <div>
-              <label className="text-gray-500 sarabun-font">
-                เบอร์โทร<span className="text-red-500">*</span>
-              </label>
-              <Input
-                className="mt-1 sarabun-font text-[#A19793]"
-                value={formData.phone_number}
+              <label className="text-gray-500 sarabun-font">เบอร์โทร<span className="text-red-500">*</span></label>
+              <Input 
+                className="mt-1 sarabun-font text-[#A19793]" 
+                value={formData.phone_number} 
+                name="phone_number"
+                onChange={handleInputChange}
+
               />
             </div>
 
             {/* ไลน์ไอดี */}
             <div>
               <label className="text-gray-500 sarabun-font">ไลน์ไอดี</label>
-              <Input
-                className="mt-1 sarabun-font text-[#A19793]"
-                value={formData.line_id}
+              <Input 
+                className="mt-1 sarabun-font text-[#A19793]" 
+                value={formData.line_id} 
+                name="line_id"
+                onChange={handleInputChange}
+
               />
             </div>
 
@@ -347,6 +430,9 @@ export default function RegisterOA() {
                 className="mt-1 sarabun-font text-[#A19793]"
                 rows={2}
                 value={formData.address}
+                name="address"
+                onChange={handleInputChange}
+
               />
             </div>
 
