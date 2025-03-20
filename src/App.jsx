@@ -312,7 +312,6 @@ const App = () => {
             <Route path="/mobile/privacy-policy" element={< PrivacyPolicy />} />
             <Route path="/mobile/terms-conditions" element={< TermsConditions />} />
             <Route path="/mobile/main" element={< MainOA />} />
-            <Route path="/mobile/scan-collect" element={< ScanCollectPoint />} />
             <Route path="/mobile/redeem-point" element={< RedeemPoint />} />
             {/* <Route path="/mobile/redeem-point/detail/:id" element={<RedeemPointDetail />} /> */}
             <Route path="/mobile/redeem-point/detail" element={<RedeemPointDetail />} />
@@ -327,6 +326,7 @@ const App = () => {
             <Route path="/mobile/login" element={< CheckLogin />} />
           </Route>
 
+          <Route path="/mobile/scan-collect" element={< ScanCollectPoint />} />
           
           {/* Error Route */}
           <Route path="/error/403" element={<Error403 />} />

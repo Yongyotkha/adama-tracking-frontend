@@ -14,7 +14,7 @@ export default function Promotion() {
   const [categories, setCategories] = useState([]);
   const [activeTab, setActiveTab] = useState("");
   const [promotions, setPromotions] = useState([]);
-  const { lineProfile } = useOutletContext();
+  const { lineProfile } = useOutletContext() || {};
 
   useEffect(() => {
     console.log("lineProfile", lineProfile);

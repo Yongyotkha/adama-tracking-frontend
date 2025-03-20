@@ -96,6 +96,9 @@ export const AuthProvider = ({ children }) => {
         const userData = response.data.data.user;
         const accessToken = response.data.data.token;
         const expiredToken = response.data.data.token_expired_date;
+
+
+        console.log(response.data);
         setIsLoggedIn(true);
         setUserInfo(userData);
 
