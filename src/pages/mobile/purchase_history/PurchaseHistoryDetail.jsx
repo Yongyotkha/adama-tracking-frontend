@@ -51,22 +51,10 @@ export default function PurchaseHistoryDetail() {
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
         {/* Header Section */}
-        <HeadSectionUser
-          user={{
-            name: "คุณ Krairoek Ruangkol",
-            memberId: "123456",
-            profileImage: "/img/icons/profile.png",
-          }}
-        />
+        <HeadSectionUser />
 
         {/* Points Section */}
-        <UserPointsSection
-          pointsData={{
-            currentPoints: 100,
-            expiringPoints: 15,
-            expiryDate: "31 ธ.ค. 67",
-          }}
-        />
+        <UserPointsSection />
 
         {/* Order Detail Section */}
         <SectionHeader title="รายละเอียดการสั่งซื้อ" icon="/img/icons/trophy.png" />

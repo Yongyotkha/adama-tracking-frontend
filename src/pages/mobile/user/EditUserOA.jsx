@@ -1,18 +1,80 @@
-import React, { useState } from "react";
-import { Card, Button, Input, Select, Checkbox } from "antd";
+import React, { useEffect, useState } from "react";
+import { Card, Button, Input, Select, Checkbox, Spin } from "antd";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
-import { useNavigate } from "react-router-dom";
-import { EditOutlined } from "@ant-design/icons";
+import { useNavigate, useLocation } from "react-router-dom";
+import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 import BackButton from "../../../components/mobile/button/BackButton";
 import ModalRegisterPopup from "../../../components/mobile/popup/ModalRegisterPopup";
+import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
 
 const { Option } = Select;
 
 export default function EditUserOA() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const userData = location.state?.user || {};
+
   const [loading, setLoading] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const navigate = useNavigate();
+  const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
+  const [isFailModalVisible, setIsFailModalVisible] = useState(false);
+  const [formData, setFormData] = useState({
+    shop_name: userData.shop_name || "",
+    first_name: userData.name_th || "",
+    last_name: userData.name_en || "",
+    phone_number: userData.phone_number || "",
+    line_id: userData.line_id || "",
+    address: userData.address || "",
+    email: userData.email || "",
+    birth_date_day: "",
+    birth_date_month: "",
+    birth_date_year: "",
+  });
+
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      birth_date_day: userData.contact_birth_date_day || "",
+      birth_date_month: userData.contact_birth_date_month || "",
+      birth_date_year: userData.contact_birth_date_year || "",
+    }));
+  }, [userData]);
+
+  const [imagePreview, setImagePreview] = useState(userData.profile_image || "/img/icons/profile.png");
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    setImagePreview(URL.createObjectURL(file));
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("mode", "profile");
+
+    try {
+      const response = await useServiceAPI.post(paths.pathUpload, formData, setLoading);
+      setImagePreview(response.data.file_url);
+    } catch (error) {
+      console.error("Error uploading form data:", error);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleDateChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   const handleCheckboxClick = () => {
     setIsModalVisible(true);
@@ -27,162 +89,92 @@ export default function EditUserOA() {
     setIsModalVisible(false);
   };
 
-  const [selectedMonth, setSelectedMonth] = useState("January");
-  const [selectedDay, setSelectedDay] = useState(1);
-  const [selectedYear, setSelectedYear] = useState(2568);
-
-  // Function to check if a year is a leap year
-  const isLeapYear = (year) => {
-    return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-  };
-
-  // Function to determine the number of days in the selected month
-  const getDaysInMonth = (month, year) => {
-    const monthsWith31Days = ["January", "March", "May", "July", "August", "October", "December"];
-    const monthsWith30Days = ["April", "June", "September", "November"];
-
-    if (monthsWith31Days.includes(month)) return 31;
-    if (monthsWith30Days.includes(month)) return 30;
-    return isLeapYear(year) ? 29 : 28; // February logic
-  };
-
-  // Handle month change
-  const handleMonthChange = (month) => {
-    setSelectedMonth(month);
-    adjustDaySelection(month, selectedYear);
-  };
-
-  // Handle year change
-  const handleYearChange = (e) => {
-    const year = parseInt(e.target.value, 10);
-    setSelectedYear(year);
-    adjustDaySelection(selectedMonth, year);
-  };
-
-  // Adjust selected day if it exceeds the new month's max days
-  const adjustDaySelection = (month, year) => {
-    const maxDays = getDaysInMonth(month, year);
-    if (selectedDay > maxDays) {
-      setSelectedDay(maxDays);
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const response = await useServiceAPI.post(paths.pathProfileDetail, formData);
+      if (response.status === 200 && response.result) {
+        setIsSuccessModalVisible(true);
+        navigate("/mobile/user/detail", { state: { id: userData.id } });
+      } else {
+        setIsFailModalVisible(true);
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      setIsFailModalVisible(true);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
-        {/* Header Section */}
         <div className="w-full max-w-md py-4 flex justify-between items-center">
           <h2 className="text-[#009845] text-lg font-semibold sarabun-font">แก้ไขข้อมูล</h2>
         </div>
 
-        {/* Profile Info Section */}
+        {/* Profile Image */}
         <div className="w-full max-w-md mt-4">
           <div className="flex justify-start items-center relative">
-            <div className="w-20 h-20 bg-gray-300 rounded-full overflow-hidden shadow">
-              <img
-                src="/img/icons/profile.png"
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <Button
-              type="primary"
-              shape="circle"
-              icon={<EditOutlined />}
-              className="absolute bottom-0 bg-[#009845] ms-12"
+            <img
+              src={imagePreview}
+              alt="Profile"
+              onClick={() => document.getElementById("imageUpload").click()}
+              className="w-24 h-24 rounded-full object-cover mb-2 cursor-pointer shadow-lg"
             />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              style={{ display: "none" }}
+              id="imageUpload"
+            />
+            <Button
+              icon={<EditOutlined />}
+              onClick={() => document.getElementById("imageUpload").click()}
+              className="text-white absolute bottom-0 bg-[#009845] ms-[65px] rounded-full"
+            ></Button>
           </div>
         </div>
 
         {/* User Details Form */}
         <div className="w-full max-w-md mt-4">
           <form className="space-y-4 sarabun-font">
-            {/* ชื่อร้าน */}
             <div>
               <label className="text-gray-500 sarabun-font">ชื่อร้าน</label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value="จุฬารักษ์ทันตะ" disabled />
+              <Input
+                className="mt-1 sarabun-font text-[#A19793]"
+                value={formData.shop_name}
+                onChange={handleInputChange}
+                name="shop_name"
+                disabled={!!userData.shop_name}
+              />
             </div>
 
-            {/* ชื่อ */}
             <div>
-              <label className="text-gray-500 sarabun-font">ชื่อ<span className="text-red-500">*</span></label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value="Krairoek" />
+              <label className="text-gray-500 sarabun-font">ชื่อ</label>
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.first_name} name="first_name" onChange={handleInputChange} />
             </div>
 
-            {/* นามสกุล */}
             <div>
-              <label className="text-gray-500 sarabun-font">นามสกุล<span className="text-red-500">*</span></label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value="Ruangkol" />
+              <label className="text-gray-500 sarabun-font">นามสกุล</label>
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.last_name} name="last_name" onChange={handleInputChange} />
             </div>
 
-            {/* วันเดือนปีเกิด */}
             <div>
-              <label className="text-gray-500 sarabun-font">วันเดือนปีเกิด</label>
-              <div className="flex gap-2">
-                {/* Day Select */}
-                <Select
-                  className="sarabun-font flex-1 text-center"
-                  value={selectedDay}
-                  onChange={(value) => setSelectedDay(value)}
-                >
-                  {Array.from({ length: getDaysInMonth(selectedMonth, selectedYear) }, (_, i) => (
-                    <Option key={i + 1} className="sarabun-font" value={i + 1}>
-                      {i + 1}
-                    </Option>
-                  ))}
-                </Select>
-
-                {/* Month Select */}
-                <Select
-                  className="sarabun-font flex-1 text-center"
-                  value={selectedMonth}
-                  onChange={handleMonthChange}
-                >
-                  <Option className="sarabun-font" value="January">January</Option>
-                  <Option className="sarabun-font" value="February">February</Option>
-                  <Option className="sarabun-font" value="March">March</Option>
-                  <Option className="sarabun-font" value="April">April</Option>
-                  <Option className="sarabun-font" value="May">May</Option>
-                  <Option className="sarabun-font" value="June">June</Option>
-                  <Option className="sarabun-font" value="July">July</Option>
-                  <Option className="sarabun-font" value="August">August</Option>
-                  <Option className="sarabun-font" value="September">September</Option>
-                  <Option className="sarabun-font" value="October">October</Option>
-                  <Option className="sarabun-font" value="November">November</Option>
-                  <Option className="sarabun-font" value="December">December</Option>
-                </Select>
-
-                {/* Year Input */}
-                <Input
-                  className="sarabun-font flex-1 text-center"
-                  type="number"
-                  value={selectedYear}
-                  onChange={handleYearChange}
-                />
-              </div>
+              <label className="text-gray-500 sarabun-font">เบอร์โทร</label>
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.phone_number} name="phone_number" onChange={handleInputChange} />
             </div>
 
-
-            {/* เบอร์โทร */}
-            <div>
-              <label className="text-gray-500 sarabun-font">เบอร์โทร<span className="text-red-500">*</span></label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value="02-9110653" />
-            </div>
-
-            {/* ไลน์ไอดี */}
             <div>
               <label className="text-gray-500 sarabun-font">ไลน์ไอดี</label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value="-" />
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.line_id} name="line_id" onChange={handleInputChange} />
             </div>
 
-            {/* ที่อยู่ */}
             <div>
               <label className="text-gray-500 sarabun-font">ที่อยู่</label>
-              <Input.TextArea
-                className="mt-1 sarabun-font text-[#A19793]"
-                rows={2}
-                value="54 ซ.วัชรพล ซ.5 รัตนโกสินทร์สมโภชกรุงเทพฯ เขตบางเขน กทม. 10150"
-              />
+              <Input.TextArea className="mt-1 sarabun-font text-[#A19793]" rows={2} value={formData.address} name="address" onChange={handleInputChange} />
             </div>
 
             {/* Terms & Conditions */}
@@ -198,24 +190,17 @@ export default function EditUserOA() {
           </form>
         </div>
 
-        {/* Action Buttons */}
         <div className="w-full max-w-md flex justify-between align-bottom mt-auto space-x-2">
-
           <BackButton />
-
           <div className="w-full max-w-md mt-auto py-2">
-            <button
-              onClick={{}}
-              className="w-full py-3 bg-[#009845] rounded-lg text-white sarabun-font flex items-center justify-center space-x-2"
-            >
+            <button onClick={handleSave} className="w-full py-3 bg-[#009845] rounded-lg text-white sarabun-font flex items-center justify-center space-x-2">
               <span className="sarabun-font">บันทึก</span>
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Modal RegisterPopup */}
-      <ModalRegisterPopup visible={isModalVisible} onConfirm={handleModalConfirm} onCancel={handleModalCancel} />
+        <ModalRegisterPopup visible={isModalVisible} onConfirm={handleModalConfirm} onCancel={handleModalCancel} />
+      </div>
     </MobileLayout>
   );
 }

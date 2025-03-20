@@ -12,20 +12,6 @@ export default function RedeemHistory() {
   const [activeTab, setActiveTab] = useState("earned"); // Default tab
   const navigate = useNavigate();
 
-  // User Data
-  const userData = {
-    name: "คุณ Krairoek Ruangkol",
-    memberId: "123456",
-    profileImage: "/img/icons/profile.png",
-  };
-
-  // Points Data
-  const pointsData = {
-    currentPoints: 100,
-    expiringPoints: 15,
-    expiryDate: "31 ธ.ค. 67",
-  };
-
   // Tabs
   const tabs = [
     { id: "earned", label: "สะสมคะแนน", color: "border-green-500" },
@@ -52,10 +38,10 @@ export default function RedeemHistory() {
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
         {/* Header */}
-        <HeadSectionUser user={userData} />
+        <HeadSectionUser />
 
         {/* Points Section */}
-        <UserPointsSection pointsData={pointsData} />
+        <UserPointsSection />
 
         {/* Section Header */}
         <SectionHeader title="ประวัติการแลกคะแนน" icon="/img/icons/trophy.png" />

@@ -234,6 +234,8 @@ export const paths = {
   pathReportSaleByActivity: "report/sale/activity",
 
   // Line OA
+  pathProfileDetail: "profile/detail",
+
   pathNewsPublicCategory: "news/public/category",
   pathNewsPublicListByCategory: "news/public/list",
   pathNewsPublicDetail: "news/public/detail",
