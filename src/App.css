@@ -255,6 +255,9 @@ span.ant-popconfirm-message-icon {
   background-color: #eee;
 }
 
+.ant-spin .ant-spin-dot-holder {
+  color: #009845;
+}
 
 .PhoneInputCountry {
   pointer-events: none;

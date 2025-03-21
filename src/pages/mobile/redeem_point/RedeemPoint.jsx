@@ -1,110 +1,108 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { useNavigate } from "react-router-dom";
 import SectionHeader from "../../../components/mobile/section_header/SectionHeader";
 import HeadSectionUser from "../../../components/mobile/head_section_user/HeadSectionUser";
 import UserPointsSection from "../../../components/mobile/user_points_section/UserPointsSection";
 import BackButton from "../../../components/mobile/button/BackButton";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
 
 export default function RedeemPoint() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("all");
+  const [categories, setCategories] = useState([]);
+  const [activeTab, setActiveTab] = useState("");
+  const [rewards, setRewards] = useState([]);
 
-  // User Data Object
-  const userData = {
-    name: "คุณ Krairoek Ruangkol",
-    memberId: "123456",
-    profileImage: "/img/icons/profile.png",
-  };
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setLoading(true);
+      try {
+        const response = await useServiceAPI.get(paths.pathPointPublicCategory);
+        if (response.status === 200 && response.result) {
+          setCategories(response.data);
+          setActiveTab(response.data[0]?.id || "");
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
-  // Points Data Object
-  const pointsData = {
-    currentPoints: 100,
-    expiringPoints: 15,
-    expiryDate: "31 ธ.ค. 67",
-  };
-
-  const tabs = [
-    { id: "all", label: "ทั้งหมด" },
-    { id: "giftCard", label: "บัตรกำนัล" },
-    { id: "coupon", label: "คูปองส่วนลด" },
-  ];
-
-  const rewards = [
-    { id: 1, type: "giftCard", title: "Gift Card มูลค่า 1,000 บาท", points: 30, image: "/img/gift-card.png" },
-    { id: 2, type: "giftCard", title: "Gift Card มูลค่า 500 บาท", points: 20, image: "/img/gift-card.png" },
-    { id: 3, type: "coupon", title: "คูปองส่วนลด 100 บาท", points: 10, image: "/img/gift-card.png" },
-    { id: 4, type: "coupon", title: "คูปองส่วนลด 50 บาท", points: 5, image: "/img/gift-card.png" },
-  ];
-
-  const filteredRewards =
-    activeTab === "all" ? rewards : rewards.filter((item) => item.type === activeTab);
+  // Fetch rewards
+  useEffect(() => {
+    if (activeTab === null) return;
+    const fetchRewards = async () => {
+      setLoading(true);
+      try {
+        const response = await useServiceAPI.get(paths.pathPointPublicListByCategory, { category_id: activeTab });
+        if (response.status === 200 && response.result) {
+          setRewards(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching rewards:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRewards();
+  }, [activeTab]);
 
   return (
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
-        {/* Head Section (Dynamic Component) */}
-        <HeadSectionUser user={userData} />
-
-        {/* Points Section (Dynamic Component) */}
-        <UserPointsSection pointsData={pointsData} />
-
-        {/* Head Content Section (Dynamic Component) */}
+        <HeadSectionUser />
+        <UserPointsSection />
         <SectionHeader title="แลกคะแนนสะสม" icon="/img/icons/trophy.png" />
 
-        {/* Tabs Section */}
         <div className="w-full max-w-md mt-4 flex space-x-3">
-          {tabs.map((tab) => (
+          {categories.map((category) => (
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold sarabun-font ${activeTab === tab.id
-                ? "bg-[#FFB347] text-white"
-                : "bg-gray-300 text-gray-700"
-                }`}
+              key={category.id || "all"}
+              onClick={() => setActiveTab(category.id)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold sarabun-font ${activeTab === category.id ? "bg-[#FFB347] text-white" : "bg-gray-300 text-gray-700"}`}
             >
-              {tab.label}
+              {category.name || category.text}
             </button>
           ))}
         </div>
 
-        {/* Content Section - Responsive Grid */}
         <div className="w-full max-w-md mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {filteredRewards.map((reward) => (
+          {rewards.map((reward) => (
             <div
               key={reward.id}
               className="bg-white rounded-xl shadow-lg cursor-pointer"
-              // onClick={() => navigate(`/mobile/redeem-point/detail/${reward.id}`)} 
-              onClick={() => 
-                navigate("/mobile/redeem-point/detail/", {
+              onClick={() =>
+                navigate("/mobile/redeem-point/detail", {
                   state: {
                     id: reward.id,
                   },
                 })
               }
-
             >
               {/* Image Section */}
               <div className="relative rounded-xl overflow-hidden shadow">
-                <img src={reward.image} alt={reward.title} className="w-full object-cover" />
+                <img src={reward.logo} alt={reward.name} className="w-full object-cover" />
               </div>
 
               {/* Description Section */}
               <div className="mt-3 p-3">
-                <p className="font-bold text-[#00783F] sarabun-font">{reward.title}</p>
+                <p className="font-bold text-[#00783F] sarabun-font">{reward.name}</p>
                 <p className="text-gray-500 text-sm sarabun-font">
-                  ใช้ {reward.points} คะแนน แลก {reward.title}
+                  {reward.description_shot}
                 </p>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Back Button at Bottom */}
         <BackButton url="/mobile/main" />
       </div>
-
     </MobileLayout>
   );
 }

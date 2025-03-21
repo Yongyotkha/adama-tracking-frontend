@@ -17,19 +17,6 @@ export default function PromotionDetail() {
   const [error, setError] = useState(false);
   const location = useLocation();
 
-  // User Data (Static)
-  const userData = {
-    name: "คุณ Krairoek Ruangkol",
-    memberId: "123456",
-    profileImage: "/img/icons/profile.png",
-  };
-
-  // Points Data (Static)
-  const pointsData = {
-    currentPoints: 100,
-    expiringPoints: 15,
-    expiryDate: "31 ธ.ค. 67",
-  };
   console.log(location.state.id);
 
   // ✅ **Fix: Use GET instead of POST**
@@ -86,10 +73,10 @@ export default function PromotionDetail() {
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
         {/* Header */}
-        <HeadSectionUser user={userData} />
+        <HeadSectionUser />
 
         {/* Points Section */}
-        <UserPointsSection pointsData={pointsData} />
+        <UserPointsSection />
 
         {/* Section Header */}
         <SectionHeader
@@ -117,21 +104,15 @@ export default function PromotionDetail() {
         {/* Tab Header */}
         <div className="flex justify-between w-full max-w-md mt-6 gap-2 rounded-lg sarabun-font">
           <button
-            className={`flex-1 text-center py-2 rounded-lg ${
-              activeTab === "conditions"
-                ? "bg-green-700 text-white"
-                : "bg-white text-[#00783F]"
-            }`}
+            className={`flex-1 text-center py-2 rounded-lg ${activeTab === "conditions" ? "bg-green-700 text-white" : "bg-white text-[#00783F]"
+              }`}
             onClick={() => setActiveTab("conditions")}
           >
             เงื่อนไข
           </button>
           <button
-            className={`flex-1 text-center py-2 rounded-lg ${
-              activeTab === "details"
-                ? "bg-green-700 text-white"
-                : "bg-white text-[#00783F]"
-            }`}
+            className={`flex-1 text-center py-2 rounded-lg ${activeTab === "details" ? "bg-green-700 text-white" : "bg-white text-[#00783F]"
+              }`}
             onClick={() => setActiveTab("details")}
           >
             รายละเอียดสินค้า

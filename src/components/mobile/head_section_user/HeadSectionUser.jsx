@@ -1,9 +1,39 @@
-import React from "react";
-import { Button } from "antd";
+import React, { useEffect, useState } from "react";
+import { Button, Spin } from "antd";
 import { useNavigate } from "react-router-dom";
+import { paths } from "../../../services/CorsPath";
+import useServiceAPI from "../../../services/CorsService";
 
-const HeadSectionUser = ({ user }) => {
+const HeadSectionUser = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      setLoading(true);
+      try {
+        const response = await useServiceAPI.get(paths.pathProfileDetail, { id: 1 });
+
+        if (response.status === 200 && response.result) {
+          setUser(response.data);
+        } else {
+          console.error("Failed to fetch user profile:", response);
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  if (loading || !user) {
+    return <Spin className="py-5" />;
+  }
+
 
   return (
     <div className="w-full rounded-[40px] flex items-center justify-between relative gap-3 p-1 bg-white max-w-md">
@@ -11,7 +41,7 @@ const HeadSectionUser = ({ user }) => {
         {/* Profile Image */}
         <div className="w-16 h-16 bg-gray-300 rounded-full overflow-hidden shadow">
           <img
-            src={user.profileImage}
+            src={user.profile_image || "/img/icons/profile.png"}
             alt="Profile"
             className="w-full h-full object-cover"
           />
@@ -20,16 +50,20 @@ const HeadSectionUser = ({ user }) => {
         {/* Profile Info */}
         <div className="flex flex-col items-start flex-1 text-center">
           <h4 className="text-md font-semibold text-[#A19793] sarabun-font">
-            {user.name}
+            {user.name_th || user.name_en}
           </h4>
           <p className="text-[#A19793] sarabun-font text-xs">
-            รหัสสมาชิก : {user.memberId}
+            คะแนน: {user.point} | {user.point_expired_date_distplay}
           </p>
         </div>
       </div>
 
       {/* Info Button */}
-      <Button className="bg-[#FFB347] text-white rounded-full p-1 sarabun-font text-xs" type="button" onClick={() => navigate('/mobile/account')}>
+      <Button
+        className="bg-[#FFB347] text-white rounded-full p-1 sarabun-font text-xs"
+        type="button"
+        onClick={() => navigate("/mobile/account")}
+      >
         <span className="sarabun-font text-xs">ข้อมูลของฉัน</span>
       </Button>
     </div>

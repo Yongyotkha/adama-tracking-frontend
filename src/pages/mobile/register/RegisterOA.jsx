@@ -19,8 +19,7 @@ export default function RegisterOA() {
   const [isFailModalVisible, setIsFailModalVisible] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { lineProfile } = useOutletContext();
-
+  const { lineProfile } = useOutletContext() || {};
   useEffect(() => {
     console.log("lineProfile", lineProfile);
 

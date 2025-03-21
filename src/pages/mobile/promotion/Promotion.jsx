@@ -15,23 +15,9 @@ export default function Promotion() {
   const [activeTab, setActiveTab] = useState("");
   const [promotions, setPromotions] = useState([]);
   const { lineProfile } = useOutletContext() || {};
-
   useEffect(() => {
     console.log("lineProfile", lineProfile);
   }, []);
-  // User Data
-  const userData = {
-    name: "คุณ Krairoek Ruangkol",
-    memberId: "123456",
-    profileImage: "/img/icons/profile.png",
-  };
-
-  // Points Data
-  const pointsData = {
-    currentPoints: 100,
-    expiringPoints: 15,
-    expiryDate: "31 ธ.ค. 67",
-  };
 
   // ✅ Fetch categories (Using GET instead of POST)
   useEffect(() => {
@@ -89,10 +75,10 @@ export default function Promotion() {
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
         {/* Header Section */}
-        <HeadSectionUser user={userData} />
+        <HeadSectionUser />
 
         {/* Points Section */}
-        <UserPointsSection pointsData={pointsData} />
+        <UserPointsSection />
 
         {/* Section Header */}
         <SectionHeader title="ข่าวสารและโปรโมชั่น" icon="/img/icons/news.png" />

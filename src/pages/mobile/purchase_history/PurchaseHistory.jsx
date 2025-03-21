@@ -11,19 +11,7 @@ export default function PurchaseHistory() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("processing");
 
-  // User Data
-  const userData = {
-    name: "คุณ Krairoek Ruangkol",
-    memberId: "123456",
-    profileImage: "/img/icons/profile.png",
-  };
 
-  // Points Data
-  const pointsData = {
-    currentPoints: 100,
-    expiringPoints: 15,
-    expiryDate: "31 ธ.ค. 67",
-  };
 
   const tabs = [
     { id: "processing", label: "กำลังดำเนินการ", color: "border-orange-500" },
@@ -44,10 +32,10 @@ export default function PurchaseHistory() {
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
         {/* Header */}
-        <HeadSectionUser user={userData} />
+        <HeadSectionUser />
 
         {/* Points Section */}
-        <UserPointsSection pointsData={pointsData} />
+        <UserPointsSection />
 
         {/* Section Header */}
         <SectionHeader title="รายละเอียดการสั่งซื้อ" icon="/img/icons/trophy.png" />
@@ -58,9 +46,8 @@ export default function PurchaseHistory() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-2 text-sm font-semibold text-center sarabun-font ${
-                activeTab === tab.id ? "border-b-2 text-green-600 border-green-500" : "text-gray-500"
-              }`}
+              className={`flex-1 py-2 text-sm font-semibold text-center sarabun-font ${activeTab === tab.id ? "border-b-2 text-green-600 border-green-500" : "text-gray-500"
+                }`}
             >
               {tab.label}
             </button>
