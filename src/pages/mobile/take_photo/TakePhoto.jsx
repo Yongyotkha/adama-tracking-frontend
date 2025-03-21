@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { Input } from "antd";
+import { ReloadOutlined } from "@ant-design/icons";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 import BackTopLeftButton from "../../../components/mobile/button/BackTopLeftButton";
 import ActionButton from "../../../components/button/ActionButton";
@@ -11,10 +11,11 @@ export default function TakePhoto() {
   const [cameraPermission, setCameraPermission] = useState(null);
   const [isPopUpVisible, setIsPopUpVisible] = useState(false);
   const [photoDataUrl, setPhotoDataUrl] = useState("");
+  const [facingMode, setFacingMode] = useState("environment"); // 🔄 เริ่มจากกล้องหลัง
 
-  useEffect(() => {
+  const startCamera = (mode) => {
     navigator.mediaDevices
-      .getUserMedia({ video: { facingMode: "environment" } })
+      .getUserMedia({ video: { facingMode: mode } })
       .then((stream) => {
         setCameraPermission(true);
         if (videoRef.current) {
@@ -25,6 +26,10 @@ export default function TakePhoto() {
         console.error("Camera access denied:", error);
         setCameraPermission(false);
       });
+  };
+
+  useEffect(() => {
+    startCamera(facingMode);
 
     return () => {
       const stream = videoRef.current?.srcObject;
@@ -32,7 +37,7 @@ export default function TakePhoto() {
         stream.getTracks().forEach((track) => track.stop());
       }
     };
-  }, []);
+  }, [facingMode]); // 🔁 ถ้ามีการเปลี่ยนกล้อง ให้รันใหม่
 
   const takePhoto = () => {
     const video = videoRef.current;
@@ -47,6 +52,12 @@ export default function TakePhoto() {
       setPhotoDataUrl(imageDataUrl);
       setIsPopUpVisible(true);
     }
+  };
+
+  const handleSwitchCamera = () => {
+    setFacingMode((prev) =>
+      prev === "environment" ? "user" : "environment"
+    );
   };
 
   const handleClosePopUp = () => {
@@ -88,8 +99,16 @@ export default function TakePhoto() {
 
         <canvas ref={canvasRef} className="hidden" />
 
-        <div className="mt-5 flex flex-col gap-5">
+        <div className="mt-5 flex flex-col gap-3 items-center">
           <ActionButton mode="save" text="ถ่ายภาพ" onClick={takePhoto} />
+
+          <button
+            onClick={handleSwitchCamera}
+            className="text-green-700 bg-white border border-green-600 rounded-full px-4 py-2 flex items-center gap-2 text-sm"
+          >
+            <ReloadOutlined />
+            สลับกล้อง
+          </button>
         </div>
       </div>
 
@@ -105,10 +124,9 @@ export default function TakePhoto() {
         confirmText="ตกลง"
         text={
           photoDataUrl
-            ? `<img src="${photoDataUrl}" alt="Captured" class="preview-photo" />`
+            ? `<img src="${photoDataUrl}" alt="Captured" style="width: 300px; height: 400px; object-fit: cover;" />`
             : ""
         }
-
       />
     </div>
   );
