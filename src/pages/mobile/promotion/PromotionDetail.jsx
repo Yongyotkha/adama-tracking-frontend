@@ -21,8 +21,7 @@ export default function PromotionDetail() {
   const userData = {
     name: "คุณ Krairoek Ruangkol",
     memberId: "123456",
-    profileImage:
-      "/img/icons/profile.png",
+    profileImage: "/img/icons/profile.png",
   };
 
   // Points Data (Static)
@@ -35,7 +34,6 @@ export default function PromotionDetail() {
 
   // ✅ **Fix: Use GET instead of POST**
   useEffect(() => {
-
     const fetchPromotionDetail = async (id) => {
       setLoading(true);
       try {
@@ -46,7 +44,6 @@ export default function PromotionDetail() {
         if (response.status === 200 && response.result) {
           setPromotion(response.data);
           console.log(response.data);
-          
         } else {
           setError(true);
         }
@@ -76,7 +73,9 @@ export default function PromotionDetail() {
       <MobileLayout loading={loading}>
         <div className="flex flex-col items-center w-full h-full">
           <SectionHeader title="ไม่พบโปรโมชั่น" icon="/img/icons/trophy.png" />
-          <p className="text-gray-500 sarabun-font mt-4">ขออภัย, ไม่พบโปรโมชั่นนี้</p>
+          <p className="text-gray-500 sarabun-font mt-4">
+            ขออภัย, ไม่พบโปรโมชั่นนี้
+          </p>
           <BackButton url="/mobile/promotion" />
         </div>
       </MobileLayout>
@@ -93,22 +92,35 @@ export default function PromotionDetail() {
         <UserPointsSection pointsData={pointsData} />
 
         {/* Section Header */}
-        <SectionHeader title={promotion.category_name} icon="/img/icons/trophy.png" />
+        <SectionHeader
+          title={promotion.category_name}
+          icon="/img/icons/trophy.png"
+        />
 
         {/* Image Section */}
         <div className="w-full max-w-md rounded-lg overflow mt-4">
-          <img src={promotion.logo} alt={promotion.name} className="w-full object-cover" />
+          <img
+            src={promotion.logo}
+            alt={promotion.name}
+            className="w-full object-cover"
+          />
         </div>
 
         {/* Title & Description */}
-        <h3 className="text-green-700 font-bold text-xl sarabun-font mt-4">{promotion.name}</h3>
-        <p className="text-gray-600 text-sm sarabun-font mt-2">{promotion.description_shot}</p>
+        <h3 className="text-green-700 font-bold text-xl sarabun-font mt-4">
+          {promotion.name}
+        </h3>
+        <p className="text-gray-600 text-sm sarabun-font mt-2">
+          {promotion.description_shot}
+        </p>
 
         {/* Tab Header */}
         <div className="flex justify-between w-full max-w-md mt-6 gap-2 rounded-lg sarabun-font">
           <button
             className={`flex-1 text-center py-2 rounded-lg ${
-              activeTab === "conditions" ? "bg-green-700 text-white" : "bg-white text-[#00783F]"
+              activeTab === "conditions"
+                ? "bg-green-700 text-white"
+                : "bg-white text-[#00783F]"
             }`}
             onClick={() => setActiveTab("conditions")}
           >
@@ -116,7 +128,9 @@ export default function PromotionDetail() {
           </button>
           <button
             className={`flex-1 text-center py-2 rounded-lg ${
-              activeTab === "details" ? "bg-green-700 text-white" : "bg-white text-[#00783F]"
+              activeTab === "details"
+                ? "bg-green-700 text-white"
+                : "bg-white text-[#00783F]"
             }`}
             onClick={() => setActiveTab("details")}
           >
@@ -127,9 +141,15 @@ export default function PromotionDetail() {
         {/* Tab Content */}
         <div className="w-full max-w-md p-4 text-sm text-gray-700 mt-2 bg-white rounded-lg shadow-md">
           {activeTab === "conditions" ? (
-            <div className="sarabun-font" dangerouslySetInnerHTML={{ __html: promotion.condition }} />
+            <div
+              className="sarabun-font"
+              dangerouslySetInnerHTML={{ __html: promotion.condition }}
+            />
           ) : (
-            <div className="sarabun-font" dangerouslySetInnerHTML={{ __html: promotion.description }} />
+            <div
+              className="sarabun-font"
+              dangerouslySetInnerHTML={{ __html: promotion.description }}
+            />
           )}
         </div>
 
@@ -139,7 +159,16 @@ export default function PromotionDetail() {
 
           <div className="w-full max-w-md mt-auto py-2">
             <button
-              onClick={() => navigate("/mobile/scan-collect")}
+              onClick={() => {
+                const isAndroid = /Android/i.test(navigator.userAgent);
+                const url = "adama.mtsc.co.th/mobile/scan-collect"; // ❌ ไม่มี https://
+
+                if (isAndroid) {
+                  window.location.href = `intent://${url}#Intent;scheme=https;package=com.android.chrome;end;`;
+                } else {
+                  window.open(`https://${url}`, "_blank");
+                }
+              }}
               className="w-full py-3 bg-[#009845] rounded-lg text-white sarabun-font flex items-center justify-center space-x-2"
             >
               <span className="sarabun-font">แลกคะแนน</span>

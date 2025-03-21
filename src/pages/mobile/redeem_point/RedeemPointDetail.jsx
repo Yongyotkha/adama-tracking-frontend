@@ -69,8 +69,13 @@ export default function RedeemPointDetail() {
     return (
       <MobileLayout loading={loading}>
         <div className="flex flex-col items-center w-full h-full">
-          <SectionHeader title="ไม่พบข้อมูลรางวัล" icon="/img/icons/trophy.png" />
-          <p className="text-gray-500 sarabun-font mt-4">ขออภัย, ไม่พบรางวัลที่คุณเลือก</p>
+          <SectionHeader
+            title="ไม่พบข้อมูลรางวัล"
+            icon="/img/icons/trophy.png"
+          />
+          <p className="text-gray-500 sarabun-font mt-4">
+            ขออภัย, ไม่พบรางวัลที่คุณเลือก
+          </p>
           <BackButton url="/mobile/redeem-point" />
         </div>
       </MobileLayout>
@@ -87,25 +92,39 @@ export default function RedeemPointDetail() {
         <div className="w-full max-w-md bg-white rounded-lg mt-6">
           {/* Image Section */}
           <div className="relative bg-green-700 text-white rounded-lg overflow-hidden">
-            <img src={reward.image} alt={reward.title} className="w-full object-cover rounded-lg" />
+            <img
+              src={reward.image}
+              alt={reward.title}
+              className="w-full object-cover rounded-lg"
+            />
           </div>
 
           {/* Title & Description */}
-          <h2 className="text-green-700 font-bold text-xl sarabun-font mt-4">{reward.title}</h2>
-          <p className="text-gray-600 text-sm sarabun-font mt-2">{reward.description}</p>
+          <h2 className="text-green-700 font-bold text-xl sarabun-font mt-4">
+            {reward.title}
+          </h2>
+          <p className="text-gray-600 text-sm sarabun-font mt-2">
+            {reward.description}
+          </p>
 
           {/* Tab Header */}
           <div className="flex justify-around gap-2 mt-6 rounded-lg sarabun-font">
             <button
-              className={`flex-1 text-center py-2 rounded-lg ${activeTab === "conditions" ? "bg-green-700 text-white" : "bg-white text-[#00783F]"
-                }`}
+              className={`flex-1 text-center py-2 rounded-lg ${
+                activeTab === "conditions"
+                  ? "bg-green-700 text-white"
+                  : "bg-white text-[#00783F]"
+              }`}
               onClick={() => setActiveTab("conditions")}
             >
               เงื่อนไข
             </button>
             <button
-              className={`flex-1 text-center py-2 rounded-lg ${activeTab === "details" ? "bg-green-700 text-white" : "bg-white text-[#00783F]"
-                }`}
+              className={`flex-1 text-center py-2 rounded-lg ${
+                activeTab === "details"
+                  ? "bg-green-700 text-white"
+                  : "bg-white text-[#00783F]"
+              }`}
               onClick={() => setActiveTab("details")}
             >
               รายละเอียดสินค้า
@@ -115,22 +134,35 @@ export default function RedeemPointDetail() {
           {/* Tab Content */}
           <div className="p-3 rounded-b-lg sarabun-font text-sm text-gray-700 mt-2">
             {activeTab === "conditions" ? (
-              <div className="sarabun-font" dangerouslySetInnerHTML={{ __html: reward.conditions }} />
+              <div
+                className="sarabun-font"
+                dangerouslySetInnerHTML={{ __html: reward.conditions }}
+              />
             ) : (
-              <div className="sarabun-font" dangerouslySetInnerHTML={{ __html: reward.productDetails }} />
+              <div
+                className="sarabun-font"
+                dangerouslySetInnerHTML={{ __html: reward.productDetails }}
+              />
             )}
           </div>
-
         </div>
 
         {/* Action Buttons */}
         <div className="w-full max-w-md flex justify-between align-bottom mt-auto space-x-2">
-
           <BackButton />
 
           <div className="w-full max-w-md mt-auto py-2">
             <button
-              onClick={ () => navigate('/mobile/scan-collect')}
+              onClick={() => {
+                const isAndroid = /Android/i.test(navigator.userAgent);
+                const url = "adama.mtsc.co.th/mobile/scan-collect"; // ❌ ไม่มี https://
+
+                if (isAndroid) {
+                  window.location.href = `intent://${url}#Intent;scheme=https;package=com.android.chrome;end;`;
+                } else {
+                  window.open(`https://${url}`, "_blank");
+                }
+              }}
               className="w-full py-3 bg-[#009845] rounded-lg text-white sarabun-font flex items-center justify-center space-x-2"
             >
               <span className="sarabun-font">แลกคะแนน</span>
@@ -138,6 +170,6 @@ export default function RedeemPointDetail() {
           </div>
         </div>
       </div>
-    </MobileLayout >
+    </MobileLayout>
   );
 }
