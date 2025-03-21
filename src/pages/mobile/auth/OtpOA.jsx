@@ -15,6 +15,7 @@ export default function VerifyOA() {
   const navigate = useNavigate();
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [step, setStep] = useState("");
   const [otpInfo, setOtpInfo] = useState("");
   const { userInfo, showMsg ,showNotification} = useContext(AuthContext);
   const { Title, Text } = Typography;
@@ -80,16 +81,16 @@ export default function VerifyOA() {
                 shop_type
                 
               };
-
-              if (response.data.step_number == 0) {
-                navigate("/mobile/contact-admin" , { state: stateData });
-              } else if (response.data.step_number == 1){
-                  navigate("/mobile/register" , { state: stateData });
-              } else if (response.data.step_number == 2){
-                  navigate("/mobile/contact-admin" , { state: stateData });
-              } else if (response.data.step_number == 4){
-                navigate("/mobile/account" , { state: stateData });
-              }
+             setStep(response.data.step_number);
+              // if (response.data.step_number == 0) {
+              //   navigate("/mobile/contact-admin" , { state: stateData });
+              // } else if (response.data.step_number == 1){
+              //     navigate("/mobile/register" , { state: stateData });
+              // } else if (response.data.step_number == 2){
+              //     navigate("/mobile/contact-admin" , { state: stateData });
+              // } else if (response.data.step_number == 4){
+              //   navigate("/mobile/account" , { state: stateData });
+              // }
             }
           console.log("OTP Verification Success:", response.data);
           // navigate("/mobile/account");
@@ -162,6 +163,7 @@ export default function VerifyOA() {
 
       <Title level={4} className="text-green-700 sarabun-font">กรอกรหัส OTP</Title>
       <Text className="sarabun-font text-gray-500">กรอก OTP ที่ส่งไปที่เบอร์โทรศัพท์</Text>
+      <Text className="sarabun-font text-gray-500">step : {step}</Text>
       <Title level={5}>
         <Text className="sarabun-font text-[#009845]">
           {phone_number}
@@ -209,6 +211,7 @@ export default function VerifyOA() {
         )}
 
         <div className="mb-10 w-full">
+          
           <DynamicButton
             type="primary"
             className="w-full bg-green-700 text-white py-2 rounded-md text-sm font-semibold shadow-md hover:bg-green-800 sarabun-font"

@@ -57,6 +57,7 @@ const LineOARoute = () => {
       try {
         const results = await loginLineUid(lineProfile.userId);
         if (results.status === 200) {
+          console.log(results);
           const storedRedirectPath =
             localStorage.getItem("redirectPath") || "/mobile/main";
           setRedirectPath(storedRedirectPath);
@@ -75,17 +76,22 @@ const LineOARoute = () => {
     }
   }, [lineProfile]);
 
+  // useEffect(() => {
+  //   if (redirectPath) {
+  //     navigate(redirectPath, { replace: true });
+  //   }
+  // }, [redirectPath]);
+
   useEffect(() => {
-    if (redirectPath) {
-      navigate(redirectPath, { replace: true });
-    }
-  }, [redirectPath]);
+    console.log("isLoggedIn", isLoggedIn);
+    console.log("isLineLoggedIn", isLineLoggedIn);
+  }, [isLoggedIn, isLineLoggedIn]);
 
-  if (!isLineLoggedIn && !isLoggedIn) {
-    return <MessageLayout loading={true} />;
+  if (!isLineLoggedIn) {
+    return <MessageLayout loading={!isLineLoggedIn} />;
+  } else if (isLoggedIn && isLineLoggedIn) {
+    return <Outlet context={{ lineProfile }} />;
   }
-
-  return <Outlet context={{ lineProfile }} />;
 };
 
 export { LineOARoute };

@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = (mode = 'web') => {
     setIsLoggedIn(false);
     setUserInfo(null);
 
@@ -124,7 +124,12 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("expiredToken");
 
     console.log("เข้าฟังก์ชัน logout");
-    navigate("/login");
+
+    if(mode === 'web'){
+      navigate("/login");
+    }else{
+      navigate("/mobile/verify");
+    }
   };
 
   const formatNumber = (number) => {

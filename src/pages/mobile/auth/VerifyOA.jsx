@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import { Form, Input, Typography } from "antd";
 import { LeftOutlined } from "@ant-design/icons";
 import PhoneInput from "react-phone-number-input";
@@ -12,22 +12,21 @@ import BackTopLeftButton from "../../../components/mobile/button/BackTopLeftButt
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
-// import PhoneInput from "../../../components/numeric_input/PhoneInput";
 
 export default function VerifyOA() {
-  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [popupText, setPopupText] = useState("");
   const [popupImage, setPopupImage] = useState("");
   const navigate = useNavigate();
   const [phone_number, setPhoneNumber] = useState("");
-  const { userInfo } = useContext(AuthContext);
   const { Title, Text } = Typography;
-  const [userName, setUserName] = useState("");
   const formatPhoneNumber = (number) => number.replace(/\s+/g, "");
 
-  useEffect(() => {}, [location, phone_number]);
+    const { lineProfile } = useOutletContext() || {};
+    useEffect(() => {
+      console.log("lineProfile", lineProfile);
+    }, []);
 
   const onFinish = () => {
     const formattedPhoneNumber = formatPhoneNumber(phone_number);
@@ -36,7 +35,7 @@ export default function VerifyOA() {
     useServiceAPI
       .post(
         paths.pathOtpShopCall,
-        { phone_number: formattedPhoneNumber },
+        { phone_number: Number(formattedPhoneNumber) },
         setLoading
       )
       .then((response) => {
