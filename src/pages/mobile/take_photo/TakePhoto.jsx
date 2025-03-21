@@ -105,7 +105,7 @@ export default function TakePhoto() {
         confirmText="ตกลง"
         text={
           photoDataUrl
-            ? `<img src="${photoDataUrl}" alt="Captured" style="width: 300px; height: 400px; object-fit: cover;" />`
+            ? `<img src="${photoDataUrl}" alt="Captured" class="preview-photo" />`
             : ""
         }
 
