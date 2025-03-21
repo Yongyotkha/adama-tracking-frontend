@@ -128,6 +128,7 @@ import CreateManagePromotion from "./pages/settings/mobile/manage-promotion/Crea
 import ApprovalAdvanceExpense from "./pages/expenses/advance/ApprovalAdvanceExpense";
 import ApprovalClearingExpense from "./pages/expenses/clearing/ApprovalClearingExpense";
 import ContactAdmin from "./pages/mobile/contact_admin/ContactAdmin";
+import TakePhoto from "./pages/mobile/take_photo/TakePhoto";
 
 const App = () => {
   return (
@@ -327,6 +328,7 @@ const App = () => {
           </Route>
 
           <Route path="/mobile/scan-collect" element={< ScanCollectPoint />} />
+          <Route path="/mobile/take-photo" element={< TakePhoto />} />
           
           {/* Error Route */}
           <Route path="/error/403" element={<Error403 />} />
