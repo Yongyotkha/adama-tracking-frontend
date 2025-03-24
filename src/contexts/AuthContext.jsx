@@ -101,10 +101,12 @@ export const AuthProvider = ({ children }) => {
         console.log(response.data);
         setIsLoggedIn(true);
         setUserInfo(userData);
-
-        localStorage.setItem("users", JSON.stringify(userData));
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("expiredToken", expiredToken);
+        
+        await Promise.all([
+          localStorage.setItem("users", JSON.stringify(userData)),
+          localStorage.setItem("accessToken", accessToken),
+          localStorage.setItem("expiredToken", expiredToken)
+        ]);
 
         return response.data;
       }

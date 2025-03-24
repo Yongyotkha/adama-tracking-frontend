@@ -1,4 +1,4 @@
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import liff from "@line/liff";
 import MessageLayout from "../../layouts/MessageLayout";
@@ -37,7 +37,7 @@ const LineOARoute = () => {
             setIsLineLoggedIn(true);
           } catch (profileError) {
             liff.logout();
-            window.location.reload(); // รีโหลดหน้าเพื่อให้ผู้ใช้ล็อกอินใหม่
+            // window.location.reload(); // รีโหลดหน้าเพื่อให้ผู้ใช้ล็อกอินใหม่
           }
         }
       } catch (error) {
@@ -76,17 +76,6 @@ const LineOARoute = () => {
     }
   }, [lineProfile]);
 
-  // useEffect(() => {
-  //   if (redirectPath) {
-  //     navigate(redirectPath, { replace: true });
-  //   }
-  // }, [redirectPath]);
-
-  useEffect(() => {
-    console.log("isLoggedIn", isLoggedIn);
-    console.log("isLineLoggedIn", isLineLoggedIn);
-  }, [isLoggedIn, isLineLoggedIn]);
-
   if (!isLineLoggedIn) {
     return <MessageLayout loading={!isLineLoggedIn} />;
   }
@@ -94,4 +83,14 @@ const LineOARoute = () => {
   return <Outlet context={{ lineProfile }} />;
 };
 
-export { LineOARoute };
+const LinePrivateRoute = () => {
+  // const { userInfo } = useContext(AuthContext);
+
+  if (localStorage.getItem("accessToken")) {
+    return <Outlet />;
+  } else {
+    return <Navigate to="/mobile/verify" />;
+  }
+};
+
+export { LineOARoute, LinePrivateRoute };

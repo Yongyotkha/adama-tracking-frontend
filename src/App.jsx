@@ -115,7 +115,7 @@ import FaqOA from "./pages/mobile/user/settings/faq/Faq";
 import PrivacyPolicy from "./pages/mobile/user/settings/privacy_policy/PrivacyPolicy";
 import TermsConditions from "./pages/mobile/user/settings/terms_conditions/TermsConditions";
 import CheckLogin from "./pages/mobile/auth/CheckLogin";
-import { LineOARoute } from "./components/auth/LineOARoute";
+import { LineOARoute, LinePrivateRoute } from "./components/auth/LineOARoute";
 import PromotionLineList from "./pages/settings/mobile/promotion/PromotionLineList";
 import CustomerLineList from "./pages/settings/mobile/customer/CustomerLineList";
 import CreateCustomerLine from "./pages/settings/mobile/customer/CreateCustomerLine";
@@ -312,7 +312,7 @@ const App = () => {
             <Route path="/mobile/faq" element={< FaqOA />} />
             <Route path="/mobile/register" element={< RegisterOA />} />
 
-            {/* <Route element={<LinePrivateRoute />}> */}
+            <Route element={<LinePrivateRoute />}>
               <Route path="/mobile/promotion" element={< Promotion />} />
               <Route path="/mobile/account" element={< MyAccountMobile />} />
               <Route path="/mobile/user/detail" element={< UserDetail />} />
@@ -325,7 +325,7 @@ const App = () => {
               <Route path="/mobile/redeem-history/detail" element={< RedeemHistoryDetail />} />
               <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
               <Route path="/mobile/redeem-history" element={< RedeemHistory />} />
-            {/* </Route> */}
+            </Route>
 
             {/* <Route path="/mobile/redeem-point/detail/:id" element={<RedeemPointDetail />} /> */}
             {/* <Route path="/mobile/promotion/detail/:id" element={<PromotionDetail />} /> */}
