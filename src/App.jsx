@@ -301,30 +301,36 @@ const App = () => {
           </Route>
 
           <Route element={<LineOARoute />}>
+
+            <Route path="/mobile/login" element={< CheckLogin />} />
             <Route path="/mobile/verify" element={<VerifyOA />} />
             <Route path="/mobile/otp" element={<OtpOA />} />
-            <Route path="/mobile/account" element={< MyAccountMobile />} />
-            <Route path="/mobile/user/detail" element={< UserDetail />} />
-            <Route path="/mobile/user/edit" element={< EditUserOA />} />
-            <Route path="/mobile/register" element={< RegisterOA />} />
             <Route path="/mobile/contact-admin" element={< ContactAdmin />} />
             <Route path="/mobile/contact-us" element={< ContactUs />} />
-            <Route path="/mobile/faq" element={< FaqOA />} />
             <Route path="/mobile/privacy-policy" element={< PrivacyPolicy />} />
             <Route path="/mobile/terms-conditions" element={< TermsConditions />} />
-            <Route path="/mobile/main" element={< MainOA />} />
-            <Route path="/mobile/redeem-point" element={< RedeemPoint />} />
+            <Route path="/mobile/faq" element={< FaqOA />} />
+            <Route path="/mobile/register" element={< RegisterOA />} />
+
+            {/* <Route element={<LinePrivateRoute />}> */}
+              <Route path="/mobile/promotion" element={< Promotion />} />
+              <Route path="/mobile/account" element={< MyAccountMobile />} />
+              <Route path="/mobile/user/detail" element={< UserDetail />} />
+              <Route path="/mobile/user/edit" element={< EditUserOA />} />
+              <Route path="/mobile/main" element={< MainOA />} />
+              <Route path="/mobile/redeem-point" element={< RedeemPoint />} />
+              <Route path="/mobile/redeem-point/detail" element={<RedeemPointDetail />} />
+              <Route path="/mobile/history-purchase" element={< PurchaseHistory />} />
+              <Route path="/mobile/history-purchase/detail/:id" element={<PurchaseHistoryDetail />} />
+              <Route path="/mobile/redeem-history/detail" element={< RedeemHistoryDetail />} />
+              <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
+              <Route path="/mobile/redeem-history" element={< RedeemHistory />} />
+            {/* </Route> */}
+
             {/* <Route path="/mobile/redeem-point/detail/:id" element={<RedeemPointDetail />} /> */}
-            <Route path="/mobile/redeem-point/detail" element={<RedeemPointDetail />} />
-            <Route path="/mobile/history-purchase" element={< PurchaseHistory />} />
-            <Route path="/mobile/history-purchase/detail/:id" element={<PurchaseHistoryDetail />} />
-            <Route path="/mobile/promotion" element={< Promotion />} />
             {/* <Route path="/mobile/promotion/detail/:id" element={<PromotionDetail />} /> */}
             {/* <Route path="/mobile/redeem-history/detail/:id" element={< RedeemHistoryDetail />} /> */}
-            <Route path="/mobile/redeem-history/detail" element={< RedeemHistoryDetail />} />
-            <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
-            <Route path="/mobile/redeem-history" element={< RedeemHistory />} />
-            <Route path="/mobile/login" element={< CheckLogin />} />
+
           </Route>
 
           <Route path="/mobile/scan-collect" element={< ScanCollectPoint />} />
