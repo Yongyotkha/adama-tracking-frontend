@@ -25,7 +25,8 @@ export default function RegisterOA() {
 
     setFormData({
       ...formData,
-      line_id: lineProfile.userId,
+      line_id_token: lineProfile.userId,
+      line_name: lineProfile.displayName,
     });
   }, [lineProfile]);
 
@@ -129,8 +130,8 @@ export default function RegisterOA() {
       is_condition: isChecked,
       shop_type: formData.shop_type,
       image_url: imagePreview,
-      line_id_token: "111111", // ต้องแก้
-      line_name: "2222", // ต้องแก้
+      line_id_token: formData.line_id_token,
+      line_name: formData.line_name, 
     };
     setLoading(true);
     useServiceAPI
