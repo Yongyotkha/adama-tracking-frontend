@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Button, Spin } from "antd";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
 import { AuthContext } from "../../../contexts/AuthContext";
@@ -10,7 +10,10 @@ const HeadSectionUser = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const { userInfo } = useContext(AuthContext);
-
+  const location = useLocation();
+  
+  console.log( " userInfo.id", userInfo.id);
+  
   useEffect(() => {
     const fetchUserProfile = async () => {
       setLoading(true);
@@ -55,7 +58,7 @@ const HeadSectionUser = () => {
             {user.name_th || user.name_en}
           </h4>
           <p className="text-[#A19793] sarabun-font text-xs">
-            คะแนน: {user.point} | {user.point_expired_date_distplay}
+            คะแนน : {user.point} | {user.point_expired_date_distplay}
           </p>
         </div>
       </div>
@@ -64,7 +67,16 @@ const HeadSectionUser = () => {
       <Button
         className="bg-[#FFB347] text-white rounded-full p-1 sarabun-font text-xs"
         type="button"
-        onClick={() => navigate("/mobile/account")}
+        // onClick={() => navigate("/mobile/account")}
+
+        onClick={() =>
+          navigate("/mobile/account/", {
+            state: {
+              id: userInfo.id,
+            },
+          })
+        }
+
       >
         <span className="sarabun-font text-xs">ข้อมูลของฉัน</span>
       </Button>
