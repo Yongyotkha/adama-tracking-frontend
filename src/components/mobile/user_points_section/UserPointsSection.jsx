@@ -1,17 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { Spin } from "antd";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 const UserPointsSection = () => {
   const [pointsData, setPointsData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { userInfo } = useContext(AuthContext);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathProfileDetail, { id: 1 });
+        const response = await useServiceAPI.get(paths.pathProfileDetail, { id: userInfo.id });
 
         if (response.status === 200 && response.result) {
           setPointsData({

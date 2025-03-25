@@ -16,12 +16,15 @@ export default function EditUserOA() {
   const location = useLocation();
   const userData = location.state?.user || {};
 
+  console.log(location.state);
+  const [imagePreview, setImagePreview] = useState(userData.profile_image || "/img/icons/profile.png");
   const [loading, setLoading] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const [isFailModalVisible, setIsFailModalVisible] = useState(false);
   const [formData, setFormData] = useState({
+    id: location.state.id,
     shop_name: userData.shop_name || "",
     first_name: userData.name_th || "",
     last_name: userData.name_en || "",
@@ -43,8 +46,31 @@ export default function EditUserOA() {
     }));
   }, [userData]);
 
-  const [imagePreview, setImagePreview] = useState(userData.profile_image || "/img/icons/profile.png");
 
+
+
+  useEffect(() => {
+    if (imagePreview && imagePreview !== userData.profile_image) {
+      const updateProfileImage = async () => {
+        try {
+          const response = await useServiceAPI.put(paths.pathProfileImage, {
+            profile_image: imagePreview,
+            id: location.state.id, // ส่ง ID ผู้ใช้ไปด้วย
+          });
+  
+          if (response.status === 200) {
+            console.log("Profile image updated successfully:", response.data);
+          }
+        } catch (error) {
+          console.error("Error updating profile image:", error);
+        }
+      };
+  
+      updateProfileImage();
+    }
+  }, [imagePreview, userData.profile_image, userData.id]);
+
+  
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     setImagePreview(URL.createObjectURL(file));
@@ -92,7 +118,7 @@ export default function EditUserOA() {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const response = await useServiceAPI.post(paths.pathProfileDetail, formData);
+      const response = await useServiceAPI.put(paths.pathProfileDetail, formData);
       if (response.status === 200 && response.result) {
         setIsSuccessModalVisible(true);
         navigate("/mobile/user/detail", { state: { id: userData.id } });

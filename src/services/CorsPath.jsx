@@ -235,6 +235,7 @@ export const paths = {
 
   // Line OA
   pathProfileDetail: "profile/detail",
+  pathProfileImage : "/profile/update-image",
 
   pathNewsPublicCategory: "news/public/category",
   pathNewsPublicListByCategory: "news/public/list",

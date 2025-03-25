@@ -11,9 +11,12 @@ export default function UserDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const userId = location.state?.id || 1; // Default to 1 if no ID is passed
-
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
+
+  console.log(userId);
+  
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -60,7 +63,16 @@ export default function UserDetail() {
                 <Button
                   type="primary"
                   className="bg-[#009845] rounded-lg sarabun-font flex items-center"
-                  onClick={() => navigate("/mobile/user/edit", { state: { user } })}
+                  // onClick={() => navigate("/mobile/user/edit", { state: { user } })}
+                  onClick={() =>
+                    navigate("/mobile/user/edit", {
+                      state: {
+                        id: userId,
+                        user: user
+                      },
+                    })
+                  }
+
                 >
                   <EditOutlined className="mr-1" />
                   <span className="sarabun-font">แก้ไขข้อมูล</span>

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Modal, Button, Spin } from "antd";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
-import { useNavigate } from "react-router-dom";
+import { useNavigate , useLocation } from "react-router-dom";
 import {
   UserOutlined,
   FileTextOutlined,
@@ -25,7 +25,12 @@ export default function MyAccount() {
   const [user, setUser] = useState(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const { logout } = useContext(AuthContext);
-
+  const location = useLocation();
+  const [userID, setUserID] = useState(location.state.id);
+  console.log(userID);
+  
+  // console.log("location " ,location.state.id);
+  
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
@@ -106,9 +111,17 @@ export default function MyAccount() {
                   type="button"
                   icon={<UserOutlined className="text-lg text-gray-500" />}
                   label="ข้อมูลส่วนตัว"
+                  // onClick={() =>
+                  //   navigate("/mobile/user/detail", { state: { id: user?.id } })
+                  // }
                   onClick={() =>
-                    navigate("/mobile/user/detail", { state: { id: user?.id } })
+                    navigate("/mobile/user/detail", {
+                      state: {
+                        id: userID,
+                      },
+                    })
                   }
+
                 />
 
                 <div className="sarabun-font pt-2">การตั้งค่า</div>
