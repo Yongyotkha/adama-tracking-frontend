@@ -249,4 +249,8 @@ export const paths = {
   pathPointPublicCategory: "point/public/category",
   pathPointPublicListByCategory: "point/public/list",
   pathPointPublicDetail: "point/public/detail",
+
+  // line history
+  pathpointhistory: "/profile/point/history",
+
 };
