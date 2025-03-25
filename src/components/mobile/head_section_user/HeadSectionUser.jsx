@@ -13,7 +13,7 @@ const HeadSectionUser = () => {
     const fetchUserProfile = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathProfileDetail, { id: 1 });
+        const response = await useServiceAPI.get(paths.pathProfileDetail, { id: 139 });
 
         if (response.status === 200 && response.result) {
           setUser(response.data);
