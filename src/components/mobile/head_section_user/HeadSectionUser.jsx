@@ -1,19 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Button, Spin } from "antd";
 import { useNavigate } from "react-router-dom";
 import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 const HeadSectionUser = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { userInfo } = useContext(AuthContext);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathProfileDetail, { id: 139 });
+        const response = await useServiceAPI.get(paths.pathProfileDetail, { id: userInfo.id });
 
         if (response.status === 200 && response.result) {
           setUser(response.data);
