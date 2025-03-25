@@ -374,18 +374,18 @@ export default function RegisterOA() {
                   value={formData.birth_date_month || ""}
                   onChange={(value) => handleDateChange("birth_date_month", value)}
                 >
-                  <Option className="sarabun-font" value="January">January</Option>
-                  <Option className="sarabun-font" value="February">February</Option>
-                  <Option className="sarabun-font" value="March">March</Option>
-                  <Option className="sarabun-font" value="April">April</Option>
-                  <Option className="sarabun-font" value="May">May</Option>
-                  <Option className="sarabun-font" value="June">June</Option>
-                  <Option className="sarabun-font" value="July">July</Option>
-                  <Option className="sarabun-font" value="August">August</Option>
-                  <Option className="sarabun-font" value="September">September</Option>
-                  <Option className="sarabun-font" value="October">October</Option>
-                  <Option className="sarabun-font" value="November">November</Option>
-                  <Option className="sarabun-font" value="December">December</Option>
+                  <Option className="sarabun-font" value="1">January</Option>
+                  <Option className="sarabun-font" value="2">February</Option>
+                  <Option className="sarabun-font" value="3">March</Option>
+                  <Option className="sarabun-font" value="4">April</Option>
+                  <Option className="sarabun-font" value="5">May</Option>
+                  <Option className="sarabun-font" value="6">June</Option>
+                  <Option className="sarabun-font" value="7">July</Option>
+                  <Option className="sarabun-font" value="8">August</Option>
+                  <Option className="sarabun-font" value="9">September</Option>
+                  <Option className="sarabun-font" value="10">October</Option>
+                  <Option className="sarabun-font" value="11">November</Option>
+                  <Option className="sarabun-font" value="12">December</Option>
                 </Select>
 
                 {/* Year Input */}

@@ -203,7 +203,10 @@ export default function Dashboard() {
         );
         if (response.status === 200) {
           const data = response.data || {};
-          setDashboardDataOrder(data);
+          setDashboardDataOrder({
+            total_amount_target_actual:convertNumber(data.total_amount_target_actual),
+            total_amount_target_plan:convertNumber(data.total_amount_target_plan),
+          });
         } else {
           console.error("Failed to fetch dashboard data:", response.message);
         }
@@ -680,13 +683,13 @@ export default function Dashboard() {
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 w-full">
               <div className="text-center p-2">
                 <div className="text-md font-bold text-[#00783F]">
-                  {dashboardDataOrder.total_amount_target_plan}
+                  {formatNumber(dashboardDataOrder.total_amount_target_plan)}
                 </div>
                 <div className="text-sm text-gray-500">Plan</div>
               </div>
               <div className="text-center p-2">
                 <div className="text-md font-bold text-[#00783F]">
-                  {dashboardDataOrder.total_amount_target_actual}
+                  {formatNumber(dashboardDataOrder.total_amount_target_actual)}
                 </div>
                 <div className="text-sm text-gray-500">Actual</div>
               </div>

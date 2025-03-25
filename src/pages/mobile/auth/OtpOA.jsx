@@ -80,7 +80,6 @@ export default function VerifyOA() {
                 shop_type
                 
               };
-
               if (response.data.step_number == 0) {
                 navigate("/mobile/contact-admin" , { state: stateData });
               } else if (response.data.step_number == 1){
@@ -209,6 +208,7 @@ export default function VerifyOA() {
         )}
 
         <div className="mb-10 w-full">
+          
           <DynamicButton
             type="primary"
             className="w-full bg-green-700 text-white py-2 rounded-md text-sm font-semibold shadow-md hover:bg-green-800 sarabun-font"

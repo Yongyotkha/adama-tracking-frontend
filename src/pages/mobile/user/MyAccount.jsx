@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Modal, Button, Spin } from "antd";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { useNavigate } from "react-router-dom";
@@ -17,17 +17,21 @@ import LogOutPopUp from "../../../components/mobile/popup/LogOutPopUp";
 import liff from "@line/liff";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function MyAccount() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const { logout } = useContext(AuthContext);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const response = await useServiceAPI.get(paths.pathProfileDetail, { id: 1 });
+        const response = await useServiceAPI.get(paths.pathProfileDetail, {
+          id: 1,
+        });
 
         if (response.status === 200 && response.result && response.data) {
           setUser(response.data); // Set user data
@@ -52,16 +56,17 @@ export default function MyAccount() {
     setIsLogoutModalOpen(false);
     try {
       if (liff.isLoggedIn()) {
-        await liff.logout();
+        liff.logout();
+        logout("line");
         console.log("User logged out from LIFF");
       }
     } catch (error) {
       console.error("LIFF Logout Error:", error);
     }
-    localStorage.removeItem("authToken");
-    sessionStorage.removeItem("authSession");
-    navigate("/mobile/login");
-    window.location.reload();
+    // localStorage.removeItem("authToken");
+    // sessionStorage.removeItem("authSession");
+    // navigate("/mobile/login");
+    // window.location.reload();
   };
 
   return (
@@ -101,14 +106,38 @@ export default function MyAccount() {
                   type="button"
                   icon={<UserOutlined className="text-lg text-gray-500" />}
                   label="ข้อมูลส่วนตัว"
-                  onClick={() => navigate("/mobile/user/detail", { state: { id: user?.id } })}
+                  onClick={() =>
+                    navigate("/mobile/user/detail", { state: { id: user?.id } })
+                  }
                 />
 
                 <div className="sarabun-font pt-2">การตั้งค่า</div>
-                <MainButton type="link" to="/mobile/terms-conditions" icon={<FileTextOutlined className="text-lg text-gray-500" />} label="ข้อตกลงและเงื่อนไข" />
-                <MainButton type="link" to="/mobile/privacy-policy" icon={<LockOutlined className="text-lg text-gray-500" />} label="นโยบายความเป็นส่วนตัว" />
-                <MainButton type="link" to="/mobile/faq" icon={<QuestionCircleOutlined className="text-lg text-gray-500" />} label="คำถามที่พบบ่อย" />
-                <MainButton type="link" to="/mobile/contact-us" icon={<PhoneOutlined className="text-lg text-gray-500" />} label="ติดต่อเรา" />
+                <MainButton
+                  type="link"
+                  to="/mobile/terms-conditions"
+                  icon={<FileTextOutlined className="text-lg text-gray-500" />}
+                  label="ข้อตกลงและเงื่อนไข"
+                />
+                <MainButton
+                  type="link"
+                  to="/mobile/privacy-policy"
+                  icon={<LockOutlined className="text-lg text-gray-500" />}
+                  label="นโยบายความเป็นส่วนตัว"
+                />
+                <MainButton
+                  type="link"
+                  to="/mobile/faq"
+                  icon={
+                    <QuestionCircleOutlined className="text-lg text-gray-500" />
+                  }
+                  label="คำถามที่พบบ่อย"
+                />
+                <MainButton
+                  type="link"
+                  to="/mobile/contact-us"
+                  icon={<PhoneOutlined className="text-lg text-gray-500" />}
+                  label="ติดต่อเรา"
+                />
 
                 <MainButton
                   type="button"

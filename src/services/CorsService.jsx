@@ -1,6 +1,7 @@
 import axios from "axios";
 import { endPoint } from "./CorsPath";
 import { useLocation } from "react-router-dom";
+import liff from "@line/liff";
 
 // Set config defaults
 export const axiosInstance = axios.create({
@@ -26,28 +27,35 @@ axiosInstance.interceptors.request.use(
 );
 
 const handleUnauthorized = (pathname) => {
-  if (pathname !== "/login") {
-    localStorage.removeItem("users");
-    localStorage.removeItem("accessToken");
-    window.location.href = "/login";
+  if (
+    pathname === "/login" ||
+    pathname === "/mobile/verify" ||
+    pathname === "/mobile/login" ||
+    pathname === "/mobile/register" ||
+    pathname === "/mobile/contact-admin" ||
+    pathname === "mobile/otp"
+  ) {
+  } else {
+    if (liff.isLoggedIn()) {
+      window.location.href = "/mobile/verify";
+    } else {
+      localStorage.removeItem("users");
+      localStorage.removeItem("accessToken");
+      window.location.href = "/login";
+    }
   }
 };
 
-export const useAxiosWithInterceptor = () => {
-  const location = useLocation();
-
-  axiosInstance.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      if (error.response && error.response.status === 401) {
-        handleUnauthorized(location.pathname);
-      }
-      return Promise.reject(error);
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      const currentPath = window.location.pathname;
+      handleUnauthorized(currentPath);
     }
-  );
-
-  return axiosInstance;
-};
+    return Promise.reject(error);
+  }
+);
 
 let loading = false;
 
@@ -81,7 +89,6 @@ const handleRequest = async (method, url, dataOrParams, onLoadingChange) => {
 
     return response.data;
   } catch (error) {
-
     throw error;
   } finally {
     notifyLoadingState(onLoadingChange, false);
@@ -97,7 +104,7 @@ const useServiceAPI = {
     handleRequest("put", url, data, onLoadingChange),
   delete: (url, data = null, onLoadingChange = null) =>
     handleRequest("delete", url, data, onLoadingChange),
-  
+
   isLoading: () => loading,
 };
 
