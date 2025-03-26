@@ -6,11 +6,13 @@ import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 import BackTopLeftButton from "../../../components/mobile/button/BackTopLeftButton";
 import "./ScanCollectPointCSS.css";
 import ActionButton from "../../../components/button/ActionButton";
+import { useNavigate } from "react-router-dom";
 
 export default function ScanCollectPoint() {
   const [scanResult, setScanResult] = useState("");
   const [isPopUpVisible, setIsPopUpVisible] = useState(false);
   const [cameraPermission, setCameraPermission] = useState(null);
+  const navigate = useNavigate();
 
   // ขอสิทธิ์กล้อง
   useEffect(() => {
@@ -88,7 +90,7 @@ export default function ScanCollectPoint() {
           <ActionButton
             mode="save"
             text="เปิดกล้อง"
-            // onClick={handleUploadClick}
+            onClick={() => navigate("/mobile/take-photo")}
           />
         </div>
       </div>

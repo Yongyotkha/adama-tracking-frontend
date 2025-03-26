@@ -35,7 +35,7 @@ export default function MyAccount() {
     const fetchUserProfile = async () => {
       try {
         const response = await useServiceAPI.get(paths.pathProfileDetail, {
-          id: 1,
+          id: userID,
         });
 
         if (response.status === 200 && response.result && response.data) {
