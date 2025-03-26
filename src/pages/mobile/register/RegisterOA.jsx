@@ -119,8 +119,8 @@ export default function RegisterOA() {
       shop_name: formData.shop_name,
       shop_code: formData.shop_code,
       phone_number: formData.phone_number,
-      first_name: formData.shop_name, // ต้องแก้
-      last_name: formData.shop_name, // ต้องแก้
+      first_name: formData.first_name, // ต้องแก้
+      last_name: formData.last_name, // ต้องแก้
       birth_date_day: formData.birth_date_day,
       birth_date_month: formData.birth_date_month,
       birth_date_year: formData.birth_date_year,
