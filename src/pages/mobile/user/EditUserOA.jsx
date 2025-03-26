@@ -180,12 +180,12 @@ export default function EditUserOA() {
 
             <div>
               <label className="text-gray-500 sarabun-font">ชื่อ</label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.first_name} name="first_name" onChange={handleInputChange} />
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.contact_first_name} name="first_name" onChange={handleInputChange} />
             </div>
 
             <div>
               <label className="text-gray-500 sarabun-font">นามสกุล</label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.last_name} name="last_name" onChange={handleInputChange} />
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.lascontact_last_namet_name} name="last_name" onChange={handleInputChange} />
             </div>
 
             <div>

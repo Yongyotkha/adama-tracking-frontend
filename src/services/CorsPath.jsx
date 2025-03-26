@@ -252,5 +252,6 @@ export const paths = {
 
   // line history
   pathpointhistory: "/profile/point/history",
-
+  pathhistoryShop: "/profile/order/history" ,
+  pathhistoryShopDetail: "/profile/order/history/detail",
 };
