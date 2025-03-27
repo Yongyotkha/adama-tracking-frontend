@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Modal, Button, Spin } from "antd";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
-import { useNavigate , useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   UserOutlined,
   FileTextOutlined,
@@ -28,9 +28,9 @@ export default function MyAccount() {
   const location = useLocation();
   const [userID, setUserID] = useState(location.state.id);
   console.log(userID);
-  
+
   // console.log("location " ,location.state.id);
-  
+
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
@@ -61,8 +61,10 @@ export default function MyAccount() {
     setIsLogoutModalOpen(false);
     try {
       if (liff.isLoggedIn()) {
-        liff.logout();
         logout("line");
+        liff.logout();
+        window.location.reload();
+
         console.log("User logged out from LIFF");
       }
     } catch (error) {
@@ -121,7 +123,6 @@ export default function MyAccount() {
                       },
                     })
                   }
-
                 />
 
                 <div className="sarabun-font pt-2">การตั้งค่า</div>

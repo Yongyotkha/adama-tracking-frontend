@@ -5,14 +5,10 @@ import MessageLayout from "../../layouts/MessageLayout";
 import { AuthContext } from "../../contexts/AuthContext";
 
 const LineOARoute = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const [isLineLoggedIn, setIsLineLoggedIn] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [lineProfile, setLineProfile] = useState(null);
-  const [redirectPath, setRedirectPath] = useState(null);
   const queryParams = new URLSearchParams(location.search);
-  const { loginLineUid, userInfo } = useContext(AuthContext);
 
   useEffect(() => {
     const initLIFF = async () => {
@@ -37,7 +33,6 @@ const LineOARoute = () => {
             setIsLineLoggedIn(true);
           } catch (profileError) {
             liff.logout();
-            // window.location.reload(); // รีโหลดหน้าเพื่อให้ผู้ใช้ล็อกอินใหม่
           }
         }
       } catch (error) {
@@ -52,29 +47,7 @@ const LineOARoute = () => {
     initLIFF();
   }, []);
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const results = await loginLineUid(lineProfile.userId);
-        if (results.status === 200) {
-          console.log(results);
-          const storedRedirectPath =
-            localStorage.getItem("redirectPath") || "/mobile/main";
-          setRedirectPath(storedRedirectPath);
-          setIsLoggedIn(true);
-        }
-      } catch (error) {
-        console.error("Error fetching user profile:", error);
-        if (error?.response?.status === 401) {
-          setRedirectPath("/mobile/verify");
-        }
-      }
-    };
 
-    if (lineProfile && !userInfo) {
-      fetchUserProfile();
-    }
-  }, [lineProfile]);
 
   if (!isLineLoggedIn) {
     return <MessageLayout loading={!isLineLoggedIn} />;
@@ -84,9 +57,9 @@ const LineOARoute = () => {
 };
 
 const LinePrivateRoute = () => {
-  // const { userInfo } = useContext(AuthContext);
+  const { userInfo } = useContext(AuthContext);
 
-  if (localStorage.getItem("accessToken")) {
+  if (userInfo) {
     return <Outlet />;
   } else {
     return <Navigate to="/mobile/verify" />;

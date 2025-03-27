@@ -129,6 +129,7 @@ import ApprovalAdvanceExpense from "./pages/expenses/advance/ApprovalAdvanceExpe
 import ApprovalClearingExpense from "./pages/expenses/clearing/ApprovalClearingExpense";
 import ContactAdmin from "./pages/mobile/contact_admin/ContactAdmin";
 import TakePhoto from "./pages/mobile/take_photo/TakePhoto";
+import CreateActivityManyShop from "./pages/activity/CreateActivityManyShop";
 
 const App = () => {
   return (
@@ -303,6 +304,7 @@ const App = () => {
           <Route element={<LineOARoute />}>
 
             <Route path="/mobile/login" element={< CheckLogin />} />
+
             <Route path="/mobile/verify" element={<VerifyOA />} />
             <Route path="/mobile/otp" element={<OtpOA />} />
             <Route path="/mobile/contact-admin" element={< ContactAdmin />} />

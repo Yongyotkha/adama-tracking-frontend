@@ -16,12 +16,13 @@ export default function VerifyOA() {
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [timeLeft, setTimeLeft] = useState(0);
   const [otpInfo, setOtpInfo] = useState("");
-  const { userInfo, showMsg ,showNotification} = useContext(AuthContext);
+  const { userInfo, showMsg, showNotification, loginLineUid } =
+    useContext(AuthContext);
   const { Title, Text } = Typography;
   const [messageId, setmessageId] = useState(location?.state?.message_id);
-  
-  const otp_ref_no = location?.state?.otpRefNo ;
-  const phone_number = location?.state?.phone_number ;
+
+  const otp_ref_no = location?.state?.otpRefNo;
+  const phone_number = location?.state?.phone_number;
 
   useEffect(() => {
     console.log(location.state);
@@ -32,66 +33,86 @@ export default function VerifyOA() {
     console.log("OTP Submitted:", otpValue);
 
     setLoading(true);
-    useServiceAPI.post(paths.pathOtpShopVerify, { messageId, otp: otpValue }, setLoading)
+    useServiceAPI
+      .post(paths.pathOtpShopVerify, { messageId, otp: otpValue }, setLoading)
       .then((response) => {
         if (response.status === 200) {
           console.log(response);
-          
-            if (response.result == false) {
-              console.log(" OTP ไม่ถูก");
-              showNotification("error", response.data.Message.Message_Header, response.data.Message.Message_Line);
-            } else if (response.result == true) {
-              
-              const { 
-                message,
-                token, 
-                token_expired_date, 
-                step_number, 
-                shop_code, 
-                shop_name, 
-                address, 
-                phone_number, 
-                first_name, 
-                last_name, 
-                birth_date_day, 
-                birth_date_month, 
-                birth_date_year, 
-                line_id, 
-                is_condition ,
-                shop_type
-              } = response.data;
 
-              const stateData = {
-                message,
-                token, 
-                token_expired_date, 
-                step_number, 
-                shop_code, 
-                shop_name, 
-                address, 
-                phone_number, 
-                first_name, 
-                last_name, 
-                birth_date_day, 
-                birth_date_month, 
-                birth_date_year, 
-                line_id, 
-                is_condition ,
-                shop_type
-                
+          if (response.result == false) {
+            console.log(" OTP ไม่ถูก");
+            showNotification(
+              "error",
+              response.data.Message.Message_Header,
+              response.data.Message.Message_Line
+            );
+          } else if (response.result == true) {
+            const {
+              message,
+              token,
+              token_expired_date,
+              step_number,
+              shop_code,
+              shop_name,
+              address,
+              phone_number,
+              first_name,
+              last_name,
+              birth_date_day,
+              birth_date_month,
+              birth_date_year,
+              line_id,
+              is_condition,
+              shop_type,
+            } = response.data;
+
+            const stateData = {
+              message,
+              token,
+              token_expired_date,
+              step_number,
+              shop_code,
+              shop_name,
+              address,
+              phone_number,
+              first_name,
+              last_name,
+              birth_date_day,
+              birth_date_month,
+              birth_date_year,
+              line_id,
+              is_condition,
+              shop_type,
+            };
+            if (response.data.step_number == 0) {
+              navigate("/mobile/contact-admin", { state: stateData });
+            } else if (response.data.step_number == 1) {
+              navigate("/mobile/register", { state: stateData });
+            } else if (response.data.step_number == 2) {
+              navigate("/mobile/contact-admin", { state: stateData });
+            } else if (response.data.step_number == 4) {
+              const fetchUserProfile = async () => {
+                try {
+                  const results = await loginLineUid(response.data.user_id);
+                  if (results.status === 200) {
+                    navigate("/mobile/account", { state: stateData });
+                  }
+                } catch (error) {
+                  console.error("Error fetching user profile:", error);
+                  if (error?.response?.status === 401) {
+                    setRedirectPath("/mobile/verify");
+                  }
+                }
               };
-              if (response.data.step_number == 0) {
-                navigate("/mobile/contact-admin" , { state: stateData });
-              } else if (response.data.step_number == 1){
-                  navigate("/mobile/register" , { state: stateData });
-              } else if (response.data.step_number == 2){
-                  navigate("/mobile/contact-admin" , { state: stateData });
-              } else if (response.data.step_number == 4){
-                navigate("/mobile/account" , { state: stateData });
+
+              if (response.data.user_id && !userInfo) {
+                fetchUserProfile();
+              } else {
+                navigate("/mobile/account", { state: stateData });
               }
             }
+          }
           console.log("OTP Verification Success:", response.data);
-          // navigate("/mobile/account");
         }
       })
       .catch((error) => {
@@ -100,7 +121,6 @@ export default function VerifyOA() {
       })
       .finally(() => setLoading(false));
   };
-
 
   const handleChange = (index, event) => {
     const value = event.target.value;
@@ -119,16 +139,13 @@ export default function VerifyOA() {
 
     setLoading(true);
     useServiceAPI
-      .post(paths.pathOtpShopCall, { phone_number}, setLoading)
+      .post(paths.pathOtpShopCall, { phone_number }, setLoading)
       .then((response) => {
         if (response.status === 200) {
-          setmessageId(response.data.data.message_id)
-            console.log(response);
+          setmessageId(response.data.data.message_id);
+          console.log(response);
         }
-      })
-
-
-
+      });
   };
 
   useEffect(() => {
@@ -141,7 +158,10 @@ export default function VerifyOA() {
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
-    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+      2,
+      "0"
+    )}`;
   };
 
   useEffect(() => {
@@ -159,15 +179,22 @@ export default function VerifyOA() {
 
       <LogoGray width="w-[100%]" className="mb-10 max-w-xs" />
 
-      <Title level={4} className="text-green-700 sarabun-font">กรอกรหัส OTP</Title>
-      <Text className="sarabun-font text-gray-500">กรอก OTP ที่ส่งไปที่เบอร์โทรศัพท์</Text>
+      <Title level={4} className="text-green-700 sarabun-font">
+        กรอกรหัส OTP
+      </Title>
+      <Text className="sarabun-font text-gray-500">
+        กรอก OTP ที่ส่งไปที่เบอร์โทรศัพท์
+      </Text>
       <Title level={5}>
         <Text className="sarabun-font text-[#009845]">
           {phone_number}
           {/* {userInfo?.phone_number_display || location?.state?.phone_number_display} */}
         </Text>
       </Title>
-      <Text className="sarabun-font text-gray-500 pb-5"> Ref : {otp_ref_no}  </Text>
+      <Text className="sarabun-font text-gray-500 pb-5">
+        {" "}
+        Ref : {otp_ref_no}{" "}
+      </Text>
       <Form name="otpVerification" onFinish={onFinish} autoComplete="off">
         <Row gutter={16} justify="center" className="mb-5">
           {otp.map((digit, index) => (
@@ -178,8 +205,9 @@ export default function VerifyOA() {
                 value={digit}
                 onChange={(e) => handleChange(index, e)}
                 inputMode="numeric"
-                className={`sarabun-font ${digit ? "text-white bg-[#7DB41E]" : "text-black bg-[#F7F6F9]"
-                  } hover:bg-[#7DB41E] focus:bg-[#7DB41E] focus:text-white border-none w-12 h-12 text-2xl text-center transition duration-300`}
+                className={`sarabun-font ${
+                  digit ? "text-white bg-[#7DB41E]" : "text-black bg-[#F7F6F9]"
+                } hover:bg-[#7DB41E] focus:bg-[#7DB41E] focus:text-white border-none w-12 h-12 text-2xl text-center transition duration-300`}
                 placeholder="0"
               />
             </Col>
@@ -191,7 +219,9 @@ export default function VerifyOA() {
             <Text className="text-gray-500 sarabun-font">
               รหัสอ้างอิง {otpInfo.otp_ref_no} กรุณากรอก OTP ภายใน 5 นาที
             </Text>
-            <div className="text-gray-500 font-bold mt-2">{formatTime(timeLeft)}</div>
+            <div className="text-gray-500 font-bold mt-2">
+              {formatTime(timeLeft)}
+            </div>
           </div>
         )}
 
@@ -208,7 +238,6 @@ export default function VerifyOA() {
         )}
 
         <div className="mb-10 w-full">
-          
           <DynamicButton
             type="primary"
             className="w-full bg-green-700 text-white py-2 rounded-md text-sm font-semibold shadow-md hover:bg-green-800 sarabun-font"
@@ -216,7 +245,6 @@ export default function VerifyOA() {
             text="ตกลง"
             disabled={loading}
             // onClick={() => navigate("/mobile/account")}
-
           />
           {/* <DynamicButton
             type="button"
