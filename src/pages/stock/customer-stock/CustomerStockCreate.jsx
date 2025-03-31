@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef,useContext } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import FormCustom from "../../../components/form_custom/FormCustom";
 import { useNavigate } from "react-router-dom";
@@ -11,12 +11,14 @@ import { paths } from "../../../services/CorsPath";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import formatNumber from "../../../utils/number";
+import { AuthContext } from "../../../contexts/AuthContext";
 import FileUploadComponent from "../../../components/file_upload/FileUploadComponent";
 
 dayjs.extend(customParseFormat);
 
 export default function CustomerStockCreate() {
   const navigate = useNavigate();
+  const { showMsg, showNotification } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [dealers, setDalers] = useState([]);
@@ -24,6 +26,7 @@ export default function CustomerStockCreate() {
   const [formCustom] = Form.useForm();
   const [fileList, setFileList] = useState([]);
   const fileUploadRef = useRef(null); // Reference for FileUploadComponent
+  const [inputRemark, setInputRemark] = useState("");
 
   useEffect(() => {
     const getMaster = async () => {
@@ -312,7 +315,7 @@ export default function CustomerStockCreate() {
     }
   };
 
-  const handleNavigateToOrderView = () => {
+  const handleNavigateToOrderViewtest = () => {
     console.log('-----------handleNavigateToOrderView--------------')
     formCustom
       .validateFields()
@@ -334,6 +337,54 @@ export default function CustomerStockCreate() {
         console.error("Validation Failed:", errorInfo);
       });
       console.log('-----------exit handleNavigateToOrderView--------------')
+  };
+
+  const handleNavigateToOrderView = async () => {
+    console.log(111111111);
+
+    try {
+      const values = await formCustom.validateFields();
+      console.log(values);
+
+      const payload = {
+        document_date: dayjs().format("YYYY-MM-DD"),
+        user_id: 88, // เปลี่ยนตามระบบ auth ถ้ามี
+        dealer_id: values.dealer,
+        sub_dealer_id: values.sub_dealer || null,
+        remark: inputRemark,
+        file_list: fileList.map((file) => file.url),
+        products: dataSource.map((item) => ({
+          product_id: item.product_id,
+          product_code: item.product_code,
+          product_name: item.product_name,
+          product_unit: item.product_unit,
+          product_unit_thb: parseFloat(item.product_unit_thb),
+          product_campaign_order_min_foc: item.product_campaign_order_min_foc,
+          product_campaign_foc: item.product_campaign_foc,
+          quantity: item.quantity,
+          foc: item.foc,
+          net_amount: parseFloat(item.net_amount),
+        })),
+        others: [],
+      };
+
+      console.log("payload to submit:", payload);
+
+      const response = await useServiceAPI.post(paths.pathStockCreate, payload);
+
+      console.log("response", response);
+
+      if (response.message=="Save successfully") {
+        showMsg("success", "ส่งข้อมูลสำเร็จ");
+        navigate("/customer-stock/list");
+      } else {
+        showMsg("error", response.message || "เกิดข้อผิดพลาด");
+      }
+    } catch (error) {
+      console.log("Validation or submission error : ",error);
+
+      showMsg("error", error.message || "กรุณากรอกข้อมูลให้ครบถ้วน");
+    }
   };
 
   return (
@@ -409,8 +460,6 @@ export default function CustomerStockCreate() {
           />
         </div>
       </BoxPrimary>
-
-      
 
       <div className="flex justify-end space-x-4">
         <ActionButton

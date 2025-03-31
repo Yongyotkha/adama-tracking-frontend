@@ -113,10 +113,21 @@ export default function CustomerStock() {
       dataIndex: "key",
       align: "center",
     },
-    { title: "Document Date", width: 200, dataIndex: "document_date", align: "left" },
+    {
+      title: "Document Date",
+      width: 200,
+      dataIndex: "document_date",
+      align: "left",
+    },
     { title: "Create By", width: 200, dataIndex: "createdBy", align: "left" },
     { title: "QTY", width: 150, dataIndex: "qty", align: "center" },
-    { title: "Total Value", width: 100, dataIndex: "value", align: "right" , className:"text-nowrap" },
+    {
+      title: "Total Value",
+      width: 100,
+      dataIndex: "value",
+      align: "right",
+      className: "text-nowrap",
+    },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
@@ -151,16 +162,17 @@ export default function CustomerStock() {
         const { data, records_filtered } = response.data;
         setPermission(response.data.permission);
 
-        console.log("response : ",response)
-
-
+        console.log("response : ", response);
 
         const newDataSource = data.map((stock, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           document_date: stock.document_date,
           createdBy: stock.created_by,
-          qty: formatNumber(Math.floor(Math.random() * (50 - 10 + 1)) + 10,0),
-          value: formatNumber(Math.floor(Math.random() * (20000 - 1000 + 1)) + 1000,0),
+          qty: formatNumber(Math.floor(Math.random() * (50 - 10 + 1)) + 10, 0),
+          value: formatNumber(
+            Math.floor(Math.random() * (20000 - 1000 + 1)) + 1000,
+            0
+          ),
           action: (
             <Dropdown
               menu={{
@@ -171,11 +183,37 @@ export default function CustomerStock() {
                       <ItemDropDown
                         mode="view"
                         onClick={() => {
-                          navigate("#", {
+                          navigate("/stock/view", {
                             state: {
                               document_number: stock.document_number,
                             },
                           });
+                        }}
+                      />
+                    ),
+                  },
+                  {
+                    key: 2,
+                    label: (
+                      <ItemDropDown
+                        mode="edit"
+                        onClick={() => {
+                          navigate("/stock/edit", {
+                            state: {
+                              document_number: stock.document_number,
+                            },
+                          });
+                        }}
+                      />
+                    ),
+                  },
+                  {
+                    key: 3,
+                    label: (
+                      <ItemDropDown
+                        mode="delete"
+                        onClick={() => {
+                          handleDelete(stock.document_number);
                         }}
                       />
                     ),
@@ -244,7 +282,6 @@ export default function CustomerStock() {
   };
 
   const handleChange = (filter) => {
- 
     setDefaultOption(filter);
     const getMasterDealer = async () => {
       setLoading(true);
@@ -254,6 +291,8 @@ export default function CustomerStock() {
             user_id: filter,
           }),
         ]);
+
+        console.log("dealer : ", dealer);
 
         setDataDealer(dealer.data);
       } catch (error) {
@@ -265,8 +304,6 @@ export default function CustomerStock() {
 
     getMasterDealer();
   };
-
-
 
   return (
     <MainLayout loading={loading}>
