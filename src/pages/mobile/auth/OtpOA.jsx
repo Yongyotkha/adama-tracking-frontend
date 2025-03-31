@@ -95,7 +95,7 @@ export default function VerifyOA() {
                 try {
                   const results = await loginLineUid(response.data.user_id);
                   if (results.status === 200) {
-                    navigate("/mobile/account", { state: stateData });
+                    navigate("/mobile/main", { state: stateData });
                   }
                 } catch (error) {
                   console.error("Error fetching user profile:", error);

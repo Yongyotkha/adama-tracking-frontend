@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Modal, Button, Spin } from "antd";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useOutletContext } from "react-router-dom";
 import {
   UserOutlined,
   FileTextOutlined,
@@ -27,9 +27,15 @@ export default function MyAccount() {
   const { logout } = useContext(AuthContext);
   const location = useLocation();
   const [userID, setUserID] = useState(location.state.id);
-  console.log(userID);
+  const { lineProfile } = useOutletContext() || {};
+  
 
-  // console.log("location " ,location.state.id);
+    useEffect(() => {
+      console.log('lineProfile', lineProfile);
+    }, [lineProfile]);
+  
+
+  console.log("location " ,location.state);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -57,24 +63,24 @@ export default function MyAccount() {
     setIsLogoutModalOpen(true); // Open the modal
   };
 
-  const confirmLogout = async () => {
-    setIsLogoutModalOpen(false);
-    try {
-      if (liff.isLoggedIn()) {
-        logout("line");
-        liff.logout();
-        window.location.reload();
+  // const confirmLogout = async () => {
+  //   setIsLogoutModalOpen(false);
+  //   try {
+  //     if (liff.isLoggedIn()) {
+  //       logout("line");
+  //       liff.logout();
+  //       window.location.reload();
 
-        console.log("User logged out from LIFF");
-      }
-    } catch (error) {
-      console.error("LIFF Logout Error:", error);
-    }
-    // localStorage.removeItem("authToken");
-    // sessionStorage.removeItem("authSession");
-    // navigate("/mobile/login");
-    // window.location.reload();
-  };
+  //       console.log("User logged out from LIFF");
+  //     }
+  //   } catch (error) {
+  //     console.error("LIFF Logout Error:", error);
+  //   }
+  //   // localStorage.removeItem("authToken");
+  //   // sessionStorage.removeItem("authSession");
+  //   // navigate("/mobile/login");
+  //   // window.location.reload();
+  // };
 
   return (
     <MobileLayout loading={loading}>
@@ -166,7 +172,7 @@ export default function MyAccount() {
             <LogOutPopUp
               isOpen={isLogoutModalOpen}
               onCancel={() => setIsLogoutModalOpen(false)}
-              onConfirm={confirmLogout}
+              // onConfirm={confirmLogout}
             />
 
             <BackButton />

@@ -34,7 +34,9 @@ export default function ActivityMapping() {
   const [dataSubDealer, setDataSubDealer] = useState([]);
   const [dataArea, setDataArea] = useState([]);
   const [dataYear, setDataYear] = useState([]);
+  const [dataMonths, setDataMonths] = useState([]);
 
+  
   const [currentLocation, setCurrentLocation] = useState({
     lat: 0.0,
     lng: 0.0,
@@ -49,7 +51,7 @@ export default function ActivityMapping() {
     const loadDataMappingList = async () => {
       setLoading(true);
       try {
-        const [mapping, activity, dealers, areas, years, subdealers] =
+        const [mapping, activity, dealers, areas, years, subdealers, months] =
           await Promise.all([
             useServiceAPI.post(paths.pathActivityMapList, {
               keyword: "",
@@ -58,6 +60,7 @@ export default function ActivityMapping() {
               area: [],
               year: [],
               sub_dealers: [],
+              month: [],
             }),
             useServiceAPI.get(paths.pathMasterActivityType, {
               status: "",
@@ -66,6 +69,8 @@ export default function ActivityMapping() {
             useServiceAPI.get(paths.pathMasterAreas, {}),
             useServiceAPI.get(paths.pathMasterYear, {}),
             useServiceAPI.get(paths.pathMasterSubDealer, {}),
+            useServiceAPI.get(paths.pathMasterMonths, {}),
+
           ]);
         // Mapping Detail
         setDataMapping(mapping.data);
@@ -149,6 +154,20 @@ export default function ActivityMapping() {
             }))
         );
 
+        setDataMonths(
+          months.data
+            .filter(
+              (value, index, self) =>
+                self.findIndex((item) => item.name === value.name) === index
+            )
+            .map((data, index) => ({
+              key: index,
+              id: data.id,
+              name: data.name,
+            }))
+        );
+
+
         setDataSubDealer(
           subdealers.data
             .filter(
@@ -201,6 +220,18 @@ export default function ActivityMapping() {
       filter_type: "sub_dealers",
       filter_type_name: "SubDealer",
       data: dataSubDealer,
+    },
+    {
+      key: 4,
+      filter_type: "year",
+      filter_type_name: "years",
+      data: dataYear,
+    },
+    {
+      key: 5,
+      filter_type: "month",
+      filter_type_name: "months",
+      data: dataMonths,
     },
   ];
 
@@ -358,6 +389,11 @@ export default function ActivityMapping() {
               ? checkedFilters.sub_dealers
               : [];
 
+          const month =
+            Array.isArray(checkedFilters.month) && checkedFilters.month.length > 0
+              ? checkedFilters.month
+              : [];
+
           const [mapping] = await Promise.all([
             useServiceAPI.post(paths.pathActivityMapList, {
               keyword: searchKeyword,
@@ -365,6 +401,7 @@ export default function ActivityMapping() {
               dealer: dealer,
               area: area,
               year: year,
+              month: month,
               sub_dealers: sub_dealers,
             }),
           ]);

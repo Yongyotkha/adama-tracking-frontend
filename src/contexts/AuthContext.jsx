@@ -130,7 +130,7 @@ export const AuthProvider = ({ children }) => {
     if(mode === 'web'){
       navigate("/login");
     }else{
-      // navigate("/mobile/verify");
+      navigate("/mobile/verify");
     }
   };
 

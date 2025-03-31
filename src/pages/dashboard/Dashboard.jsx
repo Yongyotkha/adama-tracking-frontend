@@ -403,19 +403,40 @@ export default function Dashboard() {
             dealer_id: selectedSdByD,
           }
         );
-        if (response.status === 200 && response.data) {
-          const data = response?.data?.items?.map((item) => ({
-            value:
-              parseFloat(
-                String(item.total_amount_target || "0").replace(/,/g, "")
-              ) || 0,
-            label: item.sub_dealer_name,
-            percentage: item.percentage,
-          }));
+        // if (response.status === 200 && response.data) {
+        //   const data = response?.data?.items?.map((item) => ({
+        //     value:
+        //       parseFloat(
+        //         String(item.total_amount_target || "0").replace(/,/g, "")
+        //       ) || 0,
+        //     label: item.sub_dealer_name,
+        //     percentage: item.percentage,
+        //   }));
 
-          console.log(data);
-          setSubdealerByDealerData(data); // อัปเดต State
-        } else {
+        //   console.log(data);
+        //   setSubdealerByDealerData(data); // อัปเดต State
+        // } 
+        if (response.status === 200 && response.data) {
+          const data = response?.data?.items?.sort((a, b) => {
+            const aValue = parseFloat(String(a.total_amount_target || "0").replace(/,/g, "")) || 0;
+            const bValue = parseFloat(String(b.total_amount_target || "0").replace(/,/g, "")) || 0;
+            return bValue - aValue; // เรียงจากมาก → น้อย
+          })?.map((item) => {
+            const isOther = item.sub_dealer_name === "Other";
+            return {
+              value:
+                parseFloat(
+                  String(item.total_amount_target || "0").replace(/,/g, "")
+                ) || 0,
+              label: item.sub_dealer_name,
+              percentage: item.percentage,
+              color: isOther ? "#e61e1e" : "#009845", // สีเทาสำหรับ Other
+            };
+          });
+
+          setSubdealerByDealerData(data);
+        }
+        else {
           console.error("Failed to fetch Sale By Crop data:", response.message);
         }
       } catch (error) {
@@ -449,7 +470,7 @@ export default function Dashboard() {
             label: item.name,
             color: item.color.trim(),
             name: item.name,
-          }));
+          })).sort((a, b) => b.value - a.value);
           setSaleCropData(data); // อัปเดต State
           const totalValue = data.reduce((sum, crop) => sum + crop.value, 0);
           setTotalSaleValue(totalValue); // อัปเดตค่ารวม
