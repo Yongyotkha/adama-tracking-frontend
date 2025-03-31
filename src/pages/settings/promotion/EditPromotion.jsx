@@ -16,6 +16,7 @@ export default function EditPromotion() {
   const [form] = Form.useForm();
   const [position, setPosition] = useState([]);
   const { showMsg, showNotification } = useContext(AuthContext);
+  const [permission, setPermission] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -51,7 +52,8 @@ export default function EditPromotion() {
       const response = await useServiceAPI.get(`${paths.pathPromotiondetail}/${id}`);
       if (response.status === 200) {
         const { data } = response;
-  
+        
+        setPermission(data.permission.edit);
         const updatedFields = [
           { 
             label: "Name", 
@@ -184,7 +186,11 @@ export default function EditPromotion() {
       <div className="flex justify-end space-x-4">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/setting/promotion")} />
         {/* <ActionButton mode="update" text="Update" onClick={() => navigate("/setting/promotion")} /> */}
-        <ActionButton text="update" mode="update" onClick={handleSave} />
+        {permission === true && (
+          <ActionButton text="update" mode="update" onClick={handleSave} />
+        )}
+
+        {/* <ActionButton text="update" mode="update" onClick={handleSave} /> */}
       </div>
 
     </MainLayout>

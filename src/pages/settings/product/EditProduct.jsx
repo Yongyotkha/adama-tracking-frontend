@@ -31,6 +31,7 @@ export default function EditProduct() {
   const [isDataLoaded, setIsDataLoaded] = useState(false); // เพิ่ม state สำหรับเช็คข้อมูล
   const [dataLoaded, setDataLoaded] = useState(false);
   const [profileImage, setProfileImage] = useState("/img/Image-not-found.png"); // Default value
+  const [permission, setPermission] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,7 +68,10 @@ export default function EditProduct() {
     try {
       const response = await useServiceAPI.get(`${paths.pathSaleManagementProductsDetail}/${id}`);
       if (response.status === 200) {
-        const { data } = response;         
+        const { data } = response;   
+        console.log(data.permission.edit);
+        
+        setPermission(data.permission.edit);
         setUserInfo(data);
         setProfileImage(data.product_image); 
         setCropList(data.crop_list || []); 
@@ -303,12 +307,23 @@ export default function EditProduct() {
           path='/setting/product'
         />
 
-        <ActionButton 
+        {/* <ActionButton 
           text="Update" 
           mode="update" 
           onClick={handleSave} 
           path='/setting/product'
-        />
+        /> */}
+
+        {permission === true && (
+          <ActionButton 
+            text="Update" 
+            mode="update" 
+            onClick={handleSave} 
+            path='/setting/product'
+          />
+        )}
+
+
       </div>
 
     </MainLayout>
