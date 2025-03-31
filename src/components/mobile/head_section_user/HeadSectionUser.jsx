@@ -11,9 +11,9 @@ const HeadSectionUser = () => {
   const [loading, setLoading] = useState(false);
   const { userInfo } = useContext(AuthContext);
   const location = useLocation();
-  
-  console.log( " userInfo.id", userInfo.id);
-  
+
+  console.log(" userInfo.id", userInfo.id);
+
   useEffect(() => {
     const fetchUserProfile = async () => {
       setLoading(true);
@@ -44,11 +44,15 @@ const HeadSectionUser = () => {
     <div className="w-full rounded-[40px] flex items-center justify-between relative gap-3 p-1 bg-white max-w-md">
       <div className="flex gap-2 items-center">
         {/* Profile Image */}
-        <div className="w-16 h-16 bg-gray-300 rounded-full overflow-hidden shadow">
+        <div className="w-16 h-16 rounded-full overflow-hidden shadow-md">
           <img
             src={user.profile_image || "/img/icons/profile.png"}
             alt="Profile"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover shadow-md"
+            onError={(e) => {
+              e.target.onerror = null; // prevent infinite loop if fallback fails
+              e.target.src = "/img/icons/profile.png";
+            }}
           />
         </div>
 

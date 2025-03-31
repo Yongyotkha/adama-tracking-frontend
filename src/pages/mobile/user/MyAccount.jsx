@@ -63,24 +63,24 @@ export default function MyAccount() {
     setIsLogoutModalOpen(true); // Open the modal
   };
 
-  // const confirmLogout = async () => {
-  //   setIsLogoutModalOpen(false);
-  //   try {
-  //     if (liff.isLoggedIn()) {
-  //       logout("line");
-  //       liff.logout();
-  //       window.location.reload();
+  const confirmLogout = async () => {
+    setIsLogoutModalOpen(false);
+    try {
+      if (liff.isLoggedIn()) {
+        logout("line");
+        liff.logout();
+        window.location.reload();
 
-  //       console.log("User logged out from LIFF");
-  //     }
-  //   } catch (error) {
-  //     console.error("LIFF Logout Error:", error);
-  //   }
-  //   // localStorage.removeItem("authToken");
-  //   // sessionStorage.removeItem("authSession");
-  //   // navigate("/mobile/login");
-  //   // window.location.reload();
-  // };
+        console.log("User logged out from LIFF");
+      }
+    } catch (error) {
+      console.error("LIFF Logout Error:", error);
+    }
+    // localStorage.removeItem("authToken");
+    // sessionStorage.removeItem("authSession");
+    // navigate("/mobile/login");
+    // window.location.reload();
+  };
 
   return (
     <MobileLayout loading={loading}>
@@ -90,11 +90,15 @@ export default function MyAccount() {
         ) : (
           <>
             <div className="w-full rounded-b-[40px] flex items-center relative gap-2 max-w-md">
-              <div className="w-24 h-24 bg-gray-300 rounded-full overflow-hidden shadow">
+              <div className="w-24 h-24 rounded-full overflow-hidden shadow-md">
                 <img
                   src={user?.profile_image || "/img/icons/profile.png"}
                   alt="Profile"
-                  className="w-full h-full object-cover shadow"
+                  className="w-full h-full object-cover shadow-md"
+                  onError={(e) => {
+                    e.target.onerror = null; // prevent infinite loop if fallback fails
+                    e.target.src = "/img/icons/profile.png";
+                  }}
                 />
               </div>
               <div className="flex flex-col">
@@ -172,7 +176,7 @@ export default function MyAccount() {
             <LogOutPopUp
               isOpen={isLogoutModalOpen}
               onCancel={() => setIsLogoutModalOpen(false)}
-              // onConfirm={confirmLogout}
+              onConfirm={confirmLogout}
             />
 
             <BackButton />
