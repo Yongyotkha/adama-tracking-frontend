@@ -114,6 +114,12 @@ export default function CustomerStock() {
       align: "center",
     },
     {
+      title: "Document No",
+      width: 200,
+      dataIndex: "document_no",
+      align: "left",
+    },
+    {
       title: "Document Date",
       width: 200,
       dataIndex: "document_date",
@@ -167,6 +173,7 @@ export default function CustomerStock() {
         const newDataSource = data.map((stock, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           document_date: stock.document_date,
+          document_no: stock.document_number,
           createdBy: stock.created_by,
           qty: formatNumber(Math.floor(Math.random() * (50 - 10 + 1)) + 10, 0),
           value: formatNumber(
@@ -183,7 +190,7 @@ export default function CustomerStock() {
                       <ItemDropDown
                         mode="view"
                         onClick={() => {
-                          navigate("/stock/view", {
+                          navigate("/customer-stock/view", {
                             state: {
                               document_number: stock.document_number,
                             },
@@ -198,7 +205,7 @@ export default function CustomerStock() {
                       <ItemDropDown
                         mode="edit"
                         onClick={() => {
-                          navigate("/stock/edit", {
+                          navigate("/customer-stock/edit", {
                             state: {
                               document_number: stock.document_number,
                             },
@@ -247,6 +254,52 @@ export default function CustomerStock() {
       setTableLoading(false);
     }
   };
+
+  const handleDelete = async (documentNumber) => {
+    console.log('documentNumber : ',documentNumber)
+    confirm({
+      title: "Do you want to delete ?",
+      icon: <ExclamationCircleFilled />,
+      content: [],
+      centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+      async onOk() {
+        try {
+          const response = await useServiceAPI.delete(paths.pathStockDelete, {
+            document_number: documentNumber,
+          });
+
+          console.log('response : ',response)
+
+          if (response.status === 200) {
+            // Show success notification
+            showNotification("success", 
+              response.data.message|| "Event deleted successfully!", 
+              response.data.message_line || ["The event has been removed."]
+            ).then(() => {
+              
+            })
+            fetchData();
+          } else {
+            showNotification("warning", 
+              response.data.message|| "Event deleted successfully!", 
+              response.data.message_line || ["The event has been removed."]
+            )
+          }
+
+        } catch (error) {
+          // Handle errors and show an error notification
+          if (error.response.data.status === 400) {
+            const message = error.response.data.data;
+            showNotification("warning", 
+              message.Message.Message_Header, 
+              message.Message.Message_Line
+            )
+          }
+        }
+      },
+    });
+  };
+
 
   useEffect(() => {
     fetchData();

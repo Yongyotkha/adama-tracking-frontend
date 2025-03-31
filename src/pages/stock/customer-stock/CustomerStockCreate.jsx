@@ -348,7 +348,7 @@ export default function CustomerStockCreate() {
 
       const payload = {
         document_date: dayjs().format("YYYY-MM-DD"),
-        user_id: 88, // เปลี่ยนตามระบบ auth ถ้ามี
+        user_id: 89, // เปลี่ยนตามระบบ auth ถ้ามี
         dealer_id: values.dealer,
         sub_dealer_id: values.sub_dealer || null,
         remark: inputRemark,
