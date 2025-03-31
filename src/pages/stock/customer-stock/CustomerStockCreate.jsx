@@ -313,14 +313,17 @@ export default function CustomerStockCreate() {
   };
 
   const handleNavigateToOrderView = () => {
+    console.log('-----------handleNavigateToOrderView--------------')
     formCustom
       .validateFields()
       .then((values) => {
+
+        console.log('values : ',values)
         const body = {
           document_date: values.date,
           products: dataSource,
         };
-
+        console.log('body : ',body)
         // navigate("/order/detail", {
         //   state: {
         //     data: body,
@@ -330,6 +333,7 @@ export default function CustomerStockCreate() {
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
       });
+      console.log('-----------exit handleNavigateToOrderView--------------')
   };
 
   return (

@@ -108,14 +108,13 @@ export default function CustomerStock() {
 
   const header = [
     {
-      title: "Date",
+      title: "Key",
       width: 150,
-      dataIndex: "date",
+      dataIndex: "key",
       align: "center",
     },
-    { title: "Dealer", width: 200, dataIndex: "dealer", align: "left" },
-    { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
-    { title: "Product", width: 150, dataIndex: "product", align: "center" },
+    { title: "Document Date", width: 200, dataIndex: "document_date", align: "left" },
+    { title: "Create By", width: 200, dataIndex: "createdBy", align: "left" },
     { title: "QTY", width: 150, dataIndex: "qty", align: "center" },
     { title: "Total Value", width: 100, dataIndex: "value", align: "right" , className:"text-nowrap" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
@@ -144,7 +143,7 @@ export default function CustomerStock() {
 
     try {
       const response = await useServiceAPI.get(
-        paths.pathGetOrderList,
+        paths.pathStockList,
         requestData
       );
 
@@ -152,20 +151,16 @@ export default function CustomerStock() {
         const { data, records_filtered } = response.data;
         setPermission(response.data.permission);
 
-        const newDataSource = data.map((order, index) => ({
+        console.log("response : ",response)
+
+
+
+        const newDataSource = data.map((stock, index) => ({
           key: index + 1 + (current - 1) * pageSize,
+          document_date: stock.document_date,
+          createdBy: stock.created_by,
           qty: formatNumber(Math.floor(Math.random() * (50 - 10 + 1)) + 10,0),
-          dealer: order.dealer_name,
           value: formatNumber(Math.floor(Math.random() * (20000 - 1000 + 1)) + 1000,0),
-          date: order.document_date,
-          product: (
-            <BadgeStatus
-              text={ formatNumber(Math.floor(Math.random() * (30 - 10 + 1)) + 10,0)}
-              bgColor={order.status_payment_bg_color}
-              textColor={order.status_payment_color}
-            />
-          ),
-          createdBy: order.created_by,
           action: (
             <Dropdown
               menu={{
@@ -178,7 +173,7 @@ export default function CustomerStock() {
                         onClick={() => {
                           navigate("#", {
                             state: {
-                              document_number: order.document_number,
+                              document_number: stock.document_number,
                             },
                           });
                         }}
