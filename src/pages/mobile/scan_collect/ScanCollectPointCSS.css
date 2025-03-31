@@ -1,15 +1,17 @@
 .scanner-frame {
-    position: relative;
-    background-color: transparent;
-    width: 300px;
-    height: 400px;
-    border-radius: 20px;
-    overflow: hidden;
-    -webkit-border-radius: 20px;
-    -moz-border-radius: 20px;
-    -ms-border-radius: 20px;
-    -o-border-radius: 20px;
+  position: relative;
+  background-color: transparent;
+  display: flex;
+  width: 300px;
+  height: 400px;
+  border-radius: 20px;
+  overflow: hidden;
+  -webkit-border-radius: 20px;
+  -moz-border-radius: 20px;
+  -ms-border-radius: 20px;
+  -o-border-radius: 20px;
 }
+
 
 /* ✅ สร้างเส้นโค้งที่ 4 มุม */
 .corner {

@@ -1,6 +1,7 @@
 .scanner-frame {
     position: relative;
     background-color: transparent;
+    display: flex;
     width: 300px;
     height: 400px;
     border-radius: 20px;
@@ -11,12 +12,11 @@
     -o-border-radius: 20px;
 }
 
-
 .preview-photo {
-  width: 300px;
-  height: 400px;
-  object-fit: cover;
-  border-radius: 8px;
+    width: 300px;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 8px;
 }
 
 /* ✅ สร้างเส้นโค้งที่ 4 มุม */

@@ -68,7 +68,7 @@ export default function PurchaseHistory() {
         <UserPointsSection />
 
         {/* Section Header */}
-        <SectionHeader title="รายละเอียดการสั่งซื้อ" icon="/img/icons/trophy.png" />
+        <SectionHeader title="รายละเอียดการสั่งซื้อ" icon="/img/icons/bill.png" />
 
         {/* Tabs */}
         <div className="w-full max-w-md mt-4 flex space-x-3 border-b">
@@ -85,7 +85,7 @@ export default function PurchaseHistory() {
         </div>
 
         {/* Order List */}
-        <div className="w-full max-w-md mt-4 px-4">
+        <div className="w-full max-w-md mt-4">
           <h5 className="sarabun-font text-gray-700">รายการทั้งหมด {orderData.length} รายการ</h5>
           <div className="mt-2 space-y-3">
             {/* {filteredOrders.map((order) => {

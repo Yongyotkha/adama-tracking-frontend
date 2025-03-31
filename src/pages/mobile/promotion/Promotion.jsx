@@ -101,7 +101,7 @@ export default function Promotion() {
         </div>
 
         {/* Promotions List */}
-        <div className="w-full max-w-md mt-4 px-4">
+        <div className="w-full max-w-md mt-4">
           {promotions.length > 0 ? (
             promotions.map((promo) => (
               <div
@@ -121,14 +121,14 @@ export default function Promotion() {
                   alt={promo.name}
                   className="w-full object-cover"
                 />
-                <div className="p-3">
+                {/* <div className="p-3">
                   <p className="text-sm text-gray-500">
                     {promo.description_shot}
                   </p>
                   <h3 className="font-semibold text-gray-800 sarabun-font">
                     {promo.name}
                   </h3>
-                </div>
+                </div> */}
               </div>
             ))
           ) : (

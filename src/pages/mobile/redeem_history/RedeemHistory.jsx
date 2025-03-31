@@ -106,7 +106,7 @@ export default function RedeemHistory() {
           ))}
         </div> */}
 
-        <div className="w-full max-w-md mt-4 px-4">
+        <div className="w-full max-w-md mt-4">
           {transactionData.length > 0 ? (
             transactionData.map((item) => (
               <div key={item.id} className="flex justify-between items-center bg-white p-3 rounded-lg shadow-md mb-2">

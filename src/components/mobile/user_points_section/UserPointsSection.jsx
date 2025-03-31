@@ -49,7 +49,7 @@ const UserPointsSection = () => {
       </div>
       <p className="text-[#A19793] sarabun-font text-xs mt-1 text-center">
         {pointsData.expiringPoints > 0
-          ? `คะแนนหมดอายุ : ${pointsData.expiringPoints} คะแนน | ${pointsData.expiryDate}`
+          ? `${pointsData.expiryDate}`
           : "ไม่มีคะแนนหมดอายุ"}
       </p>
     </div>

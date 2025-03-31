@@ -96,7 +96,7 @@ export default function PurchaseHistoryDetail() {
         <UserPointsSection />
 
         {/* Order Detail Section */}
-        <SectionHeader title="รายละเอียดการสั่งซื้อ" icon="/img/icons/trophy.png" />
+        <SectionHeader title="รายละเอียดการสั่งซื้อ" icon="/img/icons/bill.png" />
 
         {/* Order Summary */}
         <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-4 mt-4">
