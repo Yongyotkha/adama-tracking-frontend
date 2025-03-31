@@ -210,6 +210,8 @@ export const paths = {
   pathGetOrderWaitingList: "order/list",
   pathGetOrderChangeStatus: "order/status",
 
+  pathStockList: "/stock/list",
+
   // Expense Traveling
   pathGetExpenseTravelingList: "expense/traveling/list",
   pathGetExpenseTravelingDetail: "expense/traveling/detail",
