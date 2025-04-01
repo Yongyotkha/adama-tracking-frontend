@@ -16,7 +16,7 @@ import FileUploadComponent from "../../../components/file_upload/FileUploadCompo
 import FormUser from "../../../components/form_user/FormUser";
 dayjs.extend(customParseFormat);
 
-export default function CustomerStockView() {
+export default function CustomerStockEdit() {
   const navigate = useNavigate();
   const location = useLocation();
   const { showMsg, showNotification } = useContext(AuthContext);
@@ -52,10 +52,9 @@ export default function CustomerStockView() {
             document_number: documentNumber,
           }),
         ]);
-
+        console.log("try : ",stockDetail);
         let imageList = [];
         stockDetail.data.file_image_list.forEach((element, key) => {
-
           imageList.push({
             uid: key,
             name: getFileNameWithExtension(element),
@@ -65,8 +64,6 @@ export default function CustomerStockView() {
         });
 
         setFileList(imageList);
-
-
 
         setDataDetail(stockDetail.data);
         setGetUserId(stockDetail.data.user_id);
@@ -167,7 +164,6 @@ export default function CustomerStockView() {
     return parts.pop(); // Get the last part of the URL
   };
 
-
   const handleUploadClick = async () => {
     if (fileUploadRef.current) {
       fileUploadRef.current.triggerUpload();
@@ -186,15 +182,15 @@ export default function CustomerStockView() {
     setFileList((prevFileList) => [...prevFileList, fileUpload]);
   };
 
-  //console.log("dataDetail : ", dataDetail);
+  
   const formFiieldData = [
     {
       label: "Dealer",
       name: "dealer",
       type: "text",
       disabled: true,
-      placeholder: dataDetail.user_name,
-      value: dataDetail.user_name,
+      placeholder: dataDetail.dealer_name,
+      value: dataDetail.dealer_name,
     },
     {
       label: "Sub Dealer",
@@ -212,40 +208,10 @@ export default function CustomerStockView() {
       placeholder: dataDetail.document_date,
       value: dataDetail.document_date,
     },
-  ]
-
-
-  const formFields = [
-    {
-      label: "Dealer",
-      name: "dealer",
-      type: "select",
-      options: dealers,
-      disabled: false,
-      required: true,
-      moderef: true,
-      // value: dataSaleId,
-    },
-    {
-      label: "Sub Dealer",
-      name: "sub_dealer",
-      type: "select",
-      options: dealers,
-      disabled: false,
-      required: false,
-      moderef: false,
-      // value: dealerId,
-    },
-    {
-      label: "Date",
-      name: "order_date",
-      type: "date",
-      disabled: true,
-      required: false,
-      moderef: false,
-      value: dayjs().format("YYYY-MM-DD"),
-    },
   ];
+  // console.log("dataDetail : ", dataDetail);
+  // console.log("formFiieldData : ", formFiieldData);
+  // console.log('------------------------------------------')
 
   const handleChange = (filter, value) => {
     console.log("filter", filter, "value", value);
@@ -272,67 +238,7 @@ export default function CustomerStockView() {
     { title: "SKU", dataIndex: "product_code", key: "product_code" },
     { title: "Product Name", dataIndex: "product_name", key: "product_name" },
     { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
-    {
-      title: <div className="text-center">QTY (ctn)</div>,
-      dataIndex: "quantity",
-      key: "quantity",
-      render: (_, record) => (
-        <div className="quantity-control flex justify-center items-center">
-          <img
-            src="/img/icons/collapse.png"
-            alt="decrease"
-            className="cursor-pointer w-6 h-6"
-            onClick={() =>
-              handleQuantityChange(record.key, record.quantity - 1)
-            }
-          />
-          <Input
-            inputMode="numeric"
-            min={0}
-            value={record.quantity}
-            onChange={(e) =>
-              handleQuantityChange(record.key, parseInt(e.target.value) || 0)
-            }
-            className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
-          />
-          <img
-            src="/img/icons/expand.png"
-            alt="increase"
-            className="cursor-pointer w-6 h-6"
-            onClick={() =>
-              handleQuantityChange(record.key, record.quantity + 1)
-            }
-          />
-        </div>
-      ),
-    },
-    {
-      title: <div className="text-center">Action</div>,
-      key: "action",
-      render: (_, record) => (
-        <button className="delete-button flex justify-center mx-auto">
-          <img
-            src="/img/icons/delete.png"
-            alt="delete"
-            className="cursor-pointer w-6 h-6"
-            onClick={() => {
-              const updatedDataSource = dataSource.filter(
-                (item) => item.key !== record.key
-              );
-
-              // Reset keys and no after deletion
-              const resetDataSource = updatedDataSource.map((item, index) => ({
-                ...item,
-                key: index + 1,
-                no: index + 1,
-              }));
-
-              setDataSource(resetDataSource);
-            }}
-          />
-        </button>
-      ),
-    },
+    { title: "QTY (ctn)", dataIndex: "quantity", key: "quantity" },
   ];
 
   const footerOrderList = () => {
@@ -470,16 +376,16 @@ export default function CustomerStockView() {
 
     try {
       const values = await formCustom.validateFields();
-      console.log(values);
-   
-      console.log(dataDetail);
+      // console.log(values);
+
+      // console.log(dataDetail);
       const payload = {
-        platform: "web", 
+        platform: "web",
         document_number: documentNumber,
         document_date: dayjs().format("YYYY-MM-DD"),
-        user_id: getUserId, // เปลี่ยนตามระบบ auth ถ้ามี
+        user_id: 88, // เปลี่ยนตามระบบ auth ถ้ามี
         dealer_id: dataDetail.dealer_id,
-        sub_dealer_id: values.sub_dealer || null,
+        sub_dealer_id: dataDetail.sub_dealer_id,
         remark: inputRemark,
         file_list: fileList.map((file) => file.url),
         products: dataSource.map((item) => ({
@@ -500,14 +406,12 @@ export default function CustomerStockView() {
       console.log("payload to submit:", payload);
       //exit();
 
-
       const response = await useServiceAPI.put(paths.pathStockUpdate, payload);
 
       console.log("response", response);
 
       if (response.message == "Save successfully") {
         showMsg("success", "ส่งข้อมูลสำเร็จ");
-        exit()
         navigate("/customer-stock/list");
       } else {
         showMsg("error", response.message || "เกิดข้อผิดพลาด");
@@ -521,13 +425,7 @@ export default function CustomerStockView() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Edit Customer Stock</div>
-
-      {/* <FormCustom
-        fields={formFields}
-        form={formCustom}
-        onChange={handleChange}
-      /> */}
+      <div className="title-page">View Customer Stock</div>
 
       <FormUser
         fields={formFiieldData}
@@ -535,20 +433,7 @@ export default function CustomerStockView() {
         onChange={handleChange}
       />
 
-      <BoxPrimary title="Product">
-        <div className="mb-3 flex justify-end">
-          <Select
-            showSearch
-            placeholder="Search Product"
-            optionFilterProp="label"
-            className="w-full"
-            onChange={onChangeProduct}
-            onSearch={onSearchProduct}
-            options={searchProductData}
-            value=""
-          />
-        </div>
-      </BoxPrimary>
+
 
       <BoxPrimary title="List">
         <TableComponent
@@ -583,6 +468,7 @@ export default function CustomerStockView() {
           />
         </div>
         <FileUploadComponent
+          mode="view"
           ref={fileUploadRef}
           dataFile={fileList}
           onUploadSuccess={handleUploadSuccess}
@@ -594,6 +480,7 @@ export default function CustomerStockView() {
           <Input.TextArea
             placeholder="Remark"
             value={inputRemark}
+            disabled={true}
             rows={2}
             onChange={(e) => setInputRemark(e.target.value)}
           />
@@ -606,6 +493,7 @@ export default function CustomerStockView() {
           text="Back"
           onClick={() => navigate("/customer-stock/list")}
         />
+
       </div>
     </MainLayout>
   );

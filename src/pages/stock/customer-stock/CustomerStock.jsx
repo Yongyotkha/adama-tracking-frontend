@@ -106,6 +106,8 @@ export default function CustomerStock() {
     },
   ];
 
+  console.log('filters : ',filters)
+
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
     { title: "Stock No", width: 150, dataIndex: "document_no", align: "left" },

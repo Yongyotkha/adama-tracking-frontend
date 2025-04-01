@@ -19,7 +19,7 @@ dayjs.extend(customParseFormat);
 export default function CustomerStockCreate() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { showMsg, showNotification } = useContext(AuthContext);
+  const { showMsg, showNotification,userInfo } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [dealers, setDalers] = useState([]);
@@ -28,13 +28,17 @@ export default function CustomerStockCreate() {
   const [fileList, setFileList] = useState([]);
   const fileUploadRef = useRef(null); // Reference for FileUploadComponent
   const [inputRemark, setInputRemark] = useState("");
-  console.log("location : ", location);
-  // useEffect(() => {
 
-  //   if (location.state?.data) {
-  //     const { user_id, others, products, remark } = location.state?.data;
-  //   }
-  // }, [location.state]);
+  useEffect(() => {
+    if (location.state?.data) {
+      
+      const { user_id } = location.state?.data;
+      setDataSaleId(user_id);
+      
+    }
+  }, [location.state]);
+
+  console.log('userInfo : ',userInfo)
 
   useEffect(() => {
     const getMaster = async () => {
@@ -323,29 +327,6 @@ export default function CustomerStockCreate() {
     }
   };
 
-  const handleNavigateToOrderViewtest = () => {
-    console.log("-----------handleNavigateToOrderView--------------");
-    formCustom
-      .validateFields()
-      .then((values) => {
-        console.log("values : ", values);
-        const body = {
-          document_date: values.date,
-          products: dataSource,
-        };
-        console.log("body : ", body);
-        // navigate("/order/detail", {
-        //   state: {
-        //     data: body,
-        //   },
-        // });
-      })
-      .catch((errorInfo) => {
-        console.error("Validation Failed:", errorInfo);
-      });
-    console.log("-----------exit handleNavigateToOrderView--------------");
-  };
-
   const handleNavigateToOrderView = async () => {
     console.log(111111111);
 
@@ -355,7 +336,7 @@ export default function CustomerStockCreate() {
 
       const payload = {
         document_date: dayjs().format("YYYY-MM-DD"),
-        user_id: 89, // เปลี่ยนตามระบบ auth ถ้ามี
+        user_id: userInfo.id, 
         dealer_id: values.dealer,
         sub_dealer_id: values.sub_dealer || null,
         remark: inputRemark,
@@ -376,6 +357,8 @@ export default function CustomerStockCreate() {
       };
 
       console.log("payload to submit:", payload);
+      //exit()
+
 
       const response = await useServiceAPI.post(paths.pathStockCreate, payload);
 

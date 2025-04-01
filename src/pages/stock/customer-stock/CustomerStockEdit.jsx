@@ -52,7 +52,7 @@ export default function CustomerStockEdit() {
             document_number: documentNumber,
           }),
         ]);
-
+        console.log("try : ",stockDetail);
         let imageList = [];
         stockDetail.data.file_image_list.forEach((element, key) => {
           imageList.push({
@@ -182,15 +182,15 @@ export default function CustomerStockEdit() {
     setFileList((prevFileList) => [...prevFileList, fileUpload]);
   };
 
-  //console.log("dataDetail : ", dataDetail);
+  
   const formFiieldData = [
     {
       label: "Dealer",
       name: "dealer",
       type: "text",
       disabled: true,
-      placeholder: dataDetail.user_name,
-      value: dataDetail.user_name,
+      placeholder: dataDetail.dealer_name,
+      value: dataDetail.dealer_name,
     },
     {
       label: "Sub Dealer",
@@ -209,38 +209,9 @@ export default function CustomerStockEdit() {
       value: dataDetail.document_date,
     },
   ];
-
-  const formFields = [
-    {
-      label: "Dealer",
-      name: "dealer",
-      type: "select",
-      options: dealers,
-      disabled: false,
-      required: true,
-      moderef: true,
-      // value: dataSaleId,
-    },
-    {
-      label: "Sub Dealer",
-      name: "sub_dealer",
-      type: "select",
-      options: dealers,
-      disabled: false,
-      required: false,
-      moderef: false,
-      // value: dealerId,
-    },
-    {
-      label: "Date",
-      name: "order_date",
-      type: "date",
-      disabled: true,
-      required: false,
-      moderef: false,
-      value: dayjs().format("YYYY-MM-DD"),
-    },
-  ];
+  // console.log("dataDetail : ", dataDetail);
+  // console.log("formFiieldData : ", formFiieldData);
+  // console.log('------------------------------------------')
 
   const handleChange = (filter, value) => {
     console.log("filter", filter, "value", value);
@@ -465,16 +436,16 @@ export default function CustomerStockEdit() {
 
     try {
       const values = await formCustom.validateFields();
-      console.log(values);
+      // console.log(values);
 
-      console.log(dataDetail);
+      // console.log(dataDetail);
       const payload = {
         platform: "web",
         document_number: documentNumber,
         document_date: dayjs().format("YYYY-MM-DD"),
-        user_id: 88, // เปลี่ยนตามระบบ auth ถ้ามี
+        user_id: dataDetail.user_id, // เปลี่ยนตามระบบ auth ถ้ามี
         dealer_id: dataDetail.dealer_id,
-        sub_dealer_id: values.sub_dealer || null,
+        sub_dealer_id: dataDetail.sub_dealer_id,
         remark: inputRemark,
         file_list: fileList.map((file) => file.url),
         products: dataSource.map((item) => ({
@@ -515,12 +486,6 @@ export default function CustomerStockEdit() {
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Edit Customer Stock</div>
-
-      {/* <FormCustom
-        fields={formFields}
-        form={formCustom}
-        onChange={handleChange}
-      /> */}
 
       <FormUser
         fields={formFiieldData}
