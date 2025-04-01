@@ -107,33 +107,31 @@ export default function CustomerStock() {
   ];
 
   const header = [
+    { title: "No", width: 50, dataIndex: "key", align: "center" },
+    { title: "Stock No", width: 150, dataIndex: "document_no", align: "left" },
+    { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
+    { title: "Dealer", width: 200, dataIndex: "dealer", align: "left" },
+    { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
     {
-      title: "Key",
+      title: "Stock Date",
       width: 150,
-      dataIndex: "key",
+      dataIndex: "document_date",
       align: "center",
     },
     {
-      title: "Document No",
-      width: 200,
-      dataIndex: "document_no",
-      align: "left",
+      title: "Pay Overdue",
+      width: 150,
+      dataIndex: "payOverdue",
+      align: "center",
     },
+    { title: "Status", width: 150, dataIndex: "status", align: "center" },
     {
-      title: "Document Date",
-      width: 200,
-      dataIndex: "document_date",
-      align: "left",
+      title: "SAP Status",
+      width: 150,
+      dataIndex: "sapStatus",
+      align: "center",
     },
-    { title: "Create By", width: 200, dataIndex: "createdBy", align: "left" },
-    { title: "QTY", width: 150, dataIndex: "qty", align: "center" },
-    {
-      title: "Total Value",
-      width: 100,
-      dataIndex: "value",
-      align: "right",
-      className: "text-nowrap",
-    },
+    { title: "Create By", width: 150, dataIndex: "createdBy", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
@@ -145,13 +143,13 @@ export default function CustomerStock() {
     const sortField = tableParams.sortField || "document_number";
 
     const requestData = {
-      // user_id: filters.sale || defaultOption,
+      keyword: filters.order_no || "",
+      use_flag: "1",
       user_id: defaultOption || "",
       dealer_id: filters.dealer || "",
-      keyword: filters.order_no || "",
+      sub_dealer_id: "",
       trasaction_status_code: filters.status || "",
       page: "all",
-      use_flag: filters.use_flag || "",
       orderby_column: sortField,
       orderby: sortOrder,
       page_length: current,
@@ -172,14 +170,33 @@ export default function CustomerStock() {
 
         const newDataSource = data.map((stock, index) => ({
           key: index + 1 + (current - 1) * pageSize,
+          document_number: stock.document_number,
+          sale: stock.user_name,
+          dealer: stock.dealer_name,
+          value: stock.net_amount_display,
           document_date: stock.document_date,
-          document_no: stock.document_number,
-          createdBy: stock.created_by,
-          qty: formatNumber(Math.floor(Math.random() * (50 - 10 + 1)) + 10, 0),
-          value: formatNumber(
-            Math.floor(Math.random() * (20000 - 1000 + 1)) + 1000,
-            0
+          payOverdue: (
+            <BadgeStatus
+              text={stock.status_payment_name}
+              bgColor={stock.status_payment_bg_color}
+              textColor={stock.status_payment_color}
+            />
           ),
+          status: (
+            <BadgeStatus
+              text={stock.status_transaction_name}
+              bgColor={stock.status_transaction_bg_color}
+              textColor={stock.status_transaction_color}
+            />
+          ),
+          sapStatus: (
+            <BadgeStatus
+              text={stock.status_interface_name}
+              bgColor={stock.status_interface_bg_color}
+              textColor={stock.status_interface_color}
+            />
+          ),
+          createdBy: stock.created_by,
           action: (
             <Dropdown
               menu={{
@@ -256,7 +273,7 @@ export default function CustomerStock() {
   };
 
   const handleDelete = async (documentNumber) => {
-    console.log('documentNumber : ',documentNumber)
+    console.log("documentNumber : ", documentNumber);
     confirm({
       title: "Do you want to delete ?",
       icon: <ExclamationCircleFilled />,
@@ -268,38 +285,37 @@ export default function CustomerStock() {
             document_number: documentNumber,
           });
 
-          console.log('response : ',response)
+          console.log("response : ", response);
 
           if (response.status === 200) {
             // Show success notification
-            showNotification("success", 
-              response.data.message|| "Event deleted successfully!", 
+            showNotification(
+              "success",
+              response.data.message || "Event deleted successfully!",
               response.data.message_line || ["The event has been removed."]
-            ).then(() => {
-              
-            })
+            ).then(() => {});
             fetchData();
           } else {
-            showNotification("warning", 
-              response.data.message|| "Event deleted successfully!", 
+            showNotification(
+              "warning",
+              response.data.message || "Event deleted successfully!",
               response.data.message_line || ["The event has been removed."]
-            )
+            );
           }
-
         } catch (error) {
           // Handle errors and show an error notification
           if (error.response.data.status === 400) {
             const message = error.response.data.data;
-            showNotification("warning", 
-              message.Message.Message_Header, 
+            showNotification(
+              "warning",
+              message.Message.Message_Header,
               message.Message.Message_Line
-            )
+            );
           }
         }
       },
     });
   };
-
 
   useEffect(() => {
     fetchData();

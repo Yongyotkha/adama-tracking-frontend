@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef,useContext } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import FormCustom from "../../../components/form_custom/FormCustom";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import { Form, Input, InputNumber, Select } from "antd";
@@ -18,6 +18,7 @@ dayjs.extend(customParseFormat);
 
 export default function CustomerStockCreate() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { showMsg, showNotification } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
@@ -27,6 +28,13 @@ export default function CustomerStockCreate() {
   const [fileList, setFileList] = useState([]);
   const fileUploadRef = useRef(null); // Reference for FileUploadComponent
   const [inputRemark, setInputRemark] = useState("");
+  console.log("location : ", location);
+  // useEffect(() => {
+
+  //   if (location.state?.data) {
+  //     const { user_id, others, products, remark } = location.state?.data;
+  //   }
+  // }, [location.state]);
 
   useEffect(() => {
     const getMaster = async () => {
@@ -316,17 +324,16 @@ export default function CustomerStockCreate() {
   };
 
   const handleNavigateToOrderViewtest = () => {
-    console.log('-----------handleNavigateToOrderView--------------')
+    console.log("-----------handleNavigateToOrderView--------------");
     formCustom
       .validateFields()
       .then((values) => {
-
-        console.log('values : ',values)
+        console.log("values : ", values);
         const body = {
           document_date: values.date,
           products: dataSource,
         };
-        console.log('body : ',body)
+        console.log("body : ", body);
         // navigate("/order/detail", {
         //   state: {
         //     data: body,
@@ -336,7 +343,7 @@ export default function CustomerStockCreate() {
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
       });
-      console.log('-----------exit handleNavigateToOrderView--------------')
+    console.log("-----------exit handleNavigateToOrderView--------------");
   };
 
   const handleNavigateToOrderView = async () => {
@@ -374,14 +381,14 @@ export default function CustomerStockCreate() {
 
       console.log("response", response);
 
-      if (response.message=="Save successfully") {
+      if (response.message == "Save successfully") {
         showMsg("success", "ส่งข้อมูลสำเร็จ");
         navigate("/customer-stock/list");
       } else {
         showMsg("error", response.message || "เกิดข้อผิดพลาด");
       }
     } catch (error) {
-      console.log("Validation or submission error : ",error);
+      console.log("Validation or submission error : ", error);
 
       showMsg("error", error.message || "กรุณากรอกข้อมูลให้ครบถ้วน");
     }

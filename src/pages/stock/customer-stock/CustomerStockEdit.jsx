@@ -14,7 +14,6 @@ import formatNumber from "../../../utils/number";
 import { AuthContext } from "../../../contexts/AuthContext";
 import FileUploadComponent from "../../../components/file_upload/FileUploadComponent";
 import FormUser from "../../../components/form_user/FormUser";
-
 dayjs.extend(customParseFormat);
 
 export default function CustomerStockEdit() {
@@ -47,12 +46,24 @@ export default function CustomerStockEdit() {
       setLoading(true);
 
       try {
-        console.log("tyr");
+        console.log("try");
         const [stockDetail] = await Promise.all([
           useServiceAPI.get(paths.pathStockDetail, {
             document_number: documentNumber,
           }),
         ]);
+
+        let imageList = [];
+        stockDetail.data.file_image_list.forEach((element, key) => {
+          imageList.push({
+            uid: key,
+            name: getFileNameWithExtension(element),
+            status: "done",
+            url: element,
+          });
+        });
+
+        setFileList(imageList);
 
         setDataDetail(stockDetail.data);
         setGetUserId(stockDetail.data.user_id);
@@ -148,6 +159,11 @@ export default function CustomerStockEdit() {
     getMaster();
   }, []);
 
+  const getFileNameWithExtension = (url) => {
+    const parts = url.split("/");
+    return parts.pop(); // Get the last part of the URL
+  };
+
   const handleUploadClick = async () => {
     if (fileUploadRef.current) {
       fileUploadRef.current.triggerUpload();
@@ -166,7 +182,7 @@ export default function CustomerStockEdit() {
     setFileList((prevFileList) => [...prevFileList, fileUpload]);
   };
 
-  console.log("dataDetail : ", dataDetail);
+  //console.log("dataDetail : ", dataDetail);
   const formFiieldData = [
     {
       label: "Dealer",
@@ -192,9 +208,7 @@ export default function CustomerStockEdit() {
       placeholder: dataDetail.document_date,
       value: dataDetail.document_date,
     },
-  ]
-
-  console.log('formFiieldData : ',formFiieldData)
+  ];
 
   const formFields = [
     {
@@ -446,29 +460,6 @@ export default function CustomerStockEdit() {
     }
   };
 
-  const handleNavigateToOrderViewtest = () => {
-    console.log("-----------handleNavigateToOrderView--------------");
-    formCustom
-      .validateFields()
-      .then((values) => {
-        console.log("values : ", values);
-        const body = {
-          document_date: values.date,
-          products: dataSource,
-        };
-        console.log("body : ", body);
-        // navigate("/order/detail", {
-        //   state: {
-        //     data: body,
-        //   },
-        // });
-      })
-      .catch((errorInfo) => {
-        console.error("Validation Failed:", errorInfo);
-      });
-    console.log("-----------exit handleNavigateToOrderView--------------");
-  };
-
   const handleNavigateToOrderView = async () => {
     console.log(111111111);
 
@@ -476,10 +467,13 @@ export default function CustomerStockEdit() {
       const values = await formCustom.validateFields();
       console.log(values);
 
+      console.log(dataDetail);
       const payload = {
+        platform: "web",
+        document_number: documentNumber,
         document_date: dayjs().format("YYYY-MM-DD"),
         user_id: 88, // เปลี่ยนตามระบบ auth ถ้ามี
-        dealer_id: values.dealer,
+        dealer_id: dataDetail.dealer_id,
         sub_dealer_id: values.sub_dealer || null,
         remark: inputRemark,
         file_list: fileList.map((file) => file.url),
@@ -499,8 +493,9 @@ export default function CustomerStockEdit() {
       };
 
       console.log("payload to submit:", payload);
+      //exit();
 
-      const response = await useServiceAPI.post(paths.pathStockCreate, payload);
+      const response = await useServiceAPI.put(paths.pathStockUpdate, payload);
 
       console.log("response", response);
 

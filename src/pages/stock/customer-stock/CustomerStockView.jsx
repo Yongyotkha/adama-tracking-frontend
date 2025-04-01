@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef,useContext } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import FormCustom from "../../../components/form_custom/FormCustom";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import { Form, Input, InputNumber, Select } from "antd";
@@ -13,20 +13,135 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import formatNumber from "../../../utils/number";
 import { AuthContext } from "../../../contexts/AuthContext";
 import FileUploadComponent from "../../../components/file_upload/FileUploadComponent";
-
+import FormUser from "../../../components/form_user/FormUser";
 dayjs.extend(customParseFormat);
 
 export default function CustomerStockView() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { showMsg, showNotification } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
-  const [dataSource, setDataSource] = useState([]);
+
   const [dealers, setDalers] = useState([]);
   const [searchProductData, setSearchProductData] = useState([]);
   const [formCustom] = Form.useForm();
   const [fileList, setFileList] = useState([]);
   const fileUploadRef = useRef(null); // Reference for FileUploadComponent
+
+  const [documentNumber, setDocumentNumber] = useState(
+    location.state.document_number
+  );
+
+  const [dataDetail, setDataDetail] = useState([]);
+  const [getUserId, setGetUserId] = useState("");
+  const [getDealerId, setGetDealerId] = useState("");
   const [inputRemark, setInputRemark] = useState("");
+  const [dataSource, setDataSource] = useState([]);
+  const [dataSourceOther, setDataSourceOther] = useState([]);
+
+  useEffect(() => {
+    console.log("user effect : ", documentNumber);
+    const loadDataStockDetail = async () => {
+      console.log("---------loadDataStockDetail------------");
+      setLoading(true);
+
+      try {
+        console.log("try");
+        const [stockDetail] = await Promise.all([
+          useServiceAPI.get(paths.pathStockDetail, {
+            document_number: documentNumber,
+          }),
+        ]);
+
+        let imageList = [];
+        stockDetail.data.file_image_list.forEach((element, key) => {
+
+          imageList.push({
+            uid: key,
+            name: getFileNameWithExtension(element),
+            status: "done",
+            url: element,
+          });
+        });
+
+        setFileList(imageList);
+
+
+
+        setDataDetail(stockDetail.data);
+        setGetUserId(stockDetail.data.user_id);
+        setGetDealerId(stockDetail.data.dealer_id);
+        setInputRemark(stockDetail.data.ref_remark);
+
+        // function mergeNewProducts(prev, newProducts) {
+
+        //   const filteredProducts = newProducts.filter(
+        //     (newItem) => !prev.some((prevItem) => prevItem.product_code === newItem.product_code)
+        //   );
+
+        //   return [
+        //     ...prev,
+        //     ...filteredProducts.map((item, index) => ({
+        //       ...item,
+        //       no: prev.length + index + 1,
+        //       key: prev.length + index + 1,
+        //       quantity: parseInt(item.quantity),
+        //     })),
+        //   ];
+        // }
+
+        // setDataSource((prev) => mergeNewProducts(prev, stockDetail.data.products));
+
+        // console.log('dataSource : ',dataSource)
+
+        setDataSource((prev) => {
+          const newProducts = stockDetail.data.products.filter(
+            (newItem) =>
+              !prev.some(
+                (prevItem) => prevItem.product_code === newItem.product_code
+              )
+          );
+
+          return [
+            ...prev,
+            ...newProducts.map((item, index) => ({
+              ...item,
+              no: prev.length + index + 1,
+              key: prev.length + index + 1,
+              quantity: parseInt(item.quantity),
+            })),
+          ];
+        });
+
+        setDataSourceOther((prev) => {
+          const newOthers = stockDetail.data.others.filter(
+            (newItem) =>
+              !prev.some(
+                (prevItem) => prevItem.product_code === newItem.product_code
+              )
+          );
+
+          return [
+            ...prev,
+            ...newOthers.map((item, index) => ({
+              ...item,
+              no: prev.length + index + 1,
+              key: prev.length + index + 1,
+              product_unit: item.product_unit,
+              quantity: parseInt(item.quantity),
+            })),
+          ];
+        });
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+      console.log("------exit loadDataStockDetail------------");
+    };
+
+    loadDataStockDetail();
+  }, []);
 
   useEffect(() => {
     const getMaster = async () => {
@@ -47,6 +162,12 @@ export default function CustomerStockView() {
     getMaster();
   }, []);
 
+  const getFileNameWithExtension = (url) => {
+    const parts = url.split("/");
+    return parts.pop(); // Get the last part of the URL
+  };
+
+
   const handleUploadClick = async () => {
     if (fileUploadRef.current) {
       fileUploadRef.current.triggerUpload();
@@ -64,6 +185,35 @@ export default function CustomerStockView() {
 
     setFileList((prevFileList) => [...prevFileList, fileUpload]);
   };
+
+  //console.log("dataDetail : ", dataDetail);
+  const formFiieldData = [
+    {
+      label: "Dealer",
+      name: "dealer",
+      type: "text",
+      disabled: true,
+      placeholder: dataDetail.user_name,
+      value: dataDetail.user_name,
+    },
+    {
+      label: "Sub Dealer",
+      name: "subDealer",
+      type: "text",
+      disabled: true,
+      placeholder: dataDetail.sub_dealer_name,
+      value: dataDetail.sub_dealer_name,
+    },
+    {
+      label: "Date",
+      name: "date",
+      type: "text",
+      disabled: true,
+      placeholder: dataDetail.document_date,
+      value: dataDetail.document_date,
+    },
+  ]
+
 
   const formFields = [
     {
@@ -315,41 +465,20 @@ export default function CustomerStockView() {
     }
   };
 
-  const handleNavigateToOrderViewtest = () => {
-    console.log('-----------handleNavigateToOrderView--------------')
-    formCustom
-      .validateFields()
-      .then((values) => {
-
-        console.log('values : ',values)
-        const body = {
-          document_date: values.date,
-          products: dataSource,
-        };
-        console.log('body : ',body)
-        // navigate("/order/detail", {
-        //   state: {
-        //     data: body,
-        //   },
-        // });
-      })
-      .catch((errorInfo) => {
-        console.error("Validation Failed:", errorInfo);
-      });
-      console.log('-----------exit handleNavigateToOrderView--------------')
-  };
-
   const handleNavigateToOrderView = async () => {
     console.log(111111111);
 
     try {
       const values = await formCustom.validateFields();
       console.log(values);
-
+   
+      console.log(dataDetail);
       const payload = {
+        platform: "web", 
+        document_number: documentNumber,
         document_date: dayjs().format("YYYY-MM-DD"),
-        user_id: 88, // เปลี่ยนตามระบบ auth ถ้ามี
-        dealer_id: values.dealer,
+        user_id: getUserId, // เปลี่ยนตามระบบ auth ถ้ามี
+        dealer_id: dataDetail.dealer_id,
         sub_dealer_id: values.sub_dealer || null,
         remark: inputRemark,
         file_list: fileList.map((file) => file.url),
@@ -369,19 +498,22 @@ export default function CustomerStockView() {
       };
 
       console.log("payload to submit:", payload);
+      //exit();
 
-      const response = await useServiceAPI.post(paths.pathStockCreate, payload);
+
+      const response = await useServiceAPI.put(paths.pathStockUpdate, payload);
 
       console.log("response", response);
 
-      if (response.message=="Save successfully") {
+      if (response.message == "Save successfully") {
         showMsg("success", "ส่งข้อมูลสำเร็จ");
+        exit()
         navigate("/customer-stock/list");
       } else {
         showMsg("error", response.message || "เกิดข้อผิดพลาด");
       }
     } catch (error) {
-      console.log("Validation or submission error : ",error);
+      console.log("Validation or submission error : ", error);
 
       showMsg("error", error.message || "กรุณากรอกข้อมูลให้ครบถ้วน");
     }
@@ -389,10 +521,16 @@ export default function CustomerStockView() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Create Customer Stock</div>
+      <div className="title-page">Edit Customer Stock</div>
 
-      <FormCustom
+      {/* <FormCustom
         fields={formFields}
+        form={formCustom}
+        onChange={handleChange}
+      /> */}
+
+      <FormUser
+        fields={formFiieldData}
         form={formCustom}
         onChange={handleChange}
       />
@@ -455,6 +593,7 @@ export default function CustomerStockView() {
         <div className="mb-3 flex justify-end">
           <Input.TextArea
             placeholder="Remark"
+            value={inputRemark}
             rows={2}
             onChange={(e) => setInputRemark(e.target.value)}
           />
@@ -466,11 +605,6 @@ export default function CustomerStockView() {
           mode="back"
           text="Back"
           onClick={() => navigate("/customer-stock/list")}
-        />
-        <ActionButton
-          mode="save"
-          text="Confirm"
-          onClick={() => handleNavigateToOrderView()}
         />
       </div>
     </MainLayout>
