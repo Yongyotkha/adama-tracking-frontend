@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { useNavigate } from "react-router-dom";
 import SectionHeader from "../../../components/mobile/section_header/SectionHeader";
@@ -7,12 +7,14 @@ import UserPointsSection from "../../../components/mobile/user_points_section/Us
 import BackButton from "../../../components/mobile/button/BackButton";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function PurchaseHistory() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("in_progress");
   const [orderData, setOrderData] = useState([]);
+  const { userInfo } = useContext(AuthContext);
 
 
 
@@ -37,12 +39,12 @@ export default function PurchaseHistory() {
       try {
         const response = await useServiceAPI.get(paths.pathhistoryShop, {
           platform: "web",
-          id: 139, // เปลี่ยนเป็น user id ที่เหมาะสม
-          mode: activeTab, 
+          id: userInfo.id, // เปลี่ยนเป็น user id ที่เหมาะสม
+          mode: activeTab,
         });
 
-        if (response.status === 200 ) {
-          const rawData = response.data.data[0] ?? [];          
+        if (response.status === 200) {
+          const rawData = response.data.data[0] ?? [];
           setOrderData(rawData);
         } else {
           setOrderData([]);
@@ -107,7 +109,7 @@ export default function PurchaseHistory() {
             })} */}
 
             {orderData.length > 0 ? (
-              orderData.map((order,index) => {
+              orderData.map((order, index) => {
                 const tabColor = tabs.find((tab) => tab.id === activeTab)?.color || "border-gray-300";
                 return (
                   <div
@@ -115,7 +117,7 @@ export default function PurchaseHistory() {
                     key={index}
                     // onClick={() => navigate(`/mobile/history-purchase/detail/${order.id}`)}
                     onClick={() =>
-                      navigate("/mobile/history-purchase/detail/", {
+                      navigate("/mobile/history-purchase/detail", {
                         state: {
                           document_number: order.document_number,
                         },
