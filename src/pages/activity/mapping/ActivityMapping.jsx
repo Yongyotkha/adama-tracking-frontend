@@ -12,6 +12,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import DynamicAutoComplete from "../../../components/autocomplete/DynamicAutoComplete";
+import dayjs from "dayjs";
 
 export default function ActivityMapping() {
   const navigate = useNavigate();
@@ -36,11 +37,12 @@ export default function ActivityMapping() {
   const [dataYear, setDataYear] = useState([]);
   const [dataMonths, setDataMonths] = useState([]);
 
-  
+
   const [currentLocation, setCurrentLocation] = useState({
     lat: 0.0,
     lng: 0.0,
   });
+
   const [currentLocationAddress, setCurrentLocationAddress] = useState("");
 
   const [searchOptions, setSearchOptions] = useState([]);
@@ -218,19 +220,19 @@ export default function ActivityMapping() {
     {
       key: 3,
       filter_type: "sub_dealers",
-      filter_type_name: "SubDealer",
+      filter_type_name: "Sub Dealer",
       data: dataSubDealer,
     },
     {
       key: 4,
       filter_type: "year",
-      filter_type_name: "years",
+      filter_type_name: "Years",
       data: dataYear,
     },
     {
       key: 5,
       filter_type: "month",
-      filter_type_name: "months",
+      filter_type_name: "Months",
       data: dataMonths,
     },
   ];
@@ -311,9 +313,12 @@ export default function ActivityMapping() {
   useEffect(() => {
     if (locations.length > 0) {
       renderMarkerLocation();
+    } else {
+      setLocationMarkerIcon([]); // 👉 clear marker ด้วยถ้าไม่มี location
     }
     console.log("locations", locations);
   }, [locations]);
+
 
   useEffect(() => {
     console.log("locationMarkerIcon", locationMarkerIcon);
@@ -359,6 +364,21 @@ export default function ActivityMapping() {
     setIsAllChecked(allFiltersSelected);
   }, [checkedFilters]);
 
+  const monthNameToNumber = {
+    January: "1",
+    February: "2",
+    March: "3",
+    April: "4",
+    May: "5",
+    June: "6",
+    July: "7",
+    August: "8",
+    September: "9",
+    October: "10",
+    November: "11",
+    December: "12",
+  };
+
   // Set New Marker
   useEffect(() => {
     if (checkedFilters != null) {
@@ -367,31 +387,39 @@ export default function ActivityMapping() {
         try {
           const activityType =
             Array.isArray(checkedFilters.activity_type) &&
-            checkedFilters.activity_type.length > 0
+              checkedFilters.activity_type.length > 0
               ? checkedFilters.activity_type
               : [];
           const dealer =
             Array.isArray(checkedFilters.dealer) &&
-            checkedFilters.dealer.length > 0
+              checkedFilters.dealer.length > 0
               ? checkedFilters.dealer
               : [];
           const area =
             Array.isArray(checkedFilters.area) && checkedFilters.area.length > 0
               ? checkedFilters.area
               : [];
-          const year =
-            Array.isArray(checkedFilters.year) && checkedFilters.year.length > 0
-              ? checkedFilters.year
-              : [];
+          // const year =
+          //   Array.isArray(checkedFilters.year) && checkedFilters.year.length > 0
+          //     ? checkedFilters.year
+          //     : [];
           const sub_dealers =
             Array.isArray(checkedFilters.sub_dealers) &&
-            checkedFilters.sub_dealers.length > 0
+              checkedFilters.sub_dealers.length > 0
               ? checkedFilters.sub_dealers
+              : [];
+          // const month =
+          //   Array.isArray(checkedFilters.month) && checkedFilters.month.length > 0
+          //     ? checkedFilters.month
+          //     : [];
+          const year =
+            Array.isArray(checkedFilters.year) && checkedFilters.year.length > 0
+              ? checkedFilters.year.map(String) // 👈 แปลงให้เป็น string
               : [];
 
           const month =
             Array.isArray(checkedFilters.month) && checkedFilters.month.length > 0
-              ? checkedFilters.month
+              ? checkedFilters.month.map(String) // 👈 แปลงให้เป็น string
               : [];
 
           const [mapping] = await Promise.all([
@@ -407,19 +435,66 @@ export default function ActivityMapping() {
           ]);
 
           // Mapping Detail
-          setDataMapping(mapping.data);
+          // setDataMapping(mapping.data);
+
+          // Mapping Detail
+          let filteredData = mapping.data;
+
+          // Apply filtering based on year and month if selected
+          if (year.length > 0 || month.length > 0) {
+            filteredData = filteredData.filter((item) => {
+              if (!item.document_date_display) return false;
+
+              const date = dayjs(item.document_date_display);
+              if (!date.isValid()) return false;
+
+              const itemYear = date.year().toString();
+              const itemMonth = (date.month() + 1).toString();
+
+              const matchYear = year.length === 0 || year.includes(itemYear);
+              const matchMonth = month.length === 0 || month.includes(itemMonth);
+
+              return matchYear && matchMonth;
+            });
+
+          }
+
+          setDataMapping(filteredData);
 
           // Set Locations
+          // setLocations(
+          //   mapping.data.map((data, index) => ({
+          //     key: locations.length + 1,
+          //     id: locations.length + 1,
+          //     document_number: data.document_number,
+          //     title: data.activity_type_name,
+          //     lat: parseFloat(data.location_latitude),
+          //     lng: parseFloat(data.location_longitude),
+          //     // lat: data.location_latitude,
+          //     // lng: data.location_longitude,
+          //     address: data.location_address,
+          //     details: data.description,
+          //     activity_type_id: data.activity_type_id,
+          //     activity_type_name: data.activity_type_name,
+          //     dealer_id: data.dealer_id,
+          //     dealer_name: data.dealer_name,
+          //     area_id: data.area_id,
+          //     area_name: data.area_name,
+          //     year: data.year,
+          //     activity_image: data.activity_image,
+          //     activity_image_location: data.activity_image_location,
+          //     crop_id_list: data.crop_id_list,
+          //     document_date_display: data.document_date_display,
+          //   }))
+          // );
           setLocations(
-            mapping.data.map((data, index) => ({
+            filteredData.map((data, index) => ({
               key: locations.length + 1,
               id: locations.length + 1,
               document_number: data.document_number,
               title: data.activity_type_name,
               lat: parseFloat(data.location_latitude),
               lng: parseFloat(data.location_longitude),
-              // lat: data.location_latitude,
-              // lng: data.location_longitude,
               address: data.location_address,
               details: data.description,
               activity_type_id: data.activity_type_id,
@@ -505,9 +580,8 @@ export default function ActivityMapping() {
       <Layout>
         {/* Filter Section */}
         <div
-          className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${
-            isFilterCollapsed ? "max-h-12" : "max-h-[600px] overflow-y-auto"
-          }`}
+          className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${isFilterCollapsed ? "max-h-12" : "max-h-[600px] overflow-y-auto"
+            }`}
           style={{ width: "300px" }}
         >
           <div className="flex justify-between items-center px-4 py-2 border-b">
@@ -538,9 +612,8 @@ export default function ActivityMapping() {
           </div>
 
           <div
-            className={`transition-all duration-300 ${
-              isFilterCollapsed ? "opacity-0" : "opacity-100"
-            } px-3 pb-4`}
+            className={`transition-all duration-300 ${isFilterCollapsed ? "opacity-0" : "opacity-100"
+              } px-3 pb-4`}
           >
             {/* Master "All" Checkbox */}
             <div className="flex justify-between">
@@ -549,9 +622,9 @@ export default function ActivityMapping() {
                   (filterType) =>
                     checkedFilters[filterType].length > 0 &&
                     checkedFilters[filterType].length <
-                      mockFilters.find(
-                        (filter) => filter.filter_type === filterType
-                      ).data.length
+                    mockFilters.find(
+                      (filter) => filter.filter_type === filterType
+                    ).data.length
                 )}
                 // checked={isAllChecked}
                 onChange={(e) => toggleAll(e.target.checked)}
@@ -564,8 +637,10 @@ export default function ActivityMapping() {
                   src="/img/icons/reload.png"
                   alt="Reload Icon"
                   className="h-6 w-6 cursor-pointer"
+                  onClick={() => renderMarkerLocation()} // 👈 ตรงนี้แหละ!
                 />
               </Tooltip>
+
             </div>
 
             {/* Collapsible Filter Categories */}
@@ -720,10 +795,10 @@ export default function ActivityMapping() {
                           alt=""
                         />
                         {locationWindowInfo.crop_list &&
-                        locationWindowInfo.crop_list.length > 0
+                          locationWindowInfo.crop_list.length > 0
                           ? locationWindowInfo.crop_list
-                              .map((crop) => crop.name)
-                              .join(", ")
+                            .map((crop) => crop.name)
+                            .join(", ")
                           : "No Crops Listed"}
                       </div>
 
@@ -753,10 +828,10 @@ export default function ActivityMapping() {
                         />
                         <span>
                           {locationWindowInfo.assing_user_list &&
-                          locationWindowInfo.assing_user_list.length > 0
+                            locationWindowInfo.assing_user_list.length > 0
                             ? locationWindowInfo.assing_user_list
-                                .map((user) => user.name)
-                                .join(", ")
+                              .map((user) => user.name)
+                              .join(", ")
                             : "Unknown"}
                         </span>
                       </div>

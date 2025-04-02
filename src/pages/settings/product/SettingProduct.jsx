@@ -49,15 +49,15 @@ export default function SettingProduct() {
             status_type: "status",
           }),
         ]);
-        
+
         const Status = [];
         dataStatus.data.map((data, index) => {
-          Status.push({ 
-            id: data.code, 
-            name: data.name, 
+          Status.push({
+            id: data.code,
+            name: data.name,
           });
         });
-        
+
         setStatus(Status);
 
         setPosition(producttype.data);
@@ -110,7 +110,7 @@ export default function SettingProduct() {
         requestData
       );
 
-      if (response.status === 200) {        
+      if (response.status === 200) {
         const { data, records_filtered } = response.data;
         const newDataSource = data.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
@@ -143,18 +143,26 @@ export default function SettingProduct() {
           action: (
             <Dropdown
               menu={{
-                items: item.action.map((actionItem, actionIndex) => ({
-                  key: actionIndex,
-                  label: <ItemDropDown mode={actionItem.action.toLowerCase()} 
-                  onClick={() => {
-                    navigate("/setting/product/edit", {
-                      state: {
-                        id: item.id,
-                      },
-                    });
-                  }}
-                  />,
-                })),
+                items: item.action.map((actionItem, actionIndex) => {
+                  const mode = actionItem.action.toLowerCase();
+                  return {
+                    key: actionIndex,
+                    label: (
+                      <ItemDropDown
+                        mode={mode}
+                        onClick={() => {
+                          console.log("Dropdown Mode:", mode);
+                          navigate("/setting/product/edit", {
+                            state: {
+                              id: item.id,
+                              mode: mode, // ✅ pass mode here
+                            },
+                          });
+                        }}
+                      />
+                    ),
+                  };
+                }),
               }}
               placement="bottom"
             >
@@ -166,8 +174,10 @@ export default function SettingProduct() {
                 />
               </a>
             </Dropdown>
+
+
           ),
-          
+
         }));
 
         setDataSource(newDataSource);
@@ -268,7 +278,7 @@ export default function SettingProduct() {
       label: "Status",
       type: "select",
       options: Status,
-      
+
     },
   ];
 
@@ -287,7 +297,7 @@ export default function SettingProduct() {
       },
     });
   };
-  
+
 
   const handleClear = () => {
     setTableParams({
@@ -362,7 +372,7 @@ export default function SettingProduct() {
       sortField: sorter.field,
     });
   };
-  
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -382,12 +392,12 @@ export default function SettingProduct() {
       />
 
       <BoxPrimary>
-        <TableComponent 
-        header={header} 
-        dataSource={dataSource} 
-        pagination={tableParams.pagination}
-        loading={tableLoading}
-        onChange={handleTableChange}
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pagination={tableParams.pagination}
+          loading={tableLoading}
+          onChange={handleTableChange}
         />
       </BoxPrimary>
 
@@ -398,7 +408,7 @@ export default function SettingProduct() {
         header={modalConfig.header}
         dataSource={modalConfig.dataSource}
       /> */}
-      
+
     </MainLayout>
   );
 }
