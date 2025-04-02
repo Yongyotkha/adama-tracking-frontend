@@ -364,20 +364,14 @@ export default function ActivityMapping() {
     setIsAllChecked(allFiltersSelected);
   }, [checkedFilters]);
 
-  const monthNameToNumber = {
-    January: "1",
-    February: "2",
-    March: "3",
-    April: "4",
-    May: "5",
-    June: "6",
-    July: "7",
-    August: "8",
-    September: "9",
-    October: "10",
-    November: "11",
-    December: "12",
-  };
+  useEffect(() => {
+    if (dataYear.length > 0) {
+      setCheckedFilters((prev) => ({
+        ...prev,
+        year: [dataYear[0].id], // 👈 เลือก default ปีแรกใน list
+      }));
+    }
+  }, [dataYear]);
 
   // Set New Marker
   useEffect(() => {
@@ -489,8 +483,8 @@ export default function ActivityMapping() {
           // );
           setLocations(
             filteredData.map((data, index) => ({
-              key: locations.length + 1,
-              id: locations.length + 1,
+              key: index + 1,
+              id: index + 1, // Better to use index here instead of locations.length + 1
               document_number: data.document_number,
               title: data.activity_type_name,
               lat: parseFloat(data.location_latitude),
@@ -508,8 +502,11 @@ export default function ActivityMapping() {
               activity_image_location: data.activity_image_location,
               crop_id_list: data.crop_id_list,
               document_date_display: data.document_date_display,
+              assing_user_list: data.assing_user_list ?? [], // 👈 MAKE SURE this is included
+              remark: data.remark ?? "", // Optional fallback
             }))
           );
+
         } catch (error) {
           // showMsg("error", error.message || "เกิดข้อผิดพลาด");
           console.log(error);
@@ -648,30 +645,35 @@ export default function ActivityMapping() {
               defaultActiveKey={["Activity Type"]}
               className="rounded-lg border-0"
             >
-              {mockFilters.map((category) => (
-                <Panel
-                  header={category.filter_type_name}
-                  key={category.key}
-                  className="custom-collapse my-2"
-                >
-                  <Checkbox.Group
-                    options={category.data.map((item) => ({
-                      label: item.name,
-                      value: item.id,
-                    }))}
-                    value={checkedFilters[category.filter_type]}
-                    onChange={(list) => {
-                      console.log(list, category.filter_type);
+              {mockFilters.map((category) => {
+                // console.log(category); // Log the full category object
 
-                      setCheckedFilters((prevFilters) => ({
-                        ...prevFilters,
-                        [category.filter_type]: list,
-                      }));
-                    }}
-                    className="filter-checkbox-group"
-                  />
-                </Panel>
-              ))}
+                return (
+                  <Panel
+                    header={category.filter_type_name}
+                    key={category.key}
+                    className="custom-collapse my-2"
+                  >
+                    <Checkbox.Group
+                      options={category.data.map((item) => ({
+                        label: item.name,
+                        value: item.id,
+                      }))}
+                      value={checkedFilters[category.filter_type]}
+                      onChange={(list) => {
+                        console.log(list, category.filter_type);
+
+                        setCheckedFilters((prevFilters) => ({
+                          ...prevFilters,
+                          [category.filter_type]: list,
+                        }));
+                      }}
+                      className="filter-checkbox-group"
+                    />
+                  </Panel>
+                );
+              })}
+
             </Collapse>
           </div>
         </div>
@@ -804,7 +806,7 @@ export default function ActivityMapping() {
 
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img
-                          src="/img/icons/details.png"
+                          src="/img/icons/calendar.png"
                           className="w-6 h-6"
                           alt=""
                         />
@@ -813,7 +815,7 @@ export default function ActivityMapping() {
                       </div>
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img
-                          src="/img/icons/shop.png"
+                          src="/img/icons/details.png"
                           className="w-6 h-6"
                           alt=""
                         />
@@ -821,19 +823,27 @@ export default function ActivityMapping() {
                       </div>
 
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img
+                        {/* <img
                           src={"/img/icons/default-avatar.png"}
                           alt={"No Name"}
                           className="w-6 h-6 rounded-full border border-gray-300"
-                        />
-                        <span>
-                          {locationWindowInfo.assing_user_list &&
-                            locationWindowInfo.assing_user_list.length > 0
-                            ? locationWindowInfo.assing_user_list
-                              .map((user) => user.name)
-                              .join(", ")
-                            : "Unknown"}
-                        </span>
+                        /> */}
+                        {Array.isArray(locationWindowInfo?.assing_user_list) &&
+                          locationWindowInfo.assing_user_list.length > 0 ? (
+                          locationWindowInfo.assing_user_list.map((user) => (
+                            <div key={user.id} className="flex items-center gap-2">
+                              <img
+                                src={user.profile_image || "/img/icons/default-avatar.png"}
+                                alt={user.name}
+                                className="w-6 h-6 rounded-full border border-gray-300"
+                              />
+                              <span className="text-sm text-gray-700">{user.name}</span>
+                            </div>
+                          ))
+                        ) : (
+                          <span className="text-sm text-gray-500">No assigned users</span>
+                        )}
+
                       </div>
                     </div>
                   </InfoWindow>
