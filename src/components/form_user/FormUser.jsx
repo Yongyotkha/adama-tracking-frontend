@@ -6,12 +6,12 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import { AuthContext } from "../../contexts/AuthContext";
 import { paths } from "../../services/CorsPath";
 import useServiceAPI from "../../services/CorsService";
-import { EditOutlined,EnvironmentOutlined,MailOutlined,PlusOutlined, UserOutlined } from "@ant-design/icons";
+import { EditOutlined, EnvironmentOutlined, MailOutlined, PlusOutlined, UserOutlined } from "@ant-design/icons";
 dayjs.extend(customParseFormat);
 
 const { Option } = Select;
 
-export default function FormUser({ fields, title, profile, form, onChange }) {
+export default function FormUser({ fields, title, profile, form, onChange, disableImageUpload = false }) {
   const { showMsg } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [formValues, setFormValues] = useState({});
@@ -131,122 +131,125 @@ export default function FormUser({ fields, title, profile, form, onChange }) {
                 className="mb-3"
               >
                 {
-                field.type === "text" ||
-                field.type === "email" ||
-                field.type === "tel" ? (
-                  // <Input
-                  //   type={field.type}
-                  //   placeholder={`Enter ${field.label.toLowerCase()}`}
-                  //   disabled={field.disabled} 
-                  //   suffix={field.iconSrc ? <img src={field.iconSrc} alt="Location Icon" style={{ width: '20px', height: '20px' }} /> : []}
-                  // />
-                  <Input
-                    type={field.type}
-                    placeholder={`Enter ${field.label.toLowerCase()}`}
-                    disabled={field.disabled}
-                    prefix={
-                      field.iconPosition === "left" && field.iconSrc ? (
-                        <img src={field.iconSrc} alt={`${field.label} Icon`} style={{ width: '20px', height: '20px' }} />
-                      ) : null
-                    }
-                    suffix={
-                      field.iconPosition === "right" && field.iconSrc ? (
-                        <img src={field.iconSrc} alt={`${field.label} Icon`} style={{ width: '20px', height: '20px' }} />
-                      ) : null
-                    }
-                  />
-                ) : field.type === "date" ? (
-                  <DatePicker
-                    style={{ width: "100%" }}
-                    placeholder="Select Date"
-                    format={dateFormat}
-                    disabled={field.disabled}
-                  />
-                ) : field.type === "time" ? (
-                  <TimePicker
-                    className="w-full"
-                    format="HH:mm"
-                    placeholder={`Select ${field.label}`}
-                    onChange={(value) => handleFieldChange(field.name, value)}
-                  />
-                ) : field.type === "select" ? (
-                  <Select
-                    placeholder={`Select ${field.label.toLowerCase()}`}
-                    allowClear
-                    options={field.options.map((option) => ({
-                      label: option.name,
-                      value: option.id,
-                    }))}
-                    disabled={field.disabled}
-                    onChange={(value) => handleChange(field.name, value)}
-                  />
-                ) : field.type === "picture" || field.type === "image" ? (
-                  // <div className="image-upload-container flex items-center gap-3">
-                  //   <img
-                  //     src={imagePreview}
-                  //     // src={field.value || imagePreview}
-                  //     alt="Profile"
-                  //     onClick={() =>
-                  //       document.getElementById(`imageUpload-${index}`).click()
-                  //     }
-                  //     className="w-24 h-24 rounded-full object-cover cursor-pointer shadow-lg"
-                  //   />
-                  //   <input
-                  //     type="file"
-                  //     accept="image/*"
-                  //     onChange={handleImageChange}
-                  //     style={{ display: "none" }}
-                  //     id={`imageUpload-${index}`}
-                  //     name={field.name}
-                  //   />
-                  // </div>
-                  <div className="image-upload-container flex items-center gap-3 mb-4">
-                    <img
-                      src={imagePreview}
-                      alt="Profile"
-                      onClick={() => document.getElementById(`imageUpload-${index}`).click() }
-                      className="w-24 h-24 rounded-full object-cover mb-2 cursor-pointer shadow-lg"
+                  field.type === "text" ||
+                    field.type === "email" ||
+                    field.type === "tel" ? (
+                    // <Input
+                    //   type={field.type}
+                    //   placeholder={`Enter ${field.label.toLowerCase()}`}
+                    //   disabled={field.disabled} 
+                    //   suffix={field.iconSrc ? <img src={field.iconSrc} alt="Location Icon" style={{ width: '20px', height: '20px' }} /> : []}
+                    // />
+                    <Input
+                      type={field.type}
+                      placeholder={`Enter ${field.label.toLowerCase()}`}
+                      disabled={field.disabled}
+                      prefix={
+                        field.iconPosition === "left" && field.iconSrc ? (
+                          <img src={field.iconSrc} alt={`${field.label} Icon`} style={{ width: '20px', height: '20px' }} />
+                        ) : null
+                      }
+                      suffix={
+                        field.iconPosition === "right" && field.iconSrc ? (
+                          <img src={field.iconSrc} alt={`${field.label} Icon`} style={{ width: '20px', height: '20px' }} />
+                        ) : null
+                      }
                     />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      style={{ display: "none" }}
-                      id={`imageUpload-${index}`}
-                      name={field.name}
+                  ) : field.type === "date" ? (
+                    <DatePicker
+                      style={{ width: "100%" }}
+                      placeholder="Select Date"
+                      format={dateFormat}
+                      disabled={field.disabled}
                     />
-                    <Button
-                      icon={imagePreview !== "/img/Image-not-found.png" ? <EditOutlined /> : <PlusOutlined />}
-                      onClick={() => document.getElementById(`imageUpload-${index}`).click() }
-                      className="text-[#00783F] border-[#00783F]"
+                  ) : field.type === "time" ? (
+                    <TimePicker
+                      className="w-full"
+                      format="HH:mm"
+                      placeholder={`Select ${field.label}`}
+                      onChange={(value) => handleFieldChange(field.name, value)}
+                    />
+                  ) : field.type === "select" ? (
+                    <Select
+                      placeholder={`Select ${field.label.toLowerCase()}`}
+                      allowClear
+                      options={field.options.map((option) => ({
+                        label: option.name,
+                        value: option.id,
+                      }))}
+                      disabled={field.disabled}
+                      onChange={(value) => handleChange(field.name, value)}
+                    />
+                  ) : field.type === "picture" || field.type === "image" ? (
+                    // <div className="image-upload-container flex items-center gap-3">
+                    //   <img
+                    //     src={imagePreview}
+                    //     // src={field.value || imagePreview}
+                    //     alt="Profile"
+                    //     onClick={() =>
+                    //       document.getElementById(`imageUpload-${index}`).click()
+                    //     }
+                    //     className="w-24 h-24 rounded-full object-cover cursor-pointer shadow-lg"
+                    //   />
+                    //   <input
+                    //     type="file"
+                    //     accept="image/*"
+                    //     onChange={handleImageChange}
+                    //     style={{ display: "none" }}
+                    //     id={`imageUpload-${index}`}
+                    //     name={field.name}
+                    //   />
+                    // </div>
+                    <div className="image-upload-container flex items-center gap-3 mb-4">
+                      <img
+                        src={imagePreview}
+                        alt="Profile"
+                        onClick={() => document.getElementById(`imageUpload-${index}`).click()}
+                        className="w-24 h-24 rounded-full object-cover mb-2 cursor-pointer shadow-lg"
+                      />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        style={{ display: "none" }}
+                        id={`imageUpload-${index}`}
+                        name={field.name}
+                        disabled={disableImageUpload} // ← ใช้ prop นี้
+                      />
+                      <Button
+                        icon={imagePreview !== "/img/Image-not-found.png" ? <EditOutlined /> : <PlusOutlined />}
+                        onClick={() => document.getElementById(`imageUpload-${index}`).click()}
+                        className="text-[#00783F] border-[#00783F]"
+                        disabled={disableImageUpload} // ← ใช้ prop นี้
+                      >
+                        {imagePreview !== "/img/Image-not-found.png" ? "Edit Photo" : "Add Photo"}
+                      </Button>
+
+                    </div>
+                  ) : field.type === "multiple" ? (
+                    <Select
+                      mode="multiple"
+                      placeholder={`Select ${field.label}`}
+                      allowClear
+                      options={field.options.map((option) => ({
+                        label: option.name,
+                        value: option.id,
+                      }))}
+                      onChange={(value) => handleFieldChange(field.name, value)}
+                    />
+                  ) : field.type === "radio" ? (
+                    <Radio.Group
+                      onChange={(e) => handleChange(field.name, e.target.value)}
+                      value={form.getFieldValue(field.name)}
+                      disabled={field.disabled}
                     >
-                      {imagePreview !== "/img/Image-not-found.png" ? "Edit Photo" : "Add Photo"}
-                    </Button>
-                  </div>
-                ) : field.type === "multiple" ? (
-                  <Select
-                    mode="multiple"
-                    placeholder={`Select ${field.label}`}
-                    allowClear
-                    options={field.options.map((option) => ({
-                      label: option.name,
-                      value: option.id,
-                    }))}
-                    onChange={(value) => handleFieldChange(field.name, value)}
-                  />
-                ) : field.type === "radio" ? (
-                  <Radio.Group
-                    onChange={(e) => handleChange(field.name, e.target.value)}
-                    value={form.getFieldValue(field.name)}
-                    disabled={field.disabled}
-                  >
-                    {field.options.map((option) => (
-                      <Radio key={option.id} value={option.id}>
-                        {option.name}
-                      </Radio>
-                    ))}
-                  </Radio.Group>
-                ) : null}
+                      {field.options.map((option) => (
+                        <Radio key={option.id} value={option.id}>
+                          {option.name}
+                        </Radio>
+                      ))}
+                    </Radio.Group>
+                  ) : null}
               </Form.Item>
             </Col>
           ))}

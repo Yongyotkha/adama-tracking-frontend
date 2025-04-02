@@ -7,10 +7,10 @@ export default function CheckLogin() {
   const navigate = useNavigate();
   const { loginLineUid, userInfo } = useContext(AuthContext);
   const [redirectPath, setRedirectPath] = useState(null);
+  const [loading, setLoading] = useState(true); // ✅ loading state
   const { lineProfile } = useOutletContext() || {};
 
   useEffect(() => {
-    console.log(lineProfile, "lineProfile");
     const fetchUserProfile = async () => {
       try {
         const results = await loginLineUid(lineProfile.userId);
@@ -25,22 +25,26 @@ export default function CheckLogin() {
         if (error?.response?.status === 401) {
           setRedirectPath("/mobile/verify");
         }
+      } finally {
+        setLoading(false); // ✅ done loading, whether success or error
       }
     };
 
     if (lineProfile && !userInfo) {
       fetchUserProfile();
+    } else {
+      setLoading(false); // no profile = skip loading
     }
   }, [lineProfile]);
 
   useEffect(() => {
-    if (redirectPath) {
+    if (!loading && redirectPath) {
       sessionStorage.removeItem("redirectPath");
       navigate(redirectPath, { replace: true });
-    } else {
+    } else if (!loading && !redirectPath) {
       navigate("/mobile/main");
     }
-  }, []);
+  }, [loading, redirectPath]);
 
-  return <MessageLayout loading={true} />;
+  return <MessageLayout loading={loading} />;
 }

@@ -17,6 +17,7 @@ export default function EditPromotion() {
   const [position, setPosition] = useState([]);
   const { showMsg, showNotification } = useContext(AuthContext);
   const [permission, setPermission] = useState({});
+  const mode = location.state?.mode || "edit"; // default = edit
 
   useEffect(() => {
     const fetchData = async () => {
@@ -26,16 +27,16 @@ export default function EditPromotion() {
           // useServiceAPI.get(paths.pathMasterStatus, {}),
           useServiceAPI.get(`${paths.pathMasterStatus}?status_type=status`),
         ]);
-        
-        setPosition(positions.data);        
+
+        setPosition(positions.data);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       }
     };
-  
+
     fetchData();
   }, []);
-  
+
   const [formFields, setFormFields] = useState([]);
 
   // const formFields = [
@@ -52,64 +53,70 @@ export default function EditPromotion() {
       const response = await useServiceAPI.get(`${paths.pathPromotiondetail}/${id}`);
       if (response.status === 200) {
         const { data } = response;
-        
+
         setPermission(data.permission.edit);
         const updatedFields = [
-          { 
-            label: "Name", 
-            name: "name", 
-            type: "text", 
-            required: true, 
-            col: 12, 
-            value: data.name || "" },
-          { 
-            label: "Description", 
-            name: "description", 
-            type: "text", 
-            required: true, 
-            col: 12, 
-            value: data.description || "" 
+          {
+            label: "Name",
+            name: "name",
+            type: "text",
+            required: true,
+            col: 12,
+            value: data.name || "",
+            disabled: mode === "view", // ← disable in view mode
           },
-          { 
-            label: "Value (THB)", 
-            name: "value", 
-            type: "text", 
-            required: true, 
-            col: 6, 
-            value: data.value ===  ".00" ? "0.00" : data.value 
+          {
+            label: "Description",
+            name: "description",
+            type: "text",
+            required: true,
+            col: 12,
+            value: data.description || "",
+            disabled: mode === "view",
           },
-          { 
-            label: "Unit", 
-            name: "unit", 
-            type: "text", 
-            required: true, 
-            col: 6, 
+          {
+            label: "Value (THB)",
+            name: "value",
+            type: "text",
+            required: true,
+            col: 6,
+            value: data.value === ".00" ? "0.00" : data.value,
+            disabled: mode === "view",
+          },
+          {
+            label: "Unit",
+            name: "unit",
+            type: "text",
+            required: true,
+            col: 6,
             value: data.unit || "",
+            disabled: mode === "view",
           },
-          { 
-            label: "Status", 
-            name: "use_flag", 
-            type: "select", 
-            required: false, 
-            col: 6, 
+          {
+            label: "Status",
+            name: "use_flag",
+            type: "select",
+            required: false,
+            col: 6,
             options: [
               { name: "Active", id: 1, selected: true },
               { name: "Inactive", id: 0, selected: false },
             ],
             value: parseInt(data.use_flag, 10) === 1 ? "Active" : "Inactive",
-
+            disabled: mode === "view",
           },
-          { 
-            label: "Remark", 
-            name: "remark", 
-            type: "text", 
-            required: false, 
-            col: 6, 
-            value: 
-            data.remark || "" 
+          {
+            label: "Remark",
+            name: "remark",
+            type: "text",
+            required: false,
+            col: 6,
+            value: data.remark || "",
+            disabled: mode === "view",
           },
         ];
-  
+
+
         setFormFields(updatedFields);
         const initialValues = updatedFields.reduce((acc, field) => {
           acc[field.name] = field.value;
@@ -125,7 +132,7 @@ export default function EditPromotion() {
       setLoading(false);
     }
   };
-  
+
 
   const handleSave = () => {
     form
@@ -137,13 +144,13 @@ export default function EditPromotion() {
         } else {
           useFlagValue = values.use_flag === "Active" ? 1 : 0; // แปลงค่าจาก "Active" หรือ "Inactive"
         }
-        
+
         const dataToSend = {
           ...values,
-          id: location.state.id, 
+          id: location.state.id,
           use_flag: useFlagValue, // ส่งค่า use_flag เป็น 1 หรือ 0
         };
-  
+
         useServiceAPI
           .put(paths.pathPromotionupdate, dataToSend, setLoading)
           .then((response) => {
@@ -175,23 +182,24 @@ export default function EditPromotion() {
         console.error("Validation Failed:", errorInfo);
       });
   };
-  
+
 
 
   return (
 
     <MainLayout loading={loading}>
-      <div className="title-page">Edit Promotion</div>
+      <div className="title-page">
+        {mode === "view" ? "View Promotion" : "Edit Promotion"}
+      </div>
       <FormUser profile="/img/profile.jpg" fields={formFields} form={form} />
       <div className="flex justify-end space-x-4">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/setting/promotion")} />
-        {/* <ActionButton mode="update" text="Update" onClick={() => navigate("/setting/promotion")} /> */}
-        {permission === true && (
-          <ActionButton text="update" mode="update" onClick={handleSave} />
-        )}
 
-        {/* <ActionButton text="update" mode="update" onClick={handleSave} /> */}
+        {mode === "edit" && permission === true && (
+          <ActionButton text="Update" mode="update" onClick={handleSave} />
+        )}
       </div>
+
 
     </MainLayout>
   );

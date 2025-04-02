@@ -36,7 +36,7 @@ export default function SettingPromotion() {
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
 
-    
+
   ];
 
   const actionItems = [
@@ -87,24 +87,31 @@ export default function SettingPromotion() {
       );
 
       if (response.status === 200) {
-        const { data, records_filtered } = response.data;                
+        const { data, records_filtered } = response.data;
         const newDataSource = data.map((promotion, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           action: (
             <Dropdown
               menu={{
-                items: promotion.action.map((actionItem, actionIndex) => ({
-                  key: actionIndex,
-                  label: <ItemDropDown mode={actionItem.action.toLowerCase()} 
-                  onClick={() => {
-                    navigate("/setting/promotion/edit", {
-                      state: {
-                        id: promotion.id,
-                      },
-                    });
-                  }}
-                  />,
-                })),
+                items: promotion.action.map((actionItem, actionIndex) => {
+                  const mode = actionItem.action.toLowerCase();
+                  return {
+                    key: actionIndex,
+                    label: (
+                      <ItemDropDown
+                        mode={mode}
+                        onClick={() => {
+                          navigate("/setting/promotion/edit", {
+                            state: {
+                              id: promotion.id,
+                              mode: mode, // ✅ pass mode here
+                            },
+                          });
+                        }}
+                      />
+                    ),
+                  };
+                }),
               }}
               placement="bottom"
             >
@@ -117,7 +124,8 @@ export default function SettingPromotion() {
               </a>
             </Dropdown>
 
-            
+
+
           ),
           name: promotion.name,
           description: promotion.description,
@@ -192,7 +200,7 @@ export default function SettingPromotion() {
       },
     });
   };
-  
+
   const handleClear = () => {
     setTableParams({
       ...tableParams,
@@ -217,9 +225,9 @@ export default function SettingPromotion() {
       />
 
       <BoxPrimary>
-        <TableComponent 
-          header={header} 
-          dataSource={dataSource} 
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
           pagination={tableParams.pagination}
           loading={tableLoading}
           onChange={handleTableChange}
