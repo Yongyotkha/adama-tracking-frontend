@@ -364,20 +364,14 @@ export default function ActivityMapping() {
     setIsAllChecked(allFiltersSelected);
   }, [checkedFilters]);
 
-  const monthNameToNumber = {
-    January: "1",
-    February: "2",
-    March: "3",
-    April: "4",
-    May: "5",
-    June: "6",
-    July: "7",
-    August: "8",
-    September: "9",
-    October: "10",
-    November: "11",
-    December: "12",
-  };
+  useEffect(() => {
+    if (dataYear.length > 0) {
+      setCheckedFilters((prev) => ({
+        ...prev,
+        year: [dataYear[0].id], // 👈 เลือก default ปีแรกใน list
+      }));
+    }
+  }, [dataYear]);
 
   // Set New Marker
   useEffect(() => {
@@ -648,30 +642,35 @@ export default function ActivityMapping() {
               defaultActiveKey={["Activity Type"]}
               className="rounded-lg border-0"
             >
-              {mockFilters.map((category) => (
-                <Panel
-                  header={category.filter_type_name}
-                  key={category.key}
-                  className="custom-collapse my-2"
-                >
-                  <Checkbox.Group
-                    options={category.data.map((item) => ({
-                      label: item.name,
-                      value: item.id,
-                    }))}
-                    value={checkedFilters[category.filter_type]}
-                    onChange={(list) => {
-                      console.log(list, category.filter_type);
+              {mockFilters.map((category) => {
+                console.log(category); // Log the full category object
 
-                      setCheckedFilters((prevFilters) => ({
-                        ...prevFilters,
-                        [category.filter_type]: list,
-                      }));
-                    }}
-                    className="filter-checkbox-group"
-                  />
-                </Panel>
-              ))}
+                return (
+                  <Panel
+                    header={category.filter_type_name}
+                    key={category.key}
+                    className="custom-collapse my-2"
+                  >
+                    <Checkbox.Group
+                      options={category.data.map((item) => ({
+                        label: item.name,
+                        value: item.id,
+                      }))}
+                      value={checkedFilters[category.filter_type]}
+                      onChange={(list) => {
+                        console.log(list, category.filter_type);
+
+                        setCheckedFilters((prevFilters) => ({
+                          ...prevFilters,
+                          [category.filter_type]: list,
+                        }));
+                      }}
+                      className="filter-checkbox-group"
+                    />
+                  </Panel>
+                );
+              })}
+
             </Collapse>
           </div>
         </div>

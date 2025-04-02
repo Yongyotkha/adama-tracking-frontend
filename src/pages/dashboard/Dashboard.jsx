@@ -701,7 +701,7 @@ export default function Dashboard() {
                 ></Select>
               </div>
             </div>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 w-full">
+            <div className="my-auto grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 w-full">
               <div className="text-center p-2">
                 <div className="text-md font-bold text-[#00783F]">
                   {formatNumber(dashboardDataOrder.total_amount_target_plan)}
@@ -983,7 +983,7 @@ export default function Dashboard() {
         <Col xs={24} lg={24} xl={7} className="">
           <BoxPrimary className="sticky top-1">
             <div className="flex flex-wrap justify-between mb-4">
-              <h3 className="text-[#00783F] text-lg font-semibold">Activity</h3>
+              <h3 className="text-[#00783F] text-lg font-semibold">Activity Test</h3>
               <div className="flex flex-wrap gap-2">
                 <Select
                   className="mb-4 w-36"
