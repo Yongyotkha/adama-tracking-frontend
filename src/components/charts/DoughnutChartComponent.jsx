@@ -11,10 +11,20 @@ const makeTransparent = (color, alpha = "4D") => {
 };
 
 const DoughnutChartComponent = ({ data }) => {
-  // State to store hovered index
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
-  // Define original colors or fallback to green
+  // Check if there is data with value > 0
+  const hasData = Array.isArray(data) && data.some((item) => item.value > 0);
+
+  // If no data, show message
+  if (!hasData) {
+    return (
+      <div className="h-[400px] w-full flex items-center justify-center">
+        No data to display
+      </div>
+    );
+  }
+
   const originalColors = data.map((item) => item.color || "#009845");
 
   const chartData = {
@@ -24,8 +34,8 @@ const DoughnutChartComponent = ({ data }) => {
         data: data.map((item) => item.value),
         backgroundColor: originalColors.map((color, index) =>
           hoveredIndex === null || hoveredIndex === index
-            ? color // Original color for hovered segment
-            : makeTransparent(color) // Transparent for non-hovered segments
+            ? color
+            : makeTransparent(color)
         ),
         hoverOffset: 6,
       },
@@ -35,13 +45,13 @@ const DoughnutChartComponent = ({ data }) => {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    cutout: "70%", // Reduce the doughnut hole size
+    cutout: "70%",
     plugins: {
       legend: {
         position: "bottom",
         labels: {
-          usePointStyle: true, // Change legend marker style
-          pointStyle: "circle", // Use circle markers instead of rectangles
+          usePointStyle: true,
+          pointStyle: "circle",
         },
       },
       tooltip: {
@@ -49,13 +59,8 @@ const DoughnutChartComponent = ({ data }) => {
           label: (tooltipItem) => {
             const dataset = tooltipItem.dataset;
             const value = dataset.data[tooltipItem.dataIndex];
-
-            // Calculate total sum dynamically
             const total = dataset.data.reduce((sum, num) => sum + num, 0);
-
-            // Calculate percentage dynamically
             const percentage = ((value / total) * 100).toFixed(2);
-
             return ` Value: ${value.toLocaleString()} (${percentage}%)`;
           },
         },
