@@ -19,10 +19,11 @@ dayjs.extend(customParseFormat);
 export default function CustomerStockCreate() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { showMsg, showNotification,userInfo } = useContext(AuthContext);
+  const { showMsg, showNotification, userInfo } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [dealers, setDalers] = useState([]);
+  const [subDealers, setSubDalers] = useState([]);
   const [searchProductData, setSearchProductData] = useState([]);
   const [formCustom] = Form.useForm();
   const [fileList, setFileList] = useState([]);
@@ -31,14 +32,12 @@ export default function CustomerStockCreate() {
 
   useEffect(() => {
     if (location.state?.data) {
-      
       const { user_id } = location.state?.data;
       setDataSaleId(user_id);
-      
     }
   }, [location.state]);
 
-  console.log('userInfo : ',userInfo)
+  //console.log("userInfo : ", userInfo);
 
   useEffect(() => {
     const getMaster = async () => {
@@ -49,6 +48,20 @@ export default function CustomerStockCreate() {
         ]);
 
         setDalers(dealer.data);
+
+        const [sub_dealer] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterSubDealerAll),
+        ]);
+
+        const newSubDealers = [];
+        sub_dealer.data.map((value, index) => {
+          newSubDealers.push({
+            id: value.sub_dealer_id,
+            name: value.sub_dealer_name,
+          });
+        });
+
+        setSubDalers(newSubDealers);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -86,17 +99,18 @@ export default function CustomerStockCreate() {
       disabled: false,
       required: true,
       moderef: true,
+      value: "",
       // value: dataSaleId,
     },
     {
       label: "Sub Dealer",
       name: "sub_dealer",
       type: "select",
-      options: dealers,
+      options: subDealers,
       disabled: false,
-      required: false,
-      moderef: false,
-      // value: dealerId,
+      required: true,
+      moderef: true,
+      value: "",
     },
     {
       label: "Date",
@@ -108,6 +122,8 @@ export default function CustomerStockCreate() {
       value: dayjs().format("YYYY-MM-DD"),
     },
   ];
+
+  //console.log("formFields : ", formFields);
 
   const handleChange = (filter, value) => {
     console.log("filter", filter, "value", value);
@@ -336,7 +352,7 @@ export default function CustomerStockCreate() {
 
       const payload = {
         document_date: dayjs().format("YYYY-MM-DD"),
-        user_id: userInfo.id, 
+        user_id: userInfo.id,
         dealer_id: values.dealer,
         sub_dealer_id: values.sub_dealer || null,
         remark: inputRemark,
@@ -358,7 +374,6 @@ export default function CustomerStockCreate() {
 
       console.log("payload to submit:", payload);
       //exit()
-
 
       const response = await useServiceAPI.post(paths.pathStockCreate, payload);
 
