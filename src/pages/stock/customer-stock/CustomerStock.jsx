@@ -109,29 +109,31 @@ export default function CustomerStock() {
   console.log('filters : ',filters)
 
   const header = [
-    { title: "No", width: 50, dataIndex: "key", align: "center" },
-    { title: "Stock No", width: 150, dataIndex: "document_no", align: "left" },
-    { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
-    { title: "Dealer", width: 200, dataIndex: "dealer", align: "left" },
-    { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
     {
-      title: "Stock Date",
+      title: "Date",
       width: 150,
       dataIndex: "document_date",
       align: "center",
     },
+    { title: "Dealer", width: 200, dataIndex: "dealer", align: "left" },
+    { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
     {
-      title: "Pay Overdue",
+      title: "Product",
       width: 150,
-      dataIndex: "payOverdue",
+      dataIndex: "product",
       align: "center",
     },
-    { title: "Status", width: 150, dataIndex: "status", align: "center" },
     {
-      title: "SAP Status",
+      title: "QTY",
       width: 150,
-      dataIndex: "sapStatus",
-      align: "center",
+      dataIndex: "qty",
+      align: "left",
+    },
+    {
+      title: "Total Value",
+      width: 150,
+      dataIndex: "total_value",
+      align: "left",
     },
     { title: "Create By", width: 150, dataIndex: "createdBy", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
@@ -171,33 +173,19 @@ export default function CustomerStock() {
         console.log("response : ", response);
 
         const newDataSource = data.map((stock, index) => ({
-          key: index + 1 + (current - 1) * pageSize,
-          document_number: stock.document_number,
-          sale: stock.user_name,
-          dealer: stock.dealer_name,
-          value: stock.net_amount_display,
           document_date: stock.document_date,
-          payOverdue: (
+          dealer: stock.dealer_name,
+          sub_dealer: stock.sub_dealer_name,
+          quantity_product:stock.quantity_product,
+          product: (
             <BadgeStatus
-              text={stock.status_payment_name}
-              bgColor={stock.status_payment_bg_color}
-              textColor={stock.status_payment_color}
+              text={parseInt(stock.quantity_product)}
+              bgColor="#F89E18"
+              textColor="#FFFFFF"
             />
           ),
-          status: (
-            <BadgeStatus
-              text={stock.status_transaction_name}
-              bgColor={stock.status_transaction_bg_color}
-              textColor={stock.status_transaction_color}
-            />
-          ),
-          sapStatus: (
-            <BadgeStatus
-              text={stock.status_interface_name}
-              bgColor={stock.status_interface_bg_color}
-              textColor={stock.status_interface_color}
-            />
-          ),
+          qty:stock.net_amount_display,
+          total_value:"200,000",
           createdBy: stock.created_by,
           action: (
             <Dropdown
@@ -258,6 +246,7 @@ export default function CustomerStock() {
             </Dropdown>
           ),
         }));
+        console.log('newDataSource : ',newDataSource)
         setDataSource(newDataSource);
         setTableParams({
           ...tableParams,

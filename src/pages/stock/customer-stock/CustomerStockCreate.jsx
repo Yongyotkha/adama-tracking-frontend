@@ -29,6 +29,7 @@ export default function CustomerStockCreate() {
   const [fileList, setFileList] = useState([]);
   const fileUploadRef = useRef(null); // Reference for FileUploadComponent
   const [inputRemark, setInputRemark] = useState("");
+  const [totalValue, setTotalValue] = useState(0);
 
   useEffect(() => {
     if (location.state?.data) {
@@ -36,6 +37,11 @@ export default function CustomerStockCreate() {
       setDataSaleId(user_id);
     }
   }, [location.state]);
+
+  useEffect(() => {
+    const total = dataSource.reduce((sum, item) => sum + parseFloat(item.net_amount || 0), 0);
+    setTotalValue(total);
+  }, [dataSource]);
 
   //console.log("userInfo : ", userInfo);
 
@@ -138,11 +144,16 @@ export default function CustomerStockCreate() {
             quantity * parseFloat(item.product_unit_thb.replace(/,/g, ""))
           ).toFixed(2); // Calculate new net_amount
           const foc = parseInt(quantity / item.product_campaign_order_min_foc);
+          //console.log('here : ',{ ...item, quantity, net_amount, foc })
           return { ...item, quantity, net_amount, foc };
         }
         return item;
       })
     );
+
+
+
+
   };
 
   const header = [
@@ -230,6 +241,7 @@ export default function CustomerStockCreate() {
 
   const onChangeProduct = (value) => {
     // Set Empty
+
     setSearchProductData([]);
 
     const loadProductDetail = async () => {
@@ -299,6 +311,8 @@ export default function CustomerStockCreate() {
             no: index + 1,
           }));
 
+        
+
           setDataSource(resetDataSource);
         }
       } catch (error) {
@@ -344,11 +358,11 @@ export default function CustomerStockCreate() {
   };
 
   const handleNavigateToOrderView = async () => {
-    console.log(111111111);
+  
 
     try {
       const values = await formCustom.validateFields();
-      console.log(values);
+
 
       const payload = {
         document_date: dayjs().format("YYYY-MM-DD"),
@@ -433,13 +447,13 @@ export default function CustomerStockCreate() {
           className="w-[200px]"
           min={0}
           disabled={true}
-          // value={}
+          value={totalValue}
           formatter={(value) =>
             `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
         />
       </BoxPrimary>
-
+      
       <BoxPrimary>
         <div className="flex items-center justify-between">
           <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
@@ -455,6 +469,8 @@ export default function CustomerStockCreate() {
           onUploadSuccess={handleUploadSuccess}
         />
       </BoxPrimary>
+
+
 
       <BoxPrimary title="Remark">
         <div className="mb-3 flex justify-end">

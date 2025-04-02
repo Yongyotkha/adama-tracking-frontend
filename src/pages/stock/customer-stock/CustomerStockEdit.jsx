@@ -38,6 +38,15 @@ export default function CustomerStockEdit() {
   const [inputRemark, setInputRemark] = useState("");
   const [dataSource, setDataSource] = useState([]);
   const [dataSourceOther, setDataSourceOther] = useState([]);
+  const [totalValue, setTotalValue] = useState(0);
+
+  useEffect(() => {
+    const total = dataSource.reduce(
+      (sum, item) => sum + parseFloat(item.net_amount || 0),
+      0
+    );
+    setTotalValue(total);
+  }, [dataSource]);
 
   useEffect(() => {
     console.log("user effect : ", documentNumber);
@@ -52,7 +61,7 @@ export default function CustomerStockEdit() {
             document_number: documentNumber,
           }),
         ]);
-        console.log("try : ",stockDetail);
+        console.log("try : ", stockDetail);
         let imageList = [];
         stockDetail.data.file_image_list.forEach((element, key) => {
           imageList.push({
@@ -182,7 +191,6 @@ export default function CustomerStockEdit() {
     setFileList((prevFileList) => [...prevFileList, fileUpload]);
   };
 
-  
   const formFiieldData = [
     {
       label: "Dealer",
@@ -524,7 +532,7 @@ export default function CustomerStockEdit() {
           className="w-[200px]"
           min={0}
           disabled={true}
-          // value={}
+          value={totalValue}
           formatter={(value) =>
             `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
