@@ -13,9 +13,11 @@ import formatNumber from "../../../utils/number";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { ExclamationCircleFilled } from "@ant-design/icons";
+import DynamicModal from "../../../components/modal/DynamicModal";
 
 export default function CustomerStock() {
   const navigate = useNavigate();
+  const [userList, setUserList] = useState([]);
   const { showMsg, showNotification } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
@@ -25,6 +27,7 @@ export default function CustomerStock() {
   const [permission, setPermission] = useState([]);
   const [defaultOption, setDefaultOption] = useState();
   const [tableLoading, setTableLoading] = useState(false);
+  const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -35,6 +38,14 @@ export default function CustomerStock() {
     sortField: null,
   });
   const { confirm } = Modal;
+
+  const territoryColumns = [
+    { title: "No", dataIndex: "key", key: "key", width: 50 },
+    { title: "SKU", dataIndex: "code", key: "code" },
+    { title: "Name", dataIndex: "name", key: "name" },
+    { title: "Unit", dataIndex: "unit", key: "unit" },
+    { title: "QTY (ctn)", dataIndex: "quantity", key: "quantity" },
+  ];
 
   // Get Master
   useEffect(() => {
@@ -106,8 +117,6 @@ export default function CustomerStock() {
     },
   ];
 
-  console.log("filters : ", filters);
-
   const header = [
     {
       title: "Date",
@@ -158,6 +167,35 @@ export default function CustomerStock() {
     }
   }
 
+  const fetchUserList = async (document_number) => {
+    setLoading(true);
+
+    try {
+      const response = await useServiceAPI.get(paths.pathStockDetail, {
+        document_number: "S2025040156",
+      });
+
+      console.log("response : ", response);
+
+      if (response.status === 200) {
+        const Test = response.data.products;
+        const territoryData = Test.map((item, index) => ({
+          key: index + 1,
+          code: item.product_code,
+          name: item.product_name,
+          unit: item.product_unit,
+          quantity: item.quantity,
+        }));
+        console.log(territoryData);
+        setUserList(territoryData);
+      }
+    } catch (error) {
+      console.error("Error fetching user list:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -196,11 +234,17 @@ export default function CustomerStock() {
           dealer: stock.dealer_name,
           sub_dealer: stock.sub_dealer_name,
           quantity_product: stock.quantity_product,
+
           product: (
             <BadgeStatus
-              text={parseInt(stock.quantity_product)}
+              text={stock.line_product}
               bgColor="#F89E18"
               textColor="#FFFFFF"
+              onClick={() => {
+                setIsTerritoryModalVisible(true);
+                fetchUserList(stock.document_number);
+              }}
+              // onClick={() => setIsTerritoryModalVisible(true)}
             />
           ),
           qty: parseInt(stock.quantity_product),
@@ -415,6 +459,15 @@ export default function CustomerStock() {
           onChange={handleTableChange}
         />
       </BoxPrimary>
+
+      <DynamicModal
+        title="Product Detail"
+        isVisible={isTerritoryModalVisible}
+        onClose={() => setIsTerritoryModalVisible(false)}
+        header={territoryColumns}
+        dataSource={userList}
+        width="1200px"
+      />
     </MainLayout>
   );
 }

@@ -45,7 +45,7 @@ export default function CustomerStockEdit() {
       (sum, item) => sum + parseFloat(item.net_amount || 0),
       0
     );
-    console.log(total)
+    console.log(total);
     setTotalValue(total);
   }, [dataSource]);
 
@@ -483,7 +483,7 @@ export default function CustomerStockEdit() {
       console.log("response", response);
 
       if (response.message == "Update successful") {
-        console.log('save success')
+        console.log("save success");
         showMsg("success", "ส่งข้อมูลสำเร็จ");
         navigate("/customer-stock/list");
       } else {
