@@ -80,6 +80,7 @@ export default function Login() {
               rules={[
                 { required: true, message: "Please input your password!" },
               ]}
+              className="my-2"
             >
               <Input.Password
                 placeholder="Password"
@@ -126,7 +127,7 @@ export default function Login() {
               />
             </Form.Item>
 
-            <div className="flex justify-center items-center text-white gap-1">
+            <div className="flex justify-center items-center text-white gap-1 mt-3">
               Listen <span>&#9658;</span> Learn <span>&#9658;</span> Deliver
             </div>
           </Form>

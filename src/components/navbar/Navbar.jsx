@@ -154,6 +154,7 @@ const Navbar = () => {
       subPaths.some((subPath) => location.pathname.startsWith(`/${subPath}`))
     );
   };
+  
 
   const handleNavigate = (path, index) => {
     setActiveIndex(index); // Set active index when navigating
