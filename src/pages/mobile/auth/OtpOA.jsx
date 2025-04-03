@@ -9,7 +9,7 @@ import LogoGray from "../../../components/logo/LogoGray";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 
-export default function VerifyOA() {
+export default function OtpOA() {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -100,7 +100,8 @@ export default function VerifyOA() {
                 } catch (error) {
                   console.error("Error fetching user profile:", error);
                   if (error?.response?.status === 401) {
-                    setRedirectPath("/mobile/verify");
+                    // setRedirectPath("/mobile/verify");
+                    navigate("/mobile/verify");
                   }
                 }
               };
@@ -108,7 +109,7 @@ export default function VerifyOA() {
               if (response.data.user_id && !userInfo) {
                 fetchUserProfile();
               } else {
-                navigate("/mobile/account", { state: stateData });
+                navigate("/mobile/main", { state: stateData });
               }
             }
           }

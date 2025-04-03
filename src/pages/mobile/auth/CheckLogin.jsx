@@ -7,7 +7,7 @@ export default function CheckLogin() {
   const navigate = useNavigate();
   const { loginLineUid, userInfo } = useContext(AuthContext);
   const [redirectPath, setRedirectPath] = useState(null);
-  const [loading, setLoading] = useState(true); // ✅ loading state
+  const [loading, setLoading] = useState(false); // ✅ loading state
   const { lineProfile } = useOutletContext() || {};
 
   useEffect(() => {

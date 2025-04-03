@@ -139,7 +139,7 @@ export default function RegisterOA() {
       .then((response) => {
         if (response.status === 200) {
           setIsSuccessModalVisible(true);
-          navigate("/mobile/main");
+          navigate("/mobile/main", { state: formattedData });
         }
       })
       .catch((error) => {
@@ -249,9 +249,9 @@ export default function RegisterOA() {
             {/* ชื่อร้าน */}
             <div>
               <label className="text-gray-500 sarabun-font">ชื่อร้าน</label>
-              <Input 
-                className="mt-1 sarabun-font text-[#A19793]" 
-                value={formData.shop_name} 
+              <Input
+                className="mt-1 sarabun-font text-[#A19793]"
+                value={formData.shop_name}
                 onChange={handleInputChange}
                 name="shop_name"
               />
@@ -260,9 +260,9 @@ export default function RegisterOA() {
             {/* ชื่อ */}
             <div>
               <label className="text-gray-500 sarabun-font">ชื่อ<span className="text-red-500">*</span></label>
-              <Input 
-                className="mt-1 sarabun-font text-[#A19793]" 
-                value={formData.first_name} 
+              <Input
+                className="mt-1 sarabun-font text-[#A19793]"
+                value={formData.first_name}
                 onChange={handleInputChange}
                 name="first_name"
               />
@@ -271,9 +271,9 @@ export default function RegisterOA() {
             {/* นามสกุล */}
             <div>
               <label className="text-gray-500 sarabun-font">นามสกุล<span className="text-red-500">*</span></label>
-              <Input 
-                className="mt-1 sarabun-font text-[#A19793]" 
-                value={formData.last_name} 
+              <Input
+                className="mt-1 sarabun-font text-[#A19793]"
+                value={formData.last_name}
                 name="last_name"
                 onChange={handleInputChange}
 
