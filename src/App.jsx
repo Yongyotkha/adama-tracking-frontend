@@ -98,8 +98,12 @@ import RegisterOA from "./pages/mobile/register/RegisterOA";
 import MainOA from "./pages/mobile/main/MainOA";
 import ActivityPlanDealerMonth from "./pages/activity/activity_plan/ActivityPlanDealerMonth";
 import PDFClearingExpense from "./pages/pdf/PDFClearingExpense";
+
+import CustomerStockEdit from "./pages/stock/customer-stock/CustomerStockEdit";
+import CustomerStockView from "./pages/stock/customer-stock/CustomerStockView";
 import CustomerStockCreate from "./pages/stock/customer-stock/CustomerStockCreate";
 import CustomerStock from "./pages/stock/customer-stock/CustomerStock";
+
 import ScanCollectPoint from "./pages/mobile/scan_collect/ScanCollectPoint";
 import RedeemPoint from "./pages/mobile/redeem_point/RedeemPoint";
 import RedeemPointDetail from "./pages/mobile/redeem_point/RedeemPointDetail";
@@ -199,7 +203,8 @@ const App = () => {
             {/* Customer Stock List */}
             <Route path="/customer-stock/list" element={<CustomerStock />} />
             <Route path="/customer-stock/:mode" element={<CustomerStockCreate />} />
-
+            <Route path="/customer-stock/edit" element={<CustomerStockEdit />} />
+            <Route path="/customer-stock/view" element={<CustomerStockView />} />
 
             {/* Expenses Route */}
             <Route path="/expenses/advance" element={<AdvanceExpense />} />

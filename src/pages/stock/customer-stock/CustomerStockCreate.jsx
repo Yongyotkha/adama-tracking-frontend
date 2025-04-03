@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import FormCustom from "../../../components/form_custom/FormCustom";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import { Form, Input, InputNumber, Select } from "antd";
@@ -11,19 +11,39 @@ import { paths } from "../../../services/CorsPath";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import formatNumber from "../../../utils/number";
+import { AuthContext } from "../../../contexts/AuthContext";
 import FileUploadComponent from "../../../components/file_upload/FileUploadComponent";
 
 dayjs.extend(customParseFormat);
 
 export default function CustomerStockCreate() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { showMsg, showNotification, userInfo } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [dealers, setDalers] = useState([]);
+  const [subDealers, setSubDalers] = useState([]);
   const [searchProductData, setSearchProductData] = useState([]);
   const [formCustom] = Form.useForm();
   const [fileList, setFileList] = useState([]);
   const fileUploadRef = useRef(null); // Reference for FileUploadComponent
+  const [inputRemark, setInputRemark] = useState("");
+  const [totalValue, setTotalValue] = useState(0);
+
+  useEffect(() => {
+    if (location.state?.data) {
+      const { user_id } = location.state?.data;
+      setDataSaleId(user_id);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    const total = dataSource.reduce((sum, item) => sum + parseFloat(item.net_amount || 0), 0);
+    setTotalValue(total);
+  }, [dataSource]);
+
+  //console.log("userInfo : ", userInfo);
 
   useEffect(() => {
     const getMaster = async () => {
@@ -34,6 +54,20 @@ export default function CustomerStockCreate() {
         ]);
 
         setDalers(dealer.data);
+
+        const [sub_dealer] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterSubDealerAll),
+        ]);
+
+        const newSubDealers = [];
+        sub_dealer.data.map((value, index) => {
+          newSubDealers.push({
+            id: value.sub_dealer_id,
+            name: value.sub_dealer_name,
+          });
+        });
+
+        setSubDalers(newSubDealers);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -71,17 +105,18 @@ export default function CustomerStockCreate() {
       disabled: false,
       required: true,
       moderef: true,
+      value: "",
       // value: dataSaleId,
     },
     {
       label: "Sub Dealer",
       name: "sub_dealer",
       type: "select",
-      options: dealers,
+      options: subDealers,
       disabled: false,
-      required: false,
-      moderef: false,
-      // value: dealerId,
+      required: true,
+      moderef: true,
+      value: "",
     },
     {
       label: "Date",
@@ -93,6 +128,8 @@ export default function CustomerStockCreate() {
       value: dayjs().format("YYYY-MM-DD"),
     },
   ];
+
+  //console.log("formFields : ", formFields);
 
   const handleChange = (filter, value) => {
     console.log("filter", filter, "value", value);
@@ -107,11 +144,16 @@ export default function CustomerStockCreate() {
             quantity * parseFloat(item.product_unit_thb.replace(/,/g, ""))
           ).toFixed(2); // Calculate new net_amount
           const foc = parseInt(quantity / item.product_campaign_order_min_foc);
+          //console.log('here : ',{ ...item, quantity, net_amount, foc })
           return { ...item, quantity, net_amount, foc };
         }
         return item;
       })
     );
+
+
+
+
   };
 
   const header = [
@@ -199,6 +241,7 @@ export default function CustomerStockCreate() {
 
   const onChangeProduct = (value) => {
     // Set Empty
+
     setSearchProductData([]);
 
     const loadProductDetail = async () => {
@@ -268,6 +311,8 @@ export default function CustomerStockCreate() {
             no: index + 1,
           }));
 
+        
+
           setDataSource(resetDataSource);
         }
       } catch (error) {
@@ -312,28 +357,49 @@ export default function CustomerStockCreate() {
     }
   };
 
-  const handleNavigateToOrderView = () => {
-    console.log('-----------handleNavigateToOrderView--------------')
-    formCustom
-      .validateFields()
-      .then((values) => {
+  const handleNavigateToOrderView = async () => {
+    try {
+      const values = await formCustom.validateFields();
+      const payload = {
+        document_date: dayjs().format("YYYY-MM-DD"),
+        user_id: userInfo.id,
+        dealer_id: values.dealer,
+        sub_dealer_id: values.sub_dealer || null,
+        remark: inputRemark,
+        file_list: fileList.map((file) => file.url),
+        products: dataSource.map((item) => ({
+          product_id: item.product_id,
+          product_code: item.product_code,
+          product_name: item.product_name,
+          product_unit: item.product_unit,
+          product_unit_thb: parseFloat(item.product_unit_thb),
+          product_campaign_order_min_foc: item.product_campaign_order_min_foc,
+          product_campaign_foc: item.product_campaign_foc,
+          quantity: item.quantity,
+          foc: item.foc,
+          net_amount: parseFloat(item.net_amount),
+        })),
+        others: [],
+      };
 
-        console.log('values : ',values)
-        const body = {
-          document_date: values.date,
-          products: dataSource,
-        };
-        console.log('body : ',body)
-        // navigate("/order/detail", {
-        //   state: {
-        //     data: body,
-        //   },
-        // });
-      })
-      .catch((errorInfo) => {
-        console.error("Validation Failed:", errorInfo);
-      });
-      console.log('-----------exit handleNavigateToOrderView--------------')
+      console.log("payload to submit:", payload);
+      //exit()
+
+      const response = await useServiceAPI.post(paths.pathStockCreate, payload);
+
+      console.log("response", response);
+
+      if (response.message == "Save successfully") {
+        showMsg("success", "ส่งข้อมูลสำเร็จ");
+        navigate("/customer-stock/list");
+      } else {
+        showMsg("error", response.message || "เกิดข้อผิดพลาด");
+      }
+    } catch (error) {
+      console.log("Validation or submission error : ", error);
+
+      showMsg("error", error.message || "กรุณากรอกข้อมูลให้ครบถ้วน");
+    }
   };
 
   return (
@@ -377,13 +443,13 @@ export default function CustomerStockCreate() {
           className="w-[200px]"
           min={0}
           disabled={true}
-          // value={}
+          value={totalValue}
           formatter={(value) =>
             `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
         />
       </BoxPrimary>
-
+      
       <BoxPrimary>
         <div className="flex items-center justify-between">
           <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
@@ -400,6 +466,8 @@ export default function CustomerStockCreate() {
         />
       </BoxPrimary>
 
+
+
       <BoxPrimary title="Remark">
         <div className="mb-3 flex justify-end">
           <Input.TextArea
@@ -409,8 +477,6 @@ export default function CustomerStockCreate() {
           />
         </div>
       </BoxPrimary>
-
-      
 
       <div className="flex justify-end space-x-4">
         <ActionButton

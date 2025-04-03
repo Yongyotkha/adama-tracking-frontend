@@ -13,9 +13,11 @@ import formatNumber from "../../../utils/number";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { ExclamationCircleFilled } from "@ant-design/icons";
+import DynamicModal from "../../../components/modal/DynamicModal";
 
 export default function CustomerStock() {
   const navigate = useNavigate();
+  const [userList, setUserList] = useState([]);
   const { showMsg, showNotification } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
@@ -25,6 +27,7 @@ export default function CustomerStock() {
   const [permission, setPermission] = useState([]);
   const [defaultOption, setDefaultOption] = useState();
   const [tableLoading, setTableLoading] = useState(false);
+  const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -35,6 +38,14 @@ export default function CustomerStock() {
     sortField: null,
   });
   const { confirm } = Modal;
+
+  const territoryColumns = [
+    { title: "No", dataIndex: "key", key: "key", width: 50 },
+    { title: "SKU", dataIndex: "code", key: "code" },
+    { title: "Name", dataIndex: "name", key: "name" },
+    { title: "Unit", dataIndex: "unit", key: "unit" },
+    { title: "QTY (ctn)", dataIndex: "quantity", key: "quantity" },
+  ];
 
   // Get Master
   useEffect(() => {
@@ -108,17 +119,82 @@ export default function CustomerStock() {
 
   const header = [
     {
-      title: "Key",
+      title: "Date",
       width: 150,
-      dataIndex: "key",
+      dataIndex: "document_date",
       align: "center",
     },
-    { title: "Document Date", width: 200, dataIndex: "document_date", align: "left" },
-    { title: "Create By", width: 200, dataIndex: "createdBy", align: "left" },
-    { title: "QTY", width: 150, dataIndex: "qty", align: "center" },
-    { title: "Total Value", width: 100, dataIndex: "value", align: "right" , className:"text-nowrap" },
+    { title: "Dealer", width: 200, dataIndex: "dealer", align: "left" },
+    { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
+    {
+      title: "Product",
+      width: 150,
+      dataIndex: "product",
+      align: "center",
+    },
+    {
+      title: "QTY",
+      width: 150,
+      dataIndex: "qty",
+      align: "left",
+    },
+    {
+      title: "Total Value",
+      width: 150,
+      dataIndex: "total_value",
+      align: "left",
+    },
+    { title: "Create By", width: 150, dataIndex: "createdBy", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
+
+  function formatNumber(value) {
+    if (!value) return "0";
+    return parseFloat(value).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
+
+  function formatNumber2(value) {
+    //console.log("value : ", value);
+    if (!value) {
+      return "0";
+    } else if (value == ".00") {
+      return "0";
+    } else {
+      return parseInt(value).toLocaleString("en-US");
+    }
+  }
+
+  const fetchUserList = async (document_number) => {
+    setLoading(true);
+
+    try {
+      const response = await useServiceAPI.get(paths.pathStockDetail, {
+        document_number: "S2025040156",
+      });
+
+      console.log("response : ", response);
+
+      if (response.status === 200) {
+        const Test = response.data.products;
+        const territoryData = Test.map((item, index) => ({
+          key: index + 1,
+          code: item.product_code,
+          name: item.product_name,
+          unit: item.product_unit,
+          quantity: item.quantity,
+        }));
+        console.log(territoryData);
+        setUserList(territoryData);
+      }
+    } catch (error) {
+      console.error("Error fetching user list:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchData = async () => {
     setTableLoading(true);
@@ -128,13 +204,13 @@ export default function CustomerStock() {
     const sortField = tableParams.sortField || "document_number";
 
     const requestData = {
-      // user_id: filters.sale || defaultOption,
+      keyword: filters.order_no || "",
+      use_flag: "1",
       user_id: defaultOption || "",
       dealer_id: filters.dealer || "",
-      keyword: filters.order_no || "",
+      sub_dealer_id: "",
       trasaction_status_code: filters.status || "",
       page: "all",
-      use_flag: filters.use_flag || "",
       orderby_column: sortField,
       orderby: sortOrder,
       page_length: current,
@@ -151,16 +227,29 @@ export default function CustomerStock() {
         const { data, records_filtered } = response.data;
         setPermission(response.data.permission);
 
-        console.log("response : ",response)
-
-
+        console.log("response : ", response);
 
         const newDataSource = data.map((stock, index) => ({
-          key: index + 1 + (current - 1) * pageSize,
           document_date: stock.document_date,
+          dealer: stock.dealer_name,
+          sub_dealer: stock.sub_dealer_name,
+          quantity_product: stock.quantity_product,
+
+          product: (
+            <BadgeStatus
+              text={stock.line_product}
+              bgColor="#F89E18"
+              textColor="#FFFFFF"
+              onClick={() => {
+                setIsTerritoryModalVisible(true);
+                fetchUserList(stock.document_number);
+              }}
+              // onClick={() => setIsTerritoryModalVisible(true)}
+            />
+          ),
+          qty: parseInt(stock.quantity_product),
+          total_value: formatNumber2(stock.net_amount),
           createdBy: stock.created_by,
-          qty: formatNumber(Math.floor(Math.random() * (50 - 10 + 1)) + 10,0),
-          value: formatNumber(Math.floor(Math.random() * (20000 - 1000 + 1)) + 1000,0),
           action: (
             <Dropdown
               menu={{
@@ -171,11 +260,37 @@ export default function CustomerStock() {
                       <ItemDropDown
                         mode="view"
                         onClick={() => {
-                          navigate("#", {
+                          navigate("/customer-stock/view", {
                             state: {
                               document_number: stock.document_number,
                             },
                           });
+                        }}
+                      />
+                    ),
+                  },
+                  {
+                    key: 2,
+                    label: (
+                      <ItemDropDown
+                        mode="edit"
+                        onClick={() => {
+                          navigate("/customer-stock/edit", {
+                            state: {
+                              document_number: stock.document_number,
+                            },
+                          });
+                        }}
+                      />
+                    ),
+                  },
+                  {
+                    key: 3,
+                    label: (
+                      <ItemDropDown
+                        mode="delete"
+                        onClick={() => {
+                          handleDelete(stock.document_number);
                         }}
                       />
                     ),
@@ -194,6 +309,7 @@ export default function CustomerStock() {
             </Dropdown>
           ),
         }));
+        console.log("newDataSource : ", newDataSource);
         setDataSource(newDataSource);
         setTableParams({
           ...tableParams,
@@ -208,6 +324,51 @@ export default function CustomerStock() {
     } finally {
       setTableLoading(false);
     }
+  };
+
+  const handleDelete = async (documentNumber) => {
+    console.log("documentNumber : ", documentNumber);
+    confirm({
+      title: "Do you want to delete ?",
+      icon: <ExclamationCircleFilled />,
+      content: [],
+      centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+      async onOk() {
+        try {
+          const response = await useServiceAPI.delete(paths.pathStockDelete, {
+            document_number: documentNumber,
+          });
+
+          console.log("response : ", response);
+
+          if (response.status === 200) {
+            // Show success notification
+            showNotification(
+              "success",
+              response.data.message || "Event deleted successfully!",
+              response.data.message_line || ["The event has been removed."]
+            ).then(() => {});
+            fetchData();
+          } else {
+            showNotification(
+              "warning",
+              response.data.message || "Event deleted successfully!",
+              response.data.message_line || ["The event has been removed."]
+            );
+          }
+        } catch (error) {
+          // Handle errors and show an error notification
+          if (error.response.data.status === 400) {
+            const message = error.response.data.data;
+            showNotification(
+              "warning",
+              message.Message.Message_Header,
+              message.Message.Message_Line
+            );
+          }
+        }
+      },
+    });
   };
 
   useEffect(() => {
@@ -244,7 +405,6 @@ export default function CustomerStock() {
   };
 
   const handleChange = (filter) => {
- 
     setDefaultOption(filter);
     const getMasterDealer = async () => {
       setLoading(true);
@@ -254,6 +414,8 @@ export default function CustomerStock() {
             user_id: filter,
           }),
         ]);
+
+        console.log("dealer : ", dealer);
 
         setDataDealer(dealer.data);
       } catch (error) {
@@ -265,8 +427,6 @@ export default function CustomerStock() {
 
     getMasterDealer();
   };
-
-
 
   return (
     <MainLayout loading={loading}>
@@ -299,6 +459,15 @@ export default function CustomerStock() {
           onChange={handleTableChange}
         />
       </BoxPrimary>
+
+      <DynamicModal
+        title="Product Detail"
+        isVisible={isTerritoryModalVisible}
+        onClose={() => setIsTerritoryModalVisible(false)}
+        header={territoryColumns}
+        dataSource={userList}
+        width="1200px"
+      />
     </MainLayout>
   );
 }
