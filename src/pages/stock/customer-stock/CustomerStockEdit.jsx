@@ -45,8 +45,17 @@ export default function CustomerStockEdit() {
       (sum, item) => sum + parseFloat(item.net_amount || 0),
       0
     );
+    console.log(total)
     setTotalValue(total);
   }, [dataSource]);
+
+  function formatNumber(value) {
+    if (!value) return "0";
+    return parseFloat(value).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
 
   useEffect(() => {
     console.log("user effect : ", documentNumber);
@@ -440,13 +449,8 @@ export default function CustomerStockEdit() {
   };
 
   const handleNavigateToOrderView = async () => {
-    console.log(111111111);
-
     try {
       const values = await formCustom.validateFields();
-      // console.log(values);
-
-      // console.log(dataDetail);
       const payload = {
         platform: "web",
         document_number: documentNumber,
@@ -478,7 +482,8 @@ export default function CustomerStockEdit() {
 
       console.log("response", response);
 
-      if (response.message == "Save successfully") {
+      if (response.message == "Update successful") {
+        console.log('save success')
         showMsg("success", "ส่งข้อมูลสำเร็จ");
         navigate("/customer-stock/list");
       } else {
@@ -549,6 +554,7 @@ export default function CustomerStockEdit() {
           />
         </div>
         <FileUploadComponent
+          mode="edit"
           ref={fileUploadRef}
           dataFile={fileList}
           onUploadSuccess={handleUploadSuccess}

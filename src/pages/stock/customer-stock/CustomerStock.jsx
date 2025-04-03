@@ -106,7 +106,7 @@ export default function CustomerStock() {
     },
   ];
 
-  console.log('filters : ',filters)
+  console.log("filters : ", filters);
 
   const header = [
     {
@@ -138,6 +138,25 @@ export default function CustomerStock() {
     { title: "Create By", width: 150, dataIndex: "createdBy", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
+
+  function formatNumber(value) {
+    if (!value) return "0";
+    return parseFloat(value).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
+
+  function formatNumber2(value) {
+    //console.log("value : ", value);
+    if (!value) {
+      return "0";
+    } else if (value == ".00") {
+      return "0";
+    } else {
+      return parseInt(value).toLocaleString("en-US");
+    }
+  }
 
   const fetchData = async () => {
     setTableLoading(true);
@@ -176,7 +195,7 @@ export default function CustomerStock() {
           document_date: stock.document_date,
           dealer: stock.dealer_name,
           sub_dealer: stock.sub_dealer_name,
-          quantity_product:stock.quantity_product,
+          quantity_product: stock.quantity_product,
           product: (
             <BadgeStatus
               text={parseInt(stock.quantity_product)}
@@ -184,8 +203,8 @@ export default function CustomerStock() {
               textColor="#FFFFFF"
             />
           ),
-          qty:stock.net_amount_display,
-          total_value:"200,000",
+          qty: parseInt(stock.quantity_product),
+          total_value: formatNumber2(stock.net_amount),
           createdBy: stock.created_by,
           action: (
             <Dropdown
@@ -246,7 +265,7 @@ export default function CustomerStock() {
             </Dropdown>
           ),
         }));
-        console.log('newDataSource : ',newDataSource)
+        console.log("newDataSource : ", newDataSource);
         setDataSource(newDataSource);
         setTableParams({
           ...tableParams,

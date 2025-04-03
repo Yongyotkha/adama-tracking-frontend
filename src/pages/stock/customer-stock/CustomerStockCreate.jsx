@@ -358,12 +358,8 @@ export default function CustomerStockCreate() {
   };
 
   const handleNavigateToOrderView = async () => {
-  
-
     try {
       const values = await formCustom.validateFields();
-
-
       const payload = {
         document_date: dayjs().format("YYYY-MM-DD"),
         user_id: userInfo.id,
