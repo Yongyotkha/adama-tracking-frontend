@@ -172,7 +172,7 @@ export default function CustomerStock() {
 
     try {
       const response = await useServiceAPI.get(paths.pathStockDetail, {
-        document_number: "S2025040156",
+        document_number: document_number,
       });
 
       console.log("response : ", response);
