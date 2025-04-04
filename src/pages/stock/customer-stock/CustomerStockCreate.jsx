@@ -129,13 +129,13 @@ export default function CustomerStockCreate() {
         const response = await useServiceAPI.get(
           `${paths.pathCustomerDealerDetail}?id=${dealerId}`
         );
-        console.log("useEffect getMasterSubDealer : ", response);
+        //console.log("useEffect getMasterSubDealer : ", response);
         setSubDealerDisabled(false);
         if (response.status === 200) {
           const sub_dealer = response.data.network_list;
           const newSubDealers = [];
 
-          console.log("sub_dealer : ", sub_dealer);
+          //console.log("sub_dealer : ", sub_dealer);
 
           if (sub_dealer.length > 0) {
             sub_dealer.map((value, index) => {
@@ -160,6 +160,8 @@ export default function CustomerStockCreate() {
     };
 
     if (dealerId) {
+      setSubDalers([]);
+      setSubDalersId("");
       getMasterSubDealer();
     } else {
       console.log("useEffect getMasterSubDealer id null");
