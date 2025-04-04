@@ -22,9 +22,7 @@ export default function CustomerStockCreate() {
   const { showMsg, showNotification, userInfo } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-  const [dealers, setDalers] = useState([]);
-  const [subDealers, setSubDalers] = useState([]);
-  const [subDealerDisabled, setSubDealerDisabled] = useState(true);
+
   const [searchProductData, setSearchProductData] = useState([]);
   const [formCustom] = Form.useForm();
   const [fileList, setFileList] = useState([]);
@@ -32,24 +30,13 @@ export default function CustomerStockCreate() {
   const [inputRemark, setInputRemark] = useState("");
   const [totalValue, setTotalValue] = useState(0);
 
-  
+  const [subDealerDisabled, setSubDealerDisabled] = useState(true);
 
-  useEffect(() => {
-    if (location.state?.data) {
-      const { user_id } = location.state?.data;
-      setDataSaleId(user_id);
-    }
-  }, [location.state]);
+  const [dealers, setDalers] = useState([]);
+  const [dealerId, setDealerId] = useState("");
 
-  useEffect(() => {
-    const total = dataSource.reduce(
-      (sum, item) => sum + parseFloat(item.net_amount || 0),
-      0
-    );
-    setTotalValue(total);
-  }, [dataSource]);
-
-  //console.log("userInfo : ", userInfo);
+  const [subDealers, setSubDalers] = useState([]);
+  const [subDealerId, setSubDalersId] = useState("");
 
   useEffect(() => {
     const getMaster = async () => {
@@ -70,6 +57,134 @@ export default function CustomerStockCreate() {
     getMaster();
   }, []);
 
+  const formFields = [
+    {
+      label: "Dealer",
+      name: "dealer",
+      type: "select",
+      options: dealers,
+      disabled: false,
+      required: true,
+      moderef: true,
+      value: dealerId,
+      // value: dataSaleId,
+    },
+    {
+      label: "Sub Dealer",
+      name: "sub_dealer",
+      type: "select",
+      options: subDealers,
+      disabled: subDealerDisabled,
+      required: false,
+      moderef: true,
+      value: subDealerId,
+    },
+    {
+      label: "Date",
+      name: "order_date",
+      type: "date",
+      disabled: true,
+      required: false,
+      moderef: false,
+      value: dayjs().format("YYYY-MM-DD"),
+    },
+  ];
+
+  const handleChange = (filter, value) => {
+    console.log("filter", filter, "value", value);
+    if (filter == "dealer") {
+      setDealerId(value);
+    } else if (filter == "sub_dealer") {
+      setSubDalersId(value);
+    }
+  };
+
+  useEffect(() => {
+    console.log("use effect dealerId : ", dealerId);
+    if (dealerId) {
+      getMasterSubDealer();
+    }
+  }, [dealerId]);
+
+  const getMasterSubDealer = async () => {
+    // setLoading(true);
+
+    try {
+      const response = await useServiceAPI.get(
+        `${paths.pathCustomerDealerDetail}?id=${value}`
+      );
+      console.log("pathCustomerDealerDetail : ", response);
+
+      //setSubDalers(dealer.data);
+    } catch (error) {
+      // showMsg("error", error.message || "เกิดข้อผิดพลาด");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const getMasterSubDealer = async () => {
+      try {
+        const response = await useServiceAPI.get(
+          `${paths.pathCustomerDealerDetail}?id=${dealerId}`
+        );
+        console.log("useEffect getMasterSubDealer : ", response);
+        setSubDealerDisabled(false);
+        if (response.status === 200) {
+          const sub_dealer = response.data.network_list;
+          const newSubDealers = [];
+
+          console.log("sub_dealer : ", sub_dealer);
+
+          if (sub_dealer.length > 0) {
+            sub_dealer.map((value, index) => {
+              newSubDealers.push({
+                id: value.sub_dealer_id,
+                name: value.sub_dealer_name,
+              });
+            });
+            setSubDalers(newSubDealers);
+          } else {
+            setSubDalers([]);
+            setSubDalersId("");
+          }
+        }
+      } catch (error) {
+        console.error(error);
+        setSubDalers([]);
+        setSubDalersId("");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (dealerId) {
+      getMasterSubDealer();
+    } else {
+      console.log("useEffect getMasterSubDealer id null");
+      setSubDalers([]);
+      setSubDalersId("");
+    }
+  }, [dealerId]);
+
+  useEffect(() => {
+    if (location.state?.data) {
+      const { user_id } = location.state?.data;
+      setDataSaleId(user_id);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    const total = dataSource.reduce(
+      (sum, item) => sum + parseFloat(item.net_amount || 0),
+      0
+    );
+    setTotalValue(total);
+  }, [dataSource]);
+
+  //console.log("userInfo : ", userInfo);
+
   const handleUploadClick = async () => {
     if (fileUploadRef.current) {
       fileUploadRef.current.triggerUpload();
@@ -86,82 +201,6 @@ export default function CustomerStockCreate() {
     };
 
     setFileList((prevFileList) => [...prevFileList, fileUpload]);
-  };
-
-  const formFields = [
-    {
-      label: "Dealer",
-      name: "dealer",
-      type: "select",
-      options: dealers,
-      disabled: false,
-      required: true,
-      moderef: true,
-      value: "",
-      // value: dataSaleId,
-    },
-    {
-      label: "Sub Dealer",
-      name: "sub_dealer",
-      type: "select",
-      options: subDealers,
-      disabled: subDealerDisabled,
-      required: true,
-      moderef: true,
-      value: "",
-    },
-    {
-      label: "Date",
-      name: "order_date",
-      type: "date",
-      disabled: true,
-      required: false,
-      moderef: false,
-      value: dayjs().format("YYYY-MM-DD"),
-    },
-  ];
-
-  //console.log("formFields : ", formFields);
-
-  const handleChange = (filter, value) => {
-    console.log("filter", filter, "value", value);
-    fetchSubDealer(value);
-  };
-
-  const fetchSubDealer = async (value) => {
-    console.log(value);
-    try {
-      const response = await useServiceAPI.get(
-        `${paths.pathCustomerDealerDetail}?id=${value}`
-      );
-
-      if (response.status === 200) {
-        setSubDealerDisabled(false);
-
-        const sub_dealer = response.data.network_list;
-        const newSubDealers = [];
-
-        console.log("sub_dealer : ", sub_dealer);
-
-        console.log("sub_dealer 2 : ", sub_dealer.length);
-        if (sub_dealer.length > 0) {
-          sub_dealer.data.map((value, index) => {
-            newSubDealers.push({
-              id: value.sub_dealer_id,
-              name: value.sub_dealer_name,
-            });
-          });
-
-          setSubDalers(newSubDealers);
-          console.log(subDealers);
-        }else{
-          console.log('sub dealer is null')
-        }
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-    }
   };
 
   const handleQuantityChange = (key, newQuantity) => {
