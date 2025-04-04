@@ -11,6 +11,14 @@ const HeadSectionUser = () => {
   const [loading, setLoading] = useState(false);
   const { userInfo } = useContext(AuthContext);
   const location = useLocation();
+  const [userIdFromStorage, setUserIdFromStorage] = useState("");
+
+  useEffect(() => {
+    const storedId = localStorage.getItem("user_id");
+    if (storedId) {
+      setUserIdFromStorage(storedId);
+    }
+  }, []);
 
   console.log(" userInfo.id", userInfo.id);
 
@@ -62,7 +70,7 @@ const HeadSectionUser = () => {
             คุณ {user.name_th || user.name_en}
           </h4>
           <p className="text-[#A19793] sarabun-font">
-            รหัสสมาชิก : {user?.id || "ไม่พบข้อมูล"}
+            รหัสสมาชิก : {userIdFromStorage || "ไม่พบข้อมูล"}
           </p>
         </div>
       </div>

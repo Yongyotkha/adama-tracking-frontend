@@ -28,14 +28,22 @@ export default function MyAccount() {
   const location = useLocation();
   const [userID, setUserID] = useState(location.state.id);
   const { lineProfile } = useOutletContext() || {};
-  
 
-    useEffect(() => {
-      console.log('lineProfile', lineProfile);
-    }, [lineProfile]);
-  
+  const [userIdFromStorage, setUserIdFromStorage] = useState("");
 
-  console.log("location " ,location.state);
+  useEffect(() => {
+    const storedId = localStorage.getItem("user_id");
+    if (storedId) {
+      setUserIdFromStorage(storedId);
+    }
+  }, []);
+
+  useEffect(() => {
+    console.log('lineProfile', lineProfile);
+  }, [lineProfile]);
+
+
+  console.log("location ", location.state);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -67,6 +75,7 @@ export default function MyAccount() {
     setIsLogoutModalOpen(false);
     try {
       if (liff.isLoggedIn()) {
+        localStorage.removeItem("users");
         logout("line");
         liff.logout();
         window.location.reload();
@@ -106,7 +115,7 @@ export default function MyAccount() {
                   {user?.name_th || user?.name_en}
                 </h2>
                 <p className="text-[#A19793] sarabun-font">
-                  รหัสสมาชิก : {user?.id || "ไม่พบข้อมูล"}
+                  รหัสสมาชิก : {userIdFromStorage || "ไม่พบข้อมูล"}
                 </p>
               </div>
             </div>

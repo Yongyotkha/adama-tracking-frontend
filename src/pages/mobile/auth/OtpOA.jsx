@@ -64,7 +64,12 @@ export default function OtpOA() {
               line_id,
               is_condition,
               shop_type,
+              user_id, // <<< เพิ่มตรงนี้
             } = response.data;
+
+            // 👉 Save user_id to localStorage for all steps
+            localStorage.setItem("user_id", user_id);
+            console.log(user_id);
 
             const stateData = {
               message,
@@ -206,9 +211,8 @@ export default function OtpOA() {
                 value={digit}
                 onChange={(e) => handleChange(index, e)}
                 inputMode="numeric"
-                className={`sarabun-font ${
-                  digit ? "text-white bg-[#7DB41E]" : "text-black bg-[#F7F6F9]"
-                } hover:bg-[#7DB41E] focus:bg-[#7DB41E] focus:text-white border-none w-12 h-12 text-2xl text-center transition duration-300`}
+                className={`sarabun-font ${digit ? "text-white bg-[#7DB41E]" : "text-black bg-[#F7F6F9]"
+                  } hover:bg-[#7DB41E] focus:bg-[#7DB41E] focus:text-white border-none w-12 h-12 text-2xl text-center transition duration-300`}
                 placeholder="0"
               />
             </Col>
@@ -245,7 +249,7 @@ export default function OtpOA() {
             htmlType="submit"
             text="ตกลง"
             disabled={loading}
-            // onClick={() => navigate("/mobile/account")}
+          // onClick={() => navigate("/mobile/account")}
           />
           {/* <DynamicButton
             type="button"

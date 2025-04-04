@@ -110,7 +110,7 @@ export default function UserDetail() {
                   </div>
                   <div className="flex justify-between border-b pb-2">
                     <span className="text-gray-500 sarabun-font">รหัสผู้ใช้</span>
-                    <span className="sarabun-font">{user?.user_id || "-"}</span>
+                    <span className="sarabun-font">{user?.user_code || "-"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500 sarabun-font">ที่อยู่</span>
