@@ -23,6 +23,7 @@ export default function ActivityList() {
   const [activityList, setActivityList] = useState([]);
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
+  const [subDealerList, setSubDealerList] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const { showMsg, showNotification } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
@@ -125,7 +126,8 @@ export default function ActivityList() {
       type: "select",
       label: "Shop",
       placeholder: "All",
-      options: dealerList,
+      // options: dealerList,
+      options: subDealerList, // ✅ เปลี่ยนจาก dealerList
     },
     {
       key: "Date",
@@ -151,34 +153,66 @@ export default function ActivityList() {
       filters: {},
     });
   };
-
   const handleChange = (filter) => {
+    // เมื่อเลือก Sale ให้โหลด Sub-dealer ใหม่
     if (filter && filter.sale) {
       const userId =
         typeof filter.sale === "object" && filter.sale.value
           ? filter.sale.value
           : filter.sale;
-  
-      const getMasterDealer = async () => {
+
+      const getSubDealersBySale = async () => {
         try {
-          const [dealer] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterDealerDropdown, {
-              user_id: userId,
-            }),
-          ]);
-  
-          setDealerList(dealer.data);
+          const response = await useServiceAPI.get(
+            paths.pathMasterSubDealerAll,
+            { user_id: userId }
+          );
+
+          const formattedSubDealer = response.data.map((item) => ({
+            name: item.sub_dealer_name,
+            id: item.sub_dealer_id,
+          }));
+
+          setSubDealerList(formattedSubDealer);
         } catch (error) {
-          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+          showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Sub-dealer");
         }
       };
-  
-      getMasterDealer();
-    } else {
+
+      getSubDealersBySale();
+    }
+
+    // ถ้ามีการล้าง shop ให้ search ใหม่ทันที
+    if (filter?.shop === null || filter?.shop === undefined || filter?.shop === "") {
+      setTableParams({
+        ...tableParams,
+        filters: filter,
+        pagination: {
+          current: 1,
+          pageSize: 10,
+        },
+      });
+      return;
+    }
+
+    // ถ้าเลือก shop (subdealer) หรือ sale แล้ว ก็ให้ search เลย
+    if (filter?.shop || filter?.sale) {
+      setTableParams({
+        ...tableParams,
+        filters: filter,
+        pagination: {
+          current: 1,
+          pageSize: 10,
+        },
+      });
+    }
+
+    else {
       handleClear();
     }
+
   };
-  
+
 
   const handleDelete = async (documentNumber) => {
     confirm({
@@ -382,12 +416,15 @@ export default function ActivityList() {
       try {
         const [activityType, sale] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterDealerAll, {}),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
         ]);
 
         setActivityList(activityType.data);
         setSaleList(sale.data);
+        console.log(sale.data);
+
       } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล");
       } finally {
         setLoading(false);
       }
@@ -395,6 +432,7 @@ export default function ActivityList() {
 
     getMaster();
   }, []);
+
 
   useEffect(() => {
     fetchData();
