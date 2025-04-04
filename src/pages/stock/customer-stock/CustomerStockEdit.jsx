@@ -476,7 +476,7 @@ export default function CustomerStockEdit() {
       };
 
       console.log("payload to submit:", payload);
-      //exit();
+      exit();
 
       const response = await useServiceAPI.put(paths.pathStockUpdate, payload);
 

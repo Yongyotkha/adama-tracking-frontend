@@ -24,12 +24,15 @@ export default function CustomerStockCreate() {
   const [dataSource, setDataSource] = useState([]);
   const [dealers, setDalers] = useState([]);
   const [subDealers, setSubDalers] = useState([]);
+  const [subDealerDisabled, setSubDealerDisabled] = useState(true);
   const [searchProductData, setSearchProductData] = useState([]);
   const [formCustom] = Form.useForm();
   const [fileList, setFileList] = useState([]);
   const fileUploadRef = useRef(null); // Reference for FileUploadComponent
   const [inputRemark, setInputRemark] = useState("");
   const [totalValue, setTotalValue] = useState(0);
+
+  
 
   useEffect(() => {
     if (location.state?.data) {
@@ -39,7 +42,10 @@ export default function CustomerStockCreate() {
   }, [location.state]);
 
   useEffect(() => {
-    const total = dataSource.reduce((sum, item) => sum + parseFloat(item.net_amount || 0), 0);
+    const total = dataSource.reduce(
+      (sum, item) => sum + parseFloat(item.net_amount || 0),
+      0
+    );
     setTotalValue(total);
   }, [dataSource]);
 
@@ -54,20 +60,6 @@ export default function CustomerStockCreate() {
         ]);
 
         setDalers(dealer.data);
-
-        const [sub_dealer] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterSubDealerAll),
-        ]);
-
-        const newSubDealers = [];
-        sub_dealer.data.map((value, index) => {
-          newSubDealers.push({
-            id: value.sub_dealer_id,
-            name: value.sub_dealer_name,
-          });
-        });
-
-        setSubDalers(newSubDealers);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -113,7 +105,7 @@ export default function CustomerStockCreate() {
       name: "sub_dealer",
       type: "select",
       options: subDealers,
-      disabled: false,
+      disabled: subDealerDisabled,
       required: true,
       moderef: true,
       value: "",
@@ -133,6 +125,43 @@ export default function CustomerStockCreate() {
 
   const handleChange = (filter, value) => {
     console.log("filter", filter, "value", value);
+    fetchSubDealer(value);
+  };
+
+  const fetchSubDealer = async (value) => {
+    console.log(value);
+    try {
+      const response = await useServiceAPI.get(
+        `${paths.pathCustomerDealerDetail}?id=${value}`
+      );
+
+      if (response.status === 200) {
+        setSubDealerDisabled(false);
+
+        const sub_dealer = response.data.network_list;
+        const newSubDealers = [];
+
+        console.log("sub_dealer : ", sub_dealer);
+
+        console.log("sub_dealer 2 : ", sub_dealer.length);
+        if (sub_dealer.length > 0) {
+          sub_dealer.data.map((value, index) => {
+            newSubDealers.push({
+              id: value.sub_dealer_id,
+              name: value.sub_dealer_name,
+            });
+          });
+
+          setSubDalers(newSubDealers);
+          console.log(subDealers);
+        }else{
+          console.log('sub dealer is null')
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+    }
   };
 
   const handleQuantityChange = (key, newQuantity) => {
@@ -150,10 +179,6 @@ export default function CustomerStockCreate() {
         return item;
       })
     );
-
-
-
-
   };
 
   const header = [
@@ -311,8 +336,6 @@ export default function CustomerStockCreate() {
             no: index + 1,
           }));
 
-        
-
           setDataSource(resetDataSource);
         }
       } catch (error) {
@@ -449,7 +472,7 @@ export default function CustomerStockCreate() {
           }
         />
       </BoxPrimary>
-      
+
       <BoxPrimary>
         <div className="flex items-center justify-between">
           <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
@@ -465,8 +488,6 @@ export default function CustomerStockCreate() {
           onUploadSuccess={handleUploadSuccess}
         />
       </BoxPrimary>
-
-
 
       <BoxPrimary title="Remark">
         <div className="mb-3 flex justify-end">

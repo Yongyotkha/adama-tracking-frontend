@@ -217,6 +217,8 @@ export default function CustomerStock() {
       page_size: pageSize,
     };
 
+    console.log(requestData)
+
     try {
       const response = await useServiceAPI.get(
         paths.pathStockList,

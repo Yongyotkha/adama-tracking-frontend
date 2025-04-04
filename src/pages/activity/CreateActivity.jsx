@@ -269,6 +269,11 @@ export default function CreateActivity() {
       col: 24,
       value: activityDetail.assing_user_list,
     },
+    {
+      label: "Add shop",
+      name: "assing_user_list",
+      type: "input",
+    },
   ];
 
   // Master
@@ -1078,12 +1083,14 @@ export default function CreateActivity() {
 
         {/* <ActionButton mode="hide" text="Add Advance Expense" onClick='' /> */}
       </div>
+
       <FormCustom
         fields={formFields}
         form={formCustom}
         onChange={handleChange}
         mode={documentNumber ? "edit" : "create"}
       />
+      
 
       {isBtnExpenseActive ||
       pageCode == "expense_advance" ||
@@ -1284,6 +1291,7 @@ export default function CreateActivity() {
           </BoxPrimary>
 
           <BoxPrimary title="Expense">
+          <h1>aaaaaaaaaaa</h1>
             <Form
               layout="vertical"
               form={expenseForm} // Use the new expenseForm instance here
@@ -1547,6 +1555,7 @@ export default function CreateActivity() {
                 <></>
               )}
             </Form>
+            
           </BoxPrimary>
         </>
       ) : null}
