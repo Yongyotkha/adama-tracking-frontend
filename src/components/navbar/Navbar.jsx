@@ -72,7 +72,11 @@ const Navbar = () => {
           ),
         }))}
         className="relative bg-white bg-right bg-no-repeat bg-contain p-4 rounded-md w-[300px] text-[#978B87]"
-        style={{ backgroundImage: "url('/img/dropdown-bg.png')" }}
+        style={{
+          backgroundImage: "url('/img/dropdown-bg.png')",
+          backgroundSize: "auto",
+          backgroundPositionY: "bottom",
+        }}
       />
     );
   };

@@ -153,26 +153,32 @@ export default function ActivityList() {
   };
 
   const handleChange = (filter) => {
-    if (filter) {
+    if (filter && filter.sale) {
+      const userId =
+        typeof filter.sale === "object" && filter.sale.value
+          ? filter.sale.value
+          : filter.sale;
+  
       const getMasterDealer = async () => {
         try {
           const [dealer] = await Promise.all([
             useServiceAPI.get(paths.pathMasterDealerDropdown, {
-              user_id: filter.sale,
+              user_id: userId,
             }),
           ]);
-
+  
           setDealerList(dealer.data);
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
         }
       };
-
+  
       getMasterDealer();
     } else {
       handleClear();
     }
   };
+  
 
   const handleDelete = async (documentNumber) => {
     confirm({
