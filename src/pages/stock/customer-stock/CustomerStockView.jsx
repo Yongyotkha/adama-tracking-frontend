@@ -465,14 +465,6 @@ export default function CustomerStockEdit() {
       </BoxPrimary>
 
       <BoxPrimary>
-        <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
-          <ActionButton
-            mode="add"
-            text="Upload File"
-            onClick={handleUploadClick}
-          />
-        </div>
         <FileUploadComponent
           mode="view"
           ref={fileUploadRef}

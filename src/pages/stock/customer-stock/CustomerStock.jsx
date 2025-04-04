@@ -18,7 +18,7 @@ import DynamicModal from "../../../components/modal/DynamicModal";
 export default function CustomerStock() {
   const navigate = useNavigate();
   const [userList, setUserList] = useState([]);
-  const { showMsg, showNotification } = useContext(AuthContext);
+  const { showMsg, showNotification, userInfo } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [dataSale, setDataSale] = useState([]);
@@ -37,6 +37,9 @@ export default function CustomerStock() {
     sortOrder: null,
     sortField: null,
   });
+
+  console.log("userInfo : ", userInfo);
+
   const { confirm } = Modal;
 
   const territoryColumns = [
@@ -217,7 +220,7 @@ export default function CustomerStock() {
       page_size: pageSize,
     };
 
-    console.log(requestData)
+    console.log(requestData);
 
     try {
       const response = await useServiceAPI.get(
@@ -230,6 +233,77 @@ export default function CustomerStock() {
         setPermission(response.data.permission);
 
         console.log("response : ", response);
+
+        function btn_action(docno) {
+          //4,5,6
+          if (
+            userInfo.role_id == 4 ||
+            userInfo.role_id == 5 ||
+            userInfo.role_id == 6
+          ) {
+            return [
+              {
+                key: 1,
+                label: (
+                  <ItemDropDown
+                    mode="view"
+                    onClick={() => {
+                      navigate("/customer-stock/view", {
+                        state: {
+                          document_number: docno,
+                        },
+                      });
+                    }}
+                  />
+                ),
+              },
+            ];
+          } else {
+            return [
+              {
+                key: 1,
+                label: (
+                  <ItemDropDown
+                    mode="view"
+                    onClick={() => {
+                      navigate("/customer-stock/view", {
+                        state: {
+                          document_number: docno,
+                        },
+                      });
+                    }}
+                  />
+                ),
+              },
+              {
+                key: 2,
+                label: (
+                  <ItemDropDown
+                    mode="edit"
+                    onClick={() => {
+                      navigate("/customer-stock/edit", {
+                        state: {
+                          document_number: docno,
+                        },
+                      });
+                    }}
+                  />
+                ),
+              },
+              {
+                key: 3,
+                label: (
+                  <ItemDropDown
+                    mode="delete"
+                    onClick={() => {
+                      handleDelete(docno);
+                    }}
+                  />
+                ),
+              },
+            ];
+          }
+        }
 
         const newDataSource = data.map((stock, index) => ({
           document_date: stock.document_date,
@@ -255,49 +329,7 @@ export default function CustomerStock() {
           action: (
             <Dropdown
               menu={{
-                items: [
-                  {
-                    key: 1,
-                    label: (
-                      <ItemDropDown
-                        mode="view"
-                        onClick={() => {
-                          navigate("/customer-stock/view", {
-                            state: {
-                              document_number: stock.document_number,
-                            },
-                          });
-                        }}
-                      />
-                    ),
-                  },
-                  {
-                    key: 2,
-                    label: (
-                      <ItemDropDown
-                        mode="edit"
-                        onClick={() => {
-                          navigate("/customer-stock/edit", {
-                            state: {
-                              document_number: stock.document_number,
-                            },
-                          });
-                        }}
-                      />
-                    ),
-                  },
-                  {
-                    key: 3,
-                    label: (
-                      <ItemDropDown
-                        mode="delete"
-                        onClick={() => {
-                          handleDelete(stock.document_number);
-                        }}
-                      />
-                    ),
-                  },
-                ],
+                items: btn_action(stock.document_number),
               }}
               placement="bottom"
             >
