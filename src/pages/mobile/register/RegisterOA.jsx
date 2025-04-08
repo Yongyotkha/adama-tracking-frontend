@@ -187,21 +187,21 @@ export default function RegisterOA() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    console.log(name,  );
-    
+    console.log(name,);
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
-  
+
   const handleDateChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
-  
+
 
 
   return (
@@ -257,6 +257,17 @@ export default function RegisterOA() {
               />
             </div>
 
+            {/* รหัสร้าน */}
+            <div>
+              <label className="text-gray-500 sarabun-font">รหัสร้าน</label>
+              <Input
+                className="mt-1 sarabun-font text-[#A19793]"
+                value={formData.shop_code}
+                onChange={handleInputChange}
+                name="shop_code"
+              />
+            </div>
+
             {/* ชื่อ */}
             <div>
               <label className="text-gray-500 sarabun-font">ชื่อ<span className="text-red-500">*</span></label>
@@ -280,78 +291,6 @@ export default function RegisterOA() {
               />
             </div>
 
-            {/* วันเดือนปีเกิด */}
-            {/* <div>
-              <label className="text-gray-500 sarabun-font">วันเดือนปีเกิด</label>
-              <div className="flex gap-2">
-                <Select
-                  className="sarabun-font flex-1 text-center"
-                  value={selectedDay}
-                  onChange={(value) => setSelectedDay(value)}
-                >
-                  {Array.from(
-                    { length: getDaysInMonth(selectedMonth, selectedYear) },
-                    (_, i) => (
-                      <Option
-                        key={i + 1}
-                        className="sarabun-font"
-                        value={i + 1}
-                      >
-                        {i + 1}
-                      </Option>
-                    )
-                  )}
-                </Select>
-                <Select
-                  className="sarabun-font flex-1 text-center"
-                  value={selectedMonth}
-                  onChange={handleMonthChange}
-                >
-                  <Option className="sarabun-font" value="January">
-                    January
-                  </Option>
-                  <Option className="sarabun-font" value="February">
-                    February
-                  </Option>
-                  <Option className="sarabun-font" value="March">
-                    March
-                  </Option>
-                  <Option className="sarabun-font" value="April">
-                    April
-                  </Option>
-                  <Option className="sarabun-font" value="May">
-                    May
-                  </Option>
-                  <Option className="sarabun-font" value="June">
-                    June
-                  </Option>
-                  <Option className="sarabun-font" value="July">
-                    July
-                  </Option>
-                  <Option className="sarabun-font" value="August">
-                    August
-                  </Option>
-                  <Option className="sarabun-font" value="September">
-                    September
-                  </Option>
-                  <Option className="sarabun-font" value="October">
-                    October
-                  </Option>
-                  <Option className="sarabun-font" value="November">
-                    November
-                  </Option>
-                  <Option className="sarabun-font" value="December">
-                    December
-                  </Option>
-                </Select>
-                <Input
-                  className="sarabun-font flex-1 text-center"
-                  type="number"
-                  value={selectedYear}
-                  onChange={handleYearChange}
-                />
-              </div>
-            </div> */}
             {/* วันเดือนปีเกิด */}
             <div>
               <label className="text-gray-500 sarabun-font">วันเดือนปีเกิด</label>
@@ -407,7 +346,17 @@ export default function RegisterOA() {
                 value={formData.phone_number} 
                 name="phone_number"
                 onChange={handleInputChange}
+              />
+            </div>
 
+            {/* อีเมล */}
+            <div>
+              <label className="text-gray-500 sarabun-font">อีเมล</label>
+              <Input
+                className="mt-1 sarabun-font text-[#A19793]"
+                value={formData.email}
+                name="email"
+                onChange={handleInputChange}
               />
             </div>
 
@@ -432,16 +381,27 @@ export default function RegisterOA() {
                 value={formData.address}
                 name="address"
                 onChange={handleInputChange}
-
               />
+            </div>
+
+            {/* ประเภทของร้านค้า */}
+            <div>
+              <label className="text-gray-500 sarabun-font">ประเภทของร้านค้า</label>
+              <Select
+                className="mt-1 sarabun-font text-[#A19793] w-full"
+                value={formData.shop_type || ""}
+                onChange={(value) => handleDateChange("shop_type", value)}
+              >
+                <Option value="sub_dealer">Sub Dealer</Option>
+                <Option value="retail">Retail</Option>
+                <Option value="wholesale">Wholesale</Option>
+              </Select>
             </div>
 
             {/* Terms & Conditions */}
             <div className="mt-4">
               <Checkbox
-                className={`sarabun-font ${
-                  isChecked ? "text-[#00783F]" : "text-[#A19793]"
-                }`}
+                className={`sarabun-font ${isChecked ? "text-[#00783F]" : "text-[#A19793]"}`}
                 checked={isChecked}
                 onClick={handleCheckboxClick}
               >
@@ -480,8 +440,9 @@ export default function RegisterOA() {
       <DynamicPopUp
         visible={isSuccessModalVisible}
         onConfirm={() => setIsSuccessModalVisible(false)}
-        src="/logo/Logo-Adama-Smile-2-New 1.png" // Replace with actual image path
-        text="<p class='text-[#978B87] text-center sarabun-font'>คุณได้ลงทะเบียนเรียบร้อยแล้ว</p>"
+        src="/logo/Logo-Adama-Smile-2-New 1.png"
+        text={`<p class='text-[#978B87] text-center sarabun-font'>คุณได้ลงทะเบียนเรียบร้อยแล้ว</p>
+         <p class='text-[#009845] text-center sarabun-font font-semibold'>${formData.registrationCode || ""}</p>`}
         confirmText="ตกลง"
       />
 

@@ -49,8 +49,8 @@ const LineOARoute = () => {
 
 
 
-  if (!isLineLoggedIn) {
-    return <MessageLayout loading={!isLineLoggedIn} />;
+  if (isLineLoggedIn) {
+    return <MessageLayout loading={isLineLoggedIn} />;
   }
 
   return <Outlet context={{ lineProfile }} />;
