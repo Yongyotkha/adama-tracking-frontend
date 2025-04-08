@@ -30,7 +30,7 @@ const LineOARoute = () => {
           try {
             const profile = await liff.getProfile();
             setLineProfile(profile);
-            setIsLineLoggedIn(true);
+            setIsLineLoggedIn(false);
           } catch (profileError) {
             liff.logout();
           }
@@ -49,8 +49,8 @@ const LineOARoute = () => {
 
 
 
-  if (!isLineLoggedIn) {
-    return <MessageLayout loading={!isLineLoggedIn} />;
+  if (isLineLoggedIn) {
+    return <MessageLayout loading={isLineLoggedIn} />;
   }
 
   return <Outlet context={{ lineProfile }} />;

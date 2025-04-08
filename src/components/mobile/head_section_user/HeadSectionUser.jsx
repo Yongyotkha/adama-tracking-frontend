@@ -70,7 +70,8 @@ const HeadSectionUser = () => {
             คุณ {user.name_th || user.name_en}
           </h4>
           <p className="text-[#A19793] sarabun-font">
-            รหัสสมาชิก : {userIdFromStorage || "ไม่พบข้อมูล"}
+            {/* รหัสสมาชิก : {userIdFromStorage || "ไม่พบข้อมูล"} */}
+            รหัสสมาชิก : {user.user_code || "ไม่พบข้อมูล"}
           </p>
         </div>
       </div>
