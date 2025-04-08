@@ -90,7 +90,7 @@ export default function VerifyOA() {
       loading={loading}
       childrenStyle="flex flex-col items-center justify-center h-full mx-auto p-6 sarabun-font relative"
     >
-      <BackTopLeftButton />
+      {/* <BackTopLeftButton /> */}
       <LogoGray width="w-[100%]" className="mb-10 max-w-xs" />
       <Title level={4}>
         <span className="text-[#8A8A8A] font-bold sarabun-font">
@@ -154,7 +154,7 @@ export default function VerifyOA() {
             window.open(`https://${url}`, "_blank");
           }
         }}
-        className="w-full py-3 bg-[#009845] rounded-lg text-white sarabun-font flex items-center justify-center space-x-2"
+        className="w-full py-3 bg-[#009845] rounded-lg text-white sarabun-font flex items-center justify-center space-x-2 hidden"
       >
         d
       </button>

@@ -30,7 +30,7 @@ const LineOARoute = () => {
           try {
             const profile = await liff.getProfile();
             setLineProfile(profile);
-            setIsLineLoggedIn(true);
+            setIsLineLoggedIn(false);
           } catch (profileError) {
             liff.logout();
           }
