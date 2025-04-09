@@ -78,6 +78,7 @@ export default function CreateActivity() {
   const [fileList, setFileList] = useState([]);
   const { MonthPicker } = DatePicker;
   const [isBtnExpenseActive, setIsBtnExpenseActive] = useState(false);
+  const [formMulti] = Form.useForm();
 
   const [activityDetail, setActivityDetail] = useState({
     product_list: [],
@@ -197,6 +198,13 @@ export default function CreateActivity() {
     label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
   }));
 
+  const optionsProductList = productList.map((item) => ({
+    value: item.id,
+    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
+  }));
+
+  
+
   const handleContactChange = (index, field, value) => {
     const updatedContacts = [...multiShop];
 
@@ -215,6 +223,10 @@ export default function CreateActivity() {
   };
 
   const handleChangeDate = (index, field, value) => {
+    console.log("index : ", index);
+    console.log("field : ", field);
+    console.log("value : ", value);
+    console.log("----------------------");
     const update = [...multiShop];
     update[index][field] = value; // อัปเดตฟิลด์อื่นๆ
     setMultiShop(update); // อัปเดต state
@@ -222,6 +234,10 @@ export default function CreateActivity() {
   };
 
   const handleChangeSelect = (index, field, value) => {
+    console.log("index : ", index);
+    console.log("field : ", field);
+    console.log("value : ", value);
+    console.log("----------------------");
     console.log(value);
     if (field == "dealer_id") {
       setActivityDetail((prevState) => ({
@@ -260,7 +276,9 @@ export default function CreateActivity() {
           <Col xs={24} sm={24} md={24} lg={24}>
             <Form.Item className="mb-3" label={menuTitle + " No"}>
               <Input
-                value={item.document_number}
+                disabled="true"
+                name="document_number"
+                placeholder="Generate"
                 onChange={(e) =>
                   handleContactChange(index, "document_number", e.target.value)
                 }
@@ -269,16 +287,16 @@ export default function CreateActivity() {
           </Col>
           <Col xs={24} sm={24} md={6} lg={6}>
             <Form.Item
+              key={index}
               label="Date"
-              name="document_date"
               rules={[{ required: true, message: "กรุณาเลือก Date" }]}
+              style={{ marginBottom: 12 }}
             >
               <DatePicker
                 style={{ width: "100%" }}
                 format="YYYY-MM-DD"
                 name="document_date"
-                defaultValue={item.document_date ? dayjs(item.document_date) : null}
-                value={
+                defaultValue={
                   item.document_date ? dayjs(item.document_date) : null
                 }
                 onChange={(date) => {
@@ -291,14 +309,13 @@ export default function CreateActivity() {
           <Col xs={24} sm={24} md={6} lg={6}>
             <Form.Item
               label="Shop"
-              name="dealer_id"
               rules={[{ required: true, message: "กรุณาเลือก Shop" }]}
+              style={{ marginBottom: 12 }}
             >
               <Select
                 placeholder="Select shop"
                 name="dealer_id"
                 options={optionsShop}
-                value={item.dealer_id}
                 onChange={handleChangeSelect.bind(null, index, "dealer_id")}
               />
             </Form.Item>
@@ -306,15 +323,14 @@ export default function CreateActivity() {
           <Col xs={24} sm={24} md={6} lg={6}>
             <Form.Item
               label="Crop"
-              name="crop_id_list"
               rules={[{ required: true, message: "กรุณาเลือก Crop" }]}
+              style={{ marginBottom: 12 }}
             >
               <Select
                 placeholder="Select shop"
                 name="crop_id_list"
                 options={optionsCropList}
                 mode="multiple"
-                value={item.crop_id_list}
                 onChange={handleChangeSelect.bind(null, index, "crop_id_list")}
               />
             </Form.Item>
@@ -322,15 +338,14 @@ export default function CreateActivity() {
           <Col xs={24} sm={24} md={24} lg={24}>
             <Form.Item
               label="Product"
-              name="productList"
               rules={[{ required: true, message: "กรุณาเลือก Product" }]}
+              style={{ marginBottom: 12 }}
             >
               <Select
                 placeholder="Select shop"
                 name="productList"
-                options={optionsCropList}
+                options={optionsProductList}
                 mode="multiple"
-                value={item.productList}
                 onChange={handleChangeSelect.bind(null, index, "productList")}
               />
             </Form.Item>
@@ -338,7 +353,6 @@ export default function CreateActivity() {
           <Col xs={24} sm={24} md={24} lg={24}>
             <Form.Item className="mb-3" label="Location">
               <Input
-                value={item.location_address}
                 name="location_address"
                 onChange={(e) =>
                   handleContactChange(index, "location_address", e.target.value)
@@ -347,11 +361,10 @@ export default function CreateActivity() {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={24} lg={24}>
-            <Form.Item className="mb-3" label="Description" name="description">
+            <Form.Item className="mb-3" label="Description">
               <ReactQuill
                 name="description"
                 theme="snow"
-                value={item.description}
                 placeholder="Enter Description"
                 modules={{ toolbar: toolbarOptions }}
                 onChange={handleChangeSelect.bind(null, index, "description")}
@@ -365,7 +378,6 @@ export default function CreateActivity() {
                 name="assing_user_list"
                 options={optionsSaleAllList}
                 mode="multiple"
-                value={item.assing_user_list}
                 onChange={handleChangeSelect.bind(
                   null,
                   index,
@@ -1139,6 +1151,11 @@ export default function CreateActivity() {
       await formCustom.validateFields();
 
       let allValuesBasic = formCustom.getFieldsValue();
+
+      await formMulti.validateFields();
+
+      let allValuesBasic2 = formMulti.getFieldsValue();
+      console.log("allValuesBasic2 : ", allValuesBasic2);
       // allValuesBasic.document_date = dayjs(allValuesBasic.document_date).format(
       //   "YYYY-MM-DD"
       // );
@@ -1351,7 +1368,7 @@ export default function CreateActivity() {
       />
 
       <BoxPrimary title="Add shops">
-        <Form layout="vertical">
+        <Form layout="vertical" form={formMulti}>
           {multiShop.length > 0 ? (
             renderMultiShop()
           ) : (
@@ -1362,12 +1379,12 @@ export default function CreateActivity() {
         </Form>
       </BoxPrimary>
 
-      {/* <FormCustom
+      <FormCustom
         fields={formFields}
         form={formCustom}
         onChange={handleChange}
         mode={documentNumber ? "edit" : "create"}
-      /> */}
+      />
 
       <ActionButton
         mode="add"
