@@ -1,18 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  Form,
-  Input,
-  Col,
-  Row,
-  Select,
-  InputNumber,
-  Modal,
-  DatePicker,
-  TimePicker,
-  Upload,
-} from "antd";
+import { Form, Input, Col, Row, Select, InputNumber, Modal } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -29,7 +18,6 @@ import { paths } from "../../services/CorsPath";
 import { useLocation } from "react-router-dom";
 import { ExclamationCircleFilled, ReloadOutlined } from "@ant-design/icons";
 import { AuthContext } from "../../contexts/AuthContext";
-import ReactQuill from "react-quill-new";
 
 dayjs.extend(customParseFormat);
 dayjs.extend(utc);
@@ -76,9 +64,8 @@ export default function CreateActivity() {
   const [dealerCustomer, setDealerCustomer] = useState([]);
   const [perceptionList, setPerceptionList] = useState([]);
   const [fileList, setFileList] = useState([]);
-  const { MonthPicker } = DatePicker;
+
   const [isBtnExpenseActive, setIsBtnExpenseActive] = useState(false);
-  const [formMulti] = Form.useForm();
 
   const [activityDetail, setActivityDetail] = useState({
     product_list: [],
@@ -86,26 +73,10 @@ export default function CreateActivity() {
     expense_product_data_list: [],
     assing_user_list: [],
   });
-
   const { showNotification, userInfo } = useContext(AuthContext);
   const [actualParticipantCount, setActualParticipantCount] = useState("0");
   const [participants, setParticipants] = useState([]);
   const [participantUsers, setParticipantUsers] = useState([]);
-
-  const [multiShop, setMultiShop] = useState([
-    {
-      document_number: "",
-      document_date: "",
-      dealer_id: "",
-      crop_id_list: "",
-      productList: "",
-      location_address: "",
-      description: "",
-      assing_user_list: "",
-    },
-  ]);
-
-  const isViewMode = mode === "View";
 
   const handleUploadClick = async () => {
     if (fileUploadRef.current) {
@@ -158,238 +129,6 @@ export default function CreateActivity() {
       ? "/expenses/clearing"
       : "/activity/list";
 
-  //console.log("multishop : ", multiShop);
-
-  const handleRemoveContact = (index) => {
-    setMultiShop((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const toolbarOptions = [
-    [{ font: [] }, { size: [] }],
-    [{ header: [1, 2, 3, false] }],
-    [
-      "bold",
-      "italic",
-      "underline",
-      "strike",
-      { color: [] },
-      { background: [] },
-    ],
-    [{ script: "sub" }, { script: "super" }],
-    [{ list: "ordered" }, { list: "bullet" }],
-    [{ indent: "-1" }, { indent: "+1" }],
-    [{ align: [] }],
-    ["link", "image"],
-    ["clean"],
-  ];
-
-  const optionsShop = dealerList.map((item) => ({
-    value: item.id,
-    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
-  }));
-
-  const optionsCropList = cropList.map((item) => ({
-    value: item.id,
-    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
-  }));
-
-  const optionsSaleAllList = saleAllList.map((item) => ({
-    value: item.id,
-    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
-  }));
-
-  const optionsProductList = productList.map((item) => ({
-    value: item.id,
-    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
-  }));
-
-  
-
-  const handleContactChange = (index, field, value) => {
-    const updatedContacts = [...multiShop];
-
-    if (field === "date_of_birth") {
-      const birthDate = dayjs(value);
-      const currentYear = dayjs().year();
-      const age = currentYear - birthDate.year(); // คำนวณอายุ
-      updatedContacts[index][field] = value; // อัปเดตวันเกิด
-      updatedContacts[index]["age"] = age; // อัปเดตอายุ
-    } else {
-      updatedContacts[index][field] = value; // อัปเดตฟิลด์อื่นๆ
-    }
-
-    setMultiShop(updatedContacts); // อัปเดต state
-    console.log("multiShop : ", multiShop);
-  };
-
-  const handleChangeDate = (index, field, value) => {
-    console.log("index : ", index);
-    console.log("field : ", field);
-    console.log("value : ", value);
-    console.log("----------------------");
-    const update = [...multiShop];
-    update[index][field] = value; // อัปเดตฟิลด์อื่นๆ
-    setMultiShop(update); // อัปเดต state
-    console.log("multiShop : ", multiShop);
-  };
-
-  const handleChangeSelect = (index, field, value) => {
-    console.log("index : ", index);
-    console.log("field : ", field);
-    console.log("value : ", value);
-    console.log("----------------------");
-    console.log(value);
-    if (field == "dealer_id") {
-      setActivityDetail((prevState) => ({
-        ...prevState,
-        dealer_id: value,
-      }));
-    } else if (field == "crop_id_list") {
-      setActivityDetail((prevState) => ({
-        ...prevState,
-        crop_id_list: value,
-      }));
-    }
-
-    const update = [...multiShop];
-    update[index][field] = value;
-    setMultiShop(update);
-    console.log("multiShop : ", multiShop);
-  };
-
-  const renderMultiShop = () =>
-    multiShop.map((item, index) => (
-      //console.log('item : '+index+' > ',item.document_number)
-      <div key={index} className="mb-6">
-        <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-md">{`Shop ${index + 1}`}</span>
-          {index > 0 && !isViewMode && (
-            <ActionButton
-              mode="delete"
-              text="Delete"
-              onClick={() => handleRemoveContact(index)}
-              disabled={isViewMode}
-            />
-          )}
-        </div>
-        <Row gutter={16} align="middle">
-          <Col xs={24} sm={24} md={24} lg={24}>
-            <Form.Item className="mb-3" label={menuTitle + " No"}>
-              <Input
-                disabled="true"
-                name="document_number"
-                placeholder="Generate"
-                onChange={(e) =>
-                  handleContactChange(index, "document_number", e.target.value)
-                }
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={24} md={6} lg={6}>
-            <Form.Item
-              key={index}
-              label="Date"
-              rules={[{ required: true, message: "กรุณาเลือก Date" }]}
-              style={{ marginBottom: 12 }}
-            >
-              <DatePicker
-                style={{ width: "100%" }}
-                format="YYYY-MM-DD"
-                name="document_date"
-                defaultValue={
-                  item.document_date ? dayjs(item.document_date) : null
-                }
-                onChange={(date) => {
-                  const d = new Date(date).toLocaleDateString("fr-FR");
-                  handleChangeDate(index, "document_date", d);
-                }}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={24} md={6} lg={6}>
-            <Form.Item
-              label="Shop"
-              rules={[{ required: true, message: "กรุณาเลือก Shop" }]}
-              style={{ marginBottom: 12 }}
-            >
-              <Select
-                placeholder="Select shop"
-                name="dealer_id"
-                options={optionsShop}
-                onChange={handleChangeSelect.bind(null, index, "dealer_id")}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={24} md={6} lg={6}>
-            <Form.Item
-              label="Crop"
-              rules={[{ required: true, message: "กรุณาเลือก Crop" }]}
-              style={{ marginBottom: 12 }}
-            >
-              <Select
-                placeholder="Select shop"
-                name="crop_id_list"
-                options={optionsCropList}
-                mode="multiple"
-                onChange={handleChangeSelect.bind(null, index, "crop_id_list")}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={24} md={24} lg={24}>
-            <Form.Item
-              label="Product"
-              rules={[{ required: true, message: "กรุณาเลือก Product" }]}
-              style={{ marginBottom: 12 }}
-            >
-              <Select
-                placeholder="Select shop"
-                name="productList"
-                options={optionsProductList}
-                mode="multiple"
-                onChange={handleChangeSelect.bind(null, index, "productList")}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={24} md={24} lg={24}>
-            <Form.Item className="mb-3" label="Location">
-              <Input
-                name="location_address"
-                onChange={(e) =>
-                  handleContactChange(index, "location_address", e.target.value)
-                }
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={24} md={24} lg={24}>
-            <Form.Item className="mb-3" label="Description">
-              <ReactQuill
-                name="description"
-                theme="snow"
-                placeholder="Enter Description"
-                modules={{ toolbar: toolbarOptions }}
-                onChange={handleChangeSelect.bind(null, index, "description")}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={24} md={24} lg={24}>
-            <Form.Item className="mb-3" label="Assign">
-              <Select
-                placeholder="Select Assign"
-                name="assing_user_list"
-                options={optionsSaleAllList}
-                mode="multiple"
-                onChange={handleChangeSelect.bind(
-                  null,
-                  index,
-                  "assing_user_list"
-                )}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-      </div>
-    ));
-
   const formFields = [
     {
       label: menuTitle + " No",
@@ -416,13 +155,27 @@ export default function CreateActivity() {
       value: "",
     },
     {
-      label: "Date",
-      name: "document_date",
-      type: "date",
+      label: "Activity Type",
+      name: "activity_type_id",
+      type: "select",
+      typeMode: "string",
+      options: activityList,
       disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
       required: true,
-      col: pageCode != "activity_transaction" ? 6 : 8,
-      value: activityDetail.document_date,
+      col: pageCode != "activity_transaction" ? 8 : 6,
+      value: activityDetail.activity_type_id ?? "",
+    },
+    {
+      label: "Sales",
+      name: "user_id",
+      type: "select",
+      // typeMode: "string",
+      options: saleList,
+      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
+      required: true,
+      col: pageCode != "activity_transaction" ? 8 : 6,
+      value: activityDetail.user_id ?? "",
+      moderef: true,
     },
     {
       label: "Shop",
@@ -475,6 +228,15 @@ export default function CreateActivity() {
       value: activityDetail.product_list,
     },
     {
+      label: "Date",
+      name: "document_date",
+      type: "date",
+      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
+      required: true,
+      col: pageCode != "activity_transaction" ? 6 : 8,
+      value: activityDetail.document_date,
+    },
+    {
       label: "Location",
       name: "location_address",
       type: "text",
@@ -507,31 +269,10 @@ export default function CreateActivity() {
       col: 24,
       value: activityDetail.assing_user_list,
     },
-  ];
-
-  const formFields2 = [
     {
-      label: "Activity Type",
-      name: "activity_type_id",
-      type: "select",
-      typeMode: "string",
-      options: activityList,
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
-      required: true,
-      col: pageCode != "activity_transaction" ? 8 : 6,
-      value: activityDetail.activity_type_id ?? "",
-    },
-    {
-      label: "Sales",
-      name: "user_id",
-      type: "select",
-      // typeMode: "string",
-      options: saleList,
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
-      required: true,
-      col: pageCode != "activity_transaction" ? 8 : 6,
-      value: activityDetail.user_id ?? "",
-      moderef: true,
+      label: "Add shop",
+      name: "assing_user_list",
+      type: "input",
     },
   ];
 
@@ -764,7 +505,6 @@ export default function CreateActivity() {
   }, [activityDetail.crop_id_list]);
 
   useEffect(() => {
-    console.log("setupCropAndDealerCustomer");
     const setupCropAndDealerCustomer = async () => {
       const [crop, dealerCustomerData] = await Promise.all([
         useServiceAPI.get(paths.pathMasterSubDealerCrop, {
@@ -1151,11 +891,6 @@ export default function CreateActivity() {
       await formCustom.validateFields();
 
       let allValuesBasic = formCustom.getFieldsValue();
-
-      await formMulti.validateFields();
-
-      let allValuesBasic2 = formMulti.getFieldsValue();
-      console.log("allValuesBasic2 : ", allValuesBasic2);
       // allValuesBasic.document_date = dayjs(allValuesBasic.document_date).format(
       //   "YYYY-MM-DD"
       // );
@@ -1214,20 +949,9 @@ export default function CreateActivity() {
         expense_particapant_user_list: expenseParticapantUserList,
         particapant_list: particapantList,
         document_date: allValuesBasic.document_date, // ✅ Updated timezone +7 format
-        shops: multiShop.map((item) => ({
-          document_number: item.document_number || "",
-          document_date: item.document_date || "",
-          dealer_id: item.dealer_id,
-          crop_id_list: item.crop_id_list,
-          productList: item.productList,
-          location_address: item.location_address,
-          description: item.description,
-          assing_user_list: item.assing_user_list,
-        })),
       };
-      console.log("shops : ", multiShop);
-      console.log("body save : ", body);
-      return;
+      console.log(body);
+      // return;
 
       if (documentNumber) {
         useServiceAPI
@@ -1361,41 +1085,12 @@ export default function CreateActivity() {
       </div>
 
       <FormCustom
-        fields={formFields2}
-        form={formCustom}
-        onChange={handleChange}
-        mode={documentNumber ? "edit" : "create"}
-      />
-
-      <BoxPrimary title="Add shops">
-        <Form layout="vertical" form={formMulti}>
-          {multiShop.length > 0 ? (
-            renderMultiShop()
-          ) : (
-            <div className="text-gray-500">
-              No contact person information available
-            </div>
-          )}
-        </Form>
-      </BoxPrimary>
-
-      <FormCustom
         fields={formFields}
         form={formCustom}
         onChange={handleChange}
         mode={documentNumber ? "edit" : "create"}
       />
-
-      <ActionButton
-        mode="add"
-        text="Add Shop"
-        onClick={() => {
-          setMultiShop([
-            ...multiShop,
-            { document_number: "", document_date: "", location_address: "" },
-          ]);
-        }}
-      />
+      
 
       {isBtnExpenseActive ||
       pageCode == "expense_advance" ||
@@ -1596,6 +1291,7 @@ export default function CreateActivity() {
           </BoxPrimary>
 
           <BoxPrimary title="Expense">
+          <h1>aaaaaaaaaaa</h1>
             <Form
               layout="vertical"
               form={expenseForm} // Use the new expenseForm instance here
@@ -1859,6 +1555,7 @@ export default function CreateActivity() {
                 <></>
               )}
             </Form>
+            
           </BoxPrimary>
         </>
       ) : null}
