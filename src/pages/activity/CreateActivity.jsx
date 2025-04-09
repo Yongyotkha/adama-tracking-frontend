@@ -10,6 +10,8 @@ import {
   InputNumber,
   Modal,
   DatePicker,
+  TimePicker,
+  Upload,
 } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -27,6 +29,7 @@ import { paths } from "../../services/CorsPath";
 import { useLocation } from "react-router-dom";
 import { ExclamationCircleFilled, ReloadOutlined } from "@ant-design/icons";
 import { AuthContext } from "../../contexts/AuthContext";
+import ReactQuill from "react-quill-new";
 
 dayjs.extend(customParseFormat);
 dayjs.extend(utc);
@@ -82,10 +85,26 @@ export default function CreateActivity() {
     expense_product_data_list: [],
     assing_user_list: [],
   });
+
   const { showNotification, userInfo } = useContext(AuthContext);
   const [actualParticipantCount, setActualParticipantCount] = useState("0");
   const [participants, setParticipants] = useState([]);
   const [participantUsers, setParticipantUsers] = useState([]);
+
+  const [multiShop, setMultiShop] = useState([
+    {
+      document_number: "",
+      document_date: "",
+      dealer_id: "",
+      crop_id_list: "",
+      productList: "",
+      location_address: "",
+      description: "",
+      assing_user_list: "",
+    },
+  ]);
+
+  const isViewMode = mode === "View";
 
   const handleUploadClick = async () => {
     if (fileUploadRef.current) {
@@ -137,6 +156,227 @@ export default function CreateActivity() {
       : pageCode == "expense_clearing"
       ? "/expenses/clearing"
       : "/activity/list";
+
+  //console.log("multishop : ", multiShop);
+
+  const handleRemoveContact = (index) => {
+    setMultiShop((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const toolbarOptions = [
+    [{ font: [] }, { size: [] }],
+    [{ header: [1, 2, 3, false] }],
+    [
+      "bold",
+      "italic",
+      "underline",
+      "strike",
+      { color: [] },
+      { background: [] },
+    ],
+    [{ script: "sub" }, { script: "super" }],
+    [{ list: "ordered" }, { list: "bullet" }],
+    [{ indent: "-1" }, { indent: "+1" }],
+    [{ align: [] }],
+    ["link", "image"],
+    ["clean"],
+  ];
+
+  const optionsShop = dealerList.map((item) => ({
+    value: item.id,
+    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
+  }));
+
+  const optionsCropList = cropList.map((item) => ({
+    value: item.id,
+    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
+  }));
+
+  const optionsSaleAllList = saleAllList.map((item) => ({
+    value: item.id,
+    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
+  }));
+
+  const handleContactChange = (index, field, value) => {
+    const updatedContacts = [...multiShop];
+
+    if (field === "date_of_birth") {
+      const birthDate = dayjs(value);
+      const currentYear = dayjs().year();
+      const age = currentYear - birthDate.year(); // คำนวณอายุ
+      updatedContacts[index][field] = value; // อัปเดตวันเกิด
+      updatedContacts[index]["age"] = age; // อัปเดตอายุ
+    } else {
+      updatedContacts[index][field] = value; // อัปเดตฟิลด์อื่นๆ
+    }
+
+    setMultiShop(updatedContacts); // อัปเดต state
+    console.log("multiShop : ", multiShop);
+  };
+
+  const handleChangeDate = (index, field, value) => {
+    const update = [...multiShop];
+    update[index][field] = value; // อัปเดตฟิลด์อื่นๆ
+    setMultiShop(update); // อัปเดต state
+    console.log("multiShop : ", multiShop);
+  };
+
+  const handleChangeSelect = (index, field, value) => {
+    console.log(value);
+    if (field == "dealer_id") {
+      setActivityDetail((prevState) => ({
+        ...prevState,
+        dealer_id: value,
+      }));
+    } else if (field == "crop_id_list") {
+      setActivityDetail((prevState) => ({
+        ...prevState,
+        crop_id_list: value,
+      }));
+    }
+
+    const update = [...multiShop];
+    update[index][field] = value;
+    setMultiShop(update);
+    console.log("multiShop : ", multiShop);
+  };
+
+  const renderMultiShop = () =>
+    multiShop.map((item, index) => (
+      //console.log('item : '+index+' > ',item.document_number)
+      <div key={index} className="mb-6">
+        <div className="flex justify-between mb-4">
+          <span className="text-[#00783F] text-md">{`Shop ${index + 1}`}</span>
+          {index > 0 && !isViewMode && (
+            <ActionButton
+              mode="delete"
+              text="Delete"
+              onClick={() => handleRemoveContact(index)}
+              disabled={isViewMode}
+            />
+          )}
+        </div>
+        <Row gutter={16} align="middle">
+          <Col xs={24} sm={24} md={24} lg={24}>
+            <Form.Item className="mb-3" label={menuTitle + " No"}>
+              <Input
+                value={item.document_number}
+                onChange={(e) =>
+                  handleContactChange(index, "document_number", e.target.value)
+                }
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={24} md={6} lg={6}>
+            <Form.Item
+              label="Date"
+              name="document_date"
+              rules={[{ required: true, message: "กรุณาเลือก Date" }]}
+            >
+              <DatePicker
+                style={{ width: "100%" }}
+                format="YYYY-MM-DD"
+                name="document_date"
+                defaultValue={item.document_date ? dayjs(item.document_date) : null}
+                value={
+                  item.document_date ? dayjs(item.document_date) : null
+                }
+                onChange={(date) => {
+                  const d = new Date(date).toLocaleDateString("fr-FR");
+                  handleChangeDate(index, "document_date", d);
+                }}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={24} md={6} lg={6}>
+            <Form.Item
+              label="Shop"
+              name="dealer_id"
+              rules={[{ required: true, message: "กรุณาเลือก Shop" }]}
+            >
+              <Select
+                placeholder="Select shop"
+                name="dealer_id"
+                options={optionsShop}
+                value={item.dealer_id}
+                onChange={handleChangeSelect.bind(null, index, "dealer_id")}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={24} md={6} lg={6}>
+            <Form.Item
+              label="Crop"
+              name="crop_id_list"
+              rules={[{ required: true, message: "กรุณาเลือก Crop" }]}
+            >
+              <Select
+                placeholder="Select shop"
+                name="crop_id_list"
+                options={optionsCropList}
+                mode="multiple"
+                value={item.crop_id_list}
+                onChange={handleChangeSelect.bind(null, index, "crop_id_list")}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={24} md={24} lg={24}>
+            <Form.Item
+              label="Product"
+              name="productList"
+              rules={[{ required: true, message: "กรุณาเลือก Product" }]}
+            >
+              <Select
+                placeholder="Select shop"
+                name="productList"
+                options={optionsCropList}
+                mode="multiple"
+                value={item.productList}
+                onChange={handleChangeSelect.bind(null, index, "productList")}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={24} md={24} lg={24}>
+            <Form.Item className="mb-3" label="Location">
+              <Input
+                value={item.location_address}
+                name="location_address"
+                onChange={(e) =>
+                  handleContactChange(index, "location_address", e.target.value)
+                }
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={24} md={24} lg={24}>
+            <Form.Item className="mb-3" label="Description" name="description">
+              <ReactQuill
+                name="description"
+                theme="snow"
+                value={item.description}
+                placeholder="Enter Description"
+                modules={{ toolbar: toolbarOptions }}
+                onChange={handleChangeSelect.bind(null, index, "description")}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={24} md={24} lg={24}>
+            <Form.Item className="mb-3" label="Assign">
+              <Select
+                placeholder="Select Assign"
+                name="assing_user_list"
+                options={optionsSaleAllList}
+                mode="multiple"
+                value={item.assing_user_list}
+                onChange={handleChangeSelect.bind(
+                  null,
+                  index,
+                  "assing_user_list"
+                )}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+      </div>
+    ));
 
   const formFields = [
     {
@@ -512,6 +752,7 @@ export default function CreateActivity() {
   }, [activityDetail.crop_id_list]);
 
   useEffect(() => {
+    console.log("setupCropAndDealerCustomer");
     const setupCropAndDealerCustomer = async () => {
       const [crop, dealerCustomerData] = await Promise.all([
         useServiceAPI.get(paths.pathMasterSubDealerCrop, {
@@ -956,8 +1197,18 @@ export default function CreateActivity() {
         expense_particapant_user_list: expenseParticapantUserList,
         particapant_list: particapantList,
         document_date: allValuesBasic.document_date, // ✅ Updated timezone +7 format
+        shops: multiShop.map((item) => ({
+          document_number: item.document_number || "",
+          document_date: item.document_date || "",
+          dealer_id: item.dealer_id,
+          crop_id_list: item.crop_id_list,
+          productList: item.productList,
+          location_address: item.location_address,
+          description: item.description,
+          assing_user_list: item.assing_user_list,
+        })),
       };
-
+      console.log("shops : ", multiShop);
       console.log("body save : ", body);
       return;
 
@@ -1099,13 +1350,35 @@ export default function CreateActivity() {
         mode={documentNumber ? "edit" : "create"}
       />
 
-      <FormCustom
+      <BoxPrimary title="Add shops">
+        <Form layout="vertical">
+          {multiShop.length > 0 ? (
+            renderMultiShop()
+          ) : (
+            <div className="text-gray-500">
+              No contact person information available
+            </div>
+          )}
+        </Form>
+      </BoxPrimary>
+
+      {/* <FormCustom
         fields={formFields}
         form={formCustom}
         onChange={handleChange}
         mode={documentNumber ? "edit" : "create"}
+      /> */}
+
+      <ActionButton
+        mode="add"
+        text="Add Shop"
+        onClick={() => {
+          setMultiShop([
+            ...multiShop,
+            { document_number: "", document_date: "", location_address: "" },
+          ]);
+        }}
       />
-      <ActionButton mode="add" text="Add Shop"/>
 
       {isBtnExpenseActive ||
       pageCode == "expense_advance" ||
