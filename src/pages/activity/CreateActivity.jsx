@@ -10,8 +10,6 @@ import {
   InputNumber,
   Modal,
   DatePicker,
-  TimePicker,
-  Upload,
 } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -29,7 +27,6 @@ import { paths } from "../../services/CorsPath";
 import { useLocation } from "react-router-dom";
 import { ExclamationCircleFilled, ReloadOutlined } from "@ant-design/icons";
 import { AuthContext } from "../../contexts/AuthContext";
-import ReactQuill from "react-quill-new";
 
 dayjs.extend(customParseFormat);
 dayjs.extend(utc);
@@ -90,15 +87,6 @@ export default function CreateActivity() {
   const [participants, setParticipants] = useState([]);
   const [participantUsers, setParticipantUsers] = useState([]);
 
-  const [multiShop, setMultiShop] = useState([
-    {
-      document_number: "xxx111",
-      document_date: "124124",
-      location_address: "asfasf",
-    },
-  ]);
-  const isViewMode = mode === "View";
-
   const handleUploadClick = async () => {
     if (fileUploadRef.current) {
       fileUploadRef.current.triggerUpload();
@@ -149,123 +137,6 @@ export default function CreateActivity() {
       : pageCode == "expense_clearing"
       ? "/expenses/clearing"
       : "/activity/list";
-
-  //console.log("multishop : ", multiShop);
-
-  const toolbarOptions = [
-    [{ font: [] }, { size: [] }],
-    [{ header: [1, 2, 3, false] }],
-    [
-      "bold",
-      "italic",
-      "underline",
-      "strike",
-      { color: [] },
-      { background: [] },
-    ],
-    [{ script: "sub" }, { script: "super" }],
-    [{ list: "ordered" }, { list: "bullet" }],
-    [{ indent: "-1" }, { indent: "+1" }],
-    [{ align: [] }],
-    ["link", "image"],
-    ["clean"],
-  ];
-
-  const handleContactChange = (index, field, value) => {
-    console.log("index : ", index);
-    console.log("field : ", field);
-    console.log("value : ", value);
-
-    const updatedContacts = [...multiShop];
-
-    if (field === "date_of_birth") {
-      const birthDate = dayjs(value);
-      const currentYear = dayjs().year();
-      const age = currentYear - birthDate.year(); // คำนวณอายุ
-      updatedContacts[index][field] = value; // อัปเดตวันเกิด
-      updatedContacts[index]["age"] = age; // อัปเดตอายุ
-    } else {
-      updatedContacts[index][field] = value; // อัปเดตฟิลด์อื่นๆ
-    }
-
-    setMultiShop(updatedContacts); // อัปเดต state
-    console.log("multiShop : ", multiShop);
-    console.log("-----------------");
-  };
-
-  const renderMultiShop = () =>
-    multiShop.map((item, index) => (
-      //console.log('item : '+index+' > ',item.document_number)
-      <div key={index} className="mb-6">
-        <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-md">{`Shop ${index + 1}`}</span>
-          {index > 0 && !isViewMode && (
-            <ActionButton
-              mode="delete"
-              text="Delete"
-              onClick={() => handleRemoveContact(index)}
-              disabled={isViewMode}
-            />
-          )}
-        </div>
-        <Row gutter={16} align="middle">
-          <Col xs={24} sm={24} md={24} lg={24}>
-            <Form.Item className="mb-3" label={menuTitle + " No"}>
-              <Input
-                value={item.document_number}
-                onChange={(e) =>
-                  handleContactChange(index, "document_number", e.target.value)
-                }
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={24} md={6} lg={6}>
-            <Form.Item className="mb-3" label="Date">
-              <DatePicker
-                style={{ width: "100%" }}
-                format="YYYY-MM-DD"
-                onChange={(e) =>
-                  handleContactChange(index, "document_date", e.target.value)
-                }
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={24} md={24} lg={24}>
-            <Form.Item className="mb-3" label="Location">
-              <Input
-                value={item.location_address}
-                onChange={(e) =>
-                  handleContactChange(index, "location_address", e.target.value)
-                }
-              />
-            </Form.Item>
-          </Col>
-
-          {/* <Col xs={24} sm={24} md={24} lg={24}>
-            <Form.Item className="mb-3" label="Description" name="description">
-              <ReactQuill
-                theme="snow"
-                value={item.description}
-                placeholder="Enter Description"
-                modules={{ toolbar: toolbarOptions }}
-                onChange={(e) =>
-                  handleContactChange(index, "Description", e.target.value)
-                }
-              />
-            </Form.Item>
-          </Col> */}
-        </Row>
-      </div>
-    ));
-
-  // label: "Description",
-  // name: "description",
-  // type: "text-editor",
-  // disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
-  // required: false,
-  // col: 24,
-  // placeholder: "Add description",
-  // value: activityDetail.description ?? "",
 
   const formFields = [
     {
@@ -1085,13 +956,8 @@ export default function CreateActivity() {
         expense_particapant_user_list: expenseParticapantUserList,
         particapant_list: particapantList,
         document_date: allValuesBasic.document_date, // ✅ Updated timezone +7 format
-        shops: multiShop.map((item) => ({
-          document_number: item.document_number || "",
-          document_date: item.document_date || "",
-          location_address: item.location_address,
-        })),
       };
-      console.log("shops : ", multiShop);
+
       console.log("body save : ", body);
       return;
 
@@ -1233,35 +1099,13 @@ export default function CreateActivity() {
         mode={documentNumber ? "edit" : "create"}
       />
 
-      <BoxPrimary title="Add shops">
-        <Form layout="vertical">
-          {multiShop.length > 0 ? (
-            renderMultiShop()
-          ) : (
-            <div className="text-gray-500">
-              No contact person information available
-            </div>
-          )}
-        </Form>
-      </BoxPrimary>
-
       <FormCustom
         fields={formFields}
         form={formCustom}
         onChange={handleChange}
         mode={documentNumber ? "edit" : "create"}
       />
-
-      <ActionButton
-        mode="add"
-        text="Add Shop"
-        onClick={() => {
-          setMultiShop([
-            ...multiShop,
-            { document_number: "", document_date: "", location_address: "" },
-          ]);
-        }}
-      />
+      <ActionButton mode="add" text="Add Shop"/>
 
       {isBtnExpenseActive ||
       pageCode == "expense_advance" ||
