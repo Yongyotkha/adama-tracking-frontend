@@ -704,8 +704,8 @@ export default function ActivityMapping() {
                         lng: parseFloat(location.lng),
                       }}
                       icon={{
-                        url: location.activity_image,
-                        scaledSize: { width: 30, height: 30 },
+                        url: location.activity_image_location,
+                        scaledSize: { width: 25.5, height: 35 },
                       }}
                       options={{
                         suppressInfoWindow: true, // ปิดการแสดง InfoWindow เริ่มต้น

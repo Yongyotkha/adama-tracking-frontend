@@ -334,10 +334,6 @@ const App = () => {
               <Route path="/mobile/redeem-history" element={< RedeemHistory />} />
             </Route>
 
-            {/* <Route path="/mobile/redeem-point/detail/:id" element={<RedeemPointDetail />} /> */}
-            {/* <Route path="/mobile/promotion/detail/:id" element={<PromotionDetail />} /> */}
-            {/* <Route path="/mobile/redeem-history/detail/:id" element={< RedeemHistoryDetail />} /> */}
-
           </Route>
 
           <Route path="/mobile/scan-collect" element={< ScanCollectPoint />} />
