@@ -256,12 +256,12 @@ const Navbar = () => {
         </Carousel>
       </div>
 
-      <div className="flex items-center w-1/6 justify-end gap-3">
+      <div className="flex items-center w-1/6 justify-end gap-1">
         <div className="flex flex-col">
-          <span className="text-white hidden lg:block self-end text-nowrap">
+          <span className="text-white hidden lg:block self-end text-nowrap text-md font-semibold">
             {userInfo?.name}
           </span>
-          <span className="text-white hidden lg:block self-end text-nowrap">
+          <span className="text-white hidden lg:block self-end text-nowrap text-sm font-light">
             {userInfo?.role_name}
           </span>
         </div>
