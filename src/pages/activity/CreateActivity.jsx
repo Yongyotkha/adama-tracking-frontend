@@ -138,9 +138,9 @@ export default function CreateActivity() {
     selected: false, // default value is false
   }));
 
-  console.log(SaleOptions);
-  console.log(userInfo);
-  console.log(activityDetail);
+  // console.log(SaleOptions);
+  // console.log(userInfo);
+  // console.log(activityDetail);
   const formFields = [
     {
       label: menuTitle + " No",
