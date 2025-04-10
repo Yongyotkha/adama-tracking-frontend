@@ -1268,7 +1268,6 @@ export default function CreateActivity() {
             </div>
           )}
 
-<<<<<<< HEAD
           <div className="flex justify-center">
             <div style={{ width: "200px" }}>
               <button
@@ -1304,57 +1303,6 @@ export default function CreateActivity() {
         </BoxPrimary>
       </Form>
 
-=======
-          <DynamicButton
-            type="button"
-            className="flex w-fit mx-auto justify-center rounded-sm bg-[#00783F] text-white hover:bg-[#00783F] hover:text-green-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 max-w-full mb-3"
-            text="Add Shop"
-            onClick={() => {
-              setMultiShop([
-                ...multiShop,
-                {
-                  document_number: "",
-                  document_date: "",
-                  dealer_id: "",
-                  crop_id_list: "",
-                  product_list: "",
-                  location_address: "",
-                  description: "",
-                  assing_user_list: "",
-                },
-              ]);
-            }}
-          />
-        </BoxPrimary>
-
-      </Form>
-
-
-      {/* <div className="flex justify-center my-6">
-        <div style={{ width: "200px" }}>
-          <ActionButton
-            mode="add"
-            text="Add Shop"
-            htmlType="button"
-            onClick={() => {
-              setMultiShop([
-                ...multiShop,
-                {
-                  document_number: "",
-                  document_date: "",
-                  dealer_id: "",
-                  crop_id_list: "",
-                  product_list: "",
-                  location_address: "",
-                  description: "",
-                  assing_user_list: "",
-                },
-              ]);
-            }}
-          />
-        </div>
-      </div> */}
->>>>>>> 26507b1f9078cd434ea20a4d6d5adb9fb19db831
       {isBtnExpenseActive ||
         pageCode == "expense_advance" ||
         pageCode == "expense_clearing" ? (
