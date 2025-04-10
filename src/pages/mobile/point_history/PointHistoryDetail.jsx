@@ -24,7 +24,7 @@ const orders = [
   },
 ];
 
-export default function RedeemHistoryDetail() {
+export default function PointHistoryDetail() {
   const location = useLocation();
   console.log(location.state.id);
 
@@ -41,7 +41,7 @@ export default function RedeemHistoryDetail() {
         <div className="flex flex-col items-center w-full h-full">
           <SectionHeader title="ไม่พบคำสั่งซื้อ" icon="/img/icons/trophy.png" />
           <p className="text-gray-500 sarabun-font mt-4">ขออภัย, ไม่พบคำสั่งซื้อนี้</p>
-          <BackButton url="/mobile/history-purchase" />
+          <BackButton url="/mobile/order-history" />
         </div>
       </MobileLayout>
     );

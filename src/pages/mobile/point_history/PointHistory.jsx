@@ -8,7 +8,7 @@ import BackButton from "../../../components/mobile/button/BackButton";
 import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
 
-export default function RedeemHistory() {
+export default function PointHistory() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("collect_points"); // Default tab
   const [transactionData, setTransactionData] = useState([]);

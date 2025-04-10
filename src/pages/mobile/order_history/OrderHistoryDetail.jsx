@@ -1,4 +1,4 @@
-import React, { useState , useEffect } from "react";
+import React, { useState , useEffect, useContext } from "react";
 import { useParams, useNavigate, useLocation  } from "react-router-dom";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import SectionHeader from "../../../components/mobile/section_header/SectionHeader";
@@ -7,6 +7,7 @@ import HeadSectionUser from "../../../components/mobile/head_section_user/HeadSe
 import UserPointsSection from "../../../components/mobile/user_points_section/UserPointsSection";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 // Mock Data for Orders
 const orders = [
@@ -25,7 +26,7 @@ const orders = [
   },
 ];
 
-export default function PurchaseHistoryDetail() {
+export default function OrderHistoryDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -34,6 +35,7 @@ export default function PurchaseHistoryDetail() {
   const [historydetail, setHistorydetail] = useState(null);
   const [historydetailItem, setHistorydetailItem] = useState([]);
   const [error, setError] = useState(false);
+  const { userInfo } = useContext(AuthContext);
 
   const [documentnumber, setDocumentnumber] = useState (location.state.document_number);
 
@@ -43,7 +45,7 @@ export default function PurchaseHistoryDetail() {
         try {
           const response = await useServiceAPI.get(paths.pathhistoryShopDetail, {
             platform: "web",
-            id: 139, // เปลี่ยนเป็น user id ที่เหมาะสม
+            id: userInfo.id, // เปลี่ยนเป็น user id ที่เหมาะสม
             document_number: documentnumber, 
 
           });
@@ -74,7 +76,7 @@ export default function PurchaseHistoryDetail() {
   //       <div className="flex flex-col items-center w-full h-full">
   //         <SectionHeader title="ไม่พบคำสั่งซื้อ" icon="/img/icons/trophy.png" />
   //         <p className="text-gray-500 sarabun-font mt-4">ขออภัย, ไม่พบคำสั่งซื้อนี้</p>
-  //         <BackButton url="/mobile/history-purchase" />
+  //         <BackButton url="/mobile/order-history" />
   //       </div>
   //     </MobileLayout>
   //   );
@@ -172,7 +174,7 @@ export default function PurchaseHistoryDetail() {
         </div>
 
         {/* Back Button */}
-        <BackButton url="/mobile/history-purchase" />
+        <BackButton url="/mobile/order-history" />
       </div>
     </MobileLayout>
   );

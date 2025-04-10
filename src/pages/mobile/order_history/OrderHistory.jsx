@@ -9,14 +9,12 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 
-export default function PurchaseHistory() {
+export default function OrderHistory() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("in_progress");
   const [orderData, setOrderData] = useState([]);
   const { userInfo } = useContext(AuthContext);
-
-
 
   const tabs = [
     { id: "in_progress", label: "กำลังดำเนินการ", color: "border-orange-500" },
@@ -70,7 +68,7 @@ export default function PurchaseHistory() {
         <UserPointsSection />
 
         {/* Section Header */}
-        <SectionHeader title="รายละเอียดการสั่งซื้อ" icon="/img/icons/bill.png" />
+        <SectionHeader title="รายการสั่งซื้อ" icon="/img/icons/bill.png" />
 
         {/* Tabs */}
         <div className="w-full max-w-md mt-4 flex space-x-3 border-b">
@@ -95,7 +93,7 @@ export default function PurchaseHistory() {
               return (
                 <div
                   key={order.id}
-                  onClick={() => navigate(`/mobile/history-purchase/detail/${order.id}`)}
+                  onClick={() => navigate(`/mobile/order-history/detail/${order.id}`)}
                   className={`flex items-center justify-between p-4 bg-white rounded-lg shadow-md border-l-4 ${tabColor} cursor-pointer`}
                 >
                   <div>
@@ -115,9 +113,9 @@ export default function PurchaseHistory() {
                   <div
                     // key={order.id}
                     key={index}
-                    // onClick={() => navigate(`/mobile/history-purchase/detail/${order.id}`)}
+                    // onClick={() => navigate(`/mobile/order-history/detail/${order.id}`)}
                     onClick={() =>
-                      navigate("/mobile/history-purchase/detail", {
+                      navigate("/mobile/order-history/detail", {
                         state: {
                           document_number: order.document_number,
                         },
@@ -128,10 +126,10 @@ export default function PurchaseHistory() {
                   >
                     <div>
                       <p className="text-gray-500 sarabun-font text-sm">{order.date}</p>
-                      <p className="text-gray-900 sarabun-font font-bold">เลขที่ {order.number}</p>
-                      <p className="text-gray-500 sarabun-font text-sm">รายการ {order.items}</p>
+                      <p className="text-gray-900 sarabun-font font-bold">เลขที่ {order.document_number}</p>
+                      <p className="text-gray-500 sarabun-font text-sm">รายการ {order.line_total}</p>
                     </div>
-                    <p className="text-green-700 sarabun-font font-bold">{order.total}</p>
+                    <p className="text-green-700 sarabun-font font-bold">฿{new Intl.NumberFormat('th-TH').format(order.amount)}</p>
                   </div>
                 );
               })

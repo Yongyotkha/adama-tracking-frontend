@@ -16,12 +16,12 @@ const MainMenu = () => {
     {
       icon: "/img/icons/history-oa.png",
       text: "ประวัติการซื้อสินค้า",
-      url: "/mobile/history-purchase",
+      url: "/mobile/order-history",
     },
     {
       icon: "/img/icons/history-redeem-oa.png",
       text: "ประวัติการแลกคะแนน",
-      url: "/mobile/redeem-history",
+      url: "/mobile/point-history",
     },
   ];
 

@@ -107,12 +107,8 @@ import CustomerStock from "./pages/stock/customer-stock/CustomerStock";
 import ScanCollectPoint from "./pages/mobile/scan_collect/ScanCollectPoint";
 import RedeemPoint from "./pages/mobile/redeem_point/RedeemPoint";
 import RedeemPointDetail from "./pages/mobile/redeem_point/RedeemPointDetail";
-import PurchaseHistory from "./pages/mobile/purchase_history/PurchaseHistory";
-import PurchaseHistoryDetail from "./pages/mobile/purchase_history/PurchasehistoryDetail";
 import Promotion from "./pages/mobile/promotion/Promotion";
 import PromotionDetail from "./pages/mobile/promotion/PromotionDetail";
-import RedeemHistory from "./pages/mobile/redeem_history/RedeemHistory";
-import RedeemHistoryDetail from "./pages/mobile/redeem_history/RedeemHistoryDetail";
 import ReportStock from "./pages/report/ReportStock";
 import ContactUs from "./pages/mobile/user/settings/contact_us/ContactUs";
 import FaqOA from "./pages/mobile/user/settings/faq/Faq";
@@ -134,6 +130,9 @@ import ApprovalClearingExpense from "./pages/expenses/clearing/ApprovalClearingE
 import ContactAdmin from "./pages/mobile/contact_admin/ContactAdmin";
 import TakePhoto from "./pages/mobile/take_photo/TakePhoto";
 import CreateActivityManyShop from "./pages/activity/CreateActivityManyShop";
+import OrderHistory from "./pages/mobile/order_history/OrderHistory";
+import OrderHistoryDetail from "./pages/mobile/order_history/OrderHistoryDetail";
+import PointHistory from "./pages/mobile/point_history/PointHistory";
 
 const App = () => {
   return (
@@ -306,7 +305,7 @@ const App = () => {
 
           </Route>
 
-          <Route element={<LineOARoute />}>
+          {/* <Route element={<LineOARoute />}> */}
 
             <Route path="/mobile/login" element={< CheckLogin />} />
 
@@ -327,14 +326,14 @@ const App = () => {
               <Route path="/mobile/main" element={< MainOA />} />
               <Route path="/mobile/redeem-point" element={< RedeemPoint />} />
               <Route path="/mobile/redeem-point/detail" element={<RedeemPointDetail />} />
-              <Route path="/mobile/history-purchase" element={< PurchaseHistory />} />
-              <Route path="/mobile/history-purchase/detail/:id" element={<PurchaseHistoryDetail />} />
-              <Route path="/mobile/redeem-history/detail" element={< RedeemHistoryDetail />} />
+              <Route path="/mobile/order-history" element={< OrderHistory />} />
+              <Route path="/mobile/order-history/detail" element={<OrderHistoryDetail />} />
+              <Route path="/mobile/point-history" element={< PointHistory />} />
+              {/* <Route path="/mobile/point-history/detail" element={< PointHistoryDetail />} /> */}
               <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
-              <Route path="/mobile/redeem-history" element={< RedeemHistory />} />
             </Route>
 
-          </Route>
+          {/* </Route> */}
 
           <Route path="/mobile/scan-collect" element={< ScanCollectPoint />} />
           <Route path="/mobile/take-photo" element={< TakePhoto />} />
