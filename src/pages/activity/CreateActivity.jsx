@@ -1,7 +1,19 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
+import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { Form, Input, Col, Row, Select, InputNumber, Modal } from "antd";
+import {
+  Form,
+  Input,
+  Col,
+  Row,
+  Select,
+  InputNumber,
+  Modal,
+  DatePicker,
+  TimePicker,
+  Upload,
+} from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -18,6 +30,7 @@ import { paths } from "../../services/CorsPath";
 import { useLocation } from "react-router-dom";
 import { ExclamationCircleFilled, ReloadOutlined } from "@ant-design/icons";
 import { AuthContext } from "../../contexts/AuthContext";
+import ReactQuill from "react-quill-new";
 
 dayjs.extend(customParseFormat);
 dayjs.extend(utc);
@@ -64,8 +77,9 @@ export default function CreateActivity() {
   const [dealerCustomer, setDealerCustomer] = useState([]);
   const [perceptionList, setPerceptionList] = useState([]);
   const [fileList, setFileList] = useState([]);
-
+  const { MonthPicker } = DatePicker;
   const [isBtnExpenseActive, setIsBtnExpenseActive] = useState(false);
+  const [formMulti] = Form.useForm();
 
   const [activityDetail, setActivityDetail] = useState({
     product_list: [],
@@ -73,10 +87,26 @@ export default function CreateActivity() {
     expense_product_data_list: [],
     assing_user_list: [],
   });
+
   const { showNotification, userInfo } = useContext(AuthContext);
   const [actualParticipantCount, setActualParticipantCount] = useState("0");
   const [participants, setParticipants] = useState([]);
   const [participantUsers, setParticipantUsers] = useState([]);
+
+  const [multiShop, setMultiShop] = useState([
+    {
+      document_number: "",
+      document_date: "",
+      dealer_id: "",
+      crop_id_list: "",
+      product_list: "",
+      location_address: "",
+      description: "",
+      assing_user_list: "",
+    },
+  ]);
+
+  const isViewMode = mode === "View";
 
   const handleUploadClick = async () => {
     if (fileUploadRef.current) {
@@ -129,152 +159,266 @@ export default function CreateActivity() {
       ? "/expenses/clearing"
       : "/activity/list";
 
-  const formFields = [
-    {
-      label: menuTitle + " No",
-      name: "document_number",
-      type: "text",
-      disabled: true,
-      required: false,
-      col: 24,
-      value: activityDetail.document_number ?? "",
-      placeholder: "Generate",
-    },
-    {
-      label: "Activity Reference",
-      name: "activity_reference",
-      type:
-        pageCode != "activity_transaction"
-          ? viewSegment
-            ? "hidden"
-            : "search"
-          : "hidden",
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
-      required: false,
-      col: 24,
-      value: "",
-    },
-    {
-      label: "Activity Type",
-      name: "activity_type_id",
-      type: "select",
-      typeMode: "string",
-      options: activityList,
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
-      required: true,
-      col: pageCode != "activity_transaction" ? 8 : 6,
-      value: activityDetail.activity_type_id ?? "",
-    },
-    {
-      label: "Sales",
-      name: "user_id",
-      type: "select",
-      // typeMode: "string",
-      options: saleList,
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
-      required: true,
-      col: pageCode != "activity_transaction" ? 8 : 6,
-      value: activityDetail.user_id ?? "",
-      moderef: true,
-    },
-    {
-      label: "Shop",
-      name: "dealer_id",
-      type: "select",
-      typeMode: "string",
-      // options: dealerList,
-      options: dealerList.some(
-        (dealer) => dealer.id === activityDetail.dealer_id
-      )
-        ? dealerList
-        : activityDetail.dealer_id && activityDetail.dealer_name
-        ? [
-            ...dealerList,
-            {
-              id: activityDetail.dealer_id,
-              name: activityDetail.dealer_name,
-            },
-          ]
-        : dealerList,
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
-      required: true,
-      col: pageCode != "activity_transaction" ? 8 : 6,
-      value: activityDetail.dealer_id ?? "",
-      moderef: true,
-    },
-    {
-      label: "Crop",
-      name: "crop_id_list",
-      type: "select",
-      typeMode: "string",
-      mode: "multiple",
-      options: cropList,
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
-      required: true,
-      col: 6,
-      value: activityDetail.crop_id_list,
-      // moderef: true,
-    },
-    {
-      label: "Product",
-      name: "product_list",
-      type: "select",
-      typeMode: "string",
-      mode: "multiple",
-      options: productList,
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
-      required: true,
-      col: pageCode != "activity_transaction" ? 18 : 24,
-      value: activityDetail.product_list,
-    },
-    {
-      label: "Date",
-      name: "document_date",
-      type: "date",
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
-      required: true,
-      col: pageCode != "activity_transaction" ? 6 : 8,
-      value: activityDetail.document_date,
-    },
-    {
-      label: "Location",
-      name: "location_address",
-      type: "text",
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
-      required: false,
-      col: 24,
-      value: activityDetail.location_address ?? "",
-      iconSrc: "/img/icons/location.png",
-      iconPosition: "left",
-    },
-    {
-      label: "Description",
-      name: "description",
-      type: "text-editor",
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
-      required: false,
-      col: 24,
-      placeholder: "Add description",
-      value: activityDetail.description ?? "",
-    },
-    {
-      label: "Assign",
-      name: "assing_user_list",
-      type: "select",
-      typeMode: "string",
-      mode: "multiple",
-      options: saleAllList,
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
-      required: false,
-      col: 24,
-      value: activityDetail.assing_user_list,
-    },
-    {
-      label: "Add shop",
-      name: "assing_user_list",
-      type: "input",
-    },
+  //console.log("multishop : ", multiShop);
+
+  const handleRemoveContact = (index) => {
+    setMultiShop((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const toolbarOptions = [
+    [{ font: [] }, { size: [] }],
+    [{ header: [1, 2, 3, false] }],
+    [
+      "bold",
+      "italic",
+      "underline",
+      "strike",
+      { color: [] },
+      { background: [] },
+    ],
+    [{ script: "sub" }, { script: "super" }],
+    [{ list: "ordered" }, { list: "bullet" }],
+    [{ indent: "-1" }, { indent: "+1" }],
+    [{ align: [] }],
+    ["link", "image"],
+    ["clean"],
   ];
+
+  const optionsShop = dealerList.map((item) => ({
+    value: item.id,
+    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
+  }));
+
+  const optionsCropList = cropList.map((item) => ({
+    value: item.id,
+    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
+  }));
+
+  const optionsSaleAllList = saleAllList.map((item) => ({
+    value: item.id,
+    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
+  }));
+
+  const optionsProductList = productList.map((item) => ({
+    value: item.id,
+    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
+  }));
+
+  const optionsActivityType = activityList.map((item) => ({
+    value: item.id,
+    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
+  }));
+
+  const optionsSale = saleList.map((item) => ({
+    value: item.id,
+    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
+  }));
+
+  const handleContactChange = (index, field, value) => {
+    // console.log("index : ", index);
+    // console.log("field : ", field);
+    // console.log("value : ", value);
+    // console.log("------------------");
+    const updateShop = [...multiShop];
+
+    if (field === "date_of_birth") {
+      const birthDate = dayjs(value);
+      const currentYear = dayjs().year();
+      const age = currentYear - birthDate.year(); // คำนวณอายุ
+      updateShop[index][field] = value; // อัปเดตวันเกิด
+      updateShop[index]["age"] = age; // อัปเดตอายุ
+    } else {
+      updateShop[index][field] = value; // อัปเดตฟิลด์อื่นๆ
+    }
+
+    setMultiShop(updateShop); // อัปเดต state
+  };
+
+  const handleChangeDate = (index, field, value) => {
+    const update = [...multiShop];
+    update[index][field] = value; // อัปเดตฟิลด์อื่นๆ
+    setMultiShop(update); // อัปเดต state
+  };
+
+  const handleChangeSelect = (index, field, value) => {
+    if (field == "dealer_id") {
+      setActivityDetail((prevState) => ({
+        ...prevState,
+        dealer_id: value,
+      }));
+    } else if (field == "crop_id_list") {
+      setActivityDetail((prevState) => ({
+        ...prevState,
+        crop_id_list: value,
+      }));
+    } else if (field == "product_list") {
+      setActivityDetail((prevState) => ({
+        ...prevState,
+        product_list: value,
+      }));
+    }
+
+    const update = [...multiShop];
+    update[index][field] = value;
+    setMultiShop(update);
+  };
+
+  const renderMultiShop = () =>
+    multiShop.map((item, index) => (
+      //console.log('item : '+index+' > ',item.document_number)
+      <div key={index} className="mb-6">
+        <div className="flex justify-between mb-4">
+          <span className="text-[#00783F] text-md">
+            <b>{`Shop ${index + 1}`}</b>
+          </span>
+          {index > 0 && !isViewMode && (
+            <ActionButton
+              mode="delete"
+              text="Delete"
+              onClick={() => handleRemoveContact(index)}
+              disabled={isViewMode}
+            />
+          )}
+        </div>
+        <Row gutter={16} align="middle">
+          <Col xs={24} sm={24} md={24} lg={24}>
+            <Form.Item
+              className="mb-3"
+              label={menuTitle + " No"}
+              name={["shops", index, "document_number"]}
+            >
+              <Input
+                disabled="true"
+                placeholder="Generate"
+                value={item.document_number || ""}
+                onChange={(e) =>
+                  handleContactChange(index, "document_number", e.target.value)
+                }
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={24} md={6} lg={6}>
+            <Form.Item
+              key={index}
+              label="Date"
+              rules={[{ required: true, message: "กรุณาเลือก Date" }]}
+              style={{ marginBottom: 12 }}
+              name={["shops", index, "document_date"]}
+            >
+              <DatePicker
+                style={{ width: "100%" }}
+                format="YYYY-MM-DD"
+                defaultValue={
+                  item.document_date ? dayjs(item.document_date) : null
+                }
+                onChange={(date) => {
+                  const d = new Date(date).toLocaleDateString("fr-FR");
+                  handleChangeDate(index, "document_date", d);
+                }}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={24} md={6} lg={6}>
+            <Form.Item
+              label="Shop"
+              rules={[{ required: true, message: "กรุณาเลือก Shop" }]}
+              style={{ marginBottom: 12 }}
+              name={["shops", index, "dealer_id"]}
+            >
+              <Select
+                placeholder="Select shop"
+                options={optionsShop}
+                onChange={handleChangeSelect.bind(null, index, "dealer_id")}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={24} md={6} lg={6}>
+            <Form.Item
+              label="Crop"
+              rules={[{ required: true, message: "กรุณาเลือก Crop" }]}
+              style={{ marginBottom: 12 }}
+              name={["shops", index, "crop_id_list"]}
+            >
+              <Select
+                placeholder="Select shop"
+                options={optionsCropList}
+                mode="multiple"
+                onChange={handleChangeSelect.bind(null, index, "crop_id_list")}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={24} md={24} lg={24}>
+            <Form.Item
+              label="Product"
+              rules={[{ required: true, message: "กรุณาเลือก Product" }]}
+              style={{ marginBottom: 12 }}
+              name={["shops", index, "product_list"]}
+            >
+              <Select
+                placeholder="Select shop"
+                options={optionsProductList}
+                mode="multiple"
+                onChange={handleChangeSelect.bind(null, index, "product_list")}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={24} md={24} lg={24}>
+            <Form.Item
+              className="mb-3"
+              label="Location"
+              name={["shops", index, "location_address"]}
+            >
+              <Input
+                placeholder="Enter location"
+                value={item.location_address || ""}
+                onChange={(e) =>
+                  handleContactChange(index, "location_address", e.target.value)
+                }
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={24} md={24} lg={24}>
+            <Form.Item
+              className="mb-3"
+              label="Description"
+              name={["shops", index, "description"]}
+            >
+              <ReactQuill
+                theme="snow"
+                placeholder="Enter Description"
+                modules={{ toolbar: toolbarOptions }}
+                onChange={handleChangeSelect.bind(null, index, "description")}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={24} md={24} lg={24}>
+            <Form.Item
+              className="mb-3"
+              label="Assign"
+              name={["shops", index, "assing_user_list"]}
+            >
+              <Select
+                placeholder="Select Assign"
+                options={optionsSaleAllList}
+                mode="multiple"
+                onChange={handleChangeSelect.bind(
+                  null,
+                  index,
+                  "assing_user_list"
+                )}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={24} md={24} lg={24}>
+            <hr
+              style={{
+                border: "1px solid gray",
+              }}
+            ></hr>
+          </Col>
+        </Row>
+      </div>
+    ));
 
   // Master
   useEffect(() => {
@@ -469,6 +613,7 @@ export default function CreateActivity() {
             );
 
             setIsBtnExpenseActive(activityDetailData.is_expense);
+            console.log("setActivityDetail");
             setActivityDetail((prevState) => ({
               ...prevState,
               ...activityDetailData,
@@ -495,6 +640,7 @@ export default function CreateActivity() {
     if (activityDetail.crop_id_list.length > 0) {
       setupCrop();
     } else {
+      console.log("setActivityDetail");
       setActivityDetail((prevState) => ({
         ...prevState,
         expense_product_data_list: [],
@@ -505,6 +651,7 @@ export default function CreateActivity() {
   }, [activityDetail.crop_id_list]);
 
   useEffect(() => {
+    console.log("setupCropAndDealerCustomer");
     const setupCropAndDealerCustomer = async () => {
       const [crop, dealerCustomerData] = await Promise.all([
         useServiceAPI.get(paths.pathMasterSubDealerCrop, {
@@ -525,6 +672,7 @@ export default function CreateActivity() {
 
   //handleChangeFunction
   const setupDealer = async (value) => {
+    console.log("load deader");
     const [dealer] = await Promise.all([
       useServiceAPI.get(paths.pathMasterSubDealerAll, {
         user_id: value,
@@ -574,6 +722,7 @@ export default function CreateActivity() {
         product_id: element.id,
         id: element.id,
       }));
+      console.log("setActivityDetail");
       setActivityDetail((prevState) => ({
         ...prevState,
         expense_product_data_list: productCropList,
@@ -673,6 +822,7 @@ export default function CreateActivity() {
 
   const handleInputChange = (value, key, field, bath_ltkg, record) => {
     console.log(value, key, field, bath_ltkg, record);
+    console.log("setActivityDetail");
     setActivityDetail((prevState) => {
       const updatedData = prevState.expense_product_data_list.map((item) => {
         if (item.key === key) {
@@ -888,9 +1038,14 @@ export default function CreateActivity() {
   //บันทึกข้อมูล
   const handleSave = async (modeSave) => {
     try {
-      await formCustom.validateFields();
+      // await formCustom.validateFields();
 
-      let allValuesBasic = formCustom.getFieldsValue();
+      // let allValuesBasic = formCustom.getFieldsValue();
+
+      await formMulti.validateFields();
+
+      let allValuesBasic = formMulti.getFieldsValue();
+
       // allValuesBasic.document_date = dayjs(allValuesBasic.document_date).format(
       //   "YYYY-MM-DD"
       // );
@@ -924,92 +1079,107 @@ export default function CreateActivity() {
         });
       });
 
-      console.log(activityDetail);
+      //console.log("activityDetail : ", activityDetail);
 
       const body = {
         ...activityDetail,
         page_code: pageCode,
-        // document_number_referrent:
-        //   activityDetail?.document_number_referrent ?? null,
         action_code: modeSave,
         image_list: imageLists,
         is_expense: isExpense,
-        // expense_product_total_estimate_sale: expenseProductTotalEstimateSale,
-        // expense_product_total_acutal_sale: expenseProductTotalAcutalSale,
-        // expense_product_data_list: expenseProductDataList,
-
-        // expense_actual_exp: activityDetail?.expense_actual_exp,
-        // expense_actual_sale: activityDetail?.expense_actual_sale,
-        // expense_advance: activityDetail?.expense_advance,
-        // expense_actual: activityDetail?.expense_actual,
         expense_file_list: [],
-        // expense_participant_estimate:
-        //   activityDetail?.expense_participant_estimate,
-        // expense_particapant_actual: activityDetail?.expense_particapant_actual,
         expense_particapant_user_list: expenseParticapantUserList,
         particapant_list: particapantList,
-        document_date: allValuesBasic.document_date, // ✅ Updated timezone +7 format
+        document_date: allValuesBasic.document_date,
       };
-      console.log(body);
-      // return;
+
+      const newSave = multiShop.map((item) => ({
+        page_code: pageCode,
+        action_code: modeSave,
+        image_list: imageLists,
+        is_expense: isExpense,
+        expense_file_list: [],
+        expense_particapant_user_list: expenseParticapantUserList,
+        particapant_list: particapantList,
+        ...activityDetail,
+        document_date: item.document_date,
+        dealer_id: item.dealer_id,
+        crop_id_list: item.crop_id_list,
+        product_list: item.product_list,
+        location_address: item.location_address,
+        description: item.description,
+        assing_user_list: item.assing_user_list,
+      }));
+
+      //console.log("shops : ", newSave);
+      console.log("body save : ", newSave);
+      console.log("page code : ", pageCode);
 
       if (documentNumber) {
-        useServiceAPI
-          .put(paths.pathActivityExpenseDetail, body, setLoading)
-          .then((response) => {
-            const successCallback = () => {
-              if (response.result) {
-                if (pageCode == "expense_clearing") {
-                  navigate("/expenses/clearing");
-                } else if (pageCode == "expense_advance") {
-                  if (modeSave == "convert_clearing") {
-                    // navigate(`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`)
-                    navigate("/expenses/clearing");
-                  } else {
-                    navigate("/expenses/advance");
-                  }
-                } else {
-                  navigate("/activity/list");
-                }
-              }
-            };
-            showNotification(
-              "success",
-              response.data.message,
-              response.data.message_line,
-              2
-            ).then(successCallback);
-          })
-          .catch((error) => {});
       } else {
-        useServiceAPI
-          .post(paths.pathActivityExpenseCreate, body, setLoading)
-          .then((response) => {
-            const successCallback = () => {
-              if (response.result) {
-                if (pageCode == "expense_clearing") {
-                  navigate("/expenses/clearing");
-                } else if (pageCode == "expense_advance") {
-                  if (modeSave == "convert_clearing") {
-                    navigate("/expenses/clearing");
+        const resultStatus = []; // เก็บสถานะแต่ละรอบ
+        const allDocNumbers = []; // เก็บเลขเอกสารถ้ามี
+        for (const save of newSave) {
+          console.log(save);
 
-                    // navigate(`/activity/edit?documentNumber=${encodeURIComponent(row.document_number)}&pageCode=${encodeURIComponent(row.page_code)}`)
-                  } else {
-                    navigate("/expenses/advance");
-                  }
-                } else {
-                  navigate("/activity/list");
-                }
-              }
-            };
-            showNotification(
-              "success",
-              response.data.message,
-              response.data.message_line,
-              2
-            ).then(successCallback);
-          })
-          .catch((error) => {});
+          try {
+            const response = await useServiceAPI.post(
+              paths.pathActivityExpenseCreate,
+              save,
+              setLoading
+            );
+
+            // เช็คว่าตอบกลับ success ตามเงื่อนไขที่ต้องการ
+            const isSuccess = response.message === "Save successfully";
+
+            console.log("message : ", response.message);
+            console.log("message_line : ", response);
+            console.log("isSuccess : ", isSuccess);
+
+            resultStatus.push(isSuccess);
+
+            const docNumberLine = response.data.message_line?.find((line) =>
+              line.includes("Document Number")
+            );
+            if (docNumberLine) {
+              allDocNumbers.push(docNumberLine);
+            }
+
+            console.log("ส่งสำเร็จ:", response);
+          } catch (error) {
+            console.error("เกิดข้อผิดพลาดในการส่ง:", error);
+            resultStatus.push(false); // ล้มเหลว
+          }
+        }
+
+        const allSuccess = resultStatus.every((s) => s === true);
+
+        console.log("resultStatus : ", resultStatus);
+        console.log("allDocNumbers : ", allDocNumbers);
+        console.log("allSuccess : ", allSuccess);
+
+        if (allSuccess) {
+          showNotification(
+            "success",
+            "บันทึกข้อมูลสำเร็จทั้งหมด",
+            allDocNumbers.join("\n"),
+            3
+          ).then(() => {
+            // if (pageCode === "expense_clearing") {
+            //   navigate("/expenses/clearing");
+            // } else if (pageCode === "expense_advance") {
+            //   navigate("/expenses/advance");
+            // } else {
+            //   navigate("/activity/list");
+            // }
+          });
+        } else {
+          showNotification(
+            "error",
+            "บางรายการบันทึกไม่สำเร็จ",
+            "กรุณาตรวจสอบรายการที่ส่งไม่ผ่าน"
+          );
+        }
       }
     } catch (err) {
       console.error("Error fetching address:", err);
@@ -1065,33 +1235,99 @@ export default function CreateActivity() {
         <div className="title-page capitalize">
           {mode} {menuTitle}
         </div>
-        {pageCode != "expense_advance" && pageCode != "expense_clearing" ? (
-          !isBtnExpenseActive ? (
-            <ActionButton
-              mode="create"
-              text="Add Advance Expense"
-              onClick={() => setIsBtnExpenseActive(!isBtnExpenseActive)}
-            />
-          ) : (
-            <ActionButton
-              mode="hide"
-              text="Hide Advance Expense"
-              onClick={() => setIsBtnExpenseActive(!isBtnExpenseActive)}
-            />
-          )
-        ) : null}
-
-        {/* <ActionButton mode="hide" text="Add Advance Expense" onClick='' /> */}
       </div>
 
-      <FormCustom
-        fields={formFields}
-        form={formCustom}
-        onChange={handleChange}
-        mode={documentNumber ? "edit" : "create"}
-      />
-      
+      <Form layout="vertical" form={formMulti}>
+        <BoxPrimary style={{ marginBottom: "20px" }}>
+          <Row gutter={16} align="middle">
+            <Col xs={24} sm={24} md={6} lg={6}>
+              <Form.Item
+                label="Activity Type"
+                name="activity_type_id"
+                rules={[
+                  { required: true, message: "กรุณาเลือก Activity Type" },
+                ]}
+                style={{ marginBottom: 12 }}
+              >
+                <Select
+                  placeholder="Select activity type"
+                  options={optionsActivityType}
+                  onChange={(value) => handleChange("activity_type_id", value)}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={24} md={6} lg={6}>
+              <Form.Item
+                label="Sales"
+                name="user_id"
+                rules={[{ required: true, message: "กรุณาเลือก Sales" }]}
+                style={{ marginBottom: 12 }}
+              >
+                <Select
+                  placeholder="Select Sales"
+                  options={optionsSale}
+                  onChange={(value) => handleChange("user_id", value)}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </BoxPrimary>
+        <BoxPrimary>
+          {multiShop.length > 0 ? (
+            renderMultiShop()
+          ) : (
+            <div className="text-gray-500">
+              No contact person information available
+            </div>
+          )}
 
+        </BoxPrimary>
+      </Form>
+      <DynamicButton
+            type="primary"
+            className="flex w-full justify-center rounded-sm bg-[#00783F] text-white hover:bg-[#00783F] hover:text-green-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-full max-w-full mb-3"
+            htmlType="button"
+            text="Add Shop"
+            onClick={() => {
+              setMultiShop([
+                ...multiShop,
+                {
+                  document_number: "",
+                  document_date: "",
+                  dealer_id: "",
+                  crop_id_list: "",
+                  product_list: "",
+                  location_address: "",
+                  description: "",
+                  assing_user_list: "",
+                },
+              ]);
+            }}
+          />
+      {/* <div className="flex justify-center my-6">
+        <div style={{ width: "200px" }}>
+          <ActionButton
+            mode="add"
+            text="Add Shop"
+            htmlType="button"
+            onClick={() => {
+              setMultiShop([
+                ...multiShop,
+                {
+                  document_number: "",
+                  document_date: "",
+                  dealer_id: "",
+                  crop_id_list: "",
+                  product_list: "",
+                  location_address: "",
+                  description: "",
+                  assing_user_list: "",
+                },
+              ]);
+            }}
+          />
+        </div>
+      </div> */}
       {isBtnExpenseActive ||
       pageCode == "expense_advance" ||
       pageCode == "expense_clearing" ? (
@@ -1291,7 +1527,6 @@ export default function CreateActivity() {
           </BoxPrimary>
 
           <BoxPrimary title="Expense">
-          <h1>aaaaaaaaaaa</h1>
             <Form
               layout="vertical"
               form={expenseForm} // Use the new expenseForm instance here
@@ -1555,7 +1790,6 @@ export default function CreateActivity() {
                 <></>
               )}
             </Form>
-            
           </BoxPrimary>
         </>
       ) : null}
