@@ -41,7 +41,8 @@ export default function CreateActivity() {
   const [pageMode, setPageMode] = useState(locationParam?.state?.page_mode);
   const pageCode = locationParam?.state?.pageCode;
   const viewSegment = mode === "view";
-
+  const isViewMode = mode === "view";
+  const isCreate = mode === "create";
   const [loading, setLoading] = useState(false);
   const [firstCallData, setFirstCallData] = useState(true);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
@@ -120,15 +121,26 @@ export default function CreateActivity() {
     pageCode == "expense_advance"
       ? "Advance Expense"
       : pageCode == "expense_clearing"
-      ? "Clearing Expense"
-      : "Activity";
+        ? "Clearing Expense"
+        : "Activity";
   const menuURL =
     pageCode == "expense_advance"
       ? "/expenses/advance"
       : pageCode == "expense_clearing"
-      ? "/expenses/clearing"
-      : "/activity/list";
+        ? "/expenses/clearing"
+        : "/activity/list";
 
+
+
+  const SaleOptions = saleList.map((sale) => ({
+    id: sale.id,
+    name: sale.name,
+    selected: false, // default value is false
+  }));
+
+  console.log(SaleOptions);
+  console.log(userInfo);
+  console.log(activityDetail);
   const formFields = [
     {
       label: menuTitle + " No",
@@ -149,7 +161,8 @@ export default function CreateActivity() {
             ? "hidden"
             : "search"
           : "hidden",
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
+      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      // disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
       required: false,
       col: 24,
       value: "",
@@ -160,7 +173,7 @@ export default function CreateActivity() {
       type: "select",
       typeMode: "string",
       options: activityList,
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
+      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
       value: activityDetail.activity_type_id ?? "",
@@ -170,10 +183,12 @@ export default function CreateActivity() {
       name: "user_id",
       type: "select",
       // typeMode: "string",
-      options: saleList,
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
+      // options: saleList,
+      options: SaleOptions,
+      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
+      // value: activityDetail.user_id ?? "",
       value: activityDetail.user_id ?? "",
       moderef: true,
     },
@@ -188,15 +203,15 @@ export default function CreateActivity() {
       )
         ? dealerList
         : activityDetail.dealer_id && activityDetail.dealer_name
-        ? [
+          ? [
             ...dealerList,
             {
               id: activityDetail.dealer_id,
               name: activityDetail.dealer_name,
             },
           ]
-        : dealerList,
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
+          : dealerList,
+      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
       value: activityDetail.dealer_id ?? "",
@@ -209,7 +224,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: cropList,
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
+      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
       required: true,
       col: 6,
       value: activityDetail.crop_id_list,
@@ -222,7 +237,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: productList,
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
+      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
       required: true,
       col: pageCode != "activity_transaction" ? 18 : 24,
       value: activityDetail.product_list,
@@ -231,7 +246,7 @@ export default function CreateActivity() {
       label: "Date",
       name: "document_date",
       type: "date",
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
+      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
       required: true,
       col: pageCode != "activity_transaction" ? 6 : 8,
       value: activityDetail.document_date,
@@ -240,7 +255,7 @@ export default function CreateActivity() {
       label: "Location",
       name: "location_address",
       type: "text",
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
+      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
       required: false,
       col: 24,
       value: activityDetail.location_address ?? "",
@@ -251,7 +266,7 @@ export default function CreateActivity() {
       label: "Description",
       name: "description",
       type: "text-editor",
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
+      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
       required: false,
       col: 24,
       placeholder: "Add description",
@@ -264,7 +279,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: saleAllList,
-      disabled: mode === "create" ? false : !activityDetail?.permission?.edit,
+      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
       required: false,
       col: 24,
       value: activityDetail.assing_user_list,
@@ -619,8 +634,8 @@ export default function CreateActivity() {
             pageCode == "expense_clearing"
               ? true
               : mode === "create"
-              ? false
-              : !activityDetail?.permission?.edit
+                ? false
+                : !activityDetail?.permission?.edit
           }
           onChange={(value) =>
             handleInputChange(
@@ -651,8 +666,8 @@ export default function CreateActivity() {
             pageCode != "expense_clearing"
               ? true
               : mode === "create"
-              ? false
-              : !activityDetail?.permission?.edit
+                ? false
+                : !activityDetail?.permission?.edit
           }
           onChange={(value) =>
             handleInputChange(
@@ -980,7 +995,7 @@ export default function CreateActivity() {
               2
             ).then(successCallback);
           })
-          .catch((error) => {});
+          .catch((error) => { });
       } else {
         useServiceAPI
           .post(paths.pathActivityExpenseCreate, body, setLoading)
@@ -1009,7 +1024,7 @@ export default function CreateActivity() {
               2
             ).then(successCallback);
           })
-          .catch((error) => {});
+          .catch((error) => { });
       }
     } catch (err) {
       console.error("Error fetching address:", err);
@@ -1058,7 +1073,8 @@ export default function CreateActivity() {
       setLoading(false);
     }
   };
-
+  console.log(mode);
+  console.log(menuTitle);
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -1090,11 +1106,11 @@ export default function CreateActivity() {
         onChange={handleChange}
         mode={documentNumber ? "edit" : "create"}
       />
-      
+
 
       {isBtnExpenseActive ||
-      pageCode == "expense_advance" ||
-      pageCode == "expense_clearing" ? (
+        pageCode == "expense_advance" ||
+        pageCode == "expense_clearing" ? (
         <>
           <div className="flex items-center justify-between">
             <div className="title-page">Advance Expense</div>
@@ -1291,7 +1307,7 @@ export default function CreateActivity() {
           </BoxPrimary>
 
           <BoxPrimary title="Expense">
-          <h1>aaaaaaaaaaa</h1>
+            <h1>aaaaaaaaaaa</h1>
             <Form
               layout="vertical"
               form={expenseForm} // Use the new expenseForm instance here
@@ -1332,10 +1348,10 @@ export default function CreateActivity() {
                         mode === "create" && pageCode === "expense_clearing"
                           ? true
                           : pageCode !== "expense_clearing"
-                          ? false
-                          : pageCode === "expense_clearing"
-                          ? true
-                          : !activityDetail?.permission?.edit
+                            ? false
+                            : pageCode === "expense_clearing"
+                              ? true
+                              : !activityDetail?.permission?.edit
                       }
                     />{" "}
                   </Form.Item>
@@ -1446,8 +1462,8 @@ export default function CreateActivity() {
                     mode === "create"
                       ? false
                       : !activityDetail?.permission?.edit
-                      ? "view"
-                      : "edit"
+                        ? "view"
+                        : "edit"
                   }
                   dataFile={fileList}
                   modeUpload={pageCode}
@@ -1501,8 +1517,8 @@ export default function CreateActivity() {
                         pageCode == "expense_clearing"
                           ? true
                           : mode === "create"
-                          ? false
-                          : !activityDetail?.permission?.edit
+                            ? false
+                            : !activityDetail?.permission?.edit
                       }
                       formatter={(value) =>
                         `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
@@ -1555,7 +1571,7 @@ export default function CreateActivity() {
                 <></>
               )}
             </Form>
-            
+
           </BoxPrimary>
         </>
       ) : null}
@@ -1581,13 +1597,15 @@ export default function CreateActivity() {
             onClick={() => handleSave("draft")}
           />
         )}
-        {(activityDetail?.permission?.btn_save || mode === "create") && (
+
+        {(activityDetail?.permission?.btn_save || mode === "create") && mode !== "view" && (
           <ActionButton
             mode="save"
             text="Save"
             onClick={() => handleSave("save")}
           />
         )}
+
         {activityDetail?.permission?.btn_pdf && (
           <ActionButton
             mode="saveDraft"
