@@ -452,7 +452,7 @@ export default function ActivityList() {
           mode="create"
           text="Create"
           onClick={(e) =>
-            navigate("/activity/create", {
+            navigate("/activity/creates", {
               state: {
                 pageCode: "activity_transaction",
               },

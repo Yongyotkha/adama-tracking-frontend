@@ -186,7 +186,7 @@ const App = () => {
 
             <Route path="/activity/list" element={<ActivityList />} />
             <Route path="/activity/:mode" element={<CreateActivity />} />
-            {/* <Route path="/activity/create" element={<CreateActivityManyShop />} /> */}
+            <Route path="/activity/creates" element={<CreateActivityManyShop />} />
  
             <Route path="/activity/calendar" element={<ActivityCalendar />} />
             <Route path="/activity/mapping" element={<ActivityMapping />} />
