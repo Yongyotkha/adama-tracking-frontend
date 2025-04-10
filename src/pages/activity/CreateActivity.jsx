@@ -1079,20 +1079,6 @@ export default function CreateActivity() {
         });
       });
 
-      //console.log("activityDetail : ", activityDetail);
-
-      const body = {
-        ...activityDetail,
-        page_code: pageCode,
-        action_code: modeSave,
-        image_list: imageLists,
-        is_expense: isExpense,
-        expense_file_list: [],
-        expense_particapant_user_list: expenseParticapantUserList,
-        particapant_list: particapantList,
-        document_date: allValuesBasic.document_date,
-      };
-
       const newSave = multiShop.map((item) => ({
         page_code: pageCode,
         action_code: modeSave,
@@ -1163,15 +1149,15 @@ export default function CreateActivity() {
             "success",
             "บันทึกข้อมูลสำเร็จทั้งหมด",
             allDocNumbers.join("\n"),
-            3
+            1
           ).then(() => {
-            // if (pageCode === "expense_clearing") {
-            //   navigate("/expenses/clearing");
-            // } else if (pageCode === "expense_advance") {
-            //   navigate("/expenses/advance");
-            // } else {
-            //   navigate("/activity/list");
-            // }
+            if (pageCode === "expense_clearing") {
+              navigate("/expenses/clearing");
+            } else if (pageCode === "expense_advance") {
+              navigate("/expenses/advance");
+            } else {
+              navigate("/activity/list");
+            }
           });
         } else {
           showNotification(
@@ -1281,53 +1267,41 @@ export default function CreateActivity() {
             </div>
           )}
 
+          <div className="flex justify-center">
+            <div style={{ width: "200px" }}>
+              <button
+                type="button"
+                style={{
+                  padding: "8px 16px",
+                  backgroundColor: "#00783F",
+                  color: "#fff",
+                  borderRadius: "4px",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  setMultiShop([
+                    ...multiShop,
+                    {
+                      document_number: "",
+                      document_date: "",
+                      dealer_id: "",
+                      crop_id_list: "",
+                      product_list: "",
+                      location_address: "",
+                      description: "",
+                      assing_user_list: "",
+                    },
+                  ]);
+                }}
+              >
+                Add Shop
+              </button>
+            </div>
+          </div>
         </BoxPrimary>
       </Form>
-      <DynamicButton
-            type="primary"
-            className="flex w-full justify-center rounded-sm bg-[#00783F] text-white hover:bg-[#00783F] hover:text-green-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-full max-w-full mb-3"
-            htmlType="button"
-            text="Add Shop"
-            onClick={() => {
-              setMultiShop([
-                ...multiShop,
-                {
-                  document_number: "",
-                  document_date: "",
-                  dealer_id: "",
-                  crop_id_list: "",
-                  product_list: "",
-                  location_address: "",
-                  description: "",
-                  assing_user_list: "",
-                },
-              ]);
-            }}
-          />
-      {/* <div className="flex justify-center my-6">
-        <div style={{ width: "200px" }}>
-          <ActionButton
-            mode="add"
-            text="Add Shop"
-            htmlType="button"
-            onClick={() => {
-              setMultiShop([
-                ...multiShop,
-                {
-                  document_number: "",
-                  document_date: "",
-                  dealer_id: "",
-                  crop_id_list: "",
-                  product_list: "",
-                  location_address: "",
-                  description: "",
-                  assing_user_list: "",
-                },
-              ]);
-            }}
-          />
-        </div>
-      </div> */}
+
       {isBtnExpenseActive ||
       pageCode == "expense_advance" ||
       pageCode == "expense_clearing" ? (
