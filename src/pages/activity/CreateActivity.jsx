@@ -150,14 +150,14 @@ export default function CreateActivity() {
     pageCode == "expense_advance"
       ? "Advance Expense"
       : pageCode == "expense_clearing"
-      ? "Clearing Expense"
-      : "Activity";
+        ? "Clearing Expense"
+        : "Activity";
   const menuURL =
     pageCode == "expense_advance"
       ? "/expenses/advance"
       : pageCode == "expense_clearing"
-      ? "/expenses/clearing"
-      : "/activity/list";
+        ? "/expenses/clearing"
+        : "/activity/list";
 
   //console.log("multishop : ", multiShop);
 
@@ -768,8 +768,8 @@ export default function CreateActivity() {
             pageCode == "expense_clearing"
               ? true
               : mode === "create"
-              ? false
-              : !activityDetail?.permission?.edit
+                ? false
+                : !activityDetail?.permission?.edit
           }
           onChange={(value) =>
             handleInputChange(
@@ -800,8 +800,8 @@ export default function CreateActivity() {
             pageCode != "expense_clearing"
               ? true
               : mode === "create"
-              ? false
-              : !activityDetail?.permission?.edit
+                ? false
+                : !activityDetail?.permission?.edit
           }
           onChange={(value) =>
             handleInputChange(
@@ -1272,7 +1272,8 @@ export default function CreateActivity() {
             </Col>
           </Row>
         </BoxPrimary>
-        <BoxPrimary>
+
+        <BoxPrimary className="mt-4">
           {multiShop.length > 0 ? (
             renderMultiShop()
           ) : (
@@ -1281,12 +1282,9 @@ export default function CreateActivity() {
             </div>
           )}
 
-        </BoxPrimary>
-      </Form>
-      <DynamicButton
-            type="primary"
-            className="flex w-full justify-center rounded-sm bg-[#00783F] text-white hover:bg-[#00783F] hover:text-green-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-full max-w-full mb-3"
-            htmlType="button"
+          <DynamicButton
+            type="button"
+            className="flex w-fit mx-auto justify-center rounded-sm bg-[#00783F] text-white hover:bg-[#00783F] hover:text-green-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 max-w-full mb-3"
             text="Add Shop"
             onClick={() => {
               setMultiShop([
@@ -1304,6 +1302,11 @@ export default function CreateActivity() {
               ]);
             }}
           />
+        </BoxPrimary>
+
+      </Form>
+
+
       {/* <div className="flex justify-center my-6">
         <div style={{ width: "200px" }}>
           <ActionButton
@@ -1329,8 +1332,8 @@ export default function CreateActivity() {
         </div>
       </div> */}
       {isBtnExpenseActive ||
-      pageCode == "expense_advance" ||
-      pageCode == "expense_clearing" ? (
+        pageCode == "expense_advance" ||
+        pageCode == "expense_clearing" ? (
         <>
           <div className="flex items-center justify-between">
             <div className="title-page">Advance Expense</div>
@@ -1567,10 +1570,10 @@ export default function CreateActivity() {
                         mode === "create" && pageCode === "expense_clearing"
                           ? true
                           : pageCode !== "expense_clearing"
-                          ? false
-                          : pageCode === "expense_clearing"
-                          ? true
-                          : !activityDetail?.permission?.edit
+                            ? false
+                            : pageCode === "expense_clearing"
+                              ? true
+                              : !activityDetail?.permission?.edit
                       }
                     />{" "}
                   </Form.Item>
@@ -1681,8 +1684,8 @@ export default function CreateActivity() {
                     mode === "create"
                       ? false
                       : !activityDetail?.permission?.edit
-                      ? "view"
-                      : "edit"
+                        ? "view"
+                        : "edit"
                   }
                   dataFile={fileList}
                   modeUpload={pageCode}
@@ -1736,8 +1739,8 @@ export default function CreateActivity() {
                         pageCode == "expense_clearing"
                           ? true
                           : mode === "create"
-                          ? false
-                          : !activityDetail?.permission?.edit
+                            ? false
+                            : !activityDetail?.permission?.edit
                       }
                       formatter={(value) =>
                         `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
