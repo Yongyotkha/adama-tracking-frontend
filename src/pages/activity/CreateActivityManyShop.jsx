@@ -47,15 +47,15 @@ export default function CreateActivityManyShop() {
     console.log(locationParam);
   }, [locationParam]);
 
-  const mode = 'create'
+  const mode = "create";
   const [documentNumber, setDocumentNumber] = useState(
     locationParam?.state?.documentNumber
   );
   const [pageMode, setPageMode] = useState(locationParam?.state?.page_mode);
   const pageCode = locationParam?.state?.pageCode;
-  console.log('pageMode : ',pageMode)
-  console.log('pageCode : ',pageMode)
-  console.log('mode : ',mode)
+  console.log("pageMode : ", pageMode);
+  console.log("pageCode : ", pageMode);
+  console.log("mode : ", mode);
   const isViewMode = mode === "View";
   const viewSegment = mode === "view";
   const isCreate = mode === "create";
@@ -101,7 +101,7 @@ export default function CreateActivityManyShop() {
   const [multiShop, setMultiShop] = useState([
     {
       document_number: "",
-      document_date: "",
+      document_date: dayjs().format("YYYY-MM-DD"),
       dealer_id: "",
       crop_id_list: "",
       product_list: "",
@@ -110,8 +110,6 @@ export default function CreateActivityManyShop() {
       assing_user_list: "",
     },
   ]);
-
-
 
   const handleUploadClick = async () => {
     if (fileUploadRef.current) {
@@ -219,7 +217,6 @@ export default function CreateActivityManyShop() {
     label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
     selected: false, // default value is false
   }));
-  
 
   const handleContactChange = (index, field, value) => {
     // console.log("index : ", index);
@@ -305,22 +302,29 @@ export default function CreateActivityManyShop() {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={6} lg={6}>
-            <Form.Item 
+            <Form.Item
               key={index}
               label="Date"
-              rules={[{ required: true, message: "กรุณาเลือก Date" }]}
               style={{ marginBottom: 12 }}
               name={["shops", index, "document_date"]}
+              rules={[{ required: true, message: "กรุณาเลือก Date" }]}
+              initialValue={
+                item.document_date
+                  ? dayjs(item.document_date)
+                  : isCreate
+                  ? dayjs() // 👉 วันที่ปัจจุบัน
+                  : null
+              }
             >
               <DatePicker
-                 disabled={isViewMode || (isCreate ? false : !activityDetail?.permission?.edit)}
+                disabled={
+                  isViewMode ||
+                  (isCreate ? false : !activityDetail?.permission?.edit)
+                }
                 style={{ width: "100%" }}
                 format="YYYY-MM-DD"
-                defaultValue={
-                  item.document_date ? dayjs(item.document_date) : null
-                }
                 onChange={(date) => {
-                  const d = new Date(date).toLocaleDateString("fr-FR");
+                  const d = dayjs(date).format("YYYY-MM-DD");
                   handleChangeDate(index, "document_date", d);
                 }}
               />
@@ -334,7 +338,10 @@ export default function CreateActivityManyShop() {
               name={["shops", index, "dealer_id"]}
             >
               <Select
-                 disabled={isViewMode || (isCreate ? false : !activityDetail?.permission?.edit)}
+                disabled={
+                  isViewMode ||
+                  (isCreate ? false : !activityDetail?.permission?.edit)
+                }
                 placeholder="Select shop"
                 options={optionsShop}
                 onChange={handleChangeSelect.bind(null, index, "dealer_id")}
@@ -349,7 +356,10 @@ export default function CreateActivityManyShop() {
               name={["shops", index, "crop_id_list"]}
             >
               <Select
-                 disabled={isViewMode || (isCreate ? false : !activityDetail?.permission?.edit)}
+                disabled={
+                  isViewMode ||
+                  (isCreate ? false : !activityDetail?.permission?.edit)
+                }
                 placeholder="Select shop"
                 options={optionsCropList}
                 mode="multiple"
@@ -365,7 +375,10 @@ export default function CreateActivityManyShop() {
               name={["shops", index, "product_list"]}
             >
               <Select
-                 disabled={isViewMode || (isCreate ? false : !activityDetail?.permission?.edit)}
+                disabled={
+                  isViewMode ||
+                  (isCreate ? false : !activityDetail?.permission?.edit)
+                }
                 placeholder="Select shop"
                 options={optionsProductList}
                 mode="multiple"
@@ -380,7 +393,10 @@ export default function CreateActivityManyShop() {
               name={["shops", index, "location_address"]}
             >
               <Input
-                 disabled={isViewMode || (isCreate ? false : !activityDetail?.permission?.edit)}
+                disabled={
+                  isViewMode ||
+                  (isCreate ? false : !activityDetail?.permission?.edit)
+                }
                 placeholder="Enter location"
                 value={item.location_address || ""}
                 onChange={(e) =>
@@ -396,7 +412,10 @@ export default function CreateActivityManyShop() {
               name={["shops", index, "description"]}
             >
               <ReactQuill
-                 disabled={isViewMode || (isCreate ? false : !activityDetail?.permission?.edit)}
+                disabled={
+                  isViewMode ||
+                  (isCreate ? false : !activityDetail?.permission?.edit)
+                }
                 theme="snow"
                 placeholder="Enter Description"
                 modules={{ toolbar: toolbarOptions }}
@@ -411,7 +430,10 @@ export default function CreateActivityManyShop() {
               name={["shops", index, "assing_user_list"]}
             >
               <Select
-                 disabled={isViewMode || (isCreate ? false : !activityDetail?.permission?.edit)}
+                disabled={
+                  isViewMode ||
+                  (isCreate ? false : !activityDetail?.permission?.edit)
+                }
                 placeholder="Select Assign"
                 options={optionsSaleAllList}
                 mode="multiple"
@@ -1060,15 +1082,6 @@ export default function CreateActivityManyShop() {
 
       let allValuesBasic = formMulti.getFieldsValue();
 
-      // allValuesBasic.document_date = dayjs(allValuesBasic.document_date).format(
-      //   "YYYY-MM-DD"
-      // );
-
-      // ✅ Convert `document_date` to Asia/Bangkok timezone and format it
-      allValuesBasic.document_date = dayjs(allValuesBasic.document_date)
-        .tz("Asia/Bangkok", true) // Convert to +7 timezone
-        .format("YYYY-MM-DD HH:mm:ss.SSS"); // Format as required
-
       //File Upload
       const imageLists = [];
       fileList.forEach((element) => {
@@ -1229,8 +1242,8 @@ export default function CreateActivityManyShop() {
     }
   };
 
-  console.log('activityDetail : ',activityDetail)
-  console.log('mode : ',mode)
+  console.log("activityDetail : ", activityDetail);
+  console.log("mode : ", mode);
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -1252,7 +1265,10 @@ export default function CreateActivityManyShop() {
                 style={{ marginBottom: 12 }}
               >
                 <Select
-                   disabled={isViewMode || (isCreate ? false : !activityDetail?.permission?.edit)}
+                  disabled={
+                    isViewMode ||
+                    (isCreate ? false : !activityDetail?.permission?.edit)
+                  }
                   placeholder="Select activity type"
                   options={optionsActivityType}
                   onChange={(value) => handleChange("activity_type_id", value)}
@@ -1267,7 +1283,10 @@ export default function CreateActivityManyShop() {
                 style={{ marginBottom: 12 }}
               >
                 <Select
-                   disabled={isViewMode || (isCreate ? false : !activityDetail?.permission?.edit)}
+                  disabled={
+                    isViewMode ||
+                    (isCreate ? false : !activityDetail?.permission?.edit)
+                  }
                   placeholder="Select Sales"
                   options={optionsSale}
                   onChange={(value) => handleChange("user_id", value)}
@@ -1302,7 +1321,7 @@ export default function CreateActivityManyShop() {
                     ...multiShop,
                     {
                       document_number: "",
-                      document_date: "",
+                      document_date: dayjs().format("YYYY-MM-DD"),
                       dealer_id: "",
                       crop_id_list: "",
                       product_list: "",
@@ -1800,13 +1819,13 @@ export default function CreateActivityManyShop() {
             onClick={() => handleSave("convert_clearing")}
           />
         )}
-        {(activityDetail?.permission?.btn_draft || mode === "create") && (
+        {/* {(activityDetail?.permission?.btn_draft || mode === "create") && (
           <ActionButton
             mode="saveDraft"
             text="Draft"
             onClick={() => handleSave("draft")}
           />
-        )}
+        )} */}
         {(activityDetail?.permission?.btn_save || mode === "create") && (
           <ActionButton
             mode="save"
