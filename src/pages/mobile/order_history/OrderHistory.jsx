@@ -68,7 +68,7 @@ export default function OrderHistory() {
         <UserPointsSection />
 
         {/* Section Header */}
-        <SectionHeader title="รายการสั่งซื้อ" icon="/img/icons/bill.png" />
+        <SectionHeader title="ประวัติการสั่งซื้อ" icon="/img/icons/bill.png" />
 
         {/* Tabs */}
         <div className="w-full max-w-md mt-4 flex space-x-3 border-b">

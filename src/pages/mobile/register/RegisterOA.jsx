@@ -20,6 +20,8 @@ export default function RegisterOA() {
   const navigate = useNavigate();
   const location = useLocation();
   const { lineProfile } = useOutletContext() || {};
+  const [redirectPath, setRedirectPath] = useState(null);
+
   useEffect(() => {
     console.log("lineProfile", lineProfile);
 
@@ -45,7 +47,7 @@ export default function RegisterOA() {
     birth_date_year: "",
     shop_type: "",
   });
-  
+
   console.log("formData", formData);
 
   const handleCheckboxClick = () => {
@@ -112,7 +114,7 @@ export default function RegisterOA() {
 
 
   const handleRegister = () => {
-    
+
     if (!isChecked) return;
 
     const formattedData = {
@@ -131,7 +133,7 @@ export default function RegisterOA() {
       shop_type: formData.shop_type,
       image_url: imagePreview,
       line_id_token: formData.line_id_token,
-      line_name: formData.line_name, 
+      line_name: formData.line_name,
     };
     setLoading(true);
     useServiceAPI
@@ -140,6 +142,7 @@ export default function RegisterOA() {
         if (response.status === 200) {
           setIsSuccessModalVisible(true);
           navigate("/mobile/main", { state: formattedData });
+          
         }
       })
       .catch((error) => {
@@ -341,9 +344,9 @@ export default function RegisterOA() {
             {/* เบอร์โทร */}
             <div>
               <label className="text-gray-500 sarabun-font">เบอร์โทร<span className="text-red-500">*</span></label>
-              <Input 
-                className="mt-1 sarabun-font text-[#A19793]" 
-                value={formData.phone_number} 
+              <Input
+                className="mt-1 sarabun-font text-[#A19793]"
+                value={formData.phone_number}
                 name="phone_number"
                 onChange={handleInputChange}
               />
@@ -363,9 +366,9 @@ export default function RegisterOA() {
             {/* ไลน์ไอดี */}
             <div>
               <label className="text-gray-500 sarabun-font">ไลน์ไอดี</label>
-              <Input 
-                className="mt-1 sarabun-font text-[#A19793]" 
-                value={formData.line_id} 
+              <Input
+                className="mt-1 sarabun-font text-[#A19793]"
+                value={formData.line_id}
                 name="line_id"
                 onChange={handleInputChange}
 
@@ -415,7 +418,7 @@ export default function RegisterOA() {
 
         {/* Action Buttons */}
         <div className="w-full max-w-md flex justify-between align-bottom mt-auto space-x-2">
-          <BackButton />
+          <BackButton url="/mobile/login" />
 
           <div className="w-full max-w-md mt-auto py-2">
             <button
