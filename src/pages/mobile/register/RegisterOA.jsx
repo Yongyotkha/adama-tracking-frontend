@@ -140,9 +140,9 @@ export default function RegisterOA() {
       .post(paths.pathRegisterShop, formattedData)
       .then((response) => {
         if (response.status === 200) {
+          localStorage.setItem("redirectPath", "/mobile/main");
           setIsSuccessModalVisible(true);
           navigate("/mobile/main", { state: formattedData });
-          
         }
       })
       .catch((error) => {
