@@ -1,4 +1,4 @@
-import React, { useState,useEffect  } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { useNavigate } from "react-router-dom";
 import SectionHeader from "../../../components/mobile/section_header/SectionHeader";
@@ -7,6 +7,7 @@ import UserPointsSection from "../../../components/mobile/user_points_section/Us
 import BackButton from "../../../components/mobile/button/BackButton";
 import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function PointHistory() {
   const [loading, setLoading] = useState(false);
@@ -14,8 +15,8 @@ export default function PointHistory() {
   const [transactionData, setTransactionData] = useState([]);
 
   const navigate = useNavigate();
+  const { userInfo } = useContext(AuthContext);
 
-  
   // Tabs
   const tabs = [
     { id: "collect_points", label: "สะสมคะแนน", color: "border-green-500" },
@@ -38,31 +39,31 @@ export default function PointHistory() {
   //   points_expire: [{ id: 7, date: "3 พ.ย. 67", points: "15 คะแนน" }],
   // };
 
-    useEffect(() => {
-      const fetchPointHistory = async () => {
-        setLoading(true);
-        try {
-          const response = await useServiceAPI.get(paths.pathpointhistory, {
-            platform: "web",
-            id: 139, // เปลี่ยนเป็น user id ที่เหมาะสม
-            mode: activeTab, 
-          });
+  useEffect(() => {
+    const fetchPointHistory = async () => {
+      setLoading(true);
+      try {
+        const response = await useServiceAPI.get(paths.pathpointhistory, {
+          platform: "web",
+          id: userInfo.id, // เปลี่ยนเป็น user id ที่เหมาะสม
+          mode: activeTab,
+        });
 
-          if (response.status === 200) {
-            // setTransactionData(response.data.result || []);
-            console.log(response);
-            
-          } 
-        } catch (error) {
-          console.error("Error fetching point history:", error);
-          setTransactionData([]);
-        } finally {
-          setLoading(false);
+        if (response.status === 200) {
+          // console.log(response);
+          setTransactionData(response.data.data || []);
         }
-      };
+      } catch (error) {
+        console.error("Error fetching point history:", error);
+        setTransactionData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      fetchPointHistory();
-    }, [activeTab]);
+    fetchPointHistory();
+  }, [activeTab]);
+
 
   return (
     <MobileLayout loading={loading}>
@@ -91,35 +92,24 @@ export default function PointHistory() {
         </div>
 
         {/* Transactions List */}
-        {/* <div className="w-full max-w-md mt-4 px-4">
-          {transactions[activeTab].map((item) => (
-            <div key={item.id} className="flex justify-between items-center bg-white p-3 rounded-lg shadow-md mb-2">
-              <div className="flex gap-2 flex-wrap">
-                <img src="/img/icons/point.png" className="h-5 w-5 my-auto" alt="point-icon" />
-                <div>
-                  {item.item && <p className="text-gray-700 font-medium text-sm sarabun-font">{item.item}</p>}
-                  <p className="text-gray-500 text-sm sarabun-font">{item.date}</p>
-                </div>
-              </div>
-              <p className={`font-bold sarabun-font ${activeTab === "redeem_points" ? "text-red-500" : "text-green-600"}`}>{item.points}</p>
-            </div>
-          ))}
-        </div> */}
-
         <div className="w-full max-w-md mt-4">
           {transactionData.length > 0 ? (
-            transactionData.map((item) => (
-              <div key={item.id} className="flex justify-between items-center bg-white p-3 rounded-lg shadow-md mb-2">
-                <div className="flex gap-2 flex-wrap">
-                  <img src="/img/icons/point.png" className="h-5 w-5 my-auto" alt="point-icon" />
-                  <div>
-                    {item.item && <p className="text-gray-700 font-medium text-sm sarabun-font">{item.item}</p>}
-                    <p className="text-gray-500 text-sm sarabun-font">{item.date}</p>
+            transactionData.flat().map((month, monthIdx) => (
+              <div key={monthIdx} className="mb-4">
+                <p className="text-gray-700 font-bold sarabun-font mb-2">{month.month_name}</p>
+                {month.items.map((item, itemIdx) => (
+                  <div key={`${monthIdx}-${itemIdx}`} className="flex justify-between items-center bg-white p-3 rounded-lg shadow-md mb-2">
+                    <div className="flex gap-2 flex-wrap">
+                      <img src="/img/icons/point.png" className="h-5 w-5 my-auto" alt="point-icon" />
+                      <div>
+                        <p className="text-gray-500 text-sm sarabun-font">{item.datetime}</p>
+                      </div>
+                    </div>
+                    <p className={`font-bold sarabun-font ${item.color === "red" ? "text-red-500" : item.color === "orange" ? "text-orange-500" : "text-green-600"}`}>
+                      {item.point}
+                    </p>
                   </div>
-                </div>
-                <p className={`font-bold sarabun-font ${activeTab === "redeem_points" ? "text-red-500" : "text-green-600"}`}>
-                  {item.points}
-                </p>
+                ))}
               </div>
             ))
           ) : (

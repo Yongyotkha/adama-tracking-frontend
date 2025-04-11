@@ -305,7 +305,7 @@ const App = () => {
 
           </Route>
 
-          {/* <Route element={<LineOARoute />}> */}
+          <Route element={<LineOARoute />}>
 
             <Route path="/mobile/login" element={< CheckLogin />} />
 
@@ -333,7 +333,7 @@ const App = () => {
               <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
             </Route>
 
-          {/* </Route> */}
+          </Route>
 
           <Route path="/mobile/scan-collect" element={< ScanCollectPoint />} />
           <Route path="/mobile/take-photo" element={< TakePhoto />} />

@@ -20,7 +20,7 @@ const HeadSectionUser = () => {
     }
   }, []);
 
-  console.log(" userInfo.id", userInfo.id);
+  // console.log(" userInfo.id", userInfo.id);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
