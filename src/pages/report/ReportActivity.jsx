@@ -20,7 +20,7 @@ export default function ReportActivity() {
   const [status, setStatus] = useState([]);
   const [years, setYears] = useState([]);
   const [sales, setSales] = useState([]);
-  const [activity, setActivity] = useState([]);
+  const [crops, setCrops] = useState([]);
   const [products, setProducts] = useState([]);
   const [dealers, setDealers] = useState([]);
   const [itemColumn, setItemColumn] = useState([]);
@@ -44,15 +44,17 @@ export default function ReportActivity() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [years, sales, activity, dealers] = await Promise.all([
+        const [years, sales, crops, products, dealers] = await Promise.all([
           useServiceAPI.get(paths.pathMasterYear),
           useServiceAPI.get(paths.pathMasterSaleDropdown),
-          useServiceAPI.get(paths.pathMasterActivityType),
+          useServiceAPI.get(paths.pathMasterCrop),
+          useServiceAPI.get(paths.pathMasterProducts),
           useServiceAPI.get(paths.pathMasterDealerAll),
         ]);
         setYears(years.data);
         setSales(sales.data);
-        setActivity(activity.data);
+        setCrops(crops.data);
+        setProducts(products.data);
         setDealers(dealers.data);
 
         if (years.data.length > 0) {
@@ -80,16 +82,14 @@ export default function ReportActivity() {
       year_code: filters.year_code,
       user_id: filters.user_id,
       dealer_id: filters.dealer_id,
+      crop_id: filters.crop_id,
       page_length: 1,
       page_size: pageSize,
     };
 
-
-    console.log(requestData);
-
     try {
       const response = await useServiceAPI.get(
-        paths.pathReportSaleByActivity,
+        paths.pathReportSaleByMonth,
         requestData
       );
 
@@ -99,8 +99,9 @@ export default function ReportActivity() {
         console.log(response.data);
         const newDataSource = data_items.map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-          activity_type: row.activity_type_name,
-          activity_type_id: row.activity_type_id,
+          productName: row.product_name,
+          packSize: row.pack_size,
+          productId: row.product_id,
         }));
         setItemColumn(items);
         setPermission(permission);
@@ -121,7 +122,7 @@ export default function ReportActivity() {
   };
 
   useEffect(() => {
-    if (years.data.length > 0) {
+    if (years.length > 0) {
       fetchData();
     }
   }, [
@@ -155,7 +156,12 @@ export default function ReportActivity() {
       label: "Sales",
       options: sales,
     },
-
+    {
+      key: "crop_id",
+      type: "select",
+      label: "Crop",
+      options: crops,
+    },
     {
       key: "product_id",
       type: "select",
@@ -185,6 +191,7 @@ export default function ReportActivity() {
   }, [defaultOption]);
 
   const handleSearch = (filters) => {
+    console.log(filters);
     setTableParams({
       ...tableParams,
       filters,
@@ -215,11 +222,26 @@ export default function ReportActivity() {
       }),
       children: [
         {
-          title: "Activity Type", // Row 4
-          dataIndex: "activity_type",
-          key: "activity_type",
+          title: "Product Name", // Row 4
+          dataIndex: "productName",
+          key: "productName ",
           fixed: "left",
-          width: 200,
+          width: 125,
+          onHeaderCell: () => ({
+            style: {
+              backgroundColor: "#00783F", // สีเขียวเข้ม
+              color: "white", // สีตัวอักษร
+              fontWeight: "bold",
+              textAlign: "center",
+            },
+          }),
+        },
+        {
+          title: "Pack Size",
+          dataIndex: "packSize",
+          key: "packSize",
+          width: 125,
+          fixed: "left",
           onHeaderCell: () => ({
             style: {
               backgroundColor: "#00783F", // สีเขียวเข้ม
@@ -244,7 +266,7 @@ export default function ReportActivity() {
       }),
       children: [
         {
-          title: "Plan(Value)",
+          title: "Work Plan(KG)",
           key: index,
           width: 125,
           onHeaderCell: () => ({
@@ -256,12 +278,141 @@ export default function ReportActivity() {
             },
           }),
           render: (_, record) => {
-            console.log(month);
+            const itemData =
+            month.items.find(
+              (product) => product.product_id == record.productId
+              
+            ) || {};
+
             return (
               <InputNumber
                 className="w-full"
                 min={0}
-                value={month.plan_value}
+                value={itemData.work_plan_kg}
+                formatter={(value) =>
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                disabled={true}
+              />
+            );
+          },
+        },
+        {
+          title: "Work Plan(Value)",
+          key: index,
+          width: 125,
+          onHeaderCell: () => ({
+            style: {
+              backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สีเขียวสลับ
+              color: "white",
+              fontWeight: "bold",
+              textAlign: "center",
+            },
+          }),
+          render: (_, record) => {
+            const itemData =
+            month.items.find(
+              (product) => product.product_id == record.productId
+              
+            ) || {};
+            return (
+              <InputNumber
+                className="w-full"
+                min={0}
+                value={itemData.workplan_value}
+                formatter={(value) =>
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                disabled={true}
+              />
+            );
+          },
+        },
+        {
+          title: "Rolling Forecast(KG)",
+          key: index,
+          width: 125,
+          onHeaderCell: () => ({
+            style: {
+              backgroundColor: "#7DB41E", // สีเขียวสลับ
+              color: "white",
+              fontWeight: "bold",
+              textAlign: "center",
+            },
+          }),
+          render: (_, record) => {
+            const itemData =
+            month.items.find(
+              (product) => product.product_id == record.productId
+              
+            ) || {};
+            return (
+              <InputNumber
+                className="w-full"
+                min={0}
+                value={itemData.rolling_frecase_kg}
+                formatter={(value) =>
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                disabled={true}
+              />
+            );
+          },
+        },
+        {
+          title: "Rolling Forecast(Value)",
+          key: index,
+          width: 125,
+          onHeaderCell: () => ({
+            style: {
+              backgroundColor: "#7DB41E", // สีเขียวสลับ
+              color: "white",
+              fontWeight: "bold",
+              textAlign: "center",
+            },
+          }),
+          render: (_, record) => {
+            const itemData =
+            month.items.find(
+              (product) => product.product_id == record.productId
+              
+            ) || {};
+            return (
+              <InputNumber
+                className="w-full"
+                min={0}
+                value={itemData.rolling_frecase_value}
+                formatter={(value) =>
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                disabled={true}
+              />
+            );
+          },
+        },
+        {
+          title: "Actual(KG)",
+          key: index,
+          width: 125,
+          onHeaderCell: () => ({
+            style: {
+              backgroundColor: "#93CC23", // สีเขียวสลับ
+              color: "white",
+              fontWeight: "bold",
+              textAlign: "center",
+            },
+          }),
+          render: (_, record) => {
+            const itemData =
+            month.items.find(
+              (product) => product.product_id == record.productId
+              
+            ) || {};
+            return (
+              <InputNumber
+                className="w-full"
+                min={0}
+                value={itemData.actual_kg}
                 formatter={(value) =>
                   `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -276,18 +427,23 @@ export default function ReportActivity() {
           width: 125,
           onHeaderCell: () => ({
             style: {
-              backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สีเขียวสลับ
+              backgroundColor: "#93CC23", // สีเขียวสลับ
               color: "white",
               fontWeight: "bold",
               textAlign: "center",
             },
           }),
           render: (_, record) => {
+            const itemData =
+            month.items.find(
+              (product) => product.product_id == record.productId
+              
+            ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
-                value={month.actual_value}
+                value={itemData.actual_value}
                 formatter={(value) =>
                   `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -303,7 +459,7 @@ export default function ReportActivity() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Sales Report By Year" />
+        <Title prefix="Sales Report By Test" />
 
         <Filter
           onSearch={handleSearch}
@@ -323,7 +479,7 @@ export default function ReportActivity() {
                 <Table.Summary.Row className="bg-[#978B87]">
                   <Table.Summary.Cell
                     index={0}
-                    colSpan={1}
+                    colSpan={2}
                   ></Table.Summary.Cell>
                   {itemColumn.map((month, index) => {
                     return (
@@ -335,7 +491,7 @@ export default function ReportActivity() {
                           <InputNumber
                             className="w-full"
                             disabled
-                            value={month.plan_value}
+                            value={month.work_plan_kg}
                             formatter={(value) =>
                               `${parseInt(value)}`.replace(
                                 /\B(?=(\d{3})+(?!\d))/g,
@@ -347,6 +503,74 @@ export default function ReportActivity() {
                         </Table.Summary.Cell>
                         <Table.Summary.Cell
                           key={`${month.id}_workplan_value`}
+                          align="center"
+                        >
+                          <InputNumber
+                            className="w-full"
+                            disabled
+                            value={month.workplan_value}
+                            formatter={(value) =>
+                              `${parseInt(value)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
+                            }
+                            style={{ backgroundColor: "white" }}
+                          />
+                        </Table.Summary.Cell>
+                        <Table.Summary.Cell
+                          key={`${month.id}_rolling_frecase_kg`}
+                          align="center"
+                        >
+                          <InputNumber
+                            className="w-full"
+                            disabled
+                            value={month.rolling_frecase_kg}
+                            formatter={(value) =>
+                              `${parseInt(value)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
+                            }
+                            style={{ backgroundColor: "white" }}
+                          />
+                        </Table.Summary.Cell>
+                        <Table.Summary.Cell
+                          key={`${month.id}_rolling_frecase_value`}
+                          align="center"
+                        >
+                          <InputNumber
+                            className="w-full"
+                            disabled
+                            value={month.rolling_frecase_value}
+                            formatter={(value) =>
+                              `${parseInt(value)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
+                            }
+                            style={{ backgroundColor: "white" }}
+                          />
+                        </Table.Summary.Cell>
+                        <Table.Summary.Cell
+                          key={`${month.id}_actual_kg`}
+                          align="center"
+                        >
+                          <InputNumber
+                            className="w-full"
+                            disabled
+                            value={month.actual_kg}
+                            formatter={(value) =>
+                              `${parseInt(value)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
+                            }
+                            style={{ backgroundColor: "white" }}
+                          />
+                        </Table.Summary.Cell>
+                        <Table.Summary.Cell
+                          key={`${month.id}_actual_value`}
                           align="center"
                         >
                           <InputNumber

@@ -164,10 +164,6 @@ export default function CreateActivityManyShop() {
 
   //console.log("multishop : ", multiShop);
 
-  const handleRemoveContact = (index) => {
-    setMultiShop((prev) => prev.filter((_, i) => i !== index));
-  };
-
   const toolbarOptions = [
     [{ font: [] }, { size: [] }],
     [{ header: [1, 2, 3, false] }],
@@ -265,6 +261,22 @@ export default function CreateActivityManyShop() {
     const update = [...multiShop];
     update[index][field] = value;
     setMultiShop(update);
+  };
+
+  const handleRemoveContact = (index) => {
+    setMultiShop((prev) => {
+      const updated = prev.filter((_, i) => i !== index);
+
+      // แปลง document_date เป็น dayjs object
+      const normalized = updated.map((shop) => ({
+        ...shop,
+        document_date: dayjs(shop.document_date),
+      }));
+
+      formMulti.setFieldsValue({ shops: normalized });
+
+      return updated;
+    });
   };
 
   const renderMultiShop = () =>
@@ -1321,7 +1333,7 @@ export default function CreateActivityManyShop() {
                     ...multiShop,
                     {
                       document_number: "",
-                      document_date: dayjs().format("YYYY-MM-DD"),
+                      document_date: dayjs(),
                       dealer_id: "",
                       crop_id_list: "",
                       product_list: "",
