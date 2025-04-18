@@ -17,13 +17,15 @@ export default function CheckLogin() {
         if (results.status === 200) {
           console.log(results);
           const storedRedirectPath =
-            localStorage.getItem("redirectPath") || "/mobile/main";
+          localStorage.getItem("redirectPath") || "/mobile/main";
           setRedirectPath(storedRedirectPath);
         }
       } catch (error) {
         console.error("Error fetching user profile:", error);
         if (error?.response?.status === 401) {
+          sessionStorage.removeItem("redirectPath");
           setRedirectPath("/mobile/verify");
+          navigate("/mobile/main");
         }
       } finally {
         setLoading(false); // ✅ done loading, whether success or error
