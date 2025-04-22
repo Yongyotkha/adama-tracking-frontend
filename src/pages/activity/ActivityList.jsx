@@ -444,6 +444,9 @@ export default function ActivityList() {
     JSON.stringify(tableParams.filters),
   ]);
 
+  console.log('header : ',header)
+  console.log('data : ',dataSource)
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">

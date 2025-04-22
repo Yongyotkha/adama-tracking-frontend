@@ -20,7 +20,6 @@ export default function ReportSaleByQuarter() {
   const [status, setStatus] = useState([]);
   const [years, setYears] = useState([]);
   const [sales, setSales] = useState([]);
-  const [crops, setCrops] = useState([]);
   const [products, setProducts] = useState([]);
   const [dealers, setDealers] = useState([]);
   const [itemColumn, setItemColumn] = useState([]);
@@ -29,6 +28,7 @@ export default function ReportSaleByQuarter() {
   const [dataSource, setDataSource] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const { showNotification, formatNumber } = useContext(AuthContext);
+  const [areaList, setAreaList] = useState([]);
 
   const [tableParams, setTableParams] = useState({
     pagination: {
@@ -44,19 +44,18 @@ export default function ReportSaleByQuarter() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [years, sales, crops, products, dealers] = await Promise.all([
+        const [years, sales, products, dealers,resArea] = await Promise.all([
           useServiceAPI.get(paths.pathMasterYear),
           useServiceAPI.get(paths.pathMasterSaleDropdown),
-          useServiceAPI.get(paths.pathMasterCrop),
           useServiceAPI.get(paths.pathMasterProducts),
           useServiceAPI.get(paths.pathMasterDealerAll),
+          useServiceAPI.get(paths.pathMasterAreas),
         ]);
         setYears(years.data);
         setSales(sales.data);
-        setCrops(crops.data);
         setProducts(products.data);
         setDealers(dealers.data);
-
+        setAreaList(resArea.data);
         if (years.data.length > 0) {
           setTableParams({
             ...tableParams,
@@ -96,7 +95,7 @@ export default function ReportSaleByQuarter() {
       if (response.status === 200) {
         const { data_items, records_filtered, permission, items } =
           response.data;
-        console.log(response.data);
+
         const newDataSource = data_items.map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           productName: row.product_name,
@@ -123,7 +122,6 @@ export default function ReportSaleByQuarter() {
 
   useEffect(() => {
     if (years.length > 0) {
-  
       fetchData();
     }
   }, [
@@ -146,22 +144,16 @@ export default function ReportSaleByQuarter() {
 
   const filters = [
     {
-      key: "year_code",
+      key: "area_id",
       type: "select",
-      label: "Year",
-      options: years,
+      label: "Area",
+      options: areaList,
     },
     {
       key: "user_id",
       type: "select",
       label: "Sales",
       options: sales,
-    },
-    {
-      key: "crop_id",
-      type: "select",
-      label: "Crop",
-      options: crops,
     },
     {
       key: "product_id",
@@ -237,21 +229,6 @@ export default function ReportSaleByQuarter() {
             },
           }),
         },
-        {
-          title: "Pack Size",
-          dataIndex: "packSize",
-          key: "packSize",
-          width: 125,
-          fixed: "left",
-          onHeaderCell: () => ({
-            style: {
-              backgroundColor: "#00783F", // สีเขียวเข้ม
-              color: "white", // สีตัวอักษร
-              fontWeight: "bold",
-              textAlign: "center",
-            },
-          }),
-        },
       ],
     },
     ...itemColumn.map((month, index) => ({
@@ -298,37 +275,6 @@ export default function ReportSaleByQuarter() {
           },
         },
         {
-          title: "Work Plan(Value)",
-          key: index,
-          width: 125,
-          onHeaderCell: () => ({
-            style: {
-              backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สีเขียวสลับ
-              color: "white",
-              fontWeight: "bold",
-              textAlign: "center",
-            },
-          }),
-          render: (_, record) => {
-            const itemData =
-              month.items.find(
-                (product) => product.product_id == record.productId
-              ) || {};
-
-            return (
-              <InputNumber
-                className="w-full"
-                min={0}
-                value={itemData.workplan_value}
-                formatter={(value) =>
-                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                }
-                disabled={true}
-              />
-            );
-          },
-        },
-        {
           title: "Rolling Forecast(KG)",
           key: index,
           width: 125,
@@ -351,37 +297,6 @@ export default function ReportSaleByQuarter() {
                 className="w-full"
                 min={0}
                 value={itemData.rolling_frecase_kg}
-                formatter={(value) =>
-                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                }
-                disabled={true}
-              />
-            );
-          },
-        },
-        {
-          title: "Rolling Forecast(Value)",
-          key: index,
-          width: 125,
-          onHeaderCell: () => ({
-            style: {
-              backgroundColor: "#7DB41E", // สีเขียวสลับ
-              color: "white",
-              fontWeight: "bold",
-              textAlign: "center",
-            },
-          }),
-          render: (_, record) => {
-            const itemData =
-              month.items.find(
-                (product) => product.product_id == record.productId
-              ) || {};
-
-            return (
-              <InputNumber
-                className="w-full"
-                min={0}
-                value={itemData.rolling_frecase_value}
                 formatter={(value) =>
                   `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -422,6 +337,70 @@ export default function ReportSaleByQuarter() {
           },
         },
         {
+          title: "Work Plan(Value)",
+          key: index,
+          width: 125,
+          onHeaderCell: () => ({
+            style: {
+              backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สีเขียวสลับ
+              color: "white",
+              fontWeight: "bold",
+              textAlign: "center",
+            },
+          }),
+          render: (_, record) => {
+            const itemData =
+              month.items.find(
+                (product) => product.product_id == record.productId
+              ) || {};
+
+            return (
+              <InputNumber
+                className="w-full"
+                min={0}
+                value={itemData.workplan_value}
+                formatter={(value) =>
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                disabled={true}
+              />
+            );
+          },
+        },
+
+        {
+          title: "Rolling Forecast(Value)",
+          key: index,
+          width: 125,
+          onHeaderCell: () => ({
+            style: {
+              backgroundColor: "#7DB41E", // สีเขียวสลับ
+              color: "white",
+              fontWeight: "bold",
+              textAlign: "center",
+            },
+          }),
+          render: (_, record) => {
+            const itemData =
+              month.items.find(
+                (product) => product.product_id == record.productId
+              ) || {};
+
+            return (
+              <InputNumber
+                className="w-full"
+                min={0}
+                value={itemData.rolling_frecase_value}
+                formatter={(value) =>
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                disabled={true}
+              />
+            );
+          },
+        },
+
+        {
           title: "Actual(Value)",
           key: index,
           width: 125,
@@ -455,7 +434,9 @@ export default function ReportSaleByQuarter() {
       ],
     })),
   ];
+  console.log("header : ", header);
 
+  console.log("dataSource : ", dataSource);
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
@@ -479,8 +460,7 @@ export default function ReportSaleByQuarter() {
                 <Table.Summary.Row className="bg-[#978B87]">
                   <Table.Summary.Cell
                     index={0}
-                    colSpan={2}
-                  ></Table.Summary.Cell>
+                  >Total (THB)</Table.Summary.Cell>
                   {itemColumn.map((month, index) => {
                     return (
                       <React.Fragment key={`${month.id}_${index}`}>

@@ -38,8 +38,6 @@ export default function CustomerStock() {
     sortField: null,
   });
 
-  console.log("userInfo : ", userInfo);
-
   const { confirm } = Modal;
 
   const territoryColumns = [
@@ -111,7 +109,7 @@ export default function CustomerStock() {
       moderef: false,
     },
     {
-      key: "date",
+      key: "document_date",
       type: "date",
       label: "Date",
       placeholder: "All",
@@ -178,8 +176,6 @@ export default function CustomerStock() {
         document_number: document_number,
       });
 
-      console.log("response : ", response);
-
       if (response.status === 200) {
         const Test = response.data.products;
         const territoryData = Test.map((item, index) => ({
@@ -189,7 +185,7 @@ export default function CustomerStock() {
           unit: item.product_unit,
           quantity: item.quantity,
         }));
-        console.log(territoryData);
+
         setUserList(territoryData);
       }
     } catch (error) {
@@ -220,8 +216,6 @@ export default function CustomerStock() {
       page_size: pageSize,
     };
 
-    console.log(requestData);
-
     try {
       const response = await useServiceAPI.get(
         paths.pathStockList,
@@ -231,8 +225,6 @@ export default function CustomerStock() {
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
         setPermission(response.data.permission);
-
-        console.log("response : ", response);
 
         function btn_action(docno) {
           //4,5,6
@@ -343,7 +335,7 @@ export default function CustomerStock() {
             </Dropdown>
           ),
         }));
-        console.log("newDataSource : ", newDataSource);
+
         setDataSource(newDataSource);
         setTableParams({
           ...tableParams,
@@ -361,7 +353,6 @@ export default function CustomerStock() {
   };
 
   const handleDelete = async (documentNumber) => {
-    console.log("documentNumber : ", documentNumber);
     confirm({
       title: "Do you want to delete ?",
       icon: <ExclamationCircleFilled />,
@@ -372,9 +363,7 @@ export default function CustomerStock() {
           const response = await useServiceAPI.delete(paths.pathStockDelete, {
             document_number: documentNumber,
           });
-
-          console.log("response : ", response);
-
+          
           if (response.status === 200) {
             // Show success notification
             showNotification(
@@ -416,6 +405,7 @@ export default function CustomerStock() {
   ]);
 
   const handleSearch = (filters) => {
+    console.log('filters : ',filters)
     setTableParams({
       ...tableParams,
       filters,
@@ -461,6 +451,8 @@ export default function CustomerStock() {
 
     getMasterDealer();
   };
+
+  console.log('dataSource : ',dataSource)
 
   return (
     <MainLayout loading={loading}>

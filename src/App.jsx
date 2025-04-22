@@ -79,6 +79,9 @@ import ReportSaleByMonth from "./pages/report/ReportSaleByMonth";
 import ReportSaleByQuarter from "./pages/report/ReportSaleByQuarter";
 import ReportSaleByYear from "./pages/report/ReportSaleByYear";
 import ReportActivity from "./pages/report/ReportActivity";
+import ReportActivityCrop from "./pages/report/ReportActivityCrop";
+import ReportActivityMonth from "./pages/report/ReportActivityMonth";
+import ReportActivityType from "./pages/report/ReportActivityType";
 // END ------------- Activity ------------- END
 
 // Phase 2
@@ -298,8 +301,9 @@ const App = () => {
             <Route path="/report/quarterly" element={<ReportSaleByQuarter />} />
             <Route path="/report/yearly" element={<ReportSaleByYear />} />
             <Route path="/report/activity" element={<ReportActivity />} />
-
-
+            <Route path="/report/activity-crop" element={<ReportActivityCrop />} />
+            <Route path="/report/activity-month" element={<ReportActivityMonth />} />
+            <Route path="/report/activity-type" element={<ReportActivityType />} />
 
             <Route path="/report/stock-report" element={<ReportStock />} />
 

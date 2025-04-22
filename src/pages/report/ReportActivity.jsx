@@ -20,8 +20,6 @@ export default function ReportActivity() {
   const [status, setStatus] = useState([]);
   const [years, setYears] = useState([]);
   const [sales, setSales] = useState([]);
-  const [crops, setCrops] = useState([]);
-  const [products, setProducts] = useState([]);
   const [dealers, setDealers] = useState([]);
   const [itemColumn, setItemColumn] = useState([]);
   const [defaultOption, setDefaultOption] = useState();
@@ -29,7 +27,8 @@ export default function ReportActivity() {
   const [dataSource, setDataSource] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const { showNotification, formatNumber } = useContext(AuthContext);
-
+  const [activityList, setActivityList] = useState([]);
+  const [areaList, setAreaList] = useState([]);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -44,19 +43,20 @@ export default function ReportActivity() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [years, sales, crops, products, dealers] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterYear),
-          useServiceAPI.get(paths.pathMasterSaleDropdown),
-          useServiceAPI.get(paths.pathMasterCrop),
-          useServiceAPI.get(paths.pathMasterProducts),
-          useServiceAPI.get(paths.pathMasterDealerAll),
-        ]);
+        const [years, sales, dealers, activityType, resArea] =
+          await Promise.all([
+            useServiceAPI.get(paths.pathMasterYear),
+            useServiceAPI.get(paths.pathMasterSaleDropdown),
+            useServiceAPI.get(paths.pathMasterDealerAll),
+            useServiceAPI.get(paths.pathMasterActivityType),
+            useServiceAPI.get(paths.pathMasterAreas),
+          ]);
         setYears(years.data);
         setSales(sales.data);
-        setCrops(crops.data);
-        setProducts(products.data);
         setDealers(dealers.data);
+        setActivityList(activityType.data);
 
+        setAreaList(resArea.data);
         if (years.data.length > 0) {
           setTableParams({
             ...tableParams,
@@ -96,16 +96,34 @@ export default function ReportActivity() {
       if (response.status === 200) {
         const { data_items, records_filtered, permission, items } =
           response.data;
-        console.log(response.data);
+
         const newDataSource = data_items.map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           productName: row.product_name,
           packSize: row.pack_size,
           productId: row.product_id,
         }));
-        setItemColumn(items);
+
+        const updatedData = items.map((month) => {
+          return {
+            ...month,
+            items: month.items.map((item) => ({
+              product_id: item.product_id,
+              product_name: item.product_name,
+              pack_size: item.pack_size,
+              work_plan_kg: item.work_plan_kg,
+              workplan_value: item.workplan_value,
+            })),
+          };
+        });
+
+        setItemColumn(updatedData);
         setPermission(permission);
         setDataSource(newDataSource);
+
+        console.log("column : ", updatedData);
+        console.log("source : ", newDataSource);
+
         setTableParams({
           ...tableParams,
           pagination: {
@@ -134,7 +152,6 @@ export default function ReportActivity() {
   ]);
 
   const handleTableChange = (pagination, filters, sorter) => {
-    console.log(pagination, filters, sorter);
     setTableParams({
       pagination,
       filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
@@ -145,10 +162,10 @@ export default function ReportActivity() {
 
   const filters = [
     {
-      key: "year_code",
+      key: "area_id",
       type: "select",
-      label: "Year",
-      options: years,
+      label: "Area",
+      options: areaList,
     },
     {
       key: "user_id",
@@ -157,16 +174,10 @@ export default function ReportActivity() {
       options: sales,
     },
     {
-      key: "crop_id",
+      key: "activity_type",
       type: "select",
-      label: "Crop",
-      options: crops,
-    },
-    {
-      key: "product_id",
-      type: "select",
-      label: "Product",
-      options: products,
+      label: "Activity Type",
+      options: activityList,
     },
     {
       key: "dealer_id",
@@ -191,7 +202,6 @@ export default function ReportActivity() {
   }, [defaultOption]);
 
   const handleSearch = (filters) => {
-    console.log(filters);
     setTableParams({
       ...tableParams,
       filters,
@@ -209,56 +219,14 @@ export default function ReportActivity() {
     });
   };
 
+  const columnColors = ["#009845", "#7DB41E", "#93CC23"];
+
   const header = [
     {
       title: "Month", // Row 3
       onHeaderCell: () => ({
         style: {
-          backgroundColor: "#00783F", // สีเขียวเข้ม
-          color: "white", // สีตัวอักษร
-          fontWeight: "bold",
-          textAlign: "center",
-        },
-      }),
-      children: [
-        {
-          title: "Product Name", // Row 4
-          dataIndex: "productName",
-          key: "productName ",
-          fixed: "left",
-          width: 125,
-          onHeaderCell: () => ({
-            style: {
-              backgroundColor: "#00783F", // สีเขียวเข้ม
-              color: "white", // สีตัวอักษร
-              fontWeight: "bold",
-              textAlign: "center",
-            },
-          }),
-        },
-        {
-          title: "Pack Size",
-          dataIndex: "packSize",
-          key: "packSize",
-          width: 125,
-          fixed: "left",
-          onHeaderCell: () => ({
-            style: {
-              backgroundColor: "#00783F", // สีเขียวเข้ม
-              color: "white", // สีตัวอักษร
-              fontWeight: "bold",
-              textAlign: "center",
-            },
-          }),
-        },
-      ],
-    },
-    ...itemColumn.map((month, index) => ({
-      title: month.name,
-      key: index,
-      onHeaderCell: () => ({
-        style: {
-          backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สีเขียวสลับ
+          backgroundColor: "#00783F",
           color: "white",
           fontWeight: "bold",
           textAlign: "center",
@@ -266,200 +234,106 @@ export default function ReportActivity() {
       }),
       children: [
         {
-          title: "Work Plan(KG)",
-          key: index,
+          title: "Activity Type",
+          dataIndex: "productName",
+          key: "productName",
+          fixed: "left",
           width: 125,
           onHeaderCell: () => ({
             style: {
-              backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สีเขียวสลับ
+              backgroundColor: "#00783F",
               color: "white",
               fontWeight: "bold",
               textAlign: "center",
             },
           }),
-          render: (_, record) => {
-            const itemData =
-            month.items.find(
-              (product) => product.product_id == record.productId
-              
-            ) || {};
-
-            return (
-              <InputNumber
-                className="w-full"
-                min={0}
-                value={itemData.work_plan_kg}
-                formatter={(value) =>
-                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                }
-                disabled={true}
-              />
-            );
-          },
-        },
-        {
-          title: "Work Plan(Value)",
-          key: index,
-          width: 125,
-          onHeaderCell: () => ({
-            style: {
-              backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สีเขียวสลับ
-              color: "white",
-              fontWeight: "bold",
-              textAlign: "center",
-            },
-          }),
-          render: (_, record) => {
-            const itemData =
-            month.items.find(
-              (product) => product.product_id == record.productId
-              
-            ) || {};
-            return (
-              <InputNumber
-                className="w-full"
-                min={0}
-                value={itemData.workplan_value}
-                formatter={(value) =>
-                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                }
-                disabled={true}
-              />
-            );
-          },
-        },
-        {
-          title: "Rolling Forecast(KG)",
-          key: index,
-          width: 125,
-          onHeaderCell: () => ({
-            style: {
-              backgroundColor: "#7DB41E", // สีเขียวสลับ
-              color: "white",
-              fontWeight: "bold",
-              textAlign: "center",
-            },
-          }),
-          render: (_, record) => {
-            const itemData =
-            month.items.find(
-              (product) => product.product_id == record.productId
-              
-            ) || {};
-            return (
-              <InputNumber
-                className="w-full"
-                min={0}
-                value={itemData.rolling_frecase_kg}
-                formatter={(value) =>
-                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                }
-                disabled={true}
-              />
-            );
-          },
-        },
-        {
-          title: "Rolling Forecast(Value)",
-          key: index,
-          width: 125,
-          onHeaderCell: () => ({
-            style: {
-              backgroundColor: "#7DB41E", // สีเขียวสลับ
-              color: "white",
-              fontWeight: "bold",
-              textAlign: "center",
-            },
-          }),
-          render: (_, record) => {
-            const itemData =
-            month.items.find(
-              (product) => product.product_id == record.productId
-              
-            ) || {};
-            return (
-              <InputNumber
-                className="w-full"
-                min={0}
-                value={itemData.rolling_frecase_value}
-                formatter={(value) =>
-                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                }
-                disabled={true}
-              />
-            );
-          },
-        },
-        {
-          title: "Actual(KG)",
-          key: index,
-          width: 125,
-          onHeaderCell: () => ({
-            style: {
-              backgroundColor: "#93CC23", // สีเขียวสลับ
-              color: "white",
-              fontWeight: "bold",
-              textAlign: "center",
-            },
-          }),
-          render: (_, record) => {
-            const itemData =
-            month.items.find(
-              (product) => product.product_id == record.productId
-              
-            ) || {};
-            return (
-              <InputNumber
-                className="w-full"
-                min={0}
-                value={itemData.actual_kg}
-                formatter={(value) =>
-                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                }
-                disabled={true}
-              />
-            );
-          },
-        },
-        {
-          title: "Actual(Value)",
-          key: index,
-          width: 125,
-          onHeaderCell: () => ({
-            style: {
-              backgroundColor: "#93CC23", // สีเขียวสลับ
-              color: "white",
-              fontWeight: "bold",
-              textAlign: "center",
-            },
-          }),
-          render: (_, record) => {
-            const itemData =
-            month.items.find(
-              (product) => product.product_id == record.productId
-              
-            ) || {};
-            return (
-              <InputNumber
-                className="w-full"
-                min={0}
-                value={itemData.actual_value}
-                formatter={(value) =>
-                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                }
-                disabled={true}
-              />
-            );
-          },
         },
       ],
-    })),
+    },
+    ...itemColumn.map((month, index) => {
+      const bgColor = columnColors[index % columnColors.length]; // หมุนลูปสี
+
+      return {
+        title: month.name,
+        key: index,
+        onHeaderCell: () => ({
+          style: {
+            backgroundColor: bgColor,
+            color: "white",
+            fontWeight: "bold",
+            textAlign: "center",
+          },
+        }),
+        children: [
+          {
+            title: "Plan(Value)",
+            key: index,
+            width: 125,
+            onHeaderCell: () => ({
+              style: {
+                backgroundColor: bgColor,
+                color: "white",
+                fontWeight: "bold",
+                textAlign: "center",
+              },
+            }),
+            render: (_, record) => {
+              const itemData =
+                month.items.find(
+                  (product) => product.product_id == record.productId
+                ) || {};
+              return (
+                <InputNumber
+                  className="w-full"
+                  min={0}
+                  value={itemData.work_plan_kg}
+                  formatter={(value) =>
+                    `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  disabled={true}
+                />
+              );
+            },
+          },
+          {
+            title: "Actual(Value)",
+            key: index,
+            width: 125,
+            onHeaderCell: () => ({
+              style: {
+                backgroundColor: bgColor,
+                color: "white",
+                fontWeight: "bold",
+                textAlign: "center",
+              },
+            }),
+            render: (_, record) => {
+              const itemData =
+                month.items.find(
+                  (product) => product.product_id == record.productId
+                ) || {};
+              return (
+                <InputNumber
+                  className="w-full"
+                  min={0}
+                  value={itemData.work_plan_kg}
+                  formatter={(value) =>
+                    `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  disabled={true}
+                />
+              );
+            },
+          },
+        ],
+      };
+    }),
   ];
 
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Sales Report By Test" />
+        <Title prefix="Report Activity" />
 
         <Filter
           onSearch={handleSearch}
@@ -477,10 +351,7 @@ export default function ReportActivity() {
             footer={() => (
               <Table.Summary fixed>
                 <Table.Summary.Row className="bg-[#978B87]">
-                  <Table.Summary.Cell
-                    index={0}
-                    colSpan={2}
-                  ></Table.Summary.Cell>
+                  <Table.Summary.Cell index={0}>Total (THB)</Table.Summary.Cell>
                   {itemColumn.map((month, index) => {
                     return (
                       <React.Fragment key={`${month.id}_${index}`}>
@@ -509,74 +380,6 @@ export default function ReportActivity() {
                             className="w-full"
                             disabled
                             value={month.workplan_value}
-                            formatter={(value) =>
-                              `${parseInt(value)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                            style={{ backgroundColor: "white" }}
-                          />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell
-                          key={`${month.id}_rolling_frecase_kg`}
-                          align="center"
-                        >
-                          <InputNumber
-                            className="w-full"
-                            disabled
-                            value={month.rolling_frecase_kg}
-                            formatter={(value) =>
-                              `${parseInt(value)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                            style={{ backgroundColor: "white" }}
-                          />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell
-                          key={`${month.id}_rolling_frecase_value`}
-                          align="center"
-                        >
-                          <InputNumber
-                            className="w-full"
-                            disabled
-                            value={month.rolling_frecase_value}
-                            formatter={(value) =>
-                              `${parseInt(value)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                            style={{ backgroundColor: "white" }}
-                          />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell
-                          key={`${month.id}_actual_kg`}
-                          align="center"
-                        >
-                          <InputNumber
-                            className="w-full"
-                            disabled
-                            value={month.actual_kg}
-                            formatter={(value) =>
-                              `${parseInt(value)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                            style={{ backgroundColor: "white" }}
-                          />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell
-                          key={`${month.id}_actual_value`}
-                          align="center"
-                        >
-                          <InputNumber
-                            className="w-full"
-                            disabled
-                            value={month.actual_value}
                             formatter={(value) =>
                               `${parseInt(value)}`.replace(
                                 /\B(?=(\d{3})+(?!\d))/g,
