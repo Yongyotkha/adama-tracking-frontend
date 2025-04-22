@@ -133,6 +133,12 @@ import CreateActivityManyShop from "./pages/activity/CreateActivityManyShop";
 import OrderHistory from "./pages/mobile/order_history/OrderHistory";
 import OrderHistoryDetail from "./pages/mobile/order_history/OrderHistoryDetail";
 import PointHistory from "./pages/mobile/point_history/PointHistory";
+import RedeemList from "./pages/settings/mobile/redeem_list/RedeemList";
+import RedeemRequestList from "./pages/settings/mobile/redeem_request/RedeemRequestList";
+import RewardProductList from "./pages/settings/mobile/reward_product/RewardProductList";
+import RedeemProduct from "./pages/settings/mobile/redeem_product/RedeemProduct";
+import RewardProductCreate from "./pages/settings/mobile/reward_product/RewardProductCreate";
+import RegisteredCustomerList from "./pages/settings/mobile/registered_customer/RegisteredCustomerList";
 
 const App = () => {
   return (
@@ -284,6 +290,7 @@ const App = () => {
             {/* <Route path="/setting/line/promotion/edit" element={<EditPromotion />} /> */}
 
             <Route path="/setting/line/customer" element={<CustomerLineList />} />
+            <Route path="/setting/line/register-customer" element={<RegisteredCustomerList />} />
             <Route path="/setting/line/customer/create" element={<CreateCustomerLine />} />
             {/* <Route path="/setting/line/customer/edit" element={<EditCustomerLine />} /> */}
             
@@ -292,6 +299,12 @@ const App = () => {
             <Route path="/setting/line/manage-news/create" element={<CreateManageNews />} />
             <Route path="/setting/line/manage-promotion" element={<ManagePromotionList />} />
             <Route path="/setting/line/manage-promotion/create" element={<CreateManagePromotion />} />
+            <Route path="/setting/line/redeem-list" element={<RedeemList />} />
+            <Route path="/setting/line/redeem-request" element={<RedeemRequestList />} />
+            <Route path="/setting/line/redeem-product" element={<RedeemProduct />} />
+            <Route path="/setting/line/reward-product" element={<RewardProductList />} />
+            <Route path="/setting/line/reward-product/create" element={<RewardProductCreate />} />
+            
 
             {/* Report Route */}
             <Route path="/report/monthly" element={<ReportSaleByMonth />} />
