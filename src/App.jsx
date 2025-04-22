@@ -139,6 +139,7 @@ import RewardProductList from "./pages/settings/mobile/reward_product/RewardProd
 import RedeemProduct from "./pages/settings/mobile/redeem_product/RedeemProduct";
 import RewardProductCreate from "./pages/settings/mobile/reward_product/RewardProductCreate";
 import RegisteredCustomerList from "./pages/settings/mobile/registered_customer/RegisteredCustomerList";
+import RegisteredCustomerDetail from "./pages/settings/mobile/registered_customer/RegisteredCustomerDetail";
 
 const App = () => {
   return (
@@ -291,6 +292,7 @@ const App = () => {
 
             <Route path="/setting/line/customer" element={<CustomerLineList />} />
             <Route path="/setting/line/register-customer" element={<RegisteredCustomerList />} />
+            <Route path="/setting/line/register-customer/detail" element={<RegisteredCustomerDetail />} />
             <Route path="/setting/line/customer/create" element={<CreateCustomerLine />} />
             {/* <Route path="/setting/line/customer/edit" element={<EditCustomerLine />} /> */}
             

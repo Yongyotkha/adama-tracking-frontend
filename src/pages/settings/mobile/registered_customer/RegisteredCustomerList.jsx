@@ -27,14 +27,13 @@ export default function RegisteredCustomerList() {
   const fetchCustomers = async () => {
     setLoading(true);
     try {
-      // Mock Data for API response
       const mockData = [
         {
           id: 1,
-          shop_name: "ศิลาเกษตร",
-          contact_name: "Firstname Lastname",
-          phone: "055-769042",
-          address: "91/7 ซ. นครปฐม",
+          shop_name: "จรุงรักษ์เกษตร",
+          contact_name: "Krariroek Ruangkol",
+          phone: "02-911-0653",
+          address: "54 ซ.รัชประชา 5 ถ.รัชดาภิเษก เขตจตุจักร แขวงลาดยาว กทม.10150",
           point: 10,
           register_date: "01/01/2025",
           status: "Active",
@@ -42,7 +41,7 @@ export default function RegisteredCustomerList() {
         },
         {
           id: 2,
-          shop_name: "กำนันวงษ์สัักดิ์",
+          shop_name: "กำนันบงลักษณ์",
           contact_name: "Firstname Lastname",
           phone: "081-8879155",
           address: "99/11 บ้านไร่ อุทัยธานี",
@@ -56,25 +55,43 @@ export default function RegisteredCustomerList() {
       setDataSource(
         mockData.map((customer, index) => ({
           key: index + 1,
-          image_profile: <img src={customer.image_profile} alt="Profile" className="w-10 h-10 rounded-full" />,
-          shop_name: customer.shop_name,
+          shop_name: (
+            <div className="flex items-center gap-2">
+              <img src={customer.image_profile} alt="avatar" className="w-8 h-8 rounded-full" />
+              <span>{customer.shop_name}</span>
+            </div>
+          ),
           contact_name: customer.contact_name,
           phone: customer.phone,
           address: customer.address,
           point: customer.point,
           register_date: customer.register_date,
-          status: <BadgeStatus text={customer.status} bgColor="green" textColor="white" />,
+          status: (
+            <BadgeStatus text={customer.status} bgColor="green" textColor="white" />
+          ),
           action: (
             <Dropdown
               menu={{
                 items: [
-                  { key: "edit", label: <ItemDropDown mode="edit" onClick={() => navigate(`edit/${customer.id}`)} /> },
-                  { key: "view", label: <ItemDropDown mode="view" onClick={() => navigate(`view/${customer.id}`)} /> },
+                  {
+                    key: "edit",
+                    label: (
+                      <ItemDropDown
+                        mode="edit"
+                        onClick={() => navigate(`detail?${customer.id}`)}
+                      />
+                    ),
+                  },
                 ],
               }}
+              // trigger={["click"]}
             >
               <a onClick={(e) => e.preventDefault()}>
-                <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
+                <img
+                  src="/img/icons/action.png"
+                  alt="action"
+                  className="inline-block w-5 h-5"
+                />
               </a>
             </Dropdown>
           ),
@@ -93,12 +110,16 @@ export default function RegisteredCustomerList() {
 
   const filters = [
     { key: "shop_name", type: "text", label: "Shop Name" },
-    { key: "contact_name", type: "text", label: "Contact Name" },
-    { key: "date", type: "date", label: "Register Date" },
+    { key: "contact_name", type: "text", label: "Customer Name" },
+    { key: "date", type: "date", label: "Date" },
   ];
 
   const handleSearch = (filters) => {
-    setTableParams({ ...tableParams, pagination: { ...tableParams.pagination, current: 1 }, filters });
+    setTableParams({
+      ...tableParams,
+      pagination: { ...tableParams.pagination, current: 1 },
+      filters,
+    });
   };
 
   const handleClear = () => {
@@ -106,24 +127,24 @@ export default function RegisteredCustomerList() {
   };
 
   const header = [
-    { title: "No", dataIndex: "key", align: "left" },
-    { title: "", dataIndex: "image_profile", align: "center" },
+    { title: "No", dataIndex: "key", align: "left", width: 50 },
     { title: "Shop Name", dataIndex: "shop_name", align: "left" },
-    { title: "Contact Name", dataIndex: "contact_name", align: "left" },
-    { title: "Phone No", dataIndex: "phone", align: "left" },
-    { title: "Address", dataIndex: "address", align: "left" },
-    { title: "Point", dataIndex: "point", align: "left" },
-    { title: "Register Date", dataIndex: "register_date", align: "left" },
-    { title: "Status", dataIndex: "status", align: "left" },
-    { title: "Action", dataIndex: "action", align: "left" },
+    { title: "Customer Name", dataIndex: "contact_name", align: "left" },
+    { title: "Contact Number", dataIndex: "phone", align: "left" },
+    { title: "Point", dataIndex: "point", align: "center" },
+    { title: "Register Date", dataIndex: "register_date", align: "center" },
+    { title: "Status", dataIndex: "status", align: "center" },
+    { title: "Action", dataIndex: "action", align: "center" },
   ];
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Registered Customer</div>
-        <ActionButton mode="create" text="Create" onClick={() => navigate("create")} />
       </div>
+
       <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
+
       <BoxPrimary>
         <TableComponent
           header={header}
@@ -135,3 +156,4 @@ export default function RegisteredCustomerList() {
     </MainLayout>
   );
 }
+
