@@ -24,7 +24,7 @@ export default function CheckLogin() {
         console.error("Error fetching user profile:", error);
         if (error?.response?.status === 401) {
           sessionStorage.removeItem("redirectPath");
-          setRedirectPath("/mobile/verify");
+          // setRedirectPath("/mobile/verify");
           navigate("/mobile/main");
         }
       } finally {
