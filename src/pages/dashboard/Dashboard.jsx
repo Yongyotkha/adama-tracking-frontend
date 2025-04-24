@@ -983,7 +983,7 @@ export default function Dashboard() {
         <Col xs={24} lg={24} xl={7} className="">
           <BoxPrimary className="sticky top-1">
             <div className="flex flex-wrap justify-between mb-4">
-              <h3 className="text-[#00783F] text-lg font-semibold">Activity Test</h3>
+              <h3 className="text-[#00783F] text-lg font-semibold">Activity</h3>
               <div className="flex flex-wrap gap-2">
                 <Select
                   className="mb-4 w-36"
