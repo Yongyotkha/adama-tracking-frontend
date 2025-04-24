@@ -38,6 +38,8 @@ export default function CustomerStock() {
     sortField: null,
   });
 
+  console.log('userInfo : ',userInfo)
+
   const { confirm } = Modal;
 
   const territoryColumns = [
@@ -363,7 +365,7 @@ export default function CustomerStock() {
           const response = await useServiceAPI.delete(paths.pathStockDelete, {
             document_number: documentNumber,
           });
-          
+
           if (response.status === 200) {
             // Show success notification
             showNotification(
@@ -405,7 +407,7 @@ export default function CustomerStock() {
   ]);
 
   const handleSearch = (filters) => {
-    console.log('filters : ',filters)
+    console.log("filters : ", filters);
     setTableParams({
       ...tableParams,
       filters,
@@ -452,7 +454,7 @@ export default function CustomerStock() {
     getMasterDealer();
   };
 
-  console.log('dataSource : ',dataSource)
+  console.log("dataSource : ", dataSource);
 
   return (
     <MainLayout loading={loading}>
