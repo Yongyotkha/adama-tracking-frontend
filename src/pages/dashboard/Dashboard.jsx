@@ -462,16 +462,66 @@ export default function Dashboard() {
           month_id: selectedMonthsSaleByCrop,
         });
         if (response.status === 200 && response.data) {
-          const data = response.data.map((item) => ({
-            value: item.value,
-            amount_target:
-              parseFloat(String(item.amount_target || "0").replace(/,/g, "")) ||
-              0,
-            label: item.name,
-            color: item.color.trim(),
-            name: item.name,
-          })).sort((a, b) => b.value - a.value);
-          setSaleCropData(data); // อัปเดต State
+          // const data = response.data.map((item) => ({
+          //   value: item.value,
+          //   amount_target:
+          //     parseFloat(String(item.amount_target || "0").replace(/,/g, "")) || 0,
+          //   label: item.name,
+          //   color: item.color.trim(),
+          //   name: item.name,
+          // })).sort((a, b) => b.value - a.value);
+          // setSaleCropData(data); // อัปเดต State
+          // const data = response.data.map((item) => {
+          //   const rawValue = parseFloat(item.value);
+          //   const rawAmount = parseFloat(String(item.amount_target || "0").replace(/,/g, ""));
+          
+          //   const roundedValue = Math.round(rawValue); // ปัดเปอร์เซ็นต์
+          //   const roundedAmount = Math.round(rawAmount); // ปัดยอดเงิน
+          
+          //   const formattedLabel = `${item.name.split("(")[0]}(${roundedValue}%),${roundedAmount.toLocaleString()}`;
+          
+          //   return {
+          //     // value: roundedValue,
+          //     // amount_target: roundedAmount,
+          //     // label: formattedLabel,
+          //     // color: item.color.trim(),
+          //     // name: formattedLabel,
+          //     value: item.value,
+          //     amount_target:
+          //       parseFloat(String(item.amount_target || "0").replace(/,/g, "")) ||
+          //       0,
+          //       label: formattedLabel,
+
+          //     color: item.color.trim(),
+          //     name: item.name,
+          //   };
+          // }).sort((a, b) => b.value - a.value);
+          
+          // setSaleCropData(data);
+
+          const data = response.data.map((item) => {
+            const rawValue = item.value;
+            const rawAmount = parseFloat(String(item.amount_target || "0").replace(/,/g, ""));
+          
+            const roundedValue = rawValue.toFixed(1); // ปัดเปอร์เซ็นต์เป็น 1 ตำแหน่งทศนิยม (string)
+            const roundedAmount = Math.round(rawAmount); // ปัดยอดเงินให้เป็นจำนวนเต็ม
+          
+            const cropName = item.name.split("(")[0];
+            // const formattedLabel = `${cropName}(${roundedValue}%),${roundedAmount.toLocaleString()}`;
+          
+            return {
+              value: rawAmount,
+              amount_target: parseFloat(String(item.amount_target || "0").replace(/,/g, "")) || 0,
+              label: cropName,
+              color: item.color.trim(),
+              name: item.name,
+            };
+          }).sort((a, b) => b.value - a.value);
+          
+          setSaleCropData(data);
+          
+          
+          console.log(data);
           const totalValue = data.reduce((sum, crop) => sum + crop.value, 0);
           setTotalSaleValue(totalValue); // อัปเดตค่ารวม
         } else {
@@ -983,7 +1033,7 @@ export default function Dashboard() {
         <Col xs={24} lg={24} xl={7} className="">
           <BoxPrimary className="sticky top-1">
             <div className="flex flex-wrap justify-between mb-4">
-              <h3 className="text-[#00783F] text-lg font-semibold">Activity Test</h3>
+              <h3 className="text-[#00783F] text-lg font-semibold">Activity</h3>
               <div className="flex flex-wrap gap-2">
                 <Select
                   className="mb-4 w-36"

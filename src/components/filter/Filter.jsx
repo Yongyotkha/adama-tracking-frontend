@@ -6,8 +6,7 @@ import dayjs from "dayjs";
 
 const { Option } = Select;
 
-const Filter = ({ onSearch, onClear, onChange, filters }) => {
-
+const Filter = ({ onSearch, onClear, onChange, filters, onValueChange }) => {
   const [filterValues, setFilterValues] = useState({});
   const [activeKey, setActiveKey] = useState([]);
 
@@ -25,6 +24,11 @@ const Filter = ({ onSearch, onClear, onChange, filters }) => {
           onChange(updatedValues);
         }
       });
+
+      // 🚀 แจ้งค่าที่เปลี่ยนให้ parent ด้วย
+      if (onValueChange) {
+        onValueChange(updatedValues);
+      }
 
       return updatedValues;
     });
@@ -75,6 +79,7 @@ const Filter = ({ onSearch, onClear, onChange, filters }) => {
                     allowClear
                     showSearch
                     optionFilterProp="label"
+                    disabled={filter.disabled || false} // ✅ เพิ่ม disabled
                   >
                     <Option value="">{filter.placeholder || "All"}</Option>
                     {filter.options.map((option, key) => (
