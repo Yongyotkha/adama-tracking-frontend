@@ -306,8 +306,6 @@ export default function ActivityList() {
       setIsSubDealerDisabled(true);
     }
   };
-  
-
 
   const handleDelete = async (documentNumber) => {
     confirm({
@@ -405,7 +403,6 @@ export default function ActivityList() {
       document_date: filters.Date ? dayjs(filters.Date).format('YYYY-MM-DD') : "",
     };
 
-
     try {
       const response = await useServiceAPI.get(
         paths.pathActivityList,
@@ -423,8 +420,8 @@ export default function ActivityList() {
             activityNo: row.document_number,
             activityType: row.activity_type_name,
             sale: row.user_name ?? "-",
-            shop: row.dealer_name ?? "-", // ✅ Dealer Name
-            sub_dealer: row.sub_dealer_name ?? "-",
+            shop: row.dealer_name ?? "-", 
+            dealer: row.master_dealer_name ?? "-",// ✅ Dealer Name
             date: row.document_date,
             time: row.time,
             createdAt: dayjs(row.created_at).format("YYYY-MM-DD"),
