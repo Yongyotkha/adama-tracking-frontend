@@ -109,6 +109,22 @@ const FilterByOrder = ({ onSearch, onClear, onChange, filters }) => {
                     format="YYYY-MM-DD"
                   />
                 )}
+                {filter.type === "datem" && (
+                  <DatePicker
+                    value={
+                      filterValues[filter.key]
+                        ? dayjs(filterValues[filter.key])
+                        : dayjs() // ✅ ถ้าไม่มีค่าใน filterValues ให้ใช้วันปัจจุบัน
+                    }
+                    onChange={(date, dateString) =>
+                      handleFilterChange(filter.key, dateString)
+                    }
+                    placeholder={filter.placeholder || "Select date"}
+                    className="w-full"
+                    format="YYYY-MM"
+                    picker="month"
+                  />
+                )}
               </Col>
             ))}
           </Row>

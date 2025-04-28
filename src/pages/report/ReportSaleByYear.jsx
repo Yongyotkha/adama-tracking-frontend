@@ -29,7 +29,7 @@ export default function ReportSaleByYear() {
   const [dataSource, setDataSource] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const { showNotification, formatNumber } = useContext(AuthContext);
-
+  const [areaList, setAreaList] = useState([]);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -44,19 +44,20 @@ export default function ReportSaleByYear() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [years, sales, crops, products, dealers] = await Promise.all([
+        const [years, sales, crops, products, dealers,resArea] = await Promise.all([
           useServiceAPI.get(paths.pathMasterYear),
           useServiceAPI.get(paths.pathMasterSaleDropdown),
           useServiceAPI.get(paths.pathMasterCrop),
           useServiceAPI.get(paths.pathMasterProducts),
           useServiceAPI.get(paths.pathMasterDealerAll),
+          useServiceAPI.get(paths.pathMasterAreas),
         ]);
         setYears(years.data);
         setSales(sales.data);
         setCrops(crops.data);
         setProducts(products.data);
         setDealers(dealers.data);
-
+        setAreaList(resArea.data);
         if (years.data.length > 0) {
           setTableParams({
             ...tableParams,
@@ -77,14 +78,21 @@ export default function ReportSaleByYear() {
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
 
+    // const requestData = {
+    //   keyword: filters.keyword || "",
+    //   // year_code: filters.year_code,
+    //   user_id: filters.user_id,
+    //   dealer_id: filters.dealer_id,
+    //   crop_id: filters.crop_id,
+    //   page_length: 1,
+    //   page_size: pageSize,
+    // };
     const requestData = {
-      keyword: filters.keyword || "",
-      // year_code: filters.year_code,
-      user_id: filters.user_id,
-      dealer_id: filters.dealer_id,
-      crop_id: filters.crop_id,
-      page_length: 1,
-      page_size: pageSize,
+      platform: "web",
+      year_code: "2025",
+      user_id: "",
+      dealer_id: "",
+      crop_id: "",
     };
 
     try {
@@ -142,12 +150,12 @@ export default function ReportSaleByYear() {
   };
 
   const filters = [
-    // {
-    //   key: "year_code",
-    //   type: "select",
-    //   label: "Year",
-    //   options: years,
-    // },
+    {
+      key: "area_id",
+      type: "select",
+      label: "Area",
+      options: areaList,
+    },
     {
       key: "user_id",
       type: "select",
@@ -165,12 +173,6 @@ export default function ReportSaleByYear() {
       type: "select",
       label: "Product",
       options: products,
-    },
-    {
-      key: "dealer_id",
-      type: "select",
-      label: "Dealer",
-      options: dealers,
     },
   ];
 
@@ -233,21 +235,6 @@ export default function ReportSaleByYear() {
             },
           }),
         },
-        {
-          title: "Pack Size",
-          dataIndex: "packSize",
-          key: "packSize",
-          width: 125,
-          fixed: "left",
-          onHeaderCell: () => ({
-            style: {
-              backgroundColor: "#00783F", // สีเขียวเข้ม
-              color: "white", // สีตัวอักษร
-              fontWeight: "bold",
-              textAlign: "center",
-            },
-          }),
-        },
       ],
     },
     ...itemColumn.map((month, index) => ({
@@ -293,36 +280,6 @@ export default function ReportSaleByYear() {
           },
         },
         {
-          title: "Work Plan(Value)",
-          key: index,
-          width: 125,
-          onHeaderCell: () => ({
-            style: {
-              backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สีเขียวสลับ
-              color: "white",
-              fontWeight: "bold",
-              textAlign: "center",
-            },
-          }),
-          render: (_, record) => {
-            const itemData =
-              month.items.find(
-                (product) => product.product_id == record.productId
-              ) || {};
-            return (
-              <InputNumber
-                className="w-full"
-                min={0}
-                value={itemData.workplan_value}
-                formatter={(value) =>
-                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                }
-                disabled={true}
-              />
-            );
-          },
-        },
-        {
           title: "Rolling Forecast(KG)",
           key: index,
           width: 125,
@@ -344,36 +301,6 @@ export default function ReportSaleByYear() {
                 className="w-full"
                 min={0}
                 value={itemData.rolling_frecase_kg}
-                formatter={(value) =>
-                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                }
-                disabled={true}
-              />
-            );
-          },
-        },
-        {
-          title: "Rolling Forecast(Value)",
-          key: index,
-          width: 125,
-          onHeaderCell: () => ({
-            style: {
-              backgroundColor: "#7DB41E", // สีเขียวสลับ
-              color: "white",
-              fontWeight: "bold",
-              textAlign: "center",
-            },
-          }),
-          render: (_, record) => {
-            const itemData =
-              month.items.find(
-                (product) => product.product_id == record.productId
-              ) || {};
-            return (
-              <InputNumber
-                className="w-full"
-                min={0}
-                value={itemData.rolling_frecase_value}
                 formatter={(value) =>
                   `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -412,6 +339,68 @@ export default function ReportSaleByYear() {
             );
           },
         },
+        {
+          title: "Work Plan(Value)",
+          key: index,
+          width: 125,
+          onHeaderCell: () => ({
+            style: {
+              backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สีเขียวสลับ
+              color: "white",
+              fontWeight: "bold",
+              textAlign: "center",
+            },
+          }),
+          render: (_, record) => {
+            const itemData =
+              month.items.find(
+                (product) => product.product_id == record.productId
+              ) || {};
+            return (
+              <InputNumber
+                className="w-full"
+                min={0}
+                value={itemData.workplan_value}
+                formatter={(value) =>
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                disabled={true}
+              />
+            );
+          },
+        },
+
+        {
+          title: "Rolling Forecast(Value)",
+          key: index,
+          width: 125,
+          onHeaderCell: () => ({
+            style: {
+              backgroundColor: "#7DB41E", // สีเขียวสลับ
+              color: "white",
+              fontWeight: "bold",
+              textAlign: "center",
+            },
+          }),
+          render: (_, record) => {
+            const itemData =
+              month.items.find(
+                (product) => product.product_id == record.productId
+              ) || {};
+            return (
+              <InputNumber
+                className="w-full"
+                min={0}
+                value={itemData.rolling_frecase_value}
+                formatter={(value) =>
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                disabled={true}
+              />
+            );
+          },
+        },
+
         {
           title: "Actual(Value)",
           key: index,
@@ -469,8 +458,7 @@ export default function ReportSaleByYear() {
                 <Table.Summary.Row className="bg-[#978B87]">
                   <Table.Summary.Cell
                     index={0}
-                    colSpan={2}
-                  ></Table.Summary.Cell>
+                  >Total (THB)</Table.Summary.Cell>
                   {itemColumn.map((month, index) => {
                     return (
                       <React.Fragment key={`${month.id}_${index}`}>

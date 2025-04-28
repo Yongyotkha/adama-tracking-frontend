@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import { Dropdown } from "antd";
-import ActionButton from "../../../components/button/ActionButton";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
@@ -36,15 +35,15 @@ export default function DealerList() {
             status_type: "status",
           }),
         ]);
-        
+
         const Status = [];
         dataStatus.data.map((data, index) => {
-          Status.push({ 
-            id: data.code, 
-            name: data.name, 
+          Status.push({
+            id: data.code,
+            name: data.name,
           });
         });
-        
+
         setStatus(Status);
 
         setPosition(producttype.data);
@@ -58,7 +57,6 @@ export default function DealerList() {
     getMaster();
   }, []);
 
-
   useEffect(() => {
     fetchData();
   }, [
@@ -69,8 +67,8 @@ export default function DealerList() {
     JSON.stringify(tableParams.filters),
   ]);
 
-
   const fetchData = async () => {
+    console.log('----------fetch------------')
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
@@ -78,7 +76,6 @@ export default function DealerList() {
     const requestData = {
       keyword: filters.keyword || "",
       use_flag: filters.use_flag || "",
-
       page_length: current,
       page_size: pageSize,
     };
@@ -90,71 +87,8 @@ export default function DealerList() {
       );
 
       if (response.status === 200) {
-        const { data, records_filtered } = response.data;        
-        const newDataSource = data.map((data, index) => ({
-          key: index + 1 + (current - 1) * pageSize,
-          code: data.dealer_code,
-          dealerName: data.dealer_name_en,
-          address: data.address,
-          contactName: data.contact_name,
-          mobilePhone: data.contact_phone_number || "-",
-          groupCode: data.group_code,
-          sale: data.sale_list_name,
-          status: <BadgeStatus text={data.status_name} bgColor={data.status_bg_color} textColor={data.status_color} />,
-          action: (
-            <Dropdown
-              menu={{
-                items: data.action.map((actionItem, actionIndex) => ({
-                  key: actionIndex,
-                  label: (
-                    <ItemDropDown mode={actionItem.action.toLowerCase()} 
-
-                    // onClick={() => {
-                    //   navigate("/customer/dealer/edit-info", {
-                    //     state: {
-                    //       id: data.id,
-                    //       mod: actionItem.action
-                    //     },
-                    //   });
-                    // }}
-
-                    onClick={() => {
-                      if (actionItem.action.toLowerCase() === "edit") {
-                        navigate("/customer/dealer/edit-info", {
-                          state: {
-                            id: data.id,
-                            mod: actionItem.action
-                          },
-                        });
-                      } else if (actionItem.action.toLowerCase() === "view") {
-                        navigate("/customer/dealer/view-info", {
-                          state: {
-                            id: data.id,
-                            mod: actionItem.action
-                          },
-                        });
-                      }
-                    }}
-                    />
-                  ),
-                })),
-              }}
-              placement="bottom"
-            >
-              <a onClick={(e) => e.preventDefault()}>
-                <img
-                  src="/img/icons/action.png"
-                  alt="button icon"
-                  className="inline-block w-5 h-5 mr-2"
-                />
-              </a>
-            </Dropdown>
-          ),
-
-
-
-        }));
-
+        const { data, records_filtered } = response.data;
+        const newDataSource = elementHtml(data, current, pageSize);
         setDataSource(newDataSource);
         setTableParams({
           ...tableParams,
@@ -171,33 +105,8 @@ export default function DealerList() {
     }
   };
 
-
-  const filters = [
-    {
-      key: "keyword",
-      type: "text",
-      label: "Dealer",
-    },
-    // {
-    //   key: "dealer",
-    //   type: "select",
-    //   label: "Dealer",
-    //   placeholder: "All",
-    //   options: [
-    //     { value: 'Monggutthong Ltd.', label: 'Monggutthong Ltd.' },
-    //     { value: 'Bangbuathong Panich Co.,Ltd.', label: 'Bangbuathong Panich Co.,Ltd.' },
-    //   ],
-    // },
-    {
-      key: "use_flag",
-      label: "Status",
-      type: "select",
-      options: Status,
-    },
-  ];
-
   const handleSearch = (filters) => {
-    setTableParams({
+    const set = {
       ...tableParams,
       pagination: {
         ...tableParams.pagination,
@@ -207,10 +116,94 @@ export default function DealerList() {
       filters: {
         ...filters,
         page_length: 1, // Set default page_length
-        page_size: 10,  // Set default page_size
+        page_size: 10, // Set default page_size
       },
-    });
+    };
+    console.log("set : ", set);
+    console.log("dataSource : ", dataSource);
+    setTableParams(set);
   };
+
+  function elementHtml(data, current, pageSize) {
+    const element = data.map((data, index) => ({
+      key: index + 1 + (current - 1) * pageSize,
+      code: data.dealer_code,
+      dealerName: data.dealer_name_en,
+      address: data.address,
+      contactName: data.contact_name,
+      mobilePhone: data.contact_phone_number || "-",
+      groupCode: data.group_code,
+      sale: data.sale_list_name,
+      status: (
+        <BadgeStatus
+          text={data.status_name}
+          bgColor={data.status_bg_color}
+          textColor={data.status_color}
+        />
+      ),
+      action: (
+        <Dropdown
+          menu={{
+            items: data.action.map((actionItem, actionIndex) => ({
+              key: actionIndex,
+              label: (
+                <ItemDropDown
+                  mode={actionItem.action.toLowerCase()}
+                  onClick={() => {
+                    if (actionItem.action.toLowerCase() === "edit") {
+                      navigate("/customer/dealer/edit-info", {
+                        state: {
+                          id: data.id,
+                          mod: actionItem.action,
+                        },
+                      });
+                    } else if (actionItem.action.toLowerCase() === "view") {
+                      navigate("/customer/dealer/view-info", {
+                        state: {
+                          id: data.id,
+                          mod: actionItem.action,
+                        },
+                      });
+                    }
+                  }}
+                />
+              ),
+            })),
+          }}
+          placement="bottom"
+        >
+          <a onClick={(e) => e.preventDefault()}>
+            <img
+              src="/img/icons/action.png"
+              alt="button icon"
+              className="inline-block w-5 h-5 mr-2"
+            />
+          </a>
+        </Dropdown>
+      ),
+    }));
+
+    return element;
+  }
+
+  const filters = [
+    {
+      key: "keyword",
+      type: "text",
+      label: "Dealer",
+    },
+    {
+      key: "address",
+      type: "text",
+      label: "Province",
+    },
+    {
+      key: "use_flag",
+      label: "Status",
+      type: "select",
+      options: Status,
+    },
+  ];
 
   const handleClear = () => {
     setTableParams({
@@ -222,79 +215,42 @@ export default function DealerList() {
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
     { title: "Code", width: 100, dataIndex: "code", align: "left" },
-    { title: "Dealer Name", width: 200, dataIndex: "dealerName", align: "left" },
+    {
+      title: "Dealer Name",
+      width: 200,
+      dataIndex: "dealerName",
+      align: "left",
+    },
     { title: "Address", width: 300, dataIndex: "address", align: "left" },
-    { title: "Contact Name", width: 200, dataIndex: "contactName", align: "left" },
-    { title: "Phone No.", width: 150, dataIndex: "mobilePhone", align: "center" },
-    { title: "Group Code", width: 150, dataIndex: "groupCode", align: "center" },
+    {
+      title: "Contact Name",
+      width: 200,
+      dataIndex: "contactName",
+      align: "left",
+    },
+    {
+      title: "Phone No.",
+      width: 150,
+      dataIndex: "mobilePhone",
+      align: "center",
+    },
+    {
+      title: "Group Code",
+      width: 150,
+      dataIndex: "groupCode",
+      align: "center",
+    },
     { title: "By Sales", width: 150, dataIndex: "sale", align: "center" },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-
   const actionItems = [
-    { key: "1", label: <ItemDropDown mode="edit" link="/customer/dealer/edit-info" /> },
+    {
+      key: "1",
+      label: <ItemDropDown mode="edit" link="/customer/dealer/edit-info" />,
+    },
   ];
-
-  // useEffect(() => {
-  //   const dataSource = [
-  //     {
-  //       key: 1,
-  //       code: "365004",
-  //       dealerName: "Monggutthong Ltd.",
-  //       address: "89/1 หมู่ 4 ต.สพรรณบุรี-บางบัวทอง ต.สนามชัย อ.เมือง จ.สพรรณบุรี 72000",
-  //       contactName: "Mr. Charuen Sinsuantang",
-  //       mobilePhone: "-",
-  //       groupCode: "FMK Customers",
-  //       status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
-  //       action: (
-  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
-  //           <a onClick={(e) => e.preventDefault()}>
-  //             <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-  //           </a>
-  //         </Dropdown>
-  //       ),
-  //     },
-  //     {
-  //       key: 2,
-  //       code: "335001",
-  //       dealerName: "Bangbuathong Panich Co.,Ltd.",
-  //       address: "15/2-5 หมู่ 13 ถ.บางบัวทอง-สุพรรณบุรี ต.บางบัวทอง อ.บางบัวทอง จ.นนทบุรี",
-  //       contactName: "Mr. Thanyanop Watthananit",
-  //       mobilePhone: "081-852-1841",
-  //       groupCode: "FMK Customers",
-  //       status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
-  //       action: (
-  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
-  //           <a onClick={(e) => e.preventDefault()}>
-  //             <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-  //           </a>
-  //         </Dropdown>
-  //       ),
-  //     },
-  //     {
-  //       key: 3,
-  //       code: "321005",
-  //       dealerName: "Agricare Co.,Ltd.",
-  //       address: "88 หมู่ที่ 1 ต.หนองบัว อ.พัฒนานิคม จ.ลพบุรี",
-  //       contactName: "Somsak Sumatechotimatha",
-  //       mobilePhone: "081-994-4747",
-  //       groupCode: "FMK Customers",
-  //       status: <BadgeStatus text="Active" bgColor="#009845" textColor="#FFFFFF" />,
-  //       action: (
-  //         <Dropdown menu={{ items: actionItems }} placement="bottom">
-  //           <a onClick={(e) => e.preventDefault()}>
-  //             <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-  //           </a>
-  //         </Dropdown>
-  //       ),
-  //     },
-  //   ];
-
-  //   setDataSource(dataSource);
-  // }, []);
-
 
   const handleTableChange = (pagination, filters, sorter) => {
     setTableParams({
@@ -304,29 +260,22 @@ export default function DealerList() {
       sortField: sorter.field,
     });
   };
-  
 
   return (
     <MainLayout loading={loading}>
-
       <div className="title-page">Dealer</div>
 
-      <Filter
-        onSearch={handleSearch}
-        onClear={handleClear}
-        filters={filters}
-      />
+      <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
 
       <BoxPrimary>
-        <TableComponent 
-        header={header}
-        dataSource={dataSource}
-        pagination={tableParams.pagination}
-        loading={tableLoading}
-        onChange={handleTableChange}
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pagination={tableParams.pagination}
+          loading={tableLoading}
+          onChange={handleTableChange}
         />
       </BoxPrimary>
-
     </MainLayout>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState,useContext  } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import { Dropdown } from "antd";
@@ -18,7 +18,7 @@ export default function DealerList() {
   const navigate = useNavigate();
   const [tableLoading, setTableLoading] = useState(false);
   const [Status, setStatus] = useState([]);
-  const [Position, setPosition] = useState([]);  
+  const [Position, setPosition] = useState([]);
   const { showMsg, showNotification } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
     pagination: {
@@ -30,14 +30,27 @@ export default function DealerList() {
     sortField: null,
   });
 
+  const [saleList, setSaleList] = useState([]);
+  const [dealerList, setDataDealer] = useState([]);
+  const [subDealerList, setSubDealerList] = useState([]);
+  const [farmList, setFarmList] = useState([]);
+
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [dataStatus] = await Promise.all([
+        const [dataStatus,sales,dealers,sub_dealers,farmers] = await Promise.all([
           useServiceAPI.get(paths.pathMasterStatus, {
             status_type: "status",
           }),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathMasterDealerDropdown, {
+            user_id: 83,
+          }),
+          useServiceAPI.get(paths.pathMasterSubDealerAll, {
+            user_id: 83,
+          }),
+          useServiceAPI.get(paths.pathMasterFarmer, {}),
         ]);
 
         const Status = [];
@@ -47,14 +60,21 @@ export default function DealerList() {
             name: data.name,
           });
         });
+        console.log('dealers : ',dealers)
+        console.log('subDealer : ',sub_dealers)
+        console.log('farms : ',farmers)
 
         setStatus(Status);
+        setSaleList(sales.data);
+        setDataDealer(dealers.data);
+        setSubDealerList(sub_dealers.data);
+        setFarmList(farmers.data);
 
         // setPosition(producttype.data);
         // setRoles(roles.data);
       } catch (error) {
         console.log(error);
-        
+
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
         setLoading(false);
@@ -81,7 +101,6 @@ export default function DealerList() {
     const requestData = {
       keyword: filters.keyword || "",
       use_flag: filters.use_flag || "",
-
       page_length: current,
       page_size: pageSize,
     };
@@ -97,6 +116,7 @@ export default function DealerList() {
         const newDataSource = data.map((data, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           code: data.dealer_code || "-",
+          dealerName: data.name || "-",
           Name: data.name || "-",
           address: data.address,
           contactName: data.contact_name,
@@ -127,17 +147,18 @@ export default function DealerList() {
                           });
                         } else if (actionItem.action.toLowerCase() === "view") {
                           console.log(2222222222222222);
-                          
+
                           navigate("/customer/farmers/create", {
                             state: {
                               id: data.id,
                               mod: actionItem.action,
                             },
                           });
-                        } else if (actionItem.action.toLowerCase() === "delete") {                          
+                        } else if (
+                          actionItem.action.toLowerCase() === "delete"
+                        ) {
                           handleDeleteItem(data.id);
                         }
-                        
                       }}
                     />
                   ),
@@ -174,9 +195,39 @@ export default function DealerList() {
 
   const filters = [
     {
+      key: "sale",
+      type: "select",
+      label: "Sales",
+      placeholder: "All",
+      options: saleList,
+      moderef: true,
+    },
+    {
+      key: "dealers",
+      type: "select",
+      label: "Dealers",
+      placeholder: "All",
+      options: dealerList,
+      moderef: true,
+    },
+    {
+      key: "shop",
+      type: "select",
+      label: "Shop",
+      placeholder: "All",
+      options: subDealerList, // ✅ เปลี่ยนจาก dealerList
+    },
+    {
+      key: "farmers",
+      type: "select",
+      label: "Farms",
+      placeholder: "All",
+      options: farmList, // ✅ เปลี่ยนจาก dealerList
+    },
+    {
       key: "keyword",
       type: "text",
-      label: "Farmers",
+      label: "Keyword",
     },
     {
       key: "use_flag",
@@ -211,6 +262,12 @@ export default function DealerList() {
 
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
+    {
+      title: "Dealer",
+      width: 200,
+      dataIndex: "dealerName",
+      align: "left",
+    },
     { title: "Code", width: 100, dataIndex: "code", align: "left" },
     { title: "Farmer Name", width: 200, dataIndex: "Name", align: "left" },
     { title: "Address", width: 300, dataIndex: "address", align: "left" },
@@ -246,7 +303,7 @@ export default function DealerList() {
   };
 
   const handleDeleteItem = async (record) => {
-    try {      
+    try {
       const requestData = {
         id: record, // ส่ง ID ที่ต้องการลบ
       };
@@ -259,11 +316,7 @@ export default function DealerList() {
       if (response.status === 200) {
         fetchData();
         // showMsg("success", "Record deleted successfully.");
-        showNotification(
-          "success",
-          response.message,
-          response.message_line
-        );
+        showNotification("success", response.message, response.message_line);
       } else {
         console.error("Failed to delete record:", response.message);
         showNotification("error", response.message, response.message_line);
@@ -274,7 +327,6 @@ export default function DealerList() {
       showNotification("error", error.message, error.message_line);
     }
   };
-
 
   return (
     <MainLayout loading={loading}>
@@ -290,9 +342,9 @@ export default function DealerList() {
           mode="create"
           onClick={() =>
             navigate("/customer/farmers/create", {
-                state: { 
-                    mod: "create" 
-                },
+              state: {
+                mod: "create",
+              },
             })
           }
         />

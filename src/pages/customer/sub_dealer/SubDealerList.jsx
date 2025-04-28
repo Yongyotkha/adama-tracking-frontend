@@ -26,31 +26,41 @@ export default function SubDealerList() {
     sortOrder: null,
     sortField: null,
   });
+  const [saleList, setSaleList] = useState([]);
+  const [dealerList, setDealerList] = useState([]);
+  const [subDealerList, setSubDealerList] = useState([]);
 
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [dataStatus] = await Promise.all([
+        const [dataStatus, sale, dealers] = await Promise.all([
           useServiceAPI.get(paths.pathMasterStatus, {
             status_type: "status",
           }),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathMasterDealerDropdown, {
+            user_id: 83,
+          }),
         ]);
-        
+
         const Status = [];
         dataStatus.data.map((data, index) => {
-          Status.push({ 
-            id: data.code, 
-            name: data.name, 
+          Status.push({
+            id: data.code,
+            name: data.name,
           });
         });
-        
+        console.log("dealers : ", dealers);
+
         setStatus(Status);
+        setSaleList(sale.data);
+        setDealerList(dealers.data);
 
         // setPosition(producttype.data);
         // setRoles(roles.data);
       } catch (error) {
-        console.log( error.message);
+        console.log(error.message);
       } finally {
         setLoading(false);
       }
@@ -58,13 +68,35 @@ export default function SubDealerList() {
     getMaster();
   }, []);
 
-
   const filters = [
     {
       key: "keyword",
       type: "text",
       label: "Sub Dealer",
       placeholder: "All",
+    },
+    {
+      key: "sale",
+      type: "select",
+      label: "Sales",
+      placeholder: "All",
+      options: saleList,
+      moderef: true,
+    },
+    {
+      key: "dealers",
+      type: "select",
+      label: "Dealers",
+      placeholder: "All",
+      options: dealerList,
+      moderef: true,
+    },
+    {
+      key: "shop",
+      type: "select",
+      label: "Shop",
+      placeholder: "All",
+      options: subDealerList, // ✅ เปลี่ยนจาก dealerList
     },
     {
       key: "contact_name",
@@ -80,7 +112,7 @@ export default function SubDealerList() {
     },
     {
       key: "use_flag",
-      type: 'select',
+      type: "select",
       label: "Status",
       placeholder: "All",
       options: Status,
@@ -120,11 +152,12 @@ export default function SubDealerList() {
         const { data, records_filtered } = response.data;
         const newDataSource = data.map((data, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-        subDealerName: data.name,
-        contactName: data.contact_name,
-        address: data.contact_address,
-        phone: data.mobile_phone,
-        sale:data.sale_list_name,
+          dealerName: data.name,
+          subDealerName: data.name,
+          contactName: data.contact_name,
+          address: data.contact_address,
+          phone: data.mobile_phone,
+          sale: data.sale_list_name,
           status: (
             <BadgeStatus
               text={data.status_name}
@@ -143,15 +176,14 @@ export default function SubDealerList() {
                       onClick={() => {
                         if (actionItem.action === "Delete") {
                           handleDelete(data.id);
-                        } else if(actionItem.action === "View"){
+                        } else if (actionItem.action === "View") {
                           navigate("/customer/sub-dealer/view", {
                             state: {
                               id: data.id,
                               mode: actionItem.action,
                             },
                           });
-                        }
-                        else {
+                        } else {
                           navigate("/customer/sub-dealer/edit", {
                             state: {
                               id: data.id,
@@ -160,7 +192,6 @@ export default function SubDealerList() {
                           });
                         }
                       }}
-
                     />
                   ),
                 })),
@@ -176,12 +207,10 @@ export default function SubDealerList() {
               </a>
             </Dropdown>
           ),
-          
-
         }));
 
         setDataSource(newDataSource);
-        
+
         setTableParams({
           ...tableParams,
           pagination: {
@@ -226,8 +255,6 @@ export default function SubDealerList() {
     }
   };
 
-
-
   const handleSearch = (filters) => {
     setTableParams({
       ...tableParams,
@@ -239,7 +266,7 @@ export default function SubDealerList() {
       filters: {
         ...filters,
         page_length: 1, // Set default page_length
-        page_size: 10,  // Set default page_size
+        page_size: 10, // Set default page_size
       },
     });
   };
@@ -251,22 +278,40 @@ export default function SubDealerList() {
     });
   };
 
-
   const actionItems = [
-    { key: "1", label: <ItemDropDown mode="edit" link="/customer/sub-dealer/edit" /> },
+    {
+      key: "1",
+      label: <ItemDropDown mode="edit" link="/customer/sub-dealer/edit" />,
+    },
   ];
 
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
-    { title: "Sub Dealer Name", width: 200, dataIndex: "subDealerName", align: "left" },
-    { title: "Contact Name", width: 200, dataIndex: "contactName", align: "left" },
+    {
+      title: "Dealer Name",
+      width: 200,
+      dataIndex: "dealerName",
+      align: "left",
+    },
+    {
+      title: "Sub Dealer Name",
+      width: 200,
+      dataIndex: "subDealerName",
+      align: "left",
+    },
+    {
+      title: "Contact Name",
+      width: 200,
+      dataIndex: "contactName",
+      align: "left",
+    },
     { title: "Address", width: 300, dataIndex: "address", align: "left" },
     { title: "Phone", width: 150, dataIndex: "phone", align: "center" },
     { title: "By Sales", width: 150, dataIndex: "sale", align: "center" },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
-  
+
   const handleTableChange = (pagination, filters, sorter) => {
     setTableParams({
       pagination,
@@ -276,40 +321,76 @@ export default function SubDealerList() {
     });
   };
 
+  const handleChange = (filter) => {
+    // เมื่อเลือก Sale ให้โหลด Sub-dealer ใหม่
+
+    console.log("filter : ", filter);
+    if (filter && filter.sale) {
+      const userId =
+        typeof filter.sale === "object" && filter.sale.value
+          ? filter.sale.value
+          : filter.sale;
+
+      const getSubDealersBySale = async () => {
+        try {
+          const response = await useServiceAPI.get(
+            paths.pathMasterSubDealerAll,
+            { user_id: userId }
+          );
+
+          const formattedSubDealer = response.data.map((item) => ({
+            name: item.sub_dealer_name,
+            id: item.sub_dealer_id,
+          }));
+
+          setSubDealerList(formattedSubDealer);
+        } catch (error) {
+          showMsg(
+            "error",
+            error.message || "เกิดข้อผิดพลาดในการโหลด Sub-dealer"
+          );
+        }
+      };
+
+      getSubDealersBySale();
+    } else {
+      handleClear();
+    }
+  };
 
   return (
     <MainLayout loading={loading}>
-
       <div className="flex items-center justify-between">
         <div className="title-page">Sub Dealer</div>
-        <ActionButton mode="create" text="Create" 
-          onClick={() => 
-            navigate("/customer/sub-dealer/create", { 
-              state: { 
-                mode: "Create" 
-              } 
-            }) 
-          } 
+        <ActionButton
+          mode="create"
+          text="Create"
+          onClick={() =>
+            navigate("/customer/sub-dealer/create", {
+              state: {
+                mode: "Create",
+              },
+            })
+          }
         />
-
       </div>
 
       <Filter
         onSearch={handleSearch}
         onClear={handleClear}
+        onChange={handleChange}
         filters={filters}
       />
 
       <BoxPrimary>
-        <TableComponent 
-            header={header}
-            dataSource={dataSource}
-            pagination={tableParams.pagination}
-            loading={tableLoading}
-            onChange={handleTableChange}
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pagination={tableParams.pagination}
+          loading={tableLoading}
+          onChange={handleTableChange}
         />
       </BoxPrimary>
-
     </MainLayout>
   );
 }

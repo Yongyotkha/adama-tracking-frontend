@@ -80,14 +80,6 @@ export default function OrderList() {
   }, []);
 
   const filters = [
-    // {
-    //   key: "sale",
-    //   type: "select",
-    //   label: "Sales",
-    //   placeholder: "All",
-    //   options: dataSale,
-    //   moderef: true,
-    // },
     {
       key: "dealer",
       type: "select",
@@ -339,6 +331,7 @@ export default function OrderList() {
   };
 
   const handleChange = (filter) => {
+    console.log('filter : ',filter)
     // if (filter.sale) {
     //   const getMasterDealer = async () => {
     //     setLoading(true);

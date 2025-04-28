@@ -11,6 +11,8 @@ const Filter = ({ onSearch, onClear, onChange, filters, onValueChange }) => {
   const [activeKey, setActiveKey] = useState([]);
 
   const handleFilterChange = (filterKey, value) => {
+    console.log('handleFilterChange')
+
     setFilterValues((prevValues) => {
       const updatedValues = {
         ...prevValues,
@@ -126,6 +128,22 @@ const Filter = ({ onSearch, onClear, onChange, filters, onValueChange }) => {
                     placeholder={filter.placeholder || "Select date"}
                     className="w-full"
                     format="YYYY-MM-DD"
+                  />
+                )}
+                {filter.type === "month" && (
+                  <DatePicker
+                    value={
+                      filterValues[filter.key]
+                        ? dayjs(filterValues[filter.key])
+                        : null
+                    }
+                    onChange={(date, dateString) =>
+                      handleFilterChange(filter.key, dateString)
+                    }
+                    placeholder={filter.placeholder || "Select date"}
+                    className="w-full"
+                    format="YYYY-MM"
+                    picker="month"
                   />
                 )}
               </Col>
