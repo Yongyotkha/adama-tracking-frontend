@@ -331,6 +331,7 @@ export default function OrderList() {
   };
 
   const handleChange = (filter) => {
+    console.log('filter : ',filter)
     // if (filter.sale) {
     //   const getMasterDealer = async () => {
     //     setLoading(true);

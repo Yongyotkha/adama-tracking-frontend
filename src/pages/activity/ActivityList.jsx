@@ -154,6 +154,7 @@ export default function ActivityList() {
     });
   };
   const handleChange = (filter) => {
+    console.log('handle change : ',filter)
     // เมื่อเลือก Sale ให้โหลด Sub-dealer ใหม่
     if (filter && filter.sale) {
       const userId =
@@ -444,8 +445,6 @@ export default function ActivityList() {
     JSON.stringify(tableParams.filters),
   ]);
 
-  console.log('header : ',header)
-  console.log('data : ',dataSource)
 
   return (
     <MainLayout loading={loading}>

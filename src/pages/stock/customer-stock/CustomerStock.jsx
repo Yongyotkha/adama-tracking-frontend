@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
 import { Dropdown, Modal, Select } from "antd";
-import FilterByOrder from "../../../components/filter/FilterByOrder";
+import Filter from "../../../components/filter/Filter";
 import ActionButton from "../../../components/button/ActionButton";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
@@ -30,6 +30,7 @@ export default function CustomerStock() {
   const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
+  const [dealerId, setDealerId] = useState("");
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -55,7 +56,7 @@ export default function CustomerStock() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [sale, status,dealer,sub_dealer] = await Promise.all([
+        const [sale, status, dealer, sub_dealer] = await Promise.all([
           useServiceAPI.get(paths.pathMasterSaleDropdown, {
             status: "",
           }),
@@ -65,32 +66,15 @@ export default function CustomerStock() {
           useServiceAPI.get(paths.pathMasterDealerDropdown, {
             user_id: 83,
           }),
-          useServiceAPI.get(paths.pathMasterSubDealerAll, {
-            user_id: 83,
-          }),
         ]);
 
-        // setDataSale(sale.data);
         const formattedOptions = sale.data.map((item) => ({
           value: item.id,
           label: item.name,
         }));
 
-        // if (formattedOptions.length > 0) {
-        //   setDefaultOption("");
-        // }
         setDataSale(formattedOptions);
         setDealerList(dealer.data);
-
-        console.log('sub_dealer.data : ',sub_dealer.data)
-        const sub_dealers = [];
-        sub_dealer.data.map((data, index) => {
-          sub_dealers.push({
-            id: data.sub_dealer_name,
-            name: data.sub_dealer_name,
-          });
-        });
-        setSubDealerList(sub_dealers);
 
         const dataStatus = [];
         status.data.map((data, index) => {
@@ -117,7 +101,7 @@ export default function CustomerStock() {
       label: "Dealer",
       placeholder: "All",
       options: dealerList,
-      moderef: false,
+      moderef: true,
     },
     {
       key: "sub_dealer",
@@ -125,15 +109,15 @@ export default function CustomerStock() {
       label: "Sub Dealer",
       placeholder: "All",
       options: subDealerList,
-      moderef: false,
+      moderef: true,
     },
     {
       key: "document_date",
-      type: "datem",
+      type: "date",
       label: "Date",
       placeholder: "All",
       options: dataStatus,
-      moderef: false,
+      moderef: true,
     },
   ];
 
@@ -177,7 +161,6 @@ export default function CustomerStock() {
   }
 
   function formatNumber2(value) {
-    //console.log("value : ", value);
     if (!value) {
       return "0";
     } else if (value == ".00") {
@@ -220,9 +203,6 @@ export default function CustomerStock() {
     const filters = tableParams.filters || {};
     const sortOrder = tableParams.sortOrder || "desc";
     const sortField = tableParams.sortField || "document_number";
-
-    console.log("-----------fectch--------------");
-    console.log("filters : ", filters);
 
     const requestData = {
       keyword: filters.order_no || "",
@@ -319,22 +299,7 @@ export default function CustomerStock() {
           }
         }
 
-        const filteredData = data.filter((item) => {
-          const isDealerMatch = item.dealer_id === filters.dealer_id;
-
-          const normalize = (str) => str?.replace(/\s/g, ""); // ตัด space ทั้งหมด
-          const isSubDealerMatch =
-            normalize(item.sub_dealer_name) ===
-            normalize(filters.sub_dealer_name);
-
-          const isDateMatch = item.document_date.startsWith(
-            filters.document_date
-          );
-
-          return isDealerMatch && isSubDealerMatch && isDateMatch;
-        });
-
-        const newDataSource = filteredData.map((stock, index) => ({
+        const newDataSource = data.map((stock, index) => ({
           document_date: stock.document_date,
           dealer: stock.dealer_name,
           sub_dealer: stock.sub_dealer_name,
@@ -441,20 +406,6 @@ export default function CustomerStock() {
     JSON.stringify(tableParams.filters),
   ]);
 
-  const handleSearch = (filters) => {
-    setTableParams({
-      ...tableParams,
-      filters,
-    });
-  };
-
-  const handleClear = () => {
-    setTableParams({
-      ...tableParams,
-      filters: {},
-    });
-  };
-
   const handleTableChange = (pagination, filters, sorter) => {
     setTableParams({
       pagination,
@@ -464,26 +415,75 @@ export default function CustomerStock() {
     });
   };
 
+  const handleSearch = (filters) => {
+    setTableParams({
+      ...tableParams,
+      filters,
+    });
+  };
+
+  const handleClear = () => {
+    console.log("handleClear");
+    setTableParams({
+      ...tableParams,
+      filters: {},
+    });
+  };
+
   const handleChange = (filter) => {
-    setDefaultOption(filter);
-    const getMasterDealer = async () => {
-      setLoading(true);
-      try {
-        const [dealer] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterDealerDropdown, {
-            user_id: filter,
-          }),
-        ]);
+    console.log("handle change : ", filter);
 
-        setDataDealer(dealer.data);
-      } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (filter.dealer) {
+      // เคลียร์ sub dealer option
+      setSubDealerList([]);
 
-    getMasterDealer();
+      // เคลียร์ค่า sub_dealer ที่เลือกออกด้วย
+      setTableParams((prev) => ({
+        ...prev,
+        filters: {
+          ...prev.filters,
+          sub_dealer: "", // <<< ตั้ง sub_dealer ให้เป็นว่าง
+        },
+      }));
+
+      // หรือถ้าอยากให้ส่ง event clear ไปที่ Filter component ด้วยก็ได้
+      //getMasterSubDealer(filter.dealer);
+
+      const getMasterSubDealer = async () => {
+        try {
+          const [sub_dealer] = await Promise.all([
+            useServiceAPI.get(paths.pathMasterSubDealerAll, {
+              user_id: 86,
+            }),
+          ]);
+          console.log("sub_dealer : ", sub_dealer);
+
+          const sub_dealers = [];
+          sub_dealer.data.map((value, index) => {
+            sub_dealers.push({
+              id: value.sub_dealer_id,
+              name: value.sub_dealer_name,
+            });
+          });
+          console.log("sub_dealers : ", sub_dealers);
+          setSubDealerList(sub_dealers);
+
+          setTableParams((prev) => ({
+            ...prev,
+            filters: {
+              ...prev.filters,
+              sub_dealer: sub_dealers[0].id,
+            },
+          }));
+        } catch (error) {
+          console.error("Error loading sub dealer:", error);
+        }
+      };
+
+      getMasterSubDealer();
+    } else {
+      setSubDealerList([]);
+    }
   };
 
   return (
@@ -501,7 +501,7 @@ export default function CustomerStock() {
         </div>
       </div>
 
-      <FilterByOrder
+      <Filter
         onSearch={handleSearch}
         onClear={handleClear}
         onChange={handleChange}
