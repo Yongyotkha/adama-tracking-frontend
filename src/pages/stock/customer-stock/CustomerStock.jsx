@@ -28,6 +28,8 @@ export default function CustomerStock() {
   const [defaultOption, setDefaultOption] = useState();
   const [tableLoading, setTableLoading] = useState(false);
   const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
+  const [dealerList, setDealerList] = useState([]);
+  const [subDealerList, setSubDealerList] = useState([]);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -37,8 +39,6 @@ export default function CustomerStock() {
     sortOrder: null,
     sortField: null,
   });
-
-  console.log('userInfo : ',userInfo)
 
   const { confirm } = Modal;
 
@@ -55,12 +55,18 @@ export default function CustomerStock() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [sale, status] = await Promise.all([
+        const [sale, status,dealer,sub_dealer] = await Promise.all([
           useServiceAPI.get(paths.pathMasterSaleDropdown, {
             status: "",
           }),
           useServiceAPI.get(paths.pathMasterStatus, {
             status_type: "order",
+          }),
+          useServiceAPI.get(paths.pathMasterDealerDropdown, {
+            user_id: 83,
+          }),
+          useServiceAPI.get(paths.pathMasterSubDealerAll, {
+            user_id: 83,
           }),
         ]);
 
@@ -74,11 +80,22 @@ export default function CustomerStock() {
         //   setDefaultOption("");
         // }
         setDataSale(formattedOptions);
+        setDealerList(dealer.data);
+
+        console.log('sub_dealer.data : ',sub_dealer.data)
+        const sub_dealers = [];
+        sub_dealer.data.map((data, index) => {
+          sub_dealers.push({
+            id: data.sub_dealer_name,
+            name: data.sub_dealer_name,
+          });
+        });
+        setSubDealerList(sub_dealers);
 
         const dataStatus = [];
         status.data.map((data, index) => {
           dataStatus.push({
-            id: data.code,
+            id: data.id,
             name: data.name,
           });
         });
@@ -99,7 +116,7 @@ export default function CustomerStock() {
       type: "select",
       label: "Dealer",
       placeholder: "All",
-      options: dataDealer,
+      options: dealerList,
       moderef: false,
     },
     {
@@ -107,12 +124,12 @@ export default function CustomerStock() {
       type: "select",
       label: "Sub Dealer",
       placeholder: "All",
-      options: dataDealer,
+      options: subDealerList,
       moderef: false,
     },
     {
       key: "document_date",
-      type: "date",
+      type: "datem",
       label: "Date",
       placeholder: "All",
       options: dataStatus,
@@ -203,6 +220,9 @@ export default function CustomerStock() {
     const filters = tableParams.filters || {};
     const sortOrder = tableParams.sortOrder || "desc";
     const sortField = tableParams.sortField || "document_number";
+
+    console.log("-----------fectch--------------");
+    console.log("filters : ", filters);
 
     const requestData = {
       keyword: filters.order_no || "",
@@ -299,7 +319,22 @@ export default function CustomerStock() {
           }
         }
 
-        const newDataSource = data.map((stock, index) => ({
+        const filteredData = data.filter((item) => {
+          const isDealerMatch = item.dealer_id === filters.dealer_id;
+
+          const normalize = (str) => str?.replace(/\s/g, ""); // ตัด space ทั้งหมด
+          const isSubDealerMatch =
+            normalize(item.sub_dealer_name) ===
+            normalize(filters.sub_dealer_name);
+
+          const isDateMatch = item.document_date.startsWith(
+            filters.document_date
+          );
+
+          return isDealerMatch && isSubDealerMatch && isDateMatch;
+        });
+
+        const newDataSource = filteredData.map((stock, index) => ({
           document_date: stock.document_date,
           dealer: stock.dealer_name,
           sub_dealer: stock.sub_dealer_name,
@@ -407,7 +442,6 @@ export default function CustomerStock() {
   ]);
 
   const handleSearch = (filters) => {
-    console.log("filters : ", filters);
     setTableParams({
       ...tableParams,
       filters,
@@ -441,8 +475,6 @@ export default function CustomerStock() {
           }),
         ]);
 
-        console.log("dealer : ", dealer);
-
         setDataDealer(dealer.data);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -453,8 +485,6 @@ export default function CustomerStock() {
 
     getMasterDealer();
   };
-
-  console.log("dataSource : ", dataSource);
 
   return (
     <MainLayout loading={loading}>

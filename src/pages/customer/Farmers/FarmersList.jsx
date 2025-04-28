@@ -101,7 +101,6 @@ export default function DealerList() {
     const requestData = {
       keyword: filters.keyword || "",
       use_flag: filters.use_flag || "",
-
       page_length: current,
       page_size: pageSize,
     };
