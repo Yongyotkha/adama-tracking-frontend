@@ -557,14 +557,18 @@ export default function ViewTraveling() {
           mode="saveDraft"
           text="Export PDF"
           // onClick={() => window.open("/expenses/traveling/pdf", "_blank")}
+          // onClick={() => {
+          //   navigate("/expenses/traveling/pdf", {
+          //     state: {
+          //       year_code: getYearCode,
+          //       month_code: getMonthCode,
+          //       user_id: getUserId,
+          //     },
+          //   });
+          // }}
           onClick={() => {
-            navigate("/expenses/traveling/pdf", {
-              state: {
-                year_code: getYearCode,
-                month_code: getMonthCode,
-                user_id: getUserId,
-              },
-            });
+            const targetUrl = `/expenses/traveling/pdf?year_code=${getYearCode}&month_code=${getMonthCode}&user_id=${getUserId}`;
+            window.open(targetUrl, "_blank"); // เปิดในแท็บใหม่
           }}
         />
       </div>

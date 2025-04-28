@@ -167,6 +167,7 @@ const styles = StyleSheet.create({
 const TravelingPDF = ({ title }) => {
   const [loading, setLoading] = useState(false);
   const location = useLocation();
+
   const [data, setData] = useState([]);
   const [dataItems, setDataItems] = useState([]);
 
@@ -218,17 +219,22 @@ const TravelingPDF = ({ title }) => {
     }
   );
 
-  
+
   const formatValue = (value) => {
     if (value === ".00") return '-'; // Replace .00 with 0
     if (!isNaN(value)) return parseFloat(value); // Otherwise, return as float
     return value; // If it's neither, return the value as is
   };
 
-  const [getUserId, setGetUserId] = useState(location.state.user_id);
-  const [getYearCode, setGetYearCode] = useState(location.state.year_code);
-  const [getMonthCode, setGetMonthCode] = useState(location.state.month_code);
+  // const [getUserId, setGetUserId] = useState(location.state.user_id);
+  // const [getYearCode, setGetYearCode] = useState(location.state.year_code);
+  // const [getMonthCode, setGetMonthCode] = useState(location.state.month_code);
 
+  const queryParams = new URLSearchParams(location.search);
+
+  const getYearCode = queryParams.get("year_code");
+  const getMonthCode = queryParams.get("month_code");
+  const getUserId = queryParams.get("user_id");
   useEffect(() => {
     const loadDataTraveling = async () => {
       setLoading(true);
@@ -242,7 +248,7 @@ const TravelingPDF = ({ title }) => {
         if (response.result) {
           setData(response.data); // Store response data
           console.log(response.data);
-          
+
           const dataItems = response.data.data_items || [];
 
           const transformedData = dataItems.map((item, index) => {
@@ -253,13 +259,13 @@ const TravelingPDF = ({ title }) => {
               to: item.traveling_to || "-",
               mileage: item.mileage || "",
               petrol: formatNumber(formatValue(item.petrol)) || "-",
-              cashPetrol: formatNumber(formatValue(item.cash_petrol) ) || "-",
-              hotel:  formatNumber(formatValue(item.hotel)) || "-",
-              allowance:  formatNumber(formatValue(item.allowance)) || "-",
-              tollFee:  formatNumber(formatValue(item.toll_fee)) || "-",
-              entertain:  formatNumber(formatValue(item.entertain)) || "-",
-              others:  formatNumber(formatValue(item.others)) || "-",
-              total:  formatNumber(formatValue(item.total)) || "-",
+              cashPetrol: formatNumber(formatValue(item.cash_petrol)) || "-",
+              hotel: formatNumber(formatValue(item.hotel)) || "-",
+              allowance: formatNumber(formatValue(item.allowance)) || "-",
+              tollFee: formatNumber(formatValue(item.toll_fee)) || "-",
+              entertain: formatNumber(formatValue(item.entertain)) || "-",
+              others: formatNumber(formatValue(item.others)) || "-",
+              total: formatNumber(formatValue(item.total)) || "-",
               remark: item.remark || "-",
             };
           });

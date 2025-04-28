@@ -226,7 +226,6 @@ const App = () => {
             <Route path="/expenses/traveling/create" element={<CreateTraveling />} />
             <Route path="/expenses/traveling/edit" element={<EditTraveling />} />
             <Route path="/expenses/traveling/view" element={<ViewTraveling />} />
-            <Route path="/expenses/traveling/view" element={<ViewTraveling />} />
             <Route path="/expenses/traveling/pdf" element={<PdfTraveling />} />
             <Route path="/expenses/clearing" element={<ClearingExpense />} />
             <Route path="/expenses/clearing/pdf" element={<PDFClearingExpense />} />
