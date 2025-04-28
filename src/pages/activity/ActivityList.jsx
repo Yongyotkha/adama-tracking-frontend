@@ -40,6 +40,9 @@ export default function ActivityList() {
   const [perceptionData, setPerceptionData] = useState([]);
   const [isProductModalVisible, setIsProductModalVisible] = useState(false);
   const [isMappingModalVisible, setIsMappingModalVisible] = useState(false);
+  const [isDealerDisabled, setIsDealerDisabled] = useState(true);
+  const [isSubDealerDisabled, setIsSubDealerDisabled] = useState(true);
+  
   const navigate = useNavigate();
 
   const handleBadgeClick = (rowData) => {
@@ -122,12 +125,20 @@ export default function ActivityList() {
       moderef: true,
     },
     {
+      key: "dealer",
+      type: "select",
+      label: "Dealer",
+      placeholder: "All",
+      options: dealerList,  // ✅ ใช้ dealerList
+      disabled: isDealerDisabled,  // ✅ เพิ่มตรงนี้
+    },
+    {
       key: "shop",
       type: "select",
       label: "Shop",
       placeholder: "All",
-      // options: dealerList,
-      options: subDealerList, // ✅ เปลี่ยนจาก dealerList
+      options: subDealerList, // ✅ shop
+      disabled: isSubDealerDisabled, // ✅ เพิ่มตรงนี้
     },
     {
       key: "Date",
@@ -136,15 +147,26 @@ export default function ActivityList() {
     },
   ];
 
+  // const handleSearch = (filters) => {
+  //   setTableParams({
+  //     ...tableParams,
+  //     filters,
+  //     pagination: {
+  //       current: 1,
+  //       pageSize: 10,
+  //     },
+  //   });
+  // };
+
   const handleSearch = (filters) => {
-    setTableParams({
-      ...tableParams,
+    setTableParams((prev) => ({
+      ...prev,
       filters,
       pagination: {
         current: 1,
         pageSize: 10,
       },
-    });
+    }));
   };
 
   const handleClear = () => {
@@ -153,65 +175,138 @@ export default function ActivityList() {
       filters: {},
     });
   };
+
+  // const handleChange = (filter) => {
+  //   // เมื่อเลือก Sale ให้โหลด Sub-dealer ใหม่
+  //   if (filter && filter.sale) {
+  //     const userId =
+  //       typeof filter.sale === "object" && filter.sale.value
+  //         ? filter.sale.value
+  //         : filter.sale;
+
+  //     const getSubDealersBySale = async () => {
+  //       try {
+  //         const response = await useServiceAPI.get(
+  //           paths.pathMasterSubDealerAll,
+  //           { user_id: userId }
+  //         );
+
+  //         const formattedSubDealer = response.data.map((item) => ({
+  //           name: item.sub_dealer_name,
+  //           id: item.sub_dealer_id,
+  //         }));
+
+  //         setSubDealerList(formattedSubDealer);
+  //       } catch (error) {
+  //         showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Sub-dealer");
+  //       }
+  //     };
+
+  //     getSubDealersBySale();
+  //   }
+  // };
+
+  // const handleChange = (filter) => {
+  //   // เมื่อเลือก Sale ให้โหลด Sub-dealer และ Dealer ใหม่
+  //   if (filter && filter.sale) {
+  //     const userId =
+  //       typeof filter.sale === "object" && filter.sale.value
+  //         ? filter.sale.value
+  //         : filter.sale;
+
+  //     const getDealersAndSubDealersBySale = async () => {
+  //       try {
+  //         // ดึง Dealer List
+  //         const dealerResponse = await useServiceAPI.get(
+  //           paths.pathMasterDealerAll,
+  //           { user_id: userId }
+  //         );
+
+  //         const formattedDealer = dealerResponse.data.map((item) => ({
+  //           name: item.name, // field name ที่ได้จาก API
+  //           id: item.id,
+  //         }));
+
+  //         setDealerList(formattedDealer);
+
+  //         // ดึง Sub-Dealer List
+  //         const subDealerResponse = await useServiceAPI.get(
+  //           paths.pathMasterSubDealerAll,
+  //           { user_id: userId }
+  //         );
+
+  //         const formattedSubDealer = subDealerResponse.data.map((item) => ({
+  //           name: item.sub_dealer_name,
+  //           id: item.sub_dealer_id,
+  //         }));
+
+  //         setSubDealerList(formattedSubDealer);
+
+  //       } catch (error) {
+  //         showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer/Sub-dealer");
+  //       }
+  //     };
+
+  //     getDealersAndSubDealersBySale();
+  //   }
+  // };
+
   const handleChange = (filter) => {
-    // เมื่อเลือก Sale ให้โหลด Sub-dealer ใหม่
     if (filter && filter.sale) {
       const userId =
         typeof filter.sale === "object" && filter.sale.value
           ? filter.sale.value
           : filter.sale;
-
-      const getSubDealersBySale = async () => {
+  
+      const getDealersAndSubDealersBySale = async () => {
         try {
-          const response = await useServiceAPI.get(
+          // ดึง Dealer List
+          const dealerResponse = await useServiceAPI.get(
+            paths.pathMasterDealerAll,
+            { user_id: userId }
+          );
+  
+          const formattedDealer = dealerResponse.data.map((item) => ({
+            name: item.name,
+            id: item.id,
+          }));
+  
+          setDealerList(formattedDealer);
+  
+          // ดึง Sub-Dealer List
+          const subDealerResponse = await useServiceAPI.get(
             paths.pathMasterSubDealerAll,
             { user_id: userId }
           );
-
-          const formattedSubDealer = response.data.map((item) => ({
+  
+          const formattedSubDealer = subDealerResponse.data.map((item) => ({
             name: item.sub_dealer_name,
             id: item.sub_dealer_id,
           }));
-
+  
           setSubDealerList(formattedSubDealer);
+  
+          // ✅ เมื่อมี Sale ที่เลือกอยู่ -> Enable Dealer และ Shop
+          setIsDealerDisabled(false);
+          setIsSubDealerDisabled(false);
+          
         } catch (error) {
-          showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Sub-dealer");
+          showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer/Sub-dealer");
         }
       };
-
-      getSubDealersBySale();
+  
+      getDealersAndSubDealersBySale();
     }
-
-    // ถ้ามีการล้าง shop ให้ search ใหม่ทันที
-    if (filter?.shop === null || filter?.shop === undefined || filter?.shop === "") {
-      setTableParams({
-        ...tableParams,
-        filters: filter,
-        pagination: {
-          current: 1,
-          pageSize: 10,
-        },
-      });
-      return;
+    
+    // ✅ ถ้า Sale ถูก clear (null หรือ undefined หรือ '')
+    if (!filter?.sale) {
+      setDealerList([]);
+      setSubDealerList([]);
+      setIsDealerDisabled(true);
+      setIsSubDealerDisabled(true);
     }
-
-    // ถ้าเลือก shop (subdealer) หรือ sale แล้ว ก็ให้ search เลย
-    if (filter?.shop || filter?.sale) {
-      setTableParams({
-        ...tableParams,
-        filters: filter,
-        pagination: {
-          current: 1,
-          pageSize: 10,
-        },
-      });
-    }
-
-    else {
-      handleClear();
-    }
-
   };
+  
 
 
   const handleDelete = async (documentNumber) => {
@@ -268,7 +363,8 @@ export default function ActivityList() {
       align: "start",
     },
     { title: "Sales", width: 150, dataIndex: "sale", align: "start" },
-    { title: "Shop", width: 150, dataIndex: "shop", align: "start" },
+    { title: "Shop", width: 150, dataIndex: "shop", align: "start" }, // ✅ เพิ่มตรงนี้
+    { title: "Dealer", width: 150, dataIndex: "dealer", align: "start" },
     { title: "Date", width: 150, dataIndex: "date", align: "start" },
     {
       title: "Create Date",
@@ -298,14 +394,17 @@ export default function ActivityList() {
       keyword: filters.keyword || "",
       activity_type_id: filters.activity_type || "",
       user_id: filters.sale || "",
-      dealer_id: filters.shop || "",
+      dealer_id: filters.shop || "", // ✅ ใส่ dealer_id ด้วย
+      master_dealer_id: filters.dealer || "", // ✅ shop เป็น sub_dealer_id
       page: "all",
       page_mode: "list",
       orderby_column: sortField,
       orderby: sortOrder,
       page_length: current,
       page_size: pageSize,
+      document_date: filters.Date ? dayjs(filters.Date).format('YYYY-MM-DD') : "",
     };
+
 
     try {
       const response = await useServiceAPI.get(
@@ -315,15 +414,17 @@ export default function ActivityList() {
 
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
-
+        // console.log(data);
+        // console.log(records_filtered);
         const newDataSource = data.map((row, index) => {
 
           return {
             key: index + 1 + (current - 1) * pageSize,
             activityNo: row.document_number,
             activityType: row.activity_type_name,
-            shop: row.dealer_name ?? "-",
             sale: row.user_name ?? "-",
+            shop: row.dealer_name ?? "-", // ✅ Dealer Name
+            sub_dealer: row.sub_dealer_name ?? "-",
             date: row.document_date,
             time: row.time,
             createdAt: dayjs(row.created_at).format("YYYY-MM-DD"),
@@ -421,7 +522,7 @@ export default function ActivityList() {
 
         setActivityList(activityType.data);
         setSaleList(sale.data);
-        console.log(sale.data);
+        // console.log(sale.data);
 
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล");
