@@ -197,15 +197,17 @@ const TravelingPDF = ({ title }) => {
     { title: "Remark", dataIndex: "remark", width: "20%" },
   ];
 
+  const cleanNumber = (value) => parseFloat((value || "0").toString().replace(/,/g, ""));
+
   const totalValues = dataItems.reduce(
     (totals, item) => {
-      totals.total_petrol += parseFloat(item.petrol) || 0;
-      totals.total_cashPetrol += parseFloat(item.cashPetrol) || 0;
-      totals.total_hotel += parseFloat(item.hotel) || 0;
-      totals.total_allowance += parseFloat(item.allowance) || 0;
-      totals.total_tollFee += parseFloat(item.tollFee) || 0;
-      totals.total_entertain += parseFloat(item.entertain) || 0;
-      totals.total_others += parseFloat(item.others) || 0;
+      totals.total_petrol += cleanNumber(item.petrol);
+      totals.total_cashPetrol += cleanNumber(item.cashPetrol);
+      totals.total_hotel += cleanNumber(item.hotel);
+      totals.total_allowance += cleanNumber(item.allowance);
+      totals.total_tollFee += cleanNumber(item.tollFee);
+      totals.total_entertain += cleanNumber(item.entertain);
+      totals.total_others += cleanNumber(item.others);
       return totals;
     },
     {
@@ -218,7 +220,6 @@ const TravelingPDF = ({ title }) => {
       total_others: 0,
     }
   );
-
 
   const formatValue = (value) => {
     if (value === ".00") return '-'; // Replace .00 with 0
@@ -247,7 +248,7 @@ const TravelingPDF = ({ title }) => {
 
         if (response.result) {
           setData(response.data); // Store response data
-          console.log(response.data);
+          // console.log(response.data);
 
           const dataItems = response.data.data_items || [];
 
@@ -269,7 +270,7 @@ const TravelingPDF = ({ title }) => {
               remark: item.remark || "-",
             };
           });
-          console.log(transformedData);
+          // console.log(transformedData);
           setDataItems(transformedData);
         }
       } catch (error) {
