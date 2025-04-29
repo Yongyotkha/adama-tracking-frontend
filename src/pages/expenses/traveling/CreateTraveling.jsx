@@ -351,7 +351,7 @@ export default function CreateTraveling() {
           style={{ width: 250 }}
           value={value}
           onChange={(e) => updateField(record.key, "remark", e.target.value)}
-          maxLength={50}
+          maxLength={25}
         />
       ),
     },

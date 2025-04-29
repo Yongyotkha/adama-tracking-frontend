@@ -460,6 +460,7 @@ export default function EditTraveling() {
           style={{ width: 250 }}
           value={value}
           onChange={(e) => updateField(record.key, "remark", e.target.value)}
+          maxLength={25}
         />
       ),
     },

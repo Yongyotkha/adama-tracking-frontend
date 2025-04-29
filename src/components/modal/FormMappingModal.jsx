@@ -202,6 +202,17 @@ const FormMappingModal = ({
     onClose();
   };
 
+  const handleGetLocationToGoogleMap = () => {
+    if (formData.location_latitude && formData.location_longitude) {
+      const lat = formData.location_latitude;
+      const lng = formData.location_longitude;
+      const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+      window.open(googleMapsUrl, "_blank");
+    } else {
+      console.error("No latitude and longitude data available.");
+    }
+  };
+
   return (
     <Modal
       title={title}
@@ -290,9 +301,22 @@ const FormMappingModal = ({
           <Input disabled value={formData.longitude} />
         </div>
         <div className="col-span-4 md:col-span-4">
-          <label className="block mb-2 font-medium text-gray-700">
-            Place of GPS
-          </label>
+          <div className="flex justify-between">
+            <label className="block mb-2 font-medium text-gray-700">
+              Place of GPS
+            </label>
+            <button
+              className="w-6 h-6"
+              onClick={handleGetLocationToGoogleMap}
+            >
+              <img
+                src="/img/icons/google-map.png"
+                alt="Google Map"
+              />
+            </button>
+
+          </div>
+
           <Input
             disabled
             className="w-full"
@@ -352,7 +376,7 @@ const FormMappingModal = ({
             <div className="flex flex-wrap gap-2 justify-center">
               {formData.image_list.map((image, index) => (
                 <img
-                  key={index} 
+                  key={index}
                   src={image}
                   alt={`Captured ${index + 1}`}
                   className="w-[200px] h-auto max-h-[300px] rounded-lg shadow-md"
