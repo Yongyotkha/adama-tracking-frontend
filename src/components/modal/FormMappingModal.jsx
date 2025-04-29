@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Modal, Input, Button, DatePicker, Select } from "antd";
-import { EnvironmentOutlined } from "@ant-design/icons";
+import { CameraOutlined, EnvironmentOutlined } from "@ant-design/icons";
 import Webcam from "react-webcam";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -150,14 +150,16 @@ const FormMappingModal = ({
           // นำค่าที่ได้จาก handleImageChange ไปอัปเดต state formData
           setFormData((prev) => ({
             ...prev,
-            image_list: [uploadedImageUrl], // ใช้ URL ที่อัปโหลดแทนค่า imageSrc เดิม
+            image_list: [uploadedImageUrl],
           }));
+          setIsCameraOn(false);  // 👉 หลังถ่ายรูป ปิดกล้องไปเลย
         } catch (error) {
           console.error("Error uploading image:", error);
         }
       }
     }
   }, [webcamRef]);
+
 
   const handleImageChange = async (imageSrc) => {
     const blob = await fetch(imageSrc).then((res) => res.blob());
@@ -212,7 +214,7 @@ const FormMappingModal = ({
       console.error("No latitude and longitude data available.");
     }
   };
-
+  console.log(formData);
   return (
     <Modal
       title={title}
@@ -305,15 +307,17 @@ const FormMappingModal = ({
             <label className="block mb-2 font-medium text-gray-700">
               Place of GPS
             </label>
-            <button
-              className="w-6 h-6"
-              onClick={handleGetLocationToGoogleMap}
-            >
-              <img
-                src="/img/icons/google-map.png"
-                alt="Google Map"
-              />
-            </button>
+            {dataSource?.status_mapping_name === "Complete" && (
+              <button
+                className="w-6 h-6"
+                onClick={handleGetLocationToGoogleMap}
+              >
+                <img
+                  src="/img/icons/google-map.png"
+                  alt="Google Map"
+                />
+              </button>
+            )}
 
           </div>
 
@@ -345,16 +349,9 @@ const FormMappingModal = ({
 
           {permission.edit && (
             <>
-              {/* <Webcam
-                audio={false}
-                ref={webcamRef}
-                screenshotFormat="image/jpeg"
-                videoConstraints={{ facingMode: "user" }}
-                style={{ width: "100%", maxHeight: "300px" }}
-              /> */}
               {isCameraOn && (
                 <Webcam
-                  key={isVisible} // ใช้ key เพื่อ remount ใหม่ทุกครั้งที่ modal เปิด
+                  key={isVisible} // Remount ใหม่ทุกครั้งที่ Modal เปิด
                   audio={false}
                   ref={webcamRef}
                   screenshotFormat="image/jpeg"
@@ -367,24 +364,53 @@ const FormMappingModal = ({
                   {photoError}
                 </div>
               )}
-              <Button onClick={captureImage} className="w-[auto] mt-2 mx-auto">
-                Capture Photo
-              </Button>
+
+              {/* ปุ่มเปลี่ยนตามสถานะ */}
+              {formData?.image_list?.length > 0 ? (
+                <Button
+                  onClick={() => {
+                    // Reset รูปและเปิดกล้องใหม่
+                    setFormData((prev) => ({ ...prev, image_list: [] }));
+                    setIsCameraOn(true);
+                  }}
+                  className="w-[auto] mt-2 mx-auto flex items-center gap-2"
+                  icon={
+                    <img
+                      src="/img/icons/reload.png"
+                      alt="Reload"
+                      style={{ width: 20, height: 20 }}
+                    />
+                  }
+                >
+                  Retake Photo
+                </Button>
+              ) : (
+                <Button
+                  onClick={captureImage}
+                  className="w-[auto] mt-2 mx-auto flex items-center gap-2"
+                  icon={<CameraOutlined style={{ fontSize: "20px" }} />}
+                >
+                  Capture Photo
+                </Button>
+              )}
             </>
           )}
+
+          {/* แสดงภาพที่ถ่ายได้ */}
           {formData?.image_list?.length > 0 && (
-            <div className="flex flex-wrap gap-2 justify-center">
+            <div className="flex flex-wrap gap-2 justify-center my-2">
               {formData.image_list.map((image, index) => (
                 <img
                   key={index}
                   src={image}
                   alt={`Captured ${index + 1}`}
-                  className="w-[200px] h-auto max-h-[300px] rounded-lg shadow-md"
+                  className="w-fit h-full max-h-[300px] rounded-lg shadow-lg"
                 />
               ))}
             </div>
           )}
         </div>
+
 
         <div className="col-span-4 md:col-span-4">
           <label className="block mb-2 font-medium text-gray-700">Remark</label>

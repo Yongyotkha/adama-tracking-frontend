@@ -47,6 +47,7 @@ export default function ActivityList() {
 
   const handleBadgeClick = (rowData) => {
     setMappingData(rowData);
+    console.log(rowData);
     setIsMappingModalVisible(true);
   };
 
@@ -147,26 +148,15 @@ export default function ActivityList() {
     },
   ];
 
-  // const handleSearch = (filters) => {
-  //   setTableParams({
-  //     ...tableParams,
-  //     filters,
-  //     pagination: {
-  //       current: 1,
-  //       pageSize: 10,
-  //     },
-  //   });
-  // };
-
   const handleSearch = (filters) => {
-    setTableParams((prev) => ({
-      ...prev,
+    setTableParams({
+      ...tableParams,
       filters,
       pagination: {
         current: 1,
         pageSize: 10,
       },
-    }));
+    });
   };
 
   const handleClear = () => {
@@ -175,81 +165,6 @@ export default function ActivityList() {
       filters: {},
     });
   };
-
-  // const handleChange = (filter) => {
-  //   // เมื่อเลือก Sale ให้โหลด Sub-dealer ใหม่
-  //   if (filter && filter.sale) {
-  //     const userId =
-  //       typeof filter.sale === "object" && filter.sale.value
-  //         ? filter.sale.value
-  //         : filter.sale;
-
-  //     const getSubDealersBySale = async () => {
-  //       try {
-  //         const response = await useServiceAPI.get(
-  //           paths.pathMasterSubDealerAll,
-  //           { user_id: userId }
-  //         );
-
-  //         const formattedSubDealer = response.data.map((item) => ({
-  //           name: item.sub_dealer_name,
-  //           id: item.sub_dealer_id,
-  //         }));
-
-  //         setSubDealerList(formattedSubDealer);
-  //       } catch (error) {
-  //         showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Sub-dealer");
-  //       }
-  //     };
-
-  //     getSubDealersBySale();
-  //   }
-  // };
-
-  // const handleChange = (filter) => {
-  //   // เมื่อเลือก Sale ให้โหลด Sub-dealer และ Dealer ใหม่
-  //   if (filter && filter.sale) {
-  //     const userId =
-  //       typeof filter.sale === "object" && filter.sale.value
-  //         ? filter.sale.value
-  //         : filter.sale;
-
-  //     const getDealersAndSubDealersBySale = async () => {
-  //       try {
-  //         // ดึง Dealer List
-  //         const dealerResponse = await useServiceAPI.get(
-  //           paths.pathMasterDealerAll,
-  //           { user_id: userId }
-  //         );
-
-  //         const formattedDealer = dealerResponse.data.map((item) => ({
-  //           name: item.name, // field name ที่ได้จาก API
-  //           id: item.id,
-  //         }));
-
-  //         setDealerList(formattedDealer);
-
-  //         // ดึง Sub-Dealer List
-  //         const subDealerResponse = await useServiceAPI.get(
-  //           paths.pathMasterSubDealerAll,
-  //           { user_id: userId }
-  //         );
-
-  //         const formattedSubDealer = subDealerResponse.data.map((item) => ({
-  //           name: item.sub_dealer_name,
-  //           id: item.sub_dealer_id,
-  //         }));
-
-  //         setSubDealerList(formattedSubDealer);
-
-  //       } catch (error) {
-  //         showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer/Sub-dealer");
-  //       }
-  //     };
-
-  //     getDealersAndSubDealersBySale();
-  //   }
-  // };
 
   const handleChange = (filter) => {
     if (filter && filter.sale) {
@@ -414,7 +329,7 @@ export default function ActivityList() {
         // console.log(data);
         // console.log(records_filtered);
         const newDataSource = data.map((row, index) => {
-
+          console.log(row.status_mapping_name);
           return {
             key: index + 1 + (current - 1) * pageSize,
             activityNo: row.document_number,
