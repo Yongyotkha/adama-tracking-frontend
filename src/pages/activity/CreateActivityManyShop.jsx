@@ -1265,7 +1265,7 @@ export default function CreateActivityManyShop() {
       </div>
 
       <Form layout="vertical" form={formMulti}>
-        <BoxPrimary style={{ marginBottom: "20px" }}>
+        <BoxPrimary>
           <Row gutter={16} align="middle">
             <Col xs={24} sm={24} md={6} lg={6}>
               <Form.Item
@@ -1307,7 +1307,7 @@ export default function CreateActivityManyShop() {
             </Col>
           </Row>
         </BoxPrimary>
-        <BoxPrimary>
+        <BoxPrimary className="mt-2">
           {multiShop.length > 0 ? (
             renderMultiShop()
           ) : (
