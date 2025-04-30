@@ -4,10 +4,14 @@ import { Input } from "antd";
 
 const NumericInput = ({ value, onChange, disabled = false, style, className }) => {
   const handleChange = (e) => {
-    const inputValue = e.target.value;
-    // Allow only numbers
-    if (/^\d*$/.test(inputValue)) {
-      onChange(inputValue);
+    const rawValue = e.target.value;
+
+    // ลบ comma ออกก่อน parse
+    const numericValue = rawValue.replace(/,/g, "");
+
+    // อนุญาตเฉพาะตัวเลขและจุดทศนิยม
+    if (/^\d*\.?\d*$/.test(numericValue)) {
+      onChange(numericValue);
     }
   };
 

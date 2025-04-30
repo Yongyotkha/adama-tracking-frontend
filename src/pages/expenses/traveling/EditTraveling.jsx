@@ -260,8 +260,8 @@ export default function EditTraveling() {
   }, [dataSource, dataTotalExpenses]);
 
   useEffect(() => {
-    console.log(dataTotalAdvanced);
-    console.log(dataTotalExpenses);
+    // console.log(dataTotalAdvanced);
+    // console.log(dataTotalExpenses);
     if (dataTotalAdvanced > dataTotalExpenses) {
       setReturnToCompany(dataTotalAdvanced - dataTotalExpenses);
       setReturnToStaff(0);
@@ -274,8 +274,8 @@ export default function EditTraveling() {
     }
   }, [dataTotalAdvanced, dataTotalExpenses]);
 
-  console.log(returnToCompany);
-  console.log(returnToStaff);
+  // console.log(returnToCompany);
+  // console.log(returnToStaff);
 
   const formFields = [
     {
@@ -626,7 +626,12 @@ export default function EditTraveling() {
           <div className="flex justify-end">Total Advanced:</div>
           <NumericInput
             value = {formatNumber(dataTotalAdvanced)}
-            onChange={(value) => setDataTotalAdvanced(parseFloat(value) || 0)}
+            // onChange={(value) => setDataTotalAdvanced(parseFloat(value) || 0) }
+            onChange={(value) => {
+              const parsedValue = parseFloat(value) || 0;
+              console.log("setDataTotalAdvanced:", parsedValue);
+              setDataTotalAdvanced(parsedValue);
+            }}
           />
 
           <div className="flex justify-end">Total Expenses:</div>

@@ -547,7 +547,7 @@ export default function CreateTraveling() {
           <div className="flex justify-end">Total Advanced:</div>
           {/* <NumericInput value={dataTotalAdvanced} disabled /> */}
           <NumericInput
-            value={dataTotalAdvanced}
+            value = {formatNumber(dataTotalAdvanced)}
             onChange={(value) => setDataTotalAdvanced(parseFloat(value) || 0)}
           />
           <div className="flex justify-end">Total Expenses:</div>
