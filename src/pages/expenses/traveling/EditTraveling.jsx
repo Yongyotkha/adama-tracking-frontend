@@ -101,6 +101,7 @@ export default function EditTraveling() {
         );
 
         setDataRemark(expense.data.remark);
+        setDataTotalAdvanced(expense.data.total_advanced || 0);
         setSaleId(getUserId);
         setYearCode(getYearCode);
         setMonthCode(getMonthCode);
@@ -259,6 +260,8 @@ export default function EditTraveling() {
   }, [dataSource, dataTotalExpenses]);
 
   useEffect(() => {
+    console.log(dataTotalAdvanced);
+    console.log(dataTotalExpenses);
     if (dataTotalAdvanced > dataTotalExpenses) {
       setReturnToCompany(dataTotalAdvanced - dataTotalExpenses);
       setReturnToStaff(0);
@@ -271,7 +274,9 @@ export default function EditTraveling() {
     }
   }, [dataTotalAdvanced, dataTotalExpenses]);
 
-  
+  console.log(returnToCompany);
+  console.log(returnToStaff);
+
   const formFields = [
     {
       label: "Name",
@@ -565,7 +570,7 @@ export default function EditTraveling() {
         console.error("Validation Failed:", errorInfo);
       });
   };
-
+  // console.log(dataTotalAdvanced);
   return (
     <MainLayout loading={loading}>
       <div className="flex justify-between">
@@ -620,7 +625,7 @@ export default function EditTraveling() {
         <div className="grid grid-cols-2 gap-4">
           <div className="flex justify-end">Total Advanced:</div>
           <NumericInput
-            value = {dataTotalAdvanced}
+            value = {formatNumber(dataTotalAdvanced)}
             onChange={(value) => setDataTotalAdvanced(parseFloat(value) || 0)}
           />
 
