@@ -574,13 +574,13 @@ export default function CreateActivityManyShop() {
     if (documentNumber) {
       getDetail();
     } else {
-      // if (locationParam?.state?.fronCalendar) {
+      // if (locationParam?.state?.dateCalendar) {
       handleChange(
         "document_date",
-        locationParam?.state?.fronCalendar || dayjs()
+        locationParam?.state?.dateCalendar || dayjs()
       );
       formCustom.setFieldsValue({
-        document_date: locationParam?.state?.fronCalendar || dayjs(),
+        document_date: locationParam?.state?.dateCalendar || dayjs(),
       });
       // }
     }
@@ -1821,7 +1821,8 @@ export default function CreateActivityManyShop() {
         <ActionButton
           mode="back"
           text="Back"
-          onClick={() => navigate(menuURL)}
+          // onClick={() => navigate(menuURL)}
+          onClick={() => navigate(-1)}
         />
 
         {activityDetail?.permission?.btn_convert && (

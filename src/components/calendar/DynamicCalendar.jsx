@@ -75,13 +75,15 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   };
 
   const handleActionButtonClick = () => {
-    navigate("/activity/create", {
+    navigate("/activity/creates", {
       state: {
         pageCode: "activity_transaction",
-        fronCalendar: selectedDate,
+        dateCalendar: selectedDate,
       },
     });
   };
+
+  // console.log(selectedDate);
 
   useEffect(() => {
     // Fetch Sale Territory options on mount

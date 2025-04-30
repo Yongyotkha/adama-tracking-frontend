@@ -392,13 +392,13 @@ export default function CreateActivity() {
     if (documentNumber) {
       getDetail();
     } else {
-      // if (locationParam?.state?.fronCalendar) {
+      // if (locationParam?.state?.dateCalendar) {
       handleChange(
         "document_date",
-        locationParam?.state?.fronCalendar || dayjs()
+        locationParam?.state?.dateCalendar || dayjs()
       );
       formCustom.setFieldsValue({
-        document_date: locationParam?.state?.fronCalendar || dayjs(),
+        document_date: locationParam?.state?.dateCalendar || dayjs(),
       });
       // }
     }
