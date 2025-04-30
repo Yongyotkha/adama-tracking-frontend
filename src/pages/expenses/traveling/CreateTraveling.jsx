@@ -83,7 +83,10 @@ export default function CreateTraveling() {
   // Fetch API Table Add Rows
   useEffect(() => {
     if (saleId && yearCode && monthCode) {
-      console.log(saleId && yearCode && monthCode);      
+      console.log(saleId);
+      console.log(yearCode);
+      console.log(monthCode);
+      // console.log(saleId && yearCode && monthCode);      
       const loadDataTraveling = async () => {
         setLoading(true);
         try {
