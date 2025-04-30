@@ -46,6 +46,8 @@ export default function CreateActivityManyShop() {
   useEffect(() => {
     console.log(locationParam);
   }, [locationParam]);
+  console.log('Location Param :',locationParam);
+  console.log('Location Param(Date) :',locationParam.dateCalendar);
 
   const mode = "create";
   const [documentNumber, setDocumentNumber] = useState(
@@ -53,9 +55,11 @@ export default function CreateActivityManyShop() {
   );
   const [pageMode, setPageMode] = useState(locationParam?.state?.page_mode);
   const pageCode = locationParam?.state?.pageCode;
-  console.log("pageMode : ", pageMode);
-  console.log("pageCode : ", pageMode);
-  console.log("mode : ", mode);
+
+  // console.log("pageMode : ", pageMode);
+  // console.log("pageCode : ", pageMode);
+  // console.log("mode : ", mode);
+
   const isViewMode = mode === "View";
   const viewSegment = mode === "view";
   const isCreate = mode === "create";
@@ -97,11 +101,15 @@ export default function CreateActivityManyShop() {
   const [actualParticipantCount, setActualParticipantCount] = useState("0");
   const [participants, setParticipants] = useState([]);
   const [participantUsers, setParticipantUsers] = useState([]);
-
+  
+  const defaultActivityDate = locationParam?.state?.dateCalendar || dayjs().format("YYYY-MM-DD");
+  
+  // console.log(defaultActivityDate);
+  
   const [multiShop, setMultiShop] = useState([
     {
       document_number: "",
-      document_date: dayjs().format("YYYY-MM-DD"),
+      document_date: defaultActivityDate,
       dealer_id: "",
       crop_id_list: "",
       product_list: "",
@@ -1137,8 +1145,8 @@ export default function CreateActivityManyShop() {
       }));
 
       //console.log("shops : ", newSave);
-      console.log("body save : ", newSave);
-      console.log("page code : ", pageCode);
+      // console.log("body save : ", newSave);
+      // console.log("page code : ", pageCode);
 
       if (documentNumber) {
       } else {
@@ -1179,9 +1187,9 @@ export default function CreateActivityManyShop() {
 
         const allSuccess = resultStatus.every((s) => s === true);
 
-        console.log("resultStatus : ", resultStatus);
-        console.log("allDocNumbers : ", allDocNumbers);
-        console.log("allSuccess : ", allSuccess);
+        // console.log("resultStatus : ", resultStatus);
+        // console.log("allDocNumbers : ", allDocNumbers);
+        // console.log("allSuccess : ", allSuccess);
 
         if (allSuccess) {
           showNotification(
@@ -1208,7 +1216,7 @@ export default function CreateActivityManyShop() {
       }
     } catch (err) {
       console.error("Error fetching address:", err);
-      console.log(activityDetail);
+      // console.log(activityDetail);
     }
   };
 
@@ -1255,7 +1263,9 @@ export default function CreateActivityManyShop() {
   };
 
   console.log("activityDetail : ", activityDetail);
-  console.log("mode : ", mode);
+  // console.log("activityDATE : ", activityDetail.document_date);
+  // console.log("mode : ", mode);
+  
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -1329,11 +1339,12 @@ export default function CreateActivityManyShop() {
                   cursor: "pointer",
                 }}
                 onClick={() => {
+                  // const fallbackDate = activityDetail?.document_date || dayjs().format("YYYY-MM-DD");
                   setMultiShop([
                     ...multiShop,
                     {
                       document_number: "",
-                      document_date: dayjs(),
+                      document_date: defaultActivityDate,
                       dealer_id: "",
                       crop_id_list: "",
                       product_list: "",
