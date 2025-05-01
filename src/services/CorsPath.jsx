@@ -40,6 +40,7 @@ export const paths = {
   pathMasterPermission: "master/permission",
   pathMasterProductUnit: "master/product-unit",
   pathMasterFarmer: "master/farmer-all",
+  pathMasterUserGetSubDealer: "master/user_get_sub_dealer",
   // pathMasterShop: "master/shop",
   pathMasterStatus: "master/status",
   pathMasterHeadofsale: "master/headofsale",
