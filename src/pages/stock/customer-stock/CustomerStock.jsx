@@ -44,7 +44,7 @@ export default function CustomerStock() {
 
   const { confirm } = Modal;
 
-  console.log('userInfo : ',userInfo)
+  console.log("userInfo : ", userInfo);
 
   const territoryColumns = [
     { title: "No", dataIndex: "key", key: "key", width: 50 },
@@ -97,32 +97,7 @@ export default function CustomerStock() {
     getMaster();
   }, []);
 
-  const filters = [
-    {
-      key: "dealer",
-      type: "select",
-      label: "Dealer",
-      placeholder: "All",
-      options: dealerList,
-      moderef: false,
-    },
-    {
-      key: "sub_dealer",
-      type: "select",
-      label: "Sub Dealer",
-      placeholder: "All",
-      options: subDealerList,
-      moderef: false,
-    },
-    {
-      key: "document_date",
-      type: "date",
-      label: "Date",
-      placeholder: "All",
-      options: dataStatus,
-      moderef: true,
-    },
-  ];
+
 
   const header = [
     {
@@ -200,6 +175,33 @@ export default function CustomerStock() {
     }
   };
 
+  const filters = [
+    {
+      key: "dealer",
+      type: "select",
+      label: "Dealer",
+      placeholder: "All",
+      options: dealerList,
+      moderef: false,
+    },
+    {
+      key: "sub_dealer",
+      type: "select",
+      label: "Sub Dealer",
+      placeholder: "All",
+      options: subDealerList,
+      moderef: false,
+    },
+    {
+      key: "document_date",
+      type: "month",
+      label: "Date",
+      placeholder: "All",
+      options: dataStatus,
+      moderef: false,
+    },
+  ];
+
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -208,21 +210,16 @@ export default function CustomerStock() {
     const sortField = tableParams.sortField || "document_number";
 
     const requestData = {
-      keyword: activeFilters.order_no || "",
-      use_flag: "1",
-      user_id: defaultOption || "",
-      dealer_id: activeFilters.dealer || "", // optional
-      sub_dealer_id: activeFilters.sub_dealer || "", // optional
-      trasaction_status_code: activeFilters.status || "",
-      page: "all",
-      orderby_column: sortField,
-      orderby: sortOrder,
+      dealer: filters.dealer || "",
+      sub_dealer: filters.sub_dealer || "",
+      document_date_month: filters.document_date || "",
       page_length: current,
       page_size: pageSize,
+      user_id: userInfo.id,
+      page: "all",
     };
 
     try {
-
       const response = await useServiceAPI.get(
         paths.pathStockList,
         requestData
@@ -407,7 +404,7 @@ export default function CustomerStock() {
     tableParams.pagination.pageSize,
     tableParams.sortOrder,
     tableParams.sortField,
-    JSON.stringify(activeFilters), // <<< ใช้อันนี้แทน filters เดิม
+    JSON.stringify(tableParams.filters),
   ]);
 
   const handleTableChange = (pagination, filters, sorter) => {
@@ -420,18 +417,18 @@ export default function CustomerStock() {
   };
 
   const handleSearch = (filters) => {
-    // ระบุเฉพาะ filter ที่ต้อง fetch ใหม่ เช่น order_no และ status
-    const filterToUse = {
-      order_no: filters.order_no,
-      status: filters.status,
-    };
-
-    setActiveFilters(filterToUse);
-
-    // แต่อัพเดต tableParams.filters ปกติเพื่อใช้ใน UI
     setTableParams({
       ...tableParams,
-      filters,
+      pagination: {
+        ...tableParams.pagination,
+        current: 1,
+        pageSize: 10,
+      },
+      filters: {
+        ...filters,
+        page_length: 1,
+        page_size: 10,
+      },
     });
   };
 
