@@ -420,18 +420,18 @@ export default function CustomerStock() {
   };
 
   const handleSearch = (filters) => {
-    // ระบุเฉพาะ filter ที่ต้อง fetch ใหม่ เช่น order_no และ status
-    const filterToUse = {
-      order_no: filters.order_no,
-      status: filters.status,
-    };
-
-    setActiveFilters(filterToUse);
-
-    // แต่อัพเดต tableParams.filters ปกติเพื่อใช้ใน UI
     setTableParams({
       ...tableParams,
-      filters,
+      pagination: {
+        ...tableParams.pagination,
+        current: 1,
+        pageSize: 10,
+      },
+      filters: {
+        ...filters,
+        page_length: 1,
+        page_size: 10,
+      },
     });
   };
 
