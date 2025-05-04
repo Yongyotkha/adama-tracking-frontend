@@ -121,7 +121,7 @@ export default function DealerList() {
         const newDataSource = data.map((data, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           code: data.dealer_code || "-",
-          dealerName: data.name || "-",
+          dealerName: data.dealer_name || "-",
           Name: data.name || "-",
           address: data.address,
           contactName: data.contact_name,
