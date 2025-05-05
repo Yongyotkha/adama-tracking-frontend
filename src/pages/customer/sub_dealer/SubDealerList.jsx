@@ -82,7 +82,8 @@ export default function SubDealerList() {
       page_size: pageSize,
       user_id: filters.sale,
       dealer_id: filters.dealers,
-      sub_dealer_id: filters.shop
+      sub_dealer_id: filters.shop,
+      province: filters.province
     };
 
     try {
@@ -310,6 +311,11 @@ export default function SubDealerList() {
       type: "text",
       label: "Phone",
       placeholder: "Phone",
+    },
+    {
+      key: "province",
+      type: "text",
+      label: "Province",
     },
     {
       key: "use_flag",

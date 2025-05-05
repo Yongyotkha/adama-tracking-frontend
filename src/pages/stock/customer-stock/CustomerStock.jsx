@@ -44,7 +44,6 @@ export default function CustomerStock() {
 
   const { confirm } = Modal;
 
-  console.log("userInfo : ", userInfo);
 
   const territoryColumns = [
     { title: "No", dataIndex: "key", key: "key", width: 50 },
@@ -96,8 +95,6 @@ export default function CustomerStock() {
 
     getMaster();
   }, []);
-
-
 
   const header = [
     {
@@ -182,7 +179,7 @@ export default function CustomerStock() {
       label: "Dealer",
       placeholder: "All",
       options: dealerList,
-      moderef: false,
+      moderef: true,
     },
     {
       key: "sub_dealer",
@@ -208,14 +205,19 @@ export default function CustomerStock() {
     const filters = tableParams.filters || {};
     const sortOrder = tableParams.sortOrder || "desc";
     const sortField = tableParams.sortField || "document_number";
-
+    console.log('filters : ',filters,userInfo)
     const requestData = {
-      dealer: filters.dealer || "",
-      sub_dealer: filters.sub_dealer || "",
-      document_date_month: filters.document_date || "",
+      // dealer_id: filters.dealer || "",
+      // sub_dealer_id: filters.sub_dealer || "",
+      // document_date_month: filters.document_date || "",
       page_length: current,
       page_size: pageSize,
-      user_id: userInfo.id,
+      //user_id: userInfo.id,
+      use_flag: "1",
+      dealer_id: "",
+      sub_dealer_id: "",
+      trasaction_status_code: "",
+      payment_status_code: "",
       page: "all",
     };
 
@@ -433,7 +435,7 @@ export default function CustomerStock() {
   };
 
   const handleClear = () => {
-    console.log("handleClear");
+
     setTableParams({
       ...tableParams,
       filters: {},
@@ -463,10 +465,9 @@ export default function CustomerStock() {
         try {
           const [sub_dealer] = await Promise.all([
             useServiceAPI.get(paths.pathMasterSubDealerAll, {
-              user_id: filter.dealer,
+              dealer_id: filter.dealer,
             }),
           ]);
-          console.log("sub_dealer : ", sub_dealer);
 
           const sub_dealers = [];
           sub_dealer.data.map((value, index) => {
@@ -475,16 +476,9 @@ export default function CustomerStock() {
               name: value.sub_dealer_name,
             });
           });
-          console.log("sub_dealers : ", sub_dealers);
+ 
           setSubDealerList(sub_dealers);
 
-          // setTableParams((prev) => ({
-          //   ...prev,
-          //   filters: {
-          //     ...prev.filters,
-          //     sub_dealer: sub_dealers[0].id,
-          //   },
-          // }));
         } catch (error) {
           console.error("Error loading sub dealer:", error);
         }

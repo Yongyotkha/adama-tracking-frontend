@@ -216,7 +216,7 @@ export default function DealerList() {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
-
+    console.log('filterValues : ',filterValues)
     const requestData = {
       keyword: filters.keyword || "",
       province: filters.province || "",
@@ -224,6 +224,7 @@ export default function DealerList() {
       sale_id: filterValues.sale || "",
       dealer_id: filterValues.dealers || "",
       sub_dealer_id: filterValues.shop || "",
+      farmer_id: filterValues.farmers || "",
       page_length: current,
       page_size: pageSize,
       user_id: userInfo.id,
