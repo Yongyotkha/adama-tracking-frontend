@@ -46,8 +46,6 @@ export default function CreateActivityManyShop() {
   useEffect(() => {
     console.log(locationParam);
   }, [locationParam]);
-  console.log('Location Param :',locationParam);
-  console.log('Location Param(Date) :',locationParam.dateCalendar);
 
   const mode = "create";
   const [documentNumber, setDocumentNumber] = useState(
@@ -55,10 +53,6 @@ export default function CreateActivityManyShop() {
   );
   const [pageMode, setPageMode] = useState(locationParam?.state?.page_mode);
   const pageCode = locationParam?.state?.pageCode;
-
-  // console.log("pageMode : ", pageMode);
-  // console.log("pageCode : ", pageMode);
-  // console.log("mode : ", mode);
 
   const isViewMode = mode === "View";
   const viewSegment = mode === "view";
@@ -101,11 +95,12 @@ export default function CreateActivityManyShop() {
   const [actualParticipantCount, setActualParticipantCount] = useState("0");
   const [participants, setParticipants] = useState([]);
   const [participantUsers, setParticipantUsers] = useState([]);
-  
-  const defaultActivityDate = locationParam?.state?.dateCalendar || dayjs().format("YYYY-MM-DD");
-  
+
+  const defaultActivityDate =
+    locationParam?.state?.dateCalendar || dayjs().format("YYYY-MM-DD");
+
   // console.log(defaultActivityDate);
-  
+
   const [multiShop, setMultiShop] = useState([
     {
       document_number: "",
@@ -363,10 +358,12 @@ export default function CreateActivityManyShop() {
                   (isCreate ? false : !activityDetail?.permission?.edit)
                 }
                 placeholder="Select shop"
-                options={optionsShop}
+                value={multiShop[index]?.dealer_id || null}
                 onChange={handleChangeSelect.bind(null, index, "dealer_id")}
+                options={optionsShop}
               />
             </Form.Item>
+            
           </Col>
           <Col xs={24} sm={24} md={6} lg={6}>
             <Form.Item
@@ -728,24 +725,40 @@ export default function CreateActivityManyShop() {
 
   //handleChangeFunction
   const setupDealer = async (value) => {
-    console.log("load deader");
-    const [dealer] = await Promise.all([
-      useServiceAPI.get(paths.pathMasterSubDealerAll, {
+    console.log("load dealer");
+    try {
+      const response = await useServiceAPI.get(paths.pathMasterUserGetSubDealer, {
         user_id: value,
-      }),
-    ]);
-    let subDealerAll = [];
-    await dealer.data.forEach((element) => {
-      subDealerAll.push({
-        id: element.sub_dealer_id,
-        name: element.sub_dealer_name,
       });
-    });
-
-    if (subDealerAll && value) {
+  
+      const subDealerAll = response.data?.map((element) => ({
+        id: element.id,
+        name: element.name,
+      })) ?? [];
+  
+      // เคลียร์และตั้งค่า Dealer List เสมอ
       setDealerList(subDealerAll);
-    } else {
+  
+      // OPTIONAL: ถ้าไม่มี dealer เลย ให้ reset ค่า dealer_id ใน multiShop
+      if (subDealerAll.length === 0) {
+        setMultiShop((prev) =>
+          prev.map((shop) => ({
+            ...shop,
+            dealer_id: "", // รีเซ็ต
+          }))
+        );
+      }
+    } catch (error) {
+      console.error("setupDealer error:", error);
+  
+      // เคลียร์ทั้ง dealer list และค่าใน multiShop กรณี error
       setDealerList([]);
+      setMultiShop((prev) =>
+        prev.map((shop) => ({
+          ...shop,
+          dealer_id: "",
+        }))
+      );
     }
   };
 
@@ -778,7 +791,6 @@ export default function CreateActivityManyShop() {
         product_id: element.id,
         id: element.id,
       }));
-      console.log("setActivityDetail");
       setActivityDetail((prevState) => ({
         ...prevState,
         expense_product_data_list: productCropList,
@@ -877,8 +889,6 @@ export default function CreateActivityManyShop() {
   ];
 
   const handleInputChange = (value, key, field, bath_ltkg, record) => {
-    console.log(value, key, field, bath_ltkg, record);
-    console.log("setActivityDetail");
     setActivityDetail((prevState) => {
       const updatedData = prevState.expense_product_data_list.map((item) => {
         if (item.key === key) {
@@ -1144,17 +1154,11 @@ export default function CreateActivityManyShop() {
         assing_user_list: item.assing_user_list,
       }));
 
-      //console.log("shops : ", newSave);
-      // console.log("body save : ", newSave);
-      // console.log("page code : ", pageCode);
-
       if (documentNumber) {
       } else {
         const resultStatus = []; // เก็บสถานะแต่ละรอบ
         const allDocNumbers = []; // เก็บเลขเอกสารถ้ามี
         for (const save of newSave) {
-          console.log(save);
-
           try {
             const response = await useServiceAPI.post(
               paths.pathActivityExpenseCreate,
@@ -1165,10 +1169,6 @@ export default function CreateActivityManyShop() {
             // เช็คว่าตอบกลับ success ตามเงื่อนไขที่ต้องการ
             const isSuccess = response.message === "Save successfully";
 
-            console.log("message : ", response.message);
-            console.log("message_line : ", response);
-            console.log("isSuccess : ", isSuccess);
-
             resultStatus.push(isSuccess);
 
             const docNumberLine = response.data.message_line?.find((line) =>
@@ -1177,8 +1177,6 @@ export default function CreateActivityManyShop() {
             if (docNumberLine) {
               allDocNumbers.push(docNumberLine);
             }
-
-            console.log("ส่งสำเร็จ:", response);
           } catch (error) {
             console.error("เกิดข้อผิดพลาดในการส่ง:", error);
             resultStatus.push(false); // ล้มเหลว
@@ -1186,10 +1184,6 @@ export default function CreateActivityManyShop() {
         }
 
         const allSuccess = resultStatus.every((s) => s === true);
-
-        // console.log("resultStatus : ", resultStatus);
-        // console.log("allDocNumbers : ", allDocNumbers);
-        // console.log("allSuccess : ", allSuccess);
 
         if (allSuccess) {
           showNotification(
@@ -1262,10 +1256,9 @@ export default function CreateActivityManyShop() {
     }
   };
 
-  console.log("activityDetail : ", activityDetail);
   // console.log("activityDATE : ", activityDetail.document_date);
   // console.log("mode : ", mode);
-  
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">

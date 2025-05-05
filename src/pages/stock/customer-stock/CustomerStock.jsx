@@ -31,6 +31,7 @@ export default function CustomerStock() {
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
   const [dealerId, setDealerId] = useState("");
+  const [activeFilters, setActiveFilters] = useState({});
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -42,6 +43,8 @@ export default function CustomerStock() {
   });
 
   const { confirm } = Modal;
+
+  console.log('userInfo : ',userInfo)
 
   const territoryColumns = [
     { title: "No", dataIndex: "key", key: "key", width: 50 },
@@ -56,15 +59,15 @@ export default function CustomerStock() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [sale, status, dealer, sub_dealer] = await Promise.all([
+        const [sale, status, dealer] = await Promise.all([
           useServiceAPI.get(paths.pathMasterSaleDropdown, {
             status: "",
           }),
           useServiceAPI.get(paths.pathMasterStatus, {
             status_type: "order",
           }),
-          useServiceAPI.get(paths.pathMasterDealerDropdown, {
-            user_id: 83,
+          useServiceAPI.get(paths.pathMasterDealerAll, {
+            user_id: userInfo.id,
           }),
         ]);
 
@@ -101,7 +104,7 @@ export default function CustomerStock() {
       label: "Dealer",
       placeholder: "All",
       options: dealerList,
-      moderef: true,
+      moderef: false,
     },
     {
       key: "sub_dealer",
@@ -109,7 +112,7 @@ export default function CustomerStock() {
       label: "Sub Dealer",
       placeholder: "All",
       options: subDealerList,
-      moderef: true,
+      moderef: false,
     },
     {
       key: "document_date",
@@ -205,12 +208,12 @@ export default function CustomerStock() {
     const sortField = tableParams.sortField || "document_number";
 
     const requestData = {
-      keyword: filters.order_no || "",
+      keyword: activeFilters.order_no || "",
       use_flag: "1",
       user_id: defaultOption || "",
-      dealer_id: filters.dealer || "",
-      sub_dealer_id: "",
-      trasaction_status_code: filters.status || "",
+      dealer_id: activeFilters.dealer || "", // optional
+      sub_dealer_id: activeFilters.sub_dealer || "", // optional
+      trasaction_status_code: activeFilters.status || "",
       page: "all",
       orderby_column: sortField,
       orderby: sortOrder,
@@ -219,6 +222,7 @@ export default function CustomerStock() {
     };
 
     try {
+
       const response = await useServiceAPI.get(
         paths.pathStockList,
         requestData
@@ -403,7 +407,7 @@ export default function CustomerStock() {
     tableParams.pagination.pageSize,
     tableParams.sortOrder,
     tableParams.sortField,
-    JSON.stringify(tableParams.filters),
+    JSON.stringify(activeFilters), // <<< ใช้อันนี้แทน filters เดิม
   ]);
 
   const handleTableChange = (pagination, filters, sorter) => {
@@ -416,6 +420,15 @@ export default function CustomerStock() {
   };
 
   const handleSearch = (filters) => {
+    // ระบุเฉพาะ filter ที่ต้อง fetch ใหม่ เช่น order_no และ status
+    const filterToUse = {
+      order_no: filters.order_no,
+      status: filters.status,
+    };
+
+    setActiveFilters(filterToUse);
+
+    // แต่อัพเดต tableParams.filters ปกติเพื่อใช้ใน UI
     setTableParams({
       ...tableParams,
       filters,
@@ -453,7 +466,7 @@ export default function CustomerStock() {
         try {
           const [sub_dealer] = await Promise.all([
             useServiceAPI.get(paths.pathMasterSubDealerAll, {
-              user_id: 86,
+              user_id: filter.dealer,
             }),
           ]);
           console.log("sub_dealer : ", sub_dealer);
@@ -468,13 +481,13 @@ export default function CustomerStock() {
           console.log("sub_dealers : ", sub_dealers);
           setSubDealerList(sub_dealers);
 
-          setTableParams((prev) => ({
-            ...prev,
-            filters: {
-              ...prev.filters,
-              sub_dealer: sub_dealers[0].id,
-            },
-          }));
+          // setTableParams((prev) => ({
+          //   ...prev,
+          //   filters: {
+          //     ...prev.filters,
+          //     sub_dealer: sub_dealers[0].id,
+          //   },
+          // }));
         } catch (error) {
           console.error("Error loading sub dealer:", error);
         }

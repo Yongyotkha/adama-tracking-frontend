@@ -19,7 +19,7 @@ export default function DealerList() {
   const [tableLoading, setTableLoading] = useState(false);
   const [Status, setStatus] = useState([]);
   const [Position, setPosition] = useState([]);
-  const { showMsg, showNotification } = useContext(AuthContext);
+  const { showMsg, showNotification, userInfo } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -30,6 +30,8 @@ export default function DealerList() {
     sortField: null,
   });
 
+  console.log("userInfo : ", userInfo);
+
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDataDealer] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
@@ -39,19 +41,20 @@ export default function DealerList() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [dataStatus,sales,dealers,sub_dealers,farmers] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterStatus, {
-            status_type: "status",
-          }),
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
-          useServiceAPI.get(paths.pathMasterDealerDropdown, {
-            user_id: 83,
-          }),
-          useServiceAPI.get(paths.pathMasterSubDealerAll, {
-            user_id: 83,
-          }),
-          useServiceAPI.get(paths.pathMasterFarmer, {}),
-        ]);
+        const [dataStatus, sales, dealers, sub_dealers, farmers] =
+          await Promise.all([
+            useServiceAPI.get(paths.pathMasterStatus, {
+              status_type: "status",
+            }),
+            useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+            useServiceAPI.get(paths.pathMasterDealerDropdown, {
+              user_id: 83,
+            }),
+            useServiceAPI.get(paths.pathMasterSubDealerAll, {
+              user_id: 83,
+            }),
+            useServiceAPI.get(paths.pathMasterFarmer, {}),
+          ]);
 
         const Status = [];
         dataStatus.data.map((data, index) => {
@@ -60,9 +63,9 @@ export default function DealerList() {
             name: data.name,
           });
         });
-        console.log('dealers : ',dealers)
-        console.log('subDealer : ',sub_dealers)
-        console.log('farms : ',farmers)
+        console.log("dealers : ", dealers);
+        console.log("subDealer : ", sub_dealers);
+        console.log("farms : ", farmers);
 
         setStatus(Status);
         setSaleList(sales.data);
@@ -100,9 +103,11 @@ export default function DealerList() {
 
     const requestData = {
       keyword: filters.keyword || "",
+      province: filters.province || "",
       use_flag: filters.use_flag || "",
       page_length: current,
       page_size: pageSize,
+      user_id: userInfo.id,
     };
 
     try {
@@ -230,6 +235,11 @@ export default function DealerList() {
       label: "Keyword",
     },
     {
+      key: "province",
+      type: "text",
+      label: "Province",
+    },
+    {
       key: "use_flag",
       label: "Status",
       type: "select",
@@ -328,15 +338,14 @@ export default function DealerList() {
     }
   };
 
+  const handleChange = (filter) => {
+    console.log('filter : ',filter)
+  };
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Farmers</div>
-        {/* <ActionButton
-          mode="create"
-          text="Create"
-          onClick={(e) => navigate("/customer/farmers/create")}
-        /> */}
         <ActionButton
           text="Create"
           mode="create"
@@ -350,7 +359,12 @@ export default function DealerList() {
         />
       </div>
 
-      <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
+      <Filter 
+      onSearch={handleSearch} 
+      onClear={handleClear} 
+      onChange={handleChange}
+      filters={filters} 
+      />
 
       <BoxPrimary>
         <TableComponent
