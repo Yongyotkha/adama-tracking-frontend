@@ -1,0 +1,206 @@
+import React, { useContext, useEffect, useState } from "react";
+import MainLayout from "../../../layouts/MainLayout";
+import FormUser from "../../../components/form_user/FormUser";
+import { useLocation, useNavigate } from "react-router-dom";
+import ActionButton from "../../../components/button/ActionButton";
+import { paths } from "../../../services/CorsPath";
+import useServiceAPI from "../../../services/corsService";
+import { Form } from "antd";
+import { AuthContext } from "../../../contexts/AuthContext";
+import { values } from "lodash";
+
+export default function EditMileage() {
+  const location = useLocation();
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const [form] = Form.useForm();
+  const [position, setPosition] = useState([]);
+  const { showMsg, showNotification } = useContext(AuthContext);
+  const [permission, setPermission] = useState({});
+  const mode = location.state?.mode || "edit"; // default = edit
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await fetchPromotionDetails(location.state.id);
+        const [positions] = await Promise.all([
+          // useServiceAPI.get(paths.pathMasterStatus, {}),
+          useServiceAPI.get(`${paths.pathMasterStatus}?status_type=status`),
+        ]);
+
+        setPosition(positions.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const [formFields, setFormFields] = useState([]);
+
+  // const formFields = [
+  //   { label: "Name", name: "name", type: "text", required: false, col: 12,  value: "303710131300" },
+  //   { label: "Description ", name: "description", type: "text", required: false, col: 12,  value: "Cooler Box M11 - กระติกน้ำ คละสี" },
+  //   { label: "Value (THB)", name: "value_thb", type: "text", required: false, col: 6, options: ["Special", "Commodity", "3rd Party", "SAS"], value: "Special" },
+  //   { label: "Status", name: "status", type: "select", required: false, col: 6, options: ["Active", "Inactive"], value: "Active" },
+  // ];
+
+
+  const fetchPromotionDetails = async (id) => {
+    setLoading(true);
+    try {
+      const response = await useServiceAPI.get(`${paths.pathPromotiondetail}/${id}`);
+      if (response.status === 200) {
+        const { data } = response;
+
+        setPermission(data.permission.edit);
+        const updatedFields = [
+          {
+            label: "Name",
+            name: "name",
+            type: "text",
+            required: true,
+            col: 12,
+            value: data.name || "",
+            disabled: mode === "view", // ← disable in view mode
+          },
+          {
+            label: "Description",
+            name: "description",
+            type: "text",
+            required: true,
+            col: 12,
+            value: data.description || "",
+            disabled: mode === "view",
+          },
+          {
+            label: "Value (THB)",
+            name: "value",
+            type: "text",
+            required: true,
+            col: 6,
+            value: data.value === ".00" ? "0.00" : data.value,
+            disabled: mode === "view",
+          },
+          {
+            label: "Unit",
+            name: "unit",
+            type: "text",
+            required: true,
+            col: 6,
+            value: data.unit || "",
+            disabled: mode === "view",
+          },
+          {
+            label: "Status",
+            name: "use_flag",
+            type: "select",
+            required: false,
+            col: 6,
+            options: [
+              { name: "Active", id: 1, selected: true },
+              { name: "Inactive", id: 0, selected: false },
+            ],
+            value: parseInt(data.use_flag, 10) === 1 ? "Active" : "Inactive",
+            disabled: mode === "view",
+          },
+          {
+            label: "Remark",
+            name: "remark",
+            type: "text",
+            required: false,
+            col: 6,
+            value: data.remark || "",
+            disabled: mode === "view",
+          },
+        ];
+
+
+        setFormFields(updatedFields);
+        const initialValues = updatedFields.reduce((acc, field) => {
+          acc[field.name] = field.value;
+          return acc;
+        }, {});
+        form.setFieldsValue(initialValues);
+      } else {
+        console.error("Failed to fetch promotion details:", response.message);
+      }
+    } catch (error) {
+      console.error("Error fetching promotion details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const handleSave = () => {
+    form
+      .validateFields()
+      .then((values) => {
+        let useFlagValue;
+        if (values.use_flag === 1 || values.use_flag === 0) {
+          useFlagValue = values.use_flag; // ถ้าค่าเป็น 1 หรือ 0 อยู่แล้ว ใช้ค่าเดิม
+        } else {
+          useFlagValue = values.use_flag === "Active" ? 1 : 0; // แปลงค่าจาก "Active" หรือ "Inactive"
+        }
+
+        const dataToSend = {
+          ...values,
+          id: location.state.id,
+          use_flag: useFlagValue, // ส่งค่า use_flag เป็น 1 หรือ 0
+        };
+
+        useServiceAPI
+          .put(paths.pathPromotionupdate, dataToSend, setLoading)
+          .then((response) => {
+            if (response.status === 200) {
+              console.log(response.message);
+              navigate("/setting/promotion");
+              showNotification(
+                "success",
+                response.message,
+                response.message_line
+              );
+
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+            if (error.status === 422) {
+              // showMsg("error", error.message);
+              showNotification("error", response.message, response.message_line);
+
+            } else {
+              // showMsg("error", "เกิดข้อผิดพลาด");
+              showNotification("error", response.message, response.message_line);
+
+            }
+          });
+      })
+      .catch((errorInfo) => {
+        console.error("Validation Failed:", errorInfo);
+      });
+  };
+
+
+
+  return (
+
+    <MainLayout loading={loading}>
+      <div className="title-page">
+        {mode === "view" ? "View Mileage" : "Edit Mileage"}
+      </div>
+      <FormUser profile="/img/profile.jpg" fields={formFields} form={form} />
+      <div className="flex justify-end space-x-4">
+        <ActionButton mode="back" text="Back" onClick={() => navigate("/setting/mileage")} />
+
+        {mode === "edit" && permission === true && (
+          <ActionButton text="Update" mode="update" onClick={handleSave} />
+        )}
+      </div>
+
+
+    </MainLayout>
+  );
+}

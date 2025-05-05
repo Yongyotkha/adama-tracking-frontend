@@ -143,6 +143,8 @@ import RedeemProduct from "./pages/settings/mobile/redeem_product/RedeemProduct"
 import RewardProductCreate from "./pages/settings/mobile/reward_product/RewardProductCreate";
 import RegisteredCustomerList from "./pages/settings/mobile/registered_customer/RegisteredCustomerList";
 import RegisteredCustomerDetail from "./pages/settings/mobile/registered_customer/RegisteredCustomerDetail";
+import MileageManagement from "./pages/settings/mileage/MileageManagement";
+import EditMileage from "./pages/settings/mileage/EditMileage";
 
 const App = () => {
   return (
@@ -308,6 +310,9 @@ const App = () => {
             <Route path="/setting/line/redeem-product" element={<RedeemProduct />} />
             <Route path="/setting/line/reward-product" element={<RewardProductList />} />
             <Route path="/setting/line/reward-product/create" element={<RewardProductCreate />} />
+
+            <Route path="/setting/mileage" element={<MileageManagement />} />
+            <Route path="/setting/mileage/edit" element={<EditMileage />} />
             
 
             {/* Report Route */}

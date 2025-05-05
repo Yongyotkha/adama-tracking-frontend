@@ -265,4 +265,7 @@ export const paths = {
   pathpointhistory: "/profile/point/history",
   pathhistoryShop: "/profile/order/history" ,
   pathhistoryShopDetail: "/profile/order/history/detail",
+
+  pathMileageList: "/mileage/list",
+
 };
