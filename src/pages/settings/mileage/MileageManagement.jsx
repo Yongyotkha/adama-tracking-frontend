@@ -89,6 +89,7 @@ export default function MileageManagement() {
         const { data, records_filtered } = response.data;
   
         console.log(response);
+        console.log(response.data);
   
         const newDataSource = data.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
