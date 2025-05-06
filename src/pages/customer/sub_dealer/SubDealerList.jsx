@@ -14,7 +14,6 @@ import { paths } from "../../../services/CorsPath";
 export default function SubDealerList() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-  const navigate = useNavigate();
   const [tableLoading, setTableLoading] = useState(false);
   const [Status, setStatus] = useState([]);
   const [tableParams, setTableParams] = useState({
@@ -29,36 +28,27 @@ export default function SubDealerList() {
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
+  const [filterValues, setFilterValues] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [dataStatus, sale, dealers] = await Promise.all([
+        const [dataStatus, sale] = await Promise.all([
           useServiceAPI.get(paths.pathMasterStatus, {
             status_type: "status",
           }),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
-          useServiceAPI.get(paths.pathMasterDealerDropdown, {
-            user_id: 83,
-          }),
         ]);
 
-        const Status = [];
-        dataStatus.data.map((data, index) => {
-          Status.push({
-            id: data.code,
-            name: data.name,
-          });
-        });
-        console.log("dealers : ", dealers);
+        const Status = dataStatus.data.map((data) => ({
+          id: data.code,
+          name: data.name,
+        }));
 
         setStatus(Status);
         setSaleList(sale.data);
-        setDealerList(dealers.data);
-
-        // setPosition(producttype.data);
-        // setRoles(roles.data);
       } catch (error) {
         console.log(error.message);
       } finally {
@@ -67,57 +57,6 @@ export default function SubDealerList() {
     };
     getMaster();
   }, []);
-
-  const filters = [
-    {
-      key: "keyword",
-      type: "text",
-      label: "Sub Dealer",
-      placeholder: "All",
-    },
-    {
-      key: "sale",
-      type: "select",
-      label: "Sales",
-      placeholder: "All",
-      options: saleList,
-      moderef: true,
-    },
-    {
-      key: "dealers",
-      type: "select",
-      label: "Dealers",
-      placeholder: "All",
-      options: dealerList,
-      moderef: true,
-    },
-    {
-      key: "shop",
-      type: "select",
-      label: "Shop",
-      placeholder: "All",
-      options: subDealerList, // ✅ เปลี่ยนจาก dealerList
-    },
-    {
-      key: "contact_name",
-      type: "text",
-      label: "Contact Name",
-      placeholder: "All",
-    },
-    {
-      key: "contact_phone_number",
-      type: "text",
-      label: "Phone",
-      placeholder: "Phone",
-    },
-    {
-      key: "use_flag",
-      type: "select",
-      label: "Status",
-      placeholder: "All",
-      options: Status,
-    },
-  ];
 
   useEffect(() => {
     fetchData();
@@ -133,6 +72,7 @@ export default function SubDealerList() {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
+
     const requestData = {
       keyword: filters.keyword || "",
       use_flag: filters.use_flag || "",
@@ -140,6 +80,10 @@ export default function SubDealerList() {
       contact_name: filters.contact_name || "",
       page_length: current,
       page_size: pageSize,
+      user_id: filters.sale,
+      dealer_id: filters.dealers,
+      sub_dealer_id: filters.shop,
+      province: filters.province
     };
 
     try {
@@ -150,9 +94,10 @@ export default function SubDealerList() {
 
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
+
         const newDataSource = data.map((data, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-          dealerName: data.name,
+          dealerName: data.dealer_name,
           subDealerName: data.name,
           contactName: data.contact_name,
           address: data.contact_address,
@@ -174,23 +119,16 @@ export default function SubDealerList() {
                     <ItemDropDown
                       mode={actionItem.action.toLowerCase()}
                       onClick={() => {
-                        if (actionItem.action === "Delete") {
-                          handleDelete(data.id);
-                        } else if (actionItem.action === "View") {
-                          navigate("/customer/sub-dealer/view", {
-                            state: {
-                              id: data.id,
-                              mode: actionItem.action,
-                            },
-                          });
-                        } else {
-                          navigate("/customer/sub-dealer/edit", {
-                            state: {
-                              id: data.id,
-                              mode: actionItem.action,
-                            },
-                          });
-                        }
+                        const navTarget =
+                          actionItem.action === "View"
+                            ? "/customer/sub-dealer/view"
+                            : "/customer/sub-dealer/edit";
+                        navigate(navTarget, {
+                          state: {
+                            id: data.id,
+                            mode: actionItem.action,
+                          },
+                        });
                       }}
                     />
                   ),
@@ -210,14 +148,13 @@ export default function SubDealerList() {
         }));
 
         setDataSource(newDataSource);
-
-        setTableParams({
-          ...tableParams,
+        setTableParams((prev) => ({
+          ...prev,
           pagination: {
-            ...tableParams.pagination,
+            ...prev.pagination,
             total: records_filtered,
           },
-        });
+        }));
       }
     } catch (error) {
       console.error(error);
@@ -228,13 +165,9 @@ export default function SubDealerList() {
 
   const handleDelete = async (record) => {
     try {
-      const requestData = {
-        id: record, // ส่ง ID ที่ต้องการลบ
-      };
-
       const response = await useServiceAPI.delete(
         paths.pathDeleteSubDealer,
-        requestData
+        { id: record }
       );
 
       if (response.status === 200) {
@@ -245,12 +178,9 @@ export default function SubDealerList() {
           response.data.message_line
         );
       } else {
-        console.error("Failed to delete record:", response.message);
         showNotification("error", response.message, response.message_line);
       }
     } catch (error) {
-      console.error("Error deleting record:", error);
-
       showNotification("error", error.message, error.message_line);
     }
   };
@@ -260,82 +190,71 @@ export default function SubDealerList() {
       ...tableParams,
       pagination: {
         ...tableParams.pagination,
-        current: 1, // Reset current page to 1
-        pageSize: 10, // Ensure the page size is set to 10
+        current: 1,
+        pageSize: 10,
       },
       filters: {
         ...filters,
-        page_length: 1, // Set default page_length
-        page_size: 10, // Set default page_size
+        page_length: 1,
+        page_size: 10,
       },
     });
   };
 
   const handleClear = () => {
+    setFilterValues({});
     setTableParams({
       ...tableParams,
       filters: {},
     });
   };
 
-  const actionItems = [
-    {
-      key: "1",
-      label: <ItemDropDown mode="edit" link="/customer/sub-dealer/edit" />,
-    },
-  ];
-
-  const header = [
-    { title: "No", width: 50, dataIndex: "key", align: "center" },
-    {
-      title: "Dealer Name",
-      width: 200,
-      dataIndex: "dealerName",
-      align: "left",
-    },
-    {
-      title: "Sub Dealer Name",
-      width: 200,
-      dataIndex: "subDealerName",
-      align: "left",
-    },
-    {
-      title: "Contact Name",
-      width: 200,
-      dataIndex: "contactName",
-      align: "left",
-    },
-    { title: "Address", width: 300, dataIndex: "address", align: "left" },
-    { title: "Phone", width: 150, dataIndex: "phone", align: "center" },
-    { title: "By Sales", width: 150, dataIndex: "sale", align: "center" },
-    { title: "Status", width: 100, dataIndex: "status", align: "center" },
-    { title: "Action", width: 100, dataIndex: "action", align: "center" },
-  ];
-
-  const handleTableChange = (pagination, filters, sorter) => {
-    setTableParams({
-      pagination,
-      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
-      sortOrder: sorter.order === "descend" ? "desc" : "asc",
-      sortField: sorter.field,
-    });
+  const handleChange = (filters) => {
+    setFilterValues(filters);
   };
 
-  const handleChange = (filter) => {
-    // เมื่อเลือก Sale ให้โหลด Sub-dealer ใหม่
+  useEffect(() => {
+    const sale = filterValues.sale;
 
-    console.log("filter : ", filter);
-    if (filter && filter.sale) {
+    if (sale) {
       const userId =
-        typeof filter.sale === "object" && filter.sale.value
-          ? filter.sale.value
-          : filter.sale;
+        typeof sale === "object" && sale.value ? sale.value : sale;
+
+      const getDealersBySale = async () => {
+        try {
+          const response = await useServiceAPI.get(
+            paths.pathMasterDealerDropdown,
+            { user_id: userId }
+          );
+          setDealerList(response.data);
+          setSubDealerList([]); // reset sub-dealer list
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer");
+        }
+      };
+
+      getDealersBySale();
+    }
+  }, [filterValues.sale]);
+
+  useEffect(() => {
+    const sale = filterValues.sale;
+    const dealer = filterValues.dealers;
+
+    if (dealer) {
+      const userId =
+        typeof sale === "object" && sale?.value ? sale.value : sale;
+      const dealerId =
+        typeof dealer === "object" && dealer.value ? dealer.value : dealer;
 
       const getSubDealersBySale = async () => {
         try {
           const response = await useServiceAPI.get(
             paths.pathMasterSubDealerAll,
-            { user_id: userId }
+            {
+              user_id: userId,
+              derler_id: dealerId,
+            }
           );
 
           const formattedSubDealer = response.data.map((item) => ({
@@ -353,9 +272,79 @@ export default function SubDealerList() {
       };
 
       getSubDealersBySale();
-    } else {
-      handleClear();
     }
+  }, [filterValues.dealers]);
+
+  const filters = [
+    { key: "keyword", type: "text", label: "Sub Dealer", placeholder: "All" },
+    {
+      key: "sale",
+      type: "select",
+      label: "Sales",
+      placeholder: "All",
+      options: saleList,
+      moderef: true,
+    },
+    {
+      key: "dealers",
+      type: "select",
+      label: "Dealers",
+      placeholder: "All",
+      options: dealerList,
+      moderef: true,
+    },
+    {
+      key: "shop",
+      type: "select",
+      label: "Shop",
+      placeholder: "All",
+      options: subDealerList,
+    },
+    {
+      key: "contact_name",
+      type: "text",
+      label: "Contact Name",
+      placeholder: "All",
+    },
+    {
+      key: "contact_phone_number",
+      type: "text",
+      label: "Phone",
+      placeholder: "Phone",
+    },
+    {
+      key: "province",
+      type: "text",
+      label: "Province",
+    },
+    {
+      key: "use_flag",
+      type: "select",
+      label: "Status",
+      placeholder: "All",
+      options: Status,
+    },
+  ];
+
+  const header = [
+    { title: "No", width: 50, dataIndex: "key", align: "center" },
+    { title: "Dealer Name", width: 200, dataIndex: "dealerName", align: "left" },
+    { title: "Sub Dealer Name", width: 200, dataIndex: "subDealerName", align: "left" },
+    { title: "Contact Name", width: 200, dataIndex: "contactName", align: "left" },
+    { title: "Address", width: 300, dataIndex: "address", align: "left" },
+    { title: "Phone", width: 150, dataIndex: "phone", align: "center" },
+    { title: "By Sales", width: 150, dataIndex: "sale", align: "center" },
+    { title: "Status", width: 100, dataIndex: "status", align: "center" },
+    { title: "Action", width: 100, dataIndex: "action", align: "center" },
+  ];
+
+  const handleTableChange = (pagination, filters, sorter) => {
+    setTableParams({
+      pagination,
+      filters: tableParams.filters,
+      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortField: sorter.field,
+    });
   };
 
   return (
@@ -367,9 +356,7 @@ export default function SubDealerList() {
           text="Create"
           onClick={() =>
             navigate("/customer/sub-dealer/create", {
-              state: {
-                mode: "Create",
-              },
+              state: { mode: "Create" },
             })
           }
         />

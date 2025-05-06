@@ -68,14 +68,15 @@ export default function DealerList() {
   ]);
 
   const fetchData = async () => {
-    console.log('----------fetch------------')
+
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
-
+    console.log('----------fetch------------',filters)
     const requestData = {
       keyword: filters.keyword || "",
       use_flag: filters.use_flag || "",
+      province: filters.address || "",
       page_length: current,
       page_size: pageSize,
     };

@@ -30,31 +30,24 @@ export default function DealerList() {
     sortField: null,
   });
 
-  console.log("userInfo : ", userInfo);
 
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDataDealer] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
   const [farmList, setFarmList] = useState([]);
+  const [farmerList, setFarmerList] = useState([]);
+  const [filterValues, setFilterValues] = useState({});
 
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [dataStatus, sales, dealers, sub_dealers, farmers] =
-          await Promise.all([
-            useServiceAPI.get(paths.pathMasterStatus, {
-              status_type: "status",
-            }),
-            useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
-            useServiceAPI.get(paths.pathMasterDealerDropdown, {
-              user_id: 83,
-            }),
-            useServiceAPI.get(paths.pathMasterSubDealerAll, {
-              user_id: 83,
-            }),
-            useServiceAPI.get(paths.pathMasterFarmer, {}),
-          ]);
+        const [dataStatus, sales] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterStatus, {
+            status_type: "status",
+          }),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+        ]);
 
         const Status = [];
         dataStatus.data.map((data, index) => {
@@ -63,15 +56,9 @@ export default function DealerList() {
             name: data.name,
           });
         });
-        console.log("dealers : ", dealers);
-        console.log("subDealer : ", sub_dealers);
-        console.log("farms : ", farmers);
 
         setStatus(Status);
         setSaleList(sales.data);
-        setDataDealer(dealers.data);
-        setSubDealerList(sub_dealers.data);
-        setFarmList(farmers.data);
 
         // setPosition(producttype.data);
         // setRoles(roles.data);
@@ -96,20 +83,153 @@ export default function DealerList() {
     JSON.stringify(tableParams.filters),
   ]);
 
+  useEffect(() => {
+    console.log('getDealersBySale');
+    const sale = filterValues.sale;
+
+    if (sale) {
+      const userId = typeof sale === "object" && sale.value ? sale.value : sale;
+
+      const getDealersBySale = async () => {
+        try {
+          const response = await useServiceAPI.get(
+            paths.pathMasterDealerDropdown,
+            { user_id: userId }
+          );
+          setDataDealer(response.data);
+          setSubDealerList([]); // reset sub-dealer list
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer");
+        }
+      };
+
+      getDealersBySale();
+    }
+  }, [filterValues.sale]);
+
+  useEffect(() => {
+    console.log('getSubDealersBySale');
+    const sale = filterValues.sale;
+    const dealer = filterValues.dealers;
+
+    if (dealer) {
+      const userId =
+        typeof sale === "object" && sale?.value ? sale.value : sale;
+      const dealerId =
+        typeof dealer === "object" && dealer.value ? dealer.value : dealer;
+
+      const getSubDealersBySale = async () => {
+        try {
+          const response = await useServiceAPI.get(
+            paths.pathMasterSubDealerAll,
+            {
+              user_id: userId,
+              derler_id: dealerId,
+            }
+          );
+
+          const formattedSubDealer = response.data.map((item) => ({
+            name: item.sub_dealer_name,
+            id: item.sub_dealer_id,
+          }));
+
+          setSubDealerList(formattedSubDealer);
+        } catch (error) {
+          showMsg(
+            "error",
+            error.message || "เกิดข้อผิดพลาดในการโหลด Sub-dealer"
+          );
+        }
+      };
+
+      getSubDealersBySale();
+    }
+  }, [filterValues.dealers]);
+
+  useEffect(() => {
+    const shop = filterValues.shop;
+  
+    if (shop) {
+      console.log('getFarmerByShop');
+  
+      const getFarmerByShop = async () => {
+        try {
+          const response = await useServiceAPI.get(paths.pathMasterFarmer, {
+            sub_dealer_id: shop,
+          });
+  
+          const formattedFarmers = response.data.map((item) => ({
+            name: item.farmer_name,
+            id: item.farmer_id,
+          }));
+  
+          setFarmList(formattedFarmers); // ✅ เซ็ตไปยังฟิลด์ Farm ไม่ใช่ SubDealer
+        } catch (error) {
+          showMsg(
+            "error",
+            error.message || "เกิดข้อผิดพลาดในการโหลด Farmers"
+          );
+        }
+      };
+  
+      getFarmerByShop();
+    }
+  }, [filterValues.shop]);
+  
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [dataStatus, sales] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterStatus, {
+            status_type: "status",
+          }),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+        ]);
+
+        const Status = [];
+        dataStatus.data.map((data, index) => {
+          Status.push({
+            id: data.code,
+            name: data.name,
+          });
+        });
+
+        setStatus(Status);
+        setSaleList(sales.data);
+
+        // setPosition(producttype.data);
+        // setRoles(roles.data);
+      } catch (error) {
+        console.log(error);
+
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+    getMaster();
+  }, []);
+
   const fetchData = async () => {
+
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
-
+    console.log('filterValues : ',filterValues)
     const requestData = {
       keyword: filters.keyword || "",
       province: filters.province || "",
       use_flag: filters.use_flag || "",
+      sale_id: filterValues.sale || "",
+      dealer_id: filterValues.dealers || "",
+      sub_dealer_id: filterValues.shop || "",
+      farmer_id: filterValues.farmers || "",
       page_length: current,
       page_size: pageSize,
       user_id: userInfo.id,
     };
-
+    console.log('requestData : ',requestData)
     try {
       const response = await useServiceAPI.get(
         paths.pathCustomerFarmers,
@@ -121,7 +241,7 @@ export default function DealerList() {
         const newDataSource = data.map((data, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           code: data.dealer_code || "-",
-          dealerName: data.name || "-",
+          dealerName: data.dealer_name || "-",
           Name: data.name || "-",
           address: data.address,
           contactName: data.contact_name,
@@ -220,14 +340,14 @@ export default function DealerList() {
       type: "select",
       label: "Shop",
       placeholder: "All",
-      options: subDealerList, // ✅ เปลี่ยนจาก dealerList
+      options: subDealerList, 
     },
     {
       key: "farmers",
       type: "select",
       label: "Farms",
       placeholder: "All",
-      options: farmList, // ✅ เปลี่ยนจาก dealerList
+      options: farmList, 
     },
     {
       key: "keyword",
@@ -339,7 +459,8 @@ export default function DealerList() {
   };
 
   const handleChange = (filter) => {
-    console.log('filter : ',filter)
+    console.log("filter : ", filter);
+    setFilterValues(filter);
   };
 
   return (
@@ -359,11 +480,11 @@ export default function DealerList() {
         />
       </div>
 
-      <Filter 
-      onSearch={handleSearch} 
-      onClear={handleClear} 
-      onChange={handleChange}
-      filters={filters} 
+      <Filter
+        onSearch={handleSearch}
+        onClear={handleClear}
+        onChange={handleChange}
+        filters={filters}
       />
 
       <BoxPrimary>
