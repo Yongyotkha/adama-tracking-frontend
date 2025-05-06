@@ -31,7 +31,7 @@ export default function CustomerStock() {
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
   const [dealerId, setDealerId] = useState("");
-  const [activeFilters, setActiveFilters] = useState({});
+  const [filterValues, setFilterValues] = useState({});
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -43,7 +43,6 @@ export default function CustomerStock() {
   });
 
   const { confirm } = Modal;
-
 
   const territoryColumns = [
     { title: "No", dataIndex: "key", key: "key", width: 50 },
@@ -58,10 +57,7 @@ export default function CustomerStock() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [sale, status, dealer] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {
-            status: "",
-          }),
+        const [status, dealer] = await Promise.all([
           useServiceAPI.get(paths.pathMasterStatus, {
             status_type: "order",
           }),
@@ -70,12 +66,6 @@ export default function CustomerStock() {
           }),
         ]);
 
-        const formattedOptions = sale.data.map((item) => ({
-          value: item.id,
-          label: item.name,
-        }));
-
-        setDataSale(formattedOptions);
         setDealerList(dealer.data);
 
         const dataStatus = [];
@@ -95,6 +85,31 @@ export default function CustomerStock() {
 
     getMaster();
   }, []);
+
+  useEffect(() => {
+    console.log('getSubDealersByDealer');
+    const dealer = filterValues.dealer;
+
+    if (dealer) {
+      const userId = typeof dealer === "object" && dealer.value ? dealer.value : dealer;
+
+      const getSubDealersByDealer = async () => {
+        try {
+          const response = await useServiceAPI.get(
+            paths.pathMasterDealeretSubDealer,
+            { dealer_id: dealer }
+          );
+
+          setSubDealerList(response.data);
+
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer");
+        }
+      };
+
+      getSubDealersByDealer();
+    }
+  }, [filterValues.dealer]);
 
   const header = [
     {
@@ -126,14 +141,6 @@ export default function CustomerStock() {
     { title: "Create By", width: 150, dataIndex: "createdBy", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
-
-  function formatNumber(value) {
-    if (!value) return "0";
-    return parseFloat(value).toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  }
 
   function formatNumber2(value) {
     if (!value) {
@@ -205,17 +212,17 @@ export default function CustomerStock() {
     const filters = tableParams.filters || {};
     const sortOrder = tableParams.sortOrder || "desc";
     const sortField = tableParams.sortField || "document_number";
-    console.log('filters : ',filters,userInfo)
+    console.log("filters : ", filterValues);
     const requestData = {
       // dealer_id: filters.dealer || "",
       // sub_dealer_id: filters.sub_dealer || "",
-      // document_date_month: filters.document_date || "",
+      document_date_month: filterValues.document_date || "",
       page_length: current,
       page_size: pageSize,
       //user_id: userInfo.id,
       use_flag: "1",
-      dealer_id: "",
-      sub_dealer_id: "",
+      dealer_id: filterValues.dealer || "",
+      sub_dealer_id: filterValues.sub_dealer || "",
       trasaction_status_code: "",
       payment_status_code: "",
       page: "all",
@@ -435,7 +442,6 @@ export default function CustomerStock() {
   };
 
   const handleClear = () => {
-
     setTableParams({
       ...tableParams,
       filters: {},
@@ -443,51 +449,8 @@ export default function CustomerStock() {
   };
 
   const handleChange = (filter) => {
-    console.log("handle change : ", filter);
-
-    if (filter.dealer) {
-      // เคลียร์ sub dealer option
-      setSubDealerList([]);
-
-      // เคลียร์ค่า sub_dealer ที่เลือกออกด้วย
-      setTableParams((prev) => ({
-        ...prev,
-        filters: {
-          ...prev.filters,
-          sub_dealer: "", // <<< ตั้ง sub_dealer ให้เป็นว่าง
-        },
-      }));
-
-      // หรือถ้าอยากให้ส่ง event clear ไปที่ Filter component ด้วยก็ได้
-      //getMasterSubDealer(filter.dealer);
-
-      const getMasterSubDealer = async () => {
-        try {
-          const [sub_dealer] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterSubDealerAll, {
-              dealer_id: filter.dealer,
-            }),
-          ]);
-
-          const sub_dealers = [];
-          sub_dealer.data.map((value, index) => {
-            sub_dealers.push({
-              id: value.sub_dealer_id,
-              name: value.sub_dealer_name,
-            });
-          });
- 
-          setSubDealerList(sub_dealers);
-
-        } catch (error) {
-          console.error("Error loading sub dealer:", error);
-        }
-      };
-
-      getMasterSubDealer();
-    } else {
-      setSubDealerList([]);
-    }
+    console.log("filter : ", filter);
+    setFilterValues(filter);
   };
 
   return (
