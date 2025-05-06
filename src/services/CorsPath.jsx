@@ -268,5 +268,7 @@ export const paths = {
   pathhistoryShopDetail: "/profile/order/history/detail",
 
   pathMileageList: "/mileage/list",
+  pathMileageUpdate: "/mileage/update",
+  pathMileageView: "/mileage/view",
 
 };

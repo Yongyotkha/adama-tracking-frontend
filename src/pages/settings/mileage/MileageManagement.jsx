@@ -2,8 +2,6 @@ import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import { Dropdown } from "antd";
-import ActionButton from "../../../components/button/ActionButton";
-import BadgeStatus from "../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
 import { useNavigate } from "react-router-dom";
@@ -43,37 +41,18 @@ export default function MileageManagement() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-  const actionItems = [
-    {
-      key: "1",
-      label: (
-        <ItemDropDown
-          mode="create"
-          onClick={(e) => navigate("/setting/mileage/edit")}
-        />
-      ),
-    },
-    {
-      key: "2",
-      label: (
-        <ItemDropDown mode="delete" />
-      ),
-    },
-  ];
-
-
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
-  
+
     const filters = tableParams.filters || {};
     const sortOrder = tableParams.sortOrder || "asc";
     const sortField = tableParams.sortField || "name";
-  
+
     const today = dayjs();
     const startOfMonth = today.startOf("month").format("YYYY-MM-DD");
     const endOfToday = today.format("YYYY-MM-DD");
-  
+    console.log(userInfo);
     const requestData = {
       user_id: userInfo.id,
       start_date: startOfMonth,
@@ -81,23 +60,20 @@ export default function MileageManagement() {
       page_length: current,
       page_size: pageSize,
     };
-  
+
     try {
       const response = await useServiceAPI.get(paths.pathMileageList, requestData);
-  
+
       if (response.status === 200) {
-        const { data, records_filtered } = response.data;
-  
-        console.log(response);
-        console.log(response.data);
-  
-        const newDataSource = data.map((item, index) => ({
+        const result = response.data;
+        console.log(result);
+        const newDataSource = result.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           no: index + 1 + (current - 1) * pageSize,
           date: item.date || "-",
           mileage: item.mileage || "-",
-          name: item.name || "-", // ใส่ "-" เพราะ data ไม่มี name
-          lastModified: item.lastModified || "-", // ใส่ "-" เพราะ data ไม่มี lastModified
+          name: "-", // No name in API, fallback
+          lastModified: "-", // No lastModified in API, fallback
           action: (
             <Dropdown
               menu={{
@@ -110,11 +86,21 @@ export default function MileageManagement() {
                         onClick={() =>
                           navigate("/setting/mileage/edit", {
                             state: {
-                              id: item.user_id,
+                              user_id: item.user_id,
+                              date: item.date,
                               mode: "edit",
                             },
                           })
                         }
+                      />
+                    ),
+                  },
+                  {
+                    key: "delete",
+                    label: (
+                      <ItemDropDown
+                        mode="delete"
+                        // onClick={() => handleDelete(item.user_id)}
                       />
                     ),
                   },
@@ -131,14 +117,15 @@ export default function MileageManagement() {
               </a>
             </Dropdown>
           ),
+          
         }));
-  
+
         setDataSource(newDataSource);
         setTableParams({
           ...tableParams,
           pagination: {
             ...tableParams.pagination,
-            total: records_filtered,
+            total: result.length,  // <-- no records_filtered, use array length
           },
         });
       }
@@ -147,8 +134,9 @@ export default function MileageManagement() {
     } finally {
       setTableLoading(false);
     }
+
   };
-  
+
   useEffect(() => {
     fetchData();
   }, [
