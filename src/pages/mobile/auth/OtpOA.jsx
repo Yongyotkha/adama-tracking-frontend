@@ -99,6 +99,7 @@ export default function OtpOA() {
               const fetchUserProfile = async () => {
                 try {
                   const results = await loginLineUid(response.data.user_id);
+                  console.log(results);
                   if (results.status === 200) {
                     navigate("/mobile/main", { state: stateData });
                   }
