@@ -86,11 +86,24 @@ export const AuthProvider = ({ children }) => {
   };
 
   const loginLineUid = async (user_id, onLoadingChange = null) => {
+    // console.log('auth context loginLineUid : ',user_id)
+
+    // //notifyLoadingState(onLoadingChange, true);
+    // const response = await axiosInstance.post(`${endPoint}/shop/login`, {
+    //   user_id,
+    // });
+
+    // console.log('auth context loginLineUid : ',response)
+    // return response.data;
+
     try {
+      console.log('auth context loginLineUid try')
       notifyLoadingState(onLoadingChange, true);
       const response = await axiosInstance.post(`${endPoint}/shop/login`, {
         user_id,
       });
+
+      console.log('auth context loginLineUid : ',response)
 
       if (response) {
         const userData = response.data.data.user;
@@ -111,8 +124,10 @@ export const AuthProvider = ({ children }) => {
         return response.data;
       }
     } catch (error) {
+      console.log('auth context loginLineUid error : ',error)
       throw error;
     } finally {
+      console.log('auth context loginLineUid finally')
       notifyLoadingState(onLoadingChange, false); 
     }
   };

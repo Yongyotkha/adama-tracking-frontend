@@ -89,22 +89,42 @@ export default function OtpOA() {
               is_condition,
               shop_type,
             };
+            console.log('case last set step')
             if (response.data.step_number == 0) {
+              console.log('case 1')
+              //return false
               navigate("/mobile/contact-admin", { state: stateData });
             } else if (response.data.step_number == 1) {
+              console.log('case 2')
+              //return false
               navigate("/mobile/register", { state: stateData });
             } else if (response.data.step_number == 2) {
+              console.log('case 3')
+              //return false
               navigate("/mobile/contact-admin", { state: stateData });
             } else if (response.data.step_number == 4) {
+              console.log('case last 5')
               const fetchUserProfile = async () => {
+                // console.log('case last fetchUserProfile')
+                // const results = await loginLineUid(response.data.user_id);
+                // console.log('case after fetchUserProfile')
+                // console.log('loginLineUid : ',results);
+                // console.log('case 5')
+                // return false
                 try {
+  
                   const results = await loginLineUid(response.data.user_id);
                   console.log(results);
+                  // console.log('case 4')
+                  // return false
                   if (results.status === 200) {
                     navigate("/mobile/main", { state: stateData });
                   }
                 } catch (error) {
+     
                   console.error("Error fetching user profile:", error);
+                  // console.log('case 5')
+                  // return false
                   if (error?.response?.status === 401) {
                     // setRedirectPath("/mobile/verify");
                     navigate("/mobile/verify");
@@ -115,6 +135,8 @@ export default function OtpOA() {
               if (response.data.user_id && !userInfo) {
                 fetchUserProfile();
               } else {
+                // console.log('case 6')
+                // return false
                 navigate("/mobile/main", { state: stateData });
               }
             }
@@ -124,6 +146,8 @@ export default function OtpOA() {
       })
       .catch((error) => {
         console.error("API Error:", error);
+        console.log('case 7')
+        return false
         // showNotification("error", error.response?.data?.message || "เกิดข้อผิดพลาด", error.response?.data?.message_id);
       })
       .finally(() => setLoading(false));
