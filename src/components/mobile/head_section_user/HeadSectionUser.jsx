@@ -67,7 +67,7 @@ const HeadSectionUser = () => {
         {/* Profile Info */}
         <div className="flex flex-col items-start flex-1 text-center">
           <h4 className="text-md font-semibold text-[#A19793] sarabun-font">
-            คุณ {user.name_th || user.name_en}
+            คุณ {user.name_th || user.name_en} {user.shop_name}
           </h4>
           <p className="text-[#A19793] sarabun-font">
             {/* รหัสสมาชิก : {userIdFromStorage || "ไม่พบข้อมูล"} */}
