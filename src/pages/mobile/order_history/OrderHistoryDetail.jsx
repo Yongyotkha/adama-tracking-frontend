@@ -1,5 +1,5 @@
-import React, { useState , useEffect, useContext } from "react";
-import { useParams, useNavigate, useLocation  } from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import SectionHeader from "../../../components/mobile/section_header/SectionHeader";
 import BackButton from "../../../components/mobile/button/BackButton";
@@ -37,35 +37,36 @@ export default function OrderHistoryDetail() {
   const [error, setError] = useState(false);
   const { userInfo } = useContext(AuthContext);
 
-  const [documentnumber, setDocumentnumber] = useState (location.state.document_number);
+  const [documentnumber, setDocumentnumber] = useState(location.state.document_number);
 
-    useEffect(() => {
-      const fetchPromotionDetail = async (document_number) => {
-        setLoading(true);
-        try {
-          const response = await useServiceAPI.get(paths.pathhistoryShopDetail, {
-            platform: "web",
-            id: userInfo.id, // เปลี่ยนเป็น user id ที่เหมาะสม
-            document_number: documentnumber, 
+  useEffect(() => {
+    const fetchPromotionDetail = async (document_number) => {
+      setLoading(true);
+      try {
+        const response = await useServiceAPI.get(paths.pathhistoryShopDetail, {
+          platform: "web",
+          id: userInfo.id, // เปลี่ยนเป็น user id ที่เหมาะสม
+          document_number: documentnumber,
 
-          });
-  
-          if (response.status === 200 ) {
-            setHistorydetail(response.data.data);
-            setHistorydetailItem(historydetail.items)
-          } else {
-            setError(true);
-          }
-        } catch (err) {
-          console.error("Error fetching promotion details:", err);
+        });
+
+        if (response.status === 200) {
+          console.log(response.data.data);
+          setHistorydetail(response.data.data);
+          setHistorydetailItem(historydetail.items)
+        } else {
           setError(true);
-        } finally {
-          setLoading(false);
         }
-      };
-  
-      fetchPromotionDetail(location.state.document_number);
-    }, [location.state.document_number]);
+      } catch (err) {
+        console.error("Error fetching promotion details:", err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPromotionDetail(location.state.document_number);
+  }, [location.state.document_number]);
 
 
   // Find the order by ID
@@ -86,8 +87,8 @@ export default function OrderHistoryDetail() {
   // const totalPrice = order.products.reduce((sum, item) => sum + item.price, 0).toFixed(2);
   const totalItems = historydetail?.items?.reduce((sum, item) => sum + item.qty, 0) || 0;
   const totalPrice = historydetail?.items?.reduce((sum, item) => sum + item.totol, 0).toFixed(2) || "0.00";
-  
-  
+
+
   return (
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
@@ -120,10 +121,10 @@ export default function OrderHistoryDetail() {
             <table className="w-full text-left mt-2 sarabun-font text-sm">
               <thead>
                 <tr className="text-gray-600 border-b">
+                  <th className="py-2">Product</th>
+                  <th className="py-2">Pack Size</th>
                   <th className="py-2">QTY</th>
-                  <th className="py-2">SKU</th>
-                  <th className="py-2">Product Name</th>
-                  <th className="py-2 text-right">Total (THB)</th>
+                  <th className="py-2 text-right">Value (THB)</th>
                 </tr>
               </thead>
               {/* <tbody>
@@ -140,9 +141,9 @@ export default function OrderHistoryDetail() {
                 {historydetail?.items && historydetail.items.length > 0 ? (
                   historydetail.items.map((product, index) => (
                     <tr key={index} className="border-b">
-                      <td className="py-2">{product.qty}</td>
-                      <td className="py-2">{product.product_code}</td>
                       <td className="py-2">{product.product_name}</td>
+                      <td className="py-2">{product.product_code}</td> {/* ใช้เป็น Pack Size หากไม่มี field แยก */}
+                      <td className="py-2">{product.qty}</td>
                       <td className="py-2 text-right">
                         {Number(product.totol).toLocaleString("en-US")}
                       </td>
@@ -156,13 +157,14 @@ export default function OrderHistoryDetail() {
                   </tr>
                 )}
               </tbody>
+
             </table>
           </div>
 
           {/* Order Summary Footer */}
           <div className="mt-4 border-t pt-3">
             <div className="flex justify-between">
-              <p className="sarabun-font text-gray-600">จำนวนรายการ</p>
+              <p className="sarabun-font text-gray-600">จำนวนรายการ (ลัง)</p>
               <p className="sarabun-font font-bold">{totalItems}</p>
             </div>
             <div className="flex justify-between mt-1">
