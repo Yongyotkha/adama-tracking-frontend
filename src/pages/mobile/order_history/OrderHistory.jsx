@@ -43,6 +43,7 @@ export default function OrderHistory() {
 
         if (response.status === 200) {
           const rawData = response.data.data[0] ?? [];
+          console.log(rawData);
           setOrderData(rawData);
         } else {
           setOrderData([]);
@@ -111,9 +112,7 @@ export default function OrderHistory() {
                 const tabColor = tabs.find((tab) => tab.id === activeTab)?.color || "border-gray-300";
                 return (
                   <div
-                    // key={order.id}
                     key={index}
-                    // onClick={() => navigate(`/mobile/order-history/detail/${order.id}`)}
                     onClick={() =>
                       navigate("/mobile/order-history/detail", {
                         state: {
@@ -121,15 +120,28 @@ export default function OrderHistory() {
                         },
                       })
                     }
-
-                    className={`flex items-center justify-between p-4 bg-white rounded-lg shadow-md border-l-4 ${tabColor} cursor-pointer`}
+                    className={`flex justify-between items-start p-4 bg-white rounded-lg shadow-md border-l-4 ${tabColor} cursor-pointer`}
                   >
-                    <div>
+                    {/* Left side: Date + Document number */}
+                    <div className="flex flex-col">
                       <p className="text-gray-500 sarabun-font text-sm">{order.date}</p>
-                      <p className="text-gray-900 sarabun-font font-bold">เลขที่ {order.document_number}</p>
-                      <p className="text-gray-500 sarabun-font text-sm">รายการ {order.line_total}</p>
+                      <p className="text-gray-900 sarabun-font font-bold mt-1">
+                        เลขที่ {order.document_number}
+                      </p>
                     </div>
-                    <p className="text-green-700 sarabun-font font-bold">฿{new Intl.NumberFormat('th-TH').format(order.amount)}</p>
+
+                    {/* Right side: Price + Point + Quantity */}
+                    <div className="flex flex-col items-end text-right">
+                      <p className="text-green-700 sarabun-font font-bold">
+                        ฿{new Intl.NumberFormat("th-TH").format(order.amount)}
+                      </p>
+                      <p className="text-green-500 sarabun-font text-sm font-semibold mt-1">
+                        +{order.line_total} คะแนน
+                      </p>
+                      <p className="text-gray-700 sarabun-font text-sm font-semibold mt-1">
+                        รายการ {order.line_total}
+                      </p>
+                    </div>
                   </div>
                 );
               })
