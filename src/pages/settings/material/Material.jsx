@@ -157,7 +157,7 @@ export default function Material() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Material</div>
+        <div className="title-page">Materialss</div>
         <ActionButton
           mode="create"
           text="Create"

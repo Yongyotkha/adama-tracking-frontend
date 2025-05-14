@@ -144,7 +144,7 @@ export default function MaterialExpense() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Material Expense</div>
+        <div className="title-page">Material Expensessss</div>
         <ActionButton
           mode="create"
           text="Create"
