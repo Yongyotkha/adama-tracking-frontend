@@ -134,8 +134,8 @@ export default function Material() {
       const response = await useServiceAPI.get(paths.pathMaterialList,
         {
           platform: "web",
-          user_id: userInfo.id,
           page: "all",
+          user_id: userInfo.id,
           page_length: current,
           page_size: pageSize,
           name: filters.name || "",

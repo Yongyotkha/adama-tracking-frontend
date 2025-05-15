@@ -1,103 +1,127 @@
 import React, { useRef, useState, useEffect, useContext } from "react";
 import MainLayout from "../../../layouts/MainLayout";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import FormCustom from "../../../components/form_custom/FormCustom";
 import FileUploadComponent from "../../../components/file_upload/FileUploadComponent";
 import { AuthContext } from "../../../contexts/AuthContext";
-import { Form, Input, InputNumber, Select } from "antd";
-const { Option } = Select;
+import { Form } from "antd";
 import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
-export default function ActionMaterial() {
-  const renderTitle = () => {
-    console.log('mode : ', mode)
-    switch (mode) {
-      case "create":
-        return "Create Material";
-      case "edit":
-        return "Edit Material";
-      case "view":
-        return "View Material";
-      default:
-        return "Material";
-    }
-  };
 
-  const { mode } = useParams(); // Get the mode (create, edit, view) from the URL
+export default function ActionMaterial() {
+  const { mode } = useParams();
+  const location = useLocation();
+
+  const code = new URLSearchParams(location.search).get("documentNumber");
+
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const fileUploadRef = useRef(null);
-  const { showMsg, showNotification, userInfo } = useContext(AuthContext);
   const [crops, setCrops] = useState([]);
   const [products, setProducts] = useState([]);
-  const [formCustom] = Form.useForm();
   const [fileUrl, setFileUrl] = useState("");
+  const fileList = fileUrl
+    ? [
+      {
+        uid: '-1',
+        name: 'uploaded_image.jpg',
+        status: 'done',
+        url: fileUrl,
+      },
+    ]
+    : [];
+  const [formCustom] = Form.useForm();
+  const { showMsg, showNotification, userInfo } = useContext(AuthContext);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (mode === "create") {
-      formCustom.setFieldsValue({
-        crop: [],
-        product: [],
-      });
-    }
-  }, [mode]);
-
-  const handleUploadSuccess = (response) => {
-    console.log("Upload finished:", response);
-    const uploadedUrl = response?.data?.file_url;
-
-    if (uploadedUrl) {
-      setFileUrl(uploadedUrl); // ✅ เก็บใน state
-      formCustom.setFieldsValue({ images: uploadedUrl }); // อัปเดตฟอร์มถ้าต้องการ
+  const renderTitle = () => {
+    switch (mode) {
+      case "create": return "Create Material";
+      case "edit": return "Edit Material";
+      case "view": return "View Material";
+      default: return "Material";
     }
   };
 
   useEffect(() => {
-    console.log('useEffect')
-    const getCrops = async () => {
-      console.log('getCrops')
+    const fetchInitialData = async () => {
       setLoading(true);
       try {
-        console.log('getCrops try : ', paths.pathMasterCrop)
-        const [crops] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterCrop, {}),
-        ]);
-        console.log('crops : ', crops)
-        console.log('getCrops end')
-        setCrops(crops.data);
+        const cropRes = await useServiceAPI.get(paths.pathMasterCrop, {});
+        setCrops(cropRes.data);
 
-      } catch (error) {
-        console.log('error: ', error)
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        if (mode === "edit" || mode === "view") {
+          const res = await useServiceAPI.get(paths.pathMaterialList, {
+            platform: "web",
+            page: 1,
+            page_size: 1,
+            code: code,
+            user_id: userInfo.id,
+          });
+
+          if (res.status === 200) {
+            const mat = res.data?.data?.find((item) => item.code === code);
+
+            if (mat) {
+              const cropIds = mat.crops?.split(',') || [];
+              const productIds = mat.products?.split(',') || [];
+
+              formCustom.setFieldsValue({
+                material_code: mat.code,
+                name: mat.name,
+                crop: cropIds,
+                product: productIds,
+                description: mat.description,
+                type: mat.type,
+                size: mat.size,
+                qty: mat.qty,
+                price: mat.unit_price,
+                remark: mat.remark,
+                photo: mat.images,
+              });
+
+
+              setFileUrl(mat.images || "");
+
+              if (cropIds.length > 0) {
+                getProductsByCrops(cropIds);
+              }
+            } else {
+              showMsg("error", "ไม่พบข้อมูลที่ต้องการแก้ไข");
+            }
+          }
+        } else {
+          formCustom.setFieldsValue({ crop: [], product: [] });
+        }
+      } catch (err) {
+        showMsg("error", err.message || "เกิดข้อผิดพลาด");
       } finally {
         setLoading(false);
       }
     };
 
-    getCrops();
-  }, []);
+    fetchInitialData();
+  }, [mode, code, userInfo.id]);
+
+
+  const handleUploadSuccess = (response) => {
+    const uploadedUrl = response?.data?.file_url;
+    if (uploadedUrl) {
+      setFileUrl(uploadedUrl);
+      formCustom.setFieldsValue({ images: uploadedUrl });
+    }
+  };
 
   const getProductsByCrops = async (selectedCropIds) => {
-    if (!selectedCropIds || selectedCropIds.length === 0) return;
-    console.log('selectedCropIds : ', selectedCropIds)
+    if (!selectedCropIds.length) return;
     setLoading(true);
     try {
-      // สมมุติว่าใช้ path นี้: /api/products?crop_ids=[1,2]
-      const response = await useServiceAPI.get(paths.pathMasterProductByCrop, {
-        "platform": "web",
-        "crop_list": selectedCropIds
+      const res = await useServiceAPI.get(paths.pathMasterProductByCrop, {
+        platform: "web",
+        crop_list: selectedCropIds
       });
-
-      let set_product = response.data.map((element, key) => ({
-        name: element.product_name,
-        id: element.id,
-      }));
-
-
-      setProducts(set_product);
-    } catch (error) {
-      showMsg("error", error.message || "ไม่สามารถโหลด products ได้");
+      setProducts(res.data.map((item) => ({ id: item.id, name: item.product_name })));
+    } catch (err) {
+      showMsg("error", err.message || "ไม่สามารถโหลด products ได้");
     } finally {
       setLoading(false);
     }
@@ -106,13 +130,12 @@ export default function ActionMaterial() {
   const handleSubmit = async () => {
     try {
       const values = await formCustom.validateFields();
-      console.log('values : ', values)
-      const formattedData = {
+      const payload = {
         user_id: userInfo.id,
-        material_code: values.material_code || "AUTO", // ใช้ Generate หรือส่ง "" แล้วให้หลังบ้านจัดการ
-        name: values.material_name,
-        crops: values.crop || "",
-        products: values.product || "",
+        material_code: values.material_code || "AUTO",
+        name: values.name,
+        crops: values.crop || [],
+        products: values.product || [],
         description: values.description || "",
         type: values.type || "",
         size: values.size || "",
@@ -123,149 +146,57 @@ export default function ActionMaterial() {
         platform: "web",
       };
 
-      console.log('formattedData : ', formattedData)
+      // console.log('payload : ', payload)
+      // return false;
 
       setLoading(true);
-
-      const response = await useServiceAPI.post(paths.pathMaterialCreate, formattedData);
-
-      if (response.status === 200) {
+      const res = await useServiceAPI.post(paths.pathMaterialCreate, payload);
+      if (res.status === 200) {
         showNotification("success", "บันทึกข้อมูลสำเร็จ", "");
         navigate("/setting/material");
       } else {
-        showMsg("error", response.data.message || "ไม่สามารถบันทึกข้อมูลได้");
+        showMsg("error", res.data.message || "ไม่สามารถบันทึกข้อมูลได้");
       }
-    } catch (error) {
-      console.error("Validation or submission error:", error);
-      showMsg("error", error.message || "กรุณากรอกข้อมูลให้ครบถ้วน");
+    } catch (err) {
+      showMsg("error", err.message || "กรุณากรอกข้อมูลให้ครบถ้วน");
     } finally {
       setLoading(false);
     }
   };
 
-
   const formFields = [
-    {
-      label: "Photo",
-      name: "photo",
-      type: "photo",
-      required: true,
-      col: 24,
-    },
-    {
-      label: "Material Code",
-      name: "material_code",
-      type: "text",
-      value: "Generate",
-      col: 6,
-      disabled: true,
-    },
-    {
-      label: "Material Name",
-      name: "material_name",
-      type: "text",
-      placeholder: "Material Name",
-      required: true,
-      col: 6,
-      disabled: mode === "view",
-    },
-    {
-      label: "Crop",
-      name: "crop",
-      type: "select",
-      mode: "multiple",
-      options: crops,
-      required: true,
-      col: 6,
-    },
-    {
-      label: "Product",
-      name: "product",
-      type: "select",
-      mode: "multiple",
-      options: products,
-      required: true,
-      col: 6,
-    },
-    {
-      label: "Description",
-      name: "description",
-      type: "text-editor",
-      placeholder: "Add description",
-      required: false,
-      col: 24,
-      disabled: mode === "view",
-    },
-    {
-      label: "Type",
-      name: "type",
-      type: "text",
-      placeholder: "PPB",
-      col: 6,
-      disabled: mode === "view",
-    },
-    {
-      label: "Size",
-      name: "size",
-      type: "text",
-      placeholder: "80x60",
-      col: 6,
-      disabled: mode === "view",
-    },
-    {
-      label: "QTY",
-      name: "qty",
-      type: "text",
-      placeholder: "10",
-      col: 6,
-      required: true,
-      disabled: mode === "view",
-    },
-    {
-      label: "Unit Price",
-      name: "price",
-      type: "text",
-      placeholder: "Unit Price",
-      col: 6,
-      required: true,
-      disabled: mode === "view",
-    },
-    {
-      label: "Remark",
-      name: "remark",
-      type: "text",
-      placeholder: "Remark",
-      col: 24,
-      disabled: mode === "view",
-    },
+    { label: "Photo", name: "photo", type: "photo", required: true, col: 24, value: fileList },
+    { label: "Material Code", name: "material_code", type: "text", value: "Generate", col: 6, disabled: true },
+    { label: "Material Name", name: "name", type: "text", required: true, col: 6, disabled: mode === "view" },
+    { label: "Crop", name: "crop", type: "select", mode: "multiple", options: crops, required: true, col: 6 },
+    { label: "Product", name: "product", type: "select", mode: "multiple", options: products, required: true, col: 6 },
+    { label: "Description", name: "description", type: "text-editor", required: false, col: 24, disabled: mode === "view" },
+    { label: "Type", name: "type", type: "text", col: 6, disabled: mode === "view" },
+    { label: "Size", name: "size", type: "text", col: 6, disabled: mode === "view" },
+    { label: "QTY", name: "qty", type: "text", required: true, col: 6, disabled: mode === "view" },
+    { label: "Unit Price", name: "price", type: "text", required: true, col: 6, disabled: mode === "view" },
+    { label: "Remark", name: "remark", type: "text", col: 24, disabled: mode === "view" },
   ];
 
 
   const handleChange = (fieldName, value) => {
     if (fieldName === "crop") {
       getProductsByCrops(value);
-      formCustom.setFieldsValue({ product: [] }); // reset ค่า product
+      formCustom.setFieldsValue({ product: [] });
     }
   };
-
 
   return (
     <MainLayout loading={loading}>
       <div className="title-page">{renderTitle()}</div>
-
       <FormCustom
         fields={formFields}
         form={formCustom}
         onChange={handleChange}
-        onUploadFinish={handleUploadSuccess} // ✅ เพิ่มตรงนี้
+        onUploadFinish={handleUploadSuccess}
       />
-
       <div className="flex justify-end space-x-4 mt-6">
-        <ActionButton
-          mode="back"
-          text="Back"
-          onClick={() => navigate("/setting/material")}
-        />
+        <ActionButton mode="back" text="Back" onClick={() => navigate("/setting/material")} />
         {mode !== "view" && (
           <ActionButton
             mode="update"
