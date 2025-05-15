@@ -130,6 +130,7 @@ export default function ActionMaterial() {
   const handleSubmit = async () => {
     try {
       const values = await formCustom.validateFields();
+      console.log('values : ', values)
       const payload = {
         user_id: userInfo.id,
         material_code: values.material_code || "AUTO",
@@ -166,15 +167,15 @@ export default function ActionMaterial() {
 
   const formFields = [
     { label: "Photo", name: "photo", type: "photo", required: true, col: 24, value: fileList },
-    { label: "Material Code", name: "material_code", type: "text", value: "Generate", col: 6, disabled: true },
-    { label: "Material Name", name: "name", type: "text", required: true, col: 6, disabled: mode === "view" },
-    { label: "Crop", name: "crop", type: "select", mode: "multiple", options: crops, required: true, col: 6 },
-    { label: "Product", name: "product", type: "select", mode: "multiple", options: products, required: true, col: 6 },
+    { label: "Material Code", name: "material_code", type: "text", value: "Generate", col: 6, disabled: false },
+    { label: "Material Name", name: "name", type: "text", required: false, col: 6, disabled: mode === "view" },
+    { label: "Crop", name: "crop", type: "select", mode: "multiple", options: crops, required: false, col: 6 },
+    { label: "Product", name: "product", type: "select", mode: "multiple", options: products, required: false, col: 6 },
     { label: "Description", name: "description", type: "text-editor", required: false, col: 24, disabled: mode === "view" },
     { label: "Type", name: "type", type: "text", col: 6, disabled: mode === "view" },
     { label: "Size", name: "size", type: "text", col: 6, disabled: mode === "view" },
-    { label: "QTY", name: "qty", type: "text", required: true, col: 6, disabled: mode === "view" },
-    { label: "Unit Price", name: "price", type: "text", required: true, col: 6, disabled: mode === "view" },
+    { label: "QTY", name: "qty", type: "text", required: false, col: 6, disabled: mode === "view" },
+    { label: "Unit Price", name: "price", type: "text", required: false, col: 6, disabled: mode === "view" },
     { label: "Remark", name: "remark", type: "text", col: 24, disabled: mode === "view" },
   ];
 

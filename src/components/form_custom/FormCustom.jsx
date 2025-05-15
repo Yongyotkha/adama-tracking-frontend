@@ -109,6 +109,7 @@ export default function FormCustom({ fields, form, title, onChange, mode, onUplo
                       try {
                         setLoading(true);
                         const response = await useServiceAPI.post(paths.pathUpload, formData);
+                        console.log('response : ',response)
                         if (onUploadFinish) onUploadFinish(response);
                         form.setFieldsValue({ [field.name]: response.data.file_url });
                         message.success(`${file.name} uploaded successfully.`);
