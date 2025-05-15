@@ -101,6 +101,7 @@ export default function FormCustom({ fields, form, title, onChange, mode, onUplo
                   <Upload.Dragger
                     name="file"
                     multiple={false}
+                    fileList={field.value || []} 
                     beforeUpload={async (file) => {
                       const formData = new FormData();
                       formData.append("file", file);

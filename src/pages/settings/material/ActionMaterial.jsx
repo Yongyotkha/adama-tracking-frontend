@@ -142,7 +142,7 @@ export default function ActionMaterial() {
         qty: values.qty || "",
         unit_price: values.price || "",
         remark: values.remark || "",
-        images: fileUrl || "",
+        images: (formCustom.getFieldValue("photo")?.[0]?.url) || "",
         platform: "web",
       };
 
