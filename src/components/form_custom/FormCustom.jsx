@@ -44,6 +44,7 @@ export default function FormCustom({ fields, form, title, onChange, mode, onUplo
   });
   const [loading, setLoading] = useState(false);
   const isInitialSet = useRef(false);
+  const [fileListMap, setFileListMap] = useState({});
 
   useEffect(() => {
     const initialValues = {};
@@ -101,26 +102,48 @@ export default function FormCustom({ fields, form, title, onChange, mode, onUplo
                   <Upload.Dragger
                     name="file"
                     multiple={false}
-                    fileList={field.value || []}
+                    listType="picture"
+                    maxCount={1}
+                    fileList={fileListMap[field.name] || []} // 🆕 ใช้ state ควบคุม
+                    onChange={({ fileList: newFileList }) => {
+                      setFileListMap(prev => ({ ...prev, [field.name]: newFileList })); // 🆕 อัปเดต state
+                      form.setFieldsValue({ [field.name]: newFileList });
+                    }}
+                    onRemove={(file) => {
+                      const newFileList = (fileListMap[field.name] || []).filter(f => f.uid !== file.uid);
+                      setFileListMap(prev => ({ ...prev, [field.name]: newFileList })); // 🆕
+                      form.setFieldsValue({ [field.name]: newFileList });
+                    }}
                     beforeUpload={async (file) => {
                       const formData = new FormData();
                       formData.append("file", file);
                       formData.append("mode", "news");
+
                       try {
                         setLoading(true);
                         const response = await useServiceAPI.post(paths.pathUpload, formData);
+                        const uploadedUrl = response?.data?.file_url;
+
+                        const newFileList = [{
+                          uid: '-1',
+                          name: file.name,
+                          status: 'done',
+                          url: uploadedUrl,
+                        }];
+
+                        setFileListMap(prev => ({ ...prev, [field.name]: newFileList }));
+                        form.setFieldsValue({ [field.name]: newFileList });
+
                         if (onUploadFinish) onUploadFinish(response);
-                        form.setFieldsValue({ [field.name]: response.data.file_url });
                         message.success(`${file.name} uploaded successfully.`);
                       } catch (err) {
                         message.error("อัปโหลดไฟล์ล้มเหลว");
                       } finally {
                         setLoading(false);
                       }
+
                       return false;
                     }}
-                    listType="picture"
-                    maxCount={1}
                   >
                     <p className="text-[#978B87]">Choose a file or drag & drop</p>
                     <DynamicButton

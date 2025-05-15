@@ -20,14 +20,12 @@ export default function ActionMaterial() {
   const [products, setProducts] = useState([]);
   const [fileUrl, setFileUrl] = useState("");
   const fileList = fileUrl
-    ? [
-      {
-        uid: '-1',
-        name: 'uploaded_image.jpg',
-        status: 'done',
-        url: fileUrl,
-      },
-    ]
+    ? [{
+      uid: '-1',
+      name: 'uploaded_image.jpg',
+      status: 'done',
+      url: fileUrl,
+    }]
     : [];
   const [formCustom] = Form.useForm();
   const { showMsg, showNotification, userInfo } = useContext(AuthContext);
