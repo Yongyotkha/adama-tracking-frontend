@@ -271,4 +271,7 @@ export const paths = {
   pathMileageUpdate: "/mileage/update",
   pathMileageView: "/mileage/view",
 
+  pathTranAddress: "/tran-user-address/list",
+  pathTranAddressCreate: "/tran-user-address/create",
+
 };

@@ -145,6 +145,8 @@ import RegisteredCustomerList from "./pages/settings/mobile/registered_customer/
 import RegisteredCustomerDetail from "./pages/settings/mobile/registered_customer/RegisteredCustomerDetail";
 import MileageManagement from "./pages/settings/mileage/MileageManagement";
 import EditMileage from "./pages/settings/mileage/EditMileage";
+import TranAddress from "./pages/mobile/user/settings/tran_address/TranAddress";
+import CreateTranAddress from "./pages/mobile/user/settings/tran_address/CreateTranAddress";
 
 const App = () => {
   return (
@@ -328,7 +330,7 @@ const App = () => {
 
           </Route>
 
-          <Route element={<LineOARoute />}>
+          {/* <Route element={<LineOARoute />}> */}
 
             <Route path="/mobile/login" element={< CheckLogin />} />
 
@@ -336,6 +338,8 @@ const App = () => {
             <Route path="/mobile/otp" element={<OtpOA />} />
             <Route path="/mobile/contact-admin" element={< ContactAdmin />} />
             <Route path="/mobile/contact-us" element={< ContactUs />} />
+            <Route path="/mobile/tran-address" element={< TranAddress />} />
+            <Route path="/mobile/tran-address/create" element={< CreateTranAddress />} />
             <Route path="/mobile/privacy-policy" element={< PrivacyPolicy />} />
             <Route path="/mobile/terms-conditions" element={< TermsConditions />} />
             <Route path="/mobile/faq" element={< FaqOA />} />
@@ -356,7 +360,7 @@ const App = () => {
               <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
             </Route>
 
-          </Route>
+          {/* </Route> */}
 
           <Route path="/mobile/scan-collect" element={< ScanCollectPoint />} />
           <Route path="/mobile/take-photo" element={< TakePhoto />} />
