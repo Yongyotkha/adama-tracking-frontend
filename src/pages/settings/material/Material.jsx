@@ -42,12 +42,31 @@ export default function Material() {
   ];
 
   const handleDelete = (code) => {
+    console.log(code)
     confirm({
       title: "Do you want to delete this material?",
       icon: <ExclamationCircleFilled />,
-      onOk: () => {
-        setDataSource(dataSource.filter((item) => item.code !== code));
-      },
+      onOk: async () => {
+        try {
+          setLoading(true);
+
+          const res = await useServiceAPI.delete(paths.pathMaterialDel, {
+            code: code,
+            user_id: userInfo.id,
+          });
+
+          if (res.status === 200) {
+            showNotification("success", "ลบข้อมูลเรียบร้อยแล้ว");
+            fetchData(); // โหลดข้อมูลใหม่หลังลบ
+          } else {
+            showMsg("error", res.data.message || "ไม่สามารถลบข้อมูลได้");
+          }
+        } catch (err) {
+          showMsg("error", err.message || "เกิดข้อผิดพลาดในการลบ");
+        } finally {
+          setLoading(false);
+        }
+      }
     });
   };
 

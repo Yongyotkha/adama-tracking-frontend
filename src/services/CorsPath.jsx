@@ -54,7 +54,8 @@ export const paths = {
   //material
   pathMaterialList: "material/list",
   pathMaterialCreate: "material/create",
-
+  pathMaterialEdit: "material/edit",
+  pathMaterialDel: "material/del",
 
   //Products
   pathSaleManagementProductsList: "products-management/list",
