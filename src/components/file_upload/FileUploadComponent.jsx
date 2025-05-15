@@ -49,6 +49,7 @@ const FileUploadComponent = forwardRef((props, ref) => {
     triggerUpload,
   }));
 
+  console.log('Upload')
   return (
     <App>
       <Upload
