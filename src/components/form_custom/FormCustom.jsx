@@ -47,6 +47,16 @@ export default function FormCustom({ fields, form, title, onChange, mode, onUplo
   const [fileListMap, setFileListMap] = useState({});
 
   useEffect(() => {
+    const initialFileLists = {};
+    fields.forEach(field => {
+      if (field.type === "photo" && Array.isArray(field.value)) {
+        initialFileLists[field.name] = field.value;
+      }
+    });
+    setFileListMap(initialFileLists);
+  }, [fields]);
+
+  useEffect(() => {
     const initialValues = {};
     fields.forEach(field => {
       if (field.value !== undefined) {
