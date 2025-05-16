@@ -162,6 +162,7 @@ export default function FormCustom({ fields, form, title, onChange, mode, onUplo
                         if (onUploadFinish) onUploadFinish(response);
                         message.success(`${file.name} uploaded successfully.`);
                       } catch (err) {
+                        console.log('err : ',err)
                         message.error("อัปโหลดไฟล์ล้มเหลว");
                       } finally {
                         setLoading(false);

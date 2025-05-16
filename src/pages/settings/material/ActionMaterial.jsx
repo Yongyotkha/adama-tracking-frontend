@@ -14,11 +14,10 @@ export default function ActionMaterial() {
   const location = useLocation();
 
   const code = new URLSearchParams(location.search).get("documentNumber");
-
+  const formDis = true
   const [loading, setLoading] = useState(false);
   const [crops, setCrops] = useState([]);
   const [products, setProducts] = useState([]);
-  const [fileUrl, setFileUrl] = useState("");
   const [fileList, setFileList] = useState([]);
 
   const [formCustom] = Form.useForm();
@@ -74,7 +73,21 @@ export default function ActionMaterial() {
               }));
               setProducts(productList);
 
-              // set ค่าใน form เมื่อ options ทั้งคู่พร้อมแล้ว
+              // แปลง string เป็น array
+              const imageUrls = (mat.images || "")
+                .split(",")
+                .map(url => url.trim())
+                .filter(url => url.length > 0);
+
+              // แปลงเป็นรูปแบบที่ Upload ต้องการ
+              const formattedFiles = imageUrls.map((url, index) => ({
+                uid: `${Date.now()}-${index}`,
+                name: url.split("/").pop(), // ใช้ชื่อไฟล์จาก URL
+                status: "done",
+                url: url
+              }));
+
+              // set ค่าเข้า form
               formCustom.setFieldsValue({
                 material_code: mat.code,
                 name: mat.name,
@@ -86,10 +99,11 @@ export default function ActionMaterial() {
                 qty: mat.qty,
                 price: mat.unit_price,
                 remark: mat.remark,
-                photo: mat.images,
+                photo: formattedFiles,
               });
 
-              setFileUrl(mat.images || "");
+              // set ค่าเข้า state
+              setFileList(formattedFiles);
             } else {
               showMsg("error", "ไม่พบข้อมูลที่ต้องการแก้ไข");
             }
@@ -110,36 +124,20 @@ export default function ActionMaterial() {
 
 
   const handleUploadSuccess = (response) => {
+    const files = response?.data
+    console.log('files : ', files)
+    const uploadedUrl = files.file_url;
+    const fileName = files.original_name || "uploaded_file";
 
-    const uploadedUrl = response?.data?.file_url;
-    const fileName = response?.data?.original_name || "uploaded_file";
     if (uploadedUrl) {
-      setFileUrl(uploadedUrl);
-
       const newFile = {
-        uid: `${Date.now()}-${fileName}`,
+        uid: `${files.file_key}-${fileName}`,
         name: fileName,
         status: "done",
         url: uploadedUrl,
       };
 
-      setFileList((prev) => [...prev, newFile])
-    }
-  };
-
-  const getProductsByCrops = async (selectedCropIds) => {
-    if (!selectedCropIds.length) return;
-    setLoading(true);
-    try {
-      const res = await useServiceAPI.get(paths.pathMasterProductByCrop, {
-        platform: "web",
-        crop_list: selectedCropIds
-      });
-      setProducts(res.data.map((item) => ({ id: item.id, name: item.product_name })));
-    } catch (err) {
-      showMsg("error", err.message || "ไม่สามารถโหลด products ได้");
-    } finally {
-      setLoading(false);
+      setFileList((prev) => [...prev, newFile]);
     }
   };
 
@@ -147,6 +145,10 @@ export default function ActionMaterial() {
     try {
       const values = await formCustom.validateFields();
 
+      console.log('fileList : ', fileList)
+      const uploadedFiles = (fileList || [])
+        .filter(file => file.status === "done" && file.url)
+        .map(file => file.url);
 
       const payload = {
         user_id: userInfo.id,
@@ -160,11 +162,11 @@ export default function ActionMaterial() {
         qty: values.qty || "",
         unit_price: values.price || "",
         remark: values.remark || "",
-        images: fileUrl,
+        images: uploadedFiles.join(","),
         platform: "web",
       };
 
-      // console.log('payload : ', payload)
+      console.log('payload : ', payload)
       // return false;
 
       setLoading(true);
@@ -193,10 +195,27 @@ export default function ActionMaterial() {
     }
   };
 
+  const getProductsByCrops = async (selectedCropIds) => {
+    if (!selectedCropIds.length) return;
+    setLoading(true);
+    try {
+      const res = await useServiceAPI.get(paths.pathMasterProductByCrop, {
+        platform: "web",
+        crop_list: selectedCropIds
+      });
+      setProducts(res.data.map((item) => ({ id: item.id, name: item.product_name })));
+    } catch (err) {
+      showMsg("error", err.message || "ไม่สามารถโหลด products ได้");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   const formFields = [
     { label: "Photo", name: "photo", type: "photo", required: true, col: 24, value: fileList, multiple: true, accept: ".pdf,.png,.jpg,.jpeg" },
     { label: "Material Code", name: "material_code", type: "text", value: "Generate", col: 6, disabled: true },
-    { label: "Material Name", name: "name", type: "text", required: true, col: 6, disabled: mode === "view" },
+    { label: "Material Name", name: "name", type: "text", required: formDis, col: 6, disabled: mode === "view" },
     // { label: "Crop", name: "crop", type: "select", mode: "multiple", options: crops, required: true, col: 6 },
     {
       label: "Crop",
@@ -204,7 +223,7 @@ export default function ActionMaterial() {
       type: "select",
       mode: "multiple",
       options: crops,
-      required: true,
+      required: formDis,
       col: 6,
       onBlur: (fieldName, value) => {
         console.log(`Blurred field: ${fieldName}`, value);
@@ -214,12 +233,12 @@ export default function ActionMaterial() {
         }
       },
     },
-    { label: "Product", name: "product", type: "select", mode: "multiple", options: products, required: true, col: 6 },
+    { label: "Product", name: "product", type: "select", mode: "multiple", options: products, required: formDis, col: 6 },
     { label: "Description", name: "description", type: "text-editor", required: false, col: 24, disabled: mode === "view" },
     { label: "Type", name: "type", type: "text", col: 6, disabled: mode === "view", placeholder: "PPB" },
     { label: "Size", name: "size", type: "text", col: 6, disabled: mode === "view", placeholder: "80x60" },
-    { label: "QTY", name: "qty", type: "text", required: true, col: 6, disabled: mode === "view", placeholder: "10" },
-    { label: "Unit Price", name: "price", type: "text", required: true, col: 6, disabled: mode === "view", placeholder: "100" },
+    { label: "QTY", name: "qty", type: "text", required: formDis, col: 6, disabled: mode === "view", placeholder: "10" },
+    { label: "Unit Price", name: "price", type: "text", required: formDis, col: 6, disabled: mode === "view", placeholder: "100" },
     { label: "Remark", name: "remark", type: "text", col: 24, disabled: mode === "view" },
   ];
 
