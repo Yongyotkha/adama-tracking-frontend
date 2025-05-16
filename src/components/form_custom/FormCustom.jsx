@@ -183,6 +183,11 @@ export default function FormCustom({ fields, form, title, onChange, mode, onUplo
                     showSearch
                     optionFilterProp="label"
                     onChange={(value) => handleChange(field.name, value)}
+                    onBlur={() => {
+                      //console.log(`Select ${field.name} blurred`);
+                      // 👇 เพิ่ม callback หากต้องการแจ้งที่ parent
+                      if (field.onBlur) field.onBlur(field.name, form.getFieldValue(field.name));
+                    }}
                     options={field.options.map(opt => ({
                       value: opt.id,
                       label: opt.name

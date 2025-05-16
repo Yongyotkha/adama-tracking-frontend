@@ -194,7 +194,23 @@ export default function ActionMaterial() {
     { label: "Photo", name: "photo", type: "photo", required: true, col: 24, value: fileList },
     { label: "Material Code", name: "material_code", type: "text", value: "Generate", col: 6, disabled: true },
     { label: "Material Name", name: "name", type: "text", required: true, col: 6, disabled: mode === "view" },
-    { label: "Crop", name: "crop", type: "select", mode: "multiple", options: crops, required: true, col: 6 },
+    // { label: "Crop", name: "crop", type: "select", mode: "multiple", options: crops, required: true, col: 6 },
+    {
+      label: "Crop",
+      name: "crop",
+      type: "select",
+      mode: "multiple",
+      options: crops,
+      required: true,
+      col: 6,
+      onBlur: (fieldName, value) => {
+        console.log(`Blurred field: ${fieldName}`, value);
+        // ✅ ตัวอย่าง: ดึง products ใหม่
+        if (fieldName === "crop") {
+          getProductsByCrops(value);
+        }
+      },
+    },
     { label: "Product", name: "product", type: "select", mode: "multiple", options: products, required: true, col: 6 },
     { label: "Description", name: "description", type: "text-editor", required: false, col: 24, disabled: mode === "view" },
     { label: "Type", name: "type", type: "text", col: 6, disabled: mode === "view", placeholder: "PPB" },
@@ -207,8 +223,8 @@ export default function ActionMaterial() {
 
   const handleChange = (fieldName, value) => {
     if (fieldName === "crop") {
-      getProductsByCrops(value);
-      formCustom.setFieldsValue({ product: [] });
+      // getProductsByCrops(value);
+      // formCustom.setFieldsValue({ product: [] });
     }
   };
 
