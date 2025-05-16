@@ -111,20 +111,32 @@ export default function FormCustom({ fields, form, title, onChange, mode, onUplo
                 {field.type === "photo" ? (
                   <Upload.Dragger
                     name="file"
-                    multiple={false}
+                    multiple={field.multiple || false}
+                    accept={field.accept || ".png,.jpg,.jpeg,.pdf"}
                     listType="picture"
-                    maxCount={1}
-                    fileList={fileListMap[field.name] || []} // 🆕 ใช้ state ควบคุม
+                    maxCount={field.multiple ? undefined : 1}
+                    fileList={fileListMap[field.name] || []}
                     onChange={({ fileList: newFileList }) => {
-                      setFileListMap(prev => ({ ...prev, [field.name]: newFileList })); // 🆕 อัปเดต state
-                      form.setFieldsValue({ [field.name]: newFileList });
+                      // อัปเดตทั้ง map และ form
+                      const fileListWithUid = newFileList.map((f, index) => ({
+                        ...f,
+                        uid: f.uid || `${Date.now()}-${index}`, // ป้องกัน key undefined
+                      }));
+                      setFileListMap((prev) => ({ ...prev, [field.name]: fileListWithUid }));
+                      form.setFieldsValue({ [field.name]: fileListWithUid });
                     }}
                     onRemove={(file) => {
-                      const newFileList = (fileListMap[field.name] || []).filter(f => f.uid !== file.uid);
-                      setFileListMap(prev => ({ ...prev, [field.name]: newFileList })); // 🆕
-                      form.setFieldsValue({ [field.name]: newFileList });
+                      const updated = (fileListMap[field.name] || []).filter(f => f.uid !== file.uid);
+                      setFileListMap((prev) => ({ ...prev, [field.name]: updated }));
+                      form.setFieldsValue({ [field.name]: updated });
                     }}
                     beforeUpload={async (file) => {
+                      const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "application/pdf"];
+                      if (!allowedTypes.includes(file.type)) {
+                        message.error("รองรับเฉพาะ .png .jpg .jpeg และ .pdf เท่านั้น");
+                        return false;
+                      }
+
                       const formData = new FormData();
                       formData.append("file", file);
                       formData.append("mode", "news");
@@ -134,15 +146,18 @@ export default function FormCustom({ fields, form, title, onChange, mode, onUplo
                         const response = await useServiceAPI.post(paths.pathUpload, formData);
                         const uploadedUrl = response?.data?.file_url;
 
-                        const newFileList = [{
-                          uid: '-1',
+                        const newFile = {
+                          uid: `${Date.now()}-${file.name}`,
                           name: file.name,
-                          status: 'done',
+                          status: "done",
                           url: uploadedUrl,
-                        }];
+                        };
 
-                        setFileListMap(prev => ({ ...prev, [field.name]: newFileList }));
-                        form.setFieldsValue({ [field.name]: newFileList });
+                        const prevList = fileListMap[field.name] || [];
+                        const updatedList = field.multiple ? [...prevList, newFile] : [newFile];
+
+                        setFileListMap((prev) => ({ ...prev, [field.name]: updatedList }));
+                        form.setFieldsValue({ [field.name]: updatedList });
 
                         if (onUploadFinish) onUploadFinish(response);
                         message.success(`${file.name} uploaded successfully.`);
@@ -152,10 +167,10 @@ export default function FormCustom({ fields, form, title, onChange, mode, onUplo
                         setLoading(false);
                       }
 
-                      return false;
+                      return false; // prevent auto upload
                     }}
                   >
-                    <p className="text-[#978B87]">Choose a file or drag & drop</p>
+                    <p>Choose file or drag & drop</p>
                     <DynamicButton
                       className="text-white mt-2 px-4 py-1 rounded-[4px] bg-[#009845]"
                       text={"Browse File"}

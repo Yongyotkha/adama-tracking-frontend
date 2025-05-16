@@ -19,14 +19,8 @@ export default function ActionMaterial() {
   const [crops, setCrops] = useState([]);
   const [products, setProducts] = useState([]);
   const [fileUrl, setFileUrl] = useState("");
-  const fileList = fileUrl
-    ? [{
-      uid: '-1',
-      name: 'uploaded_image.jpg',
-      status: 'done',
-      url: fileUrl,
-    }]
-    : [];
+  const [fileList, setFileList] = useState([]);
+
   const [formCustom] = Form.useForm();
   const { showMsg, showNotification, userInfo } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -118,9 +112,18 @@ export default function ActionMaterial() {
   const handleUploadSuccess = (response) => {
 
     const uploadedUrl = response?.data?.file_url;
-
+    const fileName = response?.data?.original_name || "uploaded_file";
     if (uploadedUrl) {
       setFileUrl(uploadedUrl);
+
+      const newFile = {
+        uid: `${Date.now()}-${fileName}`,
+        name: fileName,
+        status: "done",
+        url: uploadedUrl,
+      };
+
+      setFileList((prev) => [...prev, newFile])
     }
   };
 
@@ -191,7 +194,7 @@ export default function ActionMaterial() {
   };
 
   const formFields = [
-    { label: "Photo", name: "photo", type: "photo", required: true, col: 24, value: fileList },
+    { label: "Photo", name: "photo", type: "photo", required: true, col: 24, value: fileList, multiple: true, accept: ".pdf,.png,.jpg,.jpeg" },
     { label: "Material Code", name: "material_code", type: "text", value: "Generate", col: 6, disabled: true },
     { label: "Material Name", name: "name", type: "text", required: true, col: 6, disabled: mode === "view" },
     // { label: "Crop", name: "crop", type: "select", mode: "multiple", options: crops, required: true, col: 6 },
