@@ -1,9 +1,8 @@
-import React, { useRef, useState, useEffect, useContext } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import FormCustom from "../../../components/form_custom/FormCustom";
-import FileUploadComponent from "../../../components/file_upload/FileUploadComponent";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { Form } from "antd";
 import { paths } from "../../../services/CorsPath";
@@ -12,9 +11,8 @@ import useServiceAPI from "../../../services/CorsService";
 export default function ActionMaterial() {
   const { mode } = useParams();
   const location = useLocation();
-
   const code = new URLSearchParams(location.search).get("documentNumber");
-  const formDis = true
+
   const [loading, setLoading] = useState(false);
   const [crops, setCrops] = useState([]);
   const [products, setProducts] = useState([]);
@@ -37,79 +35,55 @@ export default function ActionMaterial() {
     const fetchInitialData = async () => {
       setLoading(true);
       try {
-        // โหลด crop ทั้งหมด
         const cropRes = await useServiceAPI.get(paths.pathMasterCrop, {});
-        const cropList = cropRes.data.map((item) => ({
-          id: item.id,
-          name: item.crop_name || item.name, // ป้องกัน key ที่ต่างกัน
-        }));
-        setCrops(cropList);
+        setCrops(cropRes.data.map(item => ({ id: item.id, name: item.crop_name || item.name })));
 
         if (mode === "edit" || mode === "view") {
           const res = await useServiceAPI.get(paths.pathMaterialList, {
             platform: "web",
             page: 1,
             page_size: 1,
-            code: code,
+            code,
             user_id: userInfo.id,
           });
 
-          if (res.status === 200) {
-            const mat = res.data?.data?.find((item) => item.code === code);
+          const mat = res.data?.data?.find(item => item.code === code);
+          if (mat) {
+            const cropIds = mat.crops?.split(',').map(Number) || [];
+            const productIds = mat.products?.split(',').map(Number) || [];
 
-            if (mat) {
-              const cropIds = mat.crops?.split(',').map(id => Number(id)) || [];
-              const productIds = mat.products?.split(',').map(id => Number(id)) || [];
+            const productRes = await useServiceAPI.get(paths.pathMasterProductByCrop, {
+              platform: "web",
+              crop_list: cropIds,
+            });
+            setProducts(productRes.data.map(item => ({ id: item.id, name: item.product_name || item.name })));
 
-              // โหลด product ตาม cropIds
-              const productRes = await useServiceAPI.get(paths.pathMasterProductByCrop, {
-                platform: "web",
-                crop_list: cropIds,
-              });
+            const formattedFiles = (mat.images || "").split(',').map((url, index) => ({
+              uid: `${Date.now()}-${index}`,
+              name: url.trim().split("/").pop(),
+              status: "done",
+              url: url.trim(),
+            })).filter(f => f.url);
 
-              const productList = productRes.data.map((item) => ({
-                id: item.id,
-                name: item.product_name || item.name,
-              }));
-              setProducts(productList);
+            formCustom.setFieldsValue({
+              material_code: mat.code,
+              name: mat.name,
+              crop: cropIds,
+              product: productIds,
+              description: mat.description,
+              type: mat.type,
+              size: mat.size,
+              qty: mat.qty,
+              price: mat.unit_price,
+              remark: mat.remark,
+              photo: formattedFiles,
+            });
 
-              // แปลง string เป็น array
-              const imageUrls = (mat.images || "")
-                .split(",")
-                .map(url => url.trim())
-                .filter(url => url.length > 0);
-
-              // แปลงเป็นรูปแบบที่ Upload ต้องการ
-              const formattedFiles = imageUrls.map((url, index) => ({
-                uid: `${Date.now()}-${index}`,
-                name: url.split("/").pop(), // ใช้ชื่อไฟล์จาก URL
-                status: "done",
-                url: url
-              }));
-
-              // set ค่าเข้า form
-              formCustom.setFieldsValue({
-                material_code: mat.code,
-                name: mat.name,
-                crop: cropIds,
-                product: productIds,
-                description: mat.description,
-                type: mat.type,
-                size: mat.size,
-                qty: mat.qty,
-                price: mat.unit_price,
-                remark: mat.remark,
-                photo: formattedFiles,
-              });
-
-              // set ค่าเข้า state
-              setFileList(formattedFiles);
-            } else {
-              showMsg("error", "ไม่พบข้อมูลที่ต้องการแก้ไข");
-            }
+            setFileList(formattedFiles);
+          } else {
+            showMsg("error", "ไม่พบข้อมูลที่ต้องการแก้ไข");
           }
         } else {
-          // กรณี create
           formCustom.setFieldsValue({ crop: [], product: [] });
         }
       } catch (err) {
@@ -122,33 +96,23 @@ export default function ActionMaterial() {
     fetchInitialData();
   }, [mode, code, userInfo.id]);
 
-
   const handleUploadSuccess = (response) => {
-    const files = response?.data
-    console.log('files : ', files)
-    const uploadedUrl = files.file_url;
-    const fileName = files.original_name || "uploaded_file";
+    const file = response?.data;
+    if (!file?.file_url) return;
 
-    if (uploadedUrl) {
-      const newFile = {
-        uid: `${files.file_key}-${fileName}`,
-        name: fileName,
-        status: "done",
-        url: uploadedUrl,
-      };
-
-      setFileList((prev) => [...prev, newFile]);
-    }
+    const newFile = {
+      uid: `${file.file_key}-${file.original_name}`,
+      name: file.original_name,
+      status: "done",
+      url: file.file_url,
+    };
+    setFileList(prev => [...prev, newFile]);
   };
 
   const handleSubmit = async () => {
     try {
       const values = await formCustom.validateFields();
-
-      console.log('fileList : ', fileList)
-      const uploadedFiles = (fileList || [])
-        .filter(file => file.status === "done" && file.url)
-        .map(file => file.url);
+      const uploadedFiles = fileList.filter(f => f.status === "done" && f.url).map(f => f.url);
 
       const payload = {
         user_id: userInfo.id,
@@ -166,28 +130,18 @@ export default function ActionMaterial() {
         platform: "web",
       };
 
-      console.log('payload : ', payload)
-      // return false;
-
       setLoading(true);
-      if (mode == 'create') {
-        const res = await useServiceAPI.post(paths.pathMaterialCreate, payload);
-        if (res.status === 200) {
-          showNotification("success", "บันทึกข้อมูลสำเร็จ", "");
-          navigate("/setting/material");
-        } else {
-          showMsg("error", res.data.message || "ไม่สามารถบันทึกข้อมูลได้");
-        }
-      } else if (mode == 'edit') {
-        const res = await useServiceAPI.post(paths.pathMaterialEdit, payload);
-        if (res.status === 200) {
-          showNotification("success", "บันทึกข้อมูลสำเร็จ", "");
-          //navigate("/setting/material");
-        } else {
-          showMsg("error", res.data.message || "ไม่สามารถบันทึกข้อมูลได้");
-        }
-      }
+      const res = await useServiceAPI.post(
+        mode === 'create' ? paths.pathMaterialCreate : paths.pathMaterialEdit,
+        payload
+      );
 
+      if (res.status === 200) {
+        showNotification("success", "บันทึกข้อมูลสำเร็จ", "");
+        navigate("/setting/material");
+      } else {
+        showMsg("error", res.data.message || "ไม่สามารถบันทึกข้อมูลได้");
+      }
     } catch (err) {
       showMsg("error", err.message || "กรุณากรอกข้อมูลให้ครบถ้วน");
     } finally {
@@ -201,9 +155,9 @@ export default function ActionMaterial() {
     try {
       const res = await useServiceAPI.get(paths.pathMasterProductByCrop, {
         platform: "web",
-        crop_list: selectedCropIds
+        crop_list: selectedCropIds,
       });
-      setProducts(res.data.map((item) => ({ id: item.id, name: item.product_name })));
+      setProducts(res.data.map(item => ({ id: item.id, name: item.product_name })));
     } catch (err) {
       showMsg("error", err.message || "ไม่สามารถโหลด products ได้");
     } finally {
@@ -211,44 +165,22 @@ export default function ActionMaterial() {
     }
   };
 
-
   const formFields = [
     { label: "Photo", name: "photo", type: "photo", required: true, col: 24, value: fileList, multiple: true, accept: ".pdf,.png,.jpg,.jpeg" },
     { label: "Material Code", name: "material_code", type: "text", value: "Generate", col: 6, disabled: true },
-    { label: "Material Name", name: "name", type: "text", required: formDis, col: 6, disabled: mode === "view" },
-    // { label: "Crop", name: "crop", type: "select", mode: "multiple", options: crops, required: true, col: 6 },
+    { label: "Material Name", name: "name", type: "text", required: true, col: 6, disabled: mode === "view" },
     {
-      label: "Crop",
-      name: "crop",
-      type: "select",
-      mode: "multiple",
-      options: crops,
-      required: formDis,
-      col: 6,
-      onBlur: (fieldName, value) => {
-        console.log(`Blurred field: ${fieldName}`, value);
-        // ✅ ตัวอย่าง: ดึง products ใหม่
-        if (fieldName === "crop") {
-          getProductsByCrops(value);
-        }
-      },
+      label: "Crop", name: "crop", type: "select", mode: "multiple", options: crops, required: true, col: 6,
+      onBlur: (fieldName, value) => fieldName === "crop" && getProductsByCrops(value),
     },
-    { label: "Product", name: "product", type: "select", mode: "multiple", options: products, required: formDis, col: 6 },
-    { label: "Description", name: "description", type: "text-editor", required: false, col: 24, disabled: mode === "view" },
-    { label: "Type", name: "type", type: "text", col: 6, disabled: mode === "view", placeholder: "PPB" },
-    { label: "Size", name: "size", type: "text", col: 6, disabled: mode === "view", placeholder: "80x60" },
-    { label: "QTY", name: "qty", type: "text", required: formDis, col: 6, disabled: mode === "view", placeholder: "10" },
-    { label: "Unit Price", name: "price", type: "text", required: formDis, col: 6, disabled: mode === "view", placeholder: "100" },
+    { label: "Product", name: "product", type: "select", mode: "multiple", options: products, required: true, col: 6 },
+    { label: "Description", name: "description", type: "text-editor", col: 24, disabled: mode === "view" },
+    { label: "Type", name: "type", type: "text", col: 6, disabled: mode === "view" },
+    { label: "Size", name: "size", type: "text", col: 6, disabled: mode === "view" },
+    { label: "QTY", name: "qty", type: "text", required: true, col: 6, disabled: mode === "view" },
+    { label: "Unit Price", name: "price", type: "text", required: true, col: 6, disabled: mode === "view" },
     { label: "Remark", name: "remark", type: "text", col: 24, disabled: mode === "view" },
   ];
-
-
-  const handleChange = (fieldName, value) => {
-    if (fieldName === "crop") {
-      // getProductsByCrops(value);
-      // formCustom.setFieldsValue({ product: [] });
-    }
-  };
 
   return (
     <MainLayout loading={loading}>
@@ -256,7 +188,7 @@ export default function ActionMaterial() {
       <FormCustom
         fields={formFields}
         form={formCustom}
-        onChange={handleChange}
+        onChange={(field, value) => field === "crop" && getProductsByCrops(value)}
         onUploadFinish={handleUploadSuccess}
       />
       <div className="flex justify-end space-x-4 mt-6">
