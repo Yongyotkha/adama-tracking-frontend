@@ -10,6 +10,7 @@ import {
   PhoneOutlined,
   LogoutOutlined,
   HomeOutlined,
+  EnvironmentOutlined,
 } from "@ant-design/icons";
 import BackButton from "../../../components/mobile/button/BackButton";
 import MainButton from "../../../components/mobile/button/MainButton";
@@ -143,6 +144,13 @@ export default function MyAccount() {
                       },
                     })
                   }
+                />
+
+                <MainButton
+                  type="link"
+                  to="/mobile/tran-address"
+                  icon={<EnvironmentOutlined className="text-lg text-gray-500" />}
+                  label="ที่อยู่สำหรับการจัดส่ง"
                 />
 
                 <div className="sarabun-font pt-2">การตั้งค่า</div>

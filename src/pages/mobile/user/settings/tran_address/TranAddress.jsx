@@ -80,7 +80,7 @@ export default function TranAddress() {
         </div>
 
         {/* Back Button */}
-        <BackButton />
+        <BackButton url={'/mobile/account'} type={'account'} />
       </div>
     </MobileLayout>
   );

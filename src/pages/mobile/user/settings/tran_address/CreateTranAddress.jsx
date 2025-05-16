@@ -74,7 +74,7 @@ export default function CreateTranAddress() {
               name="lastName"
               rules={[{ required: true, message: "กรุณากรอกนามสกุล" }]}
             >
-              <Input placeholder="นามสกุล" className="text-[#A19793]" />
+              <Input placeholder="นามสกุล" className="text-[#A19793] sarabun-font" />
             </Form.Item>
 
             <Form.Item
