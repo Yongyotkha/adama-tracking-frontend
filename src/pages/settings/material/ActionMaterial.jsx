@@ -36,10 +36,11 @@ export default function ActionMaterial() {
       setLoading(true);
       try {
         const cropRes = await useServiceAPI.get(paths.pathMasterCrop, {});
-        setCrops(cropRes.data.map(item => ({ id: item.id, name: item.crop_name || item.name })));
+        setCrops(cropRes.data.map(item => ({ id: item.id, name: item.name })));
 
         if (mode === "edit" || mode === "view") {
-          const res = await useServiceAPI.get(paths.pathMaterialList, {
+
+          const res = await useServiceAPI.get(paths.pathMaterialOne, {
             platform: "web",
             page: 1,
             page_size: 1,
@@ -47,10 +48,17 @@ export default function ActionMaterial() {
             user_id: userInfo.id,
           });
 
-          const mat = res.data?.data?.find(item => item.code === code);
-          if (mat) {
-            const cropIds = mat.crops?.split(',').map(Number) || [];
-            const productIds = mat.products?.split(',').map(Number) || [];
+
+          if (res.data) {
+            const mat = res.data;
+
+            console.log(['mat : ', mat])
+
+            const cropIds = mat.crops;
+            const productIds = mat.products;
+
+            console.log('cropIds : ', cropIds)
+            console.log('productIds : ', productIds)
 
             const productRes = await useServiceAPI.get(paths.pathMasterProductByCrop, {
               platform: "web",
