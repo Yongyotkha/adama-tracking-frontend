@@ -38,6 +38,8 @@ export default function ActionMaterial() {
         const cropRes = await useServiceAPI.get(paths.pathMasterCrop, {});
         setCrops(cropRes.data.map(item => ({ id: item.id, name: item.name })));
 
+
+
         if (mode === "edit" || mode === "view") {
 
           const res = await useServiceAPI.get(paths.pathMaterialOne, {
@@ -57,14 +59,17 @@ export default function ActionMaterial() {
             const cropIds = mat.crops;
             const productIds = mat.products;
 
-            console.log('cropIds : ', cropIds)
-            console.log('productIds : ', productIds)
+
 
             const productRes = await useServiceAPI.get(paths.pathMasterProductByCrop, {
               platform: "web",
               crop_list: cropIds,
             });
+
             setProducts(productRes.data.map(item => ({ id: item.id, name: item.product_name || item.name })));
+
+            console.log('cropIds : ', crops)
+            console.log('productIds : ', products)
 
             const formattedFiles = (mat.images || "").split(',').map((url, index) => ({
               uid: `${Date.now()}-${index}`,
