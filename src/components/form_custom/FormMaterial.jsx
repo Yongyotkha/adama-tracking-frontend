@@ -36,7 +36,7 @@ const toolbarOptions = [
   ["clean"],
 ];
 
-export default function FormCustom({ fields, form, title, onChange, mode, onUploadFinish }) {
+export default function FormMaterial({ fields, form, title, onChange, mode, onUploadFinish }) {
   const [location, setLocation] = useState({
     lat: null,
     long: null,
@@ -162,7 +162,7 @@ export default function FormCustom({ fields, form, title, onChange, mode, onUplo
                         if (onUploadFinish) onUploadFinish(response);
                         message.success(`${file.name} uploaded successfully.`);
                       } catch (err) {
-                        console.log('err : ',err)
+                        console.log('err : ', err)
                         message.error("อัปโหลดไฟล์ล้มเหลว");
                       } finally {
                         setLoading(false);
@@ -204,10 +204,7 @@ export default function FormCustom({ fields, form, title, onChange, mode, onUplo
                       // 👇 เพิ่ม callback หากต้องการแจ้งที่ parent
                       if (field.onBlur) field.onBlur(field.name, form.getFieldValue(field.name));
                     }}
-                    options={field.options.map(opt => ({
-                      value: opt.id,
-                      label: opt.name
-                    }))}
+                    options={field.options}
                   />
                 ) : field.type === "date" ? (
                   <DatePicker

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
-import FormCustom from "../../../components/form_custom/FormCustom";
+import FormCustom from "../../../components/form_custom/FormMaterial";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { Form } from "antd";
 import { paths } from "../../../services/CorsPath";
@@ -36,9 +36,11 @@ export default function ActionMaterial() {
       setLoading(true);
       try {
         const cropRes = await useServiceAPI.get(paths.pathMasterCrop, {});
-        setCrops(cropRes.data.map(item => ({ id: item.id, name: item.name })));
 
-
+        setCrops(cropRes.data.map(item => ({
+          value: item.id,
+          label: item.name,
+        })));
 
         if (mode === "edit" || mode === "view") {
 
@@ -56,9 +58,8 @@ export default function ActionMaterial() {
 
             console.log(['mat : ', mat])
 
-            const cropIds = mat.crops;
-            const productIds = mat.products;
-
+            const cropIds = mat.crops.map(Number);
+            const productIds = mat.products.map(Number);
 
 
             const productRes = await useServiceAPI.get(paths.pathMasterProductByCrop, {
@@ -66,7 +67,10 @@ export default function ActionMaterial() {
               crop_list: cropIds,
             });
 
-            setProducts(productRes.data.map(item => ({ id: item.id, name: item.product_name || item.name })));
+            setProducts(productRes.data.map(item => ({
+              value: item.id,
+              label: item.product_name,
+            })));
 
             console.log('cropIds : ', crops)
             console.log('productIds : ', products)
@@ -78,7 +82,7 @@ export default function ActionMaterial() {
               url: url.trim(),
             })).filter(f => f.url);
 
-            formCustom.setFieldsValue({
+            const setval = {
               material_code: mat.code,
               name: mat.name,
               crop: cropIds,
@@ -90,7 +94,11 @@ export default function ActionMaterial() {
               price: mat.unit_price,
               remark: mat.remark,
               photo: formattedFiles,
-            });
+            }
+
+            console.log('set val : ', setval)
+
+            formCustom.setFieldsValue(setval);
 
             setFileList(formattedFiles);
           } else {
@@ -170,7 +178,10 @@ export default function ActionMaterial() {
         platform: "web",
         crop_list: selectedCropIds,
       });
-      setProducts(res.data.map(item => ({ id: item.id, name: item.product_name })));
+      setProducts(res.data.map(item => ({
+        value: item.id,
+        label: item.product_name,
+      })));
     } catch (err) {
       showMsg("error", err.message || "ไม่สามารถโหลด products ได้");
     } finally {

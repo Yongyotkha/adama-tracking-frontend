@@ -38,7 +38,7 @@ const toolbarOptions = [
   ["clean"],
 ];
 
-export default function FormCustom({ fields, form, title, onChange, mode, onUploadFinish }) {
+export default function FormCustom({ fields, form, title, onChange, mode }) {
   const [formValues, setFormValues] = useState({});
   const [location, setLocation] = useState({
     lat: null,
@@ -54,7 +54,7 @@ export default function FormCustom({ fields, form, title, onChange, mode, onUplo
     const initialValues = fields.reduce((values, field) => {
       if (field.value !== undefined) {
         if (field.type === "date") {
-
+ 
           values[field.name] = field.value ? dayjs(field.value, "YYYY-MM-DD") : null;
         } else if (field.type === "month") {
           values[field.name] = field.value
@@ -72,7 +72,7 @@ export default function FormCustom({ fields, form, title, onChange, mode, onUplo
       }
       return values;
     }, {});
-
+   
     setFormValues(initialValues);
 
     if (!isInitialSet.current && form) {
@@ -230,51 +230,68 @@ export default function FormCustom({ fields, form, title, onChange, mode, onUplo
                   className="mb-3"
                 >
                   {field.type === "photo" ? (
-                    <Upload.Dragger
-                      name="file"
-                      multiple={false}
-                      beforeUpload={async (file) => {
-                        const formData = new FormData();
-                        formData.append("file", file);
-                        formData.append("mode", "news"); // ส่ง mode เป็น news
+                    // <Upload.Dragger
+                    //   name={field.name}
+                    //   multiple={false}
+                    //   action="/upload/create" // Replace with your upload endpoint
+                    //   onChange={(info) => handlePhotoUpload(info, field.name)}
+                    //   className="w-full"
+                    //   listType="picture"
+                    //   maxCount={1}
+                    //   accept="image/jpeg,image/png"
+                    //   data={{ mode: "news" , platform: "web"}} // ส่งค่า mode news ไปพร้อมกับการอัปโหลด
+                    // >
+                    //   <p className="text-[#978B87]">
+                    //     Choose a file or drag & drop it here
+                    //   </p>
+                    //   <p className="text-[#978B87]">JPEG, PNG</p>
+                    //   <DynamicButton
+                    //     className="text-white mt-2 px-4 py-1 rounded-[4px] bg-[#009845]"
+                    //     text={"Browse File"}
+                    //     type={"button"}
+                    //   />
+                    // </Upload.Dragger>
 
-                        try {
+                  <Upload.Dragger
+                    name="file"
+                    multiple={false}
+                    beforeUpload={async (file) => {
+                      const formData = new FormData();
+                      formData.append("file", file);
+                      formData.append("mode", "news"); // ส่ง mode เป็น news
 
-                          setLoading(true);
-                          const response = await useServiceAPI.post(
-                            paths.pathUpload, // ใช้ API ตามที่คุณกำหนด
-                            formData
-                          );
-                          if (onUploadFinish) {
-                            onUploadFinish(response);
-                          }
-                          console.log('response : ', response)
-                          form?.setFieldsValue({
-                            [field.name]: response.data.file_url, // อัปเดตค่าของฟอร์ม
-                          });
-                          message.success(`${file.name} uploaded successfully.`);
-                        } catch (error) {
-                          console.error("Error uploading form data:", error);
-                          message.error("เกิดข้อผิดพลาดในการอัปโหลด");
-                        } finally {
-                          setLoading(false);
-                        }
+                      try {
+                        setLoading(true);
+                        const response = await useServiceAPI.post(
+                          paths.pathUpload, // ใช้ API ตามที่คุณกำหนด
+                          formData
+                        );
+                        form?.setFieldsValue({
+                          [field.name]: response.data.file_url, // อัปเดตค่าของฟอร์ม
+                        });
+                        message.success(`${file.name} uploaded successfully.`);
+                      } catch (error) {
+                        console.error("Error uploading form data:", error);
+                        message.error("เกิดข้อผิดพลาดในการอัปโหลด");
+                      } finally {
+                        setLoading(false);
+                      }
 
-                        return false; // ป้องกันไม่ให้ `Upload.Dragger` อัปโหลดเอง
-                      }}
-                      className="w-full"
-                      listType="picture"
-                      maxCount={1}
-                      accept="image/jpeg,image/png"
-                    >
-                      <p className="text-[#978B87]">Choose a file or drag & drop it here</p>
-                      <p className="text-[#978B87]">JPEG, PNG</p>
-                      <DynamicButton
-                        className="text-white mt-2 px-4 py-1 rounded-[4px] bg-[#009845]"
-                        text={"Browse File"}
-                        type={"button"}
-                      />
-                    </Upload.Dragger>
+                      return false; // ป้องกันไม่ให้ `Upload.Dragger` อัปโหลดเอง
+                    }}
+                    className="w-full"
+                    listType="picture"
+                    maxCount={1}
+                    accept="image/jpeg,image/png"
+                  >
+                    <p className="text-[#978B87]">Choose a file or drag & drop it here</p>
+                    <p className="text-[#978B87]">JPEG, PNG</p>
+                    <DynamicButton
+                      className="text-white mt-2 px-4 py-1 rounded-[4px] bg-[#009845]"
+                      text={"Browse File"}
+                      type={"button"}
+                    />
+                  </Upload.Dragger>
 
 
                   ) : field.type === "text" ||
@@ -333,27 +350,38 @@ export default function FormCustom({ fields, form, title, onChange, mode, onUplo
                       />{" "}
                     </>
                   ) : field.type === "select" ? (
-                    <Select
-                      mode={field.mode === "multiple" ? "multiple" : undefined}
-                      value={
-                        field.mode === "multiple"
-                          ? Array.isArray(formValues[field.name])
-                            ? formValues[field.name]
-                            : []
-                          : formValues[field.name] ?? undefined
-                      }
-                      onChange={(value) => handleChange(field.name, value)}
-                      placeholder={`Select ${field.label.toLowerCase()}`}
-                      disabled={field.disabled}
-                      allowClear
-                      showSearch
-                      optionFilterProp="label"
-                      options={field.options.map((option, index) => ({
-                        key: index,
-                        label: option.name,
-                        value: option.id,
-                      }))}
-                    />
+                    <>
+                      <Select
+                        mode={
+                          field.mode === "multiple" ? "multiple" : undefined
+                        }
+                        value={(() => {
+                          const firstOption = field.options?.[0]?.id; // ดึงค่าตัวแรกของ options
+                          const selectedValue = formValues[field.name];
+
+                          if (!Array.isArray(selectedValue)) {
+                            return typeof firstOption === "number"
+                              ? [Number(selectedValue)].filter(Boolean) // ถ้าเป็น number, แปลงเป็น array
+                              : [String(selectedValue)].filter(Boolean); // ถ้าเป็น string, แปลงเป็น array
+                          }
+
+                          return typeof firstOption === "number"
+                            ? selectedValue.map(Number) // ถ้า options เป็น number, ให้แปลง value เป็น number
+                            : selectedValue.map(String); // ถ้า options เป็น string, ให้แปลง value เป็น string
+                        })()}
+                        onChange={(value) => handleChange(field.name, value)}
+                        placeholder={`Select ${field.label.toLowerCase()}`}
+                        disabled={field.disabled}
+                        allowClear
+                        showSearch
+                        optionFilterProp="label"
+                        options={field.options.map((option, index) => ({
+                          key: index,
+                          label: option.name,
+                          value: option.id, // ใช้ค่า id ตรงๆ
+                        }))}
+                      />{" "}
+                    </>
                   ) : field.type === "textarea" ? (
                     <Input.TextArea
                       rows={4}
@@ -362,7 +390,7 @@ export default function FormCustom({ fields, form, title, onChange, mode, onUplo
                       disabled={field.disabled}
                       onChange={(e) => handleChange(field.name, e.target.value)}
                     />
-                  ) : field.type === "text-editor" ? (
+                  ): field.type === "text-editor" ? (
                     <>
                       <ReactQuill
                         theme="snow"
