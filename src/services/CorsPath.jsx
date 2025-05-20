@@ -51,12 +51,22 @@ export const paths = {
   pathMasterYear: "master/years",
   pathMasterPerception: "master/perception",
 
+  pathMasterMaterialProduct: "master/material-by-product",
+
   //material
   pathMaterialList: "material/list",
   pathMaterialOne: "material/one",
   pathMaterialCreate: "material/create",
   pathMaterialEdit: "material/edit",
   pathMaterialDel: "material/del",
+
+    //material expense
+  pathExpenseMaterialList: "exMaterial/list",
+  pathExpenseMaterialOne: "exMaterial/one",
+  pathExpenseMaterialCreate: "exMaterial/create",
+  pathExpenseMaterialEdit: "exMaterial/edit",
+  pathExpenseMaterialDel: "exMaterial/del",
+
 
   //Products
   pathSaleManagementProductsList: "products-management/list",

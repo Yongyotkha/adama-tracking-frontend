@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useContext } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import TableComponent from "../../../components/table/TableComponent";
@@ -8,23 +8,33 @@ import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
+import { AuthContext } from "../../../contexts/AuthContext";
 
-export default function MaterialExpense() {
+
+export default function Material() {
   const { confirm } = Modal;
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
-  const [materialList, setMaterialList] = useState([
-    { id: "1", name: "All" },
-    { id: "2", name: "Rice" },
-    { id: "3", name: "Corn" },
-  ]);
+  const [materialList, setMaterialList] = useState([]);
   const navigate = useNavigate();
+  const { showMsg, showNotification, userInfo } = useContext(AuthContext);
+  const [tableParams, setTableParams] = useState({
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+    filters: {},
+    sortOrder: null,
+    sortField: null,
+  });
 
   const filters = [
     {
       key: "name",
-      type: "select",
+      type: "text",
       label: "Name",
       placeholder: "All",
       options: materialList,
@@ -32,26 +42,46 @@ export default function MaterialExpense() {
   ];
 
   const handleDelete = (code) => {
+    console.log(code)
     confirm({
       title: "Do you want to delete this material?",
       icon: <ExclamationCircleFilled />,
-      onOk: () => {
-        console.log(`Deleting material with code: ${code}`);
-        setDataSource(dataSource.filter((item) => item.code !== code));
-      },
+      onOk: async () => {
+        try {
+          setLoading(true);
+
+          const res = await useServiceAPI.delete(paths.pathMaterialDel, {
+            code: code,
+            user_id: userInfo.id,
+          });
+
+          if (res.status === 200) {
+            showNotification("success", "ลบข้อมูลเรียบร้อยแล้ว");
+            fetchData(); // โหลดข้อมูลใหม่หลังลบ
+          } else {
+            showMsg("error", res.data.message || "ไม่สามารถลบข้อมูลได้");
+          }
+        } catch (err) {
+          showMsg("error", err.message || "เกิดข้อผิดพลาดในการลบ");
+        } finally {
+          setLoading(false);
+        }
+      }
     });
   };
 
   const header = [
-    { title: "Code", dataIndex: "code", align: "left", width: 120 },
-    { title: "Date", dataIndex: "date", align: "left", width: 150 },
-    { title: "Total Value", dataIndex: "totalValue", align: "right", width: 150 },
-    { title: "Crop", dataIndex: "crop", align: "center", width: 150 },
+    { title: "#", dataIndex: "index", align: "left" },
+    { title: "Code", dataIndex: "code", align: "left" },
+    { title: "Name", dataIndex: "name", align: "left" },
+    { title: "Size", dataIndex: "size", align: "left" },
+    { title: "Type", dataIndex: "type", align: "left" },
+    { title: "QTY", dataIndex: "qty", align: "left" },
+    { title: "Unit Price", dataIndex: "unit_price", align: "left" },
     {
       title: "Action",
       dataIndex: "action",
       align: "center",
-      width: 120,
       render: (_, record) => {
         const actionItems = [
           {
@@ -59,9 +89,7 @@ export default function MaterialExpense() {
             label: (
               <ItemDropDown
                 mode="edit"
-                link={`/expenses/material/edit?documentNumber=${encodeURIComponent(
-                  record.code
-                )}`}
+                link={`/expenses/material/edit?documentNumber=${encodeURIComponent(record.code)}`}
               />
             ),
           },
@@ -70,9 +98,7 @@ export default function MaterialExpense() {
             label: (
               <ItemDropDown
                 mode="view"
-                link={`/expenses/material/view?documentNumber=${encodeURIComponent(
-                  record.code
-                )}`}
+                link={`/expenses/material/view?documentNumber=${encodeURIComponent(record.code)}`}
               />
             ),
           },
@@ -80,8 +106,17 @@ export default function MaterialExpense() {
             key: "3",
             label: (
               <ItemDropDown
+                mode="approve"
+                text="Transaction"
+                link="material/transaction"
+              />
+            ),
+          },
+          {
+            key: "4",
+            label: (
+              <ItemDropDown
                 mode="delete"
-                link="#"
                 onClick={() => handleDelete(record.code)}
               />
             ),
@@ -90,14 +125,7 @@ export default function MaterialExpense() {
 
         return (
           <Dropdown
-            overlay={
-              <Menu
-                items={actionItems.map((item) => ({
-                  key: item.key,
-                  label: item.label,
-                }))}
-              />
-            }
+            overlay={<Menu items={actionItems} />}
             placement="bottom"
           >
             <a onClick={(e) => e.preventDefault()}>
@@ -113,56 +141,130 @@ export default function MaterialExpense() {
     },
   ];
 
-  const mockData = [
-    {
-      key: 1,
-      code: "SE0003",
-      date: "01/01/2025",
-      totalValue: "30,000",
-      crop: "Rice",
-    },
-    {
-      key: 2,
-      code: "SE0002",
-      date: "01/01/2025",
-      totalValue: "30,000",
-      crop: "Rice",
-    },
-    {
-      key: 3,
-      code: "SE0001",
-      date: "01/01/2025",
-      totalValue: "30,000",
-      crop: "Rice",
-    },
-  ];
+  const fetchData = async () => {
+    setTableLoading(true);
+
+    const { current, pageSize } = tableParams.pagination;
+    const filters = tableParams.filters || {};
+    const sortOrder = tableParams.sortOrder || "desc";
+    const sortField = tableParams.sortField || "document_number";
+    console.log("filters : ", filters);
+    try {
+      const response = await useServiceAPI.get(paths.pathExpenseMaterialList,
+        {
+          platform: "web",
+          page: "all",
+          user_id: userInfo.id,
+          page_length: current,
+          page_size: pageSize,
+          name: filters.name || "",
+        });
+      if (response.status === 200) {
+
+        const { data, records_filtered } = response.data;
+        console.log('data : ', data)
+        const formatted = data.map((item, index) => ({
+          index: (index + 1),
+          code: item.code,
+          name: item.name,
+          size: item.size,
+          type: item.type,
+          qty: item.qty,
+          unit_price: item.unit_price || "-",
+        }));
+        console.log('formatted : ', formatted)
+        setDataSource(formatted);
+        setMaterialList(data.map((m) => ({ id: m.id, name: m.name })));
+        setTableParams({
+          ...tableParams,
+          pagination: {
+            ...tableParams.pagination,
+            total: records_filtered,
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch materials:", error);
+    } finally {
+      setTableLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setDataSource(mockData);
+    fetchData();
+  }, [
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    tableParams.sortOrder,
+    tableParams.sortField,
+    JSON.stringify(tableParams.filters),
+  ]);
+
+  useEffect(() => {
+    fetchData();
   }, []);
+
+  const handleTableChange = (pagination, filters, sorter) => {
+    setTableParams({
+      pagination,
+      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortField: sorter.field,
+    });
+  };
+
+  const handleSearch = (filters) => {
+    setTableParams({
+      ...tableParams,
+      pagination: {
+        ...tableParams.pagination,
+        current: 1,
+        pageSize: 10,
+      },
+      filters: {
+        ...filters,
+        page_length: 1,
+        page_size: 10,
+      },
+    });
+  };
+
+  const handleClear = () => {
+    setTableParams({
+      ...tableParams,
+      filters: {},
+    });
+  };
+
+  const handleChange = (filter) => {
+    console.log("filter : ", filter);
+    setFilterValues(filter);
+  };
 
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Material Expensessss</div>
+        <div className="title-page">Materials</div>
         <ActionButton
           mode="create"
           text="Create"
-          onClick={() => navigate("/expenses/material/create")}
+          onClick={() => navigate("/setting/material/create")}
         />
       </div>
       <Filter
+        onSearch={handleSearch}
+        onClear={handleClear}
+        onChange={handleChange}
         filters={filters}
-        onSearch={(filters) => console.log("Search filters:", filters)}
-        onClear={() => console.log("Clear filters")}
-        onChange={() => {}}
       />
       <BoxPrimary>
+
         <TableComponent
           header={header}
           dataSource={dataSource}
+          pagination={tableParams.pagination}
           loading={tableLoading}
-          pagination={{ pageSize: 10 }}
+          onChange={handleTableChange}
         />
       </BoxPrimary>
     </MainLayout>

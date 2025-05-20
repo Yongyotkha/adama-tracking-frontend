@@ -7,11 +7,12 @@ import {
   Row,
   Select,
   Modal,
+  InputNumber
 } from "antd";
 
 import MainLayout from "../../../layouts/MainLayout";
 import ActionButton from "../../../components/button/ActionButton";
-import FormCustom from "../../../components/form_custom/FormCustom";
+import FormCustom from "../../../components/form_custom/FormMaterial";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
 import { AuthContext } from "../../../contexts/AuthContext";
@@ -29,10 +30,15 @@ export default function ActionMaterial() {
   const code = new URLSearchParams(location.search).get("documentNumber");
   const [loading, setLoading] = useState(false);
   const [productsSearch, setProductsSearch] = useState([]);
+  const [productSearchOptions, setProductSearchOptions] = useState([]);
   const [crops, setCrops] = useState([]);
   const [products, setProducts] = useState([]);
   const [fileList, setFileList] = useState([]);
   const [dataSource, setDataSource] = useState([]);
+
+  const [totalValueRequest, setTotalValueRequest] = useState(0);
+  const [totalValueWareHoseSend, setToalValueWareHoseSend] = useState(0);
+  const [totalValueReceive, setTotalValueReceive] = useState(0);
 
   const renderTitle = () => {
     switch (mode) {
@@ -51,7 +57,7 @@ export default function ActionMaterial() {
         setCrops(cropRes.data.map(item => ({ id: item.id, name: item.crop_name || item.name })));
 
         if (["edit", "view"].includes(mode)) {
-          const res = await useServiceAPI.get(paths.pathMaterialList, {
+          const res = await useServiceAPI.get(paths.pathExpenseMaterialList, {
             platform: "web",
             page: 1,
             page_size: 1,
@@ -121,14 +127,20 @@ export default function ActionMaterial() {
   const handleSubmit = async () => {
     try {
       const values = await formCustom.validateFields();
-      const images = fileList.filter(f => f.status === "done" && f.url).map(f => f.url);
 
+      console.log("values:", values);
+
+      const images = fileList
+        .filter(f => f.status === "done" && f.url)
+        .map(f => f.url);
+
+      // สร้าง payload หลัก
       const payload = {
         user_id: userInfo.id,
         code: values.material_code || "AUTO",
         name: values.name,
-        crops: values.crop,
-        products: values.product,
+        crops: selectedCropIds,
+        products: selectedProductIds,
         description: values.description || "",
         type: values.type || "",
         size: values.size || "",
@@ -137,17 +149,37 @@ export default function ActionMaterial() {
         remark: values.remark || "",
         images: images.join(","),
         platform: "web",
+        totalValueRequest: totalValueRequest,
+        totalValueWareHoseSend: totalValueWareHoseSend,
+        totalValueReceive: totalValueReceive,
+        material_list: dataSource.map(item => ({
+          id: item.id,
+          material_code: item.material_code,
+          price: item.material_price,
+          stock: item.material_stcok,
+          request: item.material_request,
+          value: item.material_value,
+          warehouse_send: item.material_wherehouse_send,
+          receive: item.material_receive,
+        })),
       };
+
+      console.log("Payload:", payload); // ตรวจสอบค่า
+
+      //return false
 
       setLoading(true);
       const res = await useServiceAPI.post(
-        mode === "create" ? paths.pathMaterialCreate : paths.pathMaterialEdit,
+        mode === "create" ? paths.pathExpenseMaterialCreate : paths.pathExpenseMaterialEdit,
         payload
       );
 
+      console.log('res : ', res)
+
+
       if (res.status === 200) {
         showNotification("success", "บันทึกข้อมูลสำเร็จ", "");
-        navigate("/setting/material");
+        navigate("/expenses/material");
       } else {
         showMsg("error", res.data.message || "ไม่สามารถบันทึกข้อมูลได้");
       }
@@ -168,11 +200,40 @@ export default function ActionMaterial() {
       });
       setProducts(res.data.map(item => ({ id: item.id, name: item.product_name })));
     } catch (err) {
-      showMsg("error", err.message || "ไม่สามารถโหลด products ได้");
+      showMsg("error", err.message || "ไม่สามารถโหลด Crops ได้");
     } finally {
       setLoading(false);
     }
   };
+
+  const getMaterialProduct = async (selectedProductsIds) => {
+    if (!selectedProductsIds.length) return;
+    setLoading(true);
+    try {
+      const res = await useServiceAPI.get(paths.pathMasterMaterialProduct, {
+        platform: "web",
+        products: selectedProductsIds,
+      });
+
+      // แสดงในตาราง
+      setProductsSearch(res.data);
+
+      // ใช้ใน select search
+      setProductSearchOptions(
+        res.data.map(item => ({
+          value: item.id,
+          label: item.code + ' : ' + item.name || item.product_name || `Material ${item.id}`
+        }))
+      );
+
+    } catch (err) {
+      showMsg("error", err.message || "ไม่สามารถโหลด Products ได้");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
 
   const formFields = [
     {
@@ -194,29 +255,98 @@ export default function ActionMaterial() {
     },
   ];
 
-  const footerOrderList = () => {
-    const totalQuantity = productsSearch.reduce((total, item) => total + parseFloat(item.quantity), 0);
-    const totalFOC = productsSearch.reduce((total, item) => total + parseFloat(item.foc), 0);
-    const totalAmount = productsSearch.reduce((total, item) => total + parseFloat(item.net_amount || 0), 0);
-
-    return (
-      <tr className="bg-[#978B87]">
-        <td colSpan={9} className="text-right pr-2 text-white">
-          Item: {productsSearch.length} &nbsp; QTY (ctn): {totalQuantity}+{totalFOC} &nbsp; Total:{" "}
-          {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-        </td>
-      </tr>
-    );
-  };
 
   const header = [
     { title: "No", dataIndex: "no", key: "no" },
-    { title: "FOC (ctn)", dataIndex: "foc", key: "foc" },
     {
-      title: "Sub Total (THB)",
-      dataIndex: "net_amount",
-      key: "net_amount",
-      render: text => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+      title: "Photo",
+      dataIndex: "material_photo",
+      key: "material_photo",
+      render: (url) =>
+        /\.(jpg|jpeg|png)$/i.test(url) ? (
+          <img src={url} alt="material" style={{ width: 60, height: 60, objectFit: "cover" }} />
+        ) : (
+          "-"
+        )
+    },
+    { title: "Code", dataIndex: "material_code", key: "material_code" },
+    { title: "Name", dataIndex: "material_name", key: "material_name" },
+    { title: "Price", dataIndex: "material_price", key: "material_price" },
+    { title: "Stock", dataIndex: "material_stcok", key: "material_stcok" },
+    {
+      title: "Request",
+      dataIndex: "material_request",
+      key: "material_request",
+      render: (_, record) => (
+        <div className="quantity-control flex justify-center items-center">
+          <img
+            src="/img/icons/collapse.png"
+            alt="decrease"
+            className="cursor-pointer w-6 h-6"
+            onClick={() =>
+              handleQuantityChange(record.key, (record.material_request || 0) - 1)
+            }
+          />
+          <Input
+            inputMode="numeric"
+            min={0}
+            value={record.material_request || 0}
+            onChange={(e) =>
+              handleQuantityChange(record.key, parseInt(e.target.value) || 0)
+            }
+            className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
+          />
+          <img
+            src="/img/icons/expand.png"
+            alt="increase"
+            className="cursor-pointer w-6 h-6"
+            onClick={() =>
+              handleQuantityChange(record.key, (record.material_request || 0) + 1)
+            }
+          />
+        </div>
+      ),
+    },
+    { title: "Value", dataIndex: "material_value", key: "material_value" },
+    {
+      title: "Warehouse Send", dataIndex: "material_wherehouse_send", key: "material_wherehouse_send",
+      render: (_, record) => (
+        <Input
+          type="number"
+          min={0}
+          value={record.material_wherehouse_send}
+          onChange={(e) => {
+            const val = parseInt(e.target.value) || 0;
+            setDataSource(prev =>
+              prev.map(item =>
+                item.key === record.key
+                  ? { ...item, material_wherehouse_send: val }
+                  : item
+              )
+            );
+          }}
+        />
+      )
+    },
+    {
+      title: "Receive", dataIndex: "material_receive", key: "material_receive",
+      render: (_, record) => (
+        <Input
+          type="number"
+          min={0}
+          value={record.material_receive}
+          onChange={(e) => {
+            const val = parseInt(e.target.value) || 0;
+            setDataSource(prev =>
+              prev.map(item =>
+                item.key === record.key
+                  ? { ...item, material_receive: val }
+                  : item
+              )
+            );
+          }}
+        />
+      )
     },
     {
       title: <div className="text-center">Action</div>,
@@ -237,6 +367,44 @@ export default function ActionMaterial() {
       ),
     },
   ];
+
+  const handleQuantityChange = (key, newValue) => {
+    setDataSource(prev =>
+      prev.map(item => {
+        if (item.key === key) {
+          const newRequest = Math.max(0, newValue);
+          const newValueCalculated = newRequest * (item.material_price || 0);
+          return {
+            ...item,
+            material_request: newRequest,
+            material_value: newValueCalculated,
+          };
+        }
+        return item;
+      })
+    );
+  };
+
+
+  useEffect(() => {
+    let sumRequest = 0;
+    let sumWarehouseSend = 0;
+    let sumReceive = 0;
+
+    dataSource.forEach(item => {
+      const req = parseFloat(item.material_value || 0);
+      const send = parseFloat(item.material_wherehouse_send || 0);
+      const receive = parseFloat(item.material_receive || 0);
+
+      sumRequest += req;
+      sumWarehouseSend += send;
+      sumReceive += receive;
+    });
+
+    setTotalValueRequest(sumRequest);
+    setToalValueWareHoseSend(sumWarehouseSend);
+    setTotalValueReceive(sumReceive);
+  }, [dataSource]);
 
   return (
     <MainLayout loading={loading}>
@@ -280,7 +448,7 @@ export default function ActionMaterial() {
                 onChange={(value) => setSelectedProductIds(value)}
                 onBlur={() => {
                   console.log('onBlur - selectedProductIds:', selectedProductIds);
-
+                  getMaterialProduct(selectedProductIds)
                 }}
               />
             </Form.Item>
@@ -288,19 +456,102 @@ export default function ActionMaterial() {
         </Row>
       </BoxPrimary>
 
-      <BoxPrimary title="Product">
+      <BoxPrimary title="Material">
         <div className="mb-3 flex justify-end">
-          <Select showSearch placeholder="Search Product" optionFilterProp="label" className="w-full" />
+          <Select
+            showSearch
+            placeholder="Search Material"
+            name="material_search"
+            optionFilterProp="label"
+            className="w-full"
+            options={productSearchOptions}
+            onChange={(selectedId) => {
+              const selectedMaterial = productsSearch.find(item => item.id === selectedId);
+
+              console.log('selectedMaterial : ', selectedMaterial)
+              if (!selectedMaterial) {
+                showMsg("error", "ไม่พบข้อมูล Material ที่เลือก");
+                return;
+              }
+
+              // ป้องกันซ้ำ
+              if (dataSource.some(item => item.id === selectedMaterial.id)) {
+                showMsg("warning", "Material นี้ถูกเพิ่มในรายการแล้ว");
+                return;
+              }
+
+              const newItem = {
+                ...selectedMaterial,
+                key: dataSource.length + 1,
+                no: dataSource.length + 1,
+                material_name: selectedMaterial.name,
+                material_photo: (() => {
+                  const imageList = (selectedMaterial.images || "").split(",").map(img => img.trim());
+                  const imageFile = imageList.find(url => /\.(jpg|jpeg|png)$/i.test(url));
+                  return imageFile || "-";
+                })(),
+                material_code: selectedMaterial.code || `M-${selectedMaterial.id}`,
+                material_price: selectedMaterial.unit_price || 0,
+                material_stcok: selectedMaterial.qty || 0,
+                material_request: 1,
+                material_value: (selectedMaterial.unit_price || 0) * 1, // คำนวณทันที
+                material_wherehouse_send: 0,
+                material_receive: 0,
+              };
+
+              setDataSource(prev => [...prev, newItem]);
+            }}
+          />
         </div>
       </BoxPrimary>
 
-      <BoxPrimary title="Order List">
+      <BoxPrimary title="Material List">
         <TableComponent
           header={header}
-          dataSource={productsSearch}
-          pageSize={10}
-          footer={footerOrderList}
+          dataSource={dataSource}
         />
+      </BoxPrimary>
+
+
+      <BoxPrimary className="flex flex-col items-end gap-2 text-right text-[14px]">
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <div>Total Value Request:</div>
+          <InputNumber
+            className="w-[200px]"
+            min={0}
+            disabled={true}
+            value={totalValueRequest}
+            formatter={(value) =>
+              `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            }
+          />
+        </div>
+
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <div>Total Value Warehouse Send:</div>
+          <InputNumber
+            className="w-[200px]"
+            min={0}
+            disabled={true}
+            value={totalValueWareHoseSend}
+            formatter={(value) =>
+              `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            }
+          />
+        </div>
+
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <div>Total Value Receive:</div>
+          <InputNumber
+            className="w-[200px]"
+            min={0}
+            disabled={true}
+            value={totalValueReceive}
+            formatter={(value) =>
+              `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            }
+          />
+        </div>
       </BoxPrimary>
 
       <FormCustom
