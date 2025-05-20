@@ -2,7 +2,7 @@
 export const endPoint = import.meta.env.VITE_API_BASE_URL;
 //export const endPoint = "https://adama-api.mtsc.co.th/api"; //Test API
 // export const endPoint = "https://api-uat.adama.co.th/api"; //UAT API
- //export const endPoint = "http://localhost:8080/api";
+//export const endPoint = "http://localhost:8080/api";
 
 export const paths = {
   // Login
@@ -17,7 +17,7 @@ export const paths = {
   pathOtpShopCall: "/shop-otp/call",
   pathOtpShopVerify: "/shop-otp/verify",
   pathOtpverify: "shop-otp/verify-phone",
-  
+
   // Master
   pathMasterUserAll: "master/sale-user-all",
   pathMasterPosition: "master/position",
@@ -53,6 +53,7 @@ export const paths = {
 
   //material
   pathMaterialList: "material/list",
+  pathMaterialOne: "material/one",
   pathMaterialCreate: "material/create",
   pathMaterialEdit: "material/edit",
   pathMaterialDel: "material/del",
@@ -253,7 +254,7 @@ export const paths = {
 
   // Line OA
   pathProfileDetail: "profile/detail",
-  pathProfileImage : "/profile/update-image",
+  pathProfileImage: "/profile/update-image",
 
   pathNewsPublicCategory: "news/public/category",
   pathNewsPublicListByCategory: "news/public/list",
@@ -270,7 +271,7 @@ export const paths = {
 
   // line history
   pathpointhistory: "/profile/point/history",
-  pathhistoryShop: "/profile/order/history" ,
+  pathhistoryShop: "/profile/order/history",
   pathhistoryShopDetail: "/profile/order/history/detail",
 
   pathMileageList: "/mileage/list",
