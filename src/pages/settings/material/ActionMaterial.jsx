@@ -43,7 +43,6 @@ export default function ActionMaterial() {
         })));
 
         if (mode === "edit" || mode === "view") {
-
           const res = await useServiceAPI.get(paths.pathMaterialOne, {
             platform: "web",
             page: 1,
@@ -52,28 +51,29 @@ export default function ActionMaterial() {
             user_id: userInfo.id,
           });
 
-
           if (res.data) {
             const mat = res.data;
-
-            console.log(['mat : ', mat])
-
             const cropIds = mat.crops.map(Number);
             const productIds = mat.products.map(Number);
 
-
+            // ดึง Product ทั้งหมดก่อน
             const productRes = await useServiceAPI.get(paths.pathMasterProductByCrop, {
               platform: "web",
               crop_list: cropIds,
             });
 
-            setProducts(productRes.data.map(item => ({
+            const mappedProducts = productRes.data.map(item => ({
               value: item.id,
               label: item.product_name,
-            })));
+            }));
 
-            console.log('cropIds : ', crops)
-            console.log('productIds : ', products)
+            setProducts(mappedProducts);
+
+            // 🧠 สร้าง options พร้อม label
+            const enrichedProductIds = productIds.map(id => {
+              const match = mappedProducts.find(p => p.value === id);
+              return match?.value ?? id;
+            });
 
             const formattedFiles = (mat.images || "").split(',').map((url, index) => ({
               uid: `${Date.now()}-${index}`,
@@ -82,23 +82,25 @@ export default function ActionMaterial() {
               url: url.trim(),
             })).filter(f => f.url);
 
-            const setval = {
-              material_code: mat.code,
-              name: mat.name,
-              crop: cropIds,
-              product: productIds,
-              description: mat.description,
-              type: mat.type,
-              size: mat.size,
-              qty: mat.qty,
-              price: mat.unit_price,
-              remark: mat.remark,
-              photo: formattedFiles,
-            }
 
-            console.log('set val : ', setval)
 
-            formCustom.setFieldsValue(setval);
+            setTimeout(() => {
+
+              const setval = {
+                material_code: mat.code,
+                name: mat.name,
+                crop: cropIds,
+                product: enrichedProductIds,
+                description: mat.description,
+                type: mat.type,
+                size: mat.size,
+                qty: mat.qty,
+                price: mat.unit_price,
+                remark: mat.remark,
+                photo: formattedFiles,
+              }
+              formCustom.setFieldsValue(setval);
+            }, 0);
 
             setFileList(formattedFiles);
           } else {
