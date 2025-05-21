@@ -13,14 +13,18 @@ import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import dayjs from "dayjs";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
+import DynamicModal from "../../../components/modal/DynamicModal";
 
 export default function MaterialExpense() {
+
   const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
   const { confirm } = Modal;
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const [materialList, setMaterialList] = useState([]);
+  const [headerModal, setHeaderModal] = useState([]);
+  const [bodyModal, setBodyModal] = useState([]);
   const navigate = useNavigate();
   const { showMsg, showNotification, userInfo } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
@@ -42,6 +46,7 @@ export default function MaterialExpense() {
       options: materialList,
     },
   ];
+
 
   const handleDelete = (code) => {
     console.log(code)
@@ -145,25 +150,52 @@ export default function MaterialExpense() {
     },
   ];
 
-  const fetchItemList = async (code) => {
+  const fetchItemList = async (code, type) => {
     setLoading(true);
 
     try {
-      const response = await useServiceAPI.get(paths.pathExpenseMaterialCrop, {
+      setHeaderModal([
+        { title: "No", dataIndex: "key", key: "key", width: 100 },
+        { title: "Name", dataIndex: "name", key: "name" }
+      ])
+
+      const response = await useServiceAPI.get(paths.pathExpenseMaterialItem, {
         code: code,
+        type: type
       });
 
       if (response.status === 200) {
-        // const Test = response.data.products;
-        // const territoryData = Test.map((item, index) => ({
-        //   key: index + 1,
-        //   code: item.product_code,
-        //   name: item.product_name,
-        //   unit: item.product_unit,
-        //   quantity: item.quantity,
-        // }));
+        let body = []
+        if (type == 'crop') {
+          body = response.data.data.map((item, index) => ({
+            key: index + 1,
+            name: item.name,
+          }));
 
-        // setUserList(territoryData);
+        } else if (type == 'product') {
+          body = response.data.data.map((item, index) => ({
+            key: index + 1,
+            name: item.product_name,
+          }));
+        } else if (type == 'material') {
+          setHeaderModal([
+            { title: "No", dataIndex: "key", key: "key", width: 100 },
+            { title: "Name", dataIndex: "name", key: "name" },
+            { title: "Price", dataIndex: "unit_price", key: "unit_price" },
+            { title: "QTY", dataIndex: "qty", key: "qty" }
+          ])
+
+          body = response.data.data.map((item, index) => ({
+            key: index + 1,
+            name: item.name,
+            unit_price: new Intl.NumberFormat("th-TH").format(item.unit_price),
+            qty: new Intl.NumberFormat("th-TH").format(item.qty),
+          }));
+        }
+
+
+        setBodyModal(body)
+
       }
     } catch (error) {
       console.error("Error fetching user list:", error);
@@ -171,7 +203,6 @@ export default function MaterialExpense() {
       setLoading(false);
     }
   };
-
 
   const fetchData = async () => {
     setTableLoading(true);
@@ -205,7 +236,7 @@ export default function MaterialExpense() {
               textColor="#FFFFFF"
               onClick={() => {
                 setIsTerritoryModalVisible(true);
-                fetchItemList(item.code);
+                fetchItemList(item.code, 'crop');
               }}
             // onClick={() => setIsTerritoryModalVisible(true)}
             />
@@ -217,7 +248,7 @@ export default function MaterialExpense() {
               textColor="#FFFFFF"
               onClick={() => {
                 setIsTerritoryModalVisible(true);
-                fetchItemList(item.code);
+                fetchItemList(item.code, 'product');
               }}
             // onClick={() => setIsTerritoryModalVisible(true)}
             />
@@ -229,7 +260,7 @@ export default function MaterialExpense() {
               textColor="#FFFFFF"
               onClick={() => {
                 setIsTerritoryModalVisible(true);
-                fetchItemList(item.code);
+                fetchItemList(item.code, 'material');
               }}
             // onClick={() => setIsTerritoryModalVisible(true)}
             />
@@ -282,7 +313,7 @@ export default function MaterialExpense() {
   };
 
   const handleSearch = (filters) => {
-    console.log('filters : ',filters)
+    console.log('filters : ', filters)
     setTableParams({
       ...tableParams,
       pagination: {
@@ -310,6 +341,8 @@ export default function MaterialExpense() {
     setFilterValues(filter);
   };
 
+
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -336,6 +369,14 @@ export default function MaterialExpense() {
           onChange={handleTableChange}
         />
       </BoxPrimary>
+      <DynamicModal
+        title="Product Detail"
+        isVisible={isTerritoryModalVisible}
+        onClose={() => setIsTerritoryModalVisible(false)}
+        header={headerModal}
+        dataSource={bodyModal}
+        width="1200px"
+      />
     </MainLayout>
   );
 }
