@@ -11,9 +11,11 @@ import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
-
+import dayjs from "dayjs";
+import BadgeStatus from "../../../components/badge/BadgeStatus";
 
 export default function MaterialExpense() {
+  const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
   const { confirm } = Modal;
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
@@ -33,9 +35,9 @@ export default function MaterialExpense() {
 
   const filters = [
     {
-      key: "name",
+      key: "code",
       type: "text",
-      label: "Name",
+      label: "Code",
       placeholder: "All",
       options: materialList,
     },
@@ -50,7 +52,7 @@ export default function MaterialExpense() {
         try {
           setLoading(true);
 
-          const res = await useServiceAPI.delete(paths.pathMaterialDel, {
+          const res = await useServiceAPI.delete(paths.pathExpenseMaterialDel, {
             code: code,
             user_id: userInfo.id,
           });
@@ -73,11 +75,13 @@ export default function MaterialExpense() {
   const header = [
     { title: "#", dataIndex: "index", align: "left" },
     { title: "Code", dataIndex: "code", align: "left" },
-    { title: "Name", dataIndex: "name", align: "left" },
-    { title: "Size", dataIndex: "size", align: "left" },
-    { title: "Type", dataIndex: "type", align: "left" },
-    { title: "QTY", dataIndex: "qty", align: "left" },
-    { title: "Unit Price", dataIndex: "unit_price", align: "left" },
+    { title: "Crop", dataIndex: "crop", align: "left" },
+    { title: "Product", dataIndex: "product", align: "left" },
+    { title: "Material Item", dataIndex: "material", align: "left" },
+    { title: "Total Value Request", dataIndex: "request", align: "left" },
+    { title: "Total Value Wherehouse Send", dataIndex: "send", align: "left" },
+    { title: "Total Value Receive", dataIndex: "receive", align: "left" },
+    { title: "Date", dataIndex: "date", align: "left" },
     {
       title: "Action",
       dataIndex: "action",
@@ -141,6 +145,34 @@ export default function MaterialExpense() {
     },
   ];
 
+  const fetchItemList = async (code) => {
+    setLoading(true);
+
+    try {
+      const response = await useServiceAPI.get(paths.pathExpenseMaterialCrop, {
+        code: code,
+      });
+
+      if (response.status === 200) {
+        // const Test = response.data.products;
+        // const territoryData = Test.map((item, index) => ({
+        //   key: index + 1,
+        //   code: item.product_code,
+        //   name: item.product_name,
+        //   unit: item.product_unit,
+        //   quantity: item.quantity,
+        // }));
+
+        // setUserList(territoryData);
+      }
+    } catch (error) {
+      console.error("Error fetching user list:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   const fetchData = async () => {
     setTableLoading(true);
 
@@ -157,7 +189,7 @@ export default function MaterialExpense() {
           user_id: userInfo.id,
           page_length: current,
           page_size: pageSize,
-          name: filters.name || "",
+          code: filters.code || "",
         });
       if (response.status === 200) {
 
@@ -166,10 +198,46 @@ export default function MaterialExpense() {
         const formatted = data.map((item, index) => ({
           index: (index + 1),
           code: item.code,
-          name: item.name,
-          size: item.size,
-          type: item.type,
-          qty: item.qty,
+          crop: (
+            <BadgeStatus
+              text={item.material}
+              bgColor="#F89E18"
+              textColor="#FFFFFF"
+              onClick={() => {
+                setIsTerritoryModalVisible(true);
+                fetchItemList(item.code);
+              }}
+            // onClick={() => setIsTerritoryModalVisible(true)}
+            />
+          ),
+          product: (
+            <BadgeStatus
+              text={item.product}
+              bgColor="#F89E18"
+              textColor="#FFFFFF"
+              onClick={() => {
+                setIsTerritoryModalVisible(true);
+                fetchItemList(item.code);
+              }}
+            // onClick={() => setIsTerritoryModalVisible(true)}
+            />
+          ),
+          material: (
+            <BadgeStatus
+              text={item.material}
+              bgColor="#F89E18"
+              textColor="#FFFFFF"
+              onClick={() => {
+                setIsTerritoryModalVisible(true);
+                fetchItemList(item.code);
+              }}
+            // onClick={() => setIsTerritoryModalVisible(true)}
+            />
+          ),
+          request: new Intl.NumberFormat("th-TH").format(item.request),
+          receive: new Intl.NumberFormat("th-TH").format(item.receive),
+          send: new Intl.NumberFormat("th-TH").format(item.send),
+          date: dayjs(item.created_at).format("YYYY-MM-DD"),
           unit_price: item.unit_price || "-",
         }));
         console.log('formatted : ', formatted)
@@ -214,6 +282,7 @@ export default function MaterialExpense() {
   };
 
   const handleSearch = (filters) => {
+    console.log('filters : ',filters)
     setTableParams({
       ...tableParams,
       pagination: {

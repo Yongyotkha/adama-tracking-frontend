@@ -114,9 +114,11 @@ export default function FormMaterial({ fields, form, title, onChange, mode, onUp
                     multiple={field.multiple || false}
                     accept={field.accept || ".png,.jpg,.jpeg,.pdf"}
                     listType="picture"
+                    disabled={field.disabled}
                     maxCount={field.multiple ? undefined : 1}
                     fileList={fileListMap[field.name] || []}
                     onChange={({ fileList: newFileList }) => {
+                      if (field.disabled) return;
                       // อัปเดตทั้ง map และ form
                       const fileListWithUid = newFileList.map((f, index) => ({
                         ...f,
@@ -126,11 +128,13 @@ export default function FormMaterial({ fields, form, title, onChange, mode, onUp
                       form.setFieldsValue({ [field.name]: fileListWithUid });
                     }}
                     onRemove={(file) => {
+                      if (field.disabled) return;
                       const updated = (fileListMap[field.name] || []).filter(f => f.uid !== file.uid);
                       setFileListMap((prev) => ({ ...prev, [field.name]: updated }));
                       form.setFieldsValue({ [field.name]: updated });
                     }}
                     beforeUpload={async (file) => {
+                      if (field.disabled) return;
                       const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "application/pdf"];
                       if (!allowedTypes.includes(file.type)) {
                         message.error("รองรับเฉพาะ .png .jpg .jpeg และ .pdf เท่านั้น");

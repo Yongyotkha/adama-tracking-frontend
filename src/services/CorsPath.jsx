@@ -51,7 +51,7 @@ export const paths = {
   pathMasterYear: "master/years",
   pathMasterPerception: "master/perception",
 
-  pathMasterMaterialProduct: "master/material-by-product",
+
 
   //material
   pathMaterialList: "material/list",
@@ -60,13 +60,17 @@ export const paths = {
   pathMaterialEdit: "material/edit",
   pathMaterialDel: "material/del",
 
-    //material expense
+  pathMasterMaterialProduct: "master/material-by-product",
+
+  //material expense
   pathExpenseMaterialList: "expense-material/list",
   pathExpenseMaterialOne: "expense-material/one",
   pathExpenseMaterialCreate: "expense-material/create",
   pathExpenseMaterialEdit: "expense-material/edit",
   pathExpenseMaterialDel: "expense-material/del",
+  pathExpenseMaterialCrop: "expense-material/detail",
 
+  
 
   //Products
   pathSaleManagementProductsList: "products-management/list",

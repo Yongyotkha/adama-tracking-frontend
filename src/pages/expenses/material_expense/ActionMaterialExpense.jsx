@@ -94,38 +94,39 @@ export default function ActionMaterialExpense() {
             console.log('cropIds : ', crops)
             console.log('productIds : ', products)
 
-            if (mode == 'edit') {
+
+            if (mode === 'edit' || mode === 'view') {
               getMaterialProduct(productIds)
-            }
+              if (Array.isArray(mat.material_list)) {
+                const mappedMaterialList = mat.material_list.map((item, index) => {
+                  const imageList = (item.images || "").split(",").map(img => img.trim());
+                  const imageFile = imageList.find(url => /\.(jpg|jpeg|png)$/i.test(url));
 
-            if (mode === 'edit' && Array.isArray(mat.material_list)) {
-              const mappedMaterialList = mat.material_list.map((item, index) => {
-                const imageList = (item.images || "").split(",").map(img => img.trim());
-                const imageFile = imageList.find(url => /\.(jpg|jpeg|png)$/i.test(url));
+                  const qty = parseFloat(item.qty || 0);
+                  const price = parseFloat(item.unit_price || 0);
+                  const request = parseInt(item.request || 1);
+                  const warehouseSend = parseInt(item.send || 0);
+                  const receive = parseInt(item.receive || 0);
 
-                const qty = parseFloat(item.qty || 0);
-                const price = parseFloat(item.unit_price || 0);
-                const request = parseInt(item.request || 1);
-                const warehouseSend = parseInt(item.send || 0);
-                const receive = parseInt(item.receive || 0);
+                  return {
+                    id: item.id,
+                    key: index + 1,
+                    no: index + 1,
+                    material_name: item.name,
+                    material_photo: imageFile || "-",
+                    material_code: item.code || `M-${item.id}`,
+                    material_price: price,
+                    material_stcok: qty,
+                    material_request: request,
+                    material_value: price * request,
+                    material_wherehouse_send: warehouseSend,
+                    material_receive: receive,
+                  };
+                });
 
-                return {
-                  id: item.id,
-                  key: index + 1,
-                  no: index + 1,
-                  material_name: item.name,
-                  material_photo: imageFile || "-",
-                  material_code: item.code || `M-${item.id}`,
-                  material_price: price,
-                  material_stcok: qty,
-                  material_request: request,
-                  material_value: price * request,
-                  material_wherehouse_send: warehouseSend,
-                  material_receive: receive,
-                };
-              });
+                setDataSource(mappedMaterialList);
+              }
 
-              setDataSource(mappedMaterialList);
             }
 
 
@@ -187,19 +188,18 @@ export default function ActionMaterialExpense() {
     try {
       const values = await formCustom.validateFields();
 
-      console.log("values:", mode, values);
-
       const images = fileList
         .filter(f => f.status === "done" && f.url)
         .map(f => f.url);
 
       // สร้าง payload หลัก
+       console.log("values:", values); 
       const payload = {
         user_id: userInfo.id,
         code: values.expense_material_code || "AUTO",
         name: values.name,
-        crops: selectedCropIds,
-        products: selectedProductIds,
+        crops: values.crop,
+        products: values.product,
         description: values.description || "",
         type: values.type || "",
         size: values.size || "",
@@ -305,25 +305,43 @@ export default function ActionMaterialExpense() {
     }
   };
 
-  const formFields = [
-    {
-      label: "Photo",
-      name: "photo",
-      type: "photo",
-      required: true,
-      col: 24,
-      value: fileList,
-      multiple: true,
-      accept: ".pdf,.png,.jpg,.jpeg"
-    },
-    {
-      label: "Remark",
-      name: "remark",
-      type: "text",
-      col: 24,
-      disabled: mode === "view"
-    },
-  ];
+  const handleQuantityChange = (key, newValue) => {
+    setDataSource(prev =>
+      prev.map(item => {
+        if (item.key === key) {
+          const newRequest = Math.max(0, newValue);
+          const newValueCalculated = newRequest * (item.material_price || 0);
+          return {
+            ...item,
+            material_request: newRequest,
+            material_value: newValueCalculated,
+          };
+        }
+        return item;
+      })
+    );
+  };
+
+  useEffect(() => {
+    let sumRequest = 0;
+    let sumWarehouseSend = 0;
+    let sumReceive = 0;
+
+    dataSource.forEach(item => {
+      console.log('sum : ', dataSource)
+      const req = parseFloat(item.material_value || 0);
+      const send = parseFloat(item.material_wherehouse_send || 0) * item.material_value;
+      const receive = parseFloat(item.material_receive || 0) * item.material_value;
+
+      sumRequest += req;
+      sumWarehouseSend += send;
+      sumReceive += receive;
+    });
+
+    setTotalValueRequest(sumRequest);
+    setToalValueWareHoseSend(sumWarehouseSend);
+    setTotalValueReceive(sumReceive);
+  }, [dataSource]);
 
   const header = [
     { title: "No", dataIndex: "no", key: "no" },
@@ -351,12 +369,13 @@ export default function ActionMaterialExpense() {
           <img
             src="/img/icons/collapse.png"
             alt="decrease"
-            className="cursor-pointer w-6 h-6"
+            className={`cursor-pointer w-6 h-6 ${mode === "view" ? "opacity-50 pointer-events-none" : ""}`}
             onClick={() =>
               handleQuantityChange(record.key, (record.material_request || 0) - 1)
             }
           />
           <Input
+            disabled={mode === "view"}
             inputMode="numeric"
             min={0}
             value={record.material_request || 0}
@@ -368,7 +387,7 @@ export default function ActionMaterialExpense() {
           <img
             src="/img/icons/expand.png"
             alt="increase"
-            className="cursor-pointer w-6 h-6"
+            className={`cursor-pointer w-6 h-6 ${mode === "view" ? "opacity-50 pointer-events-none" : ""}`}
             onClick={() =>
               handleQuantityChange(record.key, (record.material_request || 0) + 1)
             }
@@ -381,6 +400,7 @@ export default function ActionMaterialExpense() {
       title: "Warehouse Send", dataIndex: "material_wherehouse_send", key: "material_wherehouse_send",
       render: (_, record) => (
         <Input
+          disabled={mode === "view"}
           type="number"
           min={0}
           value={record.material_wherehouse_send}
@@ -401,6 +421,7 @@ export default function ActionMaterialExpense() {
       title: "Receive", dataIndex: "material_receive", key: "material_receive",
       render: (_, record) => (
         <Input
+          disabled={mode === "view"}
           type="number"
           min={0}
           value={record.material_receive}
@@ -427,52 +448,42 @@ export default function ActionMaterialExpense() {
             alt="delete"
             className="cursor-pointer w-6 h-6"
             onClick={() => {
-              const updated = dataSource.filter(item => item.key !== record.key);
-              const reset = updated.map((item, i) => ({ ...item, key: i + 1, no: i + 1 }));
-              setDataSource(reset);
+              if (mode === "view") {
+                console.log('what dose')
+              } else {
+                const updated = dataSource.filter(item => item.key !== record.key);
+                const reset = updated.map((item, i) => ({ ...item, key: i + 1, no: i + 1 }));
+                setDataSource(reset);
+              }
+
             }}
           />
         </button>
       ),
-    },
+    }
   ];
 
-  const handleQuantityChange = (key, newValue) => {
-    setDataSource(prev =>
-      prev.map(item => {
-        if (item.key === key) {
-          const newRequest = Math.max(0, newValue);
-          const newValueCalculated = newRequest * (item.material_price || 0);
-          return {
-            ...item,
-            material_request: newRequest,
-            material_value: newValueCalculated,
-          };
-        }
-        return item;
-      })
-    );
-  };
+  const formFields = [
+    {
+      label: "Photo",
+      name: "photo",
+      type: "photo",
+      required: true,
+      col: 24,
+      value: fileList,
+      multiple: true,
+      accept: ".pdf,.png,.jpg,.jpeg",
+      disabled: mode === "view"
+    },
+    {
+      label: "Remark",
+      name: "remark",
+      type: "text",
+      col: 24,
+      disabled: mode === "view",
 
-  useEffect(() => {
-    let sumRequest = 0;
-    let sumWarehouseSend = 0;
-    let sumReceive = 0;
-
-    dataSource.forEach(item => {
-      const req = parseFloat(item.material_value || 0);
-      const send = parseFloat(item.material_wherehouse_send || 0);
-      const receive = parseFloat(item.material_receive || 0);
-
-      sumRequest += req;
-      sumWarehouseSend += send;
-      sumReceive += receive;
-    });
-
-    setTotalValueRequest(sumRequest);
-    setToalValueWareHoseSend(sumWarehouseSend);
-    setTotalValueReceive(sumReceive);
-  }, [dataSource]);
+    },
+  ];
 
   return (
     <MainLayout loading={loading}>
@@ -493,6 +504,7 @@ export default function ActionMaterialExpense() {
                 rules={[{ required: true, message: "กรุณาเลือก Crop" }]}
               >
                 <Select
+                  disabled={mode === "view"}
                   mode="multiple"
                   placeholder="Select Crop"
                   options={crops}
@@ -508,6 +520,7 @@ export default function ActionMaterialExpense() {
                 rules={[{ required: true, message: "กรุณาเลือก Product" }]}
               >
                 <Select
+                  disabled={mode === "view"}
                   mode="multiple"
                   placeholder="Select Product"
                   options={products}
@@ -523,6 +536,7 @@ export default function ActionMaterialExpense() {
           <div className="mb-3 flex justify-end">
             <Select
               showSearch
+              disabled={mode === "view"}
               placeholder="Search Material"
               name="material_search"
               optionFilterProp="label"
@@ -558,8 +572,8 @@ export default function ActionMaterialExpense() {
                   material_stcok: selectedMaterial.qty || 0,
                   material_request: 1,
                   material_value: (selectedMaterial.unit_price || 0) * 1, // คำนวณทันที
-                  material_wherehouse_send: 0,
-                  material_receive: 0,
+                  material_wherehouse_send: 0 * 1,
+                  material_receive: 0 * 1
                 };
 
                 setDataSource(prev => [...prev, newItem]);
@@ -623,8 +637,8 @@ export default function ActionMaterialExpense() {
         form={formCustom}
         onChange={(field, value) => field === "crop" && getProductsByCrops(value)}
         onUploadFinish={handleUploadSuccess}
+        mode={mode}
       />
-
       <div className="flex justify-end space-x-4 mt-6">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/expenses/material")} />
         {mode !== "view" && (

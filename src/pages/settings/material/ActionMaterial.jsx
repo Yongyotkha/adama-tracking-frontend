@@ -82,25 +82,22 @@ export default function ActionMaterial() {
               url: url.trim(),
             })).filter(f => f.url);
 
+            console.log('enrichedProductIds : ', enrichedProductIds)
 
-
-            setTimeout(() => {
-
-              const setval = {
-                material_code: mat.code,
-                name: mat.name,
-                crop: cropIds,
-                product: enrichedProductIds,
-                description: mat.description,
-                type: mat.type,
-                size: mat.size,
-                qty: mat.qty,
-                price: mat.unit_price,
-                remark: mat.remark,
-                photo: formattedFiles,
-              }
-              formCustom.setFieldsValue(setval);
-            }, 0);
+            const setval = {
+              material_code: mat.code,
+              name: mat.name,
+              crop: cropIds,
+              product: enrichedProductIds,
+              description: mat.description,
+              type: mat.type,
+              size: mat.size,
+              qty: mat.qty,
+              price: mat.unit_price,
+              remark: mat.remark,
+              photo: formattedFiles,
+            }
+            formCustom.setFieldsValue(setval);
 
             setFileList(formattedFiles);
           } else {
