@@ -19,7 +19,7 @@ import { AuthContext } from "../../../contexts/AuthContext";
 import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
 
-export default function ActionMaterial() {
+export default function ActionMaterialExpense() {
   const { mode } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -49,56 +49,115 @@ export default function ActionMaterial() {
     }
   };
 
+  console.log('mode : ', mode)
+
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchInitialData = async () => {
       setLoading(true);
       try {
         const cropRes = await useServiceAPI.get(paths.pathMasterCrop, {});
-        setCrops(cropRes.data.map(item => ({ id: item.id, name: item.crop_name || item.name })));
 
-        if (["edit", "view"].includes(mode)) {
-          const res = await useServiceAPI.get(paths.pathExpenseMaterialList, {
+        setCrops(cropRes.data.map(item => ({
+          value: item.id,
+          label: item.name,
+        })));
+
+        if (mode === "edit" || mode === "view") {
+
+          const res = await useServiceAPI.get(paths.pathExpenseMaterialOne, {
             platform: "web",
-            page: 1,
-            page_size: 1,
-            code,
+            code: code,
             user_id: userInfo.id,
           });
 
-          const mat = res.data?.data?.find(item => item.code === code);
-          if (!mat) return showMsg("error", "ไม่พบข้อมูลที่ต้องการแก้ไข");
 
-          const cropIds = mat.crops?.split(",").map(Number) || [];
-          const productIds = mat.products?.split(",").map(Number) || [];
+          if (res.data) {
+            const mat = res.data;
 
-          const productRes = await useServiceAPI.get(paths.pathMasterProductByCrop, {
-            platform: "web",
-            crop_list: cropIds,
-          });
-          setProducts(productRes.data.map(item => ({ id: item.id, name: item.product_name || item.name })));
+            console.log(['mat : ', mat])
 
-          const formattedFiles = (mat.images || "").split(',').map((url, index) => ({
-            uid: `${Date.now()}-${index}`,
-            name: url.trim().split("/").pop(),
-            status: "done",
-            url: url.trim(),
-          })).filter(f => f.url);
+            const cropIds = mat.crops.map(Number);
+            const productIds = mat.products.map(Number);
 
-          formCustom.setFieldsValue({
-            material_code: mat.code,
-            name: mat.name,
-            crop: cropIds,
-            product: productIds,
-            description: mat.description,
-            type: mat.type,
-            size: mat.size,
-            qty: mat.qty,
-            price: mat.unit_price,
-            remark: mat.remark,
-            photo: formattedFiles,
-          });
 
-          setFileList(formattedFiles);
+            const productRes = await useServiceAPI.get(paths.pathMasterProductByCrop, {
+              platform: "web",
+              crop_list: cropIds,
+            });
+
+            const mappedProducts = productRes.data.map(item => ({
+              value: item.id,
+              label: item.product_name,
+            }));
+
+            setProducts(mappedProducts);
+            console.log('cropIds : ', crops)
+            console.log('productIds : ', products)
+
+            if (mode == 'edit') {
+              getMaterialProduct(productIds)
+            }
+
+            if (mode === 'edit' && Array.isArray(mat.material_list)) {
+              const mappedMaterialList = mat.material_list.map((item, index) => {
+                const imageList = (item.images || "").split(",").map(img => img.trim());
+                const imageFile = imageList.find(url => /\.(jpg|jpeg|png)$/i.test(url));
+
+                const qty = parseFloat(item.qty || 0);
+                const price = parseFloat(item.unit_price || 0);
+                const request = parseInt(item.request || 1);
+                const warehouseSend = parseInt(item.send || 0);
+                const receive = parseInt(item.receive || 0);
+
+                return {
+                  id: item.id,
+                  key: index + 1,
+                  no: index + 1,
+                  material_name: item.name,
+                  material_photo: imageFile || "-",
+                  material_code: item.code || `M-${item.id}`,
+                  material_price: price,
+                  material_stcok: qty,
+                  material_request: request,
+                  material_value: price * request,
+                  material_wherehouse_send: warehouseSend,
+                  material_receive: receive,
+                };
+              });
+
+              setDataSource(mappedMaterialList);
+            }
+
+
+            const formattedFiles = (mat.images || "").split(',').map((url, index) => ({
+              uid: `${Date.now()}-${index}`,
+              name: url.trim().split("/").pop(),
+              status: "done",
+              url: url.trim(),
+            })).filter(f => f.url);
+
+            const setval = {
+              expense_material_code: mat.code,
+              name: mat.name,
+              crop: cropIds,
+              product: productIds,
+              description: mat.description,
+              type: mat.type,
+              size: mat.size,
+              qty: mat.qty,
+              price: mat.unit_price,
+              remark: mat.remark,
+              photo: formattedFiles,
+            }
+
+            console.log('set val : ', setval)
+
+            formCustom.setFieldsValue(setval);
+
+            setFileList(formattedFiles);
+          } else {
+            showMsg("error", "ไม่พบข้อมูลที่ต้องการแก้ไข");
+          }
         } else {
           formCustom.setFieldsValue({ crop: [], product: [] });
         }
@@ -109,7 +168,7 @@ export default function ActionMaterial() {
       }
     };
 
-    fetchData();
+    fetchInitialData();
   }, [mode, code, userInfo.id]);
 
   const handleUploadSuccess = (response) => {
@@ -124,11 +183,11 @@ export default function ActionMaterial() {
     }]);
   };
 
-  const handleSubmit = async () => {
+  const action = async () => {
     try {
       const values = await formCustom.validateFields();
 
-      console.log("values:", values);
+      console.log("values:", mode, values);
 
       const images = fileList
         .filter(f => f.status === "done" && f.url)
@@ -137,7 +196,7 @@ export default function ActionMaterial() {
       // สร้าง payload หลัก
       const payload = {
         user_id: userInfo.id,
-        code: values.material_code || "AUTO",
+        code: values.expense_material_code || "AUTO",
         name: values.name,
         crops: selectedCropIds,
         products: selectedProductIds,
@@ -169,6 +228,7 @@ export default function ActionMaterial() {
       //return false
 
       setLoading(true);
+
       const res = await useServiceAPI.post(
         mode === "create" ? paths.pathExpenseMaterialCreate : paths.pathExpenseMaterialEdit,
         payload
@@ -190,17 +250,29 @@ export default function ActionMaterial() {
     }
   };
 
-  const getProductsByCrops = async (selectedCropIds) => {
-    if (!selectedCropIds.length) return;
+  const getProductsByCrops = async (cropIds) => {
+    if (!cropIds.length) return;
     setLoading(true);
     try {
-      const res = await useServiceAPI.get(paths.pathMasterProductByCrop, {
+      const selectedIds = formCustom.getFieldValue("product") || [];
+
+      const productRes = await useServiceAPI.get(paths.pathMasterProductByCrop, {
         platform: "web",
-        crop_list: selectedCropIds,
+        crop_list: cropIds,
       });
-      setProducts(res.data.map(item => ({ id: item.id, name: item.product_name })));
+
+      const loadedOptions = productRes.data.map(item => ({
+        value: item.id,
+        label: item.product_name || item.name || `Product ${item.id}`,
+      }));
+
+      const mergedOptions = selectedIds
+        .filter(id => !loadedOptions.find(opt => opt.value === id))
+        .map(id => ({ value: id, label: `Product ${id}` }));
+
+      setProducts([...loadedOptions, ...mergedOptions]);
     } catch (err) {
-      showMsg("error", err.message || "ไม่สามารถโหลด Crops ได้");
+      showMsg("error", err.message || "ไม่สามารถโหลด products ได้");
     } finally {
       setLoading(false);
     }
@@ -233,8 +305,6 @@ export default function ActionMaterial() {
     }
   };
 
-
-
   const formFields = [
     {
       label: "Photo",
@@ -254,7 +324,6 @@ export default function ActionMaterial() {
       disabled: mode === "view"
     },
   ];
-
 
   const header = [
     { title: "No", dataIndex: "no", key: "no" },
@@ -385,7 +454,6 @@ export default function ActionMaterial() {
     );
   };
 
-
   useEffect(() => {
     let sumRequest = 0;
     let sumWarehouseSend = 0;
@@ -410,149 +478,145 @@ export default function ActionMaterial() {
     <MainLayout loading={loading}>
       <div className="title-page">{renderTitle()}</div>
 
-      <BoxPrimary>
-        <Row gutter={16} align="middle">
-          <Col md={6}>
-            <Form.Item label="Material Expense Code" name="material_expnse_code">
-              <Input placeholder="Generate" disabled />
-            </Form.Item>
-          </Col>
-          <Col md={6}>
-            <Form.Item
-              label="Crop"
-              name="crop"
-              rules={[{ required: true, message: "กรุณาเลือก Crop" }]}
-            >
-              <Select
-                mode="multiple"
-                placeholder="Select Crop"
-                options={crops.map(crop => ({ label: crop.name, value: crop.id }))}
-                onChange={(value) => setSelectedCropIds(value)}
-                onBlur={() => {
-                  console.log('onBlur - selectedCropIds:', selectedCropIds);
-                  getProductsByCrops(selectedCropIds);
-                }}
-              />
-            </Form.Item>
-          </Col>
-          <Col md={6}>
-            <Form.Item
-              label="Product"
-              name="product"
-              rules={[{ required: true, message: "กรุณาเลือก Product" }]}
-            >
-              <Select
-                mode="multiple"
-                placeholder="Select Product"
-                options={products.map(p => ({ label: p.name, value: p.id }))}
-                onChange={(value) => setSelectedProductIds(value)}
-                onBlur={() => {
-                  console.log('onBlur - selectedProductIds:', selectedProductIds);
-                  getMaterialProduct(selectedProductIds)
-                }}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-      </BoxPrimary>
+      <Form form={formCustom} layout="vertical">
+        <BoxPrimary className="m-1 mb-4">
+          <Row gutter={16} align="middle">
+            <Col md={6}>
+              <Form.Item label="Material Expense Code" name="expense_material_code">
+                <Input placeholder="Generate" disabled />
+              </Form.Item>
+            </Col>
+            <Col md={6}>
+              <Form.Item
+                label="Crop"
+                name="crop"
+                rules={[{ required: true, message: "กรุณาเลือก Crop" }]}
+              >
+                <Select
+                  mode="multiple"
+                  placeholder="Select Crop"
+                  options={crops}
+                  onChange={(value) => setSelectedCropIds(value)}
+                  onBlur={() => getProductsByCrops(selectedCropIds)}
+                />
+              </Form.Item>
+            </Col>
+            <Col md={6}>
+              <Form.Item
+                label="Product"
+                name="product"
+                rules={[{ required: true, message: "กรุณาเลือก Product" }]}
+              >
+                <Select
+                  mode="multiple"
+                  placeholder="Select Product"
+                  options={products}
+                  onChange={(value) => setSelectedProductIds(value)}
+                  onBlur={() => getMaterialProduct(selectedProductIds)}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </BoxPrimary>
 
-      <BoxPrimary title="Material">
-        <div className="mb-3 flex justify-end">
-          <Select
-            showSearch
-            placeholder="Search Material"
-            name="material_search"
-            optionFilterProp="label"
-            className="w-full"
-            options={productSearchOptions}
-            onChange={(selectedId) => {
-              const selectedMaterial = productsSearch.find(item => item.id === selectedId);
+        <BoxPrimary title="Material" className="m-1 mb-4">
+          <div className="mb-3 flex justify-end">
+            <Select
+              showSearch
+              placeholder="Search Material"
+              name="material_search"
+              optionFilterProp="label"
+              className="w-full"
+              options={productSearchOptions}
+              onChange={(selectedId) => {
+                const selectedMaterial = productsSearch.find(item => item.id === selectedId);
 
-              console.log('selectedMaterial : ', selectedMaterial)
-              if (!selectedMaterial) {
-                showMsg("error", "ไม่พบข้อมูล Material ที่เลือก");
-                return;
+                console.log('selectedMaterial : ', selectedMaterial)
+                if (!selectedMaterial) {
+                  showMsg("error", "ไม่พบข้อมูล Material ที่เลือก");
+                  return;
+                }
+
+                // ป้องกันซ้ำ
+                if (dataSource.some(item => item.id === selectedMaterial.id)) {
+                  showMsg("warning", "Material นี้ถูกเพิ่มในรายการแล้ว");
+                  return;
+                }
+
+                const newItem = {
+                  ...selectedMaterial,
+                  key: dataSource.length + 1,
+                  no: dataSource.length + 1,
+                  material_name: selectedMaterial.name,
+                  material_photo: (() => {
+                    const imageList = (selectedMaterial.images || "").split(",").map(img => img.trim());
+                    const imageFile = imageList.find(url => /\.(jpg|jpeg|png)$/i.test(url));
+                    return imageFile || "-";
+                  })(),
+                  material_code: selectedMaterial.code || `M-${selectedMaterial.id}`,
+                  material_price: selectedMaterial.unit_price || 0,
+                  material_stcok: selectedMaterial.qty || 0,
+                  material_request: 1,
+                  material_value: (selectedMaterial.unit_price || 0) * 1, // คำนวณทันที
+                  material_wherehouse_send: 0,
+                  material_receive: 0,
+                };
+
+                setDataSource(prev => [...prev, newItem]);
+              }}
+            />
+          </div>
+        </BoxPrimary>
+
+        <BoxPrimary title="Material List" className="m-1 mb-4">
+          <TableComponent
+            header={header}
+            dataSource={dataSource}
+          />
+        </BoxPrimary>
+
+        <BoxPrimary className="m-1 flex flex-col items-end gap-2 text-right text-[14px]">
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <div>Total Value Request:</div>
+            <InputNumber
+              className="w-[200px]"
+              min={0}
+              disabled={true}
+              value={totalValueRequest}
+              formatter={(value) =>
+                `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
+            />
+          </div>
 
-              // ป้องกันซ้ำ
-              if (dataSource.some(item => item.id === selectedMaterial.id)) {
-                showMsg("warning", "Material นี้ถูกเพิ่มในรายการแล้ว");
-                return;
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <div>Total Value Warehouse Send:</div>
+            <InputNumber
+              className="w-[200px]"
+              min={0}
+              disabled={true}
+              value={totalValueWareHoseSend}
+              formatter={(value) =>
+                `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
+            />
+          </div>
 
-              const newItem = {
-                ...selectedMaterial,
-                key: dataSource.length + 1,
-                no: dataSource.length + 1,
-                material_name: selectedMaterial.name,
-                material_photo: (() => {
-                  const imageList = (selectedMaterial.images || "").split(",").map(img => img.trim());
-                  const imageFile = imageList.find(url => /\.(jpg|jpeg|png)$/i.test(url));
-                  return imageFile || "-";
-                })(),
-                material_code: selectedMaterial.code || `M-${selectedMaterial.id}`,
-                material_price: selectedMaterial.unit_price || 0,
-                material_stcok: selectedMaterial.qty || 0,
-                material_request: 1,
-                material_value: (selectedMaterial.unit_price || 0) * 1, // คำนวณทันที
-                material_wherehouse_send: 0,
-                material_receive: 0,
-              };
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <div>Total Value Receive:</div>
+            <InputNumber
+              className="w-[200px]"
+              min={0}
+              disabled={true}
+              value={totalValueReceive}
+              formatter={(value) =>
+                `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+            />
+          </div>
+        </BoxPrimary>
 
-              setDataSource(prev => [...prev, newItem]);
-            }}
-          />
-        </div>
-      </BoxPrimary>
-
-      <BoxPrimary title="Material List">
-        <TableComponent
-          header={header}
-          dataSource={dataSource}
-        />
-      </BoxPrimary>
-
-
-      <BoxPrimary className="flex flex-col items-end gap-2 text-right text-[14px]">
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <div>Total Value Request:</div>
-          <InputNumber
-            className="w-[200px]"
-            min={0}
-            disabled={true}
-            value={totalValueRequest}
-            formatter={(value) =>
-              `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-            }
-          />
-        </div>
-
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <div>Total Value Warehouse Send:</div>
-          <InputNumber
-            className="w-[200px]"
-            min={0}
-            disabled={true}
-            value={totalValueWareHoseSend}
-            formatter={(value) =>
-              `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-            }
-          />
-        </div>
-
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <div>Total Value Receive:</div>
-          <InputNumber
-            className="w-[200px]"
-            min={0}
-            disabled={true}
-            value={totalValueReceive}
-            formatter={(value) =>
-              `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-            }
-          />
-        </div>
-      </BoxPrimary>
+      </Form>
 
       <FormCustom
         fields={formFields}
@@ -562,12 +626,12 @@ export default function ActionMaterial() {
       />
 
       <div className="flex justify-end space-x-4 mt-6">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/setting/material")} />
+        <ActionButton mode="back" text="Back" onClick={() => navigate("/expenses/material")} />
         {mode !== "view" && (
           <ActionButton
             mode="update"
             text={mode === "create" ? "Create" : "Save"}
-            onClick={handleSubmit}
+            onClick={action}
           />
         )}
       </div>

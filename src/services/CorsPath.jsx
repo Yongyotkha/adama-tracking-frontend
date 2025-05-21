@@ -61,11 +61,11 @@ export const paths = {
   pathMaterialDel: "material/del",
 
     //material expense
-  pathExpenseMaterialList: "exMaterial/list",
-  pathExpenseMaterialOne: "exMaterial/one",
-  pathExpenseMaterialCreate: "exMaterial/create",
-  pathExpenseMaterialEdit: "exMaterial/edit",
-  pathExpenseMaterialDel: "exMaterial/del",
+  pathExpenseMaterialList: "expense-material/list",
+  pathExpenseMaterialOne: "expense-material/one",
+  pathExpenseMaterialCreate: "expense-material/create",
+  pathExpenseMaterialEdit: "expense-material/edit",
+  pathExpenseMaterialDel: "expense-material/del",
 
 
   //Products

@@ -13,7 +13,7 @@ import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 
 
-export default function Material() {
+export default function MaterialExpense() {
   const { confirm } = Modal;
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
@@ -244,11 +244,11 @@ export default function Material() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Materials</div>
+        <div className="title-page">Expense Materials</div>
         <ActionButton
           mode="create"
           text="Create"
-          onClick={() => navigate("/setting/material/create")}
+          onClick={() => navigate("/expenses/material/create")}
         />
       </div>
       <Filter
