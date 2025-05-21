@@ -193,7 +193,7 @@ export default function ActionMaterialExpense() {
         .map(f => f.url);
 
       // สร้าง payload หลัก
-       console.log("values:", values); 
+      console.log("values:", values);
       const payload = {
         user_id: userInfo.id,
         code: values.expense_material_code || "AUTO",
@@ -375,7 +375,6 @@ export default function ActionMaterialExpense() {
             }
           />
           <Input
-            disabled={mode === "view"}
             inputMode="numeric"
             min={0}
             value={record.material_request || 0}
@@ -400,7 +399,7 @@ export default function ActionMaterialExpense() {
       title: "Warehouse Send", dataIndex: "material_wherehouse_send", key: "material_wherehouse_send",
       render: (_, record) => (
         <Input
-          disabled={mode === "view"}
+          disabled={true}
           type="number"
           min={0}
           value={record.material_wherehouse_send}
@@ -421,7 +420,7 @@ export default function ActionMaterialExpense() {
       title: "Receive", dataIndex: "material_receive", key: "material_receive",
       render: (_, record) => (
         <Input
-          disabled={mode === "view"}
+          disabled={true}
           type="number"
           min={0}
           value={record.material_receive}
