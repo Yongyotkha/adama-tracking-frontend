@@ -14,7 +14,7 @@ import MainLayout from "../../../layouts/MainLayout";
 import ActionButton from "../../../components/button/ActionButton";
 import FormCustom from "../../../components/form_custom/FormMaterial";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
-import TableComponent from "../../../components/table/TableComponent";
+import TableAction from "../../../components/table/TableAction";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
@@ -239,7 +239,10 @@ export default function ActionMaterialExpense() {
 
       if (res.status === 200) {
         showNotification("success", "บันทึกข้อมูลสำเร็จ", "");
-        navigate("/expenses/material");
+        //navigate("/expenses/material");
+        if (mode == 'create') {
+          navigate("/expenses/material");
+        }
       } else {
         showMsg("error", res.data.message || "ไม่สามารถบันทึกข้อมูลได้");
       }
@@ -452,6 +455,8 @@ export default function ActionMaterialExpense() {
               } else {
                 const updated = dataSource.filter(item => item.key !== record.key);
                 const reset = updated.map((item, i) => ({ ...item, key: i + 1, no: i + 1 }));
+
+                console.log('del material list : ', reset)
                 setDataSource(reset);
               }
 
@@ -582,7 +587,7 @@ export default function ActionMaterialExpense() {
         </BoxPrimary>
 
         <BoxPrimary title="Material List" className="m-1 mb-4">
-          <TableComponent
+          <TableAction
             header={header}
             dataSource={dataSource}
           />
