@@ -156,14 +156,14 @@ export default function CreateActivityManyShop() {
     pageCode == "expense_advance"
       ? "Advance Expense"
       : pageCode == "expense_clearing"
-      ? "Clearing Expense"
-      : "Activity";
+        ? "Clearing Expense"
+        : "Activity";
   const menuURL =
     pageCode == "expense_advance"
       ? "/expenses/advance"
       : pageCode == "expense_clearing"
-      ? "/expenses/clearing"
-      : "/activity/list";
+        ? "/expenses/clearing"
+        : "/activity/list";
 
   //console.log("multishop : ", multiShop);
 
@@ -327,8 +327,8 @@ export default function CreateActivityManyShop() {
                 item.document_date
                   ? dayjs(item.document_date)
                   : isCreate
-                  ? dayjs() // 👉 วันที่ปัจจุบัน
-                  : null
+                    ? dayjs() // 👉 วันที่ปัจจุบัน
+                    : null
               }
             >
               <DatePicker
@@ -363,7 +363,7 @@ export default function CreateActivityManyShop() {
                 options={optionsShop}
               />
             </Form.Item>
-            
+
           </Col>
           <Col xs={24} sm={24} md={6} lg={6}>
             <Form.Item
@@ -730,15 +730,15 @@ export default function CreateActivityManyShop() {
       const response = await useServiceAPI.get(paths.pathMasterUserGetSubDealer, {
         user_id: value,
       });
-  
+
       const subDealerAll = response.data?.map((element) => ({
         id: element.id,
         name: element.name,
       })) ?? [];
-  
+
       // เคลียร์และตั้งค่า Dealer List เสมอ
       setDealerList(subDealerAll);
-  
+
       // OPTIONAL: ถ้าไม่มี dealer เลย ให้ reset ค่า dealer_id ใน multiShop
       if (subDealerAll.length === 0) {
         setMultiShop((prev) =>
@@ -750,7 +750,7 @@ export default function CreateActivityManyShop() {
       }
     } catch (error) {
       console.error("setupDealer error:", error);
-  
+
       // เคลียร์ทั้ง dealer list และค่าใน multiShop กรณี error
       setDealerList([]);
       setMultiShop((prev) =>
@@ -836,8 +836,8 @@ export default function CreateActivityManyShop() {
             pageCode == "expense_clearing"
               ? true
               : mode === "create"
-              ? false
-              : !activityDetail?.permission?.edit
+                ? false
+                : !activityDetail?.permission?.edit
           }
           onChange={(value) =>
             handleInputChange(
@@ -868,8 +868,8 @@ export default function CreateActivityManyShop() {
             pageCode != "expense_clearing"
               ? true
               : mode === "create"
-              ? false
-              : !activityDetail?.permission?.edit
+                ? false
+                : !activityDetail?.permission?.edit
           }
           onChange={(value) =>
             handleInputChange(
@@ -1257,7 +1257,7 @@ export default function CreateActivityManyShop() {
   };
 
   // console.log("activityDATE : ", activityDetail.document_date);
-  // console.log("mode : ", mode);
+  console.log("userInfo : ", userInfo);
 
   return (
     <MainLayout loading={loading}>
@@ -1267,7 +1267,10 @@ export default function CreateActivityManyShop() {
         </div>
       </div>
 
-      <Form layout="vertical" form={formMulti}>
+      <Form layout="vertical" form={formMulti}
+        initialValues={{
+          user_id: parseInt(userInfo.role_id) !== 1 ? parseInt(userInfo.user_data_id) : undefined,
+        }}>
         <BoxPrimary>
           <Row gutter={16} align="middle">
             <Col xs={24} sm={24} md={6} lg={6}>
@@ -1356,8 +1359,8 @@ export default function CreateActivityManyShop() {
       </Form>
 
       {isBtnExpenseActive ||
-      pageCode == "expense_advance" ||
-      pageCode == "expense_clearing" ? (
+        pageCode == "expense_advance" ||
+        pageCode == "expense_clearing" ? (
         <>
           <div className="flex items-center justify-between">
             <div className="title-page">Advance Expense</div>
@@ -1594,10 +1597,10 @@ export default function CreateActivityManyShop() {
                         mode === "create" && pageCode === "expense_clearing"
                           ? true
                           : pageCode !== "expense_clearing"
-                          ? false
-                          : pageCode === "expense_clearing"
-                          ? true
-                          : !activityDetail?.permission?.edit
+                            ? false
+                            : pageCode === "expense_clearing"
+                              ? true
+                              : !activityDetail?.permission?.edit
                       }
                     />{" "}
                   </Form.Item>
@@ -1708,8 +1711,8 @@ export default function CreateActivityManyShop() {
                     mode === "create"
                       ? false
                       : !activityDetail?.permission?.edit
-                      ? "view"
-                      : "edit"
+                        ? "view"
+                        : "edit"
                   }
                   dataFile={fileList}
                   modeUpload={pageCode}
@@ -1763,8 +1766,8 @@ export default function CreateActivityManyShop() {
                         pageCode == "expense_clearing"
                           ? true
                           : mode === "create"
-                          ? false
-                          : !activityDetail?.permission?.edit
+                            ? false
+                            : !activityDetail?.permission?.edit
                       }
                       formatter={(value) =>
                         `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
