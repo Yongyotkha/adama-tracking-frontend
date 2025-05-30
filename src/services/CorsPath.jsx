@@ -70,7 +70,7 @@ export const paths = {
   pathExpenseMaterialDel: "expense-material/del",
   pathExpenseMaterialItem: "expense-material/item",
 
-  
+
 
   //Products
   pathSaleManagementProductsList: "products-management/list",
@@ -265,6 +265,10 @@ export const paths = {
   pathReportSaleByQuarter: "report/sale/quarter",
   pathReportSaleByYear: "report/sale/year",
   pathReportSaleByActivity: "report/sale/activity",
+
+  pathReportProducts: "report/products",
+  pathReportWrokplan: "report/sale/workplan",
+  pathReportMonthly: "report/sale/monthly",
 
   // Line OA
   pathProfileDetail: "profile/detail",

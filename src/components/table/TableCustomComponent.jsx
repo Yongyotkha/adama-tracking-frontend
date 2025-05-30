@@ -34,6 +34,7 @@ const TableCustomComponent = ({
       }}
     >
       <Table
+      
         onChange={onChange}
         className="custom-scrollbar"
         columns={header}
@@ -45,7 +46,7 @@ const TableCustomComponent = ({
         scroll={{
           x: scroll ? "max-content" : 1000,
           // y: 70*7,
-          y: "60vh",
+          // y: "60vh",
         }}
         // footer={footer ? () => footer : null}
         summary={footer}
