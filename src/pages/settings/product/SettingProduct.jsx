@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import { Dropdown } from "antd";
@@ -12,6 +12,7 @@ import useServiceAPI from "../../../services/corsService";
 import { paths } from "../../../services/CorsPath";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function SettingProduct() {
   const [loading, setLoading] = useState(false);
@@ -22,6 +23,9 @@ export default function SettingProduct() {
   const [tableLoading, setTableLoading] = useState(false);
   const navigate = useNavigate();
 
+  const { userInfo } = useContext(AuthContext);
+
+  console.log(userInfo);
   const [modalConfig, setModalConfig] = useState({
     title: "",
     isVisible: false,
@@ -250,7 +254,18 @@ export default function SettingProduct() {
       dataIndex: "status",
       align: "left",
     },
-    { title: "Action", width: 100, dataIndex: "action", align: "center" },
+    // { title: "Action", width: 100, dataIndex: "action", align: "center" },
+    // 👇 Add this only if admin (role_id = 1)
+    ...(parseInt(userInfo.role_id) === 1
+      ? [
+        {
+          title: "Action",
+          width: 100,
+          dataIndex: "action",
+          align: "center",
+        },
+      ]
+      : []),
   ];
 
   const filters = [

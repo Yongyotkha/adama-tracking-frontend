@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import { Dropdown } from "antd";
@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../../services/corsService";
 import { paths } from "../../../services/CorsPath";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function SettingPromotion() {
   const [loading, setLoading] = useState(false);
@@ -24,6 +25,7 @@ export default function SettingPromotion() {
     sortOrder: null,
     sortField: null,
   });
+  const { userInfo } = useContext(AuthContext);
 
   const navigate = useNavigate();
 
@@ -34,8 +36,18 @@ export default function SettingPromotion() {
     { title: "Unit", width: 100, dataIndex: "unit", align: "right" },
     { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
-    { title: "Action", width: 100, dataIndex: "action", align: "center" },
-
+    // { title: "Action", width: 100, dataIndex: "action", align: "center" },
+    // 👇 Add this only if admin (role_id = 1)
+    ...(parseInt(userInfo.role_id) === 1
+      ? [
+        {
+          title: "Action",
+          width: 100,
+          dataIndex: "action",
+          align: "center",
+        },
+      ]
+      : []),
 
   ];
 

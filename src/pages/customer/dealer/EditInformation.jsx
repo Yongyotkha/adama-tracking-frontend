@@ -393,9 +393,8 @@ export default function EditInformation() {
     contactItems.map((contact, index) => (
       <div key={index} className="mb-6">
         <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-md">{`Person ${
-            index + 1
-          }`}</span>
+          <span className="text-[#00783F] text-md">{`Person ${index + 1
+            }`}</span>
           {index > 0 && !isViewMode && (
             <ActionButton
               mode="delete"
@@ -903,11 +902,11 @@ export default function EditInformation() {
     const updatedAccounts = companyinfo.bank_account_items?.length
       ? [...companyinfo.bank_account_items]
       : Array(2).fill({
-          account_title: "",
-          account_number: "",
-          bank_name: "",
-          bank_branch: "",
-        });
+        account_title: "",
+        account_number: "",
+        bank_name: "",
+        bank_branch: "",
+      });
 
     // อัปเดตค่าของฟิลด์ที่เปลี่ยนแปลงในรายการที่เลือก
     updatedAccounts[index] = {
@@ -1046,17 +1045,16 @@ export default function EditInformation() {
             {(companyinfo.bank_account_items?.length > 0
               ? companyinfo.bank_account_items
               : Array(2).fill({
-                  account_title: "",
-                  account_number: "",
-                  bank_name: "",
-                  bank_branch: "",
-                })
+                account_title: "",
+                account_number: "",
+                bank_name: "",
+                bank_branch: "",
+              })
             ) // Default 2 รายการ
               .map((account, index) => (
                 <div key={index} className="my-6">
-                  <div className="text-[#00783F] text-md">{`Bank Account ${
-                    index + 1
-                  }`}</div>
+                  <div className="text-[#00783F] text-md">{`Bank Account ${index + 1
+                    }`}</div>
                   <Row className="my-3" gutter={[16, 16]}>
                     {[
                       "account_title",
@@ -1171,6 +1169,11 @@ export default function EditInformation() {
             <TableComponent header={header} dataSource={networkList} />
           </BoxPrimary>
           <div className="flex justify-end space-x-4 mt-6 mb-6">
+            <ActionButton
+              mode="back"
+              text="Back"
+              onClick={() => navigate(-1)}
+            />
             {!isViewMode && (
               <ActionButton
                 text="Update Network"
@@ -1182,7 +1185,7 @@ export default function EditInformation() {
 
           {/* Farmer List */}
 
-          <BoxPrimary>
+          <BoxPrimary className="hidden">
             <div className="flex justify-between space-x-4 mb-3">
               <span className="text-[#00783F] text-lg font-semibold">
                 Farmer List
@@ -1200,11 +1203,11 @@ export default function EditInformation() {
             <TableComponent header={headerFarmer} dataSource={farmerListItem} />
           </BoxPrimary>
 
-          <div className="flex justify-end space-x-4 mt-6">
+          <div className="flex justify-end space-x-4 mt-6 hidden">
             <ActionButton
               mode="back"
               text="Back"
-              onClick={() => navigate("/customer/farmers")}
+              onClick={() => navigate(-1)}
             />
             {!isViewMode && (
               <ActionButton

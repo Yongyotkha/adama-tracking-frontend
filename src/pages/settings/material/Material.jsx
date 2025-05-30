@@ -258,7 +258,6 @@ export default function Material() {
         filters={filters}
       />
       <BoxPrimary>
-
         <TableComponent
           header={header}
           dataSource={dataSource}
