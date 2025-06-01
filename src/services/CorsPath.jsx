@@ -269,6 +269,8 @@ export const paths = {
   pathReportProducts: "report/products",
   pathReportWrokplan: "report/sale/workplan",
   pathReportMonthly: "report/sale/monthly",
+  pathReportQuarterly: "report/sale/quarterly",
+  pathReportYearly: "report/sale/yearly",
 
   // Line OA
   pathProfileDetail: "profile/detail",

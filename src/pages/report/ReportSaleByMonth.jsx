@@ -512,7 +512,8 @@ export default function ReportSaleByMonth() {
           <TableCustomComponent
             header={header}
             dataSource={dataSource}
-            pagination={tableParams.pagination}
+            // pagination={tableParams.pagination}
+            pagination={false}
             loading={tableLoading}
             onChange={handleTableChange}
             footer={() => {
