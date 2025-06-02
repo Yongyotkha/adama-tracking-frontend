@@ -148,21 +148,21 @@ export default function DealerList() {
 
   useEffect(() => {
     const shop = filterValues.shop;
-  
+
     if (shop) {
       console.log('getFarmerByShop');
-  
+
       const getFarmerByShop = async () => {
         try {
           const response = await useServiceAPI.get(paths.pathMasterFarmer, {
             sub_dealer_id: shop,
           });
-  
+
           const formattedFarmers = response.data.map((item) => ({
             name: item.farmer_name,
             id: item.farmer_id,
           }));
-  
+
           setFarmList(formattedFarmers); // ✅ เซ็ตไปยังฟิลด์ Farm ไม่ใช่ SubDealer
         } catch (error) {
           showMsg(
@@ -171,11 +171,11 @@ export default function DealerList() {
           );
         }
       };
-  
+
       getFarmerByShop();
     }
   }, [filterValues.shop]);
-  
+
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
@@ -216,7 +216,7 @@ export default function DealerList() {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
-    console.log('filterValues : ',filterValues)
+    console.log('filterValues : ', filterValues)
     const requestData = {
       keyword: filters.keyword || "",
       province: filters.province || "",
@@ -229,7 +229,7 @@ export default function DealerList() {
       page_size: pageSize,
       user_id: userInfo.id,
     };
-    console.log('requestData : ',requestData)
+    console.log('requestData : ', requestData)
     try {
       const response = await useServiceAPI.get(
         paths.pathCustomerFarmers,
@@ -242,6 +242,7 @@ export default function DealerList() {
           key: index + 1 + (current - 1) * pageSize,
           code: data.dealer_code || "-",
           dealerName: data.dealer_name || "-",
+          sub_dealer_name: data.sub_dealer_name || "-",
           Name: data.name || "-",
           address: data.address,
           contactName: data.contact_name,
@@ -340,14 +341,14 @@ export default function DealerList() {
       type: "select",
       label: "Shop",
       placeholder: "All",
-      options: subDealerList, 
+      options: subDealerList,
     },
     {
       key: "farmers",
       type: "select",
       label: "Farms",
       placeholder: "All",
-      options: farmList, 
+      options: farmList,
     },
     {
       key: "keyword",
@@ -400,6 +401,7 @@ export default function DealerList() {
     },
     { title: "Code", width: 100, dataIndex: "code", align: "left" },
     { title: "Farmer Name", width: 200, dataIndex: "Name", align: "left" },
+    { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer_name", align: "left" },
     { title: "Address", width: 300, dataIndex: "address", align: "left" },
     {
       title: "Contact Name",
