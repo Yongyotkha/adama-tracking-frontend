@@ -369,7 +369,7 @@ export default function ReportActivityType() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Report Activity By type" />
+        <Title prefix="Report Activity By Type" />
 
         <Filter
           onSearch={handleSearch}

@@ -116,6 +116,21 @@ export default function ActivityPlanList() {
             ...monthData,
           };
         });
+        const totalRow = {
+          key: "total",
+          type: "Total",
+        };
+
+        // คำนวณยอดรวมแต่ละเดือน
+        for (let i = 1; i <= 12; i++) {
+          const monthKey = `month_${i}`;
+          totalRow[monthKey] = newDataSource.reduce((sum, row) => {
+            const value = row[monthKey];
+            return sum + (typeof value === "number" ? value : 0);
+          }, 0);
+        }
+
+        newDataSource.push(totalRow);
 
         setDataSourceSummary(newDataSource);
         setDataSummary(data);
@@ -187,12 +202,12 @@ export default function ActivityPlanList() {
 
     ...(Array.isArray(dataSummary?.month_items)
       ? dataSummary.month_items.map((month_item) => ({
-          title: month_item.month_name,
-          dataIndex: `month_${month_item.month_id}`, // Dynamically map month data
-          key: `month_${month_item.month_id}`,
-          width: 100,
-          align: "center",
-        }))
+        title: month_item.month_name,
+        dataIndex: `month_${month_item.month_id}`, // Dynamically map month data
+        key: `month_${month_item.month_id}`,
+        width: 100,
+        align: "center",
+      }))
       : []),
   ];
 

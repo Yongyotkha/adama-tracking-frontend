@@ -280,7 +280,7 @@ export default function ReportActivityCrop() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Report Activity By Cop" />
+        <Title prefix="Report Activity By Crop" />
 
         <Filter
           onSearch={handleSearch}
