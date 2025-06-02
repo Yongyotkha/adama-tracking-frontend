@@ -105,7 +105,7 @@ export default function OrderList() {
     },
 
     {
-      key: "124",
+      key: "dater",
       type: "dater",
       label: "Date",
       placeholder: "Date",
@@ -137,21 +137,7 @@ export default function OrderList() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-  // const actionItemsPending = [
-  //   { key: "1", label: <ItemDropDown mode="edit" link="/order/edit" /> },
-  //   { key: "2", label: <ItemDropDown mode="view" link="/order/detail" /> },
-  //   {
-  //     key: "3",
-  //     label: (
-  //       <ItemDropDown
-  //         mode="delete"
-  //         onClick={() => console.log("Delete clicked")}
-  //       />
-  //     ),
-  //   },
-  // ];
 
-  ////////////////////////////////////////////// table ///////////////////////////////////////////////
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -165,6 +151,7 @@ export default function OrderList() {
       dealer_id: filters.dealer || "",
       keyword: filters.order_no || "",
       trasaction_status_code: filters.status || "",
+      dater: filters.dater || "",
       page: "all",
       use_flag: filters.use_flag || "",
       orderby_column: sortField,
@@ -339,29 +326,9 @@ export default function OrderList() {
   };
 
   const handleChange = (filter) => {
-    console.log('filter : ', filter)
-    // if (filter.sale) {
-    //   const getMasterDealer = async () => {
-    //     setLoading(true);
-    //     try {
-    //       const [dealer] = await Promise.all([
-    //         useServiceAPI.get(paths.pathMasterDealerDropdown, {
-    //           user_id: filter,
-    //         }),
-    //       ]);
 
-    //       setDataDealer(dealer.data);
-    //     } catch (error) {
-    //       showMsg("error", error.message || "เกิดข้อผิดพลาด");
-    //     } finally {
-    //       setLoading(false);
-    //     }
-    //   };
+    console.log(1232131)
 
-    //   getMasterDealer();
-    // } else {
-    //   handleClear();
-    // }
     setDefaultOption(filter);
     const getMasterDealer = async () => {
       setLoading(true);
