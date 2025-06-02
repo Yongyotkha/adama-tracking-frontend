@@ -19,7 +19,6 @@ export default function ReportSaleByMonth() {
   const [years, setYears] = useState([]);
   const [sales, setSales] = useState([]);
   const [products, setProducts] = useState([]);
-  const [dealers, setDealers] = useState([]);
   const [itemColumn, setItemColumn] = useState([]);
   const [defaultOption, setDefaultOption] = useState();
   const [dataSource, setDataSource] = useState(false);
@@ -273,12 +272,11 @@ export default function ReportSaleByMonth() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [years, sales, products, dealers, resArea] =
+        const [years, sales, products, resArea] =
           await Promise.all([
             useServiceAPI.get(paths.pathMasterYear),
             useServiceAPI.get(paths.pathMasterSaleDropdown),
             useServiceAPI.get(paths.pathReportProducts),
-            useServiceAPI.get(paths.pathMasterDealerAll),
             useServiceAPI.get(paths.pathMasterAreas),
           ]);
 
@@ -291,10 +289,7 @@ export default function ReportSaleByMonth() {
           value: item.product_name,
           label: item.product_name
         })));
-        setDealers(dealers.data.map((item) => ({
-          value: item.id,
-          label: item.name
-        })));
+
         setAreaList(resArea.data.map((item) => ({
           value: item.id,
           label: item.name
@@ -429,7 +424,7 @@ export default function ReportSaleByMonth() {
           <BoxPrimary className="m-1 mb-4">
             <Row gutter={16} align="middle">
 
-              <Col md={6}>
+              <Col md={8}>
                 <Form.Item
                   label="Area"
                   name="area_id"
@@ -440,7 +435,7 @@ export default function ReportSaleByMonth() {
                   />
                 </Form.Item>
               </Col>
-              <Col md={6}>
+              <Col md={8}>
                 <Form.Item
                   label="Sales"
                   name="sale_id"
@@ -452,7 +447,7 @@ export default function ReportSaleByMonth() {
                 </Form.Item>
               </Col>
 
-              <Col md={6}>
+              <Col md={8}>
                 <Form.Item
                   label="Product"
                   name="product_name"
@@ -461,17 +456,6 @@ export default function ReportSaleByMonth() {
                     placeholder="Select Product"
                     options={products}
 
-                  />
-                </Form.Item>
-              </Col>
-              <Col md={6}>
-                <Form.Item
-                  label="Dealers"
-                  name="dealer_id"
-                >
-                  <Select
-                    placeholder="Select Dealers"
-                    options={dealers}
                   />
                 </Form.Item>
               </Col>
@@ -510,7 +494,7 @@ export default function ReportSaleByMonth() {
           <TableCustomComponent
             header={header}
             dataSource={dataSource}
-            pagination={tableParams.pagination}
+            pagination={false}
             loading={tableLoading}
             onChange={handleTableChange}
             footer={() => {
