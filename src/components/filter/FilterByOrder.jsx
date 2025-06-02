@@ -5,7 +5,7 @@ import DynamicButton from "../button/DynamicButton";
 import dayjs from "dayjs";
 
 const { Option } = Select;
-
+const { RangePicker } = DatePicker;
 const FilterByOrder = ({ onSearch, onClear, onChange, filters }) => {
   const [filterValues, setFilterValues] = useState({});
   const [activeKey, setActiveKey] = useState([]); // เพิ่ม state สำหรับจัดการการกาง/หุบ
@@ -123,6 +123,23 @@ const FilterByOrder = ({ onSearch, onClear, onChange, filters }) => {
                     className="w-full"
                     format="YYYY-MM"
                     picker="month"
+                  />
+                )}
+
+                {filter.type === "dater" && (
+                  <RangePicker
+                    value={
+                      filterValues[filter.key]
+                        ? dayjs(filterValues[filter.key])
+                        : dayjs() // ✅ ถ้าไม่มีค่าใน filterValues ให้ใช้วันปัจจุบัน
+                    }
+                    onChange={(dates, dateStrings) => {
+                      handleFilterChange(filter.key, dateStrings)
+                    }}
+                    placeholder={filter.placeholder || "Select date"}
+                    className="w-full"
+                    format="YYYY-MM-DD"
+
                   />
                 )}
               </Col>

@@ -59,12 +59,12 @@ export default function OrderList() {
         //   setDefaultOption("");
         // }
         setDataSale(formattedOptions);
-        
+
         const dataStatus = [];
         status.data.map((data, index) => {
-          dataStatus.push({ 
-            id: data.code, 
-            name: data.name, 
+          dataStatus.push({
+            id: data.code,
+            name: data.name,
           });
         });
         setDataStatus(dataStatus);
@@ -101,6 +101,14 @@ export default function OrderList() {
       label: "Status",
       placeholder: "All",
       options: dataStatus,
+      moderef: false,
+    },
+
+    {
+      key: "124",
+      type: "dater",
+      label: "Date",
+      placeholder: "Date",
       moderef: false,
     },
   ];
@@ -331,7 +339,7 @@ export default function OrderList() {
   };
 
   const handleChange = (filter) => {
-    console.log('filter : ',filter)
+    console.log('filter : ', filter)
     // if (filter.sale) {
     //   const getMasterDealer = async () => {
     //     setLoading(true);
@@ -389,15 +397,15 @@ export default function OrderList() {
 
           if (response.status === 200) {
             // Show success notification
-            showNotification("success", 
-              response.data.message|| "Event deleted successfully!", 
+            showNotification("success",
+              response.data.message || "Event deleted successfully!",
               response.data.message_line || ["The event has been removed."]
             ).then(() => {
-              
+
             })
           } else {
-            showNotification("warning", 
-              response.data.message|| "Event deleted successfully!", 
+            showNotification("warning",
+              response.data.message || "Event deleted successfully!",
               response.data.message_line || ["The event has been removed."]
             )
           }
@@ -406,8 +414,8 @@ export default function OrderList() {
           // Handle errors and show an error notification
           if (error.response.data.status === 400) {
             const message = error.response.data.data;
-            showNotification("warning", 
-              message.Message.Message_Header, 
+            showNotification("warning",
+              message.Message.Message_Header,
               message.Message.Message_Line
             )
           }
@@ -421,27 +429,27 @@ export default function OrderList() {
       <div className="flex justify-between items-center">
         <div className="title-page">Order List</div>
         <div className="flex gap-2">
-        <Select
-          showSearch
-          allowClear
-          style={{
-            width: 200,
-          }}
-          className="border-[#00783F] text-[#00783F]"
-          placeholder="All"
-          optionFilterProp="label"
-          options={dataSale}
-          value={defaultOption}
-          // onChange={(value) => setDefaultOption(value)}
-          onChange={(value) => handleChange(value)}
-        />
-        {permission.btn_create && (
-          <ActionButton
-            mode="create"
-            text="Create"
-            onClick={(e) => navigate("/order/create")}
+          <Select
+            showSearch
+            allowClear
+            style={{
+              width: 200,
+            }}
+            className="border-[#00783F] text-[#00783F]"
+            placeholder="All"
+            optionFilterProp="label"
+            options={dataSale}
+            value={defaultOption}
+            // onChange={(value) => setDefaultOption(value)}
+            onChange={(value) => handleChange(value)}
           />
-        )}
+          {permission.btn_create && (
+            <ActionButton
+              mode="create"
+              text="Create"
+              onClick={(e) => navigate("/order/create")}
+            />
+          )}
         </div>
       </div>
 
