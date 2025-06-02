@@ -179,7 +179,7 @@ export default function ActivityMapping() {
                   (item) => item.sub_dealer_name === value.sub_dealer_name
                 ) === index
             )
-            .sort((a, b) => a.name.localeCompare(b.name))
+            .sort((a, b) => a.sub_dealer_name.localeCompare(b.sub_dealer_name))
             .map((data, index) => ({
               key: index,
               id: data.sub_dealer_id,
