@@ -95,15 +95,15 @@ export default function MileageManagement() {
                       />
                     ),
                   },
-                  {
-                    key: "delete",
-                    label: (
-                      <ItemDropDown
-                        mode="delete"
-                        // onClick={() => handleDelete(item.user_id)}
-                      />
-                    ),
-                  },
+                  // {
+                  //   key: "delete",
+                  //   label: (
+                  //     <ItemDropDown
+                  //       mode="delete"
+                  //       // onClick={() => handleDelete(item.user_id)}
+                  //     />
+                  //   ),
+                  // },
                 ],
               }}
               placement="bottom"
