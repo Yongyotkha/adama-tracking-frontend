@@ -16,12 +16,12 @@
 
 import React from "react";
 
-const BadgeStatus = ({ text, bgColor, textColor, onClick }) => {
+const BadgeStatus = ({ text, bgColor, textColor, onClick, className = null }) => {
   return (
     <span
-      className={`px-3 py-2 rounded-3xl inline-block min-w-[36px] max-w-fit text-nowrap text-sm ${onClick ? "cursor-pointer" : ""}`}
+      className={`${className} px-3 py-2 rounded-3xl inline-block min-w-[36px] max-w-fit text-nowrap text-sm ${onClick ? "cursor-pointer" : ""}`}
       style={{
-        backgroundColor: bgColor || "#E0E0E0", 
+        backgroundColor: bgColor || "#E0E0E0",
         color: textColor || "#000000",
       }}
       onClick={onClick}

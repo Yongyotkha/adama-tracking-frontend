@@ -12,6 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
 import ActionButton from "../button/ActionButton";
+import BadgeStatus from "../badge/BadgeStatus";
 
 const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   const [view, setView] = useState("month");
@@ -400,8 +401,8 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                     <div
                       key={`current-${index}`}
                       className={`border p-2 rounded cursor-pointer flex flex-col items-center justify-start min-h-[170px] transition ${isActive
-                          ? "bg-gray-100 border-[#009845]"
-                          : "bg-gray-50 hover:bg-green-100"
+                        ? "bg-gray-100 border-[#009845]"
+                        : "bg-gray-50 hover:bg-green-100"
                         }`}
                       onClick={() =>
                         handleDateClick(date.toISOString().split("T")[0])
@@ -484,20 +485,20 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                     })}
                   </h3>
                   {/* {events.filter((event) => event.date === selectedDate).length === 0 && ( */}
-                    <ActionButton
-                      mode="add"
-                      className="min-w-fit h-6"
-                      style={{ gap: "0" }}
-                      onClick={handleActionButtonClick} // Add onClick event handler
-                    />
+                  <ActionButton
+                    mode="add"
+                    className="min-w-fit h-6"
+                    style={{ gap: "0" }}
+                    onClick={handleActionButtonClick} // Add onClick event handler
+                  />
                   {/* )} */}
                 </div>
                 <div className="space-y-4">
                   {events.filter((event) => event.date === selectedDate)
-                    .length > 0 ? (
-                    events
+                    .length > 0 ? (events
                       .filter((event) => event.date === selectedDate)
                       .map((event, index) => (
+                        console.log(event),
                         <div
                           key={index}
                           className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md"
@@ -506,7 +507,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                             <div className="w-full">
                               <div className="flex justify-between">
                                 <div
-                                  className={`h-10 flex items-center justify-center`}
+                                  className={`h-10 flex items-center justify-between w-full`}
                                 >
                                   <img
                                     src={event.icon}
@@ -516,21 +517,19 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                   <h4 className="text-md font-bold text-gray-800">
                                     {event.title}
                                   </h4>
+                                  <BadgeStatus className="ms-auto"
+                                    text={event.status_mapping.name}
+                                    textColor={event.status_mapping.color}
+                                    bgColor={event.status_mapping.background}
+                                  />
                                 </div>
                                 <span className="px-3 py-1 border rounded-full text-sm text-gray-600 flex items-center hidden">
                                   {event.time}
                                 </span>
                               </div>
-                              <p
-                                lang="th"
-                                className="text-sm text-gray-600 flex"
-                              >
-                                <img
-                                  src="/img/icons/location.png"
-                                  className="h-6 w-6 me-2"
-                                  alt=""
-                                />{" "}
-                                {event.location || "-"}
+                              <p lang="th" className="text-sm text-gray-600 flex">
+                                <img src="/img/icons/location.png" className="h-6 w-6 me-2" alt="" />
+                                {!event.location || event.location === "N/A" ? "-" : event.location}
                               </p>
                               <div className="flex items-center justify-between gap-2 mt-2">
                                 <div className="flex items-center -space-x-2">
@@ -561,14 +560,21 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                       title={null}
                                       description={
                                         <div>
-                                          <h3 className="text-lg font-bold flex items-center gap-2 mb-3">
-                                            <img
-                                              src={event.icon} // Add icon before title
-                                              alt="Event Icon"
-                                              className="w-6 h-6"
+                                          <div className="flex items-center justify-between w-full gap-2">
+                                            <h3 className="text-lg font-bold flex items-center gap-2 mb-3">
+                                              <img
+                                                src={event.icon} // Add icon before title
+                                                alt="Event Icon"
+                                                className="w-6 h-6"
+                                              />
+                                              {event.title}
+                                            </h3>
+                                            <BadgeStatus
+                                              text={event.status_mapping.name}
+                                              textColor={event.status_mapping.color}
+                                              bgColor={event.status_mapping.background}
                                             />
-                                            {event.title}
-                                          </h3>
+                                          </div>
                                           <p
                                             lang="th"
                                             className="my-2 px-3 py-1 border rounded-full text-sm text-gray-600 flex items-center w-fit"
@@ -606,7 +612,8 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                               className="h-6 w-6 me-2"
                                               alt=""
                                             />
-                                            {event.location || "-"}
+                                            {/* {event.location || "-"} */}
+                                            {!event.location || event.location === "N/A" ? "-" : event.location}
                                           </p>
                                           <p className="flex  gap-1 mb-2 items-center mt-2">
                                             <img

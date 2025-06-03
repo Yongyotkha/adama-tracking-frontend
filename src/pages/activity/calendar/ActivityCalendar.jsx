@@ -26,17 +26,22 @@ export default function ActivityCalendar() {
         user_id: userId || "",
         dealer_id: dealerId || "",
       });
-  
+
       console.log(response);
-      
+
       if (response.result) {
-        console.log(response.result);
-        
+
         const formattedEvents = response.data.map((item) => ({
           title: item.activity_type_name,
           date: item.document_date,
-          time: `${item.time_start} - ${item.time_end}`,
-          location: item.location_address || "N/A",
+          time:
+            (item.time_start && item.time_end)
+              ? `${item.time_start} - ${item.time_end}`
+              : new Date(item.created_at).toLocaleTimeString("th-TH", {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+          location: item.location_address || "-",
           color: item.activity_color,
           icon: item.activity_image || "https://via.placeholder.com/50",
           crops: item.crop_id_list.map((crop) => crop.name).join(", "),
@@ -46,15 +51,22 @@ export default function ActivityCalendar() {
             avatar: user.profile_image,
           })),
           permission: {
-            edit: item.permission.edit,
-            btn_delete: item.permission.btn_delete,
+            edit: item.permission?.edit || false,
+            btn_delete: item.permission?.btn_delete || false,
           },
           document_number: item.document_number,
           dealer_name: item.dealer_name,
+          status_mapping: {
+            name: item.status_mapping_name,
+            color: item.status_mapping_color,
+            background: item.status_mapping_bg_color,
+          },
         }));
+
+        // console.log(formattedEvents);
         setEvents(formattedEvents);
 
-        
+
       } else {
         console.error("Error fetching events:", response.message);
         setEvents([]);
@@ -66,7 +78,7 @@ export default function ActivityCalendar() {
       setLoading(false);
     }
   };
-  
+
 
   const receiveData = (data) => {
     if (data.saleId !== undefined) {
