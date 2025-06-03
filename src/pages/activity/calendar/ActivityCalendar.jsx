@@ -5,6 +5,7 @@ import ActionButton from "../../../components/button/ActionButton";
 import { useNavigate } from "react-router-dom";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import dayjs from "dayjs";
 
 export default function ActivityCalendar() {
   const [loading, setLoading] = useState(false);
@@ -27,20 +28,17 @@ export default function ActivityCalendar() {
         dealer_id: dealerId || "",
       });
 
-      console.log(response);
+      // console.log(response);
 
       if (response.result) {
-
+        console.log(response.data);
         const formattedEvents = response.data.map((item) => ({
           title: item.activity_type_name,
           date: item.document_date,
           time:
-            (item.time_start && item.time_end)
+            item.time_start && item.time_end
               ? `${item.time_start} - ${item.time_end}`
-              : new Date(item.created_at).toLocaleTimeString("th-TH", {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
+              : dayjs(item.updated_at).format("HH:mm"),
           location: item.location_address || "-",
           color: item.activity_color,
           icon: item.activity_image || "https://via.placeholder.com/50",
