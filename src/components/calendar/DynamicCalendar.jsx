@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
 import ActionButton from "../button/ActionButton";
 import BadgeStatus from "../badge/BadgeStatus";
+import FormMappingModal from "../modal/FormMappingModal";
 
 const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   const [view, setView] = useState("month");
@@ -212,6 +213,28 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
     correctedDate.setDate(correctedDate.getDate() + 1); // Adjust the date
     setSelectedDate(correctedDate.toISOString().split("T")[0]);
   };
+
+  const [isMappingModalVisible, setIsMappingModalVisible] = useState(false);
+  const [mappingData, setMappingData] = useState({});
+  const [perceptionData, setPerceptionData] = useState([]); // ดึง perception list
+
+  const handleBadgeClick = (eventData) => {
+    setMappingData(eventData);
+    setIsMappingModalVisible(true);
+  };
+
+  useEffect(() => {
+    const fetchPerception = async () => {
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterPerception, {});
+        setPerceptionData(res.data);
+      } catch (error) {
+        console.error("Failed to load perception data:", error);
+      }
+    };
+    fetchPerception();
+  }, []);
+
 
   const renderEventsForDate = (date) => {
     const dateEvents = events.filter((event) => event.date === date);
@@ -498,7 +521,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                     .length > 0 ? (events
                       .filter((event) => event.date === selectedDate)
                       .map((event, index) => (
-                        console.log(event),
+                        // console.log(event),
                         <div
                           key={index}
                           className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md"
@@ -521,6 +544,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                     text={event.status_mapping.name}
                                     textColor={event.status_mapping.color}
                                     bgColor={event.status_mapping.background}
+                                    onClick={() => handleBadgeClick(event)}
                                   />
                                 </div>
                                 <span className="px-3 py-1 border rounded-full text-sm text-gray-600 flex items-center hidden">
@@ -766,6 +790,36 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
           )}
         </div>
       </main>
+
+      <FormMappingModal
+        isVisible={isMappingModalVisible}
+        onClose={() => setIsMappingModalVisible(false)}
+        onOk={(data) => {
+          const body = {
+            document_number: data.document_number,
+            location_longitude: data.location_longitude,
+            location_latitude: data.location_latitude,
+            location_address: data.location_address,
+            perception_id: data.perception_id,
+            remark: data.remark,
+            image_list: data.image_list || ["defaultImage"],
+          };
+
+          useServiceAPI
+            .put(paths.pathActivityMappingStatusDetailUpdate, body)
+            .then((res) => {
+              setIsMappingModalVisible(false);
+              console.log("Mapping updated:", res);
+            })
+            .catch((err) => {
+              console.error("Mapping update failed:", err);
+            });
+        }}
+        title="Mapping"
+        dataSource={mappingData}
+        perceptionData={perceptionData}
+      />
+
     </div>
   );
 };
