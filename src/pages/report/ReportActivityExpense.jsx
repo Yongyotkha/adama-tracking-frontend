@@ -13,7 +13,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import Title from "../../components/title/Title";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
 
-export default function ReportActivityCrop() {
+export default function ReportActivityExpense() {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
@@ -31,7 +31,6 @@ export default function ReportActivityCrop() {
   const { showNotification, formatNumber } = useContext(AuthContext);
   const [activityList, setActivityList] = useState([]);
   const [areaList, setAreaList] = useState([]);
-
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -46,15 +45,15 @@ export default function ReportActivityCrop() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [years, sales, dealers, resArea, activityType, crops, products] =
+        const [years, sales, crops, products, dealers, activityType, resArea] =
           await Promise.all([
             useServiceAPI.get(paths.pathMasterYear),
             useServiceAPI.get(paths.pathMasterSaleDropdown),
-            useServiceAPI.get(paths.pathMasterDealerAll),
-            useServiceAPI.get(paths.pathMasterAreas),
-            useServiceAPI.get(paths.pathMasterActivityType),
             useServiceAPI.get(paths.pathMasterCrop),
             useServiceAPI.get(paths.pathMasterProducts),
+            useServiceAPI.get(paths.pathMasterDealerAll),
+            useServiceAPI.get(paths.pathMasterActivityType),
+            useServiceAPI.get(paths.pathMasterAreas),
           ]);
 
         setYears(years.data);
@@ -81,7 +80,9 @@ export default function ReportActivityCrop() {
   }, []);
 
   const fetchData = async () => {
+
     setTableLoading(true);
+
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
 
@@ -129,6 +130,8 @@ export default function ReportActivityCrop() {
         setPermission(permission);
         setDataSource(newDataSource);
 
+        console.log('data source : ',dataSource)
+
         setTableParams({
           ...tableParams,
           pagination: {
@@ -143,15 +146,12 @@ export default function ReportActivityCrop() {
       setTableLoading(false);
     }
   };
+
   useEffect(() => {
     if (years.length > 0) {
       fetchData();
     }
   }, [
-    // tableParams.pagination.current,
-    // tableParams.pagination.pageSize,
-    // tableParams.sortOrder,
-    // tableParams.sortField,
     JSON.stringify(tableParams.filters),
   ]);
 
@@ -160,8 +160,6 @@ export default function ReportActivityCrop() {
     setTableParams({
       pagination,
       filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
-      // sortOrder: sorter.order === "descend" ? "desc" : "asc",
-      // sortField: sorter.field,
     });
   };
 
@@ -177,12 +175,6 @@ export default function ReportActivityCrop() {
       type: "select",
       label: "Sales",
       options: sales,
-    },
-    {
-      key: "dealer_id",
-      type: "select",
-      label: "Dealer",
-      options: dealers,
     },
   ];
 
@@ -224,10 +216,6 @@ export default function ReportActivityCrop() {
   const header = [
     {
       title: "Month", // Row 3
-      dataIndex: "productName",
-      key: "productName",
-      fixed: "left",
-      width: 125,
       onHeaderCell: () => ({
         style: {
           backgroundColor: "#00783F",
@@ -236,14 +224,30 @@ export default function ReportActivityCrop() {
           textAlign: "center",
         },
       }),
+      children: [
+        {
+          title: "Activity Type",
+          dataIndex: "productName",
+          key: "productName",
+          fixed: "left",
+          width: 125,
+          onHeaderCell: () => ({
+            style: {
+              backgroundColor: "#00783F",
+              color: "white",
+              fontWeight: "bold",
+              textAlign: "center",
+            },
+          }),
+        },
+      ],
     },
-    ...activityList.map((act, index) => {
+    ...itemColumn.map((month, index) => {
       const bgColor = columnColors[index % columnColors.length]; // หมุนลูปสี
 
       return {
-        title: act.name,
+        title: month.name,
         key: index,
-        width: 125,
         onHeaderCell: () => ({
           style: {
             backgroundColor: bgColor,
@@ -252,35 +256,78 @@ export default function ReportActivityCrop() {
             textAlign: "center",
           },
         }),
-        render: (_, record) => {
-          //   const itemData =
-          //     act.id.find((product) => product.product_id == record.productId) ||
-          //     {};
-          const itemData = { work_plan_kg: 0 };
-          return (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={itemData.work_plan_kg}
-              formatter={(value) =>
-                `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              disabled={true}
-            />
-          );
-        },
+        children: [
+          {
+            title: "Plan(Value)",
+            key: index,
+            width: 125,
+            onHeaderCell: () => ({
+              style: {
+                backgroundColor: bgColor,
+                color: "white",
+                fontWeight: "bold",
+                textAlign: "center",
+              },
+            }),
+            render: (_, record) => {
+              const itemData =
+                month.items.find(
+                  (product) => product.product_id == record.productId
+                ) || {};
+              return (
+                <InputNumber
+                  className="w-full"
+                  min={0}
+                  value={itemData.work_plan_kg}
+                  formatter={(value) =>
+                    `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  disabled={true}
+                />
+              );
+            },
+          },
+          {
+            title: "Actual(Value)",
+            key: index,
+            width: 125,
+            onHeaderCell: () => ({
+              style: {
+                backgroundColor: bgColor,
+                color: "white",
+                fontWeight: "bold",
+                textAlign: "center",
+              },
+            }),
+            render: (_, record) => {
+              const itemData =
+                month.items.find(
+                  (product) => product.product_id == record.productId
+                ) || {};
+              return (
+                <InputNumber
+                  className="w-full"
+                  min={0}
+                  value={itemData.work_plan_kg}
+                  formatter={(value) =>
+                    `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  disabled={true}
+                />
+              );
+            },
+          },
+        ],
       };
     }),
   ];
 
-  console.log("header : ", header);
 
-  console.log("dataSource : ", dataSource);
 
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Report Activity By Crop" />
+        <Title prefix="Activity Expenses Report" />
 
         <Filter
           onSearch={handleSearch}
@@ -300,8 +347,7 @@ export default function ReportActivityCrop() {
                 <Table.Summary.Row className="bg-[#978B87]">
                   <Table.Summary.Cell
                     index={0}
-                    colSpan={2}
-                  ></Table.Summary.Cell>
+                  >Total (THB)</Table.Summary.Cell>
                   {itemColumn.map((month, index) => {
                     return (
                       <React.Fragment key={`${month.id}_${index}`}>

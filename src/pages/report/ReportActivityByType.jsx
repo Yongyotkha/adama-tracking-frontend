@@ -13,7 +13,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import Title from "../../components/title/Title";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
 
-export default function ReportActivityType() {
+export default function ReportActivityByType() {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
@@ -369,7 +369,7 @@ export default function ReportActivityType() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Report Activity By Type" />
+        <Title prefix="Activity Report By Type" />
 
         <Filter
           onSearch={handleSearch}

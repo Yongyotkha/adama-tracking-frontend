@@ -79,9 +79,9 @@ import ReportSaleByMonth from "./pages/report/ReportSaleByMonth";
 import ReportSaleByQuarter from "./pages/report/ReportSaleByQuarter";
 import ReportSaleByYear from "./pages/report/ReportSaleByYear";
 import ReportActivity from "./pages/report/ReportActivity";
-import ReportActivityCrop from "./pages/report/ReportActivityCrop";
-import ReportActivityMonth from "./pages/report/ReportActivityMonth";
-import ReportActivityType from "./pages/report/ReportActivityType";
+import ReportActivityByMonth from "./pages/report/ReportActivityByMonth";
+import ReportActivityExpense from "./pages/report/ReportActivityExpense";
+import ReportActivityByType from "./pages/report/ReportActivityByType";
 // END ------------- Activity ------------- END
 
 // Phase 2
@@ -147,6 +147,7 @@ import MileageManagement from "./pages/settings/mileage/MileageManagement";
 import EditMileage from "./pages/settings/mileage/EditMileage";
 import TranAddress from "./pages/mobile/user/settings/tran_address/TranAddress";
 import CreateTranAddress from "./pages/mobile/user/settings/tran_address/CreateTranAddress";
+
 
 const App = () => {
   return (
@@ -322,10 +323,9 @@ const App = () => {
             <Route path="/report/quarterly" element={<ReportSaleByQuarter />} />
             <Route path="/report/yearly" element={<ReportSaleByYear />} />
             <Route path="/report/activity" element={<ReportActivity />} />
-            <Route path="/report/activity-crop" element={<ReportActivityCrop />} />
-            <Route path="/report/activity-month" element={<ReportActivityMonth />} />
-            <Route path="/report/activity-type" element={<ReportActivityType />} />
-
+            <Route path="/report/activity-month" element={<ReportActivityByMonth />} />
+            <Route path="/report/activity-expense" element={<ReportActivityExpense />} />
+            <Route path="/report/activity-type" element={<ReportActivityByType />} />
             <Route path="/report/stock-report" element={<ReportStock />} />
 
           </Route>
