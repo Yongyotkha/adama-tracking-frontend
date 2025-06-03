@@ -1574,7 +1574,7 @@ export default function CreateActivity() {
         <ActionButton
           mode="back"
           text="Back"
-          onClick={() => navigate(menuURL)}
+          onClick={() => navigate(-1)}
         />
 
         {activityDetail?.permission?.btn_convert && (

@@ -587,8 +587,8 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                               month: "2-digit",
                                               day: "2-digit",
                                             })}
-                                            {/* <span className="mx-1">|</span> */}
-                                            {/* {event.time || "-"} */}
+                                            <span className="mx-1">|</span>
+                                            {event.time || "-"}
                                           </p>
 
                                           <p
