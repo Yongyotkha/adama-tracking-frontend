@@ -34,6 +34,7 @@ const TableCustomComponent = ({
       }}
     >
       <Table
+      
         onChange={onChange}
         className="custom-scrollbar"
         columns={header}

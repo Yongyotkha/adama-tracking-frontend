@@ -59,12 +59,12 @@ export default function OrderList() {
         //   setDefaultOption("");
         // }
         setDataSale(formattedOptions);
-        
+
         const dataStatus = [];
         status.data.map((data, index) => {
-          dataStatus.push({ 
-            id: data.code, 
-            name: data.name, 
+          dataStatus.push({
+            id: data.code,
+            name: data.name,
           });
         });
         setDataStatus(dataStatus);
@@ -103,6 +103,14 @@ export default function OrderList() {
       options: dataStatus,
       moderef: false,
     },
+
+    {
+      key: "dater",
+      type: "dater",
+      label: "Date",
+      placeholder: "Date",
+      moderef: false,
+    },
   ];
 
   const header = [
@@ -129,21 +137,7 @@ export default function OrderList() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-  // const actionItemsPending = [
-  //   { key: "1", label: <ItemDropDown mode="edit" link="/order/edit" /> },
-  //   { key: "2", label: <ItemDropDown mode="view" link="/order/detail" /> },
-  //   {
-  //     key: "3",
-  //     label: (
-  //       <ItemDropDown
-  //         mode="delete"
-  //         onClick={() => console.log("Delete clicked")}
-  //       />
-  //     ),
-  //   },
-  // ];
 
-  ////////////////////////////////////////////// table ///////////////////////////////////////////////
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -157,6 +151,7 @@ export default function OrderList() {
       dealer_id: filters.dealer || "",
       keyword: filters.order_no || "",
       trasaction_status_code: filters.status || "",
+      dater: filters.dater || "",
       page: "all",
       use_flag: filters.use_flag || "",
       orderby_column: sortField,
@@ -331,29 +326,9 @@ export default function OrderList() {
   };
 
   const handleChange = (filter) => {
-    console.log('filter : ',filter)
-    // if (filter.sale) {
-    //   const getMasterDealer = async () => {
-    //     setLoading(true);
-    //     try {
-    //       const [dealer] = await Promise.all([
-    //         useServiceAPI.get(paths.pathMasterDealerDropdown, {
-    //           user_id: filter,
-    //         }),
-    //       ]);
 
-    //       setDataDealer(dealer.data);
-    //     } catch (error) {
-    //       showMsg("error", error.message || "เกิดข้อผิดพลาด");
-    //     } finally {
-    //       setLoading(false);
-    //     }
-    //   };
+    console.log(1232131)
 
-    //   getMasterDealer();
-    // } else {
-    //   handleClear();
-    // }
     setDefaultOption(filter);
     const getMasterDealer = async () => {
       setLoading(true);
@@ -389,15 +364,15 @@ export default function OrderList() {
 
           if (response.status === 200) {
             // Show success notification
-            showNotification("success", 
-              response.data.message|| "Event deleted successfully!", 
+            showNotification("success",
+              response.data.message || "Event deleted successfully!",
               response.data.message_line || ["The event has been removed."]
             ).then(() => {
-              
+
             })
           } else {
-            showNotification("warning", 
-              response.data.message|| "Event deleted successfully!", 
+            showNotification("warning",
+              response.data.message || "Event deleted successfully!",
               response.data.message_line || ["The event has been removed."]
             )
           }
@@ -406,8 +381,8 @@ export default function OrderList() {
           // Handle errors and show an error notification
           if (error.response.data.status === 400) {
             const message = error.response.data.data;
-            showNotification("warning", 
-              message.Message.Message_Header, 
+            showNotification("warning",
+              message.Message.Message_Header,
               message.Message.Message_Line
             )
           }
@@ -421,27 +396,27 @@ export default function OrderList() {
       <div className="flex justify-between items-center">
         <div className="title-page">Order List</div>
         <div className="flex gap-2">
-        <Select
-          showSearch
-          allowClear
-          style={{
-            width: 200,
-          }}
-          className="border-[#00783F] text-[#00783F]"
-          placeholder="All"
-          optionFilterProp="label"
-          options={dataSale}
-          value={defaultOption}
-          // onChange={(value) => setDefaultOption(value)}
-          onChange={(value) => handleChange(value)}
-        />
-        {permission.btn_create && (
-          <ActionButton
-            mode="create"
-            text="Create"
-            onClick={(e) => navigate("/order/create")}
+          <Select
+            showSearch
+            allowClear
+            style={{
+              width: 200,
+            }}
+            className="border-[#00783F] text-[#00783F]"
+            placeholder="All"
+            optionFilterProp="label"
+            options={dataSale}
+            value={defaultOption}
+            // onChange={(value) => setDefaultOption(value)}
+            onChange={(value) => handleChange(value)}
           />
-        )}
+          {permission.btn_create && (
+            <ActionButton
+              mode="create"
+              text="Create"
+              onClick={(e) => navigate("/order/create")}
+            />
+          )}
         </div>
       </div>
 

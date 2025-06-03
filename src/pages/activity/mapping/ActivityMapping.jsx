@@ -123,6 +123,7 @@ export default function ActivityMapping() {
               (value, index, self) =>
                 self.findIndex((item) => item.name === value.name) === index
             )
+            .sort((a, b) => a.name.localeCompare(b.name))
             .map((data, index) => ({
               key: index,
               id: data.id,
@@ -178,6 +179,7 @@ export default function ActivityMapping() {
                   (item) => item.sub_dealer_name === value.sub_dealer_name
                 ) === index
             )
+            .sort((a, b) => a.sub_dealer_name.localeCompare(b.sub_dealer_name))
             .map((data, index) => ({
               key: index,
               id: data.sub_dealer_id,
@@ -236,6 +238,8 @@ export default function ActivityMapping() {
       data: dataMonths,
     },
   ];
+
+  console.log('mockFilters : ', mockFilters)
 
   // Initialize all checkboxes as selected on page load
   useEffect(() => {
