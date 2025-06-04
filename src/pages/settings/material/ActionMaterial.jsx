@@ -196,7 +196,7 @@ export default function ActionMaterial() {
       label: "Crop", name: "crop", type: "select", mode: "multiple", options: crops, required: true, col: 6,
       onBlur: (fieldName, value) => fieldName === "crop" && getProductsByCrops(value),
     },
-    { label: "Product", name: "product", type: "select", mode: "multiple", options: products, required: true, col: 24 },
+    { label: "Product", name: "product", type: "select", mode: "multiple", options: products, required: true, col: 6 },
     { label: "Description", name: "description", type: "text-editor", col: 24, disabled: mode === "view" },
     { label: "Type", name: "type", type: "text", col: 6, disabled: mode === "view" },
     { label: "Size", name: "size", type: "text", col: 6, disabled: mode === "view" },
