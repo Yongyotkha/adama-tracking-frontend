@@ -17,12 +17,8 @@ export default function ReportActivityByMonth() {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState([]);
   const [years, setYears] = useState([]);
   const [sales, setSales] = useState([]);
-  const [crops, setCrops] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [dealers, setDealers] = useState([]);
   const [itemColumn, setItemColumn] = useState([]);
   const [defaultOption, setDefaultOption] = useState();
   const [permission, setPermission] = useState([]);
@@ -46,23 +42,17 @@ export default function ReportActivityByMonth() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [years, sales, dealers, resArea, activityType, crops, products] =
+        const [years, sales, resArea] =
           await Promise.all([
             useServiceAPI.get(paths.pathMasterYear),
             useServiceAPI.get(paths.pathMasterSaleDropdown),
-            useServiceAPI.get(paths.pathMasterDealerAll),
             useServiceAPI.get(paths.pathMasterAreas),
-            useServiceAPI.get(paths.pathMasterActivityType),
-            useServiceAPI.get(paths.pathMasterCrop),
-            useServiceAPI.get(paths.pathMasterProducts),
+
           ]);
 
         setYears(years.data);
         setSales(sales.data);
-        setCrops(crops.data);
-        setProducts(products.data);
-        setDealers(dealers.data);
-        setActivityList(activityType.data);
+
         setAreaList(resArea.data);
 
         if (years.data.length > 0) {
@@ -97,38 +87,24 @@ export default function ReportActivityByMonth() {
 
     try {
       const response = await useServiceAPI.get(
-        paths.pathReportSaleByMonth,
+        paths.pathReportActivityByMonth,
         requestData
       );
 
       if (response.status === 200) {
-        const { data_items, records_filtered, permission, items } =
+        const { item, records_filtered, permission, total } =
           response.data;
 
-        const newDataSource = data_items.map((row, index) => ({
+        const newDataSource = item.map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-          productName: row.product_name,
-          packSize: row.pack_size,
-          productId: row.product_id,
+          month_name: row.month_name,
+          month_id: row.month_id,
+          item: row.item,
         }));
 
-        const updatedData = items.map((month) => {
-          return {
-            ...month,
-            items: month.items.map((item) => ({
-              product_id: item.product_id,
-              product_name: item.product_name,
-              pack_size: item.pack_size,
-              work_plan_kg: item.work_plan_kg,
-              workplan_value: item.workplan_value,
-            })),
-          };
-        });
-
-        setItemColumn(updatedData);
         setPermission(permission);
         setDataSource(newDataSource);
-
+        setItemColumn(total)
         setTableParams({
           ...tableParams,
           pagination: {
@@ -143,6 +119,7 @@ export default function ReportActivityByMonth() {
       setTableLoading(false);
     }
   };
+
   useEffect(() => {
     if (years.length > 0) {
       fetchData();
@@ -177,12 +154,6 @@ export default function ReportActivityByMonth() {
       type: "select",
       label: "Sales",
       options: sales,
-    },
-    {
-      key: "dealer_id",
-      type: "select",
-      label: "Dealer",
-      options: dealers,
     },
   ];
 
@@ -223,9 +194,9 @@ export default function ReportActivityByMonth() {
 
   const header = [
     {
-      title: "Month", // Row 3
-      dataIndex: "productName",
-      key: "productName",
+      title: "Month",
+      dataIndex: "month_name",
+      key: "month_name",
       fixed: "left",
       width: 125,
       onHeaderCell: () => ({
@@ -237,12 +208,13 @@ export default function ReportActivityByMonth() {
         },
       }),
     },
-    ...activityList.map((act, index) => {
-      const bgColor = columnColors[index % columnColors.length]; // หมุนลูปสี
+    ...itemColumn.map((act, index) => {
+      const bgColor = columnColors[index % columnColors.length];
+      const activityId = act.activity_type_id;
 
       return {
-        title: act.name,
-        key: index,
+        title: act.activity_type_name,
+        key: `activity_${activityId}`,
         width: 125,
         onHeaderCell: () => ({
           style: {
@@ -253,17 +225,19 @@ export default function ReportActivityByMonth() {
           },
         }),
         render: (_, record) => {
-          //   const itemData =
-          //     act.id.find((product) => product.product_id == record.productId) ||
-          //     {};
-          const itemData = { work_plan_kg: 0 };
+          const activityItem = record.item.find(
+            (x) => x.activity_type_id === activityId
+          );
+
+          const set_value = activityItem ? parseInt(activityItem.total) : 0;
+
           return (
             <InputNumber
               className="w-full"
               min={0}
-              value={itemData.work_plan_kg}
+              value={set_value}
               formatter={(value) =>
-                `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
               disabled={true}
             />
@@ -273,9 +247,6 @@ export default function ReportActivityByMonth() {
     }),
   ];
 
-  console.log("header : ", header);
-
-  console.log("dataSource : ", dataSource);
 
   return (
     <>
@@ -292,7 +263,7 @@ export default function ReportActivityByMonth() {
           <TableCustomComponent
             header={header}
             dataSource={dataSource}
-            pagination={tableParams.pagination}
+            pagination={false}
             loading={tableLoading}
             onChange={handleTableChange}
             footer={() => (
@@ -300,11 +271,11 @@ export default function ReportActivityByMonth() {
                 <Table.Summary.Row className="bg-[#978B87]">
                   <Table.Summary.Cell
                     index={0}
-                    colSpan={2}
-                  ></Table.Summary.Cell>
+                  >Total</Table.Summary.Cell>
+
                   {itemColumn.map((month, index) => {
                     return (
-                      <React.Fragment key={`${month.id}_${index}`}>
+                      <React.Fragment key={`${month.activity_type_id}_${month.activity_type_id}`}>
                         <Table.Summary.Cell
                           key={`${month.id}_work_plan_kg`}
                           align="center"
@@ -312,24 +283,7 @@ export default function ReportActivityByMonth() {
                           <InputNumber
                             className="w-full"
                             disabled
-                            value={month.work_plan_kg}
-                            formatter={(value) =>
-                              `${parseInt(value)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                            style={{ backgroundColor: "white" }}
-                          />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell
-                          key={`${month.id}_workplan_value`}
-                          align="center"
-                        >
-                          <InputNumber
-                            className="w-full"
-                            disabled
-                            value={month.workplan_value}
+                            value={month.total_value}
                             formatter={(value) =>
                               `${parseInt(value)}`.replace(
                                 /\B(?=(\d{3})+(?!\d))/g,

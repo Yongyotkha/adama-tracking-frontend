@@ -272,6 +272,8 @@ export const paths = {
   pathReportQuarterly: "report/sale/quarterly",
   pathReportYearly: "report/sale/yearly",
 
+  pathReportActivityByMonth: "/report/activity/month",
+
   // Line OA
   pathProfileDetail: "profile/detail",
   pathProfileImage: "/profile/update-image",
