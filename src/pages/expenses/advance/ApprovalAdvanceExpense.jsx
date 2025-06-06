@@ -12,6 +12,7 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { ExclamationCircleFilled } from "@ant-design/icons";
+import { trim } from "lodash";
 
 export default function ApprovalAdvanceExpense() {
   const navigate = useNavigate();
@@ -226,6 +227,18 @@ export default function ApprovalAdvanceExpense() {
       );
 
       if (response.status === 200) {
+
+        console.log('action text : ', role.charAt(0).toUpperCase() + role.slice(1).toLowerCase())
+
+        let text_action = role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+
+        if (trim(role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()) == 'Head-of-sales') {
+          text_action = 'HOS'
+        } else if (trim(role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()) == 'Area') {
+          text_action = 'RSM'
+        }else if (trim(role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()) == 'Accounting') {
+          text_action = ''
+        }
         const { data, records_filtered } = response.data;
 
         const newDataSource = data.map((row, index) => {
@@ -253,7 +266,7 @@ export default function ApprovalAdvanceExpense() {
                     let mode = actionItem.action.toLowerCase();
                     let onClickHandler = null;
                     path = `/activity/approve`;
-                    text = `View ${role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()}`;
+                    text = `View ${text_action}`;
                     onClickHandler = () => {
                       navigate(path, {
                         state: {

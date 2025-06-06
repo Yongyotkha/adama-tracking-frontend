@@ -228,6 +228,9 @@ export default function ApprovalClearingExpense() {
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
 
+        let btn_view = role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()
+        btn_view=''
+
         const newDataSource = data.map((row, index) => {
           return {
             key: index + 1 + (current - 1) * pageSize,
@@ -252,9 +255,7 @@ export default function ApprovalClearingExpense() {
                     let mode = actionItem.action.toLowerCase();
                     let onClickHandler = null;
                     path = `/activity/approve`;
-                    text = `View ${
-                      role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()
-                    }`;
+                    text = `View ${btn_view}`;
                     onClickHandler = () => {
                       navigate(path, {
                         state: {

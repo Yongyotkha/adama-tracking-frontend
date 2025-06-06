@@ -97,6 +97,20 @@ export default function CreateActivity() {
     setFileList((prevFileList) => [...prevFileList, fileUpload]);
   };
 
+  console.log('userInfo : ', userInfo.role_id)
+
+  let btn_approve = 'Approve';
+
+  let btn_reject = 'Reject';
+
+  if (userInfo.role_id == 8) {
+
+    btn_approve = 'Confirm';
+
+    btn_reject = 'Cancel';
+
+  }
+
   useEffect(() => {
     if (!documentNumber) {
       const exists = saleList.some((item) => item.id === userInfo.id);
@@ -601,6 +615,26 @@ export default function CreateActivity() {
     return number.toLocaleString(undefined, { maximumFractionDigits: 2 });
   }
 
+  console.log('pageCode : ', pageCode)
+  console.log('mode : ', mode)
+  console.log('activityDetail : ', activityDetail?.permission?.edit)
+
+  let isDisabled = false;
+
+  if (pageCode !== "expense_clearing") {
+    isDisabled = true;
+  } else {
+    if (mode === "create") {
+      isDisabled = false;
+    } else {
+      if (!activityDetail?.permission?.edit) {
+        isDisabled = true;
+      } else {
+        isDisabled = false;
+      }
+    }
+  }
+
   const header = [
     {
       title: "Product Name",
@@ -657,13 +691,7 @@ export default function CreateActivity() {
           className="w-full"
           min={0}
           value={record.acutal_sale_qty}
-          disabled={
-            pageCode != "expense_clearing"
-              ? true
-              : mode === "create"
-                ? false
-                : !activityDetail?.permission?.edit
-          }
+          disabled={isDisabled}
           onChange={(value) =>
             handleInputChange(
               value,
@@ -680,6 +708,7 @@ export default function CreateActivity() {
       ),
     },
   ];
+
 
   const handleInputChange = (value, key, field, bath_ltkg, record) => {
     console.log(value, key, field, bath_ltkg, record);
@@ -1473,15 +1502,24 @@ export default function CreateActivity() {
               <div className="text-[#00783F] text-lg font-semibold mb-3">
                 Participant
               </div>
-              {pageCode == "expense_clearing" ? (
-                viewSegment ? null : (
-                  <ActionButton
-                    mode="add"
-                    text="Add"
-                    onClick={handleAddSelectedRows}
-                  />
-                )
-              ) : undefined}
+
+              {(() => {
+                if (pageCode === "expense_clearing") {
+                  if (!viewSegment && userInfo.role_id!=2) {
+                    return (
+                      <ActionButton
+                        mode="add"
+                        text="Add"
+                        onClick={handleAddSelectedRows}
+                      />
+                    );
+                  } else {
+                    return null;
+                  }
+                } else {
+                  return null;
+                }
+              })()}
             </div>
 
             <Form
@@ -1614,7 +1652,7 @@ export default function CreateActivity() {
         {activityDetail?.permission?.btn_reject && (
           <ActionButton
             mode="reject"
-            text="Reject"
+            text={btn_reject}
             onClick={() => {
               handleApproval("reject");
             }}
@@ -1624,7 +1662,7 @@ export default function CreateActivity() {
         {activityDetail?.permission?.btn_approved && (
           <ActionButton
             mode="save"
-            text="Approve"
+            text={btn_approve}
             onClick={() => {
               handleApproval("approved");
             }}
