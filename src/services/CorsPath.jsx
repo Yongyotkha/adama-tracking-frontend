@@ -273,6 +273,8 @@ export const paths = {
   pathReportYearly: "report/sale/yearly",
 
   pathReportActivityByMonth: "/report/activity/month",
+  pathReportActivityExpense: "/report/activity/expense",
+  pathReportActivityType: "/report/activity/type",
 
   // Line OA
   pathProfileDetail: "profile/detail",

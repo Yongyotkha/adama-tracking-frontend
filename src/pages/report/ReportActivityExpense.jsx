@@ -3,7 +3,7 @@ import MainLayout from "../../layouts/MainLayout";
 import Filter from "../../components/filter/Filter";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import TableComponent from "../../components/table/TableComponent";
-import { Dropdown, InputNumber, Select, Table } from "antd";
+import { Dropdown, InputNumber, Select, Table, Form, Row, Col } from "antd";
 import BadgeStatus from "../../components/badge/BadgeStatus";
 import ItemDropDown from "../../components/dropdown/ItemDropDown";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -12,210 +12,25 @@ import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
 import Title from "../../components/title/Title";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
+import DynamicButton from "../../components/button/DynamicButton";
 
-export default function ReportActivityExpense() {
-  const navigate = useNavigate();
-  const location = useLocation();
+export default function ReportSaleByMonth() {
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState([]);
   const [years, setYears] = useState([]);
   const [sales, setSales] = useState([]);
-  const [crops, setCrops] = useState([]);
   const [products, setProducts] = useState([]);
   const [dealers, setDealers] = useState([]);
   const [itemColumn, setItemColumn] = useState([]);
   const [defaultOption, setDefaultOption] = useState();
-  const [permission, setPermission] = useState([]);
   const [dataSource, setDataSource] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const { showNotification, formatNumber } = useContext(AuthContext);
-  const [activityList, setActivityList] = useState([]);
   const [areaList, setAreaList] = useState([]);
-  const [tableParams, setTableParams] = useState({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-    },
-    filters: {},
-    sortOrder: null,
-    sortField: null,
-  });
-
-  useEffect(() => {
-    const getMaster = async () => {
-      setLoading(true);
-      try {
-        const [years, sales, crops, products, dealers, activityType, resArea] =
-          await Promise.all([
-            useServiceAPI.get(paths.pathMasterYear),
-            useServiceAPI.get(paths.pathMasterSaleDropdown),
-            useServiceAPI.get(paths.pathMasterCrop),
-            useServiceAPI.get(paths.pathMasterProducts),
-            useServiceAPI.get(paths.pathMasterDealerAll),
-            useServiceAPI.get(paths.pathMasterActivityType),
-            useServiceAPI.get(paths.pathMasterAreas),
-          ]);
-
-        setYears(years.data);
-        setSales(sales.data);
-        setCrops(crops.data);
-        setProducts(products.data);
-        setDealers(dealers.data);
-        setActivityList(activityType.data);
-        setAreaList(resArea.data);
-
-        if (years.data.length > 0) {
-          setTableParams({
-            ...tableParams,
-            filters: { year_code: years.data[0] },
-          });
-        }
-      } catch (error) {
-        showNotification("error", error.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
-    getMaster();
-  }, []);
-
-  const fetchData = async () => {
-
-    setTableLoading(true);
-
-    const { current, pageSize } = tableParams.pagination;
-    const filters = tableParams.filters || {};
-
-    const requestData = {
-      keyword: filters.keyword || "",
-      year_code: filters.year_code,
-      user_id: filters.user_id,
-      dealer_id: filters.dealer_id,
-      crop_id: filters.crop_id,
-      page_length: 1,
-      page_size: pageSize,
-    };
-
-    try {
-      const response = await useServiceAPI.get(
-        paths.pathReportSaleByMonth,
-        requestData
-      );
-
-      if (response.status === 200) {
-        const { data_items, records_filtered, permission, items } =
-          response.data;
-
-        const newDataSource = data_items.map((row, index) => ({
-          key: index + 1 + (current - 1) * pageSize,
-          productName: row.product_name,
-          packSize: row.pack_size,
-          productId: row.product_id,
-        }));
-
-        const updatedData = items.map((month) => {
-          return {
-            ...month,
-            items: month.items.map((item) => ({
-              product_id: item.product_id,
-              product_name: item.product_name,
-              pack_size: item.pack_size,
-              work_plan_kg: item.work_plan_kg,
-              workplan_value: item.workplan_value,
-            })),
-          };
-        });
-
-        setItemColumn(updatedData);
-        setPermission(permission);
-        setDataSource(newDataSource);
-
-        console.log('data source : ',dataSource)
-
-        setTableParams({
-          ...tableParams,
-          pagination: {
-            ...tableParams.pagination,
-            total: records_filtered,
-          },
-        });
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setTableLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (years.length > 0) {
-      fetchData();
-    }
-  }, [
-    JSON.stringify(tableParams.filters),
-  ]);
-
-  const handleTableChange = (pagination, filters, sorter) => {
-    console.log(pagination, filters, sorter);
-    setTableParams({
-      pagination,
-      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
-    });
-  };
-
-  const filters = [
-    {
-      key: "area_id",
-      type: "select",
-      label: "Area",
-      options: areaList,
-    },
-    {
-      key: "user_id",
-      type: "select",
-      label: "Sales",
-      options: sales,
-    },
-  ];
-
-  useEffect(() => {
-    setTableParams((prev) => ({
-      ...prev,
-      filters: {
-        ...prev.filters,
-        permission_id: defaultOption,
-      },
-      pagination: {
-        current: 1,
-        pageSize: 10,
-      },
-    }));
-  }, [defaultOption]);
-
-  const handleSearch = (filters) => {
-    console.log(filters);
-    setTableParams({
-      ...tableParams,
-      filters,
-      pagination: {
-        current: 1,
-        pageSize: 10,
-      },
-    });
-  };
-
-  const handleClear = () => {
-    setTableParams({
-      ...tableParams,
-      filters: {},
-    });
-  };
-
-  const columnColors = ["#009845", "#7DB41E", "#93CC23"];
+  const [formCustom] = Form.useForm();
 
   const header = [
     {
-      title: "Month", // Row 3
+      title: "Month",
       onHeaderCell: () => ({
         style: {
           backgroundColor: "#00783F",
@@ -226,7 +41,7 @@ export default function ReportActivityExpense() {
       }),
       children: [
         {
-          title: "Activity Type",
+          title: "Product Name",
           dataIndex: "productName",
           key: "productName",
           fixed: "left",
@@ -242,155 +57,400 @@ export default function ReportActivityExpense() {
         },
       ],
     },
-    ...itemColumn.map((month, index) => {
-      const bgColor = columnColors[index % columnColors.length]; // หมุนลูปสี
-
-      return {
-        title: month.name,
-        key: index,
-        onHeaderCell: () => ({
-          style: {
-            backgroundColor: bgColor,
-            color: "white",
-            fontWeight: "bold",
-            textAlign: "center",
-          },
-        }),
-        children: [
-          {
-            title: "Plan(Value)",
-            key: index,
-            width: 125,
-            onHeaderCell: () => ({
-              style: {
-                backgroundColor: bgColor,
-                color: "white",
-                fontWeight: "bold",
-                textAlign: "center",
-              },
-            }),
-            render: (_, record) => {
-              const itemData =
-                month.items.find(
-                  (product) => product.product_id == record.productId
-                ) || {};
-              return (
-                <InputNumber
-                  className="w-full"
-                  min={0}
-                  value={itemData.work_plan_kg}
-                  formatter={(value) =>
-                    `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  disabled={true}
-                />
-              );
+    ...itemColumn.map((month, index) => ({
+      title: month.name,
+      key: index,
+      onHeaderCell: () => ({
+        style: {
+          backgroundColor: index % 2 === 1 ? "#00783F" : "#009845",
+          color: "white",
+          fontWeight: "bold",
+          textAlign: "center",
+        },
+      }),
+      children: [
+        {
+          title: "Work Plan(KG)",
+          key: index,
+          width: 125,
+          onHeaderCell: () => ({
+            style: {
+              backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สีเขียวสลับ
+              color: "white",
+              fontWeight: "bold",
+              textAlign: "center",
             },
+          }),
+          render: (_, record) => {
+            const itemData = month.product.find(
+              (product) => product.product_name === record.productName
+            ) || {};
+            return (
+              <InputNumber
+                className="w-full"
+                min={0}
+                value={
+                  isNaN(itemData.workplan_qty) || itemData.workplan_qty == null
+                    ? 0
+                    : itemData.workplan_qty
+                }
+                formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                disabled={true}
+              />
+            );
           },
-          {
-            title: "Actual(Value)",
-            key: index,
-            width: 125,
-            onHeaderCell: () => ({
-              style: {
-                backgroundColor: bgColor,
-                color: "white",
-                fontWeight: "bold",
-                textAlign: "center",
-              },
-            }),
-            render: (_, record) => {
-              const itemData =
-                month.items.find(
-                  (product) => product.product_id == record.productId
-                ) || {};
-              return (
-                <InputNumber
-                  className="w-full"
-                  min={0}
-                  value={itemData.work_plan_kg}
-                  formatter={(value) =>
-                    `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  disabled={true}
-                />
-              );
+        },
+        {
+          title: "Rolling Forecast(KG)",
+          key: index,
+          width: 125,
+          onHeaderCell: () => ({
+            style: {
+              backgroundColor: "#7DB41E", // สีเขียวสลับ
+              color: "white",
+              fontWeight: "bold",
+              textAlign: "center",
             },
+          }),
+          render: (_, record) => {
+            const itemData = month.product.find(
+              (product) => product.product_name === record.productName
+            ) || {};
+            return (
+              <InputNumber
+                className="w-full"
+                min={0}
+                value={
+                  isNaN(itemData.rolling_qty) || itemData.rolling_qty == null
+                    ? 0
+                    : itemData.rolling_qty
+                }
+                formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                disabled={true}
+              />
+            );
           },
-        ],
-      };
-    }),
+        },
+      ],
+    })),
   ];
 
+  const [tableParams, setTableParams] = useState({
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+    filters: {},
+    sortOrder: null,
+    sortField: null,
+  });
 
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [years, sales, products, dealers, resArea] =
+          await Promise.all([
+            useServiceAPI.get(paths.pathMasterYear),
+            useServiceAPI.get(paths.pathMasterSaleDropdown),
+            useServiceAPI.get(paths.pathReportProducts),
+            useServiceAPI.get(paths.pathMasterDealerAll),
+            useServiceAPI.get(paths.pathMasterAreas),
+          ]);
+
+        setYears(years.data);
+        setSales(sales.data.map((item) => ({
+          value: item.id,
+          label: item.name
+        })));
+        setProducts(products.data.map((item) => ({
+          value: item.product_name,
+          label: item.product_name
+        })));
+        setDealers(dealers.data.map((item) => ({
+          value: item.id,
+          label: item.name
+        })));
+        setAreaList(resArea.data.map((item) => ({
+          value: item.id,
+          label: item.name
+        })));
+        if (years.data.length > 0) {
+          setTableParams({
+            ...tableParams,
+            filters: { year_code: years.data[0] },
+          });
+        }
+      } catch (error) {
+        showNotification("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+    getMaster();
+  }, []);
+
+  useEffect(() => {
+    if (years.length > 0) {
+      fetchData();
+    }
+  }, [
+    // tableParams.pagination.current,
+    // tableParams.pagination.pageSize,
+    // tableParams.sortOrder,
+    // tableParams.sortField,
+    JSON.stringify(tableParams.filters),
+  ]);
+
+  useEffect(() => {
+    setTableParams((prev) => ({
+      ...prev,
+      filters: {
+        ...prev.filters,
+        permission_id: defaultOption,
+      },
+      pagination: {
+        current: 1,
+        pageSize: 10,
+      },
+    }));
+  }, [defaultOption]);
+
+  const handleSearch = async () => {
+    fetchData()
+  };
+
+  const fetchData = async () => {
+    setTableLoading(true);
+    const { current, pageSize } = tableParams.pagination;
+
+    const values = await formCustom.validateFields(); // รับค่าจาก form
+
+    const payload = {
+      area_id: values.area_id || null,
+      sale_id: values.sale_id || null,
+      product_name: values.product_name || null,
+      dealer_id: values.dealer_id || null,
+      year_code: tableParams.filters.year_code || null,
+      page_length: 1,
+      page_size: pageSize,
+    };
+
+    try {
+      const response = await useServiceAPI.get(
+        paths.pathReportMonthly,
+        payload
+      );
+
+      if (response.status === 200) {
+
+        const { data_items, records_filtered, permission, items } = response.data;
+
+        const newDataSource = data_items.map((row, index) => ({
+          key: index + 1 + (current - 1) * pageSize,
+          productName: row.product_name,
+          packSize: row.pack_size,
+          productId: row.product_id,
+        }));
+
+        setItemColumn(items);
+        setDataSource(newDataSource);
+        setTableParams({
+          ...tableParams,
+          pagination: {
+            ...tableParams.pagination,
+            total: records_filtered,
+          },
+        });
+
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
+  const handleTableChange = (pagination, filters, sorter) => {
+    console.log(pagination, filters, sorter);
+    setTableParams({
+      pagination,
+      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+    });
+  };
+
+
+
+  const calculateFooterSums = () => {
+    return itemColumn.map((month) => {
+      const sumReducer = (field) =>
+        month.product.reduce((sum, product) => sum + (product[field] || 0), 0);
+
+      return {
+        id: month.id,
+        workplan_qty: sumReducer("workplan_qty"),
+        rolling_qty: sumReducer("rolling_qty"),
+        actual_qty: sumReducer("actual_qty"),
+        workplan_value: sumReducer("workplan_value"),
+        rolling_value: sumReducer("rolling_value"),
+        actual_value: sumReducer("actual_value"),
+      };
+    });
+  };
 
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
         <Title prefix="Activity Expenses Report" />
 
-        <Filter
-          onSearch={handleSearch}
-          onClear={handleClear}
-          filters={filters}
-        />
+        <Form form={formCustom} layout="vertical">
+          <BoxPrimary className="m-1 mb-4">
+            <Row gutter={16} align="middle">
+
+              <Col md={6}>
+                <Form.Item
+                  label="Area"
+                  name="area_id"
+                >
+                  <Select
+                    placeholder="Select Area"
+                    options={areaList}
+                  />
+                </Form.Item>
+              </Col>
+              <Col md={6}>
+                <Form.Item
+                  label="Sales"
+                  name="sale_id"
+                >
+                  <Select
+                    placeholder="Select Sale"
+                    options={sales}
+                  />
+                </Form.Item>
+              </Col>
+
+              <Col md={6}>
+                <Form.Item
+                  label="Product"
+                  name="product_name"
+                >
+                  <Select
+                    placeholder="Select Product"
+                    options={products}
+
+                  />
+                </Form.Item>
+              </Col>
+              <Col md={6}>
+                <Form.Item
+                  label="Dealers"
+                  name="dealer_id"
+                >
+                  <Select
+                    placeholder="Select Dealers"
+                    options={dealers}
+                  />
+                </Form.Item>
+              </Col>
+
+
+            </Row>
+
+            <div className="flex justify-end gap-4 px-4 pt-5">
+              <DynamicButton
+                onClick={handleSearch}
+                name='btn-search'
+                text="Search"
+                iconSrc="/img/icons/search.png"
+                className="text-white px-4 py-3 rounded-[4px] bg-[#7DB41E]"
+
+              />
+              <DynamicButton
+                onClick={() => {
+                  formCustom.resetFields(["area_id", "sale_id", "product_name", "dealer_id"]);
+                }}
+                name="btn-clear"
+                text="Clear"
+                iconSrc="/img/icons/trash.png"
+                className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
+
+              />
+            </div>
+          </BoxPrimary>
+
+
+        </Form>
+
+
 
         <BoxPrimary>
           <TableCustomComponent
             header={header}
             dataSource={dataSource}
-            pagination={tableParams.pagination}
+            // pagination={tableParams.pagination}
+            pagination={false}
             loading={tableLoading}
             onChange={handleTableChange}
-            footer={() => (
-              <Table.Summary fixed>
-                <Table.Summary.Row className="bg-[#978B87]">
-                  <Table.Summary.Cell
-                    index={0}
-                  >Total (THB)</Table.Summary.Cell>
-                  {itemColumn.map((month, index) => {
-                    return (
+            footer={() => {
+              const footerData = calculateFooterSums();
+              return (
+                <Table.Summary fixed>
+                  <Table.Summary.Row className="bg-[#978B87]">
+                    <Table.Summary.Cell index={0}>Total (THB)</Table.Summary.Cell>
+                    {footerData.map((month, index) => (
                       <React.Fragment key={`${month.id}_${index}`}>
-                        <Table.Summary.Cell
-                          key={`${month.id}_work_plan_kg`}
-                          align="center"
-                        >
+                        <Table.Summary.Cell align="center">
+                          <InputNumber className="w-full" disabled value={month.workplan_qty}
+                            formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} />
+                        </Table.Summary.Cell>
+                        <Table.Summary.Cell align="center">
                           <InputNumber
                             className="w-full"
                             disabled
-                            value={month.work_plan_kg}
-                            formatter={(value) =>
-                              `${parseInt(value)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                            style={{ backgroundColor: "white" }}
+                            value={month.rolling_qty}
+                            formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                           />
                         </Table.Summary.Cell>
-                        <Table.Summary.Cell
-                          key={`${month.id}_workplan_value`}
-                          align="center"
-                        >
+                        <Table.Summary.Cell align="center">
+                          <InputNumber
+                            className="w-full"
+                            disabled
+                            value={month.actual_qty}
+                            formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                          />
+                        </Table.Summary.Cell>
+                        <Table.Summary.Cell align="center">
                           <InputNumber
                             className="w-full"
                             disabled
                             value={month.workplan_value}
-                            formatter={(value) =>
-                              `${parseInt(value)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                            style={{ backgroundColor: "white" }}
+                            formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                          />
+                        </Table.Summary.Cell>
+                        <Table.Summary.Cell align="center">
+                          <InputNumber
+                            className="w-full"
+                            disabled
+                            value={month.rolling_value}
+                            formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                          />
+                        </Table.Summary.Cell>
+                        <Table.Summary.Cell align="center">
+                          <InputNumber
+                            className="w-full"
+                            disabled
+                            value={month.actual_value}
+                            formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                           />
                         </Table.Summary.Cell>
                       </React.Fragment>
-                    );
-                  })}
-                </Table.Summary.Row>
-              </Table.Summary>
-            )}
+                    ))}
+                  </Table.Summary.Row>
+                </Table.Summary>
+              );
+            }}
+
           />
         </BoxPrimary>
       </MainLayout>

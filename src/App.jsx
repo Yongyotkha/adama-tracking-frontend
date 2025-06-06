@@ -201,7 +201,7 @@ const App = () => {
             <Route path="/activity/list" element={<ActivityList />} />
             <Route path="/activity/:mode" element={<CreateActivity />} />
             <Route path="/activity/creates" element={<CreateActivityManyShop />} />
- 
+
             <Route path="/activity/calendar" element={<ActivityCalendar />} />
             <Route path="/activity/mapping" element={<ActivityMapping />} />
 
@@ -242,7 +242,7 @@ const App = () => {
             <Route path="/expenses/material" element={<MaterialExpense />} />
             <Route path="/expenses/material/:mode" element={<ActionMaterialExpense />} />
 
-            
+
             {/* Approval Expenses Route */}
 
             <Route path="/expenses/advance/approval/:role" element={<ApprovalAdvanceExpense />} />
@@ -302,7 +302,7 @@ const App = () => {
             <Route path="/setting/line/register-customer/detail" element={<RegisteredCustomerDetail />} />
             <Route path="/setting/line/customer/create" element={<CreateCustomerLine />} />
             {/* <Route path="/setting/line/customer/edit" element={<EditCustomerLine />} /> */}
-            
+
             <Route path="/setting/line/expire-point" element={<ExpirePointList />} />
             <Route path="/setting/line/manage-news" element={<ManageNewsList />} />
             <Route path="/setting/line/manage-news/create" element={<CreateManageNews />} />
@@ -316,16 +316,18 @@ const App = () => {
 
             <Route path="/setting/mileage" element={<MileageManagement />} />
             <Route path="/setting/mileage/edit" element={<EditMileage />} />
-            
+
 
             {/* Report Route */}
             <Route path="/report/monthly" element={<ReportSaleByMonth />} />
             <Route path="/report/quarterly" element={<ReportSaleByQuarter />} />
             <Route path="/report/yearly" element={<ReportSaleByYear />} />
             <Route path="/report/activity" element={<ReportActivity />} />
-            <Route path="/report/activity-month" element={<ReportActivityByMonth />} />
-            <Route path="/report/activity-expense" element={<ReportActivityExpense />} />
+            <Route path="/report/activity-crop" element={<ReportActivityByMonth />} />
             <Route path="/report/activity-type" element={<ReportActivityByType />} />
+            <Route path="/report/activity-month" element={<ReportActivityExpense />} />
+            {/* <Route path="/report/activity-expense" element={<ReportActivityExpense />} /> */}
+
             <Route path="/report/stock-report" element={<ReportStock />} />
 
           </Route>
@@ -364,7 +366,7 @@ const App = () => {
 
           <Route path="/mobile/scan-collect" element={< ScanCollectPoint />} />
           <Route path="/mobile/take-photo" element={< TakePhoto />} />
-          
+
           {/* Error Route */}
           <Route path="/error/403" element={<Error403 />} />
           <Route path="*" element={<Error404 />} />
