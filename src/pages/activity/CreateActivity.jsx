@@ -1368,13 +1368,9 @@ export default function CreateActivity() {
                         });
                       }}
                       disabled={
-                        mode === "create" && pageCode === "expense_clearing"
-                          ? true
-                          : pageCode !== "expense_clearing"
-                            ? false
-                            : pageCode === "expense_clearing"
-                              ? true
-                              : !activityDetail?.permission?.edit
+                        mode === "view" ||
+                        (mode === "create" && pageCode === "expense_clearing") ||
+                        (pageCode === "expense_clearing" && !activityDetail?.permission?.edit)
                       }
                     />{" "}
                   </Form.Item>
@@ -1505,7 +1501,7 @@ export default function CreateActivity() {
 
               {(() => {
                 if (pageCode === "expense_clearing") {
-                  if (!viewSegment && userInfo.role_id!=2) {
+                  if (!viewSegment && userInfo.role_id != 2) {
                     return (
                       <ActionButton
                         mode="add"
@@ -1575,7 +1571,7 @@ export default function CreateActivity() {
                       className="w-full"
                       min={0}
                       placeholder="0"
-                      disabled={pageCode != "expense_clearing"}
+                      disabled={mode === "approve" || mode === "view" || pageCode !== "expense_clearing"}
                       formatter={(value) =>
                         `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                       }

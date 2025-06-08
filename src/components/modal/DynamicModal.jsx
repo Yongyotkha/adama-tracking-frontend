@@ -31,24 +31,16 @@ const DynamicModal = ({
   //     item?.position?.toLowerCase().includes(searchText.toLowerCase())
   // );
 
-  const filteredData = dataSource.filter((item) => {
-    // ล็อกแต่ละ item สำหรับการดีบัก (สามารถลบได้เมื่อไม่ต้องการ)  
-    const search = searchText.toLowerCase();
-    const nameMatches =
-      typeof item.name === 'string' &&
-      item.name.toLowerCase().includes(search);
-    const territoryMatches =
-      typeof item.territory === 'string' &&
-      item.territory.toLowerCase().includes(search);
-    const positionMatches =
-      typeof item.positionText === 'string' &&
-      item.positionText.toLowerCase().includes(search);
-  
-    return nameMatches || territoryMatches || positionMatches;
-  });
+  console.log('yyyy : ', dataSource)
+  const filteredData = dataSource.filter((item) =>
+    Object.values(item).some(
+      (val) => typeof val === "string" && val.toLowerCase().includes(searchText.toLowerCase())
+    )
+  );
 
-  
-  
+  console.log('xxxx : ', filteredData)
+
+
   const rowSelection = {
     selectedRowKeys,
     onChange: (selectedKeys) => {
@@ -94,6 +86,7 @@ const DynamicModal = ({
           className="w-[200px]"
         />
       </div>
+
 
       {type === "add" ? (
         <TableCheckbox

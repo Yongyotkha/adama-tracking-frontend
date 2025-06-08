@@ -12,12 +12,15 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { ExclamationCircleFilled } from "@ant-design/icons";
+import DynamicModal from "../../../components/modal/DynamicModal";
+
 
 export default function ApprovalClearingExpense() {
   const navigate = useNavigate();
   const location = useLocation();
   const { role } = useParams();
   const { confirm } = Modal;
+  const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [activityList, setActivityList] = useState([]);
@@ -25,6 +28,8 @@ export default function ApprovalClearingExpense() {
   const [dealerList, setDealerList] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const { showNotification } = useContext(AuthContext);
+  const [userList, setUserList] = useState([]);
+  const [logs, setLogs] = useState([]);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -77,6 +82,8 @@ export default function ApprovalClearingExpense() {
       placeholder: "YYYY-MM-DD",
     },
   ];
+
+
 
   const handleSearch = (filters) => {
     setTableParams({
@@ -194,6 +201,11 @@ export default function ApprovalClearingExpense() {
     { title: "Action", dataIndex: "action", align: "center" },
   ];
 
+
+  useEffect(() => {
+    console.log("logs updated:", logs);
+  }, [userList]);
+
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -229,9 +241,29 @@ export default function ApprovalClearingExpense() {
         const { data, records_filtered } = response.data;
 
         let btn_view = role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()
-        btn_view=''
+        btn_view = ''
+
 
         const newDataSource = data.map((row, index) => {
+
+
+          let bad_status = <BadgeStatus
+            text={row.transaction_status_name}
+            bgColor={row.transaction_status_bg_color}
+            textColor={row.transaction_status_color}
+          />
+
+          if (row.transaction_status_name == 'Reject') {
+            bad_status = <BadgeStatus
+              text={row.transaction_status_name}
+              bgColor={row.transaction_status_bg_color}
+              textColor={row.transaction_status_color}
+              onClick={async () => {
+                await fetchDialog(row.document_number);
+                setIsTerritoryModalVisible(true);
+              }}
+            />
+          }
           return {
             key: index + 1 + (current - 1) * pageSize,
             customer: row.customer_name,
@@ -239,13 +271,7 @@ export default function ApprovalClearingExpense() {
             activityReference: row.document_number_referrent,
             typeOfMeeting: row.activity_type_name,
             date: row.document_date,
-            status: (
-              <BadgeStatus
-                text={row.transaction_status_name}
-                bgColor={row.transaction_status_bg_color}
-                textColor={row.transaction_status_color}
-              />
-            ),
+            status: bad_status,
             action: (
               <Dropdown
                 menu={{
@@ -328,6 +354,62 @@ export default function ApprovalClearingExpense() {
     });
   };
 
+  const logsColumns = [
+    {
+      title: "วันที่",
+      dataIndex: "date",
+      key: "date",
+    },
+    {
+      title: "สถานะ",
+      dataIndex: "status",
+      key: "status",
+    },
+    {
+      title: "เหตุผล",
+      dataIndex: "reason",
+      key: "reason",
+    },
+    {
+      title: "ผู้ดำเนินการ",
+      dataIndex: "update_by",
+      key: "update_by",
+    },
+  ];
+
+
+  const fetchDialog = async (document_number) => {
+    setLoading(true);
+
+    try {
+      const response = await useServiceAPI.get(paths.pathActivityExpenseLog, {
+        document_number: document_number,
+      });
+
+      const rawData = response?.data ?? [];
+      if (Array.isArray(rawData) && rawData.length > 0) {
+        const territoryData = rawData.map((item, index) => ({
+          key: index + 1,
+          date: item.updated_at,
+          status: item.description,
+          reason: item.remark,
+          update_by: item.update_by,
+        }));
+        console.log('territoryData : ', territoryData)
+        setLogs(territoryData);
+      } else {
+        setLogs([]);
+      }
+
+    } catch (error) {
+      console.error("Error fetching user list:", error);
+      setLogs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -360,6 +442,14 @@ export default function ApprovalClearingExpense() {
           onChange={handleTableChange}
         />
       </BoxPrimary>
+      <DynamicModal
+        title="Log Detail"
+        isVisible={isTerritoryModalVisible}
+        onClose={() => setIsTerritoryModalVisible(false)}
+        header={logsColumns}
+        dataSource={logs}
+        width="1200px"
+      />
     </MainLayout>
   );
 }

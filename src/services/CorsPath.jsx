@@ -219,6 +219,7 @@ export const paths = {
   pathActivityExpenseDetail: "/activity-expense/detail",
   pathActivityExpenseList: "/activity-expense/list",
   pathActivityExpenseDelete: "/activity-expense/delete",
+  pathActivityExpenseLog: "/activity-expense/log",
 
   // Activity Calendar
   pathActivityCalendarList: "/activity/calendar/list",
