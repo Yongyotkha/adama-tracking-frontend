@@ -104,90 +104,22 @@ export default function ReportActivityByType() {
     };
 
     try {
-      const response = await useServiceAPI.get(
-        paths.pathReportSaleByMonth,
-        requestData
-      );
+      const response = await useServiceAPI.get(paths.pathReportActivityType, requestData);
 
       if (response.status === 200) {
-        const { data_items, records_filtered, permission, items } =
-          response.data;
+        const activityData = response.data;
 
-        const newDataSource = data_items.map((row, index) => ({
-          key: index + 1 + (current - 1) * pageSize,
-          productName: row.product_name,
-          packSize: row.pack_size,
-          productId: row.product_id,
+        const formattedData = activityData.map((item, index) => ({
+          key: item.activity_type_id,
+          activity_type_name: item.activity_type_name,
+          total_activity_plan: parseFloat(item.total_activity_plan),
+          total_activity_list: parseInt(item.total_activity_list),
+          total_activity_actual: parseInt(item.total_activity_actual),
         }));
 
-        const updatedData = items.map((month) => {
-          return {
-            ...month,
-            items: month.items.map((item) => ({
-              product_id: item.product_id,
-              product_name: item.product_name,
-              pack_size: item.pack_size,
-              work_plan_kg: item.work_plan_kg,
-              workplan_value: item.workplan_value,
-            })),
-          };
-        });
-
-        // const newDataSource = [
-        //   {
-        //     crop: 12,
-        //     productId: "Almagor MCW",
-        //     productName: "Almagor MCW",
-        //     packSize: "Almagor MCW",
-        //     0: 123,
-        //     1: 123,
-        //     2: 123,
-        //     3: 123,
-        //     4: 123,
-        //     5: 123,
-        //     6: 123,
-        //     7: 123,
-        //     8: 123,
-        //     9: 123,
-        //     10: 123,
-        //     11: 123,
-        //     12: 123,
-        //   },
-        //   {
-        //     crop: 12,
-        //     productId: "Almagor MCW",
-        //     productName: "Almagor MCW",
-        //     packSize: "Almagor MCW",
-        //     0: 123,
-        //     1: 123,
-        //     2: 123,
-        //     3: 123,
-        //     4: 123,
-        //     5: 123,
-        //     6: 123,
-        //     7: 123,
-        //     8: 123,
-        //     9: 123,
-        //     10: 123,
-        //     11: 123,
-        //     12: 123,
-        //   },
-        // ];
-
-        setItemColumn(updatedData);
-        setPermission(permission);
-        setDataSource(newDataSource);
-
-
-
-        setTableParams({
-          ...tableParams,
-          pagination: {
-            ...tableParams.pagination,
-            total: records_filtered,
-          },
-        });
+        setDataSource(formattedData);
       }
+
     } catch (error) {
       console.error(error);
     } finally {
@@ -268,11 +200,10 @@ export default function ReportActivityByType() {
 
   const header = [
     {
-      title: "Activity Type", // Row 3
-      dataIndex: "productName",
-      key: "productName",
-      fixed: "left",
-      width: 125,
+      title: "Activity Type",
+      dataIndex: "activity_type_name",
+      key: "activity_type_name",
+      align: "left",
       onHeaderCell: () => ({
         style: {
           backgroundColor: "#00783F",
@@ -283,9 +214,10 @@ export default function ReportActivityByType() {
       }),
     },
     {
-      title: 'Activity Plan',
-      key: 0,
-      width: 125,
+      title: "Activity Plan",
+      dataIndex: "total_activity_plan",
+      key: "total_activity_plan",
+      align: "right",
       onHeaderCell: () => ({
         style: {
           backgroundColor: "#009845",
@@ -294,25 +226,20 @@ export default function ReportActivityByType() {
           textAlign: "center",
         },
       }),
-      render: (_, record) => {
-        const itemData = { work_plan_kg: 0 };
-        return (
-          <InputNumber
-            className="w-full"
-            min={0}
-            value={itemData.work_plan_kg}
-            formatter={(value) =>
-              `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-            }
-            disabled={true}
-          />
-        );
-      },
+      render: (value) => (
+        <InputNumber
+          className="w-full"
+          disabled
+          value={value}
+          formatter={(val) => `${parseInt(val)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+        />
+      ),
     },
     {
-      title: 'Activity List',
-      key: 1,
-      width: 125,
+      title: "Activity List",
+      dataIndex: "total_activity_list",
+      key: "total_activity_list",
+      align: "right",
       onHeaderCell: () => ({
         style: {
           backgroundColor: "#7DB41E",
@@ -321,25 +248,20 @@ export default function ReportActivityByType() {
           textAlign: "center",
         },
       }),
-      render: (_, record) => {
-        const itemData = { work_plan_kg: 0 };
-        return (
-          <InputNumber
-            className="w-full"
-            min={0}
-            value={itemData.work_plan_kg}
-            formatter={(value) =>
-              `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-            }
-            disabled={true}
-          />
-        );
-      },
+      render: (value) => (
+        <InputNumber
+          className="w-full"
+          disabled
+          value={value}
+          formatter={(val) => `${val}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+        />
+      ),
     },
     {
-      title: 'Activity Actual',
-      key: 2,
-      width: 125,
+      title: "Activity Actual",
+      dataIndex: "total_activity_actual",
+      key: "total_activity_actual",
+      align: "right",
       onHeaderCell: () => ({
         style: {
           backgroundColor: "#93CC23",
@@ -348,22 +270,17 @@ export default function ReportActivityByType() {
           textAlign: "center",
         },
       }),
-      render: (_, record) => {
-        const itemData = { work_plan_kg: 0 };
-        return (
-          <InputNumber
-            className="w-full"
-            min={0}
-            value={itemData.work_plan_kg}
-            formatter={(value) =>
-              `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-            }
-            disabled={true}
-          />
-        );
-      },
+      render: (value) => (
+        <InputNumber
+          className="w-full"
+          disabled
+          value={value}
+          formatter={(val) => `${val}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+        />
+      ),
     },
   ];
+
 
 
   return (
@@ -384,57 +301,57 @@ export default function ReportActivityByType() {
             pagination={tableParams.pagination}
             loading={tableLoading}
             onChange={handleTableChange}
-            footer={() => (
-              <Table.Summary fixed>
-                <Table.Summary.Row className="bg-[#978B87]">
-                  <Table.Summary.Cell
-                    index={0}
-                  >Total (THB)</Table.Summary.Cell>
-                  {itemColumn.map((month, index) => {
-                    return (
-                      <React.Fragment key={`${month.id}_${index}`}>
-                        <Table.Summary.Cell
-                          key={`${month.id}_work_plan_kg`}
-                          align="center"
-                        >
-                          <InputNumber
-                            className="w-full"
-                            disabled
-                            value={month.work_plan_kg}
-                            formatter={(value) =>
-                              `${parseInt(value)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                            style={{ backgroundColor: "white" }}
-                          />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell
-                          key={`${month.id}_workplan_value`}
-                          align="center"
-                        >
-                          <InputNumber
-                            className="w-full"
-                            disabled
-                            value={month.workplan_value}
-                            formatter={(value) =>
-                              `${parseInt(value)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                            style={{ backgroundColor: "white" }}
-                          />
-                        </Table.Summary.Cell>
-                      </React.Fragment>
-                    );
-                  })}
-                </Table.Summary.Row>
-              </Table.Summary>
-            )}
+            footer={() => {
+              const totalPlan = dataSource.reduce((sum, row) => sum + (parseFloat(row.total_activity_plan) || 0), 0);
+              const totalList = dataSource.reduce((sum, row) => sum + (parseInt(row.total_activity_list) || 0), 0);
+              const totalActual = dataSource.reduce((sum, row) => sum + (parseInt(row.total_activity_actual) || 0), 0);
+
+              return (
+                <Table.Summary fixed>
+                  <Table.Summary.Row className="bg-[#978B87]">
+                    <Table.Summary.Cell index={0}>
+                      <b>Total</b>
+                    </Table.Summary.Cell>
+                    <Table.Summary.Cell align="right">
+                      <InputNumber
+                        className="w-full"
+                        disabled
+                        value={totalPlan}
+                        formatter={(val) =>
+                          `${parseInt(val)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        style={{ backgroundColor: "white" }}
+                      />
+                    </Table.Summary.Cell>
+                    <Table.Summary.Cell align="right">
+                      <InputNumber
+                        className="w-full"
+                        disabled
+                        value={totalList}
+                        formatter={(val) =>
+                          `${parseInt(val)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        style={{ backgroundColor: "white" }}
+                      />
+                    </Table.Summary.Cell>
+                    <Table.Summary.Cell align="right">
+                      <InputNumber
+                        className="w-full"
+                        disabled
+                        value={totalActual}
+                        formatter={(val) =>
+                          `${parseInt(val)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        style={{ backgroundColor: "white" }}
+                      />
+                    </Table.Summary.Cell>
+                  </Table.Summary.Row>
+                </Table.Summary>
+              );
+            }}
           />
         </BoxPrimary>
+
       </MainLayout>
     </>
   );
