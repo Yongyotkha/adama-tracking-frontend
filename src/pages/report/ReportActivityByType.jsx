@@ -61,7 +61,7 @@ export default function ReportActivityByType() {
         setCrops(crops.data);
         setProducts(products.data);
         setDealers(dealers.data);
-
+        setAreaList(resArea.data)
         setActivityList(activityType.data);
 
 
