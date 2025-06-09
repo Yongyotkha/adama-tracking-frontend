@@ -1,12 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import Filter from "../../components/filter/Filter";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
-import TableComponent from "../../components/table/TableComponent";
-import { Dropdown, InputNumber, Select, Table, Form, Row, Col } from "antd";
-import BadgeStatus from "../../components/badge/BadgeStatus";
-import ItemDropDown from "../../components/dropdown/ItemDropDown";
-import { useLocation, useNavigate } from "react-router-dom";
+import { InputNumber, Select, Table, Form, Row, Col } from "antd";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -18,10 +13,8 @@ export default function ReportSaleByMonth() {
   const [loading, setLoading] = useState(false);
   const [years, setYears] = useState([]);
   const [sales, setSales] = useState([]);
-  const [products, setProducts] = useState([]);
   const [dealers, setDealers] = useState([]);
   const [itemColumn, setItemColumn] = useState([]);
-  const [defaultOption, setDefaultOption] = useState();
   const [dataSource, setDataSource] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const { showNotification, formatNumber } = useContext(AuthContext);
@@ -150,11 +143,10 @@ export default function ReportSaleByMonth() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [years, sales, products, dealers, resArea] =
+        const [years, sales, dealers, resArea] =
           await Promise.all([
             useServiceAPI.get(paths.pathMasterYear),
             useServiceAPI.get(paths.pathMasterSaleDropdown),
-            useServiceAPI.get(paths.pathReportProducts),
             useServiceAPI.get(paths.pathMasterDealerAll),
             useServiceAPI.get(paths.pathMasterAreas),
           ]);
@@ -164,10 +156,7 @@ export default function ReportSaleByMonth() {
           value: item.id,
           label: item.name
         })));
-        setProducts(products.data.map((item) => ({
-          value: item.product_name,
-          label: item.product_name
-        })));
+
         setDealers(dealers.data.map((item) => ({
           value: item.id,
           label: item.name
@@ -203,19 +192,6 @@ export default function ReportSaleByMonth() {
     JSON.stringify(tableParams.filters),
   ]);
 
-  useEffect(() => {
-    setTableParams((prev) => ({
-      ...prev,
-      filters: {
-        ...prev.filters,
-        permission_id: defaultOption,
-      },
-      pagination: {
-        current: 1,
-        pageSize: 10,
-      },
-    }));
-  }, [defaultOption]);
 
   const handleSearch = async () => {
     fetchData()
@@ -223,14 +199,17 @@ export default function ReportSaleByMonth() {
 
   const fetchData = async () => {
     setTableLoading(true);
-    const { current, pageSize } = tableParams.pagination;
+
 
     const values = await formCustom.validateFields();
 
     const payload = {
       sale_id: values.sale_id || null,
+      dealer_id: values.dealer_id || null,
+      area_id: values.area_id || null,
       year_code: tableParams.filters.year_code || null,
     };
+    console.info(payload);
 
     try {
       const response = await useServiceAPI.get(paths.pathReportActivityExpense, payload);
@@ -347,18 +326,6 @@ export default function ReportSaleByMonth() {
                 </Form.Item>
               </Col>
 
-              <Col md={6}>
-                <Form.Item
-                  label="Product"
-                  name="product_name"
-                >
-                  <Select
-                    placeholder="Select Product"
-                    options={products}
-
-                  />
-                </Form.Item>
-              </Col>
               <Col md={6}>
                 <Form.Item
                   label="Dealers"
