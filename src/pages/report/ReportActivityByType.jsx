@@ -26,7 +26,7 @@ export default function ReportActivityByType() {
   const [itemColumn, setItemColumn] = useState([]);
   const [defaultOption, setDefaultOption] = useState();
   const [permission, setPermission] = useState([]);
-  const [dataSource, setDataSource] = useState(false);
+  const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const { showNotification, formatNumber } = useContext(AuthContext);
   const [activityList, setActivityList] = useState([]);

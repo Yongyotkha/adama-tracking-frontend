@@ -323,7 +323,7 @@ const App = () => {
             <Route path="/report/quarterly" element={<ReportSaleByQuarter />} />
             <Route path="/report/yearly" element={<ReportSaleByYear />} />
             <Route path="/report/activity" element={<ReportActivity />} />
-            <Route path="/report/activity-crop" element={<ReportActivityByMonth />} />
+            <Route path="/report/activity-expense" element={<ReportActivityByMonth />} />
             <Route path="/report/activity-type" element={<ReportActivityByType />} />
             <Route path="/report/activity-month" element={<ReportActivityExpense />} />
             {/* <Route path="/report/activity-expense" element={<ReportActivityExpense />} /> */}

@@ -62,7 +62,7 @@ export default function ReportSaleByMonth() {
       key: index,
       onHeaderCell: () => ({
         style: {
-          backgroundColor: index % 2 === 1 ? "#00783F" : "#009845",
+          backgroundColor: index % 2 === 1 ? "#7DB41E" : "#009845", // สีเขียวสลับ
           color: "white",
           fontWeight: "bold",
           textAlign: "center",
@@ -70,12 +70,12 @@ export default function ReportSaleByMonth() {
       }),
       children: [
         {
-          title: "Work Plan(KG)",
+          title: "Plan (Value)",
           key: index,
           width: 125,
           onHeaderCell: () => ({
             style: {
-              backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สีเขียวสลับ
+              backgroundColor: index % 2 === 1 ? "#7DB41E" : "#009845", // สีเขียวสลับ
               color: "white",
               fontWeight: "bold",
               textAlign: "center",
@@ -90,9 +90,9 @@ export default function ReportSaleByMonth() {
                 className="w-full"
                 min={0}
                 value={
-                  isNaN(itemData.workplan_qty) || itemData.workplan_qty == null
+                  isNaN(itemData.workplan_value) || itemData.workplan_value == null
                     ? 0
-                    : itemData.workplan_qty
+                    : itemData.workplan_value
                 }
                 formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                 disabled={true}
@@ -101,12 +101,13 @@ export default function ReportSaleByMonth() {
           },
         },
         {
-          title: "Rolling Forecast(KG)",
+          title: "Actual (Value)",
           key: index,
           width: 125,
           onHeaderCell: () => ({
             style: {
-              backgroundColor: "#7DB41E", // สีเขียวสลับ
+              backgroundColor: index % 2 === 1 ? "#7DB41E" : "#009845", // สีเขียวสลับ
+              //backgroundColor: "#7DB41E", // สีเขียวสลับ
               color: "white",
               fontWeight: "bold",
               textAlign: "center",
@@ -121,9 +122,9 @@ export default function ReportSaleByMonth() {
                 className="w-full"
                 min={0}
                 value={
-                  isNaN(itemData.rolling_qty) || itemData.rolling_qty == null
+                  isNaN(itemData.actual_value) || itemData.actual_value == null
                     ? 0
-                    : itemData.rolling_qty
+                    : itemData.actual_value
                 }
                 formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                 disabled={true}
@@ -224,52 +225,68 @@ export default function ReportSaleByMonth() {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
 
-    const values = await formCustom.validateFields(); // รับค่าจาก form
+    const values = await formCustom.validateFields();
 
     const payload = {
-      area_id: values.area_id || null,
       sale_id: values.sale_id || null,
-      product_name: values.product_name || null,
-      dealer_id: values.dealer_id || null,
       year_code: tableParams.filters.year_code || null,
-      page_length: 1,
-      page_size: pageSize,
     };
 
     try {
-      const response = await useServiceAPI.get(
-        paths.pathReportMonthly,
-        payload
-      );
+      const response = await useServiceAPI.get(paths.pathReportActivityExpense, payload);
 
       if (response.status === 200) {
+        const { item: activityTypes, month: monthList } = response.data;
 
-        const { data_items, records_filtered, permission, items } = response.data;
+        // เตรียม columns สำหรับหัวตาราง
+        const itemColumnData = monthList.map((month) => {
+          const monthId = month.id;
 
-        const newDataSource = data_items.map((row, index) => ({
-          key: index + 1 + (current - 1) * pageSize,
-          productName: row.product_name,
-          packSize: row.pack_size,
-          productId: row.product_id,
+          const productData = activityTypes.map((activity) => {
+            const matchingMonthItem = activity.item.find((i) => i.month_id === monthId);
+
+            return {
+              product_name: activity.activity_type_name,
+              workplan_qty: parseFloat((matchingMonthItem?.total_activity_plan_count || "0").replace(/,/g, "")),
+              rolling_qty: 0, // ใช้ได้ถ้ามีค่าในอนาคต
+              actual_qty: 0,
+              workplan_value: parseFloat((matchingMonthItem?.total_activity_plan_value || "0").replace(/,/g, "")),
+              rolling_value: 0,
+              actual_value: parseFloat((matchingMonthItem?.expense_actual || "0").replace(/,/g, "")),
+            };
+          });
+
+          return {
+            ...month,
+            product: productData,
+          };
+        });
+
+        // เตรียม rows (ด้านซ้าย)
+        const dataSourceFormatted = activityTypes.map((activity, index) => ({
+          key: index,
+          productName: activity.activity_type_name,
         }));
 
-        setItemColumn(items);
-        setDataSource(newDataSource);
+        setItemColumn(itemColumnData);
+        setDataSource(dataSourceFormatted);
+
         setTableParams({
           ...tableParams,
           pagination: {
             ...tableParams.pagination,
-            total: records_filtered,
+            total: dataSourceFormatted.length,
           },
         });
-
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching report data:", error);
+      showNotification("error", error.message || "ไม่สามารถโหลดข้อมูลรายงานได้");
     } finally {
       setTableLoading(false);
     }
   };
+
 
   const handleTableChange = (pagination, filters, sorter) => {
     console.log(pagination, filters, sorter);
@@ -283,20 +300,20 @@ export default function ReportSaleByMonth() {
 
   const calculateFooterSums = () => {
     return itemColumn.map((month) => {
-      const sumReducer = (field) =>
-        month.product.reduce((sum, product) => sum + (product[field] || 0), 0);
-
+      const workplan_value = month.product.reduce((sum, p) => {
+        return sum + (parseFloat(p.workplan_value) || 0);
+      }, 0);
+      const actual_value = month.product.reduce((sum, p) => {
+        return sum + (parseFloat(p.actual_value) || 0);
+      }, 0);
       return {
         id: month.id,
-        workplan_qty: sumReducer("workplan_qty"),
-        rolling_qty: sumReducer("rolling_qty"),
-        actual_qty: sumReducer("actual_qty"),
-        workplan_value: sumReducer("workplan_value"),
-        rolling_value: sumReducer("rolling_value"),
-        actual_value: sumReducer("actual_value"),
+        workplan_value,
+        actual_value,
       };
     });
   };
+
 
   return (
     <>
@@ -382,13 +399,10 @@ export default function ReportSaleByMonth() {
 
         </Form>
 
-
-
         <BoxPrimary>
           <TableCustomComponent
             header={header}
             dataSource={dataSource}
-            // pagination={tableParams.pagination}
             pagination={false}
             loading={tableLoading}
             onChange={handleTableChange}
@@ -397,42 +411,14 @@ export default function ReportSaleByMonth() {
               return (
                 <Table.Summary fixed>
                   <Table.Summary.Row className="bg-[#978B87]">
-                    <Table.Summary.Cell index={0}>Total (THB)</Table.Summary.Cell>
+                    <Table.Summary.Cell index={0}><b>Total (THB)</b></Table.Summary.Cell>
                     {footerData.map((month, index) => (
                       <React.Fragment key={`${month.id}_${index}`}>
-                        <Table.Summary.Cell align="center">
-                          <InputNumber className="w-full" disabled value={month.workplan_qty}
-                            formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell align="center">
-                          <InputNumber
-                            className="w-full"
-                            disabled
-                            value={month.rolling_qty}
-                            formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                          />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell align="center">
-                          <InputNumber
-                            className="w-full"
-                            disabled
-                            value={month.actual_qty}
-                            formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                          />
-                        </Table.Summary.Cell>
                         <Table.Summary.Cell align="center">
                           <InputNumber
                             className="w-full"
                             disabled
                             value={month.workplan_value}
-                            formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                          />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell align="center">
-                          <InputNumber
-                            className="w-full"
-                            disabled
-                            value={month.rolling_value}
                             formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                           />
                         </Table.Summary.Cell>
@@ -450,8 +436,8 @@ export default function ReportSaleByMonth() {
                 </Table.Summary>
               );
             }}
-
           />
+
         </BoxPrimary>
       </MainLayout>
     </>
