@@ -83,14 +83,20 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
     });
   };
 
-  // console.log(selectedDate);
+  console.log(userInfo);
 
   useEffect(() => {
     const fetchSaleOptions = async () => {
       try {
-        const response = await useServiceAPI.get(paths.pathMasterSaleDropdown, {
+        let send_sale = {
           status: "all",
-        });
+        }
+        if (userInfo.role_id == 3) {
+          send_sale = {
+            mode: "all",
+          }
+        }
+        const response = await useServiceAPI.get(paths.pathMasterSaleDropdown, send_sale);
 
         const saleList = response.data.map((item) => ({
           label: item.name,

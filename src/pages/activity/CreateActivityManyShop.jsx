@@ -136,7 +136,7 @@ export default function CreateActivityManyShop() {
     if (!documentNumber) {
       const exists = saleList.some((item) => item.id === userInfo.id);
       if (exists) {
-        handleChange("user_id", userInfo.user_data_id);
+        handleChange("user_id", parseInt(userInfo.user_data_id));
         handleChange("assing_user_list", [userInfo.user_data_id]);
       }
     }
@@ -353,6 +353,10 @@ export default function CreateActivityManyShop() {
               name={["shops", index, "dealer_id"]}
             >
               <Select
+                showSearch
+                filterOption={(input, option) =>
+                  option.label.toLowerCase().includes(input.toLowerCase())
+                }
                 disabled={
                   isViewMode ||
                   (isCreate ? false : !activityDetail?.permission?.edit)
@@ -1269,8 +1273,12 @@ export default function CreateActivityManyShop() {
 
       <Form layout="vertical" form={formMulti}
         initialValues={{
-          user_id: parseInt(userInfo.role_id) !== 1 ? parseInt(userInfo.user_data_id) : undefined,
-        }}>
+          user_id:
+            parseInt(userInfo.role_id) !== 1 && parseInt(userInfo.role_id) !== 3
+              ? parseInt(userInfo.user_data_id)
+              : undefined,
+        }}
+      >
         <BoxPrimary>
           <Row gutter={16} align="middle">
             <Col xs={24} sm={24} md={6} lg={6}>
@@ -1307,7 +1315,7 @@ export default function CreateActivityManyShop() {
                   }
                   placeholder="Select Sales"
                   options={optionsSale}
-                  onChange={(value) => handleChange("user_id", value)}
+                  onChange={(value) => handleChange("user_id", parseInt(value))}
                 />
               </Form.Item>
             </Col>
