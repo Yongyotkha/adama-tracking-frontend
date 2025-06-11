@@ -32,7 +32,7 @@ export default function ActivityCalendar() {
 
       if (response.result) {
         console.log(response.data);
-        const formattedEvents = response.data.map((item) => ({
+        const formattedEvents = response.data.item.map((item) => ({
           title: item.activity_type_name,
           date: item.document_date,
           time:

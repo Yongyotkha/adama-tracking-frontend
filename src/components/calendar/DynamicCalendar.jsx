@@ -19,14 +19,12 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   const [view, setView] = useState("month");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
-  // const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1); // Current month
-  // const [currentYear, setCurrentYear] = useState(new Date().getFullYear()); // Current year
-  // State for Sale Territory and Shop options
   const [saleOptions, setSaleOptions] = useState([]);
   const [shopOptions, setShopOptions] = useState([]);
   const [selectedSale, setSelectedSale] = useState(null); // Default value for SaleID
   const [selectedShop, setSelectedShop] = useState(null); // Default value for ShopID
-  const { showNotification } = useContext(AuthContext);
+  const { showNotification, userInfo } = useContext(AuthContext);
+
   const navigate = useNavigate(); // Initialize useNavigate
 
   const handleEdit = (documentNumber) => {
@@ -88,27 +86,49 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   // console.log(selectedDate);
 
   useEffect(() => {
-    // Fetch Sale Territory options on mount
     const fetchSaleOptions = async () => {
       try {
         const response = await useServiceAPI.get(paths.pathMasterSaleDropdown, {
           status: "all",
         });
-        setSaleOptions(
-          response.data.map((item) => ({
-            label: item.name,
-            value: item.id,
-            user_id: item.id,
-            dealer_id: item.id,
-          }))
-        );
+
+        const saleList = response.data.map((item) => ({
+          label: item.name,
+          value: item.id,
+          user_id: item.id,
+          dealer_id: item.id,
+        }));
+
+        setSaleOptions(saleList);
+
+        // 👇 หาก role_id === 4 ให้ set ค่า default เป็น userInfo.id
+        if (userInfo.role_id == 4) {
+
+          setSelectedSale(userInfo.id);
+          handleSaleChange(userInfo.id);
+          console.log('selected sale : ', userInfo.id)
+        } else if (userInfo.role_id == 5 || userInfo.role_id == 6) {
+          console.log('userInfo : ', userInfo)
+
+          const headerResponse = await useServiceAPI.get(paths.pathMasterGetSaleHeader, {
+            status: "all",
+            user_id: userInfo.id,
+          });
+          console.log('header sale : ', headerResponse)
+          const sale_header_id = parseInt(headerResponse.data.header_user_id)
+          setSelectedSale(sale_header_id)
+          handleSaleChange(sale_header_id)
+          console.log('selected sale : ', sale_header_id)
+
+        }
+
       } catch (error) {
         console.error("Error fetching Sale options:", error);
       }
     };
 
     fetchSaleOptions();
-  }, []);
+  }, [userInfo]);
 
   const handleSaleChange = async (saleId) => {
     setSelectedSale(saleId); // Update the selected value for SaleID
@@ -332,22 +352,6 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <div className="flex gap-2">
-              {/* <button
-                className={`px-4 py-2 rounded ${
-                  view === "weekly" ? "bg-gray-500 text-white" : "bg-gray-200"
-                }`}
-                onClick={() => setView("weekly")}
-              >
-                Weekly
-              </button> */}
-              {/* <button
-                className={`px-4 py-2 rounded ${
-                  view === "month" ? "bg-[#009845] text-white" : "bg-gray-200"
-                }`}
-                onClick={() => setView("month")}
-              >
-                Month
-              </button> */}
             </div>
           </div>
         </div>
@@ -476,6 +480,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
           <div className="flex justify-end items-center gap-4 pb-4">
             <Select
               lang="th"
+              name="select_sale"
               className="min-w-[150px]"
               placeholder="Select a Sale Territory"
               options={[{ label: "All", value: "" }, ...saleOptions]}

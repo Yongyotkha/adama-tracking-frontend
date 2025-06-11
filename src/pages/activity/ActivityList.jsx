@@ -42,7 +42,7 @@ export default function ActivityList() {
   const [isMappingModalVisible, setIsMappingModalVisible] = useState(false);
   const [isDealerDisabled, setIsDealerDisabled] = useState(true);
   const [isSubDealerDisabled, setIsSubDealerDisabled] = useState(true);
-  
+
   const navigate = useNavigate();
 
   const handleBadgeClick = (rowData) => {
@@ -172,7 +172,7 @@ export default function ActivityList() {
         typeof filter.sale === "object" && filter.sale.value
           ? filter.sale.value
           : filter.sale;
-  
+
       const getDealersAndSubDealersBySale = async () => {
         try {
           // ดึง Dealer List
@@ -180,39 +180,39 @@ export default function ActivityList() {
             paths.pathMasterDealerAll,
             { user_id: userId }
           );
-  
+
           const formattedDealer = dealerResponse.data.map((item) => ({
             name: item.name,
             id: item.id,
           }));
-  
+
           setDealerList(formattedDealer);
-  
+
           // ดึง Sub-Dealer List
           const subDealerResponse = await useServiceAPI.get(
             paths.pathMasterSubDealerAll,
             { user_id: userId }
           );
-  
+
           const formattedSubDealer = subDealerResponse.data.map((item) => ({
             name: item.sub_dealer_name,
             id: item.sub_dealer_id,
           }));
-  
+
           setSubDealerList(formattedSubDealer);
-  
+
           // ✅ เมื่อมี Sale ที่เลือกอยู่ -> Enable Dealer และ Shop
           setIsDealerDisabled(false);
           setIsSubDealerDisabled(false);
-          
+
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer/Sub-dealer");
         }
       };
-  
+
       getDealersAndSubDealersBySale();
     }
-    
+
     // ✅ ถ้า Sale ถูก clear (null หรือ undefined หรือ '')
     if (!filter?.sale) {
       setDealerList([]);
@@ -280,6 +280,13 @@ export default function ActivityList() {
     { title: "Dealer", width: 150, dataIndex: "dealer", align: "start" },
     { title: "Date", width: 150, dataIndex: "date", align: "start" },
     {
+      title: "Create By",
+      width: 100,
+      dataIndex: "createdBy",
+      align: "start",
+      className: "text-nowrap",
+    },
+    {
       title: "Create Date",
       width: 100,
       dataIndex: "createdAt",
@@ -335,10 +342,11 @@ export default function ActivityList() {
             activityNo: row.document_number,
             activityType: row.activity_type_name,
             sale: row.user_name ?? "-",
-            shop: row.dealer_name ?? "-", 
+            shop: row.dealer_name ?? "-",
             dealer: row.master_dealer_name ?? "-",// ✅ Dealer Name
             date: row.document_date,
             time: row.time,
+            createdBy: row.created_name,
             createdAt: dayjs(row.created_at).format("YYYY-MM-DD"),
             mappingStatus: (
               <BadgeStatus

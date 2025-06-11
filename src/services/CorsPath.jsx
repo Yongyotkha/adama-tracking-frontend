@@ -140,6 +140,8 @@ export const paths = {
   pathMasterDealerDropdown: "master/dealer",
   pathMasterDealerAll: "master/dealer-all",
 
+  //get header
+  pathMasterGetSaleHeader: "master/get-sale-header",
   // List
   pathSaleManagementList: "sale-management/list",
   pathProductManagementList: "products-management/list",
