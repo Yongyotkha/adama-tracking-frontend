@@ -50,7 +50,7 @@ export default function Dashboard() {
   const [selectedSaleByCrop, setSelectedSaleByCrop] = useState(null);
   const [selectedSaleActivity, setSelectedSaleActivity] = useState(null);
   const [selectedDealerPlan, setSelectedDealerPlan] = useState(null);
-  const [selectedDealerActivity , setSelectedDealerActivity ] = useState(null);
+  const [selectedDealerActivity, setSelectedDealerActivity] = useState(null);
 
   const [selectedDealerTopActivity, setSelectedDealerTopActivity] =
     useState(null);
@@ -167,7 +167,8 @@ export default function Dashboard() {
       });
       if (response.status === 200) {
         const data = response.data || {};
-        setDashboardDataExpense({...data,
+        setDashboardDataExpense({
+          ...data,
           total_expense_activity_plan: convertNumber(data.total_expense_activity_plan),
           total_expense_actual_exp: convertNumber(data.total_expense_actual_exp),
           total_expense_actual_sale: convertNumber(data.total_expense_actual_sale),
@@ -204,8 +205,8 @@ export default function Dashboard() {
         if (response.status === 200) {
           const data = response.data || {};
           setDashboardDataOrder({
-            total_amount_target_actual:convertNumber(data.total_amount_target_actual),
-            total_amount_target_plan:convertNumber(data.total_amount_target_plan),
+            total_amount_target_actual: convertNumber(data.total_amount_target_actual),
+            total_amount_target_plan: convertNumber(data.total_amount_target_plan),
           });
         } else {
           console.error("Failed to fetch dashboard data:", response.message);
@@ -474,12 +475,12 @@ export default function Dashboard() {
           // const data = response.data.map((item) => {
           //   const rawValue = parseFloat(item.value);
           //   const rawAmount = parseFloat(String(item.amount_target || "0").replace(/,/g, ""));
-          
+
           //   const roundedValue = Math.round(rawValue); // ปัดเปอร์เซ็นต์
           //   const roundedAmount = Math.round(rawAmount); // ปัดยอดเงิน
-          
+
           //   const formattedLabel = `${item.name.split("(")[0]}(${roundedValue}%),${roundedAmount.toLocaleString()}`;
-          
+
           //   return {
           //     // value: roundedValue,
           //     // amount_target: roundedAmount,
@@ -496,19 +497,19 @@ export default function Dashboard() {
           //     name: item.name,
           //   };
           // }).sort((a, b) => b.value - a.value);
-          
+
           // setSaleCropData(data);
 
           const data = response.data.map((item) => {
             const rawValue = item.value;
             const rawAmount = parseFloat(String(item.amount_target || "0").replace(/,/g, ""));
-          
+
             const roundedValue = rawValue.toFixed(1); // ปัดเปอร์เซ็นต์เป็น 1 ตำแหน่งทศนิยม (string)
             const roundedAmount = Math.round(rawAmount); // ปัดยอดเงินให้เป็นจำนวนเต็ม
-          
+
             const cropName = item.name.split("(")[0];
             // const formattedLabel = `${cropName}(${roundedValue}%),${roundedAmount.toLocaleString()}`;
-          
+
             return {
               value: rawAmount,
               amount_target: parseFloat(String(item.amount_target || "0").replace(/,/g, "")) || 0,
@@ -517,10 +518,10 @@ export default function Dashboard() {
               name: item.name,
             };
           }).sort((a, b) => b.value - a.value);
-          
+
           setSaleCropData(data);
-          
-          
+
+
           console.log(data);
           const totalValue = data.reduce((sum, crop) => sum + crop.value, 0);
           setTotalSaleValue(totalValue); // อัปเดตค่ารวม
@@ -547,7 +548,7 @@ export default function Dashboard() {
           year_code: selectedYear,
           sale_id: selectedSaleActivity,
           month_id: selectedMonthsActivity,
-          dealer :selectedDealerActivity
+          dealer: selectedDealerActivity
         };
 
         const response = await useServiceAPI.get(
@@ -557,13 +558,9 @@ export default function Dashboard() {
         if (response.status === 200 && response.data) {
           const data = response.data.map((item) => ({
             type: item.activity_type_name,
-            plan:
-              parseFloat(
-                String(item.total_activity_plan_count || "0").replace(/,/g, "")
-              ) || 0,
             actual:
               parseFloat(
-                String(item.total_activity_actual_count || "0").replace(
+                String(item.total_activity_count_actual || "0").replace(
                   /,/g,
                   ""
                 )
@@ -578,6 +575,10 @@ export default function Dashboard() {
                   /,/g,
                   ""
                 )
+              ) || 0,
+            plan:
+              parseFloat(
+                String(item.total_activity_plan_count || "0").replace(/,/g, "")
               ) || 0,
             icon: item.activity_image,
           }));
@@ -598,7 +599,7 @@ export default function Dashboard() {
     if (selectedYear) {
       fetchListActivityData();
     }
-  }, [selectedYear, selectedSaleActivity, selectedMonthsActivity,selectedDealerActivity]);
+  }, [selectedYear, selectedSaleActivity, selectedMonthsActivity, selectedDealerActivity]);
 
   return (
     <MainLayout loading={loading}>
@@ -692,13 +693,13 @@ export default function Dashboard() {
                 <div className="text-md font-bold text-[#00783F]">
                   {formatNumber(dashboardDataExpense.total_expense_activity_plan)}
                   <br />
-                  {calPercentage.plan||dashboardDataExpense.total_expense_activity_plan_percentage}
+                  {calPercentage.plan || dashboardDataExpense.total_expense_activity_plan_percentage}
                 </div>
                 <div className="text-sm text-gray-500">Activity Plan</div>
               </div>
               <div className="text-center py-4 flex flex-col justify-between">
                 <div className="text-md font-bold text-[#00783F]">
-                {formatNumber(dashboardDataExpense.total_expense_advance)}
+                  {formatNumber(dashboardDataExpense.total_expense_advance)}
 
                   {/* {dashboardDataExpense.total_expense_advance} */}
                 </div>
@@ -707,7 +708,7 @@ export default function Dashboard() {
               <div className="text-center py-4">
                 <div className="text-md font-bold text-[#00783F]">
                   {formatNumber(dashboardDataExpense.total_expense_actual_exp)} <br />
-                  {calPercentage.actual||dashboardDataExpense.total_expense_actual_exp_percentage}
+                  {calPercentage.actual || dashboardDataExpense.total_expense_actual_exp_percentage}
                 </div>
                 <div className="text-sm text-gray-500">Actual</div>
               </div>
@@ -1199,7 +1200,7 @@ export default function Dashboard() {
           <Card className=" shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
             <div className="flex flex-wrap justify-between">
               <h3 className="text-[#00783F] text-lg font-semibold mb-3">
-                Sale By Crop
+                Sales By Crop
               </h3>
               <div className="flex flex-wrap gap-2">
                 <Select
@@ -1234,48 +1235,7 @@ export default function Dashboard() {
               {/* Pie Chart */}
               <div className="flex-grow flex justify-center items-center">
                 <div className="relative"></div>
-                {/* <PieChart
-                  series={[
-                    {
-                      data: saleCropData
-                        .filter((item) => item.value > 0)
-                        .map((item) => ({
-                          ...item,
-                        })),
-                      innerRadius: 120,
-                      outerRadius: 150,
-                      colorField: "color",
-                      labelField: "name",
-                      valueFormatter: (item) => (
-                        <>
-                          <div className="text-center">{item.label}</div>
-                          <div>value : {item.amount_target.toLocaleString()}</div>
-                          <div>percentage : {item.value.toFixed(2)}%</div>
-                        </>
-                      ),
-                    },
-                  ]}
-                  margin={{ top: 0, bottom: 100, left: 100, right: 100 }}
-                  slotProps={{
-                    legend: {
-                      direction: "row",
-                      position: { vertical: "bottom", horizontal: "center" },
-                      padding: 0,
-                    },
-                    popper: {
-                      sx: {
-                        ["& .MuiChartsTooltip-labelCell"]: {
-                          display: "none",
-                        },
-                        ["& .MuiChartsTooltip-cell.MuiChartsTooltip-valueCell"]:
-                        {
-                          paddingLeft: "15px",
-                        },
-                      },
-                    },
-                  }}
-                  style={{ width: "100%", height: "auto", minHeight: 400 }}
-                /> */}
+  
                 <DoughnutChartComponent data={saleCropData} />
               </div>
             </div>
