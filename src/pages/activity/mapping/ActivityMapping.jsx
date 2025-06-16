@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   GoogleMap,
   LoadScript,
@@ -206,7 +206,42 @@ export default function ActivityMapping() {
   };
 
   // Mock data for filter categories
-  const mockFilters = [
+  // const mockFilters = [
+  //   {
+  //     key: 1,
+  //     filter_type: "activity_type",
+  //     filter_type_name: "Activity Type",
+  //     data: activityType,
+  //   },
+  //   {
+  //     key: 2,
+  //     filter_type: "dealer",
+  //     filter_type_name: "Dealer",
+  //     data: dataDealer,
+  //   },
+  //   {
+  //     key: 3,
+  //     filter_type: "sub_dealers",
+  //     filter_type_name: "Sub Dealer",
+  //     data: dataSubDealer,
+  //   },
+  //   {
+  //     key: 4,
+  //     filter_type: "year",
+  //     filter_type_name: "Years",
+  //     data: dataYear,
+  //   },
+  //   {
+  //     key: 5,
+  //     filter_type: "month",
+  //     filter_type_name: "Months",
+  //     data: dataMonths,
+  //   },
+  // ];
+
+
+
+  const mockFilters = useMemo(() => [
     {
       key: 1,
       filter_type: "activity_type",
@@ -237,7 +272,7 @@ export default function ActivityMapping() {
       filter_type_name: "Months",
       data: dataMonths,
     },
-  ];
+  ], [activityType, dataDealer, dataSubDealer, dataYear, dataMonths]);
 
   console.log('mockFilters : ', mockFilters)
 
@@ -298,6 +333,22 @@ export default function ActivityMapping() {
     }
   };
 
+  // const toggleAll = (isChecked) => {
+  //   const updatedFilters = {};
+  //   mockFilters.forEach((filterItem) => {
+  //     updatedFilters[filterItem.filter_type] = isChecked
+  //       ? filterItem.data.map((item) => item.id)
+  //       : [];
+  //   });
+  //   setCheckedFilters(updatedFilters);
+  //   setIsAllChecked(isChecked);
+  //   // if (isChecked) {
+  //   // setLocationMarkerIcon(locations);
+  //   // } else {
+  //   //   setLocationMarkerIcon([]);
+  //   // }
+  // };
+
   const toggleAll = (isChecked) => {
     const updatedFilters = {};
     mockFilters.forEach((filterItem) => {
@@ -307,11 +358,6 @@ export default function ActivityMapping() {
     });
     setCheckedFilters(updatedFilters);
     setIsAllChecked(isChecked);
-    // if (isChecked) {
-    // setLocationMarkerIcon(locations);
-    // } else {
-    //   setLocationMarkerIcon([]);
-    // }
   };
 
   useEffect(() => {
@@ -560,11 +606,24 @@ export default function ActivityMapping() {
         ].filter((id, index, self) => self.indexOf(id) === index); // ลบค่าซ้ำ
       });
 
+
       setCheckedFilters(updatedFilters);
     } else {
       setSearchOptions([]);
     }
   };
+
+  // Set initial state for all filters (select all)
+  useEffect(() => {
+    if (mockFilters.every((f) => f.data.length > 0)) {
+      const initialChecked = {};
+      mockFilters.forEach((filter) => {
+        initialChecked[filter.filter_type] = filter.data.map((item) => item.id);
+      });
+      setCheckedFilters(initialChecked);
+      setIsAllChecked(true);
+    }
+  }, [activityType, dataDealer, dataSubDealer, dataYear, dataMonths]); // <<--- add dependencies จาก mockFilters
 
   const handleSelect = (value, option) => {
     // Set the map center to the selected lat and lng
@@ -618,7 +677,7 @@ export default function ActivityMapping() {
           >
             {/* Master "All" Checkbox */}
             <div className="flex justify-between">
-              <Checkbox
+              {/* <Checkbox
                 indeterminate={Object.keys(checkedFilters).some(
                   (filterType) =>
                     checkedFilters[filterType].length > 0 &&
@@ -627,20 +686,34 @@ export default function ActivityMapping() {
                       (filter) => filter.filter_type === filterType
                     ).data.length
                 )}
-                // checked={isAllChecked}
+                checked={isAllChecked}
+                onChange={(e) => toggleAll(e.target.checked)}
+              >
+                Check All
+              </Checkbox> */}
+
+              <Checkbox
+                indeterminate={Object.keys(checkedFilters).some(
+                  (filterType) =>
+                    checkedFilters[filterType]?.length > 0 &&
+                    checkedFilters[filterType]?.length <
+                    (mockFilters.find((filter) => filter.filter_type === filterType)?.data.length || 0)
+                )}
+                checked={isAllChecked}
                 onChange={(e) => toggleAll(e.target.checked)}
               >
                 Check All
               </Checkbox>
 
-              <Tooltip title="Reload data" placement="bottom">
+
+              {/* <Tooltip title="Reload data" placement="bottom">
                 <img
                   src="/img/icons/reload.png"
                   alt="Reload Icon"
                   className="h-6 w-6 cursor-pointer"
                   onClick={() => renderMarkerLocation()} // 👈 ตรงนี้แหละ!
                 />
-              </Tooltip>
+              </Tooltip> */}
 
             </div>
 

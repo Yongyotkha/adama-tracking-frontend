@@ -38,6 +38,9 @@ export default function ActivityPlanList() {
     sortField: null,
   });
 
+  const endPoint = import.meta.env.VITE_API_BASE_URL;
+  const isUAT = endPoint === "https://api-uat.adama.co.th/api";
+
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
@@ -194,7 +197,9 @@ export default function ActivityPlanList() {
       align: "center",
     },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
-    { title: "Action", width: 100, dataIndex: "action", align: "center" },
+    ...(isUAT
+      ? []
+      : [{ title: "Action", width: 100, dataIndex: "action", align: "center" }]),
   ];
 
   const columnsSummary = [

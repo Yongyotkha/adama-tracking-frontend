@@ -52,7 +52,7 @@ export default function MileageManagement() {
     const today = dayjs();
     const startOfMonth = today.startOf("month").format("YYYY-MM-DD");
     const endOfToday = today.format("YYYY-MM-DD");
-    console.log(userInfo);
+    // console.log(userInfo);
     const requestData = {
       user_id: userInfo.id,
       start_date: startOfMonth,
@@ -64,6 +64,17 @@ export default function MileageManagement() {
     try {
       const response = await useServiceAPI.get(paths.pathMileageList, requestData);
 
+      // const formatNumber = (val) =>
+      //   !isNaN(Number(val)) ? new Intl.NumberFormat().format(val) : "-";
+      const formatNumber = (val) =>
+        !isNaN(Number(val))
+          ? Number(val).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+          : "-";
+
+
       if (response.status === 200) {
         const result = response.data;
         console.log(result);
@@ -71,8 +82,8 @@ export default function MileageManagement() {
           key: index + 1 + (current - 1) * pageSize,
           no: index + 1 + (current - 1) * pageSize,
           date: item.date || "-",
-          mileage: item.mileage || "-",
-          name: "-", // No name in API, fallback
+          mileage: formatNumber(item.mileage) || "-",
+          name: item.user_name, // No name in API, fallback
           lastModified: "-", // No lastModified in API, fallback
           action: (
             <Dropdown
@@ -117,7 +128,7 @@ export default function MileageManagement() {
               </a>
             </Dropdown>
           ),
-          
+
         }));
 
         setDataSource(newDataSource);
