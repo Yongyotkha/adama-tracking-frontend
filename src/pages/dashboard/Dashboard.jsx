@@ -514,7 +514,7 @@ export default function Dashboard() {
               value: rawAmount,
               amount_target: parseFloat(String(item.amount_target || "0").replace(/,/g, "")) || 0,
               label: cropName,
-              color: item.color.trim(),
+              color: item.color,
               name: item.name,
             };
           }).sort((a, b) => b.value - a.value);
