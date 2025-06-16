@@ -4,18 +4,7 @@ import FormCustom from "../../components/form_custom/FormCustom";
 import { useLocation, useNavigate } from "react-router-dom";
 import ActionButton from "../../components/button/ActionButton";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
-import {
-  Form,
-  Input,
-  Col,
-  Row,
-  Select,
-  InputNumber,
-  Modal,
-  DatePicker,
-  TimePicker,
-  Upload,
-} from "antd";
+import { Form, Input, Select } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import TableComponent from "../../components/table/TableComponent";
 import DynamicModal from "../../components/modal/DynamicModal";
@@ -49,14 +38,14 @@ export default function CreateOrder() {
 
   useEffect(() => {
     if (location.state?.data) {
-
+      
       const { user_id, others, products, remark } = location.state?.data;
-      setDataSaleId(user_id);
+      setDataSaleId(parseInt(user_id));
       setDataSource(products);
       setDataSourceOther(others);
       setInputRemark(remark);
       console.log(remark);
-
+      
     }
   }, [location.state]);
 
@@ -77,17 +66,11 @@ export default function CreateOrder() {
           }),
         ]);
 
-
-        const setOption = sale.data.map((item) => ({
-          value: item.id,
-          label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
-        }));
-
-        setDataSale(setOption);
+        setDataSale(sale.data);
 
         const checkSaleId = sale.data.find((item) => item.id === userInfo.id);
         if (checkSaleId) {
-          setDataSaleId(userInfo.id);
+          setDataSaleId(parseInt(userInfo.id));
         }
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -258,7 +241,7 @@ export default function CreateOrder() {
       required: false,
       moderef: true,
       // value: parseInt(dataSaleId, 10),
-      value: dataSaleId,
+      value: parseInt(dataSaleId),
     },
     {
       label: "Dealer",
@@ -291,25 +274,16 @@ export default function CreateOrder() {
     },
   ];
 
-  console.log('formFields : ', formFields)
-
   const getMasterDealer = async () => {
     // setLoading(true);
     try {
       const [dealer] = await Promise.all([
         useServiceAPI.get(paths.pathMasterDealerDropdown, {
-          user_id: parent(dataSaleId),
+          user_id: parseInt(dataSaleId),
         }),
       ]);
 
-
-      const setOption = dealer.data.map((item) => ({
-        value: item.id,
-        label: item.name, // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
-      }));
-
-      setDataSale(setOption);
-
+      setDataDealer(dealer.data);
     } catch (error) {
       // showMsg("error", error.message || "เกิดข้อผิดพลาด");
     } finally {
@@ -341,8 +315,6 @@ export default function CreateOrder() {
             user_id: parseInt(dataSaleId),
           }),
         ]);
-
-        console.log(dealer)
 
         setDataDealer(dealer.data);
       } catch (error) {
@@ -768,47 +740,11 @@ export default function CreateOrder() {
     <MainLayout loading={loading}>
       <div className="title-page">Create Order</div>
 
-      {/* <FormCustom
+      <FormCustom
         fields={formFields}
         form={formCustom}
         onChange={handleChange}
-      /> */}
-
-
-      <BoxPrimary>
-        <Row gutter={16} align="middle">
-          <Col xs={24} sm={24} md={6} lg={6}>
-            <Form.Item
-              label="Sales"
-              name="sale"
-              rules={[
-                { required: true, message: "กรุณาเลือก Sales" },
-              ]}
-              style={{ marginBottom: 12 }}
-            >
-              <Select
-                placeholder="Select sale"
-                options={dataSale}
-                //onChange={(value) => handleChange("activity_type_id", value)}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={24} md={6} lg={6}>
-            <Form.Item
-              label="Dealer"
-              name="dealer"
-              rules={[{ required: true, message: "กรุณาเลือก Dealer" }]}
-              style={{ marginBottom: 12 }}
-            >
-              <Select
-                placeholder="Select Dealer"
-                options={dataDealer}
-                //onChange={(value) => handleChange("user_id", parseInt(value))}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-      </BoxPrimary>
+      />
 
       <BoxPrimary title="Product">
         <div className="mb-3 flex justify-end">
