@@ -308,7 +308,7 @@ export default function ActivityList() {
     const filters = tableParams.filters || {};
 
     const sortOrder = tableParams.sortOrder || "desc";
-    const sortField = tableParams.sortField || "document_number";
+    const sortField = tableParams.sortField || "created_at";
 
     const requestData = {
       keyword: filters.keyword || "",
@@ -426,7 +426,7 @@ export default function ActivityList() {
     setTableParams({
       pagination,
       filters: tableParams.filters,
-      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortOrder: sorter.order === "descend" ? "desc" : "desc",
       sortField: sorter.field,
     });
   };
