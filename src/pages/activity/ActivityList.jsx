@@ -277,7 +277,7 @@ export default function ActivityList() {
     },
     { title: "Sales", width: 150, dataIndex: "sale", align: "start" },
     { title: "Shop", width: 150, dataIndex: "shop", align: "start" }, // ✅ เพิ่มตรงนี้
-    { title: "Dealer", width: 150, dataIndex: "dealer", align: "start" },
+    //{ title: "Dealer", width: 150, dataIndex: "dealer", align: "start" },
     { title: "Date", width: 150, dataIndex: "date", align: "start" },
     {
       title: "Create By",
@@ -343,7 +343,7 @@ export default function ActivityList() {
             activityType: row.activity_type_name,
             sale: row.user_name ?? "-",
             shop: row.dealer_name ?? "-",
-            dealer: row.master_dealer_name ?? "-",// ✅ Dealer Name
+            //dealer: row.dealer_name ?? "-",// ✅ Dealer Name
             date: row.document_date,
             time: row.time,
             createdBy: row.created_name,
