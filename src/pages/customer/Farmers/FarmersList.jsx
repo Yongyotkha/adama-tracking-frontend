@@ -339,7 +339,7 @@ export default function DealerList() {
     {
       key: "shop",
       type: "select",
-      label: "Shop",
+      label: "Shops",
       placeholder: "All",
       options: subDealerList,
     },
@@ -350,16 +350,16 @@ export default function DealerList() {
       placeholder: "All",
       options: farmList,
     },
-    {
-      key: "keyword",
-      type: "text",
-      label: "Keyword",
-    },
-    {
-      key: "province",
-      type: "text",
-      label: "Province",
-    },
+    // {
+    //   key: "keyword",
+    //   type: "text",
+    //   label: "Keyword",
+    // },
+    // {
+    //   key: "province",
+    //   type: "text",
+    //   label: "Province",
+    // },
     {
       key: "use_flag",
       label: "Status",

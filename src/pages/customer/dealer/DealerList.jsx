@@ -13,9 +13,11 @@ import { paths } from "../../../services/CorsPath";
 export default function DealerList() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [dealers, set_dealers] = useState([]);
   const navigate = useNavigate();
   const [tableLoading, setTableLoading] = useState(false);
   const [Status, setStatus] = useState([]);
+  const [filterValues, setFilterValues] = useState({});
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -30,8 +32,11 @@ export default function DealerList() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [dataStatus] = await Promise.all([
+        const [dataStatus, dealer] = await Promise.all([
           useServiceAPI.get(paths.pathMasterStatus, {
+            status_type: "status",
+          }),
+          useServiceAPI.get(paths.pathMasterDealerAll, {
             status_type: "status",
           }),
         ]);
@@ -44,6 +49,8 @@ export default function DealerList() {
           });
         });
 
+        console.log('dealer : ', dealer)
+        set_dealers(dealer.data)
         setStatus(Status);
 
         setPosition(producttype.data);
@@ -72,11 +79,10 @@ export default function DealerList() {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
-    console.log('----------fetch------------',filters)
+    console.log('----------fetch------------', filters)
     const requestData = {
-      keyword: filters.keyword || "",
+      dealer: filters.dealer || "",
       use_flag: filters.use_flag || "",
-      province: filters.address || "",
       page_length: current,
       page_size: pageSize,
     };
@@ -189,15 +195,19 @@ export default function DealerList() {
 
   const filters = [
     {
-      key: "keyword",
-      type: "text",
+      key: "dealer",
+      type: "select",
       label: "Dealer",
+      placeholder: "All",
+      options: dealers,
+      moderef: true,
+      onChange: {}
     },
-    {
-      key: "address",
-      type: "text",
-      label: "Province",
-    },
+    // {
+    //   key: "address",
+    //   type: "text",
+    //   label: "Province",
+    // },
     {
       key: "use_flag",
       label: "Status",
@@ -262,11 +272,27 @@ export default function DealerList() {
     });
   };
 
+
+  const handleChange = (filters) => {
+    setFilterValues(filters);
+  };
+
+
+
+
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Dealer</div>
+      {/* 
+      <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} /> */}
 
-      <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
+      <Filter
+        onSearch={handleSearch}
+        onClear={handleClear}
+        onChange={handleChange}
+        filters={filters}
+      />
+
 
       <BoxPrimary>
         <TableComponent
