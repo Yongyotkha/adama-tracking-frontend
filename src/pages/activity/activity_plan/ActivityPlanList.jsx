@@ -41,6 +41,30 @@ export default function ActivityPlanList() {
   const endPoint = import.meta.env.VITE_API_BASE_URL;
   const isUAT = endPoint === "https://api-uat.adama.co.th/api";
 
+
+  const select_sale = (value) => {
+    console.log('select_sale : ', value);
+    setDefaultOption(value)
+    getMasterDealer(value)
+  };
+
+  const getMasterDealer = async (value) => {
+    // setLoading(true);
+    try {
+      const [dealer] = await Promise.all([
+        useServiceAPI.get(paths.pathMasterDealerDropdown, {
+          user_id: parseInt(value),
+        }),
+      ]);
+
+      setDealer(dealer.data);
+    } catch (error) {
+      // showMsg("error", error.message || "เกิดข้อผิดพลาด");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
@@ -397,6 +421,8 @@ export default function ActivityPlanList() {
     });
   };
 
+
+
   return (
     <MainLayout loading={loading}>
       <div className="flex justify-between items-center">
@@ -436,7 +462,7 @@ export default function ActivityPlanList() {
             }
             options={sale}
             value={defaultOption}
-            onChange={(value) => setDefaultOption(value)}
+            onChange={(value) => select_sale(value)}
           />
         </div>
       </div>
