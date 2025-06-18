@@ -276,7 +276,7 @@ export default function SubDealerList() {
   }, [filterValues.dealers]);
 
   const filters = [
-    { key: "keyword", type: "text", label: "Sub Dealer", placeholder: "All" },
+    // { key: "keyword", type: "text", label: "Sub Dealer", placeholder: "All" },
     {
       key: "sale",
       type: "select",
@@ -296,27 +296,27 @@ export default function SubDealerList() {
     {
       key: "shop",
       type: "select",
-      label: "Shop",
+      label: "Shops",
       placeholder: "All",
       options: subDealerList,
     },
-    {
-      key: "contact_name",
-      type: "text",
-      label: "Contact Name",
-      placeholder: "All",
-    },
-    {
-      key: "contact_phone_number",
-      type: "text",
-      label: "Phone",
-      placeholder: "Phone",
-    },
-    {
-      key: "province",
-      type: "text",
-      label: "Province",
-    },
+    // {
+    //   key: "contact_name",
+    //   type: "text",
+    //   label: "Contact Name",
+    //   placeholder: "All",
+    // },
+    // {
+    //   key: "contact_phone_number",
+    //   type: "text",
+    //   label: "Phone",
+    //   placeholder: "Phone",
+    // },
+    // {
+    //   key: "province",
+    //   type: "text",
+    //   label: "Province",
+    // },
     {
       key: "use_flag",
       type: "select",
