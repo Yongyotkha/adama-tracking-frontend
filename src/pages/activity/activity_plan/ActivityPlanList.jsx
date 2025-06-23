@@ -125,6 +125,7 @@ export default function ActivityPlanList() {
     try {
       const response = await useServiceAPI.get(paths.pathActivitySummary, {
         year_code: selectedYear,
+        user_id: defaultOption,
       });
 
       if (response.status === 200) {
@@ -143,6 +144,7 @@ export default function ActivityPlanList() {
             ...monthData,
           };
         });
+
         const totalRow = {
           key: "total",
           type: "Total",
