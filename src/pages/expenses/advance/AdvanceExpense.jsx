@@ -94,7 +94,9 @@ export default function AdvanceExpense() {
   const handleChange = (filter) => {
     if (filter) {
       const getMasterDealer = async () => {
+
         try {
+          console.log(11111111)
           const [dealer] = await Promise.all([
             useServiceAPI.get(paths.pathMasterDealerDropdown, {
               user_id: filter.sale,
@@ -108,9 +110,11 @@ export default function AdvanceExpense() {
       };
 
       getMasterDealer();
+
     } else {
       handleClear();
     }
+
   };
 
   const handleDelete = async (documentNumber) => {
@@ -164,7 +168,7 @@ export default function AdvanceExpense() {
       try {
         const [activityType, sale] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterDealerAll, {}),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
         ]);
 
         setActivityList(activityType.data);
@@ -207,6 +211,7 @@ export default function AdvanceExpense() {
       use_flag: "1",
       user_id: filters.sale,
       dealer_id: filters.customer,
+      date: filters.date,
       activity_type_id: filters.type_of_meeting,
       document_number_referrent: filters.activity_reference,
       customer_name: "",
@@ -333,7 +338,7 @@ export default function AdvanceExpense() {
         <ActionButton
           mode="create"
           text="Create"
-          onClick={(e) => 
+          onClick={(e) =>
             navigate("/activity/create", {
               state: {
                 pageCode: "expense_advance",
