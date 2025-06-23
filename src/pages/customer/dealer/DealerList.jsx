@@ -18,6 +18,7 @@ export default function DealerList() {
   const [tableLoading, setTableLoading] = useState(false);
   const [Status, setStatus] = useState([]);
   const [filterValues, setFilterValues] = useState({});
+  const [saleList, setSaleList] = useState([]);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -32,13 +33,11 @@ export default function DealerList() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [dataStatus, dealer] = await Promise.all([
+        const [dataStatus, sale] = await Promise.all([
           useServiceAPI.get(paths.pathMasterStatus, {
             status_type: "status",
           }),
-          useServiceAPI.get(paths.pathMasterDealerAll, {
-            status_type: "status",
-          }),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
         ]);
 
         const Status = [];
@@ -49,10 +48,10 @@ export default function DealerList() {
           });
         });
 
-        console.log('dealer : ', dealer)
-        set_dealers(dealer.data)
+        // console.log('dealer : ', dealer)
+        // set_dealers(dealer.data)
         setStatus(Status);
-
+        setSaleList(sale.data);
         setPosition(producttype.data);
         setRoles(roles.data);
       } catch (error) {
@@ -63,6 +62,31 @@ export default function DealerList() {
     };
     getMaster();
   }, []);
+
+
+  useEffect(() => {
+    const sale = filterValues.sale;
+
+    if (sale) {
+      const userId =
+        typeof sale === "object" && sale.value ? sale.value : sale;
+
+      const getDealersBySale = async () => {
+        try {
+
+          const response = await useServiceAPI.get(
+            paths.pathMasterDealerDropdown,
+            { user_id: userId }
+          );
+          set_dealers(response.data);
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer");
+        }
+      };
+
+      getDealersBySale();
+    }
+  }, [filterValues.sale]);
 
   useEffect(() => {
     fetchData();
@@ -81,7 +105,8 @@ export default function DealerList() {
     const filters = tableParams.filters || {};
     console.log('----------fetch------------', filters)
     const requestData = {
-      dealer: filters.dealer || "",
+      sale: filters.sale || "",
+      dealers: filters.dealers || "",
       use_flag: filters.use_flag || "",
       page_length: current,
       page_size: pageSize,
@@ -195,19 +220,21 @@ export default function DealerList() {
 
   const filters = [
     {
-      key: "dealer",
+      key: "sale",
       type: "select",
-      label: "Dealer",
+      label: "Sales",
+      placeholder: "All",
+      options: saleList,
+      moderef: true,
+    },
+    {
+      key: "dealers",
+      type: "select",
+      label: "Dealers",
       placeholder: "All",
       options: dealers,
-      moderef: true,
-      onChange: {}
+      moderef: false,
     },
-    // {
-    //   key: "address",
-    //   type: "text",
-    //   label: "Province",
-    // },
     {
       key: "use_flag",
       label: "Status",
