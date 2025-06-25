@@ -99,11 +99,18 @@ export default function AdvanceExpense() {
           console.log(11111111)
           const [dealer] = await Promise.all([
             useServiceAPI.get(paths.pathMasterSubDealerAll, {
-              derler_id: filter.sale,
+              dealer_id: filter.sale,
             }),
           ]);
 
-          setDealerList(dealer.data);
+          const subDealerOptions = dealer.data.map(item => ({
+            name: item.sub_dealer_name,
+            id: item.sub_dealer_id,
+          }));
+
+          console.log('subDealerOptions : ',subDealerOptions)
+
+          setDealerList(subDealerOptions);
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
         }
