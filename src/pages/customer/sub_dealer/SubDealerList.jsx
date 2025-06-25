@@ -97,7 +97,7 @@ export default function SubDealerList() {
 
         const newDataSource = data.map((data, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-          dealerName: data.dealer_name,
+          dealerName: data.dealer_name_en,
           subDealerName: data.name,
           contactName: data.contact_name,
           address: data.contact_address,

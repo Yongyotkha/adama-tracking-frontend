@@ -98,8 +98,8 @@ export default function AdvanceExpense() {
         try {
           console.log(11111111)
           const [dealer] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterDealerDropdown, {
-              user_id: filter.sale,
+            useServiceAPI.get(paths.pathMasterSubDealerAll, {
+              derler_id: filter.sale,
             }),
           ]);
 
@@ -168,7 +168,7 @@ export default function AdvanceExpense() {
       try {
         const [activityType, sale] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathMasterDealerAll, {}),
         ]);
 
         setActivityList(activityType.data);
