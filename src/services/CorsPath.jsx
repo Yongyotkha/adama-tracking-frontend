@@ -244,6 +244,7 @@ export const paths = {
   pathStockUpdate: "/stock/update",
   pathStockDetail: "/stock/detail",
   pathStockDelete: "/stock/delete",
+  pathStockCreated: "/stock/created",
 
 
   // Expense Traveling
