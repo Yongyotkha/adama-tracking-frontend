@@ -400,20 +400,6 @@ export default function OrderList() {
       <div className="flex justify-between items-center">
         <div className="title-page">Order List</div>
         <div className="flex gap-2">
-          <Select
-            showSearch
-            allowClear
-            style={{
-              width: 200,
-            }}
-            className="border-[#00783F] text-[#00783F]"
-            placeholder="All"
-            optionFilterProp="label"
-            options={dataSale}
-            value={defaultOption}
-            // onChange={(value) => setDefaultOption(value)}
-            onChange={(value) => handleChange(value)}
-          />
           {permission.btn_create && (
             <ActionButton
               mode="create"
