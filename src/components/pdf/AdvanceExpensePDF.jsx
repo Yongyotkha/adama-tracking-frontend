@@ -34,10 +34,11 @@ const styles = StyleSheet.create({
   logo: { width: 60, height: 60 },
   companyDetails: { flex: 1, paddingLeft: 10, fontSize: 8 },
   title: { textAlign: "center", fontSize: 14, fontWeight: "bold", marginBottom: 10 },
-  section: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10, borderStyle: "solid", lineHeight: 1 },
+  sectionTop: { flexDirection: "row", justifyContent: "space-between", lineHeight: 0.85, },
+  section: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10, borderStyle: "solid", lineHeight: 0.85 },
   sectionColumn: { width: "100%", borderWidth: 1, borderColor: "#000", padding: 5 },
-  sectionColumn2: { width: "100%", borderWidth: 1, borderColor: "#000", padding: 5, borderLeft: 0 },
-  sectionColumnTop: { width: "50%", borderWidth: 1, borderColor: "#000", padding: 5, borderLeft: 0 },
+  sectionColumn2: { width: "100%", borderWidth: 1, borderColor: "#000", borderLeft: 0 },
+  sectionColumnTop: { width: "50%", borderWidth: 1, borderColor: "#000", padding: 5, borderLeft: 0, borderBottom: 0 },
   table: { display: "table", width: "100%", borderStyle: "solid", borderWidth: 1, borderColor: "#000" },
   tableRow: { flexDirection: "row" },
   tableCellMainHeader: { borderBottomWidth: 1, padding: 5, fontWeight: "bold", textAlign: "center", borderRightWidth: 1 },
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#000",
   },
-  footerRow: { flexDirection: "row", lineHeight: 1 },
+  footerRow: { flexDirection: "row", lineHeight: 0.85 },
   footerSection: { flex: 1, padding: 5, borderRightWidth: 1 },
   footerSectionLast: { flex: 1, padding: 5 },
   footerText: { marginBottom: 3 },
@@ -148,13 +149,15 @@ const AdvanceExpensePDF = () => {
             {getPageCode === "expense_clearing" ? "Clearing Expense" : "Advance Expense"}
           </Text>
 
-          <Text style={{ marginRight: 'auto', paddingBottom: 5 }} ><Text style={{ fontWeight: 'bold' }}>Advance Expense No : </Text> : {getDocumentNumber}</Text>
-          <Text style={{ marginLeft: 'auto', paddingBottom: 5 }} ><Text style={{ fontWeight: 'bold' }}>Date</Text> : {formatDate(dataHeader.created_at)}</Text>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%" }}>
+            <Text style={{ marginRight: 'auto', paddingBottom: 5 }} ><Text style={{ fontWeight: 'bold' }}>Advance Expense No : </Text> : {getDocumentNumber}</Text>
+            <Text style={{ marginLeft: 'auto', paddingBottom: 5 }} ><Text style={{ fontWeight: 'bold' }}>Date</Text> : {formatDate(dataHeader.created_at)}</Text>
+          </View>
 
           {/* Details Section */}
 
-          <View style={styles.section}>
-            <View style={styles.sectionColumn}>
+          <View style={styles.sectionTop}>
+            <View style={[styles.sectionColumn, { borderBottomWidth: 0 }]}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%", margin: 'auto' }}>
                 <Text style={{ fontWeight: "bold", textAlign: "center" }}>Sale Name :</Text>
                 <Text style={{ flex: 7, textAlign: "start", paddingLeft: 7 }}>{dataHeader.activity_type_name}</Text>
@@ -170,11 +173,13 @@ const AdvanceExpensePDF = () => {
               </View>
             </View>
             <View style={styles.sectionColumnTop}>
-              <Text style={{ fontWeight: "bold" }}>Advance Exp : {formatNumber(dataHeader.expense_advance)} THB</Text>
+              <Text style={{ fontWeight: "bold" }}>
+                Actual Exp: {formatNumber(dataHeader.expense_actual)} THB
+              </Text>
               <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%", margin: 'auto' }}>
                 <Text style={{ textAlign: "center" }}>Exp :</Text>
                 <Text style={{ flex: 7, textAlign: "start", paddingLeft: 7 }}>
-                  {calculatePercentage(Number(dataHeader.expense_advance), Number(dataHeader.product_total_estimate_sale))}
+                  {calculateActualPercentage(Number(dataHeader.expense_actual), Number(dataHeader.product_total_acutal_sale))}
                 </Text>
               </View>
             </View>
@@ -211,11 +216,42 @@ const AdvanceExpensePDF = () => {
               </View>
             </View>
 
+
             <View style={styles.sectionColumn2}>
-              <Text>Event Date: {formatDate(dataHeader.document_date)}</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'between', width: '100%' }}>
-                <Text style={{ width: '140px' }}>Est. Participant: {formatNumber(dataHeader.participant_estimate)} </Text>
-                <Text>Actual Participant: {formatNumber(dataHeader.particapant_actual)}</Text>
+
+              {getPageCode === "expense_clearing" && (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    borderColor: "#000",
+                    borderBottomWidth: 1,
+                    marginBottom: 5,
+                    padding: 5,
+                  }}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text>
+                      Return to Company:{" "}
+                      {Number(dataHeader.expense_advance) - Number(dataHeader.expense_actual) > 0
+                        ? `${formatNumber(Number(dataHeader.expense_advance) - Number(dataHeader.expense_actual))} THB`
+                        : "0"}
+                    </Text>
+                    <Text>
+                      Return to Staff:{" "}
+                      {Number(dataHeader.expense_advance) - Number(dataHeader.expense_actual) < 0
+                        ? `${formatNumber(Math.abs(Number(dataHeader.expense_advance) - Number(dataHeader.expense_actual)))} THB`
+                        : "0"}
+                    </Text>
+                  </View>
+                </View>
+              )}
+              <View style={{ flexDirection: 'column', alignItems: 'start', justifyContent: 'start', width: '100%', padding: 5, }}>
+                <Text>Event Date: {formatDate(dataHeader.document_date)}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'start', width: '100%', }}>
+                  <Text style={{ width: '140px' }}>Est. Participant: {formatNumber(dataHeader.participant_estimate)} Person </Text>
+                  <Text>Actual Participant: {formatNumber(dataHeader.particapant_actual)} Person</Text>
+                </View>
               </View>
               {/* <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'between', width: '100%' }}>
                 <Text style={{ width: '140px' }}>
