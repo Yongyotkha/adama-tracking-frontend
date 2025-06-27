@@ -29,12 +29,53 @@ const styles = StyleSheet.create({
   logo: { width: 60, height: 60 },
   companyDetails: { flex: 1, paddingLeft: 10, fontSize: 8 },
   title: { textAlign: "center", fontSize: 14, fontWeight: "bold", marginBottom: 10 },
-  section: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10, borderStyle: "solid", borderWidth: 1, borderColor: "#000", padding: 5, lineHeight: 1 },
-  sectionColumn: { width: "48%" },
-  table: { display: "table", width: "100%", borderStyle: "solid", borderWidth: 1, borderColor: "#000" },
+  sectionTop: { flexDirection: "row", justifyContent: "space-between", lineHeight: 1 },
+  sectionColumnTop: {
+    width: "33%",
+    borderWidth: 1,
+    borderColor: "#000",
+    padding: 5,
+    borderLeft: 0,
+    borderBottom: 0,
+  },
+  section: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderColor: "#000",
+    lineHeight: 1,
+  },
+  sectionColumn: { width: "50%", padding: 5 },
+  sectionColumn2: {
+    width: "50%",
+    padding: 5,
+    borderLeftWidth: 1,
+    borderColor: "#000",
+  },
+  table: {
+    display: "table",
+    width: "100%",
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderColor: "#000",
+  },
   tableRow: { flexDirection: "row" },
-  tableCellHeader: { borderBottomWidth: 1, padding: 5, fontWeight: "bold", textAlign: "center", flex: 1, borderRightWidth: 1 },
-  tableCell: { padding: 5, flex: 1, textAlign: "center", borderRightWidth: 1 },
+  tableCellHeader: {
+    borderBottomWidth: 1,
+    padding: 5,
+    fontWeight: "bold",
+    textAlign: "center",
+    flex: 1,
+    borderRightWidth: 1,
+  },
+  tableCell: {
+    padding: 5,
+    flex: 1,
+    textAlign: "center",
+    borderRightWidth: 1,
+  },
   tableCellLast: { borderRightWidth: 0 },
   footer: {
     marginTop: 10,
@@ -48,9 +89,12 @@ const styles = StyleSheet.create({
   footerRow: { flexDirection: "row", lineHeight: 1 },
   footerSection: { flex: 1, padding: 5, borderRightWidth: 1 },
   footerSectionLast: { flex: 1, padding: 5 },
-  footerText: { marginBottom: 3 },
   footerLabel: { fontWeight: "bold" },
-  footerContentRow: { flexDirection: "row", justifyContent: "space-between" },
+  footerContentRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
 });
 
 const ClearingExpensePDF = () => {
@@ -64,28 +108,43 @@ const ClearingExpensePDF = () => {
             <View style={styles.companyDetails}>
               <Text style={{ fontWeight: "bold", fontSize: 10, lineHeight: 1.5 }}>บริษัท อดามา (ประเทศไทย) จำกัด </Text>
               <Text style={{ fontWeight: "bold", fontSize: 10, lineHeight: 1.5 }}>ADAMA (Thailand) Limited</Text>
-              <Text style={{ fontSize: 8, lineHeight: 1.5 }}>127/33  อาคารปัญจธานี ทาวเวอร์ ชั้น 28 ถนนนนทรี  แขวงช่องนนทรี เขตยานนาวา กรุงเทพฯ 10120</Text>
+              <Text style={{ fontSize: 8, lineHeight: 1.5 }}>127/33 อาคารปัญจธานี ทาวเวอร์ ชั้น 28 ถนนนนทรี แขวงช่องนนทรี เขตยานนาวา กรุงเทพฯ 10120</Text>
               <Text style={{ fontSize: 8, lineHeight: 1.5 }}>127/33 Panjathani Tower Building 28 floor, Nonsi Rd, Yannawa, Bangkok 10120</Text>
               <Text style={{ fontSize: 8, lineHeight: 1.5 }}>Tel: +66 2 681 1979 Fax: +66 2 681 1977</Text>
             </View>
           </View>
           <Text style={styles.title}>Clearing Expense</Text>
 
-          {/* Details Section */}
+          {/* Top section */}
+          <View style={styles.sectionTop}>
+            <View style={styles.sectionColumnTop}>
+              <Text style={{ fontWeight: "bold" }}>Advance Exp: 0 THB</Text>
+              <Text>Exp: 0%</Text>
+            </View>
+            <View style={[styles.sectionColumnTop, { borderLeftWidth: 1 }]}>
+              <Text style={{ fontWeight: "bold" }}>Actual Exp: 0 THB</Text>
+              <Text>Exp: 0%</Text>
+            </View>
+            <View style={[styles.sectionColumnTop, { borderLeftWidth: 1 }]}>
+              <Text style={{ fontWeight: "bold" }}>Clearing No: CE2025010009</Text>
+              <Text>Date: 20/01/2025</Text>
+            </View>
+          </View>
+
+          {/* Details */}
           <View style={styles.section}>
             <View style={styles.sectionColumn}>
-              <Text>Advance No: AE2025010073</Text>
               <Text>Activity Type: Small Farmer Meeting</Text>
-              <Text>Shop Name: SP สาขาเขาปั๊ป</Text>
+              <Text>Dealer Name: SP สาขาเขาปั๊ป</Text>
               <Text>Crop: Fruits</Text>
               <Text>Sale Name: Chainarong Jitsawaeng</Text>
             </View>
-            <View style={styles.sectionColumn}>
+            <View style={styles.sectionColumn2}>
               <Text>Event Date: 20/01/2025</Text>
-              <Text>Est. Participant: Person</Text>
-              <Text>Actual Participant: Person</Text>
-              <Text>Advance Exp: THB</Text>
-              <Text>Actual Exp: THB</Text>
+              <Text>Est. Participant: 30</Text>
+              <Text>Actual Participant: 25</Text>
+              <Text>Advance Exp: 35,000 THB</Text>
+              <Text>Actual Exp: 32,000 THB</Text>
             </View>
           </View>
 
@@ -112,26 +171,11 @@ const ClearingExpensePDF = () => {
               <Text style={styles.tableCell}>22,257</Text>
               <Text style={[styles.tableCell, styles.tableCellLast]}></Text>
             </View>
-            <View style={styles.tableRow}>
-              <Text style={styles.tableCell}>Kohinor X 350 SC</Text>
-              <Text style={styles.tableCell}>1 Lt x 12</Text>
-              <Text style={styles.tableCell}>10</Text>
-              <Text style={styles.tableCell}>8,775.5</Text>
-              <Text style={[styles.tableCell, styles.tableCellLast]}></Text>
-            </View>
-            <View style={styles.tableRow}>
-              <Text style={styles.tableCell}>Kestrel</Text>
-              <Text style={styles.tableCell}>0.25 Lt x 20</Text>
-              <Text style={styles.tableCell}>10</Text>
-              <Text style={styles.tableCell}>6,548</Text>
-              <Text style={[styles.tableCell, styles.tableCellLast]}></Text>
-            </View>
           </View>
 
           {/* Footer */}
           <View style={styles.footer}>
             <View style={styles.footerRow}>
-              {/* Advance Section */}
               <View style={styles.footerSection}>
                 <Text style={styles.footerLabel}>Advance</Text>
                 <View style={styles.footerContentRow}>
@@ -149,8 +193,6 @@ const ClearingExpensePDF = () => {
                   <Text>Date</Text>
                 </View>
               </View>
-
-              {/* Clearing Section */}
               <View style={styles.footerSectionLast}>
                 <Text style={styles.footerLabel}>Clearing</Text>
                 <View style={styles.footerContentRow}>
