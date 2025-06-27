@@ -186,7 +186,7 @@ export default function EditInformation() {
       type: "select",
       required: false,
       col: 6,
-      // disabled: true,
+      disabled: { isViewMode },
       options: [
         { name: "Active", id: 1, selected: true },
         { name: "Inactive", id: 0, selected: false },
@@ -982,6 +982,16 @@ export default function EditInformation() {
     checkGoogleMaps();
   }, []);
 
+  const handleGetLocationToGoogleMap = () => {
+    if (currentLocation.lat && currentLocation.lng) {
+      const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${currentLocation.lat},${currentLocation.lng}`;
+      window.open(googleMapsUrl, "_blank");
+    } else {
+      console.error("No latitude and longitude data available.");
+    }
+  };
+
+
   let items = [
     {
       key: "profile",
@@ -1005,10 +1015,25 @@ export default function EditInformation() {
               <div className="flex justify-end space-x-4 mb-2">
                 <ActionButton
                   text={isMapEnabled ? "Close Google" : "Open Google"}
-                  mode="update"
+                  mode="custom"
                   onClick={() => setIsMapEnabled((prev) => !prev)}
+                  disabled={isViewMode}
+                  className={isMapEnabled ? "bg-[#f11113]" : "bg-[#00783F]"} // สีแดง/เขียว
                 />
+
+                <button
+                  className="w-8 h-8  bg-white rounded hover:shadow"
+                  onClick={handleGetLocationToGoogleMap}
+                  title="Open in Google Maps"
+                >
+                  <img
+                    src="/img/icons/google-map.png"
+                    alt="Google Map"
+                    className="w-full h-full object-contain"
+                  />
+                </button>
               </div>
+
 
               <LoadScript googleMapsApiKey={dataApiKey}>
                 <GoogleMap

@@ -26,8 +26,8 @@ import dayjs from "dayjs";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import TableComponent from "../../../components/table/TableComponent";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
-import DynamicModal from "../../../components/modal/DynamicModal"; 
-import { GoogleMap, LoadScript, Marker} from "@react-google-maps/api";
+import DynamicModal from "../../../components/modal/DynamicModal";
+import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -36,7 +36,7 @@ export default function EditSubDealer() {
   const navigate = useNavigate();
   const location = useLocation();
   const [cropOptions, setCropOptions] = useState([]);
-  const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); 
+  const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]);
   const [companyinfo, setcompanyinfo] = useState([]);
   const [form] = Form.useForm();
   const [contactItems, setContactItems] = useState([]); // State for contact items
@@ -49,8 +49,8 @@ export default function EditSubDealer() {
   const [currentLocation, setCurrentLocation] = useState({});
   const [dataMapZoom, setDataMapZoom] = useState(15);
   const [isMapEnabled, setIsMapEnabled] = useState(false);
-  
-  const mode = location.state.mode; 
+
+  const mode = location.state.mode;
   const isViewMode = mode === "View";
 
   useEffect(() => {
@@ -86,12 +86,12 @@ export default function EditSubDealer() {
         const { data } = response;
         console.log(data.location_latitude);
         console.log(data.location_longitude);
-        const lat = parseFloat(data.location_latitude) || 13.9572612; 
-        const lng = parseFloat(data.location_longitude) || 100.6222401;   
+        const lat = parseFloat(data.location_latitude) || 13.9572612;
+        const lng = parseFloat(data.location_longitude) || 100.6222401;
         setCurrentLocation({ lat, lng });
 
         setcompanyinfo(data);
-        setProfileImage(data.photo_path); 
+        setProfileImage(data.photo_path);
         setContactItems(data.contact_items);
         setCropOptions(data.crop_list || []);
         const cropNames = data.crop_list?.map((crop) => Number(crop.id)) || [];
@@ -106,7 +106,7 @@ export default function EditSubDealer() {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     if (companyinfo.remark) {
       form.setFieldsValue({
@@ -114,7 +114,7 @@ export default function EditSubDealer() {
       });
     }
   }, [companyinfo, form]); // อัปเดตเมื่อ companyinfo เปลี่ยน
-  
+
 
   let formFields = [
     {
@@ -132,7 +132,7 @@ export default function EditSubDealer() {
       type: "text",
       required: false,
       col: 6,
-      value: companyinfo.name 
+      value: companyinfo.name
     },
     {
       label: "Mobile Phone",
@@ -167,7 +167,7 @@ export default function EditSubDealer() {
       col: 12,
       // iconSrc: "/img/icons/calendar.png",
       // iconPosition: "right",
-      value:companyinfo.day_of_week,
+      value: companyinfo.day_of_week,
     },
     {
       label: "Start Time",
@@ -176,9 +176,9 @@ export default function EditSubDealer() {
       required: false,
       col: 6,
       value: companyinfo.start_time
-      ? dayjs(companyinfo.start_time, "HH:mm")
-      : null,
-      
+        ? dayjs(companyinfo.start_time, "HH:mm")
+        : null,
+
     },
     {
       label: "End Time",
@@ -187,8 +187,8 @@ export default function EditSubDealer() {
       required: false,
       col: 6,
       value: companyinfo.end_time
-      ? dayjs(companyinfo.end_time, "HH:mm")
-      : null,
+        ? dayjs(companyinfo.end_time, "HH:mm")
+        : null,
     },
     // {
     //   label: "Business Size",
@@ -261,7 +261,7 @@ export default function EditSubDealer() {
       value: companyinfo.pesticides_business,
     },
     {
-      label: "Outlet Location Please select a location on the map" ,
+      label: "Outlet Location Please select a location on the map",
       labelColor: "red",
       name: "outlet_location",
       type: "text",
@@ -283,8 +283,8 @@ export default function EditSubDealer() {
 
 
   const transformedCropOptions = cropOptions.map((option) => ({
-    label: option.name, 
-    value: option.id, 
+    label: option.name,
+    value: option.id,
   }));
 
   useEffect(() => {
@@ -307,13 +307,13 @@ export default function EditSubDealer() {
         <div className="flex justify-between mb-4">
           <span className="text-[#00783F] text-md">{`Person ${index + 1}`}</span>
           {index > 0 && !isViewMode && (
-          <ActionButton
-            mode="delete"
-            text="Delete"
-            onClick={() => handleRemoveContact(index)}
-            disabled={isViewMode}
-          />
-        )}
+            <ActionButton
+              mode="delete"
+              text="Delete"
+              onClick={() => handleRemoveContact(index)}
+              disabled={isViewMode}
+            />
+          )}
         </div>
         <Row gutter={[16, 16]} className="mt-3">
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -431,170 +431,193 @@ export default function EditSubDealer() {
 
 
 
-    const mapContainerStyle = {
-      width: "100%",
-      height: "30vh",
-    };
-  
-    const handleMarkerDragEnd = async (event) => {
-      const lat = event.latLng.lat();
-      const lng = event.latLng.lng();
-      const geocoder = new window.google.maps.Geocoder();
-      const latlng = { lat, lng };
-    
-      try {
-        const response = await geocoder.geocode({ location: latlng });
-        if (response.results && response.results.length > 0) {
-          const locationName = response.results[0].formatted_address;
-    
-          // อัปเดต Outlet Location
-          form.setFieldsValue({ location_address: locationName });
-          setcompanyinfo((prev) => ({
-            ...prev,
-            location_address: locationName,
-          }));
-    
-          showNotification("success", `Location updated: ${locationName}`);
-          // อัปเดตตำแหน่งปัจจุบันใน State
-          setCurrentLocation({ lat, lng });
-        } else {
-          showNotification("error", "No address found for this location.");
-        }
-      } catch (error) {
-        console.error("Geocoder failed due to:", error);
-        showNotification("error", "Unable to fetch location name.");
-      }
-    
+  const mapContainerStyle = {
+    width: "100%",
+    height: "30vh",
+  };
 
+  const handleMarkerDragEnd = async (event) => {
+    const lat = event.latLng.lat();
+    const lng = event.latLng.lng();
+    const geocoder = new window.google.maps.Geocoder();
+    const latlng = { lat, lng };
+
+    try {
+      const response = await geocoder.geocode({ location: latlng });
+      if (response.results && response.results.length > 0) {
+        const locationName = response.results[0].formatted_address;
+
+        // อัปเดต Outlet Location
+        form.setFieldsValue({ location_address: locationName });
+        setcompanyinfo((prev) => ({
+          ...prev,
+          location_address: locationName,
+        }));
+
+        showNotification("success", `Location updated: ${locationName}`);
+        // อัปเดตตำแหน่งปัจจุบันใน State
+        setCurrentLocation({ lat, lng });
+      } else {
+        showNotification("error", "No address found for this location.");
+      }
+    } catch (error) {
+      console.error("Geocoder failed due to:", error);
+      showNotification("error", "Unable to fetch location name.");
+    }
+
+
+  };
+
+  useEffect(() => {
+    const checkGoogleMaps = () => {
+      if (window.google && window.google.maps) {
+        setIsGoogleLoaded(true);
+      } else {
+        const interval = setInterval(() => {
+          if (window.google && window.google.maps) {
+            clearInterval(interval);
+            setIsGoogleLoaded(true);
+          }
+        }, 500);
+      }
     };
-    
-    useEffect(() => {
-      const checkGoogleMaps = () => {
-        if (window.google && window.google.maps) {
-          setIsGoogleLoaded(true);
-        } else {
-          const interval = setInterval(() => {
-            if (window.google && window.google.maps) {
-              clearInterval(interval);
-              setIsGoogleLoaded(true);
-            }
-          }, 500);
-        }
-      };
-      checkGoogleMaps();
-    }, []);
-    
-    const handleSave = () => {
-      form
-        .validateFields()
-        .then((values) => {          
-          const payload = {
-            id: location.state.id,
-            use_flag: 1,
-            name: values.shop_name || "",
-            mobile_phone: values.mobile_phone || "",
-            address: values.address || "",
-            email: values.email || "",
-            day_of_week: values.day_of_week ,
-            start_time: values.start_time
+    checkGoogleMaps();
+  }, []);
+
+  const handleSave = () => {
+    form
+      .validateFields()
+      .then((values) => {
+        const payload = {
+          id: location.state.id,
+          use_flag: 1,
+          name: values.shop_name || "",
+          mobile_phone: values.mobile_phone || "",
+          address: values.address || "",
+          email: values.email || "",
+          day_of_week: values.day_of_week,
+          start_time: values.start_time
             ? dayjs(values.start_time).format("HH:mm")
             : "",
-            end_time: values.end_time
+          end_time: values.end_time
             ? dayjs(values.end_time).format("HH:mm")
             : "",
-            business_size: values.business_size || "",
-            location_address: values.outlet_location || "",
-            location_longitude: currentLocation.lng || "",
-            location_latitude: currentLocation.lat  || "",
-            t_shirt_size: values.tshirt_size || "",
-            anniversary: values.anniversary
-              ? dayjs(values.anniversary).format("YYYY-MM-DD")
+          business_size: values.business_size || "",
+          location_address: values.outlet_location || "",
+          location_longitude: currentLocation.lng || "",
+          location_latitude: currentLocation.lat || "",
+          t_shirt_size: values.tshirt_size || "",
+          anniversary: values.anniversary
+            ? dayjs(values.anniversary).format("YYYY-MM-DD")
+            : null,
+          remark: values.remark || "",
+          photo_path: values.profile,
+          pesticides_business: values.pesticides_business,
+          seed_business: values.seed_business,
+          fertilizer_business: values.fertilizer_business,
+
+          contact_items: contactItems.map((contact) => ({
+            name_en: contact.name_en || "",
+            contact_number: contact.contact_number || "",
+            name_th: contact.name_th || "",
+            nickname: contact.nickname || null,
+            date_of_birth: contact.date_of_birth
+              ? dayjs(contact.date_of_birth).format("YYYY-MM-DD")
               : null,
-            remark: values.remark || "",
-            photo_path: values.profile, 
-            pesticides_business: values.pesticides_business,
-            seed_business:values.seed_business,
-            fertilizer_business: values.fertilizer_business,
-
-            contact_items: contactItems.map((contact) => ({
-              name_en: contact.name_en || "",
-              contact_number: contact.contact_number || "",
-              name_th: contact.name_th || "",
-              nickname: contact.nickname || null,
-              date_of_birth: contact.date_of_birth
-                ? dayjs(contact.date_of_birth).format("YYYY-MM-DD")
-                : null,
-              t_shirt_size: contact.t_shirt_size || null,
-              relationship: contact.relationship || null,
-              duty: contact.duty || null,
-              tel1: contact.tel1 || "",
-              tel2: contact.tel2 || "",
-              email: contact.email || null,
-              line_id: contact.line_id || null,
-            })),
-            crop_list: defaultSelectedCrops || [],
-          };              
-            useServiceAPI
-            .put(paths.pathSubDealerDetailUpdate, payload, setLoading)
-            .then((response) => {
-              if (response.status === 200) {
-                showNotification("success", response.data.message).then(() => {
-                  navigate("/customer/sub-dealer");
-                });
-              }
-            })
-            .catch((error) => {
-              console.error("API Error:", error);
-              showNotification(
-                "error",
-                error.response?.data?.message || "An unexpected error occurred."
-              );
-            });
-        })
-        .catch((errorInfo) => {
-          console.error("Validation Failed:", errorInfo);
-          showNotification("error", "Please complete all required fields.");
-        });
-    };
+            t_shirt_size: contact.t_shirt_size || null,
+            relationship: contact.relationship || null,
+            duty: contact.duty || null,
+            tel1: contact.tel1 || "",
+            tel2: contact.tel2 || "",
+            email: contact.email || null,
+            line_id: contact.line_id || null,
+          })),
+          crop_list: defaultSelectedCrops || [],
+        };
+        useServiceAPI
+          .put(paths.pathSubDealerDetailUpdate, payload, setLoading)
+          .then((response) => {
+            if (response.status === 200) {
+              showNotification("success", response.data.message).then(() => {
+                navigate("/customer/sub-dealer");
+              });
+            }
+          })
+          .catch((error) => {
+            console.error("API Error:", error);
+            showNotification(
+              "error",
+              error.response?.data?.message || "An unexpected error occurred."
+            );
+          });
+      })
+      .catch((errorInfo) => {
+        console.error("Validation Failed:", errorInfo);
+        showNotification("error", "Please complete all required fields.");
+      });
+  };
 
 
+  const handleGetLocationToGoogleMap = () => {
+    if (currentLocation.lat && currentLocation.lng) {
+      const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${currentLocation.lat},${currentLocation.lng}`;
+      window.open(googleMapsUrl, "_blank");
+    } else {
+      showNotification("error", "No latitude and longitude data available.");
+    }
+  };
 
   return (
 
     <Form form={form} layout="vertical">
-    
-    <MainLayout loading={loading}>
-      <div className="title-page"></div>
-      <div className="title-page">{isViewMode ? "View Sub Dealer" : "Edit Sub Dealer"}</div>
+
+      <MainLayout loading={loading}>
+        <div className="title-page"></div>
+        <div className="title-page">{isViewMode ? "View Sub Dealer" : "Edit Sub Dealer"}</div>
 
 
-      {dataLoaded ? (
-        <FormUser 
-          profile={profileImage} 
-          fields={formFields} 
-          form={form} 
-          initialValues={{
-            remark: companyinfo.remark || "", // ค่าเริ่มต้นของ remark
-          }}
-        />
-      ) : (
-        <div></div>
-      )}
-      
-          <div className={`bg-white p-4`}
-            style={{
-              boxShadow: "rgba(0, 0, 0, 0.1)", // Optional for a subtle shadow
-              marginTop: "-20px",
+        {dataLoaded ? (
+          <FormUser
+            profile={profileImage}
+            fields={formFields}
+            form={form}
+            initialValues={{
+              remark: companyinfo.remark || "", // ค่าเริ่มต้นของ remark
             }}
-          >
+          />
+        ) : (
+          <div></div>
+        )}
+
+        <div className={`bg-white p-4`}
+          style={{
+            boxShadow: "rgba(0, 0, 0, 0.1)", // Optional for a subtle shadow
+            marginTop: "-20px",
+          }}
+        >
           <div className="text-[#00783F] text-lg font-semibold mb-3">
-            
-          <div className="flex justify-end space-x-4 mb-2">
-            <ActionButton 
-              text={isMapEnabled ? "Close Google" : "Open Google"}
-              mode="update" 
-              onClick={() => setIsMapEnabled((prev) => !prev)} />
-          </div>
+
+            <div className="flex justify-end space-x-2 mb-2">
+              <ActionButton
+                text={isMapEnabled ? "Close Google" : "Open Google"}
+                mode="custom"
+                onClick={() => setIsMapEnabled((prev) => !prev)}
+                className={`text-white ${isMapEnabled ? "bg-[#FF4D4F]" : "bg-[#52C41A]"
+                  }`}
+              />
+              <button
+                className="w-8 h-8 bg-white rounded hover:shadow"
+                onClick={handleGetLocationToGoogleMap}
+                title="Open in Google Maps"
+                disabled={!currentLocation.lat || !currentLocation.lng}
+              >
+                <img
+                  src="/img/icons/google-map.png"
+                  alt="Google Map"
+                  className="w-full h-full object-contain"
+                />
+              </button>
+            </div>
 
             <LoadScript googleMapsApiKey={dataApiKey}>
               <GoogleMap
@@ -608,37 +631,37 @@ export default function EditSubDealer() {
                 }}
               >
                 {isGoogleLoaded && (
-                  <Marker 
+                  <Marker
                     position={currentLocation}
                     icon={{
                       // url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
                       scaledSize: { width: 30, height: 30 },
                     }}
                     draggable={true}
-                    onDragEnd={handleMarkerDragEnd} 
+                    onDragEnd={handleMarkerDragEnd}
                     options={{ disableDefaultUI: !isMapEnabled, draggable: isMapEnabled }}
                   />
                 )}
               </GoogleMap>
             </LoadScript>
-    
-    
-            <Form.Item 
-              label="Remark" 
+
+
+            <Form.Item
+              label="Remark"
               name="remark"
               className="mt-3"
             >
-              <Input 
-                placeholder="Enter Remark" 
+              <Input
+                placeholder="Enter Remark"
                 disabled={isViewMode}
               />
-              
-            </Form.Item>
-    
-            </div>
-          </div>
 
-    {/* <LoadScript googleMapsApiKey={dataApiKey}>
+            </Form.Item>
+
+          </div>
+        </div>
+
+        {/* <LoadScript googleMapsApiKey={dataApiKey}>
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           center={currentLocation}
@@ -663,58 +686,58 @@ export default function EditSubDealer() {
         </GoogleMap>
     </LoadScript> */}
 
-    <BoxPrimary title="Crop">
-        <Select
-          mode="multiple"
-          showSearch
-          placeholder="Select Crop(s)"
-          optionFilterProp="children"
-          className="w-full"
-          value={defaultSelectedCrops} 
-          onChange={(value) => setDefaultSelectedCrops(value)} // จัดการการเปลี่ยนแปลงค่า
-          options={transformedCropOptions} 
-          disabled={isViewMode}
-        />
-    </BoxPrimary>
-
-    <BoxPrimary>
-      <div className="flex justify-between mb-4">
-        <span className="text-[#00783F] text-lg font-semibold">Contact Person</span>
-        {!isViewMode && ( 
-          <ActionButton
-            mode="add"
-            text="Add"
-            onClick={() => {
-              setContactItems([
-                ...contactItems,
-                {
-                  name: "",
-                  phone: "",
-                  email: "",
-                  position: ""
-                }
-              ]);
-            }}
+        <BoxPrimary title="Crop">
+          <Select
+            mode="multiple"
+            showSearch
+            placeholder="Select Crop(s)"
+            optionFilterProp="children"
+            className="w-full"
+            value={defaultSelectedCrops}
+            onChange={(value) => setDefaultSelectedCrops(value)} // จัดการการเปลี่ยนแปลงค่า
+            options={transformedCropOptions}
+            disabled={isViewMode}
           />
-        )}
-      </div>
-      {contactItems.length > 0 ? (
-        renderContactItems()
-      ) : (
-        <div className="text-gray-500"></div>
-      )}
-    </BoxPrimary>
+        </BoxPrimary>
 
-      {/* Action Buttons */}
-      <div className="flex justify-end space-x-4 mt-6">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/customer/sub-dealer")} />
-        {
-        !isViewMode && (
-          <ActionButton text="Update" mode="update" onClick={handleSave} />
-          )
-        }
-      </div>
-    </MainLayout>
+        <BoxPrimary>
+          <div className="flex justify-between mb-4">
+            <span className="text-[#00783F] text-lg font-semibold">Contact Person</span>
+            {!isViewMode && (
+              <ActionButton
+                mode="add"
+                text="Add"
+                onClick={() => {
+                  setContactItems([
+                    ...contactItems,
+                    {
+                      name: "",
+                      phone: "",
+                      email: "",
+                      position: ""
+                    }
+                  ]);
+                }}
+              />
+            )}
+          </div>
+          {contactItems.length > 0 ? (
+            renderContactItems()
+          ) : (
+            <div className="text-gray-500"></div>
+          )}
+        </BoxPrimary>
+
+        {/* Action Buttons */}
+        <div className="flex justify-end space-x-4 mt-6">
+          <ActionButton mode="back" text="Back" onClick={() => navigate("/customer/sub-dealer")} />
+          {
+            !isViewMode && (
+              <ActionButton text="Update" mode="update" onClick={handleSave} />
+            )
+          }
+        </div>
+      </MainLayout>
     </Form>
 
 

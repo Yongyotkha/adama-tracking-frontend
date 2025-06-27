@@ -267,6 +267,8 @@ export default function CreateSubDealer() {
       col: 18,
       iconSrc: "/img/icons/calendar.png",
       iconPosition: "right",
+      disabled: isViewMode,
+
     },
     // {
     //   label: "Start Time",
@@ -329,6 +331,7 @@ export default function CreateSubDealer() {
         { name: "New", id: 1, selected: true },
       ],
       value: companyinfo.status || 1,
+      disabled: isViewMode,
 
     },
     {
@@ -805,6 +808,15 @@ export default function CreateSubDealer() {
       });
   };
 
+  const handleGetLocationToGoogleMap = () => {
+    if (currentLocation.lat && currentLocation.lng) {
+      const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${currentLocation.lat},${currentLocation.lng}`;
+      window.open(googleMapsUrl, "_blank");
+    } else {
+      showNotification("error", "No latitude and longitude data available.");
+    }
+  };
+
   // ---------- เนื้อหาในแท็บ “Profile” ----------
   const profileTabContent = (
     <Form form={form} layout="vertical" component={false}>
@@ -818,6 +830,7 @@ export default function CreateSubDealer() {
           profile={profileImage}
           fields={formFields}
           form={form}
+          disableImageUpload={isViewMode}
         />
       )}
 
@@ -829,14 +842,29 @@ export default function CreateSubDealer() {
         }}
       >
         <div className="text-[#00783F] text-lg font-semibold mb-3">
-          <div className="flex justify-end space-x-4 mb-2">
+          <div className="flex justify-end space-x-2 mb-2">
             <ActionButton
               text={isMapEnabled ? "Close Google" : "Open Google"}
-              mode="update"
-              // onClick={() => setIsMapEnabled((prev) => !prev)} 
-              onClick={handleToggleMap}
+              mode="custom"
+              onClick={() => setIsMapEnabled((prev) => !prev)}
+              className={isMapEnabled ? "bg-[#f11113]" : "bg-[#00783F]"} // สีแดง/เขียว
+              disabled={isViewMode}
             />
+
+            <button
+              className="w-8 h-8  bg-white rounded hover:shadow"
+              onClick={handleGetLocationToGoogleMap}
+              title="Open in Google Maps"
+              disabled={!currentLocation.lat || !currentLocation.lng}
+            >
+              <img
+                src="/img/icons/google-map.png"
+                alt="Google Map"
+                className="w-full h-full object-contain"
+              />
+            </button>
           </div>
+
 
           <LoadScript googleMapsApiKey={dataApiKey}>
             <GoogleMap
@@ -865,7 +893,7 @@ export default function CreateSubDealer() {
           </LoadScript>
 
           <Form.Item label="Remark" name="remark" className="mt-3">
-            <Input placeholder="Enter Remark" />
+            <Input placeholder="Enter Remark" disabled={{ isViewMode }} />
           </Form.Item>
         </div>
       </div>
@@ -1066,14 +1094,18 @@ export default function CreateSubDealer() {
           text="Back"
           onClick={() => navigate("/customer/sub-dealer")}
         />
-        {mode === "Edit" ? (
+
+        {/* แสดงปุ่ม Edit เฉพาะในโหมด Edit */}
+        {mode === "Edit" && (
           <ActionButton text="Edit" mode="save" onClick={handleSaveEdit} />
-        ) : (
-          <ActionButton text="Save" mode="save" onClick={handleSave} />
         )}
 
-        {/* <ActionButton text="Save" mode="save" onClick={handleSave} /> */}
+        {/* แสดงปุ่ม Save เฉพาะในโหมด Create เท่านั้น */}
+        {mode === "Create" && (
+          <ActionButton text="Save" mode="save" onClick={handleSave} />
+        )}
       </div>
+
     </Form>
   );
 

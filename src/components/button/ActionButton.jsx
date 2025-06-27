@@ -1,7 +1,7 @@
 import React from "react";
 import { DeleteOutlined, MinusOutlined, PlusOutlined } from "@ant-design/icons"; // Import Ant Design icon
 
-const ActionButton = ({ onClick, disabled, mode, text, className = "" , style }) => {
+const ActionButton = ({ onClick, disabled, mode, text, className = "", style }) => {
   return (
     <>
       {mode === "create" && (
@@ -138,6 +138,17 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "" , style })
           <div>{text}</div>
         </button>
       )}
+
+      {mode === "custom" && (
+        <button
+          className={`flex text-white text-sm rounded-sm gap-2 p-2 items-center min-w-[96px] justify-center ${className}`}
+          onClick={onClick}
+          disabled={disabled}
+        >
+          <div>{text}</div>
+        </button>
+      )}
+
     </>
   );
 };

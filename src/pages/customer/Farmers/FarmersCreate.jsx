@@ -27,11 +27,11 @@ import BadgeStatus from "../../../components/badge/BadgeStatus";
 import TableComponent from "../../../components/table/TableComponent";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import DynamicModal from "../../../components/modal/DynamicModal"; // Adjust path if needed
-import { GoogleMap, LoadScript, Marker} from "@react-google-maps/api";
+import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 
 const { Option } = Select;
 
-export default function CreateSubDealer() {
+export default function FarmersCreate() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [cropOptions, setCropOptions] = useState([]);
@@ -45,7 +45,7 @@ export default function CreateSubDealer() {
   const [dataApiKey, setDataApiKay] = useState("AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik");
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
   const [companyinfo, setcompanyinfo] = useState([]);
-  const [currentLocation, setCurrentLocation] = useState({lat: 13.9572612,lng: 100.6222401,});
+  const [currentLocation, setCurrentLocation] = useState({ lat: 13.9572612, lng: 100.6222401, });
   const [dataMapZoom, setDataMapZoom] = useState(15);
   const [contacts, setContacts] = useState([
     {
@@ -66,16 +66,16 @@ export default function CreateSubDealer() {
   const location = useLocation();
   const [isMapEnabled, setIsMapEnabled] = useState(false);
   const [profileImage, setProfileImage] = useState("/img/profile.jpg"); // Default value
-  
-  const mode = location.state.mod; 
+
+  const mode = location.state.mod;
   const isViewMode = mode === "View";
-  
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        
-        if (mode ==='Edit' || mode=== 'View') {
+
+        if (mode === 'Edit' || mode === 'View') {
           await fetchFarmersDetails(location.state.id);
         }
         const [crops] = await Promise.all([
@@ -114,7 +114,7 @@ export default function CreateSubDealer() {
           outlet_location: data.location_address || "",
           use_flag: data.use_flag === "1" ? "Active" : "Inactive",
         });
-          
+
         // ตั้งค่ารายละเอียดอื่น ๆ
         setCurrentLocation({
           lat: parseFloat(data.location_latitude) || 13.9572612,
@@ -153,7 +153,7 @@ export default function CreateSubDealer() {
       setLoading(false);
     }
   };
-  
+
 
 
 
@@ -206,6 +206,7 @@ export default function CreateSubDealer() {
       col: 6,
       iconSrc: "/img/icons/calendar.png",
       iconPosition: "right",
+      disabled: isViewMode,
     },
     {
       label: "Start Time",
@@ -213,6 +214,7 @@ export default function CreateSubDealer() {
       type: "time",
       required: false,
       col: 3,
+      disabled: isViewMode,
     },
     {
       label: "End Time",
@@ -220,6 +222,7 @@ export default function CreateSubDealer() {
       type: "time",
       required: false,
       col: 3,
+      disabled: isViewMode,
     },
     {
       label: "Business Size",
@@ -232,6 +235,7 @@ export default function CreateSubDealer() {
         { name: "Medium", id: 2, selected: false },
         { name: "Large", id: 3, selected: false },
       ],
+      disabled: isViewMode,
     },
     {
       label: "Email",
@@ -239,6 +243,7 @@ export default function CreateSubDealer() {
       type: "email",
       required: false,
       col: 6,
+      disabled: isViewMode,
     },
     {
       label: "Outlet Location",
@@ -258,6 +263,7 @@ export default function CreateSubDealer() {
       type: "text",
       required: false,
       col: 6,
+      disabled: isViewMode,
     },
     {
       label: "Aniversary",
@@ -265,6 +271,7 @@ export default function CreateSubDealer() {
       type: "date",
       required: false,
       col: 6,
+      disabled: isViewMode,
     },
     {
       label: "Status",
@@ -277,6 +284,7 @@ export default function CreateSubDealer() {
         { name: "Active", id: 1, selected: true },
         { name: "Inactive", id: 0, selected: false },
       ],
+      disabled: isViewMode,
     },
     {
       label: "Remark",
@@ -284,13 +292,14 @@ export default function CreateSubDealer() {
       type: "text",
       required: false,
       col: 24,
+      disabled: isViewMode,
     },
   ]);
 
 
   const transformedCropOptions = cropOptions.map((option) => ({
     label: option.name,
-    value: option.id, 
+    value: option.id,
   }));
 
   const [personalInfo, setPersonalInfo] = useState({
@@ -327,13 +336,13 @@ export default function CreateSubDealer() {
       },
     ]);
   };
-  
+
   const updateContact = (index, field, value) => {
     setContacts((prevContacts) =>
       prevContacts.map((contact, i) => {
         if (i === index) {
           const updatedContact = { ...contact, [field]: value };
-  
+
           // หากฟิลด์ที่เปลี่ยนคือ date_of_birth ให้คำนวณอายุ
           if (field === "date_of_birth" && value) {
             const birthDate = dayjs(value);
@@ -341,23 +350,23 @@ export default function CreateSubDealer() {
             const age = currentYear - birthDate.year(); // คำนวณอายุ
             updatedContact.age = age;
           }
-  
+
           return updatedContact;
         }
         return contact;
       })
     );
   };
-  
+
   const handlePersonalInfoChange = (field, value) => {
-    console.log(field,value);
-    
+    console.log(field, value);
+
     setPersonalInfo((prevInfo) => ({
       ...prevInfo,
       [field]: value, // อัปเดตค่าฟิลด์ที่กำหนด
     }));
   };
-  
+
   const handleRemoveContact = (index) => {
     setContacts((prevContacts) => prevContacts.filter((_, i) => i !== index));
   };
@@ -374,7 +383,7 @@ export default function CreateSubDealer() {
 
     const geocoder = new window.google.maps.Geocoder();
     const latlng = { lat, lng };
-    
+
     try {
       const response = await geocoder.geocode({ location: latlng });
       if (response.results && response.results.length > 0) {
@@ -385,11 +394,11 @@ export default function CreateSubDealer() {
           ...prev,
           outlet_location: locationName,
         }));
-  
+
         showNotification("success", `Location updated: ${locationName}`);
         // อัปเดตตำแหน่งปัจจุบันใน State
         setCurrentLocation({ lat, lng });
-        
+
       } else {
         showNotification("error", "No address found for this location.");
       }
@@ -397,9 +406,9 @@ export default function CreateSubDealer() {
       console.error(error);
       showNotification("error", "Unable to fetch location name.");
     }
-  
+
   };
-  
+
   useEffect(() => {
     const checkGoogleMaps = () => {
       if (window.google && window.google.maps) {
@@ -416,93 +425,93 @@ export default function CreateSubDealer() {
     checkGoogleMaps();
   }, []);
 
-    //--- ฟังก์ชันดึงตำแหน่งปัจจุบัน ---//
-    const getUserCurrentLocation = () => {
-      if (!navigator.geolocation) {
-        showNotification("error", "Geolocation is not supported by this browser.");
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          setCurrentLocation({ lat: latitude, lng: longitude });
-          
-          // เรียกใช้ geocoder เพื่อแปลง lat,lng => ชื่อสถานที่
-          try {
-            const geocoder = new window.google.maps.Geocoder();
-            const latlng = { lat: latitude, lng: longitude };
-            const response = await geocoder.geocode({ location: latlng });
-            if (response.results && response.results.length > 0) {
-              const locationName = response.results[0].formatted_address;
-              // เซ็ตค่าลงในฟอร์ม
-              form.setFieldsValue({ outlet_location: locationName });
-              showNotification("success", `Current location: ${locationName}`);
-            }
-          } catch (error) {
-            console.error(error);
-            showNotification("error", "Unable to fetch location name.");
-          }
-        },
-        (error) => {
-          console.error(error);
-          showNotification("error", "Unable to retrieve your location");
-        }
-      );
-    };
-  
-  
-    const handleToggleMap = () => {
-      setIsMapEnabled((prev) => {
-        const newState = !prev;
-        // หากกำลังจะเปิด Map แต่ไม่ใช่โหมด Edit => ดึงพิกัดปัจจุบัน
-        if (newState === true && mode !== "Edit") {
-          getUserCurrentLocation();
-        }
-        return newState;
-      });
-    };
-  
-      
-      // ดึงที่อยู่จาก Google Maps Geocoding API
-      const fetchAddress = async (lat, lng) => {
-        const apiKey = "AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik";
-        const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
-    
+  //--- ฟังก์ชันดึงตำแหน่งปัจจุบัน ---//
+  const getUserCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      showNotification("error", "Geolocation is not supported by this browser.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setCurrentLocation({ lat: latitude, lng: longitude });
+
+        // เรียกใช้ geocoder เพื่อแปลง lat,lng => ชื่อสถานที่
         try {
-          const response = await fetch(url);
-          const data = await response.json();
-    
-          if (data.status === "OK" && data.results.length > 0) {
-            // return data.results[0].formatted_address; // คืนค่าที่อยู่
-            console.log(data.results[0].formatted_address);
-            setFormData({...formData,gps:data.results[0].formatted_address})
-          } else {
-            console.error("Geocoding API error:", data.status);
-            return "Address not found";
+          const geocoder = new window.google.maps.Geocoder();
+          const latlng = { lat: latitude, lng: longitude };
+          const response = await geocoder.geocode({ location: latlng });
+          if (response.results && response.results.length > 0) {
+            const locationName = response.results[0].formatted_address;
+            // เซ็ตค่าลงในฟอร์ม
+            form.setFieldsValue({ outlet_location: locationName });
+            showNotification("success", `Current location: ${locationName}`);
           }
         } catch (error) {
-          console.error("Error fetching address:", error);
-          return "Error fetching address";
+          console.error(error);
+          showNotification("error", "Unable to fetch location name.");
         }
-      };
-  
-      const handleGetLocation = () => {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              const { latitude, longitude } = position.coords;
-              fetchAddress(latitude, longitude );
-            },
-            (error) => {
-              console.error("Error fetching location:", error.message);
-            }
-          );
-        } else {
-          console.error("Geolocation is not supported by this browser.");
-        }
-      };
+      },
+      (error) => {
+        console.error(error);
+        showNotification("error", "Unable to retrieve your location");
+      }
+    );
+  };
 
-  const handleSave = () => { 
+
+  const handleToggleMap = () => {
+    setIsMapEnabled((prev) => {
+      const newState = !prev;
+      // หากกำลังจะเปิด Map แต่ไม่ใช่โหมด Edit => ดึงพิกัดปัจจุบัน
+      if (newState === true && mode !== "Edit") {
+        getUserCurrentLocation();
+      }
+      return newState;
+    });
+  };
+
+
+  // ดึงที่อยู่จาก Google Maps Geocoding API
+  const fetchAddress = async (lat, lng) => {
+    const apiKey = "AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik";
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.status === "OK" && data.results.length > 0) {
+        // return data.results[0].formatted_address; // คืนค่าที่อยู่
+        console.log(data.results[0].formatted_address);
+        setFormData({ ...formData, gps: data.results[0].formatted_address })
+      } else {
+        console.error("Geocoding API error:", data.status);
+        return "Address not found";
+      }
+    } catch (error) {
+      console.error("Error fetching address:", error);
+      return "Error fetching address";
+    }
+  };
+
+  const handleGetLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          fetchAddress(latitude, longitude);
+        },
+        (error) => {
+          console.error("Error fetching location:", error.message);
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
+  };
+
+  const handleSave = () => {
     form
       .validateFields()
       .then((values) => {
@@ -515,20 +524,20 @@ export default function CreateSubDealer() {
         }
 
         console.log(values);
-        
+
         const formattedData = {
           photo_path: values.profile,
           name: values.name || "",
           mobile_phone: values.mobile_phone || "",
           address: values.address || "",
           email: values.email || "",
-          day_of_week: values.day_of_week ,
+          day_of_week: values.day_of_week,
           start_time: values.start_time
-          ? dayjs(values.start_time).format("HH:mm")
-          : "",
+            ? dayjs(values.start_time).format("HH:mm")
+            : "",
           end_time: values.end_time
-          ? dayjs(values.end_time).format("HH:mm")
-          : "",
+            ? dayjs(values.end_time).format("HH:mm")
+            : "",
           business_size: values.business_size || "",
           outlet_location: values.location_address || "",
           t_shirt_size: values.t_shirt_size || "",
@@ -536,7 +545,7 @@ export default function CreateSubDealer() {
             ? dayjs(values.anniversary).format("YYYY-MM-DD")
             : null,
           location_longitude: currentLocation.lng || "",
-          location_latitude: currentLocation.lat  || "",
+          location_latitude: currentLocation.lat || "",
           location_address: values.location_address || "",
           use_flag: useFlagValue,
           remark: values.remark,
@@ -554,17 +563,17 @@ export default function CreateSubDealer() {
             tel2: item.tel2 || "",
             email: item.email || null,
             line_id: item.line_id || null,
-            hobby: item.hobby || "", 
-            age: item.age || "",     
+            hobby: item.hobby || "",
+            age: item.age || "",
           })),
           crop_list: defaultSelectedCrops || [],
         };
 
         console.log(formattedData);
-        
+
 
         if (mode === "create") {
-            useServiceAPI
+          useServiceAPI
             .post(paths.pathCustomerFarmersCreate, formattedData)
             .then((response) => {
               if (response.status === 200) {
@@ -581,29 +590,29 @@ export default function CreateSubDealer() {
             .catch((error) => {
               console.error("Save failed:", error);
             });
-        }else{
+        } else {
           useServiceAPI
-          .put(paths.pathCustomerFarmersUpdate, formattedData)
-          .then((response) => {
-            if (response.status === 200) {
-              navigate("/customer/farmers");
-              console.log( response.data.message);
-              
-              showNotification(
-                "success",
-                response.data.message,
-                response.data.message_line
-              );
-              // console.log("Save successful:", response.data);
-              // navigate("/customer/farmers"); 
-            }
-          })
-          .catch((error) => {
-            console.error("Save failed:", error);
-          });
+            .put(paths.pathCustomerFarmersUpdate, formattedData)
+            .then((response) => {
+              if (response.status === 200) {
+                navigate("/customer/farmers");
+                console.log(response.data.message);
+
+                showNotification(
+                  "success",
+                  response.data.message,
+                  response.data.message_line
+                );
+                // console.log("Save successful:", response.data);
+                // navigate("/customer/farmers"); 
+              }
+            })
+            .catch((error) => {
+              console.error("Save failed:", error);
+            });
         }
 
-      
+
       })
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
@@ -612,92 +621,128 @@ export default function CreateSubDealer() {
 
 
 
-  
+
   useEffect(() => {
     // console.log(defaultSelectedCrops)
   }, [defaultSelectedCrops]);
 
+  const handleGetLocationToGoogleMap = () => {
+    if (currentLocation.lat && currentLocation.lng) {
+      const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${currentLocation.lat},${currentLocation.lng}`;
+      window.open(googleMapsUrl, "_blank");
+    } else {
+      showNotification("error", "No latitude and longitude data available.");
+    }
+  };
+
 
   return (
     <Form form={form} layout="vertical" component={false}>
-    <MainLayout loading={loading}>
-    <div className="title-page">Create Farmers</div>
-      <FormUser 
-        title="Personal Info" 
-        profile={profileImage}
-        fields={formFields} 
-        form={form}
-      />
-      
-      <div className={`bg-white p-4`}
-        style={{
-          boxShadow: "rgba(0, 0, 0, 0.1)", // Optional for a subtle shadow
-          marginTop: "-20px",
-        }}
-      >
-      <div className="text-[#00783F] text-lg font-semibold mb-3">
-
-      <div className="flex justify-end space-x-4 mb-2">
-          <ActionButton 
-            text={isMapEnabled ? "Close Google" : "Open Google"}
-            mode="update" 
-            // onClick={() => setIsMapEnabled((prev) => !prev)} 
-            onClick={handleToggleMap}
-            />
-        </div>
-
-        <LoadScript googleMapsApiKey={dataApiKey}>
-          <GoogleMap
-            mapContainerStyle={mapContainerStyle}
-            center={currentLocation}
-            zoom={dataMapZoom}
-            onClick={(e) => {
-              const lat = e.latLng.lat();
-              const lng = e.latLng.lng();
-              setCurrentLocation({ lat, lng });
-            }}
-          >
-            {isGoogleLoaded && (
-              <Marker 
-                position={currentLocation}
-                icon={{
-                  // url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
-                  scaledSize: { width: 30, height: 30 },
-                }}
-                draggable={true}
-                onDragEnd={handleMarkerDragEnd} 
-                options={{ disableDefaultUI: !isMapEnabled, draggable: isMapEnabled }}
-
-              />
-            )}
-          </GoogleMap>
-        </LoadScript>
-        </div>
-      </div>
-
-
-      <BoxPrimary title="Crop">
-        <Select
-          mode="multiple"
-          showSearch
-          placeholder="Select Crop(s)"
-          optionFilterProp="children"
-          className="w-full"
-          value={defaultSelectedCrops} 
-          onChange={(value) => setDefaultSelectedCrops(value)} 
-          options={transformedCropOptions} 
+      <MainLayout loading={loading}>
+        <div className="title-page">Create Farmers</div>
+        <FormUser
+          title="Personal Info"
+          profile={profileImage}
+          fields={formFields}
+          form={form}
+          disableImageUpload={isViewMode}
         />
-      </BoxPrimary>
 
-      <BoxPrimary>
-        <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-lg font-semibold">
-            Contact Person
-          </span>
-          <ActionButton mode="add" text="Add" onClick={addContact} />
+        <div className={`bg-white p-4`}
+          style={{
+            boxShadow: "rgba(0, 0, 0, 0.1)", // Optional for a subtle shadow
+            marginTop: "-20px",
+          }}
+        >
+          <div className="text-[#00783F] text-lg font-semibold mb-3">
+
+            {/* <div className="flex justify-end space-x-4 mb-2">
+              <ActionButton
+                text={isMapEnabled ? "Close Google" : "Open Google"}
+                mode="update"
+                // onClick={() => setIsMapEnabled((prev) => !prev)} 
+                onClick={handleToggleMap}
+              />
+            </div> */}
+
+            <div className="flex justify-end space-x-2 mb-2">
+              <ActionButton
+                text={isMapEnabled ? "Close Google" : "Open Google"}
+                mode="custom"
+                onClick={() => setIsMapEnabled((prev) => !prev)}
+                className={isMapEnabled ? "bg-[#f11113]" : "bg-[#00783F]"} // สีแดง/เขียว
+                disabled={isViewMode}
+              />
+              <button
+                className="w-8 h-8  bg-white rounded hover:shadow"
+                onClick={handleGetLocationToGoogleMap}
+                title="Open in Google Maps"
+                disabled={!currentLocation.lat || !currentLocation.lng}
+              >
+                <img
+                  src="/img/icons/google-map.png"
+                  alt="Google Map"
+                  className="w-full h-full object-contain"
+                />
+              </button>
+            </div>
+
+
+            <LoadScript googleMapsApiKey={dataApiKey}>
+              <GoogleMap
+                mapContainerStyle={mapContainerStyle}
+                center={currentLocation}
+                zoom={dataMapZoom}
+                onClick={(e) => {
+                  const lat = e.latLng.lat();
+                  const lng = e.latLng.lng();
+                  setCurrentLocation({ lat, lng });
+                }}
+              >
+                {isGoogleLoaded && (
+                  <Marker
+                    position={currentLocation}
+                    icon={{
+                      // url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
+                      scaledSize: { width: 30, height: 30 },
+                    }}
+                    draggable={true}
+                    onDragEnd={handleMarkerDragEnd}
+                    options={{ disableDefaultUI: !isMapEnabled, draggable: isMapEnabled }}
+
+                  />
+                )}
+              </GoogleMap>
+            </LoadScript>
+          </div>
         </div>
-        {contacts.map((contact, index) => (
-          <div key={index}>
+
+
+        <BoxPrimary title="Crop">
+          <Select
+            mode="multiple"
+            showSearch
+            placeholder="Select Crop(s)"
+            optionFilterProp="children"
+            className="w-full"
+            value={defaultSelectedCrops}
+            onChange={(value) => setDefaultSelectedCrops(value)}
+            options={transformedCropOptions}
+            disabled={{ isViewMode }}
+          />
+        </BoxPrimary>
+
+        <BoxPrimary>
+          <div className="flex justify-between mb-4">
+            <span className="text-[#00783F] text-lg font-semibold">
+              Contact Person
+            </span>
+            {!isViewMode && (
+              <ActionButton mode="add" text="Add" onClick={addContact} />
+            )}
+          </div>
+          {contacts.map((contact, index) => (
+            <div key={index}>
               <div className="flex justify-between mb-4">
                 <span className="text-[#00783F] text-md">{`Person ${index + 1}`}</span>
                 {index > 0 && (
@@ -708,144 +753,147 @@ export default function CreateSubDealer() {
                   />
                 )}
               </div>
-            <Row gutter={[16, 16]} className="mt-3">
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Input
-                  placeholder="Name (EN)"
-                  value={contact.name_en}
-                  onChange={(e) =>
-                    updateContact(index, "name_en", e.target.value)
-                  }
-                />
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Input
-                  placeholder="Name (TH)"
-                  value={contact.name_th}
-                  onChange={(e) =>
-                    updateContact(index, "name_th", e.target.value)
-                  }
-                />
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Input
-                  placeholder="Nickname"
-                  value={contact.nickname}
-                  onChange={(e) =>
-                    updateContact(index, "nickname", e.target.value)
-                  }
-                />
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <DatePicker
-                  className="w-full"
-                  placeholder="Date of Birth"
-                  value={
-                    contact.date_of_birth ? dayjs(contact.date_of_birth) : null
-                  }
-                  onChange={(date) =>
-                    updateContact(index, "date_of_birth", date)
-                  }
-                />
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Input
-                  placeholder="Age"
-                  value={contact.age || ""}
-                  onChange={(e) => updateContact(index, "age", e.target.value)}
-                  disabled={true}
-                />
-              </Col>
-              
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Input
-                  placeholder="T-Shirt Size"
-                  value={contact.t_shirt_size}
-                  onChange={(e) =>
-                    updateContact(index, "t_shirt_size", e.target.value)
-                  }
-                />
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Input
-                  placeholder="Relationship"
-                  value={contact.relationship}
-                  onChange={(e) =>
-                    updateContact(index, "relationship", e.target.value)
-                  }
-                />
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Input
-                  placeholder="Duty"
-                  value={contact.duty}
-                  onChange={(e) => updateContact(index, "duty", e.target.value)}
-                />
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Input
-                  placeholder="Tel 1"
-                  value={contact.tel1}
-                  onChange={(e) => updateContact(index, "tel1", e.target.value)}
-                />
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Input
-                  placeholder="Tel 2"
-                  value={contact.tel2}
-                  onChange={(e) => updateContact(index, "tel2", e.target.value)}
-                />
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Input
-                  placeholder="Contact Number"
-                  value={contact.contact_number}
-                  onChange={(e) =>
-                    updateContact(index, "contact_number", e.target.value)
-                  }
-                />
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Input
-                  placeholder="Email"
-                  value={contact.email}
-                  onChange={(e) =>
-                    updateContact(index, "email", e.target.value)
-                  }
-                />
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Input
-                  placeholder="Line ID"
-                  value={contact.line_id}
-                  onChange={(e) =>
-                    updateContact(index, "line_id", e.target.value)
-                  }
-                />
-              </Col>
-              <Col xs={24} sm={18} md={18} lg={18}>
-                <Input
-                  placeholder="hobby"
-                  value={contact.hobby || ""}
-                  onChange={(e) => updateContact(index, "hobby", e.target.value)}
-                />
-              </Col>
-            </Row>
-            {index < contacts.length - 1 && <hr className="my-4" />}
-          </div>
-        ))}
-      </BoxPrimary>
+              <Row gutter={[16, 16]} className="mt-3">
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Input
+                    placeholder="Name (EN)"
+                    value={contact.name_en}
+                    onChange={(e) =>
+                      updateContact(index, "name_en", e.target.value)
+                    }
+                  />
+                </Col>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Input
+                    placeholder="Name (TH)"
+                    value={contact.name_th}
+                    onChange={(e) =>
+                      updateContact(index, "name_th", e.target.value)
+                    }
+                  />
+                </Col>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Input
+                    placeholder="Nickname"
+                    value={contact.nickname}
+                    onChange={(e) =>
+                      updateContact(index, "nickname", e.target.value)
+                    }
+                  />
+                </Col>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <DatePicker
+                    className="w-full"
+                    placeholder="Date of Birth"
+                    value={
+                      contact.date_of_birth ? dayjs(contact.date_of_birth) : null
+                    }
+                    onChange={(date) =>
+                      updateContact(index, "date_of_birth", date)
+                    }
+                  />
+                </Col>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Input
+                    placeholder="Age"
+                    value={contact.age || ""}
+                    onChange={(e) => updateContact(index, "age", e.target.value)}
+                    disabled={true}
+                  />
+                </Col>
 
-      {/* Action Buttons */}
-      <div className="flex justify-end space-x-4 mt-6">
-        <ActionButton
-          mode="back"
-          text="Back"
-          onClick={() => navigate("/customer/farmers")}
-        />
-        <ActionButton text="Save" mode="save" onClick={handleSave} />
-      </div>
-    </MainLayout>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Input
+                    placeholder="T-Shirt Size"
+                    value={contact.t_shirt_size}
+                    onChange={(e) =>
+                      updateContact(index, "t_shirt_size", e.target.value)
+                    }
+                  />
+                </Col>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Input
+                    placeholder="Relationship"
+                    value={contact.relationship}
+                    onChange={(e) =>
+                      updateContact(index, "relationship", e.target.value)
+                    }
+                  />
+                </Col>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Input
+                    placeholder="Duty"
+                    value={contact.duty}
+                    onChange={(e) => updateContact(index, "duty", e.target.value)}
+                  />
+                </Col>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Input
+                    placeholder="Tel 1"
+                    value={contact.tel1}
+                    onChange={(e) => updateContact(index, "tel1", e.target.value)}
+                  />
+                </Col>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Input
+                    placeholder="Tel 2"
+                    value={contact.tel2}
+                    onChange={(e) => updateContact(index, "tel2", e.target.value)}
+                  />
+                </Col>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Input
+                    placeholder="Contact Number"
+                    value={contact.contact_number}
+                    onChange={(e) =>
+                      updateContact(index, "contact_number", e.target.value)
+                    }
+                  />
+                </Col>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Input
+                    placeholder="Email"
+                    value={contact.email}
+                    onChange={(e) =>
+                      updateContact(index, "email", e.target.value)
+                    }
+                  />
+                </Col>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Input
+                    placeholder="Line ID"
+                    value={contact.line_id}
+                    onChange={(e) =>
+                      updateContact(index, "line_id", e.target.value)
+                    }
+                  />
+                </Col>
+                <Col xs={24} sm={18} md={18} lg={18}>
+                  <Input
+                    placeholder="hobby"
+                    value={contact.hobby || ""}
+                    onChange={(e) => updateContact(index, "hobby", e.target.value)}
+                  />
+                </Col>
+              </Row>
+              {index < contacts.length - 1 && <hr className="my-4" />}
+            </div>
+          ))}
+        </BoxPrimary>
+
+        {/* Action Buttons */}
+        <div className="flex justify-end space-x-4 mt-6">
+          <ActionButton
+            mode="back"
+            text="Back"
+            onClick={() => navigate("/customer/farmers")}
+          />
+
+          {!isViewMode && (
+            <ActionButton text="Save" mode="save" onClick={handleSave} />
+          )}
+        </div>
+      </MainLayout>
     </Form>
 
 

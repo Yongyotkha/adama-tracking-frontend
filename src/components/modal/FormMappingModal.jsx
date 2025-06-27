@@ -212,7 +212,7 @@ const FormMappingModal = ({
       console.error("No latitude and longitude data available.");
     }
   };
-  console.log(formData);
+  // console.log(formData);
   return (
     <Modal
       title={title}
