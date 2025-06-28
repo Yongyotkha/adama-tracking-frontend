@@ -233,6 +233,7 @@ export default function CustomerStock() {
       page_size: pageSize,
       //user_id: userInfo.id,
       use_flag: "1",
+      user_create:filterValues.stock_created,
       dealer_id: filterValues.dealer || "",
       sub_dealer_id: filterValues.sub_dealer || "",
       trasaction_status_code: "",
