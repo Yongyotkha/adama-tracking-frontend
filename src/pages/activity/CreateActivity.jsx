@@ -1453,6 +1453,56 @@ export default function CreateActivity() {
                     />{" "}
                   </Form.Item>
                 </Col>
+                <Col xs={24} sm={12} md={12} lg={6}>
+                  <Form.Item
+                    className="mb-3"
+                    label="Return to Company"
+                    name="return_company"
+                  >
+                    <InputNumber
+                      className="w-full"
+                      min={0}
+                      placeholder="0"
+                      value={
+                        activityDetail.expense_advance > activityDetail.expense_actual
+                          ? activityDetail.expense_advance - activityDetail.expense_actual
+                          : 0
+                      }
+                      disabled={true}
+                      formatter={(value) =>
+                        Number(value)
+                          .toFixed(2)
+                          .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                    />
+                  </Form.Item>
+                </Col>
+
+                <Col xs={24} sm={12} md={12} lg={6}>
+                  <Form.Item
+                    className="mb-3"
+                    label="Return to Staff"
+                    name="return_staff"
+                  >
+                    <InputNumber
+                      className="w-full"
+                      min={0}
+                      placeholder="0"
+                      value={
+                        activityDetail.expense_advance < activityDetail.expense_actual
+                          ? activityDetail.expense_actual - activityDetail.expense_advance
+                          : 0
+                      }
+                      disabled={true}
+                      formatter={(value) =>
+                        Number(value)
+                          .toFixed(2)
+                          .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                    />
+                  </Form.Item>
+                </Col>
+
               </Row>
             </Form>
           </BoxPrimary>

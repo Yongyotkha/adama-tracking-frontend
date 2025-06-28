@@ -177,6 +177,8 @@ export default function ActivityList() {
 
   const handleChange = (filter) => {
     if (filter && filter.sale) {
+
+      console.log('filter : ',filter)
       const userId =
         typeof filter.sale === "object" && filter.sale.value
           ? filter.sale.value
@@ -199,16 +201,16 @@ export default function ActivityList() {
 
           // ดึง Sub-Dealer List
           const subDealerResponse = await useServiceAPI.get(
-            paths.pathMasterSubDealerAll,
-            { user_id: userId }
+            paths.pathActivitySubDealers,
+            { dealer_id: filter.dealer }
           );
 
-          const formattedSubDealer = subDealerResponse.data.map((item) => ({
-            name: item.sub_dealer_name,
-            id: item.sub_dealer_id,
-          }));
+          // const formattedSubDealer = subDealerResponse.data.map((item) => ({
+          //   name: item.sub_dealer_name,
+          //   id: item.sub_dealer_id,
+          // }));
 
-          setSubDealerList(formattedSubDealer);
+          setSubDealerList(subDealerResponse.data);
 
           // ✅ เมื่อมี Sale ที่เลือกอยู่ -> Enable Dealer และ Shop
           setIsDealerDisabled(false);
@@ -325,8 +327,8 @@ export default function ActivityList() {
       activity_type_id: filters.activity_type || "",
       user_id: filters.sale || "",
       create_by: filters.created_by || "",
-      dealer_id: filters.shop || "", // ✅ ใส่ dealer_id ด้วย
-      master_dealer_id: filters.dealer || "", // ✅ shop เป็น sub_dealer_id
+      sub_dealer_id: filters.shop || "", // ✅ ใส่ dealer_id ด้วย
+      master_dealer_id: parseInt(filters.dealer) || "", // ✅ shop เป็น sub_dealer_id
       page: "all",
       page_mode: "list",
       orderby_column: sortField,
