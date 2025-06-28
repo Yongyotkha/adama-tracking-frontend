@@ -168,6 +168,7 @@ export default function FormUser({ fields, title, profile, form, onChange, disab
                       format="HH:mm"
                       placeholder={`Select ${field.label}`}
                       onChange={(value) => handleFieldChange(field.name, value)}
+                      disabled={field.disabled}
                     />
                   ) : field.type === "select" ? (
                     <Select
