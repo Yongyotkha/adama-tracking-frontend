@@ -36,6 +36,7 @@ export default function ActivityList() {
     sortField: null,
   });
 
+  const [userCreate, setUserCreate] = useState([]);
   const [mappingData, setMappingData] = useState({});
   const [perceptionData, setPerceptionData] = useState([]);
   const [isProductModalVisible, setIsProductModalVisible] = useState(false);
@@ -145,6 +146,14 @@ export default function ActivityList() {
       key: "Date",
       type: "date",
       label: "Date",
+    },
+    {
+      key: "created_by",
+      type: "select",
+      label: "Create By",
+      placeholder: "All",
+      options: userCreate,
+      moderef: true,
     },
   ];
 
@@ -315,6 +324,7 @@ export default function ActivityList() {
       keyword: filters.keyword || "",
       activity_type_id: filters.activity_type || "",
       user_id: filters.sale || "",
+      create_by: filters.created_by || "",
       dealer_id: filters.shop || "", // ✅ ใส่ dealer_id ด้วย
       master_dealer_id: filters.dealer || "", // ✅ shop เป็น sub_dealer_id
       page: "all",
@@ -437,13 +447,15 @@ export default function ActivityList() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [activityType, sale] = await Promise.all([
+        const [activityType, sale,userc] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathActivityListUser, { "platform": "web" }),
         ]);
 
         setActivityList(activityType.data);
         setSaleList(sale.data);
+        setUserCreate(userc)
         // console.log(sale.data);
 
       } catch (error) {

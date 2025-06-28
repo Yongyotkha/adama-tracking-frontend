@@ -212,6 +212,7 @@ export const paths = {
   pathActivityDetail: "/activity/detail",
   pathActivityMappingStatusDetail: "/activity/mapping/detail",
   pathActivityMappingStatusDetailUpdate: "/activity/mapping/detail",
+  pathActivityListUser: "/activity/user_create_list",
 
 
   pathAdvanceApproval: "/activity-expense/advancechangestatus",
