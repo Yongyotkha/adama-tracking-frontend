@@ -213,6 +213,12 @@ const FormMappingModal = ({
     }
   };
   // console.log(formData);
+
+  // useEffect(() => {
+  //   console.log("🟢 dataSource", dataSource);
+  //   console.log("🟢 formData", formData);
+  // }, [dataSource, formData]);
+  
   return (
     <Modal
       title={title}
@@ -305,17 +311,20 @@ const FormMappingModal = ({
             <label className="block mb-2 font-medium text-gray-700">
               Place of GPS
             </label>
-            {dataSource?.status_mapping_name === "Complete" && (
-              <button
-                className="w-6 h-6"
-                onClick={handleGetLocationToGoogleMap}
-              >
-                <img
-                  src="/img/icons/google-map.png"
-                  alt="Google Map"
-                />
-              </button>
-            )}
+            {(
+              dataSource?.status_mapping_name === "Complete" ||
+              dataSource?.status_mapping?.name === "Complete"
+            ) && (
+                <button
+                  className="w-6 h-6"
+                  onClick={handleGetLocationToGoogleMap}
+                  title="Open in Google Maps"
+                >
+                  <img src="/img/icons/google-map.png" alt="Google Map" />
+                </button>
+              )}
+
+
 
           </div>
 

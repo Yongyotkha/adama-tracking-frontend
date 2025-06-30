@@ -55,6 +55,40 @@ export default function OrderWaitingList() {
     getMaster();
   }, []);
 
+  // const filters = [
+  //   {
+  //     key: "sale",
+  //     type: "select",
+  //     label: "Sales",
+  //     placeholder: "All",
+  //     options: dataSale,
+  //     moderef: true,
+  //   },
+  //   {
+  //     key: "dealer",
+  //     type: "select",
+  //     label: "Dealer",
+  //     placeholder: "All",
+  //     options: dataDealer,
+  //     moderef: false,
+  //   },
+  //   {
+  //     key: "order_no",
+  //     type: "text",
+  //     label: "Order No",
+  //     placeholder: "Order No",
+  //     moderef: false,
+  //   },
+  //   // {
+  //   //   key: "status",
+  //   //   type: 'select',
+  //   //   label: "Status",
+  //   //   placeholder: "All",
+  //   //   options: dataStatus,
+  //   //   moderef: false,
+  //   // },
+  // ];
+
   const filters = [
     {
       key: "sale",
@@ -79,15 +113,26 @@ export default function OrderWaitingList() {
       placeholder: "Order No",
       moderef: false,
     },
-    // {
-    //   key: "status",
-    //   type: 'select',
-    //   label: "Status",
-    //   placeholder: "All",
-    //   options: dataStatus,
-    //   moderef: false,
-    // },
+    {
+      key: "status",
+      type: "select",
+      label: "Status",
+      placeholder: "All",
+      options: dataStatus.map((s) => ({
+        id: s.code,
+        name: s.name,
+      })),
+      moderef: false,
+    },
+    {
+      key: "dater",
+      type: "dater",
+      label: "Date",
+      placeholder: "Date",
+      moderef: false,
+    },
   ];
+
 
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
@@ -115,11 +160,25 @@ export default function OrderWaitingList() {
     const sortOrder = tableParams.sortOrder || "desc";
     const sortField = tableParams.sortField || "document_number";
 
+    // const requestData = {
+    //   user_id: filters.sale || "",
+    //   dealer_id: filters.dealer || "",
+    //   keyword: filters.order_no || "",
+    //   trasaction_status_code: "ODW",
+    //   page: "wait_for_approval",
+    //   use_flag: filters.use_flag || "",
+    //   orderby_column: sortField,
+    //   orderby: sortOrder,
+    //   page_length: current,
+    //   page_size: pageSize,
+    // };
+
     const requestData = {
       user_id: filters.sale || "",
       dealer_id: filters.dealer || "",
       keyword: filters.order_no || "",
-      trasaction_status_code: "ODW",
+      trasaction_status_code: filters.status || "ODW", // ยังคงค่า default ODW ถ้าไม่เลือก
+      dater: filters.dater || "",
       page: "wait_for_approval",
       use_flag: filters.use_flag || "",
       orderby_column: sortField,
@@ -127,6 +186,7 @@ export default function OrderWaitingList() {
       page_length: current,
       page_size: pageSize,
     };
+
 
     try {
       const response = await useServiceAPI.get(

@@ -245,6 +245,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   const [perceptionData, setPerceptionData] = useState([]); // ดึง perception list
 
   const handleBadgeClick = (eventData) => {
+    console.log(eventData);
     setMappingData(eventData);
     setIsMappingModalVisible(true);
   };
