@@ -108,7 +108,7 @@ export default function AdvanceExpense() {
             id: item.sub_dealer_id,
           }));
 
-          console.log('subDealerOptions : ',subDealerOptions)
+          console.log('subDealerOptions : ', subDealerOptions)
 
           setDealerList(subDealerOptions);
         } catch (error) {
@@ -191,7 +191,8 @@ export default function AdvanceExpense() {
 
   const header = [
     { title: "No", dataIndex: "key", align: "center" },
-    { title: "Customer", dataIndex: "customer", align: "left" },
+    { title: "Sub Dealer", dataIndex: "customer", align: "left" },
+    { title: "Dealer", dataIndex: "dealersd", align: "left" },
     { title: "Expense No", dataIndex: "expenseNo", align: "left" },
     {
       title: "Activity Reference",
@@ -242,7 +243,8 @@ export default function AdvanceExpense() {
         const newDataSource = data.map((row, index) => {
           return {
             key: index + 1 + (current - 1) * pageSize,
-            customer: row.customer_name,
+            customer: row.sub_dealer_name,
+            dealersd: row.dealer_name,
             expenseNo: row.document_number,
             activityReference: row.document_number_referrent,
             typeOfMeeting: row.activity_type_name,
