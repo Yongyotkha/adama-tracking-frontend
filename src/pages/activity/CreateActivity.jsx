@@ -1097,8 +1097,17 @@ export default function CreateActivity() {
       setLoading(false);
     }
   };
-  console.log(mode);
-  console.log(menuTitle);
+
+  let return_to_company = 0
+  let return_to_staff = 0
+  if (parseInt(activityDetail.expense_advance) > parseInt(activityDetail.expense_actual)) {
+    return_to_company = activityDetail.expense_advance - activityDetail.expense_actual
+  } else {
+    return_to_staff = activityDetail.expense_actual - activityDetail.expense_advance
+  }
+
+  console.log('return to company : ' + return_to_company)
+  console.log('return to staff : ' + return_to_staff)
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -1457,17 +1466,12 @@ export default function CreateActivity() {
                   <Form.Item
                     className="mb-3"
                     label="Return to Company"
-                    name="return_company"
                   >
                     <InputNumber
                       className="w-full"
                       min={0}
                       placeholder="0"
-                      value={
-                        activityDetail.expense_advance > activityDetail.expense_actual
-                          ? activityDetail.expense_advance - activityDetail.expense_actual
-                          : 0
-                      }
+                      value={return_to_company}
                       disabled={true}
                       formatter={(value) =>
                         Number(value)
@@ -1482,17 +1486,12 @@ export default function CreateActivity() {
                   <Form.Item
                     className="mb-3"
                     label="Return to Staff"
-                    name="return_staff"
                   >
                     <InputNumber
                       className="w-full"
                       min={0}
                       placeholder="0"
-                      value={
-                        activityDetail.expense_advance < activityDetail.expense_actual
-                          ? activityDetail.expense_actual - activityDetail.expense_advance
-                          : 0
-                      }
+                      value={return_to_staff}
                       disabled={true}
                       formatter={(value) =>
                         Number(value)

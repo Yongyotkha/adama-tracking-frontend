@@ -188,7 +188,8 @@ export default function ApprovalClearingExpense() {
 
   const header = [
     { title: "No", dataIndex: "key", align: "center" },
-    { title: "Customer", dataIndex: "customer", align: "left" },
+    { title: "Sub Dealer", dataIndex: "customer", align: "left" },
+    { title: "Dealer", dataIndex: "dealer", align: "left" },
     { title: "Expense No", dataIndex: "expenseNo", align: "left" },
     {
       title: "Activity Reference",
@@ -266,7 +267,8 @@ export default function ApprovalClearingExpense() {
           }
           return {
             key: index + 1 + (current - 1) * pageSize,
-            customer: row.customer_name,
+            customer: row.sub_dealer_name,
+            dealer:row.dealer_name,
             expenseNo: row.document_number,
             activityReference: row.document_number_referrent,
             typeOfMeeting: row.activity_type_name,

@@ -137,7 +137,7 @@ export default function ActivityList() {
     {
       key: "shop",
       type: "select",
-      label: "Shop",
+      label: "Sub Dealer",
       placeholder: "All",
       options: subDealerList, // ✅ shop
       disabled: isSubDealerDisabled, // ✅ เพิ่มตรงนี้
@@ -157,6 +157,7 @@ export default function ActivityList() {
     },
   ];
 
+
   const handleSearch = (filters) => {
     setTableParams({
       ...tableParams,
@@ -175,20 +176,29 @@ export default function ActivityList() {
     });
   };
 
-  const handleChange = (filter) => {
-    if (filter && filter.sale) {
+  const handleChange = (newFilter) => {
+    const prevFilter = tableParams.filters;
 
-      console.log('filter : ',filter)
+    const prevSale = prevFilter.sale;
+    const newSale = newFilter.sale;
+    const isSaleChanged = prevSale !== newSale;
+
+    const prevDealer = prevFilter.dealer;
+    const newDealer = newFilter.dealer;
+    const isDealerChanged = prevDealer !== newDealer;
+
+    if (isSaleChanged) {
+      console.log("🔁 Sale เปลี่ยน:", newSale);
+
       const userId =
-        typeof filter.sale === "object" && filter.sale.value
-          ? filter.sale.value
-          : filter.sale;
+        typeof newSale === "object" && newSale?.value
+          ? newSale.value
+          : newSale;
 
       const getDealersAndSubDealersBySale = async () => {
         try {
-          // ดึง Dealer List
           const dealerResponse = await useServiceAPI.get(
-            paths.pathMasterDealerAll,
+            paths.pathMasterDealerDropdown,
             { user_id: userId }
           );
 
@@ -198,24 +208,8 @@ export default function ActivityList() {
           }));
 
           setDealerList(formattedDealer);
-
-          // ดึง Sub-Dealer List
-          const subDealerResponse = await useServiceAPI.get(
-            paths.pathActivitySubDealers,
-            { dealer_id: filter.dealer }
-          );
-
-          // const formattedSubDealer = subDealerResponse.data.map((item) => ({
-          //   name: item.sub_dealer_name,
-          //   id: item.sub_dealer_id,
-          // }));
-
-          setSubDealerList(subDealerResponse.data);
-
-          // ✅ เมื่อมี Sale ที่เลือกอยู่ -> Enable Dealer และ Shop
           setIsDealerDisabled(false);
           setIsSubDealerDisabled(false);
-
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer/Sub-dealer");
         }
@@ -224,13 +218,59 @@ export default function ActivityList() {
       getDealersAndSubDealersBySale();
     }
 
-    // ✅ ถ้า Sale ถูก clear (null หรือ undefined หรือ '')
-    if (!filter?.sale) {
+    if (isDealerChanged) {
+      console.log("🔁 Dealer เปลี่ยน:", newDealer);
+
+      const userId =
+        typeof newFilter.sale === "object" && newFilter.sale?.value
+          ? newFilter.sale.value
+          : newFilter.sale;
+
+      const dealerId =
+        typeof newDealer === "object" && newDealer?.value
+          ? newDealer.value
+          : newDealer;
+
+      const getSubDealers = async () => {
+        try {
+          const response = await useServiceAPI.get(
+            paths.pathMasterSubDealerAll,
+            {
+              user_id: userId,
+              derler_id: dealerId,
+            }
+          );
+
+          const formattedSubDealer = response.data.map((item) => ({
+            name: item.sub_dealer_name,
+            id: item.sub_dealer_id,
+          }));
+
+          setSubDealerList(formattedSubDealer);
+          setIsSubDealerDisabled(false);
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Sub-dealer");
+        }
+      };
+
+      getSubDealers();
+    }
+
+    if (!newSale) {
       setDealerList([]);
       setSubDealerList([]);
       setIsDealerDisabled(true);
       setIsSubDealerDisabled(true);
     }
+
+    // สำคัญ: อัปเดต tableParams.filters
+    setTableParams((prev) => ({
+      ...prev,
+      filters: {
+        ...prev.filters,
+        ...newFilter,
+      },
+    }));
   };
 
   const handleDelete = async (documentNumber) => {
@@ -288,7 +328,7 @@ export default function ActivityList() {
     },
     { title: "Sales", width: 150, dataIndex: "sale", align: "start" },
     { title: "Dealer", width: 150, dataIndex: "dealer_name", align: "start" }, // ✅ เพิ่มตรงนี้
-    { title: "Shop", width: 150, dataIndex: "sub_dealer_name", align: "start" }, // ✅ เพิ่มตรงนี้
+    { title: "Sub Dealer", width: 150, dataIndex: "sub_dealer_name", align: "start" }, // ✅ เพิ่มตรงนี้
     //{ title: "Dealer", width: 150, dataIndex: "dealer", align: "start" },
     { title: "Date", width: 150, dataIndex: "date", align: "start" },
     {
@@ -449,7 +489,7 @@ export default function ActivityList() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [activityType, sale,userc] = await Promise.all([
+        const [activityType, sale, userc] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
           useServiceAPI.get(paths.pathActivityListUser, { "platform": "web" }),
