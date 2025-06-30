@@ -212,7 +212,8 @@ export const paths = {
   pathActivityDetail: "/activity/detail",
   pathActivityMappingStatusDetail: "/activity/mapping/detail",
   pathActivityMappingStatusDetailUpdate: "/activity/mapping/detail",
-
+  pathActivityListUser: "/activity/user_create_list",
+  pathActivitySubDealers: "activity/sub_dealer",
 
   pathAdvanceApproval: "/activity-expense/advancechangestatus",
   pathClearingApproval: "/activity-expense/clearingchangestatus",
@@ -244,6 +245,7 @@ export const paths = {
   pathStockUpdate: "/stock/update",
   pathStockDetail: "/stock/detail",
   pathStockDelete: "/stock/delete",
+  pathStockCreated: "/stock/created",
 
 
   // Expense Traveling

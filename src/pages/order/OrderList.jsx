@@ -24,6 +24,7 @@ export default function OrderList() {
   const [permission, setPermission] = useState([]);
   const [defaultOption, setDefaultOption] = useState();
   const [tableLoading, setTableLoading] = useState(false);
+  const [filterValues, setFilterValues] = useState({});
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -35,30 +36,46 @@ export default function OrderList() {
   });
   const { confirm } = Modal;
 
+  const [saleList, setSaleList] = useState([]);
+
+  useEffect(() => {
+    const sale = filterValues.sale;
+
+    if (sale) {
+      const userId =
+        typeof sale === "object" && sale.value ? sale.value : sale;
+
+      const getDealersBySale = async () => {
+        try {
+          const response = await useServiceAPI.get(
+            paths.pathMasterDealerDropdown,
+            { user_id: userId }
+          );
+          setDataDealer(response.data);
+
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer");
+        }
+      };
+
+      getDealersBySale();
+    }
+  }, [filterValues.sale]);
+  
   // Get Master
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
         const [sale, status] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {
-            status: "",
-          }),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
           useServiceAPI.get(paths.pathMasterStatus, {
             status_type: "order",
           }),
         ]);
 
-        // setDataSale(sale.data);
-        const formattedOptions = sale.data.map((item) => ({
-          value: item.id,
-          label: item.name,
-        }));
 
-        // if (formattedOptions.length > 0) {
-        //   setDefaultOption("");
-        // }
-        setDataSale(formattedOptions);
+        setSaleList(sale.data);
 
         const dataStatus = [];
         status.data.map((data, index) => {
@@ -80,6 +97,14 @@ export default function OrderList() {
   }, []);
 
   const filters = [
+    {
+      key: "sale",
+      type: "select",
+      label: "Sales",
+      placeholder: "All",
+      options: saleList,
+      moderef: true,
+    },
     {
       key: "dealer",
       type: "select",
@@ -147,7 +172,7 @@ export default function OrderList() {
 
     const requestData = {
       // user_id: filters.sale || defaultOption,
-      user_id: defaultOption || "",
+      user_id: filters.sale || "",
       dealer_id: filters.dealer || "",
       keyword: filters.order_no || "",
       trasaction_status_code: filters.status || "",
@@ -325,29 +350,8 @@ export default function OrderList() {
     });
   };
 
-  const handleChange = (filter) => {
-
-    console.log(1232131)
-
-    setDefaultOption(filter);
-    const getMasterDealer = async () => {
-      setLoading(true);
-      try {
-        const [dealer] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterDealerDropdown, {
-            user_id: filter,
-          }),
-        ]);
-
-        setDataDealer(dealer.data);
-      } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getMasterDealer();
+  const handleChange = (filters) => {
+    setFilterValues(filters);
   };
 
   const handleDelete = async (documentNumber) => {
@@ -396,20 +400,6 @@ export default function OrderList() {
       <div className="flex justify-between items-center">
         <div className="title-page">Order List</div>
         <div className="flex gap-2">
-          <Select
-            showSearch
-            allowClear
-            style={{
-              width: 200,
-            }}
-            className="border-[#00783F] text-[#00783F]"
-            placeholder="All"
-            optionFilterProp="label"
-            options={dataSale}
-            value={defaultOption}
-            // onChange={(value) => setDefaultOption(value)}
-            onChange={(value) => handleChange(value)}
-          />
           {permission.btn_create && (
             <ActionButton
               mode="create"

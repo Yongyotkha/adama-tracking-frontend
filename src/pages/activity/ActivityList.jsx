@@ -36,6 +36,7 @@ export default function ActivityList() {
     sortField: null,
   });
 
+  const [userCreate, setUserCreate] = useState([]);
   const [mappingData, setMappingData] = useState({});
   const [perceptionData, setPerceptionData] = useState([]);
   const [isProductModalVisible, setIsProductModalVisible] = useState(false);
@@ -146,6 +147,14 @@ export default function ActivityList() {
       type: "date",
       label: "Date",
     },
+    {
+      key: "created_by",
+      type: "select",
+      label: "Create By",
+      placeholder: "All",
+      options: userCreate,
+      moderef: true,
+    },
   ];
 
   const handleSearch = (filters) => {
@@ -168,6 +177,8 @@ export default function ActivityList() {
 
   const handleChange = (filter) => {
     if (filter && filter.sale) {
+
+      console.log('filter : ',filter)
       const userId =
         typeof filter.sale === "object" && filter.sale.value
           ? filter.sale.value
@@ -190,16 +201,16 @@ export default function ActivityList() {
 
           // ดึง Sub-Dealer List
           const subDealerResponse = await useServiceAPI.get(
-            paths.pathMasterSubDealerAll,
-            { user_id: userId }
+            paths.pathActivitySubDealers,
+            { dealer_id: filter.dealer }
           );
 
-          const formattedSubDealer = subDealerResponse.data.map((item) => ({
-            name: item.sub_dealer_name,
-            id: item.sub_dealer_id,
-          }));
+          // const formattedSubDealer = subDealerResponse.data.map((item) => ({
+          //   name: item.sub_dealer_name,
+          //   id: item.sub_dealer_id,
+          // }));
 
-          setSubDealerList(formattedSubDealer);
+          setSubDealerList(subDealerResponse.data);
 
           // ✅ เมื่อมี Sale ที่เลือกอยู่ -> Enable Dealer และ Shop
           setIsDealerDisabled(false);
@@ -276,7 +287,8 @@ export default function ActivityList() {
       align: "start",
     },
     { title: "Sales", width: 150, dataIndex: "sale", align: "start" },
-    { title: "Shop", width: 150, dataIndex: "shop", align: "start" }, // ✅ เพิ่มตรงนี้
+    { title: "Dealer", width: 150, dataIndex: "dealer_name", align: "start" }, // ✅ เพิ่มตรงนี้
+    { title: "Shop", width: 150, dataIndex: "sub_dealer_name", align: "start" }, // ✅ เพิ่มตรงนี้
     //{ title: "Dealer", width: 150, dataIndex: "dealer", align: "start" },
     { title: "Date", width: 150, dataIndex: "date", align: "start" },
     {
@@ -314,8 +326,9 @@ export default function ActivityList() {
       keyword: filters.keyword || "",
       activity_type_id: filters.activity_type || "",
       user_id: filters.sale || "",
-      dealer_id: filters.shop || "", // ✅ ใส่ dealer_id ด้วย
-      master_dealer_id: filters.dealer || "", // ✅ shop เป็น sub_dealer_id
+      create_by: filters.created_by || "",
+      sub_dealer_id: filters.shop || "", // ✅ ใส่ dealer_id ด้วย
+      master_dealer_id: parseInt(filters.dealer) || "", // ✅ shop เป็น sub_dealer_id
       page: "all",
       page_mode: "list",
       orderby_column: sortField,
@@ -342,7 +355,8 @@ export default function ActivityList() {
             activityNo: row.document_number,
             activityType: row.activity_type_name,
             sale: row.user_name ?? "-",
-            shop: row.dealer_name ?? "-",
+            sub_dealer_name: row.sub_dealer_name ?? "-",
+            dealer_name: row.dealer_name ?? "-",
             //dealer: row.dealer_name ?? "-",// ✅ Dealer Name
             date: row.document_date,
             time: row.time,
@@ -435,13 +449,15 @@ export default function ActivityList() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [activityType, sale] = await Promise.all([
+        const [activityType, sale,userc] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathActivityListUser, { "platform": "web" }),
         ]);
 
         setActivityList(activityType.data);
         setSaleList(sale.data);
+        setUserCreate(userc)
         // console.log(sale.data);
 
       } catch (error) {

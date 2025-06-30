@@ -601,27 +601,45 @@ export default function Dashboard() {
     }
   }, [selectedYear, selectedSaleActivity, selectedMonthsActivity, selectedDealerActivity]);
 
+  function select_sale_all_page(value){
+    console.log('sale : ',value)
+    setSelectedSaleActivity(value);
+    setSelectedSaleByCrop(value);
+  }
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Dashboard</div>
-        <Select
-          className="w-40"
-          value={selectedYear}
-          onChange={(value) => {
-            setSelectedYear(value); // อัปเดต state สำหรับ Expense
-          }}
-          placeholder={loading ? "Loading..." : "Select Year"}
-          disabled={loading}
-          allowClear
-        >
-          {years.map((year) => (
-            <Select.Option key={year.id} value={year.id}>
-              {`Year ${year.name}`}
-            </Select.Option>
-          ))}
-        </Select>
+
+        <div className="flex gap-2 items-center">
+          <Select
+            className="w-36"
+            onChange={(value) => select_sale_all_page(value)}
+            placeholder={loading ? "Loading..." : "Select Sale"}
+            disabled={loading}
+            options={sales}
+            showSearch
+            allowClear
+            optionFilterProp="label"
+          />
+          <Select
+            className="w-40"
+            value={selectedYear}
+            onChange={(value) => setSelectedYear(value)}
+            placeholder={loading ? "Loading..." : "Select Year"}
+            disabled={loading}
+            allowClear
+          >
+            {years.map((year) => (
+              <Select.Option key={year.id} value={year.id}>
+                {`Year ${year.name}`}
+              </Select.Option>
+            ))}
+          </Select>
+        </div>
       </div>
+
       <Row gutter={[16, 16]} className="mb-4">
         {/* Dealer */}
         <Col xs={12} sm={12} lg={12} xxl={6}>
@@ -1235,7 +1253,7 @@ export default function Dashboard() {
               {/* Pie Chart */}
               <div className="flex-grow flex justify-center items-center">
                 <div className="relative"></div>
-  
+
                 <DoughnutChartComponent data={saleCropData} />
               </div>
             </div>

@@ -164,7 +164,7 @@ export default function ClearingExpense() {
       try {
         const [activityType, sale] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterDealerAll, {}),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
         ]);
 
         setActivityList(activityType.data);
@@ -205,6 +205,7 @@ export default function ClearingExpense() {
       page_code: "expense_clearing",
       keyword: filters.keyword || "",
       use_flag: "1",
+      date: filters.date,
       user_id: filters.sale,
       dealer_id: filters.customer,
       activity_type_id: filters.type_of_meeting,

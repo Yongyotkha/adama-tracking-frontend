@@ -46,7 +46,7 @@ export default function AdvanceExpense() {
     {
       key: "customer",
       type: "select",
-      label: "Customer",
+      label: "Sub Dealer",
       placeholder: "All",
       options: dealerList,
     },
@@ -94,23 +94,27 @@ export default function AdvanceExpense() {
   const handleChange = (filter) => {
     if (filter) {
       const getMasterDealer = async () => {
+
         try {
-          const [dealer] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterDealerDropdown, {
+
+          const [sale] = await Promise.all([
+            useServiceAPI.get(paths.pathMasterUserGetSubDealer, {
               user_id: filter.sale,
             }),
           ]);
 
-          setDealerList(dealer.data);
+          setDealerList(sale.data);
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
         }
       };
 
       getMasterDealer();
+
     } else {
       handleClear();
     }
+
   };
 
   const handleDelete = async (documentNumber) => {
@@ -164,7 +168,7 @@ export default function AdvanceExpense() {
       try {
         const [activityType, sale] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterDealerAll, {}),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
         ]);
 
         setActivityList(activityType.data);
@@ -180,7 +184,8 @@ export default function AdvanceExpense() {
 
   const header = [
     { title: "No", dataIndex: "key", align: "center" },
-    { title: "Customer", dataIndex: "customer", align: "left" },
+    { title: "Sub Dealer", dataIndex: "customer", align: "left" },
+    { title: "Dealer", dataIndex: "dealersd", align: "left" },
     { title: "Expense No", dataIndex: "expenseNo", align: "left" },
     {
       title: "Activity Reference",
@@ -207,6 +212,7 @@ export default function AdvanceExpense() {
       use_flag: "1",
       user_id: filters.sale,
       dealer_id: filters.customer,
+      date: filters.date,
       activity_type_id: filters.type_of_meeting,
       document_number_referrent: filters.activity_reference,
       customer_name: "",
@@ -230,7 +236,8 @@ export default function AdvanceExpense() {
         const newDataSource = data.map((row, index) => {
           return {
             key: index + 1 + (current - 1) * pageSize,
-            customer: row.customer_name,
+            customer: row.sub_dealer_name,
+            dealersd: row.dealer_name,
             expenseNo: row.document_number,
             activityReference: row.document_number_referrent,
             typeOfMeeting: row.activity_type_name,
@@ -333,7 +340,7 @@ export default function AdvanceExpense() {
         <ActionButton
           mode="create"
           text="Create"
-          onClick={(e) => 
+          onClick={(e) =>
             navigate("/activity/create", {
               state: {
                 pageCode: "expense_advance",

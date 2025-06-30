@@ -42,6 +42,8 @@ export default function CustomerStock() {
     sortField: null,
   });
 
+  const [stockCreated, setStockCreated] = useState([]);
+
   const { confirm } = Modal;
 
   const territoryColumns = [
@@ -57,16 +59,18 @@ export default function CustomerStock() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [status, dealer] = await Promise.all([
+        const [status, dealer,stock_created] = await Promise.all([
           useServiceAPI.get(paths.pathMasterStatus, {
             status_type: "order",
           }),
           useServiceAPI.get(paths.pathMasterDealerAll, {
             user_id: userInfo.id,
           }),
+          useServiceAPI.get(paths.pathStockCreated, {}),
         ]);
 
         setDealerList(dealer.data);
+        setStockCreated(stock_created.data)
 
         const dataStatus = [];
         status.data.map((data, index) => {
@@ -197,6 +201,14 @@ export default function CustomerStock() {
       moderef: false,
     },
     {
+      key: "stock_created",
+      type: "select",
+      label: "Create By",
+      placeholder: "All",
+      options: stockCreated,
+      moderef: false,
+    },
+    {
       key: "document_date",
       type: "month",
       label: "Date",
@@ -221,6 +233,7 @@ export default function CustomerStock() {
       page_size: pageSize,
       //user_id: userInfo.id,
       use_flag: "1",
+      user_create:filterValues.stock_created,
       dealer_id: filterValues.dealer || "",
       sub_dealer_id: filterValues.sub_dealer || "",
       trasaction_status_code: "",
@@ -324,7 +337,7 @@ export default function CustomerStock() {
                 setIsTerritoryModalVisible(true);
                 fetchUserList(stock.document_number);
               }}
-              // onClick={() => setIsTerritoryModalVisible(true)}
+            // onClick={() => setIsTerritoryModalVisible(true)}
             />
           ),
           qty: parseInt(stock.quantity_product),
@@ -382,7 +395,7 @@ export default function CustomerStock() {
               "success",
               response.data.message || "Event deleted successfully!",
               response.data.message_line || ["The event has been removed."]
-            ).then(() => {});
+            ).then(() => { });
             fetchData();
           } else {
             showNotification(

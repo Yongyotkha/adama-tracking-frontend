@@ -212,7 +212,7 @@ const AdvanceExpensePDF = () => {
               </View>
               <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%", }}>
                 <Text style={{ flex: 3, textAlign: "start" }}>Location :</Text>
-                <Text style={{ flex: 7, textAlign: "start" }}>{dataHeader.user_name}</Text>
+                <Text style={{ flex: 7, textAlign: "start" }}>{dataHeader.activity_transaction_mapping_location_address}</Text>
               </View>
             </View>
 

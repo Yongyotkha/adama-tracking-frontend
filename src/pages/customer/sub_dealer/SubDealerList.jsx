@@ -83,7 +83,8 @@ export default function SubDealerList() {
       user_id: filters.sale,
       dealer_id: filters.dealers,
       sub_dealer_id: filters.shop,
-      province: filters.province
+      province: filters.province,
+      channel_type:filters.channel_type
     };
 
     try {
@@ -97,12 +98,13 @@ export default function SubDealerList() {
 
         const newDataSource = data.map((data, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-          dealerName: data.dealer_name,
+          dealerName: data.dealer_name_en,
           subDealerName: data.name,
           contactName: data.contact_name,
           address: data.contact_address,
           phone: data.mobile_phone,
           sale: data.sale_list_name,
+          channel_type: data.channel_type,
           status: (
             <BadgeStatus
               text={data.status_name}
@@ -300,6 +302,26 @@ export default function SubDealerList() {
       placeholder: "All",
       options: subDealerList,
     },
+    {
+      key: "channel_type",
+      type: "select",
+      label: "Status Type",
+      placeholder: "All",
+      options: [
+        {
+          "id":"Old",
+          "name":"Old"
+        },
+                {
+          "id":"Existing ",
+          "name":"Existing "
+        },
+                {
+          "id":"New",
+          "name":"New"
+        },
+      ],
+    },
     // {
     //   key: "contact_name",
     //   type: "text",
@@ -334,6 +356,7 @@ export default function SubDealerList() {
     { title: "Address", width: 300, dataIndex: "address", align: "left" },
     { title: "Phone", width: 150, dataIndex: "phone", align: "center" },
     { title: "By Sales", width: 150, dataIndex: "sale", align: "center" },
+    { title: "Status Type", width: 100, dataIndex: "channel_type", align: "center" },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
