@@ -46,7 +46,7 @@ export default function AdvanceExpense() {
     {
       key: "customer",
       type: "select",
-      label: "Customer",
+      label: "Sub Dealer",
       placeholder: "All",
       options: dealerList,
     },
@@ -96,21 +96,14 @@ export default function AdvanceExpense() {
       const getMasterDealer = async () => {
 
         try {
-          console.log(11111111)
-          const [dealer] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterSubDealerAll, {
-              dealer_id: filter.sale,
+
+          const [sale] = await Promise.all([
+            useServiceAPI.get(paths.pathMasterUserGetSubDealer, {
+              user_id: filter.sale,
             }),
           ]);
 
-          const subDealerOptions = dealer.data.map(item => ({
-            name: item.sub_dealer_name,
-            id: item.sub_dealer_id,
-          }));
-
-          console.log('subDealerOptions : ', subDealerOptions)
-
-          setDealerList(subDealerOptions);
+          setDealerList(sale.data);
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
         }
@@ -175,7 +168,7 @@ export default function AdvanceExpense() {
       try {
         const [activityType, sale] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterDealerAll, {}),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
         ]);
 
         setActivityList(activityType.data);
