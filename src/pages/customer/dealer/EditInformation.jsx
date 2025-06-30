@@ -999,7 +999,7 @@ export default function EditInformation() {
       children: (
         <>
           {dataLoaded ? (
-            <FormUser profile={profileImage} fields={formFields} form={form} />
+            <FormUser profile={profileImage} fields={formFields} form={form} disableImageUpload={isViewMode} />
           ) : (
             <div></div>
           )}
