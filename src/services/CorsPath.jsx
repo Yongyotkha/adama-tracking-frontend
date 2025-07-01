@@ -139,6 +139,7 @@ export const paths = {
   pathMasterSaleDropdown: "master/sale",
   pathMasterDealerDropdown: "master/dealer",
   pathMasterDealerAll: "master/dealer-all",
+  pathMasterDealerBySale: "master/dealers",
 
   //get header
   pathMasterGetSaleHeader: "master/get-sale-header",

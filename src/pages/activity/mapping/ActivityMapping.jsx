@@ -36,6 +36,8 @@ export default function ActivityMapping() {
   const [dataArea, setDataArea] = useState([]);
   const [dataYear, setDataYear] = useState([]);
   const [dataMonths, setDataMonths] = useState([]);
+  const [dataSale, setDataSale] = useState([]);
+  const [selectedSale, setSelectedSale] = useState(null);
 
 
   const [currentLocation, setCurrentLocation] = useState({
@@ -53,7 +55,8 @@ export default function ActivityMapping() {
     const loadDataMappingList = async () => {
       setLoading(true);
       try {
-        const [mapping, activity, dealers, areas, years, subdealers, months] =
+        console.log(checkedFilters.sale);
+        const [mapping, activity, dealers, areas, years, subdealers, months, sales] =
           await Promise.all([
             useServiceAPI.post(paths.pathActivityMapList, {
               keyword: "",
@@ -63,19 +66,31 @@ export default function ActivityMapping() {
               year: [],
               sub_dealers: [],
               month: [],
+              sale: null,
             }),
             useServiceAPI.get(paths.pathMasterActivityType, {
               status: "",
             }),
-            useServiceAPI.get(paths.pathMasterDealerAll, {}),
+            useServiceAPI.get(paths.pathMasterDealerBySale, {
+              platform: "web",
+              user_id: checkedFilters.sale,
+            }),
             useServiceAPI.get(paths.pathMasterAreas, {}),
             useServiceAPI.get(paths.pathMasterYear, {}),
             useServiceAPI.get(paths.pathMasterSubDealer, {}),
             useServiceAPI.get(paths.pathMasterMonths, {}),
-
+            useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
           ]);
         // Mapping Detail
         setDataMapping(mapping.data);
+
+        setDataSale(
+          sales.data.map((data, index) => ({
+            key: index,
+            id: data.id,
+            name: data.name,
+          }))
+        );
 
         // Set Locations
         const newLocations = mapping.data.map((data, index) => ({
@@ -116,7 +131,7 @@ export default function ActivityMapping() {
               name: data.name,
             }))
         );
-
+        console.log(dealers);
         setDataDealer(
           dealers.data
             .filter(
@@ -197,6 +212,7 @@ export default function ActivityMapping() {
     loadDataMappingList();
   }, []);
 
+
   const { Content } = Layout;
   const { Panel } = Collapse;
 
@@ -205,48 +221,18 @@ export default function ActivityMapping() {
     height: "100vh",
   };
 
-  // Mock data for filter categories
-  // const mockFilters = [
-  //   {
-  //     key: 1,
-  //     filter_type: "activity_type",
-  //     filter_type_name: "Activity Type",
-  //     data: activityType,
-  //   },
-  //   {
-  //     key: 2,
-  //     filter_type: "dealer",
-  //     filter_type_name: "Dealer",
-  //     data: dataDealer,
-  //   },
-  //   {
-  //     key: 3,
-  //     filter_type: "sub_dealers",
-  //     filter_type_name: "Sub Dealer",
-  //     data: dataSubDealer,
-  //   },
-  //   {
-  //     key: 4,
-  //     filter_type: "year",
-  //     filter_type_name: "Years",
-  //     data: dataYear,
-  //   },
-  //   {
-  //     key: 5,
-  //     filter_type: "month",
-  //     filter_type_name: "Months",
-  //     data: dataMonths,
-  //   },
-  // ];
-
-
-
   const mockFilters = useMemo(() => [
     {
       key: 1,
       filter_type: "activity_type",
       filter_type_name: "Activity Type",
       data: activityType,
+    },
+    {
+      key: 6,
+      filter_type: "sale",
+      filter_type_name: "Sale",
+      data: dataSale,
     },
     {
       key: 2,
@@ -272,9 +258,9 @@ export default function ActivityMapping() {
       filter_type_name: "Months",
       data: dataMonths,
     },
-  ], [activityType, dataDealer, dataSubDealer, dataYear, dataMonths]);
+  ], [activityType, dataDealer, dataSubDealer, dataYear, dataMonths, dataSale]);
 
-  console.log('mockFilters : ', mockFilters)
+  // console.log('mockFilters : ', mockFilters)
 
   // Initialize all checkboxes as selected on page load
   useEffect(() => {
@@ -349,6 +335,17 @@ export default function ActivityMapping() {
   //   // }
   // };
 
+  // const toggleAll = (isChecked) => {
+  //   const updatedFilters = {};
+  //   mockFilters.forEach((filterItem) => {
+  //     updatedFilters[filterItem.filter_type] = isChecked
+  //       ? filterItem.data.map((item) => item.id)
+  //       : [];
+  //   });
+  //   setCheckedFilters(updatedFilters);
+  //   setIsAllChecked(isChecked);
+  // };
+
   const toggleAll = (isChecked) => {
     const updatedFilters = {};
     mockFilters.forEach((filterItem) => {
@@ -356,9 +353,17 @@ export default function ActivityMapping() {
         ? filterItem.data.map((item) => item.id)
         : [];
     });
+
     setCheckedFilters(updatedFilters);
     setIsAllChecked(isChecked);
+
+    if (!isChecked) {
+      setLocationMarkerIcon([]);
+    } else {
+      renderMarkerLocation();
+    }
   };
+
 
   useEffect(() => {
     if (locations.length > 0) {
@@ -370,9 +375,9 @@ export default function ActivityMapping() {
   }, [locations]);
 
 
-  useEffect(() => {
-    console.log("locationMarkerIcon", locationMarkerIcon);
-  }, [locationMarkerIcon]);
+  // useEffect(() => {
+  //   console.log("locationMarkerIcon", locationMarkerIcon);
+  // }, [locationMarkerIcon]);
 
   const renderMarkerLocation = () => {
     // Set MarkerLocation
@@ -423,6 +428,7 @@ export default function ActivityMapping() {
     }
   }, [dataYear]);
 
+
   // Set New Marker
   useEffect(() => {
     if (checkedFilters != null) {
@@ -466,6 +472,11 @@ export default function ActivityMapping() {
               ? checkedFilters.month.map(String) // 👈 แปลงให้เป็น string
               : [];
 
+          const sale =
+            Array.isArray(checkedFilters.sale) && checkedFilters.sale.length > 0
+              ? checkedFilters.sale
+              : [];
+
           const [mapping] = await Promise.all([
             useServiceAPI.post(paths.pathActivityMapList, {
               keyword: searchKeyword,
@@ -475,6 +486,7 @@ export default function ActivityMapping() {
               year: year,
               month: month,
               sub_dealers: sub_dealers,
+              sale: sale, // 👈 เพิ่ม sale filter ตรงนี้
             }),
           ]);
 
@@ -634,6 +646,43 @@ export default function ActivityMapping() {
   useEffect(() => {
     console.log(locationWindowInfo);
   }, [locationWindowInfo]);
+
+  useEffect(() => {
+    if (dataSale.length > 0) {
+      setCheckedFilters((prev) => ({
+        ...prev,
+        sale: [dataSale[0].id], // เลือกค่าแรกเป็นค่าเริ่มต้น
+      }));
+    }
+  }, [dataSale]);
+
+  const fetchDealerBySale = async (saleList) => {
+    if (saleList && saleList.length > 0) {
+      try {
+        const response = await useServiceAPI.get(paths.pathMasterDealerBySale, {
+          platform: "web",
+          user_id: saleList,
+        });
+
+        const uniqueDealers = response.data
+          .filter(
+            (value, index, self) =>
+              self.findIndex((item) => item.name === value.name) === index
+          )
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((data, index) => ({
+            key: index,
+            id: data.id,
+            name: data.name,
+          }));
+
+        setDataDealer(uniqueDealers);
+      } catch (error) {
+        console.error("Error fetching dealers by sale:", error);
+      }
+    }
+  };
+
 
   return (
     <MainLayout loading={loading}>
