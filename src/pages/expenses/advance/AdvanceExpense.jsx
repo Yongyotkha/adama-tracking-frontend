@@ -21,6 +21,7 @@ export default function AdvanceExpense() {
   const [activityList, setActivityList] = useState([]);
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
+  const [subDealerList, setSubDealerList] = useState([]);
   const { showNotification } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
     pagination: {
@@ -44,11 +45,19 @@ export default function AdvanceExpense() {
       moderef: true,
     },
     {
+      key: "dealer",
+      type: "select",
+      label: "Dealer",
+      placeholder: "All",
+      options: dealerList,
+      moderef: true,
+    },
+    {
       key: "customer",
       type: "select",
       label: "Sub Dealer",
       placeholder: "All",
-      options: dealerList,
+      options: subDealerList,
     },
     {
       key: "expense_no",
@@ -92,24 +101,52 @@ export default function AdvanceExpense() {
   };
 
   const handleChange = (filter) => {
-    if (filter) {
+    if (filter.dealer) {
+      console.log('dealer')
       const getMasterDealer = async () => {
 
         try {
 
-          const [sale] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterUserGetSubDealer, {
+          const [res] = await Promise.all([
+            useServiceAPI.get(paths.pathMasterSubDealerAll, {
               user_id: filter.sale,
+              dealer_id: filter.dealer,
             }),
           ]);
 
-          setDealerList(sale.data);
+          const set_sub_dealer = res.data.map((item) => ({
+            name: item.sub_dealer_name,
+            id: item.sub_dealer_id,
+          }));
+
+          setSubDealerList(set_sub_dealer);
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
         }
       };
 
       getMasterDealer();
+
+    } else if (filter.sale) {
+      console.log('sale')
+      const getMasterSubDealer = async () => {
+
+        try {
+
+          const [res] = await Promise.all([
+            useServiceAPI.get(paths.pathMasterDealerDropdown, {
+              user_id: filter.sale,
+            }),
+          ]);
+
+
+          setDealerList(res.data);
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+        }
+      };
+
+      getMasterSubDealer();
 
     } else {
       handleClear();
@@ -194,6 +231,7 @@ export default function AdvanceExpense() {
     },
     { title: "Type of Meeting", dataIndex: "typeOfMeeting", align: "center" },
     { title: "Date", dataIndex: "date", align: "center" },
+    { title: "Sale", dataIndex: "sale", align: "left" },
     { title: "Status", dataIndex: "status", align: "center" },
     { title: "Action", dataIndex: "action", align: "center" },
   ];
@@ -211,7 +249,8 @@ export default function AdvanceExpense() {
       keyword: filters.keyword || "",
       use_flag: "1",
       user_id: filters.sale,
-      dealer_id: filters.customer,
+      dealer_id: filters.dealer,
+      sub_dealer_id: filters.customer,
       date: filters.date,
       activity_type_id: filters.type_of_meeting,
       document_number_referrent: filters.activity_reference,
@@ -242,6 +281,7 @@ export default function AdvanceExpense() {
             activityReference: row.document_number_referrent,
             typeOfMeeting: row.activity_type_name,
             date: row.document_date,
+            sale: row.user_name,
             status: (
               <BadgeStatus
                 text={row.transaction_status_name}

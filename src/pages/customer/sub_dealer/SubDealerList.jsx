@@ -255,7 +255,7 @@ export default function SubDealerList() {
             paths.pathMasterSubDealerAll,
             {
               user_id: userId,
-              derler_id: dealerId,
+              dealer_id: dealerId,
             }
           );
 

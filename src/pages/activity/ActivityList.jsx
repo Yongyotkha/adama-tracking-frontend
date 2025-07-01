@@ -48,7 +48,6 @@ export default function ActivityList() {
 
   const handleBadgeClick = (rowData) => {
     setMappingData(rowData);
-    console.log(rowData);
     setIsMappingModalVisible(true);
   };
 
@@ -237,7 +236,7 @@ export default function ActivityList() {
             paths.pathMasterSubDealerAll,
             {
               user_id: userId,
-              derler_id: dealerId,
+              dealer_id: dealerId,
             }
           );
 
