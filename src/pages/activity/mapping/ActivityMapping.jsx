@@ -66,14 +66,16 @@ export default function ActivityMapping() {
               year: [],
               sub_dealers: [],
               month: [],
-              sale: null,
+              sale: Array.isArray(checkedFilters.sale) ? checkedFilters.sale : [],
             }),
             useServiceAPI.get(paths.pathMasterActivityType, {
               status: "",
             }),
             useServiceAPI.get(paths.pathMasterDealerBySale, {
               platform: "web",
-              user_id: checkedFilters.sale,
+              user_id: Array.isArray(checkedFilters.sale) && checkedFilters.sale.length > 0
+                ? checkedFilters.sale
+                : [0], // ส่ง dummy ถ้าไม่มี
             }),
             useServiceAPI.get(paths.pathMasterAreas, {}),
             useServiceAPI.get(paths.pathMasterYear, {}),
