@@ -91,6 +91,8 @@ const AdvanceExpensePDF = () => {
           console.log(response.data);
           setDataItems(response.data.expense_product_data_list); // เซ็ตค่าให้กับ state
           setDataHeader(response.data);
+
+          console.log(dataHeader.approve_by.user_name_en)
           setDataClearing(response.data);
 
           setDataCrop(response.data.crop_id_list)
@@ -130,6 +132,23 @@ const AdvanceExpensePDF = () => {
     return `${formatNumber(percentage)} %`; // ให้แสดงผลเป็นทศนิยม 2 ตำแหน่ง
   };
 
+  //console.log(dataHeader.approve_by.user_name_en)
+  const formatDateLong = (dateString) => {
+    if (!dateString) return "-";
+
+    const trimmedDate = dateString.split(".")[0]; // ตัดส่วน microseconds ออก
+    const date = new Date(trimmedDate); // ใช้ new Date() ได้แล้ว
+
+    if (isNaN(date)) return "-"; // ตรวจสอบกรณีแปลงไม่ได้
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+
+    return `${day}-${month}-${year} ${hours}:${minutes}`;
+  };
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
       <Document>
@@ -271,57 +290,9 @@ const AdvanceExpensePDF = () => {
             </View>
           </View>
 
-          {/* Table */}
-          {/* <View style={styles.table}>
-            <View style={styles.tableRow}>
-              <Text style={styles.tableCellHeader}>Product Name</Text>
-              <Text style={styles.tableCellHeader}>Pack Size</Text>
-              <Text style={styles.tableCellHeader}>Plan QTY (KG)</Text>
-              <Text style={styles.tableCellHeader}>Plan Value (THB)</Text>
-              <Text style={[styles.tableCellHeader, styles.tableCellLast]}>Actual QTY (KG)</Text>
-            </View>
-            <View style={styles.tableRow}>
-              <Text style={styles.tableCell}>Custodia 320 SC</Text>
-              <Text style={styles.tableCell}>20 x 0.5 Lt</Text>
-              <Text style={styles.tableCell}>100</Text>
-              <Text style={styles.tableCell}>154,018</Text>
-              <Text style={[styles.tableCell, styles.tableCellLast]}></Text>
-            </View>
-            <View style={styles.tableRow}>
-              <Text style={styles.tableCell}>Kanto 50 SC</Text>
-              <Text style={styles.tableCell}>1 Lt x 10</Text>
-              <Text style={styles.tableCell}>50</Text>
-              <Text style={styles.tableCell}>22,257</Text>
-              <Text style={[styles.tableCell, styles.tableCellLast]}></Text>
-            </View>
-            <View style={styles.tableRow}>
-              <Text style={styles.tableCell}>Kohinor X 350 SC</Text>
-              <Text style={styles.tableCell}>1 Lt x 12</Text>
-              <Text style={styles.tableCell}>10</Text>
-              <Text style={styles.tableCell}>8,775.5</Text>
-              <Text style={[styles.tableCell, styles.tableCellLast]}></Text>
-            </View>
-            <View style={styles.tableRow}>
-              <Text style={styles.tableCell}>Kestrel</Text>
-              <Text style={styles.tableCell}>0.25 Lt x 20</Text>
-              <Text style={styles.tableCell}>10</Text>
-              <Text style={styles.tableCell}>6,548</Text>
-              <Text style={[styles.tableCell, styles.tableCellLast]}></Text>
-            </View>
-          </View> */}
 
           <View style={styles.table}>
-            {/* Header ของ Table */}
-            {/* <View style={styles.tableRow}>
-              <Text style={styles.tableCellHeader}>Product Name</Text>
-              <Text style={styles.tableCellHeader}>Pack Size</Text>
-              <Text style={styles.tableCellHeader}>Plan QTY (KG)</Text>
-              <Text style={styles.tableCellHeader}>Plan Value (THB)</Text>
-              <Text style={styles.tableCellHeader}>Actual QTY (KG)</Text>
-              <Text style={[styles.tableCellHeader, styles.tableCellLast]}>Actual Value (THB)</Text>
-            </View> */}
 
-            {/* Header Row */}
             <View style={styles.tableRow}>
               <Text style={[styles.tableCellHeader, { flex: 2, minWidth: 25, paddingTop: '15' }]}>Product Name</Text>
               <Text style={[styles.tableCellHeader, { flex: 2, minWidth: 25, paddingTop: '15' }]}>Pack Size</Text>
@@ -376,6 +347,7 @@ const AdvanceExpensePDF = () => {
             </View>
           </View>
 
+
           {/* Footer */}
           <View style={styles.footer}>
             <View style={styles.footerRow}>
@@ -390,15 +362,15 @@ const AdvanceExpensePDF = () => {
                 </View>
                 <View style={styles.footerContentRow}>
                   <Text style={{ flex: 2, textAlign: "start" }}>Approved By :</Text>
-                  <Text style={{ flex: 4, textAlign: "start" }}>{dataHeader.updated_by} </Text>
+                  <Text style={{ flex: 4, textAlign: "start" }}> {dataHeader?.approve_by?.user_name_en || "-"}</Text>
                   <Text style={{ flex: 1, textAlign: "start" }}>Date</Text>
-                  <Text style={{ flex: 2, textAlign: "start" }}>{formatDate(dataHeader.updated_at)}</Text>
+                  <Text style={{ flex: 2, textAlign: "start" }}> {formatDate(dataHeader?.approve_by?.created_at)}</Text>
                 </View>
                 <View style={styles.footerContentRow}>
                   <Text style={{ flex: 2, textAlign: "start" }}>Clearing By :</Text>
-                  <Text style={{ flex: 4, textAlign: "start" }}> </Text>
+                  <Text style={{ flex: 4, textAlign: "start" }}> {dataHeader?.clearing_by?.user_name_en || "-"}</Text>
                   <Text style={{ flex: 1, textAlign: "start" }}>Date</Text>
-                  <Text style={{ flex: 2, textAlign: "start" }}> </Text>
+                  <Text style={{ flex: 2, textAlign: "start" }}> {formatDate(dataHeader?.clearing_by?.created_at)}</Text>
                 </View>
               </View>
 
