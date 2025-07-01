@@ -48,7 +48,6 @@ export default function ActivityList() {
 
   const handleBadgeClick = (rowData) => {
     setMappingData(rowData);
-    console.log(rowData);
     setIsMappingModalVisible(true);
   };
 
