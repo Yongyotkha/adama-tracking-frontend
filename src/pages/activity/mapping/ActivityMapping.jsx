@@ -262,7 +262,7 @@ export default function ActivityMapping() {
     },
   ], [activityType, dataDealer, dataSubDealer, dataYear, dataMonths, dataSale]);
 
-  // console.log('mockFilters : ', mockFilters)
+  console.log('mockFilters : ', mockFilters)
 
   // Initialize all checkboxes as selected on page load
   useEffect(() => {
@@ -372,8 +372,8 @@ export default function ActivityMapping() {
       renderMarkerLocation();
     } else {
       setLocationMarkerIcon([]); // 👉 clear marker ด้วยถ้าไม่มี location
+      console.log("locations", locations);
     }
-    console.log("locations", locations);
   }, [locations]);
 
 
@@ -649,24 +649,38 @@ export default function ActivityMapping() {
     console.log(locationWindowInfo);
   }, [locationWindowInfo]);
 
-  useEffect(() => {
-    if (dataSale.length > 0) {
-      setCheckedFilters((prev) => ({
-        ...prev,
-        sale: [dataSale[0].id], // เลือกค่าแรกเป็นค่าเริ่มต้น
-      }));
-    }
-  }, [dataSale]);
+  // useEffect(() => {
+  //   if (dataSale.length > 0) {
+  //     setCheckedFilters((prev) => ({
+  //       ...prev,
+  //       sale: [dataSale[0].id], // เลือกค่าแรกเป็นค่าเริ่มต้น
+  //     }));
+  //   }
+  // }, [dataSale]);
 
-  const fetchDealerBySale = async (saleList) => {
-    if (saleList && saleList.length > 0) {
+  // 🔁 เมื่อมีการเปลี่ยน sale ให้ดึง dealer ใหม่
+  useEffect(() => {
+    const fetchDealersBySale = async () => {
+      const saleIds = Array.isArray(checkedFilters.sale)
+        ? checkedFilters.sale
+        : [];
+
+      if (saleIds.length === 0) {
+        setDataDealer([]); // เคลียร์ dealer ถ้า sale ไม่มี
+        setCheckedFilters((prev) => ({
+          ...prev,
+          dealer: [],
+        }));
+        return;
+      }
+
       try {
-        const response = await useServiceAPI.get(paths.pathMasterDealerBySale, {
+        const res = await useServiceAPI.get(paths.pathMasterDealerBySale, {
           platform: "web",
-          user_id: saleList,
+          user_id: saleIds,
         });
 
-        const uniqueDealers = response.data
+        const dealerList = res.data
           .filter(
             (value, index, self) =>
               self.findIndex((item) => item.name === value.name) === index
@@ -678,12 +692,20 @@ export default function ActivityMapping() {
             name: data.name,
           }));
 
-        setDataDealer(uniqueDealers);
-      } catch (error) {
-        console.error("Error fetching dealers by sale:", error);
+        setDataDealer(dealerList);
+
+        // 👉 reset dealer ที่เลือกเพื่อหลีกเลี่ยงค่าไม่ตรง
+        setCheckedFilters((prev) => ({
+          ...prev,
+          dealer: [],
+        }));
+      } catch (err) {
+        console.error("Error fetching dealers by sale:", err);
       }
-    }
-  };
+    };
+
+    fetchDealersBySale();
+  }, [checkedFilters.sale]);
 
 
   return (
