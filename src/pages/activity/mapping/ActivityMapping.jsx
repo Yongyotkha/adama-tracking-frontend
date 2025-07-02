@@ -251,7 +251,6 @@ export default function ActivityMapping() {
             name: data.name,
           }));
 
-        console.log('formattedSubDealers : ', formattedSubDealers)
 
         setDataSubDealer(formattedSubDealers);
 
@@ -479,6 +478,7 @@ export default function ActivityMapping() {
               checkedFilters.sub_dealers.length > 0
               ? checkedFilters.sub_dealers
               : [];
+          console.log('sub_dealers : ', sub_dealers)
           // const month =
           //   Array.isArray(checkedFilters.month) && checkedFilters.month.length > 0
           //     ? checkedFilters.month
