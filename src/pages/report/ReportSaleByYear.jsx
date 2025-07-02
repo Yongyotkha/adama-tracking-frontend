@@ -508,13 +508,13 @@ export default function ReportSaleByMonth() {
                     {footerData.map((month, index) => (
                       <React.Fragment key={`${month.id}_${index}`}>
                         <Table.Summary.Cell align="center">
-                          <InputNumber className="w-full" disabled value={month.workplan_qty}
+                          <InputNumber className="w-full" readOnly value={month.workplan_qty}
                             formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} />
                         </Table.Summary.Cell>
                         <Table.Summary.Cell align="center">
                           <InputNumber
                             className="w-full"
-                            disabled
+                            readOnly
                             value={month.rolling_qty}
                             formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                           />
@@ -522,7 +522,7 @@ export default function ReportSaleByMonth() {
                         <Table.Summary.Cell align="center">
                           <InputNumber
                             className="w-full"
-                            disabled
+                            readOnly
                             value={month.actual_qty}
                             formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                           />
@@ -530,7 +530,7 @@ export default function ReportSaleByMonth() {
                         <Table.Summary.Cell align="center">
                           <InputNumber
                             className="w-full"
-                            disabled
+                            readOnly
                             value={month.workplan_value}
                             formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                           />
@@ -538,7 +538,7 @@ export default function ReportSaleByMonth() {
                         <Table.Summary.Cell align="center">
                           <InputNumber
                             className="w-full"
-                            disabled
+                            readOnly
                             value={month.rolling_value}
                             formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                           />
@@ -546,7 +546,7 @@ export default function ReportSaleByMonth() {
                         <Table.Summary.Cell align="center">
                           <InputNumber
                             className="w-full"
-                            disabled
+                            readOnly
                             value={month.actual_value}
                             formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                           />

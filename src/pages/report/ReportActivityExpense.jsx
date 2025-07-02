@@ -386,7 +386,7 @@ export default function ReportSaleByMonth() {
                         <Table.Summary.Cell align="center">
                           <InputNumber
                             className="w-full"
-                            disabled
+                            readOnly
                             value={month.workplan_value}
                             formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                           />
@@ -394,7 +394,7 @@ export default function ReportSaleByMonth() {
                         <Table.Summary.Cell align="center">
                           <InputNumber
                             className="w-full"
-                            disabled
+                            readOnly
                             value={month.actual_value}
                             formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                           />
