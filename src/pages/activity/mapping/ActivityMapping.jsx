@@ -39,6 +39,7 @@ export default function ActivityMapping() {
   const [dataSale, setDataSale] = useState([]);
   const [selectedSale, setSelectedSale] = useState(null);
 
+  const [arraySales, SetArraySales] = useState([]);
 
   const [currentLocation, setCurrentLocation] = useState({
     lat: 0.0,
@@ -49,6 +50,7 @@ export default function ActivityMapping() {
 
   const [searchOptions, setSearchOptions] = useState([]);
   const [searchKeyword, setSearchKeyword] = useState("");
+
 
   // Fetch Data
   useEffect(() => {
@@ -73,9 +75,8 @@ export default function ActivityMapping() {
             }),
             useServiceAPI.get(paths.pathMasterDealerBySale, {
               platform: "web",
-              user_id: Array.isArray(checkedFilters.sale) && checkedFilters.sale.length > 0
-                ? checkedFilters.sale
-                : [0], // ส่ง dummy ถ้าไม่มี
+              // user_id: arraySales
+              "user_id": [101, 149]
             }),
             useServiceAPI.get(paths.pathMasterAreas, {}),
             useServiceAPI.get(paths.pathMasterYear, {}),
@@ -649,24 +650,68 @@ export default function ActivityMapping() {
     console.log(locationWindowInfo);
   }, [locationWindowInfo]);
 
-  // useEffect(() => {
-  //   if (dataSale.length > 0) {
-  //     setCheckedFilters((prev) => ({
-  //       ...prev,
-  //       sale: [dataSale[0].id], // เลือกค่าแรกเป็นค่าเริ่มต้น
-  //     }));
-  //   }
-  // }, [dataSale]);
+  useEffect(() => {
+    if (dataSale.length > 0) {
+      setCheckedFilters((prev) => ({
+        ...prev,
+        sale: [dataSale[0].id], // เลือกค่าแรกเป็นค่าเริ่มต้น
+      }));
+    }
+  }, [dataSale]);
 
   // 🔁 เมื่อมีการเปลี่ยน sale ให้ดึง dealer ใหม่
+  // useEffect(() => {
+  //   const fetchDealersBySale = async () => {
+  //     const saleIds = Array.isArray(checkedFilters.sale)
+  //       ? checkedFilters.sale
+  //       : [];
+
+  //     if (saleIds.length === 0) {
+  //       setDataDealer([]); // เคลียร์ dealer ถ้า sale ไม่มี
+  //       setCheckedFilters((prev) => ({
+  //         ...prev,
+  //         dealer: [],
+  //       }));
+  //       return;
+  //     }
+
+  //     try {
+  //       const res = await useServiceAPI.get(paths.pathMasterDealerBySale, {
+  //         platform: "web",
+  //         user_id: saleIds,
+  //       });
+
+  //       const dealerList = res.data
+  //         .filter(
+  //           (value, index, self) =>
+  //             self.findIndex((item) => item.name === value.name) === index
+  //         )
+  //         .sort((a, b) => a.name.localeCompare(b.name))
+  //         .map((data, index) => ({
+  //           key: index,
+  //           id: data.id,
+  //           name: data.name,
+  //         }));
+
+  //       setDataDealer(dealerList);
+
+  //       // 👉 reset dealer ที่เลือกเพื่อหลีกเลี่ยงค่าไม่ตรง
+  //       setCheckedFilters((prev) => ({
+  //         ...prev,
+  //         dealer: [],
+  //       }));
+  //     } catch (err) {
+  //       console.error("Error fetching dealers by sale:", err);
+  //     }
+  //   };
+
+  //   fetchDealersBySale();
+  // }, [checkedFilters.sale]);
+  
   useEffect(() => {
     const fetchDealersBySale = async () => {
-      const saleIds = Array.isArray(checkedFilters.sale)
-        ? checkedFilters.sale
-        : [];
-
-      if (saleIds.length === 0) {
-        setDataDealer([]); // เคลียร์ dealer ถ้า sale ไม่มี
+      if (!arraySales || arraySales.length === 0) {
+        setDataDealer([]);
         setCheckedFilters((prev) => ({
           ...prev,
           dealer: [],
@@ -677,7 +722,7 @@ export default function ActivityMapping() {
       try {
         const res = await useServiceAPI.get(paths.pathMasterDealerBySale, {
           platform: "web",
-          user_id: saleIds,
+          user_id: arraySales,
         });
 
         const dealerList = res.data
@@ -693,8 +738,6 @@ export default function ActivityMapping() {
           }));
 
         setDataDealer(dealerList);
-
-        // 👉 reset dealer ที่เลือกเพื่อหลีกเลี่ยงค่าไม่ตรง
         setCheckedFilters((prev) => ({
           ...prev,
           dealer: [],
@@ -705,7 +748,7 @@ export default function ActivityMapping() {
     };
 
     fetchDealersBySale();
-  }, [checkedFilters.sale]);
+  }, [arraySales]);
 
 
   return (
@@ -811,13 +854,17 @@ export default function ActivityMapping() {
                       }))}
                       value={checkedFilters[category.filter_type]}
                       onChange={(list) => {
-                        console.log(list, category.filter_type);
-
                         setCheckedFilters((prevFilters) => ({
                           ...prevFilters,
                           [category.filter_type]: list,
                         }));
+
+                        // 👇 Update ArraySales only when filter type is "sale"
+                        if (category.filter_type === "sale") {
+                          SetArraySales(list);
+                        }
                       }}
+
                       className="filter-checkbox-group"
                     />
                   </Panel>
