@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
 import { Dropdown, Modal, Select } from "antd";
-import Filter from "../../../components/filter/FilterBackUp";
+import Filter from "../../../components/filter/Filter";
 import ActionButton from "../../../components/button/ActionButton";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";

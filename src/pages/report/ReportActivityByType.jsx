@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import Filter from "../../components/filter/FilterBackUp";
+import Filter from "../../components/filter/Filter";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
 import { InputNumber, Table } from "antd";
@@ -9,7 +9,6 @@ import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
 import Title from "../../components/title/Title";
-
 
 export default function ReportActivityByType() {
   const navigate = useNavigate();
@@ -35,14 +34,8 @@ export default function ReportActivityByType() {
     sortField: null,
   });
 
-  // 🎯 Helper: แปลง sale list เป็น select options
-  const mapSalesOptions = (salesList) =>
-    (salesList || []).map((sale) => ({
-      id: sale.id,
-      name: sale.name,
-    }));
+  const mapSalesOptions = (salesList) => (salesList || []).map((sale) => ({ id: sale.id, name: sale.name }));
 
-  // 🎯 Load Master Data
   const loadMasterData = async () => {
     setLoading(true);
     try {
@@ -60,10 +53,15 @@ export default function ReportActivityByType() {
       setActivityList(activityType.data);
 
       if (yearsRes.data.length > 0) {
+        const defaultYear = yearsRes.data[0];
+        const initialFilters = { year_code: defaultYear };
+
         setTableParams((prev) => ({
           ...prev,
-          filters: { ...prev.filters, year_code: yearsRes.data[0] },
+          filters: initialFilters,
         }));
+
+        fetchData(initialFilters);
       }
     } catch (error) {
       showNotification("error", error.message || "เกิดข้อผิดพลาด");
@@ -76,47 +74,10 @@ export default function ReportActivityByType() {
     loadMasterData();
   }, []);
 
-  // 🎯 เมื่อเลือก Area → โหลด Sales ใหม่
-  // useEffect(() => {
-  //   const areaId = tableParams.filters?.area_id;
-
-  //   if (areaId) {
-  //     setSales([]);
-  //     setSalesDisabled(true);
-
-  //     // reset sales/territory เมื่อเปลี่ยน area
-  //     setTableParams((prev) => ({
-  //       ...prev,
-  //       filters: {
-  //         ...prev.filters,
-  //         user_id: undefined,
-  //         territory: undefined,
-  //       },
-  //     }));
-
-  //     useServiceAPI
-  //       .get(paths.pathMasterSalesByArea, { area_id: areaId })
-  //       .then((res) => {
-  //         if (res.status === 200) {
-  //           setSales(mapSalesOptions(res.data));
-  //           setSalesDisabled(false);
-  //         }
-  //       })
-  //       .catch(() => {
-  //         showNotification("error", "โหลด Sales ไม่สำเร็จ");
-  //         setSalesDisabled(true);
-  //       });
-  //   } else {
-  //     setSales([]);
-  //     setSalesDisabled(true);
-  //   }
-  // }, [tableParams.filters?.area_id]);
-
-  // 🎯 Load Table Data
-  const fetchData = async () => {
+  const fetchData = async (filtersInput = tableParams.filters) => {
     setTableLoading(true);
     const { pageSize } = tableParams.pagination;
-    const filters = tableParams.filters || {};
+    const filters = filtersInput || {};
 
     const requestData = {
       keyword: filters.keyword || "",
@@ -149,11 +110,6 @@ export default function ReportActivityByType() {
     }
   };
 
-  useEffect(() => {
-    if (years.length > 0) fetchData();
-  }, [JSON.stringify(tableParams.filters)]);
-
-  // 🎯 Table & Filter Handlers
   const handleTableChange = (pagination) => {
     setTableParams((prev) => ({
       ...prev,
@@ -166,6 +122,7 @@ export default function ReportActivityByType() {
       pagination: { current: 1, pageSize: 10 },
       filters,
     });
+    fetchData(filters);
   };
 
   const handleClear = () => {
@@ -173,6 +130,9 @@ export default function ReportActivityByType() {
       ...prev,
       filters: {},
     }));
+    setSales([]);
+    setSalesDisabled(true);
+    setDataSource([]);
   };
 
   useEffect(() => {
@@ -187,7 +147,6 @@ export default function ReportActivityByType() {
     }
   }, [defaultOption]);
 
-  // 🎯 Filter Config
   const filters = [
     {
       key: "area_id",
@@ -199,7 +158,7 @@ export default function ReportActivityByType() {
       key: "user_id",
       type: "select",
       label: "Sales",
-      placeholder: "All",     // ✅ เพิ่ม placeholder ชัดเจน
+      placeholder: "All",
       options: sales,
       disabled: salesDisabled,
     },
@@ -222,7 +181,6 @@ export default function ReportActivityByType() {
     },
   ];
 
-  // 🎯 Table Header
   const header = [
     {
       title: "Activity Type",
@@ -266,18 +224,7 @@ export default function ReportActivityByType() {
   const handleFilterChange = async (newFilters) => {
     const newAreaId = newFilters.area_id;
     const oldAreaId = tableParams.filters?.area_id;
-
     const isAreaChanged = newAreaId !== oldAreaId;
-
-    setTableParams((prev) => ({
-      ...prev,
-      filters: {
-        ...prev.filters,
-        ...newFilters,
-        user_id: isAreaChanged ? undefined : prev.filters.user_id,
-        territory: isAreaChanged ? undefined : prev.filters.territory,
-      },
-    }));
 
     if (isAreaChanged && newAreaId) {
       setSales([]);
@@ -295,24 +242,12 @@ export default function ReportActivityByType() {
       }
     }
 
-    // ✅ ถ้า area ถูกเคลียร์ (เลือกเป็น null/undefined/empty)
     if (!newAreaId) {
       setSales([]);
       setSalesDisabled(true);
-
-      setTableParams((prev) => ({
-        ...prev,
-        filters: {
-          ...prev.filters,
-          user_id: undefined,       // clear ค่า user_id
-          territory: undefined,
-        },
-      }));
     }
   };
 
-
-  // 🎯 Table Footer Summary
   const footerSummary = () => {
     const total = (key) => dataSource.reduce((sum, row) => sum + (parseFloat(row[key]) || 0), 0);
     return (
@@ -353,4 +288,3 @@ export default function ReportActivityByType() {
     </MainLayout>
   );
 }
-

@@ -28,6 +28,7 @@ const Filter = ({ onSearch, onClear, onChange, filters, onValueChange }) => {
     }
   };
 
+
   const handleSearch = () => {
     console.log(filterValues);
     onSearch(filterValues);
