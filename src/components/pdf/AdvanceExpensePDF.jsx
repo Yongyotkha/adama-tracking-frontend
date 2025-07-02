@@ -368,9 +368,9 @@ const AdvanceExpensePDF = () => {
                 </View>
                 <View style={styles.footerContentRow}>
                   <Text style={{ flex: 2, textAlign: "start" }}>Clearing By :</Text>
-                  <Text style={{ flex: 4, textAlign: "start" }}> {dataHeader?.clearing_by?.user_name_en || "-"}</Text>
+                  <Text style={{ flex: 4, textAlign: "start" }}> {dataHeader?.approve_clearing_by?.user_name_en || "-"}</Text>
                   <Text style={{ flex: 1, textAlign: "start" }}>Date</Text>
-                  <Text style={{ flex: 2, textAlign: "start" }}> {formatDate(dataHeader?.clearing_by?.created_at)}</Text>
+                  <Text style={{ flex: 2, textAlign: "start" }}> {formatDate(dataHeader?.approve_clearing_by?.created_at)}</Text>
                 </View>
               </View>
 

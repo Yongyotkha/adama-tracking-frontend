@@ -32,14 +32,12 @@ export default function ActivityMapping() {
   const [dataMapping, setDataMapping] = useState([]);
   const [activityType, setActivityType] = useState([]);
   const [dataDealer, setDataDealer] = useState([]);
+  const [dataSales, setDataSales] = useState([]);
   const [dataSubDealer, setDataSubDealer] = useState([]);
   const [dataArea, setDataArea] = useState([]);
   const [dataYear, setDataYear] = useState([]);
   const [dataMonths, setDataMonths] = useState([]);
-  const [dataSale, setDataSale] = useState([]);
-  const [selectedSale, setSelectedSale] = useState(null);
 
-  const [arraySales, SetArraySales] = useState([]);
 
   const [currentLocation, setCurrentLocation] = useState({
     lat: 0.0,
@@ -51,14 +49,12 @@ export default function ActivityMapping() {
   const [searchOptions, setSearchOptions] = useState([]);
   const [searchKeyword, setSearchKeyword] = useState("");
 
-
   // Fetch Data
   useEffect(() => {
     const loadDataMappingList = async () => {
       setLoading(true);
       try {
-        console.log(checkedFilters.sale);
-        const [mapping, activity, dealers, areas, years, subdealers, months, sales] =
+        const [mapping, activity, sales, dealers, areas, years, subdealers, months] =
           await Promise.all([
             useServiceAPI.post(paths.pathActivityMapList, {
               keyword: "",
@@ -68,32 +64,20 @@ export default function ActivityMapping() {
               year: [],
               sub_dealers: [],
               month: [],
-              sale: Array.isArray(checkedFilters.sale) ? checkedFilters.sale : [],
             }),
             useServiceAPI.get(paths.pathMasterActivityType, {
               status: "",
             }),
-            useServiceAPI.get(paths.pathMasterDealerBySale, {
-              platform: "web",
-              // user_id: arraySales
-              "user_id": [101, 149]
-            }),
+            useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+            useServiceAPI.get(paths.pathMasterDealerAll, {}),
             useServiceAPI.get(paths.pathMasterAreas, {}),
             useServiceAPI.get(paths.pathMasterYear, {}),
             useServiceAPI.get(paths.pathMasterSubDealer, {}),
             useServiceAPI.get(paths.pathMasterMonths, {}),
-            useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+
           ]);
         // Mapping Detail
         setDataMapping(mapping.data);
-
-        setDataSale(
-          sales.data.map((data, index) => ({
-            key: index,
-            id: data.id,
-            name: data.name,
-          }))
-        );
 
         // Set Locations
         const newLocations = mapping.data.map((data, index) => ({
@@ -134,7 +118,9 @@ export default function ActivityMapping() {
               name: data.name,
             }))
         );
-        console.log(dealers);
+
+        setDataSales(sales.data)
+
         setDataDealer(
           dealers.data
             .filter(
@@ -215,7 +201,6 @@ export default function ActivityMapping() {
     loadDataMappingList();
   }, []);
 
-
   const { Content } = Layout;
   const { Panel } = Collapse;
 
@@ -223,6 +208,7 @@ export default function ActivityMapping() {
     width: "100%",
     height: "100vh",
   };
+
 
   const mockFilters = useMemo(() => [
     {
@@ -233,9 +219,9 @@ export default function ActivityMapping() {
     },
     {
       key: 6,
-      filter_type: "sale",
-      filter_type_name: "Sale",
-      data: dataSale,
+      filter_type: "sales",
+      filter_type_name: "Sales",
+      data: dataSales,
     },
     {
       key: 2,
@@ -261,9 +247,10 @@ export default function ActivityMapping() {
       filter_type_name: "Months",
       data: dataMonths,
     },
-  ], [activityType, dataDealer, dataSubDealer, dataYear, dataMonths, dataSale]);
 
-  console.log('mockFilters : ', mockFilters)
+  ], [activityType, dataDealer, dataSubDealer, dataYear, dataMonths]);
+
+  //console.log('mockFilters : ', mockFilters)
 
   // Initialize all checkboxes as selected on page load
   useEffect(() => {
@@ -322,32 +309,6 @@ export default function ActivityMapping() {
     }
   };
 
-  // const toggleAll = (isChecked) => {
-  //   const updatedFilters = {};
-  //   mockFilters.forEach((filterItem) => {
-  //     updatedFilters[filterItem.filter_type] = isChecked
-  //       ? filterItem.data.map((item) => item.id)
-  //       : [];
-  //   });
-  //   setCheckedFilters(updatedFilters);
-  //   setIsAllChecked(isChecked);
-  //   // if (isChecked) {
-  //   // setLocationMarkerIcon(locations);
-  //   // } else {
-  //   //   setLocationMarkerIcon([]);
-  //   // }
-  // };
-
-  // const toggleAll = (isChecked) => {
-  //   const updatedFilters = {};
-  //   mockFilters.forEach((filterItem) => {
-  //     updatedFilters[filterItem.filter_type] = isChecked
-  //       ? filterItem.data.map((item) => item.id)
-  //       : [];
-  //   });
-  //   setCheckedFilters(updatedFilters);
-  //   setIsAllChecked(isChecked);
-  // };
 
   const toggleAll = (isChecked) => {
     const updatedFilters = {};
@@ -356,31 +317,23 @@ export default function ActivityMapping() {
         ? filterItem.data.map((item) => item.id)
         : [];
     });
-
     setCheckedFilters(updatedFilters);
     setIsAllChecked(isChecked);
-
-    if (!isChecked) {
-      setLocationMarkerIcon([]);
-    } else {
-      renderMarkerLocation();
-    }
   };
-
 
   useEffect(() => {
     if (locations.length > 0) {
       renderMarkerLocation();
     } else {
       setLocationMarkerIcon([]); // 👉 clear marker ด้วยถ้าไม่มี location
-      console.log("locations", locations);
     }
+    //console.log("locations", locations);
   }, [locations]);
 
 
-  // useEffect(() => {
-  //   console.log("locationMarkerIcon", locationMarkerIcon);
-  // }, [locationMarkerIcon]);
+  useEffect(() => {
+    //console.log("locationMarkerIcon", locationMarkerIcon);
+  }, [locationMarkerIcon]);
 
   const renderMarkerLocation = () => {
     // Set MarkerLocation
@@ -417,6 +370,7 @@ export default function ActivityMapping() {
       return filterItem.data.every((item) =>
         checkedFilters[filterItem.filter_type]?.includes(item.id)
       );
+
     });
 
     setIsAllChecked(allFiltersSelected);
@@ -430,7 +384,6 @@ export default function ActivityMapping() {
       }));
     }
   }, [dataYear]);
-
 
   // Set New Marker
   useEffect(() => {
@@ -448,6 +401,7 @@ export default function ActivityMapping() {
               checkedFilters.dealer.length > 0
               ? checkedFilters.dealer
               : [];
+          console.log('dealer : ', dealer)
           const area =
             Array.isArray(checkedFilters.area) && checkedFilters.area.length > 0
               ? checkedFilters.area
@@ -475,11 +429,6 @@ export default function ActivityMapping() {
               ? checkedFilters.month.map(String) // 👈 แปลงให้เป็น string
               : [];
 
-          const sale =
-            Array.isArray(checkedFilters.sale) && checkedFilters.sale.length > 0
-              ? checkedFilters.sale
-              : [];
-
           const [mapping] = await Promise.all([
             useServiceAPI.post(paths.pathActivityMapList, {
               keyword: searchKeyword,
@@ -489,7 +438,6 @@ export default function ActivityMapping() {
               year: year,
               month: month,
               sub_dealers: sub_dealers,
-              sale: sale, // 👈 เพิ่ม sale filter ตรงนี้
             }),
           ]);
 
@@ -520,32 +468,6 @@ export default function ActivityMapping() {
 
           setDataMapping(filteredData);
 
-          // Set Locations
-          // setLocations(
-          //   mapping.data.map((data, index) => ({
-          //     key: locations.length + 1,
-          //     id: locations.length + 1,
-          //     document_number: data.document_number,
-          //     title: data.activity_type_name,
-          //     lat: parseFloat(data.location_latitude),
-          //     lng: parseFloat(data.location_longitude),
-          //     // lat: data.location_latitude,
-          //     // lng: data.location_longitude,
-          //     address: data.location_address,
-          //     details: data.description,
-          //     activity_type_id: data.activity_type_id,
-          //     activity_type_name: data.activity_type_name,
-          //     dealer_id: data.dealer_id,
-          //     dealer_name: data.dealer_name,
-          //     area_id: data.area_id,
-          //     area_name: data.area_name,
-          //     year: data.year,
-          //     activity_image: data.activity_image,
-          //     activity_image_location: data.activity_image_location,
-          //     crop_id_list: data.crop_id_list,
-          //     document_date_display: data.document_date_display,
-          //   }))
-          // );
           setLocations(
             filteredData.map((data, index) => ({
               key: index + 1,
@@ -628,17 +550,36 @@ export default function ActivityMapping() {
     }
   };
 
-  // Set initial state for all filters (select all)
+  useEffect(() => {
+    if (dataSales.length > 0) {
+      setCheckedFilters((prev) => {
+        const alreadySet = prev.sales && prev.sales.length > 0;
+        if (alreadySet) return prev; // ถ้ามีค่าแล้ว ไม่ต้องเซตซ้ำ
+
+        return {
+          ...prev,
+          sales: dataSales.map((item) => item.id), // ✅ เลือกทั้งหมดตอนโหลดครั้งแรก
+        };
+      });
+    }
+  }, [dataSales]);
+
+
   useEffect(() => {
     if (mockFilters.every((f) => f.data.length > 0)) {
-      const initialChecked = {};
-      mockFilters.forEach((filter) => {
-        initialChecked[filter.filter_type] = filter.data.map((item) => item.id);
+      setCheckedFilters((prevFilters) => {
+        const updated = { ...prevFilters };
+        mockFilters.forEach((filter) => {
+          if (filter.filter_type !== 'sales' && !updated[filter.filter_type]) {
+            updated[filter.filter_type] = filter.data.map((item) => item.id);
+          }
+        });
+        return updated;
       });
-      setCheckedFilters(initialChecked);
+
       setIsAllChecked(true);
     }
-  }, [activityType, dataDealer, dataSubDealer, dataYear, dataMonths]); // <<--- add dependencies จาก mockFilters
+  }, [activityType, dataDealer, dataSubDealer, dataYear, dataMonths]);
 
   const handleSelect = (value, option) => {
     // Set the map center to the selected lat and lng
@@ -650,105 +591,36 @@ export default function ActivityMapping() {
     console.log(locationWindowInfo);
   }, [locationWindowInfo]);
 
-  useEffect(() => {
-    if (dataSale.length > 0) {
+  const fetchDealersBySale = async (saleIds = []) => {
+    try {
+      const response = await useServiceAPI.get(paths.pathMasterDealerBySale, {
+        platform: "web",
+        user_id: saleIds,
+      });
+
+      const formattedDealers = response.data.map((data, index) => ({
+        key: index,
+        id: data.id,
+        name: data.name,
+      }));
+
+      setDataDealer(formattedDealers);
+
+      // 🔥 สำคัญ: อัปเดต checkedFilters.dealer ทันที เพื่อให้ API ส่ง dealer ใหม่
       setCheckedFilters((prev) => ({
         ...prev,
-        sale: [dataSale[0].id], // เลือกค่าแรกเป็นค่าเริ่มต้น
+        dealer: formattedDealers.map((d) => d.id),
+      }));
+
+    } catch (error) {
+      console.error("Error fetching dealers by sale:", error);
+      setDataDealer([]);
+      setCheckedFilters((prev) => ({
+        ...prev,
+        dealer: [],
       }));
     }
-  }, [dataSale]);
-
-  // 🔁 เมื่อมีการเปลี่ยน sale ให้ดึง dealer ใหม่
-  // useEffect(() => {
-  //   const fetchDealersBySale = async () => {
-  //     const saleIds = Array.isArray(checkedFilters.sale)
-  //       ? checkedFilters.sale
-  //       : [];
-
-  //     if (saleIds.length === 0) {
-  //       setDataDealer([]); // เคลียร์ dealer ถ้า sale ไม่มี
-  //       setCheckedFilters((prev) => ({
-  //         ...prev,
-  //         dealer: [],
-  //       }));
-  //       return;
-  //     }
-
-  //     try {
-  //       const res = await useServiceAPI.get(paths.pathMasterDealerBySale, {
-  //         platform: "web",
-  //         user_id: saleIds,
-  //       });
-
-  //       const dealerList = res.data
-  //         .filter(
-  //           (value, index, self) =>
-  //             self.findIndex((item) => item.name === value.name) === index
-  //         )
-  //         .sort((a, b) => a.name.localeCompare(b.name))
-  //         .map((data, index) => ({
-  //           key: index,
-  //           id: data.id,
-  //           name: data.name,
-  //         }));
-
-  //       setDataDealer(dealerList);
-
-  //       // 👉 reset dealer ที่เลือกเพื่อหลีกเลี่ยงค่าไม่ตรง
-  //       setCheckedFilters((prev) => ({
-  //         ...prev,
-  //         dealer: [],
-  //       }));
-  //     } catch (err) {
-  //       console.error("Error fetching dealers by sale:", err);
-  //     }
-  //   };
-
-  //   fetchDealersBySale();
-  // }, [checkedFilters.sale]);
-  
-  useEffect(() => {
-    const fetchDealersBySale = async () => {
-      if (!arraySales || arraySales.length === 0) {
-        setDataDealer([]);
-        setCheckedFilters((prev) => ({
-          ...prev,
-          dealer: [],
-        }));
-        return;
-      }
-
-      try {
-        const res = await useServiceAPI.get(paths.pathMasterDealerBySale, {
-          platform: "web",
-          user_id: arraySales,
-        });
-
-        const dealerList = res.data
-          .filter(
-            (value, index, self) =>
-              self.findIndex((item) => item.name === value.name) === index
-          )
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .map((data, index) => ({
-            key: index,
-            id: data.id,
-            name: data.name,
-          }));
-
-        setDataDealer(dealerList);
-        setCheckedFilters((prev) => ({
-          ...prev,
-          dealer: [],
-        }));
-      } catch (err) {
-        console.error("Error fetching dealers by sale:", err);
-      }
-    };
-
-    fetchDealersBySale();
-  }, [arraySales]);
+  };
 
 
   return (
@@ -793,20 +665,6 @@ export default function ActivityMapping() {
           >
             {/* Master "All" Checkbox */}
             <div className="flex justify-between">
-              {/* <Checkbox
-                indeterminate={Object.keys(checkedFilters).some(
-                  (filterType) =>
-                    checkedFilters[filterType].length > 0 &&
-                    checkedFilters[filterType].length <
-                    mockFilters.find(
-                      (filter) => filter.filter_type === filterType
-                    ).data.length
-                )}
-                checked={isAllChecked}
-                onChange={(e) => toggleAll(e.target.checked)}
-              >
-                Check All
-              </Checkbox> */}
 
               <Checkbox
                 indeterminate={Object.keys(checkedFilters).some(
@@ -821,15 +679,6 @@ export default function ActivityMapping() {
                 Check All
               </Checkbox>
 
-
-              {/* <Tooltip title="Reload data" placement="bottom">
-                <img
-                  src="/img/icons/reload.png"
-                  alt="Reload Icon"
-                  className="h-6 w-6 cursor-pointer"
-                  onClick={() => renderMarkerLocation()} // 👈 ตรงนี้แหละ!
-                />
-              </Tooltip> */}
 
             </div>
 
@@ -854,14 +703,16 @@ export default function ActivityMapping() {
                       }))}
                       value={checkedFilters[category.filter_type]}
                       onChange={(list) => {
+                        //console.log(list, category.filter_type);
+
                         setCheckedFilters((prevFilters) => ({
                           ...prevFilters,
                           [category.filter_type]: list,
                         }));
 
-                        // 👇 Update ArraySales only when filter type is "sale"
-                        if (category.filter_type === "sale") {
-                          SetArraySales(list);
+                        // เฉพาะเมื่อเป็น sales ให้เรียก fetch dealer ใหม่
+                        if (category.filter_type === "sales") {
+                          fetchDealersBySale(list); // <-- เรียก API ที่เราเขียนไว้
                         }
                       }}
 
