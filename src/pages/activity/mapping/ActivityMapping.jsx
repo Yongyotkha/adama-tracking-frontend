@@ -209,6 +209,70 @@ export default function ActivityMapping() {
     height: "100vh",
   };
 
+  useEffect(() => {
+    if (dataSubDealer.length > 0) {
+      setCheckedFilters((prev) => {
+        const alreadySet = prev.sub_dealers && prev.sub_dealers.length > 0;
+        if (alreadySet) return prev;
+
+        return {
+          ...prev,
+          sub_dealers: dataSubDealer.map((item) => item.id), // ✅ เลือกทั้งหมดตอนโหลดครั้งแรก
+        };
+      });
+    }
+  }, [dataSubDealer]);
+
+  useEffect(() => {
+    const fetchSubDealers = async () => {
+      if (!checkedFilters.dealer || checkedFilters.dealer.length === 0) {
+        setDataSubDealer([]);
+        setCheckedFilters((prev) => ({
+          ...prev,
+          sub_dealers: [],
+        }));
+        return;
+      }
+
+      try {
+        const response = await useServiceAPI.get(paths.pathMasterSubDealerSubDealers, {
+          dealer_id: checkedFilters.dealer,
+        });
+
+        const formattedSubDealers = response.data
+          .filter(
+            (value, index, self) =>
+              self.findIndex((item) => item.name === value.name) === index
+          )
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((data, index) => ({
+            key: index,
+            id: data.id,
+            name: data.name,
+          }));
+
+        console.log('formattedSubDealers : ', formattedSubDealers)
+
+        setDataSubDealer(formattedSubDealers);
+
+        // ✅ update checkedFilters.sub_dealers
+        setCheckedFilters((prev) => ({
+          ...prev,
+          sub_dealers: formattedSubDealers.map((d) => d.id),
+        }));
+      } catch (error) {
+        console.error("Error fetching sub-dealers:", error);
+        setDataSubDealer([]);
+        setCheckedFilters((prev) => ({
+          ...prev,
+          sub_dealers: [],
+        }));
+      }
+    };
+
+    fetchSubDealers();
+  }, [checkedFilters.dealer]);
+
 
   const mockFilters = useMemo(() => [
     {
