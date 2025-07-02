@@ -401,6 +401,7 @@ export default function ActivityMapping() {
               checkedFilters.dealer.length > 0
               ? checkedFilters.dealer
               : [];
+          console.log('dealer : ', dealer)
           const area =
             Array.isArray(checkedFilters.area) && checkedFilters.area.length > 0
               ? checkedFilters.area
@@ -501,7 +502,7 @@ export default function ActivityMapping() {
         }
       };
 
-      //loadDataMappingList();
+      loadDataMappingList();
     }
   }, [checkedFilters]);
 
@@ -549,17 +550,36 @@ export default function ActivityMapping() {
     }
   };
 
-  // Set initial state for all filters (select all)
+  useEffect(() => {
+    if (dataSales.length > 0) {
+      setCheckedFilters((prev) => {
+        const alreadySet = prev.sales && prev.sales.length > 0;
+        if (alreadySet) return prev; // ถ้ามีค่าแล้ว ไม่ต้องเซตซ้ำ
+
+        return {
+          ...prev,
+          sales: dataSales.map((item) => item.id), // ✅ เลือกทั้งหมดตอนโหลดครั้งแรก
+        };
+      });
+    }
+  }, [dataSales]);
+
+
   useEffect(() => {
     if (mockFilters.every((f) => f.data.length > 0)) {
-      const initialChecked = {};
-      mockFilters.forEach((filter) => {
-        initialChecked[filter.filter_type] = filter.data.map((item) => item.id);
+      setCheckedFilters((prevFilters) => {
+        const updated = { ...prevFilters };
+        mockFilters.forEach((filter) => {
+          if (filter.filter_type !== 'sales' && !updated[filter.filter_type]) {
+            updated[filter.filter_type] = filter.data.map((item) => item.id);
+          }
+        });
+        return updated;
       });
-      setCheckedFilters(initialChecked);
+
       setIsAllChecked(true);
     }
-  }, [activityType, dataDealer, dataSubDealer, dataYear, dataMonths]); // <<--- add dependencies จาก mockFilters
+  }, [activityType, dataDealer, dataSubDealer, dataYear, dataMonths]);
 
   const handleSelect = (value, option) => {
     // Set the map center to the selected lat and lng
@@ -578,7 +598,6 @@ export default function ActivityMapping() {
         user_id: saleIds,
       });
 
-      // แปลงรูปแบบให้อยู่ในรูปแบบเดียวกับ dataDealer เดิม
       const formattedDealers = response.data.map((data, index) => ({
         key: index,
         id: data.id,
@@ -587,8 +606,19 @@ export default function ActivityMapping() {
 
       setDataDealer(formattedDealers);
 
+      // 🔥 สำคัญ: อัปเดต checkedFilters.dealer ทันที เพื่อให้ API ส่ง dealer ใหม่
+      setCheckedFilters((prev) => ({
+        ...prev,
+        dealer: formattedDealers.map((d) => d.id),
+      }));
+
     } catch (error) {
       console.error("Error fetching dealers by sale:", error);
+      setDataDealer([]);
+      setCheckedFilters((prev) => ({
+        ...prev,
+        dealer: [],
+      }));
     }
   };
 
