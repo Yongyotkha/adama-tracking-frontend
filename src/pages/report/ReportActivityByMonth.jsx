@@ -266,6 +266,8 @@ export default function ReportActivityByMonth() {
             pagination={false}
             loading={tableLoading}
             onChange={handleTableChange}
+            scrollY={false} // ❌ ปิด scroll แนวตั้ง
+
             footer={() => (
               <Table.Summary fixed>
                 <Table.Summary.Row className="bg-[#978B87]">

@@ -1462,7 +1462,7 @@ export default function CreateActivity() {
                     />{" "}
                   </Form.Item>
                 </Col>
-                <Col xs={24} sm={12} md={12} lg={6}>
+                {/* <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item
                     className="mb-3"
                     label="Return to Company"
@@ -1500,7 +1500,46 @@ export default function CreateActivity() {
                       }
                     />
                   </Form.Item>
-                </Col>
+                </Col> */}
+
+                {pageCode === "expense_clearing" && (
+                  <>
+                    <Col xs={24} sm={12} md={12} lg={6}>
+                      <Form.Item className="mb-3" label="Return to Company">
+                        <InputNumber
+                          className="w-full"
+                          min={0}
+                          placeholder="0"
+                          value={return_to_company}
+                          disabled={true}
+                          formatter={(value) =>
+                            Number(value)
+                              .toFixed(2)
+                              .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                        />
+                      </Form.Item>
+                    </Col>
+
+                    <Col xs={24} sm={12} md={12} lg={6}>
+                      <Form.Item className="mb-3" label="Return to Staff">
+                        <InputNumber
+                          className="w-full"
+                          min={0}
+                          placeholder="0"
+                          value={return_to_staff}
+                          disabled={true}
+                          formatter={(value) =>
+                            Number(value)
+                              .toFixed(2)
+                              .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                        />
+                      </Form.Item>
+                    </Col>
+                  </>
+                )}
+
 
               </Row>
             </Form>

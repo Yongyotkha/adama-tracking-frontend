@@ -442,6 +442,7 @@ export default function ReportSaleByMonth() {
                   />
                 </Form.Item>
               </Col>
+
               <Col md={6}>
                 <Form.Item
                   label="Sales"
@@ -456,6 +457,18 @@ export default function ReportSaleByMonth() {
 
               <Col md={6}>
                 <Form.Item
+                  label="Dealers"
+                  name="dealer_id"
+                >
+                  <Select
+                    placeholder="Select Dealers"
+                    options={dealers}
+                  />
+                </Form.Item>
+              </Col>
+
+              <Col md={6}>
+                <Form.Item
                   label="Product"
                   name="product_name"
                 >
@@ -463,17 +476,6 @@ export default function ReportSaleByMonth() {
                     placeholder="Select Product"
                     options={products}
 
-                  />
-                </Form.Item>
-              </Col>
-              <Col md={6}>
-                <Form.Item
-                  label="Dealers"
-                  name="dealer_id"
-                >
-                  <Select
-                    placeholder="Select Dealers"
-                    options={dealers}
                   />
                 </Form.Item>
               </Col>
@@ -516,6 +518,7 @@ export default function ReportSaleByMonth() {
             pagination={false}
             loading={tableLoading}
             onChange={handleTableChange}
+
             footer={() => {
               const footerData = calculateFooterSums();
               return (

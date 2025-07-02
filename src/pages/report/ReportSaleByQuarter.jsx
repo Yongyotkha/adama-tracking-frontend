@@ -514,6 +514,8 @@ export default function ReportSaleByMonth() {
             pagination={false}
             loading={tableLoading}
             onChange={handleTableChange}
+            scrollY={false} // ❌ ปิด scroll แนวตั้ง
+
             footer={() => {
               const footerData = calculateFooterSums();
               return (

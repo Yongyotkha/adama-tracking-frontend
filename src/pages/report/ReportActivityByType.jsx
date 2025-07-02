@@ -298,9 +298,12 @@ export default function ReportActivityByType() {
           <TableCustomComponent
             header={header}
             dataSource={dataSource}
-            pagination={tableParams.pagination}
+            // pagination={tableParams.pagination}
             loading={tableLoading}
             onChange={handleTableChange}
+            scrollY={false} // ❌ ปิด scroll แนวตั้ง
+            pagination={false}
+
             footer={() => {
               const totalPlan = dataSource.reduce((sum, row) => sum + (parseFloat(row.total_activity_plan) || 0), 0);
               const totalList = dataSource.reduce((sum, row) => sum + (parseInt(row.total_activity_list) || 0), 0);

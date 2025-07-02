@@ -12,7 +12,17 @@ const TableCustomComponent = ({
   loading,
   className,
   onChange,
-}) => {
+  scrollX = true,   // default เปิด scroll แนวนอน
+  scrollY = true,   // default เปิด scroll แนวตั้ง
+}
+) => {
+  const resolvedScroll =
+    scroll === false
+      ? undefined // ปิด scroll ทั้งหมด
+      : {
+        ...(scrollX && { x: scrollX === true ? "max-content" : scrollX }),
+        ...(scrollY && { y: scrollY === true ? "60vh" : scrollY }),
+      };
   return (
     <ConfigProvider
       theme={{
@@ -34,21 +44,12 @@ const TableCustomComponent = ({
       }}
     >
       <Table
-      
         onChange={onChange}
         className="custom-scrollbar"
         columns={header}
         dataSource={dataSource}
-        pagination={
-          pagination 
-          // pagination == false ? pagination : { pageSize: pageSize ?? 10 }
-        }
-        scroll={{
-          x: scroll ? "max-content" : 1000,
-          // y: 70*7,
-          y: "60vh",
-        }}
-        // footer={footer ? () => footer : null}
+        pagination={pagination}
+        scroll={resolvedScroll}
         summary={footer}
         loading={loading}
       />

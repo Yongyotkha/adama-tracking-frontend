@@ -34,7 +34,7 @@ export default function ReportSaleByMonth() {
       }),
       children: [
         {
-          title: "Product Name",
+          title: "Activity Name",
           dataIndex: "productName",
           key: "productName",
           fixed: "left",
@@ -373,6 +373,8 @@ export default function ReportSaleByMonth() {
             pagination={false}
             loading={tableLoading}
             onChange={handleTableChange}
+            scrollY={false} // ❌ ปิด scroll แนวตั้ง
+
             footer={() => {
               const footerData = calculateFooterSums();
               return (
