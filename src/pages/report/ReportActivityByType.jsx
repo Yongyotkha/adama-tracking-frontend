@@ -2,95 +2,120 @@ import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import Filter from "../../components/filter/Filter";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
-import TableComponent from "../../components/table/TableComponent";
-import { Dropdown, InputNumber, Select, Table } from "antd";
-import BadgeStatus from "../../components/badge/BadgeStatus";
-import ItemDropDown from "../../components/dropdown/ItemDropDown";
+import TableCustomComponent from "../../components/table/TableCustomComponent";
+import { InputNumber, Table } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
 import Title from "../../components/title/Title";
-import TableCustomComponent from "../../components/table/TableCustomComponent";
+
 
 export default function ReportActivityByType() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { showNotification } = useContext(AuthContext);
+
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState([]);
+  const [tableLoading, setTableLoading] = useState(false);
+
   const [years, setYears] = useState([]);
   const [sales, setSales] = useState([]);
-  const [crops, setCrops] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [dealers, setDealers] = useState([]);
-  const [itemColumn, setItemColumn] = useState([]);
-  const [defaultOption, setDefaultOption] = useState();
-  const [permission, setPermission] = useState([]);
-  const [dataSource, setDataSource] = useState([]);
-  const [tableLoading, setTableLoading] = useState(false);
-  const { showNotification, formatNumber } = useContext(AuthContext);
-  const [activityList, setActivityList] = useState([]);
   const [areaList, setAreaList] = useState([]);
+  const [activityList, setActivityList] = useState([]);
+
+  const [dataSource, setDataSource] = useState([]);
+  const [defaultOption, setDefaultOption] = useState();
+  const [salesDisabled, setSalesDisabled] = useState(true);
 
   const [tableParams, setTableParams] = useState({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-    },
+    pagination: { current: 1, pageSize: 10 },
     filters: {},
     sortOrder: null,
     sortField: null,
   });
 
-  useEffect(() => {
-    const getMaster = async () => {
-      setLoading(true);
-      try {
-        const [years, sales, crops, products, dealers, activityType, resArea] =
-          await Promise.all([
-            useServiceAPI.get(paths.pathMasterYear),
-            useServiceAPI.get(paths.pathMasterSaleDropdown),
-            useServiceAPI.get(paths.pathMasterCrop),
-            useServiceAPI.get(paths.pathMasterProducts),
-            useServiceAPI.get(paths.pathMasterDealerAll),
-            useServiceAPI.get(paths.pathMasterActivityType),
-            useServiceAPI.get(paths.pathMasterAreas),
-          ]);
-        setYears(years.data);
-        setSales(sales.data);
-        setCrops(crops.data);
-        setProducts(products.data);
-        setDealers(dealers.data);
-        setAreaList(resArea.data)
-        setActivityList(activityType.data);
+  // 🎯 Helper: แปลง sale list เป็น select options
+  const mapSalesOptions = (salesList) =>
+    (salesList || []).map((sale) => ({
+      id: sale.id,
+      name: sale.name,
+    }));
 
+  // 🎯 Load Master Data
+  const loadMasterData = async () => {
+    setLoading(true);
+    try {
+      const [yearsRes, crops, products, dealers, activityType, area] = await Promise.all([
+        useServiceAPI.get(paths.pathMasterYear),
+        useServiceAPI.get(paths.pathMasterCrop),
+        useServiceAPI.get(paths.pathMasterProducts),
+        useServiceAPI.get(paths.pathMasterDealerAll),
+        useServiceAPI.get(paths.pathMasterActivityType),
+        useServiceAPI.get(paths.pathMasterAreas),
+      ]);
 
-        const result = [["", ...activityType.data.map((col) => col.name)]];
+      setYears(yearsRes.data);
+      setAreaList(area.data);
+      setActivityList(activityType.data);
 
-        crops.data.forEach((row) => {
-          const newRow = [row.name, ...activityType.data.map(() => null)];
-          result.push(newRow);
-        });
-
-
-        if (years.data.length > 0) {
-          setTableParams({
-            ...tableParams,
-            filters: { year_code: years.data[0] },
-          });
-        }
-      } catch (error) {
-        showNotification("error", error.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
+      if (yearsRes.data.length > 0) {
+        setTableParams((prev) => ({
+          ...prev,
+          filters: { ...prev.filters, year_code: yearsRes.data[0] },
+        }));
       }
-    };
-    getMaster();
+    } catch (error) {
+      showNotification("error", error.message || "เกิดข้อผิดพลาด");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadMasterData();
   }, []);
 
+  // 🎯 เมื่อเลือก Area → โหลด Sales ใหม่
+  // useEffect(() => {
+  //   const areaId = tableParams.filters?.area_id;
+
+  //   if (areaId) {
+  //     setSales([]);
+  //     setSalesDisabled(true);
+
+  //     // reset sales/territory เมื่อเปลี่ยน area
+  //     setTableParams((prev) => ({
+  //       ...prev,
+  //       filters: {
+  //         ...prev.filters,
+  //         user_id: undefined,
+  //         territory: undefined,
+  //       },
+  //     }));
+
+  //     useServiceAPI
+  //       .get(paths.pathMasterSalesByArea, { area_id: areaId })
+  //       .then((res) => {
+  //         if (res.status === 200) {
+  //           setSales(mapSalesOptions(res.data));
+  //           setSalesDisabled(false);
+  //         }
+  //       })
+  //       .catch(() => {
+  //         showNotification("error", "โหลด Sales ไม่สำเร็จ");
+  //         setSalesDisabled(true);
+  //       });
+  //   } else {
+  //     setSales([]);
+  //     setSalesDisabled(true);
+  //   }
+  // }, [tableParams.filters?.area_id]);
+
+  // 🎯 Load Table Data
   const fetchData = async () => {
     setTableLoading(true);
-    const { current, pageSize } = tableParams.pagination;
+    const { pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
 
     const requestData = {
@@ -99,55 +124,70 @@ export default function ReportActivityByType() {
       user_id: filters.user_id,
       dealer_id: filters.dealer_id,
       crop_id: filters.crop_id,
+      territory: filters.territory,
+      document_date: filters.month,
       page_length: 1,
       page_size: pageSize,
     };
 
     try {
-      const response = await useServiceAPI.get(paths.pathReportActivityType, requestData);
-
-      if (response.status === 200) {
-        const activityData = response.data;
-
-        const formattedData = activityData.map((item, index) => ({
+      const res = await useServiceAPI.get(paths.pathReportActivityType, requestData);
+      if (res.status === 200) {
+        const data = res.data.map((item) => ({
           key: item.activity_type_id,
           activity_type_name: item.activity_type_name,
           total_activity_plan: parseFloat(item.total_activity_plan),
           total_activity_list: parseInt(item.total_activity_list),
           total_activity_actual: parseInt(item.total_activity_actual),
         }));
-
-        setDataSource(formattedData);
+        setDataSource(data);
       }
-
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
     } finally {
       setTableLoading(false);
     }
   };
-  useEffect(() => {
-    if (years.length > 0) {
-      fetchData();
-    }
-  }, [
-    // tableParams.pagination.current,
-    // tableParams.pagination.pageSize,
-    // tableParams.sortOrder,
-    // tableParams.sortField,
-    JSON.stringify(tableParams.filters),
-  ]);
 
-  const handleTableChange = (pagination, filters, sorter) => {
-    console.log(pagination, filters, sorter);
-    setTableParams({
+  useEffect(() => {
+    if (years.length > 0) fetchData();
+  }, [JSON.stringify(tableParams.filters)]);
+
+  // 🎯 Table & Filter Handlers
+  const handleTableChange = (pagination) => {
+    setTableParams((prev) => ({
+      ...prev,
       pagination,
-      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
-      // sortOrder: sorter.order === "descend" ? "desc" : "asc",
-      // sortField: sorter.field,
+    }));
+  };
+
+  const handleSearch = (filters) => {
+    setTableParams({
+      pagination: { current: 1, pageSize: 10 },
+      filters,
     });
   };
 
+  const handleClear = () => {
+    setTableParams((prev) => ({
+      ...prev,
+      filters: {},
+    }));
+  };
+
+  useEffect(() => {
+    if (defaultOption !== undefined) {
+      setTableParams((prev) => ({
+        ...prev,
+        filters: {
+          ...prev.filters,
+          permission_id: defaultOption,
+        },
+      }));
+    }
+  }, [defaultOption]);
+
+  // 🎯 Filter Config
   const filters = [
     {
       key: "area_id",
@@ -159,50 +199,34 @@ export default function ReportActivityByType() {
       key: "user_id",
       type: "select",
       label: "Sales",
+      placeholder: "All",     // ✅ เพิ่ม placeholder ชัดเจน
       options: sales,
+      disabled: salesDisabled,
+    },
+    {
+      key: "territory",
+      type: "select",
+      label: "Territory",
+      options: [
+        { label: "North", name: "north" },
+        { label: "South", name: "south" },
+        { label: "Central", name: "central" },
+      ],
+      disabled: !tableParams.filters?.user_id,
+    },
+    {
+      key: "month",
+      type: "month",
+      label: "Month",
+      placeholder: "Select month",
     },
   ];
 
-  useEffect(() => {
-    setTableParams((prev) => ({
-      ...prev,
-      filters: {
-        ...prev.filters,
-        permission_id: defaultOption,
-      },
-      pagination: {
-        current: 1,
-        pageSize: 10,
-      },
-    }));
-  }, [defaultOption]);
-
-  const handleSearch = (filters) => {
-    console.log(filters);
-    setTableParams({
-      ...tableParams,
-      filters,
-      pagination: {
-        current: 1,
-        pageSize: 10,
-      },
-    });
-  };
-
-  const handleClear = () => {
-    setTableParams({
-      ...tableParams,
-      filters: {},
-    });
-  };
-
-  const columnColors = ["#009845", "#7DB41E", "#93CC23"];
-
+  // 🎯 Table Header
   const header = [
     {
       title: "Activity Type",
       dataIndex: "activity_type_name",
-      key: "activity_type_name",
       align: "left",
       onHeaderCell: () => ({
         style: {
@@ -213,14 +237,16 @@ export default function ReportActivityByType() {
         },
       }),
     },
-    {
-      title: "Activity Plan",
-      dataIndex: "total_activity_plan",
-      key: "total_activity_plan",
+    ...[
+      { title: "Activity Plan", dataIndex: "total_activity_plan", color: "#009845" },
+      { title: "Activity List", dataIndex: "total_activity_list", color: "#7DB41E" },
+      { title: "Activity Actual", dataIndex: "total_activity_actual", color: "#93CC23" },
+    ].map((col) => ({
+      ...col,
       align: "right",
       onHeaderCell: () => ({
         style: {
-          backgroundColor: "#009845",
+          backgroundColor: col.color,
           color: "white",
           fontWeight: "bold",
           textAlign: "center",
@@ -234,128 +260,97 @@ export default function ReportActivityByType() {
           formatter={(val) => `${parseInt(val)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
         />
       ),
-    },
-    {
-      title: "Activity List",
-      dataIndex: "total_activity_list",
-      key: "total_activity_list",
-      align: "right",
-      onHeaderCell: () => ({
-        style: {
-          backgroundColor: "#7DB41E",
-          color: "white",
-          fontWeight: "bold",
-          textAlign: "center",
-        },
-      }),
-      render: (value) => (
-        <InputNumber
-          className="w-full"
-          disabled
-          value={value}
-          formatter={(val) => `${val}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-        />
-      ),
-    },
-    {
-      title: "Activity Actual",
-      dataIndex: "total_activity_actual",
-      key: "total_activity_actual",
-      align: "right",
-      onHeaderCell: () => ({
-        style: {
-          backgroundColor: "#93CC23",
-          color: "white",
-          fontWeight: "bold",
-          textAlign: "center",
-        },
-      }),
-      render: (value) => (
-        <InputNumber
-          className="w-full"
-          disabled
-          value={value}
-          formatter={(val) => `${val}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-        />
-      ),
-    },
+    })),
   ];
 
+  const handleFilterChange = async (newFilters) => {
+    const newAreaId = newFilters.area_id;
+    const oldAreaId = tableParams.filters?.area_id;
 
+    const isAreaChanged = newAreaId !== oldAreaId;
+
+    setTableParams((prev) => ({
+      ...prev,
+      filters: {
+        ...prev.filters,
+        ...newFilters,
+        user_id: isAreaChanged ? undefined : prev.filters.user_id,
+        territory: isAreaChanged ? undefined : prev.filters.territory,
+      },
+    }));
+
+    if (isAreaChanged && newAreaId) {
+      setSales([]);
+      setSalesDisabled(true);
+
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterSalesByArea, { area_id: newAreaId });
+        if (res.status === 200) {
+          setSales(mapSalesOptions(res.data));
+          setSalesDisabled(false);
+        }
+      } catch {
+        showNotification("error", "โหลด Sales ไม่สำเร็จ");
+        setSalesDisabled(true);
+      }
+    }
+
+    // ✅ ถ้า area ถูกเคลียร์ (เลือกเป็น null/undefined/empty)
+    if (!newAreaId) {
+      setSales([]);
+      setSalesDisabled(true);
+
+      setTableParams((prev) => ({
+        ...prev,
+        filters: {
+          ...prev.filters,
+          user_id: undefined,       // clear ค่า user_id
+          territory: undefined,
+        },
+      }));
+    }
+  };
+
+
+  // 🎯 Table Footer Summary
+  const footerSummary = () => {
+    const total = (key) => dataSource.reduce((sum, row) => sum + (parseFloat(row[key]) || 0), 0);
+    return (
+      <Table.Summary fixed>
+        <Table.Summary.Row className="bg-[#978B87]">
+          <Table.Summary.Cell><b>Total</b></Table.Summary.Cell>
+          {["total_activity_plan", "total_activity_list", "total_activity_actual"].map((key) => (
+            <Table.Summary.Cell key={key} align="right">
+              <InputNumber
+                className="w-full"
+                disabled
+                value={total(key)}
+                formatter={(val) => `${parseInt(val)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                style={{ backgroundColor: "white" }}
+              />
+            </Table.Summary.Cell>
+          ))}
+        </Table.Summary.Row>
+      </Table.Summary>
+    );
+  };
 
   return (
-    <>
-      <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Activity Report By Type" />
-
-        <Filter
-          onSearch={handleSearch}
-          onClear={handleClear}
-          filters={filters}
+    <MainLayout loading={loading}>
+      <Title prefix="Activity Report By Type" />
+      <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} onChange={handleFilterChange} />
+      <BoxPrimary>
+        <TableCustomComponent
+          header={header}
+          dataSource={dataSource}
+          loading={tableLoading}
+          onChange={handleTableChange}
+          scrollY={false}
+          pagination={false}
+          footer={footerSummary}
         />
-
-        <BoxPrimary>
-          <TableCustomComponent
-            header={header}
-            dataSource={dataSource}
-            // pagination={tableParams.pagination}
-            loading={tableLoading}
-            onChange={handleTableChange}
-            scrollY={false} // ❌ ปิด scroll แนวตั้ง
-            pagination={false}
-
-            footer={() => {
-              const totalPlan = dataSource.reduce((sum, row) => sum + (parseFloat(row.total_activity_plan) || 0), 0);
-              const totalList = dataSource.reduce((sum, row) => sum + (parseInt(row.total_activity_list) || 0), 0);
-              const totalActual = dataSource.reduce((sum, row) => sum + (parseInt(row.total_activity_actual) || 0), 0);
-
-              return (
-                <Table.Summary fixed>
-                  <Table.Summary.Row className="bg-[#978B87]">
-                    <Table.Summary.Cell index={0}>
-                      <b>Total</b>
-                    </Table.Summary.Cell>
-                    <Table.Summary.Cell align="right">
-                      <InputNumber
-                        className="w-full"
-                        disabled
-                        value={totalPlan}
-                        formatter={(val) =>
-                          `${parseInt(val)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                        }
-                        style={{ backgroundColor: "white" }}
-                      />
-                    </Table.Summary.Cell>
-                    <Table.Summary.Cell align="right">
-                      <InputNumber
-                        className="w-full"
-                        disabled
-                        value={totalList}
-                        formatter={(val) =>
-                          `${parseInt(val)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                        }
-                        style={{ backgroundColor: "white" }}
-                      />
-                    </Table.Summary.Cell>
-                    <Table.Summary.Cell align="right">
-                      <InputNumber
-                        className="w-full"
-                        disabled
-                        value={totalActual}
-                        formatter={(val) =>
-                          `${parseInt(val)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                        }
-                        style={{ backgroundColor: "white" }}
-                      />
-                    </Table.Summary.Cell>
-                  </Table.Summary.Row>
-                </Table.Summary>
-              );
-            }}
-          />
-        </BoxPrimary>
-
-      </MainLayout>
-    </>
+      </BoxPrimary>
+    </MainLayout>
   );
 }
+
