@@ -418,7 +418,7 @@ export default function ReportSaleByMonth() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Sales Report By Quarter" />
+        <Title prefix="Sales Report By Year" />
 
         <Form form={formCustom} layout="vertical">
           <BoxPrimary className="m-1 mb-4">
@@ -497,6 +497,8 @@ export default function ReportSaleByMonth() {
             pagination={false}
             loading={tableLoading}
             onChange={handleTableChange}
+            scrollY={false} // ❌ ปิด scroll แนวตั้ง
+
             footer={() => {
               const footerData = calculateFooterSums();
               return (

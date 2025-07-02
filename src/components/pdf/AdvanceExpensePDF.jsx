@@ -88,11 +88,11 @@ const AdvanceExpensePDF = () => {
           page_code: getPageCode,
         });
         if (response.status == 200) {
-          console.log(response.data);
+          // console.log(response.data);
           setDataItems(response.data.expense_product_data_list); // เซ็ตค่าให้กับ state
           setDataHeader(response.data);
 
-          console.log(dataHeader.approve_by.user_name_en)
+          // console.log(dataHeader.approve_by.user_name_en)
           setDataClearing(response.data);
 
           setDataCrop(response.data.crop_id_list)
@@ -169,7 +169,7 @@ const AdvanceExpensePDF = () => {
           </Text>
 
           <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%" }}>
-            <Text style={{ marginRight: 'auto', paddingBottom: 5 }} ><Text style={{ fontWeight: 'bold' }}>Advance Expense No : </Text> : {getDocumentNumber}</Text>
+            <Text style={{ marginRight: 'auto', paddingBottom: 5 }} ><Text style={{ fontWeight: 'bold' }}>{getPageCode === "expense_clearing" ? "Clearing Expense" : "Advance Expense"} No : </Text> : {getDocumentNumber}</Text>
             <Text style={{ marginLeft: 'auto', paddingBottom: 5 }} ><Text style={{ fontWeight: 'bold' }}>Date</Text> : {formatDate(dataHeader.created_at)}</Text>
           </View>
 
@@ -178,8 +178,8 @@ const AdvanceExpensePDF = () => {
           <View style={styles.sectionTop}>
             <View style={[styles.sectionColumn, { borderBottomWidth: 0 }]}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%", margin: 'auto' }}>
-                <Text style={{ fontWeight: "bold", textAlign: "center" }}>Sale Name :</Text>
-                <Text style={{ flex: 7, textAlign: "start", paddingLeft: 7 }}>{dataHeader.activity_type_name}</Text>
+                <Text style={{ fontWeight: "bold", textAlign: "center" }}>Sales Name :</Text>
+                <Text style={{ flex: 7, textAlign: "start", paddingLeft: 7 }}>{dataHeader.user_name}</Text>
               </View>
             </View>
             <View style={styles.sectionColumnTop}>
@@ -250,13 +250,13 @@ const AdvanceExpensePDF = () => {
                   }}
                 >
                   <View style={{ flex: 1 }}>
-                    <Text>
+                    <Text style={{ fontWeight: "bold", fontSize: 11 }}>
                       Return to Company:{" "}
                       {Number(dataHeader.expense_advance) - Number(dataHeader.expense_actual) > 0
                         ? `${formatNumber(Number(dataHeader.expense_advance) - Number(dataHeader.expense_actual))} THB`
                         : "0"}
                     </Text>
-                    <Text>
+                    <Text style={{ fontWeight: "bold", fontSize: 11 }}>
                       Return to Staff:{" "}
                       {Number(dataHeader.expense_advance) - Number(dataHeader.expense_actual) < 0
                         ? `${formatNumber(Math.abs(Number(dataHeader.expense_advance) - Number(dataHeader.expense_actual)))} THB`
