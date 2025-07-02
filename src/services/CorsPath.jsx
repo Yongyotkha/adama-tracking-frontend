@@ -29,7 +29,7 @@ export const paths = {
   pathMasterProductTypes: "master/product-types",
   pathMasterProductGroups: "master/product-groups",
   pathMasterProductCategorys: "master/product-categorys",
-
+   
   pathMasterProductByCrop: "master/product-by-crop",
   pathMasterSaleAll: "master/sale-all/list",
   pathMasterDealerCustomer: "master/dealer/customer",
@@ -106,6 +106,8 @@ export const paths = {
   pathSubDealerDetailDeleteFarmer:
     "sale-customer-subdealer/network-farmer-delete",
 
+  pathMasterSalesByArea: "master/area_user_sale",
+
   // dashbord
   pathDashBordCustomer: "dashboard/customer",
   pathDashBordExpense: "dashboard/expense",
@@ -141,6 +143,8 @@ export const paths = {
   pathMasterDealerDropdown: "master/dealer",
   pathMasterDealerAll: "master/dealer-all",
   pathMasterDealerBySale: "master/dealers",
+
+  pathMasterSaleByArea: "/master/area_user_sale",
 
   //get header
   pathMasterGetSaleHeader: "master/get-sale-header",
@@ -184,6 +188,7 @@ export const paths = {
   //area plan
   pathGetWorkPlanAreaList: "/work-plan/area/list",
   pathWorkPlanAreaStep1: "/work-plan/area/workplan_step1",
+
 
   //sale plan
   pathGetWorkPlanSaleList: "/work-plan/sale/list",

@@ -11,28 +11,23 @@ const Filter = ({ onSearch, onClear, onChange, filters, onValueChange }) => {
   const [activeKey, setActiveKey] = useState([]);
 
   const handleFilterChange = (filterKey, value) => {
-    console.log('handleFilterChange')
+    const updatedValues = {
+      ...filterValues,
+      [filterKey]: value,
+    };
 
-    setFilterValues((prevValues) => {
-      const updatedValues = {
-        ...prevValues,
-        [filterKey]: value,
-      };
+    setFilterValues(updatedValues);
 
-      filters.forEach((data) => {
-        if (data.moderef) {
-          onChange(updatedValues);
-        }
-      });
+    // 🔁 แจ้ง parent ว่ามีการเปลี่ยน filter (รวมถึง area_id)
+    if (onChange) {
+      onChange(updatedValues);
+    }
 
-      // 🚀 แจ้งค่าที่เปลี่ยนให้ parent ด้วย
-      if (onValueChange) {
-        onValueChange(updatedValues);
-      }
-
-      return updatedValues;
-    });
+    if (onValueChange) {
+      onValueChange(updatedValues);
+    }
   };
+
 
   const handleSearch = () => {
     console.log(filterValues);
