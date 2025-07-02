@@ -367,14 +367,11 @@ export default function ActivityMapping() {
   // ฟังก์ชันสำหรับการตรวจสอบว่าเลือกทั้งหมดหรือไม่
   useEffect(() => {
     const allFiltersSelected = mockFilters.every((filterItem) => {
-      console.log('filterItem : ', filterItem)
       return filterItem.data.every((item) =>
         checkedFilters[filterItem.filter_type]?.includes(item.id)
       );
 
     });
-
-    console.log('allFiltersSelected : ', allFiltersSelected)
 
     setIsAllChecked(allFiltersSelected);
   }, [checkedFilters]);
@@ -470,32 +467,6 @@ export default function ActivityMapping() {
 
           setDataMapping(filteredData);
 
-          // Set Locations
-          // setLocations(
-          //   mapping.data.map((data, index) => ({
-          //     key: locations.length + 1,
-          //     id: locations.length + 1,
-          //     document_number: data.document_number,
-          //     title: data.activity_type_name,
-          //     lat: parseFloat(data.location_latitude),
-          //     lng: parseFloat(data.location_longitude),
-          //     // lat: data.location_latitude,
-          //     // lng: data.location_longitude,
-          //     address: data.location_address,
-          //     details: data.description,
-          //     activity_type_id: data.activity_type_id,
-          //     activity_type_name: data.activity_type_name,
-          //     dealer_id: data.dealer_id,
-          //     dealer_name: data.dealer_name,
-          //     area_id: data.area_id,
-          //     area_name: data.area_name,
-          //     year: data.year,
-          //     activity_image: data.activity_image,
-          //     activity_image_location: data.activity_image_location,
-          //     crop_id_list: data.crop_id_list,
-          //     document_date_display: data.document_date_display,
-          //   }))
-          // );
           setLocations(
             filteredData.map((data, index) => ({
               key: index + 1,
@@ -530,7 +501,7 @@ export default function ActivityMapping() {
         }
       };
 
-      loadDataMappingList();
+      //loadDataMappingList();
     }
   }, [checkedFilters]);
 
@@ -599,6 +570,28 @@ export default function ActivityMapping() {
   useEffect(() => {
     console.log(locationWindowInfo);
   }, [locationWindowInfo]);
+
+  const fetchDealersBySale = async (saleIds = []) => {
+    try {
+      const response = await useServiceAPI.get(paths.pathMasterDealerBySale, {
+        platform: "web",
+        user_id: saleIds,
+      });
+
+      // แปลงรูปแบบให้อยู่ในรูปแบบเดียวกับ dataDealer เดิม
+      const formattedDealers = response.data.map((data, index) => ({
+        key: index,
+        id: data.id,
+        name: data.name,
+      }));
+
+      setDataDealer(formattedDealers);
+
+    } catch (error) {
+      console.error("Error fetching dealers by sale:", error);
+    }
+  };
+
 
   return (
     <MainLayout loading={loading}>
@@ -680,13 +673,19 @@ export default function ActivityMapping() {
                       }))}
                       value={checkedFilters[category.filter_type]}
                       onChange={(list) => {
-                        console.log(list, category.filter_type);
+                        //console.log(list, category.filter_type);
 
                         setCheckedFilters((prevFilters) => ({
                           ...prevFilters,
                           [category.filter_type]: list,
                         }));
+
+                        // เฉพาะเมื่อเป็น sales ให้เรียก fetch dealer ใหม่
+                        if (category.filter_type === "sales") {
+                          fetchDealersBySale(list); // <-- เรียก API ที่เราเขียนไว้
+                        }
                       }}
+
                       className="filter-checkbox-group"
                     />
                   </Panel>
