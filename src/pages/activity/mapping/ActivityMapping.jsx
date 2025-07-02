@@ -54,7 +54,7 @@ export default function ActivityMapping() {
     const loadDataMappingList = async () => {
       setLoading(true);
       try {
-        const [mapping, activity, dealers, areas, years, subdealers, months] =
+        const [mapping, activity, sales, dealers, areas, years, subdealers, months] =
           await Promise.all([
             useServiceAPI.post(paths.pathActivityMapList, {
               keyword: "",
@@ -68,6 +68,7 @@ export default function ActivityMapping() {
             useServiceAPI.get(paths.pathMasterActivityType, {
               status: "",
             }),
+            useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
             useServiceAPI.get(paths.pathMasterDealerAll, {}),
             useServiceAPI.get(paths.pathMasterAreas, {}),
             useServiceAPI.get(paths.pathMasterYear, {}),
@@ -117,6 +118,8 @@ export default function ActivityMapping() {
               name: data.name,
             }))
         );
+
+        setDataSales(sales.data)
 
         setDataDealer(
           dealers.data
@@ -171,6 +174,7 @@ export default function ActivityMapping() {
             }))
         );
 
+
         setDataSubDealer(
           subdealers.data
             .filter(
@@ -204,41 +208,6 @@ export default function ActivityMapping() {
     width: "100%",
     height: "100vh",
   };
-
-  // Mock data for filter categories
-  // const mockFilters = [
-  //   {
-  //     key: 1,
-  //     filter_type: "activity_type",
-  //     filter_type_name: "Activity Type",
-  //     data: activityType,
-  //   },
-  //   {
-  //     key: 2,
-  //     filter_type: "dealer",
-  //     filter_type_name: "Dealer",
-  //     data: dataDealer,
-  //   },
-  //   {
-  //     key: 3,
-  //     filter_type: "sub_dealers",
-  //     filter_type_name: "Sub Dealer",
-  //     data: dataSubDealer,
-  //   },
-  //   {
-  //     key: 4,
-  //     filter_type: "year",
-  //     filter_type_name: "Years",
-  //     data: dataYear,
-  //   },
-  //   {
-  //     key: 5,
-  //     filter_type: "month",
-  //     filter_type_name: "Months",
-  //     data: dataMonths,
-  //   },
-  // ];
-
 
 
   const mockFilters = useMemo(() => [
@@ -278,9 +247,10 @@ export default function ActivityMapping() {
       filter_type_name: "Months",
       data: dataMonths,
     },
+
   ], [activityType, dataDealer, dataSubDealer, dataYear, dataMonths]);
 
-  console.log('mockFilters : ', mockFilters)
+  //console.log('mockFilters : ', mockFilters)
 
   // Initialize all checkboxes as selected on page load
   useEffect(() => {
@@ -339,21 +309,6 @@ export default function ActivityMapping() {
     }
   };
 
-  // const toggleAll = (isChecked) => {
-  //   const updatedFilters = {};
-  //   mockFilters.forEach((filterItem) => {
-  //     updatedFilters[filterItem.filter_type] = isChecked
-  //       ? filterItem.data.map((item) => item.id)
-  //       : [];
-  //   });
-  //   setCheckedFilters(updatedFilters);
-  //   setIsAllChecked(isChecked);
-  //   // if (isChecked) {
-  //   // setLocationMarkerIcon(locations);
-  //   // } else {
-  //   //   setLocationMarkerIcon([]);
-  //   // }
-  // };
 
   const toggleAll = (isChecked) => {
     const updatedFilters = {};
@@ -372,12 +327,12 @@ export default function ActivityMapping() {
     } else {
       setLocationMarkerIcon([]); // 👉 clear marker ด้วยถ้าไม่มี location
     }
-    console.log("locations", locations);
+    //console.log("locations", locations);
   }, [locations]);
 
 
   useEffect(() => {
-    console.log("locationMarkerIcon", locationMarkerIcon);
+    //console.log("locationMarkerIcon", locationMarkerIcon);
   }, [locationMarkerIcon]);
 
   const renderMarkerLocation = () => {
@@ -412,10 +367,14 @@ export default function ActivityMapping() {
   // ฟังก์ชันสำหรับการตรวจสอบว่าเลือกทั้งหมดหรือไม่
   useEffect(() => {
     const allFiltersSelected = mockFilters.every((filterItem) => {
+      console.log('filterItem : ', filterItem)
       return filterItem.data.every((item) =>
         checkedFilters[filterItem.filter_type]?.includes(item.id)
       );
+
     });
+
+    console.log('allFiltersSelected : ', allFiltersSelected)
 
     setIsAllChecked(allFiltersSelected);
   }, [checkedFilters]);
@@ -683,20 +642,6 @@ export default function ActivityMapping() {
           >
             {/* Master "All" Checkbox */}
             <div className="flex justify-between">
-              {/* <Checkbox
-                indeterminate={Object.keys(checkedFilters).some(
-                  (filterType) =>
-                    checkedFilters[filterType].length > 0 &&
-                    checkedFilters[filterType].length <
-                    mockFilters.find(
-                      (filter) => filter.filter_type === filterType
-                    ).data.length
-                )}
-                checked={isAllChecked}
-                onChange={(e) => toggleAll(e.target.checked)}
-              >
-                Check All
-              </Checkbox> */}
 
               <Checkbox
                 indeterminate={Object.keys(checkedFilters).some(
@@ -711,15 +656,6 @@ export default function ActivityMapping() {
                 Check All
               </Checkbox>
 
-
-              {/* <Tooltip title="Reload data" placement="bottom">
-                <img
-                  src="/img/icons/reload.png"
-                  alt="Reload Icon"
-                  className="h-6 w-6 cursor-pointer"
-                  onClick={() => renderMarkerLocation()} // 👈 ตรงนี้แหละ!
-                />
-              </Tooltip> */}
 
             </div>
 
