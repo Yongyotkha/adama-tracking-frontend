@@ -22,7 +22,7 @@ export default function ReportActivityByType() {
   const [sales, setSales] = useState([]);
   const [areaList, setAreaList] = useState([]);
   const [activityList, setActivityList] = useState([]);
-
+  const [territoryList, setTerritoryList] = useState([]);
   const [dataSource, setDataSource] = useState([]);
   const [defaultOption, setDefaultOption] = useState();
   const [salesDisabled, setSalesDisabled] = useState(true);
@@ -81,7 +81,7 @@ export default function ReportActivityByType() {
 
     const requestData = {
       keyword: filters.keyword || "",
-      year_code: filters.year_code,
+      year_code: years,
       user_id: filters.user_id,
       dealer_id: filters.dealer_id,
       crop_id: filters.crop_id,
@@ -160,18 +160,12 @@ export default function ReportActivityByType() {
       label: "Sales",
       placeholder: "All",
       options: sales,
-      disabled: salesDisabled,
     },
     {
       key: "territory",
       type: "select",
       label: "Territory",
-      options: [
-        { label: "North", name: "north" },
-        { label: "South", name: "south" },
-        { label: "Central", name: "central" },
-      ],
-      disabled: !tableParams.filters?.user_id,
+      options: territoryList,
     },
     {
       key: "month",
@@ -226,6 +220,11 @@ export default function ReportActivityByType() {
     const oldAreaId = tableParams.filters?.area_id;
     const isAreaChanged = newAreaId !== oldAreaId;
 
+    const newUserId = newFilters.user_id;
+    const oldUserId = tableParams.filters?.user_id;
+    const isUserChanged = newUserId !== oldUserId;
+
+    // === Area Changed: โหลด Sales ใหม่ ===
     if (isAreaChanged && newAreaId) {
       setSales([]);
       setSalesDisabled(true);
@@ -233,7 +232,8 @@ export default function ReportActivityByType() {
       try {
         const res = await useServiceAPI.get(paths.pathMasterSalesByArea, { area_id: newAreaId });
         if (res.status === 200) {
-          setSales(mapSalesOptions(res.data));
+          const salesOptions = mapSalesOptions(res.data);
+          setSales(salesOptions);
           setSalesDisabled(false);
         }
       } catch {
@@ -242,11 +242,35 @@ export default function ReportActivityByType() {
       }
     }
 
+    // === Clear Sales เมื่อ Area ว่าง ===
     if (!newAreaId) {
       setSales([]);
       setSalesDisabled(true);
     }
+
+    // === User Changed: โหลด Territory จาก Sales ===
+    if (isUserChanged && newUserId) {
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterSalesByArea2, { user_id: newUserId });
+        if (res.status === 200) {
+          const territoryOptions = (res.data.data || []).map((t) => ({
+            id: t.id,
+            name: t.name,
+          }));
+          setTerritoryList(territoryOptions);
+        }
+      } catch {
+        showNotification("error", "โหลด Territory ไม่สำเร็จ");
+        setTerritoryList([]);
+      }
+    }
+
+    // === Clear Territory เมื่อ user_id ว่าง ===
+    if (!newUserId) {
+      setTerritoryList([]);
+    }
   };
+
 
   const footerSummary = () => {
     const total = (key) => dataSource.reduce((sum, row) => sum + (parseFloat(row[key]) || 0), 0);
