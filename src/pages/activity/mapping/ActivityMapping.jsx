@@ -632,7 +632,7 @@ export default function ActivityMapping() {
             }`}
           style={{ width: "300px" }}
         >
-          <div className="flex justify-between items-center px-4 py-2 border-b">
+          <div className="sticky top-0 z-[1] bg-white flex justify-between items-center px-4 py-2 border-b cursor-pointer" onClick={() => setIsFilterCollapsed(!isFilterCollapsed)}>
             <div className="flex items-center gap-2">
               <img
                 src="/img/icons/filter-green.png"
@@ -644,7 +644,7 @@ export default function ActivityMapping() {
             <Button
               type="text"
               icon={isFilterCollapsed ? <DownOutlined /> : <UpOutlined />}
-              onClick={() => setIsFilterCollapsed(!isFilterCollapsed)}
+              // onClick={() => setIsFilterCollapsed(!isFilterCollapsed)}
             />
           </div>
           {/* Search Box */}
