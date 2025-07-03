@@ -37,7 +37,7 @@ export default function ActivityMapping() {
   const [dataArea, setDataArea] = useState([]);
   const [dataYear, setDataYear] = useState([]);
   const [dataMonths, setDataMonths] = useState([]);
-
+  const [dataUserStructure, setDataUserStructure] = useState([]);
   const renderCount = useRef(0);
   const [currentLocation, setCurrentLocation] = useState({
     lat: 0.0,
@@ -49,160 +49,162 @@ export default function ActivityMapping() {
   const [searchOptions, setSearchOptions] = useState([]);
   const [searchKeyword, setSearchKeyword] = useState("");
 
+  useEffect(() => {
+    if (!dataUserStructure || dataUserStructure.length === 0) return;
+    const selectedDealers = checkedFilters.dealer || [];
+
+    const matchedSubDealers = dataUserStructure
+      .flatMap((user) => user.dealers)
+      .filter((dealer) => selectedDealers.includes(dealer.dealer_id))
+      .flatMap((dealer) =>
+        dealer.sub_dealer.map((sub) => ({ id: sub.id, name: sub.name }))
+      );
+
+    const uniqueSubs = [...new Map(matchedSubDealers.map((s) => [s.id, s])).values()]
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    setDataSubDealer(uniqueSubs);
+
+    // ✅ Auto-select sub_dealer
+    setCheckedFilters((prev) => ({
+      ...prev,
+      sub_dealers: uniqueSubs.map((s) => s.id),
+    }));
+  }, [checkedFilters.dealer, dataUserStructure]);
+
+  useEffect(() => {
+    if (!dataUserStructure || dataUserStructure.length === 0) return;
+    const selectedSales = checkedFilters.sales || [];
+
+    const matchedDealers = dataUserStructure
+      .filter((user) => selectedSales.includes(user.sale_id))
+      .flatMap((user) => user.dealers.map((d) => ({ id: d.dealer_id, name: d.name })));
+
+    const uniqueDealers = [...new Map(matchedDealers.map((d) => [d.id, d])).values()]
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    setDataDealer(uniqueDealers);
+
+    // ✅ Auto-select dealer
+    setCheckedFilters((prev) => ({
+      ...prev,
+      dealer: uniqueDealers.map((d) => d.id),
+    }));
+  }, [checkedFilters.sales, dataUserStructure]);
+
   // Fetch Data
   useEffect(() => {
+
     const loadDataMappingListFirst = async () => {
       setLoading(true);
       try {
-        const [mapping, activity, sales, dealers, areas, years, subdealers, months] =
-          await Promise.all([
-            useServiceAPI.post(paths.pathActivityMapList, {
-              keyword: "",
-              activity_type: [],
-              dealer: [],
-              area: [],
-              year: [],
-              sub_dealers: [],
-              month: [],
-            }),
-            useServiceAPI.get(paths.pathMasterActivityType, {
-              status: "",
-            }),
-            useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
-            useServiceAPI.get(paths.pathMasterDealerAll, {}),
-            useServiceAPI.get(paths.pathMasterAreas, {}),
-            useServiceAPI.get(paths.pathMasterYear, {}),
-            useServiceAPI.get(paths.pathMasterSubDealer, {}),
-            useServiceAPI.get(paths.pathMasterMonths, {}),
+        const [mapping, activity, userStruck, areas, years, months] = await Promise.all([
+          useServiceAPI.post(paths.pathActivityMapList, {
+            keyword: "",
+            activity_type: [],
+            dealer: [],
+            area: [],
+            year: [],
+            sub_dealers: [],
+            month: [],
+          }),
+          useServiceAPI.get(paths.pathMasterActivityType, {}),
+          useServiceAPI.get(paths.pathMasterUserStruck, {}),
+          useServiceAPI.get(paths.pathMasterAreas, {}),
+          useServiceAPI.get(paths.pathMasterYear, {}),
+          useServiceAPI.get(paths.pathMasterMonths, {}),
+        ]);
 
-          ]);
-        // Mapping Detail
-        // console.log('mapping : ', mapping.data[0])
-        // console.log('mapping : ', mapping.data.length)
-        // console.log('=========================================================')
         setDataMapping(mapping.data);
+        setActivityType(activity.data);
 
-        // Set Locations
-        const newLocations = mapping.data.map((data, index) => ({
-          key: index + 1,
-          id: locations.length + 1,
-          document_number: data.document_number,
-          title: data.activity_type_name,
-          lat: data.location_latitude,
-          lng: data.location_longitude,
-          address: data.location_address,
-          details: data.description,
-          activity_type_id: data.activity_type_id,
-          activity_type_name: data.activity_type_name,
-          dealer_id: data.dealer_id,
-          dealer_name: data.dealer_name,
-          area_id: data.area_id,
-          area_name: data.area_name,
-          year: data.year,
-          activity_image: data.activity_image,
-          activity_image_location: data.activity_image_location,
-          crop_id_list: data.crop_id_list,
-          document_date_display: data.document_date_display,
-          assing_user_list: data.assing_user_list,
-          remark: data.remark,
+        // 👉 เก็บข้อมูลที่ดึงมาจาก userStruck (API ใหม่)
+        setDataUserStructure(userStruck.data || []);
+
+        // 👇 ดึง sales, dealer, sub_dealer จาก userStruck
+        const salesList = userStruck.data.map((user, index) => ({
+          key: index,
+          id: user.sale_id,
+          name: user.name,
         }));
-
-        setLocations(newLocations);
-
-        setActivityType(
-          activity.data
-            .filter(
-              (value, index, self) =>
-                self.findIndex((item) => item.name === value.name) === index
-            )
-            .map((data, index) => ({
-              key: index,
-              id: data.id,
-              name: data.name,
+        const dealerList = userStruck.data.flatMap((user) =>
+          user.dealers.map((dealer) => ({
+            id: dealer.dealer_id,
+            name: dealer.name,
+          }))
+        );
+        const subDealerList = userStruck.data.flatMap((user) =>
+          user.dealers.flatMap((dealer) =>
+            dealer.sub_dealer.map((sub) => ({
+              id: sub.id,
+              name: sub.name,
             }))
+          )
         );
 
-        setDataSales(sales.data)
-
+        setDataSales(salesList);
         setDataDealer(
-          dealers.data
-            .filter(
-              (value, index, self) =>
-                self.findIndex((item) => item.name === value.name) === index
-            )
-            .sort((a, b) => a.name.localeCompare(b.name))
-            .map((data, index) => ({
-              key: index,
-              id: data.id,
-              name: data.name,
-            }))
+          [...new Map(dealerList.map((item) => [item.id, item])).values()].sort((a, b) =>
+            a.name.localeCompare(b.name)
+          )
         );
-
-        setDataArea(
-          areas.data
-            .filter(
-              (value, index, self) =>
-                self.findIndex((item) => item.name === value.name) === index
-            )
-            .map((data, index) => ({
-              key: index,
-              id: data.id,
-              name: data.name,
-            }))
-        );
-
-        setDataYear(
-          years.data
-            .filter(
-              (value, index, self) =>
-                self.findIndex((item) => item.name === value.name) === index
-            )
-            .map((data, index) => ({
-              key: index,
-              id: data.id,
-              name: data.name,
-            }))
-        );
-
-        setDataMonths(
-          months.data
-            .filter(
-              (value, index, self) =>
-                self.findIndex((item) => item.name === value.name) === index
-            )
-            .map((data, index) => ({
-              key: index,
-              id: data.id,
-              name: data.name,
-            }))
-        );
-
-
         setDataSubDealer(
-          subdealers.data
-            .filter(
-              (value, index, self) =>
-                self.findIndex(
-                  (item) => item.sub_dealer_name === value.sub_dealer_name
-                ) === index
-            )
-            .sort((a, b) => a.sub_dealer_name.localeCompare(b.sub_dealer_name))
-            .map((data, index) => ({
-              key: index,
-              id: data.sub_dealer_id,
-              name: data.sub_dealer_name,
-            }))
+          [...new Map(subDealerList.map((item) => [item.id, item])).values()].sort((a, b) =>
+            a.name.localeCompare(b.name)
+          )
         );
+
+        // ตั้งค่าปีและเดือน
+        setDataArea(areas.data);
+        setDataYear(years.data);
+        setDataMonths(months.data);
+
+        const initialFilters = {
+          activity_type: activity.data.map((i) => i.id),
+          sales: salesList.map((i) => i.id),
+          dealer: dealerList.map((i) => i.id),
+          sub_dealers: subDealerList.map((i) => i.id),
+          year: years.data.length > 0 ? [years.data[0].id] : [],
+          month: months.data.map((i) => i.id),
+        };
+
+        setCheckedFilters(initialFilters); // ✅ ตั้งค่า default filters
+        loadDataMappingList(initialFilters); // ✅ โหลดข้อมูลทันทีเมื่อหน้าโหลดเสร็จ
+
+
       } catch (error) {
-        // showMsg("error", error.message || "เกิดข้อผิดพลาด");
-        console.log(error);
+        console.error(error);
       } finally {
         setLoading(false);
       }
     };
 
+
     loadDataMappingListFirst();
   }, []);
+
+  useEffect(() => {
+    const filtersReady = mockFilters.every((f) => f.data && f.data.length > 0);
+    if (filtersReady) {
+      loadDataMappingList(checkedFilters);
+    } else {
+      setLocations([])
+    }
+  }, [checkedFilters]);
+
+  // useEffect(() => {
+
+  //   const filtersReady = [activityType, dataSales, dataDealer, dataSubDealer, dataYear, dataMonths]
+  //     .every((f) => f.length > 0);
+
+
+  //   if (filtersReady) {
+  //     loadDataMappingList(checkedFilters);
+
+  //   } else {
+  //     setLocations([])
+  //   }
+  // }, [activityType, dataSales, dataDealer, dataSubDealer, dataYear, dataMonths]);
 
   const { Content } = Layout;
   const { Panel } = Collapse;
@@ -212,90 +214,41 @@ export default function ActivityMapping() {
     height: "100vh",
   };
 
-  useEffect(() => {
-    if (dataSubDealer.length > 0) {
-      setCheckedFilters((prev) => {
-        const alreadySet = prev.sub_dealers && prev.sub_dealers.length > 0;
-        if (alreadySet) return prev;
-
-        return {
-          ...prev,
-          sub_dealers: dataSubDealer.map((item) => item.id), // ✅ เลือกทั้งหมดตอนโหลดครั้งแรก
-        };
-      });
-    }
-  }, [dataSubDealer]);
-
-  useEffect(() => {
-    const fetchSubDealers = async () => {
-      if (!checkedFilters.dealer || checkedFilters.dealer.length === 0) {
-        setDataSubDealer([]);
-        setCheckedFilters((prev) => ({
-          ...prev,
-          sub_dealers: [],
-        }));
-        return;
-      }
-
-      try {
-        const response = await useServiceAPI.get(paths.pathMasterSubDealerSubDealers, {
-          dealer_id: checkedFilters.dealer,
-        });
-
-        const formattedSubDealers = response.data
-          .filter((value, index, self) =>
-            self.findIndex((item) => item.name === value.name) === index
-          )
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .map((data, index) => ({
-            key: index,
-            id: data.id,
-            name: data.name,
-          }));
-
-        setDataSubDealer(formattedSubDealers);
-
-        const updatedFilters = {
-          ...checkedFilters,
-          sub_dealers: formattedSubDealers.map((d) => d.id),
-        };
-
-        setCheckedFilters(updatedFilters);
-
-        // 🔥 เรียก loadDataMappingList หลังจากตั้งค่าเสร็จ
-        loadDataMappingList(updatedFilters);
-      } catch (error) {
-        console.error("Error fetching sub-dealers:", error);
-        setDataSubDealer([]);
-        setCheckedFilters((prev) => ({
-          ...prev,
-          sub_dealers: [],
-        }));
-      }
-    };
-
-
-    fetchSubDealers();
-  }, [checkedFilters.dealer]);
-
-
   const toggleAll = (isChecked) => {
-    setCheckedFilters((prev) => {
-      const updatedFilters = { ...prev };
+    const updatedFilters = {};
 
-      mockFilters.forEach((filterItem) => {
-        updatedFilters[filterItem.filter_type] = isChecked
-          ? filterItem.data.map((item) => item.id)
-          : [];
+    if (isChecked) {
+      // ✅ Check เฉพาะกลุ่มที่ต้องการ
+      const targetTypes = ["activity_type", "sales", "dealer", "sub_dealers", "year", "month"];
+
+      targetTypes.forEach((filterType) => {
+        const filterData = mockFilters.find((f) => f.filter_type === filterType)?.data || [];
+        updatedFilters[filterType] = filterData.map((item) => item.id);
       });
 
-      console.log("✅ updatedFilters (Check All):", updatedFilters);
+      setCheckedFilters(updatedFilters);
+      setIsAllChecked(isChecked);
+      loadDataMappingList(updatedFilters);
 
-      return updatedFilters;
-    });
-    console.log('isChecked : ', isChecked)
-    setIsAllChecked(isChecked);
+    } else {
+      // ❌ Uncheck ทั้งหมด
+      // mockFilters.forEach((filter) => {
+      //   updatedFilters[filter.filter_type] = [];
+      // });
+      console.log('uncheckkkkkkkkkkk')
+      setCheckedFilters(updatedFilters);
+      setIsAllChecked(isChecked);
+      setLocations([])
+    }
+
+
+
+    // 🔥 เรียก API แสดงข้อมูลตาม filter ที่เลือก
+
+
+    console.log("🌀 toggleAll executed with filters:", updatedFilters);
   };
+
 
   const loadDataMappingList = async (filters) => {
     setLoading(true);
@@ -320,6 +273,21 @@ export default function ActivityMapping() {
           sub_dealers.includes(item.sub_dealer_id)
         );
       }
+
+      if (activityType.length > 0) {
+        filteredData = filteredData.filter((item) =>
+          activityType.includes(item.activity_type_id)
+        );
+      }
+
+      if (month.length > 0) {
+        filteredData = filteredData.filter((item) => {
+          const docMonth = new Date(item.document_date).getMonth() + 1; // getMonth() เริ่มที่ 0
+          return month.includes(String(docMonth)); // เปรียบเทียบแบบ string
+        });
+      }
+
+      console.log('month : ', month)
       console.log('sub_dealers : ', sub_dealers.length)
       console.log('filteredData : ', filteredData.length)
       console.log('=====================================================')
@@ -356,46 +324,16 @@ export default function ActivityMapping() {
     }
   };
 
-
   const mockFilters = useMemo(() => [
-    {
-      key: 1,
-      filter_type: "activity_type",
-      filter_type_name: "Activity Type",
-      data: activityType,
-    },
-    {
-      key: 6,
-      filter_type: "sales",
-      filter_type_name: "Sales",
-      data: dataSales,
-    },
-    {
-      key: 2,
-      filter_type: "dealer",
-      filter_type_name: "Dealer",
-      data: dataDealer,
-    },
-    {
-      key: 3,
-      filter_type: "sub_dealers",
-      filter_type_name: "Sub Dealer",
-      data: dataSubDealer,
-    },
-    {
-      key: 4,
-      filter_type: "year",
-      filter_type_name: "Years",
-      data: dataYear,
-    },
-    {
-      key: 5,
-      filter_type: "month",
-      filter_type_name: "Months",
-      data: dataMonths,
-    },
+    { key: 1, filter_type: "activity_type", filter_type_name: "Activity Type", data: activityType },
+    { key: 6, filter_type: "sales", filter_type_name: "Sales", data: dataSales },
+    { key: 2, filter_type: "dealer", filter_type_name: "Dealer", data: dataDealer },
+    { key: 3, filter_type: "sub_dealers", filter_type_name: "Sub Dealer", data: dataSubDealer },
+    { key: 4, filter_type: "year", filter_type_name: "Years", data: dataYear },
+    { key: 5, filter_type: "month", filter_type_name: "Months", data: dataMonths },
+  ], [activityType, dataSales, dataDealer, dataSubDealer, dataYear, dataMonths]);
 
-  ], [activityType, dataDealer, dataSubDealer, dataYear, dataMonths]);
+
 
   //console.log('mockFilters : ', mockFilters)
 
@@ -468,11 +406,6 @@ export default function ActivityMapping() {
     }
     //console.log("locations", locations);
   }, [locations]);
-
-
-  useEffect(() => {
-    //console.log("locationMarkerIcon", locationMarkerIcon);
-  }, [locationMarkerIcon]);
 
   const renderMarkerLocation = () => {
     // Set MarkerLocation
@@ -570,20 +503,6 @@ export default function ActivityMapping() {
     }
   };
 
-  useEffect(() => {
-    if (dataSales.length > 0) {
-      setCheckedFilters((prev) => {
-        const alreadySet = prev.sales && prev.sales.length > 0;
-        if (alreadySet) return prev; // ถ้ามีค่าแล้ว ไม่ต้องเซตซ้ำ
-
-        return {
-          ...prev,
-          sales: dataSales.map((item) => item.id), // ✅ เลือกทั้งหมดตอนโหลดครั้งแรก
-        };
-      });
-    }
-  }, [dataSales]);
-
 
   useEffect(() => {
     if (mockFilters.every((f) => f.data.length > 0)) {
@@ -611,38 +530,6 @@ export default function ActivityMapping() {
     console.log(locationWindowInfo);
   }, [locationWindowInfo]);
 
-  const fetchDealersBySale = async (saleIds = []) => {
-    try {
-      const response = await useServiceAPI.get(paths.pathMasterDealerBySale, {
-        platform: "web",
-        user_id: saleIds,
-      });
-
-      const formattedDealers = response.data.map((data, index) => ({
-        key: index,
-        id: data.id,
-        name: data.name,
-      }));
-
-      setDataDealer(formattedDealers);
-
-      // 🔥 สำคัญ: อัปเดต checkedFilters.dealer ทันที เพื่อให้ API ส่ง dealer ใหม่
-      setCheckedFilters((prev) => ({
-        ...prev,
-        dealer: formattedDealers.map((d) => d.id),
-      }));
-
-    } catch (error) {
-      console.error("Error fetching dealers by sale:", error);
-      setDataDealer([]);
-      setCheckedFilters((prev) => ({
-        ...prev,
-        dealer: [],
-      }));
-    }
-  };
-
-
   return (
     <MainLayout loading={loading}>
       <Layout>
@@ -664,7 +551,7 @@ export default function ActivityMapping() {
             <Button
               type="text"
               icon={isFilterCollapsed ? <DownOutlined /> : <UpOutlined />}
-              // onClick={() => setIsFilterCollapsed(!isFilterCollapsed)}
+            // onClick={() => setIsFilterCollapsed(!isFilterCollapsed)}
             />
           </div>
           {/* Search Box */}
@@ -732,7 +619,7 @@ export default function ActivityMapping() {
 
                         // เฉพาะเมื่อเป็น sales ให้เรียก fetch dealer ใหม่
                         if (category.filter_type === "sales") {
-                          fetchDealersBySale(list); // <-- เรียก API ที่เราเขียนไว้
+                          //fetchDealersBySale(list); // <-- เรียก API ที่เราเขียนไว้
                         }
                       }}
 
