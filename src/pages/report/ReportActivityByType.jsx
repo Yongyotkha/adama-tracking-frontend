@@ -82,6 +82,7 @@ export default function ReportActivityByType() {
     const requestData = {
       keyword: filters.keyword || "",
       year_code: years,
+      area_id: filters.area_id,
       user_id: filters.user_id,
       dealer_id: filters.dealer_id,
       crop_id: filters.crop_id,
