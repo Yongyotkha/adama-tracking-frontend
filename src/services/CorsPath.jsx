@@ -52,7 +52,7 @@ export const paths = {
   pathMasterYear: "master/years",
   pathMasterPerception: "master/perception",
 
-
+  pathMasterUserStruck: "master/user_struck",
 
   //material
   pathMaterialList: "material/list",
