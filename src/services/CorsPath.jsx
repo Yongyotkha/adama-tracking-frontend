@@ -29,7 +29,7 @@ export const paths = {
   pathMasterProductTypes: "master/product-types",
   pathMasterProductGroups: "master/product-groups",
   pathMasterProductCategorys: "master/product-categorys",
-   
+
   pathMasterProductByCrop: "master/product-by-crop",
   pathMasterSaleAll: "master/sale-all/list",
   pathMasterDealerCustomer: "master/dealer/customer",
@@ -107,6 +107,7 @@ export const paths = {
     "sale-customer-subdealer/network-farmer-delete",
 
   pathMasterSalesByArea: "master/area_user_sale",
+  pathMasterSalesByArea2: "master/area_user_sale_2",
 
   // dashbord
   pathDashBordCustomer: "dashboard/customer",
