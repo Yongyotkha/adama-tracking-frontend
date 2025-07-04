@@ -1738,15 +1738,17 @@ export default function CreateActivity() {
           />
         )}
 
-        {activityDetail?.permission?.btn_approved && (
-          <ActionButton
-            mode="save"
-            text={btn_approve}
-            onClick={() => {
-              handleApproval("approved");
-            }}
-          />
-        )}
+        {activityDetail?.permission?.btn_approved &&
+          activityDetail?.transaction_status_name !== "Convert" && (
+            <ActionButton
+              mode="save"
+              text={btn_approve}
+              onClick={() => {
+                handleApproval("approved");
+              }}
+            />
+          )}
+
       </div>
 
       {/* Modal for Add Participant */}
