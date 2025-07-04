@@ -665,15 +665,17 @@ export default function ActivityMapping() {
                 const panelHeader = (
                   <div className="flex justify-between items-center w-full">
                     <span>{category.filter_type_name}</span>
-                    <Checkbox
-                      indeterminate={indeterminate}
-                      checked={checkAll}
-                      onChange={onCheckAllChange}
-                      onClick={(e) => e.stopPropagation()} // ✅ ป้องกัน toggle collapse
-                    />
+
+                    {category.filter_type_name === 'Dealer' || category.filter_type_name === 'Sub Dealer' ? (
+                      <Checkbox
+                        indeterminate={indeterminate}
+                        checked={checkAll}
+                        onChange={onCheckAllChange}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    ) : null}
                   </div>
                 );
-
                 return (
                   <Panel header={panelHeader} key={category.key} className="custom-collapse my-2">
                     <Checkbox.Group
