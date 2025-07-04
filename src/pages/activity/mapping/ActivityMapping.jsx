@@ -683,7 +683,7 @@ export default function ActivityMapping() {
             </div>
 
             {/* Collapsible Filter Categories */}
-            <Collapse
+            {/* <Collapse
               defaultActiveKey={["Activity Type"]}
               className="rounded-lg border-0"
             >
@@ -722,7 +722,67 @@ export default function ActivityMapping() {
                 );
               })}
 
+            </Collapse> */}
+
+            {/* โค้ดใหม่ มี Checkbox sale , dealer */}
+            <Collapse defaultActiveKey={["Activity Type"]} className="rounded-lg border-0">
+              {mockFilters.map((category) => {
+                const selected = checkedFilters[category.filter_type] || [];
+                const totalOptions = category.data.map((item) => item.id);
+                const checkAll = selected.length === totalOptions.length;
+                const indeterminate = selected.length > 0 && selected.length < totalOptions.length;
+
+                const onCheckAllChange = (e) => {
+                  const newChecked = e.target.checked ? totalOptions : [];
+                  setCheckedFilters((prev) => ({
+                    ...prev,
+                    [category.filter_type]: newChecked,
+                  }));
+
+                  if (category.filter_type === "sales") {
+                    fetchDealersBySale(newChecked);
+                  }
+                };
+
+                const onGroupChange = (list) => {
+                  setCheckedFilters((prev) => ({
+                    ...prev,
+                    [category.filter_type]: list,
+                  }));
+
+                  if (category.filter_type === "sales") {
+                    fetchDealersBySale(list);
+                  }
+                };
+
+                const panelHeader = (
+                  <div className="flex justify-between items-center w-full">
+                    <span>{category.filter_type_name}</span>
+                    <Checkbox
+                      indeterminate={indeterminate}
+                      checked={checkAll}
+                      onChange={onCheckAllChange}
+                      onClick={(e) => e.stopPropagation()} // ✅ ป้องกัน toggle collapse
+                    />
+                  </div>
+                );
+
+                return (
+                  <Panel header={panelHeader} key={category.key} className="custom-collapse my-2">
+                    <Checkbox.Group
+                      options={category.data.map((item) => ({
+                        label: item.name,
+                        value: item.id,
+                      }))}
+                      value={selected}
+                      onChange={onGroupChange}
+                      className="filter-checkbox-group"
+                    />
+                  </Panel>
+                );
+              })}
             </Collapse>
+
           </div>
         </div>
 
