@@ -550,20 +550,15 @@ export default function CreateActivity() {
   //handleChangeFunction
   const setupDealer = async (value) => {
     const [dealer] = await Promise.all([
-      useServiceAPI.get(paths.pathMasterSubDealerAll, {
+      useServiceAPI.get(paths.pathMasterUserGetSubDealer, {
         user_id: value,
       }),
     ]);
-    let subDealerAll = [];
-    await dealer.data.forEach((element) => {
-      subDealerAll.push({
-        id: element.sub_dealer_id,
-        name: element.sub_dealer_name,
-      });
-    });
 
-    if (subDealerAll && value) {
-      setDealerList(subDealerAll);
+    if (dealer.data) {
+
+      setDealerList(dealer.data);
+
     } else {
       setDealerList([]);
     }
