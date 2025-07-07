@@ -14,7 +14,7 @@ export default function ReportActivityByType() {
   const navigate = useNavigate();
   const location = useLocation();
   const { showNotification, userInfo } = useContext(AuthContext);
-  console.log('userInfo : ', userInfo)
+  // console.log('userInfo : ', userInfo)
 
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
@@ -74,6 +74,54 @@ export default function ReportActivityByType() {
   useEffect(() => {
     loadMasterData();
   }, []);
+
+  useEffect(() => {
+    const fetchUserDetailAndSetArea = async () => {
+      if (!userInfo?.id || areaList.length === 0) return;
+
+      try {
+        const res = await useServiceAPI.get(`${paths.pathMasterUsersDetail}/${userInfo.id}`);
+        if (res.status === 200 && res.data?.area_id) {
+          const userAreaId = parseInt(res.data.area_id);
+
+          // ✅ ตั้งค่า area_id หลังแน่ใจว่า areaList โหลดแล้ว
+          const isValidArea = areaList.some(area => area.id === userAreaId);
+          if (isValidArea) {
+            const newFilters = {
+              ...tableParams.filters,
+              area_id: userAreaId,
+            };
+
+            setTableParams((prev) => ({
+              ...prev,
+              filters: newFilters,
+            }));
+
+            // โหลด Sales
+            const salesRes = await useServiceAPI.get(paths.pathMasterSalesByArea, {
+              area_id: userAreaId,
+            });
+
+            if (salesRes.status === 200) {
+              const salesOptions = mapSalesOptions(salesRes.data);
+              setSales(salesOptions);
+              setSalesDisabled(false);
+            }
+
+            // โหลดข้อมูลตาราง
+            fetchData(newFilters);
+          }
+        }
+      } catch (error) {
+        showNotification("error", "โหลดข้อมูลผู้ใช้ล้มเหลว");
+      }
+    };
+
+    fetchUserDetailAndSetArea();
+  }, [userInfo?.id, areaList]); // 👈 สำคัญ: ต้องรอให้ areaList พร้อมก่อน
+
+
+
 
   const fetchData = async (filtersInput = tableParams.filters) => {
     setTableLoading(true);
@@ -299,7 +347,13 @@ export default function ReportActivityByType() {
   return (
     <MainLayout loading={loading}>
       <Title prefix="Activity Report By Type" />
-      <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} onChange={handleFilterChange} />
+      <Filter
+        onSearch={handleSearch}
+        onClear={handleClear}
+        filters={filters}
+        onChange={handleFilterChange}
+        values={tableParams.filters} // <-- เพิ่มบรรทัดนี้
+      />
       <BoxPrimary>
         <TableCustomComponent
           header={header}
