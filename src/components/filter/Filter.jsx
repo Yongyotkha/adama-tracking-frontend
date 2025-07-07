@@ -3,13 +3,19 @@ import { Select, Collapse, Input, Row, Col, DatePicker } from "antd";
 import "./Filter.css";
 import DynamicButton from "../button/DynamicButton";
 import dayjs from "dayjs";
+import { useEffect } from "react";
 
 const { Option } = Select;
 
-const Filter = ({ onSearch, onClear, onChange, filters, onValueChange }) => {
+const Filter = ({ onSearch, onClear, onChange, filters, onValueChange, values }) => {
   const [filterValues, setFilterValues] = useState({});
   const [activeKey, setActiveKey] = useState([]);
 
+  useEffect(() => {
+    if (values) {
+      setFilterValues(values);
+    }
+  }, [values]);
   const handleFilterChange = (filterKey, value) => {
     const updatedValues = {
       ...filterValues,
