@@ -13,7 +13,8 @@ import Title from "../../components/title/Title";
 export default function ReportActivityByType() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { showNotification } = useContext(AuthContext);
+  const { showNotification, userInfo } = useContext(AuthContext);
+  console.log('userInfo : ', userInfo)
 
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
@@ -95,7 +96,7 @@ export default function ReportActivityByType() {
     try {
       const res = await useServiceAPI.get(paths.pathReportActivityType, requestData);
       if (res.status === 200) {
-        const data = res.data.map((item) => ({
+        const data = res.data.res.map((item) => ({
           key: item.activity_type_id,
           activity_type_name: item.activity_type_name,
           total_activity_plan: parseFloat(item.total_activity_plan),
