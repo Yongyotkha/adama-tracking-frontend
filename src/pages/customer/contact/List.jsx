@@ -68,6 +68,18 @@ export default function SubDealerList() {
     JSON.stringify(tableParams.filters),
   ]);
 
+  const header = [
+    { title: "No", width: 50, dataIndex: "key", align: "center" },
+    { title: "Shop", width: 200, dataIndex: "shop_name", align: "left" },
+    { title: "Name", width: 200, dataIndex: "first_name", align: "left" },
+    { title: "Phone", width: 200, dataIndex: "phone", align: "left" },
+    { title: "Type", width: 300, dataIndex: "contact_type_name", align: "left" },
+    { title: "Create", width: 300, dataIndex: "created_at", align: "center" },
+    { title: "Status", width: 300, dataIndex: "status", align: "center" },
+    { title: "Action", width: 100, dataIndex: "action", align: "center" },
+  ];
+
+
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -84,12 +96,12 @@ export default function SubDealerList() {
       dealer_id: filters.dealers,
       sub_dealer_id: filters.shop,
       province: filters.province,
-      channel_type:filters.channel_type
+      channel_type: filters.channel_type
     };
 
     try {
       const response = await useServiceAPI.get(
-        paths.pathCustomerSubDealerList,
+        paths.pathCustomerContactList,
         requestData
       );
 
@@ -98,13 +110,11 @@ export default function SubDealerList() {
 
         const newDataSource = data.map((data, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-          dealerName: data.dealer_name_en,
-          subDealerName: data.name,
-          contactName: data.contact_name,
-          address: data.contact_address,
-          phone: data.mobile_phone,
-          sale: data.sale_list_name,
-          channel_type: data.channel_type,
+          shop_name: data.shop_name,
+          first_name: data.first_name + ' ' + data.last_name,
+          phone: data.phone,
+          contact_type_name: data.contact_type_name,
+          created_at: data.created_at,
           status: (
             <BadgeStatus
               text={data.status_name}
@@ -115,26 +125,49 @@ export default function SubDealerList() {
           action: (
             <Dropdown
               menu={{
-                items: data.action.map((actionItem, actionIndex) => ({
-                  key: actionIndex,
-                  label: (
-                    <ItemDropDown
-                      mode={actionItem.action.toLowerCase()}
-                      onClick={() => {
-                        const navTarget =
-                          actionItem.action === "View"
-                            ? "/customer/sub-dealer/view"
-                            : "/customer/sub-dealer/edit";
-                        navigate(navTarget, {
-                          state: {
-                            id: data.id,
-                            mode: actionItem.action,
-                          },
-                        });
-                      }}
-                    />
-                  ),
-                })),
+                items: [
+                  {
+                    key: 1,
+                    label: (
+                      <ItemDropDown
+                        mode="view"
+                        onClick={() => {
+                          navigate("/customer/contact/view", {
+                            state: {
+                              user_contact_id: data.id,
+                            },
+                          });
+                        }}
+                      />
+                    ),
+                  },
+                  {
+                    key: 2,
+                    label: (
+                      <ItemDropDown
+                        mode="edit"
+                        onClick={() => {
+                          navigate("/customer/contact/edit", {
+                            state: {
+                              user_contact_id: data.id,
+                            },
+                          });
+                        }}
+                      />
+                    ),
+                  },
+                  {
+                    key: 3,
+                    label: (
+                      <ItemDropDown
+                        mode="delete"
+                        onClick={() => {
+                          handleDelete(data.id);
+                        }}
+                      />
+                    ),
+                  },
+                ],
               }}
               placement="bottom"
             >
@@ -149,6 +182,7 @@ export default function SubDealerList() {
           ),
         }));
 
+        console.log('newDataSource : ',newDataSource)
         setDataSource(newDataSource);
         setTableParams((prev) => ({
           ...prev,
@@ -309,16 +343,16 @@ export default function SubDealerList() {
       placeholder: "All",
       options: [
         {
-          "id":"Old",
-          "name":"Old"
+          "id": "Old",
+          "name": "Old"
         },
-                {
-          "id":"Existing ",
-          "name":"Existing "
+        {
+          "id": "Existing ",
+          "name": "Existing "
         },
-                {
-          "id":"New",
-          "name":"New"
+        {
+          "id": "New",
+          "name": "New"
         },
       ],
     },
@@ -346,19 +380,6 @@ export default function SubDealerList() {
       placeholder: "All",
       options: Status,
     },
-  ];
-
-  const header = [
-    { title: "No", width: 50, dataIndex: "key", align: "center" },
-    { title: "Dealer Name", width: 200, dataIndex: "dealerName", align: "left" },
-    { title: "Sub Dealer Name", width: 200, dataIndex: "subDealerName", align: "left" },
-    { title: "Contact Name", width: 200, dataIndex: "contactName", align: "left" },
-    { title: "Address", width: 300, dataIndex: "address", align: "left" },
-    { title: "Phone", width: 150, dataIndex: "phone", align: "center" },
-    { title: "By Sales", width: 150, dataIndex: "sale", align: "center" },
-    { title: "Status Type", width: 100, dataIndex: "channel_type", align: "center" },
-    { title: "Status", width: 100, dataIndex: "status", align: "center" },
-    { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
   const handleTableChange = (pagination, filters, sorter) => {

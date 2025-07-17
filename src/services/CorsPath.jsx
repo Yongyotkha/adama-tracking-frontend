@@ -109,6 +109,11 @@ export const paths = {
   pathMasterSalesByArea: "master/area_user_sale",
   pathMasterSalesByArea2: "master/area_user_sale_2",
 
+
+  // contact
+  pathCustomerContactList: "sale-customer-contact/list",
+  pathCustomerContactCreate: "sale-customer-contact/create",
+  pathCustomerContactDetail: "sale-customer-contact/detail",
   // dashbord
   pathDashBordCustomer: "dashboard/customer",
   pathDashBordExpense: "dashboard/expense",

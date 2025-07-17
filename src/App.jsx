@@ -275,7 +275,7 @@ const App = () => {
             <Route path="/customer/farmers/create" element={<FarmerCreate />} />
 
             <Route path="/customer/contact" element={<CustomerContactList />} />
-            <Route path="/customer/contact/create" element={<CustomerContactFrom />} />
+            <Route path="/customer/contact/edit" element={<CustomerContactFrom />} />
 
             {/* Setting Route */}
             <Route path="/setting/role" element={<SettingRole />} />
