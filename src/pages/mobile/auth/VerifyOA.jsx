@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
-import { Form, Input, Typography } from "antd";
+import { Form, Input, Typography, Modal } from "antd";
 import { LeftOutlined } from "@ant-design/icons";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
@@ -13,6 +13,7 @@ import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 
+
 export default function VerifyOA() {
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -23,15 +24,32 @@ export default function VerifyOA() {
   const { Title, Text } = Typography;
   const formatPhoneNumber = (number) => number.replace(/\s+/g, "");
 
-    const { lineProfile } = useOutletContext() || {};
-    useEffect(() => {
-      console.log("lineProfile", lineProfile);
-    }, []);
+  const { lineProfile } = useOutletContext() || {};
+  useEffect(() => {
+    console.log("lineProfile", lineProfile);
+  }, []);
+
+  const showConfirm = (title, content, btn_ok, btn_cancel) => {
+    Modal.confirm({
+      title: title,
+      content: content,
+      okText: btn_ok,
+      cancelText: btn_cancel,
+      onOk() {
+        console.log('ตกลงแล้ว');
+      },
+      onCancel() {
+        console.log('ยกเลิกแล้ว');
+      },
+    });
+  };
 
   const onFinish = () => {
     const formattedPhoneNumber = formatPhoneNumber(phone_number);
+    console.log('formattedPhoneNumber : ', formattedPhoneNumber)
 
     setLoading(true);
+
     useServiceAPI
       .post(
         paths.pathOtpShopCall,
@@ -43,46 +61,15 @@ export default function VerifyOA() {
           const otpRefNo = response.data.data.otp_ref_no;
           const message_id = response.data.data.message_id;
           navigate("/mobile/otp", { state: { otpRefNo, message_id } });
+        } else if (response.status === 213) {
+          console.log('register success')
+          showConfirm('คุณมีการลงทะเบียนแล้ว', 'กรุณากรอกเบอร์โทรศัพท์ที่เคยมีการลงทะเบียนแล้วหากคุณลืมหมายเลขให้ติดต่อแจ้งเจ้าหน้าที่', 'ตกลง', 'ติดต่อเจ้าหน้าที่');
         }
       })
       .catch((error) => {
         console.error("API Error:", error);
       })
       .finally(() => setLoading(false));
-
-    // setLoading(true);
-    // useServiceAPI
-    //   .post(paths.pathOtpverify, {  phone_number: formattedPhoneNumber  }, setLoading)
-    //   .then((response) => {
-    //     if (response.status === 200) {
-    //       setLoading(true);
-    //       const phone_number_otp = response.data.phone_number_otp;
-    //       useServiceAPI
-    //         .post(paths.pathOtpShopCall, {  phone_number: phone_number_otp }, setLoading)
-    //         .then((response) => {
-    //           if (response.status === 200) {
-    //             const otpRefNo = response.data.data.otp_ref_no;
-    //             const message_id = response.data.data.message_id;
-    //             navigate("/mobile/otp", { state: {  phone_number: phone_number_otp, otpRefNo, message_id } });
-    //           }
-    //         })
-    //         .catch((error) => {
-    //           console.error("API Error:", error);
-    //         })
-    //         .finally(() => setLoading(false));
-    //     }
-
-    //   })
-    //   .catch((error) => {
-    //     console.error("API Error:", error);
-    //     setPopupText(
-    //       "<p class='text-[#978B87] text-center sarabun-font'>ไม่พบข้อมูลของคุณในระบบ กรุณาติดต่อเจ้าหน้าที่</p>"
-    //     );
-    //     setPopupImage("/logo/Logo-Adama-Smile-2-New 1.png");
-    //     setIsModalVisible(true);
-    //     return;
-    //   })
-    //   .finally(() => setLoading(false));
   };
 
   return (

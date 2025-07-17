@@ -45,6 +45,9 @@ import EditSubDealer from "./pages/customer/sub_dealer/EditSubDealer";
 import Farmer from "./pages/customer/Farmers/FarmersList";
 import FarmerCreate from "./pages/customer/Farmers/FarmersCreate";
 
+import CustomerContactList from "./pages/customer/contact/List";
+import CustomerContactFrom from "./pages/customer/contact/From";
+
 import AdvanceExpense from "./pages/expenses/advance/AdvanceExpense";
 import PdfAdvanceExpense from "./pages/pdf/ViewAdvanceExpense";
 import ProductClaim from "./pages/expenses/product_claim/ProductClaim";
@@ -270,6 +273,9 @@ const App = () => {
 
             <Route path="/customer/farmers" element={<Farmer />} />
             <Route path="/customer/farmers/create" element={<FarmerCreate />} />
+
+            <Route path="/customer/contact" element={<CustomerContactList />} />
+            <Route path="/customer/contact/create" element={<CustomerContactFrom />} />
 
             {/* Setting Route */}
             <Route path="/setting/role" element={<SettingRole />} />
