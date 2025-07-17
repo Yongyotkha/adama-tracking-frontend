@@ -9,6 +9,7 @@ const LineOARoute = () => {
   const [isLineLoggedIn, setIsLineLoggedIn] = useState(false);
   const [lineProfile, setLineProfile] = useState(null);
   const queryParams = new URLSearchParams(location.search);
+  
   useEffect(() => {
     const initLIFF = async () => {
       try {
