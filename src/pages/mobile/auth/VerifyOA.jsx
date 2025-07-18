@@ -40,7 +40,6 @@ export default function VerifyOA() {
       },
       onCancel() {
         console.log('contact admin');
-        navigate("/mobile/otp");
         navigate("/mobile/contact-admin");
       },
     });
@@ -141,7 +140,11 @@ export default function VerifyOA() {
       </Form>
 
       <div className="text-center mt-10">
-        <Text className="text-green-600 text-sm cursor-pointer hover:underline sarabun-font">
+        <Text
+          onClick={() => {
+            navigate("/mobile/contact-admin");
+          }}
+          className="text-green-600 text-sm cursor-pointer hover:underline sarabun-font">
           เปลี่ยนหมายเลขโทรศัพท์ของคุณหรือ ลืมหมายเลขของคุณ?
         </Text>
       </div>
