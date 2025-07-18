@@ -36,14 +36,27 @@ export default function VerifyOA() {
       okText: btn_ok,
       cancelText: btn_cancel,
       onOk() {
-        console.log('ตกลงแล้ว');
+        console.log('ok cancel');
       },
       onCancel() {
-        console.log('ยกเลิกแล้ว');
+        console.log('contact admin');
+        navigate("/mobile/otp");
+        navigate("/mobile/contact-admin");
       },
     });
   };
 
+  const showCancel = (title, content, btn_ok) => {
+    Modal.confirm({
+      title,
+      content,
+      okText: btn_ok,
+      cancelButtonProps: { style: { display: 'none' } }, // ซ่อนปุ่ม Cancel
+      onOk() {
+        // Modal.confirm สร้าง modal แบบ one-time ดังนั้นไม่ต้อง destroy เอง
+      },
+    });
+  };
   const onFinish = () => {
     const formattedPhoneNumber = formatPhoneNumber(phone_number);
     console.log('formattedPhoneNumber : ', formattedPhoneNumber)
@@ -61,9 +74,12 @@ export default function VerifyOA() {
           const otpRefNo = response.data.data.otp_ref_no;
           const message_id = response.data.data.message_id;
           navigate("/mobile/otp", { state: { otpRefNo, message_id } });
-        } else if (response.status === 213) {
+        } else if (response.status === 201) {
           console.log('register success')
           showConfirm('คุณมีการลงทะเบียนแล้ว', 'กรุณากรอกเบอร์โทรศัพท์ที่เคยมีการลงทะเบียนแล้วหากคุณลืมหมายเลขให้ติดต่อแจ้งเจ้าหน้าที่', 'ตกลง', 'ติดต่อเจ้าหน้าที่');
+        } else if (response.status === 202) {
+          console.log('register success')
+          showCancel('คุณมีการลงทะเบียนแล้ว', 'ไม่พบข้อมูลของคุณในระบบ', 'ปิด');
         }
       })
       .catch((error) => {
