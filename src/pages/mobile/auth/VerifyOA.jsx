@@ -26,7 +26,12 @@ export default function VerifyOA() {
 
   const { lineProfile } = useOutletContext() || {};
   useEffect(() => {
-    console.log("lineProfile", lineProfile);
+    console.log("lineProfile xxx : ", lineProfile);
+    if (lineProfile) {
+      localStorage.setItem('lineDisplayName', lineProfile.displayName);
+      localStorage.setItem('lineUserId', lineProfile.userId);
+    }
+
   }, []);
 
   const showConfirm = (title, content, btn_ok, btn_cancel) => {

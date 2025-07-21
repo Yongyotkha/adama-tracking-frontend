@@ -20,6 +20,13 @@ export default function ContactAdmin() {
 
   // ดึงข้อมูลประเภทการติดต่อจาก API
   useEffect(() => {
+
+    const lineDisplayName = localStorage.setItem('lineDisplayName');
+    const lineUserId = localStorage.setItem('lineUserId');
+    console.log('lineDisplayName : ',lineDisplayName)
+    console.log('lineUserId : ',lineUserId)
+
+
     const fetchContactTypes = async () => {
       setLoading(true);
       try {
