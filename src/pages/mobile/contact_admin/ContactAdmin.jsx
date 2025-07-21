@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useContext, useEffect, useState } from "react";
 import { Form, Input, Select, Button, message } from "antd";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { useNavigate } from "react-router-dom";
@@ -7,10 +7,11 @@ import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import "./../css/FormAnt.css"; // ✅ Import CSS
-
+import { AuthContext } from "../../../contexts/AuthContext";
 const { Option } = Select;
 
 export default function ContactAdmin() {
+  const { showNotification, userInfo } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
   const [contactTypes, setContactTypes] = useState([]); // เก็บค่าจาก API
@@ -21,10 +22,10 @@ export default function ContactAdmin() {
   // ดึงข้อมูลประเภทการติดต่อจาก API
   useEffect(() => {
 
-    const lineDisplayName = localStorage.setItem('lineDisplayName');
-    const lineUserId = localStorage.setItem('lineUserId');
-    console.log('lineDisplayName : ',lineDisplayName)
-    console.log('lineUserId : ',lineUserId)
+    const lineDisplayName = localStorage.getItem('lineDisplayName');
+    const lineUserId = localStorage.getItem('lineUserId');
+    console.log('lineDisplayName : ', lineDisplayName)
+    console.log('lineUserId : ', lineUserId)
 
 
     const fetchContactTypes = async () => {
@@ -54,14 +55,14 @@ export default function ContactAdmin() {
       platform: "web",
       shop_name: values.shopName || "-",
       contact_type_id: values.contactType || 0,
-      contact_type_name:
-        contactTypes.find((type) => type.id === values.contactType)?.name || "N/A",
+      contact_type_name: contactTypes.find((type) => type.id === values.contactType)?.name || "N/A",
       first_name: values.firstName || "-",
       last_name: values.lastName || "-",
       phone: values.phoneNumber || "-",
       remark: values.remark || "-",
-      line_id: values.line_id || "line_id", // Replace with real LINE ID if available
-      line_name: values.line_name || "line_name",
+      user_id: userInfo.id,
+      line_id: localStorage.getItem('lineUserId') || "-", // Replace with real LINE ID if available
+      line_name: localStorage.getItem('lineDisplayName') || "-",
       line_url: values.line_url || "line_url",
     };
   };
