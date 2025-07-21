@@ -25,11 +25,11 @@ export default function RegisterOA() {
   useEffect(() => {
     console.log("lineProfile", lineProfile);
 
-    // setFormData({
-    //   ...formData,
-    //   line_id_token: lineProfile.userId,
-    //   line_name: lineProfile.displayName,
-    // });
+    setFormData({
+      ...formData,
+      line_id_token: lineProfile.userId,
+      line_name: lineProfile.displayName,
+    });
   }, [lineProfile]);
 
   // const [formData, setFormData] = useState(location.state || {});
