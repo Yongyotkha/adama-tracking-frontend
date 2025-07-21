@@ -31,6 +31,7 @@ const LineOARoute = () => {
 
           try {
             const profile = await liff.getProfile();
+            console.log('profile : ',profile)
             setLineProfile(profile);
             setIsLineLoggedIn(false);
           } catch (profileError) {

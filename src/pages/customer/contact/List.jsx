@@ -70,11 +70,11 @@ export default function SubDealerList() {
 
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
-    { title: "Shop", width: 200, dataIndex: "shop_name", align: "left" },
-    { title: "Name", width: 200, dataIndex: "first_name", align: "left" },
-    { title: "Phone", width: 200, dataIndex: "phone", align: "left" },
-    { title: "Type", width: 300, dataIndex: "contact_type_name", align: "left" },
-    { title: "Create", width: 300, dataIndex: "created_at", align: "center" },
+    { title: "Shop Name", width: 200, dataIndex: "shop_name", align: "left" },
+    { title: "Customer Name", width: 200, dataIndex: "first_name", align: "left" },
+    { title: "Contact Number", width: 200, dataIndex: "phone", align: "left" },
+    { title: "Contact Type", width: 300, dataIndex: "contact_type_name", align: "left" },
+    { title: "Contact Create", width: 300, dataIndex: "created_at", align: "center" },
     { title: "Status", width: 300, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
@@ -182,7 +182,7 @@ export default function SubDealerList() {
           ),
         }));
 
-        console.log('newDataSource : ',newDataSource)
+        console.log('newDataSource : ', newDataSource)
         setDataSource(newDataSource);
         setTableParams((prev) => ({
           ...prev,
@@ -394,7 +394,7 @@ export default function SubDealerList() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Customer Contact</div>
+        <div className="title-page">Customer Support</div>
         <ActionButton
           mode="create"
           text="Create"
