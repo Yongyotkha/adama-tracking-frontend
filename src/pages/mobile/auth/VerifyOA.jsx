@@ -75,15 +75,16 @@ export default function VerifyOA() {
       )
       .then((response) => {
         if (response.status === 200) {
-          const otpRefNo = response.data.data.otp_ref_no;
-          const message_id = response.data.data.message_id;
-          navigate("/mobile/otp", { state: { otpRefNo, message_id } });
+          console.log('register success')
+          showCancel('คุณมีการลงทะเบียนแล้ว', 'ไม่พบข้อมูลของคุณในระบบ', 'ปิด');
+
         } else if (response.status === 201) {
           console.log('register success')
           showConfirm('คุณมีการลงทะเบียนแล้ว', 'กรุณากรอกเบอร์โทรศัพท์ที่เคยมีการลงทะเบียนแล้วหากคุณลืมหมายเลขให้ติดต่อแจ้งเจ้าหน้าที่', 'ตกลง', 'ติดต่อเจ้าหน้าที่');
         } else if (response.status === 202) {
-          console.log('register success')
-          showCancel('คุณมีการลงทะเบียนแล้ว', 'ไม่พบข้อมูลของคุณในระบบ', 'ปิด');
+          const otpRefNo = response.data.data.otp_ref_no;
+          const message_id = response.data.data.message_id;
+          navigate("/mobile/otp", { state: { otpRefNo, message_id } });
         }
       })
       .catch((error) => {
