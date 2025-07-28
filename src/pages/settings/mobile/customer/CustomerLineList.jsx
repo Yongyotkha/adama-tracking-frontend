@@ -120,7 +120,7 @@ export default function CustomerLineList() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Customer List</div>
+        <div className="title-page">Customer Support List</div>
         <ActionButton mode="create" text="Create" onClick={() => navigate("create")} />
       </div>
       <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />

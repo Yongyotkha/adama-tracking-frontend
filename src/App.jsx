@@ -303,18 +303,18 @@ const App = () => {
             <Route path="/setting/line/target-group/create" element={<CreatePromotionLine />} />
             {/* <Route path="/setting/line/promotion/edit" element={<EditPromotion />} /> */}
 
-            <Route path="/setting/line/customer-support-list" element={<CustomerLineList />} />
-            <Route path="/setting/line/register-customer" element={<RegisteredCustomerList />} />
-            <Route path="/setting/line/register-customer/detail" element={<RegisteredCustomerDetail />} />
-            <Route path="/setting/line/customer-support/create" element={<CreateCustomerLine />} />
-            {/* <Route path="/setting/line/customer/edit" element={<EditCustomerLine />} /> */}
+            <Route path="/points/line/customer-support-list" element={<CustomerLineList />} />
+            <Route path="/points/line/register-customer-list" element={<RegisteredCustomerList />} />
+            <Route path="/points/line/register-customer/detail" element={<RegisteredCustomerDetail />} />
+            <Route path="/points/line/customer-support/create" element={<CreateCustomerLine />} />
+            {/* <Route path="/points/line/customer/edit" element={<EditCustomerLine />} /> */}
 
-            <Route path="/setting/line/expire-point" element={<ExpirePointList />} />
+            <Route path="/points/line/expire-point" element={<ExpirePointList />} />
             <Route path="/setting/line/point-campaign" element={<ManageNewsList />} />
             <Route path="/setting/line/point-campaign/create" element={<CreateManageNews />} />
             <Route path="/setting/line/reward-campaign" element={<ManagePromotionList />} />
             <Route path="/setting/line/reward-campaign/create" element={<CreateManagePromotion />} />
-            <Route path="/setting/line/redeem-reward-list" element={<RedeemList />} />
+            <Route path="/points/line/redeem-reward-list" element={<RedeemList />} />
             <Route path="/setting/line/redeem-request" element={<RedeemRequestList />} />
             <Route path="/setting/line/redeem-product" element={<RedeemProduct />} />
             <Route path="/setting/line/request-purchase" element={<RewardProductList />} />
