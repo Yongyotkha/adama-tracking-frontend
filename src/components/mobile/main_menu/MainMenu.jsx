@@ -6,7 +6,7 @@ const MainMenu = () => {
     {
       icon: "/img/icons/scan-collect-oa.png",
       text: "สแกนเพื่อสะสมคะแนน",
-      url: "/mobile/scan-collect",
+      url: "/mobile/collect-points",
     },
     {
       icon: "/img/icons/redeem-oa.png",
