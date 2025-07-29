@@ -20,7 +20,7 @@ export default function OtpOA() {
     useContext(AuthContext);
   const { Title, Text } = Typography;
   const [messageId, setmessageId] = useState(location?.state?.message_id);
-
+ console.log("messageId:", messageId);
   const otp_ref_no = location?.state?.otpRefNo;
   const phone_number = location?.state?.phone_number;
 

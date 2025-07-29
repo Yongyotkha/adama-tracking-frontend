@@ -9,7 +9,7 @@ const LineOARoute = () => {
   const [isLineLoggedIn, setIsLineLoggedIn] = useState(false);
   const [lineProfile, setLineProfile] = useState(null);
   const queryParams = new URLSearchParams(location.search);
-  
+
   useEffect(() => {
     const initLIFF = async () => {
       //
@@ -31,7 +31,7 @@ const LineOARoute = () => {
 
           try {
             const profile = await liff.getProfile();
-            console.log('profile : ',profile)
+            console.log('profile line liff : ', profile)
             setLineProfile(profile);
             setIsLineLoggedIn(false);
           } catch (profileError) {
@@ -60,13 +60,57 @@ const LineOARoute = () => {
 };
 
 const LinePrivateRoute = () => {
-  const { userInfo } = useContext(AuthContext);
+  const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const navigate = useNavigate();
 
-  if (userInfo) {
-    return <Outlet />;
+  useEffect(() => {
+    const checkLineLogin = async () => {
+      try {
+        await liff.init({
+          liffId: "2007785075-3Yjw7OdO",
+          withLoginOnExternalBrowser: true,
+        });
+
+        if (!liff.isLoggedIn()) {
+          liff.login();
+        } else {
+          const accessToken = liff.getAccessToken();
+          if (!accessToken) {
+            liff.login();
+            return;
+          }
+
+          const lineProfile = await liff.getProfile();
+          if (lineProfile) {
+            setProfile(lineProfile);
+            setIsLoggedIn(true);
+          } else {
+            setIsLoggedIn(false);
+          }
+        }
+      } catch (err) {
+        console.error("LIFF error:", err);
+        setIsLoggedIn(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkLineLogin();
+  }, []);
+
+  if (loading) {
+    return <MessageLayout loading={true} />;
+  }
+
+  if (isLoggedIn && profile) {
+    return <Outlet context={{ lineProfile: profile }} />;
   } else {
     return <Navigate to="/mobile/verify" />;
   }
 };
+
 
 export { LineOARoute, LinePrivateRoute };
