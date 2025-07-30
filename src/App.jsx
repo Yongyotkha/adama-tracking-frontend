@@ -110,7 +110,7 @@ import CustomerStockView from "./pages/stock/customer-stock/CustomerStockView";
 import CustomerStockCreate from "./pages/stock/customer-stock/CustomerStockCreate";
 import CustomerStock from "./pages/stock/customer-stock/CustomerStock";
 
-import ScanCollectPoint from "./pages/mobile/scan_collect/ScanCollectPoint";
+import CollectPoints from "./pages/mobile/scan_collect/CollectPoints";
 import RedeemPoint from "./pages/mobile/redeem_point/RedeemPoint";
 import RedeemPointDetail from "./pages/mobile/redeem_point/RedeemPointDetail";
 import Promotion from "./pages/mobile/promotion/Promotion";
@@ -338,7 +338,7 @@ const App = () => {
 
           </Route>
 
-          <Route element={<LineOARoute />}>
+          {/* <Route element={<LineOARoute />}> */}
 
             <Route path="/mobile/login" element={< CheckLogin />} />
 
@@ -368,9 +368,9 @@ const App = () => {
               <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
             </Route>
 
-          </Route>
+          {/* </Route> */}
 
-          <Route path="/mobile/collect-points" element={< ScanCollectPoint />} />
+          <Route path="/mobile/collect-points" element={< CollectPoints />} />
           <Route path="/mobile/take-photo" element={< TakePhoto />} />
 
           {/* Error Route */}
