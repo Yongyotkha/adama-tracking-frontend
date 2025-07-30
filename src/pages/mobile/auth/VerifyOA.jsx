@@ -78,7 +78,7 @@ export default function VerifyOA() {
         if (response.status === 200) {
           if (response.data.step_number == 0) {
             showCancel('คุณมีการลงทะเบียนแล้ว', 'ไม่พบข้อมูลของคุณในระบบ', 'ปิด');
-          } else if (response.data.step_number == 1) {
+          } else if (response.data.step_number == 1 || response.data.step_number == 4) {
 
             const otpRefNo = response.data.data.data.otp_ref_no;
             const message_id = response.data.data.data.message_id;
@@ -88,9 +88,7 @@ export default function VerifyOA() {
             showConfirm('คุณมีการลงทะเบียนแล้ว', 'กรุณากรอกเบอร์โทรศัพท์ที่เคยมีการลงทะเบียนแล้วหากคุณลืมหมายเลขให้ติดต่อแจ้งเจ้าหน้าที่', 'ตกลง', 'ติดต่อเจ้าหน้าที่');
           } else if (response.data.step_number == 3) {
 
-          } else if (response.data.step_number == 4) {
-
-          }
+          } 
         }
 
         if (response.status === 200) {

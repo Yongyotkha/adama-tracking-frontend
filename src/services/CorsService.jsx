@@ -27,14 +27,18 @@ axiosInstance.interceptors.request.use(
 );
 
 const handleUnauthorized = (pathname) => {
+  console.log('pathname : ', pathname)
   if (
     pathname === "/login" ||
     pathname === "/mobile/verify" ||
     pathname === "/mobile/login" ||
     pathname === "/mobile/register" ||
+    // pathname === "/mobile/main" ||
     pathname === "/mobile/contact-admin" ||
     pathname === "mobile/otp"
   ) {
+
+
   } else {
     if (liff.isLoggedIn()) {
       window.location.href = "/mobile/verify";
