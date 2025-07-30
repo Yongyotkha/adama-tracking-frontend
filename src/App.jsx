@@ -110,7 +110,7 @@ import CustomerStockView from "./pages/stock/customer-stock/CustomerStockView";
 import CustomerStockCreate from "./pages/stock/customer-stock/CustomerStockCreate";
 import CustomerStock from "./pages/stock/customer-stock/CustomerStock";
 
-import ScanCollectPoint from "./pages/mobile/scan_collect/ScanCollectPoint";
+import CollectPoints from "./pages/mobile/scan_collect/CollectPoints";
 import RedeemPoint from "./pages/mobile/redeem_point/RedeemPoint";
 import RedeemPointDetail from "./pages/mobile/redeem_point/RedeemPointDetail";
 import Promotion from "./pages/mobile/promotion/Promotion";
@@ -299,26 +299,26 @@ const App = () => {
             <Route path="/setting/material/:mode" element={<ActionMaterial />} />
 
             {/* Line OA Settings */}
-            <Route path="/setting/line/promotion" element={<PromotionLineList />} />
-            <Route path="/setting/line/promotion/create" element={<CreatePromotionLine />} />
+            <Route path="/setting/line/target-group" element={<PromotionLineList />} />
+            <Route path="/setting/line/target-group/create" element={<CreatePromotionLine />} />
             {/* <Route path="/setting/line/promotion/edit" element={<EditPromotion />} /> */}
 
-            <Route path="/setting/line/customer" element={<CustomerLineList />} />
-            <Route path="/setting/line/register-customer" element={<RegisteredCustomerList />} />
-            <Route path="/setting/line/register-customer/detail" element={<RegisteredCustomerDetail />} />
-            <Route path="/setting/line/customer/create" element={<CreateCustomerLine />} />
-            {/* <Route path="/setting/line/customer/edit" element={<EditCustomerLine />} /> */}
+            <Route path="/points/line/customer-support-list" element={<CustomerLineList />} />
+            <Route path="/points/line/register-customer-list" element={<RegisteredCustomerList />} />
+            <Route path="/points/line/register-customer/detail" element={<RegisteredCustomerDetail />} />
+            <Route path="/points/line/customer-support/create" element={<CreateCustomerLine />} />
+            {/* <Route path="/points/line/customer/edit" element={<EditCustomerLine />} /> */}
 
-            <Route path="/setting/line/expire-point" element={<ExpirePointList />} />
-            <Route path="/setting/line/manage-news" element={<ManageNewsList />} />
-            <Route path="/setting/line/manage-news/create" element={<CreateManageNews />} />
-            <Route path="/setting/line/manage-promotion" element={<ManagePromotionList />} />
-            <Route path="/setting/line/manage-promotion/create" element={<CreateManagePromotion />} />
-            <Route path="/setting/line/redeem-list" element={<RedeemList />} />
+            <Route path="/points/line/expire-point" element={<ExpirePointList />} />
+            <Route path="/setting/line/point-campaign" element={<ManageNewsList />} />
+            <Route path="/setting/line/point-campaign/create" element={<CreateManageNews />} />
+            <Route path="/setting/line/reward-campaign" element={<ManagePromotionList />} />
+            <Route path="/setting/line/reward-campaign/create" element={<CreateManagePromotion />} />
+            <Route path="/points/line/redeem-reward-list" element={<RedeemList />} />
             <Route path="/setting/line/redeem-request" element={<RedeemRequestList />} />
             <Route path="/setting/line/redeem-product" element={<RedeemProduct />} />
-            <Route path="/setting/line/reward-product" element={<RewardProductList />} />
-            <Route path="/setting/line/reward-product/create" element={<RewardProductCreate />} />
+            <Route path="/setting/line/request-purchase" element={<RewardProductList />} />
+            <Route path="/setting/line/request-purchase/create" element={<RewardProductCreate />} />
 
             <Route path="/setting/mileage" element={<MileageManagement />} />
             <Route path="/setting/mileage/edit" element={<EditMileage />} />
@@ -338,7 +338,7 @@ const App = () => {
 
           </Route>
 
-          <Route element={<LineOARoute />}>
+          {/* <Route element={<LineOARoute />}> */}
 
             <Route path="/mobile/login" element={< CheckLogin />} />
 
@@ -368,9 +368,9 @@ const App = () => {
               <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
             </Route>
 
-          </Route>
+          {/* </Route> */}
 
-          <Route path="/mobile/scan-collect" element={< ScanCollectPoint />} />
+          <Route path="/mobile/collect-points" element={< CollectPoints />} />
           <Route path="/mobile/take-photo" element={< TakePhoto />} />
 
           {/* Error Route */}

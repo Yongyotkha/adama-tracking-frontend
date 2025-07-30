@@ -16,7 +16,7 @@ export default function CreateCustomerLine() {
     console.log("Submitted Values:", values);
     setTimeout(() => {
       setLoading(false);
-      navigate("/setting/line/customer");
+      navigate("/points/line/customer-support-list");
     }, 1000);
   };
 

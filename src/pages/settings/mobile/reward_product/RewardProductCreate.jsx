@@ -85,7 +85,7 @@ export default function RewardProductCreate() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Create Reward Product</div>
+        <div className="title-page">Create Request Purchase</div>
       </div>
 
       <FormCustom

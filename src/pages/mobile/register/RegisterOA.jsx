@@ -251,158 +251,193 @@ export default function RegisterOA() {
           <form className="space-y-4 sarabun-font">
             {/* ชื่อร้าน */}
             <div>
-              <label className="text-gray-500 sarabun-font">ชื่อร้าน</label>
+              <label className="text-gray-600 font-medium sarabun-font">
+                ชื่อร้าน<span className="text-red-500">*</span>
+              </label>
               <Input
-                className="mt-1 sarabun-font text-[#A19793]"
+                className="mt-1 rounded-md h-10 sarabun-font"
                 value={formData.shop_name}
                 onChange={handleInputChange}
                 name="shop_name"
-              />
-            </div>
-
-            {/* รหัสร้าน */}
-            <div>
-              <label className="text-gray-500 sarabun-font">รหัสร้าน</label>
-              <Input
-                className="mt-1 sarabun-font text-[#A19793]"
-                value={formData.shop_code}
-                onChange={handleInputChange}
-                name="shop_code"
+                placeholder="ชื่อร้าน"
               />
             </div>
 
             {/* ชื่อ */}
             <div>
-              <label className="text-gray-500 sarabun-font">ชื่อ<span className="text-red-500">*</span></label>
+              <label className="text-gray-600 font-medium sarabun-font">
+                ชื่อ<span className="text-red-500">*</span>
+              </label>
               <Input
-                className="mt-1 sarabun-font text-[#A19793]"
+                className="mt-1 rounded-md h-10 sarabun-font"
                 value={formData.first_name}
                 onChange={handleInputChange}
                 name="first_name"
+                placeholder="ชื่อ"
               />
             </div>
 
             {/* นามสกุล */}
             <div>
-              <label className="text-gray-500 sarabun-font">นามสกุล<span className="text-red-500">*</span></label>
+              <label className="text-gray-600 font-medium sarabun-font">
+                นามสกุล<span className="text-red-500">*</span>
+              </label>
               <Input
-                className="mt-1 sarabun-font text-[#A19793]"
+                className="mt-1 rounded-md h-10 sarabun-font"
                 value={formData.last_name}
                 name="last_name"
                 onChange={handleInputChange}
-
+                placeholder="นามสกุล"
               />
             </div>
 
             {/* วันเดือนปีเกิด */}
             <div>
-              <label className="text-gray-500 sarabun-font">วันเดือนปีเกิด</label>
-              <div className="flex gap-2">
-                {/* Day Select */}
+              <label className="text-gray-600 font-medium sarabun-font">
+                วันเกิด<span className="text-red-500">*</span>
+              </label>
+              <div className="flex gap-2 mt-1">
                 <Select
-                  className="sarabun-font flex-1 text-center"
+                  className="rounded-md flex-1 text-center h-10 sarabun-font"
+                  placeholder="วัน"
                   value={formData.birth_date_day || ""}
                   onChange={(value) => handleDateChange("birth_date_day", value)}
                 >
                   {Array.from({ length: getDaysInMonth(selectedMonth, selectedYear) }, (_, i) => (
-                    <Option key={i + 1} className="sarabun-font" value={i + 1}>
+                    <Option key={i + 1} value={i + 1} className="sarabun-font">
                       {i + 1}
                     </Option>
                   ))}
                 </Select>
 
-                {/* Month Select */}
                 <Select
-                  className="sarabun-font flex-1 text-center"
+                  className="rounded-md flex-1 text-center h-10 sarabun-font"
+                  placeholder="เดือน"
                   value={formData.birth_date_month || ""}
                   onChange={(value) => handleDateChange("birth_date_month", value)}
                 >
-                  <Option className="sarabun-font" value="1">January</Option>
-                  <Option className="sarabun-font" value="2">February</Option>
-                  <Option className="sarabun-font" value="3">March</Option>
-                  <Option className="sarabun-font" value="4">April</Option>
-                  <Option className="sarabun-font" value="5">May</Option>
-                  <Option className="sarabun-font" value="6">June</Option>
-                  <Option className="sarabun-font" value="7">July</Option>
-                  <Option className="sarabun-font" value="8">August</Option>
-                  <Option className="sarabun-font" value="9">September</Option>
-                  <Option className="sarabun-font" value="10">October</Option>
-                  <Option className="sarabun-font" value="11">November</Option>
-                  <Option className="sarabun-font" value="12">December</Option>
+                  {[
+                    "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+                    "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
+                  ].map((m, i) => (
+                    <Option key={i + 1} value={i + 1} className="sarabun-font">
+                      {m}
+                    </Option>
+                  ))}
                 </Select>
 
-                {/* Year Input */}
                 <Input
-                  className="sarabun-font flex-1 text-center"
+                  className="rounded-md flex-1 text-center h-10 sarabun-font"
                   type="number"
+                  placeholder="ปี"
                   value={formData.birth_date_year || ""}
                   onChange={(e) => handleDateChange("birth_date_year", e.target.value)}
                 />
               </div>
             </div>
 
-            {/* เบอร์โทร */}
+            {/* เบอร์โทรศัพท์มือถือ */}
             <div>
-              <label className="text-gray-500 sarabun-font">เบอร์โทร<span className="text-red-500">*</span></label>
+              <label className="text-gray-600 font-medium sarabun-font">
+                เบอร์โทรศัพท์มือถือ<span className="text-red-500">*</span>
+              </label>
               <Input
-                className="mt-1 sarabun-font text-[#A19793]"
+                className="mt-1 rounded-md h-10 sarabun-font"
                 value={formData.phone_number}
                 name="phone_number"
                 onChange={handleInputChange}
-              />
-            </div>
-
-            {/* อีเมล */}
-            <div>
-              <label className="text-gray-500 sarabun-font">อีเมล</label>
-              <Input
-                className="mt-1 sarabun-font text-[#A19793]"
-                value={formData.email}
-                name="email"
-                onChange={handleInputChange}
+                placeholder="เบอร์มือถือ"
               />
             </div>
 
             {/* ไลน์ไอดี */}
             <div>
-              <label className="text-gray-500 sarabun-font">ไลน์ไอดี</label>
+              <label className="text-gray-600 font-medium sarabun-font">ไลน์ไอดี</label>
               <Input
-                className="mt-1 sarabun-font text-[#A19793]"
+                className="mt-1 rounded-md h-10 sarabun-font"
                 value={formData.line_id}
                 name="line_id"
                 onChange={handleInputChange}
-
+                placeholder="ระบุ"
               />
             </div>
 
             {/* ที่อยู่ */}
             <div>
-              <label className="text-gray-500 sarabun-font">ที่อยู่</label>
+              <label className="text-gray-600 font-medium sarabun-font">
+                ที่อยู่<span className="text-red-500">*</span>
+              </label>
               <Input.TextArea
-                className="mt-1 sarabun-font text-[#A19793]"
+                className="mt-1 rounded-md sarabun-font"
                 rows={2}
                 value={formData.address}
                 name="address"
                 onChange={handleInputChange}
+                placeholder="ระบุที่อยู่"
               />
             </div>
 
-            {/* ประเภทของร้านค้า */}
-            <div>
-              <label className="text-gray-500 sarabun-font">ประเภทของร้านค้า</label>
-              <Select
-                className="mt-1 sarabun-font text-[#A19793] w-full"
-                value={formData.shop_type || ""}
-                onChange={(value) => handleDateChange("shop_type", value)}
-              >
-                <Option value="sub_dealer">Sub Dealer</Option>
-                <Option value="retail">Retail</Option>
-                <Option value="wholesale">Wholesale</Option>
-              </Select>
+            {/* จังหวัด / อำเภอ */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-gray-600 font-medium sarabun-font">
+                  จังหวัด<span className="text-red-500">*</span>
+                </label>
+                <Select
+                  className="w-full rounded-md h-10 sarabun-font"
+                  value={formData.province}
+                  onChange={(value) => handleDateChange("province", value)}
+                  placeholder="เลือกจังหวัด"
+                >
+                  <Option value="จันทบุรี" className="sarabun-font">จันทบุรี</Option>
+                </Select>
+              </div>
+              <div>
+                <label className="text-gray-600 font-medium sarabun-font">
+                  เขต/อำเภอ<span className="text-red-500">*</span>
+                </label>
+                <Select
+                  className="w-full rounded-md h-10 sarabun-font"
+                  value={formData.district}
+                  onChange={(value) => handleDateChange("district", value)}
+                  placeholder="เลือกอำเภอ"
+                >
+                  <Option value="มะขาม" className="sarabun-font">มะขาม</Option>
+                </Select>
+              </div>
             </div>
 
-            {/* Terms & Conditions */}
-            <div className="mt-4">
+            {/* ตำบล / รหัสไปรษณีย์ */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-gray-600 font-medium sarabun-font">
+                  แขวง/ตำบล<span className="text-red-500">*</span>
+                </label>
+                <Select
+                  className="w-full rounded-md h-10 sarabun-font"
+                  value={formData.sub_district}
+                  onChange={(value) => handleDateChange("sub_district", value)}
+                  placeholder="เลือกตำบล"
+                >
+                  <Option value="มะขาม" className="sarabun-font">มะขาม</Option>
+                </Select>
+              </div>
+              <div>
+                <label className="text-gray-600 font-medium sarabun-font">
+                  รหัสไปรษณีย์<span className="text-red-500">*</span>
+                </label>
+                <Input
+                  className="w-full rounded-md h-10 sarabun-font"
+                  value={formData.zip_code}
+                  name="zip_code"
+                  onChange={handleInputChange}
+                  placeholder="รหัสไปรษณีย์"
+                />
+              </div>
+            </div>
+
+            {/* Checkbox */}
+            <div>
               <Checkbox
                 className={`sarabun-font ${isChecked ? "text-[#00783F]" : "text-[#A19793]"}`}
                 checked={isChecked}
@@ -414,6 +449,8 @@ export default function RegisterOA() {
               </Checkbox>
             </div>
           </form>
+
+
         </div>
 
         {/* Action Buttons */}
@@ -442,12 +479,16 @@ export default function RegisterOA() {
       {/* Success DynamicPopUp */}
       <DynamicPopUp
         visible={isSuccessModalVisible}
-        onConfirm={() => setIsSuccessModalVisible(false)}
-        src="/logo/Logo-Adama-Smile-2-New 1.png"
-        text={`<p class='text-[#978B87] text-center sarabun-font'>คุณได้ลงทะเบียนเรียบร้อยแล้ว</p>
-         <p class='text-[#009845] text-center sarabun-font font-semibold'>${formData.registrationCode || ""}</p>`}
-        confirmText="ตกลง"
+        onConfirm={() => {
+          setIsSuccessModalVisible(false);
+          navigate("/mobile/main"); // ไปหน้าใช้งาน
+        }}
+        src="/img/icons/check-circle.png"
+        text={`<p class='text-[#8A8A8A] text-center sarabun-font'>ยินดีด้วย<br/>คุณลงทะเบียนสำเร็จ ได้รับ Welcome Point</p>
+         <p class='text-[#009845] text-center text-[24px] font-bold sarabun-font'>100 Point</p>`}
+        confirmText="เริ่มใช้งานกันเลย !"
       />
+
 
       <DynamicPopUp
         visible={isFailModalVisible}

@@ -5,8 +5,8 @@ const MainMenu = () => {
   const menuItems = [
     {
       icon: "/img/icons/scan-collect-oa.png",
-      text: "สแกนเพื่อสะสมคะแนน",
-      url: "/mobile/scan-collect",
+      text: "รับสินค้าเพื่อสะสมคะแนน",
+      url: "/mobile/collect-points",
     },
     {
       icon: "/img/icons/redeem-oa.png",

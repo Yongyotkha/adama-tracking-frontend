@@ -3,17 +3,21 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { Spin } from "antd";
 import { AuthContext } from "../../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const UserPointsSection = () => {
   const [pointsData, setPointsData] = useState(null);
   const [loading, setLoading] = useState(false);
   const { userInfo } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathProfileDetail, { id: userInfo.id });
+        const response = await useServiceAPI.get(paths.pathProfileDetail, {
+          id: userInfo.id,
+        });
 
         if (response.status === 200 && response.result) {
           setPointsData({
@@ -41,7 +45,10 @@ const UserPointsSection = () => {
   return (
     <div className="w-full max-w-xs flex flex-col items-center mt-4">
       <div
-        className="bg-[url('/img/bg-point.png')] bg-[length:100%_100%] bg-center bg-no-repeat text-white rounded-full flex items-center justify-center aspect-[1573/256] w-full"
+        role="button"
+        tabIndex={0}
+        onClick={() => navigate("/mobile/order-history")}
+        className="bg-[url('/img/bg-point.png')] bg-[length:100%_100%] bg-center bg-no-repeat text-white rounded-full flex items-center justify-center aspect-[1573/256] w-full cursor-pointer hover:opacity-90 transition"
       >
         <span className="sarabun-font text-md">
           คุณมี {pointsData.currentPoints} คะแนน

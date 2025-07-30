@@ -99,7 +99,7 @@ export default function RedeemPointDetail() {
             <button
               onClick={() => {
                 const isAndroid = /Android/i.test(navigator.userAgent);
-                const url = "adama.mtsc.co.th/mobile/scan-collect"; // ❌ ไม่มี https://
+                const url = "adama.mtsc.co.th/mobile/collect-points"; // ❌ ไม่มี https://
 
                 if (isAndroid) {
                   window.location.href = `intent://${url}#Intent;scheme=https;package=com.android.chrome;end;`;
