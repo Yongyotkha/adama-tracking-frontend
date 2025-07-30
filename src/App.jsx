@@ -110,7 +110,7 @@ import CustomerStockView from "./pages/stock/customer-stock/CustomerStockView";
 import CustomerStockCreate from "./pages/stock/customer-stock/CustomerStockCreate";
 import CustomerStock from "./pages/stock/customer-stock/CustomerStock";
 
-import CollectPoints from "./pages/mobile/scan_collect/CollectPoints";
+import CollectPoints from "./pages/mobile/collect_points/CollectPoints";
 import RedeemPoint from "./pages/mobile/redeem_point/RedeemPoint";
 import RedeemPointDetail from "./pages/mobile/redeem_point/RedeemPointDetail";
 import Promotion from "./pages/mobile/promotion/Promotion";
@@ -150,6 +150,7 @@ import MileageManagement from "./pages/settings/mileage/MileageManagement";
 import EditMileage from "./pages/settings/mileage/EditMileage";
 import TranAddress from "./pages/mobile/user/settings/tran_address/TranAddress";
 import CreateTranAddress from "./pages/mobile/user/settings/tran_address/CreateTranAddress";
+import CollectPointsAdvance from "./pages/mobile/collect_points/CollectPointsAdvance";
 
 
 const App = () => {
@@ -340,37 +341,38 @@ const App = () => {
 
           {/* <Route element={<LineOARoute />}> */}
 
-            <Route path="/mobile/login" element={< CheckLogin />} />
+          <Route path="/mobile/login" element={< CheckLogin />} />
 
-            <Route path="/mobile/verify" element={<VerifyOA />} />
-            <Route path="/mobile/otp" element={<OtpOA />} />
-            <Route path="/mobile/contact-admin" element={< ContactAdmin />} />
-            <Route path="/mobile/contact-us" element={< ContactUs />} />
-            <Route path="/mobile/tran-address" element={< TranAddress />} />
-            <Route path="/mobile/tran-address/create" element={< CreateTranAddress />} />
-            <Route path="/mobile/privacy-policy" element={< PrivacyPolicy />} />
-            <Route path="/mobile/terms-conditions" element={< TermsConditions />} />
-            <Route path="/mobile/faq" element={< FaqOA />} />
-            <Route path="/mobile/register" element={< RegisterOA />} />
+          <Route path="/mobile/verify" element={<VerifyOA />} />
+          <Route path="/mobile/otp" element={<OtpOA />} />
+          <Route path="/mobile/contact-admin" element={< ContactAdmin />} />
+          <Route path="/mobile/contact-us" element={< ContactUs />} />
+          <Route path="/mobile/tran-address" element={< TranAddress />} />
+          <Route path="/mobile/tran-address/create" element={< CreateTranAddress />} />
+          <Route path="/mobile/privacy-policy" element={< PrivacyPolicy />} />
+          <Route path="/mobile/terms-conditions" element={< TermsConditions />} />
+          <Route path="/mobile/faq" element={< FaqOA />} />
+          <Route path="/mobile/register" element={< RegisterOA />} />
 
-            <Route element={<LinePrivateRoute />}>
-              <Route path="/mobile/promotion" element={< Promotion />} />
-              <Route path="/mobile/account" element={< MyAccountMobile />} />
-              <Route path="/mobile/user/detail" element={< UserDetail />} />
-              <Route path="/mobile/user/edit" element={< EditUserOA />} />
-              <Route path="/mobile/main" element={< MainOA />} />
-              <Route path="/mobile/redeem-point" element={< RedeemPoint />} />
-              <Route path="/mobile/redeem-point/detail" element={<RedeemPointDetail />} />
-              <Route path="/mobile/order-history" element={< OrderHistory />} />
-              <Route path="/mobile/order-history/detail" element={<OrderHistoryDetail />} />
-              <Route path="/mobile/point-history" element={< PointHistory />} />
-              {/* <Route path="/mobile/point-history/detail" element={< PointHistoryDetail />} /> */}
-              <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
-            </Route>
+          <Route element={<LinePrivateRoute />}>
+            <Route path="/mobile/collect-points" element={< CollectPoints />} />
+            <Route path="/mobile/collect-points/advance-notice" element={< CollectPointsAdvance />} />
+            <Route path="/mobile/promotion" element={< Promotion />} />
+            <Route path="/mobile/account" element={< MyAccountMobile />} />
+            <Route path="/mobile/user/detail" element={< UserDetail />} />
+            <Route path="/mobile/user/edit" element={< EditUserOA />} />
+            <Route path="/mobile/main" element={< MainOA />} />
+            <Route path="/mobile/redeem-point" element={< RedeemPoint />} />
+            <Route path="/mobile/redeem-point/detail" element={<RedeemPointDetail />} />
+            <Route path="/mobile/order-history" element={< OrderHistory />} />
+            <Route path="/mobile/order-history/detail" element={<OrderHistoryDetail />} />
+            <Route path="/mobile/point-history" element={< PointHistory />} />
+            {/* <Route path="/mobile/point-history/detail" element={< PointHistoryDetail />} /> */}
+            <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
+          </Route>
 
           {/* </Route> */}
 
-          <Route path="/mobile/collect-points" element={< CollectPoints />} />
           <Route path="/mobile/take-photo" element={< TakePhoto />} />
 
           {/* Error Route */}

@@ -56,6 +56,7 @@ export default function CollectPoints() {
           text="ถ่ายรูปสินค้ากรณีได้รับสินค้าล่วงหน้า"
           iconSrc="/img/icons/camera.png"
           className="text-white px-4 py-3 rounded-[4px] bg-[#752157] w-full max-w-md mt-6 sarabun-font"
+          onClick={() => navigate("/mobile/collect-points/advance-notice")}
         />
 
         <SectionHeader title="รายการรับสินค้า" icon="/img/icons/bill.png" />
