@@ -339,39 +339,39 @@ const App = () => {
 
           </Route>
 
-          {/* <Route element={<LineOARoute />}> */}
+          <Route element={<LineOARoute />}>
 
-          <Route path="/mobile/login" element={< CheckLogin />} />
+            <Route path="/mobile/login" element={< CheckLogin />} />
 
-          <Route path="/mobile/verify" element={<VerifyOA />} />
-          <Route path="/mobile/otp" element={<OtpOA />} />
-          <Route path="/mobile/contact-admin" element={< ContactAdmin />} />
-          <Route path="/mobile/contact-us" element={< ContactUs />} />
-          <Route path="/mobile/tran-address" element={< TranAddress />} />
-          <Route path="/mobile/tran-address/create" element={< CreateTranAddress />} />
-          <Route path="/mobile/privacy-policy" element={< PrivacyPolicy />} />
-          <Route path="/mobile/terms-conditions" element={< TermsConditions />} />
-          <Route path="/mobile/faq" element={< FaqOA />} />
-          <Route path="/mobile/register" element={< RegisterOA />} />
+            <Route path="/mobile/verify" element={<VerifyOA />} />
+            <Route path="/mobile/otp" element={<OtpOA />} />
+            <Route path="/mobile/contact-admin" element={< ContactAdmin />} />
+            <Route path="/mobile/contact-us" element={< ContactUs />} />
+            <Route path="/mobile/tran-address" element={< TranAddress />} />
+            <Route path="/mobile/tran-address/create" element={< CreateTranAddress />} />
+            <Route path="/mobile/privacy-policy" element={< PrivacyPolicy />} />
+            <Route path="/mobile/terms-conditions" element={< TermsConditions />} />
+            <Route path="/mobile/faq" element={< FaqOA />} />
+            <Route path="/mobile/register" element={< RegisterOA />} />
 
-          <Route element={<LinePrivateRoute />}>
-            <Route path="/mobile/collect-points" element={< CollectPoints />} />
-            <Route path="/mobile/collect-points/advance-notice" element={< CollectPointsAdvance />} />
-            <Route path="/mobile/promotion" element={< Promotion />} />
-            <Route path="/mobile/account" element={< MyAccountMobile />} />
-            <Route path="/mobile/user/detail" element={< UserDetail />} />
-            <Route path="/mobile/user/edit" element={< EditUserOA />} />
-            <Route path="/mobile/main" element={< MainOA />} />
-            <Route path="/mobile/redeem-point" element={< RedeemPoint />} />
-            <Route path="/mobile/redeem-point/detail" element={<RedeemPointDetail />} />
-            <Route path="/mobile/order-history" element={< OrderHistory />} />
-            <Route path="/mobile/order-history/detail" element={<OrderHistoryDetail />} />
-            <Route path="/mobile/point-history" element={< PointHistory />} />
-            {/* <Route path="/mobile/point-history/detail" element={< PointHistoryDetail />} /> */}
-            <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
+            <Route element={<LinePrivateRoute />}>
+              <Route path="/mobile/collect-points" element={< CollectPoints />} />
+              <Route path="/mobile/collect-points/advance-notice" element={< CollectPointsAdvance />} />
+              <Route path="/mobile/promotion" element={< Promotion />} />
+              <Route path="/mobile/account" element={< MyAccountMobile />} />
+              <Route path="/mobile/user/detail" element={< UserDetail />} />
+              <Route path="/mobile/user/edit" element={< EditUserOA />} />
+              <Route path="/mobile/main" element={< MainOA />} />
+              <Route path="/mobile/redeem-point" element={< RedeemPoint />} />
+              <Route path="/mobile/redeem-point/detail" element={<RedeemPointDetail />} />
+              <Route path="/mobile/order-history" element={< OrderHistory />} />
+              <Route path="/mobile/order-history/detail" element={<OrderHistoryDetail />} />
+              <Route path="/mobile/point-history" element={< PointHistory />} />
+              {/* <Route path="/mobile/point-history/detail" element={< PointHistoryDetail />} /> */}
+              <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
+            </Route>
+
           </Route>
-
-          {/* </Route> */}
 
           <Route path="/mobile/take-photo" element={< TakePhoto />} />
 

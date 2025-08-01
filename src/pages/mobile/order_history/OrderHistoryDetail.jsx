@@ -9,173 +9,110 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 
-// Mock Data for Orders
-const orders = [
-  {
-    id: 1,
-    date: "31 ธ.ค. 67 16:16",
-    number: "20250000001",
-    status: "processing",
-    statusLabel: "กำลังดำเนินการ",
-    statusColor: "text-orange-500",
-    products: [
-      { qty: 2, sku: "3027200112", name: "Bumper P 490 EC", price: 22509.20 },
-      { qty: 1, sku: "30371013300", name: "Apopo", price: 9281.20 },
-      { qty: 2, sku: "308420021510", name: "Hizamaru", price: 7606.40 },
-    ],
-  },
-];
-
 export default function OrderHistoryDetail() {
-  const { id } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
   const location = useLocation();
-  console.log(location.state.document_number);
-  const [historydetail, setHistorydetail] = useState(null);
-  const [historydetailItem, setHistorydetailItem] = useState([]);
-  const [error, setError] = useState(false);
   const { userInfo } = useContext(AuthContext);
 
-  const [documentnumber, setDocumentnumber] = useState(location.state.document_number);
+  const [loading, setLoading] = useState(false);
+  const [historydetail, setHistorydetail] = useState(null);
+  const documentNumber = location.state?.document_number;
 
   useEffect(() => {
-    const fetchPromotionDetail = async (document_number) => {
+    const fetchDetail = async () => {
       setLoading(true);
       try {
         const response = await useServiceAPI.get(paths.pathhistoryShopDetail, {
           platform: "web",
-          id: userInfo.id, // เปลี่ยนเป็น user id ที่เหมาะสม
-          document_number: documentnumber,
-
+          id: userInfo.id,
+          document_number: documentNumber,
         });
 
         if (response.status === 200) {
-          console.log(response.data.data);
           setHistorydetail(response.data.data);
-          setHistorydetailItem(historydetail.items)
-        } else {
-          setError(true);
         }
       } catch (err) {
-        console.error("Error fetching promotion details:", err);
-        setError(true);
+        console.error("Error loading order detail:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPromotionDetail(location.state.document_number);
-  }, [location.state.document_number]);
+    if (documentNumber) fetchDetail();
+  }, [documentNumber]);
 
-
-  // Find the order by ID
-  // const order = orders.find((o) => o.id === parseInt(id));
-  // if (!order) {
-  //   return (
-  //     <MobileLayout loading={loading}>
-  //       <div className="flex flex-col items-center w-full h-full">
-  //         <SectionHeader title="ไม่พบคำสั่งซื้อ" icon="/img/icons/trophy.png" />
-  //         <p className="text-gray-500 sarabun-font mt-4">ขออภัย, ไม่พบคำสั่งซื้อนี้</p>
-  //         <BackButton url="/mobile/order-history" />
-  //       </div>
-  //     </MobileLayout>
-  //   );
-  // }
-  // // Calculate totals
-  // const totalItems = order.products.reduce((sum, item) => sum + item.qty, 0);
-  // const totalPrice = order.products.reduce((sum, item) => sum + item.price, 0).toFixed(2);
-  const totalItems = historydetail?.items?.reduce((sum, item) => sum + item.qty, 0) || 0;
-  const totalPrice = historydetail?.items?.reduce((sum, item) => sum + item.totol, 0).toFixed(2) || "0.00";
-
+  const items = historydetail?.items || [];
+  const totalQty = items.reduce((sum, item) => sum + (item.qty || 0), 0);
+  const totalPoints = items.reduce((sum, item) => sum + (item.point || 0), 0);
+  const totalPrice = items.reduce((sum, item) => sum + (item.totol || 0), 0);
 
   return (
     <MobileLayout loading={loading}>
-      <div className="flex flex-col items-center w-full h-full">
-        {/* Header Section */}
+      <div className="flex flex-col items-center w-full h-full px-4">
         <HeadSectionUser />
-
-        {/* Points Section */}
         <UserPointsSection />
+        <SectionHeader title="รายละเอียด" icon="/img/icons/bill.png" />
 
-        {/* Order Detail Section */}
-        <SectionHeader title="รายละเอียดการสั่งซื้อ" icon="/img/icons/bill.png" />
-
-        {/* Order Summary */}
-        <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-4 mt-4">
-          <div className="flex justify-between">
-            {/* <p className="text-gray-500 sarabun-font">{historydetail.date}</p> */}
-            {/* <p className={`sarabun-font font-semibold ${historydetail.color}`}>{historydetail.mode_name}</p> */}
+        {/* Order Card */}
+        <div className="bg-white rounded-xl shadow-md p-4 w-full max-w-md mt-4">
+          <div className="text-sm text-gray-500 sarabun-font">31 ธ.ค. 67 16:16</div>
+          <div className="flex justify-between items-center mt-1">
+            <p className="text-sm font-semibold text-gray-700 sarabun-font">เลขที่</p>
+            <p className="font-bold text-gray-900">{documentNumber}</p>
           </div>
 
-          <div className="flex justify-between mt-1">
-            <p className="sarabun-font text-gray-600">เลขที่</p>
-            <p className="sarabun-font text-gray-900 font-bold">{documentnumber}</p>
-          </div>
+          {/* Status */}
+          <div className="text-green-600 sarabun-font text-sm font-semibold mt-2 text-right">รับสินค้าสำเร็จ</div>
 
-          {/* Product Table */}
-          <div className="mt-4">
-            <h3 className="sarabun-font text-lg font-semibold text-gray-900">รายการสินค้า</h3>
-            <div className="border-t mt-2"></div>
-
-            <table className="w-full text-left mt-2 sarabun-font text-sm">
-              <thead>
-                <tr className="text-gray-600 border-b">
-                  <th className="py-2">Product</th>
-                  <th className="py-2">Pack Size</th>
-                  <th className="py-2">QTY</th>
-                  <th className="py-2 text-right">Value (THB)</th>
-                </tr>
-              </thead>
-              {/* <tbody>
-                {order.products.map((product, index) => (
-                  <tr key={index} className="border-b">
-                    <td className="py-2">{product.qty}</td>
-                    <td className="py-2">{product.sku}</td>
-                    <td className="py-2">{product.name}</td>
-                    <td className="py-2 text-right">{product.price.toLocaleString("en-US")}</td>
-                  </tr>
-                ))}
-              </tbody> */}
-              <tbody>
-                {historydetail?.items && historydetail.items.length > 0 ? (
-                  historydetail.items.map((product, index) => (
-                    <tr key={index} className="border-b">
-                      <td className="py-2">{product.product_name}</td>
-                      <td className="py-2">{product.product_code}</td> {/* ใช้เป็น Pack Size หากไม่มี field แยก */}
-                      <td className="py-2">{product.qty}</td>
-                      <td className="py-2 text-right">
-                        {Number(product.totol).toLocaleString("en-US")}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="4" className="py-4 text-center text-gray-500">
-                      ขออภัย, ไม่พบคำสั่งซื้อนี้
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-
-            </table>
-          </div>
-
-          {/* Order Summary Footer */}
-          <div className="mt-4 border-t pt-3">
-            <div className="flex justify-between">
-              <p className="sarabun-font text-gray-600">จำนวนรายการ (ลัง)</p>
-              <p className="sarabun-font font-bold">{totalItems}</p>
+          {/* Product List */}
+          <div className="mt-3 border-t pt-2">
+            <h3 className="text-green-600 sarabun-font font-semibold">รายการสินค้า</h3>
+            <div className="mt-2 space-y-1">
+              {items.map((item, index) => (
+                <div key={index} className="flex justify-between text-sm text-gray-700 sarabun-font">
+                  <div className="flex-1">
+                    <p>{item.qty} x {item.product_name}</p>
+                    <p className="text-xs text-gray-500 sarabun-font">{item.product_code}</p>
+                  </div>
+                  <p className="w-10 text-center">{item.point}</p>
+                </div>
+              ))}
             </div>
-            <div className="flex justify-between mt-1">
-              <p className="sarabun-font text-gray-600">ยอดรวมสุทธิ (บาท)</p>
-              <p className="sarabun-font font-bold text-green-700">{Number(totalPrice).toLocaleString("en-US")}
-              </p>
+
+            {/* Summary */}
+            <div className="mt-4 border-t pt-2 text-sm text-gray-800">
+              <div className="flex justify-between font-semibold">
+                <p className="sarabun-font">จำนวนรายการ</p>
+                <p>
+                  {totalQty} / {totalPoints} คะแนน
+                </p>
+              </div>
+              <div className="flex justify-between font-semibold text-lg text-green-700 mt-1">
+                <p className="sarabun-font">ยอดรวมสุทธิ (บาท)</p>
+                <p>{totalPrice.toLocaleString("th-TH", { minimumFractionDigits: 1 })}</p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Back Button */}
+        {/* File Upload Section */}
+        <div className="bg-white rounded-xl shadow-md p-4 w-full max-w-md mt-6">
+          <p className="font-semibold text-gray-700 sarabun-font mb-2">ไฟล์แนบ</p>
+
+          {/* Mock File Image */}
+          <div className="border rounded-md p-2 mb-3">
+            <img src="/img/mock/invoice-thumbnail.png" alt="Invoice" className="w-full rounded" />
+          </div>
+
+          {/* Upload Area */}
+          <div className="border rounded-md p-2">
+            <p className="text-sm font-semibold text-gray-700 sarabun-font mb-1">
+              ถ่ายรูปเพื่อยืนยันการรับสินค้า <span className="text-red-500">*</span>
+            </p>
+            <img src="/img/mock/location-map.png" alt="Map" className="w-full rounded" />
+          </div>
+        </div>
+
         <BackButton url="/mobile/order-history" />
       </div>
     </MobileLayout>

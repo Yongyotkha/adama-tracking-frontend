@@ -476,7 +476,10 @@ export default function RegisterOA() {
         onConfirm={handleModalConfirm}
         onCancel={handleModalCancel}
       />
+
+      {/* Modal Point */}
       {/* Success DynamicPopUp */}
+
       <DynamicPopUp
         visible={isSuccessModalVisible}
         onConfirm={() => {
