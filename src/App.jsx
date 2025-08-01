@@ -152,6 +152,7 @@ import TranAddress from "./pages/mobile/user/settings/tran_address/TranAddress";
 import CreateTranAddress from "./pages/mobile/user/settings/tran_address/CreateTranAddress";
 import CollectPointsAdvance from "./pages/mobile/collect_points/CollectPointsAdvance";
 import EditOrViewCustomerLine from "./pages/settings/mobile/customer/EditOrViewCustomerLine";
+import EditOrViewRegisteredCustomer from "./pages/settings/mobile/registered_customer/EditOrViewRegisteredCustomer";
 
 
 const App = () => {
@@ -312,6 +313,7 @@ const App = () => {
             {/* <Route path="/points/line/customer-support-list/edit" element={<CustomerSupportEdit />} /> */}
 
             <Route path="/points/line/register-customer-list" element={<RegisteredCustomerList />} />
+            <Route path="/points/line/register-customer-list/:mode" element={<EditOrViewRegisteredCustomer />} />
             <Route path="/points/line/register-customer/detail" element={<RegisteredCustomerDetail />} />
             <Route path="/points/line/customer-support/create" element={<CreateCustomerLine />} />
             {/* <Route path="/points/line/customer/edit" element={<EditCustomerLine />} /> */}

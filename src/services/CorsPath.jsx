@@ -325,6 +325,9 @@ export const paths = {
 
   // line customer
   pathCustomerRegis: "sale-customer-register/list",
+  pathCustomerRegisDetail: "sale-customer-register/detail",
+  pathCustomerRegisUpdate: "sale-customer-register/update",
+  
   pathCustomerContact: "sale-customer-contact/list",
   pathCustomerContactUpdate: "sale-customer-contact/update",
 };
