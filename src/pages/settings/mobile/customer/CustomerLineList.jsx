@@ -10,86 +10,23 @@ import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../../../services/corsService";
 import { paths } from "../../../../services/CorsPath";
+import dayjs from "dayjs";
 
 export default function CustomerLineList() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
+  const [dataSource, setDataSource] = useState([]);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
       pageSize: 10,
+      total: 0,
     },
     filters: {},
+    sortOrder: "desc",
+    sortField: "created_at",
   });
-
-  const fetchCustomers = async () => {
-    setLoading(true);
-    try {
-      // Mock Data for API response
-      const mockData = [
-        {
-          id: 1,
-          shop_name: "ศิลาเกษตร",
-          contact_name: "Firstname Lastname",
-          phone: "055-769042",
-          address: "91/7 ซ. นครปฐม",
-          point: 10,
-          register_date: "01/01/2025",
-          status: "Active",
-          image_profile: "/img/profile.jpg",
-        },
-        {
-          id: 2,
-          shop_name: "กำนันวงษ์สัักดิ์",
-          contact_name: "Firstname Lastname",
-          phone: "081-8879155",
-          address: "99/11 บ้านไร่ อุทัยธานี",
-          point: 10,
-          register_date: "01/01/2025",
-          status: "Active",
-          image_profile: "/img/profile.jpg",
-        },
-      ];
-
-      setDataSource(
-        mockData.map((customer, index) => ({
-          key: index + 1,
-          image_profile: <img src={customer.image_profile} alt="Profile" className="w-10 h-10 rounded-full" />,
-          shop_name: customer.shop_name,
-          contact_name: customer.contact_name,
-          phone: customer.phone,
-          address: customer.address,
-          point: customer.point,
-          register_date: customer.register_date,
-          status: <BadgeStatus text={customer.status} bgColor="green" textColor="white" />,
-          action: (
-            <Dropdown
-              menu={{
-                items: [
-                  { key: "edit", label: <ItemDropDown mode="edit" onClick={() => navigate(`edit/${customer.id}`)} /> },
-                  { key: "view", label: <ItemDropDown mode="view" onClick={() => navigate(`view/${customer.id}`)} /> },
-                ],
-              }}
-            >
-              <a onClick={(e) => e.preventDefault()}>
-                <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
-              </a>
-            </Dropdown>
-          ),
-        }))
-      );
-    } catch (error) {
-      console.error("Error fetching customers:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCustomers();
-  }, []);
 
   const filters = [
     { key: "shop_name", type: "text", label: "Shop Name" },
@@ -97,39 +34,176 @@ export default function CustomerLineList() {
     { key: "date", type: "date", label: "Register Date" },
   ];
 
+  const fetchData = async () => {
+    setTableLoading(true);
+    const { current, pageSize } = tableParams.pagination;
+    const filters = tableParams.filters || {};
+
+    const requestData = {
+      platform: "web",
+      page: "all",
+      page_mode: "list",
+      page_length: current,
+      page_size: pageSize,
+      keyword: filters.shop_name || "",
+      contact_name: filters.contact_name || "",
+      register_date: filters.date ? dayjs(filters.date).format("YYYY-MM-DD") : "",
+      orderby_column: tableParams.sortField,
+      orderby: tableParams.sortOrder,
+    };
+
+    try {
+      const response = await useServiceAPI.get(paths.pathCustomerContact, requestData);
+
+      if (response.status === 200) {
+        const customers = response.data?.data || [];
+        const recordsFiltered = response.data?.data?.records_filtered || 0;
+        // console.log(customers);
+        const newData = customers.map((row, index) => ({
+          key: index + 1 + (current - 1) * pageSize,
+          id: row.id,
+          shop_name: row.shop_name,
+          contact_name: `${row.first_name} ${row.last_name}`,
+          phone: row.phone,
+          type: row.contact_type_name,
+          line_name: row.line_name,
+          status_name: row.status_name,
+          status_bg_color: row.status_bg_color,
+          status_color: row.status_color,
+          action: row.action,
+        }));
+
+        // console.log(newData);
+        setDataSource(newData);
+        setTableParams((prev) => ({
+          ...prev,
+          pagination: {
+            ...prev.pagination,
+            total: recordsFiltered,
+          },
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching contact list:", error);
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
   const handleSearch = (filters) => {
-    setTableParams({ ...tableParams, pagination: { ...tableParams.pagination, current: 1 }, filters });
+    setTableParams((prev) => ({
+      ...prev,
+      pagination: { ...prev.pagination, current: 1 },
+      filters,
+    }));
   };
 
   const handleClear = () => {
-    setTableParams({ ...tableParams, filters: {} });
+    setTableParams((prev) => ({
+      ...prev,
+      filters: {},
+    }));
   };
 
+  const handleTableChange = (pagination, _, sorter) => {
+    setTableParams((prev) => ({
+      ...prev,
+      pagination,
+      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortField: sorter.field || "created_at",
+    }));
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    tableParams.sortOrder,
+    tableParams.sortField,
+    JSON.stringify(tableParams.filters),
+  ]);
+
   const header = [
-    { title: "No", dataIndex: "key", align: "left" },
-    { title: "", dataIndex: "image_profile", align: "center" },
-    { title: "Shop Name", dataIndex: "shop_name", align: "left" },
-    { title: "Contact Name", dataIndex: "contact_name", align: "left" },
-    { title: "Phone No", dataIndex: "phone", align: "left" },
-    { title: "Address", dataIndex: "address", align: "left" },
-    { title: "Point", dataIndex: "point", align: "left" },
-    { title: "Register Date", dataIndex: "register_date", align: "left" },
-    { title: "Status", dataIndex: "status", align: "left" },
-    { title: "Action", dataIndex: "action", align: "left" },
+    { title: "No", dataIndex: "key", width: 60 },
+    { title: "Shop Name", dataIndex: "shop_name" },
+    { title: "Contact Name", dataIndex: "contact_name" },
+    { title: "Phone No", dataIndex: "phone" },
+    { title: "Contact Type", dataIndex: "type" },
+    { title: "Line Name", dataIndex: "line_name" },
+    {
+      title: "Status",
+      dataIndex: "status_name",
+      render: (_, row) => (
+        <BadgeStatus
+          text={row.status_name}
+          bgColor={row.status_bg_color}
+          textColor={row.status_color}
+        />
+      ),
+    },
+    {
+      title: "Action",
+      dataIndex: "action",
+      align: "center",
+      render: (_, row) => (
+        <Dropdown
+          menu={{
+            items: row.action.map((item, idx) => ({
+              key: idx,
+              label: (
+                <ItemDropDown
+                  mode={item.action.toLowerCase()}
+                  onClick={() => {
+                    if (
+                      item.action.toLowerCase() === "view" ||
+                      item.action.toLowerCase() === "edit"
+                    ) {
+                      navigate('/points/line/customer-support-list/' + item.action.toLowerCase(), {
+                        state: {
+                          id: row.id, // หรือ documentNumber ตามที่คุณต้องการ
+                          pageCode: 'customer_support',
+                        },
+                      });
+
+                    }
+                  }}
+                />
+              ),
+            })),
+          }}
+          placement="bottomRight"
+        >
+          <a onClick={(e) => e.preventDefault()}>
+            <img
+              src="/img/icons/action.png"
+              alt="action"
+              className="w-5 h-5 inline-block"
+            />
+          </a>
+        </Dropdown>
+      ),
+    },
   ];
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Customer Support List</div>
-        <ActionButton mode="create" text="Create" onClick={() => navigate("create")} />
+        {/* <ActionButton mode="create" text="Create" onClick={() => navigate("create")} /> */}
       </div>
-      <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
+      <Filter
+        onSearch={handleSearch}
+        onClear={handleClear}
+        filters={filters}
+      />
       <BoxPrimary>
         <TableComponent
           header={header}
           dataSource={dataSource}
           pagination={tableParams.pagination}
           loading={tableLoading}
+          onChange={handleTableChange}
         />
       </BoxPrimary>
     </MainLayout>
