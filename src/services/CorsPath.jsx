@@ -324,6 +324,7 @@ export const paths = {
   pathTranAddressCreate: "/tran-user-address/create",
 
   // line customer
-  pathCustomerRegis: "/sale-customer-register/list",
-
+  pathCustomerRegis: "sale-customer-register/list",
+  pathCustomerContact: "sale-customer-contact/list",
+  pathCustomerContactUpdate: "sale-customer-contact/update",
 };
