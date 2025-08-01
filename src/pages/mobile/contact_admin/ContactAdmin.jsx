@@ -60,7 +60,6 @@ export default function ContactAdmin() {
       last_name: values.lastName || "-",
       phone: values.phoneNumber || "-",
       remark: values.remark || "-",
-      user_id: userInfo.id,
       line_id: localStorage.getItem('lineUserId') || "-", // Replace with real LINE ID if available
       line_name: localStorage.getItem('lineDisplayName') || "-",
       line_url: values.line_url || "line_url",
