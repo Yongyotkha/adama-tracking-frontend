@@ -49,20 +49,20 @@ export default function FormUser({ fields, title, profile, form, onChange, disab
     )
   );
 
-  useEffect(() => {
-    const initialValues = fields.reduce((acc, field) => {
-      acc[field.name] =
-        field.type === "date"
-          ? field.value
-            ? dayjs(field.value, dateFormat)
-            : null
-          : field.value || null;
-      return acc;
-    }, {});
-    // console.log(initialValues);
+  // useEffect(() => {
+  //   const initialValues = fields.reduce((acc, field) => {
+  //     acc[field.name] =
+  //       field.type === "date"
+  //         ? field.value
+  //           ? dayjs(field.value, dateFormat)
+  //           : null
+  //         : field.value || null;
+  //     return acc;
+  //   }, {});
+  //   // console.log(initialValues);
 
-    form?.setFieldsValue(initialValues);
-  }, [fields]);
+  //   form?.setFieldsValue(initialValues);
+  // }, [fields]);
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -110,7 +110,7 @@ export default function FormUser({ fields, title, profile, form, onChange, disab
       {title && (
         <div className="text-[#00783F] text-lg font-semibold mb-3">{title}</div>
       )}
-      <Form form={form} layout="vertical" initialValues={initialValues}>
+      <Form form={form} layout="vertical">
         <Row gutter={[16, 16]} align="middle">
           {fields.map((field, index) => (
             <Col xs={24} sm={12} md={8} lg={field.col || 6} key={index}>
