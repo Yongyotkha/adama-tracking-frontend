@@ -24,10 +24,10 @@ export default function RegisteredCustomerDetail() {
     setLoading(true);
     try {
       const res = await useServiceAPI.get(paths.pathCustomerRegisDetail, { id });
-      console.log(res);
+      // console.log(res);
       if (res.status === 200 && res.data) {
         const d = res.data;
-        console.log(d);
+        // console.log(d);
         form.setFieldsValue({
           profile: d.photo_path || "/img/profile.jpg", // ใช้ default ถ้าไม่มี
           customer_id: d.user_code,
