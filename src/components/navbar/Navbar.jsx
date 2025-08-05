@@ -29,7 +29,7 @@ const Navbar = () => {
   const [activeIndex, setActiveIndex] = useState(0); // Track active index
   const { userInfo, logout } = useContext(AuthContext);
 
-  
+
   const menuItems = userInfo?.menu_permissions?.map((menu) => ({
     label: menu.name,
     icon: `/${menu.icon}`,
@@ -37,14 +37,14 @@ const Navbar = () => {
     path: menu.url,
     dropdownItems: menu.dropdownItems
       ? menu.dropdownItems.map((item, index) => ({
-          key: index,
-          label: item.name,
-          path: item.url,
-        }))
+        key: index,
+        label: item.name,
+        path: item.url,
+      }))
       : [], // ใช้ [] หากไม่มี dropdownItems
   })) || [];
 
-  
+
   const CustomDropdownMenu = ({ items }) => {
     return (
       <Menu
@@ -60,12 +60,11 @@ const Navbar = () => {
           key: item.key,
           label: (
             <span
-              className={`${
-                location.pathname === `/${item.path}` || 
-                location.pathname.startsWith(`${item.path}/`)
+              className={`${location.pathname === `/${item.path}` ||
+                  location.pathname.startsWith(`${item.path}/`)
                   ? "pointer-events-none font-bold text-[#009845]"
                   : "text-[#978B87]"
-              } py-1`}
+                } py-1`}
             >
               {item.label}
             </span>
@@ -158,7 +157,7 @@ const Navbar = () => {
       subPaths.some((subPath) => location.pathname.startsWith(`/${subPath}`))
     );
   };
-  
+
 
   const handleNavigate = (path, index) => {
     setActiveIndex(index); // Set active index when navigating
@@ -170,9 +169,9 @@ const Navbar = () => {
     const currentIndex = menuItems.findIndex((item) =>
       item.dropdownMenu
         ? isActivePath(
-            item.path,
-            item.dropdownItems.map((subItem) => subItem.path)
-          )
+          item.path,
+          item.dropdownItems.map((subItem) => subItem.path)
+        )
         : isActivePath(item.path)
     );
     setActiveIndex(currentIndex >= 0 ? currentIndex : 0);
@@ -204,14 +203,14 @@ const Navbar = () => {
         <Logo width="w-[150px]" />
       </div>
 
-      <div className="relative px-[2rem] w-4/6 max-w-3xl">
+      <div className="relative px-[2rem] w-4/6 max-w-4xl">
         <Carousel arrows infinite={false} {...carouselSettings}>
           {menuItems.map((item, index) => {
             const isActive = item.dropdownMenu
               ? isActivePath(
-                  item.path,
-                  item.dropdownItems.map((subItem) => subItem.path)
-                )
+                item.path,
+                item.dropdownItems.map((subItem) => subItem.path)
+              )
               : isActivePath(item.path);
 
             if (item.dropdownMenu) {
@@ -221,16 +220,16 @@ const Navbar = () => {
                   overlay={<CustomDropdownMenu items={item.dropdownItems} />}
                 >
                   <div
-                    className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${
-                      isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
-                    }`}
+                    className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
+                      }`}
                   >
                     <img
                       src={item.icon}
                       alt={`${item.label} Icon`}
                       className="mr-2 w-6 h-6"
                     />
-                    {item.label}
+                    <span className="text-nowrap">{item.label}</span>
+
                   </div>
                 </Dropdown>
               );
@@ -238,9 +237,8 @@ const Navbar = () => {
               return (
                 <div
                   key={index}
-                  className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${
-                    isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
-                  } cursor-pointer`}
+                  className={`py-5 text-center text-white flex items-center justify-center h-full menu-item ${isActive ? "bg-[#00783f]" : "hover:bg-[#00783f]"
+                    } cursor-pointer`}
                   onClick={() => handleNavigate(item.path, index)}
                 >
                   <img
@@ -248,7 +246,7 @@ const Navbar = () => {
                     alt={`${item.label} Icon`}
                     className="mr-2 w-6 h-6"
                   />
-                  {item.label}
+                  <span className="text-nowrap">{item.label}</span>
                 </div>
               );
             }

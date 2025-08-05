@@ -49,20 +49,20 @@ export default function FormUser({ fields, title, profile, form, onChange, disab
     )
   );
 
-  // useEffect(() => {
-  //   const initialValues = fields.reduce((acc, field) => {
-  //     acc[field.name] =
-  //       field.type === "date"
-  //         ? field.value
-  //           ? dayjs(field.value, dateFormat)
-  //           : null
-  //         : field.value || null;
-  //     return acc;
-  //   }, {});
-  //   // console.log(initialValues);
+  useEffect(() => {
+    const initialValues = fields.reduce((acc, field) => {
+      acc[field.name] =
+        field.type === "date"
+          ? field.value
+            ? dayjs(field.value, dateFormat)
+            : null
+          : field.value || null;
+      return acc;
+    }, {});
+    // console.log(initialValues);
 
-  //   form?.setFieldsValue(initialValues);
-  // }, [fields]);
+    form?.setFieldsValue(initialValues);
+  }, [fields]);
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];

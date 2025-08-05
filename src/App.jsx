@@ -153,6 +153,9 @@ import CreateTranAddress from "./pages/mobile/user/settings/tran_address/CreateT
 import CollectPointsAdvance from "./pages/mobile/collect_points/CollectPointsAdvance";
 import EditOrViewCustomerLine from "./pages/settings/mobile/customer/EditOrViewCustomerLine";
 import EditOrViewRegisteredCustomer from "./pages/settings/mobile/registered_customer/EditOrViewRegisteredCustomer";
+import SalesPointsList from "./pages/settings/mobile/sale_point/SalesPointsList";
+// import CreateSalesPoint from "./pages/settings/mobile/sale_point/CreateSalesPoint";
+import SalesPointDetail from "./pages/settings/mobile/sale_point/SalesPointDetail";
 
 
 const App = () => {
@@ -308,7 +311,7 @@ const App = () => {
 
             <Route path="/points/line/customer-support-list" element={<CustomerLineList />} />
             <Route path="/points/line/customer-support-list/:mode" element={<EditOrViewCustomerLine />} />
-            
+
             {/* <Route path="/points/line/customer-support-list/view" element={<CustomerSupportView />} /> */}
             {/* <Route path="/points/line/customer-support-list/edit" element={<CustomerSupportEdit />} /> */}
 
@@ -317,6 +320,12 @@ const App = () => {
             <Route path="/points/line/register-customer/detail" element={<RegisteredCustomerDetail />} />
             <Route path="/points/line/customer-support/create" element={<CreateCustomerLine />} />
             {/* <Route path="/points/line/customer/edit" element={<EditCustomerLine />} /> */}
+
+            <Route path="/points/line/sales-points-list" element={<SalesPointsList />} />
+            <Route path="/points/line/sales-points-list/:mode" element={<SalesPointDetail />} />
+            {/* <Route path="/points/line/sales-points-list/create" element={<CreateSalesPoint />} /> */}
+            {/* <Route path="/points/line/sales-points-list/:mode" element={<ActionSalePoints />} /> */}
+
 
             <Route path="/points/line/expire-point" element={<ExpirePointList />} />
             <Route path="/setting/line/point-campaign" element={<ManageNewsList />} />

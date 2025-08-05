@@ -327,6 +327,7 @@ export const paths = {
   pathCustomerRegis: "sale-customer-register/list",
   pathCustomerRegisDetail: "sale-customer-register/detail",
   pathCustomerRegisUpdate: "sale-customer-register/update",
+  pathCustomerRegisOrderList: "sale-customer-register/order-list",
   
   pathCustomerContact: "sale-customer-contact/list",
   pathCustomerContactUpdate: "sale-customer-contact/update",
