@@ -2,7 +2,7 @@ import React from "react";
 import { ConfigProvider, Table } from "antd";
 import "./TableComponent.css";
 
-const TableComponent = ({
+const TableCheckbox = ({
   header,
   dataSource,
   pageSize,
@@ -47,4 +47,4 @@ const TableComponent = ({
   );
 };
 
-export default TableComponent;
+export default TableCheckbox;

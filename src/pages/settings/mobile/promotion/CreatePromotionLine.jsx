@@ -138,7 +138,7 @@ export default function CreatePromotionLine() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Create Promotion Line</div>
+      <div className="title-page">Create Target Group</div>
 
       <FormUser fields={formFields} form={form} />
 

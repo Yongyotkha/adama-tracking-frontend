@@ -122,10 +122,8 @@ import PrivacyPolicy from "./pages/mobile/user/settings/privacy_policy/PrivacyPo
 import TermsConditions from "./pages/mobile/user/settings/terms_conditions/TermsConditions";
 import CheckLogin from "./pages/mobile/auth/CheckLogin";
 import { LineOARoute, LinePrivateRoute } from "./components/auth/LineOARoute";
-import PromotionLineList from "./pages/settings/mobile/promotion/PromotionLineList";
 import CustomerLineList from "./pages/settings/mobile/customer/CustomerLineList";
 import CreateCustomerLine from "./pages/settings/mobile/customer/CreateCustomerLine";
-import CreatePromotionLine from "./pages/settings/mobile/promotion/CreatePromotionLine";
 import ExpirePointList from "./pages/settings/mobile/expire_point/ExpirePointList";
 import ManageNewsList from "./pages/settings/mobile/manage-news/ManageNewsList";
 import ManagePromotionList from "./pages/settings/mobile/manage-promotion/ManagePromotionList";
@@ -156,6 +154,8 @@ import EditOrViewRegisteredCustomer from "./pages/settings/mobile/registered_cus
 import SalesPointsList from "./pages/settings/mobile/sale_point/SalesPointsList";
 // import CreateSalesPoint from "./pages/settings/mobile/sale_point/CreateSalesPoint";
 import SalesPointDetail from "./pages/settings/mobile/sale_point/SalesPointDetail";
+import TargetGroupList from "./pages/settings/mobile/target_group/TargetGroupList";
+import CreateTargetGroup from "./pages/settings/mobile/target_group/CreateTargetGroup";
 
 
 const App = () => {
@@ -305,8 +305,8 @@ const App = () => {
             <Route path="/setting/material/:mode" element={<ActionMaterial />} />
 
             {/* Line OA Settings */}
-            <Route path="/setting/line/target-group" element={<PromotionLineList />} />
-            <Route path="/setting/line/target-group/create" element={<CreatePromotionLine />} />
+            <Route path="/setting/line/target-group" element={<TargetGroupList />} />
+            <Route path="/setting/line/target-group/create" element={<CreateTargetGroup />} />
             {/* <Route path="/setting/line/promotion/edit" element={<EditPromotion />} /> */}
 
             <Route path="/points/line/customer-support-list" element={<CustomerLineList />} />
