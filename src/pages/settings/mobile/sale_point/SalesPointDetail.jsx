@@ -121,7 +121,7 @@ export default function SalesPointDetail() {
 
   return (
     <MainLayout loading={false}>
-      <div className="title-page mb-4">Sale Points Detail</div>
+      <div className="title-page">Sale Points Detail</div>
 
       <FormUser fields={formFieldData} form={Form.useForm()[0]} />
 

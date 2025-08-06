@@ -147,7 +147,7 @@ export default function SalesPointsList() {
   return (
     <MainLayout loading={false}>
       <div className="flex items-center justify-between">
-        <div className="title-page mb-4">Sales Points</div>
+        <div className="title-page">Sales Points</div>
         <ActionButton
           mode="create"
           text="Create"

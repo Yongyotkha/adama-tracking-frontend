@@ -222,7 +222,7 @@ export default function EditOrViewRegisteredCustomer() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page mb-4">Detail</div>
+      <div className="title-page">Detail</div>
 
       <Tabs defaultActiveKey="1" className="custom-tabs">
         <TabPane tab={<span className="tab-title">Information</span>} key="1">

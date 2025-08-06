@@ -177,7 +177,7 @@ export default function RegisteredCustomerList() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page mb-4">Registered Customer</div>
+      <div className="title-page">Registered Customer</div>
 
       <Tabs
         activeKey={activeTab}
