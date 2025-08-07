@@ -127,7 +127,7 @@ export default function RedeemList() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Customer Redeem List</div>
+        <div className="title-page">Redeem Reward List</div>
       </div>
 
       <Filter filters={filters} />

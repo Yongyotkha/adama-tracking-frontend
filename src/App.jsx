@@ -125,9 +125,7 @@ import { LineOARoute, LinePrivateRoute } from "./components/auth/LineOARoute";
 import CustomerLineList from "./pages/settings/mobile/customer/CustomerLineList";
 import CreateCustomerLine from "./pages/settings/mobile/customer/CreateCustomerLine";
 import ExpirePointList from "./pages/settings/mobile/expire_point/ExpirePointList";
-import ManageNewsList from "./pages/settings/mobile/manage-news/ManageNewsList";
 import ManagePromotionList from "./pages/settings/mobile/manage-promotion/ManagePromotionList";
-import CreateManageNews from "./pages/settings/mobile/manage-news/CreateManageNews";
 import CreateManagePromotion from "./pages/settings/mobile/manage-promotion/CreateManagePromotion";
 import ApprovalAdvanceExpense from "./pages/expenses/advance/ApprovalAdvanceExpense";
 import ApprovalClearingExpense from "./pages/expenses/clearing/ApprovalClearingExpense";
@@ -156,6 +154,11 @@ import SalesPointsList from "./pages/settings/mobile/sale_point/SalesPointsList"
 import SalesPointDetail from "./pages/settings/mobile/sale_point/SalesPointDetail";
 import TargetGroupList from "./pages/settings/mobile/target_group/TargetGroupList";
 import CreateTargetGroup from "./pages/settings/mobile/target_group/CreateTargetGroup";
+import PointCampaignList from "./pages/settings/mobile/point_campaign/PointCampaignList";
+import CreatePointCampaign from "./pages/settings/mobile/point_campaign/CreateManageNews";
+import RewardCampaignList from "./pages/settings/mobile/reward_campaign/RewardCampaignList";
+import CreateRewardCampaign from "./pages/settings/mobile/reward_campaign/CreateRewardCampaign";
+import ViewOrEditTargetGroup from "./pages/settings/mobile/target_group/ViewOrEditTargetGroup";
 
 
 const App = () => {
@@ -307,6 +310,8 @@ const App = () => {
             {/* Line OA Settings */}
             <Route path="/setting/line/target-group" element={<TargetGroupList />} />
             <Route path="/setting/line/target-group/create" element={<CreateTargetGroup />} />
+            <Route path="/setting/line/target-group/:mode" element={<ViewOrEditTargetGroup />} />
+            {/* <Route path="/setting/line/target-group/create" element={<CreateTargetGroup />} /> */}
             {/* <Route path="/setting/line/promotion/edit" element={<EditPromotion />} /> */}
 
             <Route path="/points/line/customer-support-list" element={<CustomerLineList />} />
@@ -326,12 +331,18 @@ const App = () => {
             {/* <Route path="/points/line/sales-points-list/create" element={<CreateSalesPoint />} /> */}
             {/* <Route path="/points/line/sales-points-list/:mode" element={<ActionSalePoints />} /> */}
 
+            <Route path="/setting/line/point-campaign" element={<PointCampaignList />} />
+            <Route path="/setting/line/point-campaign/create" element={<CreatePointCampaign />} />
+
+            <Route path="/setting/line/reward-campaign" element={<RewardCampaignList />} />
+            <Route path="/setting/line/reward-campaign/create" element={<CreateRewardCampaign />} />
+
 
             <Route path="/points/line/expire-point" element={<ExpirePointList />} />
-            <Route path="/setting/line/point-campaign" element={<ManageNewsList />} />
-            <Route path="/setting/line/point-campaign/create" element={<CreateManageNews />} />
-            <Route path="/setting/line/reward-campaign" element={<ManagePromotionList />} />
-            <Route path="/setting/line/reward-campaign/create" element={<CreateManagePromotion />} />
+            {/* <Route path="/setting/line/point-campaign" element={<ManageNewsList />} /> */}
+            {/* <Route path="/setting/line/point-campaign/create" element={<CreateManageNews />} /> */}
+            {/* <Route path="/setting/line/reward-campaign" element={<ManagePromotionList />} /> */}
+            {/* <Route path="/setting/line/reward-campaign/create" element={<CreateManagePromotion />} /> */}
             <Route path="/points/line/redeem-reward-list" element={<RedeemList />} />
             <Route path="/setting/line/redeem-request" element={<RedeemRequestList />} />
             <Route path="/setting/line/redeem-product" element={<RedeemProduct />} />

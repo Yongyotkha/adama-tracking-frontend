@@ -333,5 +333,12 @@ export const paths = {
   pathCustomerContactUpdate: "sale-customer-contact/update",
 
   pathTargetGroupList: "target-group/list",
+  pathTargetGroupCreate: "target-group/create",
+  pathTargetGroupDetail: "target-group/detail",
 
+  pathPointCampaignList: "campaign/list",
+  pathPointCampaignCreate: "campaign/create",
+
+  pathRewardCampaignList: "campaign/list",
+  pathRewardCampaignCreate: "campaign/create",
 };

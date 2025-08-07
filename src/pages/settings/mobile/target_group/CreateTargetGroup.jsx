@@ -8,7 +8,7 @@ import { paths } from "../../../../services/CorsPath";
 import ActionButton from "../../../../components/button/ActionButton";
 import { useNavigate } from "react-router-dom";
 
-export default function CreateTargetGroup() {
+export default function ActionModeTargetGroup() {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);

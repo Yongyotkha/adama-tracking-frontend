@@ -86,7 +86,7 @@ export default function TargetGroupList() {
                     <ItemDropDown
                       mode={act.action.toLowerCase()}
                       onClick={() =>
-                        navigate(`/points/line/target-group/${act.action.toLowerCase()}`, {
+                        navigate(`/setting/line/target-group/${act.action.toLowerCase()}`, {
                           state: { id: item.id },
                         })
                       }
