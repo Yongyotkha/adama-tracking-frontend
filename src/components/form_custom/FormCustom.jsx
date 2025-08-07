@@ -10,6 +10,7 @@ import {
   TimePicker,
   Upload,
   message,
+  Switch,
 } from "antd";
 import BoxPrimary from "../box_primary/BoxPrimary";
 import dayjs from "dayjs";
@@ -54,7 +55,7 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
     const initialValues = fields.reduce((values, field) => {
       if (field.value !== undefined) {
         if (field.type === "date") {
- 
+
           values[field.name] = field.value ? dayjs(field.value, "YYYY-MM-DD") : null;
         } else if (field.type === "month") {
           values[field.name] = field.value
@@ -72,7 +73,7 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
       }
       return values;
     }, {});
-   
+
     setFormValues(initialValues);
 
     if (!isInitialSet.current && form) {
@@ -252,46 +253,46 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                     //   />
                     // </Upload.Dragger>
 
-                  <Upload.Dragger
-                    name="file"
-                    multiple={false}
-                    beforeUpload={async (file) => {
-                      const formData = new FormData();
-                      formData.append("file", file);
-                      formData.append("mode", "news"); // ส่ง mode เป็น news
+                    <Upload.Dragger
+                      name="file"
+                      multiple={false}
+                      beforeUpload={async (file) => {
+                        const formData = new FormData();
+                        formData.append("file", file);
+                        formData.append("mode", "news"); // ส่ง mode เป็น news
 
-                      try {
-                        setLoading(true);
-                        const response = await useServiceAPI.post(
-                          paths.pathUpload, // ใช้ API ตามที่คุณกำหนด
-                          formData
-                        );
-                        form?.setFieldsValue({
-                          [field.name]: response.data.file_url, // อัปเดตค่าของฟอร์ม
-                        });
-                        message.success(`${file.name} uploaded successfully.`);
-                      } catch (error) {
-                        console.error("Error uploading form data:", error);
-                        message.error("เกิดข้อผิดพลาดในการอัปโหลด");
-                      } finally {
-                        setLoading(false);
-                      }
+                        try {
+                          setLoading(true);
+                          const response = await useServiceAPI.post(
+                            paths.pathUpload, // ใช้ API ตามที่คุณกำหนด
+                            formData
+                          );
+                          form?.setFieldsValue({
+                            [field.name]: response.data.file_url, // อัปเดตค่าของฟอร์ม
+                          });
+                          message.success(`${file.name} uploaded successfully.`);
+                        } catch (error) {
+                          console.error("Error uploading form data:", error);
+                          message.error("เกิดข้อผิดพลาดในการอัปโหลด");
+                        } finally {
+                          setLoading(false);
+                        }
 
-                      return false; // ป้องกันไม่ให้ `Upload.Dragger` อัปโหลดเอง
-                    }}
-                    className="w-full"
-                    listType="picture"
-                    maxCount={1}
-                    accept="image/jpeg,image/png"
-                  >
-                    <p className="text-[#978B87]">Choose a file or drag & drop it here</p>
-                    <p className="text-[#978B87]">JPEG, PNG</p>
-                    <DynamicButton
-                      className="text-white mt-2 px-4 py-1 rounded-[4px] bg-[#009845]"
-                      text={"Browse File"}
-                      type={"button"}
-                    />
-                  </Upload.Dragger>
+                        return false; // ป้องกันไม่ให้ `Upload.Dragger` อัปโหลดเอง
+                      }}
+                      className="w-full"
+                      listType="picture"
+                      maxCount={1}
+                      accept="image/jpeg,image/png"
+                    >
+                      <p className="text-[#978B87]">Choose a file or drag & drop it here</p>
+                      <p className="text-[#978B87]">JPEG, PNG</p>
+                      <DynamicButton
+                        className="text-white mt-2 px-4 py-1 rounded-[4px] bg-[#009845]"
+                        text={"Browse File"}
+                        type={"button"}
+                      />
+                    </Upload.Dragger>
 
 
                   ) : field.type === "text" ||
@@ -390,7 +391,14 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                       disabled={field.disabled}
                       onChange={(e) => handleChange(field.name, e.target.value)}
                     />
-                  ): field.type === "text-editor" ? (
+                  ) : field.type === "switch" ? (
+                    <Switch
+                      checked={formValues[field.name]}
+                      onChange={(checked) => handleChange(field.name, checked)}
+                      className="custom-switch"
+                    />
+
+                  ) : field.type === "text-editor" ? (
                     <>
                       <ReactQuill
                         theme="snow"

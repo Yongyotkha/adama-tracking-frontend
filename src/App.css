@@ -14,6 +14,11 @@
   border-color: #00783F !important;
 }
 
+.custom-switch.ant-switch-checked {
+  background-color: #009845 !important;
+  border-color: #009845 !important;
+}
+
 .ant-input-outlined:hover,
 .ant-picker-outlined:hover,
 .ant-input-outlined:focus-within {
