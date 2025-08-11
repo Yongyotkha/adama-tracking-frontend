@@ -51,6 +51,7 @@ export default function TargetGroupList() {
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
+    console.log(tableParams);
     const filterValues = tableParams.filters;
 
     const requestData = {

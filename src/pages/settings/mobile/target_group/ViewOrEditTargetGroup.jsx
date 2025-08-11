@@ -125,13 +125,13 @@ export default function ViewOrEditTargetGroup() {
     <MainLayout loading={loading}>
       <div className="title-page">{mode === "view" ? "View" : "Edit"} Target Group</div>
 
-      <Filter
+      {/* <Filter
         filters={filters}
         values={filterValues}
         onSearch={handleSearch}
         onClear={handleClear}
         onChange={setFilterValues}
-      />
+      /> */}
 
       <BoxPrimary>
         <TableComponent
