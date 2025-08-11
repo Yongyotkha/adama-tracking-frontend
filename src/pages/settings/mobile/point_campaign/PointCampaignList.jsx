@@ -105,7 +105,7 @@ export default function PointCampaignList() {
                   <ItemDropDown
                     mode={act.action.toLowerCase()}
                     onClick={() =>
-                      navigate(`/point/campaign/${act.action.toLowerCase()}`, {
+                      navigate(`/setting/line/point-campaign/${act.action.toLowerCase()}`, {
                         state: { id: item.id },
                       })
                     }
