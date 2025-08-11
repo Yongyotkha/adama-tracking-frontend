@@ -28,7 +28,10 @@ export const paths = {
   pathMasterCrop: "master/crop",
   pathMasterProductTypes: "master/product-types",
   pathMasterProductGroups: "master/product-groups",
+  pathMasterProductList: "master/product-list",
   pathMasterProductCategorys: "master/product-categorys",
+
+  
 
   pathMasterProductByCrop: "master/product-by-crop",
   pathMasterSaleAll: "master/sale-all/list",
@@ -338,7 +341,8 @@ export const paths = {
 
   pathPointCampaignList: "campaign/list",
   pathPointCampaignCreate: "campaign/create",
-
-  pathRewardCampaignList: "campaign/list",
-  pathRewardCampaignCreate: "campaign/create",
+  pathPointCampaignTarget: "campaign/target",
+  pathPointCampaignCustomer: "campaign/customer",
+  
+  
 };

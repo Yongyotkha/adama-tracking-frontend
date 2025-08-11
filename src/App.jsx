@@ -155,7 +155,7 @@ import SalesPointDetail from "./pages/settings/mobile/sale_point/SalesPointDetai
 import TargetGroupList from "./pages/settings/mobile/target_group/TargetGroupList";
 import CreateTargetGroup from "./pages/settings/mobile/target_group/CreateTargetGroup";
 import PointCampaignList from "./pages/settings/mobile/point_campaign/PointCampaignList";
-import CreatePointCampaign from "./pages/settings/mobile/point_campaign/CreateManageNews";
+import CreatePointCampaign from "./pages/settings/mobile/point_campaign/CreatePointCampaign";
 import RewardCampaignList from "./pages/settings/mobile/reward_campaign/RewardCampaignList";
 import CreateRewardCampaign from "./pages/settings/mobile/reward_campaign/CreateRewardCampaign";
 import ViewOrEditTargetGroup from "./pages/settings/mobile/target_group/ViewOrEditTargetGroup";
