@@ -80,7 +80,7 @@ export default function PointCampaignList() {
       const res = await useServiceAPI.get(paths.pathPointCampaignList, requestData);
 
       const list = res?.data?.data || [];
-      
+
       const formattedData = list.map((item, index) => ({
         key: index + 1 + (current - 1) * pageSize,
         name: item.name,
@@ -166,7 +166,16 @@ export default function PointCampaignList() {
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Point Campaign</div>
-        <ActionButton mode="create" text="Create" onClick={() => navigate("create")} />
+        <ActionButton
+          mode="create"
+          text="Create"
+          onClick={() =>
+            navigate("/setting/line/point-campaign/create", {
+              state: { mode: "create" }
+            })
+          }
+        />
+
       </div>
       <Filter filters={filters} onSearch={handleSearch} onClear={handleClear} />
       <BoxPrimary>

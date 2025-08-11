@@ -32,17 +32,32 @@ export default function CreatePointCampaign() {
   const [loading, setLoading] = useState(false);
 
   // ====== mode & id ======
-  const { mode } = useParams(); // 'create' | 'edit' | 'view'
+  const { mode: modeFromParams } = useParams(); // 'create' | 'edit' | 'view'
   const location = useLocation();
+
+  // รับ mode จาก state ถ้ามี (กันพลาดเวลา navigate ส่ง state มาแทน params)
+  const modeFromState = location.state?.mode;
+
+  // สรุป mode สุดท้าย (fallback เป็น "create")
+  const mode = modeFromParams ?? modeFromState ?? "create";
+
+  // id รับจาก state ก่อน ถ้าไม่มีค่อยอ่านจาก query ?id=...
   const idFromState = location.state?.id;
   const idFromQuery = new URLSearchParams(location.search).get("id");
   const recordId = idFromState ?? (idFromQuery ? Number(idFromQuery) : undefined);
+
+  console.log("mode:", mode, "recordId:", recordId);
 
   const isCreate = mode === "create";
   const isEdit = mode === "edit";
   const isView = mode === "view";
 
-  const pageTitle = isCreate ? "Create Point Campaign" : isEdit ? "Edit Point Campaign" : "View Point Campaign";
+  const pageTitle = isCreate
+    ? "Create Point Campaign"
+    : isEdit
+      ? "Edit Point Campaign"
+      : "View Point Campaign";
+
 
   // ============ Target / Crop options from API ============
   const [dealerOptions, setDealerOptions] = useState([]);
@@ -74,7 +89,7 @@ export default function CreatePointCampaign() {
         setDealerOptions(buckets.dealer);
         setSubDealerOptions(buckets.sub);
         setFarmerOptions(buckets.farmer);
-      } catch (_) {}
+      } catch (_) { }
     };
 
     const fetchCrops = async () => {
@@ -82,7 +97,7 @@ export default function CreatePointCampaign() {
         const res = await useServiceAPI.get(paths.pathMasterCrop);
         const arr = res?.data?.data || res?.data || [];
         setCropOptions(arr.map((c) => ({ label: c?.name || "-", value: String(c?.id) })));
-      } catch (_) {}
+      } catch (_) { }
     };
 
     fetchTargets();
@@ -278,9 +293,9 @@ export default function CreatePointCampaign() {
   const selectTargetRowSel = isView
     ? undefined
     : {
-        selectedRowKeys,
-        onChange: (keys) => setSelectedRowKeys(keys),
-      };
+      selectedRowKeys,
+      onChange: (keys) => setSelectedRowKeys(keys),
+    };
 
   // ==========================
   // Extra / Topup editable tables
@@ -472,7 +487,7 @@ export default function CreatePointCampaign() {
         res = await useServiceAPI.post(paths.pathPointCampaignCreate, payload);
       }
 
-      
+
       if (res?.status === 200) {
         const id = res?.data?.data?.id;
         showNotification?.(
@@ -652,9 +667,9 @@ export default function CreatePointCampaign() {
               isView
                 ? undefined
                 : {
-                    selectedRowKeys: selectedCategoryKeys, // record_id (string)
-                    onChange: (keys) => setSelectedCategoryKeys(keys),
-                  }
+                  selectedRowKeys: selectedCategoryKeys, // record_id (string)
+                  onChange: (keys) => setSelectedCategoryKeys(keys),
+                }
             }
           />
         </BoxPrimary>
@@ -696,9 +711,9 @@ export default function CreatePointCampaign() {
               isView
                 ? undefined
                 : {
-                    selectedRowKeys: selectedProductKeys,
-                    onChange: (keys) => setSelectedProductKeys(keys),
-                  }
+                  selectedRowKeys: selectedProductKeys,
+                  onChange: (keys) => setSelectedProductKeys(keys),
+                }
             }
           />
         </BoxPrimary>
