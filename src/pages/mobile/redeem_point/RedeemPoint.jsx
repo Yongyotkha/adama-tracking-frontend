@@ -14,7 +14,12 @@ export default function RedeemPoint() {
   const [categories, setCategories] = useState([]);
   const [activeTab, setActiveTab] = useState("");
   const [rewards, setRewards] = useState([]);
-
+  const [tableParams, setTableParams] = useState({
+    pagination: { current: 1, pageSize: 10 },
+    filters: {},
+    sortOrder: null,
+    sortField: null,
+  });
   // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
@@ -40,9 +45,17 @@ export default function RedeemPoint() {
     const fetchRewards = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathPointPublicListByCategory, { category_id: activeTab });
+        console.log('activeTab : ',activeTab)
+        const { current, pageSize } = tableParams.pagination;
+        const requestData = {
+          category_id: activeTab,
+          page: "all",
+          page_length: current,
+          page_size: pageSize,
+        };
+        const response = await useServiceAPI.get(paths.pathMasterPromotion, requestData);
         if (response.status === 200 && response.result) {
-          setRewards(response.data);
+          setRewards(response.data.data);
         }
       } catch (error) {
         console.error("Error fetching rewards:", error);
@@ -87,7 +100,7 @@ export default function RedeemPoint() {
             >
               {/* Image Section */}
               <div className="relative rounded-xl overflow-hidden shadow">
-                <img src={reward.logo} alt={reward.name} className="w-full object-cover" />
+                <img src={reward.image} alt={reward.name} className="w-full object-cover" />
               </div>
 
               {/* Description Section */}

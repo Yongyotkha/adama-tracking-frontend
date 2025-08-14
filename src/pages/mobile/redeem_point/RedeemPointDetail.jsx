@@ -16,9 +16,9 @@ export default function RedeemPointDetail() {
   useEffect(() => {
     const fetchRewardDetail = async () => {
       try {
-        const response = await useServiceAPI.get(paths.pathPointPublicDetail, { id: location.state.id });
+        const response = await useServiceAPI.get(paths.pathPromotiondetail+"/"+location.state.id);
         if (response.status === 200 && response.result) {
-          setReward(response.data);
+          setReward(response.data.promotion);
         }
       } catch (error) {
         console.error("Error fetching reward details:", error);
@@ -63,7 +63,7 @@ export default function RedeemPointDetail() {
 
         <div className="w-full max-w-md bg-white rounded-lg mt-6">
           <div className="relative rounded-lg overflow-hidden">
-            <img src={reward.logo} alt={reward.name} className="w-full object-cover rounded-lg" />
+            <img src={reward.image} alt={reward.name} className="w-full object-cover rounded-lg" />
           </div>
 
           <h2 className="text-green-700 font-bold text-xl sarabun-font mt-4">{reward.name}</h2>
@@ -98,14 +98,15 @@ export default function RedeemPointDetail() {
           <div className="w-full max-w-md mt-auto py-2">
             <button
               onClick={() => {
-                const isAndroid = /Android/i.test(navigator.userAgent);
-                const url = "adama.mtsc.co.th/mobile/collect-points"; // ❌ ไม่มี https://
+                // const isAndroid = /Android/i.test(navigator.userAgent);
+                // const url = "adama.mtsc.co.th/mobile/collect-points"; // ❌ ไม่มี https://
 
-                if (isAndroid) {
-                  window.location.href = `intent://${url}#Intent;scheme=https;package=com.android.chrome;end;`;
-                } else {
-                  window.open(`https://${url}`, "_blank");
-                }
+                // if (isAndroid) {
+                //   window.location.href = `intent://${url}#Intent;scheme=https;package=com.android.chrome;end;`;
+                // } else {
+                //   window.open(`https://${url}`, "_blank");
+                // }
+                console.log('asf')
               }}
               className="w-full py-3 bg-[#009845] rounded-lg text-white sarabun-font flex items-center justify-center space-x-2"
             >
