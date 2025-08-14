@@ -8,6 +8,7 @@ import BackButton from "../../../components/mobile/button/BackButton";
 import DynamicButton from "../../../components/button/DynamicButton";
 import useServiceAPI from "../../../services/corsService";
 import { paths } from "../../../services/CorsPath";
+import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 
 export default function CollectPoints() {
   const [loading, setLoading] = useState(false);

@@ -8,12 +8,13 @@ import UserPointsSection from "../../../components/mobile/user_points_section/Us
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
-import DynamicButton from "../../../components/button/DynamicButton";
+import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
+import { Input, Upload, DatePicker } from "antd";
 export default function OrderHistoryDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const { userInfo } = useContext(AuthContext);
-
+  const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [historydetail, setHistorydetail] = useState(null);
 
@@ -149,6 +150,37 @@ export default function OrderHistoryDetail() {
               )}
             </div>
 
+            <div>
+              <label className="block text-sm text-gray-700 sarabun-font mb-1">
+                ถ่ายรูปหน้าบิลเงินสดหรือใบสั่งสินค้า
+                <span className="text-red-500">*</span>
+              </label>
+              <Upload.Dragger
+                multiple
+                className="rounded-md"
+                height={100}
+                listType="picture"
+                beforeUpload={() => false}
+              >
+                <p className="text-gray-500 sarabun-font">ลากหรือคลิกเพื่ออัปโหลด</p>
+              </Upload.Dragger>
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-700 sarabun-font mb-1">
+                ถ่ายรูปสินค้าที่ได้รับ<span className="text-red-500">*</span>
+              </label>
+              <Upload.Dragger
+                multiple
+                className="rounded-md"
+                height={100}
+                listType="picture"
+                beforeUpload={() => false}
+              >
+                <p className="text-gray-500 sarabun-font">ลากหรือคลิกเพื่ออัปโหลด</p>
+              </Upload.Dragger>
+            </div>
+
             {/* Summary */}
             <div className="mt-4 border-t pt-2 text-sm text-gray-800">
               <div className="flex justify-between font-semibold">
@@ -161,33 +193,15 @@ export default function OrderHistoryDetail() {
                 <p>{totalPriceDisplay}</p>
               </div>
             </div>
+
+
           </div>
         </div>
 
-        {/* File Upload Section (ยังคง mock ไว้ตามเดิม) */}
-        <div className="bg-white rounded-xl shadow-md p-4 w-full max-w-md mt-6">
-          <p className="font-semibold text-gray-700 sarabun-font mb-2">ไฟล์แนบ</p>
-          <div className="border rounded-md p-2 mb-3">
-            <img src="/img/mock/invoice-thumbnail.png" alt="Invoice" className="w-full rounded" />
-          </div>
-          <div className="border rounded-md p-2">
-            <p className="text-sm font-semibold text-gray-700 sarabun-font mb-1">
-              ถ่ายรูปเพื่อยืนยันการรับสินค้า <span className="text-red-500">*</span>
-            </p>
-            <img src="/img/mock/location-map.png" alt="Map" className="w-full rounded" />
-          </div>
-        </div>
-        <DynamicButton
-          type="primary"
-          className="w-full flex justify-center rounded-sm bg-[#00783F] text-white hover:bg-[#00783F] hover:text-green-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          htmlType="button"
-          text="ยืนยัน"
-          disabled={loading}
-          onClick={() => confirm()}
-          style={{ 'width': "445px" }}
 
-        />
+
         <BackButton url="/mobile/collect-points" />
+        <button onClick={confirm()}>confirm</button>
       </div>
     </MobileLayout>
   );
