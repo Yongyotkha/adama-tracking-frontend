@@ -9,7 +9,6 @@ import DynamicButton from "../../../components/button/DynamicButton";
 import useServiceAPI from "../../../services/corsService";
 import { paths } from "../../../services/CorsPath";
 
-
 // ⚠️ ถ้าคุณมี hook/useServiceAPI และ paths อยู่แล้ว ให้ import ให้ถูกทางของโปรเจกต์คุณ
 // ตัวอย่าง:
 // import { useServiceAPI } from "@/hooks/useServiceAPI";

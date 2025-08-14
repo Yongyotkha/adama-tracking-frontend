@@ -8,7 +8,7 @@ import UserPointsSection from "../../../components/mobile/user_points_section/Us
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
-
+import DynamicButton from "../../../components/button/DynamicButton";
 export default function OrderHistoryDetail() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -82,6 +82,11 @@ export default function OrderHistoryDetail() {
 
   const statusTextColor = historydetail?.status_transaction_color || "#0ea5a0";
   const statusBgColor = historydetail?.status_transaction_bg_color || "#e6fffa";
+
+  const confirm = () => {
+    console.log('btn confirm')
+  };
+
 
   return (
     <MobileLayout loading={loading}>
@@ -171,7 +176,16 @@ export default function OrderHistoryDetail() {
             <img src="/img/mock/location-map.png" alt="Map" className="w-full rounded" />
           </div>
         </div>
+        <DynamicButton
+          type="primary"
+          className="w-full flex justify-center rounded-sm bg-[#00783F] text-white hover:bg-[#00783F] hover:text-green-600 px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          htmlType="button"
+          text="ยืนยัน"
+          disabled={loading}
+          onClick={() => confirm()}
+          style={{ 'width': "445px" }}
 
+        />
         <BackButton url="/mobile/collect-points" />
       </div>
     </MobileLayout>
