@@ -7,6 +7,9 @@ export const endPoint = "https://adama-api.mtsc.co.th/api"; //Test API
 export const paths = {
   pathSalePointCollectList: "sale-point/collect-point-list",
   pathSalePointDetail: "sale-point/detail",
+  pathSalePointReceive: "sale-point-receive/create",
+  pathSalePointReceiveOrder: "sale-point-receive/create-order",
+  pathSalePointReceiveList: "sale-point-receive/list",
   // Login
   pathVerifyOtp: "verify-otp",
   pathOtpCall: "otp/call",

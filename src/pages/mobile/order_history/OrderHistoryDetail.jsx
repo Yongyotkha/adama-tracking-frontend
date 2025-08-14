@@ -53,6 +53,7 @@ export default function OrderHistoryDetail() {
       product_name: p?.product_name ?? "-",
       product_code: p?.product_code ?? "-",
       amount: Number(p?.net_amount ?? 0),
+      point: Number(p?.point ?? 0),
       amount_display:
         typeof p?.net_amount === "string" || typeof p?.net_amount === "number"
           ? new Intl.NumberFormat("th-TH").format(Number(p?.net_amount ?? 0))
@@ -61,7 +62,6 @@ export default function OrderHistoryDetail() {
     }))
     : [];
 
-  console.log('products : ', historydetail?.products)
 
   const totalQty = products.reduce((sum, it) => sum + (Number.isFinite(it.qty) ? it.qty : 0), 0);
   const totalPrice = products.reduce(
@@ -138,6 +138,7 @@ export default function OrderHistoryDetail() {
                           {item.qty} x {item.product_name}
                         </p>
                         <p className="text-xs text-gray-500">{item.product_code}</p>
+                        <p className="text-xs text-gray-500">คะแนน : {item.point}</p>
                       </div>
                     </div>
                     <p className="w-20 text-right">{item.amount_display}</p>

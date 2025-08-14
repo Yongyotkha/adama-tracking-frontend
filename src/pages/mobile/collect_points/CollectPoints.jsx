@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { useNavigate } from "react-router-dom";
 import SectionHeader from "../../../components/mobile/section_header/SectionHeader";
@@ -9,48 +9,37 @@ import DynamicButton from "../../../components/button/DynamicButton";
 import useServiceAPI from "../../../services/corsService";
 import { paths } from "../../../services/CorsPath";
 
-// ⚠️ ถ้าคุณมี hook/useServiceAPI และ paths อยู่แล้ว ให้ import ให้ถูกทางของโปรเจกต์คุณ
-// ตัวอย่าง:
-// import { useServiceAPI } from "@/hooks/useServiceAPI";
-// import paths from "@/constants/paths";
-
 export default function CollectPoints() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("in_progress");
 
-  // เก็บข้อมูลที่มาจาก API แยกตามแท็บ
+  // เก็บข้อมูลของแต่ละแท็บ (ใช้สำหรับแสดงจำนวนบนแท็บ)
   const [dataByTab, setDataByTab] = useState({
     in_progress: [],
     pre_receive: [],
   });
 
+  // ข้อมูลที่แสดงจริงตามแท็บที่เลือก
+  const [orderData, setOrderData] = useState([]);
+
   const [tableParams, setTableParams] = useState({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-    },
+    pagination: { current: 1, pageSize: 10 },
     filters: {},
     sortOrder: null,
     sortField: null,
   });
 
-  // tab กำหนดเองให้ตรงกับ UI ที่ออกแบบไว้
   const tabs = [
     { id: "in_progress", label: "สินค้ารอยืนยันรับ", color: "border-orange-500" },
     { id: "pre_receive", label: "รับสินค้าล่วงหน้า", color: "border-green-500" },
   ];
 
-  // เลือกข้อมูลตามแท็บที่กำลัง active
-
-
-  // ✅ ดึงข้อมูลจริงจาก API (แทน mockData)
-
-  const [orderData, setOrderData] = useState([]);
-  const fetchData = async () => {
-
+  // -------------------- Fetch: IN PROGRESS (API เดิม) --------------------
+  const fetchInProgress = async (setAsActiveList = false) => {
     setLoading(true);
     const { current, pageSize } = tableParams.pagination;
+
     const requestData = {
       platform: "web",
       keyword: "",
@@ -67,17 +56,16 @@ export default function CollectPoints() {
     };
 
     try {
-
       const res = await useServiceAPI.get(paths.pathSalePointCollectList, requestData);
-      const rows = res?.data?.data ?? [];
-      console.log('rows : ', rows)
-      // แปลงข้อมูลจาก API -> รูปแบบที่ UI ใช้
+      const rows = res?.data?.data?.data ?? res?.data?.data ?? [];
       const mapped = rows.map((item) => ({
         document_number: item.document_number,
         date: item.updated_at || item.document_date,
         amount: Number(item.net_amount || 0),
-        amount_display: item.net_amount_display ?? new Intl.NumberFormat("th-TH").format(Number(item.net_amount || 0)),
-        line_total: 0, // API ไม่มี field นี้ในตัวอย่าง
+        amount_display:
+          item.net_amount_display ??
+          new Intl.NumberFormat("th-TH").format(Number(item.net_amount || 0)),
+        line_total: Number(item.line_total || 0),
         status_code: item.status_code,
         status_transaction_name: item.status_transaction_name,
         status_interface_name: item.status_interface_name,
@@ -86,29 +74,80 @@ export default function CollectPoints() {
         status_payment_name: item.status_payment_name,
       }));
 
-      // กรองข้อมูลตามแท็บ active ปัจจุบัน
-      if (activeTab === "in_progress") {
-        setOrderData(
-          mapped.filter(
-            (x) => x.status_code === "ODW" || x.status_transaction_name === "Waiting for Approve"
-          )
-        );
-      } else {
-        setOrderData(mapped.filter((x) => x.status_interface_name === "Draft"));
-      }
+      // ตามโจทย์: in_progress ใส่ข้อมูลทั้งหมด ไม่ต้องกรอง status_code
+      if (setAsActiveList) setOrderData(mapped);
+      setDataByTab((prev) => ({ ...prev, in_progress: mapped }));
     } catch (error) {
-      console.error("fetchData error:", error);
-      setOrderData([]);
+      console.error("fetchInProgress error:", error);
+      if (setAsActiveList) setOrderData([]);
+      setDataByTab((prev) => ({ ...prev, in_progress: [] }));
     } finally {
       setLoading(false);
     }
   };
 
-  // ...
+  // -------------------- Fetch: PRE RECEIVE (เรียกตั้งแต่โหลดหน้า) --------------------
+  const fetchPreReceive = async (setAsActiveList = false) => {
+    setLoading(true);
+    const { current, pageSize } = tableParams.pagination;
+
+    const requestData = {
+      platform: "web",
+      keyword: "",
+      use_flag: "1",
+      type: "2",
+      page: "all",
+      page_length: current,
+      page_size: pageSize,
+    };
+
+    try {
+      const res = await useServiceAPI.get(paths.pathSalePointReceiveList, requestData);
+      const rows = res?.data?.data?.data ?? res?.data?.data ?? [];
+      const mapped = rows.map((item) => ({
+        document_number: item.document_number ?? "-",
+        date: item.receive_date,
+        dealer_name: item.receive_shop, // ใช้เป็นชื่อแสดง
+        amount: Number(item.point || 0),
+        amount_display: new Intl.NumberFormat("th-TH").format(Number(item.point || 0)),
+        line_total: 0,
+        status_code: null,
+        status_transaction_name: null,
+        status_interface_name: null,
+        status_payment_name: null,
+      }));
+
+      if (setAsActiveList) setOrderData(mapped);
+      // อัปเดตจำนวนบนแท็บให้พร้อมใช้งานตั้งแต่หน้าโหลด
+      setDataByTab((prev) => ({ ...prev, pre_receive: mapped }));
+    } catch (error) {
+      console.error("fetchPreReceive error:", error);
+      if (setAsActiveList) setOrderData([]);
+      setDataByTab((prev) => ({ ...prev, pre_receive: [] }));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // -------------------- Effects --------------------
+  // 1) โหลดครั้งแรก: ดึง pre_receive ทันที (เพื่อให้ตัวเลข/ข้อมูลพร้อม) + ดึง in_progress สำหรับแท็บเริ่มต้น
   useEffect(() => {
-    fetchData();
+    fetchPreReceive(false);   // พรีโหลดข้อมูล "รับสินค้าล่วงหน้า" สำหรับ badge/จำนวน
+    fetchInProgress(true);    // แสดงลิสต์ของ in_progress เป็นค่าเริ่มต้น
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 2) เมื่อผู้ใช้สลับแท็บ ให้โหลดข้อมูลของแท็บนั้น (และอัปเดตลิสต์แสดงผล)
+  useEffect(() => {
+    if (activeTab === "in_progress") {
+      fetchInProgress(true);
+    } else {
+      fetchPreReceive(true);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
+
+  // (ถ้าต้องการให้ pagination เปลี่ยนแล้วรีโหลดทั้งสองแท็บ แจ้งมาได้ เดี๋ยวผมเพิ่มให้ครับ)
 
   return (
     <MobileLayout loading={loading}>
@@ -131,8 +170,9 @@ export default function CollectPoints() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-2 text-sm font-semibold text-center sarabun-font ${activeTab === tab.id ? "border-b-2 text-green-600 border-green-500" : "text-gray-500"
-                }`}
+              className={`flex-1 py-2 text-sm font-semibold text-center sarabun-font ${
+                activeTab === tab.id ? "border-b-2 text-green-600 border-green-500" : "text-gray-500"
+              }`}
             >
               {tab.label}{" "}
               <span className="ml-1 text-pink-600">
@@ -162,9 +202,7 @@ export default function CollectPoints() {
                       }
                     >
                       <div className="flex flex-col">
-                        <p className="text-gray-500 sarabun-font text-sm">
-                          {order.date}
-                        </p>
+                        <p className="text-gray-500 sarabun-font text-sm">{order.date}</p>
                         <p className="text-gray-900 sarabun-font font-bold mt-1">
                           เลขที่ {order.document_number}
                         </p>
@@ -185,16 +223,15 @@ export default function CollectPoints() {
                     </div>
                   );
                 } else {
+                  // pre_receive (point)
                   return (
                     <div
                       key={index}
                       className="p-4 bg-white rounded-lg shadow-md border-l-4 border-green-500"
                     >
-                      <p className="text-gray-500 sarabun-font text-sm">
-                        {order.date}
-                      </p>
+                      <p className="text-gray-500 sarabun-font text-sm">{order.date}</p>
                       <p className="text-gray-900 sarabun-font font-bold mt-1">
-                        {order.dealer_name ?? order.sub_dealer_name ?? `เลขที่ ${order.document_number}`}
+                        {order.dealer_name ?? `เลขที่ ${order.document_number}`}
                       </p>
                       <div className="flex justify-between items-center mt-2">
                         <div className="flex gap-2">
