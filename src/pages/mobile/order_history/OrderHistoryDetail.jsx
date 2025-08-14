@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import SectionHeader from "../../../components/mobile/section_header/SectionHeader";
 import BackButton from "../../../components/mobile/button/BackButton";
@@ -16,35 +16,72 @@ export default function OrderHistoryDetail() {
 
   const [loading, setLoading] = useState(false);
   const [historydetail, setHistorydetail] = useState(null);
+
   const documentNumber = location.state?.document_number;
 
   useEffect(() => {
     const fetchDetail = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathhistoryShopDetail, {
+        const response = await useServiceAPI.get(paths.pathSalePointDetail, {
           platform: "web",
-          id: userInfo.id,
+          id: userInfo?.id,
           document_number: documentNumber,
         });
 
-        if (response.status === 200) {
-          setHistorydetail(response.data.data);
+
+        if (response?.status === 200) {
+          setHistorydetail(response.data ?? null);
+        } else {
+          setHistorydetail(null);
         }
       } catch (err) {
         console.error("Error loading order detail:", err);
+        setHistorydetail(null);
       } finally {
         setLoading(false);
       }
     };
 
     if (documentNumber) fetchDetail();
-  }, [documentNumber]);
+  }, [documentNumber, userInfo?.id]);
 
-  const items = historydetail?.items || [];
-  const totalQty = items.reduce((sum, item) => sum + (item.qty || 0), 0);
-  const totalPoints = items.reduce((sum, item) => sum + (item.point || 0), 0);
-  const totalPrice = items.reduce((sum, item) => sum + (item.totol || 0), 0);
+  // ---------------- ใช้ products จาก API โดยตรง (ไม่มี useMemo) ----------------
+  const products = Array.isArray(historydetail?.products)
+    ? historydetail.products.map((p) => ({
+      qty: Number(p?.quantity ?? 0),
+      product_name: p?.product_name ?? "-",
+      product_code: p?.product_code ?? "-",
+      amount: Number(p?.net_amount ?? 0),
+      amount_display:
+        typeof p?.net_amount === "string" || typeof p?.net_amount === "number"
+          ? new Intl.NumberFormat("th-TH").format(Number(p?.net_amount ?? 0))
+          : "0",
+      image: p?.product_image || null,
+    }))
+    : [];
+
+  console.log('products : ', historydetail?.products)
+
+  const totalQty = products.reduce((sum, it) => sum + (Number.isFinite(it.qty) ? it.qty : 0), 0);
+  const totalPrice = products.reduce(
+    (sum, it) => sum + (Number.isFinite(it.amount) ? it.amount : 0),
+    0
+  );
+  const totalPriceDisplay = new Intl.NumberFormat("th-TH").format(totalPrice);
+
+  const displayDateTime =
+    historydetail?.document_datetime ||
+    (historydetail?.document_date ? `${historydetail.document_date}` : "-");
+
+  const statusText =
+    historydetail?.status_transaction_name ||
+    historydetail?.status_payment_name ||
+    historydetail?.status_name ||
+    "-";
+
+  const statusTextColor = historydetail?.status_transaction_color || "#0ea5a0";
+  const statusBgColor = historydetail?.status_transaction_bg_color || "#e6fffa";
 
   return (
     <MobileLayout loading={loading}>
@@ -55,56 +92,78 @@ export default function OrderHistoryDetail() {
 
         {/* Order Card */}
         <div className="bg-white rounded-xl shadow-md p-4 w-full max-w-md mt-4">
-          <div className="text-sm text-gray-500 sarabun-font">31 ธ.ค. 67 16:16</div>
+          <div className="text-sm text-gray-500 sarabun-font">{displayDateTime}</div>
+
           <div className="flex justify-between items-center mt-1">
             <p className="text-sm font-semibold text-gray-700 sarabun-font">เลขที่</p>
-            <p className="font-bold text-gray-900">{documentNumber}</p>
+            <p className="font-bold text-gray-900">
+              {historydetail?.document_number ?? documentNumber ?? "-"}
+            </p>
           </div>
 
-          {/* Status */}
-          <div className="text-green-600 sarabun-font text-sm font-semibold mt-2 text-right">รับสินค้าสำเร็จ</div>
+          {/* Status จาก API */}
+          <div
+            className="sarabun-font text-sm font-semibold mt-2 text-right inline-block px-2 py-1 rounded"
+            style={{ color: statusTextColor, backgroundColor: statusBgColor }}
+          >
+            {statusText}
+          </div>
 
-          {/* Product List */}
+          {/* Product List (เฉพาะ products) */}
           <div className="mt-3 border-t pt-2">
             <h3 className="text-green-600 sarabun-font font-semibold">รายการสินค้า</h3>
-            <div className="mt-2 space-y-1">
-              {items.map((item, index) => (
-                <div key={index} className="flex justify-between text-sm text-gray-700 sarabun-font">
-                  <div className="flex-1">
-                    <p>{item.qty} x {item.product_name}</p>
-                    <p className="text-xs text-gray-500 sarabun-font">{item.product_code}</p>
+
+            <div className="mt-2 space-y-2">
+              {products.length > 0 ? (
+                products.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex items-start justify-between text-sm text-gray-700 sarabun-font"
+                  >
+                    <div className="flex gap-3 flex-1">
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.product_name}
+                          className="w-12 h-12 rounded object-cover border"
+                        />
+                      ) : null}
+                      <div className="flex-1">
+                        <p>
+                          {item.qty} x {item.product_name}
+                        </p>
+                        <p className="text-xs text-gray-500">{item.product_code}</p>
+                      </div>
+                    </div>
+                    <p className="w-20 text-right">{item.amount_display}</p>
                   </div>
-                  <p className="w-10 text-center">{item.point}</p>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm">ไม่มีรายการสินค้า</p>
+              )}
             </div>
 
             {/* Summary */}
             <div className="mt-4 border-t pt-2 text-sm text-gray-800">
               <div className="flex justify-between font-semibold">
-                <p className="sarabun-font">จำนวนรายการ</p>
-                <p>
-                  {totalQty} / {totalPoints} คะแนน
-                </p>
+                <p className="sarabun-font">จำนวนรวม</p>
+                <p>{totalQty}</p>
               </div>
+
               <div className="flex justify-between font-semibold text-lg text-green-700 mt-1">
                 <p className="sarabun-font">ยอดรวมสุทธิ (บาท)</p>
-                <p>{totalPrice.toLocaleString("th-TH", { minimumFractionDigits: 1 })}</p>
+                <p>{totalPriceDisplay}</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* File Upload Section */}
+        {/* File Upload Section (ยังคง mock ไว้ตามเดิม) */}
         <div className="bg-white rounded-xl shadow-md p-4 w-full max-w-md mt-6">
           <p className="font-semibold text-gray-700 sarabun-font mb-2">ไฟล์แนบ</p>
-
-          {/* Mock File Image */}
           <div className="border rounded-md p-2 mb-3">
             <img src="/img/mock/invoice-thumbnail.png" alt="Invoice" className="w-full rounded" />
           </div>
-
-          {/* Upload Area */}
           <div className="border rounded-md p-2">
             <p className="text-sm font-semibold text-gray-700 sarabun-font mb-1">
               ถ่ายรูปเพื่อยืนยันการรับสินค้า <span className="text-red-500">*</span>
@@ -113,7 +172,7 @@ export default function OrderHistoryDetail() {
           </div>
         </div>
 
-        <BackButton url="/mobile/order-history" />
+        <BackButton url="/mobile/collect-points" />
       </div>
     </MobileLayout>
   );

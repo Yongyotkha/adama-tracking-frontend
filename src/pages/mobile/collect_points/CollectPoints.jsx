@@ -49,6 +49,7 @@ export default function CollectPoints() {
 
   const [orderData, setOrderData] = useState([]);
   const fetchData = async () => {
+
     setLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const requestData = {
@@ -68,9 +69,9 @@ export default function CollectPoints() {
 
     try {
 
-      const res = await useServiceAPI.get(paths.pathSalePointList, requestData);
-      const rows = res?.data?.data?.data ?? [];
-
+      const res = await useServiceAPI.get(paths.pathSalePointCollectList, requestData);
+      const rows = res?.data?.data ?? [];
+      console.log('rows : ', rows)
       // แปลงข้อมูลจาก API -> รูปแบบที่ UI ใช้
       const mapped = rows.map((item) => ({
         document_number: item.document_number,

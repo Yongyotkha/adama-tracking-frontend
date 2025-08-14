@@ -5,7 +5,8 @@ export const endPoint = "https://adama-api.mtsc.co.th/api"; //Test API
 //export const endPoint = "http://localhost:8080/api";
 
 export const paths = {
-  pathSalePointList: "sale-point/collect-point-list",
+  pathSalePointCollectList: "sale-point/collect-point-list",
+  pathSalePointDetail: "sale-point/detail",
   // Login
   pathVerifyOtp: "verify-otp",
   pathOtpCall: "otp/call",
