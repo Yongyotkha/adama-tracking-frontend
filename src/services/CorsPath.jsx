@@ -10,6 +10,7 @@ export const paths = {
   pathSalePointReceive: "sale-point-receive/create",
   pathSalePointReceiveOrder: "sale-point-receive/create-order",
   pathSalePointReceiveList: "sale-point-receive/list",
+  pathSalePointReceiveReward: "sale-point-receive/receive-reward",
   // Login
   pathVerifyOtp: "verify-otp",
   pathOtpCall: "otp/call",

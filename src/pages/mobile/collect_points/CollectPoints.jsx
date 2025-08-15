@@ -171,9 +171,8 @@ export default function CollectPoints() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-2 text-sm font-semibold text-center sarabun-font ${
-                activeTab === tab.id ? "border-b-2 text-green-600 border-green-500" : "text-gray-500"
-              }`}
+              className={`flex-1 py-2 text-sm font-semibold text-center sarabun-font ${activeTab === tab.id ? "border-b-2 text-green-600 border-green-500" : "text-gray-500"
+                }`}
             >
               {tab.label}{" "}
               <span className="ml-1 text-pink-600">

@@ -7,18 +7,23 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 
 export default function RedeemPointDetail() {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);        // โหลดรายละเอียดรางวัล
+  const [redeeming, setRedeeming] = useState(false);   // สถานะกำลังแลกคะแนน
   const navigate = useNavigate();
   const [reward, setReward] = useState(null);
+  const [target, setTarget] = useState(null);
   const [activeTab, setActiveTab] = useState("conditions");
   const location = useLocation();
 
   useEffect(() => {
     const fetchRewardDetail = async () => {
       try {
-        const response = await useServiceAPI.get(paths.pathPromotiondetail+"/"+location.state.id);
+        const response = await useServiceAPI.get(
+          paths.pathPromotiondetail + "/" + location.state.id
+        );
         if (response.status === 200 && response.result) {
           setReward(response.data.promotion);
+          setTarget(response.data.target);
         }
       } catch (error) {
         console.error("Error fetching reward details:", error);
@@ -28,6 +33,45 @@ export default function RedeemPointDetail() {
     };
     fetchRewardDetail();
   }, [location.state.id]);
+
+  // 🔹 ฟังก์ชันกดปุ่ม “แลกคะแนน”
+  const handleRedeem = async () => {
+    if (!location?.state?.id) {
+      alert("ไม่พบรหัสรางวัล");
+      return;
+    }
+    try {
+      setRedeeming(true);
+      const body = {
+        platform: "web",
+        reward_id: location.state.id,
+      };
+      const res = await useServiceAPI.post(
+        paths.pathSalePointReceiveReward,
+        body
+      );
+
+      // ปรับตามรูปแบบ response ของระบบคุณได้เลย
+      if (res.status === 200 || res.result === true) {
+        // นำทางไปหน้า success หรือแสดงข้อความสำเร็จ
+        // ส่งข้อมูลที่จำเป็นผ่าน state
+        // navigate("/mobile/redeem-point/success", {
+        //   state: {
+        //     rewardId: location.state.id,
+        //     message: res?.message || "แลกคะแนนสำเร็จ",
+        //   },
+        //   replace: true,
+        // });
+      } else {
+        alert(res?.message || "ไม่สามารถแลกคะแนนได้ กรุณาลองใหม่");
+      }
+    } catch (err) {
+      console.error("Redeem error:", err);
+      alert("เกิดข้อผิดพลาดในการแลกคะแนน");
+    } finally {
+      setRedeeming(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -43,10 +87,7 @@ export default function RedeemPointDetail() {
     return (
       <MobileLayout loading={loading}>
         <div className="flex flex-col items-center w-full h-full">
-          <SectionHeader
-            title="ไม่พบข้อมูลรางวัล"
-            icon="/img/icons/trophy.png"
-          />
+          <SectionHeader title="ไม่พบข้อมูลรางวัล" icon="/img/icons/trophy.png" />
           <p className="text-gray-500 sarabun-font mt-4">
             ขออภัย, ไม่พบรางวัลที่คุณเลือก
           </p>
@@ -63,21 +104,35 @@ export default function RedeemPointDetail() {
 
         <div className="w-full max-w-md bg-white rounded-lg mt-6">
           <div className="relative rounded-lg overflow-hidden">
-            <img src={reward.image} alt={reward.name} className="w-full object-cover rounded-lg" />
+            <img
+              src={reward.image}
+              alt={reward.name}
+              className="w-full object-cover rounded-lg"
+            />
           </div>
 
-          <h2 className="text-green-700 font-bold text-xl sarabun-font mt-4">{reward.name}</h2>
-          <p className="text-gray-600 text-sm sarabun-font mt-2">{reward.description_shot}</p>
+          <h2 className="text-green-700 font-bold text-xl sarabun-font mt-4">
+            {reward.name}
+          </h2>
+          <p className="text-gray-600 text-sm sarabun-font mt-2">
+            ใช้ {target?.[0]?.point ?? "-"} คะแนน
+          </p>
 
           <div className="flex justify-around gap-2 mt-6 rounded-lg sarabun-font">
             <button
-              className={`flex-1 text-center py-2 rounded-lg ${activeTab === "conditions" ? "bg-green-700 text-white" : "bg-white text-[#00783F]"}`}
+              className={`flex-1 text-center py-2 rounded-lg ${activeTab === "conditions"
+                  ? "bg-green-700 text-white"
+                  : "bg-white text-[#00783F]"
+                }`}
               onClick={() => setActiveTab("conditions")}
             >
               เงื่อนไข
             </button>
             <button
-              className={`flex-1 text-center py-2 rounded-lg ${activeTab === "details" ? "bg-green-700 text-white" : "bg-white text-[#00783F]"}`}
+              className={`flex-1 text-center py-2 rounded-lg ${activeTab === "details"
+                  ? "bg-green-700 text-white"
+                  : "bg-white text-[#00783F]"
+                }`}
               onClick={() => setActiveTab("details")}
             >
               รายละเอียดสินค้า
@@ -86,9 +141,15 @@ export default function RedeemPointDetail() {
 
           <div className="p-3 rounded-b-lg sarabun-font text-sm text-gray-700 mt-2">
             {activeTab === "conditions" ? (
-              <div className="sarabun-font" dangerouslySetInnerHTML={{ __html: reward.condition }} />
+              <div
+                className="sarabun-font"
+                dangerouslySetInnerHTML={{ __html: reward.condition }}
+              />
             ) : (
-              <div className="sarabun-font" dangerouslySetInnerHTML={{ __html: reward.description }} />
+              <div
+                className="sarabun-font"
+                dangerouslySetInnerHTML={{ __html: reward.description }}
+              />
             )}
           </div>
         </div>
@@ -97,20 +158,14 @@ export default function RedeemPointDetail() {
           <BackButton />
           <div className="w-full max-w-md mt-auto py-2">
             <button
-              onClick={() => {
-                // const isAndroid = /Android/i.test(navigator.userAgent);
-                // const url = "adama.mtsc.co.th/mobile/collect-points"; // ❌ ไม่มี https://
-
-                // if (isAndroid) {
-                //   window.location.href = `intent://${url}#Intent;scheme=https;package=com.android.chrome;end;`;
-                // } else {
-                //   window.open(`https://${url}`, "_blank");
-                // }
-                console.log('asf')
-              }}
-              className="w-full py-3 bg-[#009845] rounded-lg text-white sarabun-font flex items-center justify-center space-x-2"
+              onClick={handleRedeem}
+              disabled={redeeming}
+              className={`w-full py-3 rounded-lg text-white sarabun-font flex items-center justify-center space-x-2 ${redeeming ? "bg-gray-400" : "bg-[#009845]"
+                }`}
             >
-              <span className="sarabun-font">แลกคะแนน</span>
+              <span className="sarabun-font">
+                {redeeming ? "กำลังแลก..." : "แลกคะแนน"}
+              </span>
             </button>
           </div>
         </div>
