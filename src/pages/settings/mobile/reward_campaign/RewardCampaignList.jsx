@@ -72,7 +72,7 @@ export default function RewardCampaignList() {
     };
 
     try {
-      const res = await useServiceAPI.get(paths.pathRewardCampaignList, requestData);
+      const res = await useServiceAPI.get(paths.pathPromotionManagementList, requestData);
       const list = res?.data?.data || [];
 
       const formatted = list.map((item, index) => ({
@@ -99,7 +99,7 @@ export default function RewardCampaignList() {
                   <ItemDropDown
                     mode={act.action.toLowerCase()}
                     onClick={() =>
-                      navigate(`/reward/campaign/${act.action.toLowerCase()}`, {
+                      navigate(`/setting/line/reward-campaign/${act.action.toLowerCase()}`, {
                         state: { id: item.id },
                       })
                     }
