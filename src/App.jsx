@@ -159,6 +159,7 @@ import CreatePointCampaign from "./pages/settings/mobile/point_campaign/CreatePo
 import RewardCampaignList from "./pages/settings/mobile/reward_campaign/RewardCampaignList";
 import CreateRewardCampaign from "./pages/settings/mobile/reward_campaign/CreateRewardCampaign";
 import ViewOrEditTargetGroup from "./pages/settings/mobile/target_group/ViewOrEditTargetGroup";
+import CollectPointsDetail from "./pages/mobile/collect_points/CollectPointsDetail";
 
 
 const App = () => {
@@ -367,7 +368,7 @@ const App = () => {
 
           </Route>
 
-          <Route element={<LineOARoute />}>
+          {/* <Route element={<LineOARoute />}> */}
 
             <Route path="/mobile/login" element={< CheckLogin />} />
 
@@ -382,8 +383,9 @@ const App = () => {
             <Route path="/mobile/faq" element={< FaqOA />} />
             <Route path="/mobile/register" element={< RegisterOA />} />
 
-            <Route element={<LinePrivateRoute />}>
+            {/* <Route element={<LinePrivateRoute />}> */}
               <Route path="/mobile/collect-points" element={< CollectPoints />} />
+              <Route path="/mobile/collect-points/detail" element={<CollectPointsDetail />} />
               <Route path="/mobile/collect-points/advance-notice" element={< CollectPointsAdvance />} />
               <Route path="/mobile/promotion" element={< Promotion />} />
               <Route path="/mobile/account" element={< MyAccountMobile />} />
@@ -397,9 +399,9 @@ const App = () => {
               <Route path="/mobile/point-history" element={< PointHistory />} />
               {/* <Route path="/mobile/point-history/detail" element={< PointHistoryDetail />} /> */}
               <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
-            </Route>
+            {/* </Route> */}
 
-          </Route>
+          {/* </Route> */}
 
           <Route path="/mobile/take-photo" element={< TakePhoto />} />
 
