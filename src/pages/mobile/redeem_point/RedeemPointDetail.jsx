@@ -178,18 +178,23 @@ export default function RedeemPointDetail() {
       <DynamicPopUp
         visible={isPointModalVisible}
         onConfirm={() => {
+          // กดปุ่ม "ยืนยัน"
           setIsPointModalVisible(false);
-
-          // จะให้กลับหน้าก่อนหน้าก็ได้:
-          // navigate(-1);
+          // สามารถทำ action อื่นได้ เช่น navigate(-1)
+        }}
+        onCancel={() => {
+          // กดปุ่ม "ยกเลิก"
+          setIsPointModalVisible(false);
         }}
         src="/img/icons/check-circle.png"
         text={`<div class='text-center'>
-            <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>ยินดีด้วยคุณได้รับคะแนน</p>
-            <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>${earnedPoints} คะแนน</p>
-          </div>`}
-        confirmText="ปิด"
+      <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>ยินดีด้วยคุณได้รับคะแนน</p>
+      <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>${earnedPoints} คะแนน</p>
+    </div>`}
+        confirmText="ยืนยัน"
+        cancelText="ยกเลิก"
       />
+
     </MobileLayout>
   );
 }
