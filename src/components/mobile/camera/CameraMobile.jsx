@@ -279,7 +279,7 @@ export default function CameraMobile({
         closable={false}
         onCancel={closeCamera}
         width="100vw"
-        style={{ top: 0, padding: 0 }}
+        style={{ top: 0, padding: 0, marginTop: 0 , marginBottom: 0}}
         zIndex={5000}
         rootClassName="camera-fullscreen-modal"
         styles={{
@@ -287,7 +287,7 @@ export default function CameraMobile({
           content: { padding: 0, height: "100vh", maxHeight: "100vh" },
         }}
       >
-        <div className="w-full h-screen bg-black relative" style={{ height: "99vh" }}>
+        <div className="w-full h-screen bg-black rounded-b-lg relative" style={{ height: "calc(100vh - 10px)" }}>
           <video
             ref={videoRef}
             playsInline

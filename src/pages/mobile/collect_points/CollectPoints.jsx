@@ -197,7 +197,7 @@ export default function CollectPoints() {
                       key={index}
                       className="flex justify-between items-start p-4 bg-white rounded-lg shadow-md border-l-4 border-orange-500"
                       onClick={() =>
-                        navigate("/mobile/order-history/detail", {
+                        navigate("/mobile/collect-points/detail", {
                           state: { document_number: order.document_number },
                         })
                       }

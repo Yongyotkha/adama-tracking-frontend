@@ -159,6 +159,7 @@ import CreatePointCampaign from "./pages/settings/mobile/point_campaign/CreatePo
 import RewardCampaignList from "./pages/settings/mobile/reward_campaign/RewardCampaignList";
 import CreateRewardCampaign from "./pages/settings/mobile/reward_campaign/CreateRewardCampaign";
 import ViewOrEditTargetGroup from "./pages/settings/mobile/target_group/ViewOrEditTargetGroup";
+import CollectPointsDetail from "./pages/mobile/collect_points/CollectPointsDetail";
 
 
 const App = () => {
@@ -384,6 +385,7 @@ const App = () => {
 
             {/* <Route element={<LinePrivateRoute />}> */}
               <Route path="/mobile/collect-points" element={< CollectPoints />} />
+              <Route path="/mobile/collect-points/detail" element={<CollectPointsDetail />} />
               <Route path="/mobile/collect-points/advance-notice" element={< CollectPointsAdvance />} />
               <Route path="/mobile/promotion" element={< Promotion />} />
               <Route path="/mobile/account" element={< MyAccountMobile />} />
