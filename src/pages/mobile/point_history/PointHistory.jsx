@@ -43,10 +43,10 @@ export default function PointHistory() {
     const fetchPointHistory = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathpointhistory, {
+        const response = await useServiceAPI.get(paths.pathLogPoint, {
           platform: "web",
-          id: userInfo.id, // เปลี่ยนเป็น user id ที่เหมาะสม
-          mode: activeTab,
+          "type": "receive",
+          "page": "all"
         });
 
         if (response.status === 200) {
