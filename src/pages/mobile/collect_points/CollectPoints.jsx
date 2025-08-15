@@ -41,22 +41,23 @@ export default function CollectPoints() {
     setLoading(true);
     const { current, pageSize } = tableParams.pagination;
 
-    const requestData = {
-      platform: "web",
-      keyword: "",
-      use_flag: "1",
-      user_id: "",
-      dealer_id: "",
-      sub_dealer_id: "",
-      farmer_id: "",
-      trasaction_status_code: "",
-      payment_status_code: "",
-      page: "all",
-      page_length: current,
-      page_size: pageSize,
-    };
+
 
     try {
+      const requestData = {
+        platform: "web",
+        keyword: "",
+        use_flag: "1",
+        user_id: "",
+        dealer_id: "",
+        sub_dealer_id: "",
+        farmer_id: "",
+        trasaction_status_code: "",
+        payment_status_code: "",
+        page: "user",
+        page_length: current,
+        page_size: pageSize,
+      };
       const res = await useServiceAPI.get(paths.pathSalePointCollectList, requestData);
       const rows = res?.data?.data?.data ?? res?.data?.data ?? [];
       const mapped = rows.map((item) => ({
@@ -171,9 +172,8 @@ export default function CollectPoints() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-2 text-sm font-semibold text-center sarabun-font ${
-                activeTab === tab.id ? "border-b-2 text-green-600 border-green-500" : "text-gray-500"
-              }`}
+              className={`flex-1 py-2 text-sm font-semibold text-center sarabun-font ${activeTab === tab.id ? "border-b-2 text-green-600 border-green-500" : "text-gray-500"
+                }`}
             >
               {tab.label}{" "}
               <span className="ml-1 text-pink-600">

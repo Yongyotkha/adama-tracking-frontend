@@ -16,7 +16,12 @@ export default function OrderHistory() {
   const [activeTab, setActiveTab] = useState("completed");
   const [orderData, setOrderData] = useState([]);
   const { userInfo } = useContext(AuthContext);
-
+  const [tableParams, setTableParams] = useState({
+    pagination: { current: 1, pageSize: 10 },
+    filters: {},
+    sortOrder: null,
+    sortField: null,
+  });
   const tabs = [
     { id: "completed", label: "รับสินค้าสำเร็จ", color: "text-green-600", border: "border-green-500" },
     { id: "cancle", label: "รับสินค้าไม่สำเร็จ", color: "text-red-600", border: "border-red-500" },
@@ -26,15 +31,32 @@ export default function OrderHistory() {
     const fetchOrderHistory = async () => {
       setLoading(true);
       setOrderData([]); // 💡 Clear old data before loading
+
+
+
       try {
-        const response = await useServiceAPI.get(paths.pathhistoryShop, {
+        const { current, pageSize } = tableParams.pagination;
+        const requestData = {
           platform: "web",
-          id: userInfo.id,
-          mode: activeTab,
-        });
+          keyword: "",
+          use_flag: "1",
+          user_id: "",
+          dealer_id: "",
+          sub_dealer_id: "",
+          farmer_id: "",
+          trasaction_status_code: "",
+          payment_status_code: "",
+          status_code: "ODD",
+          page: "all",
+          page_length: current,
+          page_size: pageSize
+        };
+
+        const response = await useServiceAPI.get(paths.pathSalePointCollectList, requestData);
 
         if (response.status === 200) {
-          const rawData = response.data.data[0] ?? [];
+          const rawData = response.data.data ?? [];
+          console.log('rawData : ',rawData)
           setOrderData(rawData);
         } else {
           setOrderData([]);
@@ -64,8 +86,8 @@ export default function OrderHistory() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 py-2 text-sm font-semibold text-center sarabun-font ${activeTab === tab.id
-                  ? `border-b-2 ${tab.color} ${tab.border}`
-                  : "text-gray-400"
+                ? `border-b-2 ${tab.color} ${tab.border}`
+                : "text-gray-400"
                 }`}
             >
               {tab.label}

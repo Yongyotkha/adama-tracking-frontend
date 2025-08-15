@@ -199,12 +199,12 @@ export default function CollectPointsDetail() {
                 รูปหน้าบิลเงินสดหรือใบสั่งสินค้า
                 <span className="text-red-500">*</span>
               </label>
-              {historydetail?.bill_images && historydetail.bill_images.length > 0 ? (
+              {historydetail?.bill && historydetail.bill.length > 0 ? (
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                  {historydetail.bill_images.map((img, idx) => (
+                  {historydetail.bill.map((img, idx) => (
                     <img
                       key={idx}
-                      src={img}
+                      src={img.part}
                       alt={`bill-${idx}`}
                       className="w-full h-24 object-cover rounded-md border"
                     />
