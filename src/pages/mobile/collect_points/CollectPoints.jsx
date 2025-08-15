@@ -51,7 +51,7 @@ export default function CollectPoints() {
       farmer_id: "",
       trasaction_status_code: "",
       payment_status_code: "",
-      page: "all",
+      page: "user",
       page_length: current,
       page_size: pageSize,
     };
