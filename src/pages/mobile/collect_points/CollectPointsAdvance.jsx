@@ -1,22 +1,41 @@
 import React, { useEffect, useState } from "react";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
-import { Input, Upload, DatePicker } from "antd";
+import { Input, DatePicker, message } from "antd";
 import DynamicButton from "../../../components/button/DynamicButton";
 import BackButton from "../../../components/mobile/button/BackButton";
 import { useNavigate } from "react-router-dom";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
+import CameraMobile from "../../../components/mobile/camera/CameraMobile";
 
 export default function CollectPointsAdvance() {
   const [loading, setLoading] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const navigate = useNavigate();
 
+  const [billPhotos, setBillPhotos] = useState([]);      // * หน้าบิล/ใบสั่งสินค้า
+  const [productPhotos, setProductPhotos] = useState([]); // * สินค้าที่ได้รับ
+
   useEffect(() => {
     setLoading(false);
+    return () => {
+      billPhotos.forEach((f) => f.url && URL.revokeObjectURL(f.url));
+      productPhotos.forEach((f) => f.url && URL.revokeObjectURL(f.url));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSubmit = () => {
-    // สมมุติว่าบันทึกสำเร็จทันที
+    if (billPhotos.length === 0 || productPhotos.length === 0) {
+      message.error("กรุณาแนบรูปให้ครบในช่องที่มีเครื่องหมาย *");
+      return;
+    }
+
+    // TODO: ส่ง API (ตัวอย่าง)
+    // const formData = new FormData();
+    // billPhotos.forEach((f) => formData.append("billPhotos[]", f.originFileObj));
+    // productPhotos.forEach((f) => formData.append("productPhotos[]", f.originFileObj));
+    // ...แนบฟิลด์อื่นๆ และ fetch/axios ไปยัง backend
+
     setIsSuccessModalVisible(true);
   };
 
@@ -69,36 +88,33 @@ export default function CollectPointsAdvance() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm text-gray-700 sarabun-font mb-1">
-              ถ่ายรูปหน้าบิลเงินสดหรือใบสั่งสินค้า
-              <span className="text-red-500">*</span>
-            </label>
-            <Upload.Dragger
-              multiple
-              className="rounded-md"
-              height={100}
-              listType="picture"
-              beforeUpload={() => false}
-            >
-              <p className="text-gray-500 sarabun-font">ลากหรือคลิกเพื่ออัปโหลด</p>
-            </Upload.Dragger>
-          </div>
+          {/* ใช้ CameraMobile: หน้าบิล/ใบสั่งสินค้า* */}
+          <CameraMobile
+            label="ถ่ายรูปหน้าบิลเงินสดหรือใบสั่งสินค้า"
+            required
+            value={billPhotos}
+            onChange={setBillPhotos}
+            maxCount={12}
+            defaultFacing="environment"
+            allowTorch={true}
+            // ตัวอย่างกำหนดปุ่ม trigger เอง:
+            // renderTrigger={(open) => (
+            //   <button onClick={open} className="w-full h-10 rounded-md bg-green-50 border border-green-600 text-green-700 sarabun-font">
+            //     เปิดกล้องถ่ายหน้าบิล
+            //   </button>
+            // )}
+          />
 
-          <div>
-            <label className="block text-sm text-gray-700 sarabun-font mb-1">
-              ถ่ายรูปสินค้าที่ได้รับ<span className="text-red-500">*</span>
-            </label>
-            <Upload.Dragger
-              multiple
-              className="rounded-md"
-              height={100}
-              listType="picture"
-              beforeUpload={() => false}
-            >
-              <p className="text-gray-500 sarabun-font">ลากหรือคลิกเพื่ออัปโหลด</p>
-            </Upload.Dragger>
-          </div>
+          {/* ใช้ CameraMobile: สินค้าที่ได้รับ* */}
+          <CameraMobile
+            label="ถ่ายรูปสินค้าที่ได้รับ"
+            required
+            value={productPhotos}
+            onChange={setProductPhotos}
+            maxCount={20}
+            defaultFacing="environment"
+            allowTorch={true}
+          />
 
           {/* ปุ่มบันทึก */}
           <DynamicButton
@@ -118,12 +134,10 @@ export default function CollectPointsAdvance() {
             navigate(-1);
           }}
           src="/img/icons/check-circle.png"
-          text={
-            `<div class='text-center'>
+          text={`<div class='text-center'>
               <p class='text-[#4A4A4A] text-[18px] mt-1 sarabun-font'>ส่งข้อมูลสำเร็จ</p>
               <p class='text-[#A1A1A1] text-[14px] mt-1 sarabun-font'>รอดำเนินการจากทางเจ้าหน้าที่</p>
-            </div>`
-          }
+            </div>`}
           cancelText="ยกเลิก"
           confirmText="ยืนยัน"
         />

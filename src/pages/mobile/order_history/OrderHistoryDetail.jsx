@@ -8,15 +8,23 @@ import UserPointsSection from "../../../components/mobile/user_points_section/Us
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
+import CameraMobile from "../../../components/mobile/camera/CameraMobile";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
-import { Input, Upload, DatePicker } from "antd";
+import { message } from "antd";
+
 export default function OrderHistoryDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const { userInfo } = useContext(AuthContext);
-  const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [historydetail, setHistorydetail] = useState(null);
+
+  // ถ่ายรูปสินค้าที่ได้รับ
+  const [productPhotos, setProductPhotos] = useState([]);
+
+  // popup คะแนน
+  const [isPointModalVisible, setIsPointModalVisible] = useState(false);
+  const [earnedPoints, setEarnedPoints] = useState(0);
 
   const documentNumber = location.state?.document_number;
 
@@ -29,7 +37,6 @@ export default function OrderHistoryDetail() {
           id: userInfo?.id,
           document_number: documentNumber,
         });
-
 
         if (response?.status === 200) {
           setHistorydetail(response.data ?? null);
@@ -45,24 +52,29 @@ export default function OrderHistoryDetail() {
     };
 
     if (documentNumber) fetchDetail();
+
+    // cleanup objectURL ตอนออกจากหน้า
+    return () => {
+      productPhotos.forEach((f) => f.url && f.url.startsWith("blob:") && URL.revokeObjectURL(f.url));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [documentNumber, userInfo?.id]);
 
-  // ---------------- ใช้ products จาก API โดยตรง (ไม่มี useMemo) ----------------
+  // ---------------- ใช้ products จาก API โดยตรง ----------------
   const products = Array.isArray(historydetail?.products)
     ? historydetail.products.map((p) => ({
-      qty: Number(p?.quantity ?? 0),
-      product_name: p?.product_name ?? "-",
-      product_code: p?.product_code ?? "-",
-      amount: Number(p?.net_amount ?? 0),
-      point: Number(p?.point ?? 0),
-      amount_display:
-        typeof p?.net_amount === "string" || typeof p?.net_amount === "number"
-          ? new Intl.NumberFormat("th-TH").format(Number(p?.net_amount ?? 0))
-          : "0",
-      image: p?.product_image || null,
-    }))
+        qty: Number(p?.quantity ?? 0),
+        product_name: p?.product_name ?? "-",
+        product_code: p?.product_code ?? "-",
+        amount: Number(p?.net_amount ?? 0),
+        point: Number(p?.point ?? 0),
+        amount_display:
+          typeof p?.net_amount === "string" || typeof p?.net_amount === "number"
+            ? new Intl.NumberFormat("th-TH").format(Number(p?.net_amount ?? 0))
+            : "0",
+        image: p?.product_image || null,
+      }))
     : [];
-
 
   const totalQty = products.reduce((sum, it) => sum + (Number.isFinite(it.qty) ? it.qty : 0), 0);
   const totalPrice = products.reduce(
@@ -84,10 +96,41 @@ export default function OrderHistoryDetail() {
   const statusTextColor = historydetail?.status_transaction_color || "#0ea5a0";
   const statusBgColor = historydetail?.status_transaction_bg_color || "#e6fffa";
 
-  const confirm = () => {
-    console.log('btn confirm')
-  };
+  // ส่งข้อมูลไป pathSalePointReceiveOrder
+  const confirm = async () => {
+    // รวบรวมเฉพาะ URL จริง (ไม่เอา blob:)
+    const productUrls = productPhotos
+      .map((f) => f?.url)
+      .filter((u) => typeof u === "string" && /^https?:\/\//i.test(u));
 
+    if (productUrls.length === 0) {
+      message.error("กรุณาถ่ายและอัปโหลดรูปสินค้าที่ได้รับอย่างน้อย 1 รูป");
+      return;
+    }
+
+    const payload = {
+      product: productUrls,
+      document_number: historydetail?.document_number ?? documentNumber ?? "",
+    };
+
+    try {
+      setLoading(true);
+      const res = await useServiceAPI.post(paths.pathSalePointReceiveOrder, payload);
+      console.log(res);
+      if (res?.status === 200) {
+        const pts = Number(res?.data?.point ?? 0);
+        setEarnedPoints(pts);
+        setIsPointModalVisible(true);
+      } else {
+        message.error(res?.data?.message || "บันทึกไม่สำเร็จ");
+      }
+    } catch (err) {
+      console.error("Submit error:", err);
+      message.error("เกิดข้อผิดพลาดในการบันทึก");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <MobileLayout loading={loading}>
@@ -115,7 +158,7 @@ export default function OrderHistoryDetail() {
             {statusText}
           </div>
 
-          {/* Product List (เฉพาะ products) */}
+          {/* รายการสินค้า */}
           <div className="mt-3 border-t pt-2">
             <h3 className="text-green-600 sarabun-font font-semibold">รายการสินค้า</h3>
 
@@ -150,35 +193,45 @@ export default function OrderHistoryDetail() {
               )}
             </div>
 
-            <div>
+            {/* --- กล่องพรีวิว: รูปหน้าบิล/ใบสั่งสินค้า จาก API --- */}
+            <div className="mt-3">
               <label className="block text-sm text-gray-700 sarabun-font mb-1">
-                ถ่ายรูปหน้าบิลเงินสดหรือใบสั่งสินค้า
+                รูปหน้าบิลเงินสดหรือใบสั่งสินค้า
                 <span className="text-red-500">*</span>
               </label>
-              <Upload.Dragger
-                multiple
-                className="rounded-md"
-                height={100}
-                listType="picture"
-                beforeUpload={() => false}
-              >
-                <p className="text-gray-500 sarabun-font">ลากหรือคลิกเพื่ออัปโหลด</p>
-              </Upload.Dragger>
+              {historydetail?.bill_images && historydetail.bill_images.length > 0 ? (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {historydetail.bill_images.map((img, idx) => (
+                    <img
+                      key={idx}
+                      src={img}
+                      alt={`bill-${idx}`}
+                      className="w-full h-24 object-cover rounded-md border"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm sarabun-font">ไม่มีรูปภาพ</p>
+              )}
             </div>
 
-            <div>
-              <label className="block text-sm text-gray-700 sarabun-font mb-1">
-                ถ่ายรูปสินค้าที่ได้รับ<span className="text-red-500">*</span>
-              </label>
-              <Upload.Dragger
-                multiple
-                className="rounded-md"
-                height={100}
-                listType="picture"
-                beforeUpload={() => false}
-              >
-                <p className="text-gray-500 sarabun-font">ลากหรือคลิกเพื่ออัปโหลด</p>
-              </Upload.Dragger>
+            {/* --- กล้อง: ถ่ายรูปสินค้าที่ได้รับ* --- */}
+            <div className="mt-3">
+              <CameraMobile
+                label="ถ่ายรูปสินค้าที่ได้รับ"
+                required
+                value={productPhotos}
+                onChange={setProductPhotos}
+                maxCount={20}
+                defaultFacing="environment"
+                allowTorch={true}
+                uploadOnCapture
+                uploadMode="activity"
+                uploadExtra={{ document_number: historydetail?.document_number ?? documentNumber }}
+                onUploadSuccess={() => {
+                  // ถ้าต้องทำอย่างอื่นหลังอัปโหลดสำเร็จ ใส่เพิ่มได้
+                }}
+              />
             </div>
 
             {/* Summary */}
@@ -193,15 +246,35 @@ export default function OrderHistoryDetail() {
                 <p>{totalPriceDisplay}</p>
               </div>
             </div>
-
-
           </div>
         </div>
 
-
-
         <BackButton url="/mobile/collect-points" />
-        <button onClick={confirm()}>confirm</button>
+
+        {/* ปุ่มยืนยัน */}
+        <button
+          onClick={confirm}
+          className="mt-4 mb-6 w-full max-w-md bg-green-700 text-white py-3 rounded-md sarabun-font"
+        >
+          ยืนยัน
+        </button>
+
+        {/* Success Points Modal */}
+        <DynamicPopUp
+          visible={isPointModalVisible}
+          onConfirm={() => {
+            setIsPointModalVisible(false);
+            navigate("/mobile/collect-points");
+            // จะให้กลับหน้าก่อนหน้าก็ได้:
+            // navigate(-1);
+          }}
+          src="/img/icons/check-circle.png"
+          text={`<div class='text-center'>
+            <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>ยินดีด้วยคุณได้รับคะแนน</p>
+            <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>${earnedPoints} คะแนน</p>
+          </div>`}
+          confirmText="ปิด"
+        />
       </div>
     </MobileLayout>
   );
