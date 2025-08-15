@@ -19,25 +19,11 @@ export default function PointHistory() {
 
   // Tabs
   const tabs = [
-    { id: "collect_points", label: "สะสมคะแนน", color: "border-green-500" },
-    { id: "redeem_points", label: "แลกคะแนน", color: "border-red-500" },
-    { id: "points_expire", label: "คะแนนใกล้หมดอายุ", color: "border-orange-500" },
+    { id: "receive", label: "สะสมคะแนน", color: "border-green-500" },
+    { id: "use", label: "แลกคะแนน", color: "border-red-500" },
+    { id: "expire", label: "คะแนนใกล้หมดอายุ", color: "border-orange-500" },
   ];
 
-  // Mock Transaction Data
-  // const transactions = {
-  //   collect_points: [
-  //     { id: 1, date: "3 พ.ย. 67 | 19:17:31", points: "+30 คะแนน" },
-  //     { id: 2, date: "2 พ.ย. 67 | 19:17:31", points: "+30 คะแนน" },
-  //     { id: 3, date: "1 พ.ย. 67 | 19:17:31", points: "+30 คะแนน" },
-  //   ],
-  //   redeem_points: [
-  //     { id: 4, date: "3 พ.ย. 67 | 19:17:31", item: "Gift Card 1,000 THB", points: "-30 คะแนน" },
-  //     { id: 5, date: "2 พ.ย. 67 | 19:17:31", item: "Gift Card 1,000 THB", points: "-30 คะแนน" },
-  //     { id: 6, date: "1 พ.ย. 67 | 19:17:31", item: "Gift Card 1,000 THB", points: "-30 คะแนน" },
-  //   ],
-  //   points_expire: [{ id: 7, date: "3 พ.ย. 67", points: "15 คะแนน" }],
-  // };
 
   useEffect(() => {
     const fetchPointHistory = async () => {
@@ -45,13 +31,15 @@ export default function PointHistory() {
       try {
         const response = await useServiceAPI.get(paths.pathLogPoint, {
           platform: "web",
-          "type": "receive",
-          "page": "all"
+          type: activeTab,
+          page: "all"
         });
 
-        if (response.status === 200) {
-          // console.log(response);
-          setTransactionData(response.data.data || []);
+        if (response.status === 200 && response.data?.point) {
+          // ดึง array point จาก API มา set state
+          setTransactionData(response.data.point);
+        } else {
+          setTransactionData([]);
         }
       } catch (error) {
         console.error("Error fetching point history:", error);
@@ -94,28 +82,35 @@ export default function PointHistory() {
         {/* Transactions List */}
         <div className="w-full max-w-md mt-4">
           {transactionData.length > 0 ? (
-            transactionData.flat().map((month, monthIdx) => (
-              <div key={monthIdx} className="mb-4">
-                <p className="text-gray-700 font-bold sarabun-font mb-2">{month.month_name}</p>
-                {month.items.map((item, itemIdx) => (
-                  <div key={`${monthIdx}-${itemIdx}`} className="flex justify-between items-center bg-white p-3 rounded-lg shadow-md mb-2">
-                    <div className="flex gap-2 flex-wrap">
-                      <img src="/img/icons/point.png" className="h-5 w-5 my-auto" alt="point-icon" />
-                      <div>
-                        <p className="text-gray-500 text-sm sarabun-font">{item.datetime}</p>
-                      </div>
-                    </div>
-                    <p className={`font-bold sarabun-font ${item.color === "red" ? "text-red-500" : item.color === "orange" ? "text-orange-500" : "text-green-600"}`}>
-                      {item.point}
+            transactionData.map((item, idx) => (
+              <div
+                key={idx}
+                className="flex justify-between items-center bg-white p-3 rounded-lg shadow-md mb-2"
+              >
+                <div className="flex gap-2 flex-wrap">
+                  <img src="/img/icons/point.png" className="h-5 w-5 my-auto" alt="point-icon" />
+                  <div>
+                    <p className="text-gray-500 text-sm sarabun-font">
+                      {item.created_at}
+                    </p>
+                    <p className="text-gray-700 text-sm sarabun-font">
+                      เลขที่เอกสาร: {item.document_number}
+                    </p>
+                    <p className="text-gray-700 text-sm sarabun-font">
+                      หมดอายุ: {item.expire_at}
                     </p>
                   </div>
-                ))}
+                </div>
+                <p className="font-bold sarabun-font text-green-600">
+                  +{item.point}
+                </p>
               </div>
             ))
           ) : (
             <p className="text-center text-gray-500 mt-4">ไม่มีข้อมูล</p>
           )}
         </div>
+
 
         {/* Back Button */}
         <BackButton url="/mobile/main" />
