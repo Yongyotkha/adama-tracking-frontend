@@ -5,8 +5,8 @@ import SectionHeader from "../../../components/mobile/section_header/SectionHead
 import BackButton from "../../../components/mobile/button/BackButton";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import DynamicPopUpConfirm from "../../../components/mobile/popup/DynamicPopUpConfirm";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
-
 export default function RedeemPointDetail() {
   const [loading, setLoading] = useState(true);        // โหลดรายละเอียดรางวัล
   const [redeeming, setRedeeming] = useState(false);   // สถานะกำลังแลกคะแนน
@@ -16,6 +16,8 @@ export default function RedeemPointDetail() {
   const [activeTab, setActiveTab] = useState("conditions");
   const location = useLocation();
   const [isPointModalVisible, setIsPointModalVisible] = useState(false);
+  const [isPointModalVisibleFalse, setIsPointModalVisibleFalse] = useState(false);
+  const [isPointModalVisibleComfirm, setIsPointModalVisibleComfirm] = useState(false);
   const [earnedPoints, setEarnedPoints] = useState(0);
 
   useEffect(() => {
@@ -51,6 +53,54 @@ export default function RedeemPointDetail() {
       };
       const res = await useServiceAPI.post(
         paths.pathSalePointReceiveReward,
+        body
+      );
+
+      // ปรับตามรูปแบบ response ของระบบคุณได้เลย
+      if (res.status === 200 || res.result === true) {
+        //setEarnedPoints(res.targets.point);
+        setEarnedPoints(5);
+        if (res.data.status) {
+          setIsPointModalVisibleComfirm(true);
+        }else{
+          setIsPointModalVisibleFalse(true)
+        }
+
+
+        // นำทางไปหน้า success หรือแสดงข้อความสำเร็จ
+        // ส่งข้อมูลที่จำเป็นผ่าน state
+        // navigate("/mobile/redeem-point/success", {
+        //   state: {
+        //     rewardId: location.state.id,
+        //     message: res?.message || "แลกคะแนนสำเร็จ",
+        //   },
+        //   replace: true,
+        // });
+      } else {
+        alert(res?.message || "ไม่สามารถแลกคะแนนได้ กรุณาลองใหม่");
+      }
+    } catch (err) {
+      console.error("Redeem error:", err);
+      alert("เกิดข้อผิดพลาดในการแลกคะแนน");
+    } finally {
+      setRedeeming(false);
+    }
+  };
+
+  const handleRedeemConfirm = async () => {
+    if (!location?.state?.id) {
+      alert("ไม่พบรหัสรางวัล");
+      return;
+    }
+    try {
+      setRedeeming(true);
+      const body = {
+        platform: "web",
+        reward_id: location.state.id,
+      };
+
+      const res = await useServiceAPI.post(
+        paths.pathSalePointReceiveRewardConfirm,
         body
       );
 
@@ -175,21 +225,49 @@ export default function RedeemPointDetail() {
           </div>
         </div>
       </div>
+
       <DynamicPopUp
-        visible={isPointModalVisible}
+        visible={isPointModalVisibleFalse}
         onConfirm={() => {
-          // กดปุ่ม "ยืนยัน"
-          setIsPointModalVisible(false);
-          // สามารถทำ action อื่นได้ เช่น navigate(-1)
-        }}
-        onCancel={() => {
-          // กดปุ่ม "ยกเลิก"
-          setIsPointModalVisible(false);
+          setIsPointModalVisibleFalse(false);
+          //navigate("/mobile/redeem-point");
         }}
         src="/img/icons/check-circle.png"
         text={`<div class='text-center'>
-      <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>ยินดีด้วยคุณได้รับคะแนน</p>
-      <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>${earnedPoints} คะแนน</p>
+            <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>ใช้ ${target?.[0]?.point} คะแนนสำหรับแลกคูปองนี้</p>
+            <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>คุณมี Point ไม่เพียงพอสำหรับรางวัลนี้</p>
+          </div>`}
+        confirmText="ปิด"
+      />
+
+      <DynamicPopUp
+        visible={isPointModalVisible}
+        onConfirm={() => {
+          setIsPointModalVisible(false);
+          navigate("/mobile/redeem-point");
+        }}
+        src="/img/icons/check-circle.png"
+        text={`<div class='text-center'>
+            <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>ใช้ ${target?.[0]?.point} คะแนนสำหรับแลกคูปองนี้</p>
+            <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>คุณแลกคูปองสำเร็จ</p>
+          </div>`}
+        confirmText="ปิด"
+      />
+
+      <DynamicPopUpConfirm
+        visible={isPointModalVisibleComfirm}
+        onConfirm={async () => {
+          await handleRedeemConfirm();          // ← เรียกใช้จริง
+          setIsPointModalVisibleComfirm(false); // ปิดหลังยิง API สำเร็จ/ล้มเหลวก็ได้
+        }}
+        onCancel={() => {
+          // กดปุ่ม "ยกเลิก"
+          setIsPointModalVisibleComfirm(false);
+        }}
+        src="/img/icons/forgot-password.png"
+        text={`<div class='text-center'>
+      <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>คุณต้องการแลกคะแนน</p>
+      <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>ใช้ ${target?.[0]?.point} คะแนนสำหรับแลกคูปองนี้</p>
     </div>`}
         confirmText="ยืนยัน"
         cancelText="ยกเลิก"
