@@ -5,6 +5,7 @@ import SectionHeader from "../../../components/mobile/section_header/SectionHead
 import BackButton from "../../../components/mobile/button/BackButton";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 
 export default function RedeemPointDetail() {
   const [loading, setLoading] = useState(true);        // โหลดรายละเอียดรางวัล
@@ -14,6 +15,8 @@ export default function RedeemPointDetail() {
   const [target, setTarget] = useState(null);
   const [activeTab, setActiveTab] = useState("conditions");
   const location = useLocation();
+  const [isPointModalVisible, setIsPointModalVisible] = useState(false);
+  const [earnedPoints, setEarnedPoints] = useState(0);
 
   useEffect(() => {
     const fetchRewardDetail = async () => {
@@ -53,6 +56,8 @@ export default function RedeemPointDetail() {
 
       // ปรับตามรูปแบบ response ของระบบคุณได้เลย
       if (res.status === 200 || res.result === true) {
+        setEarnedPoints(100);
+        setIsPointModalVisible(true);
         // นำทางไปหน้า success หรือแสดงข้อความสำเร็จ
         // ส่งข้อมูลที่จำเป็นผ่าน state
         // navigate("/mobile/redeem-point/success", {
@@ -121,8 +126,8 @@ export default function RedeemPointDetail() {
           <div className="flex justify-around gap-2 mt-6 rounded-lg sarabun-font">
             <button
               className={`flex-1 text-center py-2 rounded-lg ${activeTab === "conditions"
-                  ? "bg-green-700 text-white"
-                  : "bg-white text-[#00783F]"
+                ? "bg-green-700 text-white"
+                : "bg-white text-[#00783F]"
                 }`}
               onClick={() => setActiveTab("conditions")}
             >
@@ -130,8 +135,8 @@ export default function RedeemPointDetail() {
             </button>
             <button
               className={`flex-1 text-center py-2 rounded-lg ${activeTab === "details"
-                  ? "bg-green-700 text-white"
-                  : "bg-white text-[#00783F]"
+                ? "bg-green-700 text-white"
+                : "bg-white text-[#00783F]"
                 }`}
               onClick={() => setActiveTab("details")}
             >
@@ -170,6 +175,21 @@ export default function RedeemPointDetail() {
           </div>
         </div>
       </div>
+      <DynamicPopUp
+        visible={isPointModalVisible}
+        onConfirm={() => {
+          setIsPointModalVisible(false);
+
+          // จะให้กลับหน้าก่อนหน้าก็ได้:
+          // navigate(-1);
+        }}
+        src="/img/icons/check-circle.png"
+        text={`<div class='text-center'>
+            <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>ยินดีด้วยคุณได้รับคะแนน</p>
+            <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>${earnedPoints} คะแนน</p>
+          </div>`}
+        confirmText="ปิด"
+      />
     </MobileLayout>
   );
 }
