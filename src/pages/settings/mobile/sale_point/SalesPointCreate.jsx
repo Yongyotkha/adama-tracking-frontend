@@ -6,14 +6,13 @@ import TableCheckbox from "../../../../components/table/TableCheckbox";
 import useServiceAPI from "../../../../services/corsService";
 import { paths } from "../../../../services/CorsPath";
 import ActionButton from "../../../../components/button/ActionButton";
-import { useNavigate,useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import dayjs from "dayjs";
 import FormCustom from "../../../../components/form_custom/FormCustom";
 import TableComponent from "../../../../components/table/TableComponent";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import DynamicModal from "../../../../components/modal/DynamicModal";
-
 dayjs.extend(customParseFormat);
 
 export default function SalesPointCreate() {
@@ -28,6 +27,8 @@ export default function SalesPointCreate() {
   const [dataSaleId, setDataSaleId] = useState("");
   const [dealerId, setDealerId] = useState("");
   const [dataDealer, setDataDealer] = useState([]);
+  const [dataSubDealer, setSubDataDealer] = useState([]);
+  const [subDealerId, setSubDealerId] = useState("");
   const [searchProductData, setSearchProductData] = useState([]);
   const [getOtherProductData, setGetOtherProductData] = useState([]);
   const [inputRemark, setInputRemark] = useState("");
@@ -39,14 +40,14 @@ export default function SalesPointCreate() {
 
   useEffect(() => {
     if (location.state?.data) {
-      
+
       const { user_id, others, products, remark } = location.state?.data;
       setDataSaleId(parseInt(user_id));
       setDataSource(products);
       setDataSourceOther(others);
       setInputRemark(remark);
       console.log(remark);
-      
+
     }
   }, [location.state]);
 
@@ -255,6 +256,16 @@ export default function SalesPointCreate() {
       value: dealerId,
     },
     {
+      label: "Sub Dealer",
+      name: "sub_dealer",
+      type: "select",
+      options: dataSubDealer,
+      disabled: false,
+      required: false,
+      moderef: false,
+      value: subDealerId,
+    },
+    {
       label: "Order No",
       name: "order_no",
       type: "text",
@@ -279,12 +290,29 @@ export default function SalesPointCreate() {
     // setLoading(true);
     try {
       const [dealer] = await Promise.all([
-        useServiceAPI.get(paths.pathMasterDealerDropdown, {
-          user_id: parseInt(dataSaleId),
+        useServiceAPI.get(paths.pathUserLineDealer, {
+          sale_id: parseInt(dataSaleId),
         }),
       ]);
 
       setDataDealer(dealer.data);
+    } catch (error) {
+      // showMsg("error", error.message || "เกิดข้อผิดพลาด");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getMasterSubDealer = async () => {
+    // setLoading(true);
+    try {
+      const [dealer] = await Promise.all([
+        useServiceAPI.get(paths.pathUserLineSubDealer, {
+          dealer_id: parseInt(dealerId),
+        }),
+      ]);
+
+      getMasterSubDealer(dealer.data);
     } catch (error) {
       // showMsg("error", error.message || "เกิดข้อผิดพลาด");
     } finally {
@@ -307,30 +335,6 @@ export default function SalesPointCreate() {
     }
   };
 
-  useEffect(() => {
-    const getMasterDealer = async () => {
-      setLoading(true);
-      try {
-        const [dealer] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterDealerDropdown, {
-            user_id: parseInt(dataSaleId),
-          }),
-        ]);
-
-        setDataDealer(dealer.data);
-      } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (dataSaleId) {
-      getMasterDealer();
-    } else {
-      setDataDealer([]);
-      setDealerId("");
-    }
-  }, [dataSaleId]);
 
   const handleQuantityChange = (key, newQuantity) => {
     setDataSource((prevData) =>
