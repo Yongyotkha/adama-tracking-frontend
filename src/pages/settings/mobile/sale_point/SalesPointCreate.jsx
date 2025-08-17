@@ -323,7 +323,7 @@ export default function SalesPointCreate() {
 
 
   const handleChange = (filter, value) => {
-    console.log('filter ',filter ,value)
+    console.log('filter ', filter, value)
     if (filter == "sale") {
       setDataSaleId(value);
       getMasterDealer(value);
@@ -730,8 +730,8 @@ export default function SalesPointCreate() {
           products: dataSource,
           others: dataSourceOther,
         };
-      //   console.log(body);
-      //  return;
+        //   console.log(body);
+        //  return;
         navigate("/points/line/sales-points-list/detail", {
           state: {
             data: body,
@@ -807,7 +807,7 @@ export default function SalesPointCreate() {
         <ActionButton
           mode="back"
           text="Back"
-          onClick={() => navigate("/order/list")}
+          onClick={() => navigate("/points/line/sales-points-list")}
         />
         <ActionButton
           mode="save"

@@ -36,9 +36,230 @@ export default function SalesPointsList() {
     sortOrder: null,
     sortField: null,
   });
+
+  // --- Request tab states ---
+  const [requestDataSource, setRequestDataSource] = useState([]);
+  const [requestPermission, setRequestPermission] = useState({});
+  const [requestTableLoading, setRequestTableLoading] = useState(false);
+  const [requestTableParams, setRequestTableParams] = useState({
+    pagination: { current: 1, pageSize: 50 },
+    filters: {},
+    sortOrder: "desc",
+    sortField: "created_at",
+  });
+  const [requestFiltersValues, setRequestFiltersValues] = useState({});
+
   const { confirm } = Modal;
 
   const [saleList, setSaleList] = useState([]);
+  // --- Filters for Request tab ---
+  const requestFilters = [
+    {
+      key: "sale",
+      type: "select",
+      label: "Sales",
+      placeholder: "All",
+      options: saleList,
+      moderef: true,
+    },
+    {
+      key: "dealer",
+      type: "select",
+      label: "Dealer",
+      placeholder: "All",
+      options: dataDealer,
+      moderef: false,
+    },
+    {
+      key: "order_no",
+      type: "text",
+      label: "Order No",
+      placeholder: "Order No",
+      moderef: false,
+    },
+  ];
+  // --- Request table header ---
+  const headerRequest = [
+    { title: "No", width: 60, dataIndex: "key", align: "center" },
+    { title: "Dealer", width: 220, dataIndex: "dealer", align: "left" },
+    { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
+    { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
+    { title: "Request Date", width: 160, dataIndex: "request_date", align: "center" },
+    { title: "Status", width: 160, dataIndex: "status", align: "center" },
+    { title: "Action", width: 120, dataIndex: "action", align: "center" },
+  ];
+  const getActionForRequest = (record) => {
+    const apiActions = Array.isArray(record.apiActions)
+      ? record.apiActions.map((a) => (a?.action || "").toLowerCase())
+      : [];
+
+    const actions = apiActions.length ? apiActions : ["view"]; // fallback
+
+    const items = [];
+    if (actions.includes("view")) {
+      items.push({
+        key: "view",
+        label: (
+          <ItemDropDown
+            mode="view"
+            onClick={() =>
+              navigate("/points/line/sales-points-request-create", {
+                state: { request_id: record.request_id },
+              })
+            }
+          />
+        ),
+      });
+    }
+    if (actions.includes("edit")) {
+      items.push({
+        key: "edit",
+        label: (
+          <ItemDropDown
+            mode="edit"
+            onClick={() =>
+              navigate("/points/line/sales-points-request-create", {
+                state: { request_id: record.request_id },
+              })
+            }
+          />
+        ),
+      });
+    }
+    if (actions.includes("delete")) {
+      items.push({
+        key: "delete",
+        label: (
+          <ItemDropDown
+            mode="delete"
+            onClick={() => console.log("Delete request", record.request_id)}
+          />
+        ),
+      });
+    }
+
+    return (
+      <Dropdown menu={{ items }} placement="bottom">
+        <a onClick={(e) => e.preventDefault()}>
+          <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
+        </a>
+      </Dropdown>
+    );
+  };
+  const fetchRequests = async (overrides = {}) => {
+    setRequestTableLoading(true);
+
+    const { current, pageSize } = requestTableParams.pagination;
+    const filters = requestTableParams.filters || {};
+    const sortOrder = requestTableParams.sortOrder || "desc";
+    const sortField = requestTableParams.sortField || "created_at";
+
+    // map filters → payload ของ API
+    const payload = {
+      platform: "web",
+      keyword: filters.order_no || "",
+      use_flag: "1",
+      sale_id: filters.sale || "",
+      dealer_id: filters.dealer || "",
+      sub_dealer_id: filters.sub_dealer || "",
+      page: "all",
+      orderby_column: sortField,
+      orderby: sortOrder,
+      page_length: current, // ถ้า backend ไม่ใช้ก็ไม่เป็นไร
+      page_size: pageSize,  // ถ้า backend ไม่ใช้ก็ไม่เป็นไร
+      ...overrides,
+    };
+
+    try {
+      const res = await useServiceAPI.get(paths.pathSalePointOrderRequest, payload);
+
+      if (res.status === 200) {
+        const root = res.data?.data || {};
+        const rows = root || [];
+
+        setRequestPermission(root?.permission || {});
+
+        const mapped = rows.map((item, idx) => {
+          const reqDate =
+            (item.created_at || item.receive_date || "").toString().split(" ")[0] || "-";
+          return {
+            key: idx + 1 + (current - 1) * pageSize,
+            request_id: item.id,
+            dealer: item.dealer_name ?? "-",
+            sub_dealer: item.sub_dealer_name ?? "-",
+            sale: item.sale_name ?? "-",
+            request_date: reqDate,
+            status: "Waiting for Create", // ไม่มีฟิลด์สถานะในตัวอย่าง → ใส่ตาม UI เดิม
+            apiActions: item.action,
+          };
+        });
+
+        console.log('mapped : ', mapped)
+
+        setRequestDataSource(
+          mapped.map((row) => ({ ...row, action: getActionForRequest(row) }))
+        );
+
+        setRequestTableParams((prev) => ({
+          ...prev,
+          pagination: { ...prev.pagination, total: root.records_filtered || rows.length },
+        }));
+      }
+    } catch (err) {
+      console.error(err);
+      setRequestDataSource([]);
+    } finally {
+      setRequestTableLoading(false);
+    }
+  };
+  const handleSearchRequest = (filters) => {
+    setRequestTableParams((prev) => ({
+      ...prev,
+      filters,
+      pagination: { ...prev.pagination, current: 1 },
+    }));
+  };
+
+  const handleClearRequest = () => {
+    setRequestTableParams((prev) => ({
+      ...prev,
+      filters: {},
+      pagination: { ...prev.pagination, current: 1 },
+    }));
+  };
+
+  const handleTableChangeRequest = (pagination, _filters, sorter) => {
+    setRequestTableParams((prev) => ({
+      ...prev,
+      pagination,
+      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortField: sorter.field || prev.sortField,
+    }));
+  };
+
+  const handleChangeRequestFilters = (filters) => {
+    setRequestFiltersValues(filters);
+  };
+  // เรียกเมื่อสลับแท็บ
+  useEffect(() => {
+    if (activeTab === "request") {
+      fetchRequests();
+    }
+  }, [activeTab]);
+
+  // เรียกเมื่อ filter/sort/pagination ของ request เปลี่ยน
+  useEffect(() => {
+    if (activeTab === "request") {
+      fetchRequests();
+    }
+  }, [
+    activeTab,
+    requestTableParams.pagination.current,
+    requestTableParams.pagination.pageSize,
+    requestTableParams.sortOrder,
+    requestTableParams.sortField,
+    JSON.stringify(requestTableParams.filters),
+  ]);
 
   useEffect(() => {
     fetchData();
@@ -382,7 +603,7 @@ export default function SalesPointsList() {
             <ActionButton
               mode="create"
               text="Create"
-              onClick={(e) => navigate("/order/create")}
+              onClick={(e) => navigate("/points/line/sales-points-list/create")}
             />
           )}
         </div>
@@ -411,7 +632,24 @@ export default function SalesPointsList() {
         </TabPane>
 
         <TabPane tab={<span className="tab-title">Sales Points Request</span>} key="request">
+          <FilterByOrder
+            onSearch={handleSearchRequest}
+            onClear={handleClearRequest}
+            onChange={handleChangeRequestFilters}
+            filters={requestFilters}
+          />
+          <br />
+          <BoxPrimary>
+            <TableComponent
+              header={headerRequest}
+              dataSource={requestDataSource}
+              pagination={requestTableParams.pagination}
+              loading={requestTableLoading}
+              onChange={handleTableChangeRequest}
+            />
+          </BoxPrimary>
         </TabPane>
+
       </Tabs>
 
 

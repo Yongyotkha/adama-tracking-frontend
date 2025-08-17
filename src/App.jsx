@@ -154,6 +154,7 @@ import SalesPointsList from "./pages/settings/mobile/sale_point/SalesPointsList"
 // import CreateSalesPoint from "./pages/settings/mobile/sale_point/CreateSalesPoint";
 import SalesPointDetail from "./pages/settings/mobile/sale_point/SalesPointDetail";
 import SalesPointCreate from "./pages/settings/mobile/sale_point/SalesPointCreate";
+import SalesPointRequestCreate from "./pages/settings/mobile/sale_point/SalesPointRequestCreate";
 import TargetGroupList from "./pages/settings/mobile/target_group/TargetGroupList";
 import CreateTargetGroup from "./pages/settings/mobile/target_group/CreateTargetGroup";
 import PointCampaignList from "./pages/settings/mobile/point_campaign/PointCampaignList";
@@ -335,6 +336,8 @@ const App = () => {
             {/* <Route path="/points/line/sales-points-list/:mode" element={<SalesPointDetail />} /> */}
             {/* <Route path="/points/line/sales-points-list/create" element={<CreateSalesPoint />} /> */}
             {/* <Route path="/points/line/sales-points-list/:mode" element={<ActionSalePoints />} /> */}
+
+            <Route path="/points/line/sales-points-request-create" element={<SalesPointRequestCreate />} />
 
             <Route path="/setting/line/point-campaign" element={<PointCampaignList />} />
             <Route path="/setting/line/point-campaign/create" element={<CreatePointCampaign />} />
