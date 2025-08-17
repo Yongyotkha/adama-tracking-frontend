@@ -11,7 +11,7 @@ import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function PointHistory() {
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("collect_points"); // Default tab
+  const [activeTab, setActiveTab] = useState("receive"); // Default
   const [transactionData, setTransactionData] = useState([]);
 
   const navigate = useNavigate();

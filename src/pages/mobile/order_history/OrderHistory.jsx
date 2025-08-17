@@ -23,18 +23,17 @@ export default function OrderHistory() {
     sortField: null,
   });
   const tabs = [
-    { id: "completed", label: "รับสินค้าสำเร็จ", color: "text-green-600", border: "border-green-500" },
-    { id: "cancle", label: "รับสินค้าไม่สำเร็จ", color: "text-red-600", border: "border-red-500" },
+    { id: "1", label: "รับสินค้าสำเร็จ", color: "text-green-600", border: "border-green-500" },
+    { id: "2", label: "รับสินค้าไม่สำเร็จ", color: "text-red-600", border: "border-red-500" },
   ];
 
   useEffect(() => {
     const fetchOrderHistory = async () => {
       setLoading(true);
       setOrderData([]); // 💡 Clear old data before loading
-
-
-
       try {
+        console.log(activeTab)
+
         const { current, pageSize } = tableParams.pagination;
         const requestData = {
           platform: "web",
@@ -44,6 +43,7 @@ export default function OrderHistory() {
           dealer_id: "",
           sub_dealer_id: "",
           farmer_id: "",
+          type: activeTab,
           trasaction_status_code: "",
           payment_status_code: "",
           status_code: "ODD",
@@ -56,7 +56,7 @@ export default function OrderHistory() {
 
         if (response.status === 200) {
           const rawData = response.data.data ?? [];
-          console.log('rawData : ',rawData)
+          console.log('rawData : ', rawData)
           setOrderData(rawData);
         } else {
           setOrderData([]);
