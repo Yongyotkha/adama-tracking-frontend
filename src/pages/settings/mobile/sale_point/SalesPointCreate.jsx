@@ -286,12 +286,12 @@ export default function SalesPointCreate() {
     },
   ];
 
-  const getMasterDealer = async () => {
+  const getMasterDealer = async (value) => {
     // setLoading(true);
     try {
       const [dealer] = await Promise.all([
         useServiceAPI.get(paths.pathUserLineDealer, {
-          sale_id: parseInt(dataSaleId),
+          sale_id: value,
         }),
       ]);
 
@@ -303,35 +303,36 @@ export default function SalesPointCreate() {
     }
   };
 
-  const getMasterSubDealer = async () => {
-    // setLoading(true);
+  const getMasterSubDealer = async (value) => {
     try {
-      const [dealer] = await Promise.all([
+      const [res] = await Promise.all([
         useServiceAPI.get(paths.pathUserLineSubDealer, {
-          dealer_id: parseInt(dealerId),
+          dealer_id: value,
         }),
       ]);
 
-      getMasterSubDealer(dealer.data);
-    } catch (error) {
-      // showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      setSubDataDealer(res.data)
+
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (dataSaleId) {
-      getMasterDealer();
-    }
-  }, [dataSaleId]);
+
 
   const handleChange = (filter, value) => {
-    console.log("filter", filter, "value", value);
+    console.log('filter ',filter ,value)
     if (filter == "sale") {
       setDataSaleId(value);
+      getMasterDealer(value);
     } else if (filter == "dealer") {
       setDealerId(value);
+      getMasterSubDealer(value)
+    } else if (filter == "sub_dealer") {
+      console.log('set')
+      setSubDealerId(value)
     }
   };
 
@@ -724,12 +725,13 @@ export default function SalesPointCreate() {
           document_date: values.order_date,
           user_id: dataSaleId,
           dealer_id: dealerId,
+          sub_dealer_id: subDealerId,
           remark: inputRemark,
           products: dataSource,
           others: dataSourceOther,
         };
-        // console.log(body);
-        // return;
+      //   console.log(body);
+      //  return;
         navigate("/points/line/sales-points-list/detail", {
           state: {
             data: body,
