@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import MainLayout from "../../../../layouts/MainLayout";
 import Filter from "../../../../components/filter/Filter";
 import TableComponent from "../../../../components/table/TableComponent";
-import { Dropdown } from "antd";
+import { Dropdown, Popconfirm } from "antd"; // ⬅️ เพิ่ม Popconfirm
 import BadgeStatus from "../../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import ActionButton from "../../../../components/button/ActionButton";
@@ -11,6 +11,7 @@ import ItemDropDown from "../../../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../../../services/corsService";
 import { paths } from "../../../../services/CorsPath";
 import dayjs from "dayjs";
+import { AuthContext } from "../../../../contexts/AuthContext"; // ⬅️ ใช้ noti
 
 export default function RewardCampaignList() {
   const navigate = useNavigate();
@@ -22,9 +23,14 @@ export default function RewardCampaignList() {
       current: 1,
       pageSize: 10,
       total: 0,
+      showSizeChanger: true,
+      pageSizeOptions: ["10", "20", "50", "100"],
     },
     filters: {},
+
   });
+
+  const { showNotification } = useContext(AuthContext); // ⬅️ ดึง noti
 
   const filters = [
     { key: "keyword", type: "text", label: "Reward Code" },
@@ -93,19 +99,58 @@ export default function RewardCampaignList() {
         action: (
           <Dropdown
             menu={{
-              items: item.action.map((act, i) => ({
-                key: i,
-                label: (
-                  <ItemDropDown
-                    mode={act.action.toLowerCase()}
-                    onClick={() =>
-                      navigate(`/setting/line/reward-campaign/${act.action.toLowerCase()}`, {
-                        state: { id: item.id },
-                      })
-                    }
-                  />
-                ),
-              })),
+              items: item.action.map((act, i) => {
+                const mode = act.action.toLowerCase();
+                // ⬇️ แยก view / delete
+                if (mode === "view") {
+                  return {
+                    key: `view-${i}`,
+                    label: (
+                      <ItemDropDown
+                        mode="view"
+                        onClick={() =>
+                          navigate(`/setting/line/reward-campaign/${mode}`, {
+                            state: { id: item.id }, // ส่ง id ไปหน้า view
+                          })
+                        }
+                      />
+                    ),
+                  };
+                }
+                if (mode === "delete") {
+                  return {
+                    key: `delete-${i}`,
+                    label: (
+                      <Popconfirm
+                        title="ยืนยันการลบ?"
+                        description={`คุณต้องการลบรางวัล "${item.name}" หรือไม่`}
+                        okText="ลบ"
+                        cancelText="ยกเลิก"
+                        okButtonProps={{ danger: true }}
+                        onConfirm={() => handleDeleteReward(item.id)} // ⬅️ เรียกลบ
+                      >
+                        <div>
+                          <ItemDropDown mode="delete" />
+                        </div>
+                      </Popconfirm>
+                    ),
+                  };
+                }
+                // อื่นๆ (เช่น edit) -> นำทางตามเดิม
+                return {
+                  key: `${mode}-${i}`,
+                  label: (
+                    <ItemDropDown
+                      mode={mode}
+                      onClick={() =>
+                        navigate(`/setting/line/reward-campaign/${mode}`, {
+                          state: { id: item.id },
+                        })
+                      }
+                    />
+                  ),
+                };
+              }),
             }}
           >
             <a onClick={(e) => e.preventDefault()}>
@@ -125,6 +170,32 @@ export default function RewardCampaignList() {
       }));
     } catch (err) {
       console.error("Fetch failed:", err);
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
+  // ⬇️ ฟังก์ชันลบ + noti ตาม response API
+  const handleDeleteReward = async (id) => {
+    try {
+      setTableLoading(true);
+
+      // เลือกวิธีเรียก API แบบ query string (ตาม pattern ตัวอย่างของคุณ)
+      const url = `${paths.pathPromotiondelete}?id=${encodeURIComponent(id)}`;
+      const res = await useServiceAPI.delete(url);
+
+      // รองรับทั้งกรณีมี res.data.result และ status 200
+      const ok = (res?.status === 200);
+      const title = res?.data?.message || (ok ? "Delete successful" : "Delete failed");
+      const lines = res?.data?.message_line || []; // ถ้ามี
+
+      showNotification(ok ? "success" : "error", title, lines);
+      if (ok) {
+        fetchData(); // รีเฟรชตาราง
+      }
+    } catch (error) {
+      console.error("Delete reward failed:", error);
+      showNotification("error", "Delete failed", [error?.message || "Unexpected error"]);
     } finally {
       setTableLoading(false);
     }
@@ -173,8 +244,7 @@ export default function RewardCampaignList() {
             setTableParams((prev) => ({
               ...prev,
               pagination,
-            }))
-          }
+            }))}
         />
       </BoxPrimary>
     </MainLayout>
