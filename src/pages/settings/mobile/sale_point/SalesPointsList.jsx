@@ -1,5 +1,5 @@
-import React, { useEffect, useState ,useContext} from "react";
-import { Dropdown, Modal, Select,Tabs } from "antd";
+import React, { useEffect, useState, useContext } from "react";
+import { Dropdown, Modal, Select, Tabs } from "antd";
 import MainLayout from "../../../../layouts/MainLayout";
 import Filter from "../../../../components/filter/Filter";
 import TableComponent from "../../../../components/table/TableComponent";
@@ -26,10 +26,11 @@ export default function SalesPointsList() {
   const [defaultOption, setDefaultOption] = useState();
   const [tableLoading, setTableLoading] = useState(false);
   const [filterValues, setFilterValues] = useState({});
+  const [activeTab, setActiveTab] = useState("list");
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
-      pageSize: 10,
+      pageSize: 50,
     },
     filters: {},
     sortOrder: null,
@@ -38,6 +39,16 @@ export default function SalesPointsList() {
   const { confirm } = Modal;
 
   const [saleList, setSaleList] = useState([]);
+
+  useEffect(() => {
+    fetchData();
+  }, [
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    tableParams.sortOrder,
+    tableParams.sortField,
+    JSON.stringify(tableParams.filters),
+  ]);
 
   useEffect(() => {
     const sale = filterValues.sale;
@@ -144,6 +155,7 @@ export default function SalesPointsList() {
     { title: "Order No", width: 150, dataIndex: "orderNo", align: "left" },
     { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
     { title: "Dealer", width: 200, dataIndex: "dealer", align: "left" },
+    { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
     { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
     {
       title: "Order Date",
@@ -151,15 +163,7 @@ export default function SalesPointsList() {
       dataIndex: "orderDate",
       align: "center",
     },
-    {
-      title: "Pay Overdue",
-      width: 150,
-      dataIndex: "payOverdue",
-      align: "center",
-    },
     { title: "Status", width: 150, dataIndex: "status", align: "center" },
-    { title: "SAP Status", width: 150, dataIndex: "sapStatus", align: "center" },
-    { title: "Create By", width: 150, dataIndex: "createdBy", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
@@ -200,6 +204,7 @@ export default function SalesPointsList() {
           key: index + 1 + (current - 1) * pageSize,
           orderNo: order.document_number,
           sale: order.user_name,
+          sub_dealer: order.sub_dealer_name,
           dealer: order.dealer_name,
           value: order.net_amount_display,
           orderDate: order.document_date,
@@ -227,24 +232,6 @@ export default function SalesPointsList() {
           createdBy: order.created_by,
           action: (
             <Dropdown
-              // menu={{
-              //   items: order.action.map((actionItem, actionIndex) => ({
-              //     key: actionIndex,
-              //     label: (
-              //       <ItemDropDown mode={actionItem.action.toLowerCase()}
-              //       onClick={() => {
-              //         navigate("/order/view", {
-              //           state: {
-              //             document_number: order.document_number,
-              //           },
-              //         });
-              //       }}
-
-              //       />
-              //     ),
-              //   })),
-              // }}
-
               menu={{
                 items: [
                   {
@@ -317,16 +304,6 @@ export default function SalesPointsList() {
       setTableLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchData();
-  }, [
-    tableParams.pagination.current,
-    tableParams.pagination.pageSize,
-    tableParams.sortOrder,
-    tableParams.sortField,
-    JSON.stringify(tableParams.filters),
-  ]);
 
   const handleSearch = (filters) => {
     setTableParams({
@@ -411,22 +388,36 @@ export default function SalesPointsList() {
         </div>
       </div>
 
-      <FilterByOrder
-        onSearch={handleSearch}
-        onClear={handleClear}
-        onChange={handleChange}
-        filters={filters}
-      />
 
-      <BoxPrimary>
-        <TableComponent
-          header={header}
-          dataSource={dataSource}
-          pagination={tableParams.pagination}
-          loading={tableLoading}
-          onChange={handleTableChange}
-        />
-      </BoxPrimary>
+      <Tabs activeKey={activeTab} onChange={setActiveTab} className="custom-tabs">
+        <TabPane tab={<span className="tab-title">Sales Points List</span>} key="list">
+
+          <FilterByOrder
+            onSearch={handleSearch}
+            onClear={handleClear}
+            onChange={handleChange}
+            filters={filters}
+          />
+          <br />
+          <BoxPrimary>
+            <TableComponent
+              header={header}
+              dataSource={dataSource}
+              pagination={tableParams.pagination}
+              loading={tableLoading}
+              onChange={handleTableChange}
+            />
+          </BoxPrimary>
+        </TabPane>
+
+        <TabPane tab={<span className="tab-title">Sales Points Request</span>} key="request">
+        </TabPane>
+      </Tabs>
+
+
+
+
+
     </MainLayout>
   );
 }
