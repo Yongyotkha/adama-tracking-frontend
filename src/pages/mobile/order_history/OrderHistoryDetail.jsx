@@ -32,7 +32,7 @@ export default function OrderHistoryDetail() {
     const fetchDetail = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathSalePointDetail, {
+        const response = await useServiceAPI.get(paths.pathSalePointReceiveDetailOrder, {
           platform: "web",
           id: userInfo?.id,
           document_number: documentNumber,
@@ -63,17 +63,17 @@ export default function OrderHistoryDetail() {
   // ---------------- ใช้ products จาก API โดยตรง ----------------
   const products = Array.isArray(historydetail?.products)
     ? historydetail.products.map((p) => ({
-        qty: Number(p?.quantity ?? 0),
-        product_name: p?.product_name ?? "-",
-        product_code: p?.product_code ?? "-",
-        amount: Number(p?.net_amount ?? 0),
-        point: Number(p?.point ?? 0),
-        amount_display:
-          typeof p?.net_amount === "string" || typeof p?.net_amount === "number"
-            ? new Intl.NumberFormat("th-TH").format(Number(p?.net_amount ?? 0))
-            : "0",
-        image: p?.product_image || null,
-      }))
+      qty: Number(p?.quantity ?? 0),
+      product_name: p?.product_name ?? "-",
+      product_code: p?.product_code ?? "-",
+      amount: Number(p?.net_amount ?? 0),
+      point: Number(p?.point ?? 0),
+      amount_display:
+        typeof p?.net_amount === "string" || typeof p?.net_amount === "number"
+          ? new Intl.NumberFormat("th-TH").format(Number(p?.net_amount ?? 0))
+          : "0",
+      image: p?.product_image || null,
+    }))
     : [];
 
   const totalQty = products.reduce((sum, it) => sum + (Number.isFinite(it.qty) ? it.qty : 0), 0);
@@ -199,12 +199,12 @@ export default function OrderHistoryDetail() {
                 รูปหน้าบิลเงินสดหรือใบสั่งสินค้า
                 <span className="text-red-500">*</span>
               </label>
-              {historydetail?.bill_images && historydetail.bill_images.length > 0 ? (
+              {historydetail?.bill && historydetail.bill.length > 0 ? (
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                  {historydetail.bill_images.map((img, idx) => (
+                  {historydetail.bill.map((img, idx) => (
                     <img
                       key={idx}
-                      src={img}
+                      src={img.part}
                       alt={`bill-${idx}`}
                       className="w-full h-24 object-cover rounded-md border"
                     />
@@ -217,21 +217,24 @@ export default function OrderHistoryDetail() {
 
             {/* --- กล้อง: ถ่ายรูปสินค้าที่ได้รับ* --- */}
             <div className="mt-3">
-              <CameraMobile
-                label="ถ่ายรูปสินค้าที่ได้รับ"
-                required
-                value={productPhotos}
-                onChange={setProductPhotos}
-                maxCount={20}
-                defaultFacing="environment"
-                allowTorch={true}
-                uploadOnCapture
-                uploadMode="activity"
-                uploadExtra={{ document_number: historydetail?.document_number ?? documentNumber }}
-                onUploadSuccess={() => {
-                  // ถ้าต้องทำอย่างอื่นหลังอัปโหลดสำเร็จ ใส่เพิ่มได้
-                }}
-              />
+              <label className="block text-sm text-gray-700 sarabun-font mb-1">
+                รูปหน้าบิลเงินสดหรือใบสั่งสินค้า
+                <span className="text-red-500">*</span>
+              </label>
+              {historydetail?.product && historydetail.product.length > 0 ? (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {historydetail.product.map((img, idx) => (
+                    <img
+                      key={idx}
+                      src={img.part}
+                      alt={`bill-${idx}`}
+                      className="w-full h-24 object-cover rounded-md border"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm sarabun-font">ไม่มีรูปภาพ</p>
+              )}
             </div>
 
             {/* Summary */}
@@ -249,15 +252,8 @@ export default function OrderHistoryDetail() {
           </div>
         </div>
 
-        <BackButton url="/mobile/collect-points" />
+        <BackButton url="/mobile/order-history" />
 
-        {/* ปุ่มยืนยัน */}
-        <button
-          onClick={confirm}
-          className="mt-4 mb-6 w-full max-w-md bg-green-700 text-white py-3 rounded-md sarabun-font"
-        >
-          ยืนยัน
-        </button>
 
         {/* Success Points Modal */}
         <DynamicPopUp

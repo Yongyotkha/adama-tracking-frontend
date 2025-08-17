@@ -9,6 +9,7 @@ export const paths = {
   pathSalePointDetail: "sale-point/detail",
 
   pathSalePointReceiveOrder: "sale-point-receive/create-order",
+  pathSalePointReceiveDetailOrder: "sale-point-receive/detail-order",
   pathSalePointReceiveList: "sale-point-receive/list",
 
   pathSalePointReceive: "sale-point-receive/create",
