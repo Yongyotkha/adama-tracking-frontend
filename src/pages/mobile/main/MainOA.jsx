@@ -25,7 +25,7 @@ export default function MainOA() {
         <UserPointsSection />
 
 
-        <SplidePromotion /> 
+        <SplidePromotion />
         <MainMenu />
       </div>
     </MobileLayout>

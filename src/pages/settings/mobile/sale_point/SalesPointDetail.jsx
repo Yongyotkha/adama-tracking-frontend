@@ -1,174 +1,313 @@
-import React from "react";
-import { Form, Input } from "antd";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useEffect, useState, useContext } from "react";
+import { Form, Input, Select } from "antd";
 import MainLayout from "../../../../layouts/MainLayout";
-import FormUser from "../../../../components/form_user/FormUser";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
-import TableComponent from "../../../../components/table/TableComponent";
+import TableCheckbox from "../../../../components/table/TableCheckbox";
+import useServiceAPI from "../../../../services/corsService";
+import { paths } from "../../../../services/CorsPath";
 import ActionButton from "../../../../components/button/ActionButton";
+import { useNavigate,useLocation } from "react-router-dom";
+import { AuthContext } from "../../../../contexts/AuthContext";
+import dayjs from "dayjs";
+import FormCustom from "../../../../components/form_custom/FormCustom";
+import TableComponent from "../../../../components/table/TableComponent";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import DynamicModal from "../../../../components/modal/DynamicModal";
 
 export default function SalesPointDetail() {
   const navigate = useNavigate();
   const location = useLocation();
-  const mode = location?.state?.mode || "view";
+  const [loading, setLoading] = useState(false);
+  const { showMsg, showNotification } = useContext(AuthContext);
+  const [getDocumentDate, setGetDocumentDate] = useState(
+    location.state.data.document_date
+  );
+  const [getUserId, setGetUserId] = useState(location.state.data.user_id);
+  const [getDealerId, setGetDealerId] = useState(location.state.data.dealer_id);
+  const [getRemark, setGetRemark] = useState(location.state.data.remark);
+  
+  const [dataSource, setDataSource] = useState([]);
+  const [dataSourceOther, setDataSourceOther] = useState([]);
+  const [dataSale, setDataSale] = useState([]);
+  const [dataDealer, setDataDealer] = useState([]);
 
-  const isView = mode === "view";
-  const isEdit = mode === "edit";
-  const isCreate = mode === "create";
+  const [formCustom] = Form.useForm();
 
-  const formFieldData = [
+  // Set Data
+  useEffect(() => {
+    setDataSource(location.state.data.products);
+    setDataSourceOther(location.state.data.others);
+  }, [dataSource, dataSourceOther])
+
+  // Get Master
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [sale, dealer] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {
+            status: "",
+          }),
+          useServiceAPI.get(paths.pathMasterDealerDropdown, {
+            user_id: getUserId,
+          }),
+        ]);
+
+        setDataSale(sale.data);
+        setDataDealer(dealer.data);
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, []);
+  
+  const header = [
+    { title: "No", dataIndex: "no", key: "no", width: 10 },
+    { title: "SKU", dataIndex: "product_code", key: "product_code" },
+    { title: "Product Name", dataIndex: "product_name", key: "product_name" },
+    { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
     {
-      label: "Document No",
-      name: "doc_no",
-      type: "text",
-      disabled: !isCreate,
-      value: isCreate ? "Generate Order no" : "O2025040108",
+      title: "THB/Unit",
+      dataIndex: "product_unit_thb",
+      key: "product_unit_thb",
     },
     {
-      label: "Sales",
-      name: "sales",
-      type: "text",
-      disabled: isView,
-      value: "Amorn Sriworakul",
-      required: true,
+      title: <div className="text-center">QTY (ctn)</div>,
+      dataIndex: "quantity",
+      key: "quantity",
+      render: (text) => (
+        <div className="text-center">
+          {parseFloat(text || 0).toLocaleString("en-US")}
+        </div>
+      ),
     },
     {
-      label: "Dealer",
-      name: "dealer",
-      type: "text",
-      disabled: isView,
-      value: "Somporn Panich Chemi Kaset Ltd.part.",
-      required: true,
+      title: <div className="text-center">FOC (ctn)</div>,
+      dataIndex: "foc",
+      key: "foc",
+      render: (text) => (
+        <div className="text-center">
+          {parseFloat(text || 0).toLocaleString("en-US")}
+        </div>
+      ),
     },
     {
-      label: "Sub Dealer",
-      name: "sub_dealer",
-      type: "text",
-      disabled: isView,
-      value: "นายกหน่อย",
-      required: true,
-    },
-    {
-      label: "Contact Number",
-      name: "contact",
-      type: "text",
-      disabled: isView,
-      value: "086-3199695",
-    },
-    {
-      label: "Date",
-      name: "date",
-      type: "date",
-      disabled: isView,
-      value: "2025-05-27",
-    },
-    {
-      label: "Status",
-      name: "status",
-      type: "text",
-      disabled: true,
-      value: isCreate ? "-" : isEdit ? "Waiting for Receive" : "Completed",
+      title: <div className="text-end">Sub Total (THB)</div>,
+      dataIndex: "net_amount",
+      key: "net_amount",
+      render: (text) => (
+        <div className="text-end">
+          {parseFloat(text || 0).toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+          })}
+        </div>
+      ),
     },
   ];
 
-  const orderListData = [
+  const headerOther = [
+    { title: "No", dataIndex: "no", key: "no", width: 10 },
+    { title: "Name", dataIndex: "product_name", key: "product_name" },
+    { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
+    { title: "QTY", dataIndex: "quantity", key: "quantity" },
     {
-      key: 1,
-      sku: "3027200113",
-      name: "Bumper P 490 EC",
-      unit: "0.5 Lt x 20",
-      price: "12,380.00",
-      qty: 10,
-      foc: 1,
-      subtotal: "123,800.00",
-      point: 300,
-    },
-    {
-      key: 2,
-      sku: "303710131300",
-      name: "Apopo",
-      unit: "0.5 Lt x 20",
-      price: "9,900.00",
-      qty: 5,
-      foc: 0,
-      subtotal: "49,500.00",
-      point: 150,
+      title: <div className="text-end">Value (THB)</div>,
+      dataIndex: "net_amount",
+      key: "net_amount",
+      render: (text) => (
+        <div className="text-end">
+          {parseFloat(text || 0).toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+          })}
+        </div>
+      ),
     },
   ];
 
-  const orderListColumns = [
-    { title: "No", render: (_, __, index) => index + 1 },
-    { title: "SKU", dataIndex: "sku" },
-    { title: "Product Name", dataIndex: "name" },
-    { title: "Unit", dataIndex: "unit" },
-    { title: "THB/Unit", dataIndex: "price" },
-    { title: "QTY (ctn)", dataIndex: "qty" },
-    { title: "FOC (ctn)", dataIndex: "foc" },
-    { title: "Sub Total (THB)", dataIndex: "subtotal" },
-    { title: "Point Earned", dataIndex: "point" },
-  ];
+  const footerOrderList = () => {
+    const totalQuantity = dataSource.reduce((total, item) => total + parseFloat(item.quantity), 0);
+    const totalFOC = dataSource.reduce((total, item) => total + parseFloat(item.foc), 0);
+    const totalAmount = dataSource.reduce((total, item) => total + parseFloat(item.net_amount || 0), 0);
 
-  const footerOrder = () => (
-    <tr className="bg-[#978B87] text-white">
-      <td colSpan={9} className="text-right pr-2">
-        Item: 2 &nbsp;&nbsp; QTY (ctn): 15+1 &nbsp;&nbsp; Total: 173,300.00 &nbsp;&nbsp; Point Total: 450
+    return (
+      <tr className="bg-[#978B87]">
+        <td colSpan={9} className="text-right pr-2 text-white">
+          Item: {dataSource.length} &nbsp; QTY (ctn): {totalQuantity}+{totalFOC} &nbsp;
+          Total: {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+        </td>
+      </tr>
+    );
+  };
+
+  const footerOther = () => (
+    <tr className="bg-[#978B87]">
+      <td colSpan={6} className="text-right pr-2 text-white">
+        Item: {dataSourceOther.length} &nbsp; QTY: {dataSourceOther.reduce((total, item) => total + item.quantity, 0)} &nbsp;
+        Total: {dataSourceOther.reduce((total, item) => total + parseFloat(item.net_amount.replace(/,/g, "")), 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
       </td>
     </tr>
   );
 
-  const attachmentImages = ["/img/attachment1.png"];
-  const productImages = ["/img/product1.png", "/img/product2.png"];
+  const formFields = [
+    {
+      key: "sale",
+      label: "Sales",
+      name: "sale",
+      type: "select",
+      disabled: true,
+      options: dataSale,
+      placeholder: "",
+      value: getUserId,
+    },
+    {
+      key: "dealer",
+      label: "Dealer",
+      name: "dealer",
+      type: "select",
+      disabled: true,
+      options: dataDealer,
+      placeholder: "",
+      value: getDealerId,
+    },
+    {
+      key: "order_no",
+      label: "Order No",
+      name: "order_no",
+      type: "text",
+      disabled: true,
+      placeholder: "Generate order no",
+      value: "",
+    },
+    {
+      key: "order_date",
+      label: "Date",
+      name: "order_date",
+      type: "text",
+      disabled: true,
+      placeholder: dayjs().format("YYYY-MM-DD"),
+      value: "",
+    },
+  ];
+
+  // Utility function สำหรับแปลงวันที่
+  const formatDate = (date) => {
+    if (!date || !date.$d) return ""; // ตรวจสอบว่ามี $d หรือไม่
+  
+    const d = new Date(date.$d); // แปลง $d เป็น Date Object
+    // ใช้เวลาท้องถิ่นแทน UTC
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0"); // เดือนเริ่มจาก 0, ต้องบวก 1
+    const day = String(d.getDate()).padStart(2, "0");
+  
+    return `${year}-${month}-${day}`; // ส่งคืนวันที่ในรูปแบบ YYYY-MM-DD
+  };
+  
+  const handleSaveOrder = () => {
+    // แปลงวันที่โดยใช้ฟังก์ชัน formatDate
+    const formattedDate = formatDate(getDocumentDate);
+    const body = {
+      document_date: formattedDate,
+      user_id: getUserId,
+      dealer_id: getDealerId,
+      remark: getRemark,
+      products: dataSource,
+      others: dataSourceOther,
+    };
+    // console.log(body);
+    // return;
+    if (dataSource.length > 0) {
+      const saveOrder = async () => {
+        setLoading(true);
+        try {
+          const [response] = await Promise.all([
+            useServiceAPI.post(paths.pathSalePointOrderCreate, body),
+          ]);
+
+          showNotification(
+            "success",
+            response.data.message,
+            response.data.message_line
+          ).then(() => {
+            navigate("/order/list");
+          });
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+          console.log(error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      saveOrder();
+    } else {
+      // console.log("เลือกรายการอย่างน้อย 1 รายการ");
+      showNotification(
+        "warning",
+        "โปรดเลือกรายการ อย่างน้อย 1 รายการ",
+        ""
+      ).then(() => {
+        // navigate("/order/list");
+      });
+    }
+
+  };
 
   return (
-    <MainLayout loading={false}>
-      <div className="title-page">Sale Points Detail</div>
+    <MainLayout loading={loading}>
+      <div className="title-page">View Detail</div>
 
-      <FormUser fields={formFieldData} form={Form.useForm()[0]} />
+      <FormCustom fields={formFields} form={formCustom} onChange="" />
 
       <BoxPrimary title="Order List">
         <TableComponent
-          header={orderListColumns}
-          dataSource={orderListData}
-          footer={footerOrder}
-          pagination={false}
+          header={header}
+          dataSource={dataSource}
+          pageSize={10}
+          footer={footerOrderList}
+          pagination={false} // Disable pagination if the read-only view requires it
         />
       </BoxPrimary>
 
-      <BoxPrimary title="Attachments">
-        <div className="flex gap-4">
-          {attachmentImages.map((img, i) => (
-            <img key={i} src={img} alt={`attachment-${i}`} className="w-32 border" />
-          ))}
-        </div>
-      </BoxPrimary>
-
-      <BoxPrimary title="Picture Of Product Receipt">
-        <div className="flex gap-4">
-          {productImages.map((img, i) => (
-            <img key={i} src={img} alt={`product-${i}`} className="w-32 border" />
-          ))}
-        </div>
+      <BoxPrimary title="Other">
+        <TableComponent
+          header={headerOther}
+          dataSource={dataSourceOther}
+          pageSize={10}
+          footer={footerOther}
+          pagination={false} // Disable pagination if the read-only view requires it
+        />
       </BoxPrimary>
 
       <BoxPrimary title="Remark">
         <Input.TextArea
-          placeholder="Enter"
-          disabled={isView}
-          defaultValue={isCreate ? "" : ""}
+          placeholder=""
+          value={getRemark}
+          disabled
+          className="bg-gray-100"
         />
       </BoxPrimary>
 
-      <div className="flex justify-end mt-4 gap-4">
-        <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />
-        {(isCreate || isEdit) && (
-          <ActionButton
-            mode="save"
-            text="Save"
-            onClick={() => {
-              console.log("Saving...");
-            }}
-          />
-        )}
+      <div className="flex justify-end space-x-4 mt-4">
+        <ActionButton
+          mode="back"
+          text="Back"
+          onClick={() => 
+            navigate("/points/line/sales-points-list/create", {
+              state: {
+                data: location?.state?.data,
+              },
+            })
+          }
+        />
+        <ActionButton
+          mode="save"
+          text="Order"
+          onClick={() => handleSaveOrder()}
+        />
       </div>
     </MainLayout>
   );

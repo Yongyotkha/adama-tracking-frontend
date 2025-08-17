@@ -21,7 +21,7 @@ export default function RegisterOA() {
   const location = useLocation();
   const { lineProfile } = useOutletContext() || {};
   const [redirectPath, setRedirectPath] = useState(null);
-
+  const [receive_point, set_receive_point] = useState(0);
   useEffect(() => {
     console.log("lineProfile", lineProfile);
 
@@ -140,9 +140,10 @@ export default function RegisterOA() {
       .post(paths.pathRegisterShop, formattedData)
       .then((response) => {
         if (response.status === 200) {
+          set_receive_point(response.point)
           localStorage.setItem("redirectPath", "/mobile/main");
           setIsSuccessModalVisible(true);
-          navigate("/mobile/main", { state: formattedData });
+          //navigate("/mobile/main", { state: formattedData });
         }
       })
       .catch((error) => {
@@ -484,7 +485,7 @@ export default function RegisterOA() {
         visible={isSuccessModalVisible}
         onConfirm={() => {
           setIsSuccessModalVisible(false);
-          navigate("/mobile/main"); // ไปหน้าใช้งาน
+          navigate("/mobile/verify"); // ไปหน้าใช้งาน
         }}
         src="/img/icons/check-circle.png"
         text={`<p class='text-[#8A8A8A] text-center sarabun-font'>ยินดีด้วย<br/>คุณลงทะเบียนสำเร็จ ได้รับ Welcome Point</p>

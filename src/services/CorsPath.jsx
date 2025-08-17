@@ -19,6 +19,8 @@ export const paths = {
   pathSalePointReceiveReward: "sale-point-receive/receive-reward",
   pathSalePointReceiveRewardConfirm: "sale-point-receive/receive-reward-confirm",
   pathLogPoint: "sale-point-receive/point-log",
+
+
   // Login
   pathVerifyOtp: "verify-otp",
   pathOtpCall: "otp/call",
@@ -267,6 +269,15 @@ export const paths = {
   pathGetOrderDetail: "order/detail",
   pathGetOrderWaitingList: "order/list",
   pathGetOrderChangeStatus: "order/status",
+
+
+  pathSalePointOrderList: "/sale-point/list",
+  pathSalePointOrderCreate: "/sale-point/create",
+  pathSalePointOrderUpdate: "/sale-point/update",
+  pathSalePointOrderDetail: "/sale-point/detail",
+  pathSalePointOrderStatus: "/sale-point/status",
+  pathSalePointOrderDelete: "/sale-point/delete",
+  pathSalePointOrderCollectList: "/sale-point/collect-point-list",
 
   // customer stock
   pathStockList: "/stock/list",
