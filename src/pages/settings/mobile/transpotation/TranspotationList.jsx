@@ -11,7 +11,7 @@ import ActionButton from "../../../../components/button/ActionButton";
 
 const { TabPane } = Tabs;
 
-export default function SalesPointsList() {
+export default function TranspotationList() {
   const [activeTab, setActiveTab] = useState("list");
   const navigate = useNavigate();
 

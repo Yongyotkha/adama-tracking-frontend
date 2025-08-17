@@ -7,7 +7,7 @@ import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../../components/table/TableComponent";
 import ActionButton from "../../../../components/button/ActionButton";
 
-export default function SalesPointDetail() {
+export default function TranspotationDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const mode = location?.state?.mode || "view";
@@ -121,7 +121,7 @@ export default function SalesPointDetail() {
 
   return (
     <MainLayout loading={false}>
-      <div className="title-page">Sale Points Detail</div>
+      <div className="title-page">Transpotation Detail</div>
 
       <FormUser fields={formFieldData} form={Form.useForm()[0]} />
 
