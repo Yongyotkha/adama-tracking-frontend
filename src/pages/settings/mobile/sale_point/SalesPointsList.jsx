@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Tabs, Dropdown } from "antd";
+import React, { useEffect, useState ,useContext} from "react";
+import { Dropdown, Modal, Select,Tabs } from "antd";
 import MainLayout from "../../../../layouts/MainLayout";
 import Filter from "../../../../components/filter/Filter";
 import TableComponent from "../../../../components/table/TableComponent";
@@ -8,182 +8,425 @@ import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import ItemDropDown from "../../../../components/dropdown/ItemDropDown";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../../components/button/ActionButton";
-
+import useServiceAPI from "../../../../services/corsService";
+import { paths } from "../../../../services/CorsPath";
+import { AuthContext } from "../../../../contexts/AuthContext";
+import FilterByOrder from "../../../../components/filter/FilterByOrder";
 const { TabPane } = Tabs;
 
 export default function SalesPointsList() {
-  const [activeTab, setActiveTab] = useState("list");
   const navigate = useNavigate();
+  const { showMsg, showNotification } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
+  const [dataSource, setDataSource] = useState([]);
+  const [dataSale, setDataSale] = useState([]);
+  const [dataDealer, setDataDealer] = useState([]);
+  const [dataStatus, setDataStatus] = useState([]);
+  const [permission, setPermission] = useState([]);
+  const [defaultOption, setDefaultOption] = useState();
+  const [tableLoading, setTableLoading] = useState(false);
+  const [filterValues, setFilterValues] = useState({});
+  const [tableParams, setTableParams] = useState({
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+    filters: {},
+    sortOrder: null,
+    sortField: null,
+  });
+  const { confirm } = Modal;
 
-  const handleNavigate = (document_number, mode) => {
-    navigate(`/points/line/sales-points-list/${mode}`, {
-      state: { document_number },
+  const [saleList, setSaleList] = useState([]);
+
+  useEffect(() => {
+    const sale = filterValues.sale;
+
+    if (sale) {
+      const userId =
+        typeof sale === "object" && sale.value ? sale.value : sale;
+
+      const getDealersBySale = async () => {
+        try {
+          const response = await useServiceAPI.get(
+            paths.pathMasterDealerDropdown,
+            { user_id: userId }
+          );
+          setDataDealer(response.data);
+
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer");
+        }
+      };
+
+      getDealersBySale();
+    }
+  }, [filterValues.sale]);
+
+  // Get Master
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [sale, status] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathMasterStatus, {
+            status_type: "order",
+          }),
+        ]);
+
+
+        setSaleList(sale.data);
+
+        const dataStatus = [];
+        status.data.map((data, index) => {
+          dataStatus.push({
+            id: data.code,
+            name: data.name,
+          });
+        });
+        setDataStatus(dataStatus);
+
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, []);
+
+  const filters = [
+    {
+      key: "sale",
+      type: "select",
+      label: "Sales",
+      placeholder: "All",
+      options: saleList,
+      moderef: true,
+    },
+    {
+      key: "dealer",
+      type: "select",
+      label: "Dealer",
+      placeholder: "All",
+      options: dataDealer,
+      moderef: false,
+    },
+    {
+      key: "order_no",
+      type: "text",
+      label: "Order No",
+      placeholder: "Order No",
+      moderef: false,
+    },
+    {
+      key: "status",
+      type: "select",
+      label: "Status",
+      placeholder: "All",
+      options: dataStatus,
+      moderef: false,
+    },
+
+    {
+      key: "dater",
+      type: "dater",
+      label: "Date",
+      placeholder: "Date",
+      moderef: false,
+    },
+  ];
+
+  const header = [
+    { title: "No", width: 50, dataIndex: "key", align: "center" },
+    { title: "Order No", width: 150, dataIndex: "orderNo", align: "left" },
+    { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
+    { title: "Dealer", width: 200, dataIndex: "dealer", align: "left" },
+    { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
+    {
+      title: "Order Date",
+      width: 150,
+      dataIndex: "orderDate",
+      align: "center",
+    },
+    {
+      title: "Pay Overdue",
+      width: 150,
+      dataIndex: "payOverdue",
+      align: "center",
+    },
+    { title: "Status", width: 150, dataIndex: "status", align: "center" },
+    { title: "SAP Status", width: 150, dataIndex: "sapStatus", align: "center" },
+    { title: "Create By", width: 150, dataIndex: "createdBy", align: "center" },
+    { title: "Action", width: 100, dataIndex: "action", align: "center" },
+  ];
+
+
+  const fetchData = async () => {
+    setTableLoading(true);
+    const { current, pageSize } = tableParams.pagination;
+    const filters = tableParams.filters || {};
+    const sortOrder = tableParams.sortOrder || "desc";
+    const sortField = tableParams.sortField || "document_number";
+
+    const requestData = {
+      // user_id: filters.sale || defaultOption,
+      user_id: filters.sale || "",
+      dealer_id: filters.dealer || "",
+      keyword: filters.order_no || "",
+      trasaction_status_code: filters.status || "",
+      dater: filters.dater || "",
+      page: "all",
+      use_flag: filters.use_flag || "",
+      orderby_column: sortField,
+      orderby: sortOrder,
+      page_length: current,
+      page_size: pageSize,
+    };
+
+    try {
+      const response = await useServiceAPI.get(
+        paths.pathSalePointOrderList,
+        requestData
+      );
+
+      if (response.status === 200) {
+        const { data, records_filtered } = response.data;
+        setPermission(response.data.permission);
+
+        const newDataSource = data.map((order, index) => ({
+          key: index + 1 + (current - 1) * pageSize,
+          orderNo: order.document_number,
+          sale: order.user_name,
+          dealer: order.dealer_name,
+          value: order.net_amount_display,
+          orderDate: order.document_date,
+          payOverdue: (
+            <BadgeStatus
+              text={order.status_payment_name}
+              bgColor={order.status_payment_bg_color}
+              textColor={order.status_payment_color}
+            />
+          ),
+          status: (
+            <BadgeStatus
+              text={order.status_transaction_name}
+              bgColor={order.status_transaction_bg_color}
+              textColor={order.status_transaction_color}
+            />
+          ),
+          sapStatus: (
+            <BadgeStatus
+              text={order.status_interface_name}
+              bgColor={order.status_interface_bg_color}
+              textColor={order.status_interface_color}
+            />
+          ),
+          createdBy: order.created_by,
+          action: (
+            <Dropdown
+              // menu={{
+              //   items: order.action.map((actionItem, actionIndex) => ({
+              //     key: actionIndex,
+              //     label: (
+              //       <ItemDropDown mode={actionItem.action.toLowerCase()}
+              //       onClick={() => {
+              //         navigate("/order/view", {
+              //           state: {
+              //             document_number: order.document_number,
+              //           },
+              //         });
+              //       }}
+
+              //       />
+              //     ),
+              //   })),
+              // }}
+
+              menu={{
+                items: [
+                  {
+                    key: 1,
+                    label: (
+                      <ItemDropDown
+                        mode="view"
+                        onClick={() => {
+                          navigate("/order/view", {
+                            state: {
+                              document_number: order.document_number,
+                            },
+                          });
+                        }}
+                      />
+                    ),
+                  },
+                  {
+                    key: 2,
+                    label: (
+                      <ItemDropDown
+                        mode="edit"
+                        onClick={() => {
+                          navigate("/order/edit", {
+                            state: {
+                              document_number: order.document_number,
+                            },
+                          });
+                        }}
+                      />
+                    ),
+                  },
+                  {
+                    key: 3,
+                    label: (
+                      <ItemDropDown
+                        mode="delete"
+                        onClick={() => {
+                          handleDelete(order.document_number);
+                        }}
+                      />
+                    ),
+                  },
+                ],
+              }}
+              placement="bottom"
+            >
+              <a onClick={(e) => e.preventDefault()}>
+                <img
+                  src="/img/icons/action.png"
+                  alt="button icon"
+                  className="inline-block w-5 h-5 mr-2"
+                />
+              </a>
+            </Dropdown>
+          ),
+        }));
+        setDataSource(newDataSource);
+        setTableParams({
+          ...tableParams,
+          pagination: {
+            ...tableParams.pagination,
+            total: records_filtered,
+          },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    tableParams.sortOrder,
+    tableParams.sortField,
+    JSON.stringify(tableParams.filters),
+  ]);
+
+  const handleSearch = (filters) => {
+    setTableParams({
+      ...tableParams,
+      filters,
     });
   };
 
-  const headerList = [
-    { title: "Document No", dataIndex: "document_no" },
-    { title: "Sales", dataIndex: "sales" },
-    { title: "Dealer", dataIndex: "dealer" },
-    { title: "Sub Dealer", dataIndex: "sub_dealer" },
-    { title: "QTY (ctn)", dataIndex: "qty" },
-    { title: "Value (THB)", dataIndex: "value" },
-    { title: "Date", dataIndex: "date" },
-    {
-      title: "Status",
-      dataIndex: "status",
-      render: (text) => (
-        <BadgeStatus text={text} bgColor="#00783F" textColor="#fff" />
-      ),
-    },
-    { title: "Action", dataIndex: "action", align: "center" },
-  ];
-
-  const dataList = [
-    {
-      key: 1,
-      document_no: "O2025040109",
-      sales: "Amorn Sriworakul",
-      dealer: "Somporn Panich Chemi Kaset Ltd.part.",
-      sub_dealer: "นายกหน่อย",
-      qty: "15+1",
-      value: "173,300",
-      date: "2025-05-27",
-      status: "Waiting for Receive",
-    },
-    {
-      key: 2,
-      document_no: "O2025040108",
-      sales: "Amorn Sriworakul",
-      dealer: "Somporn Panich Chemi Kaset Ltd.part.",
-      sub_dealer: "นายกหน่อย",
-      qty: "15+1",
-      value: "173,300",
-      date: "2025-05-27",
-      status: "Completed",
-    },
-  ];
-
-  const headerRequest = [
-    { title: "Dealer", dataIndex: "dealer" },
-    { title: "Sub Dealer", dataIndex: "sub_dealer" },
-    { title: "Sales", dataIndex: "sales" },
-    { title: "Request Date", dataIndex: "request_date" },
-    {
-      title: "Status",
-      dataIndex: "status",
-      render: (text) => (
-        <BadgeStatus text={text} bgColor="#FFAA00" textColor="#fff" />
-      ),
-    },
-    { title: "Action", dataIndex: "action", align: "center" },
-  ];
-
-  const dataRequest = [
-    {
-      key: 1,
-      dealer: "Somporn Panich Chemi Kaset Ltd.part.",
-      sub_dealer: "นายกหน่อย",
-      sales: "Amorn Sriworakul",
-      request_date: "2025-05-27",
-      status: "Waiting for Create",
-    },
-  ];
-
-  const getAction = (record) => {
-    const items = [
-      {
-        key: "view",
-        label: (
-          <ItemDropDown
-            mode="view"
-            onClick={() => handleNavigate(record.document_no, "view")}
-          />
-        ),
-      },
-    ];
-
-    if (record.status === "Waiting for Receive") {
-      items.unshift({
-        key: "edit",
-        label: (
-          <ItemDropDown
-            mode="edit"
-            onClick={() => handleNavigate(record.document_no, "edit")}
-          />
-        ),
-      });
-      items.push({
-        key: "delete",
-        label: (
-          <ItemDropDown
-            mode="delete"
-            onClick={() => console.log("Delete", record.document_no)}
-          />
-        ),
-      });
-    }
-
-    return (
-      <Dropdown menu={{ items }}>
-        <a onClick={(e) => e.preventDefault()}>
-          <img src="/img/icons/action.png" alt="action" className="w-5 h-5" />
-        </a>
-      </Dropdown>
-    );
+  const handleClear = () => {
+    setTableParams({
+      ...tableParams,
+      filters: {},
+    });
   };
 
+  const handleTableChange = (pagination, filters, sorter) => {
+    setTableParams({
+      pagination,
+      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortField: sorter.field,
+    });
+  };
 
-  const listDataSource = dataList.map((item) => ({
-    ...item,
-    action: getAction(item, "view"),
-  }));
+  const handleChange = (filters) => {
+    setFilterValues(filters);
+  };
 
-  const requestDataSource = dataRequest.map((item) => ({
-    ...item,
-    action: getAction({ ...item, document_no: null }, "create"),
-  }));
+  const handleDelete = async (documentNumber) => {
+    confirm({
+      title: "Do you want to delete ?",
+      icon: <ExclamationCircleFilled />,
+      content: [],
+      centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+      async onOk() {
+        try {
+          const response = await useServiceAPI.delete(paths.pathGetOrderDelete, {
+            document_number: documentNumber,
+          });
+
+          if (response.status === 200) {
+            // Show success notification
+            showNotification("success",
+              response.data.message || "Event deleted successfully!",
+              response.data.message_line || ["The event has been removed."]
+            ).then(() => {
+
+            })
+          } else {
+            showNotification("warning",
+              response.data.message || "Event deleted successfully!",
+              response.data.message_line || ["The event has been removed."]
+            )
+          }
+
+        } catch (error) {
+          // Handle errors and show an error notification
+          if (error.response.data.status === 400) {
+            const message = error.response.data.data;
+            showNotification("warning",
+              message.Message.Message_Header,
+              message.Message.Message_Line
+            )
+          }
+        }
+      },
+    });
+  };
 
   return (
-    <MainLayout loading={false}>
-      <div className="flex items-center justify-between">
-        <div className="title-page">Sales Points</div>
-        <ActionButton
-          mode="create"
-          text="Create"
-          onClick={() =>
-            handleNavigate(null, "create")
-          }
-        />
+    <MainLayout loading={loading}>
+      <div className="flex justify-between items-center">
+        <div className="title-page">Order List</div>
+        <div className="flex gap-2">
+          {permission.btn_create && (
+            <ActionButton
+              mode="create"
+              text="Create"
+              onClick={(e) => navigate("/order/create")}
+            />
+          )}
+        </div>
       </div>
 
-      <Tabs activeKey={activeTab} onChange={setActiveTab} className="custom-tabs">
-        <TabPane tab={<span className="tab-title">Sales Points List</span>} key="list">
-          <Filter filters={[]} onSearch={() => { }} onClear={() => { }} />
-          <br />
-          <BoxPrimary>
-            <TableComponent
-              header={headerList}
-              dataSource={listDataSource}
-              pagination={false}
-              loading={false}
-            />
-          </BoxPrimary>
-        </TabPane>
+      <FilterByOrder
+        onSearch={handleSearch}
+        onClear={handleClear}
+        onChange={handleChange}
+        filters={filters}
+      />
 
-        <TabPane tab={<span className="tab-title">Sales Points Request</span>} key="request">
-          <Filter filters={[]} onSearch={() => { }} onClear={() => { }} />
-          <br />
-          <BoxPrimary>
-            <TableComponent
-              header={headerRequest}
-              dataSource={requestDataSource}
-              pagination={false}
-              loading={false}
-            />
-          </BoxPrimary>
-        </TabPane>
-      </Tabs>
+      <BoxPrimary>
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pagination={tableParams.pagination}
+          loading={tableLoading}
+          onChange={handleTableChange}
+        />
+      </BoxPrimary>
     </MainLayout>
   );
 }

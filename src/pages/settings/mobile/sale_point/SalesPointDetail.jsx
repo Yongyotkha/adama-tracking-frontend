@@ -230,9 +230,14 @@ export default function SalesPointDetail() {
             document_date: formattedDate,
             user_id: getUserId,
             dealer_id: getDealerId,
+            sub_dealer_id: getSubDealerId,
             remark: getRemark,
             products: dataSource,
             others: dataSourceOther,
+            bill: [
+                "https://api-uat.adama.co.th/storage/adama-smile/uploads/files/profile/20250103/73655246-373E-4A29-AF1A-1730C52934A0.jpg",
+                "https://api-uat.adama.co.th/storage/adama-smile/uploads/files/profile/20250103/73655246-373E-4A29-AF1A-1730C52934A0.jpg"
+            ]
         };
         // console.log(body);
         // return;
@@ -249,7 +254,7 @@ export default function SalesPointDetail() {
                         response.data.message,
                         response.data.message_line
                     ).then(() => {
-                        navigate("/order/list");
+                        navigate("/points/line/sales-points-list");
                     });
                 } catch (error) {
                     showMsg("error", error.message || "เกิดข้อผิดพลาด");
