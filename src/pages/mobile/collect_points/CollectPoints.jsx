@@ -58,6 +58,7 @@ export default function CollectPoints() {
         page_length: current,
         page_size: pageSize,
       };
+      
       const res = await useServiceAPI.get(paths.pathSalePointCollectList, requestData);
       const rows = res?.data?.data?.data ?? res?.data?.data ?? [];
       const mapped = rows.map((item) => ({

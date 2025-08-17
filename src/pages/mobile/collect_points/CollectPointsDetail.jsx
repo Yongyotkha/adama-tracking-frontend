@@ -63,17 +63,17 @@ export default function CollectPointsDetail() {
   // ---------------- ใช้ products จาก API โดยตรง ----------------
   const products = Array.isArray(historydetail?.products)
     ? historydetail.products.map((p) => ({
-        qty: Number(p?.quantity ?? 0),
-        product_name: p?.product_name ?? "-",
-        product_code: p?.product_code ?? "-",
-        amount: Number(p?.net_amount ?? 0),
-        point: Number(p?.point ?? 0),
-        amount_display:
-          typeof p?.net_amount === "string" || typeof p?.net_amount === "number"
-            ? new Intl.NumberFormat("th-TH").format(Number(p?.net_amount ?? 0))
-            : "0",
-        image: p?.product_image || null,
-      }))
+      qty: Number(p?.quantity ?? 0),
+      product_name: p?.product_name ?? "-",
+      product_code: p?.product_code ?? "-",
+      amount: Number(p?.net_amount ?? 0),
+      point: Number(p?.point ?? 0),
+      amount_display:
+        typeof p?.net_amount === "string" || typeof p?.net_amount === "number"
+          ? new Intl.NumberFormat("th-TH").format(Number(p?.net_amount ?? 0))
+          : "0",
+      image: p?.product_image || null,
+    }))
     : [];
 
   const totalQty = products.reduce((sum, it) => sum + (Number.isFinite(it.qty) ? it.qty : 0), 0);

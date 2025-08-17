@@ -1,40 +1,109 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { Input, DatePicker, message } from "antd";
 import DynamicButton from "../../../components/button/DynamicButton";
 import BackButton from "../../../components/mobile/button/BackButton";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../../contexts/AuthContext";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 import CameraMobile from "../../../components/mobile/camera/CameraMobile";
-
+import useServiceAPI from "../../../services/CorsService";
+import { paths } from "../../../services/CorsPath";
 export default function CollectPointsAdvance() {
   const [loading, setLoading] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const navigate = useNavigate();
-
+  const { userInfo } = useContext(AuthContext);
+  console.log('userInfo : ', userInfo)
+  const documentNumber = location.state?.document_number;
+  const [historydetail, setHistorydetail] = useState(null);
   const [billPhotos, setBillPhotos] = useState([]);      // * หน้าบิล/ใบสั่งสินค้า
   const [productPhotos, setProductPhotos] = useState([]); // * สินค้าที่ได้รับ
+  const [productBills, setProductBills] = useState([]); // * สินค้าที่ได้รับ
+  const [user, setUser] = useState(null);
+  const [receiveDate, setReceiveDate] = useState("");
+  const [receiveShop, setReceiveShop] = useState("");
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      setLoading(true);
+      try {
+        const response = await useServiceAPI.get(paths.pathProfileDetail, { id: userInfo.id });
+
+        if (response.status === 200 && response.result) {
+          setUser(response.data);
+        } else {
+          console.error("Failed to fetch user profile:", response);
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   useEffect(() => {
     setLoading(false);
     return () => {
-      billPhotos.forEach((f) => f.url && URL.revokeObjectURL(f.url));
+      productBills.forEach((f) => f.url && URL.revokeObjectURL(f.url));
       productPhotos.forEach((f) => f.url && URL.revokeObjectURL(f.url));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSubmit = () => {
-    if (billPhotos.length === 0 || productPhotos.length === 0) {
+  const handleSubmit = async () => {
+    if (productBills.length === 0 || productPhotos.length === 0) {
       message.error("กรุณาแนบรูปให้ครบในช่องที่มีเครื่องหมาย *");
       return;
     }
+    console.log('productBills : ', productBills)
+    console.log('productPhotos : ', productPhotos)
 
-    // TODO: ส่ง API (ตัวอย่าง)
-    // const formData = new FormData();
-    // billPhotos.forEach((f) => formData.append("billPhotos[]", f.originFileObj));
-    // productPhotos.forEach((f) => formData.append("productPhotos[]", f.originFileObj));
-    // ...แนบฟิลด์อื่นๆ และ fetch/axios ไปยัง backend
+    // รวบรวมเฉพาะ URL จริง (ไม่เอา blob:)
+    const productUrls = productPhotos
+      .map((f) => f?.url)
+      .filter((u) => typeof u === "string" && /^https?:\/\//i.test(u));
+
+    if (productUrls.length === 0) {
+      message.error("กรุณาถ่ายและอัปโหลดรูปสินค้าที่ได้รับอย่างน้อย 1 รูป");
+      return;
+    }
+
+    const billUrls = productBills
+      .map((f) => f?.url)
+      .filter((u) => typeof u === "string" && /^https?:\/\//i.test(u));
+
+    if (billUrls.length === 0) {
+      message.error("กรุณาถ่ายและอัปโหลดรูปสินค้าที่ได้รับอย่างน้อย 1 รูป");
+      return;
+    }
+
+    const payload = {
+      product: productUrls,
+      bill: billUrls,
+      receive_date: receiveDate,   // มาจาก DatePicker
+      receive_shop: receiveShop    // มาจาก Input
+    };
+
+    try {
+      setLoading(true);
+      const res = await useServiceAPI.post(paths.pathSalePointReceive, payload);
+      console.log(res);
+      if (res?.status === 200) {
+        const pts = Number(res?.data?.point ?? 0);
+        setEarnedPoints(pts);
+        setIsPointModalVisible(true);
+      } else {
+        message.error(res?.data?.message || "บันทึกไม่สำเร็จ");
+      }
+    } catch (err) {
+      console.error("Submit error:", err);
+      message.error("เกิดข้อผิดพลาดในการบันทึก");
+    } finally {
+      setLoading(false);
+    }
 
     setIsSuccessModalVisible(true);
   };
@@ -53,9 +122,10 @@ export default function CollectPointsAdvance() {
               วันที่แจ้งรับสินค้าล่วงหน้า
             </label>
             <DatePicker
-              format="D/M/YYYY"
+              format="YYYY-MM-DD"     // ใช้ format ที่ backend ต้องการ
               className="w-full h-10 rounded-md text-gray-700 sarabun-font"
               placeholder="เลือกวันที่"
+              onChange={(_, dateString) => setReceiveDate(dateString)}   // เก็บเป็น string
             />
           </div>
 
@@ -63,7 +133,12 @@ export default function CollectPointsAdvance() {
             <label className="block text-sm text-gray-700 sarabun-font mb-1">
               ชื่อร้านยี่ปั๊ว<span className="text-red-500">*</span>
             </label>
-            <Input placeholder="ระบุชื่อร้าน" className="h-10 rounded-md sarabun-font" />
+            <Input
+              placeholder="ระบุชื่อร้าน"
+              className="h-10 rounded-md sarabun-font"
+              value={receiveShop}
+              onChange={(e) => setReceiveShop(e.target.value)}   // เก็บชื่อร้าน
+            />
           </div>
 
           <div>
@@ -71,7 +146,7 @@ export default function CollectPointsAdvance() {
               ชื่อร้านค้า
             </label>
             <Input
-              value="จรุงรักษ์เกษตร"
+              value={user?.shop_name ?? ""}      // ⬅️ ดึงจาก API
               disabled
               className="h-10 rounded-md sarabun-font bg-gray-100"
             />
@@ -82,39 +157,48 @@ export default function CollectPointsAdvance() {
               เบอร์โทรศัพท์มือถือ
             </label>
             <Input
-              value="0820762989"
+              value={user?.phone_number ?? ""}    // ⬅️ ดึงจาก API
               disabled
               className="h-10 rounded-md sarabun-font bg-gray-100"
             />
           </div>
 
-          {/* ใช้ CameraMobile: หน้าบิล/ใบสั่งสินค้า* */}
-          <CameraMobile
-            label="ถ่ายรูปหน้าบิลเงินสดหรือใบสั่งสินค้า"
-            required
-            value={billPhotos}
-            onChange={setBillPhotos}
-            maxCount={12}
-            defaultFacing="environment"
-            allowTorch={true}
-            // ตัวอย่างกำหนดปุ่ม trigger เอง:
-            // renderTrigger={(open) => (
-            //   <button onClick={open} className="w-full h-10 rounded-md bg-green-50 border border-green-600 text-green-700 sarabun-font">
-            //     เปิดกล้องถ่ายหน้าบิล
-            //   </button>
-            // )}
-          />
 
-          {/* ใช้ CameraMobile: สินค้าที่ได้รับ* */}
-          <CameraMobile
-            label="ถ่ายรูปสินค้าที่ได้รับ"
-            required
-            value={productPhotos}
-            onChange={setProductPhotos}
-            maxCount={20}
-            defaultFacing="environment"
-            allowTorch={true}
-          />
+          <div className="mt-3">
+            <CameraMobile
+              label="ถ่ายรูปบิลเงินสดหรือใบสั่งสินค้า"
+              required
+              value={productBills}
+              onChange={setProductBills}
+              maxCount={20}
+              defaultFacing="environment"
+              allowTorch={true}
+              uploadOnCapture
+              uploadMode="activity"
+              uploadExtra={{ document_number: historydetail?.document_number ?? documentNumber }}
+              onUploadSuccess={() => {
+                // ถ้าต้องทำอย่างอื่นหลังอัปโหลดสำเร็จ ใส่เพิ่มได้
+              }}
+            />
+          </div>
+
+          <div className="mt-3">
+            <CameraMobile
+              label="ถ่ายรูปสินค้าที่ได้รับ"
+              required
+              value={productPhotos}
+              onChange={setProductPhotos}
+              maxCount={20}
+              defaultFacing="environment"
+              allowTorch={true}
+              uploadOnCapture
+              uploadMode="activity"
+              uploadExtra={{ document_number: historydetail?.document_number ?? documentNumber }}
+              onUploadSuccess={() => {
+                // ถ้าต้องทำอย่างอื่นหลังอัปโหลดสำเร็จ ใส่เพิ่มได้
+              }}
+            />
+          </div>
 
           {/* ปุ่มบันทึก */}
           <DynamicButton
