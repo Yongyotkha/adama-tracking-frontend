@@ -26,6 +26,7 @@ dayjs.extend(customParseFormat);
 
 const { MonthPicker } = DatePicker;
 const { Option } = Select;
+const { RangePicker } = DatePicker; // 🔹 เพิ่ม RangePicker
 
 const toolbarOptions = [
   [{ font: [] }, { size: [] }],
@@ -47,7 +48,7 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
     address: "",
   });
   const isInitialSet = useRef(false);
-  const [loading, setLoading] = useState(false); // เพิ่ม state สำหรับควบคุมการหมุน
+  const [loading, setLoading] = useState(false);
   const dateFormat = "YYYY-MM-DD";
   const [selecteValue, setSelectedValue] = useState(false);
 
@@ -55,12 +56,21 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
     const initialValues = fields.reduce((values, field) => {
       if (field.value !== undefined) {
         if (field.type === "date") {
-
           values[field.name] = field.value ? dayjs(field.value, "YYYY-MM-DD") : null;
+        } else if (field.type === "date_range") { // 🔹 รองรับค่าเริ่มต้น date_range
+          // รับได้ทั้ง ["2025-01-01","2025-01-31"] หรือ [dayjs(), dayjs()]
+          const v = field.value;
+          if (Array.isArray(v) && v.length === 2) {
+            const [s, e] = v;
+            values[field.name] = [
+              dayjs.isDayjs(s) ? s : (s ? dayjs(s, "YYYY-MM-DD") : null),
+              dayjs.isDayjs(e) ? e : (e ? dayjs(e, "YYYY-MM-DD") : null),
+            ];
+          } else {
+            values[field.name] = null;
+          }
         } else if (field.type === "month") {
-          values[field.name] = field.value
-            ? dayjs(field.value, "YYYY-MM")
-            : null;
+          values[field.name] = field.value ? dayjs(field.value, "YYYY-MM") : null;
         } else if (field.type === "time") {
           values[field.name] = field.value ? dayjs(field.value, "HH:mm") : null;
         } else if (field.type === "location") {
@@ -85,12 +95,22 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
   useEffect(() => {
     if (mode == "edit") {
       const initialValues = fields.reduce((acc, field) => {
-        acc[field.name] =
-          field.type === "date"
-            ? field.value
-              ? dayjs(field.value, dateFormat)
-              : null
-            : field.value || null;
+        if (field.type === "date") {
+          acc[field.name] = field.value ? dayjs(field.value, dateFormat) : null;
+        } else if (field.type === "date_range") { // 🔹 รองรับโหมดแก้ไข date_range
+          const v = field.value;
+          if (Array.isArray(v) && v.length === 2) {
+            const [s, e] = v;
+            acc[field.name] = [
+              dayjs.isDayjs(s) ? s : (s ? dayjs(s, dateFormat) : null),
+              dayjs.isDayjs(e) ? e : (e ? dayjs(e, dateFormat) : null),
+            ];
+          } else {
+            acc[field.name] = null;
+          }
+        } else {
+          acc[field.name] = field.value || null;
+        }
         return acc;
       }, {});
 
@@ -103,10 +123,7 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
       if (field.type === "location") {
         getLocation();
       } else if (field.type === "select") {
-        if (
-          formValues[field.name] != undefined &&
-          formValues[field.name].length > 0
-        ) {
+        if (formValues[field.name] != undefined && formValues[field.name].length > 0) {
           if (!selecteValue) {
             handleChange(field.name, formValues[field.name]);
             setSelectedValue(true);
@@ -135,9 +152,7 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
           getAddress(lat, long);
           setLocation((prev) => ({ ...prev, lat, long }));
         },
-        (err) => {
-          // console.error(err.message);
-        }
+        () => {}
       );
     } else {
       console.error("Geolocation is not supported by your browser.");
@@ -152,8 +167,7 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
       const response = await fetch(url);
       const data = await response.json();
       if (data.status === "OK") {
-        const fetchedAddress =
-          data.results[0]?.formatted_address || "Address not found";
+        const fetchedAddress = data.results[0]?.formatted_address || "Address not found";
         setLocation((prev) => ({ ...prev, address: fetchedAddress }));
         setFormValues((prev) => ({
           ...prev,
@@ -161,34 +175,24 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
           location_latitude: lat,
           location_longitude: long,
         }));
-      } else {
-        console.error("Failed to fetch address");
       }
-    } catch (err) {
-      // console.error(err.message);
-    }
+    } catch {}
   };
 
   const handleChange = (attribute, value) => {
-    // อัปเดตค่าที่เลือกใหม่
     setFormValues((prev) => ({
       ...prev,
       [attribute]: value,
     }));
+    form?.setFieldsValue({ [attribute]: value });
 
-    form?.setFieldsValue({ [attribute]: value }); // อัปเดตค่าลงในฟอร์ม
-    // console.log(onChange);
-
-    if (onChange) {
-      onChange(attribute, value); // เรียก callback ถ้ามี
-    }
+    if (onChange) onChange(attribute, value);
   };
 
   const handlePhotoUpload = (info, name) => {
     if (info.file.status === "done") {
       message.success(`${info.file.name} uploaded successfully.`);
-      const fileUrl =
-        info.file.response?.url || URL.createObjectURL(info.file.originFileObj);
+      const fileUrl = info.file.response?.url || URL.createObjectURL(info.file.originFileObj);
       handleChange(name, fileUrl);
     } else if (info.file.status === "error") {
       message.error(`${info.file.name} upload failed.`);
@@ -200,7 +204,7 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
     setTimeout(() => {
       getLocation();
       setLoading(false);
-    }, 2000); // ตั้งค่าความล่าช้าตามที่ต้องการ
+    }, 2000);
   };
 
   return (
@@ -231,45 +235,17 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                   className="mb-3"
                 >
                   {field.type === "photo" ? (
-                    // <Upload.Dragger
-                    //   name={field.name}
-                    //   multiple={false}
-                    //   action="/upload/create" // Replace with your upload endpoint
-                    //   onChange={(info) => handlePhotoUpload(info, field.name)}
-                    //   className="w-full"
-                    //   listType="picture"
-                    //   maxCount={1}
-                    //   accept="image/jpeg,image/png"
-                    //   data={{ mode: "news" , platform: "web"}} // ส่งค่า mode news ไปพร้อมกับการอัปโหลด
-                    // >
-                    //   <p className="text-[#978B87]">
-                    //     Choose a file or drag & drop it here
-                    //   </p>
-                    //   <p className="text-[#978B87]">JPEG, PNG</p>
-                    //   <DynamicButton
-                    //     className="text-white mt-2 px-4 py-1 rounded-[4px] bg-[#009845]"
-                    //     text={"Browse File"}
-                    //     type={"button"}
-                    //   />
-                    // </Upload.Dragger>
-
                     <Upload.Dragger
                       name="file"
                       multiple={false}
                       beforeUpload={async (file) => {
                         const formData = new FormData();
                         formData.append("file", file);
-                        formData.append("mode", "news"); // ส่ง mode เป็น news
-
+                        formData.append("mode", "news");
                         try {
                           setLoading(true);
-                          const response = await useServiceAPI.post(
-                            paths.pathUpload, // ใช้ API ตามที่คุณกำหนด
-                            formData
-                          );
-                          form?.setFieldsValue({
-                            [field.name]: response.data.file_url, // อัปเดตค่าของฟอร์ม
-                          });
+                          const response = await useServiceAPI.post(paths.pathUpload, formData);
+                          form?.setFieldsValue({ [field.name]: response.data.file_url });
                           message.success(`${file.name} uploaded successfully.`);
                         } catch (error) {
                           console.error("Error uploading form data:", error);
@@ -277,8 +253,7 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                         } finally {
                           setLoading(false);
                         }
-
-                        return false; // ป้องกันไม่ให้ `Upload.Dragger` อัปโหลดเอง
+                        return false;
                       }}
                       className="w-full"
                       listType="picture"
@@ -293,96 +268,82 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                         type={"button"}
                       />
                     </Upload.Dragger>
-
-
                   ) : field.type === "text" ||
                     field.type === "email" ||
                     field.type === "tel" ||
                     field.type === "number" ? (
-                    <>
-                      <Input
-                        type={field.type}
-                        placeholder={
-                          field.placeholder ||
-                          `Enter ${field.label.toLowerCase()}`
-                        }
-                        value={formValues[field.name] || ""}
-                        disabled={field.disabled}
-                        onChange={(e) =>
-                          handleChange(field.name, e.target.value)
-                        }
-                      />{" "}
-                    </>
+                    <Input
+                      type={field.type}
+                      placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                      value={formValues[field.name] || ""}
+                      disabled={field.disabled}
+                      onChange={(e) => handleChange(field.name, e.target.value)}
+                    />
                   ) : field.type === "search" ? (
-                    <>
-                      <Search
-                        placeholder="Search"
-                        onSearch={(value) => handleChange(field.name, value)}
-                      />{" "}
-                    </>
+                    <Search
+                      placeholder="Search"
+                      onSearch={(value) => handleChange(field.name, value)}
+                    />
                   ) : field.type === "date" ? (
-                    <>
-                      <DatePicker
-                        style={{ width: "100%" }}
-                        value={formValues[field.name] || null}
-                        onChange={(date) => handleChange(field.name, date)}
-                        format="YYYY-MM-DD"
-                        disabled={field.disabled}
-                      />{" "}
-                    </>
+                    <DatePicker
+                      style={{ width: "100%" }}
+                      value={formValues[field.name] || null}
+                      onChange={(date) => handleChange(field.name, date)}
+                      format="YYYY-MM-DD"
+                      disabled={field.disabled}
+                    />
+                  ) : field.type === "date_range" ? ( // 🔹 เรนเดอร์ RangePicker
+                    <RangePicker
+                      style={{ width: "100%" }}
+                      value={formValues[field.name] || null}
+                      onChange={(dates) => handleChange(field.name, dates)}
+                      format="YYYY-MM-DD"
+                      disabled={field.disabled}
+                      allowEmpty={[false, false]}
+                    />
                   ) : field.type === "month" ? (
-                    <>
-                      <MonthPicker
-                        style={{ width: "100%" }}
-                        disabled={field.disabled}
-                        value={formValues[field.name] || null}
-                        onChange={(date) => handleChange(field.name, date)}
-                        format="YYYY-MM"
-                      />{" "}
-                    </>
+                    <MonthPicker
+                      style={{ width: "100%" }}
+                      disabled={field.disabled}
+                      value={formValues[field.name] || null}
+                      onChange={(date) => handleChange(field.name, date)}
+                      format="YYYY-MM"
+                    />
                   ) : field.type === "time" ? (
-                    <>
-                      <TimePicker
-                        style={{ width: "100%" }}
-                        disabled={field.disabled}
-                        value={formValues[field.name] || null}
-                        onChange={(time) => handleChange(field.name, time)}
-                        format="HH:mm"
-                      />{" "}
-                    </>
+                    <TimePicker
+                      style={{ width: "100%" }}
+                      disabled={field.disabled}
+                      value={formValues[field.name] || null}
+                      onChange={(time) => handleChange(field.name, time)}
+                      format="HH:mm"
+                    />
                   ) : field.type === "select" ? (
-                    <>
-                      <Select
-                        mode={
-                          field.mode === "multiple" ? "multiple" : undefined
-                        }
-                        value={(() => {
-                          const firstOption = field.options?.[0]?.id; // ดึงค่าตัวแรกของ options
-                          const selectedValue = formValues[field.name];
-
-                          if (!Array.isArray(selectedValue)) {
-                            return typeof firstOption === "number"
-                              ? [Number(selectedValue)].filter(Boolean) // ถ้าเป็น number, แปลงเป็น array
-                              : [String(selectedValue)].filter(Boolean); // ถ้าเป็น string, แปลงเป็น array
-                          }
-
+                    <Select
+                      mode={field.mode === "multiple" ? "multiple" : undefined}
+                      value={(() => {
+                        const firstOption = field.options?.[0]?.id;
+                        const selectedValue = formValues[field.name];
+                        if (!Array.isArray(selectedValue)) {
                           return typeof firstOption === "number"
-                            ? selectedValue.map(Number) // ถ้า options เป็น number, ให้แปลง value เป็น number
-                            : selectedValue.map(String); // ถ้า options เป็น string, ให้แปลง value เป็น string
-                        })()}
-                        onChange={(value) => handleChange(field.name, value)}
-                        placeholder={`Select ${field.label.toLowerCase()}`}
-                        disabled={field.disabled}
-                        allowClear
-                        showSearch
-                        optionFilterProp="label"
-                        options={field.options.map((option, index) => ({
-                          key: index,
-                          label: option.name,
-                          value: option.id, // ใช้ค่า id ตรงๆ
-                        }))}
-                      />{" "}
-                    </>
+                            ? [Number(selectedValue)].filter(Boolean)
+                            : [String(selectedValue)].filter(Boolean);
+                        }
+                        return typeof firstOption === "number"
+                          ? selectedValue.map(Number)
+                          : selectedValue.map(String);
+                      })()}
+                      onChange={(value) => handleChange(field.name, value)}
+                      placeholder={`Select ${field.label.toLowerCase()}`}
+                      disabled={field.disabled}
+                      allowClear
+                      showSearch
+                      optionFilterProp="label"
+                      options={field.options.map((option, index) => ({
+                        key: index,
+                        label: option.name,
+                        value: option.id,
+                      }))}
+                    />
                   ) : field.type === "textarea" ? (
                     <Input.TextArea
                       rows={4}
@@ -397,37 +358,27 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                       onChange={(checked) => handleChange(field.name, checked)}
                       className="custom-switch"
                     />
-
                   ) : field.type === "text-editor" ? (
-                    <>
-                      <ReactQuill
-                        theme="snow"
-                        value={formValues[field.name] || ""}
-                        placeholder={`Enter ${field.label.toLowerCase()}`}
-                        readOnly={field.disabled}
-                        modules={{ toolbar: toolbarOptions }}
-                        onChange={(value) => handleChange(field.name, value)}
-                      />{" "}
-                    </>
+                    <ReactQuill
+                      theme="snow"
+                      value={formValues[field.name] || ""}
+                      placeholder={`Enter ${field.label.toLowerCase()}`}
+                      readOnly={field.disabled}
+                      modules={{ toolbar: toolbarOptions }}
+                      onChange={(value) => handleChange(field.name, value)}
+                    />
                   ) : field.type === "location" ? (
                     <div>
                       <div style={{ position: "relative" }}>
                         <Form.Item
                           name="location_address"
-                          rules={[
-                            {
-                              required: false,
-                              message: "Please enter the address",
-                            },
-                          ]}
+                          rules={[{ required: false, message: "Please enter the address" }]}
                         >
                           <input
                             type="text"
                             placeholder="Address"
                             value={formValues["location_address"] || ""}
-                            onChange={(e) =>
-                              handleChange("location_address", e.target.value)
-                            }
+                            onChange={(e) => handleChange("location_address", e.target.value)}
                             disabled={field.disabled}
                             style={{
                               width: "100%",
@@ -438,7 +389,7 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                               padding: "8px 12px",
                               boxSizing: "border-box",
                             }}
-                          />{" "}
+                          />
                         </Form.Item>
                         <div
                           onClick={handleReload}
@@ -455,41 +406,24 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                           <ReloadOutlined
                             style={{
                               fontSize: "18px",
-                              animation: loading
-                                ? "spin 1s linear infinite"
-                                : "none", // เปิด/ปิดการหมุน
+                              animation: loading ? "spin 1s linear infinite" : "none",
                             }}
                           />
                         </div>
-                        {/* CSS Keyframes */}
                         <style>{`
-                              @keyframes spin {
-                                0% {
-                                  transform: rotate(0deg);
-                                }
-                                100% {
-                                  transform: rotate(360deg);
-                                }
-                              }
-                            `}</style>
+                          @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                          }
+                        `}</style>
                       </div>
 
                       <Form.Item name="location_latitude" hidden>
-                        <Input
-                          type="hidden"
-                          placeholder="Latitude"
-                          value={formValues["location_latitude"] || ""}
-                          disabled
-                        />{" "}
+                        <Input type="hidden" placeholder="Latitude" value={formValues["location_latitude"] || ""} disabled />
                       </Form.Item>
 
                       <Form.Item name="location_longitude" hidden>
-                        <Input
-                          type="hidden"
-                          placeholder="Longitude"
-                          value={formValues["location_longitude"] || ""}
-                          disabled
-                        />{" "}
+                        <Input type="hidden" placeholder="Longitude" value={formValues["location_longitude"] || ""} disabled />
                       </Form.Item>
                     </div>
                   ) : null}

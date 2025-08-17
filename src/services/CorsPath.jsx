@@ -187,6 +187,7 @@ export const paths = {
   pathPromotioncreate: "promotion-management/create",
   pathPromotiondelete: "promotion-management/delete",
   pathPromotionTarget: "promotion-management/target",
+  pathPromotionCategory: "promotion-management/category",
   //Sale
   pathSaleManagementlist: "sale-management/list",
 

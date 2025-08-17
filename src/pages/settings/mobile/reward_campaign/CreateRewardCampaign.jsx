@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useMemo } from "react";
 import MainLayout from "../../../../layouts/MainLayout";
 import FormCustom from "../../../../components/form_custom/FormCustom";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +17,7 @@ export default function CreateRewardCampaign() {
   const { showNotification } = useContext(AuthContext);
 
   const [targetData, setTargetData] = useState([]);
+  const [categoryOptions, setCategoryOptions] = useState([]); // ⬅️ เก็บตัวเลือก Category
 
   // ✅ ดึงข้อมูล Target จาก API
   useEffect(() => {
@@ -25,17 +26,17 @@ export default function CreateRewardCampaign() {
         setLoading(true);
         const res = await useServiceAPI.get(paths.pathPromotionTarget);
         if (res?.status === 200) {
-          // Map ให้มีช่อง points และ value
-          const mapped = res.data.map((t) => ({
-            id: t.id,
-            target_id: t.target, // เก็บไว้ใช้ตอนส่ง API
+          // NOTE: ปรับตาม shape ของ response จริง: ถ้า API ห่อด้วย {data:[...]} ให้ใช้ res.data.data
+          const list = Array.isArray(res?.data?.data) ? res.data.data : res.data;
+          const mapped = (list || []).map((t) => ({
+            id: t.id,                 // ใช้เป็น type_id ตอนส่ง
+            target_id: t.target,      // target group id
             type_name: t.type,
             target_name: t.target_text,
             points: "",
             value: "",
           }));
           setTargetData(mapped);
-          console.log(mapped);
         } else {
           message.error("ไม่สามารถโหลดข้อมูล Target ได้");
         }
@@ -46,8 +47,34 @@ export default function CreateRewardCampaign() {
         setLoading(false);
       }
     };
-
     fetchTargets();
+  }, []);
+
+  // ✅ ดึงข้อมูล Category จาก API (GET, no body)
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        const res = await useServiceAPI.get(paths.pathPromotionCategory);
+        if (res?.status === 200) {
+          // NOTE: ปรับตาม shape ของ response จริง: ถ้า API ห่อด้วย {data:[...]} ให้ใช้ res.data.data
+          const list = Array.isArray(res?.data?.data) ? res.data.data : res.data;
+          const mapped = (list || []).map((c) => ({
+            id: Number(c.id),
+            name: String(c.name),
+          }));
+          setCategoryOptions(mapped);
+        } else {
+          message.error("ไม่สามารถโหลดหมวดหมู่ได้");
+        }
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+        message.error("เกิดข้อผิดพลาดในการโหลดหมวดหมู่");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
   }, []);
 
   const handleTargetChange = (value, index, field) => {
@@ -86,19 +113,20 @@ export default function CreateRewardCampaign() {
     },
   ];
 
-  const formFields = [
+  // ✅ ฟิลด์ฟอร์ม (Category options จะผูกจาก state)
+  const formFields = useMemo(() => [
     { label: "Banner", name: "banner", type: "photo", required: true, col: 24, accept: "image/png, image/jpeg" },
-    { label: "Reward Code", name: "code", type: "text", required: false, col: 12, placeholder: "Generate", disabled: true },
-    { label: "Category", name: "category", type: "select", required: true, col: 12, options: [] },
+    { label: "Reward Code", name: "code", type: "text", required: false, col: 12, placeholder: "Code" },
+    { label: "Category", name: "category", type: "select", required: true, col: 12, options: categoryOptions }, // ⬅️ เชื่อม options
     { label: "Reward Name", name: "name", type: "text", required: true, col: 24, placeholder: "Enter" },
     { label: "Detail", name: "description", type: "text", required: true, col: 24, placeholder: "Enter" },
     { label: "Condition", name: "condition", type: "text", required: true, col: 24, placeholder: "Enter" },
     { label: "Product Detail", name: "product_detail", type: "text", required: true, col: 24, placeholder: "Enter" },
     { label: "Stock (Pcs)", name: "stock", type: "text", required: true, col: 8, placeholder: "Enter" },
-    { label: "Period Date", name: "date_range", type: "date", required: true, col: 8, placeholder: "Start date — End date" },
+    { label: "Period Date", name: "date_range", type: "date_range", required: true, col: 8, placeholder: "Start date — End date" },
     { label: "Cost (THB)", name: "cost", type: "text", required: false, col: 4, placeholder: "Enter" },
     { label: "Campaign Publish", name: "use_flag", type: "switch", required: false, col: 4, value: true },
-  ];
+  ], [categoryOptions]);
 
   const genCode = () => {
     const now = new Date();
@@ -109,6 +137,7 @@ export default function CreateRewardCampaign() {
     try {
       setLoading(true);
       const values = await form.validateFields();
+
       const date_start = dayjs(values.date_range?.[0]).format("YYYY-MM-DD");
       const date_end   = dayjs(values.date_range?.[1]).format("YYYY-MM-DD");
 
@@ -117,8 +146,8 @@ export default function CreateRewardCampaign() {
         .map(t => ({
           point: Number(t.points ?? 0),
           value: Number(t.value ?? 0),
-          target_id: Number(t.target_id),
-          type_id: Number(t.id),
+          target_id: Number(t.target_id), // จาก API target
+          type_id: Number(t.id),          // ใช้ id ในรายการเป็น type_id
         }));
 
       const payload = {
@@ -127,7 +156,7 @@ export default function CreateRewardCampaign() {
         date_start,
         date_end,
         code: values.code || genCode(),
-        category_id: Number(values.category),
+        category_id: Number(values.category),          // ⬅️ ผูกกับ select category
         unit: "ชุด",
         value: values.value ? Number(values.value) : 0,
         remark: "",
@@ -159,9 +188,13 @@ export default function CreateRewardCampaign() {
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Create Reward Campaign</div>
+
+      {/* ฟอร์มจะดึง Category options จาก state (categoryOptions) */}
       <FormCustom fields={formFields} form={form} />
+
       <div className="mt-8 font-semibold text-lg">Target</div>
       <TableComponent header={targetColumns} dataSource={targetData} pagination={false} scroll />
+
       <div className="flex justify-end gap-4 mt-6">
         <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />
         <ActionButton text="Save" mode="save" onClick={handleSave} />
