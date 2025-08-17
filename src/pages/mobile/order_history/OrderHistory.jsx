@@ -13,7 +13,7 @@ import { Spin } from "antd";
 export default function OrderHistory() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("completed");
+  const [activeTab, setActiveTab] = useState("1");
   const [orderData, setOrderData] = useState([]);
   const { userInfo } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
@@ -34,6 +34,11 @@ export default function OrderHistory() {
       try {
         console.log(activeTab)
 
+        let send_status_code = 'ODD'
+        if (activeTab == 2) {
+          send_status_code = 'ODW'
+        }
+
         const { current, pageSize } = tableParams.pagination;
         const requestData = {
           platform: "web",
@@ -43,13 +48,12 @@ export default function OrderHistory() {
           dealer_id: "",
           sub_dealer_id: "",
           farmer_id: "",
-          type: activeTab,
           trasaction_status_code: "",
           payment_status_code: "",
-          status_code: "ODD",
+          status_code: send_status_code,
           page: "all",
           page_length: current,
-          page_size: pageSize
+          page_size: pageSize,
         };
 
         const response = await useServiceAPI.get(paths.pathSalePointCollectList, requestData);
@@ -103,7 +107,8 @@ export default function OrderHistory() {
               <Spin className="py-5" />
             ) : orderData.length > 0 ? (
               orderData.map((order, index) => {
-                const isComplete = activeTab === "completed";
+                const isComplete = activeTab == 1;
+                console.log('activeTab : ',activeTab)
                 const statusColor = isComplete ? "text-green-600" : "text-red-500";
                 const borderColor = isComplete ? "border-green-500" : "border-red-500";
 
@@ -129,11 +134,7 @@ export default function OrderHistory() {
                         {isComplete ? "รับสินค้าสำเร็จ" : "รับสินค้าไม่สำเร็จ"}
                       </p>
                       <p className="text-gray-700 sarabun-font text-sm font-semibold mt-1">
-                        รายการ {order.line_total} /{" "}
-                        {new Intl.NumberFormat("th-TH", {
-                          minimumFractionDigits: 1,
-                          maximumFractionDigits: 1,
-                        }).format(order.amount)}
+                        รายการ {order.net_amount_display} / {order.updated_at}
                       </p>
                     </div>
                   </div>

@@ -54,14 +54,16 @@ export default function CollectPoints() {
         farmer_id: "",
         trasaction_status_code: "",
         payment_status_code: "",
-        page: "user",
+        status_code: "ODW",
+        page: "all",
         page_length: current,
         page_size: pageSize,
       };
-      
+
       const res = await useServiceAPI.get(paths.pathSalePointCollectList, requestData);
       const rows = res?.data?.data?.data ?? res?.data?.data ?? [];
       const mapped = rows.map((item) => ({
+        id: item.id,
         document_number: item.document_number,
         date: item.updated_at || item.document_date,
         amount: Number(item.net_amount || 0),
@@ -108,6 +110,7 @@ export default function CollectPoints() {
       const res = await useServiceAPI.get(paths.pathSalePointReceiveList, requestData);
       const rows = res?.data?.data?.data ?? res?.data?.data ?? [];
       const mapped = rows.map((item) => ({
+        id: item.id,
         document_number: item.document_number ?? "-",
         date: item.receive_date,
         dealer_name: item.receive_shop, // ใช้เป็นชื่อแสดง
@@ -233,14 +236,26 @@ export default function CollectPoints() {
                     >
                       <p className="text-gray-500 sarabun-font text-sm">{order.date}</p>
                       <p className="text-gray-900 sarabun-font font-bold mt-1">
-                        {order.dealer_name ?? `เลขที่ ${order.document_number}`}
+                        {order.dealer_name ?? `เลขที่ ${order.id}`}
                       </p>
                       <div className="flex justify-between items-center mt-2">
                         <div className="flex gap-2">
-                          <button className="bg-green-600 text-white px-3 py-1 rounded-md text-sm">
+                          <button className="bg-green-600 text-white px-3 py-1 rounded-md text-sm"
+                            onClick={() =>
+                              navigate("/mobile/collect-points/advance-notice-update", {
+                                state: { receive_id: order.id },
+                              })
+                            }
+                          >
                             ✎ แก้ไข
                           </button>
-                          <button className="border border-gray-300 text-gray-600 px-3 py-1 rounded-md text-sm">
+                          <button className="border border-gray-300 text-gray-600 px-3 py-1 rounded-md text-sm"
+                            onClick={() =>
+                              navigate("/mobile/collect-points/advance-notice-update", {
+                                state: { receive_id: order.id },
+                              })
+                            }
+                          >
                             🗑 ลบ
                           </button>
                         </div>
