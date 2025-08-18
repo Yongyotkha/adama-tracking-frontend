@@ -23,6 +23,9 @@ export default function CollectPointsAdvance() {
   const [user, setUser] = useState(null);
   const [receiveDate, setReceiveDate] = useState("");
   const [receiveShop, setReceiveShop] = useState("");
+  const [isPointModalVisible, setIsPointModalVisible] = useState(false);
+  const [earnedPoints, setEarnedPoints] = useState(0);
+
   useEffect(() => {
     const fetchUserProfile = async () => {
       setLoading(true);
