@@ -375,4 +375,7 @@ export const paths = {
   pathPointCampaignCustomer: "campaign/customer",
   pathPointCampaignDelete: "campaign/delete",
 
+  pathPromotionTarget: "promotion-management/target",
+
+  pathPromotionCategory: "promotion-management/category",
 };
