@@ -31,14 +31,11 @@ const DynamicModal = ({
   //     item?.position?.toLowerCase().includes(searchText.toLowerCase())
   // );
 
-  console.log('yyyy : ', dataSource)
   const filteredData = dataSource.filter((item) =>
     Object.values(item).some(
       (val) => typeof val === "string" && val.toLowerCase().includes(searchText.toLowerCase())
     )
   );
-
-  console.log('xxxx : ', filteredData)
 
 
   const rowSelection = {

@@ -32,9 +32,9 @@ export default function SalesPointDetail() {
     const [dataSourceOther, setDataSourceOther] = useState([]);
     const [dataSale, setDataSale] = useState([]);
     const [dataDealer, setDataDealer] = useState([]);
-
+    const request_id = location.state.data.request_id;
     const [formCustom] = Form.useForm();
-
+    console.log('request_id : ', request_id)
     // Set Data
     useEffect(() => {
         setDataSource(location.state.data.products);
@@ -234,6 +234,7 @@ export default function SalesPointDetail() {
             remark: getRemark,
             products: dataSource,
             others: dataSourceOther,
+            request_id: request_id,
             bill: [
                 "https://api-uat.adama.co.th/storage/adama-smile/uploads/files/profile/20250103/73655246-373E-4A29-AF1A-1730C52934A0.jpg",
                 "https://api-uat.adama.co.th/storage/adama-smile/uploads/files/profile/20250103/73655246-373E-4A29-AF1A-1730C52934A0.jpg"

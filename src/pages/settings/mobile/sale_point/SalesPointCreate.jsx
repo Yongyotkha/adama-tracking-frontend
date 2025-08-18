@@ -730,8 +730,8 @@ export default function SalesPointCreate() {
           products: dataSource,
           others: dataSourceOther,
         };
-        //   console.log(body);
-        //  return;
+        console.log(body);
+        return;
         navigate("/points/line/sales-points-list/detail", {
           state: {
             data: body,
@@ -745,7 +745,7 @@ export default function SalesPointCreate() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Create Order</div>
+      <div className="title-page">Create Sale Point</div>
 
       <FormCustom
         fields={formFields}
