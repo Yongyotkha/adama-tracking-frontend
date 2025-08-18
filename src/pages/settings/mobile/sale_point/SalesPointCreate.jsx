@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import { Form, Input, Select } from "antd";
 import MainLayout from "../../../../layouts/MainLayout";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
@@ -13,12 +13,16 @@ import FormCustom from "../../../../components/form_custom/FormCustom";
 import TableComponent from "../../../../components/table/TableComponent";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import DynamicModal from "../../../../components/modal/DynamicModal";
+
+import FileUploadComponent from "../../../../components/file_upload/FileUploadComponent";
+
 dayjs.extend(customParseFormat);
 
 export default function SalesPointCreate() {
   const navigate = useNavigate();
   const location = useLocation();
-
+  const [fileList, setFileList] = useState([]);
+  const fileUploadRef = useRef(null); // Reference for FileUploadComponent
   const [loading, setLoading] = useState(false);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
   const [dataSource, setDataSource] = useState([]);
@@ -84,45 +88,16 @@ export default function SalesPointCreate() {
     getMaster();
   }, []);
 
-  // Open Modal
-  const handleOpenTeamModal = () => {
-    // Set Empty
-    setGetOtherProductData([]);
-
-    const loadProductDetail = async () => {
-      setLoading(true);
-      try {
-        const [otherProduct] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterPromotionList, {
-            page_size: 10,
-            page_length: 1,
-          }),
-        ]);
-
-        // State for Order List table data
-        const productData = [];
-        otherProduct.data.data.map((data, index) => {
-          productData.push({
-            key: data.id,
-            no: index + 1,
-            name: data.name,
-            unit: data.unit,
-            value: parseFloat(data.value),
-          });
-        });
-
-        setGetOtherProductData(productData);
-      } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
+  const handleUploadSuccess = (response) => {
+    const data = response.data;
+    const fileUpload = {
+      uid: data.file_key,
+      name: data.file_name,
+      status: "done",
+      url: data.file_url,
     };
 
-    // Set
-    loadProductDetail();
-    // Open Modal
-    setIsTeamModalVisible(true);
+    setFileList((prevFileList) => [...prevFileList, fileUpload]);
   };
 
   // Close Modal
@@ -479,86 +454,6 @@ export default function SalesPointCreate() {
     },
   ];
 
-  const headerOther = [
-    { title: "No", dataIndex: "no", key: "no" },
-    {
-      title: "Product Name",
-      dataIndex: "product_name",
-      key: "product_name",
-    },
-    {
-      title: "Unit",
-      dataIndex: "product_unit",
-      key: "product_unit",
-    },
-    {
-      title: "Value(THB/Unit)",
-      dataIndex: "product_unit_value",
-      key: "product_unit_value",
-    },
-    {
-      title: <div className="text-center">QTY</div>,
-      dataIndex: "quantity",
-      key: "quantity",
-      render: (_, record) => (
-        <div className="quantity-control flex justify-center items-center">
-          <img
-            src="/img/icons/collapse.png"
-            alt="decrease"
-            className="cursor-pointer w-6 h-6"
-            onClick={() =>
-              handleQuantityChangeOther(record.key, record.quantity - 1)
-            }
-          />
-          <Input
-            inputMode="numeric"
-            min={1}
-            value={record.quantity}
-            onChange={(e) =>
-              handleQuantityChangeOther(
-                record.key,
-                parseInt(e.target.value) || 1
-              )
-            }
-            className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
-          />
-          <img
-            src="/img/icons/expand.png"
-            alt="increase"
-            className="cursor-pointer w-6 h-6"
-            onClick={() =>
-              handleQuantityChangeOther(record.key, record.quantity + 1)
-            }
-          />
-        </div>
-      ),
-    },
-    {
-      title: "Sub Total (THB)",
-      dataIndex: "net_amount",
-      key: "net_amount",
-      render: (text) =>
-        parseFloat(text || 0).toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-        }),
-    },
-    {
-      title: <div className="text-center">Action</div>,
-      key: "action",
-      render: (_, record) => (
-        <button
-          onClick={() => handleDeleteOtherRow(record.key)}
-          className="delete-button"
-        >
-          <img
-            src="/img/icons/delete.png"
-            alt="delete"
-            className="cursor-pointer w-6 h-6"
-          />
-        </button>
-      ),
-    },
-  ];
 
   const footerOrderList = () => {
     const totalQuantity = dataSource.reduce(
@@ -584,23 +479,6 @@ export default function SalesPointCreate() {
       </tr>
     );
   };
-
-  const footerOther = () => (
-    <tr className="bg-[#978B87]">
-      <td colSpan={7} className="text-right pr-2 text-white">
-        Item: {dataSourceOther.length} &nbsp; QTY:{" "}
-        {dataSourceOther.reduce((total, item) => total + item.quantity, 0)}{" "}
-        &nbsp; Total:{" "}
-        {dataSourceOther
-          .reduce(
-            (total, item) =>
-              total + parseFloat(item.net_amount.replace(/,/g, "")),
-            0
-          )
-          .toLocaleString("en-US", { minimumFractionDigits: 2 })}
-      </td>
-    </tr>
-  );
 
   const onChangeProduct = (value) => {
     // Set Empty
@@ -729,6 +607,7 @@ export default function SalesPointCreate() {
           remark: inputRemark,
           products: dataSource,
           others: dataSourceOther,
+          fileList:fileList
         };
         // console.log(body);
         // return;
@@ -741,6 +620,12 @@ export default function SalesPointCreate() {
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
       });
+  };
+
+  const handleUploadClick = async () => {
+    if (fileUploadRef.current) {
+      fileUploadRef.current.triggerUpload();
+    }
   };
 
   return (
@@ -778,17 +663,19 @@ export default function SalesPointCreate() {
       </BoxPrimary>
 
       <BoxPrimary>
-        <div className="flex justify-between space-x-4 mb-3">
-          <span className="text-[#00783F] text-lg font-semibold">Other</span>
-          <div className="flex space-x-2">
-            <ActionButton mode="add" text="Add" onClick={handleOpenTeamModal} />
-          </div>
+        <div className="flex items-center justify-between">
+          <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
+          <ActionButton
+            mode="add"
+            text="Upload File"
+            onClick={handleUploadClick}
+          />
         </div>
-        <TableComponent
-          header={headerOther}
-          dataSource={dataSourceOther}
-          pageSize={10}
-          footer={footerOther}
+
+        <FileUploadComponent
+          ref={fileUploadRef}
+          dataFile={fileList}
+          onUploadSuccess={handleUploadSuccess}
         />
       </BoxPrimary>
 

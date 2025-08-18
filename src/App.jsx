@@ -44,7 +44,7 @@ import CreateSubDealer from "./pages/customer/sub_dealer/CreateSubDealer";
 import EditSubDealer from "./pages/customer/sub_dealer/EditSubDealer";
 import Farmer from "./pages/customer/Farmers/FarmersList";
 import FarmerCreate from "./pages/customer/Farmers/FarmersCreate";
-
+import CameraView from "./pages/mobile/collect_points/CameraView";
 import CustomerContactList from "./pages/customer/contact/List";
 import CustomerContactFrom from "./pages/customer/contact/From";
 
@@ -395,7 +395,7 @@ const App = () => {
             <Route path="/mobile/terms-conditions" element={< TermsConditions />} />
             <Route path="/mobile/faq" element={< FaqOA />} />
             <Route path="/mobile/register" element={< RegisterOA />} />
-
+            <Route path="/mobile/camera" element={< CameraView />} />
             <Route element={<LinePrivateRoute />}>
               <Route path="/mobile/collect-points" element={< CollectPoints />} />
               <Route path="/mobile/collect-points/detail" element={<CollectPointsDetail />} />
@@ -413,6 +413,7 @@ const App = () => {
               <Route path="/mobile/point-history" element={< PointHistory />} />
               {/* <Route path="/mobile/point-history/detail" element={< PointHistoryDetail />} /> */}
               <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
+
             </Route>
 
           </Route>
