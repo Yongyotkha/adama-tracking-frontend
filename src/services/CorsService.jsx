@@ -33,7 +33,7 @@ const handleUnauthorized = (pathname) => {
     pathname === "/mobile/verify" ||
     pathname === "/mobile/login" ||
     pathname === "/mobile/register" ||
-    pathname === "/mobile/main" ||
+    // pathname === "/mobile/main" ||
     pathname === "/mobile/contact-admin" ||
     pathname === "mobile/otp"
   ) {
