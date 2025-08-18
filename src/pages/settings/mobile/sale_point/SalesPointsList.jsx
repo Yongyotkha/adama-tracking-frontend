@@ -596,8 +596,9 @@ export default function SalesPointsList() {
 
   return (
     <MainLayout loading={loading}>
+      
       <div className="flex justify-between items-center">
-        <div className="title-page">Order List</div>
+        <div className="title-page">Sale Point List</div>
         <div className="flex gap-2">
           {permission.btn_create && (
             <ActionButton

@@ -730,8 +730,8 @@ export default function SalesPointCreate() {
           products: dataSource,
           others: dataSourceOther,
         };
-        console.log(body);
-        return;
+        // console.log(body);
+        // return;
         navigate("/points/line/sales-points-list/detail", {
           state: {
             data: body,
