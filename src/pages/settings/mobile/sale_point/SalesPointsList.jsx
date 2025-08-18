@@ -190,7 +190,13 @@ export default function SalesPointsList() {
             sub_dealer: item.sub_dealer_name ?? "-",
             sale: item.sale_name ?? "-",
             request_date: reqDate,
-            status: "Waiting for Create", // ไม่มีฟิลด์สถานะในตัวอย่าง → ใส่ตาม UI เดิม
+            status: (
+              <BadgeStatus
+                text="Waiting for Create"
+                bgColor="#F89E18"
+                textColor="#FFFFFF"
+              />
+            ),
             apiActions: item.action,
           };
         });

@@ -15,8 +15,9 @@ import FileUploadComponent from "../../../../components/file_upload/FileUploadCo
 export default function SalesPointRequestCreate() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { showMsg, showNotification } = useContext(AuthContext);
+  const { showMsg } = useContext(AuthContext);
 
+  const request_id = location.state?.request_id;
   const [loading, setLoading] = useState(false);
 
   // ตาราง
@@ -29,6 +30,7 @@ export default function SalesPointRequestCreate() {
   const [dataSubDealer, setSubDataDealer] = useState([]);
 
   // ฟอร์มส่วนบน
+  const [docNumber, setDocNumber] = useState("");
   const [getDocumentDate, setGetDocumentDate] = useState("");
   const [getUserId, setGetUserId] = useState("");
   const [getDealerId, setGetDealerId] = useState("");
@@ -36,15 +38,13 @@ export default function SalesPointRequestCreate() {
   const [getRemark, setGetRemark] = useState("");
 
   // อัปโหลดไฟล์
-  const [fileListBill, setFileListBill] = useState([]);       // จาก field "bill"
-  const [fileListPicture, setFileListPicture] = useState([]); // จาก field "picture"
+  const [fileListBill, setFileListBill] = useState([]);
+  const [fileListPicture, setFileListPicture] = useState([]);
   const fileUploadRefBill = useRef(null);
   const fileUploadRefPicture = useRef(null);
 
   const [formCustom] = Form.useForm();
-  const document_number = location.state?.document_number; // <-- ใช้ค่านี้ยิง API
 
-  // helper: แปลง URL ให้เป็นชื่อไฟล์สั้น ๆ
   const getNameFromUrl = (url) => {
     try {
       const u = new URL(url);
@@ -55,21 +55,22 @@ export default function SalesPointRequestCreate() {
     }
   };
 
-  // 1) ดึงรายละเอียดใบสั่งจาก pathSalePointOrderDetail
+  // 1) ดึงรายละเอียดใบคำขอจาก pathSalePointOrderRequestEdit
   useEffect(() => {
     const fetchDetail = async () => {
-      if (!document_number) return;
+      if (!request_id) return;
 
       setLoading(true);
       try {
-        const res = await useServiceAPI.get(paths.pathSalePointOrderDetail, {
-          document_number,
+        const res = await useServiceAPI.get(paths.pathSalePointOrderRequestEdit, {
+          id: request_id,
         });
 
+        // โครงสร้างมาตรฐานของ service: { status, data: { result, status, message, data } }
         if (res?.status === 200 && res?.data) {
           const d = res.data;
 
-          // set ส่วนหัวฟอร์ม
+          setDocNumber(d.document_number || "");
           setGetDocumentDate(d.document_date || "");
           setGetUserId(d.user_id || "");
           setGetDealerId(d.dealer_id || "");
@@ -78,32 +79,34 @@ export default function SalesPointRequestCreate() {
 
           // products
           const prod = Array.isArray(d.products) ? d.products : [];
-          const mappedProducts = prod.map((p, idx) => ({
-            key: idx + 1,
-            no: idx + 1,
-            product_code: p.product_code,
-            product_name: p.product_name,
-            product_unit: p.product_unit,
-            product_unit_thb: p.product_unit_thb,
-            quantity: p.quantity,
-            foc: p.foc || 0,
-            net_amount: p.net_amount,
-          }));
-          setDataSource(mappedProducts);
+          setDataSource(
+            prod.map((p, idx) => ({
+              key: idx + 1,
+              no: idx + 1,
+              product_code: p.product_code,
+              product_name: p.product_name,
+              product_unit: p.product_unit,
+              product_unit_thb: p.product_unit_thb,
+              quantity: p.quantity,
+              foc: p.foc || 0,
+              net_amount: p.net_amount,
+            }))
+          );
 
           // others
           const oth = Array.isArray(d.others) ? d.others : [];
-          const mappedOthers = oth.map((o, idx) => ({
-            key: idx + 1,
-            no: idx + 1,
-            product_name: o.product_name,
-            product_unit: o.product_unit,
-            quantity: o.quantity,
-            net_amount: o.net_amount,
-          }));
-          setDataSourceOther(mappedOthers);
+          setDataSourceOther(
+            oth.map((o, idx) => ({
+              key: idx + 1,
+              no: idx + 1,
+              product_name: o.product_name || o.name,
+              product_unit: o.product_unit || o.unit,
+              quantity: o.quantity,
+              net_amount: o.net_amount,
+            }))
+          );
 
-          // bill -> fileListBill
+          // bill
           const bill = Array.isArray(d.bill) ? d.bill : [];
           setFileListBill(
             bill.map((b) => ({
@@ -114,7 +117,7 @@ export default function SalesPointRequestCreate() {
             }))
           );
 
-          // picture -> fileListPicture
+          // picture
           const picture = Array.isArray(d.picture) ? d.picture : [];
           setFileListPicture(
             picture.map((p) => ({
@@ -124,6 +127,8 @@ export default function SalesPointRequestCreate() {
               url: p.part,
             }))
           );
+        } else {
+          showMsg("error", res?.data?.message || "ไม่สามารถโหลดข้อมูลได้");
         }
       } catch (err) {
         console.error(err);
@@ -134,7 +139,7 @@ export default function SalesPointRequestCreate() {
     };
 
     fetchDetail();
-  }, [document_number]);
+  }, [request_id]);
 
   // 2) โหลด master (เพื่อให้ select disabled แสดงชื่อได้)
   useEffect(() => {
@@ -247,7 +252,7 @@ export default function SalesPointRequestCreate() {
     </tr>
   );
 
-  // ฟิลด์ฟอร์มแสดง readonly
+  // ฟิลด์ฟอร์ม (readonly)
   const formFields = [
     {
       key: "sale",
@@ -285,7 +290,7 @@ export default function SalesPointRequestCreate() {
       name: "order_no",
       type: "text",
       disabled: true,
-      placeholder: document_number || "Generate order no",
+      placeholder: docNumber || "Generate order no",
       value: "",
     },
     {
@@ -306,7 +311,6 @@ export default function SalesPointRequestCreate() {
     if (fileUploadRefPicture.current) fileUploadRefPicture.current.triggerUpload();
   };
 
-  // อัปโหลดเสร็จ – เติมลง list
   const handleUploadSuccessBill = (response) => {
     const data = response.data;
     const uploaded = {
@@ -330,7 +334,7 @@ export default function SalesPointRequestCreate() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">View Detail</div>
+      <div className="title-page">View Sale Point Request</div>
 
       <FormCustom fields={formFields} form={formCustom} onChange="" />
 
@@ -357,10 +361,6 @@ export default function SalesPointRequestCreate() {
       )}
 
       <BoxPrimary>
-        <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">Bill</div>
-          <ActionButton mode="add" text="Upload File" onClick={handleUploadClickBill} />
-        </div>
         <FileUploadComponent
           ref={fileUploadRefBill}
           dataFile={fileListBill}
@@ -371,10 +371,6 @@ export default function SalesPointRequestCreate() {
       </BoxPrimary>
 
       <BoxPrimary>
-        <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">Picture</div>
-          <ActionButton mode="add" text="Upload File" onClick={handleUploadClickPicture} />
-        </div>
         <FileUploadComponent
           ref={fileUploadRefPicture}
           dataFile={fileListPicture}
