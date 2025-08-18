@@ -461,7 +461,7 @@ export default function SalesPointsList() {
                       <ItemDropDown
                         mode="view"
                         onClick={() => {
-                          navigate("/order/view", {
+                          navigate("/points/line/sales-points-list/view", {
                             state: {
                               document_number: order.document_number,
                             },
@@ -476,7 +476,7 @@ export default function SalesPointsList() {
                       <ItemDropDown
                         mode="edit"
                         onClick={() => {
-                          navigate("/order/edit", {
+                          navigate("/points/line/sales-points-list/edit", {
                             state: {
                               document_number: order.document_number,
                             },

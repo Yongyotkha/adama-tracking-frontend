@@ -22,7 +22,9 @@ export default function SalesPointCreate() {
   const navigate = useNavigate();
   const location = useLocation();
   const [fileList, setFileList] = useState([]);
+  const [fileListReceive, setFileListReceive] = useState([]);
   const fileUploadRef = useRef(null); // Reference for FileUploadComponent
+  const fileUploadRefReceive = useRef(null); // Reference for FileUploadComponent
   const [loading, setLoading] = useState(false);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
   const [dataSource, setDataSource] = useState([]);
@@ -99,6 +101,19 @@ export default function SalesPointCreate() {
 
     setFileList((prevFileList) => [...prevFileList, fileUpload]);
   };
+
+  const handleUploadReceiveSuccess = (response) => {
+    const data = response.data;
+    const fileUpload = {
+      uid: data.file_key,
+      name: data.file_name,
+      status: "done",
+      url: data.file_url,
+    };
+
+    setFileListReceive((prevFileList) => [...prevFileList, fileUpload]);
+  };
+
 
   // Close Modal
   const handleCloseTeamModal = () => {
@@ -607,7 +622,8 @@ export default function SalesPointCreate() {
           remark: inputRemark,
           products: dataSource,
           others: dataSourceOther,
-          fileList:fileList
+          fileList: fileList,
+          fileListReceive:fileListReceive
         };
         // console.log(body);
         // return;
@@ -625,6 +641,12 @@ export default function SalesPointCreate() {
   const handleUploadClick = async () => {
     if (fileUploadRef.current) {
       fileUploadRef.current.triggerUpload();
+    }
+  };
+
+  const handleUploadReceiveClick = async () => {
+    if (fileUploadRefReceive.current) {
+      fileUploadRefReceive.current.triggerUpload();
     }
   };
 
@@ -664,19 +686,36 @@ export default function SalesPointCreate() {
 
       <BoxPrimary>
         <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
+          <div className="text-[#00783F] text-lg font-semibold mb-3">Attachments</div>
           <ActionButton
             mode="add"
             text="Upload File"
             onClick={handleUploadClick}
           />
         </div>
-
         <FileUploadComponent
           ref={fileUploadRef}
           dataFile={fileList}
           onUploadSuccess={handleUploadSuccess}
         />
+
+      </BoxPrimary>
+
+      <BoxPrimary>
+        <div className="flex items-center justify-between">
+          <div className="text-[#00783F] text-lg font-semibold mb-3">Picture of product receive</div>
+          <ActionButton
+            mode="add"
+            text="Upload File"
+            onClick={handleUploadReceiveClick}
+          />
+        </div>
+        <FileUploadComponent
+          ref={fileUploadRefReceive}
+          dataFile={fileListReceive}
+          onUploadSuccess={handleUploadReceiveSuccess}
+        />
+
       </BoxPrimary>
 
       <BoxPrimary title="Remark">
