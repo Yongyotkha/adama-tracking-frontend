@@ -210,7 +210,9 @@ export default function CreateRewardCampaign() {
 
   const handleSave = async () => {
     try {
+
       setLoading(true);
+
       const values = await form.validateFields();
 
       const date_start = dayjs(values.date_range?.[0]).format("YYYY-MM-DD");
@@ -236,7 +238,7 @@ export default function CreateRewardCampaign() {
         value: values.value ? Number(values.value) : 0,
         remark: "",
         // ✅ สำคัญ: ใช้ค่าจากฟิลด์ banner
-        image: values.image,
+        image: "https://adama-api.mtsc.co.th/storage/adama-smile/uploads/files/news/20250818/93587AAC-222B-4A2D-810B-70AFEA6C4419.jpg",
         use_flag: values.use_flag ? "1" : "0",
         detail: values.product_detail,
         condition: values.condition,

@@ -163,6 +163,7 @@ export default function SalesPointsList() {
       dealer_id: filters.dealer || "",
       sub_dealer_id: filters.sub_dealer || "",
       page: "all",
+      status_code: "ODW",
       orderby_column: sortField,
       orderby: sortOrder,
       page_length: current, // ถ้า backend ไม่ใช้ก็ไม่เป็นไร
@@ -404,6 +405,7 @@ export default function SalesPointsList() {
       trasaction_status_code: filters.status || "",
       dater: filters.dater || "",
       page: "all",
+      status_code: "ODW",
       use_flag: filters.use_flag || "",
       orderby_column: sortField,
       orderby: sortOrder,
@@ -596,7 +598,7 @@ export default function SalesPointsList() {
 
   return (
     <MainLayout loading={loading}>
-      
+
       <div className="flex justify-between items-center">
         <div className="title-page">Sale Point List</div>
         <div className="flex gap-2">
