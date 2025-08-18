@@ -163,6 +163,7 @@ import RewardCampaignList from "./pages/settings/mobile/reward_campaign/RewardCa
 import CreateRewardCampaign from "./pages/settings/mobile/reward_campaign/CreateRewardCampaign";
 import ViewOrEditTargetGroup from "./pages/settings/mobile/target_group/ViewOrEditTargetGroup";
 import CollectPointsDetail from "./pages/mobile/collect_points/CollectPointsDetail";
+import CollectPointsList from "./pages/settings/mobile/collect_points/CollectPointsList";
 
 
 const App = () => {
@@ -333,6 +334,11 @@ const App = () => {
             <Route path="/points/line/sales-points-list" element={<SalesPointsList />} />
             <Route path="/points/line/sales-points-list/create" element={<SalesPointCreate />} />
             <Route path="/points/line/sales-points-list/detail" element={<SalesPointDetail />} />
+
+            <Route path="/points/line/collect-points-list" element={<CollectPointsList />} />
+            {/* <Route path="/points/line/collect-points/create" element={<CollectPointCreate />} /> */}
+            {/* <Route path="/points/line/collect-points/detail" element={<CollectPointDetail />} /> */}
+
             {/* <Route path="/points/line/sales-points-list/:mode" element={<SalesPointDetail />} /> */}
             {/* <Route path="/points/line/sales-points-list/create" element={<CreateSalesPoint />} /> */}
             {/* <Route path="/points/line/sales-points-list/:mode" element={<ActionSalePoints />} /> */}
