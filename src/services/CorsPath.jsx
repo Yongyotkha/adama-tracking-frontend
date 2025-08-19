@@ -290,8 +290,9 @@ export const paths = {
   pathStockUpdate: "/stock/update",
   pathStockDetail: "/stock/detail",
   pathStockDelete: "/stock/delete",
-  pathStockCreated: "/stock/created",
-
+  pathStockCreated: "/stock/created"
+  ,
+  pathRedeemList: "/redeem/list",
 
   // Expense Traveling
   pathGetExpenseTravelingList: "expense/traveling/list",
