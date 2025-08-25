@@ -32,7 +32,7 @@ export default function CollectPointsDetail() {
     const fetchDetail = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathSalePointDetail, {
+        const response = await useServiceAPI.get(paths.pathSalePointReceiveDetail, {
           platform: "web",
           id: userInfo?.id,
           document_number: documentNumber,
@@ -115,7 +115,7 @@ export default function CollectPointsDetail() {
 
     try {
       setLoading(true);
-      const res = await useServiceAPI.post(paths.pathSalePointReceiveOrder, payload);
+      const res = await useServiceAPI.post(paths.pathSalePointReceiveUpdate, payload);
       console.log(res);
       if (res?.status === 200) {
         const pts = Number(res?.data?.point ?? 0);
