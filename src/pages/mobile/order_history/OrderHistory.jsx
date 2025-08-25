@@ -34,7 +34,7 @@ export default function OrderHistory() {
       try {
         console.log(activeTab)
 
-        let send_status_code = 'ODW'
+        let send_status_code = 'ODC'
         if (activeTab == 2) {
           send_status_code = 'ODW'
         }

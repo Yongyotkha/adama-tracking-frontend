@@ -5,12 +5,11 @@ export const endPoint = "https://adama-api.mtsc.co.th/api"; //Test API
 //export const endPoint = "http://localhost:8080/api";
 
 export const paths = {
-  pathSalePointCollectList: "sale-point/collect-point-list",
+  pathSalePointCollectList: "sale-point-receive/list",
   pathSalePointDetail: "sale-point/detail",
 
   pathSalePointReceiveOrder: "sale-point-receive/create-order",
   pathSalePointReceiveDetailOrder: "sale-point-receive/detail-order",
-  pathSalePointReceiveList: "sale-point-receive/list",
 
   pathSalePointReceive: "sale-point-receive/create",
   pathSalePointReceiveDetail: "sale-point-receive/detail",

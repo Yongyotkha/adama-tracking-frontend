@@ -100,15 +100,22 @@ export default function CollectPoints() {
       platform: "web",
       keyword: "",
       use_flag: "1",
-      type: "2",
+      user_id: "",
+      dealer_id: "",
+      sub_dealer_id: "",
+      farmer_id: "",
+      trasaction_status_code: "",
+      payment_status_code: "",
+      status_code: "ODI",
       page: "all",
       page_length: current,
       page_size: pageSize,
     };
 
     try {
-      const res = await useServiceAPI.get(paths.pathSalePointReceiveList, requestData);
-      const rows = res?.data?.data?.data ?? res?.data?.data ?? [];
+      const res = await useServiceAPI.get(paths.pathSalePointCollectList, requestData);
+      const rows = res?.data?.data;
+      console.log('rows : ',rows)
       const mapped = rows.map((item) => ({
         id: item.id,
         document_number: item.document_number ?? "-",
@@ -234,9 +241,9 @@ export default function CollectPoints() {
                       key={index}
                       className="p-4 bg-white rounded-lg shadow-md border-l-4 border-green-500"
                     >
-                      <p className="text-gray-500 sarabun-font text-sm">{order.date}</p>
+                      <p className="text-gray-500 sarabun-font text-sm">{order.document_date}</p>
                       <p className="text-gray-900 sarabun-font font-bold mt-1">
-                        {order.dealer_name ?? `เลขที่ ${order.id}`}
+                        {`เลขที่ ${order.document_number}`}
                       </p>
                       <div className="flex justify-between items-center mt-2">
                         <div className="flex gap-2">
@@ -260,7 +267,7 @@ export default function CollectPoints() {
                           </button>
                         </div>
                         <p className="text-orange-600 text-sm">
-                          รับสินค้าล่วงหน้า ({order.amount_display})
+                          รอดำเนินการ
                         </p>
                       </div>
                     </div>
