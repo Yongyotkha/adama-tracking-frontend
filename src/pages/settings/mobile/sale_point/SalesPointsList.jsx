@@ -146,255 +146,6 @@ export default function SalesPointsList() {
       </Dropdown>
     );
   };
-  const fetchRequests = async (overrides = {}) => {
-    setRequestTableLoading(true);
-
-    const { current, pageSize } = requestTableParams.pagination;
-    const filters = requestTableParams.filters || {};
-    const sortOrder = requestTableParams.sortOrder || "desc";
-    const sortField = requestTableParams.sortField || "created_at";
-
-    // map filters → payload ของ API
-    const payload = {
-      platform: "web",
-      keyword: filters.order_no || "",
-      use_flag: "1",
-      sale_id: filters.sale || "",
-      dealer_id: filters.dealer || "",
-      sub_dealer_id: filters.sub_dealer || "",
-      page: "all",
-      status_code: "ODW",
-      orderby_column: sortField,
-      orderby: sortOrder,
-      page_length: current, // ถ้า backend ไม่ใช้ก็ไม่เป็นไร
-      page_size: pageSize,  // ถ้า backend ไม่ใช้ก็ไม่เป็นไร
-      ...overrides,
-    };
-
-    try {
-      const res = await useServiceAPI.get(paths.pathSalePointOrderRequest, payload);
-
-      if (res.status === 200) {
-        const root = res.data?.data || {};
-        const rows = root || [];
-
-        setRequestPermission(root?.permission || {});
-
-        const mapped = rows.map((item, idx) => {
-          const reqDate =
-            (item.created_at || item.receive_date || "").toString().split(" ")[0] || "-";
-          return {
-            key: idx + 1 + (current - 1) * pageSize,
-            request_id: item.id,
-            dealer: item.dealer_name ?? "-",
-            sub_dealer: item.sub_dealer_name ?? "-",
-            sale: item.sale_name ?? "-",
-            request_date: reqDate,
-            status: (
-              <BadgeStatus
-                text="Waiting for Create"
-                bgColor="#F89E18"
-                textColor="#FFFFFF"
-              />
-            ),
-            apiActions: item.action,
-          };
-        });
-
-        console.log('mapped : ', mapped)
-
-        setRequestDataSource(
-          mapped.map((row) => ({ ...row, action: getActionForRequest(row) }))
-        );
-
-        setRequestTableParams((prev) => ({
-          ...prev,
-          pagination: { ...prev.pagination, total: root.records_filtered || rows.length },
-        }));
-      }
-    } catch (err) {
-      console.error(err);
-      setRequestDataSource([]);
-    } finally {
-      setRequestTableLoading(false);
-    }
-  };
-  const handleSearchRequest = (filters) => {
-    setRequestTableParams((prev) => ({
-      ...prev,
-      filters,
-      pagination: { ...prev.pagination, current: 1 },
-    }));
-  };
-
-  const handleClearRequest = () => {
-    setRequestTableParams((prev) => ({
-      ...prev,
-      filters: {},
-      pagination: { ...prev.pagination, current: 1 },
-    }));
-  };
-
-  const handleTableChangeRequest = (pagination, _filters, sorter) => {
-    setRequestTableParams((prev) => ({
-      ...prev,
-      pagination,
-      sortOrder: sorter.order === "descend" ? "desc" : "asc",
-      sortField: sorter.field || prev.sortField,
-    }));
-  };
-
-  const handleChangeRequestFilters = (filters) => {
-    setRequestFiltersValues(filters);
-  };
-  // เรียกเมื่อสลับแท็บ
-  useEffect(() => {
-    if (activeTab === "request") {
-      fetchRequests();
-    }
-  }, [activeTab]);
-
-  // เรียกเมื่อ filter/sort/pagination ของ request เปลี่ยน
-  useEffect(() => {
-    if (activeTab === "request") {
-      fetchRequests();
-    }
-  }, [
-    activeTab,
-    requestTableParams.pagination.current,
-    requestTableParams.pagination.pageSize,
-    requestTableParams.sortOrder,
-    requestTableParams.sortField,
-    JSON.stringify(requestTableParams.filters),
-  ]);
-
-  useEffect(() => {
-    fetchData();
-  }, [
-    tableParams.pagination.current,
-    tableParams.pagination.pageSize,
-    tableParams.sortOrder,
-    tableParams.sortField,
-    JSON.stringify(tableParams.filters),
-  ]);
-
-  useEffect(() => {
-    const sale = filterValues.sale;
-
-    if (sale) {
-      const userId =
-        typeof sale === "object" && sale.value ? sale.value : sale;
-
-      const getDealersBySale = async () => {
-        try {
-          const response = await useServiceAPI.get(
-            paths.pathMasterDealerDropdown,
-            { user_id: userId }
-          );
-          setDataDealer(response.data);
-
-        } catch (error) {
-          showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer");
-        }
-      };
-
-      getDealersBySale();
-    }
-  }, [filterValues.sale]);
-
-  // Get Master
-  useEffect(() => {
-    const getMaster = async () => {
-      setLoading(true);
-      try {
-        const [sale, status] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
-          useServiceAPI.get(paths.pathMasterStatus, {
-            status_type: "order",
-          }),
-        ]);
-
-
-        setSaleList(sale.data);
-
-        const dataStatus = [];
-        status.data.map((data, index) => {
-          dataStatus.push({
-            id: data.code,
-            name: data.name,
-          });
-        });
-        setDataStatus(dataStatus);
-
-      } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getMaster();
-  }, []);
-
-  const filters = [
-    {
-      key: "sale",
-      type: "select",
-      label: "Sales",
-      placeholder: "All",
-      options: saleList,
-      moderef: true,
-    },
-    {
-      key: "dealer",
-      type: "select",
-      label: "Dealer",
-      placeholder: "All",
-      options: dataDealer,
-      moderef: false,
-    },
-    {
-      key: "order_no",
-      type: "text",
-      label: "Order No",
-      placeholder: "Order No",
-      moderef: false,
-    },
-    {
-      key: "status",
-      type: "select",
-      label: "Status",
-      placeholder: "All",
-      options: dataStatus,
-      moderef: false,
-    },
-
-    {
-      key: "dater",
-      type: "dater",
-      label: "Date",
-      placeholder: "Date",
-      moderef: false,
-    },
-  ];
-
-  const header = [
-    { title: "No", width: 50, dataIndex: "key", align: "center" },
-    { title: "Order No", width: 150, dataIndex: "orderNo", align: "left" },
-    { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
-    { title: "Dealer", width: 200, dataIndex: "dealer", align: "left" },
-    { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
-    { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
-    {
-      title: "Order Date",
-      width: 150,
-      dataIndex: "orderDate",
-      align: "center",
-    },
-    { title: "Status", width: 150, dataIndex: "status", align: "center" },
-    { title: "Action", width: 100, dataIndex: "action", align: "center" },
-  ];
-
 
   const fetchData = async () => {
     setTableLoading(true);
@@ -533,6 +284,280 @@ export default function SalesPointsList() {
       setTableLoading(false);
     }
   };
+
+
+  const fetchRequests = async (overrides = {}) => {
+    setRequestTableLoading(true);
+
+    const { current, pageSize } = requestTableParams.pagination;
+    const filters = requestTableParams.filters || {};
+    const sortOrder = requestTableParams.sortOrder || "desc";
+    const sortField = requestTableParams.sortField || "document_number"; // ให้สอดคล้อง backend
+
+    // ใช้รูปแบบ payload "เหมือน fetchData"
+    const payload = {
+      user_id: filters.sale || "",
+      dealer_id: filters.dealer || "",
+      keyword: filters.order_no || "",
+      trasaction_status_code: "",         // ถ้าต้องกรองสถานะฝั่ง transaction ใส่เพิ่มได้
+      dater: filters.dater || "",
+      page: "all",
+      status_code: "ODI",                 // คัดเฉพาะที่เป็น Request (ตามที่ต้องการ)
+      use_flag: filters.use_flag || "",
+      orderby_column: sortField,
+      orderby: sortOrder,
+      page_length: current,
+      page_size: pageSize,
+      ...overrides,
+    };
+
+    try {
+      // ดึง API เหมือน fetchData
+      const res = await useServiceAPI.get(paths.pathSalePointOrderList, payload);
+      if (res.status === 200) {
+        const root = res.data?.data || {};
+        const rows = res.data?.data
+      
+        console.log('rows : ',rows)
+        // permission และจำนวนรวมอยู่ใน root
+        setRequestPermission(root.permission || {});
+
+        const mapped = rows.map((item, idx) => {
+          // วันที่ขอแสดงในคอลัมน์ "Request Date"
+          const requestDate =
+            item.document_date ||
+            (item.updated_at ? String(item.updated_at).split(" ")[0] : "") ||
+            "-";
+
+          return {
+            key: idx + 1 + (current - 1) * pageSize,
+
+            // ไว้ใช้กับเมนู Action (view/edit/delete) ใน getActionForRequest
+            request_id: item.id ?? item.document_number,
+
+            dealer: item.dealer_name ?? "-",
+            sub_dealer: item.sub_dealer_name ?? "-",
+            sale: item.user_name ?? "-",
+            request_date: requestDate,
+
+            // ใช้สถานะจริงจาก API (ยังคง UI เดิม = BadgeStatus)
+            status: (
+              <BadgeStatus
+                text={item.status_transaction_name}
+                bgColor={item.status_transaction_bg_color}
+                textColor={item.status_transaction_color}
+              />
+            ),
+
+            // เก็บรายการ action จาก API ไว้ให้ getActionForRequest สร้างเมนู
+            apiActions: item.action,
+          };
+        });
+
+        setRequestDataSource(
+          mapped.map((row) => ({ ...row, action: getActionForRequest(row) }))
+        );
+
+        setRequestTableParams((prev) => ({
+          ...prev,
+          pagination: {
+            ...prev.pagination,
+            total:
+              typeof root.records_filtered === "number"
+                ? root.records_filtered
+                : rows.length,
+          },
+        }));
+      }
+    } catch (err) {
+      console.error(err);
+      setRequestDataSource([]);
+    } finally {
+      setRequestTableLoading(false);
+    }
+  };
+
+  const handleSearchRequest = (filters) => {
+    setRequestTableParams((prev) => ({
+      ...prev,
+      filters,
+      pagination: { ...prev.pagination, current: 1 },
+    }));
+  };
+
+  const handleClearRequest = () => {
+    setRequestTableParams((prev) => ({
+      ...prev,
+      filters: {},
+      pagination: { ...prev.pagination, current: 1 },
+    }));
+  };
+
+  const handleTableChangeRequest = (pagination, _filters, sorter) => {
+    setRequestTableParams((prev) => ({
+      ...prev,
+      pagination,
+      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortField: sorter.field || prev.sortField,
+    }));
+  };
+
+  const handleChangeRequestFilters = (filters) => {
+    setRequestFiltersValues(filters);
+  };
+  // เรียกเมื่อสลับแท็บ
+  useEffect(() => {
+    if (activeTab === "request") {
+      fetchRequests();
+    }else{
+      fetchData();
+    }
+  }, [activeTab]);
+
+  // เรียกเมื่อ filter/sort/pagination ของ request เปลี่ยน
+  useEffect(() => {
+    if (activeTab === "request") {
+      fetchRequests();
+    }else{
+      fetchData()
+    }
+  }, [
+    activeTab,
+    requestTableParams.pagination.current,
+    requestTableParams.pagination.pageSize,
+    requestTableParams.sortOrder,
+    requestTableParams.sortField,
+    JSON.stringify(requestTableParams.filters),
+  ]);
+
+  useEffect(() => {
+    fetchData();
+  }, [
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    tableParams.sortOrder,
+    tableParams.sortField,
+    JSON.stringify(tableParams.filters),
+  ]);
+
+  useEffect(() => {
+    const sale = filterValues.sale;
+
+    if (sale) {
+      const userId =
+        typeof sale === "object" && sale.value ? sale.value : sale;
+
+      const getDealersBySale = async () => {
+        try {
+          const response = await useServiceAPI.get(
+            paths.pathMasterDealerDropdown,
+            { user_id: userId }
+          );
+          setDataDealer(response.data);
+
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer");
+        }
+      };
+
+      getDealersBySale();
+    }
+  }, [filterValues.sale]);
+
+  // Get Master
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [sale, status] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathMasterStatus, {
+            status_type: "order",
+          }),
+        ]);
+
+
+        setSaleList(sale.data);
+
+        const dataStatus = [];
+        status.data.map((data, index) => {
+          dataStatus.push({
+            id: data.code,
+            name: data.name,
+          });
+        });
+        setDataStatus(dataStatus);
+
+      } catch (error) {
+        showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+  }, []);
+
+  const filters = [
+    {
+      key: "sale",
+      type: "select",
+      label: "Sales",
+      placeholder: "All",
+      options: saleList,
+      moderef: true,
+    },
+    {
+      key: "dealer",
+      type: "select",
+      label: "Dealer",
+      placeholder: "All",
+      options: dataDealer,
+      moderef: false,
+    },
+    {
+      key: "order_no",
+      type: "text",
+      label: "Order No",
+      placeholder: "Order No",
+      moderef: false,
+    },
+    {
+      key: "status",
+      type: "select",
+      label: "Status",
+      placeholder: "All",
+      options: dataStatus,
+      moderef: false,
+    },
+
+    {
+      key: "dater",
+      type: "dater",
+      label: "Date",
+      placeholder: "Date",
+      moderef: false,
+    },
+  ];
+
+  const header = [
+    { title: "No", width: 50, dataIndex: "key", align: "center" },
+    { title: "Order No", width: 150, dataIndex: "orderNo", align: "left" },
+    { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
+    { title: "Dealer", width: 200, dataIndex: "dealer", align: "left" },
+    { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
+    { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
+    {
+      title: "Order Date",
+      width: 150,
+      dataIndex: "orderDate",
+      align: "center",
+    },
+    { title: "Status", width: 150, dataIndex: "status", align: "center" },
+    { title: "Action", width: 100, dataIndex: "action", align: "center" },
+  ];
+
+
 
   const handleSearch = (filters) => {
     setTableParams({
