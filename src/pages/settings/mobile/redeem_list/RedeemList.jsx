@@ -1,31 +1,40 @@
 import React, { useEffect, useState } from "react";
+import { Dropdown, Tabs } from "antd";
 import MainLayout from "../../../../layouts/MainLayout";
 import Filter from "../../../../components/filter/Filter";
 import TableComponent from "../../../../components/table/TableComponent";
-import { Dropdown } from "antd";
 import BadgeStatus from "../../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import ActionButton from "../../../../components/button/ActionButton";
-import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../../components/dropdown/ItemDropDown";
+import { useNavigate } from "react-router-dom";
 import useServiceAPI from "../../../../services/corsService";
 import { paths } from "../../../../services/CorsPath";
+
+const { TabPane } = Tabs;
 
 export default function RedeemList() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("list");
+
+  // --- List state ---
   const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [tableParams, setTableParams] = useState({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-      total: 0,
-    },
+    pagination: { current: 1, pageSize: 10, total: 0 },
     filters: {},
   });
 
-  const filters = [
+  // --- Request state ---
+  const [requestTableLoading, setRequestTableLoading] = useState(false);
+  const [requestDataSource, setRequestDataSource] = useState([]);
+  const [requestTableParams, setRequestTableParams] = useState({
+    pagination: { current: 1, pageSize: 10, total: 0 },
+    filters: {},
+  });
+
+  const filtersList = [
     { key: "target", type: "text", label: "Target Name" },
     { key: "type", type: "text", label: "Type Name" },
     {
@@ -39,16 +48,20 @@ export default function RedeemList() {
     },
   ];
 
-  const header = [
-    { title: "No", dataIndex: "key" },
-    { title: "Shop Name", dataIndex: "shop_name" },
-    { title: "Customer Name", dataIndex: "customer_name" },
-    { title: "Reward Name", dataIndex: "reward_name" },
-    { title: "Type", dataIndex: "type" },
-    { title: "Point", dataIndex: "point", align: "center" },
-    { title: "Create Date", dataIndex: "created_at", align: "center" },
-    { title: "Status", dataIndex: "status", align: "center" },
-    { title: "Action", dataIndex: "action", align: "center" },
+  const filtersRequest = [
+    { key: "shop", type: "text", label: "Shop Name" },
+    { key: "customer", type: "text", label: "Customer Name" },
+    { key: "reward", type: "text", label: "Reward Name" },
+    {
+      key: "status",
+      type: "select",
+      label: "Status",
+      options: [
+        { id: "PENDING", name: "Pending" },
+        { id: "APPROVED", name: "Approved" },
+        { id: "REJECTED", name: "Rejected" },
+      ],
+    },
   ];
 
   const renderStatus = (use_flag) => {
@@ -61,27 +74,46 @@ export default function RedeemList() {
       />
     );
   };
-  const fetchData = async () => {
+
+  const listHeader = [
+    { title: "No", dataIndex: "key" },
+    { title: "Shop Name", dataIndex: "shop_name" },
+    { title: "Customer Name", dataIndex: "customer_name" },
+    { title: "Reward Name", dataIndex: "reward_name" },
+    { title: "Type", dataIndex: "type" },
+    { title: "Point", dataIndex: "point", align: "center" },
+    { title: "Create Date", dataIndex: "created_at", align: "center" },
+    { title: "Status", dataIndex: "status", align: "center" },
+    { title: "Action", dataIndex: "action", align: "center" },
+  ];
+
+  const requestHeader = [
+    { title: "No", dataIndex: "key" },
+    { title: "Shop Name", dataIndex: "shop_name" },
+    { title: "Customer Name", dataIndex: "customer_name" },
+    { title: "Reward Name", dataIndex: "reward_name" },
+    { title: "QTY (Pcs)", dataIndex: "qty", align: "right" },
+    { title: "Points", dataIndex: "points", align: "right" },
+    { title: "Date", dataIndex: "date", align: "center" },
+    { title: "Status", dataIndex: "status", align: "center" },
+    { title: "Action", dataIndex: "action", align: "center" },
+  ];
+
+  // --- Fetch list ---
+  const fetchList = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
-    console.log(tableParams);
-    const filterValues = tableParams.filters;
-
-    const requestData = {
-      platform: "web",
-      process: "receive-reward",
-      page: "all", // ✔️ fix ตาม requirement
-      page_size: pageSize,
-      page_length: current,
-    };
-
     try {
-      const res = await useServiceAPI.get(paths.pathRedeemList, requestData);
+      const res = await useServiceAPI.get(paths.pathRedeemList, {
+        platform: "web",
+        process: "receive-reward",
+        page: "all",
+        page_size: pageSize,
+        page_length: current,
+      });
       if (res.status === 200) {
-        const result = res.data;
-        const list = result?.data || [];
-
-        const formattedData = list.map((item, index) => ({
+        const list = res.data?.data || [];
+        const formatted = list.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           id: item.id,
           shop_name: item.shop_name || "-",
@@ -94,7 +126,7 @@ export default function RedeemList() {
           action: (
             <Dropdown
               menu={{
-                items: item.action?.map((act, i) => ({
+                items: (item.action || []).map((act, i) => ({
                   key: i,
                   label: (
                     <ItemDropDown
@@ -116,66 +148,124 @@ export default function RedeemList() {
             </Dropdown>
           ),
         }));
-        setDataSource(formattedData);
+        setDataSource(formatted);
         setTableParams((prev) => ({
           ...prev,
-          pagination: {
-            ...prev.pagination,
-            total: result.data.records_filtered,
-          },
+          pagination: { ...prev.pagination, total: res.data.records_filtered },
         }));
       }
-    } catch (err) {
-      console.error("Failed to fetch:", err);
     } finally {
       setTableLoading(false);
     }
   };
 
+  // --- Fetch request ---
+  const fetchRequest = async () => {
+    setRequestTableLoading(true);
+    const { current, pageSize } = requestTableParams.pagination;
+    try {
+      const res = await useServiceAPI.get(paths.pathRedeemRequestList, {
+        platform: "web",
+        process: "redeem-reward-request",
+        page: "all",
+        page_size: pageSize,
+        page_length: current,
+      });
+      if (res.status === 200) {
+        const list = res.data?.data || [];
+        const formatted = list.map((item, index) => ({
+          key: index + 1 + (current - 1) * pageSize,
+          shop_name: item.shop_name || "-",
+          customer_name: item.customer_name || "-",
+          reward_name: item.reward_name || "-",
+          qty: item.qty ?? "-",
+          points: item.points ?? "-",
+          date: item.created_at?.split(" ")[0],
+          status: (
+            <BadgeStatus
+              text={item.status_name}
+              bgColor={item.status_bg_color || "gray"}
+              textColor={item.status_color || "white"}
+            />
+          ),
+          action: (
+            <Dropdown
+              menu={{
+                items: [
+                  {
+                    key: "view",
+                    label: (
+                      <ItemDropDown
+                        mode="view"
+                        onClick={() =>
+                          navigate("/redeem/reward/request/view", { state: { id: item.id } })
+                        }
+                      />
+                    ),
+                  },
+                ],
+              }}
+            >
+              <a onClick={(e) => e.preventDefault()}>
+                <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
+              </a>
+            </Dropdown>
+          ),
+        }));
+        setRequestDataSource(formatted);
+        setRequestTableParams((prev) => ({
+          ...prev,
+          pagination: { ...prev.pagination, total: res.data.records_filtered },
+        }));
+      }
+    } finally {
+      setRequestTableLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchData();
-  }, [
-    tableParams.pagination.current,
-    tableParams.pagination.pageSize,
-    JSON.stringify(tableParams.filters),
-  ]);
-
-  const handleSearch = (filters) => {
-    setTableParams((prev) => ({
-      ...prev,
-      pagination: { ...prev.pagination, current: 1 },
-      filters,
-    }));
-  };
-
-  const handleClear = () => {
-    setTableParams((prev) => ({
-      ...prev,
-      filters: {},
-    }));
-  };
+    if (activeTab === "list") fetchList();
+    else fetchRequest();
+  }, [activeTab, tableParams.pagination.current, requestTableParams.pagination.current]);
 
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Redeem List</div>
+        <div className="title-page">Redeem Reward</div>
         <ActionButton mode="create" text="Create" onClick={() => navigate("create")} />
       </div>
-      <Filter filters={filters} onSearch={handleSearch} onClear={handleClear} />
-      <BoxPrimary>
-        <TableComponent
-          header={header}
-          dataSource={dataSource}
-          loading={tableLoading}
-          pagination={tableParams.pagination}
-          onChange={(pagination) => {
-            setTableParams((prev) => ({
-              ...prev,
-              pagination,
-            }));
-          }}
-        />
-      </BoxPrimary>
+
+      <Tabs className="custom-tabs" activeKey={activeTab} onChange={setActiveTab}>
+        <TabPane tab={<span className="tab-title">Redeem Reward List</span>} key="list">
+          <Filter filters={filtersList} />
+          <BoxPrimary className="mt-4">
+            <TableComponent
+              header={listHeader}
+              dataSource={dataSource}
+              loading={tableLoading}
+              pagination={tableParams.pagination}
+              onChange={(pagination) =>
+                setTableParams((prev) => ({ ...prev, pagination }))
+              }
+            />
+          </BoxPrimary>
+        </TabPane>
+
+        <TabPane tab={<span className="tab-title">Redeem Reward Request List</span>} key="request">
+          <Filter filters={filtersRequest} />
+          <BoxPrimary className="mt-4">
+            <TableComponent
+              header={requestHeader}
+              dataSource={requestDataSource}
+              loading={requestTableLoading}
+              pagination={requestTableParams.pagination}
+              onChange={(pagination) =>
+                setRequestTableParams((prev) => ({ ...prev, pagination }))
+              }
+            />
+          </BoxPrimary>
+        </TabPane>
+      </Tabs>
     </MainLayout>
   );
 }

@@ -166,6 +166,7 @@ import CreateRewardCampaign from "./pages/settings/mobile/reward_campaign/Create
 import ViewOrEditTargetGroup from "./pages/settings/mobile/target_group/ViewOrEditTargetGroup";
 import CollectPointsDetail from "./pages/mobile/collect_points/CollectPointsDetail";
 import CollectPointsList from "./pages/settings/mobile/collect_points/CollectPointsList";
+import RedeemDetail from "./pages/settings/mobile/redeem_list/RedeemDetail";
 
 
 const App = () => {
@@ -363,6 +364,7 @@ const App = () => {
             {/* <Route path="/setting/line/reward-campaign" element={<ManagePromotionList />} /> */}
             {/* <Route path="/setting/line/reward-campaign/create" element={<CreateManagePromotion />} /> */}
             <Route path="/points/line/redeem-reward-list" element={<RedeemList />} />
+            <Route path="/points/line/redeem-reward-list:mode" element={<RedeemDetail />} />
             <Route path="/setting/line/redeem-request" element={<RedeemRequestList />} />
             <Route path="/setting/line/redeem-product" element={<RedeemProduct />} />
             <Route path="/setting/line/request-purchase" element={<RewardProductList />} />
