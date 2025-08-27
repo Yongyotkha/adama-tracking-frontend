@@ -17,6 +17,7 @@ import WorkPlanCreate from "./pages/sale_plan/workplan/WorkPlanCreate";
 import WorkPlanCreateStepTwo from "./pages/sale_plan/workplan/WorkPlanCreateStepTwo";
 import SettingRole from "./pages/settings/role/SettingRole";
 import SettingUser from "./pages/settings/user/SettingUser";
+import LogUser from "./pages/settings/user/LogUser";
 import ProfileUser from "./pages/settings/user/ProfileUser";
 import CreateUser from "./pages/settings/user/CreateUser";
 import EditUser from "./pages/settings/user/EditUser";
@@ -293,6 +294,8 @@ const App = () => {
             <Route path="/customer/contact/edit" element={<CustomerContactFrom />} />
 
             {/* Setting Route */}
+            <Route path="/setting/log-login" element={<LogUser />} />
+
             <Route path="/setting/role" element={<SettingRole />} />
             <Route path="/setting/profile" element={<ProfileUser />} />
             <Route path="/setting/user" element={<SettingUser />} />
