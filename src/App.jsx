@@ -138,9 +138,7 @@ import OrderHistoryDetail from "./pages/mobile/order_history/OrderHistoryDetail"
 import PointHistory from "./pages/mobile/point_history/PointHistory";
 import RedeemList from "./pages/settings/mobile/redeem_list/RedeemList";
 import RedeemRequestList from "./pages/settings/mobile/redeem_request/RedeemRequestList";
-import RewardProductList from "./pages/settings/mobile/reward_product/RewardProductList";
 import RedeemProduct from "./pages/settings/mobile/redeem_product/RedeemProduct";
-import RewardProductCreate from "./pages/settings/mobile/reward_product/RewardProductCreate";
 import RegisteredCustomerList from "./pages/settings/mobile/registered_customer/RegisteredCustomerList";
 import RegisteredCustomerDetail from "./pages/settings/mobile/registered_customer/RegisteredCustomerDetail";
 import MileageManagement from "./pages/settings/mileage/MileageManagement";
@@ -167,6 +165,10 @@ import ViewOrEditTargetGroup from "./pages/settings/mobile/target_group/ViewOrEd
 import CollectPointsDetail from "./pages/mobile/collect_points/CollectPointsDetail";
 import CollectPointsList from "./pages/settings/mobile/collect_points/CollectPointsList";
 import RedeemDetail from "./pages/settings/mobile/redeem_list/RedeemDetail";
+import Transportation from "./pages/settings/mobile/transportation/Transportation";
+import RewardProductUpdateStock from "./pages/settings/mobile/request_purchase/RewardProductUpdateStock";
+import RequestPurchaseList from "./pages/settings/mobile/request_purchase/RequestPurchaseList";
+import TransportationDetail from "./pages/settings/mobile/transportation/TransportationDetail";
 
 
 const App = () => {
@@ -363,12 +365,17 @@ const App = () => {
             {/* <Route path="/setting/line/point-campaign/create" element={<CreateManageNews />} /> */}
             {/* <Route path="/setting/line/reward-campaign" element={<ManagePromotionList />} /> */}
             {/* <Route path="/setting/line/reward-campaign/create" element={<CreateManagePromotion />} /> */}
+            
             <Route path="/points/line/redeem-reward-list" element={<RedeemList />} />
-            <Route path="/points/line/redeem-reward-list:mode" element={<RedeemDetail />} />
+            <Route path="/points/line/redeem-reward/:mode" element={<RedeemDetail />} />
+            <Route path="/points/line/transportation" element={<Transportation />} />
+            <Route path="/points/line/transportation/detail" element={<TransportationDetail/>} />
+            <Route path="/setting/line/request-purchase" element={<RequestPurchaseList />} />
+            <Route path="/setting/line/request-purchase/update-stock" element={<RewardProductUpdateStock />} />
+
+            
             <Route path="/setting/line/redeem-request" element={<RedeemRequestList />} />
             <Route path="/setting/line/redeem-product" element={<RedeemProduct />} />
-            <Route path="/setting/line/request-purchase" element={<RewardProductList />} />
-            <Route path="/setting/line/request-purchase/create" element={<RewardProductCreate />} />
 
             <Route path="/setting/mileage" element={<MileageManagement />} />
             <Route path="/setting/mileage/edit" element={<EditMileage />} />

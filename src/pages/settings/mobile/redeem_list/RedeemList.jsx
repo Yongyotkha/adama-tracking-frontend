@@ -132,7 +132,7 @@ export default function RedeemList() {
                     <ItemDropDown
                       mode={act.action.toLowerCase()}
                       onClick={() =>
-                        navigate(`/setting/line/target-group/${act.action.toLowerCase()}`, {
+                        navigate(`/points/line/redeem-reward/${act.action.toLowerCase()}`, {
                           state: { id: item.id },
                         })
                       }
@@ -198,7 +198,7 @@ export default function RedeemList() {
                       <ItemDropDown
                         mode="view"
                         onClick={() =>
-                          navigate("/redeem/reward/request/view", { state: { id: item.id } })
+                          navigate("/redeem/reward/request/view", { state: { id: item.id} })
                         }
                       />
                     ),
@@ -232,7 +232,7 @@ export default function RedeemList() {
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Redeem Reward</div>
-        <ActionButton mode="create" text="Create" onClick={() => navigate("create")} />
+        {/* <ActionButton mode="create" text="Create" onClick={() => navigate("create")} /> */}
       </div>
 
       <Tabs className="custom-tabs" activeKey={activeTab} onChange={setActiveTab}>
