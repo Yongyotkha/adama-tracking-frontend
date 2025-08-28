@@ -369,7 +369,7 @@ const App = () => {
             <Route path="/points/line/redeem-reward-list" element={<RedeemList />} />
             <Route path="/points/line/redeem-reward/:mode" element={<RedeemDetail />} />
             <Route path="/points/line/transportation" element={<Transportation />} />
-            <Route path="/points/line/transportation/detail" element={<TransportationDetail/>} />
+            <Route path="/points/line/transportation/view" element={<TransportationDetail/>} />
             <Route path="/setting/line/request-purchase" element={<RequestPurchaseList />} />
             <Route path="/setting/line/request-purchase/update-stock" element={<RewardProductUpdateStock />} />
 
