@@ -5,8 +5,8 @@ import TableComponent from "../../../../components/table/TableComponent";
 import { Dropdown } from "antd";
 import BadgeStatus from "../../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
-import ActionButton from "../../../../components/button/ActionButton";
 import { useNavigate } from "react-router-dom";
+// ใช้ ItemDropDown ได้ หรือจะทำ label เองก็ได้
 import ItemDropDown from "../../../../components/dropdown/ItemDropDown";
 
 export default function RequestPurchaseList() {
@@ -18,139 +18,107 @@ export default function RequestPurchaseList() {
     pagination: {
       current: 1,
       pageSize: 10,
+      total: 0,
     },
     filters: {},
   });
 
-  // 🔹 Mock Data
-  const mockData = [
+  // ✅ Mock ตามดีไซน์
+  const MOCK_ROWS = [
     {
       id: 1,
-      reward_code: "20250001",
-      reward_name: "Name",
-      image_url: "/img/profile.jpg",
-      period: "01/01/2025 - 31/12/2025",
-      value: 100.0,
-      status: "Pending",
-    },
-    {
-      id: 2,
-      reward_code: "20250002",
-      reward_name: "Name",
-      image_url: "/img/profile.jpg",
-      period: "01/01/2025 - 31/12/2025",
-      value: 100.0,
-      status: "Pending",
+      reward_code: "RW00000001",
+      reward_name: "พัดลม (14 นิ้ว)",
+      stock: 1,
+      input_qty: 1,
+      update_date: "2025-05-26",
+      status_name: "Waiting for update",
+      status_bg_color: "#F59E0B",
+      status_color: "#ffffff",
     },
   ];
 
+  // โหลด mock เป็น dataSource (พร้อมเปลี่ยนเป็น API ทีหลัง)
   useEffect(() => {
     setTableLoading(true);
-    setTimeout(() => {
-      const formatted = mockData.map((item, index) => ({
-        key: index + 1,
-        image_profile: (
-          <img
-            src={item.image_url}
-            alt="Reward"
-            className="w-10 h-10 rounded-full"
-          />
-        ),
-        reward_code: item.reward_code,
-        reward_name: item.reward_name,
-        period: item.period,
-        value: item.value.toFixed(2),
-        status: (
-          <BadgeStatus
-            text={item.status}
-            bgColor="orange"
-            textColor="white"
-          />
-        ),
-        action: (
-          <Dropdown
-            menu={{
-              items: [
-                {
-                  key: "create",
-                  label: (
-                    <ItemDropDown mode="create" onClick={() => navigate(`/reward/create`)} />
-                  ),
-                },
-                {
-                  key: "edit",
-                  label: (
-                    <ItemDropDown mode="edit" onClick={() => navigate(`/reward/edit/${item.id}`)} />
-                  ),
-                },
-                {
-                  key: "view",
-                  label: (
-                    <ItemDropDown mode="view" onClick={() => navigate(`/reward/view/${item.id}`)} />
-                  ),
-                },
-                {
-                  key: "delete",
-                  label: (
-                    <ItemDropDown mode="delete" onClick={() => alert(`Delete ${item.id}`)} />
-                  ),
-                },
-              ],
-            }}
-          >
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="action"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      }));
+    const { current, pageSize } = tableParams.pagination;
 
-      setDataSource(formatted);
-      setTableLoading(false);
-    }, 500);
+    const mapped = MOCK_ROWS.map((item, idx) => ({
+      key: idx + 1 + (current - 1) * pageSize,
+      reward_code: item.reward_code,
+      reward_name: item.reward_name,
+      stock: item.stock,
+      input_qty: item.input_qty,
+      update_date: item.update_date,
+      status: (
+        <BadgeStatus
+          text={item.status_name}
+          bgColor={item.status_bg_color}
+          textColor={item.status_color}
+        />
+      ),
+      action: (
+        <Dropdown
+          menu={{
+            items: [
+              {
+                key: "update",
+                // ถ้า ItemDropDown ของคุณรองรับ custom label ให้ใช้ text="Update"
+                // ไม่รองรับก็แสดงเองด้วย <div> ได้
+                label: (
+                  <ItemDropDown
+                    mode="edit"
+                    text="Update"
+                    onClick={() =>
+                      navigate("/setting/line/request-purchase/update-stock", {
+                        state: { id: item.id },
+                      })
+                    }
+                  />
+                ),
+              },
+            ],
+          }}
+          placement="bottomRight"
+        >
+          <a onClick={(e) => e.preventDefault()}>
+            <img
+              src="/img/icons/action.png"
+              alt="action"
+              className="inline-block w-5 h-5"
+            />
+          </a>
+        </Dropdown>
+      ),
+    }));
+
+    setDataSource(mapped);
+    setTableParams((prev) => ({
+      ...prev,
+      pagination: { ...prev.pagination, total: mapped.length },
+    }));
+    setTableLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const filters = [
-    { key: "reward_code", type: "text", label: "Reward Code" },
-    { key: "reward_name", type: "text", label: "Reward Name" },
-    { key: "date", type: "date", label: "Date" },
-  ];
-
-  const handleSearch = (filters) => {
-    setTableParams({
-      ...tableParams,
-      pagination: { ...tableParams.pagination, current: 1 },
-      filters,
-    });
-  };
-
-  const handleClear = () => {
-    setTableParams({ ...tableParams, filters: {} });
-  };
+  // Filter (ดีไซน์มีแถบ Filter เฉย ๆ ไม่บังคับ field)
+  const filters = [];
 
   const header = [
-    { title: "No", dataIndex: "key", align: "center", width: 50 },
-    { title: "", dataIndex: "image_profile", align: "center" },
     { title: "Reward Code", dataIndex: "reward_code", align: "left" },
     { title: "Reward Name", dataIndex: "reward_name", align: "left" },
-    { title: "Period", dataIndex: "period", align: "center" },
-    { title: "Value", dataIndex: "value", align: "center" },
-    { title: "Status", dataIndex: "status", align: "center" },
-    { title: "Action", dataIndex: "action", align: "center" },
+    { title: "Stock (Pcs)", dataIndex: "stock", align: "center", width: 120 },
+    { title: "Input QTY (Pcs)", dataIndex: "input_qty", align: "center", width: 150 },
+    { title: "Update Date", dataIndex: "update_date", align: "center", width: 160 },
+    { title: "Status", dataIndex: "status", align: "center", width: 180 },
+    { title: "Action", dataIndex: "action", align: "center", width: 90 },
   ];
 
   return (
     <MainLayout loading={loading}>
-      <div className="flex items-center justify-between">
-        <div className="title-page">Request Purchase</div>
-        <ActionButton mode="create" text="Create" onClick={() => navigate("create")} />
-      </div>
+      <div className="title-page">Request Purchase</div>
 
-      <Filter filters={filters} onSearch={handleSearch} onClear={handleClear} />
+      <Filter filters={filters} />
 
       <BoxPrimary>
         <TableComponent

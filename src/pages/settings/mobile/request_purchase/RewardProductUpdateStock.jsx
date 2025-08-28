@@ -1,110 +1,99 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import MainLayout from "../../../../layouts/MainLayout";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
-import { Form, Button } from "antd";
-import { useNavigate } from "react-router-dom";
-import FormCustom from "../../../../components/form_custom/FormCustom";
+import TableComponent from "../../../../components/table/TableComponent";
 import ActionButton from "../../../../components/button/ActionButton";
+import { useNavigate } from "react-router-dom";
+
+// ✅ mock รายการเดียวตามดีไซน์
+const MOCK_ITEM = {
+  id: 1,
+  reward_code: "3027200113",
+  category_name: "อิเล็กทรอนิกส์",
+  reward_name: "พัดลม (14 นิ้ว)",
+  cost: 790,
+  qty: 100, // ค่าเริ่มต้นในภาพ
+};
 
 export default function RewardProductUpdateStock() {
   const navigate = useNavigate();
-  const [form] = Form.useForm();
+  const [row, setRow] = useState(MOCK_ITEM);
   const [loading, setLoading] = useState(false);
 
-  const fields = [
+  const subTotal = useMemo(() => (row.cost || 0) * (row.qty || 0), [row]);
+  const formatMoney = (n) =>
+    (Number(n) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const dec = () => setRow((r) => ({ ...r, qty: Math.max(0, (r.qty || 0) - 1) }));
+  const inc = () => setRow((r) => ({ ...r, qty: (r.qty || 0) + 1 }));
+  const onChangeQty = (e) => {
+    const v = e?.target?.value?.replace(/[^\d]/g, "");
+    setRow((r) => ({ ...r, qty: v === "" ? 0 : Number(v) }));
+  };
+
+  const header = [
+    { title: "Reward Code", dataIndex: "reward_code", align: "left" },
+    { title: "Category Name", dataIndex: "category_name", align: "left" },
+    { title: "Reward Name", dataIndex: "reward_name", align: "left" },
+    { title: "Cost (THB)", dataIndex: "cost", align: "right", width: 140 },
+    { title: "QTY (ctn)", dataIndex: "qty", align: "center", width: 180 },
+    { title: "Sub Total (THB)", dataIndex: "sub_total", align: "right", width: 180 },
+  ];
+
+  const dataSource = [
     {
-      name: "reward_code",
-      label: "Reward Code",
-      type: "text",
-      value: "Generate", // หรือปล่อยให้ backend เติมทีหลังก็ได้
-      disabled: true,
-      col: 24,
-    },
-    {
-      name: "reward_name",
-      label: "Reward Name",
-      type: "text",
-      required: true,
-      placeholder: "Reward Name",
-      col: 24,
-    },
-    {
-      name: "short_description",
-      label: "Short Description",
-      type: "text",
-      required: true,
-      placeholder: "Short Description",
-      col: 24,
-    },
-    {
-      name: "description",
-      label: "Description",
-      type: "text-editor",
-      placeholder: "Add description",
-      col: 24,
-    },
-    {
-      name: "condition",
-      label: "Condition",
-      type: "textarea",
-      placeholder: "Add description",
-      col: 24,
-    },
-    {
-      name: "show_value",
-      label: "Show Value",
-      type: "number",
-      placeholder: "Value",
-      col: 12,
-    },
-    {
-      name: "real_value",
-      label: "Real Value",
-      type: "number",
-      placeholder: "Value",
-      col: 12,
-    },
-    {
-      name: "picture",
-      label: "Picture",
-      type: "photo",
-      col: 24,
+      key: 1,
+      reward_code: row.reward_code,
+      category_name: row.category_name,
+      reward_name: row.reward_name,
+      cost: formatMoney(row.cost),
+      qty: (
+        <div className="flex items-center justify-center gap-2">
+          <button
+            type="button"
+            onClick={dec}
+            className="w-8 h-8 rounded-full border flex items-center justify-center"
+            aria-label="decrease"
+          >
+            –
+          </button>
+          <input
+            className="w-20 text-center border rounded-md h-8"
+            value={row.qty}
+            onChange={onChangeQty}
+          />
+          <button
+            type="button"
+            onClick={inc}
+            className="w-8 h-8 rounded-full border flex items-center justify-center"
+            aria-label="increase"
+          >
+            +
+          </button>
+        </div>
+      ),
+      sub_total: formatMoney(subTotal),
     },
   ];
 
-  const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields();
-      console.log("✅ Form Submitted:", values);
-      // TODO: ส่งข้อมูลไป backend
-    } catch (error) {
-      console.warn("Form validation failed:", error);
-    }
+  const handleUpdate = async () => {
+    // TODO: call API update stock เช่น:
+    // await useServiceAPI.post(paths.pathRequestPurchaseUpdate, { id: row.id, qty: row.qty })
+    console.log("Update payload:", { id: row.id, qty: row.qty });
+    navigate(-1);
   };
 
   return (
-    <MainLayout loading={loading}>
-      <div className="flex items-center justify-between">
-        <div className="title-page">Create Request Purchase</div>
-      </div>
+    <MainLayout  loading={loading}>
+      <div className="title-page">Update Stock</div>
 
-      <FormCustom
-        fields={fields}
-        form={form}
-        title={null}
-        mode="create"
-      />
-      <div className="flex justify-end space-x-4">
-        <ActionButton
-          text="Back"
-          mode="back"
-          onClick={() => navigate(-1)}
-        />
-        <ActionButton
-          text="Save"
-          mode="save"
-          onClick={() => handleSubmit}
-        />
+      <BoxPrimary>
+        <TableComponent header={header} dataSource={dataSource} pagination={false} />
+      </BoxPrimary>
+
+      <div className="flex justify-end gap-3 mt-4">
+        <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />
+        <ActionButton mode="save" text="Update" onClick={handleUpdate} />
       </div>
     </MainLayout>
   );
