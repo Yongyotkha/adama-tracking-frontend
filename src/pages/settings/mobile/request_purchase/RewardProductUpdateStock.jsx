@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import FormCustom from "../../../../components/form_custom/FormCustom";
 import ActionButton from "../../../../components/button/ActionButton";
 
-export default function RewardProductCreate() {
+export default function RewardProductUpdateStock() {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);

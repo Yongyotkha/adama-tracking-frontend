@@ -9,7 +9,7 @@ import ActionButton from "../../../../components/button/ActionButton";
 import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../../components/dropdown/ItemDropDown";
 
-export default function RewardProductList() {
+export default function RequestPurchaseList() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
