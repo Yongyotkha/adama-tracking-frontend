@@ -14,7 +14,20 @@ const { TabPane } = Tabs;
 
 /** ---------------- MOCK DATA (ใช้ชั่วคราว) ---------------- */
 const MOCK_TRANSPORT_LIST = [
-  // ตัวอย่าง: แท็บ Transportation List (ว่างตามภาพแรก)
+  {
+    id: "TP-20250526-0001",
+    date: "2025-05-26",
+    sub_dealer_name: "บ้านธาราเกษตร 11",
+    reward_code: "RW00000001",
+    reward_name: "พัดลม (14 นิ้ว)",
+    qty: 1,
+    cost: 790,
+    send_by: "Mail/Shipping",
+    send_date: "2025-05-26",
+    status_name: "Delivery",
+    status_bg_color: "#F59E0B",
+    status_color: "#ffffff",
+  },
 ];
 
 const MOCK_PREPARATION_LIST = [
