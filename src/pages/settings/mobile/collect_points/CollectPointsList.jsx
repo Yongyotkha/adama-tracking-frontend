@@ -13,7 +13,7 @@ import { AuthContext } from "../../../../contexts/AuthContext";
 
 export default function CollectPointsList() {
   const navigate = useNavigate();
-  const { showMsg } = useContext(AuthContext); // <-- use AuthContext like FormSubDealer
+  const { showMsg } = useContext(AuthContext);
 
   // master & filter options
   const [loading, setLoading] = useState(false);
@@ -30,8 +30,9 @@ export default function CollectPointsList() {
   const [tableParams, setTableParams] = useState({
     pagination: { current: 1, pageSize: 10, total: 0 },
     filters: {},
-    sortOrder: null,
-    sortField: null,
+    // ให้สอดคล้องกับหน้า SalesPointsList
+    sortOrder: "desc",
+    sortField: "document_number",
   });
 
   // ---------- Load Masters ----------
@@ -102,7 +103,7 @@ export default function CollectPointsList() {
     getSubDealers();
   }, [filterValues.dealer_id]);
 
-  // ---------- Fetch List ----------
+  // ---------- Fetch List (ใช้ endpoint/พารามิเตอร์เดียวกับ SalesPointsList) ----------
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -119,24 +120,27 @@ export default function CollectPointsList() {
     const { current, pageSize } = tableParams.pagination;
     const f = tableParams.filters || {};
 
-    // map filter values to API spec
+    // ให้สอดคล้องรูปแบบ payload ของหน้า SalesPointsList
     const requestData = {
-      page_size: pageSize,
-      page_length: current,
-      keyword: f.keyword || "", // document/order number
-      use_flag: f.use_flag ?? "1",
       user_id: f.user_id || "",
       dealer_id: f.dealer_id || "",
       sub_dealer_id: f.sub_dealer_id || "",
-      farmer_id: f.farmer_id || "",
-      status_code: "ODD", // fixed
+      keyword: f.keyword || "", // document/order number
       trasaction_status_code: f.trasaction_status_code || "",
       payment_status_code: f.payment_status_code || "",
+      use_flag: f.use_flag ?? "",
+      dater: f.dater || "",
       page: "all",
+      status_code: "ODC", // <-- ใช้สถานะตามที่ขอ
+      orderby_column: tableParams.sortField || "document_number",
+      orderby: tableParams.sortOrder || "desc",
+      page_length: current,
+      page_size: pageSize,
     };
 
     try {
-      const res = await useServiceAPI.get(paths.pathSalePointOrderCollectList, requestData);
+      // เปลี่ยนเป็น order list เดียวกับ SalesPointsList
+      const res = await useServiceAPI.get(paths.pathSalePointOrderList, requestData);
       if (res.status === 200) {
         const payload = res.data || {};
         const rows = payload.data || [];
@@ -160,7 +164,7 @@ export default function CollectPointsList() {
   // ---------- Table helpers ----------
   function elementHtml(list, current, pageSize) {
     return list.map((r, idx) => ({
-      key: r.document_number || idx + 1 + (current - 1) * pageSize, // stable key preferred
+      key: r.document_number || idx + 1 + (current - 1) * pageSize, // stable key
       documentNo: r.document_number,
       dealerName: r.dealer_name,
       subDealerName: r.sub_dealer_name,
@@ -168,6 +172,7 @@ export default function CollectPointsList() {
       valueTHB: r.net_amount_display,
       date: r.document_date,
       point: r.point,
+      // ใช้ฟิลด์สถานะเดิม (transaction/payment/interface) ที่หน้า Collect ใช้อยู่
       trxStatus: (
         <BadgeStatus
           text={r.status_transaction_name}
@@ -198,7 +203,7 @@ export default function CollectPointsList() {
                 <ItemDropDown
                   mode={String(a.action || "View").toLowerCase()}
                   onClick={() =>
-                    navigate("/sale/collect-points/view", {
+                    navigate("/points/line/collect-points-list/view", {
                       state: { document_number: r.document_number, mod: a.action || "View" },
                     })
                   }
@@ -241,8 +246,8 @@ export default function CollectPointsList() {
       pagination,
       // เก็บฟิลเตอร์เดิมไว้
       filters: prev.filters,
-      sortOrder: sorter?.order === "descend" ? "desc" : sorter?.order ? "asc" : null,
-      sortField: sorter?.field || null,
+      sortOrder: sorter?.order === "descend" ? "desc" : sorter?.order ? "asc" : prev.sortOrder,
+      sortField: sorter?.field || prev.sortField,
     }));
   };
 

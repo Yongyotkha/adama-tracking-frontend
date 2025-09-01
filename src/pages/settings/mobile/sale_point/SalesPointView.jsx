@@ -247,6 +247,8 @@ export default function SalesPointView() {
     </tr>
   );
 
+  console.log(getUserId);
+
   // ฟิลด์ฟอร์มแสดง readonly
   const formFields = [
     {

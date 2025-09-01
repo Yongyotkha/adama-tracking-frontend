@@ -104,7 +104,7 @@ export default function SalesPointsList() {
           <ItemDropDown
             mode="view"
             onClick={() =>
-              navigate("/points/line/sales-points-request/create", {
+              navigate("/points/line/sales-points-list/create", {
                 state: { request_id: record.request_id },
               })
             }
@@ -112,32 +112,35 @@ export default function SalesPointsList() {
         ),
       });
     }
-    if (actions.includes("edit")) {
-      items.push({
-        key: "edit",
-        label: (
-          <ItemDropDown
-            mode="edit"
-            onClick={() =>
-              navigate("/points/line/sales-points-request/edit", {
-                state: { request_id: record.request_id },
-              })
-            }
-          />
-        ),
-      });
-    }
-    if (actions.includes("delete")) {
-      items.push({
-        key: "delete",
-        label: (
-          <ItemDropDown
-            mode="delete"
-            onClick={() => console.log("Delete request", record.request_id)}
-          />
-        ),
-      });
-    }
+    // if (actions.includes("edit")) {
+    items.push({
+      key: "edit",
+      label: (
+        <ItemDropDown
+          mode="edit"
+          onClick={() =>
+            navigate("/points/line/sales-points-list/edit", {
+              state: { request_id: record.request_id },
+            })
+          }
+        />
+      ),
+    });
+    // }
+    // if (actions.includes("delete")) {
+    items.push({
+      key: "delete",
+      label: (
+        <ItemDropDown
+          mode="delete"
+          // onClick={() => console.log("Delete request", record.request_id)}
+          onClick={() => {
+            handleDelete(record.request_id);
+          }}
+        />
+      ),
+    });
+    // }
 
     return (
       <Dropdown menu={{ items }} placement="bottom">
@@ -553,7 +556,6 @@ export default function SalesPointsList() {
     { title: "Status", width: 150, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
-
 
 
   const handleSearch = (filters) => {

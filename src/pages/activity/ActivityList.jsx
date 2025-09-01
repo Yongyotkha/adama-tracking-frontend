@@ -102,6 +102,7 @@ export default function ActivityList() {
     setIsMappingModalVisible(false);
     updateMappingDetail();
   };
+  console.log(saleList)
 
   const filters = [
     {

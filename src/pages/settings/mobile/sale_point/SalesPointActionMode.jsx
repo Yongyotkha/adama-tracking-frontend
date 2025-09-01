@@ -17,7 +17,7 @@ export default function SalesPointActionMode() {
   const navigate = useNavigate();
   const location = useLocation();
   const { showMsg, showNotification } = useContext(AuthContext);
-  const { mode = "create" } = useParams();            // 'create' | 'edit' | 'view'
+  const { mode = "create" } = useParams(); // 'create' | 'edit' | 'view'
   const isCreate = mode === "create";
   const isEdit = mode === "edit";
   const isView = mode === "view";
@@ -34,10 +34,10 @@ export default function SalesPointActionMode() {
   const [subDealerId, setSubDealerId] = useState("");
   const [searchProductData, setSearchProductData] = useState([]);
   const [inputRemark, setInputRemark] = useState("");
-  const [docNumber, setDocNumber] = useState("");      // ใช้ตอน edit
+  const [docNumber, setDocNumber] = useState(""); // ใช้ตอน edit/view
 
-  const [fileList, setFileList] = useState([]);        // bill
-  const [fileListReceive, setFileListReceive] = useState([]); // picture
+  const [fileList, setFileList] = useState([]); // bill
+  const [fileListReceive, setFileListReceive] = useState([]); // product pictures
 
   const fileUploadRef = useRef(null);
   const fileUploadRefReceive = useRef(null);
@@ -51,7 +51,7 @@ export default function SalesPointActionMode() {
       status: "done",
       url: x.part,
     }));
-  const toNumber = (v) => Number(String(v || "0").replace(/,/g, "") || 0);
+  const toNumber = (v) => Number(String(v ?? "0").replace(/,/g, "")) || 0;
 
   // ---------- master ----------
   useEffect(() => {
@@ -82,7 +82,7 @@ export default function SalesPointActionMode() {
     if (isCreate && location.state?.data) {
       const { user_id, dealer_id, sub_dealer_id, products = [], others = [], remark = "" } =
         location.state.data;
-      setDataSaleId(Number(user_id) || "");
+      setDataSaleId(user_id || "");
       setDealerId(dealer_id || "");
       setSubDealerId(sub_dealer_id || "");
       setDataSource(products);
@@ -91,12 +91,12 @@ export default function SalesPointActionMode() {
     }
   }, [isCreate, location.state]);
 
-  // ---------- EDIT: load detail ----------
+  // ---------- EDIT/VIEW: load detail ----------
   useEffect(() => {
     (async () => {
       if (!isEdit && !isView) return;
       const document_number = location.state?.document_number;
-      if (!document_number) return; // ควรส่งมาจากหน้า List
+      if (!document_number) return;
 
       setLoading(true);
       try {
@@ -107,7 +107,7 @@ export default function SalesPointActionMode() {
         if (!d) return;
 
         setDocNumber(d.document_number || "");
-        setDataSaleId(Number(d.user_id) || "");
+        setDataSaleId(d.user_id || "");
         setDealerId(d.dealer_id || "");
         setSubDealerId(d.sub_dealer_id || "");
         setInputRemark(d.ref_remark || "");
@@ -121,7 +121,7 @@ export default function SalesPointActionMode() {
             product_code: p.product_code,
             product_name: p.product_name,
             product_unit: p.product_unit,
-            product_unit_thb: p.product_unit_thb, // เก็บเป็น string/numberได้ เดี๋ยวแปลงตอนส่ง
+            product_unit_thb: p.product_unit_thb,
             product_campaign_order_min_foc: Number(p.product_campaign_order_min_foc || 0),
             product_campaign_foc: Number(p.product_campaign_foc || 0),
             quantity: toNumber(p.quantity),
@@ -130,7 +130,7 @@ export default function SalesPointActionMode() {
           }))
         );
 
-        // others (ถ้ามีใช้)
+        // others
         setDataSourceOther(
           (d.others || []).map((o, idx) => ({
             key: idx + 1,
@@ -142,11 +142,11 @@ export default function SalesPointActionMode() {
           }))
         );
 
-        // แนบไฟล์
-        setFileList(asFileItems(d.bill || []));     // bill
-        setFileListReceive(asFileItems(d.picture || [])); // picture
+        // files
+        setFileList(asFileItems(d.bill || [])); // bill
+        setFileListReceive(asFileItems(d.picture || [])); // product pictures
 
-        // โหลด master ให้ select แสดงชื่อ
+        // masters for select display
         if (d.user_id) {
           const dealer = await useServiceAPI.get(paths.pathUserLineDealer, { sale_id: d.user_id });
           setDataDealer(dealer.data || []);
@@ -164,7 +164,6 @@ export default function SalesPointActionMode() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit, isView]);
 
-
   // ---------- Form fields ----------
   const formFields = [
     {
@@ -172,9 +171,9 @@ export default function SalesPointActionMode() {
       name: "sale",
       type: "select",
       options: dataSale,
-      disabled: isEdit || isView, // edit: ปิดแก้ไข หากต้องการให้แก้ก็เปลี่ยนเป็น false
+      disabled: isEdit || isView,
       moderef: true,
-      value: dataSaleId ? Number(dataSaleId) : undefined,
+      value: dataSaleId || undefined,
     },
     {
       label: "Dealer",
@@ -197,7 +196,8 @@ export default function SalesPointActionMode() {
       name: "order_no",
       type: "text",
       disabled: true,
-      value: docNumber || "",
+      value: docNumber,
+      placeholder: docNumber || "(Auto Generate)",
     },
     {
       label: "Date",
@@ -208,41 +208,69 @@ export default function SalesPointActionMode() {
     },
   ];
 
-
   const handleChange = (field, val) => {
-    if (field === "sale") { setDataSaleId(val); loadDealer(val); }
-    if (field === "dealer") { setDealerId(val); loadSubDealer(val); }
+    if (field === "sale") {
+      setDataSaleId(val);
+      loadDealer(val);
+    }
+    if (field === "dealer") {
+      setDealerId(val);
+      loadSubDealer(val);
+    }
     if (field === "sub_dealer") setSubDealerId(val);
   };
 
-  // ---------- ตาราง (render เดิม) ----------
+  // ---------- ตาราง ----------
   const header = [
     { title: "No", dataIndex: "no", key: "no" },
     { title: "SKU", dataIndex: "product_code", key: "product_code" },
     { title: "Product Name", dataIndex: "product_name", key: "product_name" },
     { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
     {
-      title: "THB/Unit", dataIndex: "product_unit_thb", key: "product_unit_thb",
-      render: (t) => toNumber(t).toLocaleString("en-US", { minimumFractionDigits: 2 })
+      title: "THB/Unit",
+      dataIndex: "product_unit_thb",
+      key: "product_unit_thb",
+      render: (t) => toNumber(t).toLocaleString("en-US", { minimumFractionDigits: 2 }),
     },
     {
-      title: <div className="text-center">QTY (ctn)</div>, dataIndex: "quantity", key: "quantity",
+      title: <div className="text-center">QTY (ctn)</div>,
+      dataIndex: "quantity",
+      key: "quantity",
       render: (_, r) => (
         <div className="quantity-control flex justify-center items-center">
-          <img src="/img/icons/collapse.png" className="w-6 h-6 cursor-pointer"
-            onClick={() => handleQty(r.key, r.quantity - 1)} />
-          <Input inputMode="numeric" min={0} value={r.quantity}
-            onChange={(e) => handleQty(r.key, parseInt(e.target.value) || 0)}
-            className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20" />
-          <img src="/img/icons/expand.png" className="w-6 h-6 cursor-pointer"
-            onClick={() => handleQty(r.key, r.quantity + 1)} />
+          {!isView && (
+            <>
+              <img
+                src="/img/icons/collapse.png"
+                className="w-6 h-6 cursor-pointer"
+                onClick={() => handleQty(r.key, r.quantity - 1)}
+                alt="decrease"
+              />
+              <Input
+                inputMode="numeric"
+                min={0}
+                value={r.quantity}
+                onChange={(e) => handleQty(r.key, parseInt(e.target.value) || 0)}
+                className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
+              />
+              <img
+                src="/img/icons/expand.png"
+                className="w-6 h-6 cursor-pointer"
+                onClick={() => handleQty(r.key, r.quantity + 1)}
+                alt="increase"
+              />
+            </>
+          )}
+          {isView && <div>{r.quantity}</div>}
         </div>
       ),
     },
     { title: "FOC (ctn)", dataIndex: "foc", key: "foc" },
     {
-      title: "Sub Total (THB)", dataIndex: "net_amount", key: "net_amount",
-      render: (t) => toNumber(t).toLocaleString("en-US", { minimumFractionDigits: 2 })
+      title: "Sub Total (THB)",
+      dataIndex: "net_amount",
+      key: "net_amount",
+      render: (t) => toNumber(t).toLocaleString("en-US", { minimumFractionDigits: 2 }),
     },
   ];
   const handleQty = (key, q) => {
@@ -251,7 +279,9 @@ export default function SalesPointActionMode() {
         if (it.key !== key) return it;
         const quantity = Math.max(0, q);
         const net = quantity * toNumber(it.product_unit_thb);
-        const foc = it.product_campaign_order_min_foc ? Math.floor(quantity / it.product_campaign_order_min_foc) : 0;
+        const foc = it.product_campaign_order_min_foc
+          ? Math.floor(quantity / it.product_campaign_order_min_foc)
+          : 0;
         return { ...it, quantity, net_amount: net.toFixed(2), foc };
       })
     );
@@ -273,23 +303,58 @@ export default function SalesPointActionMode() {
   // ---------- upload ----------
   const handleUploadSuccess = (resp) => {
     const d = resp.data;
-    setFileList((prev) => [...prev, { uid: d.file_key, name: d.file_name, status: "done", url: d.file_url }]);
+    setFileList((prev) => [
+      ...prev,
+      { uid: d.file_key, name: d.file_name, status: "done", url: d.file_url },
+    ]);
   };
   const handleUploadReceiveSuccess = (resp) => {
     const d = resp.data;
-    setFileListReceive((prev) => [...prev, { uid: d.file_key, name: d.file_name, status: "done", url: d.file_url }]);
+    setFileListReceive((prev) => [
+      ...prev,
+      { uid: d.file_key, name: d.file_name, status: "done", url: d.file_url },
+    ]);
   };
 
-  // ---------- submit ----------
-  const buildPayload = () => ({
-    document_number: docNumber,                               // สำคัญตอน edit
-    document_date: dayjs().format("YYYY-MM-DD"),
+  // ---------- payload builders ----------
+  const getOrderDateString = () => {
+    const v = formCustom.getFieldValue("order_date");
+    return v ? dayjs(v).format("YYYY-MM-DD") : dayjs().format("YYYY-MM-DD");
+  };
+
+  const buildCreatePayload = () => ({
+    document_date: getOrderDateString(),
     user_id: Number(dataSaleId || 0),
     dealer_id: Number(dealerId || 0),
     sub_dealer_id: Number(subDealerId || 0),
     farmer_id: 1,
     remark: inputRemark || "",
-    picture: fileListReceive.map((f) => f.url),
+    status_code: "ODW",
+    product: fileListReceive.map((f) => f.url), // <— รูปสินค้า
+    bill: fileList.map((f) => f.url), // <— บิล
+    products: dataSource.map((p) => ({
+      product_id: Number(p.product_id),
+      product_code: p.product_code,
+      product_name: p.product_name,
+      product_unit: p.product_unit,
+      product_unit_thb: toNumber(p.product_unit_thb),
+      product_campaign_order_min_foc: Number(p.product_campaign_order_min_foc || 0),
+      product_campaign_foc: Number(p.product_campaign_foc || 0),
+      quantity: Number(p.quantity || 0),
+      foc: Number(p.foc || 0),
+      net_amount: toNumber(p.net_amount),
+    })),
+  });
+
+  const buildUpdatePayload = () => ({
+    document_number: docNumber,
+    document_date: getOrderDateString(),
+    user_id: Number(dataSaleId || 0),
+    dealer_id: Number(dealerId || 0),
+    sub_dealer_id: Number(subDealerId || 0),
+    farmer_id: 1,
+    remark: inputRemark || "",
+    picture: fileListReceive.map((f) => f.url), // (คงรูปแบบเดิมของ update)
     bill: fileList.map((f) => f.url),
     products: dataSource.map((p) => ({
       product_id: Number(p.product_id),
@@ -305,31 +370,46 @@ export default function SalesPointActionMode() {
     })),
   });
 
-  const handleConfirmCreate = () => {
-    formCustom.validateFields().then((values) => {
-      const body = {
-        document_date: values.order_date,
-        user_id: dataSaleId,
-        dealer_id: dealerId,
-        sub_dealer_id: subDealerId,
-        remark: inputRemark,
-        products: dataSource,
-        others: dataSourceOther,
-        fileList: fileList,
-        fileListReceive: fileListReceive,
-      };
-      navigate("/points/line/sales-points-list/detail", { state: { data: body } });
-    });
+  // ---------- actions ----------
+  const handleConfirmCreate = async () => {
+    // (ถ้าต้องการ validate ฟิลด์ เพิ่ม required ใน FormCustom ได้)
+    const payload = buildCreatePayload();
+    setLoading(true);
+    try {
+      const res = await useServiceAPI.post(paths.pathSalePointOrderCreate, payload);
+      if (res?.status === 200) {
+        const title = res?.data?.data?.message || res?.data?.message || "Notification";
+        const lines =
+          res?.data?.data?.message_line ||
+          res?.data?.message_line ||
+          ["Save successfully"];
+        showNotification("success", title, lines).then(() => {
+          navigate("/points/line/sales-points-list");
+        });
+      } else {
+        const title = res?.data?.data?.message || res?.data?.message || "Notification";
+        const lines =
+          res?.data?.data?.message_line ||
+          res?.data?.message_line ||
+          ["Save failed"];
+        showNotification("warning", title, lines);
+      }
+    } catch (e) {
+      showNotification("error", "Notification", [e.message || "เกิดข้อผิดพลาด"]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUpdate = async () => {
-    const payload = buildPayload();
+    const payload = buildUpdatePayload();
     setLoading(true);
     try {
       const res = await useServiceAPI.put(paths.pathSalePointOrderUpdate, payload);
       if (res?.status === 200) {
-        showNotification("success", "Updated", ["บันทึกสำเร็จ"]);
-        navigate("/points/line/sales-points-list");
+        showNotification("success", "Updated", ["บันทึกสำเร็จ"]).then(() => {
+          navigate("/points/line/sales-points-list");
+        });
       } else {
         showNotification("error", "Update failed", [res?.data?.message || "Unknown error"]);
       }
@@ -352,21 +432,42 @@ export default function SalesPointActionMode() {
         {isView ? null : (
           <div className="mb-3 flex justify-end">
             <Select
-              showSearch placeholder="Search Product" optionFilterProp="label" className="w-full"
-              onChange={(v) => {/* ใส่ onChangeProduct ของคุณได้ตามเดิม */ }} onSearch={(v) => {/* onSearchProduct */ }}
-              options={searchProductData} value="" />
+              showSearch
+              placeholder="Search Product"
+              optionFilterProp="label"
+              className="w-full"
+              onChange={(v) => {
+                /* ใส่ onChangeProduct ของคุณได้ */
+              }}
+              onSearch={(v) => {
+                /* ใส่ onSearchProduct ของคุณได้ */
+              }}
+              options={searchProductData}
+              value=""
+            />
           </div>
         )}
       </BoxPrimary>
 
       <BoxPrimary title="Order List">
-        <TableComponent header={header} dataSource={dataSource} pageSize={10} footer={footerOrderList} />
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pageSize={10}
+          footer={footerOrderList}
+        />
       </BoxPrimary>
 
       <BoxPrimary>
         <div className="flex items-center justify-between">
           <div className="text-[#00783F] text-lg font-semibold mb-3">Attachments (Bill)</div>
-          {!isView && <ActionButton mode="add" text="Upload File" onClick={() => fileUploadRef.current?.triggerUpload()} />}
+          {!isView && (
+            <ActionButton
+              mode="add"
+              text="Upload File"
+              onClick={() => fileUploadRef.current?.triggerUpload()}
+            />
+          )}
         </div>
         <FileUploadComponent
           ref={fileUploadRef}
@@ -378,8 +479,16 @@ export default function SalesPointActionMode() {
 
       <BoxPrimary>
         <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">Picture of product receive</div>
-          {!isView && <ActionButton mode="add" text="Upload File" onClick={() => fileUploadRefReceive.current?.triggerUpload()} />}
+          <div className="text-[#00783F] text-lg font-semibold mb-3">
+            Picture of product receive
+          </div>
+          {!isView && (
+            <ActionButton
+              mode="add"
+              text="Upload File"
+              onClick={() => fileUploadRefReceive.current?.triggerUpload()}
+            />
+          )}
         </div>
         <FileUploadComponent
           ref={fileUploadRefReceive}
@@ -391,19 +500,27 @@ export default function SalesPointActionMode() {
 
       <BoxPrimary title="Remark">
         <Input.TextArea
-          placeholder="Remark" rows={2} value={inputRemark}
-          disabled={isView} onChange={(e) => setInputRemark(e.target.value)}
+          placeholder="Remark"
+          rows={2}
+          value={inputRemark}
+          disabled={isView}
+          onChange={(e) => setInputRemark(e.target.value)}
         />
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/points/line/sales-points-list")} />
-        {isCreate && <ActionButton mode="save" text="Confirm" onClick={handleConfirmCreate} />}
+        <ActionButton
+          mode="back"
+          text="Back"
+          onClick={() => navigate("/points/line/sales-points-list")}
+        />
+        {isCreate && (
+          <ActionButton mode="save" text="Confirm" onClick={handleConfirmCreate} />
+        )}
         {isEdit && <ActionButton mode="save" text="Update" onClick={handleUpdate} />}
       </div>
 
-      {/* ถ้าต้องใช้ DynamicModal ใน flow เดิม คงไว้ได้ */}
-      <DynamicModal title="Add" isVisible={false} onClose={() => { }} header={[]} dataSource={[]} />
+      <DynamicModal title="Add" isVisible={false} onClose={() => {}} header={[]} dataSource={[]} />
     </MainLayout>
   );
 }
