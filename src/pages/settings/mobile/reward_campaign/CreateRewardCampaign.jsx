@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useMemo } from "react";
+import React, { useContext, useState, useEffect, useMemo, useRef } from "react";
 import MainLayout from "../../../../layouts/MainLayout";
 import FormCustom from "../../../../components/form_custom/FormCustom";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
@@ -9,7 +9,8 @@ import dayjs from "dayjs";
 import TableComponent from "../../../../components/table/TableComponent";
 import useServiceAPI from "../../../../services/CorsService";
 import { paths } from "../../../../services/CorsPath";
-
+import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
+import FileUploadComponent from "../../../../components/file_upload/FileUploadComponent";
 export default function CreateRewardCampaign() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -17,9 +18,9 @@ export default function CreateRewardCampaign() {
   const location = useLocation();                // รับ state.id จาก List
   const [form] = Form.useForm();
   const { showNotification } = useContext(AuthContext);
-
+  const fileUploadRefReceive = useRef(null);
   const isView = String(mode).toLowerCase() === "view";
-
+  const [fileListReceive, setFileListReceive] = useState([]); // picture
   const [targetData, setTargetData] = useState([]);
   const [categoryOptions, setCategoryOptions] = useState([]);
 
@@ -190,7 +191,7 @@ export default function CreateRewardCampaign() {
 
   // ---------- ฟิลด์ฟอร์ม (ถ้า View ให้ disabled) ----------
   const formFields = useMemo(() => [
-    { label: "Banner", name: "banner", type: "photo", required: !isView, col: 24, accept: "image/png, image/jpeg", disabled: isView },
+    // { label: "Banner", name: "banner", type: "photo", required: !isView, col: 24, accept: "image/png, image/jpeg", disabled: isView },
     { label: "Reward Code", name: "code", type: "text", required: false, col: 12, placeholder: "Code", disabled: isView },
     { label: "Category", name: "category", type: "select", required: true, col: 12, options: categoryOptions, disabled: isView },
     { label: "Reward Name", name: "name", type: "text", required: true, col: 24, placeholder: "Enter", disabled: isView },
@@ -205,7 +206,7 @@ export default function CreateRewardCampaign() {
 
   const genCode = () => {
     const now = new Date();
-    return `${now.getFullYear()}${(now.getMonth()+1+"").padStart(2,"0")}${(now.getDate()+"").padStart(2,"0")}${now.getHours()}${now.getMinutes()}${now.getSeconds()}`;
+    return `${now.getFullYear()}${(now.getMonth() + 1 + "").padStart(2, "0")}${(now.getDate() + "").padStart(2, "0")}${now.getHours()}${now.getMinutes()}${now.getSeconds()}`;
   };
 
   const handleSave = async () => {
@@ -216,7 +217,7 @@ export default function CreateRewardCampaign() {
       const values = await form.validateFields();
 
       const date_start = dayjs(values.date_range?.[0]).format("YYYY-MM-DD");
-      const date_end   = dayjs(values.date_range?.[1]).format("YYYY-MM-DD");
+      const date_end = dayjs(values.date_range?.[1]).format("YYYY-MM-DD");
 
       const target = targetData
         .filter(t => t.points || t.value)
@@ -238,7 +239,8 @@ export default function CreateRewardCampaign() {
         value: values.value ? Number(values.value) : 0,
         remark: "",
         // ✅ สำคัญ: ใช้ค่าจากฟิลด์ banner
-        image: "https://adama-api.mtsc.co.th/storage/adama-smile/uploads/files/news/20250818/93587AAC-222B-4A2D-810B-70AFEA6C4419.jpg",
+        image: fileListReceive.map((f) => f.url),
+        //image: "https://adama-api.mtsc.co.th/storage/adama-smile/uploads/files/news/20250818/93587AAC-222B-4A2D-810B-70AFEA6C4419.jpg",
         use_flag: values.use_flag ? "1" : "0",
         detail: values.product_detail,
         condition: values.condition,
@@ -264,6 +266,10 @@ export default function CreateRewardCampaign() {
       setLoading(false);
     }
   };
+  const handleUploadReceiveSuccess = (resp) => {
+    const d = resp.data;
+    setFileListReceive((prev) => [...prev, { uid: d.file_key, name: d.file_name, status: "done", url: d.file_url }]);
+  };
 
   // ---------- ป้องกันกรณี refresh หน้า view แล้ว state หาย ----------
   useEffect(() => {
@@ -277,6 +283,20 @@ export default function CreateRewardCampaign() {
       <div className="title-page">
         {isView ? "View Reward Campaign" : "Create Reward Campaign"}
       </div>
+
+      <BoxPrimary>
+        <div className="flex items-center justify-between">
+          <label for="Banner" class="" title="Banner">Banner</label>
+          {!isView && <ActionButton mode="add" text="Upload File" onClick={() => fileUploadRefReceive.current?.triggerUpload()} />}
+        </div>
+
+        <FileUploadComponent
+          ref={fileUploadRefReceive}
+          dataFile={fileListReceive}
+          onUploadSuccess={handleUploadReceiveSuccess}
+          mode={isView ? "view" : "edit"}
+        />
+      </BoxPrimary>
 
       <FormCustom fields={formFields} form={form} />
 
