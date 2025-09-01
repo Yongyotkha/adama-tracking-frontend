@@ -198,9 +198,9 @@ export default function SalesPointsList() {
           ),
           status: (
             <BadgeStatus
-              text={order.status_transaction_name}
-              bgColor={order.status_transaction_bg_color}
-              textColor={order.status_transaction_color}
+              text={order.status_name}
+              bgColor={order.status_bg_color}
+              textColor={order.status_color}
             />
           ),
           sapStatus: (
@@ -591,10 +591,10 @@ export default function SalesPointsList() {
       centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
       async onOk() {
         try {
-          const response = await useServiceAPI.delete(paths.pathGetOrderDelete, {
+          const response = await useServiceAPI.delete(paths.pathSalePointOrderDelete, {
             document_number: documentNumber,
           });
-
+          // console.log(response);
           if (response.status === 200) {
             // Show success notification
             showNotification("success",

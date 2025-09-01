@@ -168,20 +168,46 @@ export default function SalesPointActionMode() {
   // ---------- Form fields ----------
   const formFields = [
     {
-      label: "Sales", name: "sale", type: "select", options: dataSale, moderef: true,
-      disabled: isEdit || isView, value: dataSaleId ? Number(dataSaleId) : undefined
+      label: "Sales",
+      name: "sale",
+      type: "select",
+      options: dataSale,
+      disabled: isEdit || isView, // edit: ปิดแก้ไข หากต้องการให้แก้ก็เปลี่ยนเป็น false
+      moderef: true,
+      value: dataSaleId ? Number(dataSaleId) : undefined,
     },
     {
-      label: "Dealer", name: "dealer", type: "select", options: dataDealer,
-      disabled: isEdit || isView, value: dealerId || undefined
+      label: "Dealer",
+      name: "dealer",
+      type: "select",
+      options: dataDealer,
+      disabled: isEdit || isView,
+      value: dealerId || undefined,
     },
     {
-      label: "Sub Dealer", name: "sub_dealer", type: "select", options: dataSubDealer,
-      disabled: isEdit || isView, value: subDealerId || undefined
+      label: "Sub Dealer",
+      name: "sub_dealer",
+      type: "select",
+      options: dataSubDealer,
+      disabled: isEdit || isView,
+      value: subDealerId || undefined,
     },
-    { label: "Order No", name: "order_no", type: "text", disabled: true, value: docNumber || "" },
-    { label: "Date", name: "order_date", type: "date", disabled: true, value: dayjs().format("YYYY-MM-DD") },
+    {
+      label: "Order No",
+      name: "order_no",
+      type: "text",
+      disabled: true,
+      value: docNumber || "",
+    },
+    {
+      label: "Date",
+      name: "order_date",
+      type: "date",
+      disabled: true,
+      value: dayjs().format("YYYY-MM-DD"),
+    },
   ];
+
 
   const handleChange = (field, val) => {
     if (field === "sale") { setDataSaleId(val); loadDealer(val); }
