@@ -708,6 +708,7 @@ export default function SalesPointCreate() {
             mode="add"
             text="Upload File"
             onClick={handleUploadReceiveClick}
+            className="hidden"
           />
         </div>
         <FileUploadComponent

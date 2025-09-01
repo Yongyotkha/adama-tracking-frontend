@@ -172,6 +172,7 @@ import TransportationDetail from "./pages/settings/mobile/transportation/Transpo
 import SalesPointRequestMode from "./pages/settings/mobile/sale_point/SalesPointRequestMode";
 import SalesPointActionMode from "./pages/settings/mobile/sale_point/SalesPointActionMode";
 import CollectPointsView from "./pages/settings/mobile/collect_points/CollectPointsView";
+import SalesPointEdit from "./pages/settings/mobile/sale_point/SalesPointEdit";
 
 
 const App = () => {
@@ -344,9 +345,11 @@ const App = () => {
 
             <Route path="/points/line/sales-points-list" element={<SalesPointsList />} />
             {/* SalesPointActionMode = View + Edit + Create */}
-            <Route path="/points/line/sales-points-list/:mode" element={<SalesPointActionMode />} /> 
-            {/* <Route path="/points/line/sales-points-list/create" element={<SalesPointCreate />} /> */}
-            {/* <Route path="/points/line/sales-points-list/detail" element={<SalesPointDetail />} /> */}
+            {/* <Route path="/points/line/sales-points-list/:mode" element={<SalesPointActionMode />} />  */}
+            <Route path="/points/line/sales-points-list/create" element={<SalesPointCreate />} />
+            <Route path="/points/line/sales-points-list/edit" element={<SalesPointEdit />} />
+            <Route path="/points/line/sales-points-list/view" element={<SalesPointView />} />
+            <Route path="/points/line/sales-points-list/detail" element={<SalesPointDetail />} />
             {/* <Route path="/points/line/sales-points-request/:mode" element={<SalesPointRequestMode />} /> */}
 
             <Route path="/points/line/collect-points-list" element={<CollectPointsList />} />

@@ -258,6 +258,7 @@ export default function SalesPointDetail() {
         const body = {
             document_date: formattedDate,
             user_id: getUserId,
+            status_code: "ODW",
             dealer_id: getDealerId,
             sub_dealer_id: getSubDealerId,
             remark: getRemark,

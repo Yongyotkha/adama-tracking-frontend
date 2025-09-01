@@ -201,9 +201,9 @@ export default function SalesPointsList() {
           ),
           status: (
             <BadgeStatus
-              text={order.status_name}
-              bgColor={order.status_bg_color}
-              textColor={order.status_color}
+              text={order.status_transaction_name}
+              bgColor={order.status_transaction_bg_color}
+              textColor={order.status_transaction_color}
             />
           ),
           sapStatus: (
