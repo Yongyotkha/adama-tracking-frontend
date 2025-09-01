@@ -56,9 +56,9 @@ export default function Traveling() {
 
         const dataStatus = [];
         status.data.map((data, index) => {
-          dataStatus.push({ 
-            id: data.code, 
-            name: data.name, 
+          dataStatus.push({
+            id: data.code,
+            name: data.name,
           });
         });
         setDataStatus(dataStatus);
@@ -131,6 +131,7 @@ export default function Traveling() {
     { title: "No", width: 40, dataIndex: "key", align: "center" },
     { title: "Year", width: 50, dataIndex: "year", align: "center" },
     { title: "Month", width: 150, dataIndex: "month", align: "left" },
+    { title: "User", width: 150, dataIndex: "user_name", align: "left" },
     { title: "Date", width: 150, dataIndex: "date", align: "center" },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
@@ -172,6 +173,7 @@ export default function Traveling() {
           year: data.year,
           month: data.month_name,
           date: data.updated_at,
+          user_name: data.user_name,
           status: (
             <BadgeStatus
               text={data.transaction_status_name}
@@ -320,7 +322,14 @@ export default function Traveling() {
     //   handleClear();
     // }
   };
-
+  const handleTableChange = (pagination, filters, sorter) => {
+    setTableParams({
+      pagination,
+      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortField: sorter.field,
+    });
+  };
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -342,7 +351,14 @@ export default function Traveling() {
       />
 
       <BoxPrimary>
-        <TableComponent header={header} dataSource={dataSource} />
+
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pagination={tableParams.pagination}
+          loading={tableLoading}
+          onChange={handleTableChange}
+        />
       </BoxPrimary>
     </MainLayout>
   );
