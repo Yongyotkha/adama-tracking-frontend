@@ -12,6 +12,7 @@ import useServiceAPI from "../../../../services/corsService";
 import { paths } from "../../../../services/CorsPath";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import FilterByOrder from "../../../../components/filter/FilterByOrder";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 const { TabPane } = Tabs;
 
 export default function SalesPointsList() {
@@ -103,7 +104,7 @@ export default function SalesPointsList() {
           <ItemDropDown
             mode="view"
             onClick={() =>
-              navigate("/points/line/sales-points-request-create", {
+              navigate("/points/line/sales-points-request/create", {
                 state: { request_id: record.request_id },
               })
             }
@@ -118,7 +119,7 @@ export default function SalesPointsList() {
           <ItemDropDown
             mode="edit"
             onClick={() =>
-              navigate("/points/line/sales-points-request-create", {
+              navigate("/points/line/sales-points-request/edit", {
                 state: { request_id: record.request_id },
               })
             }
@@ -219,13 +220,11 @@ export default function SalesPointsList() {
                     label: (
                       <ItemDropDown
                         mode="view"
-                        onClick={() => {
+                        onClick={() =>
                           navigate("/points/line/sales-points-list/view", {
-                            state: {
-                              document_number: order.document_number,
-                            },
-                          });
-                        }}
+                            state: { document_number: order.document_number },
+                          })
+                        }
                       />
                     ),
                   },
@@ -236,10 +235,8 @@ export default function SalesPointsList() {
                         mode="edit"
                         onClick={() => {
                           navigate("/points/line/sales-points-list/edit", {
-                            state: {
-                              document_number: order.document_number,
-                            },
-                          });
+                            state: { document_number: order.document_number },
+                          })
                         }}
                       />
                     ),
@@ -317,8 +314,8 @@ export default function SalesPointsList() {
       if (res.status === 200) {
         const root = res.data?.data || {};
         const rows = res.data?.data
-      
-        console.log('rows : ',rows)
+
+        console.log('rows : ', rows)
         // permission และจำนวนรวมอยู่ใน root
         setRequestPermission(root.permission || {});
 
@@ -409,7 +406,7 @@ export default function SalesPointsList() {
   useEffect(() => {
     if (activeTab === "request") {
       fetchRequests();
-    }else{
+    } else {
       fetchData();
     }
   }, [activeTab]);
@@ -418,7 +415,7 @@ export default function SalesPointsList() {
   useEffect(() => {
     if (activeTab === "request") {
       fetchRequests();
-    }else{
+    } else {
       fetchData()
     }
   }, [

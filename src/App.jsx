@@ -154,7 +154,7 @@ import SalesPointsList from "./pages/settings/mobile/sale_point/SalesPointsList"
 import SalesPointDetail from "./pages/settings/mobile/sale_point/SalesPointDetail";
 import SalesPointCreate from "./pages/settings/mobile/sale_point/SalesPointCreate";
 import SalesPointView from "./pages/settings/mobile/sale_point/SalesPointView";
-import SalesPointRequestCreate from "./pages/settings/mobile/sale_point/SalesPointRequestCreate";
+// import SalesPointRequestCreate from "./pages/settings/mobile/sale_point/SalesPointRequestCreate";
 import TargetGroupList from "./pages/settings/mobile/target_group/TargetGroupList";
 import CreateTargetGroup from "./pages/settings/mobile/target_group/CreateTargetGroup";
 import PointCampaignList from "./pages/settings/mobile/point_campaign/PointCampaignList";
@@ -169,6 +169,8 @@ import Transportation from "./pages/settings/mobile/transportation/Transportatio
 import RewardProductUpdateStock from "./pages/settings/mobile/request_purchase/RewardProductUpdateStock";
 import RequestPurchaseList from "./pages/settings/mobile/request_purchase/RequestPurchaseList";
 import TransportationDetail from "./pages/settings/mobile/transportation/TransportationDetail";
+import SalesPointRequestMode from "./pages/settings/mobile/sale_point/SalesPointRequestMode";
+import SalesPointActionMode from "./pages/settings/mobile/sale_point/SalesPointActionMode";
 
 
 const App = () => {
@@ -337,10 +339,14 @@ const App = () => {
             <Route path="/points/line/register-customer/detail" element={<RegisteredCustomerDetail />} />
             <Route path="/points/line/customer-support/create" element={<CreateCustomerLine />} />
             {/* <Route path="/points/line/customer/edit" element={<EditCustomerLine />} /> */}
+            
 
             <Route path="/points/line/sales-points-list" element={<SalesPointsList />} />
-            <Route path="/points/line/sales-points-list/create" element={<SalesPointCreate />} />
-            <Route path="/points/line/sales-points-list/detail" element={<SalesPointDetail />} />
+            {/* SalesPointActionMode = View + Edit + Create */}
+            <Route path="/points/line/sales-points-list/:mode" element={<SalesPointActionMode />} /> 
+            {/* <Route path="/points/line/sales-points-list/create" element={<SalesPointCreate />} /> */}
+            {/* <Route path="/points/line/sales-points-list/detail" element={<SalesPointDetail />} /> */}
+            {/* <Route path="/points/line/sales-points-request/:mode" element={<SalesPointRequestMode />} /> */}
 
             <Route path="/points/line/collect-points-list" element={<CollectPointsList />} />
             {/* <Route path="/points/line/collect-points/create" element={<CollectPointCreate />} /> */}
@@ -351,7 +357,8 @@ const App = () => {
             {/* <Route path="/points/line/sales-points-list/create" element={<CreateSalesPoint />} /> */}
             {/* <Route path="/points/line/sales-points-list/:mode" element={<ActionSalePoints />} /> */}
 
-            <Route path="/points/line/sales-points-request-create" element={<SalesPointRequestCreate />} />
+
+            {/* <Route path="/points/line/sales-points-request-create" element={<SalesPointRequestCreate />} /> */}
 
             <Route path="/setting/line/point-campaign" element={<PointCampaignList />} />
             <Route path="/setting/line/point-campaign/create" element={<CreatePointCampaign />} />
