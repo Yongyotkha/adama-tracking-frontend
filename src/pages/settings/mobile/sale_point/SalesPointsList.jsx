@@ -583,46 +583,47 @@ export default function SalesPointsList() {
     setFilterValues(filters);
   };
 
-  const handleDelete = async (documentNumber) => {
+  const handleDelete = (documentNumber) => {
     confirm({
       title: "Do you want to delete ?",
       icon: <ExclamationCircleFilled />,
       content: [],
-      centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+      centered: true,
       async onOk() {
         try {
-          const response = await useServiceAPI.delete(paths.pathSalePointOrderDelete, {
-            document_number: documentNumber,
-          });
-          // console.log(response);
-          if (response.status === 200) {
-            // Show success notification
-            showNotification("success",
-              response.data.message || "Event deleted successfully!",
-              response.data.message_line || ["The event has been removed."]
-            ).then(() => {
+          // ✅ ส่ง payload ใต้ data (axios.delete)
+          const res = await useServiceAPI.delete(
+            paths.pathSalePointOrderDelete,
+            { document_number: documentNumber }
+          );
 
-            })
-          } else {
-            showNotification("warning",
-              response.data.message || "Event deleted successfully!",
-              response.data.message_line || ["The event has been removed."]
-            )
-          }
+          const ok = res?.status === 200;
+          const header =
+            res?.data?.data?.Message?.Message_Header ||
+            res?.data?.message ||
+            (ok ? "Delete successful" : "Notification");
+          const lines =
+            res?.data?.data?.Message?.Message_Line ||
+            res?.data?.message_line ||
+            [ok ? "Delete successful" : "Please try again."];
 
+          await showNotification(ok ? "success" : "warning", header, lines);
+          // 🔁 รีเฟรชตารางหลังลบเสร็จ
+          fetchData();
         } catch (error) {
-          // Handle errors and show an error notification
-          if (error.response.data.status === 400) {
-            const message = error.response.data.data;
-            showNotification("warning",
-              message.Message.Message_Header,
-              message.Message.Message_Line
-            )
-          }
+          const msg = error?.response?.data?.data?.Message;
+          await showNotification(
+            "warning",
+            msg?.Message_Header || "Notification",
+            msg?.Message_Line || ["Data not found"]
+          );
+          // เผื่อกรณี backend ลบแล้วแต่ส่ง error มาก็ยังรีเฟรช
+          fetchData();
         }
       },
     });
   };
+
 
   return (
     <MainLayout loading={loading}>
