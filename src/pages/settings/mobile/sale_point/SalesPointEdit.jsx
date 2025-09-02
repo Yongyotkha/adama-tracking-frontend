@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext, useRef } from "react";
-import { Form, Input } from "antd";
+import { Form, Input, Select } from "antd"; // ⬅️ เพิ่ม Select
 import MainLayout from "../../../../layouts/MainLayout";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import useServiceAPI from "../../../../services/corsService";
@@ -42,6 +42,9 @@ export default function SalesPointEdit() {
   const fileUploadRefBill = useRef(null);
   const fileUploadRefPicture = useRef(null);
 
+  // ค้นหาสินค้า (เพิ่มใหม่)
+  const [searchProductData, setSearchProductData] = useState([]);
+
   const [formCustom] = Form.useForm();
   const document_number = location.state?.document_number;
 
@@ -70,7 +73,7 @@ export default function SalesPointEdit() {
         });
 
         // ✅ response จริง: { result, status, message, data:{...} }
-        const d = res?.data; // <<— แก้ให้ตรง response
+        const d = res?.data; // ⬅️ ให้ตรงโครงที่คุณแนบมา
         if (!d) throw new Error("Invalid detail response");
 
         // set ส่วนหัวฟอร์ม
@@ -100,7 +103,7 @@ export default function SalesPointEdit() {
           }))
         );
 
-        // others (เก็บไว้แสดง; ยังไม่ส่ง update ถ้า backend ไม่รองรับ)
+        // others (เก็บไว้แสดง)
         const oth = Array.isArray(d.others) ? d.others : [];
         setDataSourceOther(
           oth.map((o, idx) => ({
@@ -135,7 +138,7 @@ export default function SalesPointEdit() {
           }))
         );
 
-        // set form values (ให้แสดงค่าจริง ไม่ใช่ placeholder)
+        // set form values
         formCustom.setFieldsValue({
           sale: String(d.user_id || ""),
           dealer: String(d.dealer_id || ""),
@@ -179,6 +182,90 @@ export default function SalesPointEdit() {
         return { ...item, quantity, foc, net_amount: Number(net.toFixed(2)) };
       })
     );
+  };
+
+  // ---------- เพิ่มส่วน Product input (ค้นหา/เลือก) ----------
+  const onSearchProduct = async (value) => {
+    if (!value || value.length < 3) return;
+    setLoading(true);
+    try {
+      const res = await useServiceAPI.get(paths.pathMasterProducts, {
+        keyword: value,
+      });
+      const options = (res?.data || []).map((p) => ({
+        value: p.id,
+        label: p.name,
+      }));
+      setSearchProductData(options);
+    } catch (e) {
+      showMsg("error", e?.message || "ค้นหาสินค้าไม่สำเร็จ");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onChangeProduct = async (productId) => {
+    // เลือกแล้วเคลียร์ options เพื่อความลื่น
+    setSearchProductData([]);
+    setLoading(true);
+    try {
+      const res = await useServiceAPI.get(paths.pathMasterProductDetail, {
+        product_id: productId,
+      });
+      const d = res?.data;
+      if (!d) return;
+
+      // เช็คซ้ำด้วย product_code
+      const i = dataSource.findIndex((x) => x.product_code === d.product_code);
+      if (i !== -1) {
+        // เพิ่มจำนวนของรายการเดิม
+        const next = dataSource.map((row, idx) => {
+          if (idx !== i) return row;
+          const quantity = toNumber(row.quantity) + 1;
+          const unitTHB = toNumber(row.product_unit_thb);
+          const net = quantity * unitTHB;
+          const foc = row.product_campaign_order_min_foc
+            ? Math.floor(quantity / toNumber(row.product_campaign_order_min_foc))
+            : 0;
+          return { ...row, quantity, foc, net_amount: Number(net.toFixed(2)) };
+        });
+        setDataSource(next);
+      } else {
+        // เติมรายการใหม่
+        const quantity = 1;
+        const unitTHB = toNumber(d.bath_unit);
+        const net = quantity * unitTHB;
+        const foc = d.product_campaign_order_min_foc
+          ? Math.floor(quantity / toNumber(d.product_campaign_order_min_foc))
+          : 0;
+
+        const newRow = {
+          key: dataSource.length + 1,
+          no: dataSource.length + 1,
+          product_id: d.id,
+          product_code: d.product_code,
+          product_name: d.product_name,
+          product_unit: d.packing_list,
+          product_unit_thb: d.bath_unit,
+          product_campaign_order_min_foc: toNumber(d.product_campaign_order_min_foc),
+          product_campaign_foc: toNumber(d.product_campaign_foc),
+          quantity,
+          foc,
+          net_amount: Number(net.toFixed(2)),
+        };
+
+        const updated = [...dataSource, newRow].map((it, idx) => ({
+          ...it,
+          key: idx + 1,
+          no: idx + 1,
+        }));
+        setDataSource(updated);
+      }
+    } catch (e) {
+      showMsg("error", e?.message || "โหลดรายละเอียดสินค้าไม่สำเร็จ");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const header = [
@@ -363,7 +450,7 @@ export default function SalesPointEdit() {
         user_id: Number(userId) || 0,
         dealer_id: Number(dealerId) || 0,
         sub_dealer_id: Number(subDealerId) || 0,
-        farmer_id: 1, // หากมีช่องเลือกในอนาคต ค่อยเชื่อมต่อเพิ่ม
+        farmer_id: 1,
         remark: remark || "",
         picture: fileListPicture.map((f) => f.url).filter(Boolean),
         bill: fileListBill.map((f) => f.url).filter(Boolean),
@@ -401,6 +488,22 @@ export default function SalesPointEdit() {
       <div className="title-page">Edit Sale Point</div>
 
       <FormCustom fields={formFields} form={formCustom} onChange="" />
+
+      {/* ✅ Product input แบบหน้า Create */}
+      <BoxPrimary title="Product">
+        <div className="mb-3 flex justify-end">
+          <Select
+            showSearch
+            placeholder="Search Product"
+            optionFilterProp="label"
+            className="w-full"
+            onChange={onChangeProduct}
+            onSearch={onSearchProduct}
+            options={searchProductData}
+            value=""
+          />
+        </div>
+      </BoxPrimary>
 
       <BoxPrimary title="Order List">
         <TableComponent
@@ -441,7 +544,7 @@ export default function SalesPointEdit() {
       <BoxPrimary>
         <div className="flex items-center justify-between">
           <div className="text-[#00783F] text-lg font-semibold mb-3">Picture</div>
-          <ActionButton mode="add" text="Upload File" onClick={handleUploadClickPicture} />
+          {/* <ActionButton mode="add" text="Upload File" onClick={handleUploadClickPicture} /> */}
         </div>
         <FileUploadComponent
           ref={fileUploadRefPicture}
@@ -461,12 +564,12 @@ export default function SalesPointEdit() {
       </BoxPrimary>
 
       <div className="flex justify-end space-x-2 mt-4">
-        <ActionButton mode="save" text="Update" onClick={handleUpdate} />
         <ActionButton
           mode="back"
           text="Back"
           onClick={() => navigate("/points/line/sales-points-list")}
         />
+        <ActionButton mode="save" text="Update" onClick={handleUpdate} />
       </div>
     </MainLayout>
   );

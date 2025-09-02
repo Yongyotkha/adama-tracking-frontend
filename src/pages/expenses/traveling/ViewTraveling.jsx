@@ -7,7 +7,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponentTraveling from "../../../components/table/TableComponentTraveling";
-import NumericInput from "../../../components/numeric_input/NumericInput";
+import NumericInputTraveling from "../../../components/numeric_input/NumericInputTraveling";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
@@ -140,23 +140,23 @@ export default function ViewTraveling() {
           ]);
 
           const dataItems = traveling.data.data_items;
+          console.log(dataItems);
           const transformedData = dataItems.map((item, index) => ({
             key: `${index + 1}`,
             date: item.date || "",
             from: item.traveling_from || "",
             to: item.traveling_to || "",
-            mileage: item.mileage || "0",
-            petrol: item.petrol || "0",
-            cashPetrol: item.cash_petrol || "0",
-            hotel: item.hotel || "0",
-            allowance: item.allowance || "0",
-            tollFee: item.toll_fee || "0",
-            entertain: item.entertain || "0",
-            others: item.others || "0",
-            total: item.total || "0",
+            mileage: item.mileage || " ",
+            petrol: item.petrol || " ",
+            cashPetrol: item.cash_petrol || " ",
+            hotel: item.hotel || " ",
+            allowance: item.allowance || " ",
+            tollFee: item.toll_fee || " ",
+            entertain: item.entertain || " ",
+            others: item.others || " ",
+            total: item.total || " ",
             remark: item.remark || "",
           }));
-
           // ตั้งค่า state
           setDataSource(transformedData);
 
@@ -327,7 +327,7 @@ export default function ViewTraveling() {
       dataIndex: "mileage",
       key: "mileage",
       render: (value, record) => (
-        <NumericInput
+        <NumericInputTraveling
           style={{ width: 100 }}
           value={value}
           onChange={(val) => updateField(record.key, "mileage", val)}
@@ -340,7 +340,7 @@ export default function ViewTraveling() {
       dataIndex: "petrol",
       key: "petrol",
       render: (value, record) => (
-        <NumericInput
+        <NumericInputTraveling
           style={{ width: 100 }}
           value={formatNumber(value)}
           onChange={(val) => updateField(record.key, "petrol", val)}
@@ -353,7 +353,7 @@ export default function ViewTraveling() {
       dataIndex: "cashPetrol",
       key: "cashPetrol",
       render: (value, record) => (
-        <NumericInput
+        <NumericInputTraveling
           style={{ width: 100 }}
           value={formatNumber(value)}
           onChange={(val) => updateField(record.key, "cashPetrol", val)}
@@ -366,7 +366,7 @@ export default function ViewTraveling() {
       dataIndex: "hotel",
       key: "hotel",
       render: (value, record) => (
-        <NumericInput
+        <NumericInputTraveling
           style={{ width: 100 }}
           value={formatNumber(value)}
           onChange={(val) => updateField(record.key, "hotel", val)}
@@ -379,7 +379,7 @@ export default function ViewTraveling() {
       dataIndex: "allowance",
       key: "allowance",
       render: (value, record) => (
-        <NumericInput
+        <NumericInputTraveling
           style={{ width: 100 }}
           value={formatNumber(value)}
           onChange={(val) => updateField(record.key, "allowance", val)}
@@ -392,7 +392,7 @@ export default function ViewTraveling() {
       dataIndex: "tollFee",
       key: "tollFee",
       render: (value, record) => (
-        <NumericInput
+        <NumericInputTraveling
           style={{ width: 100 }}
           value={formatNumber(value)}
           onChange={(val) => updateField(record.key, "tollFee", val)}
@@ -405,7 +405,7 @@ export default function ViewTraveling() {
       dataIndex: "entertain",
       key: "entertain",
       render: (value, record) => (
-        <NumericInput
+        <NumericInputTraveling
           style={{ width: 100 }}
           value={formatNumber(value)}
           onChange={(val) => updateField(record.key, "entertain", val)}
@@ -418,7 +418,7 @@ export default function ViewTraveling() {
       dataIndex: "others",
       key: "others",
       render: (value, record) => (
-        <NumericInput
+        <NumericInputTraveling
           style={{ width: 100 }}
           value={formatNumber(value)}
           onChange={(val) => updateField(record.key, "others", val)}
@@ -431,7 +431,7 @@ export default function ViewTraveling() {
       dataIndex: "total",
       key: "total",
       render: (value, record) => (
-        <NumericInput
+        <NumericInputTraveling
           style={{ width: 100 }}
           value={formatNumber(value)}
           onChange={(val) => updateField(record.key, "total", val)}
@@ -521,16 +521,16 @@ export default function ViewTraveling() {
       <BoxPrimary>
         <div className="grid grid-cols-2 gap-4">
           <div className="flex justify-end">Total Advanced:</div>
-          <NumericInput value={formatNumber(dataTotalAdvanced)} disabled />
+          <NumericInputTraveling value={formatNumber(dataTotalAdvanced)} disabled />
 
           <div className="flex justify-end">Total Expenses:</div>
-          <NumericInput value={formatNumber(dataTotalExpenses) } disabled />
+          <NumericInputTraveling value={formatNumber(dataTotalExpenses) } disabled />
 
           <div className="flex justify-end">Return to Company:</div>
-          <NumericInput value={formatNumber(returnToCompany) } disabled />
+          <NumericInputTraveling value={formatNumber(returnToCompany) } disabled />
 
           <div className="flex justify-end">Return to Staff:</div>
-          <NumericInput value={formatNumber(returnToStaff) } disabled />
+          <NumericInputTraveling value={formatNumber(returnToStaff) } disabled />
         </div>
       </BoxPrimary>
 
@@ -572,6 +572,7 @@ export default function ViewTraveling() {
           }}
         />
       </div>
+      
     </MainLayout>
   );
 }

@@ -89,14 +89,15 @@ export default function SalesPointsList() {
     { title: "Status", width: 160, dataIndex: "status", align: "center" },
     { title: "Action", width: 120, dataIndex: "action", align: "center" },
   ];
+  // ---------- getActionForRequest: ใช้หน้าเดียวกันสำหรับ view/edit ----------
   const getActionForRequest = (record) => {
     const apiActions = Array.isArray(record.apiActions)
       ? record.apiActions.map((a) => (a?.action || "").toLowerCase())
       : [];
-
-    const actions = apiActions.length ? apiActions : ["view"]; // fallback
+    const actions = apiActions.length ? apiActions : ["view"];
 
     const items = [];
+    // view -> ไปหน้า view พร้อม document_number
     if (actions.includes("view")) {
       items.push({
         key: "view",
@@ -104,43 +105,40 @@ export default function SalesPointsList() {
           <ItemDropDown
             mode="view"
             onClick={() =>
-              navigate("/points/line/sales-points-list/create", {
-                state: { request_id: record.request_id },
+              navigate("/points/line/sales-points-list/view", {
+                state: { document_number: record.document_number },
               })
             }
           />
         ),
       });
     }
+    // edit -> ไปหน้าเดียวกับ view และส่ง document_number เช่นกัน
     // if (actions.includes("edit")) {
-    items.push({
-      key: "edit",
-      label: (
-        <ItemDropDown
-          mode="edit"
-          onClick={() =>
-            navigate("/points/line/sales-points-list/edit", {
-              state: { request_id: record.request_id },
-            })
-          }
-        />
-      ),
-    });
+      items.push({
+        key: "edit",
+        label: (
+          <ItemDropDown
+            mode="edit"
+            onClick={() =>
+              navigate("/points/line/sales-points-list/edit", {
+                state: { document_number: record.document_number },
+              })
+            }
+          />
+        ),
+      });
     // }
-    // if (actions.includes("delete")) {
+    // delete (เหมือนเดิม)
     items.push({
       key: "delete",
       label: (
         <ItemDropDown
           mode="delete"
-          // onClick={() => console.log("Delete request", record.request_id)}
-          onClick={() => {
-            handleDelete(record.request_id);
-          }}
+          onClick={() => handleDelete(record.document_number)}
         />
       ),
     });
-    // }
 
     return (
       <Dropdown menu={{ items }} placement="bottom">
@@ -150,6 +148,7 @@ export default function SalesPointsList() {
       </Dropdown>
     );
   };
+
 
   const fetchData = async () => {
     setTableLoading(true);
@@ -286,23 +285,22 @@ export default function SalesPointsList() {
   };
 
 
+  // ---------- fetchRequests: map ให้มี document_number เสมอ ----------
   const fetchRequests = async (overrides = {}) => {
     setRequestTableLoading(true);
-
     const { current, pageSize } = requestTableParams.pagination;
     const filters = requestTableParams.filters || {};
     const sortOrder = requestTableParams.sortOrder || "desc";
-    const sortField = requestTableParams.sortField || "document_number"; // ให้สอดคล้อง backend
+    const sortField = requestTableParams.sortField || "document_number";
 
-    // ใช้รูปแบบ payload "เหมือน fetchData"
     const payload = {
       user_id: filters.sale || "",
       dealer_id: filters.dealer || "",
       keyword: filters.order_no || "",
-      trasaction_status_code: "",         // ถ้าต้องกรองสถานะฝั่ง transaction ใส่เพิ่มได้
+      trasaction_status_code: "",
       dater: filters.dater || "",
       page: "all",
-      status_code: "ODI",                 // คัดเฉพาะที่เป็น Request (ตามที่ต้องการ)
+      status_code: "ODI",
       use_flag: filters.use_flag || "",
       orderby_column: sortField,
       orderby: sortOrder,
@@ -312,18 +310,11 @@ export default function SalesPointsList() {
     };
 
     try {
-      // ดึง API เหมือน fetchData
       const res = await useServiceAPI.get(paths.pathSalePointOrderList, payload);
       if (res.status === 200) {
-        const root = res.data?.data || {};
-        const rows = res.data?.data
-
-        console.log('rows : ', rows)
-        // permission และจำนวนรวมอยู่ใน root
-        setRequestPermission(root.permission || {});
+        const rows = res.data?.data || [];
 
         const mapped = rows.map((item, idx) => {
-          // วันที่ขอแสดงในคอลัมน์ "Request Date"
           const requestDate =
             item.document_date ||
             (item.updated_at ? String(item.updated_at).split(" ")[0] : "") ||
@@ -331,16 +322,12 @@ export default function SalesPointsList() {
 
           return {
             key: idx + 1 + (current - 1) * pageSize,
-
-            // ไว้ใช้กับเมนู Action (view/edit/delete) ใน getActionForRequest
-            request_id: item.id ?? item.document_number,
-
+            // ⭐️ เก็บ document_number ไว้ใช้กับ view/edit
+            document_number: item.document_number,
             dealer: item.dealer_name ?? "-",
             sub_dealer: item.sub_dealer_name ?? "-",
             sale: item.user_name ?? "-",
             request_date: requestDate,
-
-            // ใช้สถานะจริงจาก API (ยังคง UI เดิม = BadgeStatus)
             status: (
               <BadgeStatus
                 text={item.status_transaction_name}
@@ -348,8 +335,6 @@ export default function SalesPointsList() {
                 textColor={item.status_transaction_color}
               />
             ),
-
-            // เก็บรายการ action จาก API ไว้ให้ getActionForRequest สร้างเมนู
             apiActions: item.action,
           };
         });
@@ -363,8 +348,8 @@ export default function SalesPointsList() {
           pagination: {
             ...prev.pagination,
             total:
-              typeof root.records_filtered === "number"
-                ? root.records_filtered
+              typeof res.data?.records_filtered === "number"
+                ? res.data.records_filtered
                 : rows.length,
           },
         }));
@@ -376,6 +361,7 @@ export default function SalesPointsList() {
       setRequestTableLoading(false);
     }
   };
+
 
   const handleSearchRequest = (filters) => {
     setRequestTableParams((prev) => ({
