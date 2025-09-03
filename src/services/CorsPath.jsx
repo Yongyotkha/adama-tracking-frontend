@@ -368,7 +368,10 @@ export const paths = {
 
   pathTargetGroupList: "target-group/list",
   pathTargetGroupCreate: "target-group/create",
+  pathTargetGroupUpdate: "target-group/update",
+  pathTargetGroupDelete: "target-group/delete",
   pathTargetGroupDetail: "target-group/detail",
+  pathTargetGroupType: "target-group/type",
 
   pathPointCampaignList: "campaign/list",
   pathPointCampaignCreate: "campaign/create",

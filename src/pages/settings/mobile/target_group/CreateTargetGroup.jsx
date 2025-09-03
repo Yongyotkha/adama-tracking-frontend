@@ -16,6 +16,7 @@ export default function CreateTargetGroup() {
   const [targetType, setTargetType] = useState("dealer"); // dealer | sub_dealer | farmer
   const [dataSource, setDataSource] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [typeOptions, setTypeOptions] = useState([]); // <-- เพิ่ม state เก็บตัวเลือก Type Name
   const { showNotification, showMsg } = useContext(AuthContext);
 
   const rowSelection = {
@@ -48,6 +49,38 @@ export default function CreateTargetGroup() {
     }
   };
 
+  // map target_name -> target id สำหรับ payload และสำหรับดึง Type
+  const TARGET_MAP = {
+    dealer: 1,
+    sub_dealer: 2,
+    farmer: 3,
+  };
+
+  // ดึงตัวเลือก Type Name ตาม target
+  const fetchTypeOptions = async (targetKey) => {
+    try {
+      const targetId = TARGET_MAP[targetKey];
+      const res = await useServiceAPI.get(paths.pathTargetGroupType, { target: targetId });
+      const raw = res?.data || [];
+      // ให้ value เป็น name ตามสเปค response ปัจจุบัน (เช่น "1","2")
+      const opts = raw.map((it) => ({
+        label: it.name ?? String(it.id),
+        name: it.name ?? String(it.id),
+        value: it.id ?? String(it.id),
+        // ถ้าภายหลังอยากส่งตาม id ให้เปลี่ยน value: it.id และปรับ payload ตอน create
+        // value name นี้แสดงผลอยู่เปลี่ยนไม่ได้ สามารถเพิ่มมาสำหรับ id ไว้ create ได้ไหม ?
+      }));
+      console.log(opts);
+      setTypeOptions(opts);
+      // เคลียร์ค่าเดิมทุกครั้งที่เปลี่ยน target เพื่อบังคับให้เลือกใหม่ตามชุดตัวเลือก
+      form.setFieldValue("type_name", undefined);
+    } catch (err) {
+      console.error("Error fetching type options", err);
+      showMsg?.("error", err?.message || "เกิดข้อผิดพลาดขณะดึงประเภท");
+      setTypeOptions([]);
+    }
+  };
+
   const fetchData = async (type) => {
     setLoading(true);
     try {
@@ -55,10 +88,9 @@ export default function CreateTargetGroup() {
       if (type === "sub_dealer") apiPath = paths.pathMasterSubDealerAll;
       else if (type === "farmer") apiPath = paths.pathMasterFarmer;
 
-      const res = await useServiceAPI.get(apiPath);
+      const res = await useServiceAPI.get(apiPath, { target: true });
       const raw = res?.data || [];
       let formatted = [];
-
       if (type === "dealer") {
         formatted = raw.map((item) => ({
           key: item.id,
@@ -72,7 +104,9 @@ export default function CreateTargetGroup() {
           sub_dealer_name: item.sub_dealer_name?.trim(),
           dealer_name: item.dealer_name || "-",
         }));
-      } else if (type === "farmer") {
+      }
+      else if (type === "farmer") {
+        console.log(raw);
         formatted = raw.map((item) => ({
           key: item.farmer_id,
           farmer_name:
@@ -83,6 +117,8 @@ export default function CreateTargetGroup() {
           dealer_name: item.dealer_name || "-",
         }));
       }
+
+      console.log(formatted);
 
       setDataSource(formatted);
     } catch (err) {
@@ -95,18 +131,11 @@ export default function CreateTargetGroup() {
 
   useEffect(() => {
     fetchData(targetType);
+    fetchTypeOptions(targetType); // <-- ดึงตัวเลือก Type ทุกครั้งที่เปลี่ยน target
   }, [targetType]);
-
-  // map target_name -> target id สำหรับ payload
-  const TARGET_MAP = {
-    dealer: 1,
-    sub_dealer: 2,
-    farmer: 3,
-  };
 
   const handleCreate = async () => {
     try {
-      // ตรวจฟอร์มเบื้องต้น
       const values = await form.validateFields().catch(() => null);
       if (!values) {
         showNotification?.("error", "กรุณากรอกข้อมูลให้ครบถ้วน");
@@ -118,14 +147,10 @@ export default function CreateTargetGroup() {
         return;
       }
 
-      const typeLabelMap = {
-        star: "Star",
-        non_star: "Non Star",
-      };
-
       const payload = {
         target: TARGET_MAP[values.target_name || targetType],
-        type: typeLabelMap[values.type_name] || values.type_name || "General",
+        // ใช้ค่าที่เลือกมาจาก Select โดยตรง (จาก API)
+        type: values.type_name,
         use_flag: Number(values.status ?? 1),
         customer_id: selectedRowKeys,
       };
@@ -133,7 +158,7 @@ export default function CreateTargetGroup() {
       setLoading(true);
       const res = await useServiceAPI.post(paths.pathTargetGroupCreate, payload);
 
-      if (res?.status === 200 ) {
+      if (res?.status === 200) {
         const msg = res?.data?.message || "บันทึกสำเร็จ";
         showNotification?.("success", msg);
         navigate(-1);
@@ -155,7 +180,11 @@ export default function CreateTargetGroup() {
       <div className="title-page">Create Target Group</div>
 
       <BoxPrimary>
-        <Form layout="vertical" form={form} initialValues={{ target_name: "dealer", status: "1" }}>
+        <Form
+          layout="vertical"
+          form={form}
+          initialValues={{ target_name: "dealer", status: "1" }}
+        >
           <div className="grid grid-cols-3 gap-4">
             <Form.Item
               label="Target Name"
@@ -174,15 +203,17 @@ export default function CreateTargetGroup() {
               </Select>
             </Form.Item>
 
+            {/* Type Name: ดึงจาก API */}
             <Form.Item
               label="Type Name"
               name="type_name"
-              rules={[{ required: true, message: "Please input type name" }]}
+              rules={[{ required: true, message: "Please select type name" }]}
             >
-              <Select placeholder="Select type">
-                <Select.Option value="star">Star</Select.Option>
-                <Select.Option value="non_star">Non Star</Select.Option>
-              </Select>
+              <Select
+                placeholder="Select type"
+                options={typeOptions}
+                loading={loading && !typeOptions.length}
+              />
             </Form.Item>
 
             <Form.Item label="Status" name="status" initialValue="1">
