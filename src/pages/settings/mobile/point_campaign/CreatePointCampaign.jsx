@@ -366,34 +366,45 @@ export default function CreatePointCampaign() {
   // ==========================
   // Extra / Topup editable tables
   // ==========================
-  const [extraRows, setExtraRows] = useState([
-    { key: 1, value_start: undefined, value_end: undefined, point: undefined },
-  ]);
-  const handleAddExtra = () =>
-    setExtraRows((prev) => [
-      ...prev,
-      {
-        key: (prev[prev.length - 1]?.key || 0) + 1,
-        value_start: undefined,
-        value_end: undefined,
-        point: undefined,
-      },
-    ]);
+  const [extraRows, setExtraRows] = useState();
 
-  const [topupRows, setTopupRows] = useState([
-    { key: 1, name: "", description: "", point: undefined, value_thb: undefined },
-  ]);
+
+  const handleAddExtra = () =>
+    setExtraRows((prev) => {
+      const arr = Array.isArray(prev) ? prev : [];
+      const lastKey =
+        arr.length > 0 ? (Number(arr[arr.length - 1]?.key) || arr.length) : 0;
+      return [
+        ...arr,
+        {
+          key: lastKey + 1,
+          value_start: undefined,
+          value_end: undefined,
+          point: undefined,
+        },
+      ];
+    });
+
+
+  const [topupRows, setTopupRows] = useState();
+
   const handleAddTopup = () =>
-    setTopupRows((prev) => [
-      ...prev,
-      {
-        key: (prev[prev.length - 1]?.key || 0) + 1,
-        name: "",
-        description: "",
-        point: undefined,
-        value_thb: undefined,
-      },
-    ]);
+    setTopupRows((prev) => {
+      const arr = Array.isArray(prev) ? prev : [];
+      const lastKey =
+        arr.length > 0 ? (Number(arr[arr.length - 1]?.key) || arr.length) : 0;
+      return [
+        ...arr,
+        {
+          key: lastKey + 1,
+          name: undefined,
+          description: undefined,
+          point: undefined,
+          value: undefined,
+        },
+      ];
+    });
+
 
   // ===== helpers =====
   const PRODUCT_MODE_MAP = { all: 1, category: 2, specific: 3 };
@@ -423,19 +434,6 @@ export default function CreatePointCampaign() {
     return null;
   }
 
-  function firstValidTopupRow(rows = []) {
-    for (const r of rows) {
-      const name = (r?.name || "").trim();
-      const description = (r?.description || "").trim();
-      const point = Number(r?.point);
-      const value = Number(r?.value_thb);
-      if (name && description && !Number.isNaN(point) && !Number.isNaN(value)) {
-        return { name, description, point, value };
-      }
-    }
-    return null;
-  }
-
   // ====== detail preload targets (กระจาย target_id ไปยัง dealer/sub/farmer หลัง options มาแล้ว) ======
   const [targetsFromDetail, setTargetsFromDetail] = useState([]); // number[]
 
@@ -460,6 +458,7 @@ export default function CreatePointCampaign() {
     let cancelled = false;
     (async () => {
       try {
+
         setLoading(true);
         const res = await useServiceAPI.post(paths.pathPointCampaignDetail, { id: recordId });
         const d = res?.data || {};
@@ -488,6 +487,58 @@ export default function CreatePointCampaign() {
             target_crop: crops,
           });
 
+          console.log('d:', d)
+          let extra = d.extra
+          if (extra) {
+            for (let index in extra) {
+
+              let extra_row = extra[index]
+
+              console.log('extra_row : ', extra_row)
+
+              setExtraRows((prev) => {
+                const arr = Array.isArray(prev) ? prev : [];
+                const lastKey =
+                  arr.length > 0 ? (Number(arr[arr.length - 1]?.key) || arr.length) : 0;
+                return [
+                  ...arr,
+                  {
+                    key: lastKey + 1,
+                    value_start: extra_row.value_start,
+                    value_end: extra_row.value_end,
+                    point: extra_row.point,
+                  },
+                ];
+              })
+            }
+          }
+
+          let topup = d.topup
+          if (topup) {
+            for (let index in topup) {
+
+              let row = topup[index]
+
+              console.log('row : ', row)
+
+              setTopupRows((prev) => {
+                const arr = Array.isArray(prev) ? prev : [];
+                const lastKey =
+                  arr.length > 0 ? (Number(arr[arr.length - 1]?.key) || arr.length) : 0;
+                return [
+                  ...arr,
+                  {
+                    key: lastKey + 1,
+                    name: row.name,
+                    description: row.description,
+                    point: row.point,
+                    value: row.value,
+                  },
+                ];
+              });
+            }
+          }
+
           setTargetsFromDetail(targetsArr);
           setDetailCustomers(customers);
           setDetailCategoryKeys(categoryRecordIds); // <<< ADD
@@ -506,6 +557,7 @@ export default function CreatePointCampaign() {
   // ====== Save (รองรับ create/edit + ส่งเฉพาะฟิลด์ตาม type) ======
   const onSave = async () => {
     try {
+
       setLoading(true);
       const values = await form.validateFields();
       const [start, end] = values.period || [];
@@ -546,18 +598,15 @@ export default function CreatePointCampaign() {
         payload.xpoint = Number(values.campaign_value || 0);
         if (!payload.xpoint) throw new Error("กรุณากรอก X Point ให้ถูกต้อง");
       } else if (typeNum === 1) {
-        const extra = firstValidExtraRow(extraRows);
-        if (!extra) throw new Error("กรุณากรอก Extra Point อย่างน้อย 1 แถวให้ครบ");
-        payload.extra_point = extra;
-      } else if (typeNum === 2) {
-        const topup = firstValidTopupRow(topupRows);
-        if (!topup) throw new Error("กรุณากรอก Topup Point อย่างน้อย 1 แถวให้ครบ");
-        payload.topup_point = topup;
-      }
-      // console.log('selectedRowKeys : ', selectedRowKeys)
-      // console.log('payload : ', payload)
 
-      // return false
+        if (!extraRows) throw new Error("กรุณากรอก Extra Point อย่างน้อย 1 แถวให้ครบ");
+        payload.extra_point = extraRows;
+      } else if (typeNum === 2) {
+        ;
+        if (!topupRows) throw new Error("กรุณากรอก Topup Point อย่างน้อย 1 แถวให้ครบ");
+        payload.topup_point = topupRows;
+      }
+
 
       let res;
       if (isEdit) {
@@ -965,7 +1014,7 @@ export default function CreatePointCampaign() {
               },
               {
                 title: "Value (THB)",
-                dataIndex: "value_thb",
+                dataIndex: "value",
                 render: (v, record) => (
                   <InputNumber
                     min={0}
@@ -974,7 +1023,7 @@ export default function CreatePointCampaign() {
                     value={v}
                     disabled={isView}
                     onChange={(val) =>
-                      setTopupRows((prev) => prev.map((r) => (r.key === record.key ? { ...r, value_thb: val } : r)))
+                      setTopupRows((prev) => prev.map((r) => (r.key === record.key ? { ...r, value: val } : r)))
                     }
                   />
                 ),
