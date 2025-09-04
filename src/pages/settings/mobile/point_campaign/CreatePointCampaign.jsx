@@ -30,7 +30,8 @@ export default function CreatePointCampaign() {
   const [form] = Form.useForm();
   const { showNotification } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
-
+  const [detailCustomers, setDetailCustomers] = useState([]);
+  const preselectDoneRef = useRef(false); // กันเผลอ override ทีหลัง
   // ====== mode & id ======
   const { mode: modeFromParams } = useParams(); // 'create' | 'edit' | 'view'
   const location = useLocation();
@@ -88,7 +89,7 @@ export default function CreatePointCampaign() {
 
         });
 
-        console.log('buckets : ',buckets)
+        console.log('buckets : ', buckets)
 
         setDealerOptions(buckets.dealer);
         setSubDealerOptions(buckets.sub);
@@ -233,6 +234,26 @@ export default function CreatePointCampaign() {
   const lastFetchKeyRef = useRef("");
 
   useEffect(() => {
+    if (!isEdit) return;
+    if (!detailCustomers.length) return;
+    if (!targetRows.length) return;
+    if (preselectDoneRef.current) return; // กัน override หลังผู้ใช้เริ่มแก้เอง
+
+    const allowed = new Set(targetRows.map(r => Number(r.key)));
+    const fromDetail = detailCustomers.filter(id => allowed.has(Number(id)));
+
+    setSelectedRowKeys(prev => {
+      // ถ้า user เริ่มเลือกเองแล้ว ให้ถือว่า preselect เสร็จ ไม่ไปยุ่ง
+      if (prev.length > 0) {
+        preselectDoneRef.current = true;
+        return prev.filter(k => allowed.has(Number(k))); // เคลียร์ key ที่หลุด
+      }
+      preselectDoneRef.current = true;
+      return fromDetail;
+    });
+  }, [isEdit, detailCustomers, targetRows]);
+
+  useEffect(() => {
     if (!targetKey) {
       setTargetRows([]);
       setSelectedRowKeys([]);
@@ -250,7 +271,7 @@ export default function CreatePointCampaign() {
         const res = await useServiceAPI.post(paths.pathPointCampaignCustomer, { target_id: ids });
         const data = res?.data?.data || res?.data || [];
         const rows = data.map((it) => ({
-          key: Number(it?.customer_id),
+          key: Number(it?.target_group_customer_id),
           name: it?.customer_name || "-",
           target_group: it?.target_name || "-",
           type: it?.type || "-",
@@ -258,7 +279,22 @@ export default function CreatePointCampaign() {
         }));
         if (!cancelled) {
           setTargetRows(rows);
-          setSelectedRowKeys((prev) => prev.filter((k) => rows.some((r) => r.key === k)));
+
+          // จำกัด selection ให้เป็น key ที่ยังอยู่ใน rows เท่านั้น
+          const allowed = new Set(rows.map(r => Number(r.key)));
+
+          // ค่าที่มาจาก detail (เลือกเฉพาะที่อยู่ใน rows จริง ๆ)
+          const fromDetail = isEdit
+            ? detailCustomers.filter(id => allowed.has(Number(id)))
+            : [];
+
+          setSelectedRowKeys(prev => {
+            // ค่าที่ user เคยติ๊กค้างไว้และยังอยู่ใน rows
+            const prevKept = prev.filter(k => allowed.has(Number(k)));
+            // รวมกันแบบไม่ซ้ำ
+            const merged = Array.from(new Set([...prevKept, ...fromDetail]));
+            return merged;
+          });
         }
       } catch (e) {
         if (!cancelled) {
@@ -408,8 +444,12 @@ export default function CreatePointCampaign() {
 
         const crops = (d?.crops || []).map(String);
         const targetsArr = (d?.targets || []).map((x) => Number(x)).filter(Boolean);
+        const customers = (d?.customers || [])
+          .map((x) => Number(x))
+          .filter((n) => Number.isFinite(n));
 
         if (!cancelled) {
+          // ของเดิม...
           form.setFieldsValue({
             campaign_name: c?.name ?? "",
             product_mode,
@@ -422,7 +462,9 @@ export default function CreatePointCampaign() {
             status: Number(c?.use_flag ?? 1),
             target_crop: crops,
           });
+
           setTargetsFromDetail(targetsArr);
+          setDetailCustomers(customers); // <<<<<< เพิ่มบรรทัดนี้
         }
       } catch (e) {
         showNotification?.("error", "โหลดข้อมูลไม่สำเร็จ", e?.response?.data?.message || "");
@@ -450,6 +492,7 @@ export default function CreatePointCampaign() {
       const targets = selectedTargetIds;
       const crops = (values.target_crop || []).map(Number).filter(Number.isFinite);
 
+
       const customer_type = deriveCustomerType(
         values.target_dealer,
         values.target_subdealer,
@@ -462,7 +505,7 @@ export default function CreatePointCampaign() {
         type: typeNum,
         use_flag: Number(values.status ?? 1),
         customer_type,
-        customers:selectedRowKeys,
+        customers: selectedRowKeys,
         targets,
         crops,
         date_start: start ? dayjs(start).startOf("day").format("YYYY-MM-DD HH:mm:ss") : null,
