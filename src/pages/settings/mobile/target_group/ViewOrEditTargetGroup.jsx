@@ -1,42 +1,45 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+// src/pages/settings/mobile/target_group/ViewOrEditTargetGroup.jsx
+import React, { useEffect, useState, useContext, useMemo } from "react";
+import { Form, Select, Modal, Input } from "antd";
 import MainLayout from "../../../../layouts/MainLayout";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import TableCheckbox from "../../../../components/table/TableCheckbox";
-import ActionButton from "../../../../components/button/ActionButton";
 import useServiceAPI from "../../../../services/corsService";
 import { paths } from "../../../../services/CorsPath";
-import TableComponent from "../../../../components/table/TableComponent";
-import Filter from "../../../../components/filter/Filter";
+import ActionButton from "../../../../components/button/ActionButton";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { AuthContext } from "../../../../contexts/AuthContext";
 
 export default function ViewOrEditTargetGroup() {
-  const { mode } = useParams(); // 'view' หรือ 'edit'
-  const location = useLocation();
   const navigate = useNavigate();
-  const { id } = location.state || {};
+  const { state } = useLocation(); // expect { id }
+  const { mode } = useParams(); // "view" | "edit" | "upload"
+  const id = state?.id;
 
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [targetType, setTargetType] = useState("dealer"); // dealer | sub_dealer | farmer
   const [dataSource, setDataSource] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const [targetType, setTargetType] = useState("dealer");
-  const [filterValues, setFilterValues] = useState({});
+  const [typeOptions, setTypeOptions] = useState([]);
+  const [uploadOpen, setUploadOpen] = useState(mode === "upload");
+  const { showNotification, showMsg } = useContext(AuthContext);
 
-  // filter config
-  const targetTypeOptions = [
-    { id: "dealer", name: "Dealer" },
-    { id: "sub_dealer", name: "Sub Dealer" },
-    { id: "farmer", name: "Farmer" },
-  ];
+  const isView = mode === "view";
+  const isEdit = mode === "edit";
+  const lockTopInputs = isView || isEdit;   // ล็อกบนสุดทั้ง view + edit
 
-  const filters = [
-    {
-      key: "target_type",
-      label: "Target Type",
-      type: "select",
-      options: targetTypeOptions,
-      placeholder: "Select target type",
-    },
-  ];
+  // ===== Row selection: ให้คงสถานะเลือกไว้ แม้ตารางรีเรนเดอร์ =====
+  const rowSelection = useMemo(
+    () => ({
+      selectedRowKeys,
+      onChange: (keys) => setSelectedRowKeys(keys),
+      preserveSelectedRowKeys: true,                // <<< เพิ่มบรรทัดนี้
+      ...(isView ? { getCheckboxProps: () => ({ disabled: true }) } : {}),
+    }),
+    [selectedRowKeys, isView]
+  );
+
 
   const getColumns = () => {
     switch (targetType) {
@@ -63,92 +66,319 @@ export default function ViewOrEditTargetGroup() {
     }
   };
 
+  // เหนือ fetchDetail()
+  const TARGET_MAP = { dealer: 1, sub_dealer: 2, farmer: 3 };
+  const REVERSE_TARGET_MAP = { 1: "dealer", 2: "sub_dealer", 3: "farmer" };
+  const TARGET_BY_CUSTOMER_TYPE = { "1": "dealer", "2": "sub_dealer", "3": "farmer" };
+
+  /**
+   * รองรับได้ทั้ง:
+   *  - { data: {header...}, customers: [...] }
+   *  - { data: { header:..., customers:[...] } }  (เผื่อรูปแบบอื่น)
+   *  - { data: [...customers] } / [...customers]
+   */
+  function extractDetail(res) {
+    const header =
+      (res?.data && !Array.isArray(res.data) && res.data) ||
+      (res && !Array.isArray(res) && res); // fallback ถ้า API คืน object ตรง ๆ
+
+    const customers =
+      (Array.isArray(res?.customers) && res.customers) ||
+      (Array.isArray(res?.data?.customers) && res.data.customers) ||
+      (Array.isArray(res?.data) && res.data) ||
+      (Array.isArray(res) && res) ||
+      [];
+
+    const selectedIds = customers
+      .map(it => Number(it?.customer_id))
+      .filter(n => !Number.isNaN(n));
+
+    // ลำดับเดา target: ใช้ header.target ก่อน ถ้าไม่มีค่อยดู customer_type ตัวแรก
+    let targetKey =
+      header?.target ? REVERSE_TARGET_MAP[Number(header.target)] :
+        (customers[0]?.customer_type ? TARGET_BY_CUSTOMER_TYPE[String(customers[0].customer_type)] : undefined);
+
+    if (!targetKey) targetKey = "dealer";
+
+    // คืน header (อาจมี type/use_flag) + customers ที่แปลงแล้ว
+    return {
+      header: header && header.id ? header : null,
+      selectedIds,
+      targetKey,
+    };
+  }
+
+  const fetchTypeOptions = async (targetKey) => {
+    try {
+      const targetId = TARGET_MAP[targetKey];
+      const res = await useServiceAPI.get(paths.pathTargetGroupType, { target: targetId });
+      const raw = res?.data || [];
+      const opts = raw.map((it) => ({
+        label: it.name ?? String(it.id),
+        value: String(it.id),            // ✅ ใช้ string ให้ตรงกับ form.setFieldsValue
+      }));
+      setTypeOptions(opts);
+
+      if (!lockTopInputs) {
+        // โหมดแก้ไข/ดู ไม่ควรเคลียร์ค่าเดิม
+        form.setFieldValue("type_name", undefined);
+      }
+    } catch (err) {
+      console.error("Error fetching type options", err);
+      showMsg?.("error", err?.message || "เกิดข้อผิดพลาดขณะดึงประเภท");
+      setTypeOptions([]);
+    }
+  };
+
+
+  const fetchMasterRows = async (type) => {
+    // โหลดรายการแถว (ทั้งหมด) เพื่อให้แสดงในตาราง และติ๊กตาม selectedRowKeys
+    try {
+      let apiPath = paths.pathMasterDealerAll;
+      if (type === "sub_dealer") apiPath = paths.pathMasterSubDealerAll;
+      else if (type === "farmer") apiPath = paths.pathMasterFarmer;
+
+      const res = await useServiceAPI.get(apiPath, { target: true });
+      const raw = res?.data || [];
+      let formatted = [];
+
+      // ใน fetchMasterRows() ปรับ map ให้ key เป็น Number เสมอ
+      if (type === "dealer") {
+        formatted = raw.map((item) => ({
+          key: Number(item.id),
+          code: item.code,
+          dealer_name: item.name,
+          address: item.address,
+        }));
+      } else if (type === "sub_dealer") {
+        formatted = raw.map((item) => ({
+          key: Number(item.sub_dealer_id),
+          sub_dealer_name: item.sub_dealer_name?.trim(),
+          dealer_name: item.dealer_name || "-",
+        }));
+      } else if (type === "farmer") {
+        formatted = raw.map((item) => ({
+          key: Number(item.farmer_id),
+          farmer_name:
+            item.farmer_name && item.farmer_name.trim() !== ""
+              ? item.farmer_name.trim()
+              : "ไม่มีชื่อ",
+          sub_dealer_name: item.sub_dealer_name || "-",
+          dealer_name: item.dealer_name || "-",
+        }));
+      }
+
+      setDataSource(formatted);
+    } catch (err) {
+      console.error("Error fetching data", err);
+      showMsg?.("error", err?.message || "เกิดข้อผิดพลาดขณะดึงข้อมูล");
+    }
+  };
+
   const fetchDetail = async () => {
+    if (!id) return;
     setLoading(true);
     try {
       const res = await useServiceAPI.post(paths.pathTargetGroupDetail, { id });
 
-      const raw = res.data;
+      const { header, selectedIds, targetKey } = extractDetail(res);
 
-      // Set targetType for column rendering
-      switch (raw.target_text?.toLowerCase()) {
-        case "sub dealer":
-          setTargetType("sub_dealer");
-          break;
-        case "farmer":
-          setTargetType("farmer");
-          break;
-        default:
-          setTargetType("dealer");
-          break;
-      }
+      // 1) เซ็ต target (สำหรับ UI) + checkboxes
+      setTargetType(targetKey);
+      setSelectedRowKeys(selectedIds);
 
-      // Map API data into table format
-      const mappedData = [
-        {
-          key: raw.id,
-          code: raw.id,
-          dealer_name: raw.target_text || "-",
-          address: raw.status_mapping_name || "-",
-          sub_dealer_name: raw.sub_dealer_name || "-",
-          farmer_name: raw.farmer_name || "-",
-        },
-      ];
+      // 2) โหลดตัวเลือก type ตาม target ก่อน
+      await fetchTypeOptions(targetKey);
 
-      setDataSource(mappedData);
-    } catch (err) {
-      console.error("Failed to fetch detail:", err);
+      // 3) เติมค่าฟอร์มให้ครบทั้ง 3 ช่อง (แม้จะ disabled ก็ยังโชว์ค่า)
+      form.setFieldsValue({
+        target_name: targetKey,                         // "dealer" | "sub_dealer" | "farmer"
+        type_name: header?.type ? String(header.type) : undefined, // "1" | "2" ...
+        status: String(header?.use_flag ?? 1),          // "1" | "0"
+      });
+
+      // 4) โหลด rows ทั้งหมด (เพื่อให้แสดงตาราง)
+      await fetchMasterRows(targetKey);
+    } catch (e) {
+      console.error("fetch detail error", e);
+      showMsg?.("error", e?.message || "โหลดรายละเอียดไม่สำเร็จ");
     } finally {
       setLoading(false);
     }
   };
 
+
   useEffect(() => {
-    if (id) {
-      fetchDetail();
+    if (!id) {
+      // ป้องกันผู้ใช้เข้าหน้านี้ตรงๆ
+      navigate("/setting/line/target-group");
+      return;
     }
+    fetchDetail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // filter handlers
-  const handleSearch = (values) => {
-    if (values?.target_type) {
-      setTargetType(values.target_type);
+  // เปลี่ยน target dropdown (เฉพาะโหมด edit/upload)
+  const onChangeTarget = async (value) => {
+    if (lockTopInputs) return; // บล็อกทุกกรณีที่ฟอร์มถูกล็อก
+    setTargetType(value);
+    form.setFieldValue("target_name", value);
+    setSelectedRowKeys([]);
+    await Promise.all([fetchTypeOptions(value), fetchMasterRows(value)]);
+  };
+
+
+  const handleSave = async () => {
+    try {
+      const values = await form.validateFields().catch(() => null);
+      if (!values) {
+        showNotification?.("error", "กรุณากรอกข้อมูลให้ครบถ้วน");
+        return;
+      }
+      if (!selectedRowKeys?.length) {
+        showNotification?.("error", "กรุณาเลือกลูกค้าอย่างน้อย 1 รายการ");
+        return;
+      }
+
+      const payload = {
+        target: TARGET_MAP[values.target_name || targetType],
+        type: values.type_name, // ใช้ id ของ type
+        use_flag: Number(values.status ?? 1),
+        customer_id: selectedRowKeys,
+      };
+
+      setLoading(true);
+      // PUT: target-group/update/:id
+      const url = `${paths.pathTargetGroupUpdate}/${id}`;
+      const res = await useServiceAPI.put(url, payload);
+      if (res?.status === 200) {
+        const msg = res?.data?.message || "Update successful";
+        showNotification?.("success", msg);
+        navigate(-1);
+      } else {
+        showNotification?.("error", res?.data?.message || "บันทึกไม่สำเร็จ");
+      }
+    } catch (error) {
+      showNotification?.(
+        "error",
+        error?.response?.data?.message || error?.message || "เกิดข้อผิดพลาด"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleClear = () => {
-    setTargetType("dealer");
-    setFilterValues({});
+  // ===== Upload (paste IDs) =====
+  const [pasteIds, setPasteIds] = useState("");
+  const applyPastedIds = () => {
+    const tokens = pasteIds
+      .split(/[\s,]+/)
+      .map((t) => t.trim())
+      .filter(Boolean);
+    const nums = Array.from(new Set(tokens.map((t) => Number(t)).filter((n) => !Number.isNaN(n))));
+    const merged = Array.from(new Set([...(selectedRowKeys || []), ...nums]));
+    setSelectedRowKeys(merged);
+    setUploadOpen(false);
+    setPasteIds("");
   };
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">{mode === "view" ? "View" : "Edit"} Target Group</div>
-
-      {/* <Filter
-        filters={filters}
-        values={filterValues}
-        onSearch={handleSearch}
-        onClear={handleClear}
-        onChange={setFilterValues}
-      /> */}
+      <div className="title-page">
+        {isView ? "View Target Group" : mode === "upload" ? "Edit (Upload) Target Group" : "Edit Target Group"}
+      </div>
 
       <BoxPrimary>
-        <TableComponent
+        <Form
+          layout="vertical"
+          form={form}
+          // อย่าใส่ disabled ที่ Form อีกต่อไป
+          initialValues={{ target_name: "dealer", status: "1" }}
+        >
+          <div className="grid grid-cols-3 gap-4">
+            <Form.Item
+              label="Target Name"
+              name="target_name"
+              rules={[{ required: true, message: "Please select target" }]}
+            >
+              <Select
+                disabled={lockTopInputs}     // ⬅️ ล็อกที่นี่
+                onChange={onChangeTarget}
+                allowClear={false}
+              >
+                <Select.Option value="dealer">Dealer</Select.Option>
+                <Select.Option value="sub_dealer">Sub Dealer</Select.Option>
+                <Select.Option value="farmer">Farmer</Select.Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              label="Type Name"
+              name="type_name"
+              rules={[{ required: true, message: "Please select type name" }]}
+            >
+              <Select
+                disabled={lockTopInputs}     // ⬅️ ล็อกที่นี่
+                placeholder="Select type"
+                options={typeOptions}
+                loading={loading && !typeOptions.length}
+                allowClear={false}
+              />
+            </Form.Item>
+
+            <Form.Item label="Status" name="status" initialValue="1">
+              <Select disabled={lockTopInputs} allowClear={false}>  {/* ⬅️ ล็อกที่นี่ */}
+                <Select.Option value="1">Active</Select.Option>
+                <Select.Option value="0">Inactive</Select.Option>
+              </Select>
+            </Form.Item>
+          </div>
+        </Form>
+      </BoxPrimary>
+
+
+      <BoxPrimary>
+        <div className="flex items-center justify-between mb-3">
+          <div className="font-semibold">Customers</div>
+          {!isView && (
+            <div className="flex gap-2">
+              <ActionButton mode="upload" text="Upload IDs" onClick={() => setUploadOpen(true)} />
+              <ActionButton
+                mode="clear"
+                text="Clear Selected"
+                onClick={() => setSelectedRowKeys([])}
+              />
+            </div>
+          )}
+        </div>
+        <TableCheckbox
           header={getColumns()}
           dataSource={dataSource}
+          rowSelection={rowSelection}
           pageSize={10}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: false,
-          }}
-          scroll={true}
         />
       </BoxPrimary>
 
       <div className="flex justify-end gap-4">
         <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />
+        {!isView && <ActionButton mode="save" text="Save" onClick={handleSave} />}
       </div>
+
+      <Modal
+        title="Upload / Paste Customer IDs"
+        open={uploadOpen}
+        onOk={applyPastedIds}
+        onCancel={() => setUploadOpen(false)}
+        okText="Apply"
+      >
+        <p className="mb-2">วางรหัสลูกค้า (คั่นด้วยคอมมา หรือเว้นบรรทัด)</p>
+        <Input.TextArea
+          rows={6}
+          value={pasteIds}
+          onChange={(e) => setPasteIds(e.target.value)}
+          placeholder="เช่น 607, 608, 609"
+        />
+      </Modal>
     </MainLayout>
   );
 }
