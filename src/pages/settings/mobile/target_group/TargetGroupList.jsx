@@ -123,7 +123,7 @@ export default function TargetGroupList() {
           return {
             key: index + 1 + (current - 1) * pageSize,
             target_text: item.target_text,
-            type: item.type,
+            type: item.type_name,
             created_at: item.created_at?.split(" ")[0],
             status: (
               <BadgeStatus

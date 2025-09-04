@@ -35,7 +35,8 @@ export default function CreatePointCampaign() {
   // ====== mode & id ======
   const { mode: modeFromParams } = useParams(); // 'create' | 'edit' | 'view'
   const location = useLocation();
-
+  const [detailCategoryKeys, setDetailCategoryKeys] = useState([]); // record_id[] (string)
+  const preselectCategoryDoneRef = useRef(false); // กัน override หลังผู้ใช้เริ่มแก้เอง
   // รับ mode จาก state ถ้ามี (กันพลาดเวลา navigate ส่ง state มาแทน params)
   const modeFromState = location.state?.mode;
 
@@ -141,6 +142,31 @@ export default function CreatePointCampaign() {
     })();
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    // เงื่อนไข: ต้องเป็นโหมดแก้ไข + หน้าปัจจุบันใช้โหมด Category + รอให้โหลดรายการครบก่อน + ยังไม่ preselect มาก่อน
+    if (!isEdit) return;
+    if (productMode !== "category") return;
+    if (preselectCategoryDoneRef.current) return;
+    if (categoryLoading) return; // รอโหลดเสร็จ
+    if (!productCategories.length) return;
+    if (!detailCategoryKeys.length) return;
+
+    // ตาราง Category ใช้ key เป็น record_id (string)
+    const allowed = new Set(productCategories.map(c => String(c.record_id ?? c.key)));
+    const fromDetail = detailCategoryKeys.filter(k => allowed.has(k));
+
+    setSelectedCategoryKeys(prev => {
+      // ถ้าผู้ใช้เริ่มเลือกเองแล้ว ถือว่าจบ preselect และไม่ override
+      if (prev.length > 0) {
+        preselectCategoryDoneRef.current = true;
+        return prev.filter(k => allowed.has(k)); // เคลียร์ key ที่ไม่อยู่ในรายการ
+      }
+      preselectCategoryDoneRef.current = true;
+      return fromDetail; // เช็คตาม detail
+    });
+  }, [isEdit, productMode, categoryLoading, productCategories, detailCategoryKeys]);
+
 
   const filteredCategories = useMemo(() => {
     if (!categorySearch) return productCategories;
@@ -427,6 +453,7 @@ export default function CreatePointCampaign() {
   }, [targetsFromDetail, dealerOptions, subDealerOptions, farmerOptions, form]);
 
   // ====== fetch detail เมื่อ mode เป็น view/edit ======
+  // ====== fetch detail เมื่อ mode เป็น view/edit ======
   useEffect(() => {
     if (isCreate || !recordId) return;
 
@@ -444,12 +471,10 @@ export default function CreatePointCampaign() {
 
         const crops = (d?.crops || []).map(String);
         const targetsArr = (d?.targets || []).map((x) => Number(x)).filter(Boolean);
-        const customers = (d?.customers || [])
-          .map((x) => Number(x))
-          .filter((n) => Number.isFinite(n));
+        const customers = (d?.customers || []).map((x) => Number(x)).filter((n) => Number.isFinite(n));
+        const categoryRecordIds = (d?.category || []).map(String).filter(Boolean); // <<< ADD
 
         if (!cancelled) {
-          // ของเดิม...
           form.setFieldsValue({
             campaign_name: c?.name ?? "",
             product_mode,
@@ -464,7 +489,8 @@ export default function CreatePointCampaign() {
           });
 
           setTargetsFromDetail(targetsArr);
-          setDetailCustomers(customers); // <<<<<< เพิ่มบรรทัดนี้
+          setDetailCustomers(customers);
+          setDetailCategoryKeys(categoryRecordIds); // <<< ADD
         }
       } catch (e) {
         showNotification?.("error", "โหลดข้อมูลไม่สำเร็จ", e?.response?.data?.message || "");
@@ -475,6 +501,7 @@ export default function CreatePointCampaign() {
 
     return () => { cancelled = true; };
   }, [isCreate, recordId, form, showNotification]);
+
 
   // ====== Save (รองรับ create/edit + ส่งเฉพาะฟิลด์ตาม type) ======
   const onSave = async () => {
