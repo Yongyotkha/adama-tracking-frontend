@@ -50,6 +50,9 @@ export default function CreatePointCampaign() {
 
   console.log("mode:", mode, "recordId:", recordId);
 
+  const [detailProductKeys, setDetailProductKeys] = useState([]);
+  const preselectProductDoneRef = useRef(false);
+
   const isCreate = mode === "create";
   const isEdit = mode === "edit";
   const isView = mode === "view";
@@ -468,6 +471,10 @@ export default function CreatePointCampaign() {
         const campaign_mode = TYPE_MODE_REVERSE[Number(c.type)] || undefined;
         const xpointVal = Number(c?.xpoint ?? 0);
 
+        const productsFromDetail = (d?.product || [])
+          .map((x) => Number(x))
+          .filter((n) => Number.isFinite(n)); // <<< ADD
+
         const crops = (d?.crops || []).map(String);
         const targetsArr = (d?.targets || []).map((x) => Number(x)).filter(Boolean);
         const customers = (d?.customers || []).map((x) => Number(x)).filter((n) => Number.isFinite(n));
@@ -542,6 +549,7 @@ export default function CreatePointCampaign() {
           setTargetsFromDetail(targetsArr);
           setDetailCustomers(customers);
           setDetailCategoryKeys(categoryRecordIds); // <<< ADD
+          setDetailProductKeys(productsFromDetail); // <<< ADD
         }
       } catch (e) {
         showNotification?.("error", "โหลดข้อมูลไม่สำเร็จ", e?.response?.data?.message || "");
@@ -552,6 +560,29 @@ export default function CreatePointCampaign() {
 
     return () => { cancelled = true; };
   }, [isCreate, recordId, form, showNotification]);
+
+  useEffect(() => {
+    // เงื่อนไข: โหมดแก้ไข + โหมดสินค้าเป็น specific + ยังไม่ทำ preselect + รายการสินค้าโหลดเสร็จ + มีทั้ง rows และ keys จาก detail
+    if (!isEdit) return;
+    if (productMode !== "specific") return;
+    if (preselectProductDoneRef.current) return;
+    if (productLoading) return;           // <<< รอให้สินค้าหมดโหลดก่อน (อย่าใช้ categoryLoading)
+    if (!productRaw.length) return;
+    if (!detailProductKeys.length) return;
+
+    const allowed = new Set(productRaw.map(r => Number(r.key)));
+    const fromDetail = detailProductKeys.filter(id => allowed.has(Number(id)));
+
+    setSelectedProductKeys(prev => {
+      // ถ้าผู้ใช้เริ่มเลือกเองแล้ว ให้ถือว่า preselect เสร็จ และคงไว้เฉพาะที่ยังมองเห็น
+      if (prev.length > 0) {
+        preselectProductDoneRef.current = true;
+        return prev.filter(k => allowed.has(Number(k)));
+      }
+      preselectProductDoneRef.current = true;
+      return fromDetail; // เลือกตาม detail
+    });
+  }, [isEdit, productMode, productLoading, productRaw, detailProductKeys]);
 
 
   // ====== Save (รองรับ create/edit + ส่งเฉพาะฟิลด์ตาม type) ======
