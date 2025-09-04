@@ -77,14 +77,18 @@ export default function CreatePointCampaign() {
 
         arr.forEach((it) => {
           const g = groupMap[(it?.target_name || "").trim()];
-          if (!g) return;
-          const label = (it?.type_id || "").trim();
+
+          const label = (it?.target || "").trim();
           const id = String(it?.target_id || "");
-          if (!label || !id) return;
-          if (seen[g].has(label.toLowerCase())) return;
+
           seen[g].add(label.toLowerCase());
           buckets[g].push({ label, value: id });
+
+
+
         });
+
+        console.log('buckets : ',buckets)
 
         setDealerOptions(buckets.dealer);
         setSubDealerOptions(buckets.sub);
@@ -458,6 +462,7 @@ export default function CreatePointCampaign() {
         type: typeNum,
         use_flag: Number(values.status ?? 1),
         customer_type,
+        customers:selectedRowKeys,
         targets,
         crops,
         date_start: start ? dayjs(start).startOf("day").format("YYYY-MM-DD HH:mm:ss") : null,
@@ -479,6 +484,10 @@ export default function CreatePointCampaign() {
         if (!topup) throw new Error("กรุณากรอก Topup Point อย่างน้อย 1 แถวให้ครบ");
         payload.topup_point = topup;
       }
+      // console.log('selectedRowKeys : ', selectedRowKeys)
+      // console.log('payload : ', payload)
+
+      // return false
 
       let res;
       if (isEdit) {
