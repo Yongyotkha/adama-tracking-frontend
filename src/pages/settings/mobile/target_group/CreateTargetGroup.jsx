@@ -65,7 +65,6 @@ export default function CreateTargetGroup() {
       // ให้ value เป็น name ตามสเปค response ปัจจุบัน (เช่น "1","2")
       const opts = raw.map((it) => ({
         label: it.name ?? String(it.id),
-        name: it.name ?? String(it.id),
         value: it.id ?? String(it.id),
         // ถ้าภายหลังอยากส่งตาม id ให้เปลี่ยน value: it.id และปรับ payload ตอน create
         // value name นี้แสดงผลอยู่เปลี่ยนไม่ได้ สามารถเพิ่มมาสำหรับ id ไว้ create ได้ไหม ?
