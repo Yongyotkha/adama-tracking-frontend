@@ -526,6 +526,7 @@ export default function FarmersCreate() {
         console.log(values);
 
         const formattedData = {
+          id:location.state.id,
           photo_path: values.profile,
           name: values.name || "",
           mobile_phone: values.mobile_phone || "",
