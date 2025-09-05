@@ -371,6 +371,10 @@ const App = () => {
             
             <Route path="/setting/line/reward-campaign" element={<RewardCampaignList />} />
             <Route path="/setting/line/reward-campaign/:mode" element={<CreateRewardCampaign />} />
+            {/* <Route path="/setting/line/reward-campaign/edit" element={<EditPromotion />} /> */}
+
+            
+            {/* <Route path="/setting/line/reward-campaign/:mode" element={<EditOrViewRewardCampaign />} /> */}
 
 
             <Route path="/points/line/expire-point" element={<ExpirePointList />} />
