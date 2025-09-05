@@ -19,7 +19,10 @@ export default function CreateRewardCampaign() {
   const [form] = Form.useForm();
   const { showNotification } = useContext(AuthContext);
   const fileUploadRefReceive = useRef(null);
+  // const isView = String(mode).toLowerCase() === "view";
   const isView = String(mode).toLowerCase() === "view";
+  const isEdit = String(mode).toLowerCase() === "edit";
+  const isCreate = String(mode).toLowerCase() === "create";
   const [fileListReceive, setFileListReceive] = useState([]); // picture
   const [targetData, setTargetData] = useState([]);
   const [categoryOptions, setCategoryOptions] = useState([]);
@@ -80,10 +83,10 @@ export default function CreateRewardCampaign() {
     fetchCategories();
   }, []);
 
-  // ---------- ถ้าเป็นโหมด VIEW: โหลดรายละเอียดแล้วเติมค่า ----------
+  // ---------- ถ้าเป็นโหมด VIEW/EDIT: โหลดรายละเอียดแล้วเติมค่า ----------
   useEffect(() => {
     const id = location?.state?.id; // ได้จากหน้า List
-    if (!isView || !id) return;
+    if ((!isView && !isEdit) || !id) return;
 
     const fetchDetail = async () => {
       try {
@@ -108,7 +111,7 @@ export default function CreateRewardCampaign() {
           description: promotion.description || "",
           condition: promotion.condition || "",
           product_detail: promotion.product_detail || "",
-          stock: promotion.stock ?? "", // ถ้า API ไม่มี ให้คงไว้
+          stock: promotion.value ?? "", // ถ้า API ไม่มี ให้คงไว้
           date_range: [
             promotion.date_start ? dayjs(promotion.date_start) : null,
             promotion.date_end ? dayjs(promotion.date_end) : null,
@@ -116,6 +119,12 @@ export default function CreateRewardCampaign() {
           cost: promotion.cost ?? "",
           use_flag: promotion.use_flag === "1" || promotion.use_flag === 1,
         });
+
+        // ใส่รูปเดิมเข้าตัวอัพโหลด (รองรับกรณี API ส่งเป็น string หรือ array)
+        const images = Array.isArray(promotion.image) ? promotion.image : (promotion.image ? [promotion.image] : []);
+        setFileListReceive(
+          images.map((u, idx) => ({ uid: String(idx + 1), name: `image_${idx + 1}`, status: "done", url: u }))
+        );
 
         // เติม targetData (ถ้ามี)
         if (Array.isArray(target) && target.length) {
@@ -139,7 +148,7 @@ export default function CreateRewardCampaign() {
     };
 
     fetchDetail();
-  }, [isView, location?.state?.id, form]);
+  }, [isView, isEdit, location?.state?.id, form]);
 
   const handleTargetChange = (value, index, field) => {
     const updated = [...targetData];
@@ -209,6 +218,41 @@ export default function CreateRewardCampaign() {
     return `${now.getFullYear()}${(now.getMonth() + 1 + "").padStart(2, "0")}${(now.getDate() + "").padStart(2, "0")}${now.getHours()}${now.getMinutes()}${now.getSeconds()}`;
   };
 
+  const buildPayload = (values) => {
+    const date_start = dayjs(values.date_range?.[0]).format("YYYY-MM-DD");
+    const date_end = dayjs(values.date_range?.[1]).format("YYYY-MM-DD");
+
+    const target = targetData
+      .filter(t => t.points || t.value)
+      .map(t => ({
+        point: Number(t.points ?? 0),
+        value: Number(t.value ?? 0),
+        target_id: Number(t.target_id),
+        type_id: Number(t.id),
+      }));
+
+    return {
+      name: values.name,
+      description: values.description,
+      date_start,
+      date_end,
+      code: values.code || genCode(),
+      category_id: Number(values.category),
+      unit: "ชุด",
+      value: values.value ? Number(values.value) : 0,
+      remark: "",
+      image: fileListReceive.map((f) => f.url),
+      use_flag: values.use_flag ? 1 : 0,              // ✅ ใช้ number ให้ตรงกับตัวอย่างหน้าที่อ้างอิง
+      detail: values.product_detail,
+      condition: values.condition,
+      product_detail: values.product_detail,
+      public: 1,
+      cost: values.cost ? Number(values.cost) : 0,
+      stock: values.stock ? Number(values.stock) : 0,
+      target,
+    };
+  };
+
   const handleSave = async () => {
     try {
 
@@ -216,40 +260,42 @@ export default function CreateRewardCampaign() {
 
       const values = await form.validateFields();
 
-      const date_start = dayjs(values.date_range?.[0]).format("YYYY-MM-DD");
-      const date_end = dayjs(values.date_range?.[1]).format("YYYY-MM-DD");
+      // const date_start = dayjs(values.date_range?.[0]).format("YYYY-MM-DD");
+      // const date_end = dayjs(values.date_range?.[1]).format("YYYY-MM-DD");
 
-      const target = targetData
-        .filter(t => t.points || t.value)
-        .map(t => ({
-          point: Number(t.points ?? 0),
-          value: Number(t.value ?? 0),
-          target_id: Number(t.target_id),
-          type_id: Number(t.id),
-        }));
+      // const target = targetData
+      //   .filter(t => t.points || t.value)
+      //   .map(t => ({
+      //     point: Number(t.points ?? 0),
+      //     value: Number(t.value ?? 0),
+      //     target_id: Number(t.target_id),
+      //     type_id: Number(t.id),
+      //   }));
 
-      const payload = {
-        name: values.name,
-        description: values.description,
-        date_start,
-        date_end,
-        code: values.code || genCode(),
-        category_id: Number(values.category),
-        unit: "ชุด",
-        value: values.value ? Number(values.value) : 0,
-        remark: "",
-        // ✅ สำคัญ: ใช้ค่าจากฟิลด์ banner
-        image: fileListReceive.map((f) => f.url),
-        //image: "https://adama-api.mtsc.co.th/storage/adama-smile/uploads/files/news/20250818/93587AAC-222B-4A2D-810B-70AFEA6C4419.jpg",
-        use_flag: values.use_flag ? "1" : "0",
-        detail: values.product_detail,
-        condition: values.condition,
-        product_detail: values.product_detail,
-        public: 1,
-        cost: values.cost ? Number(values.cost) : 0,
-        stock: values.stock ? Number(values.stock) : 0,
-        target,
-      };
+      // const payload = {
+      //   name: values.name,
+      //   description: values.description,
+      //   date_start,
+      //   date_end,
+      //   code: values.code || genCode(),
+      //   category_id: Number(values.category),
+      //   unit: "ชุด",
+      //   value: values.value ? Number(values.value) : 0,
+      //   remark: "",
+      //   // ✅ สำคัญ: ใช้ค่าจากฟิลด์ banner
+      //   image: fileListReceive.map((f) => f.url),
+      //   //image: "https://adama-api.mtsc.co.th/storage/adama-smile/uploads/files/news/20250818/93587AAC-222B-4A2D-810B-70AFEA6C4419.jpg",
+      //   use_flag: values.use_flag ? "1" : "0",
+      //   detail: values.product_detail,
+      //   condition: values.condition,
+      //   product_detail: values.product_detail,
+      //   public: 1,
+      //   cost: values.cost ? Number(values.cost) : 0,
+      //   stock: values.stock ? Number(values.stock) : 0,
+      //   target,
+      // };
+
+      const payload = buildPayload(values);
 
       const res = await useServiceAPI.post(paths.pathPromotioncreate, payload);
 
@@ -266,6 +312,35 @@ export default function CreateRewardCampaign() {
       setLoading(false);
     }
   };
+
+  const handleUpdate = async () => {
+    try {
+      setLoading(true);
+      const values = await form.validateFields();
+      const payload = buildPayload(values);
+      // ✅ ต้องส่ง id มาด้วยตามสัญญา API ของหน้า EditPromotion
+      // payload.id = Number(location?.state?.id);
+      // const res = await useServiceAPI.put(paths.pathPromotionupdate, payload);
+
+      const id = Number(location?.state?.id);
+      if (!id) throw new Error("ไม่พบรหัสรายการจากหน้า List");
+
+      // ✅ ใส่ id ใน URL ตามสเปค: promotion-management/update/{id}
+      const res = await useServiceAPI.put(`${paths.pathPromotionupdate}/${id}`, payload);
+      
+      if (res?.status === 200) {
+        showNotification("success", res?.message || "Updated", res?.message_line);
+        navigate("/setting/line/reward-campaign");
+      } else {
+        showNotification("error", "Update failed", res?.data?.message || "Unknown error");
+      }
+    } catch (err) {
+      console.error("Update failed:", err);
+      showNotification("error", "Update failed", err?.message || "Unexpected error");
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleUploadReceiveSuccess = (resp) => {
     const d = resp.data;
     setFileListReceive((prev) => [...prev, { uid: d.file_key, name: d.file_name, status: "done", url: d.file_url }]);
@@ -273,26 +348,31 @@ export default function CreateRewardCampaign() {
 
   // ---------- ป้องกันกรณี refresh หน้า view แล้ว state หาย ----------
   useEffect(() => {
-    if (isView && !location?.state?.id) {
+    if ((isView || isEdit) && !location?.state?.id) {
       message.warning("ไม่พบรหัสรายการจากหน้า List");
     }
-  }, [isView, location?.state?.id]);
+  }, [isView, isEdit, location?.state?.id]);
 
   return (
     <MainLayout loading={loading}>
       <div className="title-page">
-        {isView ? "View Reward Campaign" : "Create Reward Campaign"}
+        {isView ? "View Reward Campaign" : isEdit ? "Edit Reward Campaign" : "Create Reward Campaign"}
       </div>
 
       <BoxPrimary>
         <div className="flex items-center justify-between">
           <label for="Banner" class="" title="Banner">Banner</label>
-          {!isView && <ActionButton mode="add" text="Upload File" onClick={() => fileUploadRefReceive.current?.triggerUpload()} />}
+          {/* {!isView && <ActionButton mode="add" text="Upload File" onClick={() => fileUploadRefReceive.current?.triggerUpload()} />} */}
+          {(!isView) && (
+            <ActionButton mode="add" text="Upload File" onClick={() => fileUploadRefReceive.current?.triggerUpload()} />
+          )}
         </div>
 
         <FileUploadComponent
           ref={fileUploadRefReceive}
           dataFile={fileListReceive}
+          // onUploadSuccess={handleUploadReceiveSuccess}
+          // mode={isView ? "view" : "edit"}
           onUploadSuccess={handleUploadReceiveSuccess}
           mode={isView ? "view" : "edit"}
         />
@@ -310,8 +390,14 @@ export default function CreateRewardCampaign() {
 
       <div className="flex justify-end gap-4 mt-6">
         <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />
-        {!isView && (
+        {/* {!isView && (
           <ActionButton text="Save" mode="save" onClick={handleSave} />
+        )} */}
+        {isCreate && (
+          <ActionButton text="Save" mode="save" onClick={handleSave} />
+        )}
+        {isEdit && (
+          <ActionButton text="Update" mode="update" onClick={handleUpdate} />
         )}
       </div>
     </MainLayout>
