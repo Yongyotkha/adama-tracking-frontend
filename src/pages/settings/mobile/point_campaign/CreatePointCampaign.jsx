@@ -748,7 +748,7 @@ export default function CreatePointCampaign() {
               >
                 <Radio.Group>
                   <Radio value="extra">Extra Point</Radio>
-                  <Radio value="topup">Topup Point</Radio>
+                  {/* <Radio value="topup">Topup Point</Radio> */}
                   <Radio value="xpoint">X Point</Radio>
                 </Radio.Group>
               </Form.Item>
