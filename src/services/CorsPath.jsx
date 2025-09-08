@@ -164,7 +164,7 @@ export const paths = {
   // List
   pathMasterSale: "sale-management/list",
   pathMasterProduct: "products-management/list",
-  pathMasterPromotion: "promotion-management/list",
+
 
   pathMasterActivityType: "master/activity-type",
   pathMasterSaleDropdown: "master/sale",
@@ -179,7 +179,6 @@ export const paths = {
   // List
   pathSaleManagementList: "sale-management/list",
   pathProductManagementList: "products-management/list",
-  pathPromotionManagementList: "promotion-management/list",
 
   // user
   pathRegister: "register",
@@ -197,7 +196,11 @@ export const paths = {
   pathPromotionupdate: "promotion-management/update",
   pathPromotioncreate: "promotion-management/create",
   pathPromotiondelete: "promotion-management/delete",
+  pathPromotionManagementList: "promotion-management/list",
+  pathMasterPromotion: "promotion-management/list",
+  pathPromotionTarget: "promotion-management/target",
 
+  pathPromotionCategory: "promotion-management/category",
   //Sale
   pathSaleManagementlist: "sale-management/list",
 
@@ -381,7 +384,5 @@ export const paths = {
   pathPointCampaignCustomer: "campaign/customer",
   pathPointCampaignDelete: "campaign/delete",
 
-  pathPromotionTarget: "promotion-management/target",
 
-  pathPromotionCategory: "promotion-management/category",
 };

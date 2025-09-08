@@ -38,10 +38,9 @@ export default function CreateRewardCampaign() {
           const list = Array.isArray(res?.data?.data) ? res.data.data : res.data;
           const mapped = (list || []).map((t) => ({
             id: t.id,                 // ใช้เป็น type_id ตอนส่ง
-            target_name: t.target_text,
-            target_id: t.type,      // target group id
-            type_name: t.type_name,
-
+            name: t.name,
+            type: t.type,      // target group id
+            customer_type: t.customer_type,
             points: "",
             value: "",
           }));
@@ -134,9 +133,8 @@ export default function CreateRewardCampaign() {
           console.log('target : ', target)
           const merged = target.map((t, i) => ({
             id: Number(t.id),
-            target_id: Number(t.target_id ?? t.target ?? 0),
-            type_name: t.type_name ?? "",
-            target_name: t.target_name ?? "",
+            type: Number(t.type),
+            name: t.name ?? "",
             points: t.point ?? "",
             value: t.value ?? "",
             customer_type: t.customer_type ?? "",
@@ -167,16 +165,16 @@ export default function CreateRewardCampaign() {
     if (isView) {
       return [
         { title: "No", dataIndex: "id", key: "id", render: (_, __, index) => index + 1 },
-        { title: "Target Name", dataIndex: "target_name", key: "target_name" },
-        { title: "Type Name", dataIndex: "type_name", key: "type_name" },
+        { title: "Target Name", dataIndex: "name", key: "name" },
+        { title: "Type Name", dataIndex: "customer_type", key: "customer_type" },
         { title: "Points", dataIndex: "points", key: "points", render: (v) => String(v ?? "") },
         { title: "Value (THB)", dataIndex: "value", key: "value", render: (v) => String(v ?? "") },
       ];
     }
     return [
       { title: "No", dataIndex: "id", key: "id", render: (_, __, index) => index + 1 },
-      { title: "Target Name", dataIndex: "customer_type", key: "target_name" },
-      { title: "Type Name", dataIndex: "target_name", key: "type_name" },
+      { title: "Target Name", dataIndex: "name", key: "name" },
+      { title: "Type Name", dataIndex: "customer_type", key: "customer_type" },
       {
         title: "Points",
         dataIndex: "points",
@@ -228,7 +226,7 @@ export default function CreateRewardCampaign() {
     const date_start = dayjs(values.date_range?.[0]).format("YYYY-MM-DD");
     const date_end = dayjs(values.date_range?.[1]).format("YYYY-MM-DD");
 
-    //console.log('targetData : ',targetData)
+    // console.log('targetData : ',targetData)
 
     const target = targetData
       .filter(t => t.points || t.value)
@@ -236,7 +234,7 @@ export default function CreateRewardCampaign() {
         point: Number(t.points ?? 0),
         value: Number(t.value ?? 0),
         target_id: Number(t.target_id),
-        type_id: Number(t.id),
+        type_id: Number(t.type),
       }));
 
     //  console.log('target : ',target)
