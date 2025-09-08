@@ -11,6 +11,7 @@ import useServiceAPI from "../../../../services/CorsService";
 import { paths } from "../../../../services/CorsPath";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import FileUploadComponent from "../../../../components/file_upload/FileUploadComponent";
+import { FastBackwardFilled } from "@ant-design/icons";
 export default function CreateRewardCampaign() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -37,9 +38,10 @@ export default function CreateRewardCampaign() {
           const list = Array.isArray(res?.data?.data) ? res.data.data : res.data;
           const mapped = (list || []).map((t) => ({
             id: t.id,                 // ใช้เป็น type_id ตอนส่ง
-            target_id: t.target,      // target group id
-            type_name: t.type,
             target_name: t.target_text,
+            target_id: t.type,      // target group id
+            type_name: t.type_name,
+
             points: "",
             value: "",
           }));
@@ -129,14 +131,18 @@ export default function CreateRewardCampaign() {
         // เติม targetData (ถ้ามี)
         if (Array.isArray(target) && target.length) {
           // แปลงให้เข้ากับคอลัมน์เรา
+          console.log('target : ', target)
           const merged = target.map((t, i) => ({
-            id: Number(t.type_id ?? t.id ?? i + 1),
+            id: Number(t.id),
             target_id: Number(t.target_id ?? t.target ?? 0),
             type_name: t.type_name ?? "",
             target_name: t.target_name ?? "",
             points: t.point ?? "",
             value: t.value ?? "",
+            customer_type: t.customer_type ?? "",
           }));
+
+          console.log('merged : ', merged)
           setTargetData(merged);
         }
       } catch (err) {
@@ -169,8 +175,8 @@ export default function CreateRewardCampaign() {
     }
     return [
       { title: "No", dataIndex: "id", key: "id", render: (_, __, index) => index + 1 },
-      { title: "Target Name", dataIndex: "target_name", key: "target_name" },
-      { title: "Type Name", dataIndex: "type_name", key: "type_name" },
+      { title: "Target Name", dataIndex: "customer_type", key: "target_name" },
+      { title: "Type Name", dataIndex: "target_name", key: "type_name" },
       {
         title: "Points",
         dataIndex: "points",
@@ -222,6 +228,8 @@ export default function CreateRewardCampaign() {
     const date_start = dayjs(values.date_range?.[0]).format("YYYY-MM-DD");
     const date_end = dayjs(values.date_range?.[1]).format("YYYY-MM-DD");
 
+    //console.log('targetData : ',targetData)
+
     const target = targetData
       .filter(t => t.points || t.value)
       .map(t => ({
@@ -231,6 +239,8 @@ export default function CreateRewardCampaign() {
         type_id: Number(t.id),
       }));
 
+    //  console.log('target : ',target)
+    //  return false;
     return {
       name: values.name,
       description: values.description,
@@ -238,7 +248,7 @@ export default function CreateRewardCampaign() {
       date_end,
       code: values.code || genCode(),
       category_id: Number(values.category),
-      unit: "ชุด",
+      unit: "-",
       value: values.value ? Number(values.value) : 0,
       remark: "",
       image: fileListReceive.map((f) => f.url),
@@ -327,7 +337,7 @@ export default function CreateRewardCampaign() {
 
       // ✅ ใส่ id ใน URL ตามสเปค: promotion-management/update/{id}
       const res = await useServiceAPI.put(`${paths.pathPromotionupdate}/${id}`, payload);
-      
+
       if (res?.status === 200) {
         showNotification("success", res?.message || "Updated", res?.message_line);
         navigate("/setting/line/reward-campaign");
