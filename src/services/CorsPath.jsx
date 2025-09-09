@@ -199,7 +199,7 @@ export const paths = {
   pathPromotionManagementList: "promotion-management/list",
   pathMasterPromotion: "promotion-management/list",
   pathPromotionTarget: "promotion-management/target",
-
+  pathMasterPromotionUser: "promotion-management/list_user",
   pathPromotionCategory: "promotion-management/category",
   //Sale
   pathSaleManagementlist: "sale-management/list",
