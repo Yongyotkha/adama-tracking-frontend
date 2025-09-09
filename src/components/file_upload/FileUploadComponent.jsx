@@ -42,14 +42,16 @@ const FileUploadComponent = forwardRef((props, ref) => {
   const triggerUpload = () => {
     if (hiddenFileInputRef.current) {
       hiddenFileInputRef.current.click();
+
     }
+    console.log('Upload')
   };
 
   useImperativeHandle(ref, () => ({
     triggerUpload,
   }));
 
-  console.log('Upload')
+
   return (
     <App>
       <Upload
@@ -60,6 +62,19 @@ const FileUploadComponent = forwardRef((props, ref) => {
         onChange={handleChange}
         showUploadList={{
           showRemoveIcon: mode !== "view",
+        }}
+        onRemove={(file) => {
+          // ลบออกจาก state
+
+          console.log('file : ', file)
+
+          console.log('before : ', fileList)
+          setFileList((prev) => prev.filter((item) => item.uid !== file.uid));
+          console.log('after : ', fileList)
+          // TODO: ถ้ามี API สำหรับลบไฟล์ใน server ก็เรียกที่นี่
+
+
+          return true; // ต้อง return true เพื่อให้ลบออกจาก UI ด้วย
         }}
         openFileDialogOnClick={false}
       />
