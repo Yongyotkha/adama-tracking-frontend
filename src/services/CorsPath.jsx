@@ -294,9 +294,14 @@ export const paths = {
   pathStockUpdate: "/stock/update",
   pathStockDetail: "/stock/detail",
   pathStockDelete: "/stock/delete",
-  pathStockCreated: "/stock/created"
-  ,
-  pathRedeemList: "/redeem/list",
+  pathStockCreated: "/stock/created",
+
+  pathRedeemList: "redeem/list",
+  pathRedeemDetail: "redeem/detail",
+  pathRedeemUpdateStatus: "redeem/update-status",
+
+  
+  // pathRedeemList: "redeem/list",
 
   // Expense Traveling
   pathGetExpenseTravelingList: "expense/traveling/list",

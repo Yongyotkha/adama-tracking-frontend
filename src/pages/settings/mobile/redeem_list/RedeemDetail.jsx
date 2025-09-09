@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useContext } from "react";
-import { Form, Input } from "antd";
+import { Form, Input, Modal } from "antd"; // ⬅️ เพิ่ม Modal
 import dayjs from "dayjs";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
@@ -9,53 +9,21 @@ import TableComponent from "../../../../components/table/TableComponent";
 import BadgeStatus from "../../../../components/badge/BadgeStatus";
 import ActionButton from "../../../../components/button/ActionButton";
 
-import useServiceAPI from "../../../../services/corsService"; // ✅ พร้อมต่อ API
-import { paths } from "../../../../services/CorsPath";        // ✅ พร้อมต่อ API
+import useServiceAPI from "../../../../services/corsService";
+import { paths } from "../../../../services/CorsPath";
 import { AuthContext } from "../../../../contexts/AuthContext";
-
-// ---------------------- MOCK DATA (ใช้ชั่วคราว) ----------------------
-const MOCK_DETAIL = {
-  id: "REQ-20250526-0001",
-  shop_name: "บ้านธาราเกษตร 11",
-  customer_name: "Piyanuch Puttisukniran",
-  contact_number: "081-9496301",
-  date: "2025-05-26",
-  stock: 10,
-  status_code: "WAITING",
-  status_name: "Waiting for Approve",
-  approve_by: "-",
-  reject_by: "-",
-  items: [
-    {
-      reward_code: "RW00000001",
-      category: "อิเล็กทรอนิกส์",
-      reward_name: "พัดลม (14 นิ้ว)",
-      qty: 1,
-      cost: 790,
-      point_redeem: 2000,
-    },
-  ],
-  // สิทธิ์การทำงาน (mock)
-  permission: {
-    can_approve: true,
-    can_send_purchase: true,
-  },
-};
-// --------------------------------------------------------------------
 
 export default function RedeemDetail() {
   const navigate = useNavigate();
-  const { mode } = useParams(); // 'view' (กันอนาคต)
+  const { mode: urlMode } = useParams(); // (ยังไม่ใช้)
   const location = useLocation();
   const { showNotification } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
-  const [detail, setDetail] = useState(MOCK_DETAIL); // เริ่มด้วย mock
+  const [detail, setDetail] = useState(null);
   const [form] = Form.useForm();
 
-  const isView = String(mode || "view").toLowerCase() === "view";
-
-  // ---------- Columns ของตารางรายการของรางวัล ----------
+  // ตารางสินค้า/ของรางวัล
   const columns = useMemo(
     () => [
       { title: "Reward Code", dataIndex: "reward_code", align: "left" },
@@ -63,103 +31,175 @@ export default function RedeemDetail() {
       { title: "Reward Name", dataIndex: "reward_name", align: "left" },
       { title: "QTY (Pcs)", dataIndex: "qty", align: "right", width: 100 },
       { title: "Cost (THB)", dataIndex: "cost", align: "right", width: 120 },
-      {
-        title: "Points Redeem",
-        dataIndex: "point_redeem",
-        align: "right",
-        width: 140,
-      },
+      { title: "Points Redeem", dataIndex: "point_redeem", align: "right", width: 140 },
     ],
     []
   );
 
-  // ---------- แปลงสถานะเป็น Badge ----------
-  const renderStatus = (name, bg = "gray", color = "white") => (
-    <BadgeStatus text={name} bgColor={bg} textColor={color} />
-  );
-
-  // ---------- เติมค่าให้ฟอร์ม (read-only) ----------
-  const fillForm = (data) => {
+  const fillForm = (d) => {
     form.setFieldsValue({
-      shop_name: data.shop_name || "-",
-      customer_name: data.customer_name || "-",
-      contact_number: data.contact_number || "-",
-      date: data.date ? dayjs(data.date).format("YYYY-MM-DD") : "-",
-      stock: String(data.stock ?? "-"),
-      status: data.status_name || "-",
-      approve_by: data.approve_by || "-",
-      reject_by: data.reject_by || "-",
+      shop_name: d.shop_name || "-",
+      customer_name: d.customer_name || "-",
+      contact_number: d.contact_number || "-",
+      date: d.date ? dayjs(d.date).format("YYYY-MM-DD") : "-",
+      stock: String(d.stock ?? "-"),
+      status: d.status_name || "-",
+      approve_by: d.approve_by || "-",
+      reject_by: d.reject_by || "-",
     });
   };
 
-  // ---------- โหลดรายละเอียด (พร้อมต่อ API) ----------
   const loadDetail = async () => {
-    setLoading(true);
-
-    // ถ้ามาจากหน้า List จะมี id ส่งผ่าน location.state.id
-    const requestId = location?.state?.id || MOCK_DETAIL.id;
-
-    // ----- ใช้ MOCK ก่อน -----
-    setDetail(MOCK_DETAIL);
-    fillForm(MOCK_DETAIL);
-    setLoading(false);
-    return;
-
-    /* ⭐️ เมื่อมี API แล้ว: ลบโค้ด MOCK ข้างบน และใช้โค้ดด้านล่างแทน ⭐️
-
     try {
-      const res = await useServiceAPI.get(paths.pathRedeemRequestDetail, { id: requestId });
+      setLoading(true);
+      const id = location?.state?.id;
+      if (!id) {
+        showNotification("error", "Load failed", ["ไม่พบรหัสรายการจากหน้า List"]);
+        navigate(-1);
+        return;
+      }
+
+      // GET /redeem/detail/{id}
+      const res = await useServiceAPI.get(`${paths.pathRedeemDetail}/${id}`);
+
       if (res?.status === 200) {
-        // ปรับ mapping ให้ตรงกับ payload จริงของ backend
-        const d = res.data?.data || {};
-        const mapped = {
+        // ✅ payload จริงอยู่ใต้ data.data
+        const d = res.data;
+
+        // map response -> view model
+        const vm = {
           id: d.id,
-          shop_name: d.shop_name,
-          customer_name: d.customer_name,
-          contact_number: d.contact_number,
-          date: d.request_date, // หรือ d.created_at
-          stock: d.stock,
-          status_code: d.status_code,
-          status_name: d.status_name,
+          status_code: d.status, // RFA | RFR | RFW
+          status_name:
+            d.status === "RFA"
+              ? "Approve"
+              : d.status === "RFR"
+                ? "Reject"
+                : d.status === "RFW"
+                  ? "Waiting for Approve"
+                  : d.status || "-",
+          status_bg_color: d.status === "RFA" ? "#009845" : d.status === "RFR" ? "#752157" : "#9CA3AF",
+          status_color: "#FFFFFF",
+
+          date: d.created_at?.split(" ")[0] || "-",
+          shop_name: d.user?.shop_name || "-",
+          customer_name: d.user?.name_en || d.user?.name_th || "-",
+          contact_number: d.user?.phone_number || "-",
+          stock: d.reward?.value ?? "-",
           approve_by: d.approve_by || "-",
           reject_by: d.reject_by || "-",
-          items: (d.items || []).map((i) => ({
-            reward_code: i.reward_code,
-            category: i.category_name,
-            reward_name: i.reward_name,
-            qty: i.qty,
-            cost: i.cost,
-            point_redeem: i.point_redeem,
-          })),
+
+          items: [
+            {
+              reward_code: d.reward?.code || "-",
+              category: d.reward?.category_name || "-", // ไม่มีใน payload -> "-"
+              reward_name: d.reward?.name || "-",
+              qty: 1, // ไม่มีใน payload -> สมมติ 1
+              cost: Number(d.reward?.cost ?? 0),
+              point_redeem: Number(d.point ?? 0),
+            },
+          ],
+
           permission: {
-            can_approve: d.permission?.approve,
-            can_send_purchase: d.permission?.send_purchase,
+            can_approve: d.status === "RFW",
+            // RFA/RFR ให้เห็นปุ่ม Send to Request (ตาม requirement)
+            can_send_purchase: d.status === "RFA" || d.status === "RFR",
           },
         };
 
-        setDetail(mapped);
-        fillForm(mapped);
+        setDetail(vm);
+        fillForm(vm);
+      } else {
+        showNotification("error", "Load failed", [res?.data?.message || "ไม่สามารถโหลดรายละเอียดได้"]);
       }
     } catch (e) {
       console.error(e);
-      showNotification("error", "Load failed", "ไม่สามารถโหลดรายละเอียดได้");
+      showNotification("error", "Load failed", ["เกิดข้อผิดพลาดระหว่างโหลดรายละเอียด"]);
     } finally {
       setLoading(false);
     }
-    */
   };
 
-  // ---------- Action Handlers (พร้อมต่อ API) ----------
+  // ---------- Modal helper: ถาม + รับ remark ----------
+  const confirmWithRemark = ({ title, placeholder = "Enter", okText = "OK", okType, onOk }) => {
+    let remarkValue = "";
+    Modal.confirm({
+      title,
+      content: (
+        <Input.TextArea
+          autoSize={{ minRows: 3 }}
+          placeholder={placeholder}
+          onChange={(e) => (remarkValue = e.target.value)}
+        />
+      ),
+      okText,
+      okType,
+      cancelText: "Cancel",
+      onOk: async () => {
+        await onOk?.(remarkValue?.trim() || "");
+      },
+    });
+  };
+
+  // ---------- ยิง API เปลี่ยนสถานะ ----------
+  const postStatus = async (status, remark) => {
+    if (!detail?.id) return;
+    try {
+      setLoading(true);
+      const body = { id: Number(detail.id), status, remark };
+      const res = await useServiceAPI.post(paths.pathRedeemUpdateStatus, body);
+      if (res?.status === 200) {
+        showNotification("success", "Success", [`อัปเดตสถานะเป็น ${status} เรียบร้อย`]);
+        // โหลดใหม่เพื่อให้ข้อมูลล่าสุด (หรือจะย้อนกลับ list ก็ได้)
+        // await loadDetail();
+        // ✅ อัปเดตเสร็จแล้ว redirect กลับหน้า List
+        navigate("/points/line/redeem-reward-list");
+
+      } else {
+        showNotification("error", "Update failed", [res?.data?.message || "ไม่สามารถอัปเดตสถานะได้"]);
+      }
+    } catch (e) {
+      console.error(e); postStatus
+      showNotification("error", "Update failed", [e?.message || "เกิดข้อผิดพลาดระหว่างอัปเดต"]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ---------- Actions ----------
   const handleApprove = async () => {
-    // TODO: ต่อ API อนุมัติ
-    // await useServiceAPI.post(paths.pathRedeemApprove, { id: detail.id })
-    showNotification("success", "Approved", ["รายการถูกอนุมัติแล้ว"]);
+    confirmWithRemark({
+      title: "Do you want to approve ?",
+      okText: "OK",
+      okType: "primary",
+      onOk: async (remark) => {
+        await postStatus("RFA", remark); // ✅ Approve
+      },
+    });
   };
 
+  const handleReject = async () => {
+    confirmWithRemark({
+      title: "Do you want to reject ?",
+      okText: "OK",
+      okType: "danger",
+      onOk: async (remark) => {
+        await postStatus("RFR", remark); // ✅ Reject
+      },
+    });
+  };
+
+  // “Send to Purchase” – ยังไม่ต่อ API จริง เก็บ remark ได้ตาม requirement
   const handleSendToPurchase = async () => {
-    // TODO: ต่อ API ส่งข้อมูลไปฝ่ายจัดซื้อ
-    // await useServiceAPI.post(paths.pathRedeemSendPurchase, { id: detail.id })
-    showNotification("success", "Sent to Purchase", ["ส่งข้อมูลไปจัดซื้อเรียบร้อย"]);
+    confirmWithRemark({
+      title: "Send to Purchase ?",
+      okText: "OK",
+      okType: "primary",
+      onOk: async (remark) => {
+        // วางไว้ก่อน – ยังไม่ยิง API
+        showNotification("success", "Sent", ["ส่งกลับไปที่ Purchase แล้ว"]);
+      },
+    });
   };
 
   useEffect(() => {
@@ -167,70 +207,63 @@ export default function RedeemDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // โหมดจาก list (RFA/RFR/RFW) เพื่อคุมปุ่ม
+  const currentMode = (location?.state?.mode || detail?.status_code || "").toUpperCase();
+  const isRFA = currentMode === "RFA";
+  const isRFR = currentMode === "RFR";
+  const isRFW = currentMode === "RFW";
+
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Redeem Reward Detail</div>
 
-      {/* กล่องข้อมูลหัวข้อแรก */}
       <BoxPrimary>
         <Form form={form} layout="vertical" disabled>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Form.Item label="Shop Name" name="shop_name">
-              <Input disabled />
-            </Form.Item>
-            <Form.Item label="Customer Name" name="customer_name">
-              <Input disabled />
-            </Form.Item>
-            <Form.Item label="Contact Number" name="contact_number">
-              <Input disabled />
-            </Form.Item>
-            <Form.Item label="Date" name="date">
-              <Input disabled />
-            </Form.Item>
+            <Form.Item label="Shop Name" name="shop_name"><Input disabled /></Form.Item>
+            <Form.Item label="Customer Name" name="customer_name"><Input disabled /></Form.Item>
+            <Form.Item label="Contact Number" name="contact_number"><Input disabled /></Form.Item>
+            <Form.Item label="Date" name="date"><Input disabled /></Form.Item>
 
-            <Form.Item label="Stock (Pcs)" name="stock">
-              <Input disabled />
-            </Form.Item>
-            <Form.Item label="Status" name="status">
-              <Input
-                disabled
-                // addonAfter={renderStatus(detail.status_name)}
-              />
-            </Form.Item>
-            <Form.Item label="Approve By" name="approve_by">
-              <Input disabled />
-            </Form.Item>
-            <Form.Item label="Reject By" name="reject_by">
-              <Input disabled />
-            </Form.Item>
+            <Form.Item label="Stock (Pcs)" name="stock"><Input disabled /></Form.Item>
+            <Form.Item label="Status" name="status"><Input disabled /></Form.Item>
+            <Form.Item label="Approve By" name="approve_by"><Input disabled /></Form.Item>
+            <Form.Item label="Reject By" name="reject_by"><Input disabled /></Form.Item>
           </div>
         </Form>
       </BoxPrimary>
 
-      {/* ตารางรายการของรางวัล */}
       <BoxPrimary>
-        <TableComponent
-          header={columns}
-          dataSource={detail.items || []}
-          pagination={false}
-        />
+        <TableComponent header={columns} dataSource={detail?.items || []} pagination={false} />
       </BoxPrimary>
 
-      {/* ปุ่มแอคชัน */}
       <div className="flex justify-end gap-3 mt-4">
         <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />
-        <ActionButton
-          mode="warning"
-          text="Send to Purchase"
-          onClick={handleSendToPurchase}
-          disabled={!detail.permission?.can_send_purchase}
-        />
-        <ActionButton
-          mode="approve"
-          text="Approve"
-          onClick={handleApprove}
-          disabled={!detail.permission?.can_approve}
-        />
+
+        {(isRFA) && (
+          <ActionButton
+            mode="reject"
+            text="Send to Request"
+            onClick={handleSendToPurchase} // ⬅️ มี remark ผ่าน Modal แต่ยังไม่ยิง API
+          />
+        )}
+
+        {isRFW && (
+          <>
+            <ActionButton
+              mode="reject"
+              text="Reject"
+              className="bg-[#752157]"
+              onClick={handleReject} // ⬅️ Modal + post RFR
+            />
+            <ActionButton
+              mode="custom"
+              text="Approve"
+              className="bg-[#00783F]"
+              onClick={handleApprove} // ⬅️ Modal + post RFA
+            />
+          </>
+        )}
       </div>
     </MainLayout>
   );

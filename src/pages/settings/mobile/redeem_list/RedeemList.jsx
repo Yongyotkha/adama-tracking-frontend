@@ -5,7 +5,6 @@ import Filter from "../../../../components/filter/Filter";
 import TableComponent from "../../../../components/table/TableComponent";
 import BadgeStatus from "../../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
-import ActionButton from "../../../../components/button/ActionButton";
 import ItemDropDown from "../../../../components/dropdown/ItemDropDown";
 import { useNavigate } from "react-router-dom";
 import useServiceAPI from "../../../../services/corsService";
@@ -34,6 +33,7 @@ export default function RedeemList() {
     filters: {},
   });
 
+  // ---------------- Filters ----------------
   const filtersList = [
     { key: "target", type: "text", label: "Target Name" },
     { key: "type", type: "text", label: "Type Name" },
@@ -64,94 +64,141 @@ export default function RedeemList() {
     },
   ];
 
-  const renderStatus = (use_flag) => {
-    const isActive = use_flag === "1";
-    return (
-      <BadgeStatus
-        text={isActive ? "Active" : "Inactive"}
-        bgColor={isActive ? "green" : "gray"}
-        textColor="white"
-      />
-    );
-  };
+  // ---------------- Format helpers ----------------
+  const fmtNum = (v) =>
+    v === null || v === undefined || v === "" || isNaN(Number(v))
+      ? "-"
+      : Number(v).toLocaleString();
+  const fmtDate = (dt) => (dt ? String(dt).split(" ")[0] : "-");
 
-  const listHeader = [
-    { title: "No", dataIndex: "key" },
-    { title: "Shop Name", dataIndex: "shop_name" },
-    { title: "Customer Name", dataIndex: "customer_name" },
-    { title: "Reward Name", dataIndex: "reward_name" },
-    { title: "Type", dataIndex: "type" },
-    { title: "Point", dataIndex: "point", align: "center" },
-    { title: "Create Date", dataIndex: "created_at", align: "center" },
-    { title: "Status", dataIndex: "status", align: "center" },
-    { title: "Action", dataIndex: "action", align: "center" },
-  ];
+  const renderStatusBadge = (item) => (
+    <BadgeStatus
+      text={item?.status_name || "-"}
+      bgColor={item?.status_bg_color || "#9CA3AF"}
+      textColor={item?.status_color || "#FFFFFF"}
+    />
+  );
 
-  const requestHeader = [
-    { title: "No", dataIndex: "key" },
+  // ---------------- Common columns (ใช้ร่วมกันทั้ง 2 แท็บ) ----------------
+  const commonHeaders = [
+    { title: "No", dataIndex: "key", width: 60 },
     { title: "Shop Name", dataIndex: "shop_name" },
-    { title: "Customer Name", dataIndex: "customer_name" },
+    { title: "Reward Code", dataIndex: "reward_code" },
     { title: "Reward Name", dataIndex: "reward_name" },
     { title: "QTY (Pcs)", dataIndex: "qty", align: "right" },
+    { title: "Stock (Pcs)", dataIndex: "stock", align: "right" },
+    { title: "Cost (THB)", dataIndex: "cost", align: "right" },
     { title: "Points", dataIndex: "points", align: "right" },
     { title: "Date", dataIndex: "date", align: "center" },
-    { title: "Status", dataIndex: "status", align: "center" },
-    { title: "Action", dataIndex: "action", align: "center" },
+    { title: "Shipping", dataIndex: "shipping", align: "center", width: 90 },
+    { title: "Status", dataIndex: "status", align: "center", width: 120 },
+    { title: "Action", dataIndex: "action", align: "center", width: 80 },
   ];
 
-  // --- Fetch list ---
+  // ---------------- Common mapper (ใช้ map ได้ทั้ง 2 API) ----------------
+  const mapRow = (item, index, current, pageSize) => ({
+    key: index + 1 + (current - 1) * pageSize,
+    id: item.id,
+    shop_name: item.shop_name || "-",
+    reward_code: item.reward_code || "-",
+    reward_name: item.reward_name || "-",
+    // บาง API ส่ง qty/points เป็น string หรือไม่มี -> fallback "-"
+    qty: item.qty !== undefined ? fmtNum(item.qty) : "-",
+    stock:
+      item.stock !== undefined
+        ? fmtNum(item.stock)
+        : item.reward_value !== undefined
+        ? fmtNum(item.reward_value)
+        : "-",
+    cost:
+      item.cost !== undefined
+        ? fmtNum(item.cost)
+        : item.reward_cost !== undefined
+        ? fmtNum(item.reward_cost)
+        : "-",
+    points:
+      item.points !== undefined
+        ? fmtNum(item.points)
+        : item.point !== undefined
+        ? fmtNum(item.point)
+        : "-",
+    date: fmtDate(item.created_at),
+    shipping: (
+      <button
+        type="button"
+        className="btn-icon"
+        title="Shipping"
+        onClick={(e) => e.preventDefault()}
+      >
+        <img
+          src="/img/icons/location.png"
+          alt="shipping"
+          className="inline-block w-5 h-5"
+        />
+      </button>
+    ),
+    status: renderStatusBadge(item),
+    action: (
+      <Dropdown
+        menu={{
+          items: (item.action || []).map((act, i) => ({
+            key: i,
+            label: (
+              <ItemDropDown
+                mode={String(act.action || "view").toLowerCase()}
+                onClick={() =>
+                  navigate(
+                    `/points/line/redeem-reward/${String(
+                      act.action || "view"
+                    ).toLowerCase()}`,
+                    // { state: { id: item.id } }
+                    { state: { id: item.id, mode: item.status } } // ⬅️ ส่งโหมด RFA/RFR/RFW ไปหน้า detail
+                  )
+                }
+              />
+            ),
+          })),
+        }}
+        placement="bottomRight"
+      >
+        <a onClick={(e) => e.preventDefault()}>
+          <img
+            src="/img/icons/action.png"
+            alt="action"
+            className="inline-block w-5 h-5"
+          />
+        </a>
+      </Dropdown>
+    ),
+  });
+
+  // ---------------- Fetch: Redeem Reward List ----------------
   const fetchList = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     try {
       const res = await useServiceAPI.get(paths.pathRedeemList, {
         platform: "web",
-        process: "receive-reward",
         page: "all",
         page_size: pageSize,
         page_length: current,
+        status: ["RFA", "RFR"],
       });
+
       if (res.status === 200) {
-        const list = res.data?.data || [];
-        const formatted = list.map((item, index) => ({
-          key: index + 1 + (current - 1) * pageSize,
-          id: item.id,
-          shop_name: item.shop_name || "-",
-          customer_name: item.name_en || "-",
-          reward_name: item.reward_name || "-",
-          type: item.type || "-",
-          point: item.point ?? "-",
-          created_at: item.created_at?.split(" ")[0],
-          status: renderStatus(item.use_flag),
-          action: (
-            <Dropdown
-              menu={{
-                items: (item.action || []).map((act, i) => ({
-                  key: i,
-                  label: (
-                    <ItemDropDown
-                      mode={act.action.toLowerCase()}
-                      onClick={() =>
-                        navigate(`/points/line/redeem-reward/${act.action.toLowerCase()}`, {
-                          state: { id: item.id },
-                        })
-                      }
-                    />
-                  ),
-                })),
-              }}
-              placement="bottomRight"
-            >
-              <a onClick={(e) => e.preventDefault()}>
-                <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
-              </a>
-            </Dropdown>
-          ),
-        }));
+        // โครงสร้างที่คุณส่งมา: { result, status, message, data: { records_*, data: [...] } }
+        const payload = res.data || res.data; // รองรับทั้ง 2 เคส
+        const rows = payload?.data ?? [];
+        const formatted = rows.map((item, index) =>
+          mapRow(item, index, current, pageSize)
+        );
         setDataSource(formatted);
         setTableParams((prev) => ({
           ...prev,
-          pagination: { ...prev.pagination, total: res.data.records_filtered },
+          pagination: {
+            ...prev.pagination,
+            total: payload?.records_filtered ?? payload?.records_total ?? 0,
+          },
         }));
       }
     } finally {
@@ -159,63 +206,31 @@ export default function RedeemList() {
     }
   };
 
-  // --- Fetch request ---
+  // ---------------- Fetch: Redeem Reward Request List ----------------
   const fetchRequest = async () => {
     setRequestTableLoading(true);
     const { current, pageSize } = requestTableParams.pagination;
     try {
-      const res = await useServiceAPI.get(paths.pathRedeemRequestList, {
-        platform: "web",
-        process: "redeem-reward-request",
+      const res = await useServiceAPI.get(paths.pathRedeemList, {
         page: "all",
         page_size: pageSize,
         page_length: current,
+        status: ["RFW"],
       });
+
       if (res.status === 200) {
-        const list = res.data?.data || [];
-        const formatted = list.map((item, index) => ({
-          key: index + 1 + (current - 1) * pageSize,
-          shop_name: item.shop_name || "-",
-          customer_name: item.customer_name || "-",
-          reward_name: item.reward_name || "-",
-          qty: item.qty ?? "-",
-          points: item.points ?? "-",
-          date: item.created_at?.split(" ")[0],
-          status: (
-            <BadgeStatus
-              text={item.status_name}
-              bgColor={item.status_bg_color || "gray"}
-              textColor={item.status_color || "white"}
-            />
-          ),
-          action: (
-            <Dropdown
-              menu={{
-                items: [
-                  {
-                    key: "view",
-                    label: (
-                      <ItemDropDown
-                        mode="view"
-                        onClick={() =>
-                          navigate("/redeem/reward/request/view", { state: { id: item.id} })
-                        }
-                      />
-                    ),
-                  },
-                ],
-              }}
-            >
-              <a onClick={(e) => e.preventDefault()}>
-                <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
-              </a>
-            </Dropdown>
-          ),
-        }));
+        const payload = res.data || res.data; // รองรับทั้ง 2 เคส
+        const rows = payload?.data ?? [];
+        const formatted = rows.map((item, index) =>
+          mapRow(item, index, current, pageSize)
+        );
         setRequestDataSource(formatted);
         setRequestTableParams((prev) => ({
           ...prev,
-          pagination: { ...prev.pagination, total: res.data.records_filtered },
+          pagination: {
+            ...prev.pagination,
+            total: payload?.records_filtered ?? payload?.records_total ?? 0,
+          },
         }));
       }
     } finally {
@@ -226,21 +241,24 @@ export default function RedeemList() {
   useEffect(() => {
     if (activeTab === "list") fetchList();
     else fetchRequest();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, tableParams.pagination.current, requestTableParams.pagination.current]);
 
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Redeem Reward</div>
-        {/* <ActionButton mode="create" text="Create" onClick={() => navigate("create")} /> */}
       </div>
 
       <Tabs className="custom-tabs" activeKey={activeTab} onChange={setActiveTab}>
-        <TabPane tab={<span className="tab-title">Redeem Reward List</span>} key="list">
+        <TabPane
+          tab={<span className="tab-title">Redeem Reward List</span>}
+          key="list"
+        >
           <Filter filters={filtersList} />
           <BoxPrimary className="mt-4">
             <TableComponent
-              header={listHeader}
+              header={commonHeaders}
               dataSource={dataSource}
               loading={tableLoading}
               pagination={tableParams.pagination}
@@ -251,11 +269,14 @@ export default function RedeemList() {
           </BoxPrimary>
         </TabPane>
 
-        <TabPane tab={<span className="tab-title">Redeem Reward Request List</span>} key="request">
+        <TabPane
+          tab={<span className="tab-title">Redeem Reward Request List</span>}
+          key="request"
+        >
           <Filter filters={filtersRequest} />
           <BoxPrimary className="mt-4">
             <TableComponent
-              header={requestHeader}
+              header={commonHeaders}  // ✅ ใช้หัวเดียวกับแท็บแรก
               dataSource={requestDataSource}
               loading={requestTableLoading}
               pagination={requestTableParams.pagination}
