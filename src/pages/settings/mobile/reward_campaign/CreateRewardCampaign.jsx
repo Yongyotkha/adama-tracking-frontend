@@ -226,19 +226,19 @@ export default function CreateRewardCampaign() {
     const date_start = dayjs(values.date_range?.[0]).format("YYYY-MM-DD");
     const date_end = dayjs(values.date_range?.[1]).format("YYYY-MM-DD");
 
-    // console.log('targetData : ',targetData)
+    console.log('targetData : ', targetData)
 
     const target = targetData
       .filter(t => t.points || t.value)
       .map(t => ({
         point: Number(t.points ?? 0),
         value: Number(t.value ?? 0),
-        target_id: Number(t.target_id),
+        target_id: Number(t.id),
         type_id: Number(t.type),
       }));
 
-    //  console.log('target : ',target)
-    //  return false;
+    // console.log('target : ', target)
+    // return false;
     return {
       name: values.name,
       description: values.description,
