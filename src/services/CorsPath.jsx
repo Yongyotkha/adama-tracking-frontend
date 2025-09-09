@@ -299,8 +299,8 @@ export const paths = {
   pathRedeemList: "redeem/list",
   pathRedeemDetail: "redeem/detail",
   pathRedeemUpdateStatus: "redeem/update-status",
+  pathRedeemToPurchase: "redeem/purchase",
 
-  
   // pathRedeemList: "redeem/list",
 
   // Expense Traveling

@@ -69,6 +69,7 @@ export default function RedeemDetail() {
         // map response -> view model
         const vm = {
           id: d.id,
+          reward_id: d.reward_id,
           status_code: d.status, // RFA | RFR | RFW
           status_name:
             d.status === "RFA"
@@ -141,6 +142,18 @@ export default function RedeemDetail() {
     });
   };
 
+  const confirmNoRemark = ({ title, okText = "OK", okType = "primary", onOk }) => {
+    Modal.confirm({
+      title,
+      okText,
+      okType,
+      cancelText: "Cancel",
+      onOk: async () => {
+        await onOk?.();
+      },
+    });
+  };
+
   // ---------- ยิง API เปลี่ยนสถานะ ----------
   const postStatus = async (status, remark) => {
     if (!detail?.id) return;
@@ -159,7 +172,7 @@ export default function RedeemDetail() {
         showNotification("error", "Update failed", [res?.data?.message || "ไม่สามารถอัปเดตสถานะได้"]);
       }
     } catch (e) {
-      console.error(e); postStatus
+      console.error(e);
       showNotification("error", "Update failed", [e?.message || "เกิดข้อผิดพลาดระหว่างอัปเดต"]);
     } finally {
       setLoading(false);
@@ -190,18 +203,47 @@ export default function RedeemDetail() {
   };
 
   // “Send to Purchase” – ยังไม่ต่อ API จริง เก็บ remark ได้ตาม requirement
+  // const handleSendToPurchase = async () => {
+  //   confirmWithRemark({
+  //     title: "Send to Purchase ?",
+  //     okText: "OK",
+  //     okType: "primary",
+  //     onOk: async (remark) => {
+  //       // วางไว้ก่อน – ยังไม่ยิง API
+  //       showNotification("success", "Sent", ["ส่งกลับไปที่ Purchase แล้ว"]);
+  //     },
+  //   });
+  // };
+
+  // ✅ Send to Purchase: GET /redeem/purchase/{reward_id} (ไม่มี remark) แล้วกลับหน้า List
   const handleSendToPurchase = async () => {
-    confirmWithRemark({
+    confirmNoRemark({
       title: "Send to Purchase ?",
       okText: "OK",
       okType: "primary",
-      onOk: async (remark) => {
-        // วางไว้ก่อน – ยังไม่ยิง API
-        showNotification("success", "Sent", ["ส่งกลับไปที่ Purchase แล้ว"]);
+      onOk: async (_remark) => {
+        if (!detail?.reward_id) {
+          showNotification("error", "Missing reward", ["ไม่พบ reward_id ในรายละเอียด"]);
+          return;
+        }
+        try {
+          setLoading(true);
+          const res = await useServiceAPI.get(`${paths.pathRedeemToPurchase}/${detail.reward_id}`);
+          if (res?.status === 200) {
+            showNotification("success", "Transaction completed", ["ส่งไป Purchase เรียบร้อย"]);
+            navigate("/points/line/redeem-reward-list");
+          } else {
+            showNotification("error", "Send failed", [res?.data?.message || "ไม่สามารถส่งไป Purchase ได้"]);
+          }
+        } catch (e) {
+          console.error(e);
+          showNotification("error", "Send failed", [e?.message || "เกิดข้อผิดพลาดระหว่างส่งไป Purchase"]);
+        } finally {
+          setLoading(false);
+        }
       },
     });
   };
-
   useEffect(() => {
     loadDetail();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -243,7 +285,7 @@ export default function RedeemDetail() {
         {(isRFA) && (
           <ActionButton
             mode="reject"
-            text="Send to Request"
+            text="Send to Purchase"
             onClick={handleSendToPurchase} // ⬅️ มี remark ผ่าน Modal แต่ยังไม่ยิง API
           />
         )}
