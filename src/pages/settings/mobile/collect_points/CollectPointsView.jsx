@@ -359,33 +359,27 @@ export default function CollectPointsView() {
       )}
 
       <BoxPrimary>
-        <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">Bill</div>
-          <ActionButton mode="add" text="Upload File" onClick={handleUploadClickBill} />
-        </div>
         <FileUploadComponent
           ref={fileUploadRefBill}
           dataFile={fileListBill}
           onUploadSuccess={handleUploadSuccessBill}
           mode="edit"
           modeUpload="activity"
+          title="Bill" // Dynamic title
         />
       </BoxPrimary>
 
       <BoxPrimary>
-        <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">Picture</div>
-          <ActionButton mode="add" text="Upload File" onClick={handleUploadClickPicture} />
-        </div>
         <FileUploadComponent
           ref={fileUploadRefPicture}
           dataFile={fileListPicture}
           onUploadSuccess={handleUploadSuccessPicture}
           mode="edit"
           modeUpload="activity"
+          title="Picture" // Dynamic title
         />
       </BoxPrimary>
-
+      
       <BoxPrimary title="Remark">
         <Input.TextArea placeholder="" value={getRemark} disabled className="bg-gray-100" />
       </BoxPrimary>

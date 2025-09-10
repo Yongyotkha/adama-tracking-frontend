@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Form, Input, DatePicker, Select, notification } from "antd";
 import dayjs from "dayjs";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -7,9 +7,9 @@ import MainLayout from "../../../../layouts/MainLayout";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../../components/table/TableComponent";
 import ActionButton from "../../../../components/button/ActionButton";
-
 import useServiceAPI from "../../../../services/corsService";
 import { paths } from "../../../../services/CorsPath";
+import UploadSection from "../../../../components/file_upload/UploadSection";
 
 const SEND_BY_OPTIONS = [
   { value: "mail", label: "Mail/Ship" },
@@ -17,8 +17,9 @@ const SEND_BY_OPTIONS = [
 ];
 
 export default function TransportationDetail() {
-  const { mode } = useParams(); // 'view' | 'prepare'
+  const { mode } = useParams(); // 'view' | 'prepare' | 'delivery'
   const isView = String(mode || "view").toLowerCase() === "view";
+  const isDelivery = String(mode || "").toLowerCase() === "delivery";
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -26,6 +27,8 @@ export default function TransportationDetail() {
   const [detail, setDetail] = useState(null);
   const [formTop] = Form.useForm(); // Top form (read-only)
   const [formBottom] = Form.useForm(); // Bottom form (editable for prepare)
+  const fileUploadRef = useRef(null); // Ref for file upload
+  const [uploadedFiles, setUploadedFiles] = useState([]); // State for uploaded files
 
   const columns = [
     { title: "Reward Code", dataIndex: "reward_code", align: "left" },
@@ -60,6 +63,18 @@ export default function TransportationDetail() {
       if (res.status === 200) {
         const data = res.data || {};
         setDetail(data);
+
+        // Populate uploaded files for preview
+        const pictures = Array.isArray(data.pictures) ? data.pictures : [];
+        setUploadedFiles(
+          pictures.map((pic) => ({
+            uid: pic.id || new Date().toISOString(),
+            name: pic.original_name || "Uploaded File",
+            status: "done",
+            url: pic.part || "",
+          }))
+        );
+
         fillForm(data);
       }
     } catch (error) {
@@ -69,21 +84,41 @@ export default function TransportationDetail() {
     }
   };
 
-  const handleSave = async () => {
+  const handleUploadClick = () => {
+    if (fileUploadRef.current) {
+      fileUploadRef.current.triggerUpload();
+    }
+  };
+
+  const handleUploadSuccess = (response) => {
+    const uploadedFile = response?.data || {};
+    setUploadedFiles((prev) => [
+      ...prev,
+      {
+        uid: new Date().toISOString(),
+        name: uploadedFile.original_name || "Uploaded File",
+        status: "done",
+        url: uploadedFile.file_url || "",
+      },
+    ]);
+  };
+
+  const handleFileRemove = (file) => {
+    setUploadedFiles((prev) => prev.filter((item) => item.uid !== file.uid));
+  };
+
+  const handleSaveDelivery = async () => {
     try {
-      const values = await formBottom.validateFields();
       const payload = {
         id: detail.id,
-        send_by: values.send_by,
-        send_date: values.send_date ? dayjs(values.send_date).format("YYYY-MM-DD") : null,
-        remark: values.remark || "",
+        picture: uploadedFiles.map((file) => file.url), // Extract URLs from uploaded files
       };
 
-      const res = await useServiceAPI.post(paths.pathTransportSend, payload);
+      const res = await useServiceAPI.post(paths.pathTransportReceive, payload);
       if (res.status === 200) {
         notification.success({
           message: "Success",
-          description: "Transportation details have been successfully sent.",
+          description: "Transportation details have been successfully updated.",
         });
         navigate(-1); // Navigate back to the list
       }
@@ -91,7 +126,7 @@ export default function TransportationDetail() {
       console.error("Failed to save transportation detail:", error);
       notification.error({
         message: "Error",
-        description: "Failed to send transportation details.",
+        description: "Failed to update transportation details.",
       });
     }
   };
@@ -141,42 +176,73 @@ export default function TransportationDetail() {
       </BoxPrimary>
 
       {/* Bottom Form */}
-      <BoxPrimary>
-        <Form form={formBottom} layout="vertical" disabled={isView}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Form.Item
-              label="Send By"
-              name="send_by"
-              rules={[{ required: true, message: "Please select send by" }]}
-            >
-              <Select
-                options={SEND_BY_OPTIONS}
-                placeholder="Select"
-                allowClear={false}
-                disabled={isView}
-              />
-            </Form.Item>
+      {!isDelivery && (
+        <BoxPrimary>
+          <Form form={formBottom} layout="vertical" disabled={isView}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Form.Item
+                label="Send By"
+                name="send_by"
+                rules={[{ required: true, message: "Please select send by" }]}
+              >
+                <Select
+                  options={SEND_BY_OPTIONS}
+                  placeholder="Select"
+                  allowClear={false}
+                  disabled={isView}
+                />
+              </Form.Item>
 
-            <Form.Item
-              label="Send Date"
-              name="send_date"
-              rules={[{ required: true, message: "Please select send date" }]}
-            >
-              <DatePicker className="w-full" disabled={isView} />
-            </Form.Item>
+              <Form.Item
+                label="Send Date"
+                name="send_date"
+                rules={[{ required: true, message: "Please select send date" }]}
+              >
+                <DatePicker className="w-full" disabled={isView} />
+              </Form.Item>
 
-            <Form.Item label="Remark" name="remark">
-              <Input placeholder="Enter" disabled={isView} />
-            </Form.Item>
-          </div>
-        </Form>
-      </BoxPrimary>
+              <Form.Item label="Remark" name="remark">
+                <Input placeholder="Enter" disabled={isView} />
+              </Form.Item>
+            </div>
+          </Form>
+        </BoxPrimary>
+      )}
+
+      {/* File Preview for Delivered */}
+      {isView && (
+        <UploadSection
+          title="Preview Attachments"
+          fileUploadRef={null} // No upload functionality in view mode
+          fileList={uploadedFiles}
+          handleUploadClick={() => { }}
+          handleUploadSuccess={() => { }}
+          handleFileRemove={() => { }}
+          modeUpload="view"
+          disabled={true} // Enable view-only mode
+        />
+      )}
+
+
+      {/* File Upload for Delivery */}
+      {isDelivery && (
+        <UploadSection
+          title="Delivery Attachments"
+          fileUploadRef={fileUploadRef}
+          fileList={uploadedFiles}
+          handleUploadClick={() => fileUploadRef.current?.triggerUpload()}
+          handleUploadSuccess={handleUploadSuccess}
+          handleFileRemove={handleFileRemove}
+          modeUpload="transport"
+          disabled={false} // Enable full functionality
+        />
+      )}
 
       {/* Action Buttons */}
       <div className="flex justify-end gap-3 mt-4">
         <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />
-        {!isView && (
-          <ActionButton mode="save" text="Save" onClick={handleSave} />
+        {isDelivery && (
+          <ActionButton mode="save" text="Save" onClick={handleSaveDelivery} />
         )}
       </div>
     </MainLayout>
