@@ -36,7 +36,11 @@ export default function CollectPointsAdvance() {
 
 
           setUser(response.data);
-          setReceiveShop(response.data.shop_name)
+          console.log('response.data.dealer.dealer_name_th : ', response.data.dealer.dealer_name_th)
+          if (response.data.dealer.dealer_name_th) {
+            setReceiveShop(response.data.dealer.dealer_name_th)
+          }
+
 
           console.log('user : ', user)
         } else {
