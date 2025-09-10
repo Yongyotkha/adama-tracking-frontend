@@ -175,7 +175,7 @@ export default function EditOrViewTargetGroup() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Create Target Group</div>
+      <div className="title-page">Create Customer Group</div>
 
       <BoxPrimary>
         <Form
@@ -185,7 +185,7 @@ export default function EditOrViewTargetGroup() {
         >
           <div className="grid grid-cols-3 gap-4">
             <Form.Item
-              label="Target Name"
+              label="Customer Name"
               name="target_name"
               rules={[{ required: true, message: "Please select target" }]}
             >

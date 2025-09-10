@@ -71,7 +71,7 @@ export default function EditOrViewCustomerLine() {
       <BoxPrimary>
         <Row gutter={16}>
           <Col span={6}>
-            <label>Shop Name</label>
+            <label>Customer Name</label>
             <Input value={formData.shop_name || "-"} disabled />
           </Col>
           <Col span={6}>

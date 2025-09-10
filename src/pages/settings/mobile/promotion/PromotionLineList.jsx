@@ -113,7 +113,7 @@ export default function PromotionLineList() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Target Group</div>
+        <div className="title-page">Customer Group</div>
         <ActionButton mode="create" text="Create" onClick={() => navigate("create")} />
       </div>
       <Filter filters={filters} />

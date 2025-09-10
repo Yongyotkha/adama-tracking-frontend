@@ -30,7 +30,7 @@ export default function CreateCustomerLine() {
       value: '',
 
     },
-    { name: "shop_name", label: "Shop Name", type: "text", required: true },
+    { name: "shop_name", label: "Customer Name", type: "text", required: true },
     { name: "contact_name", label: "Contact Name", type: "text", required: true },
     { name: "phone_no", label: "Phone No", type: "text", required: true },
     { name: "customer_code", label: "Customer Code", type: "text" },

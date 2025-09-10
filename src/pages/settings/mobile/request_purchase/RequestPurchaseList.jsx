@@ -50,19 +50,19 @@ export default function RequestPurchaseList() {
       <Dropdown
         menu={{
           items: [
-            {
-              key: "view",
-              label: (
-                <ItemDropDown
-                  mode="view"
-                  onClick={() =>
-                    navigate(`/setting/line/request-purchase/${item.id}`, {
-                      state: { id: item.id },
-                    })
-                  }
-                />
-              ),
-            },
+            // {
+            //   key: "view",
+            //   label: (
+            //     <ItemDropDown
+            //       mode="view"
+            //       onClick={() =>
+            //         navigate(`/setting/line/request-purchase/${item.id}`, {
+            //           state: { id: item.id },
+            //         })
+            //       }
+            //     />
+            //   ),
+            // },
             {
               key: "update-stock",
               label: (
@@ -99,7 +99,7 @@ export default function RequestPurchaseList() {
       const res = await useServiceAPI.get(paths.pathRequestPurchaseList, {
         page_size: pageSize,
         page_length: current,
-        status_code: "",
+        status_code: "PPW",
         use_flag: "",
       });
 
@@ -140,7 +140,7 @@ export default function RequestPurchaseList() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Request Purchase</div>
+      <div className="title-page">Reward Purchasing</div>
 
       <Filter filters={filters} />
 

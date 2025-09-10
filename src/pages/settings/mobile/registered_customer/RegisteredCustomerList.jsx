@@ -37,12 +37,12 @@ const tabConfig = {
     filters: [],
     shopType: "sub_dealer",
   },
-  farmer: {
-    apiPath: paths.pathCustomerRegis,
-    label: <span className="tab-title">Farmer</span>,
-    filters: [],
-    shopType: "farmer",
-  },
+  // farmer: {
+  //   apiPath: paths.pathCustomerRegis,
+  //   label: <span className="tab-title">Farmer</span>,
+  //   filters: [],
+  //   shopType: "farmer",
+  // },
 };
 
 export default function RegisteredCustomerList() {
@@ -160,10 +160,10 @@ export default function RegisteredCustomerList() {
   };
 
   const header = [
-    { title: "Image", dataIndex: "image", render: () => <img src="/img/default-avatar.png" className="w-8 h-8 rounded-full" /> },
-    { title: "Dealer ID", dataIndex: "dealer_id" },
-    { title: "Dealer Name", dataIndex: "dealer_name" },
-    { title: "Customer Name", dataIndex: "contact_name" },
+    // { title: "Image", dataIndex: "image", render: () => <img src="/img/default-avatar.png" className="w-8 h-8 rounded-full" /> },
+    // { title: "Dealer ID", dataIndex: "dealer_id" },
+    { title: "Customer Name", dataIndex: "dealer_name" },
+    { title: "Contact Name", dataIndex: "contact_name" },
     { title: "Contact Number", dataIndex: "phone" },
     { title: "Subscribed", dataIndex: "subscribed" },
     { title: "Current points", dataIndex: "point" },

@@ -35,7 +35,7 @@ export default function RedeemList() {
   });
 
   const filtersList = [
-    { key: "target", type: "text", label: "Target Name" },
+    { key: "target", type: "text", label: "Customer Name" },
     { key: "type", type: "text", label: "Type Name" },
     {
       key: "use_flag",
@@ -49,7 +49,7 @@ export default function RedeemList() {
   ];
 
   const filtersRequest = [
-    { key: "shop", type: "text", label: "Shop Name" },
+    { key: "shop", type: "text", label: "Customer Name" },
     { key: "customer", type: "text", label: "Customer Name" },
     { key: "reward", type: "text", label: "Reward Name" },
     {
@@ -77,7 +77,7 @@ export default function RedeemList() {
 
   const listHeader = [
     { title: "No", dataIndex: "key" },
-    { title: "Shop Name", dataIndex: "shop_name" },
+    { title: "Customer Name", dataIndex: "shop_name" },
     { title: "Customer Name", dataIndex: "customer_name" },
     { title: "Reward Name", dataIndex: "reward_name" },
     { title: "Type", dataIndex: "type" },
@@ -89,7 +89,7 @@ export default function RedeemList() {
 
   const requestHeader = [
     { title: "No", dataIndex: "key" },
-    { title: "Shop Name", dataIndex: "shop_name" },
+    { title: "Customer Name", dataIndex: "shop_name" },
     { title: "Customer Name", dataIndex: "customer_name" },
     { title: "Reward Name", dataIndex: "reward_name" },
     { title: "QTY (Pcs)", dataIndex: "qty", align: "right" },
@@ -248,12 +248,12 @@ export default function RedeemList() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Redeem Reward</div>
+        <div className="title-page">Point Redeem</div>
         {/* <ActionButton mode="create" text="Create" onClick={() => navigate("create")} /> */}
       </div>
 
       <Tabs className="custom-tabs" activeKey={activeTab} onChange={setActiveTab}>
-        <TabPane tab={<span className="tab-title">Redeem Reward List</span>} key="list">
+        <TabPane tab={<span className="tab-title">Point Redeem List</span>} key="list">
           <Filter filters={filtersList} />
           <BoxPrimary className="mt-4">
             <TableComponent
@@ -268,7 +268,7 @@ export default function RedeemList() {
           </BoxPrimary>
         </TabPane>
 
-        <TabPane tab={<span className="tab-title">Redeem Reward Request List</span>} key="request">
+        <TabPane tab={<span className="tab-title">Point Redeem Request List</span>} key="request">
           <Filter filters={filtersRequest} />
           <BoxPrimary className="mt-4">
             <TableComponent

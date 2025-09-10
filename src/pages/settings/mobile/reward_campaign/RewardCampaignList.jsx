@@ -230,7 +230,7 @@ export default function RewardCampaignList() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Reward Campaign</div>
+        <div className="title-page">Reward List</div>
         <ActionButton mode="create" text="Create" onClick={() => navigate("create")} />
       </div>
       <Filter filters={filters} onSearch={handleSearch} onClear={handleClear} />

@@ -38,9 +38,9 @@ export default function CreateRewardCampaign() {
           const list = Array.isArray(res?.data?.data) ? res.data.data : res.data;
           const mapped = (list || []).map((t) => ({
             id: t.id,                 // ใช้เป็น type_id ตอนส่ง
-            name: t.name,
-            type: t.type,      // target group id
-            customer_type: t.customer_type,
+            name: t.customer_type,
+            type: t.type,      // Customer Group id
+            customer_type: t.name,
             points: "",
             value: "",
           }));
@@ -134,10 +134,10 @@ export default function CreateRewardCampaign() {
           const merged = target.map((t, i) => ({
             id: Number(t.id),
             type: Number(t.type),
-            name: t.name ?? "",
+            name: t.customer_type ?? "",
             points: t.point ?? "",
             value: t.value ?? "",
-            customer_type: t.customer_type ?? "",
+            customer_type: t.name ?? "",
           }));
 
           console.log('merged : ', merged)
@@ -165,7 +165,7 @@ export default function CreateRewardCampaign() {
     if (isView) {
       return [
         { title: "No", dataIndex: "id", key: "id", render: (_, __, index) => index + 1 },
-        { title: "Target Name", dataIndex: "name", key: "name" },
+        { title: "Customer Name", dataIndex: "name", key: "name" },
         { title: "Type Name", dataIndex: "customer_type", key: "customer_type" },
         { title: "Points", dataIndex: "points", key: "points", render: (v) => String(v ?? "") },
         { title: "Value (THB)", dataIndex: "value", key: "value", render: (v) => String(v ?? "") },
@@ -173,7 +173,7 @@ export default function CreateRewardCampaign() {
     }
     return [
       { title: "No", dataIndex: "id", key: "id", render: (_, __, index) => index + 1 },
-      { title: "Target Name", dataIndex: "name", key: "name" },
+      { title: "Customer Name", dataIndex: "name", key: "name" },
       { title: "Type Name", dataIndex: "customer_type", key: "customer_type" },
       {
         title: "Points",
@@ -326,7 +326,7 @@ export default function CreateRewardCampaign() {
       const payload = buildPayload(values);
 
       console.log('payload : ', payload)
-      return false;
+      // return false;
       // ✅ ต้องส่ง id มาด้วยตามสัญญา API ของหน้า EditPromotion
       // payload.id = Number(location?.state?.id);
       // const res = await useServiceAPI.put(paths.pathPromotionupdate, payload);
@@ -365,7 +365,7 @@ export default function CreateRewardCampaign() {
   return (
     <MainLayout loading={loading}>
       <div className="title-page">
-        {isView ? "View Reward Campaign" : isEdit ? "Edit Reward Campaign" : "Create Reward Campaign"}
+        {isView ? "View Reward" : isEdit ? "Edit Reward" : "Create Reward"}
       </div>
 
       <BoxPrimary>
@@ -389,7 +389,7 @@ export default function CreateRewardCampaign() {
 
       <FormCustom fields={formFields} form={form} />
 
-      <div className="mt-8 font-semibold text-lg">Target</div>
+      <div className="mt-8 font-semibold text-lg">Customer Group</div>
       <TableComponent
         header={targetColumns}
         dataSource={targetData}

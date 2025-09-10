@@ -92,7 +92,7 @@ export default function CustomerLineList() {
   }, []);
 
   const filters = [
-    { key: "shop_name", type: "text", label: "Shop Name" },
+    { key: "shop_name", type: "text", label: "Customer Name" },
     { key: "contact_name", type: "text", label: "Contact Name" },
     { key: "date", type: "date", label: "Register Date" },
   ];
@@ -108,7 +108,7 @@ export default function CustomerLineList() {
   const header = [
     { title: "No", dataIndex: "key", align: "left" },
     { title: "", dataIndex: "image_profile", align: "center" },
-    { title: "Shop Name", dataIndex: "shop_name", align: "left" },
+    { title: "Customer Name", dataIndex: "shop_name", align: "left" },
     { title: "Contact Name", dataIndex: "contact_name", align: "left" },
     { title: "Phone No", dataIndex: "phone", align: "left" },
     { title: "Address", dataIndex: "address", align: "left" },

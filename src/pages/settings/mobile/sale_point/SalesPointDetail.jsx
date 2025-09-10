@@ -12,6 +12,7 @@ import FormCustom from "../../../../components/form_custom/FormCustom";
 import TableComponent from "../../../../components/table/TableComponent";
 import DynamicModal from "../../../../components/modal/DynamicModal";
 import FileUploadComponent from "../../../../components/file_upload/FileUploadComponent";
+import UploadSection from "../../../../components/file_upload/UploadSection";
 
 export default function SalesPointDetail() {
   const navigate = useNavigate();
@@ -120,14 +121,23 @@ export default function SalesPointDetail() {
         <div className="text-center">{parseFloat(text || 0).toLocaleString("en-US")}</div>
       ),
     },
+    // {
+    //   title: <div className="text-center">Value (ctn)</div>,
+    //   dataIndex: "foc",
+    //   key: "foc",
+    //   render: (text) => (
+    //     <div className="text-center">{parseFloat(text || 0).toLocaleString("en-US")}</div>
+    //   ),
+    // },
     {
-      title: <div className="text-center">FOC (ctn)</div>,
-      dataIndex: "foc",
-      key: "foc",
+      title: <div className="text-center">Point</div>, dataIndex: "point", key: "point",
       render: (text) => (
-        <div className="text-center">{parseFloat(text || 0).toLocaleString("en-US")}</div>
+        <div className="text-center">
+          {parseFloat(text || 0).toLocaleString("en-US")}
+        </div>
       ),
     },
+
     {
       title: <div className="text-end">Sub Total (THB)</div>,
       dataIndex: "net_amount",
@@ -174,8 +184,9 @@ export default function SalesPointDetail() {
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
-          Item: {dataSource.length} &nbsp; QTY (ctn): {totalQuantity}+{totalFOC} &nbsp; Total:{" "}
-          {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+          Item: {dataSource.length} &nbsp;| QTY (ctn): {totalQuantity} &nbsp; | Total: 
+          {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} |
+          Total Point: {dataSource.reduce((total, item) => total + (parseFloat(item.point || 0) * parseFloat(item.quantity || 0)), 0).toLocaleString("en-US")}
         </td>
       </tr>
     );
@@ -294,25 +305,10 @@ export default function SalesPointDetail() {
     }
   };
 
-  const handleUploadClick = () => {
-    if (fileUploadRef.current) fileUploadRef.current.triggerUpload();
-  };
-
-  // เมื่ออัปโหลดสำเร็จ ให้เพิ่มไฟล์เข้า list (เอา url จริงจาก API)
-  const handleUploadSuccess = (response) => {
-    const data = response.data;
-    const uploaded = {
-      uid: data.file_key,
-      name: data.file_name,
-      status: "done",
-      url: data.file_url,
-    };
-    setFileList((prev) => [...prev, uploaded]);
-  };
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">View Detail</div>
+      <div className="title-page">Sales Point Order Detail</div>
 
       <FormCustom fields={formFields} form={formCustom} onChange="" />
 
@@ -326,32 +322,27 @@ export default function SalesPointDetail() {
         />
       </BoxPrimary>
 
-      <BoxPrimary>
+      <UploadSection
+        title="Attached file/Picture"
+        fileUploadRef={fileUploadRef}
+        fileList={fileList}
+        handleUploadClick={() => { }}
+        handleUploadSuccess={() => { }}
+        handleFileRemove={() => { }}
+        modeUpload="activity"
+        disabled={true}  // view-only
+      />
 
-
-        {/* ✅ ส่งไฟล์เข้า FileUploadComponent โดยไม่แก้ FileUploadComponent */}
-        <FileUploadComponent
-          ref={fileUploadRef}
-          dataFile={fileList}                 // child จะ sync เข้า state ภายในผ่าน useEffect
-          onUploadSuccess={handleUploadSuccess}
-          mode="edit"                         // ให้ลบได้
-          modeUpload="activity"               // ตามที่ component ใช้ส่งไป API
-        />
-      </BoxPrimary>
-
-      <BoxPrimary>
-
-
-        {/* ✅ ส่งไฟล์เข้า FileUploadComponent โดยไม่แก้ FileUploadComponent */}
-        <FileUploadComponent
-          ref={fileUploadRefReceive}
-          dataFile={fileListReceive}                 // child จะ sync เข้า state ภายในผ่าน useEffect
-          onUploadSuccess={handleUploadSuccess}
-          mode="edit"                         // ให้ลบได้
-          modeUpload="activity"               // ตามที่ component ใช้ส่งไป API
-        />
-      </BoxPrimary>
-
+      <UploadSection
+        title="Attached file/Picture"
+        fileUploadRef={fileUploadRefReceive}
+        fileList={fileListReceive}
+        handleUploadClick={() => { }}
+        handleUploadSuccess={() => { }}
+        handleFileRemove={() => { }}
+        modeUpload="receive"  // ตั้งให้ต่างจาก bill เผื่อ BE ใช้แยกประเภท
+        disabled={true}  // view-only
+      />
 
       <BoxPrimary title="Remark">
         <Input.TextArea placeholder="" value={getRemark} disabled className="bg-gray-100" />

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Dropdown, Tabs } from "antd";
+import { Dropdown, Tabs, Modal } from "antd"; // ⬅️ เพิ่ม Modal
 import MainLayout from "../../../../layouts/MainLayout";
 import Filter from "../../../../components/filter/Filter";
 import TableComponent from "../../../../components/table/TableComponent";
@@ -33,9 +33,26 @@ export default function RedeemList() {
     filters: {},
   });
 
+  // --- Address Modal state ---
+  const [addressModal, setAddressModal] = useState({
+    open: false,
+    address: "",
+  });
+
+  const openAddressModal = (address) => {
+    setAddressModal({
+      open: true,
+      address: address || "-",
+    });
+  };
+
+  const closeAddressModal = () => {
+    setAddressModal({ open: false, address: "" });
+  };
+
   // ---------------- Filters ----------------
   const filtersList = [
-    { key: "target", type: "text", label: "Target Name" },
+    { key: "target", type: "text", label: "Customer Name" },
     { key: "type", type: "text", label: "Type Name" },
     {
       key: "use_flag",
@@ -49,7 +66,7 @@ export default function RedeemList() {
   ];
 
   const filtersRequest = [
-    { key: "shop", type: "text", label: "Shop Name" },
+    { key: "shop", type: "text", label: "Customer Name" },
     { key: "customer", type: "text", label: "Customer Name" },
     { key: "reward", type: "text", label: "Reward Name" },
     {
@@ -79,13 +96,12 @@ export default function RedeemList() {
     />
   );
 
-  // ---------------- Common columns (ใช้ร่วมกันทั้ง 2 แท็บ) ----------------
+  // ---------------- Common columns ----------------
   const commonHeaders = [
     { title: "No", dataIndex: "key", width: 60 },
-    { title: "Shop Name", dataIndex: "shop_name" },
+    { title: "Customer Name", dataIndex: "shop_name" },
     { title: "Reward Code", dataIndex: "reward_code" },
     { title: "Reward Name", dataIndex: "reward_name" },
-    { title: "QTY (Pcs)", dataIndex: "qty", align: "right" },
     { title: "Stock (Pcs)", dataIndex: "stock", align: "right" },
     { title: "Cost (THB)", dataIndex: "cost", align: "right" },
     { title: "Points", dataIndex: "points", align: "right" },
@@ -95,14 +111,14 @@ export default function RedeemList() {
     { title: "Action", dataIndex: "action", align: "center", width: 80 },
   ];
 
-  // ---------------- Common mapper (ใช้ map ได้ทั้ง 2 API) ----------------
-  const mapRow = (item, index, current, pageSize) => ({
+  // ---------------- Common mapper ----------------
+  const mapRow = (item, index, current, pageSize, onOpenAddress) => ({
     key: index + 1 + (current - 1) * pageSize,
     id: item.id,
     shop_name: item.shop_name || "-",
     reward_code: item.reward_code || "-",
     reward_name: item.reward_name || "-",
-    // บาง API ส่ง qty/points เป็น string หรือไม่มี -> fallback "-"
+    address: item.address || "-",
     qty: item.qty !== undefined ? fmtNum(item.qty) : "-",
     stock:
       item.stock !== undefined
@@ -128,7 +144,10 @@ export default function RedeemList() {
         type="button"
         className="btn-icon"
         title="Shipping"
-        onClick={(e) => e.preventDefault()}
+        onClick={(e) => {
+          e.preventDefault();
+          onOpenAddress(item.address);
+        }}
       >
         <img
           src="/img/icons/location.png"
@@ -151,8 +170,7 @@ export default function RedeemList() {
                     `/points/line/redeem-reward/${String(
                       act.action || "view"
                     ).toLowerCase()}`,
-                    // { state: { id: item.id } }
-                    { state: { id: item.id, mode: item.status } } // ⬅️ ส่งโหมด RFA/RFR/RFW ไปหน้า detail
+                    { state: { id: item.id, mode: item.status } }
                   )
                 }
               />
@@ -172,7 +190,7 @@ export default function RedeemList() {
     ),
   });
 
-  // ---------------- Fetch: Redeem Reward List ----------------
+  // ---------------- Fetch: Point Redeem List ----------------
   const fetchList = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -186,11 +204,10 @@ export default function RedeemList() {
       });
 
       if (res.status === 200) {
-        // โครงสร้างที่คุณส่งมา: { result, status, message, data: { records_*, data: [...] } }
-        const payload = res.data || res.data; // รองรับทั้ง 2 เคส
+        const payload = res.data || res.data;
         const rows = payload?.data ?? [];
         const formatted = rows.map((item, index) =>
-          mapRow(item, index, current, pageSize)
+          mapRow(item, index, current, pageSize, openAddressModal)
         );
         setDataSource(formatted);
         setTableParams((prev) => ({
@@ -206,7 +223,7 @@ export default function RedeemList() {
     }
   };
 
-  // ---------------- Fetch: Redeem Reward Request List ----------------
+  // ---------------- Fetch: Point Redeem Request List ----------------
   const fetchRequest = async () => {
     setRequestTableLoading(true);
     const { current, pageSize } = requestTableParams.pagination;
@@ -219,10 +236,10 @@ export default function RedeemList() {
       });
 
       if (res.status === 200) {
-        const payload = res.data || res.data; // รองรับทั้ง 2 เคส
+        const payload = res.data || res.data;
         const rows = payload?.data ?? [];
         const formatted = rows.map((item, index) =>
-          mapRow(item, index, current, pageSize)
+          mapRow(item, index, current, pageSize, openAddressModal)
         );
         setRequestDataSource(formatted);
         setRequestTableParams((prev) => ({
@@ -247,12 +264,12 @@ export default function RedeemList() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Redeem Reward</div>
+        <div className="title-page">Point Redeem</div>
       </div>
 
       <Tabs className="custom-tabs" activeKey={activeTab} onChange={setActiveTab}>
         <TabPane
-          tab={<span className="tab-title">Redeem Reward List</span>}
+          tab={<span className="tab-title">Point Redeem List</span>}
           key="list"
         >
           <Filter filters={filtersList} />
@@ -270,13 +287,13 @@ export default function RedeemList() {
         </TabPane>
 
         <TabPane
-          tab={<span className="tab-title">Redeem Reward Request List</span>}
+          tab={<span className="tab-title">Point Redeem Request List</span>}
           key="request"
         >
           <Filter filters={filtersRequest} />
           <BoxPrimary className="mt-4">
             <TableComponent
-              header={commonHeaders}  // ✅ ใช้หัวเดียวกับแท็บแรก
+              header={commonHeaders}
               dataSource={requestDataSource}
               loading={requestTableLoading}
               pagination={requestTableParams.pagination}
@@ -287,6 +304,19 @@ export default function RedeemList() {
           </BoxPrimary>
         </TabPane>
       </Tabs>
+
+      {/* Modal แสดงที่อยู่ (centered) */}
+      <Modal
+        centered
+        open={addressModal.open}
+        onCancel={closeAddressModal}
+        footer={null}
+        title="Shipping Address"
+      >
+        <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+          {addressModal.address || "-"}
+        </div>
+      </Modal>
     </MainLayout>
   );
 }

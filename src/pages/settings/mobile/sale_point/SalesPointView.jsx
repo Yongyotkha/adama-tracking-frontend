@@ -10,7 +10,7 @@ import { AuthContext } from "../../../../contexts/AuthContext";
 import dayjs from "dayjs";
 import FormCustom from "../../../../components/form_custom/FormCustom";
 import TableComponent from "../../../../components/table/TableComponent";
-import FileUploadComponent from "../../../../components/file_upload/FileUploadComponent";
+import UploadSection from "../../../../components/file_upload/UploadSection";
 
 export default function SalesPointView() {
   const navigate = useNavigate();
@@ -83,6 +83,7 @@ export default function SalesPointView() {
             no: idx + 1,
             product_code: p.product_code,
             product_name: p.product_name,
+            point: p.point,
             product_unit: p.product_unit,
             product_unit_thb: p.product_unit_thb,
             quantity: p.quantity,
@@ -97,6 +98,7 @@ export default function SalesPointView() {
             key: idx + 1,
             no: idx + 1,
             product_name: o.product_name,
+            point: o.point,
             product_unit: o.product_unit,
             quantity: o.quantity,
             net_amount: o.net_amount,
@@ -175,9 +177,9 @@ export default function SalesPointView() {
       ),
     },
     {
-      title: <div className="text-center">FOC (ctn)</div>,
-      dataIndex: "foc",
-      key: "foc",
+      title: <div className="text-center">Point</div>,
+      dataIndex: "point",
+      key: "point",
       render: (text) => (
         <div className="text-center">{parseFloat(text || 0).toLocaleString("en-US")}</div>
       ),
@@ -216,10 +218,10 @@ export default function SalesPointView() {
       (total, item) => total + parseFloat(item.quantity || 0),
       0
     );
-    const totalFOC = dataSource.reduce(
-      (total, item) => total + parseFloat(item.foc || 0),
-      0
-    );
+    // const totalFOC = dataSource.reduce(
+    //   (total, item) => total + parseFloat(item.foc || 0),
+    //   0
+    // );
     const totalAmount = dataSource.reduce(
       (total, item) => total + parseFloat(item.net_amount || 0),
       0
@@ -228,7 +230,7 @@ export default function SalesPointView() {
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
-          Item: {dataSource.length} &nbsp; QTY (ctn): {totalQuantity}+{totalFOC} &nbsp; Total:{" "}
+          Item: {dataSource.length} &nbsp; QTY (ctn): {totalQuantity} &nbsp; Total:{" "}
           {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
         </td>
       </tr>
@@ -249,6 +251,7 @@ export default function SalesPointView() {
 
   console.log(getUserId);
 
+  console.log(dataSale);
   // ฟิลด์ฟอร์มแสดง readonly
   const formFields = [
     {
@@ -332,7 +335,7 @@ export default function SalesPointView() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">View Detail</div>
+      <div className="title-page">View Sales Point Order</div>
 
       <FormCustom fields={formFields} form={formCustom} onChange="" />
 
@@ -358,33 +361,27 @@ export default function SalesPointView() {
         </BoxPrimary>
       )}
 
-      <BoxPrimary>
-        <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">Bill</div>
-          <ActionButton mode="add" text="Upload File" onClick={handleUploadClickBill} />
-        </div>
-        <FileUploadComponent
-          ref={fileUploadRefBill}
-          dataFile={fileListBill}
-          onUploadSuccess={handleUploadSuccessBill}
-          mode="edit"
-          modeUpload="activity"
-        />
-      </BoxPrimary>
+      <UploadSection
+        title="Attached file/Picture"
+        fileUploadRef={fileUploadRefBill}
+        fileList={fileListBill}
+        handleUploadClick={() => { }}
+        handleUploadSuccess={() => { }}
+        handleFileRemove={() => { }}
+        modeUpload="activity"
+        disabled={true} // Enable view-only mode
+      />
 
-      <BoxPrimary>
-        <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">Picture</div>
-          <ActionButton mode="add" text="Upload File" onClick={handleUploadClickPicture} />
-        </div>
-        <FileUploadComponent
-          ref={fileUploadRefPicture}
-          dataFile={fileListPicture}
-          onUploadSuccess={handleUploadSuccessPicture}
-          mode="edit"
-          modeUpload="activity"
-        />
-      </BoxPrimary>
+      <UploadSection
+        title="Attached file/Picture"
+        fileUploadRef={fileUploadRefPicture}
+        fileList={fileListPicture}
+        handleUploadClick={() => { }}
+        handleUploadSuccess={() => { }}
+        handleFileRemove={() => { }}
+        modeUpload="activity"
+        disabled={true} // Enable view-only mode
+      />
 
       <BoxPrimary title="Remark">
         <Input.TextArea placeholder="" value={getRemark} disabled className="bg-gray-100" />

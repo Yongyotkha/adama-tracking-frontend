@@ -34,7 +34,7 @@ export default function CreateRewardCampaign() {
           const list = Array.isArray(res?.data?.data) ? res.data.data : res.data;
           const mapped = (list || []).map((t) => ({
             id: t.id,                 // ใช้เป็น type_id ตอนส่ง
-            target_id: t.target,      // target group id
+            target_id: t.target,      // Customer Group id
             type_name: t.type,
             target_name: t.target_text,
             points: "",
@@ -152,7 +152,7 @@ export default function CreateRewardCampaign() {
     if (isView) {
       return [
         { title: "No", dataIndex: "id", key: "id", render: (_, __, index) => index + 1 },
-        { title: "Target Name", dataIndex: "target_name", key: "target_name" },
+        { title: "Customer Name", dataIndex: "target_name", key: "target_name" },
         { title: "Type Name", dataIndex: "type_name", key: "type_name" },
         { title: "Points", dataIndex: "points", key: "points", render: (v) => String(v ?? "") },
         { title: "Value (THB)", dataIndex: "value", key: "value", render: (v) => String(v ?? "") },
@@ -160,7 +160,7 @@ export default function CreateRewardCampaign() {
     }
     return [
       { title: "No", dataIndex: "id", key: "id", render: (_, __, index) => index + 1 },
-      { title: "Target Name", dataIndex: "target_name", key: "target_name" },
+      { title: "Customer Name", dataIndex: "target_name", key: "target_name" },
       { title: "Type Name", dataIndex: "type_name", key: "type_name" },
       {
         title: "Points",

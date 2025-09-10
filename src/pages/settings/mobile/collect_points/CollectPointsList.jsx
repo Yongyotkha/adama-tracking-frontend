@@ -155,7 +155,7 @@ export default function CollectPointsList() {
         }));
       }
     } catch (e) {
-      showMsg("error", e?.message || "ดึงรายการ Collect Points ไม่สำเร็จ");
+      showMsg("error", e?.message || "ดึงรายการ Point Collection ไม่สำเร็จ");
     } finally {
       setTableLoading(false);
     }
@@ -319,7 +319,7 @@ export default function CollectPointsList() {
 
   // ---------- Table header (Dealer-like) ----------
   const header = [
-    { title: "No", width: 70, dataIndex: "key", align: "center" },
+    // { title: "No", width: 70, dataIndex: "key", align: "center" },
     { title: "Document No", width: 160, dataIndex: "documentNo", align: "left" },
     { title: "Dealer", width: 220, dataIndex: "dealerName", align: "left" },
     { title: "Sub Dealer", width: 240, dataIndex: "subDealerName", align: "left" },
@@ -327,15 +327,15 @@ export default function CollectPointsList() {
     { title: "Value (THB)", width: 120, dataIndex: "valueTHB", align: "right" },
     { title: "Date", width: 120, dataIndex: "date", align: "center" },
     { title: "Point", width: 90, dataIndex: "point", align: "center" },
-    { title: "Transaction", width: 140, dataIndex: "trxStatus", align: "center" },
-    { title: "Payment", width: 120, dataIndex: "payStatus", align: "center" },
-    { title: "Interface", width: 120, dataIndex: "interfaceStatus", align: "center" },
+    // { title: "Transaction", width: 140, dataIndex: "trxStatus", align: "center" },
+    // { title: "Payment", width: 120, dataIndex: "payStatus", align: "center" },
+    // { title: "Interface", width: 120, dataIndex: "interfaceStatus", align: "center" },
     { title: "Action", width: 90, dataIndex: "action", align: "center" },
   ];
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Collect Points</div>
+      <div className="title-page">Point Collection</div>
 
       <Filter
         onSearch={handleSearch}

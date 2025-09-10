@@ -285,7 +285,7 @@ export default function ViewOrEditTargetGroup() {
   return (
     <MainLayout loading={loading}>
       <div className="title-page">
-        {isView ? "View Target Group" : mode === "upload" ? "Edit (Upload) Target Group" : "Edit Target Group"}
+        {isView ? "View Customer Group" : mode === "upload" ? "Edit (Upload) Customer Group" : "Edit Customer Group"}
       </div>
 
       <BoxPrimary>
@@ -297,7 +297,7 @@ export default function ViewOrEditTargetGroup() {
         >
           <div className="grid grid-cols-3 gap-4">
             <Form.Item
-              label="Target Name"
+              label="Customer Name"
               name="target_name"
               rules={[{ required: true, message: "Please select target" }]}
             >

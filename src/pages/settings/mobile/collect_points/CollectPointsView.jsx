@@ -10,7 +10,8 @@ import { AuthContext } from "../../../../contexts/AuthContext";
 import dayjs from "dayjs";
 import FormCustom from "../../../../components/form_custom/FormCustom";
 import TableComponent from "../../../../components/table/TableComponent";
-import FileUploadComponent from "../../../../components/file_upload/FileUploadComponent";
+// ⬇️ เปลี่ยนมาใช้ UploadSection
+import UploadSection from "../../../../components/file_upload/UploadSection";
 
 export default function CollectPointsView() {
   const navigate = useNavigate();
@@ -35,16 +36,15 @@ export default function CollectPointsView() {
   const [getSubDealerId, setGetSubDealerId] = useState("");
   const [getRemark, setGetRemark] = useState("");
 
-  // อัปโหลดไฟล์
-  const [fileListBill, setFileListBill] = useState([]);       // จาก field "bill"
-  const [fileListPicture, setFileListPicture] = useState([]); // จาก field "picture"
+  // อัปโหลดไฟล์ (view-only)
+  const [fileListBill, setFileListBill] = useState([]);
+  const [fileListPicture, setFileListPicture] = useState([]);
   const fileUploadRefBill = useRef(null);
   const fileUploadRefPicture = useRef(null);
 
   const [formCustom] = Form.useForm();
-  const document_number = location.state?.document_number; // <-- ใช้ค่านี้ยิง API
+  const document_number = location.state?.document_number;
 
-  // helper: แปลง URL ให้เป็นชื่อไฟล์สั้น ๆ
   const getNameFromUrl = (url) => {
     try {
       const u = new URL(url);
@@ -55,7 +55,6 @@ export default function CollectPointsView() {
     }
   };
 
-  // 1) ดึงรายละเอียดใบสั่งจาก pathSalePointOrderDetail
   useEffect(() => {
     const fetchDetail = async () => {
       if (!document_number) return;
@@ -69,41 +68,40 @@ export default function CollectPointsView() {
         if (res?.status === 200 && res?.data) {
           const d = res.data;
 
-          // set ส่วนหัวฟอร์ม
           setGetDocumentDate(d.document_date || "");
           setGetUserId(d.user_id || "");
           setGetDealerId(d.dealer_id || "");
           setGetSubDealerId(d.sub_dealer_id || "");
           setGetRemark(d.ref_remark || "");
 
-          // products
           const prod = Array.isArray(d.products) ? d.products : [];
-          const mappedProducts = prod.map((p, idx) => ({
-            key: idx + 1,
-            no: idx + 1,
-            product_code: p.product_code,
-            product_name: p.product_name,
-            product_unit: p.product_unit,
-            product_unit_thb: p.product_unit_thb,
-            quantity: p.quantity,
-            foc: p.foc || 0,
-            net_amount: p.net_amount,
-          }));
-          setDataSource(mappedProducts);
+          setDataSource(
+            prod.map((p, idx) => ({
+              key: idx + 1,
+              no: idx + 1,
+              product_code: p.product_code,
+              product_name: p.product_name,
+              product_unit: p.product_unit,
+              product_unit_thb: p.product_unit_thb,
+              quantity: p.quantity,
+              point: p.point,
+              foc: p.foc || 0,
+              net_amount: p.net_amount,
+            }))
+          );
 
-          // others
           const oth = Array.isArray(d.others) ? d.others : [];
-          const mappedOthers = oth.map((o, idx) => ({
-            key: idx + 1,
-            no: idx + 1,
-            product_name: o.product_name,
-            product_unit: o.product_unit,
-            quantity: o.quantity,
-            net_amount: o.net_amount,
-          }));
-          setDataSourceOther(mappedOthers);
+          setDataSourceOther(
+            oth.map((o, idx) => ({
+              key: idx + 1,
+              no: idx + 1,
+              product_name: o.product_name,
+              product_unit: o.product_unit,
+              quantity: o.quantity,
+              net_amount: o.net_amount,
+            }))
+          );
 
-          // bill -> fileListBill
           const bill = Array.isArray(d.bill) ? d.bill : [];
           setFileListBill(
             bill.map((b) => ({
@@ -114,7 +112,6 @@ export default function CollectPointsView() {
             }))
           );
 
-          // picture -> fileListPicture
           const picture = Array.isArray(d.picture) ? d.picture : [];
           setFileListPicture(
             picture.map((p) => ({
@@ -136,7 +133,6 @@ export default function CollectPointsView() {
     fetchDetail();
   }, [document_number]);
 
-  // 2) โหลด master (เพื่อให้ select disabled แสดงชื่อได้)
   useEffect(() => {
     const getMaster = async () => {
       if (!getUserId || !getDealerId) return;
@@ -159,7 +155,6 @@ export default function CollectPointsView() {
     getMaster();
   }, [getUserId, getDealerId]);
 
-  // header ตาราง
   const header = [
     { title: "No", dataIndex: "no", key: "no", width: 10 },
     { title: "SKU", dataIndex: "product_code", key: "product_code" },
@@ -175,9 +170,9 @@ export default function CollectPointsView() {
       ),
     },
     {
-      title: <div className="text-center">FOC (ctn)</div>,
-      dataIndex: "foc",
-      key: "foc",
+      title: <div className="text-center">Point</div>,
+      dataIndex: "point",
+      key: "point",
       render: (text) => (
         <div className="text-center">{parseFloat(text || 0).toLocaleString("en-US")}</div>
       ),
@@ -216,20 +211,22 @@ export default function CollectPointsView() {
       (total, item) => total + parseFloat(item.quantity || 0),
       0
     );
-    const totalFOC = dataSource.reduce(
-      (total, item) => total + parseFloat(item.foc || 0),
-      0
-    );
     const totalAmount = dataSource.reduce(
       (total, item) => total + parseFloat(item.net_amount || 0),
+      0
+    );
+    const totalPoint = dataSource.reduce(
+      (total, item) =>
+        total + (parseFloat(item.point || 0) * parseFloat(item.quantity || 0)),
       0
     );
 
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
-          Item: {dataSource.length} &nbsp; QTY (ctn): {totalQuantity}+{totalFOC} &nbsp; Total:{" "}
-          {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+          Item: {dataSource.length} &nbsp;| QTY (ctn): {totalQuantity} &nbsp;| Total:{" "}
+          {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} &nbsp;| Total Point:{" "}
+          {totalPoint.toLocaleString("en-US")}
         </td>
       </tr>
     );
@@ -247,9 +244,6 @@ export default function CollectPointsView() {
     </tr>
   );
 
-  console.log(getUserId);
-
-  // ฟิลด์ฟอร์มแสดง readonly
   const formFields = [
     {
       key: "sale",
@@ -301,38 +295,12 @@ export default function CollectPointsView() {
     },
   ];
 
-  const handleUploadClickBill = () => {
-    if (fileUploadRefBill.current) fileUploadRefBill.current.triggerUpload();
-  };
-  const handleUploadClickPicture = () => {
-    if (fileUploadRefPicture.current) fileUploadRefPicture.current.triggerUpload();
-  };
-
-  // อัปโหลดเสร็จ – เติมลง list
-  const handleUploadSuccessBill = (response) => {
-    const data = response.data;
-    const uploaded = {
-      uid: data.file_key,
-      name: data.file_name,
-      status: "done",
-      url: data.file_url,
-    };
-    setFileListBill((prev) => [...prev, uploaded]);
-  };
-  const handleUploadSuccessPicture = (response) => {
-    const data = response.data;
-    const uploaded = {
-      uid: data.file_key,
-      name: data.file_name,
-      status: "done",
-      url: data.file_url,
-    };
-    setFileListPicture((prev) => [...prev, uploaded]);
-  };
+  // view-only: ไม่ให้อัปโหลด/ลบ — ส่ง noop handlers ไป
+  const noop = () => {};
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">View Detail</div>
+      <div className="title-page">Point Collection Detail</div>
 
       <FormCustom fields={formFields} form={formCustom} onChange="" />
 
@@ -358,28 +326,29 @@ export default function CollectPointsView() {
         </BoxPrimary>
       )}
 
-      <BoxPrimary>
-        <FileUploadComponent
-          ref={fileUploadRefBill}
-          dataFile={fileListBill}
-          onUploadSuccess={handleUploadSuccessBill}
-          mode="edit"
-          modeUpload="activity"
-          title="Bill" // Dynamic title
-        />
-      </BoxPrimary>
+      {/* ✅ ใช้ UploadSection แบบ view-only (disabled) */}
+      <UploadSection
+        title="Attached file/Picture"
+        fileUploadRef={fileUploadRefBill}
+        fileList={fileListBill}
+        handleUploadClick={noop}
+        handleUploadSuccess={noop}
+        handleFileRemove={noop}
+        modeUpload="activity"
+        disabled={true}
+      />
 
-      <BoxPrimary>
-        <FileUploadComponent
-          ref={fileUploadRefPicture}
-          dataFile={fileListPicture}
-          onUploadSuccess={handleUploadSuccessPicture}
-          mode="edit"
-          modeUpload="activity"
-          title="Picture" // Dynamic title
-        />
-      </BoxPrimary>
-      
+      <UploadSection
+        title="Attached file/Picture"
+        fileUploadRef={fileUploadRefPicture}
+        fileList={fileListPicture}
+        handleUploadClick={noop}
+        handleUploadSuccess={noop}
+        handleFileRemove={noop}
+        modeUpload="activity"
+        disabled={true}
+      />
+
       <BoxPrimary title="Remark">
         <Input.TextArea placeholder="" value={getRemark} disabled className="bg-gray-100" />
       </BoxPrimary>

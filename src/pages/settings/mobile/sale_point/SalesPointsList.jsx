@@ -617,7 +617,7 @@ export default function SalesPointsList() {
     <MainLayout loading={loading}>
 
       <div className="flex justify-between items-center">
-        <div className="title-page">Sale Point List</div>
+        <div className="title-page">Sale Point Order</div>
         <div className="flex gap-2">
           {permission.btn_create && (
             <ActionButton
@@ -631,7 +631,7 @@ export default function SalesPointsList() {
 
 
       <Tabs activeKey={activeTab} onChange={setActiveTab} className="custom-tabs">
-        <TabPane tab={<span className="tab-title">Sales Points List</span>} key="list">
+        <TabPane tab={<span className="tab-title">Sales Point Order List</span>} key="list">
 
           <FilterByOrder
             onSearch={handleSearch}
@@ -651,7 +651,7 @@ export default function SalesPointsList() {
           </BoxPrimary>
         </TabPane>
 
-        <TabPane tab={<span className="tab-title">Sales Points Request</span>} key="request">
+        <TabPane tab={<span className="tab-title">Sales Point Order Request</span>} key="request">
           <FilterByOrder
             onSearch={handleSearchRequest}
             onClear={handleClearRequest}

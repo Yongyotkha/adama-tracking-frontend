@@ -257,20 +257,20 @@ export default function RedeemDetail() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Redeem Reward Detail</div>
+      <div className="title-page">Point Redeem Detail</div>
 
       <BoxPrimary>
         <Form form={form} layout="vertical" disabled>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Form.Item label="Shop Name" name="shop_name"><Input disabled /></Form.Item>
-            <Form.Item label="Customer Name" name="customer_name"><Input disabled /></Form.Item>
+            <Form.Item label="Customer Name" name="shop_name"><Input disabled /></Form.Item>
+            <Form.Item label="Contact Name" name="customer_name"><Input disabled /></Form.Item>
             <Form.Item label="Contact Number" name="contact_number"><Input disabled /></Form.Item>
             <Form.Item label="Date" name="date"><Input disabled /></Form.Item>
 
             <Form.Item label="Stock (Pcs)" name="stock"><Input disabled /></Form.Item>
             <Form.Item label="Status" name="status"><Input disabled /></Form.Item>
-            <Form.Item label="Approve By" name="approve_by"><Input disabled /></Form.Item>
-            <Form.Item label="Reject By" name="reject_by"><Input disabled /></Form.Item>
+            {/* <Form.Item label="Approve By" name="approve_by"><Input disabled /></Form.Item> */}
+            {/* <Form.Item label="Reject By" name="reject_by"><Input disabled /></Form.Item> */}
           </div>
         </Form>
       </BoxPrimary>
@@ -282,21 +282,26 @@ export default function RedeemDetail() {
       <div className="flex justify-end gap-3 mt-4">
         <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />
 
-        {(isRFA) && (
+        {/* {(isRFA) && (
           <ActionButton
             mode="reject"
             text="Send to Purchase"
             onClick={handleSendToPurchase} // ⬅️ มี remark ผ่าน Modal แต่ยังไม่ยิง API
           />
-        )}
+        )} */}
 
         {isRFW && (
           <>
-            <ActionButton
+            {/* <ActionButton
               mode="reject"
               text="Reject"
               className="bg-[#752157]"
               onClick={handleReject} // ⬅️ Modal + post RFR
+            /> */}
+            <ActionButton
+              mode="reject"
+              text="Send to Purchase"
+              onClick={handleSendToPurchase} // ⬅️ มี remark ผ่าน Modal แต่ยังไม่ยิง API
             />
             <ActionButton
               mode="custom"

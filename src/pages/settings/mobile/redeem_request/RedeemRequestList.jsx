@@ -103,7 +103,7 @@ export default function RedeemRequestList() {
   }, []);
 
   const filters = [
-    { key: "shop_name", type: "text", label: "Shop Name" },
+    { key: "shop_name", type: "text", label: "Customer Name" },
     { key: "customer_name", type: "text", label: "Contact Name" },
     { key: "date", type: "date", label: "Date" },
   ];
@@ -114,7 +114,7 @@ export default function RedeemRequestList() {
 
   const header = [
     { title: "No", dataIndex: "key", align: "left", width: 50 },
-    { title: "Shop Name", dataIndex: "shop_name", align: "left" },
+    { title: "Customer Name", dataIndex: "shop_name", align: "left" },
     { title: "Customer Name", dataIndex: "customer_name", align: "left" },
     { title: "Reward Name", dataIndex: "reward_name", align: "left" },
     { title: "Type", dataIndex: "type", align: "left" },

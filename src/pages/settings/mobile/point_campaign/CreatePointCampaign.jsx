@@ -354,7 +354,7 @@ export default function CreatePointCampaign() {
   const selectTargetColumns = [
     { title: "No", render: (_, __, index) => index + 1, width: 70 },
     { title: "Name", dataIndex: "name" },
-    { title: "Target Group", dataIndex: "target_group", width: 140 },
+    { title: "Customer Group", dataIndex: "target_group", width: 140 },
     { title: "Type", dataIndex: "type", width: 140 },
     { title: "Address", dataIndex: "address" },
   ];
@@ -693,9 +693,9 @@ export default function CreatePointCampaign() {
             <Input placeholder="Campaign 1" />
           </Form.Item>
 
-          {/* Target Group */}
+          {/* Customer Group */}
           <div className="text-[#333] font-medium mt-4 mb-2">
-            Target Group <span className="text-[#ff4d4f]">*</span>
+            Customer Group <span className="text-[#ff4d4f]">*</span>
           </div>
           <Row gutter={[24, 16]}>
             <Col xs={24} md={6}>
@@ -864,7 +864,7 @@ export default function CreatePointCampaign() {
             ]}
             dataSource={filteredProducts}
             loading={productLoading}
-            pagination={{ pageSize: 10, showSizeChanger: false }}
+            pagination={{ pageSize: 5, showSizeChanger: false }}
             scroll
             rowSelection={
               isView

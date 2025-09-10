@@ -23,7 +23,9 @@ const FileUploadComponentNew = forwardRef((props, ref) => {
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
-  const [fileList, setFileList] = useState(dataFile);
+  // const [fileList, setFileList] = useState(dataFile);
+  // optional: ไม่ต้องมี state ภายใน ถ้าต้องการ controlled ทั้งหมดจาก parent
+  const [fileList, setFileList] = useState([]);
   const hiddenFileInputRef = useRef(null);
 
   useEffect(() => {
@@ -58,13 +60,14 @@ const FileUploadComponentNew = forwardRef((props, ref) => {
         listType="picture-card"
         fileList={fileList}
         onPreview={handlePreview}
-        onChange={handleChange}
+        // onChange={handleChange}
+        onChange={() => { /* ปล่อยให้ parent คุม */ }}
         showUploadList={{
           showRemoveIcon: mode !== "view",
         }}
         onRemove={(file) => {
           // Remove file from local state
-          setFileList((prev) => prev.filter((item) => item.uid !== file.uid));
+          // setFileList((prev) => prev.filter((item) => item.uid !== file.uid));
 
           // Call parent callback to update parent state
           if (onRemove && typeof onRemove === "function") {
@@ -83,14 +86,14 @@ const FileUploadComponentNew = forwardRef((props, ref) => {
           const files = e.target.files;
           if (files.length > 0) {
             const file = files[0];
-            const newFile = {
-              uid: new Date().toISOString(),
-              name: file.name,
-              status: "done",
-              url: URL.createObjectURL(file),
-            };
+            // const newFile = {
+            //   uid: new Date().toISOString(),
+            //   name: file.name,
+            //   status: "done",
+            //   url: URL.createObjectURL(file),
+            // };
 
-            setFileList((prev) => [...prev, newFile]);
+            // setFileList((prev) => [...prev, newFile]);
 
             const formData = new FormData();
             formData.append("file", file);

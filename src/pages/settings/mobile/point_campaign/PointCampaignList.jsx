@@ -31,7 +31,7 @@ export default function PointCampaignList() {
     {
       key: "customer_type",
       type: "select",
-      label: "Target Group",
+      label: "Customer Group",
       options: [
         { id: "1", name: "Dealer" },
         { id: "2", name: "Sub Dealer" },
@@ -56,7 +56,7 @@ export default function PointCampaignList() {
   const header = [
     { title: "No", dataIndex: "key" },
     { title: "Campaign Name", dataIndex: "name" },
-    { title: "Target Group", dataIndex: "customer_type_name" },
+    { title: "Customer Group", dataIndex: "customer_type_name" },
     // { title: "Type Name", dataIndex: "type_name" },
     { title: "Product", dataIndex: "product_name" },
     { title: "Campaign", dataIndex: "campaign" },

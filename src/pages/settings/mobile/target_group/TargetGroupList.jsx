@@ -23,7 +23,7 @@ export default function TargetGroupList() {
   });
 
   const filters = [
-    { key: "target", type: "text", label: "Target Name" },
+    { key: "target", type: "text", label: "Customer Name" },
     { key: "type", type: "text", label: "Type Name" },
     {
       key: "use_flag",
@@ -38,7 +38,7 @@ export default function TargetGroupList() {
 
   const header = [
     { title: "No", dataIndex: "key" },
-    { title: "Target Name", dataIndex: "target_text" },
+    { title: "Customer Name", dataIndex: "target_text" },
     { title: "Type Name", dataIndex: "type" },
     { title: "Create Date", dataIndex: "created_at" },
     { title: "Status", dataIndex: "status" },
@@ -48,7 +48,7 @@ export default function TargetGroupList() {
   const handleDelete = async (id) => {
     Modal.confirm({
       title: "ยืนยันการลบ?",
-      content: "ลบข้อมูล Target Group นี้ถาวร",
+      content: "ลบข้อมูล Customer Group นี้ถาวร",
       okText: "ลบ",
       okType: "danger",
       cancelText: "ยกเลิก",
@@ -182,7 +182,7 @@ export default function TargetGroupList() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Target Group</div>
+        <div className="title-page">Customer Group</div>
         <ActionButton mode="create" text="Create" onClick={() => navigate("create")} />
       </div>
 

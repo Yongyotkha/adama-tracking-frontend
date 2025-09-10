@@ -91,6 +91,16 @@ export default function SalesPointCreate() {
     getMaster();
   }, []);
 
+  const handleFileRemove = (file) => {
+    setFileList((prev) => prev.filter((f) => f.uid !== file.uid));
+  };
+
+  // ลบไฟล์ในส่วน Picture of product receive
+  const handleFileReceiveRemove = (file) => {
+    setFileListReceive((prev) => prev.filter((f) => f.uid !== file.uid));
+  };
+
+
   const handleUploadSuccess = (response) => {
     const data = response.data;
     const fileUpload = {
@@ -431,7 +441,8 @@ export default function SalesPointCreate() {
         </div>
       ),
     },
-    { title: "FOC (ctn)", dataIndex: "foc", key: "foc" },
+    // { title: "FOC (ctn)", dataIndex: "foc", key: "foc" },
+    { title: "Point", dataIndex: "point", key: "point" },
     {
       title: "Sub Total (THB)",
       dataIndex: "net_amount",
@@ -488,9 +499,10 @@ export default function SalesPointCreate() {
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
-          Item: {dataSource.length} &nbsp; QTY (ctn): {totalQuantity}+{totalFOC}{" "}
-          &nbsp; Total:{" "}
-          {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+          Item: {dataSource.length} &nbsp; | QTY (ctn): {totalQuantity}
+          &nbsp; | Total:{" "}
+          {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} |
+          Total Point: {dataSource.reduce((total, item) => total + (parseFloat(item.point || 0) * parseFloat(item.quantity || 0)), 0).toLocaleString("en-US")}
         </td>
       </tr>
     );
@@ -556,6 +568,7 @@ export default function SalesPointCreate() {
             net_amount: (
               1 * parseFloat(data.bath_unit.replace(/,/g, ""))
             ).toFixed(2), // Calculate net_amount based on quantity 1
+            point: data.point,
           };
 
           const updatedDataSource = [...dataSource, newProductDataDetail];
@@ -653,7 +666,7 @@ export default function SalesPointCreate() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Create Sale Point</div>
+      <div className="title-page">Create Sales Point Order</div>
 
       <FormCustom
         fields={formFields}
@@ -685,32 +698,18 @@ export default function SalesPointCreate() {
         />
       </BoxPrimary>
 
-      <BoxPrimary>
-        {/* <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">Attachments</div>
-          <ActionButton
-            mode="add"
-            text="Upload File"
-            onClick={handleUploadClick}
-          />
-        </div> */}
-        {/* <FileUploadComponent
-          ref={fileUploadRef}
-          dataFile={fileList}
-          onUploadSuccess={handleUploadSuccess}
-        /> */}
-      </BoxPrimary>
 
       {/* Attachments Section */}
       <UploadSection
-        title="Attachments"
+        title="Attached file/Picture"
         fileUploadRef={fileUploadRef}
         fileList={fileList}
         handleUploadClick={handleUploadClick}
         handleUploadSuccess={handleUploadSuccess}
+        handleFileRemove={handleFileRemove}
       />
-      
-      <BoxPrimary>
+
+      {/* <BoxPrimary>
         <div className="flex items-center justify-between">
           <div className="text-[#00783F] text-lg font-semibold mb-3">Picture of product receive</div>
           <ActionButton
@@ -726,7 +725,17 @@ export default function SalesPointCreate() {
           onUploadSuccess={handleUploadReceiveSuccess}
         />
 
-      </BoxPrimary>
+      </BoxPrimary> */}
+      <UploadSection
+        title="Attached file/Picture"
+        fileUploadRef={fileUploadRefReceive}
+        fileList={fileListReceive}
+        handleUploadClick={handleUploadReceiveClick}
+        handleUploadSuccess={handleUploadReceiveSuccess}
+        handleFileRemove={handleFileReceiveRemove}
+        modeUpload="receive"
+        disabled={true} // Enable view-only mode
+      />
 
       <BoxPrimary title="Remark">
         <div className="mb-3 flex justify-end">

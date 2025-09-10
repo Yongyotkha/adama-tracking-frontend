@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import { Form, Input, DatePicker, Select, notification } from "antd";
 import dayjs from "dayjs";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -10,9 +10,11 @@ import ActionButton from "../../../../components/button/ActionButton";
 import useServiceAPI from "../../../../services/corsService";
 import { paths } from "../../../../services/CorsPath";
 import UploadSection from "../../../../components/file_upload/UploadSection";
+import { AuthContext } from "../../../../contexts/AuthContext";
+
 
 const SEND_BY_OPTIONS = [
-  { value: "mail", label: "Mail/Ship" },
+  { value: "mail/ship", label: "Mail/Ship" },
   { value: "staff", label: "Staff" },
 ];
 
@@ -20,8 +22,11 @@ export default function TransportationDetail() {
   const { mode } = useParams(); // 'view' | 'prepare' | 'delivery'
   const isView = String(mode || "view").toLowerCase() === "view";
   const isDelivery = String(mode || "").toLowerCase() === "delivery";
+  const isPrepare = String(mode || "").toLowerCase() === "prepare";
+  console.log(isPrepare);
   const navigate = useNavigate();
   const location = useLocation();
+  const { showNotification } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState(null);
@@ -37,6 +42,18 @@ export default function TransportationDetail() {
     { title: "QTY (Pcs)", dataIndex: "reward_value", align: "right", width: 100 },
   ];
 
+  // helper แปลงค่าจาก UI -> API
+  const toApiSendBy = (uiValue) => {
+    if (!uiValue) return "Mail/Ship";
+    return uiValue.toLowerCase() === "staff" ? "Staff" : "Mail/Ship";
+  };
+
+  // helper: API -> UI
+  const toUiSendBy = (apiValue) => {
+    if (!apiValue) return "mail/ship";
+    return String(apiValue).toLowerCase() === "staff" ? "staff" : "mail/ship";
+  };
+
   const fillForm = (data) => {
     formTop.setFieldsValue({
       sub_dealer_name: data.sub_dealer_name || "-",
@@ -48,7 +65,7 @@ export default function TransportationDetail() {
     });
 
     formBottom.setFieldsValue({
-      send_by: data.send_by || "mail",
+      send_by: toUiSendBy(data.send_by) ?? "mail/ship",
       send_date: data.send_date ? dayjs(data.send_date) : null,
       remark: data.remark || "",
     });
@@ -78,7 +95,8 @@ export default function TransportationDetail() {
         fillForm(data);
       }
     } catch (error) {
-      console.error("Failed to fetch transportation detail:", error);
+      console.error(e);
+      showNotification("error", "Load failed", ["ไม่สามารถโหลดรายละเอียดได้"]);
     } finally {
       setLoading(false);
     }
@@ -108,6 +126,7 @@ export default function TransportationDetail() {
   };
 
   const handleSaveDelivery = async () => {
+    if (!detail?.id) return;
     try {
       const payload = {
         id: detail.id,
@@ -127,6 +146,42 @@ export default function TransportationDetail() {
       notification.error({
         message: "Error",
         description: "Failed to update transportation details.",
+      });
+    }
+  };
+
+
+  const handleSavePrepare = async () => {
+    if (!detail?.id) {
+      notification.error({ message: "Error", description: "No detail to save." });
+      return;
+    }
+    try {
+      // validate
+      const values = await formBottom.validateFields();
+      // values.send_by เป็นค่าจาก UI ("staff" | "mail/ship")
+      // values.send_date เป็น dayjs object
+
+      const payload = {
+        id: detail?.id,
+        send_by: toApiSendBy(values.send_by),
+        send_date: values.send_date ? dayjs(values.send_date).format("YYYY-MM-DD") : null,
+        remark: values.remark || "",
+      };
+
+      const res = await useServiceAPI.post(paths.pathTransportSend, payload);
+
+      if (res?.status === 200) {
+        showNotification("success", "Saved", ["บันทึกข้อมูลการขนส่งเรียบร้อย"]);
+        navigate(-1);
+      } else {
+        throw new Error(res?.message || "Unexpected response");
+      }
+    } catch (error) {
+      console.error("Failed to save prepare:", error);
+      notification.error({
+        message: "Error",
+        description: error?.message || "Failed to save prepare.",
       });
     }
   };
@@ -153,7 +208,7 @@ export default function TransportationDetail() {
             <Form.Item label="Contact Number" name="contact_number">
               <Input disabled />
             </Form.Item>
-            <Form.Item label="Send Date" name="send_date">
+            <Form.Item label="Date" name="send_date">
               <Input disabled />
             </Form.Item>
             <Form.Item label="Status" name="status_name">
@@ -223,7 +278,6 @@ export default function TransportationDetail() {
         />
       )}
 
-
       {/* File Upload for Delivery */}
       {isDelivery && (
         <UploadSection
@@ -243,6 +297,9 @@ export default function TransportationDetail() {
         <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />
         {isDelivery && (
           <ActionButton mode="save" text="Save" onClick={handleSaveDelivery} />
+        )}
+        {isPrepare && (
+          <ActionButton mode="save" text="Save" onClick={handleSavePrepare} />
         )}
       </div>
     </MainLayout>

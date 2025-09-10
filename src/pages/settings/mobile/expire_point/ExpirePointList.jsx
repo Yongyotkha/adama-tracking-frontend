@@ -62,7 +62,7 @@ export default function ExpirePointList() {
 
   // 🔹 Filters Configuration
   const filters = [
-    { key: "shop_name", type: "text", label: "Shop Name" },
+    { key: "shop_name", type: "text", label: "Customer Name" },
     { key: "contact_name", type: "text", label: "Contact Name" },
     { key: "date", type: "date", label: "Date" },
   ];
@@ -70,7 +70,7 @@ export default function ExpirePointList() {
   // 🔹 Table Headers Configuration
   const header = [
     { title: "No", dataIndex: "key", align: "left", width: 50 },
-    { title: "Shop Name", dataIndex: "shop_name", align: "left" },
+    { title: "Customer Name", dataIndex: "shop_name", align: "left" },
     { title: "Contact Name", dataIndex: "contact_name", align: "left" },
     { title: "Phone No", dataIndex: "phone_no", align: "left" },
     { title: "Customer Type", dataIndex: "customer_type", align: "left" },

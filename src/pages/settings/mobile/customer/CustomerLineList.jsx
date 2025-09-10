@@ -31,7 +31,7 @@ export default function CustomerLineList() {
 
   // แก้ filters ให้ตรงกับ status_code ใหม่
   const filters = [
-    { key: "shop_name", type: "text", label: "Shop Name" },
+    { key: "shop_name", type: "text", label: "Customer Name" },
     { key: "contact_name", type: "text", label: "Contact Name" },
     { key: "date", type: "date", label: "Register Date" },
     {
@@ -132,7 +132,7 @@ export default function CustomerLineList() {
 
   const header = [
     { title: "No", dataIndex: "key", width: 60 },
-    { title: "Shop Name", dataIndex: "shop_name" },
+    { title: "Customer Name", dataIndex: "shop_name" },
     { title: "Contact Name", dataIndex: "contact_name" },
     { title: "Phone No", dataIndex: "phone" },
     { title: "Contact Type", dataIndex: "type" },

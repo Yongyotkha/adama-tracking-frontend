@@ -38,10 +38,10 @@ export default function EditOrViewRegisteredCustomer() {
         setFields([
           { label: "", name: "profile", type: "picture", col: 24, value: profile },
           { name: "customer_id", label: "Customer ID", type: "text", col: 6, disabled: true, value: d.user_code },
-          { name: "shop_name", label: "Shop Name", type: "text", col: 6, disabled: true, value: d.shop_name },
+          { name: "shop_name", label: "Customer Name", type: "text", col: 6, disabled: true, value: d.shop_name },
           {
             name: "customer_name",
-            label: "Customer Name",
+            label: "Contact Name",
             type: "text",
             col: 6,
             disabled: true,
@@ -248,23 +248,22 @@ export default function EditOrViewRegisteredCustomer() {
         </TabPane>
 
 
-
-        <TabPane tab={<span className="tab-title">Order History</span>} key="2">
+        {/* <TabPane tab={<span className="tab-title">Order History</span>} key="2">
           <TableComponent
             header={orderColumns}
             dataSource={orderData}
             loading={orderLoading}
             pagination={false}
           />
-        </TabPane>
+        </TabPane> */}
 
-        <TabPane tab={<span className="tab-title">Transaction</span>} key="3">
+        {/* <TabPane tab={<span className="tab-title">Transaction</span>} key="3">
           <TableComponent
             header={transactionColumns}
             dataSource={transactionData}
             pagination={false}
           />
-        </TabPane>
+        </TabPane> */}
 
       </Tabs>
     </MainLayout>
