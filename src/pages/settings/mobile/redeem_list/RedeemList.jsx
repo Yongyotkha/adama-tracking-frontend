@@ -124,20 +124,20 @@ export default function RedeemList() {
       item.stock !== undefined
         ? fmtNum(item.stock)
         : item.reward_value !== undefined
-        ? fmtNum(item.reward_value)
-        : "-",
+          ? fmtNum(item.reward_value)
+          : "-",
     cost:
       item.cost !== undefined
         ? fmtNum(item.cost)
         : item.reward_cost !== undefined
-        ? fmtNum(item.reward_cost)
-        : "-",
+          ? fmtNum(item.reward_cost)
+          : "-",
     points:
       item.points !== undefined
         ? fmtNum(item.points)
         : item.point !== undefined
-        ? fmtNum(item.point)
-        : "-",
+          ? fmtNum(item.point)
+          : "-",
     date: fmtDate(item.created_at),
     shipping: (
       <button
@@ -232,7 +232,7 @@ export default function RedeemList() {
         page: "all",
         page_size: pageSize,
         page_length: current,
-        status: ["RFW"],
+        status: ["RFW", "RFP"],
       });
 
       if (res.status === 200) {
