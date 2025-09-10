@@ -277,6 +277,7 @@ export const paths = {
   pathGetOrderChangeStatus: "order/status",
 
 
+  // Sale Point Order
   pathSalePointOrderList: "/sale-point/list",
   pathSalePointOrderCreate: "/sale-point/create",
   pathSalePointOrderUpdate: "/sale-point/update",
@@ -296,12 +297,24 @@ export const paths = {
   pathStockDelete: "/stock/delete",
   pathStockCreated: "/stock/created",
 
+  // Reward & Redeem
   pathRedeemList: "redeem/list",
   pathRedeemDetail: "redeem/detail",
   pathRedeemUpdateStatus: "redeem/update-status",
   pathRedeemToPurchase: "redeem/purchase",
 
-  // pathRedeemList: "redeem/list",
+  // Request Purchase
+  pathRequestPurchaseList: "request-purchase/list",
+  pathRequestPurchaseDetail: "request-purchase/detail",
+  pathRequestPurchaseUpdateValue: "request-purchase/update-value",
+  // pathRequestPurchaseCreate: "request-purchase/create",
+  // pathRequestPurchaseUpdateStock: "request-purchase/update-stock",
+
+  // Transportation
+  pathTransportList: "transport/list",
+  pathTransportDetail: "transport/detail",
+  pathTransportSend: "transport/send",
+  pathTransportReceive: "transport/receive",
 
   // Expense Traveling
   pathGetExpenseTravelingList: "expense/traveling/list",
