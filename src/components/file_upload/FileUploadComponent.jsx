@@ -1,5 +1,5 @@
-import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
-import { Image, Upload, message, App } from 'antd';
+import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } from "react";
+import { Image, Upload, message, App } from "antd";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 
@@ -17,11 +17,12 @@ const FileUploadComponent = forwardRef((props, ref) => {
     dataFile = [],
     mode = "edit",
     modeUpload = "activity",
-    onUploadSuccess, // Correctly destructure from props
+    onUploadSuccess,
+    onRemove, // Callback to update parent state when a file is removed
   } = props;
 
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewImage, setPreviewImage] = useState('');
+  const [previewImage, setPreviewImage] = useState("");
   const [fileList, setFileList] = useState(dataFile);
   const hiddenFileInputRef = useRef(null);
 
@@ -37,25 +38,23 @@ const FileUploadComponent = forwardRef((props, ref) => {
     setPreviewOpen(true);
   };
 
-  const handleChange = ({ fileList: newFileList }) => setFileList(newFileList);
+  const handleChange = ({ fileList: newFileList }) => {
+    setFileList(newFileList);
+  };
 
   const triggerUpload = () => {
     if (hiddenFileInputRef.current) {
       hiddenFileInputRef.current.click();
-
     }
-    console.log('Upload')
   };
 
   useImperativeHandle(ref, () => ({
     triggerUpload,
   }));
 
-
   return (
     <App>
       <Upload
-        action="https://adama-api.mtsc.co.th/upload"
         listType="picture-card"
         fileList={fileList}
         onPreview={handlePreview}
@@ -64,50 +63,44 @@ const FileUploadComponent = forwardRef((props, ref) => {
           showRemoveIcon: mode !== "view",
         }}
         onRemove={(file) => {
-          // ลบออกจาก state
-
-          console.log('file : ', file)
-
-          console.log('before : ', fileList)
+          // Remove file from local state
           setFileList((prev) => prev.filter((item) => item.uid !== file.uid));
-          console.log('after : ', fileList)
-          // TODO: ถ้ามี API สำหรับลบไฟล์ใน server ก็เรียกที่นี่
 
+          // Call parent callback to update parent state
+          if (onRemove && typeof onRemove === "function") {
+            onRemove(file);
+          }
 
-          return true; // ต้อง return true เพื่อให้ลบออกจาก UI ด้วย
+          return true; // Return true to remove the file from the UI
         }}
         openFileDialogOnClick={false}
       />
       <input
         type="file"
         ref={hiddenFileInputRef}
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         onChange={async (e) => {
           const files = e.target.files;
           if (files.length > 0) {
             const file = files[0];
-            setFileList((prev) => [
-              ...prev,
-              {
-                uid: new Date().toISOString(),
-                name: file.name,
-                status: 'done',
-                url: URL.createObjectURL(file),
-              },
-            ]);
+            const newFile = {
+              uid: new Date().toISOString(),
+              name: file.name,
+              status: "done",
+              url: URL.createObjectURL(file),
+            };
+
+            setFileList((prev) => [...prev, newFile]);
 
             const formData = new FormData();
             formData.append("file", file);
             formData.append("mode", modeUpload);
 
             try {
-              const response = await useServiceAPI.post(
-                paths.pathUpload,
-                formData
-              );
+              const response = await useServiceAPI.post(paths.pathUpload, formData);
 
-              if (onUploadSuccess && typeof onUploadSuccess === 'function') {
-                onUploadSuccess(response); // Correctly call the callback
+              if (onUploadSuccess && typeof onUploadSuccess === "function") {
+                onUploadSuccess(response); // Pass the response to the parent component
               }
             } catch (error) {
               console.error("Error uploading form data:", error);
@@ -119,11 +112,11 @@ const FileUploadComponent = forwardRef((props, ref) => {
 
       {previewImage && (
         <Image
-          wrapperStyle={{ display: 'none' }}
+          wrapperStyle={{ display: "none" }}
           preview={{
             visible: previewOpen,
             onVisibleChange: (visible) => setPreviewOpen(visible),
-            afterOpenChange: (visible) => !visible && setPreviewImage(''),
+            afterOpenChange: (visible) => !visible && setPreviewImage(""),
           }}
           src={previewImage}
         />

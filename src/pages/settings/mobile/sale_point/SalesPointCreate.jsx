@@ -15,6 +15,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import DynamicModal from "../../../../components/modal/DynamicModal";
 
 import FileUploadComponent from "../../../../components/file_upload/FileUploadComponent";
+import UploadSection from "../../../../components/file_upload/UploadSection";
 
 dayjs.extend(customParseFormat);
 
@@ -623,7 +624,7 @@ export default function SalesPointCreate() {
           products: dataSource,
           others: dataSourceOther,
           fileList: fileList,
-          fileListReceive:fileListReceive
+          fileListReceive: fileListReceive
         };
         // console.log(body);
         // return;
@@ -685,22 +686,30 @@ export default function SalesPointCreate() {
       </BoxPrimary>
 
       <BoxPrimary>
-        <div className="flex items-center justify-between">
+        {/* <div className="flex items-center justify-between">
           <div className="text-[#00783F] text-lg font-semibold mb-3">Attachments</div>
           <ActionButton
             mode="add"
             text="Upload File"
             onClick={handleUploadClick}
           />
-        </div>
-        <FileUploadComponent
+        </div> */}
+        {/* <FileUploadComponent
           ref={fileUploadRef}
           dataFile={fileList}
           onUploadSuccess={handleUploadSuccess}
-        />
-
+        /> */}
       </BoxPrimary>
 
+      {/* Attachments Section */}
+      <UploadSection
+        title="Attachments"
+        fileUploadRef={fileUploadRef}
+        fileList={fileList}
+        handleUploadClick={handleUploadClick}
+        handleUploadSuccess={handleUploadSuccess}
+      />
+      
       <BoxPrimary>
         <div className="flex items-center justify-between">
           <div className="text-[#00783F] text-lg font-semibold mb-3">Picture of product receive</div>

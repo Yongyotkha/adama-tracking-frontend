@@ -112,13 +112,32 @@ export default function Transportation() {
                       <ItemDropDown
                         mode="view"
                         onClick={() =>
-                          navigate("/points/line/transportation/detail", {
-                            state: { id: item.id },
+                          navigate("/points/line/transportation/view", {
+                            state: { id: item.id, mode: "delivered" },
                           })
                         }
                       />
                     ),
                   },
+
+                  ...(item.status_tran === "RTD"
+                    ? [
+                      {
+                        key: "delivery",
+                        label: (
+                          <ItemDropDown
+                            mode="edit"
+                            text={"Delivery"}
+                            onClick={() =>
+                              navigate("/points/line/transportation/delivery", {
+                                state: { id: item.id, mode: "delivery" },
+                              })
+                            }
+                          />
+                        ),
+                      },
+                    ]
+                    : []),
                 ],
               }}
               placement="bottomRight"
@@ -184,6 +203,19 @@ export default function Transportation() {
             <Dropdown
               menu={{
                 items: [
+                  // {
+                  //   key: "view",
+                  //   label: (
+                  //     <ItemDropDown
+                  //       mode="view"
+                  //       onClick={() =>
+                  //         navigate("/points/line/transportation/view", {
+                  //           state: { id: item.id },
+                  //         })
+                  //       }
+                  //     />
+                  //   ),
+                  // },
                   {
                     key: "prepare",
                     label: (
@@ -197,19 +229,7 @@ export default function Transportation() {
                       />
                     ),
                   },
-                  {
-                    key: "view",
-                    label: (
-                      <ItemDropDown
-                        mode="view"
-                        onClick={() =>
-                          navigate("/points/line/transportation/view", {
-                            state: { id: item.id },
-                          })
-                        }
-                      />
-                    ),
-                  },
+
                 ],
               }}
               placement="bottomRight"
