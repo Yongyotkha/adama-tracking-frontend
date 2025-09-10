@@ -23,7 +23,8 @@ export default function TransportationDetail() {
   const isView = String(mode || "view").toLowerCase() === "view";
   const isDelivery = String(mode || "").toLowerCase() === "delivery";
   const isPrepare = String(mode || "").toLowerCase() === "prepare";
-  console.log(isPrepare);
+  const bottomDisabled = isView || isDelivery;
+
   const navigate = useNavigate();
   const location = useLocation();
   const { showNotification } = useContext(AuthContext);
@@ -61,13 +62,14 @@ export default function TransportationDetail() {
       contact_number: data.contact_number || "-",
       send_date: data.send_at ? dayjs(data.send_at).format("YYYY-MM-DD") : "-",
       status_name: data.status_tran_namsse || "-",
-      remark: data.remark_tran || "-",
+      remark: data.remark || "-",
     });
 
     formBottom.setFieldsValue({
       send_by: toUiSendBy(data.send_by) ?? "mail/ship",
-      send_date: data.send_date ? dayjs(data.send_date) : null,
+      send_date: data.send_at ? dayjs(data.send_at) : null,
       remark: data.remark || "",
+      remark_tran: data.remark_tran || "-",
     });
   };
 
@@ -166,7 +168,7 @@ export default function TransportationDetail() {
         id: detail?.id,
         send_by: toApiSendBy(values.send_by),
         send_date: values.send_date ? dayjs(values.send_date).format("YYYY-MM-DD") : null,
-        remark: values.remark || "",
+        remark: values.send_remark || "",
       };
 
       const res = await useServiceAPI.post(paths.pathTransportSend, payload);
@@ -193,7 +195,7 @@ export default function TransportationDetail() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Transportation Detail</div>
+      <div className="title-page">Reward Transaction Detail</div>
 
       {/* Top Form */}
       <BoxPrimary>
@@ -222,7 +224,7 @@ export default function TransportationDetail() {
       </BoxPrimary>
 
       {/* Reward Table */}
-      <BoxPrimary>
+      <BoxPrimary title="Reward">
         <TableComponent
           header={columns}
           dataSource={detail ? [detail] : []}
@@ -231,33 +233,33 @@ export default function TransportationDetail() {
       </BoxPrimary>
 
       {/* Bottom Form */}
-      {!isDelivery && (
+      {!isView && (
         <BoxPrimary>
-          <Form form={formBottom} layout="vertical" disabled={isView}>
+          <Form form={formBottom} layout="vertical" disabled={bottomDisabled}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <Form.Item
                 label="Send By"
                 name="send_by"
-                rules={[{ required: true, message: "Please select send by" }]}
+                rules={isPrepare ? [{ required: true, message: "Please select send by" }] : []}
               >
                 <Select
                   options={SEND_BY_OPTIONS}
                   placeholder="Select"
                   allowClear={false}
-                  disabled={isView}
+                  disabled={bottomDisabled}
                 />
               </Form.Item>
 
               <Form.Item
                 label="Send Date"
                 name="send_date"
-                rules={[{ required: true, message: "Please select send date" }]}
+                rules={isPrepare ? [{ required: true, message: "Please select send date" }] : []}
               >
-                <DatePicker className="w-full" disabled={isView} />
+                <DatePicker className="w-full" disabled={bottomDisabled} />
               </Form.Item>
 
-              <Form.Item label="Remark" name="remark">
-                <Input placeholder="Enter" disabled={isView} />
+              <Form.Item label="Transaction Remark" name="remark_tran">
+                <Input placeholder="Enter" disabled={bottomDisabled} />
               </Form.Item>
             </div>
           </Form>
@@ -267,7 +269,7 @@ export default function TransportationDetail() {
       {/* File Preview for Delivered */}
       {isView && (
         <UploadSection
-          title="Preview Attachments"
+          title="Attached file/Picture"
           fileUploadRef={null} // No upload functionality in view mode
           fileList={uploadedFiles}
           handleUploadClick={() => { }}
@@ -281,7 +283,7 @@ export default function TransportationDetail() {
       {/* File Upload for Delivery */}
       {isDelivery && (
         <UploadSection
-          title="Delivery Attachments"
+          title="Attached file/Picture"
           fileUploadRef={fileUploadRef}
           fileList={uploadedFiles}
           handleUploadClick={() => fileUploadRef.current?.triggerUpload()}
