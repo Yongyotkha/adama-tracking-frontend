@@ -45,7 +45,7 @@ export default function RedeemPoint() {
     const fetchRewards = async () => {
       setLoading(true);
       try {
-        console.log('activeTab : ',activeTab)
+        console.log('activeTab : ', activeTab)
         const { current, pageSize } = tableParams.pagination;
         const requestData = {
           category_id: activeTab,
@@ -66,6 +66,13 @@ export default function RedeemPoint() {
     fetchRewards();
   }, [activeTab]);
 
+
+
+  const handleCategoryClick = (id) => {
+    setRewards([]);
+    setActiveTab(id)
+  };
+
   return (
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
@@ -77,7 +84,8 @@ export default function RedeemPoint() {
           {categories.map((category) => (
             <button
               key={category.id || "all"}
-              onClick={() => setActiveTab(category.id)}
+
+              onClick={() => handleCategoryClick(category.id)}
               className={`px-4 py-2 rounded-full text-sm font-semibold sarabun-font ${activeTab === category.id ? "bg-[#FFB347] text-white" : "bg-gray-300 text-gray-700"}`}
             >
               {category.name || category.text}

@@ -91,18 +91,18 @@ export default function PointHistory() {
                   <img src="/img/icons/point.png" className="h-5 w-5 my-auto" alt="point-icon" />
                   <div>
                     <p className="text-gray-500 text-sm sarabun-font">
-                      {item.created_at}
-                    </p>
-                    <p className="text-gray-700 text-sm sarabun-font">
-                      เลขที่เอกสาร: {item.document_number}
+                      {item.created_at.split('.')[0]}
                     </p>
                     <p className="text-gray-700 text-sm sarabun-font">
                       หมดอายุ: {item.expire_at}
                     </p>
                   </div>
                 </div>
-                <p className="font-bold sarabun-font text-green-600">
-                  +{item.point}
+                <p
+                  className={`font-bold sarabun-font ${activeTab === "use" ? "text-red-600" : "text-green-600"
+                    }`}
+                >
+                  {activeTab === "use" ? `-${item.point}` : `+${item.point}`}
                 </p>
               </div>
             ))
