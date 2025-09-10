@@ -217,6 +217,7 @@ export default function RedeemDetail() {
 
   // ✅ Send to Purchase: GET /redeem/purchase/{reward_id} (ไม่มี remark) แล้วกลับหน้า List
   const handleSendToPurchase = async () => {
+    const id = location?.state?.id;
     confirmNoRemark({
       title: "Send to Purchase ?",
       okText: "OK",
@@ -228,7 +229,7 @@ export default function RedeemDetail() {
         }
         try {
           setLoading(true);
-          const res = await useServiceAPI.get(`${paths.pathRedeemToPurchase}/${detail.reward_id}`);
+          const res = await useServiceAPI.get(`${paths.pathRedeemToPurchase}/${detail.reward_id}/${id}`);
           if (res?.status === 200) {
             showNotification("success", "Transaction completed", ["ส่งไป Purchase เรียบร้อย"]);
             navigate("/points/line/redeem-reward-list");
