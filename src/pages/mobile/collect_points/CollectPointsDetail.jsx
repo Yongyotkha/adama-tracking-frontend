@@ -66,6 +66,7 @@ export default function CollectPointsDetail() {
       qty: Number(p?.quantity ?? 0),
       product_name: p?.product_name ?? "-",
       product_code: p?.product_code ?? "-",
+      packing_list: p?.packing_list ?? "-",
       amount: Number(p?.net_amount ?? 0),
       point: Number(p?.point ?? 0),
       amount_display:
@@ -181,7 +182,7 @@ export default function CollectPointsDetail() {
                         <p>
                           {item.qty} x {item.product_name}
                         </p>
-                        <p className="text-xs text-gray-500">{item.product_code}</p>
+                        <p className="text-xs text-gray-500">บรรจุ : {item.packing_list}</p>
                         <p className="text-xs text-gray-500">คะแนน : {item.point}</p>
                       </div>
                     </div>

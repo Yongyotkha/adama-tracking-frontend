@@ -32,13 +32,14 @@ export default function OrderHistoryDetail() {
     const fetchDetail = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathSalePointReceiveDetailOrder, {
+        const response = await useServiceAPI.get(paths.pathSalePointReceiveDetail, {
           platform: "web",
           id: userInfo?.id,
           document_number: documentNumber,
         });
 
         if (response?.status === 200) {
+          console.log('response.data : ', response.data)
           setHistorydetail(response.data ?? null);
         } else {
           setHistorydetail(null);
@@ -66,7 +67,8 @@ export default function OrderHistoryDetail() {
       qty: Number(p?.quantity ?? 0),
       product_name: p?.product_name ?? "-",
       product_code: p?.product_code ?? "-",
-      amount: Number(p?.net_amount ?? 0),
+      packing_list: p?.packing_list ?? "-",
+      point: Number(p?.point ?? 0),
       point: Number(p?.point ?? 0),
       amount_display:
         typeof p?.net_amount === "string" || typeof p?.net_amount === "number"
@@ -181,7 +183,7 @@ export default function OrderHistoryDetail() {
                         <p>
                           {item.qty} x {item.product_name}
                         </p>
-                        <p className="text-xs text-gray-500">{item.product_code}</p>
+                        <p className="text-xs text-gray-500">บรรจุ : {item.packing_list}</p>
                         <p className="text-xs text-gray-500">คะแนน : {item.point}</p>
                       </div>
                     </div>
@@ -221,9 +223,9 @@ export default function OrderHistoryDetail() {
                 รูปหน้าบิลเงินสดหรือใบสั่งสินค้า
                 <span className="text-red-500">*</span>
               </label>
-              {historydetail?.product && historydetail.product.length > 0 ? (
+              {historydetail?.picture && historydetail.picture.length > 0 ? (
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                  {historydetail.product.map((img, idx) => (
+                  {historydetail.picture.map((img, idx) => (
                     <img
                       key={idx}
                       src={img.part}

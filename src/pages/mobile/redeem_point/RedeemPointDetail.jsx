@@ -24,7 +24,7 @@ export default function RedeemPointDetail() {
     const fetchRewardDetail = async () => {
       try {
         const response = await useServiceAPI.get(
-          paths.pathPromotiondetail + "/" + location.state.id,{cal:true}
+          paths.pathPromotiondetail + "/" + location.state.id, { cal: true }
         );
         if (response.status === 200 && response.result) {
           setReward(response.data.promotion);
@@ -62,7 +62,7 @@ export default function RedeemPointDetail() {
         setEarnedPoints(5);
         if (res.data.status) {
           setIsPointModalVisibleComfirm(true);
-        }else{
+        } else {
           setIsPointModalVisibleFalse(true)
         }
 
