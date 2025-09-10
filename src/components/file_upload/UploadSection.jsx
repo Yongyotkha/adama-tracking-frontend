@@ -1,7 +1,7 @@
 import React from "react";
 import BoxPrimary from "../box_primary/BoxPrimary";
 import ActionButton from "../button/ActionButton";
-import FileUploadComponent from "../file_upload/FileUploadComponent";
+import FileUploadComponentNew from "../file_upload/FileUploadComponentNew";
 
 const UploadSection = ({
   title,
@@ -21,7 +21,7 @@ const UploadSection = ({
           <ActionButton mode="add" text="Upload File" onClick={handleUploadClick} />
         )}
       </div>
-      <FileUploadComponent
+      <FileUploadComponentNew
         ref={fileUploadRef}
         dataFile={fileList}
         onUploadSuccess={handleUploadSuccess}
