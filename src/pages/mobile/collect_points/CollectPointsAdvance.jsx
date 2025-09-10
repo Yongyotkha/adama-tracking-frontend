@@ -33,7 +33,12 @@ export default function CollectPointsAdvance() {
         const response = await useServiceAPI.get(paths.pathProfileDetail, { id: userInfo.id });
 
         if (response.status === 200 && response.result) {
+
+
           setUser(response.data);
+          setReceiveShop(response.data.shop_name)
+
+          console.log('user : ', user)
         } else {
           console.error("Failed to fetch user profile:", response);
         }
@@ -58,7 +63,7 @@ export default function CollectPointsAdvance() {
 
   const handleSubmit = async () => {
     if (productBills.length === 0 || productPhotos.length === 0) {
-      message.error("กรุณาแนบรูปให้ครบในช่องที่มีเครื่องหมาย *");
+      message.error("กรุณากรอกข้อมูลให้ครบในช่องที่มีเครื่องหมาย *");
       return;
     }
     console.log('productBills : ', productBills)
@@ -122,9 +127,10 @@ export default function CollectPointsAdvance() {
         <div className="mt-4 space-y-4 sarabun-font">
           <div>
             <label className="block text-sm text-gray-700 sarabun-font mb-1">
-              วันที่แจ้งรับสินค้าล่วงหน้า
+              วันที่แจ้งรับสินค้าล่วงหน้า<span className="text-red-500">*</span>
             </label>
             <DatePicker
+              required
               format="YYYY-MM-DD"     // ใช้ format ที่ backend ต้องการ
               className="w-full h-10 rounded-md text-gray-700 sarabun-font"
               placeholder="เลือกวันที่"
@@ -134,9 +140,10 @@ export default function CollectPointsAdvance() {
 
           <div>
             <label className="block text-sm text-gray-700 sarabun-font mb-1">
-              ชื่อร้านยี่ปั๊ว<span className="text-red-500">*</span>
+              ชื่อร้านยี่ปั๊ว
             </label>
             <Input
+              disabled
               placeholder="ระบุชื่อร้าน"
               className="h-10 rounded-md sarabun-font"
               value={receiveShop}
