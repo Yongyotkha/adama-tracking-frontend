@@ -53,7 +53,7 @@ export default function RedeemPoint() {
           page_length: current,
           page_size: pageSize,
         };
-        const response = await useServiceAPI.get(paths.pathMasterPromotion, requestData);
+        const response = await useServiceAPI.get(paths.pathMasterPromotionUser, requestData);
         if (response.status === 200 && response.result) {
           setRewards(response.data.data);
         }

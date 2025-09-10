@@ -226,8 +226,6 @@ export default function CreateRewardCampaign() {
     const date_start = dayjs(values.date_range?.[0]).format("YYYY-MM-DD");
     const date_end = dayjs(values.date_range?.[1]).format("YYYY-MM-DD");
 
-    console.log('targetData : ', targetData)
-
     const target = targetData
       .filter(t => t.points || t.value)
       .map(t => ({
@@ -237,8 +235,6 @@ export default function CreateRewardCampaign() {
         type_id: Number(t.type),
       }));
 
-    // console.log('target : ', target)
-    // return false;
     return {
       name: values.name,
       description: values.description,
@@ -305,6 +301,8 @@ export default function CreateRewardCampaign() {
 
       const payload = buildPayload(values);
 
+
+
       const res = await useServiceAPI.post(paths.pathPromotioncreate, payload);
 
       if (res?.status === 200) {
@@ -326,6 +324,9 @@ export default function CreateRewardCampaign() {
       setLoading(true);
       const values = await form.validateFields();
       const payload = buildPayload(values);
+
+      console.log('payload : ', payload)
+      return false;
       // ✅ ต้องส่ง id มาด้วยตามสัญญา API ของหน้า EditPromotion
       // payload.id = Number(location?.state?.id);
       // const res = await useServiceAPI.put(paths.pathPromotionupdate, payload);
