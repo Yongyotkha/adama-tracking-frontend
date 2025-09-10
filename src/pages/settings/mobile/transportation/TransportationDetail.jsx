@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
-import { Form, Input, DatePicker, Select } from "antd";
+import React, { useEffect, useState } from "react";
+import { Form, Input, DatePicker, Select, notification } from "antd";
 import dayjs from "dayjs";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
@@ -8,136 +8,67 @@ import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../../components/table/TableComponent";
 import ActionButton from "../../../../components/button/ActionButton";
 
-import useServiceAPI from "../../../../services/corsService"; // พร้อมต่อ API
-import { paths } from "../../../../services/CorsPath";        // พร้อมต่อ API
-import { AuthContext } from "../../../../contexts/AuthContext";
-
-/* ---------------- MOCK DATA (ตามดีไซน์) ---------------- */
-const MOCK_DETAIL = {
-  id: "TP-20250526-0001",
-  sub_dealer_name: "บ้านธาราเกษตร 11",
-  customer_name: "Piyanuch Puttisukniran",
-  contact_number: "081-9496301",
-  date: "2025-05-26",
-  status_code: "PREPARE",
-  status_name: "Prepare",
-  shipping_address:
-    "เชียร์ รังสิต 99 หมู่ที่ 8 ถ. พหลโยธิน ตำบลคูคต อำเภอลำลูกกา ปทุมธานี 12130 ไทย",
-  items: [
-    {
-      reward_code: "RW00000001",
-      category: "อิเล็กทรอนิกส์",
-      reward_name: "พัดลม (14 นิ้ว)",
-      qty: 1,
-      cost: 790,
-    },
-  ],
-  // ค่าเริ่มต้นส่วนล่าง
-  send_by: "mail", // mail | courier | pickup
-  send_date: "2025-05-06",
-  remark: "",
-};
-/* ------------------------------------------------------ */
+import useServiceAPI from "../../../../services/corsService";
+import { paths } from "../../../../services/CorsPath";
 
 const SEND_BY_OPTIONS = [
-  { value: "mail", label: "Mail/Shipping" },
-  { value: "courier", label: "Courier" },
-  { value: "pickup", label: "Self Pickup" },
+  { value: "mail", label: "Mail/Ship" },
+  { value: "staff", label: "Staff" },
 ];
 
 export default function TransportationDetail() {
   const { mode } = useParams(); // 'view' | 'prepare'
   const isView = String(mode || "view").toLowerCase() === "view";
-  const isPrepare = String(mode || "view").toLowerCase() === "prepare";
-
   const navigate = useNavigate();
   const location = useLocation();
-  const { showNotification } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
-  const [detail, setDetail] = useState(MOCK_DETAIL);
-  const [formTop] = Form.useForm();     // ฟอร์มส่วนบน (อ่านอย่างเดียว)
-  const [formBottom] = Form.useForm();  // ฟอร์มส่วนล่าง (แก้ไข/บันทึก)
+  const [detail, setDetail] = useState(null);
+  const [formTop] = Form.useForm(); // Top form (read-only)
+  const [formBottom] = Form.useForm(); // Bottom form (editable for prepare)
 
-  /* ------------ ตารางรายการของรางวัล ------------ */
-  const columns = useMemo(
-    () => [
-      { title: "Reward Code", dataIndex: "reward_code", align: "left" },
-      { title: "Category", dataIndex: "category", align: "left" },
-      { title: "Reward Name", dataIndex: "reward_name", align: "left" },
-      { title: "QTY (Pcs)", dataIndex: "qty", align: "right", width: 100 },
-      { title: "Cost (THB)", dataIndex: "cost", align: "right", width: 120 },
-    ],
-    []
-  );
+  const columns = [
+    { title: "Reward Code", dataIndex: "reward_code", align: "left" },
+    { title: "Reward Name", dataIndex: "reward_name", align: "left" },
+    { title: "Cost (THB)", dataIndex: "reward_cost", align: "right", width: 120 },
+    { title: "QTY (Pcs)", dataIndex: "reward_value", align: "right", width: 100 },
+  ];
 
-  /* ------------ เติมค่าให้ฟอร์ม ------------ */
-  const fillForms = (data) => {
+  const fillForm = (data) => {
     formTop.setFieldsValue({
       sub_dealer_name: data.sub_dealer_name || "-",
-      customer_name: data.customer_name || "-",
+      shop_name: data.shop_name || "-",
       contact_number: data.contact_number || "-",
-      date: data.date ? dayjs(data.date).format("YYYY-MM-DD") : "-",
-      status_name: data.status_name || "-",
-      shipping_address: data.shipping_address || "-",
+      send_date: data.send_at ? dayjs(data.send_at).format("YYYY-MM-DD") : "-",
+      status_name: data.status_tran_namsse || "-",
+      remark: data.remark_tran || "-",
     });
 
     formBottom.setFieldsValue({
-      send_by: data.send_by ?? "mail",
+      send_by: data.send_by || "mail",
       send_date: data.send_date ? dayjs(data.send_date) : null,
-      remark: data.remark ?? "",
+      remark: data.remark || "",
     });
   };
 
-  /* ------------ โหลดรายละเอียด (พร้อมต่อ API) ------------ */
-  const loadDetail = async () => {
+  const fetchDetail = async () => {
     setLoading(true);
-    const requestId = location?.state?.id || MOCK_DETAIL.id;
+    const id = location?.state?.id;
 
-    // ใช้ MOCK ก่อน
-    setDetail(MOCK_DETAIL);
-    fillForms(MOCK_DETAIL);
-    setLoading(false);
-    return;
-
-    /* เมื่อมี API: ลบ return ด้านบน แล้วใช้โค้ดนี้
     try {
-      const res = await useServiceAPI.get(paths.pathTransportationDetail, { id: requestId });
-      if (res?.status === 200) {
-        const d = res.data?.data || {};
-        const mapped = {
-          id: d.id,
-          sub_dealer_name: d.sub_dealer_name,
-          customer_name: d.customer_name,
-          contact_number: d.contact_number,
-          date: d.request_date,
-          status_code: d.status_code,
-          status_name: d.status_name,
-          shipping_address: d.shipping_address,
-          items: (d.items || []).map((i) => ({
-            reward_code: i.reward_code,
-            category: i.category_name,
-            reward_name: i.reward_name,
-            qty: i.qty,
-            cost: i.cost,
-          })),
-          send_by: d.send_by,      // mail | courier | pickup
-          send_date: d.send_date,  // YYYY-MM-DD
-          remark: d.remark || "",
-        };
-        setDetail(mapped);
-        fillForms(mapped);
+      const res = await useServiceAPI.get(`${paths.pathTransportDetail}/${id}`);
+      if (res.status === 200) {
+        const data = res.data || {};
+        setDetail(data);
+        fillForm(data);
       }
-    } catch (e) {
-      console.error(e);
-      showNotification("error", "Load failed", ["ไม่สามารถโหลดรายละเอียดได้"]);
+    } catch (error) {
+      console.error("Failed to fetch transportation detail:", error);
     } finally {
       setLoading(false);
     }
-    */
   };
 
-  /* ------------ บันทึก (พร้อมต่อ API) ------------ */
   const handleSave = async () => {
     try {
       const values = await formBottom.validateFields();
@@ -148,28 +79,25 @@ export default function TransportationDetail() {
         remark: values.remark || "",
       };
 
-      // ใช้ mock แสดงผลก่อน
-      console.log("SAVE payload", payload);
-      showNotification("success", "Saved", ["บันทึกข้อมูลการขนส่งเรียบร้อย"]);
-      navigate(-1);
-      return;
-
-      /* ต่อ API จริง:
-      const res = await useServiceAPI.post(paths.pathTransportationUpdate, payload);
-      if (res?.status === 200) {
-        showNotification("success", "Saved", ["บันทึกข้อมูลเรียบร้อย"]);
-        navigate(-1);
-      } else {
-        showNotification("error", "Save failed", [res?.data?.message || "Unknown error"]);
+      const res = await useServiceAPI.post(paths.pathTransportSend, payload);
+      if (res.status === 200) {
+        notification.success({
+          message: "Success",
+          description: "Transportation details have been successfully sent.",
+        });
+        navigate(-1); // Navigate back to the list
       }
-      */
-    } catch (_) {
-      // invalid form → antd แสดงข้อความให้แล้ว
+    } catch (error) {
+      console.error("Failed to save transportation detail:", error);
+      notification.error({
+        message: "Error",
+        description: "Failed to send transportation details.",
+      });
     }
   };
 
   useEffect(() => {
-    loadDetail();
+    fetchDetail();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -177,39 +105,42 @@ export default function TransportationDetail() {
     <MainLayout loading={loading}>
       <div className="title-page">Transportation Detail</div>
 
-      {/* กล่องข้อมูลส่วนหัว */}
+      {/* Top Form */}
       <BoxPrimary>
         <Form form={formTop} layout="vertical" disabled>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Form.Item label="Sub Dealer Name" name="sub_dealer_name">
               <Input disabled />
             </Form.Item>
-            <Form.Item label="Customer Name" name="customer_name">
+            <Form.Item label="Shop Name" name="shop_name">
               <Input disabled />
             </Form.Item>
             <Form.Item label="Contact Number" name="contact_number">
               <Input disabled />
             </Form.Item>
-            <Form.Item label="Date" name="date">
-              <Input disabled />
-            </Form.Item>
-
-            <Form.Item className="lg:col-span-3" label="Shipping Address" name="shipping_address">
+            <Form.Item label="Send Date" name="send_date">
               <Input disabled />
             </Form.Item>
             <Form.Item label="Status" name="status_name">
+              <Input disabled />
+            </Form.Item>
+            <Form.Item label="Remark" name="remark">
               <Input disabled />
             </Form.Item>
           </div>
         </Form>
       </BoxPrimary>
 
-      {/* ตารางรายละเอียดของรางวัล */}
+      {/* Reward Table */}
       <BoxPrimary>
-        <TableComponent header={columns} dataSource={detail.items || []} pagination={false} />
+        <TableComponent
+          header={columns}
+          dataSource={detail ? [detail] : []}
+          pagination={false}
+        />
       </BoxPrimary>
 
-      {/* ฟอร์มเตรียมส่ง (Send By / Send Date / Remark) */}
+      {/* Bottom Form */}
       <BoxPrimary>
         <Form form={formBottom} layout="vertical" disabled={isView}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -241,7 +172,7 @@ export default function TransportationDetail() {
         </Form>
       </BoxPrimary>
 
-      {/* ปุ่ม */}
+      {/* Action Buttons */}
       <div className="flex justify-end gap-3 mt-4">
         <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />
         {!isView && (

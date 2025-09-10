@@ -173,6 +173,7 @@ import SalesPointRequestMode from "./pages/settings/mobile/sale_point/SalesPoint
 import SalesPointActionMode from "./pages/settings/mobile/sale_point/SalesPointActionMode";
 import CollectPointsView from "./pages/settings/mobile/collect_points/CollectPointsView";
 import SalesPointEdit from "./pages/settings/mobile/sale_point/SalesPointEdit";
+import RequestPurchaseDetail from "./pages/settings/mobile/request_purchase/RequestPurchaseDetail";
 
 
 const App = () => {
@@ -341,7 +342,7 @@ const App = () => {
             <Route path="/points/line/register-customer/detail" element={<RegisteredCustomerDetail />} />
             <Route path="/points/line/customer-support/create" element={<CreateCustomerLine />} />
             {/* <Route path="/points/line/customer/edit" element={<EditCustomerLine />} /> */}
-            
+
 
             <Route path="/points/line/sales-points-list" element={<SalesPointsList />} />
             {/* SalesPointActionMode = View + Edit + Create */}
@@ -368,12 +369,12 @@ const App = () => {
             <Route path="/setting/line/point-campaign" element={<PointCampaignList />} />
             <Route path="/setting/line/point-campaign/create" element={<CreatePointCampaign />} />
             <Route path="/setting/line/point-campaign/:mode" element={<CreatePointCampaign />} />
-            
+
             <Route path="/setting/line/reward-campaign" element={<RewardCampaignList />} />
             <Route path="/setting/line/reward-campaign/:mode" element={<CreateRewardCampaign />} />
             {/* <Route path="/setting/line/reward-campaign/edit" element={<EditPromotion />} /> */}
 
-            
+
             {/* <Route path="/setting/line/reward-campaign/:mode" element={<EditOrViewRewardCampaign />} /> */}
 
 
@@ -382,15 +383,18 @@ const App = () => {
             {/* <Route path="/setting/line/point-campaign/create" element={<CreateManageNews />} /> */}
             {/* <Route path="/setting/line/reward-campaign" element={<ManagePromotionList />} /> */}
             {/* <Route path="/setting/line/reward-campaign/create" element={<CreateManagePromotion />} /> */}
-            
+
             <Route path="/points/line/redeem-reward-list" element={<RedeemList />} />
             <Route path="/points/line/redeem-reward/:mode" element={<RedeemDetail />} />
             <Route path="/points/line/transportation" element={<Transportation />} />
-            <Route path="/points/line/transportation/view" element={<TransportationDetail/>} />
+            <Route path="/points/line/transpotation" element={<Transportation />} />
+            
+            <Route path="/points/line/transportation/:mode" element={<TransportationDetail />} />
+            <Route path="/points/line/transpotation/:mode" element={<TransportationDetail />} />
+
             <Route path="/setting/line/request-purchase" element={<RequestPurchaseList />} />
             <Route path="/setting/line/request-purchase/update-stock" element={<RewardProductUpdateStock />} />
 
-            
             <Route path="/setting/line/redeem-request" element={<RedeemRequestList />} />
             <Route path="/setting/line/redeem-product" element={<RedeemProduct />} />
 

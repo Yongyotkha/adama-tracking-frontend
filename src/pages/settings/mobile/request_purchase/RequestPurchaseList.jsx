@@ -1,108 +1,132 @@
 import React, { useEffect, useState } from "react";
+import { Dropdown } from "antd";
 import MainLayout from "../../../../layouts/MainLayout";
 import Filter from "../../../../components/filter/Filter";
 import TableComponent from "../../../../components/table/TableComponent";
-import { Dropdown } from "antd";
 import BadgeStatus from "../../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
-import { useNavigate } from "react-router-dom";
-// ใช้ ItemDropDown ได้ หรือจะทำ label เองก็ได้
 import ItemDropDown from "../../../../components/dropdown/ItemDropDown";
+import { useNavigate } from "react-router-dom";
+import useServiceAPI from "../../../../services/corsService";
+import { paths } from "../../../../services/CorsPath";
 
 export default function RequestPurchaseList() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
+  const [dataSource, setDataSource] = useState([]);
   const [tableParams, setTableParams] = useState({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-      total: 0,
-    },
+    pagination: { current: 1, pageSize: 10, total: 0 },
     filters: {},
   });
 
-  // ✅ Mock ตามดีไซน์
-  const MOCK_ROWS = [
-    {
-      id: 1,
-      reward_code: "RW00000001",
-      reward_name: "พัดลม (14 นิ้ว)",
-      stock: 1,
-      input_qty: 1,
-      update_date: "2025-05-26",
-      status_name: "Waiting for update",
-      status_bg_color: "#F59E0B",
-      status_color: "#ffffff",
-    },
+  const filters = [
+    { key: "status_code", type: "select", label: "Status", options: [] },
+    { key: "use_flag", type: "select", label: "Use Flag", options: [] },
   ];
 
-  // โหลด mock เป็น dataSource (พร้อมเปลี่ยนเป็น API ทีหลัง)
-  useEffect(() => {
+  const fmtNum = (v) =>
+    v === null || v === undefined || v === "" || isNaN(Number(v))
+      ? "-"
+      : Number(v).toLocaleString();
+  const fmtDate = (dt) => (dt ? String(dt).split(" ")[0] : "-");
+
+  const mapRow = (item, index, current, pageSize) => ({
+    key: index + 1 + (current - 1) * pageSize,
+    id: item.id,
+    reward_code: item.reward_code || "-",
+    reward_name: item.reward_name || "-",
+    stock: fmtNum(item.reward_value_stock),
+    input_qty: fmtNum(item.reward_value),
+    update_date: fmtDate(item.updated_at),
+    status: (
+      <BadgeStatus
+        text={item.status_name || "-"}
+        bgColor={item.status_bg_color || "#9CA3AF"}
+        textColor={item.status_color || "#FFFFFF"}
+      />
+    ),
+    action: (
+      <Dropdown
+        menu={{
+          items: [
+            {
+              key: "view",
+              label: (
+                <ItemDropDown
+                  mode="view"
+                  onClick={() =>
+                    navigate(`/setting/line/request-purchase/${item.id}`, {
+                      state: { id: item.id },
+                    })
+                  }
+                />
+              ),
+            },
+            {
+              key: "update-stock",
+              label: (
+                <ItemDropDown
+                  mode="edit"
+                  text={"Update Stock"}
+                  onClick={() =>
+                    navigate(`/setting/line/request-purchase/update-stock`, {
+                      state: { id: item.id, value: item.reward_value },
+                    })
+                  }
+                />
+              ),
+            },
+          ],
+        }}
+        placement="bottomRight"
+      >
+        <a onClick={(e) => e.preventDefault()}>
+          <img
+            src="/img/icons/action.png"
+            alt="action"
+            className="inline-block w-5 h-5"
+          />
+        </a>
+      </Dropdown>
+    ),
+  });
+
+  const fetchRequestPurchaseList = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
+    try {
+      const res = await useServiceAPI.get(paths.pathRequestPurchaseList, {
+        page_size: pageSize,
+        page_length: current,
+        status_code: "",
+        use_flag: "",
+      });
 
-    const mapped = MOCK_ROWS.map((item, idx) => ({
-      key: idx + 1 + (current - 1) * pageSize,
-      reward_code: item.reward_code,
-      reward_name: item.reward_name,
-      stock: item.stock,
-      input_qty: item.input_qty,
-      update_date: item.update_date,
-      status: (
-        <BadgeStatus
-          text={item.status_name}
-          bgColor={item.status_bg_color}
-          textColor={item.status_color}
-        />
-      ),
-      action: (
-        <Dropdown
-          menu={{
-            items: [
-              {
-                key: "update",
-                // ถ้า ItemDropDown ของคุณรองรับ custom label ให้ใช้ text="Update"
-                // ไม่รองรับก็แสดงเองด้วย <div> ได้
-                label: (
-                  <ItemDropDown
-                    mode="edit"
-                    text="Update"
-                    onClick={() =>
-                      navigate("/setting/line/request-purchase/update-stock", {
-                        state: { id: item.id },
-                      })
-                    }
-                  />
-                ),
-              },
-            ],
-          }}
-          placement="bottomRight"
-        >
-          <a onClick={(e) => e.preventDefault()}>
-            <img
-              src="/img/icons/action.png"
-              alt="action"
-              className="inline-block w-5 h-5"
-            />
-          </a>
-        </Dropdown>
-      ),
-    }));
+      if (res.status === 200) {
+        const payload = res.data || {};
+        const rows = payload?.data ?? [];
+        const formatted = rows.map((item, index) =>
+          mapRow(item, index, current, pageSize)
+        );
+        setDataSource(formatted);
+        setTableParams((prev) => ({
+          ...prev,
+          pagination: {
+            ...prev.pagination,
+            total: payload?.records_filtered ?? 0,
+          },
+        }));
+      }
+    } finally {
+      setTableLoading(false);
+    }
+  };
 
-    setDataSource(mapped);
-    setTableParams((prev) => ({
-      ...prev,
-      pagination: { ...prev.pagination, total: mapped.length },
-    }));
-    setTableLoading(false);
+  useEffect(() => {
+    fetchRequestPurchaseList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Filter (ดีไซน์มีแถบ Filter เฉย ๆ ไม่บังคับ field)
-  const filters = [];
+  }, [tableParams.pagination.current]);
 
   const header = [
     { title: "Reward Code", dataIndex: "reward_code", align: "left" },
@@ -126,6 +150,9 @@ export default function RequestPurchaseList() {
           dataSource={dataSource}
           pagination={tableParams.pagination}
           loading={tableLoading}
+          onChange={(pagination) =>
+            setTableParams((prev) => ({ ...prev, pagination }))
+          }
         />
       </BoxPrimary>
     </MainLayout>

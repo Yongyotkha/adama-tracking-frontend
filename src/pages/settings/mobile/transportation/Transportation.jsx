@@ -12,43 +12,6 @@ import { paths } from "../../../../services/CorsPath";
 
 const { TabPane } = Tabs;
 
-/** ---------------- MOCK DATA (ใช้ชั่วคราว) ---------------- */
-const MOCK_TRANSPORT_LIST = [
-  {
-    id: "TP-20250526-0001",
-    date: "2025-05-26",
-    sub_dealer_name: "บ้านธาราเกษตร 11",
-    reward_code: "RW00000001",
-    reward_name: "พัดลม (14 นิ้ว)",
-    qty: 1,
-    cost: 790,
-    send_by: "Mail/Shipping",
-    send_date: "2025-05-26",
-    status_name: "Delivery",
-    status_bg_color: "#F59E0B",
-    status_color: "#ffffff",
-  },
-];
-
-const MOCK_PREPARATION_LIST = [
-  {
-    id: "TP-20250526-0001",
-    date: "2025-05-26",
-    sub_dealer_name: "บ้านธาราเกษตร 11",
-    reward_code: "RW00000001",
-    reward_name: "พัดลม (14 นิ้ว)",
-    qty: 1,
-    cost: 790,
-    send_by: "2025-05-26", // จากภาพคอลัมน์ "Send By" เป็นวันที่ (หากจริงเป็นคนส่ง ให้ปรับตอนต่อ API)
-    send_date: "2025-05-26",
-    status_name: "Prepare",
-    status_bg_color: "#b5aca4",
-    status_color: "#ffffff",
-    actions: ["prepare", "view"],
-  },
-];
-/** -------------------------------------------------------- */
-
 export default function Transportation() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -108,79 +71,75 @@ export default function Transportation() {
   const fetchTransportation = async () => {
     setTableLoading(true);
 
-    // ดึงค่าหน้า/ฟิลเตอร์
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
 
-    // ❗ ตอนนี้ใช้ MOCK ไปก่อน
     try {
-      const rows = MOCK_TRANSPORT_LIST;
+      const res = await useServiceAPI.get(paths.pathTransportList, {
+        page_size: pageSize,
+        page_length: current,
+        status_tran: ["RTD", "RTV"], // Delivery and Delivered statuses
+        keyword: filters.keyword || "",
+        use_flag: filters.use_flag || "",
+      });
 
-      // พร้อมต่อ API:
-      // const res = await useServiceAPI.get(paths.pathTransportationList, {
-      //   page: "all",
-      //   page_length: current,
-      //   page_size: pageSize,
-      //   sub_dealer_id: filters.sub_dealer_id || "",
-      //   dater: filters.dater || "",
-      //   status: filters.status || "",
-      // });
-      // const rows = res.status === 200 ? (res.data?.data || []) : [];
+      if (res.status === 200) {
+        const rows = res.data?.data || [];
+        const mapped = rows.map((item, index) => ({
+          key: index + 1 + (current - 1) * pageSize,
+          date: item.created_at.split(" ")[0] || "-",
+          sub_dealer_name: item.sub_dealer_name || "-",
+          reward_code: item.reward_code || "-",
+          reward_name: item.reward_name || "-",
+          qty: item.reward_value ?? "-",
+          cost: item.reward_cost ?? "-",
+          send_by: item.send_by || "-",
+          send_date: item.send_at.split(" ")[0] || "-",
+          status: (
+            <BadgeStatus
+              text={item.status_tran_namsse || "-"}
+              bgColor={item.status_tran_bg_color || "gray"}
+              textColor={item.status_tran_color || "white"}
+            />
+          ),
+          action: (
+            <Dropdown
+              menu={{
+                items: [
+                  {
+                    key: "view",
+                    label: (
+                      <ItemDropDown
+                        mode="view"
+                        onClick={() =>
+                          navigate("/points/line/transportation/detail", {
+                            state: { id: item.id },
+                          })
+                        }
+                      />
+                    ),
+                  },
+                ],
+              }}
+              placement="bottomRight"
+            >
+              <a onClick={(e) => e.preventDefault()}>
+                <img
+                  src="/img/icons/action.png"
+                  alt="action"
+                  className="inline-block w-5 h-5"
+                />
+              </a>
+            </Dropdown>
+          ),
+        }));
 
-      const mapped = rows.map((item, index) => ({
-        key: index + 1 + (current - 1) * pageSize,
-        date: item.date || "-",
-        sub_dealer_name: item.sub_dealer_name || "-",
-        reward_code: item.reward_code || "-",
-        reward_name: item.reward_name || "-",
-        qty: item.qty ?? "-",
-        cost: item.cost ?? "-",
-        send_by: item.send_by || "-",
-        send_date: item.send_date || "-",
-        status: (
-          <BadgeStatus
-            text={item.status_name || "-"}
-            bgColor={item.status_bg_color || "gray"}
-            textColor={item.status_color || "white"}
-          />
-        ),
-        action: (
-          <Dropdown
-            menu={{
-              items: [
-                {
-                  key: "view",
-                  label: (
-                    <ItemDropDown
-                      mode="view"
-                      onClick={() =>
-                        navigate("/points/line/transportation/view", {
-                          state: { id: item.id },
-                        })
-                      }
-                    />
-                  ),
-                },
-              ],
-            }}
-            placement="bottomRight"
-          >
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="action"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      }));
-
-      setDataSource(mapped);
-      setTableParams((prev) => ({
-        ...prev,
-        pagination: { ...prev.pagination, total: mapped.length }, // ← แทนด้วย res.data.records_filtered เมื่อต่อ API
-      }));
+        setDataSource(mapped);
+        setTableParams((prev) => ({
+          ...prev,
+          pagination: { ...prev.pagination, total: res.data.records_filtered },
+        }));
+      }
     } finally {
       setTableLoading(false);
     }
@@ -193,88 +152,85 @@ export default function Transportation() {
     const { current, pageSize } = prepTableParams.pagination;
     const filters = prepTableParams.filters || {};
 
-    // ❗ ใช้ MOCK ไปก่อน
     try {
-      const rows = MOCK_PREPARATION_LIST;
+      const res = await useServiceAPI.get(paths.pathTransportList, {
+        page_size: pageSize,
+        page_length: current,
+        status_tran: ["RTP"], // Prepare status
+        keyword: filters.keyword || "",
+        use_flag: filters.use_flag || "",
+      });
 
-      // พร้อมต่อ API:
-      // const res = await useServiceAPI.get(paths.pathTransportationPreparationList, {
-      //   page: "all",
-      //   page_length: current,
-      //   page_size: pageSize,
-      //   sub_dealer_id: filters.sub_dealer_id || "",
-      //   dater: filters.dater || "",
-      //   status: filters.status || "",
-      // });
-      // const rows = res.status === 200 ? (res.data?.data || []) : [];
+      if (res.status === 200) {
+        const rows = res.data?.data || [];
+        const mapped = rows.map((item, index) => ({
+          key: index + 1 + (current - 1) * pageSize,
+          date: item.created_at ? item.created_at.split(" ")[0] : "-", // Fallback to "-"
+          sub_dealer_name: item.sub_dealer_name || "-",
+          reward_code: item.reward_code || "-",
+          reward_name: item.reward_name || "-",
+          qty: item.reward_value ?? "-",
+          cost: item.reward_cost ?? "-",
+          send_by: item.send_by || "-",
+          send_date: item.send_at ? item.send_at.split(" ")[0] : "-", // Fallback to "-"
+          status: (
+            <BadgeStatus
+              text={item.status_tran_namsse || "Prepare"}
+              bgColor={item.status_tran_bg_color || "#b5aca4"}
+              textColor={item.status_tran_color || "#ffffff"}
+            />
+          ),
+          action: (
+            <Dropdown
+              menu={{
+                items: [
+                  {
+                    key: "prepare",
+                    label: (
+                      <ItemDropDown
+                        mode="edit"
+                        onClick={() =>
+                          navigate("/points/line/transportation/prepare", {
+                            state: { id: item.id },
+                          })
+                        }
+                      />
+                    ),
+                  },
+                  {
+                    key: "view",
+                    label: (
+                      <ItemDropDown
+                        mode="view"
+                        onClick={() =>
+                          navigate("/points/line/transportation/view", {
+                            state: { id: item.id },
+                          })
+                        }
+                      />
+                    ),
+                  },
+                ],
+              }}
+              placement="bottomRight"
+            >
+              <a onClick={(e) => e.preventDefault()}>
+                <img
+                  src="/img/icons/action.png"
+                  alt="action"
+                  className="inline-block w-5 h-5"
+                />
+              </a>
+            </Dropdown>
+          ),
+        }));
 
-      const mapped = rows.map((item, index) => ({
-        key: index + 1 + (current - 1) * pageSize,
-        date: item.date || "-",
-        sub_dealer_name: item.sub_dealer_name || "-",
-        reward_code: item.reward_code || "-",
-        reward_name: item.reward_name || "-",
-        qty: item.qty ?? "-",
-        cost: item.cost ?? "-",
-        send_by: item.send_by || "-",
-        send_date: item.send_date || "-",
-        status: (
-          <BadgeStatus
-            text={item.status_name || "Prepare"}
-            bgColor={item.status_bg_color || "#b5aca4"}
-            textColor={item.status_color || "#ffffff"}
-          />
-        ),
-        action: (
-          <Dropdown
-            menu={{
-              items: [
-                {
-                  key: "prepare",
-                  label: (
-                    <ItemDropDown
-                      mode="edit" // ใช้ไอคอนดินสอ; ถ้ามีโหมด 'prepare' ให้เพิ่มในคอมโพเนนต์ ItemDropDown
-                      onClick={() =>
-                        navigate("/points/line/transportation/prepare", {
-                          state: { id: item.id },
-                        })
-                      }
-                    />
-                  ),
-                },
-                {
-                  key: "view",
-                  label: (
-                    <ItemDropDown
-                      mode="view"
-                      onClick={() =>
-                        navigate("/points/line/transportation/view", {
-                          state: { id: item.id },
-                        })
-                      }
-                    />
-                  ),
-                },
-              ],
-            }}
-            placement="bottomRight"
-          >
-            <a onClick={(e) => e.preventDefault()}>
-              <img
-                src="/img/icons/action.png"
-                alt="action"
-                className="inline-block w-5 h-5"
-              />
-            </a>
-          </Dropdown>
-        ),
-      }));
-
-      setPrepDataSource(mapped);
-      setPrepTableParams((prev) => ({
-        ...prev,
-        pagination: { ...prev.pagination, total: mapped.length }, // ← แทนด้วย res.data.records_filtered เมื่อต่อ API
-      }));
+        setPrepDataSource(mapped);
+        setPrepTableParams((prev) => ({
+          ...prev,
+          pagination: { ...prev.pagination, total: res.data.records_filtered },
+        }));
+      }
     } finally {
       setPrepTableLoading(false);
     }
@@ -297,7 +253,6 @@ export default function Transportation() {
       filters,
       pagination: { ...prev.pagination, current: 1 },
     }));
-    // fetchTransportation(); // จะถูก trigger โดย useEffect จาก current
   };
   const onClearTransport = () => {
     setTableParams((prev) => ({
