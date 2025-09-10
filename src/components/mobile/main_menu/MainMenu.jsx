@@ -24,6 +24,24 @@ const MainMenu = () => {
           if (response.data.shop_type == 'dealer') {
             setMenuItems([
               {
+                icon: "/img/icons/redeem-oa.png",
+                text: "แลกคะแนนสะสม",
+                url: "/mobile/redeem-point",
+              },
+              {
+                icon: "/img/icons/history-oa.png",
+                text: "ประวัติการซื้อสินค้า",
+                url: "/mobile/order-history",
+              },
+              {
+                icon: "/img/icons/history-redeem-oa.png",
+                text: "ประวัติการแลกคะแนน",
+                url: "/mobile/point-history",
+              },
+            ])
+          } else {
+            setMenuItems([
+              {
                 icon: "/img/icons/scan-collect-oa.png",
                 text: "รับสินค้าเพื่อสะสมคะแนน",
                 url: "/mobile/collect-points",
@@ -44,24 +62,7 @@ const MainMenu = () => {
                 url: "/mobile/point-history",
               },
             ])
-          } else {
-            setMenuItems([
-              {
-                icon: "/img/icons/redeem-oa.png",
-                text: "แลกคะแนนสะสม",
-                url: "/mobile/redeem-point",
-              },
-              {
-                icon: "/img/icons/history-oa.png",
-                text: "ประวัติการซื้อสินค้า",
-                url: "/mobile/order-history",
-              },
-              {
-                icon: "/img/icons/history-redeem-oa.png",
-                text: "ประวัติการแลกคะแนน",
-                url: "/mobile/point-history",
-              },
-            ])
+
           }
 
         } else {
