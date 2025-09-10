@@ -71,6 +71,7 @@ export default function CollectPoints() {
           item.net_amount_display ??
           new Intl.NumberFormat("th-TH").format(Number(item.net_amount || 0)),
         line_total: Number(item.line_total || 0),
+        line_product: Number(item.line_product || 0),
         status_code: item.status_code,
         status_transaction_name: item.status_transaction_name,
         status_interface_name: item.status_interface_name,
@@ -115,7 +116,7 @@ export default function CollectPoints() {
     try {
       const res = await useServiceAPI.get(paths.pathSalePointCollectList, requestData);
       const rows = res?.data?.data;
-      console.log('rows : ',rows)
+      console.log('rows : ', rows)
       const mapped = rows.map((item) => ({
         id: item.id,
         document_number: item.document_number ?? "-",
@@ -229,7 +230,7 @@ export default function CollectPoints() {
                           รอยืนยันรับ
                         </p>
                         <p className="text-gray-700 sarabun-font text-sm font-semibold mt-1">
-                          รายการ {order.line_total} / {order.amount_display}
+                          รายการ {order.line_product} / {order.amount_display}
                         </p>
                       </div>
                     </div>

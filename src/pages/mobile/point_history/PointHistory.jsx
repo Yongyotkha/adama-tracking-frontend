@@ -98,8 +98,11 @@ export default function PointHistory() {
                     </p>
                   </div>
                 </div>
-                <p className="font-bold sarabun-font text-green-600">
-                  +{item.point}
+                <p
+                  className={`font-bold sarabun-font ${activeTab === "use" ? "text-red-600" : "text-green-600"
+                    }`}
+                >
+                  {activeTab === "use" ? `-${item.point}` : `+${item.point}`}
                 </p>
               </div>
             ))
