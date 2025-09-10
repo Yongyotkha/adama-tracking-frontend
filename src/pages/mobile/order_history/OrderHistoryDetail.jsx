@@ -68,7 +68,7 @@ export default function OrderHistoryDetail() {
       product_name: p?.product_name ?? "-",
       product_code: p?.product_code ?? "-",
       packing_list: p?.packing_list ?? "-",
-      point: Number(p?.point ?? 0),
+      amount: Number(p?.net_amount ?? 0),
       point: Number(p?.point ?? 0),
       amount_display:
         typeof p?.net_amount === "string" || typeof p?.net_amount === "number"
@@ -77,8 +77,8 @@ export default function OrderHistoryDetail() {
       image: p?.product_image || null,
     }))
     : [];
-
   const totalQty = products.reduce((sum, it) => sum + (Number.isFinite(it.qty) ? it.qty : 0), 0);
+
   const totalPrice = products.reduce(
     (sum, it) => sum + (Number.isFinite(it.amount) ? it.amount : 0),
     0

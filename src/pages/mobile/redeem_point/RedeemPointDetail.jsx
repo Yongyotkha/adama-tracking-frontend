@@ -203,7 +203,7 @@ export default function RedeemPointDetail() {
             ) : (
               <div
                 className="sarabun-font"
-                dangerouslySetInnerHTML={{ __html: reward.description }}
+                dangerouslySetInnerHTML={{ __html: reward.product_detail }}
               />
             )}
           </div>

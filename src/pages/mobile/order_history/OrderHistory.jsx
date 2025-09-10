@@ -123,7 +123,7 @@ export default function OrderHistory() {
                     className={`flex justify-between items-start p-4 bg-white rounded-lg shadow-md border-l-4 ${borderColor} cursor-pointer w-full`}
                   >
                     <div className="flex flex-col">
-                      <p className="text-gray-500 sarabun-font text-sm">{order.date}</p>
+                      <p className="text-gray-500 sarabun-font text-sm">{order.updated_at}</p>
                       <p className="text-gray-900 sarabun-font font-bold mt-1">
                         เลขที่ {order.document_number}
                       </p>
@@ -134,7 +134,7 @@ export default function OrderHistory() {
                         {isComplete ? "รับสินค้าสำเร็จ" : "รับสินค้าไม่สำเร็จ"}
                       </p>
                       <p className="text-gray-700 sarabun-font text-sm font-semibold mt-1">
-                        รายการ {order.net_amount_display} / {order.updated_at}
+                        รายการ {order.net_amount_display} / คะแนน {order.point}
                       </p>
                     </div>
                   </div>
