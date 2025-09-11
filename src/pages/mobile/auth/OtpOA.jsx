@@ -5,7 +5,7 @@ import MessageLayout from "../../../layouts/MessageLayout";
 import DynamicButton from "../../../components/button/DynamicButton";
 import { AuthContext } from "../../../contexts/AuthContext";
 import BackTopLeftButton from "../../../components/mobile/button/BackTopLeftButton";
-import LogoGray from "../../../components/logo/LogoGray";
+import LogoGreen from "../../../components/logo/LogoGreen";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 
@@ -208,7 +208,7 @@ export default function OtpOA() {
       {/* ปุ่ม Back ที่มุมซ้ายบน */}
       <BackTopLeftButton />
 
-      <LogoGray width="w-[100%]" className="mb-10 max-w-xs" />
+      <LogoGreen width="w-[100%]" className="mb-10 max-w-xs" />
 
       <Title level={4} className="text-green-700 sarabun-font">
         กรอกรหัส OTP

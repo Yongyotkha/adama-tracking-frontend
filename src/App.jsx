@@ -388,7 +388,7 @@ const App = () => {
             <Route path="/points/line/redeem-reward/:mode" element={<RedeemDetail />} />
             <Route path="/points/line/transportation" element={<Transportation />} />
             <Route path="/points/line/transpotation" element={<Transportation />} />
-            
+
             <Route path="/points/line/transportation/:mode" element={<TransportationDetail />} />
             <Route path="/points/line/transpotation/:mode" element={<TransportationDetail />} />
 

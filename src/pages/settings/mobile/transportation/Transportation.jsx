@@ -300,11 +300,11 @@ export default function Transportation() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Transportation</div>
+        <div className="title-page">Reward Transaction</div>
       </div>
 
       <Tabs className="custom-tabs" activeKey={activeTab} onChange={setActiveTab}>
-        <TabPane tab={<span className="tab-title">Transportation List</span>} key="transport">
+        <TabPane tab={<span className="tab-title">Transaction List</span>} key="transport">
           <Filter
             filters={filtersTransportation}
             onSearch={onSearchTransport}
@@ -323,7 +323,7 @@ export default function Transportation() {
           </BoxPrimary>
         </TabPane>
 
-        <TabPane tab={<span className="tab-title">Preparation List</span>} key="preparation">
+        <TabPane tab={<span className="tab-title">Transaction Preparation List</span>} key="preparation">
           <Filter
             filters={filtersPreparation}
             onSearch={onSearchPrep}

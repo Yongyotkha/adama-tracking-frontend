@@ -1,11 +1,13 @@
 import React from "react";
 import { Spin } from "antd";
 import Logo from "../logo/Logo";
+import LogoGreen from "../logo/LogoGreen";
 
 const NavbarMobile = () => {
   return (
     <nav className="bg-[#009845] flex items-center justify-center px-4 w-full h-16 fixed top-0 left-0 right-0 z-50">
-      <Logo width="w-[150px]" />
+      {/* <Logo width="w-[150px]" /> */}
+      <LogoGreen width="w-[150px]" />
     </nav>
   );
 };

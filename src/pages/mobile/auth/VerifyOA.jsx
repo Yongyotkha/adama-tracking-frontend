@@ -7,7 +7,7 @@ import "react-phone-number-input/style.css";
 import MessageLayout from "../../../layouts/MessageLayout";
 import DynamicButton from "../../../components/button/DynamicButton";
 import { AuthContext } from "../../../contexts/AuthContext";
-import LogoGray from "../../../components/logo/LogoGray";
+import LogoGreen from "../../../components/logo/LogoGreen";
 import BackTopLeftButton from "../../../components/mobile/button/BackTopLeftButton";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 import useServiceAPI from "../../../services/CorsService";
@@ -113,7 +113,7 @@ export default function VerifyOA() {
       childrenStyle="flex flex-col items-center justify-center h-full mx-auto p-6 sarabun-font relative"
     >
       {/* <BackTopLeftButton /> */}
-      <LogoGray width="w-[100%]" className="mb-10 max-w-xs" />
+      <LogoGreen width="w-[100%]" className="mb-10 max-w-xs" />
       <Title level={4}>
         <span className="text-[#8A8A8A] font-bold sarabun-font">
           ยืนยันตัวตนของคุณ
