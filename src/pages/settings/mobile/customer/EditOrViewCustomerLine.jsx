@@ -75,7 +75,7 @@ export default function EditOrViewCustomerLine() {
             <Input value={formData.shop_name || "-"} disabled />
           </Col>
           <Col span={6}>
-            <label>Customer Name</label>
+            <label>Contact Name</label>
             <Input
               value={`${formData.first_name || ""} ${formData.last_name || ""}`.trim()}
               disabled
@@ -107,6 +107,15 @@ export default function EditOrViewCustomerLine() {
               style={{ width: "100%" }}
             />
           </Col>
+           <Col span={6}>
+            <label>Line Name</label>
+            <Input value={formData.line_name || "-"} disabled />
+          </Col>
+           <Col span={6}>
+            <label>Customer Type</label>
+            {/* //TODO: เปลี่ยนตัวแปลเป็น ประเภท Dealer,Sub Dealer,Farmer */}
+            <Input value={formData.line_name || "-"} disabled />
+          </Col>
           <Col span={6}>
             <label>Status</label>
             <Select
@@ -123,22 +132,18 @@ export default function EditOrViewCustomerLine() {
               options={STATUS_OPTIONS}
             />
           </Col>
-          <Col span={6}>
-            <label>Line Name</label>
-            <Input value={formData.line_name || "-"} disabled />
-          </Col>
-          <Col span={6}>
+          {/* <Col span={6}>
             <label>Line ID</label>
             <Input value={formData.line_id || "-"} disabled />
-          </Col>
+          </Col> */}
         </Row>
 
-        <Row gutter={16} style={{ marginTop: 16 }}>
+        {/* <Row gutter={16} style={{ marginTop: 16 }}>
           <Col span={24}>
             <label>Line URL</label>
             <Input value={formData.line_url || "-"} disabled />
           </Col>
-        </Row>
+        </Row> */}
 
         <div className="flex justify-end space-x-4 mt-6">
           <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />

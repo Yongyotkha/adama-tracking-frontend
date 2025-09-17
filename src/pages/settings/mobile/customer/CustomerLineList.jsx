@@ -33,7 +33,7 @@ export default function CustomerLineList() {
   const filters = [
     { key: "shop_name", type: "text", label: "Customer Name" },
     { key: "contact_name", type: "text", label: "Contact Name" },
-    { key: "date", type: "date", label: "Register Date" },
+    { key: "date", type: "date", label: "Date" },
     {
       key: "status_code",
       type: "select",
@@ -74,6 +74,7 @@ export default function CustomerLineList() {
           phone: row.phone,
           type: row.contact_type_name,
           line_name: row.line_name,
+          created_at: row.created_at?.split(" ")[0] || "-",
           status_name: row.status_name,
           status_bg_color: row.status_bg_color,
           status_color: row.status_color,
@@ -134,9 +135,10 @@ export default function CustomerLineList() {
     { title: "No", dataIndex: "key", width: 60 },
     { title: "Customer Name", dataIndex: "shop_name" },
     { title: "Contact Name", dataIndex: "contact_name" },
-    { title: "Phone No", dataIndex: "phone" },
+    { title: "Contact Number", dataIndex: "phone" },
     { title: "Contact Type", dataIndex: "type" },
     { title: "Line Name", dataIndex: "line_name" },
+    { title: "Date", dataIndex: "created_at" },
     {
       title: "Status",
       dataIndex: "status_name",
