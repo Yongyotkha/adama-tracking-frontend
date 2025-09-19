@@ -197,7 +197,17 @@ const TravelingPDF = ({ title }) => {
     { title: "Remark", dataIndex: "remark", width: "20%" },
   ];
 
-  const cleanNumber = (value) => parseFloat((value || "0").toString().replace(/,/g, ""));
+  // แทนที่ของเดิม
+  const cleanNumber = (value) => {
+    if (value === null || value === undefined) return 0;
+    if (typeof value === "number") return isFinite(value) ? value : 0;
+
+    const s = String(value).trim();
+    if (s === "" || s === "-" || s === ".00" || s === "0.00") return 0;
+
+    const n = parseFloat(s.replace(/,/g, ""));
+    return isNaN(n) ? 0 : n;
+  };
 
   const totalValues = dataItems.reduce(
     (totals, item) => {
