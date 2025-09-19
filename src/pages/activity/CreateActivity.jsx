@@ -155,6 +155,7 @@ export default function CreateActivity() {
   // console.log(SaleOptions);
   // console.log(userInfo);
   // console.log(activityDetail);
+  console.log(activityDetail);
   const formFields = [
     {
       label: menuTitle + " No",
@@ -228,7 +229,7 @@ export default function CreateActivity() {
       disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
-      value: activityDetail.dealer_id ?? "",
+      value: activityDetail.sub_dealer_id ?? "",
       moderef: true,
     },
     {
