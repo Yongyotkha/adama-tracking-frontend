@@ -218,6 +218,9 @@ export default function RedeemDetail() {
   // ✅ Send to Purchase: GET /redeem/purchase/{reward_id} (ไม่มี remark) แล้วกลับหน้า List
   const handleSendToPurchase = async () => {
     const id = location?.state?.id;
+    console.log(detail.reward_id)
+    console.log(id)
+    return false;
     confirmNoRemark({
       title: "Send to Purchase ?",
       okText: "OK",
