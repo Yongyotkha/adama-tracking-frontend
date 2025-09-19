@@ -31,7 +31,7 @@ export default function CreateActivity() {
 
   const locationParam = useLocation();
   useEffect(() => {
-    console.log(locationParam);
+    // console.log(locationParam);
   }, [locationParam]);
 
   const { mode } = useParams();
@@ -145,7 +145,7 @@ export default function CreateActivity() {
         : "/activity/list";
 
 
-  console.log(pageCode);
+  // console.log(pageCode);
   const SaleOptions = saleList.map((sale) => ({
     id: sale.id,
     name: sale.name,
@@ -154,8 +154,8 @@ export default function CreateActivity() {
 
   // console.log(SaleOptions);
   // console.log(userInfo);
-  console.log(activityDetail);
-  console.log(activityDetail.crop_id_list);
+  // console.log(activityDetail);
+  // console.log(activityDetail.crop_id_list);
   const formFields = [
     {
       label: menuTitle + " No",
@@ -962,7 +962,7 @@ export default function CreateActivity() {
         });
       });
 
-      console.log(activityDetail);
+      // console.log(activityDetail);
 
       const body = {
         ...activityDetail,
@@ -989,7 +989,7 @@ export default function CreateActivity() {
         particapant_list: particapantList,
         document_date: allValuesBasic.document_date, // ✅ Updated timezone +7 format
       };
-      console.log(body);
+      // console.log(body);
       // return;
 
       if (documentNumber) {
@@ -1052,7 +1052,7 @@ export default function CreateActivity() {
       }
     } catch (err) {
       console.error("Error fetching address:", err);
-      console.log(activityDetail);
+      // console.log(activityDetail);
     }
   };
 
