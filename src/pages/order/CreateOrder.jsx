@@ -240,8 +240,9 @@ export default function CreateOrder() {
       disabled: false,
       required: false,
       moderef: true,
+      placeholder: "Select Sales",
       // value: parseInt(dataSaleId, 10),
-      value: parseInt(dataSaleId),
+      value: parseInt(dataSaleId) || "",
     },
     {
       label: "Dealer",

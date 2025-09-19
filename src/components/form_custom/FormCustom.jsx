@@ -152,7 +152,7 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
           getAddress(lat, long);
           setLocation((prev) => ({ ...prev, lat, long }));
         },
-        () => {}
+        () => { }
       );
     } else {
       console.error("Geolocation is not supported by your browser.");
@@ -176,7 +176,7 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
           location_longitude: long,
         }));
       }
-    } catch {}
+    } catch { }
   };
 
   const handleChange = (attribute, value) => {
@@ -205,6 +205,34 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
       getLocation();
       setLoading(false);
     }, 2000);
+  };
+
+  // helper: decide id type by field.typeMode or options' first id
+  const idIsNumber = (field) => {
+    if (field.typeMode === "number") return true;
+    if (field.typeMode === "string") return false;
+    const first = field.options?.[0]?.id;
+    return typeof first === "number";
+  };
+
+
+  // normalize the value that goes into antd <Select value>
+  const normalizeSelectValue = (field, raw) => {
+    const isMulti = field.mode === "multiple";
+    const wantNumber = idIsNumber(field);
+    const cast = (v) =>
+      v === undefined || v === null || v === ""
+        ? undefined
+        : wantNumber
+          ? Number(v)
+          : String(v);
+
+
+    if (isMulti) {
+      const arr = Array.isArray(raw) ? raw : raw == null ? [] : [raw];
+      return arr.map(cast).filter((v) => v !== undefined);
+    }
+    return cast(raw);
   };
 
   return (
@@ -320,28 +348,17 @@ export default function FormCustom({ fields, form, title, onChange, mode }) {
                   ) : field.type === "select" ? (
                     <Select
                       mode={field.mode === "multiple" ? "multiple" : undefined}
-                      value={(() => {
-                        const firstOption = field.options?.[0]?.id;
-                        const selectedValue = formValues[field.name];
-                        if (!Array.isArray(selectedValue)) {
-                          return typeof firstOption === "number"
-                            ? [Number(selectedValue)].filter(Boolean)
-                            : [String(selectedValue)].filter(Boolean);
-                        }
-                        return typeof firstOption === "number"
-                          ? selectedValue.map(Number)
-                          : selectedValue.map(String);
-                      })()}
+                      value={normalizeSelectValue(field, formValues[field.name])}
                       onChange={(value) => handleChange(field.name, value)}
                       placeholder={`Select ${field.label.toLowerCase()}`}
                       disabled={field.disabled}
                       allowClear
                       showSearch
                       optionFilterProp="label"
-                      options={field.options.map((option, index) => ({
-                        key: index,
+                      options={(field.options || []).map((option, idx) => ({
+                        key: idx,
                         label: option.name,
-                        value: option.id,
+                        value: idIsNumber(field) ? Number(option.id) : String(option.id),
                       }))}
                     />
                   ) : field.type === "textarea" ? (

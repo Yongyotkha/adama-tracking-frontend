@@ -337,15 +337,13 @@ const TravelingPDF = ({ title }) => {
 
             {/* Total Row (Footer at Bottom of Table) */}
 
-
-            {/* Total Row (Footer at Bottom of Table) */}
             <View style={styles.tableRow}>
               <Text style={[styles.tableCell, { width: '40%', textAlign: 'center' }]}>
                 Total(THB)
               </Text>
               {columnsTotal.map((col, colIndex) => (
                 <Text key={colIndex} style={[styles.tableCell, { width: col.width }]}>
-                  {formatNumber(totalValues[col.dataIndex]) || "-"}
+                  {formatNumber(totalValues[col.dataIndex])}
                 </Text>
               ))}
             </View>

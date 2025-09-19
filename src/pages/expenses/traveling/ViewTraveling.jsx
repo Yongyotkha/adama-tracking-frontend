@@ -125,6 +125,15 @@ export default function ViewTraveling() {
     }
   };
 
+  const toNum = (v) => {
+    if (v === null || v === undefined) return 0;
+    if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+    const s = String(v).trim();
+    if (s === "" || s === "-" || s === ".00" || s === "0.00") return 0;
+    const n = Number(s.replace(/,/g, ""));
+    return Number.isNaN(n) ? 0 : n;
+  };
+
   // Fetch API Table Add Rows
   useEffect(() => {
     if (saleId && yearCode && monthCode) {
@@ -146,15 +155,15 @@ export default function ViewTraveling() {
             date: item.date || "",
             from: item.traveling_from || "",
             to: item.traveling_to || "",
-            mileage: item.mileage || " ",
-            petrol: item.petrol || " ",
-            cashPetrol: item.cash_petrol || " ",
-            hotel: item.hotel || " ",
-            allowance: item.allowance || " ",
-            tollFee: item.toll_fee || " ",
-            entertain: item.entertain || " ",
-            others: item.others || " ",
-            total: item.total || " ",
+            mileage: toNum(item.mileage),
+            petrol: toNum(item.petrol),
+            cashPetrol: toNum(item.cash_petrol),
+            hotel: toNum(item.hotel),
+            allowance: toNum(item.allowance),
+            tollFee: toNum(item.toll_fee),
+            entertain: toNum(item.entertain),
+            others: toNum(item.others),
+            total: toNum(item.total),
             remark: item.remark || "",
           }));
           // ตั้งค่า state
@@ -477,7 +486,7 @@ export default function ViewTraveling() {
         <Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("others"))} readOnly />
       </td>
       <td>
-        <Input style={{ width: 100 }} value={formatNumber( calculateFooterTotal("total"))} readOnly />
+        <Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("total"))} readOnly />
       </td>
       <td></td>
     </tr>
@@ -524,13 +533,13 @@ export default function ViewTraveling() {
           <NumericInputTraveling value={formatNumber(dataTotalAdvanced)} disabled />
 
           <div className="flex justify-end">Total Expenses:</div>
-          <NumericInputTraveling value={formatNumber(dataTotalExpenses) } disabled />
+          <NumericInputTraveling value={formatNumber(dataTotalExpenses)} disabled />
 
           <div className="flex justify-end">Return to Company:</div>
-          <NumericInputTraveling value={formatNumber(returnToCompany) } disabled />
+          <NumericInputTraveling value={formatNumber(returnToCompany)} disabled />
 
           <div className="flex justify-end">Return to Staff:</div>
-          <NumericInputTraveling value={formatNumber(returnToStaff) } disabled />
+          <NumericInputTraveling value={formatNumber(returnToStaff)} disabled />
         </div>
       </BoxPrimary>
 
@@ -572,7 +581,7 @@ export default function ViewTraveling() {
           }}
         />
       </div>
-      
+
     </MainLayout>
   );
 }

@@ -97,7 +97,7 @@ export default function CreateActivity() {
     setFileList((prevFileList) => [...prevFileList, fileUpload]);
   };
 
-  console.log('userInfo : ', userInfo.role_id)
+  // console.log('userInfo : ', userInfo.role_id)
 
   let btn_approve = 'Approve';
 
@@ -145,7 +145,7 @@ export default function CreateActivity() {
         : "/activity/list";
 
 
-
+  console.log(pageCode);
   const SaleOptions = saleList.map((sale) => ({
     id: sale.id,
     name: sale.name,
@@ -154,7 +154,8 @@ export default function CreateActivity() {
 
   // console.log(SaleOptions);
   // console.log(userInfo);
-  // console.log(activityDetail);
+  console.log(activityDetail);
+  console.log(activityDetail.crop_id_list);
   const formFields = [
     {
       label: menuTitle + " No",
@@ -196,41 +197,41 @@ export default function CreateActivity() {
       label: "Sales",
       name: "user_id",
       type: "select",
-      // typeMode: "string",
-      // options: saleList,
-      options: SaleOptions,
+      typeMode: "number",            // ให้ชนิดตรงกับ id ของ option
+      options: SaleOptions,          // [{ id, name }]
       disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
-      // value: activityDetail.user_id ?? "",
-      value: activityDetail.user_id ?? "",
+      value: activityDetail.user_id != null ? Number(activityDetail.user_id) : undefined,
       moderef: true,
     },
     {
       label: "Shop",
-      name: "dealer_id",
+      name: "dealer_id",                // ถ้า FormCustom ผูกชื่อฟิลด์นี้ไว้ ก็ยังใช้ชื่อนี้
       type: "select",
-      typeMode: "string",
-      // options: dealerList,
-      options: dealerList.some(
-        (dealer) => dealer.id === activityDetail.dealer_id
-      )
-        ? dealerList
-        : activityDetail.dealer_id && activityDetail.dealer_name
-          ? [
-            ...dealerList,
-            {
-              id: activityDetail.dealer_id,
-              name: activityDetail.dealer_name,
-            },
-          ]
-          : dealerList,
+      typeMode: "number",
+      options: (() => {
+        const currentId = pageCode === "activity_transaction"
+          ? Number(activityDetail.dealer_id)
+          : Number(activityDetail.sub_dealer_id);
+        const currentName = pageCode === "activity_transaction"
+          ? activityDetail.dealer_name
+          : activityDetail.sub_dealer_name;
+
+        if (!currentId) return dealerList;
+
+        const exists = dealerList.some(d => Number(d.id) === currentId);
+        return exists ? dealerList : [...dealerList, { id: currentId, name: currentName }];
+      })(),
       disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
       required: true,
-      col: pageCode != "activity_transaction" ? 8 : 6,
-      value: activityDetail.dealer_id ?? "",
+      col: pageCode !== "activity_transaction" ? 8 : 6,
+      value: pageCode === "activity_transaction"
+        ? (activityDetail.dealer_id != null ? Number(activityDetail.dealer_id) : undefined)
+        : (activityDetail.sub_dealer_id != null ? Number(activityDetail.sub_dealer_id) : undefined),
       moderef: true,
-    },
+    }
+    ,
     {
       label: "Crop",
       name: "crop_id_list",
@@ -431,10 +432,11 @@ export default function CreateActivity() {
           setActivityDetail((prevState) => ({ ...prevState, user_id: value }));
           await setupDealer(value);
         } else if (attribue === "dealer_id") {
-          setActivityDetail((prevState) => ({
-            ...prevState,
-            dealer_id: value,
-          }));
+          if (pageCode === "activity_transaction") {
+            setActivityDetail((prev) => ({ ...prev, dealer_id: value }));
+          } else {
+            setActivityDetail((prev) => ({ ...prev, sub_dealer_id: value }));
+          }
         } else if (attribue === "crop_id_list") {
           setActivityDetail((prevState) => ({
             ...prevState,
@@ -528,24 +530,26 @@ export default function CreateActivity() {
     }
   }, [activityDetail.crop_id_list]);
 
+  const effectiveDealerId = Number(
+    pageCode === "activity_transaction"
+      ? activityDetail?.dealer_id
+      : activityDetail?.sub_dealer_id
+  );
+
   useEffect(() => {
-    const setupCropAndDealerCustomer = async () => {
+    const setupCropAndDealerCustomer = async (subDealerId) => {
       const [crop, dealerCustomerData] = await Promise.all([
-        useServiceAPI.get(paths.pathMasterSubDealerCrop, {
-          sub_dealer_id: activityDetail.dealer_id,
-        }),
-        useServiceAPI.get(paths.pathMasterSubDealerCustomer, {
-          sub_delaer_id: activityDetail.dealer_id,
-        }),
+        useServiceAPI.get(paths.pathMasterSubDealerCrop, { sub_dealer_id: subDealerId }),
+        useServiceAPI.get(paths.pathMasterSubDealerCustomer, { sub_delaer_id: subDealerId }),
       ]);
       setCropList(crop.data);
       setDealerCustomer(dealerCustomerData.data);
     };
 
-    if (activityDetail.dealer_id) {
-      setupCropAndDealerCustomer();
+    if (effectiveDealerId) {
+      setupCropAndDealerCustomer(effectiveDealerId);
     }
-  }, [activityDetail.dealer_id]);
+  }, [effectiveDealerId]);
 
   //handleChangeFunction
   const setupDealer = async (value) => {
@@ -610,9 +614,9 @@ export default function CreateActivity() {
     return number.toLocaleString(undefined, { maximumFractionDigits: 2 });
   }
 
-  console.log('pageCode : ', pageCode)
-  console.log('mode : ', mode)
-  console.log('activityDetail : ', activityDetail?.permission?.edit)
+  // console.log('pageCode : ', pageCode)
+  // console.log('mode : ', mode)
+  // console.log('activityDetail : ', activityDetail?.permission?.edit)
 
   let isDisabled = false;
 
@@ -706,7 +710,7 @@ export default function CreateActivity() {
 
 
   const handleInputChange = (value, key, field, bath_ltkg, record) => {
-    console.log(value, key, field, bath_ltkg, record);
+    // console.log(value, key, field, bath_ltkg, record);
     setActivityDetail((prevState) => {
       const updatedData = prevState.expense_product_data_list.map((item) => {
         if (item.key === key) {
@@ -963,6 +967,7 @@ export default function CreateActivity() {
       const body = {
         ...activityDetail,
         page_code: pageCode,
+        dealer_id: activityDetail.sub_dealer_id,
         // document_number_referrent:
         //   activityDetail?.document_number_referrent ?? null,
         action_code: modeSave,
@@ -1101,8 +1106,8 @@ export default function CreateActivity() {
     return_to_staff = activityDetail.expense_actual - activityDetail.expense_advance
   }
 
-  console.log('return to company : ' + return_to_company)
-  console.log('return to staff : ' + return_to_staff)
+  // console.log('return to company : ' + return_to_company)
+  // console.log('return to staff : ' + return_to_staff)
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -1153,7 +1158,7 @@ export default function CreateActivity() {
                   ? footerOrderList
                   : null
               }
-              pagination={false}
+              pagination={10}
             />
           </BoxPrimary>
 
