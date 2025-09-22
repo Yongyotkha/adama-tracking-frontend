@@ -26,7 +26,7 @@ export default function VerifyOA() {
 
   const { lineProfile } = useOutletContext() || {};
   useEffect(() => {
-    console.log("lineProfile xxx : ", lineProfile);
+    console.log("lineProfile : ", lineProfile);
     if (lineProfile) {
       localStorage.setItem('lineDisplayName', lineProfile.displayName);
       localStorage.setItem('lineUserId', lineProfile.userId);
@@ -86,20 +86,21 @@ export default function VerifyOA() {
 
           } else if (response.data.step_number == 2) {
             showConfirm('คุณมีการลงทะเบียนแล้ว', 'กรุณากรอกเบอร์โทรศัพท์ที่เคยมีการลงทะเบียนแล้วหากคุณลืมหมายเลขให้ติดต่อแจ้งเจ้าหน้าที่', 'ตกลง', 'ติดต่อเจ้าหน้าที่');
-          } else if (response.data.step_number == 3) {
+          }
+          //  else if (response.data.step_number == 3) {
 
-          } 
+          // } 
         }
 
-        if (response.status === 200) {
+        // if (response.status === 200) {
 
 
-        } else if (response.status === 201) {
-          console.log('register success')
+        // } else if (response.status === 201) {
+        //   console.log('register success')
 
-        } else if (response.status === 202) {
+        // } else if (response.status === 202) {
 
-        }
+        // }
       })
       .catch((error) => {
         console.error("API Error:", error);

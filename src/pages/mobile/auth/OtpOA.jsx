@@ -20,7 +20,7 @@ export default function OtpOA() {
     useContext(AuthContext);
   const { Title, Text } = Typography;
   const [messageId, setmessageId] = useState(location?.state?.message_id);
- console.log("messageId:", messageId);
+  console.log("messageId:", messageId);
   const otp_ref_no = location?.state?.otpRefNo;
   const phone_number = location?.state?.phone_number;
 
@@ -105,23 +105,16 @@ export default function OtpOA() {
             } else if (response.data.step_number == 4) {
               console.log('case last 5')
               const fetchUserProfile = async () => {
-                // console.log('case last fetchUserProfile')
-                // const results = await loginLineUid(response.data.user_id);
-                // console.log('case after fetchUserProfile')
-                // console.log('loginLineUid : ',results);
-                // console.log('case 5')
-                // return false
                 try {
-  
+
                   const results = await loginLineUid(response.data.user_id);
                   console.log(results);
-                  // console.log('case 4')
-                  // return false
+
                   if (results.status === 200) {
                     navigate("/mobile/main", { state: stateData });
                   }
                 } catch (error) {
-     
+
                   console.error("Error fetching user profile:", error);
                   // console.log('case 5')
                   // return false

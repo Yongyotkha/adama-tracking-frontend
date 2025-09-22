@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { Card, Button, Input, Select, Checkbox } from "antd";
+import { useContext, useEffect, useState } from "react";
+import { Button, Input, Select, Checkbox } from "antd";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { useNavigate, useLocation, useOutletContext } from "react-router-dom";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { AuthContext } from "../../../contexts/AuthContext";
 import BackButton from "../../../components/mobile/button/BackButton";
 import ModalRegisterPopup from "../../../components/mobile/popup/ModalRegisterPopup";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
@@ -19,8 +20,12 @@ export default function RegisterOA() {
   const [isFailModalVisible, setIsFailModalVisible] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const { userInfo, showMsg, loginLineUid } =
+    useContext(AuthContext);
+
+
   const { lineProfile } = useOutletContext() || {};
-  const [redirectPath, setRedirectPath] = useState(null);
   const [receive_point, set_receive_point] = useState(0);
   useEffect(() => {
     console.log("lineProfile", lineProfile);
@@ -64,7 +69,6 @@ export default function RegisterOA() {
   };
 
   const [selectedMonth, setSelectedMonth] = useState("January");
-  const [selectedDay, setSelectedDay] = useState(1);
   const [selectedYear, setSelectedYear] = useState(2568);
 
   // Function to check if a year is a leap year
@@ -89,28 +93,6 @@ export default function RegisterOA() {
     if (monthsWith30Days.includes(month)) return 30;
     return isLeapYear(year) ? 29 : 28; // February logic
   };
-
-  // Handle month change
-  const handleMonthChange = (month) => {
-    setSelectedMonth(month);
-    adjustDaySelection(month, selectedYear);
-  };
-
-  // Handle year change
-  const handleYearChange = (e) => {
-    const year = parseInt(e.target.value, 10);
-    setSelectedYear(year);
-    adjustDaySelection(selectedMonth, year);
-  };
-
-  // Adjust selected day if it exceeds the new month's max days
-  const adjustDaySelection = (month, year) => {
-    const maxDays = getDaysInMonth(month, year);
-    if (selectedDay > maxDays) {
-      setSelectedDay(maxDays);
-    }
-  };
-
 
 
   const handleRegister = () => {
@@ -140,10 +122,83 @@ export default function RegisterOA() {
       .post(paths.pathRegisterShop, formattedData)
       .then((response) => {
         if (response.status === 200) {
-          set_receive_point(response.point)
-          localStorage.setItem("redirectPath", "/mobile/main");
+          set_receive_point(response.data.point)
+          //localStorage.setItem("redirectPath", "/mobile/main");
           setIsSuccessModalVisible(true);
           //navigate("/mobile/main", { state: formattedData });
+
+          const {
+            message,
+            token,
+            token_expired_date,
+            step_number,
+            shop_code,
+            shop_name,
+            address,
+            phone_number,
+            first_name,
+            last_name,
+            birth_date_day,
+            birth_date_month,
+            birth_date_year,
+            line_id,
+            is_condition,
+            shop_type,
+            user_id, // <<< เพิ่มตรงนี้
+          } = response.data;
+
+          // 👉 Save user_id to localStorage for all steps
+          localStorage.setItem("user_id", user_id);
+          console.log(user_id);
+
+          const stateData = {
+            message,
+            token,
+            token_expired_date,
+            step_number,
+            shop_code,
+            shop_name,
+            address,
+            phone_number,
+            first_name,
+            last_name,
+            birth_date_day,
+            birth_date_month,
+            birth_date_year,
+            line_id,
+            is_condition,
+            shop_type,
+          };
+          const fetchUserProfile = async () => {
+
+            try {
+
+              const results = await loginLineUid(response.data.user_id);
+              console.log(results);
+              // console.log('case 4')
+              // return false
+              if (results.status === 200) {
+                navigate("/mobile/main", { state: stateData });
+              }
+            } catch (error) {
+
+              console.error("Error fetching user profile:", error);
+              // console.log('case 5')
+              // return false
+              if (error?.response?.status === 401) {
+                // setRedirectPath("/mobile/verify");
+                navigate("/mobile/verify");
+              }
+            }
+          };
+
+          if (response.data.user_id && !userInfo) {
+            fetchUserProfile();
+          } else {
+            // console.log('case 6')
+            // return false
+            navigate("/mobile/main", { state: stateData });
+          }
         }
       })
       .catch((error) => {
@@ -154,21 +209,6 @@ export default function RegisterOA() {
   };
 
   const [imagePreview, setImagePreview] = useState("/img/icons/profile.png");
-
-  // const handleImageChange = (event) => {
-  //   const file = event.target.files[0];
-  //   if (file) {
-  //     const reader = new FileReader();
-  //     console.log(reader);
-
-  //     reader.onload = (e) => {
-  //       setImagePreview(e.target.result);
-  //       console.log(e.target.result);
-
-  //     };
-  //     reader.readAsDataURL(file);
-  //   }
-  // };
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -378,64 +418,6 @@ export default function RegisterOA() {
               />
             </div>
 
-            {/* จังหวัด / อำเภอ */}
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-gray-600 font-medium sarabun-font">
-                  จังหวัด<span className="text-red-500">*</span>
-                </label>
-                <Select
-                  className="w-full rounded-md h-10 sarabun-font"
-                  value={formData.province}
-                  onChange={(value) => handleDateChange("province", value)}
-                  placeholder="เลือกจังหวัด"
-                >
-                  <Option value="จันทบุรี" className="sarabun-font">จันทบุรี</Option>
-                </Select>
-              </div>
-              <div>
-                <label className="text-gray-600 font-medium sarabun-font">
-                  เขต/อำเภอ<span className="text-red-500">*</span>
-                </label>
-                <Select
-                  className="w-full rounded-md h-10 sarabun-font"
-                  value={formData.district}
-                  onChange={(value) => handleDateChange("district", value)}
-                  placeholder="เลือกอำเภอ"
-                >
-                  <Option value="มะขาม" className="sarabun-font">มะขาม</Option>
-                </Select>
-              </div>
-            </div>
-
-            {/* ตำบล / รหัสไปรษณีย์ */}
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-gray-600 font-medium sarabun-font">
-                  แขวง/ตำบล<span className="text-red-500">*</span>
-                </label>
-                <Select
-                  className="w-full rounded-md h-10 sarabun-font"
-                  value={formData.sub_district}
-                  onChange={(value) => handleDateChange("sub_district", value)}
-                  placeholder="เลือกตำบล"
-                >
-                  <Option value="มะขาม" className="sarabun-font">มะขาม</Option>
-                </Select>
-              </div>
-              <div>
-                <label className="text-gray-600 font-medium sarabun-font">
-                  รหัสไปรษณีย์<span className="text-red-500">*</span>
-                </label>
-                <Input
-                  className="w-full rounded-md h-10 sarabun-font"
-                  value={formData.zip_code}
-                  name="zip_code"
-                  onChange={handleInputChange}
-                  placeholder="รหัสไปรษณีย์"
-                />
-              </div>
-            </div>
 
             {/* Checkbox */}
             <div>
@@ -485,14 +467,13 @@ export default function RegisterOA() {
         visible={isSuccessModalVisible}
         onConfirm={() => {
           setIsSuccessModalVisible(false);
-          navigate("/mobile/verify"); // ไปหน้าใช้งาน
+          navigate("/mobile/verify");
         }}
         src="/img/icons/check-circle.png"
-        text={`<p class='text-[#8A8A8A] text-center sarabun-font'>ลงทะเบียนสำเร็จ!<br/>คุณได้รับ Welcome Point</p>
-         <p class='text-[#009845] text-center text-[24px] font-bold sarabun-font'>1,000 คะแนน</p>`}
+        text={`<p class='text-[#8A8A8A] text-center sarabun-font'>ยินดีด้วย<br/>คุณลงทะเบียนสำเร็จ ได้รับ Welcome Point</p>
+         <p class='text-[#009845] text-center text-[24px] font-bold sarabun-font'>${Number(receive_point).toLocaleString()} Point</p>`}
         confirmText="เริ่มใช้งานกันเลย !"
       />
-
 
       <DynamicPopUp
         visible={isFailModalVisible}
