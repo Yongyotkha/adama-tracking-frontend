@@ -140,7 +140,7 @@ export default function RegisterOA() {
       .post(paths.pathRegisterShop, formattedData)
       .then((response) => {
         if (response.status === 200) {
-          set_receive_point(response.point)
+          set_receive_point(response.data.point)
           localStorage.setItem("redirectPath", "/mobile/main");
           setIsSuccessModalVisible(true);
           //navigate("/mobile/main", { state: formattedData });
@@ -378,64 +378,6 @@ export default function RegisterOA() {
               />
             </div>
 
-            {/* จังหวัด / อำเภอ */}
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-gray-600 font-medium sarabun-font">
-                  จังหวัด<span className="text-red-500">*</span>
-                </label>
-                <Select
-                  className="w-full rounded-md h-10 sarabun-font"
-                  value={formData.province}
-                  onChange={(value) => handleDateChange("province", value)}
-                  placeholder="เลือกจังหวัด"
-                >
-                  <Option value="จันทบุรี" className="sarabun-font">จันทบุรี</Option>
-                </Select>
-              </div>
-              <div>
-                <label className="text-gray-600 font-medium sarabun-font">
-                  เขต/อำเภอ<span className="text-red-500">*</span>
-                </label>
-                <Select
-                  className="w-full rounded-md h-10 sarabun-font"
-                  value={formData.district}
-                  onChange={(value) => handleDateChange("district", value)}
-                  placeholder="เลือกอำเภอ"
-                >
-                  <Option value="มะขาม" className="sarabun-font">มะขาม</Option>
-                </Select>
-              </div>
-            </div>
-
-            {/* ตำบล / รหัสไปรษณีย์ */}
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-gray-600 font-medium sarabun-font">
-                  แขวง/ตำบล<span className="text-red-500">*</span>
-                </label>
-                <Select
-                  className="w-full rounded-md h-10 sarabun-font"
-                  value={formData.sub_district}
-                  onChange={(value) => handleDateChange("sub_district", value)}
-                  placeholder="เลือกตำบล"
-                >
-                  <Option value="มะขาม" className="sarabun-font">มะขาม</Option>
-                </Select>
-              </div>
-              <div>
-                <label className="text-gray-600 font-medium sarabun-font">
-                  รหัสไปรษณีย์<span className="text-red-500">*</span>
-                </label>
-                <Input
-                  className="w-full rounded-md h-10 sarabun-font"
-                  value={formData.zip_code}
-                  name="zip_code"
-                  onChange={handleInputChange}
-                  placeholder="รหัสไปรษณีย์"
-                />
-              </div>
-            </div>
 
             {/* Checkbox */}
             <div>
@@ -485,14 +427,13 @@ export default function RegisterOA() {
         visible={isSuccessModalVisible}
         onConfirm={() => {
           setIsSuccessModalVisible(false);
-          navigate("/mobile/verify"); // ไปหน้าใช้งาน
+          navigate("/mobile/verify");
         }}
         src="/img/icons/check-circle.png"
         text={`<p class='text-[#8A8A8A] text-center sarabun-font'>ยินดีด้วย<br/>คุณลงทะเบียนสำเร็จ ได้รับ Welcome Point</p>
-         <p class='text-[#009845] text-center text-[24px] font-bold sarabun-font'>100 Point</p>`}
+         <p class='text-[#009845] text-center text-[24px] font-bold sarabun-font'>${Number(receive_point).toLocaleString()} Point</p>`}
         confirmText="เริ่มใช้งานกันเลย !"
       />
-
 
       <DynamicPopUp
         visible={isFailModalVisible}
