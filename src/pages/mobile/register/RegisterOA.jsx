@@ -488,8 +488,8 @@ export default function RegisterOA() {
           navigate("/mobile/verify"); // ไปหน้าใช้งาน
         }}
         src="/img/icons/check-circle.png"
-        text={`<p class='text-[#8A8A8A] text-center sarabun-font'>ยินดีด้วย<br/>คุณลงทะเบียนสำเร็จ ได้รับ Welcome Point</p>
-         <p class='text-[#009845] text-center text-[24px] font-bold sarabun-font'>100 Point</p>`}
+        text={`<p class='text-[#8A8A8A] text-center sarabun-font'>ลงทะเบียนสำเร็จ!<br/>คุณได้รับ Welcome Point</p>
+         <p class='text-[#009845] text-center text-[24px] font-bold sarabun-font'>1,000 คะแนน</p>`}
         confirmText="เริ่มใช้งานกันเลย !"
       />
 

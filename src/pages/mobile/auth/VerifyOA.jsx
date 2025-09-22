@@ -77,7 +77,7 @@ export default function VerifyOA() {
 
         if (response.status === 200) {
           if (response.data.step_number == 0) {
-            showCancel('คุณมีการลงทะเบียนแล้ว', 'ไม่พบข้อมูลของคุณในระบบ', 'ปิด');
+            showCancel('ขออภัย', ' ระบบไม่พบข้อมูลของคุณ กรุณาตรวจสอบอีกครั้ง', 'ปิด');
           } else if (response.data.step_number == 1 || response.data.step_number == 4) {
 
             const otpRefNo = response.data.data.data.otp_ref_no;
@@ -165,7 +165,7 @@ export default function VerifyOA() {
             navigate("/mobile/contact-admin");
           }}
           className="text-green-600 text-sm cursor-pointer hover:underline sarabun-font">
-          เปลี่ยนหมายเลขโทรศัพท์ของคุณหรือ ลืมหมายเลขของคุณ?
+           สมัครสมาชิกใหม่หรือแจ้งปัญหาการใช้งาน?
         </Text>
       </div>
 

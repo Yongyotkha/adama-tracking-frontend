@@ -111,11 +111,6 @@ export default function EditOrViewCustomerLine() {
             <label>Line Name</label>
             <Input value={formData.line_name || "-"} disabled />
           </Col>
-           <Col span={6}>
-            <label>Customer Type</label>
-            {/* //TODO: เปลี่ยนตัวแปลเป็น ประเภท Dealer,Sub Dealer,Farmer */}
-            <Input value={formData.line_name || "-"} disabled />
-          </Col>
           <Col span={6}>
             <label>Status</label>
             <Select
