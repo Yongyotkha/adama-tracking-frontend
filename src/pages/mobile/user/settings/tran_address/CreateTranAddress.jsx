@@ -78,11 +78,11 @@ export default function CreateTranAddress() {
             </Form.Item>
 
             <Form.Item
-              label="เบอร์โทร"
+              label="เบอร์โทรศัพท์"
               name="phone"
-              rules={[{ required: true, message: "กรุณากรอกเบอร์โทร" }]}
+              rules={[{ required: true, message: "กรุณากรอกเบอร์โทรศัพท์" }]}
             >
-              <Input placeholder="เบอร์โทร" type="tel" className="text-[#A19793] sarabun-font" />
+              <Input placeholder="เบอร์โทรศัพท์" type="tel" className="text-[#A19793] sarabun-font" />
             </Form.Item>
 
             <Form.Item

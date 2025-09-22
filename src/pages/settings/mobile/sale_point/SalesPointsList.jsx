@@ -82,9 +82,9 @@ export default function SalesPointsList() {
   // --- Request table header ---
   const headerRequest = [
     { title: "No", width: 60, dataIndex: "key", align: "center" },
+    { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
     { title: "Dealer", width: 220, dataIndex: "dealer", align: "left" },
     { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
-    { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
     { title: "Request Date", width: 160, dataIndex: "request_date", align: "center" },
     { title: "Status", width: 160, dataIndex: "status", align: "center" },
     { title: "Action", width: 120, dataIndex: "action", align: "center" },
@@ -326,7 +326,7 @@ export default function SalesPointsList() {
             document_number: item.document_number,
             dealer: item.dealer_name ?? "-",
             sub_dealer: item.sub_dealer_name ?? "-",
-            sale: item.user_name ?? "-",
+            sale: item.sale_name ?? "-",
             request_date: requestDate,
             status: (
               <BadgeStatus
@@ -445,7 +445,6 @@ export default function SalesPointsList() {
           showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer");
         }
       };
-
       getDealersBySale();
     }
   }, [filterValues.sale]);

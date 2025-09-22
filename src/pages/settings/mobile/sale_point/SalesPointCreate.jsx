@@ -442,7 +442,6 @@ export default function SalesPointCreate() {
       ),
     },
     // { title: "FOC (ctn)", dataIndex: "foc", key: "foc" },
-    { title: "Point", dataIndex: "point", key: "point" },
     {
       title: "Sub Total (THB)",
       dataIndex: "net_amount",
@@ -452,6 +451,7 @@ export default function SalesPointCreate() {
           minimumFractionDigits: 2,
         }),
     },
+    { title: "Point", dataIndex: "point", key: "point" },
     {
       title: <div className="text-center">Action</div>,
       key: "action",
