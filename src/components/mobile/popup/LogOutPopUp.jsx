@@ -10,13 +10,13 @@ import { Modal, Button } from "antd";
 export default function LogOutPopUp({ isOpen, onCancel, onConfirm }) {
   return (
     <Modal open={isOpen} footer={null} centered closable={false}>
-      <div className="flex flex-col justify-between items-center min-h-[250px]">
+      <div className="flex flex-col justify-between items-center min-h-[150px]">
         {/* Placeholder for Image */}
-        <div className="w-24 h-24 bg-gray-300 rounded-lg mb-4"></div>
+        {/* <div className="w-24 h-24 bg-gray-300 rounded-lg mb-4"></div> */}
 
         {/* Confirmation Text */}
-        <div className="text-[#978B87] text-sm text-center mb-4 sarabun-font">
-          คุณต้องการออกจากระบบใช่หรือไม่ ?
+        <div className="text-[#978B87] text-sm text-center text-[24px] font-bold sarabun-font">
+          ออกจากระบบ<br/>คุณต้องการออกจากระบบใช่หรือไม่ ?
         </div>
 
         {/* Buttons */}

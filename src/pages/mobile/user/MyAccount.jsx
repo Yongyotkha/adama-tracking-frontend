@@ -124,12 +124,12 @@ export default function MyAccount() {
 
             <div className="w-full max-w-md mt-6 flex flex-col flex-grow">
               <div className="mt-4 space-y-2">
-                <MainButton
+                {/* <MainButton
                   type="link"
                   to="/mobile/main"
                   icon={<HomeOutlined className="text-lg text-gray-500" />}
                   label="หน้าหลัก"
-                />
+                /> */}
                 <MainButton
                   type="button"
                   icon={<UserOutlined className="text-lg text-gray-500" />}

@@ -47,7 +47,7 @@ export default function UserDetail() {
           <>
             {/* Header Section */}
             <div className="w-full max-w-md py-4 flex justify-between items-center">
-              <h2 className="text-[#009845] text-lg font-semibold sarabun-font">ข้อมูลผู้ใช้</h2>
+              <h2 className="text-[#009845] text-lg font-semibold sarabun-font">ข้อมูลสมาชิก</h2>
             </div>
 
             {/* Profile Info Section */}

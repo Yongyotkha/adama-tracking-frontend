@@ -73,7 +73,6 @@ export default function ExpirePointList() {
     { title: "Customer Name", dataIndex: "shop_name", align: "left" },
     { title: "Contact Name", dataIndex: "contact_name", align: "left" },
     { title: "Phone No", dataIndex: "phone_no", align: "left" },
-    { title: "Customer Type", dataIndex: "customer_type", align: "left" },
     { title: "Point", dataIndex: "point", align: "center" },
     { title: "Expire Date", dataIndex: "expire_date", align: "center" },
   ];
