@@ -54,31 +54,31 @@ export default function RedeemList() {
   const filtersList = [
     { key: "target", type: "text", label: "Customer Name" },
     { key: "type", type: "text", label: "Type Name" },
-    {
-      key: "use_flag",
-      type: "select",
-      label: "Status",
-      options: [
-        { id: "1", name: "Active" },
-        { id: "0", name: "Inactive" },
-      ],
-    },
+    // {
+    //   key: "use_flag",
+    //   type: "select",
+    //   label: "Status",
+    //   options: [
+    //     { id: "1", name: "Active" },
+    //     { id: "0", name: "Inactive" },
+    //   ],
+    // },
   ];
 
   const filtersRequest = [
     { key: "shop", type: "text", label: "Customer Name" },
     { key: "customer", type: "text", label: "Customer Name" },
     { key: "reward", type: "text", label: "Reward Name" },
-    {
-      key: "status",
-      type: "select",
-      label: "Status",
-      options: [
-        { id: "PENDING", name: "Pending" },
-        { id: "APPROVED", name: "Approved" },
-        { id: "REJECTED", name: "Rejected" },
-      ],
-    },
+    // {
+    //   key: "status",
+    //   type: "select",
+    //   label: "Status",
+    //   options: [
+    //     { id: "PENDING", name: "Pending" },
+    //     { id: "APPROVED", name: "Approved" },
+    //     { id: "REJECTED", name: "Rejected" },
+    //   ],
+    // },
   ];
 
   // ---------------- Format helpers ----------------

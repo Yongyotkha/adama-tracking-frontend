@@ -12,6 +12,16 @@ import { paths } from "../../../../services/CorsPath";
 
 const { TabPane } = Tabs;
 
+// ใช้ตามที่ขอ แล้ว map เป็นรูปแบบที่ Filter.jsx รองรับ (id/name)
+const SEND_BY_OPTIONS_RAW = [
+  { value: "mail/ship", label: "Mail/Ship" },
+  { value: "staff", label: "Staff" },
+];
+const SEND_BY_OPTIONS = SEND_BY_OPTIONS_RAW.map(({ value, label }) => ({
+  id: value,
+  name: label,
+}));
+
 export default function Transportation() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -34,22 +44,11 @@ export default function Transportation() {
   });
 
   /** ---------------- Filters ---------------- */
-  const statusOptions = [
-    { id: "", name: "All" },
-    { id: "PREPARE", name: "Prepare" },
-    { id: "SENT", name: "Sent" },
-    { id: "DELIVERED", name: "Delivered" },
-    { id: "CANCELLED", name: "Cancelled" },
-  ];
-  const subDealerOptions = [
-    { id: "", name: "All" },
-    { id: "11", name: "บ้านธาราเกษตร 11" },
-  ];
-
+  // ซ่อน status ออกไปก่อนตามที่แจ้ง
   const filtersTransportation = [
-    { key: "sub_dealer_id", type: "select", label: "Sub Dealer Name", options: subDealerOptions },
-    { key: "dater", type: "date", label: "Date" },
-    { key: "status", type: "select", label: "Status", options: statusOptions },
+    { key: "sub_dealer_name", type: "text", label: "Sub Dealer Name" },
+    { key: "send_by", type: "select", label: "Send By", options: SEND_BY_OPTIONS },
+    { key: "send_at", type: "date", label: "Send Date" },
   ];
   const filtersPreparation = filtersTransportation;
 
@@ -72,29 +71,34 @@ export default function Transportation() {
     setTableLoading(true);
 
     const { current, pageSize } = tableParams.pagination;
-    const filters = tableParams.filters || {};
+    const f = tableParams.filters || {};
 
     try {
       const res = await useServiceAPI.get(paths.pathTransportList, {
         page_size: pageSize,
         page_length: current,
-        status_tran: ["RTD", "RTV"], // Delivery and Delivered statuses
-        keyword: filters.keyword || "",
-        use_flag: filters.use_flag || "",
+        status_tran: ["RTD", "RTV"], // Delivery & Delivered
+        // filters ใหม่ที่เพิ่มเข้ามา
+        sub_dealer_name: f.sub_dealer_name || "",
+        send_by: f.send_by || "",
+        send_at: f.send_at || "", // YYYY-MM-DD จาก Filter.jsx (type="date")
+        // คงของเดิมไว้เผื่อ backend ใช้งาน
+        keyword: f.keyword || "",
+        use_flag: f.use_flag || "",
       });
 
       if (res.status === 200) {
         const rows = res.data?.data || [];
         const mapped = rows.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-          date: item.created_at.split(" ")[0] || "-",
+          date: item.created_at?.split?.(" ")[0] || "-",
           sub_dealer_name: item.sub_dealer_name || "-",
           reward_code: item.reward_code || "-",
           reward_name: item.reward_name || "-",
           qty: item.reward_value ?? "-",
           cost: item.reward_cost ?? "-",
           send_by: item.send_by || "-",
-          send_date: item.send_at.split(" ")[0] || "-",
+          send_date: item.send_at ? item.send_at.split(" ")[0] : "-",
           status: (
             <BadgeStatus
               text={item.status_tran_namsse || "-"}
@@ -119,35 +123,30 @@ export default function Transportation() {
                       />
                     ),
                   },
-
                   ...(item.status_tran === "RTD"
                     ? [
-                      {
-                        key: "delivery",
-                        label: (
-                          <ItemDropDown
-                            mode="edit"
-                            text={"Delivery"}
-                            onClick={() =>
-                              navigate("/points/line/transportation/delivery", {
-                                state: { id: item.id, mode: "delivery" },
-                              })
-                            }
-                          />
-                        ),
-                      },
-                    ]
+                        {
+                          key: "delivery",
+                          label: (
+                            <ItemDropDown
+                              mode="edit"
+                              text={"Delivery"}
+                              onClick={() =>
+                                navigate("/points/line/transportation/delivery", {
+                                  state: { id: item.id, mode: "delivery" },
+                                })
+                              }
+                            />
+                          ),
+                        },
+                      ]
                     : []),
                 ],
               }}
               placement="bottomRight"
             >
               <a onClick={(e) => e.preventDefault()}>
-                <img
-                  src="/img/icons/action.png"
-                  alt="action"
-                  className="inline-block w-5 h-5"
-                />
+                <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
               </a>
             </Dropdown>
           ),
@@ -169,29 +168,34 @@ export default function Transportation() {
     setPrepTableLoading(true);
 
     const { current, pageSize } = prepTableParams.pagination;
-    const filters = prepTableParams.filters || {};
+    const f = prepTableParams.filters || {};
 
     try {
       const res = await useServiceAPI.get(paths.pathTransportList, {
         page_size: pageSize,
         page_length: current,
-        status_tran: ["RTP"], // Prepare status
-        keyword: filters.keyword || "",
-        use_flag: filters.use_flag || "",
+        status_tran: ["RTP"], // Prepare
+        // filters ใหม่ที่เพิ่มเข้ามา
+        sub_dealer_name: f.sub_dealer_name || "",
+        send_by: f.send_by || "",
+        send_at: f.send_at || "",
+        // เผื่อ backend ใช้ของเดิม
+        keyword: f.keyword || "",
+        use_flag: f.use_flag || "",
       });
 
       if (res.status === 200) {
         const rows = res.data?.data || [];
         const mapped = rows.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-          date: item.created_at ? item.created_at.split(" ")[0] : "-", // Fallback to "-"
+          date: item.created_at ? item.created_at.split(" ")[0] : "-",
           sub_dealer_name: item.sub_dealer_name || "-",
           reward_code: item.reward_code || "-",
           reward_name: item.reward_name || "-",
           qty: item.reward_value ?? "-",
           cost: item.reward_cost ?? "-",
           send_by: item.send_by || "-",
-          send_date: item.send_at ? item.send_at.split(" ")[0] : "-", // Fallback to "-"
+          send_date: item.send_at ? item.send_at.split(" ")[0] : "-",
           status: (
             <BadgeStatus
               text={item.status_tran_namsse || "Prepare"}
@@ -203,19 +207,6 @@ export default function Transportation() {
             <Dropdown
               menu={{
                 items: [
-                  // {
-                  //   key: "view",
-                  //   label: (
-                  //     <ItemDropDown
-                  //       mode="view"
-                  //       onClick={() =>
-                  //         navigate("/points/line/transportation/view", {
-                  //           state: { id: item.id },
-                  //         })
-                  //       }
-                  //     />
-                  //   ),
-                  // },
                   {
                     key: "prepare",
                     label: (
@@ -229,17 +220,12 @@ export default function Transportation() {
                       />
                     ),
                   },
-
                 ],
               }}
               placement="bottomRight"
             >
               <a onClick={(e) => e.preventDefault()}>
-                <img
-                  src="/img/icons/action.png"
-                  alt="action"
-                  className="inline-block w-5 h-5"
-                />
+                <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
               </a>
             </Dropdown>
           ),
@@ -264,7 +250,7 @@ export default function Transportation() {
       fetchPreparation();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, tableParams.pagination.current, prepTableParams.pagination.current]);
+  }, [activeTab, tableParams.pagination.current, prepTableParams.pagination.current, JSON.stringify(tableParams.filters), JSON.stringify(prepTableParams.filters)]);
 
   /** ---------------- Handlers ---------------- */
   const onSearchTransport = (filters) => {
