@@ -12,7 +12,7 @@ import { paths } from "../../../../services/CorsPath";
 
 const { TabPane } = Tabs;
 
-// ใช้ตามที่ขอ แล้ว map เป็นรูปแบบที่ Filter.jsx รองรับ (id/name)
+// Send By options
 const SEND_BY_OPTIONS_RAW = [
   { value: "mail/ship", label: "Mail/Ship" },
   { value: "staff", label: "Staff" },
@@ -44,13 +44,14 @@ export default function Transportation() {
   });
 
   /** ---------------- Filters ---------------- */
-  // ซ่อน status ออกไปก่อนตามที่แจ้ง
   const filtersTransportation = [
     { key: "sub_dealer_name", type: "text", label: "Sub Dealer Name" },
     { key: "send_by", type: "select", label: "Send By", options: SEND_BY_OPTIONS },
-    { key: "send_at", type: "date", label: "Send Date" },
+    { key: "send_at", type: "date", label: "Send Date" },   // ⬅️ วันเดียว
+    { key: "dater", type: "dater", label: "Date Range" },   // ⬅️ ช่วงวัน
   ];
   const filtersPreparation = filtersTransportation;
+
 
   /** ---------------- Columns ---------------- */
   const columns = [
@@ -69,7 +70,6 @@ export default function Transportation() {
   /** ---------------- Fetch: Transportation List ---------------- */
   const fetchTransportation = async () => {
     setTableLoading(true);
-
     const { current, pageSize } = tableParams.pagination;
     const f = tableParams.filters || {};
 
@@ -77,12 +77,11 @@ export default function Transportation() {
       const res = await useServiceAPI.get(paths.pathTransportList, {
         page_size: pageSize,
         page_length: current,
-        status_tran: ["RTD", "RTV"], // Delivery & Delivered
-        // filters ใหม่ที่เพิ่มเข้ามา
+        status_tran: ["RTD", "RTV"],
         sub_dealer_name: f.sub_dealer_name || "",
         send_by: f.send_by || "",
-        send_at: f.send_at || "", // YYYY-MM-DD จาก Filter.jsx (type="date")
-        // คงของเดิมไว้เผื่อ backend ใช้งาน
+        send_at: f.send_at || "",      // ⬅️ วันเดียว
+        dater: f.dater || [],          // ⬅️ ช่วงวัน
         keyword: f.keyword || "",
         use_flag: f.use_flag || "",
       });
@@ -125,28 +124,32 @@ export default function Transportation() {
                   },
                   ...(item.status_tran === "RTD"
                     ? [
-                        {
-                          key: "delivery",
-                          label: (
-                            <ItemDropDown
-                              mode="edit"
-                              text={"Delivery"}
-                              onClick={() =>
-                                navigate("/points/line/transportation/delivery", {
-                                  state: { id: item.id, mode: "delivery" },
-                                })
-                              }
-                            />
-                          ),
-                        },
-                      ]
+                      {
+                        key: "delivery",
+                        label: (
+                          <ItemDropDown
+                            mode="edit"
+                            text={"Delivery"}
+                            onClick={() =>
+                              navigate("/points/line/transportation/delivery", {
+                                state: { id: item.id, mode: "delivery" },
+                              })
+                            }
+                          />
+                        ),
+                      },
+                    ]
                     : []),
                 ],
               }}
               placement="bottomRight"
             >
               <a onClick={(e) => e.preventDefault()}>
-                <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
+                <img
+                  src="/img/icons/action.png"
+                  alt="action"
+                  className="inline-block w-5 h-5"
+                />
               </a>
             </Dropdown>
           ),
@@ -166,7 +169,6 @@ export default function Transportation() {
   /** ---------------- Fetch: Preparation List ---------------- */
   const fetchPreparation = async () => {
     setPrepTableLoading(true);
-
     const { current, pageSize } = prepTableParams.pagination;
     const f = prepTableParams.filters || {};
 
@@ -174,12 +176,11 @@ export default function Transportation() {
       const res = await useServiceAPI.get(paths.pathTransportList, {
         page_size: pageSize,
         page_length: current,
-        status_tran: ["RTP"], // Prepare
-        // filters ใหม่ที่เพิ่มเข้ามา
+        status_tran: ["RTP"],
         sub_dealer_name: f.sub_dealer_name || "",
         send_by: f.send_by || "",
-        send_at: f.send_at || "",
-        // เผื่อ backend ใช้ของเดิม
+        send_at: f.send_at || "",      // ⬅️ วันเดียว
+        dater: f.dater || [],          // ⬅️ ช่วงวัน
         keyword: f.keyword || "",
         use_flag: f.use_flag || "",
       });
@@ -225,7 +226,11 @@ export default function Transportation() {
               placement="bottomRight"
             >
               <a onClick={(e) => e.preventDefault()}>
-                <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
+                <img
+                  src="/img/icons/action.png"
+                  alt="action"
+                  className="inline-block w-5 h-5"
+                />
               </a>
             </Dropdown>
           ),
@@ -241,14 +246,11 @@ export default function Transportation() {
       setPrepTableLoading(false);
     }
   };
-
+  
   /** ---------------- Effects ---------------- */
   useEffect(() => {
-    if (activeTab === "transport") {
-      fetchTransportation();
-    } else {
-      fetchPreparation();
-    }
+    if (activeTab === "transport") fetchTransportation();
+    else fetchPreparation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, tableParams.pagination.current, prepTableParams.pagination.current, JSON.stringify(tableParams.filters), JSON.stringify(prepTableParams.filters)]);
 
@@ -291,39 +293,27 @@ export default function Transportation() {
 
       <Tabs className="custom-tabs" activeKey={activeTab} onChange={setActiveTab}>
         <TabPane tab={<span className="tab-title">Transaction List</span>} key="transport">
-          <Filter
-            filters={filtersTransportation}
-            onSearch={onSearchTransport}
-            onClear={onClearTransport}
-          />
+          <Filter filters={filtersTransportation} onSearch={onSearchTransport} onClear={onClearTransport} />
           <BoxPrimary className="mt-4">
             <TableComponent
               header={columns}
               dataSource={dataSource}
               loading={tableLoading}
               pagination={tableParams.pagination}
-              onChange={(pagination) =>
-                setTableParams((prev) => ({ ...prev, pagination }))
-              }
+              onChange={(pagination) => setTableParams((prev) => ({ ...prev, pagination }))}
             />
           </BoxPrimary>
         </TabPane>
 
         <TabPane tab={<span className="tab-title">Transaction Preparation List</span>} key="preparation">
-          <Filter
-            filters={filtersPreparation}
-            onSearch={onSearchPrep}
-            onClear={onClearPrep}
-          />
+          <Filter filters={filtersPreparation} onSearch={onSearchPrep} onClear={onClearPrep} />
           <BoxPrimary className="mt-4">
             <TableComponent
               header={columns}
               dataSource={prepDataSource}
               loading={prepTableLoading}
               pagination={prepTableParams.pagination}
-              onChange={(pagination) =>
-                setPrepTableParams((prev) => ({ ...prev, pagination }))
-              }
+              onChange={(pagination) => setPrepTableParams((prev) => ({ ...prev, pagination }))}
             />
           </BoxPrimary>
         </TabPane>
