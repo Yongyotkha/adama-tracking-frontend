@@ -12,6 +12,16 @@ import { paths } from "../../../../services/CorsPath";
 
 const { TabPane } = Tabs;
 
+// Send By options
+const SEND_BY_OPTIONS_RAW = [
+  { value: "mail/ship", label: "Mail/Ship" },
+  { value: "staff", label: "Staff" },
+];
+const SEND_BY_OPTIONS = SEND_BY_OPTIONS_RAW.map(({ value, label }) => ({
+  id: value,
+  name: label,
+}));
+
 export default function Transportation() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -34,24 +44,14 @@ export default function Transportation() {
   });
 
   /** ---------------- Filters ---------------- */
-  const statusOptions = [
-    { id: "", name: "All" },
-    { id: "PREPARE", name: "Prepare" },
-    { id: "SENT", name: "Sent" },
-    { id: "DELIVERED", name: "Delivered" },
-    { id: "CANCELLED", name: "Cancelled" },
-  ];
-  const subDealerOptions = [
-    { id: "", name: "All" },
-    { id: "11", name: "บ้านธาราเกษตร 11" },
-  ];
-
   const filtersTransportation = [
-    { key: "sub_dealer_id", type: "select", label: "Sub Dealer Name", options: subDealerOptions },
-    { key: "dater", type: "date", label: "Date" },
-    { key: "status", type: "select", label: "Status", options: statusOptions },
+    { key: "sub_dealer_name", type: "text", label: "Sub Dealer Name" },
+    { key: "send_by", type: "select", label: "Send By", options: SEND_BY_OPTIONS },
+    { key: "send_at", type: "date", label: "Send Date" },   // ⬅️ วันเดียว
+    { key: "dater", type: "dater", label: "Date Range" },   // ⬅️ ช่วงวัน
   ];
   const filtersPreparation = filtersTransportation;
+
 
   /** ---------------- Columns ---------------- */
   const columns = [
@@ -70,31 +70,34 @@ export default function Transportation() {
   /** ---------------- Fetch: Transportation List ---------------- */
   const fetchTransportation = async () => {
     setTableLoading(true);
-
     const { current, pageSize } = tableParams.pagination;
-    const filters = tableParams.filters || {};
+    const f = tableParams.filters || {};
 
     try {
       const res = await useServiceAPI.get(paths.pathTransportList, {
         page_size: pageSize,
         page_length: current,
-        status_tran: ["RTD", "RTV"], // Delivery and Delivered statuses
-        keyword: filters.keyword || "",
-        use_flag: filters.use_flag || "",
+        status_tran: ["RTD", "RTV"],
+        sub_dealer_name: f.sub_dealer_name || "",
+        send_by: f.send_by || "",
+        send_at: f.send_at || "",      // ⬅️ วันเดียว
+        dater: f.dater || [],          // ⬅️ ช่วงวัน
+        keyword: f.keyword || "",
+        use_flag: f.use_flag || "",
       });
 
       if (res.status === 200) {
         const rows = res.data?.data || [];
         const mapped = rows.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-          date: item.created_at.split(" ")[0] || "-",
+          date: item.created_at?.split?.(" ")[0] || "-",
           sub_dealer_name: item.sub_dealer_name || "-",
           reward_code: item.reward_code || "-",
           reward_name: item.reward_name || "-",
           qty: item.reward_value ?? "-",
           cost: item.reward_cost ?? "-",
           send_by: item.send_by || "-",
-          send_date: item.send_at.split(" ")[0] || "-",
+          send_date: item.send_at ? item.send_at.split(" ")[0] : "-",
           status: (
             <BadgeStatus
               text={item.status_tran_namsse || "-"}
@@ -119,7 +122,6 @@ export default function Transportation() {
                       />
                     ),
                   },
-
                   ...(item.status_tran === "RTD"
                     ? [
                       {
@@ -167,31 +169,34 @@ export default function Transportation() {
   /** ---------------- Fetch: Preparation List ---------------- */
   const fetchPreparation = async () => {
     setPrepTableLoading(true);
-
     const { current, pageSize } = prepTableParams.pagination;
-    const filters = prepTableParams.filters || {};
+    const f = prepTableParams.filters || {};
 
     try {
       const res = await useServiceAPI.get(paths.pathTransportList, {
         page_size: pageSize,
         page_length: current,
-        status_tran: ["RTP"], // Prepare status
-        keyword: filters.keyword || "",
-        use_flag: filters.use_flag || "",
+        status_tran: ["RTP"],
+        sub_dealer_name: f.sub_dealer_name || "",
+        send_by: f.send_by || "",
+        send_at: f.send_at || "",      // ⬅️ วันเดียว
+        dater: f.dater || [],          // ⬅️ ช่วงวัน
+        keyword: f.keyword || "",
+        use_flag: f.use_flag || "",
       });
 
       if (res.status === 200) {
         const rows = res.data?.data || [];
         const mapped = rows.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-          date: item.created_at ? item.created_at.split(" ")[0] : "-", // Fallback to "-"
+          date: item.created_at ? item.created_at.split(" ")[0] : "-",
           sub_dealer_name: item.sub_dealer_name || "-",
           reward_code: item.reward_code || "-",
           reward_name: item.reward_name || "-",
           qty: item.reward_value ?? "-",
           cost: item.reward_cost ?? "-",
           send_by: item.send_by || "-",
-          send_date: item.send_at ? item.send_at.split(" ")[0] : "-", // Fallback to "-"
+          send_date: item.send_at ? item.send_at.split(" ")[0] : "-",
           status: (
             <BadgeStatus
               text={item.status_tran_namsse || "Prepare"}
@@ -203,19 +208,6 @@ export default function Transportation() {
             <Dropdown
               menu={{
                 items: [
-                  // {
-                  //   key: "view",
-                  //   label: (
-                  //     <ItemDropDown
-                  //       mode="view"
-                  //       onClick={() =>
-                  //         navigate("/points/line/transportation/view", {
-                  //           state: { id: item.id },
-                  //         })
-                  //       }
-                  //     />
-                  //   ),
-                  // },
                   {
                     key: "prepare",
                     label: (
@@ -229,7 +221,6 @@ export default function Transportation() {
                       />
                     ),
                   },
-
                 ],
               }}
               placement="bottomRight"
@@ -255,16 +246,13 @@ export default function Transportation() {
       setPrepTableLoading(false);
     }
   };
-
+  
   /** ---------------- Effects ---------------- */
   useEffect(() => {
-    if (activeTab === "transport") {
-      fetchTransportation();
-    } else {
-      fetchPreparation();
-    }
+    if (activeTab === "transport") fetchTransportation();
+    else fetchPreparation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, tableParams.pagination.current, prepTableParams.pagination.current]);
+  }, [activeTab, tableParams.pagination.current, prepTableParams.pagination.current, JSON.stringify(tableParams.filters), JSON.stringify(prepTableParams.filters)]);
 
   /** ---------------- Handlers ---------------- */
   const onSearchTransport = (filters) => {
@@ -305,39 +293,27 @@ export default function Transportation() {
 
       <Tabs className="custom-tabs" activeKey={activeTab} onChange={setActiveTab}>
         <TabPane tab={<span className="tab-title">Transaction List</span>} key="transport">
-          <Filter
-            filters={filtersTransportation}
-            onSearch={onSearchTransport}
-            onClear={onClearTransport}
-          />
+          <Filter filters={filtersTransportation} onSearch={onSearchTransport} onClear={onClearTransport} />
           <BoxPrimary className="mt-4">
             <TableComponent
               header={columns}
               dataSource={dataSource}
               loading={tableLoading}
               pagination={tableParams.pagination}
-              onChange={(pagination) =>
-                setTableParams((prev) => ({ ...prev, pagination }))
-              }
+              onChange={(pagination) => setTableParams((prev) => ({ ...prev, pagination }))}
             />
           </BoxPrimary>
         </TabPane>
 
         <TabPane tab={<span className="tab-title">Transaction Preparation List</span>} key="preparation">
-          <Filter
-            filters={filtersPreparation}
-            onSearch={onSearchPrep}
-            onClear={onClearPrep}
-          />
+          <Filter filters={filtersPreparation} onSearch={onSearchPrep} onClear={onClearPrep} />
           <BoxPrimary className="mt-4">
             <TableComponent
               header={columns}
               dataSource={prepDataSource}
               loading={prepTableLoading}
               pagination={prepTableParams.pagination}
-              onChange={(pagination) =>
-                setPrepTableParams((prev) => ({ ...prev, pagination }))
-              }
+              onChange={(pagination) => setPrepTableParams((prev) => ({ ...prev, pagination }))}
             />
           </BoxPrimary>
         </TabPane>
