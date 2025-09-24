@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Button, Input, Select, Checkbox } from "antd";
+import { Button, Input, Select, Checkbox, DatePicker } from "antd";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { useNavigate, useLocation, useOutletContext } from "react-router-dom";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
@@ -9,7 +9,7 @@ import ModalRegisterPopup from "../../../components/mobile/popup/ModalRegisterPo
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
-
+import dayjs from "dayjs";
 const { Option } = Select;
 
 export default function RegisterOA() {
@@ -47,6 +47,7 @@ export default function RegisterOA() {
     address: "",
     email: "",
     shop_code: "",
+    birth_date: null,
     birth_date_day: "",
     birth_date_month: "",
     birth_date_year: "",
@@ -100,6 +101,7 @@ export default function RegisterOA() {
     if (!isChecked) return;
 
     const formattedData = {
+      birth_date: formData.birth_date,
       shop_name: formData.shop_name,
       shop_code: formData.shop_code,
       phone_number: formData.phone_number,
@@ -117,6 +119,9 @@ export default function RegisterOA() {
       line_id_token: formData.line_id_token,
       line_name: formData.line_name,
     };
+
+    // console.log('formattedData : ', formattedData)
+    // return false;
     setLoading(true);
     useServiceAPI
       .post(paths.pathRegisterShop, formattedData)
@@ -197,7 +202,7 @@ export default function RegisterOA() {
           } else {
             // console.log('case 6')
             // return false
-            navigate("/mobile/main", { state: stateData });
+            //navigate("/mobile/main", { state: stateData });
           }
         }
       })
@@ -300,6 +305,7 @@ export default function RegisterOA() {
                 value={formData.shop_name}
                 onChange={handleInputChange}
                 name="shop_name"
+                readOnly
                 placeholder="ชื่อร้าน"
               />
             </div>
@@ -338,42 +344,18 @@ export default function RegisterOA() {
                 วันเกิด<span className="text-red-500">*</span>
               </label>
               <div className="flex gap-2 mt-1">
-                <Select
-                  className="rounded-md flex-1 text-center h-10 sarabun-font"
-                  placeholder="วัน"
-                  value={formData.birth_date_day || ""}
-                  onChange={(value) => handleDateChange("birth_date_day", value)}
-                >
-                  {Array.from({ length: getDaysInMonth(selectedMonth, selectedYear) }, (_, i) => (
-                    <Option key={i + 1} value={i + 1} className="sarabun-font">
-                      {i + 1}
-                    </Option>
-                  ))}
-                </Select>
-
-                <Select
-                  className="rounded-md flex-1 text-center h-10 sarabun-font"
-                  placeholder="เดือน"
-                  value={formData.birth_date_month || ""}
-                  onChange={(value) => handleDateChange("birth_date_month", value)}
-                >
-                  {[
-                    "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
-                    "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
-                  ].map((m, i) => (
-                    <Option key={i + 1} value={i + 1} className="sarabun-font">
-                      {m}
-                    </Option>
-                  ))}
-                </Select>
-
-                <Input
-                  className="rounded-md flex-1 text-center h-10 sarabun-font"
-                  type="number"
-                  placeholder="ปี"
-                  value={formData.birth_date_year || ""}
-                  onChange={(e) => handleDateChange("birth_date_year", e.target.value)}
+                <DatePicker
+                  value={formData.birth_date ? dayjs(formData.birth_date, "YYYY-MM-DD") : null}
+                  onChange={(date) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      birth_date: date ? date.format("YYYY-MM-DD") : null, // เก็บเป็น string
+                    }));
+                  }}
+                  format="DD/MM/YYYY"
+                  className="mt-1 rounded-md h-10 sarabun-font"
                 />
+
               </div>
             </div>
 
@@ -387,6 +369,7 @@ export default function RegisterOA() {
                 value={formData.phone_number}
                 name="phone_number"
                 onChange={handleInputChange}
+                readOnly
                 placeholder="เบอร์มือถือ"
               />
             </div>

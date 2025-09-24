@@ -26,7 +26,7 @@ export default function VerifyOA() {
 
   const { lineProfile } = useOutletContext() || {};
   useEffect(() => {
-    console.log("lineProfile : ", lineProfile);
+    console.log("lineProfile xxx : ", lineProfile);
     if (lineProfile) {
       localStorage.setItem('lineDisplayName', lineProfile.displayName);
       localStorage.setItem('lineUserId', lineProfile.userId);
@@ -77,7 +77,7 @@ export default function VerifyOA() {
 
         if (response.status === 200) {
           if (response.data.step_number == 0) {
-            showCancel('ขออภัย', ' ระบบไม่พบข้อมูลของคุณ กรุณาตรวจสอบอีกครั้ง', 'ปิด');
+            showCancel('คุณมีการลงทะเบียนแล้ว', 'ไม่พบข้อมูลของคุณในระบบ', 'ปิด');
           } else if (response.data.step_number == 1 || response.data.step_number == 4) {
 
             const otpRefNo = response.data.data.data.otp_ref_no;
@@ -86,21 +86,20 @@ export default function VerifyOA() {
 
           } else if (response.data.step_number == 2) {
             showConfirm('คุณมีการลงทะเบียนแล้ว', 'กรุณากรอกเบอร์โทรศัพท์ที่เคยมีการลงทะเบียนแล้วหากคุณลืมหมายเลขให้ติดต่อแจ้งเจ้าหน้าที่', 'ตกลง', 'ติดต่อเจ้าหน้าที่');
-          }
-          //  else if (response.data.step_number == 3) {
+          } else if (response.data.step_number == 3) {
 
-          // } 
+          } 
         }
 
-        // if (response.status === 200) {
+        if (response.status === 200) {
 
 
-        // } else if (response.status === 201) {
-        //   console.log('register success')
+        } else if (response.status === 201) {
+          console.log('register success')
 
-        // } else if (response.status === 202) {
+        } else if (response.status === 202) {
 
-        // }
+        }
       })
       .catch((error) => {
         console.error("API Error:", error);
@@ -166,7 +165,7 @@ export default function VerifyOA() {
             navigate("/mobile/contact-admin");
           }}
           className="text-green-600 text-sm cursor-pointer hover:underline sarabun-font">
-           สมัครสมาชิกใหม่หรือแจ้งปัญหาการใช้งาน?
+          เปลี่ยนหมายเลขโทรศัพท์ของคุณหรือ ลืมหมายเลขของคุณ?
         </Text>
       </div>
 
