@@ -245,7 +245,7 @@ const TravelingPDF = ({ title }) => {
   }
 
   const formatValue = (value) => {
-    if (value === ".00") return '-'; // Replace .00 with 0
+    if (value === ".00" || value === "0") return '-'; // Replace .00 with 0
     if (!isNaN(value)) return parseFloat(value); // Otherwise, return as float
     return value; // If it's neither, return the value as is
   };
@@ -276,7 +276,7 @@ const TravelingPDF = ({ title }) => {
           const dataItems = response.data.data_items || [];
 
           const transformedData = dataItems.map((item, index) => {
-            const mileageNum = formatNumber(item.mileage);
+            const mileageNum = formatValue(item.mileage);
             return {
               key: `${index + 1}`,
               date: item.date || "-",
@@ -284,14 +284,14 @@ const TravelingPDF = ({ title }) => {
               to: item.traveling_to || "-",
               // mileage: item.mileage || "",
               mileage: mileageNum === 0 ? "-" : mileageNum,
-              petrol: (formatNumber(item.petrol)) || " ",
-              cashPetrol: (formatNumber(item.cash_petrol)) || " ",
-              hotel: (formatNumber(item.hotel)) || " ",
-              allowance: (formatNumber(item.allowance)) || " ",
-              tollFee: (formatNumber(item.toll_fee)) || " ",
-              entertain: (formatNumber(item.entertain)) || " ",
-              others: (formatNumber(item.others)) || " ",
-              total: (formatNumber(item.total)) || " ",
+              petrol: (formatValue(item.petrol)) || " ",
+              cashPetrol: (formatValue(item.cash_petrol)) || " ",
+              hotel: (formatValue(item.hotel)) || " ",
+              allowance: (formatValue(item.allowance)) || " ",
+              tollFee: (formatValue(item.toll_fee)) || " ",
+              entertain: (formatValue(item.entertain)) || " ",
+              others: (formatValue(item.others)) || " ",
+              total: (formatValue(item.total)) || " ",
               remark: item.remark || "-",
             };
           });
