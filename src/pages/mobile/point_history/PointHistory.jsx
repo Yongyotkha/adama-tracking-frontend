@@ -8,7 +8,7 @@ import BackButton from "../../../components/mobile/button/BackButton";
 import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
 import { AuthContext } from "../../../contexts/AuthContext";
-
+import BadgeStatus from "../../../components/badge/BadgeStatus";
 export default function PointHistory() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("receive"); // Default
@@ -28,6 +28,7 @@ export default function PointHistory() {
   useEffect(() => {
     const fetchPointHistory = async () => {
       setLoading(true);
+      console.log('activeTab : ', activeTab)
       try {
         const response = await useServiceAPI.get(paths.pathLogPoint, {
           platform: "web",
@@ -94,8 +95,12 @@ export default function PointHistory() {
                       {item.created_at.split('.')[0]}
                     </p>
                     <p className="text-gray-700 text-sm sarabun-font">
-                      หมดอายุ: {item.expire_at}
+                      หมดอายุ: {item.expire_at == null ? "-" : item.expire_at}
                     </p>
+                    {activeTab == "use" ? <p className="text-gray-700 text-sm sarabun-font">Reward Code : {item.reward_code}</p> : ""}
+                    {activeTab == "use" ? <p className="text-gray-700 text-sm sarabun-font">Reward Name : {item.reward_name}</p> : ""}
+                    {activeTab == "use" ? <BadgeStatus text={item.status_name} bgColor={item.status_bg_color} textColor={item.status_color}></BadgeStatus> : ""}
+
                   </div>
                 </div>
                 <p
@@ -103,6 +108,7 @@ export default function PointHistory() {
                     }`}
                 >
                   {activeTab === "use" ? `-${item.point}` : `+${item.point}`}
+
                 </p>
               </div>
             ))

@@ -8,15 +8,15 @@ import ModalRegisterPopup from "../../../components/mobile/popup/ModalRegisterPo
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
-
+import DynamicPopUpConfirm from "../../../components/mobile/popup/DynamicPopUpConfirm";
 const { Option } = Select;
 
 export default function EditUserOA() {
   const navigate = useNavigate();
   const location = useLocation();
   const userData = location.state?.user || {};
+  const [isPointModalVisibleComfirm, setIsPointModalVisibleComfirm] = useState(false);
 
-  console.log(location.state);
   const [imagePreview, setImagePreview] = useState(userData.profile_image || "/img/icons/profile.png");
   const [loading, setLoading] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
@@ -26,8 +26,8 @@ export default function EditUserOA() {
   const [formData, setFormData] = useState({
     id: location.state.id,
     shop_name: userData.shop_name || "",
-    first_name: userData.name_th || "",
-    last_name: userData.name_en || "",
+    first_name: userData.contact_first_name || "",
+    last_name: userData.contact_last_name || "",
     phone_number: userData.phone_number || "",
     line_id: userData.line_id || "",
     address: userData.address || "",
@@ -37,7 +37,7 @@ export default function EditUserOA() {
     birth_date_year: "",
   });
 
-  console.log('formData : ', formData)
+  console.log('formData : ', userData)
 
   useEffect(() => {
     setFormData((prev) => ({
@@ -117,6 +117,10 @@ export default function EditUserOA() {
     setIsModalVisible(false);
   };
 
+  const before_save = () => {
+    setIsPointModalVisibleComfirm(true)
+  };
+
   const handleSave = async () => {
     setLoading(true);
     try {
@@ -187,12 +191,12 @@ export default function EditUserOA() {
 
             <div>
               <label className="text-gray-500 sarabun-font">นามสกุล</label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.lascontact_last_namet_name} name="last_name" onChange={handleInputChange} />
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.last_name} name="last_name" onChange={handleInputChange} />
             </div>
 
             <div>
               <label className="text-gray-500 sarabun-font">เบอร์โทรเบอร์โทรศัพท์</label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.phone_number} name="phone_number" onChange={handleInputChange} />
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.phone_number} name="phone_number" readOnly />
             </div>
 
             <div>
@@ -206,7 +210,7 @@ export default function EditUserOA() {
             </div>
 
             {/* Terms & Conditions */}
-            <div className="mt-4">
+            {/* <div className="mt-4">
               <Checkbox
                 className={`sarabun-font ${isChecked ? "text-[#00783F]" : "text-[#A19793]"}`}
                 checked={isChecked}
@@ -214,18 +218,36 @@ export default function EditUserOA() {
               >
                 <span className="sarabun-font">ตกลงยินยอมตามรายละเอียดข้อตกลงและเงื่อนไข</span>
               </Checkbox>
-            </div>
+            </div> */}
           </form>
         </div>
 
         <div className="w-full max-w-md flex justify-between align-bottom mt-auto space-x-2">
           <BackButton />
           <div className="w-full max-w-md mt-auto py-2">
-            <button onClick={handleSave} className="w-full py-3 bg-[#009845] rounded-lg text-white sarabun-font flex items-center justify-center space-x-2">
+            <button onClick={before_save} className="w-full py-3 bg-[#009845] rounded-lg text-white sarabun-font flex items-center justify-center space-x-2">
               <span className="sarabun-font">บันทึก</span>
             </button>
           </div>
         </div>
+
+        <DynamicPopUpConfirm
+          visible={isPointModalVisibleComfirm}
+          onConfirm={async () => {
+            await handleSave();          // ← เรียกใช้จริง
+            setIsPointModalVisibleComfirm(false); // ปิดหลังยิง API สำเร็จ/ล้มเหลวก็ได้
+          }}
+          onCancel={() => {
+            // กดปุ่ม "ยกเลิก"
+            setIsPointModalVisibleComfirm(false);
+          }}
+          src="/img/icons/forgot-password.png"
+          text={`<div class='text-center'>
+      <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>ยืนยันการทำรายการ</p>
+    </div>`}
+          confirmText="ยืนยัน"
+          cancelText="ยกเลิก"
+        />
 
         <ModalRegisterPopup visible={isModalVisible} onConfirm={handleModalConfirm} onCancel={handleModalCancel} />
       </div>

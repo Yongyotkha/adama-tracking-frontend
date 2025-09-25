@@ -113,7 +113,7 @@ export default function MyAccount() {
               </div>
               <div className="flex flex-col">
                 <h2 className="text-lg font-semibold mt-3 text-[#A19793] sarabun-font">
-                  {user?.name_th || user?.name_en} {user.shop_name}
+                  {user.shop_name}
                 </h2>
                 <p className="text-[#A19793] sarabun-font">
                   {/* รหัสสมาชิก : {userIdFromStorage || "ไม่พบข้อมูล"} */}
@@ -196,8 +196,8 @@ export default function MyAccount() {
               onCancel={() => setIsLogoutModalOpen(false)}
               onConfirm={confirmLogout}
             />
+            <BackButton url={'/mobile/main'} />
 
-            <BackButton />
           </>
         )}
       </div>

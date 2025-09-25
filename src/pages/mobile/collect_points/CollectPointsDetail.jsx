@@ -257,18 +257,15 @@ export default function CollectPointsDetail() {
             </div>
           </div>
         </div>
-
-        <BackButton url="/mobile/collect-points" />
-
-        {/* ปุ่มยืนยัน */}
         <button
           onClick={confirm}
           className="mt-4 mb-6 w-full max-w-md bg-green-700 text-white py-3 rounded-md sarabun-font"
         >
           ยืนยัน
         </button>
+        <BackButton url="/mobile/collect-points" />
 
-        {/* Success Points Modal */}
+
         <DynamicPopUp
           visible={isPointModalVisible}
           onConfirm={() => {
