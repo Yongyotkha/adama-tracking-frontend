@@ -1,3 +1,4 @@
+// src/pages/points/line/sales_points/SalesPointsList.jsx
 import React, { useEffect, useState, useContext } from "react";
 import { Dropdown, Modal, Tabs } from "antd";
 import MainLayout from "../../../../layouts/MainLayout";
@@ -11,15 +12,18 @@ import ActionButton from "../../../../components/button/ActionButton";
 import useServiceAPI from "../../../../services/corsService";
 import { paths } from "../../../../services/CorsPath";
 import { AuthContext } from "../../../../contexts/AuthContext";
-import FilterByOrder from "../../../../components/filter/FilterByOrder";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 
 const { TabPane } = Tabs;
 
-const STATUS_OPTIONS = [
+/**
+ * ✅ ปรับชุดตัวเลือกของสถานะสำหรับแท็บ List (fetchData)
+ * - เอา ODI ออก
+ * - ใช้ key = status_code ใน Filter
+ */
+const STATUS_OPTIONS_LIST = [
   { id: "ODC", name: "Complete" },
   { id: "ODW", name: "Waiting for Receive" },
-  { id: "ODI", name: "Waiting for Create" },
   { id: "ODD", name: "Draft" },
   { id: "ODR", name: "Reject" },
 ];
@@ -35,7 +39,7 @@ export default function SalesPointsList() {
   const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const [tableParams, setTableParams] = useState({
-    pagination: { current: 1, pageSize: 50 },
+    pagination: { current: 1, pageSize: 10 },
     filters: {},
     sortOrder: "desc",
     sortField: "document_number",
@@ -62,22 +66,23 @@ export default function SalesPointsList() {
   const { confirm } = Modal;
 
   // ---------- Filters (LIST) ----------
+  // ✅ ใช้ key = status_code และชุด STATUS_OPTIONS_LIST ที่อัปเดตแล้ว
   const filters = [
     { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
     { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dataDealer, moderef: true },
     { key: "sub_dealer", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerOptions },
     { key: "order_no", type: "text", label: "Order No", placeholder: "Order No" },
-    { key: "status", type: "select", label: "Status", placeholder: "All", options: STATUS_OPTIONS },
+    { key: "status_code", type: "select", label: "Status", placeholder: "All", options: STATUS_OPTIONS_LIST },
     { key: "dater", type: "dater", label: "Date", placeholder: "Date" },
   ];
 
   // ---------- Filters (REQUEST) ----------
+  // ✅ ซ่อนช่อง Status (fix เป็น ODI ใน payload)
   const requestFilters = [
     { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
     { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dataDealer, moderef: true },
     { key: "sub_dealer", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerOptions },
     { key: "order_no", type: "text", label: "Order No", placeholder: "Order No" },
-    { key: "status", type: "select", label: "Status", placeholder: "All", options: STATUS_OPTIONS },
     { key: "dater", type: "dater", label: "Date", placeholder: "Date" },
   ];
 
@@ -168,17 +173,23 @@ export default function SalesPointsList() {
     const sortOrder = tableParams.sortOrder || "desc";
     const sortField = tableParams.sortField || "document_number";
 
+    /**
+     * ✅ ปรับ payload ให้ตรงสเปกที่ให้มา
+     * - map คีย์จาก filter → payload
+     * - status_code มาจาก filters.status_code (เดิมคือ filters.status)
+     * - dater เป็น array ของ YYYY-MM-DD จาก Filter.jsx อยู่แล้ว
+     */
     const requestData = {
-      user_id: filters.sale || "",
-      dealer_id: filters.dealer || "",
-      sub_dealer_id: filters.sub_dealer || "",
-      keyword: filters.order_no || "",
-      status_code: filters.status || "ODW",
-      dater: filters.dater || "",
+      user_id: filters.sale || "",                 // sale id
+      dealer_id: filters.dealer || "",             // dealer id
+      sub_dealer_id: filters.sub_dealer || "",     // sub dealer id
+      keyword: filters.order_no || "",             // find document_number
+      status_code: filters.status_code || " ",   // ✅ ใช้ status_code ใหม่ (default ODW)
+      dater: filters.dater || [],                  // ["YYYY-MM-DD","YYYY-MM-DD"]
       page: "all",
       use_flag: 1,
-      orderby_column: sortField,
-      orderby: sortOrder,
+      orderby_column: sortField || "document_number",
+      orderby: sortOrder || "desc",
       platform: "web",
       page_length: current,
       page_size: pageSize,
@@ -187,8 +198,8 @@ export default function SalesPointsList() {
     try {
       const response = await useServiceAPI.get(paths.pathSalePointOrderList, requestData);
       if (response.status === 200) {
-        const { data, records_filtered } = response.data;
-        setPermission(response.data.permission);
+        const { data = [], records_filtered } = response.data || {};
+        setPermission(response.data?.permission || {});
 
         const newDataSource = data.map((order, index) => ({
           key: index + 1 + (current - 1) * pageSize,
@@ -258,7 +269,7 @@ export default function SalesPointsList() {
         setDataSource(newDataSource);
         setTableParams((prev) => ({
           ...prev,
-          pagination: { ...prev.pagination, total: records_filtered },
+          pagination: { ...prev.pagination, total: records_filtered || 0 },
         }));
       }
     } catch (error) {
@@ -278,13 +289,14 @@ export default function SalesPointsList() {
     const sortOrder = requestTableParams.sortOrder || "desc";
     const sortField = requestTableParams.sortField || "document_number";
 
+    // ✅ Fix สถานะเป็น ODI และไม่มีช่องให้เลือกในหน้าจอ
     const payload = {
       user_id: filters.sale || "",
       dealer_id: filters.dealer || "",
       sub_dealer_id: filters.sub_dealer || "",
       keyword: filters.order_no || "",
-      status_code: filters.status || "ODI",
-      dater: filters.dater || "",
+      status_code: "ODI",                 // <- fixed
+      dater: filters.dater || [],
       page: "all",
       use_flag: 1,
       orderby_column: sortField,
@@ -323,6 +335,7 @@ export default function SalesPointsList() {
           };
         });
 
+        // bind action menu
         setRequestDataSource(mapped.map((row) => ({ ...row, action: getActionForRequest(row) })));
 
         setRequestTableParams((prev) => ({
@@ -360,7 +373,6 @@ export default function SalesPointsList() {
       filters: {},
       pagination: { ...prev.pagination, current: 1 },
     }));
-    // ล้าง options ลูกต่อให้ด้วย
     setDataDealer([]);
     setSubDealerOptions([]);
   };
@@ -373,17 +385,14 @@ export default function SalesPointsList() {
     }));
   };
 
-  // ⬇️ ใช้ pattern แบบ AdvanceExpense: โหลด master ใน onChange เลย
+  // โหลดลูกโซ่ (sales → dealer → sub dealer)
   const handleChange = (filters) => {
-    
     setFilterValues(filters);
 
-    // normalize ค่า
     const saleId = typeof filters.sale === "object" ? filters.sale.value : filters.sale;
     const dealerId = typeof filters.dealer === "object" ? filters.dealer.value : filters.dealer;
 
     if (dealerId) {
-      // 👉 โหลด Sub Dealer
       (async () => {
         try {
           const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
@@ -400,26 +409,24 @@ export default function SalesPointsList() {
         }
       })();
     } else if (saleId) {
-      // 👉 โหลด Dealer
       (async () => {
         try {
           const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
             user_id: saleId,
           });
           setDataDealer(res?.data || []);
-          setSubDealerOptions([]); // reset sub-dealer เมื่อเปลี่ยน dealer
+          setSubDealerOptions([]);
         } catch (error) {
           showMsg?.("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer");
         }
       })();
     } else {
-      // 👉 เคลียร์หมด
       setDataDealer([]);
       setSubDealerOptions([]);
     }
   };
 
-  // -------- Request handlers (same style) --------
+  // -------- Request handlers --------
   const handleSearchRequest = (filters) => {
     setRequestTableParams((prev) => ({
       ...prev,
@@ -581,7 +588,7 @@ export default function SalesPointsList() {
           <Filter
             onSearch={handleSearch}
             onClear={handleClear}
-            onChange={handleChange}            // ⬅️ cascade อยู่ที่นี่ (pattern เดียวกับ AdvanceExpense)
+            onChange={handleChange}
             filters={filters}
           />
           <br />
@@ -600,8 +607,8 @@ export default function SalesPointsList() {
           <Filter
             onSearch={handleSearchRequest}
             onClear={handleClearRequest}
-            onChange={handleChangeRequestFilters} // ⬅️ cascade ของแท็บ request
-            filters={requestFilters}
+            onChange={handleChangeRequestFilters}
+            filters={requestFilters} // ✅ ไม่มีช่อง Status แล้ว
           />
           <br />
           <BoxPrimary>
