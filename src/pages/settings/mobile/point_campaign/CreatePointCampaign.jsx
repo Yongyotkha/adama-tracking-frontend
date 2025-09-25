@@ -622,6 +622,7 @@ export default function CreatePointCampaign() {
         date_end: end ? dayjs(end).endOf("day").format("YYYY-MM-DD HH:mm:ss") : null,
       };
 
+
       if (productModeNum === 2) payload.categorys = categoryIds;   // record_id[]
       if (productModeNum === 3) payload.products = productIds;     // product id[]
 

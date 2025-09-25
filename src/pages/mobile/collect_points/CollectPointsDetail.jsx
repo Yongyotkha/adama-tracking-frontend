@@ -88,11 +88,19 @@ export default function CollectPointsDetail() {
     historydetail?.document_datetime ||
     (historydetail?.document_date ? `${historydetail.document_date}` : "-");
 
-  const statusText =
-    historydetail?.status_transaction_name ||
-    historydetail?.status_payment_name ||
-    historydetail?.status_name ||
-    "-";
+  let statusText = historydetail?.status_transaction_name;
+
+  if (statusText == 'Waiting for Receive') {
+    statusText = 'รอรับพัสดุ'
+  } else if (statusText == 'Complete') {
+    statusText = 'ส่งสำเร็จพัสดุ'
+  } else if (statusText == 'Draft') {
+    statusText = 'แบบร่างรายการ'
+  } else if (statusText == 'Waiting for Create') {
+    statusText = 'รอสร้างรายการ'
+  } else if (statusText == 'Reject') {
+    statusText = 'ยกเลิกรายการ'
+  }
 
   const statusTextColor = historydetail?.status_transaction_color || "#0ea5a0";
   const statusBgColor = historydetail?.status_transaction_bg_color || "#e6fffa";

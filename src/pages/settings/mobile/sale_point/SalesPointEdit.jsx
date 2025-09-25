@@ -288,13 +288,13 @@ export default function SalesPointEdit() {
         </div>
       ),
     },
-    { title: "Point", dataIndex: "point", key: "point" },
     {
       title: "Sub Total (THB)",
       dataIndex: "net_amount",
       key: "net_amount",
       render: (t) => toNumber(t).toLocaleString("en-US", { minimumFractionDigits: 2 }),
     },
+    { title: "Point", dataIndex: "point", key: "point" },
   ];
 
   const headerOther = [

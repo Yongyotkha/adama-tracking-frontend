@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { Card, Button, Input, Select, Checkbox } from "antd";
+import { useContext, useEffect, useState } from "react";
+import { Button, Input, Select, Checkbox, DatePicker } from "antd";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { useNavigate, useLocation, useOutletContext } from "react-router-dom";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { AuthContext } from "../../../contexts/AuthContext";
 import BackButton from "../../../components/mobile/button/BackButton";
 import ModalRegisterPopup from "../../../components/mobile/popup/ModalRegisterPopup";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
-
+import dayjs from "dayjs";
 const { Option } = Select;
 
 export default function RegisterOA() {
@@ -19,8 +20,12 @@ export default function RegisterOA() {
   const [isFailModalVisible, setIsFailModalVisible] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const [stageUser, setStageUser] = useState({});
+  const { userInfo, showMsg, loginLineUid } =
+    useContext(AuthContext);
+
+
   const { lineProfile } = useOutletContext() || {};
-  const [redirectPath, setRedirectPath] = useState(null);
   const [receive_point, set_receive_point] = useState(0);
   useEffect(() => {
     console.log("lineProfile", lineProfile);
@@ -42,6 +47,7 @@ export default function RegisterOA() {
     address: "",
     email: "",
     shop_code: "",
+    birth_date: null,
     birth_date_day: "",
     birth_date_month: "",
     birth_date_year: "",
@@ -64,7 +70,6 @@ export default function RegisterOA() {
   };
 
   const [selectedMonth, setSelectedMonth] = useState("January");
-  const [selectedDay, setSelectedDay] = useState(1);
   const [selectedYear, setSelectedYear] = useState(2568);
 
   // Function to check if a year is a leap year
@@ -90,34 +95,13 @@ export default function RegisterOA() {
     return isLeapYear(year) ? 29 : 28; // February logic
   };
 
-  // Handle month change
-  const handleMonthChange = (month) => {
-    setSelectedMonth(month);
-    adjustDaySelection(month, selectedYear);
-  };
-
-  // Handle year change
-  const handleYearChange = (e) => {
-    const year = parseInt(e.target.value, 10);
-    setSelectedYear(year);
-    adjustDaySelection(selectedMonth, year);
-  };
-
-  // Adjust selected day if it exceeds the new month's max days
-  const adjustDaySelection = (month, year) => {
-    const maxDays = getDaysInMonth(month, year);
-    if (selectedDay > maxDays) {
-      setSelectedDay(maxDays);
-    }
-  };
-
-
 
   const handleRegister = () => {
 
     if (!isChecked) return;
 
     const formattedData = {
+      birth_date: formData.birth_date,
       shop_name: formData.shop_name,
       shop_code: formData.shop_code,
       phone_number: formData.phone_number,
@@ -135,15 +119,93 @@ export default function RegisterOA() {
       line_id_token: formData.line_id_token,
       line_name: formData.line_name,
     };
+
+    // console.log('formattedData : ', formattedData)
+    // return false;
     setLoading(true);
     useServiceAPI
       .post(paths.pathRegisterShop, formattedData)
       .then((response) => {
         if (response.status === 200) {
-          set_receive_point(response.point)
-          localStorage.setItem("redirectPath", "/mobile/main");
+          set_receive_point(response.data.point)
+          //localStorage.setItem("redirectPath", "/mobile/main");
           setIsSuccessModalVisible(true);
           //navigate("/mobile/main", { state: formattedData });
+
+          const {
+            message,
+            token,
+            token_expired_date,
+            step_number,
+            shop_code,
+            shop_name,
+            address,
+            phone_number,
+            first_name,
+            last_name,
+            birth_date_day,
+            birth_date_month,
+            birth_date_year,
+            line_id,
+            is_condition,
+            shop_type,
+            user_id, // <<< เพิ่มตรงนี้
+          } = response.data;
+
+          // 👉 Save user_id to localStorage for all steps
+          localStorage.setItem("user_id", user_id);
+          console.log(user_id);
+
+          const stateData = {
+            message,
+            token,
+            token_expired_date,
+            step_number,
+            shop_code,
+            shop_name,
+            address,
+            phone_number,
+            first_name,
+            last_name,
+            birth_date_day,
+            birth_date_month,
+            birth_date_year,
+            line_id,
+            is_condition,
+            shop_type,
+          };
+
+          setStageUser(stateData)
+          const fetchUserProfile = async () => {
+
+            try {
+
+              const results = await loginLineUid(response.data.user_id);
+              console.log(results);
+              // console.log('case 4')
+              // return false
+              if (results.status === 200) {
+                //navigate("/mobile/main", { state: stateData });
+              }
+            } catch (error) {
+
+              console.error("Error fetching user profile:", error);
+              // console.log('case 5')
+              // return false
+              if (error?.response?.status === 401) {
+                // setRedirectPath("/mobile/verify");
+                //navigate("/mobile/verify");
+              }
+            }
+          };
+
+          if (response.data.user_id && !userInfo) {
+            fetchUserProfile();
+          } else {
+            // console.log('case 6')
+            // return false
+            //navigate("/mobile/main", { state: stateData });
+          }
         }
       })
       .catch((error) => {
@@ -154,21 +216,6 @@ export default function RegisterOA() {
   };
 
   const [imagePreview, setImagePreview] = useState("/img/icons/profile.png");
-
-  // const handleImageChange = (event) => {
-  //   const file = event.target.files[0];
-  //   if (file) {
-  //     const reader = new FileReader();
-  //     console.log(reader);
-
-  //     reader.onload = (e) => {
-  //       setImagePreview(e.target.result);
-  //       console.log(e.target.result);
-
-  //     };
-  //     reader.readAsDataURL(file);
-  //   }
-  // };
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -260,6 +307,7 @@ export default function RegisterOA() {
                 value={formData.shop_name}
                 onChange={handleInputChange}
                 name="shop_name"
+                readOnly
                 placeholder="ชื่อร้าน"
               />
             </div>
@@ -298,42 +346,18 @@ export default function RegisterOA() {
                 วันเกิด<span className="text-red-500">*</span>
               </label>
               <div className="flex gap-2 mt-1">
-                <Select
-                  className="rounded-md flex-1 text-center h-10 sarabun-font"
-                  placeholder="วัน"
-                  value={formData.birth_date_day || ""}
-                  onChange={(value) => handleDateChange("birth_date_day", value)}
-                >
-                  {Array.from({ length: getDaysInMonth(selectedMonth, selectedYear) }, (_, i) => (
-                    <Option key={i + 1} value={i + 1} className="sarabun-font">
-                      {i + 1}
-                    </Option>
-                  ))}
-                </Select>
-
-                <Select
-                  className="rounded-md flex-1 text-center h-10 sarabun-font"
-                  placeholder="เดือน"
-                  value={formData.birth_date_month || ""}
-                  onChange={(value) => handleDateChange("birth_date_month", value)}
-                >
-                  {[
-                    "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
-                    "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
-                  ].map((m, i) => (
-                    <Option key={i + 1} value={i + 1} className="sarabun-font">
-                      {m}
-                    </Option>
-                  ))}
-                </Select>
-
-                <Input
-                  className="rounded-md flex-1 text-center h-10 sarabun-font"
-                  type="number"
-                  placeholder="ปี"
-                  value={formData.birth_date_year || ""}
-                  onChange={(e) => handleDateChange("birth_date_year", e.target.value)}
+                <DatePicker
+                  value={formData.birth_date ? dayjs(formData.birth_date, "YYYY-MM-DD") : null}
+                  onChange={(date) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      birth_date: date ? date.format("YYYY-MM-DD") : null, // เก็บเป็น string
+                    }));
+                  }}
+                  format="DD/MM/YYYY"
+                  className="mt-1 rounded-md h-10 sarabun-font"
                 />
+
               </div>
             </div>
 
@@ -347,6 +371,7 @@ export default function RegisterOA() {
                 value={formData.phone_number}
                 name="phone_number"
                 onChange={handleInputChange}
+                readOnly
                 placeholder="เบอร์มือถือ"
               />
             </div>
@@ -378,64 +403,6 @@ export default function RegisterOA() {
               />
             </div>
 
-            {/* จังหวัด / อำเภอ */}
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-gray-600 font-medium sarabun-font">
-                  จังหวัด<span className="text-red-500">*</span>
-                </label>
-                <Select
-                  className="w-full rounded-md h-10 sarabun-font"
-                  value={formData.province}
-                  onChange={(value) => handleDateChange("province", value)}
-                  placeholder="เลือกจังหวัด"
-                >
-                  <Option value="จันทบุรี" className="sarabun-font">จันทบุรี</Option>
-                </Select>
-              </div>
-              <div>
-                <label className="text-gray-600 font-medium sarabun-font">
-                  เขต/อำเภอ<span className="text-red-500">*</span>
-                </label>
-                <Select
-                  className="w-full rounded-md h-10 sarabun-font"
-                  value={formData.district}
-                  onChange={(value) => handleDateChange("district", value)}
-                  placeholder="เลือกอำเภอ"
-                >
-                  <Option value="มะขาม" className="sarabun-font">มะขาม</Option>
-                </Select>
-              </div>
-            </div>
-
-            {/* ตำบล / รหัสไปรษณีย์ */}
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-gray-600 font-medium sarabun-font">
-                  แขวง/ตำบล<span className="text-red-500">*</span>
-                </label>
-                <Select
-                  className="w-full rounded-md h-10 sarabun-font"
-                  value={formData.sub_district}
-                  onChange={(value) => handleDateChange("sub_district", value)}
-                  placeholder="เลือกตำบล"
-                >
-                  <Option value="มะขาม" className="sarabun-font">มะขาม</Option>
-                </Select>
-              </div>
-              <div>
-                <label className="text-gray-600 font-medium sarabun-font">
-                  รหัสไปรษณีย์<span className="text-red-500">*</span>
-                </label>
-                <Input
-                  className="w-full rounded-md h-10 sarabun-font"
-                  value={formData.zip_code}
-                  name="zip_code"
-                  onChange={handleInputChange}
-                  placeholder="รหัสไปรษณีย์"
-                />
-              </div>
-            </div>
 
             {/* Checkbox */}
             <div>
@@ -485,14 +452,14 @@ export default function RegisterOA() {
         visible={isSuccessModalVisible}
         onConfirm={() => {
           setIsSuccessModalVisible(false);
-          navigate("/mobile/verify"); // ไปหน้าใช้งาน
+          //navigate("/mobile/verify");
+          navigate("/mobile/main", { state: stageUser });
         }}
         src="/img/icons/check-circle.png"
         text={`<p class='text-[#8A8A8A] text-center sarabun-font'>ยินดีด้วย<br/>คุณลงทะเบียนสำเร็จ ได้รับ Welcome Point</p>
-         <p class='text-[#009845] text-center text-[24px] font-bold sarabun-font'>100 Point</p>`}
+         <p class='text-[#009845] text-center text-[24px] font-bold sarabun-font'>${Number(receive_point).toLocaleString()} Point</p>`}
         confirmText="เริ่มใช้งานกันเลย !"
       />
-
 
       <DynamicPopUp
         visible={isFailModalVisible}

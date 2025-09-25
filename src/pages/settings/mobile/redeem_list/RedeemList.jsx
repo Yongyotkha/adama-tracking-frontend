@@ -54,31 +54,31 @@ export default function RedeemList() {
   const filtersList = [
     { key: "target", type: "text", label: "Customer Name" },
     { key: "type", type: "text", label: "Type Name" },
-    {
-      key: "use_flag",
-      type: "select",
-      label: "Status",
-      options: [
-        { id: "1", name: "Active" },
-        { id: "0", name: "Inactive" },
-      ],
-    },
+    // {
+    //   key: "use_flag",
+    //   type: "select",
+    //   label: "Status",
+    //   options: [
+    //     { id: "1", name: "Active" },
+    //     { id: "0", name: "Inactive" },
+    //   ],
+    // },
   ];
 
   const filtersRequest = [
     { key: "shop", type: "text", label: "Customer Name" },
     { key: "customer", type: "text", label: "Customer Name" },
     { key: "reward", type: "text", label: "Reward Name" },
-    {
-      key: "status",
-      type: "select",
-      label: "Status",
-      options: [
-        { id: "PENDING", name: "Pending" },
-        { id: "APPROVED", name: "Approved" },
-        { id: "REJECTED", name: "Rejected" },
-      ],
-    },
+    // {
+    //   key: "status",
+    //   type: "select",
+    //   label: "Status",
+    //   options: [
+    //     { id: "PENDING", name: "Pending" },
+    //     { id: "APPROVED", name: "Approved" },
+    //     { id: "REJECTED", name: "Rejected" },
+    //   ],
+    // },
   ];
 
   // ---------------- Format helpers ----------------
@@ -264,12 +264,12 @@ export default function RedeemList() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Point Redeem</div>
+        <div className="title-page">Points Redeem</div>
       </div>
 
       <Tabs className="custom-tabs" activeKey={activeTab} onChange={setActiveTab}>
         <TabPane
-          tab={<span className="tab-title">Point Redeem List</span>}
+          tab={<span className="tab-title">Points Redeem List</span>}
           key="list"
         >
           <Filter filters={filtersList} />
@@ -287,7 +287,7 @@ export default function RedeemList() {
         </TabPane>
 
         <TabPane
-          tab={<span className="tab-title">Point Redeem Request List</span>}
+          tab={<span className="tab-title">Points Redeem Request List</span>}
           key="request"
         >
           <Filter filters={filtersRequest} />

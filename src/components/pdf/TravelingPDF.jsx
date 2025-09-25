@@ -175,6 +175,7 @@ const TravelingPDF = ({ title }) => {
     { title: "Date", dataIndex: "date", width: "10%" },
     { title: "Traveling From", dataIndex: "from", width: "15%" },
     { title: "To", dataIndex: "to", width: "15%" },
+    { title: "Mileage", dataIndex: "mileage", width: "10%" },
     { title: "Petrol", dataIndex: "petrol", width: "10%" },
     { title: "Cash Petrol", dataIndex: "cashPetrol", width: "10%" },
     { title: "Hotel", dataIndex: "hotel", width: "10%" },
@@ -187,6 +188,7 @@ const TravelingPDF = ({ title }) => {
   ];
 
   const columnsTotal = [
+    { title: "Total Mileage", dataIndex: "total_mileage", width: "10%" },
     { title: "Total Petrol", dataIndex: "total_petrol", width: "10%" },
     { title: "Total Cash Petrol", dataIndex: "total_cashPetrol", width: "10%" },
     { title: "Total Hotel", dataIndex: "total_hotel", width: "10%" },
@@ -221,6 +223,7 @@ const TravelingPDF = ({ title }) => {
       return totals;
     },
     {
+      total_mileage: 0,
       total_petrol: 0,
       total_cashPetrol: 0,
       total_hotel: 0,
@@ -230,6 +233,16 @@ const TravelingPDF = ({ title }) => {
       total_others: 0,
     }
   );
+
+  // คำนวณระยะทางรวม = mileage สุดท้าย (ตัวเลขตัวสุดท้ายที่พบ) - mileage แรก (ตัวเลขตัวแรกที่พบ)
+  const mileageSeries = dataItems
+    .map(r => cleanNumber(r.mileage))
+    .filter(n => n > 0);
+  if (mileageSeries.length >= 2) {
+    totalValues.total_mileage = mileageSeries[mileageSeries.length - 1] - mileageSeries[0];
+  } else {
+    totalValues.total_mileage = 0;
+  }
 
   const formatValue = (value) => {
     if (value === ".00") return '-'; // Replace .00 with 0
@@ -263,20 +276,22 @@ const TravelingPDF = ({ title }) => {
           const dataItems = response.data.data_items || [];
 
           const transformedData = dataItems.map((item, index) => {
+            const mileageNum = formatNumber(item.mileage);
             return {
               key: `${index + 1}`,
               date: item.date || "-",
               from: item.traveling_from || "-",
               to: item.traveling_to || "-",
-              mileage: item.mileage || "",
-              petrol: (formatValue(item.petrol)) || " ",
-              cashPetrol: (formatValue(item.cash_petrol)) || " ",
-              hotel: (formatValue(item.hotel)) || " ",
-              allowance: (formatValue(item.allowance)) || " ",
-              tollFee: (formatValue(item.toll_fee)) || " ",
-              entertain: (formatValue(item.entertain)) || " ",
-              others: (formatValue(item.others)) || " ",
-              total: (formatValue(item.total)) || " ",
+              // mileage: item.mileage || "",
+              mileage: mileageNum === 0 ? "-" : mileageNum,
+              petrol: (formatNumber(item.petrol)) || " ",
+              cashPetrol: (formatNumber(item.cash_petrol)) || " ",
+              hotel: (formatNumber(item.hotel)) || " ",
+              allowance: (formatNumber(item.allowance)) || " ",
+              tollFee: (formatNumber(item.toll_fee)) || " ",
+              entertain: (formatNumber(item.entertain)) || " ",
+              others: (formatNumber(item.others)) || " ",
+              total: (formatNumber(item.total)) || " ",
               remark: item.remark || "-",
             };
           });

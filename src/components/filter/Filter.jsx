@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import { useEffect } from "react";
 
 const { Option } = Select;
+const { RangePicker } = DatePicker;
 
 const Filter = ({ onSearch, onClear, onChange, filters, onValueChange, values }) => {
   const [filterValues, setFilterValues] = useState({});
@@ -116,6 +117,7 @@ const Filter = ({ onSearch, onClear, onChange, filters, onValueChange, values })
                     className="w-full"
                   />
                 )}
+
                 {filter.type === "date" && (
                   <DatePicker
                     value={
@@ -145,6 +147,14 @@ const Filter = ({ onSearch, onClear, onChange, filters, onValueChange, values })
                     className="w-full"
                     format="YYYY-MM"
                     picker="month"
+                  />
+                )}
+                {filter.type === "dater" && (
+                  <RangePicker
+                    format="YYYY-MM-DD"
+                    onChange={(dates, dateString) => {
+                      handleFilterChange(filter.key, dateString)
+                    }}
                   />
                 )}
               </Col>

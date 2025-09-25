@@ -205,7 +205,7 @@ export default function CreateRewardCampaign() {
   // ---------- ฟิลด์ฟอร์ม (ถ้า View ให้ disabled) ----------
   const formFields = useMemo(() => [
     // { label: "Banner", name: "banner", type: "photo", required: !isView, col: 24, accept: "image/png, image/jpeg", disabled: isView },
-    { label: "Reward Code", name: "code", type: "text", required: false, col: 12, placeholder: "Code", disabled: isView },
+    { label: "Reward Code", name: "code", type: "text", required: false, col: 12, placeholder: "Code", disabled: true },
     { label: "Category", name: "category", type: "select", required: true, col: 12, options: categoryOptions, disabled: isView },
     { label: "Reward Name", name: "name", type: "text", required: true, col: 24, placeholder: "Enter", disabled: isView },
     { label: "Detail", name: "description", type: "text", required: true, col: 24, placeholder: "Enter", disabled: isView },
