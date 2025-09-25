@@ -20,7 +20,7 @@ export default function RegisterOA() {
   const [isFailModalVisible, setIsFailModalVisible] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-
+  const [stageUser, setStageUser] = useState({});
   const { userInfo, showMsg, loginLineUid } =
     useContext(AuthContext);
 
@@ -174,6 +174,8 @@ export default function RegisterOA() {
             is_condition,
             shop_type,
           };
+
+          setStageUser(stateData)
           const fetchUserProfile = async () => {
 
             try {
@@ -183,7 +185,7 @@ export default function RegisterOA() {
               // console.log('case 4')
               // return false
               if (results.status === 200) {
-                navigate("/mobile/main", { state: stateData });
+                //navigate("/mobile/main", { state: stateData });
               }
             } catch (error) {
 
@@ -192,7 +194,7 @@ export default function RegisterOA() {
               // return false
               if (error?.response?.status === 401) {
                 // setRedirectPath("/mobile/verify");
-                navigate("/mobile/verify");
+                //navigate("/mobile/verify");
               }
             }
           };
@@ -450,7 +452,8 @@ export default function RegisterOA() {
         visible={isSuccessModalVisible}
         onConfirm={() => {
           setIsSuccessModalVisible(false);
-          navigate("/mobile/verify");
+          //navigate("/mobile/verify");
+          navigate("/mobile/main", { state: stageUser });
         }}
         src="/img/icons/check-circle.png"
         text={`<p class='text-[#8A8A8A] text-center sarabun-font'>ยินดีด้วย<br/>คุณลงทะเบียนสำเร็จ ได้รับ Welcome Point</p>

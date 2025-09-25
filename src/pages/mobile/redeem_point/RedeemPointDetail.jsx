@@ -170,6 +170,10 @@ export default function RedeemPointDetail() {
             {reward.name}
           </h2>
           <p className="text-gray-600 text-sm sarabun-font mt-2">
+            {reward.description ?? "-"}
+          </p>
+
+          <p className="text-gray-600 text-sm sarabun-font mt-2">
             ใช้ {target?.[0]?.point ?? "-"} คะแนน
           </p>
 
