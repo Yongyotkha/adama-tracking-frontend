@@ -77,11 +77,19 @@ export default function CollectPointsDetail() {
     }))
     : [];
 
+
+  const totalQtyPoint = products.reduce(
+    (sum, item) => sum + item.qty * item.point,
+    0
+  );
+
   const totalQty = products.reduce((sum, it) => sum + (Number.isFinite(it.qty) ? it.qty : 0), 0);
+
   const totalPrice = products.reduce(
     (sum, it) => sum + (Number.isFinite(it.amount) ? it.amount : 0),
     0
   );
+
   const totalPriceDisplay = new Intl.NumberFormat("th-TH").format(totalPrice);
 
   const displayDateTime =
@@ -191,7 +199,7 @@ export default function CollectPointsDetail() {
                           {item.qty} x {item.product_name}
                         </p>
                         <p className="text-xs text-gray-500">บรรจุ : {item.packing_list}</p>
-                        <p className="text-xs text-gray-500">คะแนน : {item.point}</p>
+                        <p className="text-xs text-gray-500">คะแนน : {item.point} รวม : {item.point * item.qty}</p>
                       </div>
                     </div>
                     <p className="w-20 text-right">{item.amount_display}</p>
@@ -247,7 +255,7 @@ export default function CollectPointsDetail() {
             <div className="mt-4 border-t pt-2 text-sm text-gray-800">
               <div className="flex justify-between font-semibold">
                 <p className="sarabun-font">จำนวนรวม</p>
-                <p>{totalQty}</p>
+                <p>{totalQty} / {totalQtyPoint}</p>
               </div>
 
               <div className="flex justify-between font-semibold text-lg text-green-700 mt-1">
@@ -255,6 +263,7 @@ export default function CollectPointsDetail() {
                 <p>{totalPriceDisplay}</p>
               </div>
             </div>
+
           </div>
         </div>
         <button
