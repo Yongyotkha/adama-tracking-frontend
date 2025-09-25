@@ -1,8 +1,9 @@
+// src/pages/settings/mobile/reward_campaign/RewardCampaignList.jsx
 import React, { useEffect, useState, useContext } from "react";
 import MainLayout from "../../../../layouts/MainLayout";
 import Filter from "../../../../components/filter/Filter";
 import TableComponent from "../../../../components/table/TableComponent";
-import { Dropdown, Popconfirm } from "antd"; // ⬅️ เพิ่ม Popconfirm
+import { Dropdown, Popconfirm } from "antd";
 import BadgeStatus from "../../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import ActionButton from "../../../../components/button/ActionButton";
@@ -11,13 +12,17 @@ import ItemDropDown from "../../../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../../../services/corsService";
 import { paths } from "../../../../services/CorsPath";
 import dayjs from "dayjs";
-import { AuthContext } from "../../../../contexts/AuthContext"; // ⬅️ ใช้ noti
+import { AuthContext } from "../../../../contexts/AuthContext";
 
 export default function RewardCampaignList() {
   const navigate = useNavigate();
+  const { showNotification } = useContext(AuthContext);
+
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [categories, setCategories] = useState([]);
+
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -27,26 +32,52 @@ export default function RewardCampaignList() {
       pageSizeOptions: ["10", "20", "50", "100"],
     },
     filters: {},
-
   });
 
-  const { showNotification } = useContext(AuthContext); // ⬅️ ดึง noti
+  // ---------- Load Category Master ----------
+  useEffect(() => {
+    const loadCategories = async () => {
+      setLoading(true);
+      try {
+        const res = await useServiceAPI.get(paths.pathPromotionCategory, {});
+        const opts = (res?.data || []).map((x) => ({
+          id: String(x.id),
+          name: String(x.name ?? "-"),
+        }));
+        setCategories(opts);
+      } catch (e) {
+        console.error("Load categories failed:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  // ---------- Filters UI ----------
   const filters = [
-    { key: "keyword", type: "text", label: "Reward Code" },
+    { key: "reward_code", type: "text", label: "Reward Code" },
     { key: "reward_name", type: "text", label: "Reward Name" },
-    { key: "category_name", type: "text", label: "Category" },
     {
-      key: "use_flag",
+      key: "category_id",
+      type: "select",
+      label: "Category",
+      options: categories, // from paths.pathPromotionCategory
+    },
+    { key: "dater", type: "dater", label: "Period" }, // ["YYYY-MM-DD","YYYY-MM-DD"]
+    {
+      key: "status",
       type: "select",
       label: "Status",
       options: [
-        { id: "1", name: "Active" },
         { id: "0", name: "Inactive" },
+        { id: "1", name: "Active" },
       ],
     },
   ];
 
+  // ---------- Table Header ----------
   const header = [
     { title: "No", dataIndex: "key", width: 60 },
     {
@@ -65,21 +96,26 @@ export default function RewardCampaignList() {
     { title: "Action", dataIndex: "action", align: "center", width: 50 },
   ];
 
+  // ---------- Fetch List (new filter spec) ----------
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
-    const filters = tableParams.filters;
+    const f = tableParams.filters || {};
 
     const requestData = {
-      keyword: filters?.keyword || "",
-      use_flag: filters?.use_flag || "",
+      reward_code: f.reward_code ?? "",
+      reward_name: f.reward_name ?? "",
+      category_id: f.category_id ?? "",
+      dater: Array.isArray(f.dater) ? f.dater : [],
+      status: f.status ?? "",
       page_size: pageSize,
       page_length: current,
     };
 
     try {
       const res = await useServiceAPI.get(paths.pathPromotionManagementList, requestData);
-      const list = res?.data?.data || [];
+      const payload = res?.data || {};
+      const list = payload?.data || [];
 
       const formatted = list.map((item, index) => ({
         key: index + 1 + (current - 1) * pageSize,
@@ -99,9 +135,8 @@ export default function RewardCampaignList() {
         action: (
           <Dropdown
             menu={{
-              items: item.action.map((act, i) => {
-                const mode = act.action.toLowerCase();
-                // ⬇️ แยก view / delete
+              items: (item.action || []).map((act, i) => {
+                const mode = String(act.action || "").toLowerCase();
                 if (mode === "view") {
                   return {
                     key: `view-${i}`,
@@ -109,8 +144,8 @@ export default function RewardCampaignList() {
                       <ItemDropDown
                         mode="view"
                         onClick={() =>
-                          navigate(`/setting/line/reward-campaign/${mode}`, {
-                            state: { id: item.id }, // ส่ง id ไปหน้า view
+                          navigate(`/setting/line/reward-campaign/view`, {
+                            state: { id: item.id },
                           })
                         }
                       />
@@ -127,7 +162,7 @@ export default function RewardCampaignList() {
                         okText="ลบ"
                         cancelText="ยกเลิก"
                         okButtonProps={{ danger: true }}
-                        onConfirm={() => handleDeleteReward(item.id)} // ⬅️ เรียกลบ
+                        onConfirm={() => handleDeleteReward(item.id)}
                       >
                         <div>
                           <ItemDropDown mode="delete" />
@@ -136,7 +171,6 @@ export default function RewardCampaignList() {
                     ),
                   };
                 }
-                // อื่นๆ (เช่น edit) -> นำทางตามเดิม
                 return {
                   key: `${mode}-${i}`,
                   label: (
@@ -165,7 +199,10 @@ export default function RewardCampaignList() {
         ...prev,
         pagination: {
           ...prev.pagination,
-          total: res.data.data.records_filtered,
+          total:
+            payload?.records_filtered ??
+            payload?.records_total ??
+            formatted.length,
         },
       }));
     } catch (err) {
@@ -175,24 +212,18 @@ export default function RewardCampaignList() {
     }
   };
 
-  // ⬇️ ฟังก์ชันลบ + noti ตาม response API
+  // ---------- Delete ----------
   const handleDeleteReward = async (id) => {
     try {
       setTableLoading(true);
-
-      // เลือกวิธีเรียก API แบบ query string (ตาม pattern ตัวอย่างของคุณ)
       const url = `${paths.pathPromotiondelete}?id=${encodeURIComponent(id)}`;
       const res = await useServiceAPI.delete(url);
 
-      // รองรับทั้งกรณีมี res.data.result และ status 200
-      const ok = (res?.status === 200);
+      const ok = res?.status === 200;
       const title = res?.data?.message || (ok ? "Delete successful" : "Delete failed");
-      const lines = res?.data?.message_line || []; // ถ้ามี
-
+      const lines = res?.data?.message_line || [];
       showNotification(ok ? "success" : "error", title, lines);
-      if (ok) {
-        fetchData(); // รีเฟรชตาราง
-      }
+      if (ok) fetchData();
     } catch (error) {
       console.error("Delete reward failed:", error);
       showNotification("error", "Delete failed", [error?.message || "Unexpected error"]);
@@ -201,14 +232,17 @@ export default function RewardCampaignList() {
     }
   };
 
+  // ---------- Effects ----------
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     tableParams.pagination.current,
     tableParams.pagination.pageSize,
     JSON.stringify(tableParams.filters),
   ]);
 
+  // ---------- Filter handlers ----------
   const handleSearch = (filters) => {
     setTableParams((prev) => ({
       ...prev,
@@ -233,7 +267,9 @@ export default function RewardCampaignList() {
         <div className="title-page">Reward List</div>
         <ActionButton mode="create" text="Create" onClick={() => navigate("create")} />
       </div>
+
       <Filter filters={filters} onSearch={handleSearch} onClear={handleClear} />
+
       <BoxPrimary>
         <TableComponent
           header={header}
@@ -244,7 +280,8 @@ export default function RewardCampaignList() {
             setTableParams((prev) => ({
               ...prev,
               pagination,
-            }))}
+            }))
+          }
         />
       </BoxPrimary>
     </MainLayout>

@@ -14,37 +14,111 @@ import { paths } from "../../../../services/CorsPath";
 
 export default function TargetGroupList() {
   const navigate = useNavigate();
+
+  // page states
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+
+  // masters for filters
+  const [targetGroups, setTargetGroups] = useState([]); // /target-group/group
+  const [typeGroups, setTypeGroups] = useState([]);     // /target-group/type (depends on target)
+
+  // keep current filter values to do cascade
+  const [filterValues, setFilterValues] = useState({});
+
+  // table params
   const [tableParams, setTableParams] = useState({
     pagination: { current: 1, pageSize: 50, total: 0 },
     filters: {},
   });
 
+  // ---------- Filters UI ----------
   const filters = [
-    { key: "target", type: "text", label: "Customer Name" },
-    { key: "type", type: "text", label: "Type Name" },
     {
-      key: "use_flag",
+      key: "status",
       type: "select",
       label: "Status",
       options: [
-        { id: "1", name: "Active" },
         { id: "0", name: "Inactive" },
+        { id: "1", name: "Active" },
       ],
+    },
+    {
+      key: "target_name",
+      type: "select",
+      label: "Target Group",
+      options: targetGroups, // [{id, name}]
+    },
+    {
+      key: "type_name",
+      type: "select",
+      label: "Type",
+      options: typeGroups, // [{id, name}] <- will change when target_name changes
+      disabled: !filterValues?.target_name, // ปิดไว้จนกว่าจะเลือก target
     },
   ];
 
+  // ---------- Table header ----------
   const header = [
-    { title: "No", dataIndex: "key" },
+    { title: "No", dataIndex: "key", width: 70, align: "center" },
     { title: "Customer Name", dataIndex: "target_text" },
     { title: "Type Name", dataIndex: "type" },
-    { title: "Create Date", dataIndex: "created_at" },
-    { title: "Status", dataIndex: "status" },
-    { title: "Action", dataIndex: "action" },
+    { title: "Create Date", dataIndex: "created_at", width: 140, align: "center" },
+    { title: "Status", dataIndex: "status", width: 120, align: "center" },
+    { title: "Action", dataIndex: "action", width: 90, align: "center" },
   ];
 
+  // ---------- Load Target Group master (no body) ----------
+  useEffect(() => {
+    const loadTargetGroups = async () => {
+      setLoading(true);
+      try {
+        const tgRes = await useServiceAPI.get(paths.pathTargetGroupMasterGroup, {});
+        // res.data = [{ id: 1, name: "Dealer" }, ...]
+        const opts = (tgRes?.data || []).map((x) => ({
+          id: String(x.id),
+          name: String(x.name ?? "-"),
+        }));
+        console.log(opts);
+        setTargetGroups(opts);
+      } catch (e) {
+        console.error("Load target group master failed:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadTargetGroups();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ---------- When target changes -> load type master with body { target } ----------
+  useEffect(() => {
+    const t = filterValues?.target_name;
+    if (!t) {
+      setTypeGroups([]);
+      return;
+    }
+    const targetId = typeof t === "object" && t.value ? t.value : t;
+    const loadTypeByTarget = async () => {
+      try {
+        const tyRes = await useServiceAPI.get(paths.pathTargetGroupType, { target: String(targetId) });
+        // res.data = [{ id: "1", name: "Star" }, ...]
+        const tyOpts = (tyRes?.data || []).map((x) => ({
+          id: String(x.id),
+          name: String(x.name ?? "-"),
+        }));
+        setTypeGroups(tyOpts);
+      } catch (e) {
+        console.error("Load type master failed:", e);
+        setTypeGroups([]);
+      }
+    };
+    loadTypeByTarget();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterValues?.target_name]);
+
+  // ---------- Delete handler ----------
   const handleDelete = async (id) => {
     Modal.confirm({
       title: "ยืนยันการลบ?",
@@ -57,7 +131,6 @@ export default function TargetGroupList() {
           setTableLoading(true);
           const res = await useServiceAPI.delete(paths.pathTargetGroupDelete, { id });
           if (res?.status === 200) {
-            // รีโหลดตาราง
             await fetchData();
           }
         } catch (e) {
@@ -69,22 +142,30 @@ export default function TargetGroupList() {
     });
   };
 
+  // ---------- Fetch data ----------
   const fetchData = async () => {
     setTableLoading(true);
+
     const { current, pageSize } = tableParams.pagination;
-    const filterValues = tableParams.filters;
+    const f = tableParams.filters || {};
+
     const requestData = {
-      use_flag: filterValues?.use_flag ?? "",
+      status: f.status ?? "",
+      target_name: f.target_name ?? "", // id
+      type_name: f.type_name ?? "",     // id
       page_size: pageSize,
       page_length: current,
-    };
+    }; 
+
+    console.log(requestData.status);
+
     try {
       const res = await useServiceAPI.get(paths.pathTargetGroupList, requestData);
       if (res.status === 200) {
         const result = res.data;
         const list = result?.data || [];
 
-        const formattedData = list.map((item, index) => {
+        const formatted = list.map((item, index) => {
           const id = item.id;
           const items = [
             {
@@ -142,12 +223,15 @@ export default function TargetGroupList() {
           };
         });
 
-        setDataSource(formattedData);
+        setDataSource(formatted);
         setTableParams((prev) => ({
           ...prev,
           pagination: {
             ...prev.pagination,
-            total: result.data?.records_filtered ?? result.records_filtered ?? 0,
+            total:
+              result?.data?.records_filtered ??
+              result?.records_filtered ??
+              0,
           },
         }));
       }
@@ -158,6 +242,7 @@ export default function TargetGroupList() {
     }
   };
 
+  // ---------- Effects ----------
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -167,16 +252,39 @@ export default function TargetGroupList() {
     JSON.stringify(tableParams.filters),
   ]);
 
-  const handleSearch = (filters) => {
+  // ---------- Filter handlers ----------
+  const handleSearch = (filtersFromUI) => {
+    // ถ้าเปลี่ยน target ให้ clear type อัตโนมัติ (กันค่าค้าง)
+    const nextFilters =
+      filtersFromUI?.target_name !== filterValues?.target_name
+        ? { ...filtersFromUI, type_name: "" }
+        : { ...filtersFromUI };
+
     setTableParams((prev) => ({
       ...prev,
       pagination: { ...prev.pagination, current: 1 },
-      filters,
+      filters: nextFilters, // { status, target_name, type_name }
     }));
+    setFilterValues(nextFilters);
   };
 
   const handleClear = () => {
-    setTableParams((prev) => ({ ...prev, filters: {} }));
+    setFilterValues({});
+    setTypeGroups([]);
+    setTableParams((prev) => ({
+      ...prev,
+      filters: {},
+      pagination: { ...prev.pagination, current: 1 },
+    }));
+  };
+
+  // ใช้ onChange เพื่อทำ cascade แบบ realtime (ไม่ต้องกด Search ก็โหลด type ให้เลย)
+  const handleFilterChange = (values) => {
+    // ถ้า target เปลี่ยน ให้ reset type ใน UI state ด้วย
+    if (values?.target_name !== filterValues?.target_name) {
+      values.type_name = "";
+    }
+    setFilterValues(values);
   };
 
   return (
@@ -186,7 +294,14 @@ export default function TargetGroupList() {
         <ActionButton mode="create" text="Create" onClick={() => navigate("create")} />
       </div>
 
-      <Filter filters={filters} onSearch={handleSearch} onClear={handleClear} />
+      <Filter
+        filters={filters}
+        onChange={handleFilterChange}
+        onSearch={handleSearch}
+        onClear={handleClear}
+        values={filterValues}
+      />
+
       <BoxPrimary>
         <TableComponent
           header={header}
