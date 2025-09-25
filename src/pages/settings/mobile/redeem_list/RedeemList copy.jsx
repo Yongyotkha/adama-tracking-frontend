@@ -248,12 +248,12 @@ export default function RedeemList() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Point Redeem</div>
+        <div className="title-page">Points Redeem</div>
         {/* <ActionButton mode="create" text="Create" onClick={() => navigate("create")} /> */}
       </div>
 
       <Tabs className="custom-tabs" activeKey={activeTab} onChange={setActiveTab}>
-        <TabPane tab={<span className="tab-title">Point Redeem List</span>} key="list">
+        <TabPane tab={<span className="tab-title">Points Redeem List</span>} key="list">
           <Filter filters={filtersList} />
           <BoxPrimary className="mt-4">
             <TableComponent
@@ -268,7 +268,7 @@ export default function RedeemList() {
           </BoxPrimary>
         </TabPane>
 
-        <TabPane tab={<span className="tab-title">Point Redeem Request List</span>} key="request">
+        <TabPane tab={<span className="tab-title">Points Redeem Request List</span>} key="request">
           <Filter filters={filtersRequest} />
           <BoxPrimary className="mt-4">
             <TableComponent

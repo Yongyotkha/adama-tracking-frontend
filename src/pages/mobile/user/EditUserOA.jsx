@@ -189,7 +189,7 @@ export default function EditUserOA() {
             </div>
 
             <div>
-              <label className="text-gray-500 sarabun-font">เบอร์โทร</label>
+              <label className="text-gray-500 sarabun-font">เบอร์โทรเบอร์โทรศัพท์</label>
               <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.phone_number} name="phone_number" onChange={handleInputChange} />
             </div>
 

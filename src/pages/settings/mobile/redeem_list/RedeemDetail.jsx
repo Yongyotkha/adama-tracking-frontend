@@ -261,7 +261,7 @@ export default function RedeemDetail() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Point Redeem Detail</div>
+      <div className="title-page">Points Redeem Detail</div>
 
       <BoxPrimary>
         <Form form={form} layout="vertical" disabled>

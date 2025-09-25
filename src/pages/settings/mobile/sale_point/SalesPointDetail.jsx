@@ -130,15 +130,6 @@ export default function SalesPointDetail() {
     //   ),
     // },
     {
-      title: <div className="text-center">Point</div>, dataIndex: "point", key: "point",
-      render: (text) => (
-        <div className="text-center">
-          {parseFloat(text || 0).toLocaleString("en-US")}
-        </div>
-      ),
-    },
-
-    {
       title: <div className="text-end">Sub Total (THB)</div>,
       dataIndex: "net_amount",
       key: "net_amount",
@@ -148,6 +139,15 @@ export default function SalesPointDetail() {
         </div>
       ),
     },
+    {
+      title: <div className="text-center">Point</div>, dataIndex: "point", key: "point",
+      render: (text) => (
+        <div className="text-center">
+          {parseFloat(text || 0).toLocaleString("en-US")}
+        </div>
+      ),
+    },
+
   ];
 
   const headerOther = [

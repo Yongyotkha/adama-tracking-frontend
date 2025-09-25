@@ -204,7 +204,7 @@ export default function TransportationDetail() {
             <Form.Item label="Sub Dealer Name" name="sub_dealer_name">
               <Input disabled />
             </Form.Item>
-            <Form.Item label="Shop Name" name="shop_name">
+            <Form.Item label="Customer Name" name="shop_name">
               <Input disabled />
             </Form.Item>
             <Form.Item label="Contact Number" name="contact_number">
