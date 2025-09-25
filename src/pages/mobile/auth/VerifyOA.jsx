@@ -77,7 +77,7 @@ export default function VerifyOA() {
 
         if (response.status === 200) {
           if (response.data.step_number == 0) {
-            showCancel('คุณมีการลงทะเบียนแล้ว', 'ไม่พบข้อมูลของคุณในระบบ', 'ปิด');
+            showCancel('ขออภัย', 'ไม่พบข้อมูลของคุณในระบบ', 'ปิด');
           } else if (response.data.step_number == 1 || response.data.step_number == 4) {
 
             const otpRefNo = response.data.data.data.otp_ref_no;
@@ -85,7 +85,7 @@ export default function VerifyOA() {
             navigate("/mobile/otp", { state: { otpRefNo, message_id } });
 
           } else if (response.data.step_number == 2) {
-            showConfirm('คุณมีการลงทะเบียนแล้ว', 'กรุณากรอกเบอร์โทรศัพท์ที่เคยมีการลงทะเบียนแล้วหากคุณลืมหมายเลขให้ติดต่อแจ้งเจ้าหน้าที่', 'ตกลง', 'ติดต่อเจ้าหน้าที่');
+            showConfirm('ขออภัย', 'กรุณากรอกเบอร์โทรศัพท์ที่เคยมีการลงทะเบียนแล้วหากคุณลืมหมายเลขให้ติดต่อแจ้งเจ้าหน้าที่', 'ตกลง', 'ติดต่อเจ้าหน้าที่');
           } else if (response.data.step_number == 3) {
 
           } 
@@ -165,7 +165,7 @@ export default function VerifyOA() {
             navigate("/mobile/contact-admin");
           }}
           className="text-green-600 text-sm cursor-pointer hover:underline sarabun-font">
-          เปลี่ยนหมายเลขโทรศัพท์ของคุณหรือ ลืมหมายเลขของคุณ?
+          สมัครสมาชิก หรือติดต่อแจ้งหน้าที่?
         </Text>
       </div>
 

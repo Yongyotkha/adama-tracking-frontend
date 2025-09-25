@@ -691,7 +691,7 @@ export default function CreatePointCampaign() {
             name="campaign_name"
             rules={[{ required: true, message: "Please input campaign name" }]}
           >
-            <Input placeholder="Campaign 1" />
+            <Input placeholder="Campaign Name" />
           </Form.Item>
 
           {/* Customer Group */}
@@ -748,7 +748,8 @@ export default function CreatePointCampaign() {
                 rules={[{ required: true, message: "Please select campaign type" }]}
               >
                 <Radio.Group>
-                  <Radio value="extra">Extra Point</Radio>
+                  <Radio value="extra">Extra Point (Value)</Radio>
+                  <Radio value="extra">Extra Point (Points)</Radio>
                   {/* <Radio value="topup">Topup Point</Radio> */}
                   <Radio value="xpoint">X Point</Radio>
                 </Radio.Group>
@@ -789,7 +790,7 @@ export default function CreatePointCampaign() {
       {showSelectTargetTable && (
         <BoxPrimary>
           <div className="flex items-center justify-between mb-3">
-            <div className="text-[#00783F] text-lg font-semibold">Select Target</div>
+            <div className="text-[#00783F] text-lg font-semibold">Select Customer</div>
             <div style={{ width: 280 }}>
               <Search placeholder="Search" allowClear onChange={(e) => setSearchKeyword(e.target.value)} />
             </div>
