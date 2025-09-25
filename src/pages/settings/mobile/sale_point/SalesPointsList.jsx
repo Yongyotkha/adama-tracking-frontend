@@ -310,7 +310,7 @@ export default function SalesPointsList() {
             document_number: item.document_number,
             dealer: item.dealer_name ?? "-",
             sub_dealer: item.sub_dealer_name ?? "-",
-            sale: item.user_name ?? "-",
+            sale: item.sale_name ?? "-",
             request_date: requestDate,
             status: (
               <BadgeStatus
