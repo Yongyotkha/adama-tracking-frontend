@@ -102,6 +102,22 @@ const styles = StyleSheet.create({
     paddingBottom: 1.25,
     flexGrow: 1,
   },
+  tableHeaderCell: {
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderTop: 0,
+    borderRight: 0,
+    borderColor: "#000",
+    paddingLeft: 2,
+    paddingRight: 2,
+    paddingTop: 1.25,
+    paddingBottom: 1.25,
+    textAlign: "center",
+    fontWeight: "bold",
+    flexGrow: 1,
+  },
+  rightAlign: { textAlign: "right" },
+  centerAlign: { textAlign: "center" },
   footer: {
     fontSize: 8,
   },
@@ -187,6 +203,19 @@ const TravelingPDF = ({ title }) => {
     { title: "Remark", dataIndex: "remark", width: "20%" },
   ];
 
+  const numberCols = new Set([
+    "mileage",
+    "petrol",
+    "cashPetrol",
+    "hotel",
+    "allowance",
+    "tollFee",
+    "entertain",
+    "others",
+    // "total", // ถ้าในอนาคตมีคอลัมน์ total ให้เอาออกจากคอมเมนต์ได้
+  ]);
+
+
   const columnsTotal = [
     { title: "Total Mileage", dataIndex: "total_mileage", width: "10%" },
     { title: "Total Petrol", dataIndex: "total_petrol", width: "10%" },
@@ -245,8 +274,8 @@ const TravelingPDF = ({ title }) => {
   }
 
   const formatValue = (value) => {
-    if (value === ".00") return '-'; // Replace .00 with 0
-    if (!isNaN(value)) return parseFloat(value); // Otherwise, return as float
+    if (value === ".00" || value == 0) return '-'; // Replace .00 with 0
+    if (!isNaN(value)) return formatNumber(value); // Otherwise, return as float
     return value; // If it's neither, return the value as is
   };
 
@@ -276,22 +305,23 @@ const TravelingPDF = ({ title }) => {
           const dataItems = response.data.data_items || [];
 
           const transformedData = dataItems.map((item, index) => {
-            const mileageNum = formatNumber(item.mileage);
+            const mileageNum = formatValue(item.mileage);
             return {
               key: `${index + 1}`,
               date: item.date || "-",
               from: item.traveling_from || "-",
               to: item.traveling_to || "-",
               // mileage: item.mileage || "",
-              mileage: mileageNum === 0 ? "-" : mileageNum,
-              petrol: (formatNumber(item.petrol)) || " ",
-              cashPetrol: (formatNumber(item.cash_petrol)) || " ",
-              hotel: (formatNumber(item.hotel)) || " ",
-              allowance: (formatNumber(item.allowance)) || " ",
-              tollFee: (formatNumber(item.toll_fee)) || " ",
-              entertain: (formatNumber(item.entertain)) || " ",
-              others: (formatNumber(item.others)) || " ",
-              total: (formatNumber(item.total)) || " ",
+              // mileage: mileageNum === 0 ? "-" : mileageNum,
+              mileage: (formatValue(item.mileage)) || " ",
+              petrol: (formatValue(item.petrol)) || " ",
+              cashPetrol: (formatValue(item.cash_petrol)) || " ",
+              hotel: (formatValue(item.hotel)) || " ",
+              allowance: (formatValue(item.allowance)) || " ",
+              tollFee: (formatValue(item.toll_fee)) || " ",
+              entertain: (formatValue(item.entertain)) || " ",
+              others: (formatValue(item.others)) || " ",
+              total: (formatValue(item.total)) || " ",
               remark: item.remark || "-",
             };
           });
@@ -331,9 +361,9 @@ const TravelingPDF = ({ title }) => {
           {/* Table */}
           <View style={styles.table}>
             {/* Header Row */}
-            <View style={[styles.tableRow, styles.bold]}>
+            <View style={styles.tableRow}>
               {columns.map((col, index) => (
-                <Text key={index} style={[styles.tableCell, { width: col.width }]}>
+                <Text key={index} style={[styles.tableHeaderCell, { width: col.width }]}>
                   {col.title}
                 </Text>
               ))}
@@ -342,22 +372,38 @@ const TravelingPDF = ({ title }) => {
             {/* Data Rows */}
             {dataItems.map((row, index) => (
               <View key={index} style={styles.tableRow}>
-                {columns.map((col, colIndex) => (
-                  <Text key={colIndex} style={[styles.tableCell, { width: col.width }]}>
-                    {row[col.dataIndex] || " "}
-                  </Text>
-                ))}
+                {columns.map((col, colIndex) => {
+                  const isNumber = numberCols.has(col.dataIndex);
+                  return (
+                    <Text
+                      key={colIndex}
+                      style={[
+                        styles.tableCell,
+                        { width: col.width },
+                        isNumber && styles.rightAlign,
+                      ]}
+                    >
+                      {row[col.dataIndex] || " "}
+                    </Text>
+                  );
+                })}
               </View>
             ))}
 
-            {/* Total Row (Footer at Bottom of Table) */}
-
+            {/* Total Row */}
             <View style={styles.tableRow}>
-              <Text style={[styles.tableCell, { width: '40%', textAlign: 'center' }]}>
-                Total(THB)
+              <Text style={[styles.tableCell, { width: "40%" }, styles.centerAlign]}>
+                Total
               </Text>
               {columnsTotal.map((col, colIndex) => (
-                <Text key={colIndex} style={[styles.tableCell, { width: col.width }]}>
+                <Text
+                  key={colIndex}
+                  style={[
+                    styles.tableCell,
+                    { width: col.width },
+                    styles.rightAlign,
+                  ]}
+                >
                   {formatNumber(totalValues[col.dataIndex])}
                 </Text>
               ))}
