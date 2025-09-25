@@ -36,7 +36,7 @@ export default function RequestPurchaseDetail() {
     { title: "Category Name", dataIndex: "category_name", align: "left" },
     { title: "Reward Name", dataIndex: "reward_name", align: "left" },
     { title: "Cost (THB)", dataIndex: "cost", align: "right", width: 140 },
-    { title: "QTY (ctn)", dataIndex: "qty", align: "center", width: 180 },
+    { title: "QTY", dataIndex: "qty", align: "center", width: 180 },
     { title: "Sub Total (THB)", dataIndex: "sub_total", align: "right", width: 180 },
   ];
 

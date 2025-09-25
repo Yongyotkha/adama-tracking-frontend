@@ -42,7 +42,7 @@ export default function CreateTargetGroup() {
       default:
         return [
           { title: "No", render: (_, __, index) => index + 1 },
-          { title: "Code", dataIndex: "code" },
+          // { title: "Code", dataIndex: "code" },
           { title: "Dealer Name", dataIndex: "dealer_name" },
           { title: "Address", dataIndex: "address" },
         ];
