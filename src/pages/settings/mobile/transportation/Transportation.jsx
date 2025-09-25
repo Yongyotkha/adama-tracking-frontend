@@ -56,10 +56,10 @@ export default function Transportation() {
   /** ---------------- Columns ---------------- */
   const columns = [
     { title: "Date", dataIndex: "date", align: "left", width: 140 },
-    { title: "Sub Dealer Name", dataIndex: "sub_dealer_name", align: "left" },
+    { title: "Customer Name", dataIndex: "sub_dealer_name", align: "left" },
     { title: "Reward Code", dataIndex: "reward_code", align: "left", width: 160 },
     { title: "Reward Name", dataIndex: "reward_name", align: "left" },
-    { title: "QTY (Pcs)", dataIndex: "qty", align: "right", width: 100 },
+    { title: "QTY", dataIndex: "qty", align: "right", width: 100 },
     { title: "Cost (THB)", dataIndex: "cost", align: "right", width: 120 },
     { title: "Send By", dataIndex: "send_by", align: "center", width: 140 },
     { title: "Send Date", dataIndex: "send_date", align: "center", width: 140 },

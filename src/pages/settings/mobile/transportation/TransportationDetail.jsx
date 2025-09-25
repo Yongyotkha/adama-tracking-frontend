@@ -201,10 +201,10 @@ export default function TransportationDetail() {
       <BoxPrimary>
         <Form form={formTop} layout="vertical" disabled>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Form.Item label="Sub Dealer Name" name="sub_dealer_name">
+            <Form.Item label="Customer Name" name="sub_dealer_name">
               <Input disabled />
             </Form.Item>
-            <Form.Item label="Customer Name" name="shop_name">
+            <Form.Item label="Contact Name" name="shop_name">
               <Input disabled />
             </Form.Item>
             <Form.Item label="Contact Number" name="contact_number">
