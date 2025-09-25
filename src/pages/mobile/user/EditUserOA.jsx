@@ -37,6 +37,8 @@ export default function EditUserOA() {
     birth_date_year: "",
   });
 
+  console.log('formData : ', formData)
+
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
@@ -57,7 +59,7 @@ export default function EditUserOA() {
             profile_image: imagePreview,
             id: location.state.id, // ส่ง ID ผู้ใช้ไปด้วย
           });
-  
+
           if (response.status === 200) {
             console.log("Profile image updated successfully:", response.data);
           }
@@ -65,12 +67,12 @@ export default function EditUserOA() {
           console.error("Error updating profile image:", error);
         }
       };
-  
+
       updateProfileImage();
     }
   }, [imagePreview, userData.profile_image, userData.id]);
 
-  
+
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     setImagePreview(URL.createObjectURL(file));
@@ -180,7 +182,7 @@ export default function EditUserOA() {
 
             <div>
               <label className="text-gray-500 sarabun-font">ชื่อ</label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.contact_first_name} name="first_name" onChange={handleInputChange} />
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.first_name} name="first_name" onChange={handleInputChange} />
             </div>
 
             <div>

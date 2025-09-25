@@ -16,7 +16,7 @@ export default function UserDetail() {
 
 
   console.log(userId);
-  
+
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -90,11 +90,11 @@ export default function UserDetail() {
                   </div>
                   <div className="flex justify-between border-b pb-2">
                     <span className="text-gray-500 sarabun-font">ชื่อ-นามสกุล</span>
-                    <span className="sarabun-font">{user?.name_th || user?.name_en || "-"}</span>
+                    <span className="sarabun-font">{user?.contact_first_name || "-"} {user?.contact_last_name || "-"}</span>
                   </div>
                   <div className="flex justify-between border-b pb-2">
                     <span className="text-gray-500 sarabun-font">วันเดือนปีเกิด</span>
-                    <span className="sarabun-font">{user?.date_of_birth ? user?.date_of_birth : "-"}</span>
+                    <span className="sarabun-font">{user?.contact_birth_date_year || "-"}</span>
                   </div>
                   <div className="flex justify-between border-b pb-2">
                     <span className="text-gray-500 sarabun-font">เบอร์โทรศัพท์</span>
