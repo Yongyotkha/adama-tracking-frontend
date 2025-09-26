@@ -12,15 +12,24 @@ import { paths } from "../../../../services/CorsPath";
 
 const { TabPane } = Tabs;
 
-// Send By options
-const SEND_BY_OPTIONS_RAW = [
-  { value: "mail/ship", label: "Mail/Ship" },
-  { value: "staff", label: "Staff" },
+/** ---------- Send By options (ค่าตรง API) ---------- */
+const SEND_BY_OPTIONS = [
+  { id: "Mail/Ship", name: "Mail/Ship" },
+  { id: "Staff", name: "Staff" },
 ];
-const SEND_BY_OPTIONS = SEND_BY_OPTIONS_RAW.map(({ value, label }) => ({
-  id: value,
-  name: label,
-}));
+
+/** ---------- Status Tran options ---------- */
+const STATUS_TRAN_OPTIONS = [
+  { id: "RTP", name: "Prepare" },
+  { id: "RTD", name: "Delivery" },
+  { id: "RTV", name: "Delivered" },
+];
+
+/** ---------- Active/Inactive map to use_flag ---------- */
+const STATUS_ACTIVE_OPTIONS = [
+  { id: "1", name: "Active" },
+  { id: "0", name: "Inactive" },
+];
 
 export default function Transportation() {
   const navigate = useNavigate();
@@ -43,15 +52,23 @@ export default function Transportation() {
     filters: {},
   });
 
-  /** ---------------- Filters ---------------- */
-  const filtersTransportation = [
+  /** ---------------- Filters ----------------
+   * เพิ่ม:
+   * - status_tran: multiple
+   * - keyword: text
+   * - status: select -> map ไป use_flag
+   */
+  const commonFilters = [
     { key: "sub_dealer_name", type: "text", label: "Sub Dealer Name" },
     { key: "send_by", type: "select", label: "Send By", options: SEND_BY_OPTIONS },
-    { key: "send_at", type: "date", label: "Send Date" },   // ⬅️ วันเดียว
-    { key: "dater", type: "dater", label: "Date Range" },   // ⬅️ ช่วงวัน
+    { key: "send_at", type: "date", label: "Send Date" },
+    { key: "dater", type: "dater", label: "Date Range" },
+    // { key: "status_tran", type: "select", label: "Status (Tran)", options: STATUS_TRAN_OPTIONS, multiple: true },
+    { key: "keyword", type: "text", label: "Keyword" },
+    // { key: "status", type: "select", label: "Status (Active)", options: STATUS_ACTIVE_OPTIONS }, // use_flag
   ];
-  const filtersPreparation = filtersTransportation;
-
+  const filtersTransportation = commonFilters;
+  const filtersPreparation = commonFilters;
 
   /** ---------------- Columns ---------------- */
   const columns = [
@@ -73,17 +90,23 @@ export default function Transportation() {
     const { current, pageSize } = tableParams.pagination;
     const f = tableParams.filters || {};
 
+    // default status_tran ถ้าไม่เลือกในแท็บนี้ = ["RTD","RTV"]
+    const statusTran =
+      Array.isArray(f.status_tran) && f.status_tran.length > 0
+        ? f.status_tran
+        : ["RTD", "RTV"];
+
     try {
       const res = await useServiceAPI.get(paths.pathTransportList, {
         page_size: pageSize,
         page_length: current,
-        status_tran: ["RTD", "RTV"],
+        status_tran: statusTran,
         sub_dealer_name: f.sub_dealer_name || "",
         send_by: f.send_by || "",
-        send_at: f.send_at || "",      // ⬅️ วันเดียว
-        dater: f.dater || [],          // ⬅️ ช่วงวัน
+        send_at: f.send_at || "",
+        dater: f.dater || [],
         keyword: f.keyword || "",
-        use_flag: f.use_flag || "",
+        use_flag: f.status ?? "", // map status -> use_flag
       });
 
       if (res.status === 200) {
@@ -100,7 +123,7 @@ export default function Transportation() {
           send_date: item.send_at ? item.send_at.split(" ")[0] : "-",
           status: (
             <BadgeStatus
-              text={item.status_tran_namsse || "-"}
+              text={item.status_tran_name || item.status_tran_namsse || "-"}
               bgColor={item.status_tran_bg_color || "gray"}
               textColor={item.status_tran_color || "white"}
             />
@@ -124,32 +147,28 @@ export default function Transportation() {
                   },
                   ...(item.status_tran === "RTD"
                     ? [
-                      {
-                        key: "delivery",
-                        label: (
-                          <ItemDropDown
-                            mode="edit"
-                            text={"Delivery"}
-                            onClick={() =>
-                              navigate("/points/line/transportation/delivery", {
-                                state: { id: item.id, mode: "delivery" },
-                              })
-                            }
-                          />
-                        ),
-                      },
-                    ]
+                        {
+                          key: "delivery",
+                          label: (
+                            <ItemDropDown
+                              mode="edit"
+                              text={"Delivery"}
+                              onClick={() =>
+                                navigate("/points/line/transportation/delivery", {
+                                  state: { id: item.id, mode: "delivery" },
+                                })
+                              }
+                            />
+                          ),
+                        },
+                      ]
                     : []),
                 ],
               }}
               placement="bottomRight"
             >
               <a onClick={(e) => e.preventDefault()}>
-                <img
-                  src="/img/icons/action.png"
-                  alt="action"
-                  className="inline-block w-5 h-5"
-                />
+                <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
               </a>
             </Dropdown>
           ),
@@ -172,17 +191,23 @@ export default function Transportation() {
     const { current, pageSize } = prepTableParams.pagination;
     const f = prepTableParams.filters || {};
 
+    // default status_tran ถ้าไม่เลือกในแท็บนี้ = ["RTP"]
+    const statusTran =
+      Array.isArray(f.status_tran) && f.status_tran.length > 0
+        ? f.status_tran
+        : ["RTP"];
+
     try {
       const res = await useServiceAPI.get(paths.pathTransportList, {
         page_size: pageSize,
         page_length: current,
-        status_tran: ["RTP"],
+        status_tran: statusTran,
         sub_dealer_name: f.sub_dealer_name || "",
         send_by: f.send_by || "",
-        send_at: f.send_at || "",      // ⬅️ วันเดียว
-        dater: f.dater || [],          // ⬅️ ช่วงวัน
+        send_at: f.send_at || "",
+        dater: f.dater || [],
         keyword: f.keyword || "",
-        use_flag: f.use_flag || "",
+        use_flag: f.status ?? "", // map status -> use_flag
       });
 
       if (res.status === 200) {
@@ -199,7 +224,7 @@ export default function Transportation() {
           send_date: item.send_at ? item.send_at.split(" ")[0] : "-",
           status: (
             <BadgeStatus
-              text={item.status_tran_namsse || "Prepare"}
+              text={item.status_tran_name || item.status_tran_namsse || "Prepare"}
               bgColor={item.status_tran_bg_color || "#b5aca4"}
               textColor={item.status_tran_color || "#ffffff"}
             />
@@ -226,11 +251,7 @@ export default function Transportation() {
               placement="bottomRight"
             >
               <a onClick={(e) => e.preventDefault()}>
-                <img
-                  src="/img/icons/action.png"
-                  alt="action"
-                  className="inline-block w-5 h-5"
-                />
+                <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
               </a>
             </Dropdown>
           ),
@@ -246,13 +267,19 @@ export default function Transportation() {
       setPrepTableLoading(false);
     }
   };
-  
+
   /** ---------------- Effects ---------------- */
   useEffect(() => {
     if (activeTab === "transport") fetchTransportation();
     else fetchPreparation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, tableParams.pagination.current, prepTableParams.pagination.current, JSON.stringify(tableParams.filters), JSON.stringify(prepTableParams.filters)]);
+  }, [
+    activeTab,
+    tableParams.pagination.current,
+    prepTableParams.pagination.current,
+    JSON.stringify(tableParams.filters),
+    JSON.stringify(prepTableParams.filters),
+  ]);
 
   /** ---------------- Handlers ---------------- */
   const onSearchTransport = (filters) => {

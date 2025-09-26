@@ -16,24 +16,31 @@ export default function CustomerLineList() {
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+
+  // 🔹 เก็บ master contact types สำหรับ select
+  const [contactTypes, setContactTypes] = useState([]);
+
   const [tableParams, setTableParams] = useState({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-      total: 0,
-    },
+    pagination: { current: 1, pageSize: 10, total: 0 },
     filters: {
-      status_code: "", // default: All
+      status_code: "",       // default All
+      contact_type_id: "",   // default All
     },
     sortOrder: "desc",
     sortField: "created_at",
   });
 
-  // แก้ filters ให้ตรงกับ status_code ใหม่
+  // 🔹 ฟิลเตอร์หน้าจอ (เพิ่ม Contact Type แบบ select)
   const filters = [
-    { key: "shop_name", type: "text", label: "Customer Name" },
-    { key: "contact_name", type: "text", label: "Contact Name" },
-    { key: "date", type: "date", label: "Date" },
+    // { key: "shop_name", type: "text", label: "Customer Name" },
+    // { key: "contact_name", type: "text", label: "Contact Name" },
+    { key: "date", type: "dater", label: "Date" },
+    {
+      key: "contact_type_id",
+      type: "select",
+      label: "Contact Type",
+      options: contactTypes, // [{id, name}] จาก master
+    },
     {
       key: "status_code",
       type: "select",
@@ -46,7 +53,6 @@ export default function CustomerLineList() {
     },
   ];
 
-
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -56,17 +62,28 @@ export default function CustomerLineList() {
       page_length: current,
       page_size: pageSize,
       status_code: filters.status_code ?? "",
-      register_date: filters.date ? dayjs(filters.date).format("YYYY-MM-DD") : "",
+      contact_type_id: filters.contact_type_id ?? "", // ✅ ส่งค่า contact type ไปกรอง
+      register_date: Array.isArray(filters.date) && filters.date.length === 2
+        ? filters.date // ถ้าใช้ RangePicker จะได้ ["YYYY-MM-DD","YYYY-MM-DD"]
+        : (filters.date ? dayjs(filters.date).format("YYYY-MM-DD") : ""),
+      shop_name: filters.shop_name ?? "",
+      contact_name: filters.contact_name ?? "",
+      orderby_column: tableParams.sortField || "created_at",
+      orderby: tableParams.sortOrder || "desc",
+      platform: "web",
     };
 
     try {
       const response = await useServiceAPI.get(paths.pathCustomerContact, requestData);
 
       if (response.status === 200) {
-        const customers = response.data?.data || [];
-        const recordsFiltered = response.data?.data?.records_filtered || 0;
+        const rows = Array.isArray(response.data?.data) ? response.data.data : [];
+        const recordsFiltered =
+          typeof response.data?.records_filtered === "number"
+            ? response.data.records_filtered
+            : rows.length;
 
-        const newData = customers.map((row, index) => ({
+        const newData = rows.map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           id: row.id,
           shop_name: row.shop_name,
@@ -78,16 +95,13 @@ export default function CustomerLineList() {
           status_name: row.status_name,
           status_bg_color: row.status_bg_color,
           status_color: row.status_color,
-          action: row.action,
+          action: row.action || [],
         }));
 
         setDataSource(newData);
         setTableParams((prev) => ({
           ...prev,
-          pagination: {
-            ...prev.pagination,
-            total: recordsFiltered,
-          },
+          pagination: { ...prev.pagination, total: recordsFiltered },
         }));
       }
     } catch (error) {
@@ -108,7 +122,7 @@ export default function CustomerLineList() {
   const handleClear = () => {
     setTableParams((prev) => ({
       ...prev,
-      filters: { status_code: "" }, // reset status_code เป็น All
+      filters: { status_code: "", contact_type_id: "" }, // ✅ reset เป็น All
     }));
   };
 
@@ -131,17 +145,40 @@ export default function CustomerLineList() {
     JSON.stringify(tableParams.filters),
   ]);
 
+  // 🔹 โหลด master contact types ครั้งเดียว
+  useEffect(() => {
+    const fetchContactTypes = async () => {
+      setLoading(true);
+      try {
+        const response = await useServiceAPI.get(paths.pathMasterContactType);
+        if (response.status === 200 && response.result) {
+          // คาดว่า response.data = [{id,name},...]
+          setContactTypes(response.data || []);
+        } else {
+          console.error("Failed to fetch contact types:", response);
+        }
+      } catch (error) {
+        console.error("Error fetching contact types:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchContactTypes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const header = [
-    { title: "No", dataIndex: "key", width: 60 },
+    { title: "No", dataIndex: "key", width: 60, align: "center" },
     { title: "Customer Name", dataIndex: "shop_name" },
     { title: "Contact Name", dataIndex: "contact_name" },
     { title: "Contact Number", dataIndex: "phone" },
     { title: "Contact Type", dataIndex: "type" },
     { title: "Line Name", dataIndex: "line_name" },
-    { title: "Date", dataIndex: "created_at" },
+    { title: "Date", dataIndex: "created_at", align: "center" },
     {
       title: "Status",
       dataIndex: "status_name",
+      align: "center",
       render: (_, row) => (
         <BadgeStatus
           text={row.status_name}
@@ -157,21 +194,16 @@ export default function CustomerLineList() {
       render: (_, row) => (
         <Dropdown
           menu={{
-            items: row.action.map((item, idx) => ({
+            items: (row.action || []).map((item, idx) => ({
               key: idx,
               label: (
                 <ItemDropDown
-                  mode={item.action.toLowerCase()}
+                  mode={(item.action || "").toLowerCase()}
                   onClick={() => {
-                    if (
-                      item.action.toLowerCase() === "view" ||
-                      item.action.toLowerCase() === "edit"
-                    ) {
-                      navigate('/points/line/customer-support-list/' + item.action.toLowerCase(), {
-                        state: {
-                          id: row.id,
-                          pageCode: 'customer_support',
-                        },
+                    const act = (item.action || "").toLowerCase();
+                    if (act === "view" || act === "edit") {
+                      navigate("/points/line/customer-support-list/" + act, {
+                        state: { id: row.id, pageCode: "customer_support" },
                       });
                     }
                   }}
@@ -182,11 +214,7 @@ export default function CustomerLineList() {
           placement="bottomRight"
         >
           <a onClick={(e) => e.preventDefault()}>
-            <img
-              src="/img/icons/action.png"
-              alt="action"
-              className="w-5 h-5 inline-block"
-            />
+            <img src="/img/icons/action.png" alt="action" className="w-5 h-5 inline-block" />
           </a>
         </Dropdown>
       ),
@@ -198,11 +226,13 @@ export default function CustomerLineList() {
       <div className="flex items-center justify-between">
         <div className="title-page">Customer Support List</div>
       </div>
+
       <Filter
         onSearch={handleSearch}
         onClear={handleClear}
         filters={filters}
       />
+
       <BoxPrimary>
         <TableComponent
           header={header}

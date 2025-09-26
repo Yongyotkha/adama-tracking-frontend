@@ -12,29 +12,37 @@ import { useNavigate } from "react-router-dom";
 
 const { TabPane } = Tabs;
 
+// ✅ ใช้ฟิลเตอร์เดียวกันกับ API ทั้ง dealer และ sub_dealer
+// - customer_name (text)
+// - contact_name (text)
+// - created_at (date; YYYY-MM-DD)
+// - status_code (select 1/0)
+const COMMON_FILTERS = [
+  { key: "customer_name", type: "text", label: "Customer Name" },
+  { key: "contact_name", type: "text", label: "Contact Name" },
+  { key: "created_at", type: "date", label: "Created Date" },
+  {
+    key: "status_code",
+    type: "select",
+    label: "Status",
+    options: [
+      { id: "1", name: "Active" },
+      { id: "0", name: "Inactive" },
+    ],
+  },
+];
+
 const tabConfig = {
   dealer: {
     apiPath: paths.pathCustomerRegis,
     label: <span className="tab-title">Dealer</span>,
-    filters: [
-      { key: "shop_name_custom", type: "text", label: "Dealer Name" },
-      { key: "contact_name", type: "text", label: "Customer Name" },
-      {
-        key: "status_code",
-        type: "select",
-        label: "Status",
-        options: [
-          { id: "1", name: "Active" },
-          { id: "0", name: "Inactive" },
-        ],
-      },
-    ],
+    filters: COMMON_FILTERS,
     shopType: "dealer",
   },
   sub_dealer: {
     apiPath: paths.pathCustomerRegis,
     label: <span className="tab-title">Sub Dealer</span>,
-    filters: [],
+    filters: COMMON_FILTERS,
     shopType: "sub_dealer",
   },
   // farmer: {
@@ -53,7 +61,10 @@ export default function RegisteredCustomerList() {
   const [dataSource, setDataSource] = useState([]);
   const [tableParams, setTableParams] = useState({
     pagination: { current: 1, pageSize: 10, total: 0 },
-    filters: {},
+    filters: {
+      // ค่าเริ่มต้น status_code = All → ส่งค่าว่าง
+      status_code: "",
+    },
   });
 
   const currentTab = tabConfig[activeTab];
@@ -63,11 +74,20 @@ export default function RegisteredCustomerList() {
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
 
+    // ✅ จัด payload ให้ตรงตามตัวอย่างที่ให้มา
+    // {
+    //   "shop_type": "sub_dealer",
+    //   "customer_name": "การเกษตร",
+    //   "contact_name": "พัฒนางกูร",
+    //   "created_at": "2025-09-18",
+    //   "status_code": 1
+    // }
     const requestData = {
       shop_type: currentTab.shopType,
-      shop_name_custom: filters.shop_name_custom || "",
+      customer_name: filters.customer_name || "",
       contact_name: filters.contact_name || "",
-      status_code: filters.status_code ?? "",
+      created_at: filters.created_at || "", // Filter.jsx ส่ง YYYY-MM-DD มาให้แล้ว
+      status_code: filters.status_code ?? "", // default All
       page_length: current,
       page_size: pageSize,
     };
@@ -76,14 +96,14 @@ export default function RegisteredCustomerList() {
       const response = await useServiceAPI.get(currentTab.apiPath, requestData);
       if (response.status === 200) {
         const result = response.data || {};
-        const customers = result.data || [];
+        const customers = (result.data && result.data.data) || result.data || [];
 
         const newData = customers.map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           id: row.id,
           dealer_id: row.shop_code,
           dealer_name: row.shop_name,
-          contact_name: `${row.contact_first_name} ${row.contact_last_name}`,
+          contact_name: `${row.contact_first_name ?? ""} ${row.contact_last_name ?? ""}`.trim(),
           phone: row.phone_number,
           subscribed: row.line_join_last_datetime?.split(" ")[0] || "-",
           point: "1,000",
@@ -97,18 +117,18 @@ export default function RegisteredCustomerList() {
           action: (
             <Dropdown
               menu={{
-                items: row.action.map((item, idx) => ({
+                items: (row.action || []).map((item, idx) => ({
                   key: idx,
                   label: (
                     <ItemDropDown
-                      mode={item.action.toLowerCase()}
+                      mode={(item.action || "").toLowerCase()}
                       onClick={() => {
-                      navigate('/points/line/register-customer-list/' + item.action.toLowerCase(), {
-                        state: {
-                          id: row.id,
-                          pageCode: 'customer_regis',
-                        },
-                      });
+                        navigate(
+                          "/points/line/register-customer-list/" + (item.action || "").toLowerCase(),
+                          {
+                            state: { id: row.id, pageCode: "customer_regis" },
+                          }
+                        );
                       }}
                     />
                   ),
@@ -117,23 +137,21 @@ export default function RegisteredCustomerList() {
               placement="bottomRight"
             >
               <a onClick={(e) => e.preventDefault()}>
-                <img
-                  src="/img/icons/action.png"
-                  alt="action"
-                  className="w-5 h-5 inline-block"
-                />
+                <img src="/img/icons/action.png" alt="action" className="w-5 h-5 inline-block" />
               </a>
             </Dropdown>
           ),
         }));
 
-        console.log(newData);
         setDataSource(newData);
         setTableParams((prev) => ({
           ...prev,
           pagination: {
             ...prev.pagination,
-            total: result.records_filtered || 0,
+            total:
+              (typeof result.data?.records_filtered === "number"
+                ? result.data.records_filtered
+                : result.records_filtered) || 0,
           },
         }));
       }
@@ -155,7 +173,7 @@ export default function RegisteredCustomerList() {
   const handleClear = () => {
     setTableParams((prev) => ({
       ...prev,
-      filters: {},
+      filters: { status_code: "" }, // reset → All
     }));
   };
 
@@ -173,7 +191,13 @@ export default function RegisteredCustomerList() {
 
   useEffect(() => {
     fetchData();
-  }, [activeTab, tableParams.pagination.current, tableParams.pagination.pageSize, JSON.stringify(tableParams.filters)]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    activeTab,
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    JSON.stringify(tableParams.filters),
+  ]);
 
   return (
     <MainLayout loading={loading}>
@@ -190,12 +214,7 @@ export default function RegisteredCustomerList() {
         }))}
       />
 
-
-      <Filter
-        filters={currentTab.filters}
-        onSearch={handleSearch}
-        onClear={handleClear}
-      />
+      <Filter filters={currentTab.filters} onSearch={handleSearch} onClear={handleClear} />
 
       <BoxPrimary>
         <TableComponent
@@ -204,10 +223,7 @@ export default function RegisteredCustomerList() {
           pagination={tableParams.pagination}
           loading={tableLoading}
           onChange={(pagination) => {
-            setTableParams((prev) => ({
-              ...prev,
-              pagination,
-            }));
+            setTableParams((prev) => ({ ...prev, pagination }));
           }}
         />
       </BoxPrimary>
