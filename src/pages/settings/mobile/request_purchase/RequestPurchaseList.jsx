@@ -24,11 +24,11 @@ export default function RequestPurchaseList() {
 
   // ✅ กำหนด filter fields
   const filters = [
-    { key: "status_code", type: "select", label: "Status", options: [] },
+    // { key: "status_code", type: "select", label: "Status", options: [] },
     { key: "reward_code", type: "text", label: "Reward Code" },
     { key: "reward_name", type: "text", label: "Reward Name" },
     { key: "dater", type: "dater", label: "Date Range" },
-    { key: "use_flag", type: "select", label: "Use Flag", options: [] },
+    // { key: "use_flag", type: "select", label: "Use Flag", options: [] },
   ];
 
   const fmtNum = (v) =>
