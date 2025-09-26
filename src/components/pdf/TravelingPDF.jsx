@@ -273,21 +273,21 @@ const TravelingPDF = ({ title }) => {
     totalValues.total_mileage = 0;
   }
 
-  const formatValue = (value) => {
-    if (value === ".00" || value == 0) return '-'; // Replace .00 with 0
-    if (!isNaN(value)) return formatNumber(value); // Otherwise, return as float
-    return value; // If it's neither, return the value as is
-  };
-
   // const [getUserId, setGetUserId] = useState(location.state.user_id);
   // const [getYearCode, setGetYearCode] = useState(location.state.year_code);
   // const [getMonthCode, setGetMonthCode] = useState(location.state.month_code);
 
   const queryParams = new URLSearchParams(location.search);
-
   const getYearCode = queryParams.get("year_code");
   const getMonthCode = queryParams.get("month_code");
   const getUserId = queryParams.get("user_id");
+
+  const formatValue = (value) => {
+    if (value === ".00" || value == 0) return '-'; // Replace .00 with 0
+    if (!isNaN(value)) return formatNumber(value); // Otherwise, return as float
+    return value; // If it's neither, return the value as is
+  };
+  
   useEffect(() => {
     const loadDataTraveling = async () => {
       setLoading(true);
@@ -313,14 +313,14 @@ const TravelingPDF = ({ title }) => {
               to: item.traveling_to || "-",
               // mileage: item.mileage || "",
               mileage: mileageNum === 0 ? "-" : mileageNum,
-              petrol: (formatNumber(item.petrol)) || " ",
-              cashPetrol: (formatNumber(item.cash_petrol)) || " ",
-              hotel: (formatNumber(item.hotel)) || " ",
-              allowance: (formatNumber(item.allowance)) || " ",
-              tollFee: (formatNumber(item.toll_fee)) || " ",
-              entertain: (formatNumber(item.entertain)) || " ",
-              others: (formatNumber(item.others)) || " ",
-              total: (formatNumber(item.total)) || " ",
+              petrol: (formatValue(item.petrol)) || " ",
+              cashPetrol: (formatValue(item.cash_petrol)) || " ",
+              hotel: (formatValue(item.hotel)) || " ",
+              allowance: (formatValue(item.allowance)) || " ",
+              tollFee: (formatValue(item.toll_fee)) || " ",
+              entertain: (formatValue(item.entertain)) || " ",
+              others: (formatValue(item.others)) || " ",
+              total: (formatValue(item.total)) || " ",
               remark: item.remark || "-",
             };
           });
