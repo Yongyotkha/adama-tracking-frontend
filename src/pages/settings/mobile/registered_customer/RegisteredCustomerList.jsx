@@ -26,8 +26,8 @@ const COMMON_FILTERS = [
     type: "select",
     label: "Status",
     options: [
-      { id: "1", name: "Active" },
       { id: "0", name: "Inactive" },
+      { id: "1", name: "Active" },
     ],
   },
 ];
