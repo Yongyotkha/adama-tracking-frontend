@@ -56,6 +56,7 @@ export default function RedeemPoint() {
         const response = await useServiceAPI.get(paths.pathMasterPromotionUser, requestData);
         if (response.status === 200 && response.result) {
           setRewards(response.data.data);
+          console.log('response.data.data : ', response.data.data)
         }
       } catch (error) {
         console.error("Error fetching rewards:", error);
@@ -94,32 +95,29 @@ export default function RedeemPoint() {
         </div>
 
         <div className="w-full max-w-md mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {rewards.map((reward) => (
-            <div
-              key={reward.id}
-              className="bg-white rounded-xl shadow-lg cursor-pointer"
-              onClick={() =>
-                navigate("/mobile/redeem-point/detail", {
-                  state: {
-                    id: reward.id,
-                  },
-                })
-              }
-            >
-              {/* Image Section */}
-              <div className="relative rounded-xl overflow-hidden shadow">
-                <img src={reward.image} alt={reward.name} className="w-full object-cover" />
+          {Object.values(rewards || {})
+            .filter(r => String(r.use_flag) === '1' && String(r.status_code) === '1') // ถ้าต้องการแสดงเฉพาะ Active
+            .map((reward) => (
+              <div
+                key={reward.id}
+                className="bg-white rounded-xl shadow-lg cursor-pointer"
+                onClick={() =>
+                  navigate("/mobile/redeem-point/detail", { state: { id: reward.id } })
+                }
+              >
+                <div className="relative rounded-xl overflow-hidden shadow">
+                  <img src={reward.image} alt={reward.name} className="w-full object-cover" />
+                </div>
+                <div className="mt-3 p-3">
+                  <p className="font-bold text-[#00783F] sarabun-font">{reward.name}</p>
+                  <p className="text-gray-500 text-sm sarabun-font">
+                    {reward.description_short ?? reward.description ?? "-"}
+                  </p>
+                </div>
               </div>
+            ))
+          }
 
-              {/* Description Section */}
-              <div className="mt-3 p-3">
-                <p className="font-bold text-[#00783F] sarabun-font">{reward.name}</p>
-                <p className="text-gray-500 text-sm sarabun-font">
-                  {reward.description_shot}
-                </p>
-              </div>
-            </div>
-          ))}
         </div>
 
         <BackButton url="/mobile/main" />
