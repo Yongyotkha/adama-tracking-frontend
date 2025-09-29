@@ -95,6 +95,7 @@ export default function SalesPointsList() {
     { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
     { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
     { title: "Order Date", width: 150, dataIndex: "orderDate", align: "center" },
+    { title: "Points", width: 150, dataIndex: "point", align: "center" },
     { title: "Status", width: 150, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
@@ -208,6 +209,7 @@ export default function SalesPointsList() {
           sub_dealer: order.sub_dealer_name,
           dealer: order.dealer_name,
           value: order.net_amount_display,
+          point: order.point,
           orderDate: order.document_date,
           status: (
             <BadgeStatus
