@@ -182,6 +182,7 @@ export default function CollectPointsDetail() {
             <div className="mt-2 space-y-2">
               {products.length > 0 ? (
                 products.map((item, index) => (
+
                   <div
                     key={index}
                     className="flex items-start justify-between text-sm text-gray-700 sarabun-font"
@@ -199,7 +200,8 @@ export default function CollectPointsDetail() {
                           {item.qty} x {item.product_name}
                         </p>
                         <p className="text-xs text-gray-500">บรรจุ : {item.packing_list}</p>
-                        <p className="text-xs text-gray-500">คะแนน : {item.point} รวม : {item.point * item.qty}</p>
+                        <p className="text-xs text-gray-500">คะแนน : {item.point_standard} aas</p>
+                        <p className="text-xs text-gray-500">คะแนนแคมเปญ : {item.packing_list}</p>
                       </div>
                     </div>
                     <p className="w-20 text-right">{item.amount_display}</p>
