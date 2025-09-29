@@ -219,11 +219,11 @@ export default function CollectPoints() {
                         <p className="text-gray-900 sarabun-font font-bold mt-1">
                           เลขที่ {order.document_number}
                         </p>
-                        {(order.dealer_name || order.sub_dealer_name) && (
+                        {/* {(order.dealer_name || order.sub_dealer_name) && (
                           <p className="text-gray-600 sarabun-font text-xs mt-1">
                             {order.dealer_name ?? order.sub_dealer_name}
                           </p>
-                        )}
+                        )} */}
                       </div>
                       <div className="flex flex-col items-end text-right">
                         <p className="text-orange-600 sarabun-font text-sm font-semibold">

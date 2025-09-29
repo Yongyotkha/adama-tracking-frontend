@@ -176,6 +176,7 @@ export default function RegisterOA() {
           };
 
           setStageUser(stateData)
+          
           const fetchUserProfile = async () => {
 
             try {

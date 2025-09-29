@@ -83,6 +83,7 @@ export default function CreateTargetGroup() {
   const fetchData = async (type) => {
     setLoading(true);
     try {
+      setDataSource([]);
       let apiPath = paths.pathMasterDealerAll;
       if (type === "sub_dealer") apiPath = paths.pathMasterSubDealerAll;
       else if (type === "farmer") apiPath = paths.pathMasterFarmer;

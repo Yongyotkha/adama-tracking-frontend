@@ -87,18 +87,18 @@ export default function VerifyOA() {
           } else if (response.data.step_number == 2) {
             showConfirm('ขออภัย', 'กรุณากรอกเบอร์โทรศัพท์ที่เคยมีการลงทะเบียนแล้วหากคุณลืมหมายเลขให้ติดต่อแจ้งเจ้าหน้าที่', 'ตกลง', 'ติดต่อเจ้าหน้าที่');
           } else if (response.data.step_number == 3) {
-
-          } 
+            console.log('response.data.step_number 3')
+          }
         }
 
         if (response.status === 200) {
-
+          console.log('register 200')
 
         } else if (response.status === 201) {
-          console.log('register success')
+          console.log('register 201')
 
         } else if (response.status === 202) {
-
+          console.log('register 202')
         }
       })
       .catch((error) => {
