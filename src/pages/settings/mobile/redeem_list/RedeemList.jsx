@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Dropdown, Tabs, Modal } from "antd"; // ⬅️ เพิ่ม Modal
+import { Dropdown, Tabs, Modal } from "antd";
 import MainLayout from "../../../../layouts/MainLayout";
 import Filter from "../../../../components/filter/Filter";
 import TableComponent from "../../../../components/table/TableComponent";
@@ -12,6 +12,16 @@ import { paths } from "../../../../services/CorsPath";
 
 const { TabPane } = Tabs;
 
+// 👉 options ของ status ต้องมี key ชื่อ "code" (เพราะ Filter.jsx ใช้เมื่อ key === "status")
+const STATUS_OPTIONS_LIST = [
+  { code: "RFA", name: "Approve" },
+  { code: "RFR", name: "Reject" },
+];
+const STATUS_OPTIONS_REQUEST = [
+  { code: "RFP", name: "Pending Purchase" },
+  { code: "RFW", name: "Waiting for Approve" },
+];
+
 export default function RedeemList() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -22,7 +32,11 @@ export default function RedeemList() {
   const [dataSource, setDataSource] = useState([]);
   const [tableParams, setTableParams] = useState({
     pagination: { current: 1, pageSize: 10, total: 0 },
-    filters: {},
+    filters: {
+      shop_name: "",
+      dater: [],
+      status: "", // ค่าว่าง = ทั้ง RFA,RFR | ถ้าเลือกจะเป็น "RFA" หรือ "RFR"
+    },
   });
 
   // --- Request state ---
@@ -30,73 +44,38 @@ export default function RedeemList() {
   const [requestDataSource, setRequestDataSource] = useState([]);
   const [requestTableParams, setRequestTableParams] = useState({
     pagination: { current: 1, pageSize: 10, total: 0 },
-    filters: {},
+    filters: {
+      shop_name: "",
+      dater: [],
+      status: "", // ค่าว่าง = ทั้ง RFP,RFW | ถ้าเลือกจะเป็น "RFP" หรือ "RFW"
+    },
   });
 
   // --- Address Modal state ---
-  const [addressModal, setAddressModal] = useState({
-    open: false,
-    address: "",
-  });
+  const [addressModal, setAddressModal] = useState({ open: false, address: "" });
+  const openAddressModal = (address) => setAddressModal({ open: true, address: address || "-" });
+  const closeAddressModal = () => setAddressModal({ open: false, address: "" });
 
-  const openAddressModal = (address) => {
-    setAddressModal({
-      open: true,
-      address: address || "-",
-    });
-  };
-
-  const closeAddressModal = () => {
-    setAddressModal({ open: false, address: "" });
-  };
-
-  // ---------------- Filters ----------------
+  // ---------------- Filters config (UI) ----------------
   const filtersList = [
-    { key: "target", type: "text", label: "Customer Name" },
-    { key: "type", type: "text", label: "Type Name" },
-    // {
-    //   key: "use_flag",
-    //   type: "select",
-    //   label: "Status",
-    //   options: [
-    //     { id: "1", name: "Active" },
-    //     { id: "0", name: "Inactive" },
-    //   ],
-    // },
+    { key: "shop_name", type: "text", label: "Customer Name" },
+    { key: "dater", type: "dater", label: "Date Range" },
+    { key: "status", type: "select", label: "Status", options: STATUS_OPTIONS_LIST, placeholder: "All" },
   ];
-
   const filtersRequest = [
-    { key: "shop", type: "text", label: "Customer Name" },
-    { key: "customer", type: "text", label: "Customer Name" },
-    { key: "reward", type: "text", label: "Reward Name" },
-    // {
-    //   key: "status",
-    //   type: "select",
-    //   label: "Status",
-    //   options: [
-    //     { id: "PENDING", name: "Pending" },
-    //     { id: "APPROVED", name: "Approved" },
-    //     { id: "REJECTED", name: "Rejected" },
-    //   ],
-    // },
+    { key: "shop_name", type: "text", label: "Customer Name" },
+    { key: "dater", type: "dater", label: "Date Range" },
+    { key: "status", type: "select", label: "Status", options: STATUS_OPTIONS_REQUEST, placeholder: "All" },
   ];
 
   // ---------------- Format helpers ----------------
-  const fmtNum = (v) =>
-    v === null || v === undefined || v === "" || isNaN(Number(v))
-      ? "-"
-      : Number(v).toLocaleString();
+  const fmtNum = (v) => (v === null || v === undefined || v === "" || isNaN(Number(v)) ? "-" : Number(v).toLocaleString());
   const fmtDate = (dt) => (dt ? String(dt).split(" ")[0] : "-");
-
   const renderStatusBadge = (item) => (
-    <BadgeStatus
-      text={item?.status_name || "-"}
-      bgColor={item?.status_bg_color || "#9CA3AF"}
-      textColor={item?.status_color || "#FFFFFF"}
-    />
+    <BadgeStatus text={item?.status_name || "-"} bgColor={item?.status_bg_color || "#9CA3AF"} textColor={item?.status_color || "#FFFFFF"} />
   );
 
-  // ---------------- Common columns ----------------
+  // ---------------- Columns ----------------
   const commonHeaders = [
     { title: "No", dataIndex: "key", width: 60 },
     { title: "Customer Name", dataIndex: "shop_name" },
@@ -111,7 +90,7 @@ export default function RedeemList() {
     { title: "Action", dataIndex: "action", align: "center", width: 80 },
   ];
 
-  // ---------------- Common mapper ----------------
+  // ---------------- Mapper ----------------
   const mapRow = (item, index, current, pageSize, onOpenAddress) => ({
     key: index + 1 + (current - 1) * pageSize,
     id: item.id,
@@ -120,24 +99,9 @@ export default function RedeemList() {
     reward_name: item.reward_name || "-",
     address: item.address || "-",
     qty: item.qty !== undefined ? fmtNum(item.qty) : "-",
-    stock:
-      item.stock !== undefined
-        ? fmtNum(item.stock)
-        : item.reward_value !== undefined
-          ? fmtNum(item.reward_value)
-          : "-",
-    cost:
-      item.cost !== undefined
-        ? fmtNum(item.cost)
-        : item.reward_cost !== undefined
-          ? fmtNum(item.reward_cost)
-          : "-",
-    points:
-      item.points !== undefined
-        ? fmtNum(item.points)
-        : item.point !== undefined
-          ? fmtNum(item.point)
-          : "-",
+    stock: item.stock !== undefined ? fmtNum(item.stock) : item.reward_value !== undefined ? fmtNum(item.reward_value) : "-",
+    cost: item.cost !== undefined ? fmtNum(item.cost) : item.reward_cost !== undefined ? fmtNum(item.reward_cost) : "-",
+    points: item.points !== undefined ? fmtNum(item.points) : item.point !== undefined ? fmtNum(item.point) : "-",
     date: fmtDate(item.created_at),
     shipping: (
       <button
@@ -149,11 +113,7 @@ export default function RedeemList() {
           onOpenAddress(item.address);
         }}
       >
-        <img
-          src="/img/icons/location.png"
-          alt="shipping"
-          className="inline-block w-5 h-5"
-        />
+        <img src="/img/icons/location.png" alt="shipping" className="inline-block w-5 h-5" />
       </button>
     ),
     status: renderStatusBadge(item),
@@ -166,12 +126,9 @@ export default function RedeemList() {
               <ItemDropDown
                 mode={String(act.action || "view").toLowerCase()}
                 onClick={() =>
-                  navigate(
-                    `/points/line/redeem-reward/${String(
-                      act.action || "view"
-                    ).toLowerCase()}`,
-                    { state: { id: item.id, mode: item.status } }
-                  )
+                  navigate(`/points/line/redeem-reward/${String(act.action || "view").toLowerCase()}`, {
+                    state: { id: item.id, mode: item.status },
+                  })
                 }
               />
             ),
@@ -180,41 +137,42 @@ export default function RedeemList() {
         placement="bottomRight"
       >
         <a onClick={(e) => e.preventDefault()}>
-          <img
-            src="/img/icons/action.png"
-            alt="action"
-            className="inline-block w-5 h-5"
-          />
+          <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
         </a>
       </Dropdown>
     ),
   });
 
-  // ---------------- Fetch: Point Redeem List ----------------
+  // ---------------- Fetch: Points Redeem List ----------------
   const fetchList = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
-    try {
-      const res = await useServiceAPI.get(paths.pathRedeemList, {
-        platform: "web",
-        page: "all",
-        page_size: pageSize,
-        page_length: current,
-        status: ["RFA", "RFR"],
-      });
+    const f = tableParams.filters || {};
 
+    // ถ้าไม่ได้เลือก status ให้ใช้ ["RFA","RFR"]; ถ้าเลือกจะเป็น ["<ค่านั้น>"]
+    const statusArray = f.status ? [f.status] : ["RFA", "RFR"];
+
+    const payload = {
+      shop_name: f.shop_name || "",
+      dater: Array.isArray(f.dater) ? f.dater : [],
+      status: statusArray,
+      process: "receive-reward",
+      page: "all",
+      page_size: pageSize,
+      page_length: current,
+    };
+
+    try {
+      const res = await useServiceAPI.get(paths.pathRedeemList, payload);
       if (res.status === 200) {
-        const payload = res.data || res.data;
-        const rows = payload?.data ?? [];
-        const formatted = rows.map((item, index) =>
-          mapRow(item, index, current, pageSize, openAddressModal)
-        );
-        setDataSource(formatted);
+        const body = res.data || {};
+        const rows = body?.data ?? [];
+        setDataSource(rows.map((item, idx) => mapRow(item, idx, current, pageSize, openAddressModal)));
         setTableParams((prev) => ({
           ...prev,
           pagination: {
             ...prev.pagination,
-            total: payload?.records_filtered ?? payload?.records_total ?? 0,
+            total: body?.records_filtered ?? body?.records_total ?? rows.length,
           },
         }));
       }
@@ -223,30 +181,36 @@ export default function RedeemList() {
     }
   };
 
-  // ---------------- Fetch: Point Redeem Request List ----------------
+  // ---------------- Fetch: Points Redeem Request List ----------------
   const fetchRequest = async () => {
     setRequestTableLoading(true);
     const { current, pageSize } = requestTableParams.pagination;
-    try {
-      const res = await useServiceAPI.get(paths.pathRedeemList, {
-        page: "all",
-        page_size: pageSize,
-        page_length: current,
-        status: ["RFW", "RFP"],
-      });
+    const f = requestTableParams.filters || {};
 
+    // ถ้าไม่ได้เลือก status ให้ใช้ ["RFP","RFW"]; ถ้าเลือกจะเป็น ["<ค่านั้น>"]
+    const statusArray = f.status ? [f.status] : ["RFP", "RFW"];
+
+    const payload = {
+      shop_name: f.shop_name || "",
+      dater: Array.isArray(f.dater) ? f.dater : [],
+      status: statusArray,
+      process: "receive-reward",
+      page: "all",
+      page_size: pageSize,
+      page_length: current,
+    };
+
+    try {
+      const res = await useServiceAPI.get(paths.pathRedeemList, payload);
       if (res.status === 200) {
-        const payload = res.data || res.data;
-        const rows = payload?.data ?? [];
-        const formatted = rows.map((item, index) =>
-          mapRow(item, index, current, pageSize, openAddressModal)
-        );
-        setRequestDataSource(formatted);
+        const body = res.data || {};
+        const rows = body?.data ?? [];
+        setRequestDataSource(rows.map((item, idx) => mapRow(item, idx, current, pageSize, openAddressModal)));
         setRequestTableParams((prev) => ({
           ...prev,
           pagination: {
             ...prev.pagination,
-            total: payload?.records_filtered ?? payload?.records_total ?? 0,
+            total: body?.records_filtered ?? body?.records_total ?? rows.length,
           },
         }));
       }
@@ -255,11 +219,51 @@ export default function RedeemList() {
     }
   };
 
+  // ---------------- Effects ----------------
   useEffect(() => {
     if (activeTab === "list") fetchList();
     else fetchRequest();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, tableParams.pagination.current, requestTableParams.pagination.current]);
+  }, [
+    activeTab,
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    requestTableParams.pagination.current,
+    requestTableParams.pagination.pageSize,
+    JSON.stringify(tableParams.filters),
+    JSON.stringify(requestTableParams.filters),
+  ]);
+
+  // ---------------- Handlers: Search/Clear ----------------
+  const onSearchList = (filters) => {
+    setTableParams((prev) => ({
+      ...prev,
+      filters,
+      pagination: { ...prev.pagination, current: 1 },
+    }));
+  };
+  const onClearList = () => {
+    setTableParams((prev) => ({
+      ...prev,
+      filters: { shop_name: "", dater: [], status: "" }, // ว่าง = ทั้ง RFA,RFR
+      pagination: { ...prev.pagination, current: 1 },
+    }));
+  };
+
+  const onSearchRequest = (filters) => {
+    setRequestTableParams((prev) => ({
+      ...prev,
+      filters,
+      pagination: { ...prev.pagination, current: 1 },
+    }));
+  };
+  const onClearRequest = () => {
+    setRequestTableParams((prev) => ({
+      ...prev,
+      filters: { shop_name: "", dater: [], status: "" }, // ว่าง = ทั้ง RFP,RFW
+      pagination: { ...prev.pagination, current: 1 },
+    }));
+  };
 
   return (
     <MainLayout loading={loading}>
@@ -268,54 +272,46 @@ export default function RedeemList() {
       </div>
 
       <Tabs className="custom-tabs" activeKey={activeTab} onChange={setActiveTab}>
-        <TabPane
-          tab={<span className="tab-title">Points Redeem List</span>}
-          key="list"
-        >
-          <Filter filters={filtersList} />
+        <TabPane tab={<span className="tab-title">Points Redeem List</span>} key="list">
+          <Filter
+            filters={filtersList}
+            values={tableParams.filters}
+            onSearch={onSearchList}
+            onClear={onClearList}
+          />
           <BoxPrimary className="mt-4">
             <TableComponent
               header={commonHeaders}
               dataSource={dataSource}
               loading={tableLoading}
               pagination={tableParams.pagination}
-              onChange={(pagination) =>
-                setTableParams((prev) => ({ ...prev, pagination }))
-              }
+              onChange={(pagination) => setTableParams((prev) => ({ ...prev, pagination }))}
             />
           </BoxPrimary>
         </TabPane>
 
-        <TabPane
-          tab={<span className="tab-title">Points Redeem Request List</span>}
-          key="request"
-        >
-          <Filter filters={filtersRequest} />
+        <TabPane tab={<span className="tab-title">Points Redeem Request List</span>} key="request">
+          <Filter
+            filters={filtersRequest}
+            values={requestTableParams.filters}
+            onSearch={onSearchRequest}
+            onClear={onClearRequest}
+          />
           <BoxPrimary className="mt-4">
             <TableComponent
               header={commonHeaders}
               dataSource={requestDataSource}
               loading={requestTableLoading}
               pagination={requestTableParams.pagination}
-              onChange={(pagination) =>
-                setRequestTableParams((prev) => ({ ...prev, pagination }))
-              }
+              onChange={(pagination) => setRequestTableParams((prev) => ({ ...prev, pagination }))}
             />
           </BoxPrimary>
         </TabPane>
       </Tabs>
 
       {/* Modal แสดงที่อยู่ (centered) */}
-      <Modal
-        centered
-        open={addressModal.open}
-        onCancel={closeAddressModal}
-        footer={null}
-        title="Shipping Address"
-      >
-        <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
-          {addressModal.address || "-"}
-        </div>
+      <Modal centered open={addressModal.open} onCancel={closeAddressModal} footer={null} title="Shipping Address">
+        <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{addressModal.address || "-"}</div>
       </Modal>
     </MainLayout>
   );
