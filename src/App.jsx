@@ -174,6 +174,8 @@ import SalesPointActionMode from "./pages/settings/mobile/sale_point/SalesPointA
 import CollectPointsView from "./pages/settings/mobile/collect_points/CollectPointsView";
 import SalesPointEdit from "./pages/settings/mobile/sale_point/SalesPointEdit";
 import RequestPurchaseDetail from "./pages/settings/mobile/request_purchase/RequestPurchaseDetail";
+import NewsPromotionList from "./pages/settings/mobile/news_promotion/NewsPromotionList";
+import CreateNewsPromotion from "./pages/settings/mobile/news_promotion/CreateNewsPromotion";
 
 
 const App = () => {
@@ -372,6 +374,11 @@ const App = () => {
 
             <Route path="/setting/line/reward-campaign" element={<RewardCampaignList />} />
             <Route path="/setting/line/reward-campaign/:mode" element={<CreateRewardCampaign />} />
+
+
+            <Route path="/setting/line/news-promotion" element={<NewsPromotionList />} />
+            <Route path="/setting/line/news-promotion/:mode" element={<CreateNewsPromotion />} />
+            
             {/* <Route path="/setting/line/reward-campaign/edit" element={<EditPromotion />} /> */}
 
 
