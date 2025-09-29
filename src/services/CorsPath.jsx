@@ -201,6 +201,16 @@ export const paths = {
   pathPromotionTarget: "promotion-management/target",
   pathMasterPromotionUser: "promotion-management/list_user",
   pathPromotionCategory: "promotion-management/category",
+
+  //Promotion banner 
+  pathPromotionBannerList: "promotion-banner/list",
+  pathPromotionBannerDetail: "promotion-banner/detail",
+  pathPromotionBannerCreate: "promotion-banner/create",
+  pathPromotionBannerUpdate: "promotion-banner/update",
+  pathPromotionBannerDelete: "promotion-banner/delete",
+  pathPromotionBannerCategory: "promotion-banner/category",
+
+
   //Sale
   pathSaleManagementlist: "sale-management/list",
 
