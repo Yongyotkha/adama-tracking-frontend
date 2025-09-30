@@ -110,7 +110,7 @@ export default function RedeemList() {
         title="Shipping"
         onClick={(e) => {
           e.preventDefault();
-          onOpenAddress(item.address);
+          onOpenAddress(item.address_full);
         }}
       >
         <img src="/img/icons/location.png" alt="shipping" className="inline-block w-5 h-5" />

@@ -178,9 +178,9 @@ export default function RedeemPointConfirm() {
                         {reward.name}
                     </h2>
 
-                    <h3 className="text-green-700 font-bold text-xl sarabun-font mt-4">
+                    <h2 className="text-green-700 font-bold text-xl sarabun-font mt-4">
                         ใช้ {target?.[0]?.point ?? "-"} คะแนน
-                    </h3>
+                    </h2>
 
                     <p className="text-gray-600 text-sm sarabun-font mt-2">
                         รายละเอียด : {reward?.description ?? "-"}
@@ -189,7 +189,13 @@ export default function RedeemPointConfirm() {
                         รายละเอียดเพิ่มเติม : {reward?.product_detail ?? "-"}
                     </p>
                 </div>
-                <div className="w-full max-w-md space-y-3">
+
+
+                <div className="w-full max-w-md space-y-3 mt-10">
+
+                    <h2 className="text-green-700 font-bold text-xl sarabun-font mt-4">
+                        เลือกที่อยู่ในการจัดส่ง
+                    </h2>
                     {addresses.length > 0 ? (
                         addresses.map((item) => {
                             const checked = selectedAddressId === item.id;
