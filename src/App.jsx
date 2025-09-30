@@ -176,6 +176,8 @@ import SalesPointEdit from "./pages/settings/mobile/sale_point/SalesPointEdit";
 import RequestPurchaseDetail from "./pages/settings/mobile/request_purchase/RequestPurchaseDetail";
 import NewsPromotionList from "./pages/settings/mobile/news_promotion/NewsPromotionList";
 import CreateNewsPromotion from "./pages/settings/mobile/news_promotion/CreateNewsPromotion";
+import ShippingAddressPDF from "./pages/pdf/ShippingAddressPDF";
+import DeliverySlipPDF from "./pages/pdf/DeliverySlipPDF";
 
 
 const App = () => {
@@ -378,7 +380,7 @@ const App = () => {
 
             <Route path="/setting/line/news-promotion" element={<NewsPromotionList />} />
             <Route path="/setting/line/news-promotion/:mode" element={<CreateNewsPromotion />} />
-            
+
             {/* <Route path="/setting/line/reward-campaign/edit" element={<EditPromotion />} /> */}
 
 
@@ -398,6 +400,9 @@ const App = () => {
 
             <Route path="/points/line/transportation/:mode" element={<TransportationDetail />} />
             <Route path="/points/line/transpotation/:mode" element={<TransportationDetail />} />
+
+            <Route path="/points/line/pdf/shipping-address" element={<ShippingAddressPDF />} />
+            <Route path="/points/line/pdf/delivery-slip" element={<DeliverySlipPDF />} />
 
             <Route path="/setting/line/request-purchase" element={<RequestPurchaseList />} />
             <Route path="/setting/line/request-purchase/update-stock" element={<RewardProductUpdateStock />} />

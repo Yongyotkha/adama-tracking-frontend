@@ -1,7 +1,41 @@
 import React from "react";
-import { DeleteOutlined, MinusOutlined, PlusOutlined } from "@ant-design/icons"; // Import Ant Design icon
+import { DeleteOutlined, MinusOutlined, PlusOutlined } from "@ant-design/icons";
 
-const ActionButton = ({ onClick, disabled, mode, text, className = "", style }) => {
+const ActionButton = ({
+  onClick,
+  disabled,
+  mode,
+  text,
+  className = "",
+  style,
+  icon, // <- รับ ReactNode เข้ามา
+}) => {
+  // helper: แสดงไอคอนเริ่มต้นตาม mode ถ้าไม่มี icon ที่ส่งมาจากภายนอก
+  const renderDefaultIcon = () => {
+    if (icon) return icon; // ให้ icon จากภายนอกมี priority สูงสุด
+    switch (mode) {
+      case "create":
+      case "add":
+        return <PlusOutlined className="inline-block text-[16px]" />;
+      case "hide":
+        return <MinusOutlined className="inline-block text-[16px]" />;
+      case "delete":
+        return (
+          <img src="/img/icons/trash.png" alt="button icon" className="inline-block h-5" />
+        );
+      case "edit":
+        return (
+          <img src="/img/icons/edit-btn.png" alt="button icon" className="inline-block h-5" />
+        );
+      case "sync":
+        return (
+          <img src="/img/icons/sync.png" alt="button icon" className="inline-block h-5" />
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <>
       {mode === "create" && (
@@ -10,7 +44,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "", style }) 
           onClick={onClick}
           disabled={disabled}
         >
-          <PlusOutlined className="inline-block text-[16px]" />
+          {renderDefaultIcon()}
           <div>{text}</div>
         </button>
       )}
@@ -21,13 +55,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "", style }) 
           onClick={onClick}
           disabled={disabled}
         >
-          <div>
-            <img
-              src="/img/icons/edit-btn.png"
-              alt="button icon"
-              className="inline-block h-5"
-            />
-          </div>
+          {renderDefaultIcon()}
           <div>{text}</div>
         </button>
       )}
@@ -38,13 +66,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "", style }) 
           onClick={onClick}
           disabled={disabled}
         >
-          <div>
-            <img
-              src="/img/icons/sync.png"
-              alt="button icon"
-              className="inline-block h-5"
-            />
-          </div>
+          {renderDefaultIcon()}
           <div>{text}</div>
         </button>
       )}
@@ -56,17 +78,18 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "", style }) 
           disabled={disabled}
           style={style}
         >
-          <PlusOutlined className="inline-block text-[16px]" />
+          {renderDefaultIcon()}
           <div>{text}</div>
         </button>
       )}
 
-      {mode === ("back" || "close") && (
+      {(mode === "back" || mode === "close") && (
         <button
           className={`flex text-[#FFFFFF] text-sm rounded-sm bg-[#B6AEAB] gap-2 p-2 items-center ${className} min-w-[96px] justify-center`}
           onClick={onClick}
           disabled={disabled}
         >
+          {renderDefaultIcon()}
           <div>{text}</div>
         </button>
       )}
@@ -77,6 +100,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "", style }) 
           onClick={onClick}
           disabled={disabled}
         >
+          {renderDefaultIcon()}
           <div>{text}</div>
         </button>
       )}
@@ -87,6 +111,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "", style }) 
           onClick={onClick}
           disabled={disabled}
         >
+          {renderDefaultIcon()}
           <div>{text}</div>
         </button>
       )}
@@ -97,6 +122,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "", style }) 
           onClick={onClick}
           disabled={disabled}
         >
+          {renderDefaultIcon()}
           <div>{text}</div>
         </button>
       )}
@@ -107,13 +133,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "", style }) 
           onClick={onClick}
           disabled={disabled}
         >
-          <div>
-            <img
-              src="/img/icons/trash.png"
-              alt="button icon"
-              className="inline-block h-5"
-            />
-          </div>
+          {renderDefaultIcon()}
           <div>{text}</div>
         </button>
       )}
@@ -124,7 +144,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "", style }) 
           onClick={onClick}
           disabled={disabled}
         >
-          <MinusOutlined className="inline-block text-[16px]" /> {/* Ant Design icon */}
+          {renderDefaultIcon()}
           <div>{text}</div>
         </button>
       )}
@@ -135,6 +155,7 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "", style }) 
           onClick={onClick}
           disabled={disabled}
         >
+          {renderDefaultIcon()}
           <div>{text}</div>
         </button>
       )}
@@ -145,10 +166,10 @@ const ActionButton = ({ onClick, disabled, mode, text, className = "", style }) 
           onClick={onClick}
           disabled={disabled}
         >
+          {renderDefaultIcon()}
           <div>{text}</div>
         </button>
       )}
-
     </>
   );
 };

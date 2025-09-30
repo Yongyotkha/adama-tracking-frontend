@@ -188,6 +188,16 @@ export default function TransportationDetail() {
     }
   };
 
+  const handlePDFShippingAddress = () => {
+    const id = location?.state?.id;
+    window.open(`/points/line/pdf/shipping-address?id=${id}`, "_blank", "noopener,noreferrer");
+  };
+
+  const handlePDFDeliverySlip = () => {
+    const id = location?.state?.id;
+    window.open(`/points/line/pdf/delivery-slip?id=${id}`, "_blank", "noopener,noreferrer");
+  };
+
   useEffect(() => {
     fetchDetail();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -297,6 +307,11 @@ export default function TransportationDetail() {
       {/* Action Buttons */}
       <div className="flex justify-end gap-3 mt-4">
         <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />
+
+        <ActionButton mode="saveDraft" text="PDF Shipping Address" onClick={handlePDFShippingAddress} />
+
+        <ActionButton mode="saveDraft" text="PDF Delivery Slip" onClick={handlePDFDeliverySlip} />
+
         {isDelivery && (
           <ActionButton mode="save" text="Save" onClick={handleSaveDelivery} />
         )}
