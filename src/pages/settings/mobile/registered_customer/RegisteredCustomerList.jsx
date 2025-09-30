@@ -45,12 +45,12 @@ const tabConfig = {
     filters: COMMON_FILTERS,
     shopType: "sub_dealer",
   },
-  // farmer: {
-  //   apiPath: paths.pathCustomerRegis,
-  //   label: <span className="tab-title">Farmer</span>,
-  //   filters: [],
-  //   shopType: "farmer",
-  // },
+  farmer: {
+    apiPath: paths.pathCustomerRegis,
+    label: <span className="tab-title">Farmer</span>,
+    filters: [],
+    shopType: "farmer",
+  },
 };
 
 export default function RegisteredCustomerList() {

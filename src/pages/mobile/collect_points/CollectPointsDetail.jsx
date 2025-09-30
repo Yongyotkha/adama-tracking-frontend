@@ -67,8 +67,14 @@ export default function CollectPointsDetail() {
       product_name: p?.product_name ?? "-",
       product_code: p?.product_code ?? "-",
       packing_list: p?.packing_list ?? "-",
+      point_extra: p?.point_extra ?? "-",
+      point_standard: p?.point_standard ?? "-",
+
+      point: p?.point ?? "-",
+      point_topup: p?.point_topup ?? "-",
+      point_total: p?.point_total ?? "-",
       amount: Number(p?.net_amount ?? 0),
-      point: Number(p?.point ?? 0),
+      point_x: Number(p?.point_x ?? 0),
       amount_display:
         typeof p?.net_amount === "string" || typeof p?.net_amount === "number"
           ? new Intl.NumberFormat("th-TH").format(Number(p?.net_amount ?? 0))
@@ -79,7 +85,7 @@ export default function CollectPointsDetail() {
 
 
   const totalQtyPoint = products.reduce(
-    (sum, item) => sum + item.qty * item.point,
+    (sum, item) => sum + item.point_total,
     0
   );
 
@@ -200,8 +206,16 @@ export default function CollectPointsDetail() {
                           {item.qty} x {item.product_name}
                         </p>
                         <p className="text-xs text-gray-500">บรรจุ : {item.packing_list}</p>
-                        <p className="text-xs text-gray-500">คะแนน : {item.point_standard} aas</p>
-                        <p className="text-xs text-gray-500">คะแนนแคมเปญ : {item.packing_list}</p>
+                        <p className="text-xs text-gray-500">คะแนน : {item.point_standard}</p>
+                        {item.point_x !== 0 && (
+                          <p className="text-xs text-gray-500">คะแนน X Point : {item.point_x}</p>
+                        )}
+                        {item.point_extra > 0 && (
+                          <p className="text-xs text-gray-500">คะแนน Exttar Point : {item.point_extra}</p>
+                        )}
+                        {item.point_topup !== 0 && (
+                          <p className="text-xs text-gray-500">คะแนน Topup Point : {item.point_topup}</p>
+                        )}
                       </div>
                     </div>
                     <p className="w-20 text-right">{item.amount_display}</p>
@@ -256,8 +270,8 @@ export default function CollectPointsDetail() {
             {/* Summary */}
             <div className="mt-4 border-t pt-2 text-sm text-gray-800">
               <div className="flex justify-between font-semibold">
-                <p className="sarabun-font">จำนวนรวม</p>
-                <p>{totalQty} / {totalQtyPoint}</p>
+                <p className="sarabun-font">จำนวนรวม (ลัง)</p>
+                <p>{totalQty} / คะแนน {totalQtyPoint}</p>
               </div>
 
               <div className="flex justify-between font-semibold text-lg text-green-700 mt-1">

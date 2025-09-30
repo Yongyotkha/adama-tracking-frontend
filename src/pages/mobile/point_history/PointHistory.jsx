@@ -94,9 +94,9 @@ export default function PointHistory() {
                     <p className="text-gray-500 text-sm sarabun-font">
                       {item.created_at.split('.')[0]}
                     </p>
-                    <p className="text-gray-700 text-sm sarabun-font">
+                    {/* <p className="text-gray-700 text-sm sarabun-font">
                       หมดอายุ: {item.expire_at == null ? "-" : item.expire_at}
-                    </p>
+                    </p> */}
                     {activeTab == "use" ? <p className="text-gray-700 text-sm sarabun-font">Reward Code : {item.reward_code}</p> : ""}
                     {activeTab == "use" ? <p className="text-gray-700 text-sm sarabun-font">Reward Name : {item.reward_name}</p> : ""}
                     {activeTab == "use" ? <BadgeStatus text={item.status_name} bgColor={item.status_bg_color} textColor={item.status_color}></BadgeStatus> : ""}
