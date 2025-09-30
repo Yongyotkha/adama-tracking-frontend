@@ -220,7 +220,7 @@ export default function RedeemDetail() {
     const id = location?.state?.id;
     console.log(detail.reward_id)
     console.log(id)
-    return false;
+
     confirmNoRemark({
       title: "Send to Purchase ?",
       okText: "OK",
