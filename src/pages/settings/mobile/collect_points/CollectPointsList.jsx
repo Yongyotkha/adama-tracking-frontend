@@ -51,6 +51,7 @@ export default function CollectPointsList() {
     { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
     { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
     { title: "Order Date", width: 150, dataIndex: "orderDate", align: "center" },
+    { title: "Points", width: 150, dataIndex: "point", align: "center" },
     { title: "Status", width: 150, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
@@ -89,6 +90,7 @@ export default function CollectPointsList() {
           sub_dealer: row.sub_dealer_name,
           value: row.net_amount_display,
           orderDate: row.document_date,
+          point: row.point,
           status: (
             <BadgeStatus
               text={row.status_transaction_name}

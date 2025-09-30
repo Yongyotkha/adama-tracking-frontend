@@ -230,7 +230,7 @@ export default function CollectPoints() {
                           รอยืนยันรับ
                         </p>
                         <p className="text-gray-700 sarabun-font text-sm font-semibold mt-1">
-                          รายการ {order.line_product} / {order.amount_display}
+                          รายการ {order.line_product} / รวม {order.amount_display}
                         </p>
                       </div>
                     </div>
@@ -242,7 +242,7 @@ export default function CollectPoints() {
                       key={index}
                       className="p-4 bg-white rounded-lg shadow-md border-l-4 border-green-500"
                     >
-                      <p className="text-gray-500 sarabun-font text-sm">{order.document_date}</p>
+                      <p className="text-gray-500 sarabun-font text-sm"> {order.document_date}</p>
                       <p className="text-gray-900 sarabun-font font-bold mt-1">
                         {`เลขที่ ${order.document_number}`}
                       </p>
@@ -267,7 +267,7 @@ export default function CollectPoints() {
                             🗑 ลบ
                           </button>
                         </div>
-                        <p className="text-orange-600 text-sm">
+                        <p className="text-orange-600 sarabun-font text-sm font-semibold">
                           รอดำเนินการ
                         </p>
                       </div>

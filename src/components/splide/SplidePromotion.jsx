@@ -58,6 +58,7 @@ const SplideComponent = () => {
             pagination: true,
             arrows: false,
             width: "100%",
+            height: "180px",
           }}
           className="shadow-lg rounded-xl mb-5 mt-2"
         >

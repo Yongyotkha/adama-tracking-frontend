@@ -270,8 +270,8 @@ export default function CollectPointsDetail() {
             {/* Summary */}
             <div className="mt-4 border-t pt-2 text-sm text-gray-800">
               <div className="flex justify-between font-semibold">
-                <p className="sarabun-font">จำนวนรวม</p>
-                <p>{totalQty} / {totalQtyPoint}</p>
+                <p className="sarabun-font">จำนวนรวม (ลัง)</p>
+                <p>{totalQty} / คะแนน {totalQtyPoint}</p>
               </div>
 
               <div className="flex justify-between font-semibold text-lg text-green-700 mt-1">
