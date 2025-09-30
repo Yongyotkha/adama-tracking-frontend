@@ -114,6 +114,7 @@ import CustomerStock from "./pages/stock/customer-stock/CustomerStock";
 import CollectPoints from "./pages/mobile/collect_points/CollectPoints";
 import RedeemPoint from "./pages/mobile/redeem_point/RedeemPoint";
 import RedeemPointDetail from "./pages/mobile/redeem_point/RedeemPointDetail";
+import RedeemPointConfirm from "./pages/mobile/redeem_point/RedeemPointConfirm";
 import Promotion from "./pages/mobile/promotion/Promotion";
 import PromotionDetail from "./pages/mobile/promotion/PromotionDetail";
 import ReportStock from "./pages/report/ReportStock";
@@ -126,8 +127,8 @@ import { LineOARoute, LinePrivateRoute } from "./components/auth/LineOARoute";
 import CustomerLineList from "./pages/settings/mobile/customer/CustomerLineList";
 import CreateCustomerLine from "./pages/settings/mobile/customer/CreateCustomerLine";
 import ExpirePointList from "./pages/settings/mobile/expire_point/ExpirePointList";
-import ManagePromotionList from "./pages/settings/mobile/manage-promotion/ManagePromotionList";
-import CreateManagePromotion from "./pages/settings/mobile/manage-promotion/CreateManagePromotion";
+// import ManagePromotionList from "./pages/settings/mobile/manage-promotion/ManagePromotionList";
+// import CreateManagePromotion from "./pages/settings/mobile/manage-promotion/CreateManagePromotion";
 import ApprovalAdvanceExpense from "./pages/expenses/advance/ApprovalAdvanceExpense";
 import ApprovalClearingExpense from "./pages/expenses/clearing/ApprovalClearingExpense";
 import ContactAdmin from "./pages/mobile/contact_admin/ContactAdmin";
@@ -455,6 +456,7 @@ const App = () => {
               <Route path="/mobile/main" element={< MainOA />} />
               <Route path="/mobile/redeem-point" element={< RedeemPoint />} />
               <Route path="/mobile/redeem-point/detail" element={<RedeemPointDetail />} />
+              <Route path="/mobile/redeem-point/confirm" element={<RedeemPointConfirm />} />
               <Route path="/mobile/order-history" element={< OrderHistory />} />
               <Route path="/mobile/order-history/detail" element={<OrderHistoryDetail />} />
               <Route path="/mobile/point-history" element={< PointHistory />} />

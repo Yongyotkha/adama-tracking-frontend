@@ -58,13 +58,20 @@ export default function RedeemPointDetail() {
 
       // ปรับตามรูปแบบ response ของระบบคุณได้เลย
       if (res.status === 200 || res.result === true) {
+
+        navigate("/mobile/redeem-point/confirm", {
+          state: {
+            id: location.state.id,
+          },
+          replace: true,
+        });
         //setEarnedPoints(res.targets.point);
-        setEarnedPoints(5);
-        if (res.data.status) {
-          setIsPointModalVisibleComfirm(true);
-        } else {
-          setIsPointModalVisibleFalse(true)
-        }
+        // setEarnedPoints(res.point);
+        // if (res.data.status) {
+        //   setIsPointModalVisibleComfirm(true);
+        // } else {
+        //   setIsPointModalVisibleFalse(true)
+        // }
 
 
         // นำทางไปหน้า success หรือแสดงข้อความสำเร็จ
@@ -106,7 +113,7 @@ export default function RedeemPointDetail() {
 
       // ปรับตามรูปแบบ response ของระบบคุณได้เลย
       if (res.status === 200 || res.result === true) {
-        setEarnedPoints(100);
+        setEarnedPoints(res.point);
         setIsPointModalVisible(true);
         // นำทางไปหน้า success หรือแสดงข้อความสำเร็จ
         // ส่งข้อมูลที่จำเป็นผ่าน state
