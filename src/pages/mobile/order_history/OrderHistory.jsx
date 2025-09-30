@@ -23,7 +23,7 @@ export default function OrderHistory() {
     sortField: null,
   });
   const tabs = [
-    { id: "1", label: "รับสินค้าสำเร็จ", color: "text-green-600", border: "border-green-500" },
+    // { id: "1", label: "รับสินค้าสำเร็จ", color: "text-green-600", border: "border-green-500" },
     // { id: "2", label: "รับสินค้าไม่สำเร็จ", color: "text-red-600", border: "border-red-500" },
   ];
 
@@ -84,7 +84,7 @@ export default function OrderHistory() {
         <SectionHeader title="รายละเอียดการสั่งซื้อ" icon="/img/icons/bill.png" />
 
         {/* Tabs */}
-        <div className="w-full max-w-md mt-4 flex space-x-3 border-b">
+        {/* <div className="w-full max-w-md mt-4 flex space-x-3 border-b">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -97,12 +97,12 @@ export default function OrderHistory() {
               {tab.label}
             </button>
           ))}
-        </div>
+        </div> */}
 
         {/* Order List */}
         <div className="w-full max-w-md mt-4">
           <h5 className="sarabun-font text-gray-700">รายการทั้งหมด {orderData.length} รายการ</h5>
-          <div className="mt-2 space-y-3 min-h-[180px] flex flex-col justify-center items-center">
+          <div className="mt-2 space-y-3 min-h-[24px] flex flex-col justify-center items-center">
             {loading ? (
               <Spin className="py-5" />
             ) : orderData.length > 0 ? (
@@ -134,7 +134,7 @@ export default function OrderHistory() {
                         {isComplete ? "รับสินค้าสำเร็จ" : "รับสินค้าไม่สำเร็จ"}
                       </p>
                       <p className="text-gray-700 sarabun-font text-sm font-semibold mt-1">
-                        รายการ {order.net_amount_display} / คะแนน {order.point}
+                        รายการ {order.line_product} / รวม {order.net_amount_display} / คะแนน {order.point}
                       </p>
                     </div>
                   </div>
