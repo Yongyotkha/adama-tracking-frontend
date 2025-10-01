@@ -24,7 +24,7 @@ export default function ViewOrEditTargetGroup() {
   const [typeOptions, setTypeOptions] = useState([]);
   const [uploadOpen, setUploadOpen] = useState(mode === "upload");
   const { showNotification, showMsg } = useContext(AuthContext);
-
+  const [type_id, set_type_id] = useState(null);
   const isView = mode === "view";
   const isEdit = mode === "edit";
   const lockTopInputs = isView || isEdit;   // ล็อกบนสุดทั้ง view + edit
@@ -132,13 +132,14 @@ export default function ViewOrEditTargetGroup() {
 
 
   const fetchMasterRows = async (type) => {
+
     // โหลดรายการแถว (ทั้งหมด) เพื่อให้แสดงในตาราง และติ๊กตาม selectedRowKeys
     try {
       let apiPath = paths.pathMasterDealerAll;
       if (type === "sub_dealer") apiPath = paths.pathMasterSubDealerAll;
       else if (type === "farmer") apiPath = paths.pathMasterFarmer;
 
-      const res = await useServiceAPI.get(apiPath, { target: true });
+      const res = await useServiceAPI.get(apiPath, { target: true, type_id:type_id });
       const raw = res?.data || [];
       let formatted = [];
 
@@ -196,7 +197,7 @@ export default function ViewOrEditTargetGroup() {
         type_name: header?.type ? String(header.type) : undefined, // "1" | "2" ...
         status: String(header?.use_flag ?? 1),          // "1" | "0"
       });
-
+      set_type_id(header?.type)
       // 4) โหลด rows ทั้งหมด (เพื่อให้แสดงตาราง)
       await fetchMasterRows(targetKey);
     } catch (e) {
@@ -235,10 +236,10 @@ export default function ViewOrEditTargetGroup() {
         showNotification?.("error", "กรุณากรอกข้อมูลให้ครบถ้วน");
         return;
       }
-      if (!selectedRowKeys?.length) {
-        showNotification?.("error", "กรุณาเลือกลูกค้าอย่างน้อย 1 รายการ");
-        return;
-      }
+      // if (!selectedRowKeys?.length) {
+      //   showNotification?.("error", "กรุณาเลือกลูกค้าอย่างน้อย 1 รายการ");
+      //   return;
+      // }
 
       const payload = {
         target: TARGET_MAP[values.target_name || targetType],
