@@ -36,6 +36,19 @@ export default function TargetGroupList() {
   // ---------- Filters UI ----------
   const filters = [
     {
+      key: "target_name",
+      type: "select",
+      label: "Customer Group",
+      options: targetGroups, // [{id, name}]
+    },
+    {
+      key: "type_name",
+      type: "select",
+      label: "Type Name",
+      options: typeGroups, // [{id, name}] <- will change when target_name changes
+      disabled: !filterValues?.target_name, // ปิดไว้จนกว่าจะเลือก target
+    },
+    {
       key: "status",
       type: "select",
       label: "Status",
@@ -44,25 +57,12 @@ export default function TargetGroupList() {
         { id: "1", name: "Active" },
       ],
     },
-    {
-      key: "target_name",
-      type: "select",
-      label: "Target Group",
-      options: targetGroups, // [{id, name}]
-    },
-    {
-      key: "type_name",
-      type: "select",
-      label: "Type",
-      options: typeGroups, // [{id, name}] <- will change when target_name changes
-      disabled: !filterValues?.target_name, // ปิดไว้จนกว่าจะเลือก target
-    },
   ];
 
   // ---------- Table header ----------
   const header = [
     { title: "No", dataIndex: "key", width: 70, align: "center" },
-    { title: "Customer Name", dataIndex: "target_text" },
+    { title: "Customer Group", dataIndex: "target_text" },
     { title: "Type Name", dataIndex: "type" },
     { title: "Create Date", dataIndex: "created_at", width: 140, align: "center" },
     { title: "Status", dataIndex: "status", width: 120, align: "center" },

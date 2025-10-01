@@ -44,7 +44,7 @@ export default function CreateTargetGroup() {
           { title: "No", render: (_, __, index) => index + 1 },
           // { title: "Code", dataIndex: "code" },
           { title: "Dealer Name", dataIndex: "dealer_name" },
-          { title: "Address", dataIndex: "address" },
+          // { title: "Address", dataIndex: "address" },
         ];
     }
   };
@@ -187,7 +187,7 @@ export default function CreateTargetGroup() {
         >
           <div className="grid grid-cols-3 gap-4">
             <Form.Item
-              label="Customer Name"
+              label="Customer Group"
               name="target_name"
               rules={[{ required: true, message: "Please select target" }]}
             >
