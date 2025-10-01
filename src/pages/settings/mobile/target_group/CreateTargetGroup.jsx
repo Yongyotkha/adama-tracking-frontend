@@ -79,8 +79,19 @@ export default function CreateTargetGroup() {
       setTypeOptions([]);
     }
   };
+  const handleTypeNameChange = (value) => {
+    // บันทึกค่าลงฟอร์ม (กัน edge case ถ้า antd ไม่เซ็ตให้)
+    form.setFieldValue("type_name", value);
 
-  const fetchData = async (type) => {
+    // เคลียร์ selection เดิมกันข้อมูลค้าง
+    setSelectedRowKeys([]);
+
+    // เรียกโหลดตารางตาม targetType ปัจจุบัน + ค่า type_name ที่เลือก
+    fetchData(targetType, value);
+  };
+  const fetchData = async (type, selectedTypeId) => {
+
+    console.log('selectedTypeId : ', selectedTypeId)
     setLoading(true);
     try {
       setDataSource([]);
@@ -88,7 +99,7 @@ export default function CreateTargetGroup() {
       if (type === "sub_dealer") apiPath = paths.pathMasterSubDealerAll;
       else if (type === "farmer") apiPath = paths.pathMasterFarmer;
 
-      const res = await useServiceAPI.get(apiPath, { target: true });
+      const res = await useServiceAPI.get(apiPath, { target: true, type_id: selectedTypeId });
       const raw = res?.data || [];
       let formatted = [];
       if (type === "dealer") {
@@ -130,7 +141,7 @@ export default function CreateTargetGroup() {
   };
 
   useEffect(() => {
-    fetchData(targetType);
+    ///fetchData(targetType);
     fetchTypeOptions(targetType); // <-- ดึงตัวเลือก Type ทุกครั้งที่เปลี่ยน target
   }, [targetType]);
 
@@ -142,10 +153,10 @@ export default function CreateTargetGroup() {
         return;
       }
 
-      if (!selectedRowKeys?.length) {
-        showNotification?.("error", "กรุณาเลือกลูกค้าอย่างน้อย 1 รายการ");
-        return;
-      }
+      // if (!selectedRowKeys?.length) {
+      //   showNotification?.("error", "กรุณาเลือกลูกค้าอย่างน้อย 1 รายการ");
+      //   return;
+      // }
 
       const payload = {
         target: TARGET_MAP[values.target_name || targetType],
@@ -213,9 +224,9 @@ export default function CreateTargetGroup() {
                 placeholder="Select type"
                 options={typeOptions}
                 loading={loading && !typeOptions.length}
+                onChange={handleTypeNameChange}
               />
             </Form.Item>
-
             <Form.Item label="Status" name="status" initialValue="1">
               <Select>
                 <Select.Option value="1">Active</Select.Option>
