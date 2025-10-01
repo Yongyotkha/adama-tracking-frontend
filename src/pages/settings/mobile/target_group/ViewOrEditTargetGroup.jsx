@@ -131,7 +131,7 @@ export default function ViewOrEditTargetGroup() {
   };
 
 
-  const fetchMasterRows = async (type) => {
+  const fetchMasterRows = async (type, overrideTypeId) => {
 
     // โหลดรายการแถว (ทั้งหมด) เพื่อให้แสดงในตาราง และติ๊กตาม selectedRowKeys
     try {
@@ -139,7 +139,23 @@ export default function ViewOrEditTargetGroup() {
       if (type === "sub_dealer") apiPath = paths.pathMasterSubDealerAll;
       else if (type === "farmer") apiPath = paths.pathMasterFarmer;
 
-      const res = await useServiceAPI.get(apiPath, { target: true, type_id:type_id });
+      //const res = await useServiceAPI.get(apiPath, { target: true, type_id: type_id });
+
+      // เลือก type_id ที่จะส่งให้ชัดเจน: ถ้ามี override ใช้อันนั้นก่อน
+      const effectiveTypeId =
+        overrideTypeId ?? type_id ?? form.getFieldValue("type_name");
+
+      const params = { target: true };
+      if (effectiveTypeId !== undefined && effectiveTypeId !== null && `${effectiveTypeId}` !== "") {
+        // แปลงเป็น Number ถ้า backend คาดหวังเป็นตัวเลข
+        params.type_id = Number(effectiveTypeId);
+      }
+
+      // debug ได้ตามต้องการ
+      // console.log("fetchMasterRows params:", params);
+
+      const res = await useServiceAPI.get(apiPath, params);
+
       const raw = res?.data || [];
       let formatted = [];
 
@@ -183,8 +199,10 @@ export default function ViewOrEditTargetGroup() {
       const res = await useServiceAPI.post(paths.pathTargetGroupDetail, { id });
 
       const { header, selectedIds, targetKey } = extractDetail(res);
+      set_type_id(header?.type);
+      // 1) เซ็ต target (สำหรับ UI) + checkboxes'
 
-      // 1) เซ็ต target (สำหรับ UI) + checkboxes
+
       setTargetType(targetKey);
       setSelectedRowKeys(selectedIds);
 
@@ -197,9 +215,9 @@ export default function ViewOrEditTargetGroup() {
         type_name: header?.type ? String(header.type) : undefined, // "1" | "2" ...
         status: String(header?.use_flag ?? 1),          // "1" | "0"
       });
-      set_type_id(header?.type)
+
       // 4) โหลด rows ทั้งหมด (เพื่อให้แสดงตาราง)
-      await fetchMasterRows(targetKey);
+      await fetchMasterRows(targetKey, header?.type);
     } catch (e) {
       console.error("fetch detail error", e);
       showMsg?.("error", e?.message || "โหลดรายละเอียดไม่สำเร็จ");
