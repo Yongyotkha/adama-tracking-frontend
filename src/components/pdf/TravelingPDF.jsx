@@ -283,7 +283,7 @@ const TravelingPDF = ({ title }) => {
   const getUserId = queryParams.get("user_id");
 
   const formatValue = (value) => {
-    if (value === ".00" || value == 0) return '-'; // Replace .00 with 0
+    if (value === ".00" || value == 0 || value == null) return '-'; // Replace .00 with 0
     if (!isNaN(value)) return formatNumber(value); // Otherwise, return as float
     return value; // If it's neither, return the value as is
   };
