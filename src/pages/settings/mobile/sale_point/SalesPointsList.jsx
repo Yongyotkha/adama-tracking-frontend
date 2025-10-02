@@ -77,12 +77,11 @@ export default function SalesPointsList() {
   ];
 
   // ---------- Filters (REQUEST) ----------
-  // ✅ ซ่อนช่อง Status (fix เป็น ODI ใน payload)
+  // ✅ ซ่อนช่อง Order No และ Status; เพิ่ม Sub Dealer + Date
   const requestFilters = [
     { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
     { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dataDealer, moderef: true },
     { key: "sub_dealer", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerOptions },
-    { key: "order_no", type: "text", label: "Order No", placeholder: "Order No" },
     { key: "dater", type: "dater", label: "Date", placeholder: "Date" },
   ];
 
@@ -174,18 +173,12 @@ export default function SalesPointsList() {
     const sortOrder = tableParams.sortOrder || "desc";
     const sortField = tableParams.sortField || "document_number";
 
-    /**
-     * ✅ ปรับ payload ให้ตรงสเปกที่ให้มา
-     * - map คีย์จาก filter → payload
-     * - status_code มาจาก filters.status_code (เดิมคือ filters.status)
-     * - dater เป็น array ของ YYYY-MM-DD จาก Filter.jsx อยู่แล้ว
-     */
     const requestData = {
       user_id: filters.sale || "",                 // sale id
       dealer_id: filters.dealer || "",             // dealer id
       sub_dealer_id: filters.sub_dealer || "",     // sub dealer id
       keyword: filters.order_no || "",             // find document_number
-      status_code: filters.status_code || " ",   // ✅ ใช้ status_code ใหม่ (default ODW)
+      status_code: filters.status_code || " ",     // ✅ ใช้ status_code ใหม่
       dater: filters.dater || [],                  // ["YYYY-MM-DD","YYYY-MM-DD"]
       page: "all",
       use_flag: 1,
@@ -296,8 +289,8 @@ export default function SalesPointsList() {
       user_id: filters.sale || "",
       dealer_id: filters.dealer || "",
       sub_dealer_id: filters.sub_dealer || "",
-      keyword: filters.order_no || "",
-      status_code: "ODI",                 // <- fixed
+      keyword: "",                  // 🔒 ซ่อน Order No -> ไม่ส่ง keyword จากฟิลด์นี้
+      status_code: "ODI",
       dater: filters.dater || [],
       page: "all",
       use_flag: 1,
@@ -610,7 +603,7 @@ export default function SalesPointsList() {
             onSearch={handleSearchRequest}
             onClear={handleClearRequest}
             onChange={handleChangeRequestFilters}
-            filters={requestFilters} // ✅ ไม่มีช่อง Status แล้ว
+            filters={requestFilters} // ✅ ไม่มี Order No และ Status แล้ว
           />
           <br />
           <BoxPrimary>
