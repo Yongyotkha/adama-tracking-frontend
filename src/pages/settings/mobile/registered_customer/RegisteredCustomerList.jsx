@@ -109,7 +109,7 @@ export default function RegisteredCustomerList() {
             contact_name: `${row.contact_first_name ?? ""} ${row.contact_last_name ?? ""}`.trim(),
             phone: row.phone_number,
             subscribed: row.line_join_last_datetime?.split(" ")[0] || "-",
-            point: "1,000",
+            point: row.balance_point,
             status: (
               <BadgeStatus
                 text={row.status_name}
@@ -155,7 +155,7 @@ export default function RegisteredCustomerList() {
             contact_name: `${row.contact_first_name ?? ""} ${row.contact_last_name ?? ""}`.trim(),
             phone: row.phone_number,
             subscribed: row.line_join_last_datetime?.split(" ")[0] || "-",
-            point: "1,000",
+            point: row.balance_point,
             status: (
               <BadgeStatus
                 text={row.status_name}
@@ -202,7 +202,7 @@ export default function RegisteredCustomerList() {
             contact_name: `${row.contact_first_name ?? ""} ${row.contact_last_name ?? ""}`.trim(),
             phone: row.phone_number,
             subscribed: row.line_join_last_datetime?.split(" ")[0] || "-",
-            point: "1,000",
+            point: row.balance_point,
             status: (
               <BadgeStatus
                 text={row.status_name}
