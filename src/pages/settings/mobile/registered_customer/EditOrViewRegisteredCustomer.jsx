@@ -82,7 +82,7 @@ export default function EditOrViewRegisteredCustomer() {
             type: "text",
             col: 12,
             disabled: true,
-            value: "-",
+            value:d.address,
           },
           {
             name: "register_date",
