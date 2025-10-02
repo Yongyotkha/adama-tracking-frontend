@@ -12,21 +12,46 @@ import { paths } from "../../../../services/CorsPath";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import FileUploadComponent from "../../../../components/file_upload/FileUploadComponent";
 import { FastBackwardFilled } from "@ant-design/icons";
+
 export default function CreateRewardCampaign() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { mode } = useParams();                  // 'create' | 'view' | (อนาคต 'edit')
+  const { mode } = useParams();                  // 'create' | 'view' | 'edit'
   const location = useLocation();                // รับ state.id จาก List
   const [form] = Form.useForm();
   const { showNotification } = useContext(AuthContext);
   const fileUploadRefReceive = useRef(null);
-  // const isView = String(mode).toLowerCase() === "view";
+
   const isView = String(mode).toLowerCase() === "view";
   const isEdit = String(mode).toLowerCase() === "edit";
   const isCreate = String(mode).toLowerCase() === "create";
+
   const [fileListReceive, setFileListReceive] = useState([]); // picture
   const [targetData, setTargetData] = useState([]);
   const [categoryOptions, setCategoryOptions] = useState([]);
+
+  // ---- watch cost for realtime recalculation
+  const costWatch = Form.useWatch("cost", form);
+
+  // ---------- utils ----------
+  const toNum = (v) => {
+    if (v === null || v === undefined) return 0;
+    const n = parseFloat(String(v).replace(/,/g, ""));
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const format2 = (n) => {
+    if (!Number.isFinite(n)) return "";
+    // ปัด 2 ตำแหน่ง แล้วแปลงเป็น string สั้น ๆ เช่น 12.90 -> "12.9"
+    return parseFloat((Math.round(n * 100) / 100).toFixed(2)).toString();
+  };
+
+  const calcValue = (cost, points) => {
+    const c = toNum(cost);
+    const p = toNum(points);
+    if (!p) return ""; // ไม่มี/ศูนย์ points -> ไม่แสดง
+    return format2(c / p);
+  };
 
   // ---------- โหลด Target master ----------
   useEffect(() => {
@@ -39,7 +64,7 @@ export default function CreateRewardCampaign() {
           const mapped = (list || []).map((t) => ({
             id: t.id,                 // ใช้เป็น type_id ตอนส่ง
             name: t.customer_type,
-            type: t.type,      // Customer Group id
+            type: t.type,             // Customer Group id
             customer_type: t.name,
             points: "",
             value: "",
@@ -93,8 +118,6 @@ export default function CreateRewardCampaign() {
       try {
         setLoading(true);
         const res = await useServiceAPI.get(`${paths.pathPromotiondetail}/${id}`);
-        // อ้างอิงตัวอย่างหน้า RedeemPointDetail:
-        // response.data.promotion, response.data.target
         const promotion = res?.data?.promotion;
         const target = res?.data?.target;
 
@@ -112,7 +135,7 @@ export default function CreateRewardCampaign() {
           description: promotion.description || "",
           condition: promotion.condition || "",
           product_detail: promotion.product_detail || "",
-          stock: promotion.value ?? "", // ถ้า API ไม่มี ให้คงไว้
+          stock: promotion.value ?? "",
           date_range: [
             promotion.date_start ? dayjs(promotion.date_start) : null,
             promotion.date_end ? dayjs(promotion.date_end) : null,
@@ -121,26 +144,23 @@ export default function CreateRewardCampaign() {
           use_flag: promotion.use_flag === "1" || promotion.use_flag === 1,
         });
 
-        // ใส่รูปเดิมเข้าตัวอัพโหลด (รองรับกรณี API ส่งเป็น string หรือ array)
+        // รูปเดิม
         const images = Array.isArray(promotion.image) ? promotion.image : (promotion.image ? [promotion.image] : []);
         setFileListReceive(
           images.map((u, idx) => ({ uid: String(idx + 1), name: `image_${idx + 1}`, status: "done", url: u }))
         );
 
-        // เติม targetData (ถ้ามี)
+        // เติม targetData (คำนวณ value ตาม cost ปัจจุบัน)
         if (Array.isArray(target) && target.length) {
-          // แปลงให้เข้ากับคอลัมน์เรา
-          console.log('target : ', target)
-          const merged = target.map((t, i) => ({
+          const costNow = promotion?.cost ?? form.getFieldValue("cost");
+          const merged = target.map((t) => ({
             id: Number(t.id),
             type: Number(t.type),
             name: t.customer_type ?? "",
             points: t.point ?? "",
-            value: t.value ?? "",
+            value: calcValue(costNow, t.point ?? ""), // ยึด cost -> คำนวณใหม่
             customer_type: t.name ?? "",
           }));
-
-          console.log('merged : ', merged)
           setTargetData(merged);
         }
       } catch (err) {
@@ -154,13 +174,30 @@ export default function CreateRewardCampaign() {
     fetchDetail();
   }, [isView, isEdit, location?.state?.id, form]);
 
+  // ---------- เปลี่ยนค่าในตาราง ----------
   const handleTargetChange = (value, index, field) => {
     const updated = [...targetData];
     updated[index][field] = value;
+
+    // ถ้าแก้ points -> คำนวณ value ใหม่ทันทีด้วย cost ปัจจุบัน
+    if (field === "points") {
+      const currentCost = form.getFieldValue("cost");
+      updated[index].value = calcValue(currentCost, value);
+    }
     setTargetData(updated);
   };
 
-  // ---------- คอลัมน์ Target: ถ้าเป็น View ให้แสดงเป็นข้อความ ----------
+  // ---------- เมื่อค่า Cost (THB) เปลี่ยน ให้คำนวณ Value ใหม่ทุกแถว ----------
+  useEffect(() => {
+    setTargetData((prev) =>
+      prev.map((row) => ({
+        ...row,
+        value: calcValue(costWatch, row.points),
+      }))
+    );
+  }, [costWatch]);
+
+  // ---------- คอลัมน์ Target ----------
   const targetColumns = useMemo(() => {
     if (isView) {
       return [
@@ -193,9 +230,10 @@ export default function CreateRewardCampaign() {
         key: "value",
         render: (_, __, index) => (
           <Input
-            placeholder="Enter"
+            placeholder="Auto"
             value={targetData[index]?.value}
-            onChange={(e) => handleTargetChange(e.target.value, index, "value")}
+            disabled
+            readOnly
           />
         ),
       },
@@ -204,7 +242,6 @@ export default function CreateRewardCampaign() {
 
   // ---------- ฟิลด์ฟอร์ม (ถ้า View ให้ disabled) ----------
   const formFields = useMemo(() => [
-    // { label: "Banner", name: "banner", type: "photo", required: !isView, col: 24, accept: "image/png, image/jpeg", disabled: isView },
     { label: "Reward Code", name: "code", type: "text", required: false, col: 12, placeholder: "Code", disabled: true },
     { label: "Category", name: "category", type: "select", required: true, col: 12, options: categoryOptions, disabled: isView },
     { label: "Reward Name", name: "name", type: "text", required: true, col: 24, placeholder: "Enter", disabled: isView },
@@ -246,7 +283,7 @@ export default function CreateRewardCampaign() {
       value: values.value ? Number(values.value) : 0,
       remark: "",
       image: fileListReceive.map((f) => f.url),
-      use_flag: values.use_flag ? 1 : 0,              // ✅ ใช้ number ให้ตรงกับตัวอย่างหน้าที่อ้างอิง
+      use_flag: values.use_flag ? 1 : 0,
       detail: values.product_detail,
       condition: values.condition,
       product_detail: values.product_detail,
@@ -259,50 +296,9 @@ export default function CreateRewardCampaign() {
 
   const handleSave = async () => {
     try {
-
       setLoading(true);
-
       const values = await form.validateFields();
-
-      // const date_start = dayjs(values.date_range?.[0]).format("YYYY-MM-DD");
-      // const date_end = dayjs(values.date_range?.[1]).format("YYYY-MM-DD");
-
-      // const target = targetData
-      //   .filter(t => t.points || t.value)
-      //   .map(t => ({
-      //     point: Number(t.points ?? 0),
-      //     value: Number(t.value ?? 0),
-      //     target_id: Number(t.target_id),
-      //     type_id: Number(t.id),
-      //   }));
-
-      // const payload = {
-      //   name: values.name,
-      //   description: values.description,
-      //   date_start,
-      //   date_end,
-      //   code: values.code || genCode(),
-      //   category_id: Number(values.category),
-      //   unit: "ชุด",
-      //   value: values.value ? Number(values.value) : 0,
-      //   remark: "",
-      //   // ✅ สำคัญ: ใช้ค่าจากฟิลด์ banner
-      //   image: fileListReceive.map((f) => f.url),
-      //   //image: "https://adama-api.mtsc.co.th/storage/adama-smile/uploads/files/news/20250818/93587AAC-222B-4A2D-810B-70AFEA6C4419.jpg",
-      //   use_flag: values.use_flag ? "1" : "0",
-      //   detail: values.product_detail,
-      //   condition: values.condition,
-      //   product_detail: values.product_detail,
-      //   public: 1,
-      //   cost: values.cost ? Number(values.cost) : 0,
-      //   stock: values.stock ? Number(values.stock) : 0,
-      //   target,
-      // };
-
       const payload = buildPayload(values);
-
-
-
       const res = await useServiceAPI.post(paths.pathPromotioncreate, payload);
 
       if (res?.status === 200) {
@@ -325,16 +321,9 @@ export default function CreateRewardCampaign() {
       const values = await form.validateFields();
       const payload = buildPayload(values);
 
-      console.log('payload : ', payload)
-      // return false;
-      // ✅ ต้องส่ง id มาด้วยตามสัญญา API ของหน้า EditPromotion
-      // payload.id = Number(location?.state?.id);
-      // const res = await useServiceAPI.put(paths.pathPromotionupdate, payload);
-
       const id = Number(location?.state?.id);
       if (!id) throw new Error("ไม่พบรหัสรายการจากหน้า List");
 
-      // ✅ ใส่ id ใน URL ตามสเปค: promotion-management/update/{id}
       const res = await useServiceAPI.put(`${paths.pathPromotionupdate}/${id}`, payload);
 
       if (res?.status === 200) {
@@ -350,6 +339,7 @@ export default function CreateRewardCampaign() {
       setLoading(false);
     }
   };
+
   const handleUploadReceiveSuccess = (resp) => {
     const d = resp.data;
     setFileListReceive((prev) => [...prev, { uid: d.file_key, name: d.file_name, status: "done", url: d.file_url }]);
@@ -370,9 +360,8 @@ export default function CreateRewardCampaign() {
 
       <BoxPrimary>
         <div className="flex items-center justify-between">
-          <label for="Banner" class="" title="Banner">Banner</label>
-          {/* {!isView && <ActionButton mode="add" text="Upload File" onClick={() => fileUploadRefReceive.current?.triggerUpload()} />} */}
-          {(!isView) && (
+          <label htmlFor="Banner" title="Banner">Banner</label>
+          {!isView && (
             <ActionButton mode="add" text="Upload File" onClick={() => fileUploadRefReceive.current?.triggerUpload()} />
           )}
         </div>
@@ -380,8 +369,6 @@ export default function CreateRewardCampaign() {
         <FileUploadComponent
           ref={fileUploadRefReceive}
           dataFile={fileListReceive}
-          // onUploadSuccess={handleUploadReceiveSuccess}
-          // mode={isView ? "view" : "edit"}
           onUploadSuccess={handleUploadReceiveSuccess}
           mode={isView ? "view" : "edit"}
         />
@@ -399,15 +386,8 @@ export default function CreateRewardCampaign() {
 
       <div className="flex justify-end gap-4 mt-6">
         <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />
-        {/* {!isView && (
-          <ActionButton text="Save" mode="save" onClick={handleSave} />
-        )} */}
-        {isCreate && (
-          <ActionButton text="Save" mode="save" onClick={handleSave} />
-        )}
-        {isEdit && (
-          <ActionButton text="Update" mode="update" onClick={handleUpdate} />
-        )}
+        {isCreate && <ActionButton text="Save" mode="save" onClick={handleSave} />}
+        {isEdit && <ActionButton text="Update" mode="update" onClick={handleUpdate} />}
       </div>
     </MainLayout>
   );

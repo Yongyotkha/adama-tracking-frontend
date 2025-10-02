@@ -1,3 +1,4 @@
+// src/pages/points/line/sales_points/SalesPointView.jsx
 import React, { useEffect, useState, useContext, useRef } from "react";
 import { Form, Input } from "antd";
 import MainLayout from "../../../../layouts/MainLayout";
@@ -15,7 +16,7 @@ import UploadSection from "../../../../components/file_upload/UploadSection";
 export default function SalesPointView() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { showMsg, showNotification } = useContext(AuthContext);
+  const { showMsg } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
 
@@ -36,13 +37,13 @@ export default function SalesPointView() {
   const [getRemark, setGetRemark] = useState("");
 
   // อัปโหลดไฟล์
-  const [fileListBill, setFileListBill] = useState([]);       // จาก field "bill"
-  const [fileListPicture, setFileListPicture] = useState([]); // จาก field "picture"
+  const [fileListBill, setFileListBill] = useState([]);
+  const [fileListPicture, setFileListPicture] = useState([]);
   const fileUploadRefBill = useRef(null);
   const fileUploadRefPicture = useRef(null);
 
   const [formCustom] = Form.useForm();
-  const document_number = location.state?.document_number; // <-- ใช้ค่านี้ยิง API
+  const document_number = location.state?.document_number;
 
   // helper: แปลง URL ให้เป็นชื่อไฟล์สั้น ๆ
   const getNameFromUrl = (url) => {
@@ -55,7 +56,7 @@ export default function SalesPointView() {
     }
   };
 
-  // 1) ดึงรายละเอียดใบสั่งจาก pathSalePointOrderDetail
+  // 1) ดึงรายละเอียดใบสั่ง
   useEffect(() => {
     const fetchDetail = async () => {
       if (!document_number) return;
@@ -105,7 +106,7 @@ export default function SalesPointView() {
           }));
           setDataSourceOther(mappedOthers);
 
-          // bill -> fileListBill
+          // bill
           const bill = Array.isArray(d.bill) ? d.bill : [];
           setFileListBill(
             bill.map((b) => ({
@@ -116,7 +117,7 @@ export default function SalesPointView() {
             }))
           );
 
-          // picture -> fileListPicture
+          // picture
           const picture = Array.isArray(d.picture) ? d.picture : [];
           setFileListPicture(
             picture.map((p) => ({
@@ -213,25 +214,30 @@ export default function SalesPointView() {
     },
   ];
 
+  // ✅ เพิ่ม Total Point ใน footer
   const footerOrderList = () => {
     const totalQuantity = dataSource.reduce(
       (total, item) => total + parseFloat(item.quantity || 0),
       0
     );
-    // const totalFOC = dataSource.reduce(
-    //   (total, item) => total + parseFloat(item.foc || 0),
-    //   0
-    // );
     const totalAmount = dataSource.reduce(
       (total, item) => total + parseFloat(item.net_amount || 0),
       0
+    );
+    // รวมแต้มจากคอลัมน์ point (ถ้าต้องคูณตามจำนวน ให้คอมเมนต์บรรทัดล่างไว้)
+    const totalPoint = dataSource.reduce(
+      (total, item) => total + parseFloat(item.point || 0),
+      0
+      // (ต้องคูณจำนวน) => total + parseFloat(item.point || 0) * parseFloat(item.quantity || 0)
     );
 
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
-          Item: {dataSource.length} &nbsp; QTY (ctn): {totalQuantity} &nbsp; Total:{" "}
-          {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+          Item: {dataSource.length}
+          &nbsp;&nbsp; QTY (ctn): {totalQuantity.toLocaleString("en-US")}
+          &nbsp;&nbsp; Total: {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+          &nbsp;&nbsp; <strong>Total Point: {totalPoint.toLocaleString("en-US")}</strong>
         </td>
       </tr>
     );
@@ -249,9 +255,6 @@ export default function SalesPointView() {
     </tr>
   );
 
-  console.log(getUserId);
-
-  console.log(dataSale);
   // ฟิลด์ฟอร์มแสดง readonly
   const formFields = [
     {
@@ -304,35 +307,6 @@ export default function SalesPointView() {
     },
   ];
 
-  const handleUploadClickBill = () => {
-    if (fileUploadRefBill.current) fileUploadRefBill.current.triggerUpload();
-  };
-  const handleUploadClickPicture = () => {
-    if (fileUploadRefPicture.current) fileUploadRefPicture.current.triggerUpload();
-  };
-
-  // อัปโหลดเสร็จ – เติมลง list
-  const handleUploadSuccessBill = (response) => {
-    const data = response.data;
-    const uploaded = {
-      uid: data.file_key,
-      name: data.file_name,
-      status: "done",
-      url: data.file_url,
-    };
-    setFileListBill((prev) => [...prev, uploaded]);
-  };
-  const handleUploadSuccessPicture = (response) => {
-    const data = response.data;
-    const uploaded = {
-      uid: data.file_key,
-      name: data.file_name,
-      status: "done",
-      url: data.file_url,
-    };
-    setFileListPicture((prev) => [...prev, uploaded]);
-  };
-
   return (
     <MainLayout loading={loading}>
       <div className="title-page">View Sales Point Order</div>
@@ -365,22 +339,22 @@ export default function SalesPointView() {
         title="Attached file/Picture"
         fileUploadRef={fileUploadRefBill}
         fileList={fileListBill}
-        handleUploadClick={() => { }}
-        handleUploadSuccess={() => { }}
-        handleFileRemove={() => { }}
+        handleUploadClick={() => {}}
+        handleUploadSuccess={() => {}}
+        handleFileRemove={() => {}}
         modeUpload="activity"
-        disabled={true} // Enable view-only mode
+        disabled={true}
       />
 
       <UploadSection
         title="Attached file/Picture"
         fileUploadRef={fileUploadRefPicture}
         fileList={fileListPicture}
-        handleUploadClick={() => { }}
-        handleUploadSuccess={() => { }}
-        handleFileRemove={() => { }}
+        handleUploadClick={() => {}}
+        handleUploadSuccess={() => {}}
+        handleFileRemove={() => {}}
         modeUpload="activity"
-        disabled={true} // Enable view-only mode
+        disabled={true}
       />
 
       <BoxPrimary title="Remark">
