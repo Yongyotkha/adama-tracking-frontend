@@ -75,7 +75,7 @@ export default function UserDetail() {
 
                 >
                   <EditOutlined className="mr-1" />
-                  <span className="sarabun-font">แก้ไขข้อมูล</span>
+                  <span className="sarabun-font">แก้ไขข้อมูลสมาชิก</span>
                 </Button>
               </div>
             </div>
@@ -84,6 +84,10 @@ export default function UserDetail() {
             <div className="w-full max-w-md mt-4">
               <Card className="rounded-xl shadow-md">
                 <div className="space-y-4 text-gray-700">
+                  <div className="flex justify-between border-b pb-2">
+                    <span className="text-gray-500 sarabun-font">รหัสสมาชิก</span>
+                    <span className="sarabun-font">{user?.user_code || "-"}</span>
+                  </div>
                   <div className="flex justify-between border-b pb-2">
                     <span className="text-gray-500 sarabun-font">ชื่อร้าน</span>
                     <span className="sarabun-font">{user?.shop_name || "-"}</span>
@@ -104,14 +108,10 @@ export default function UserDetail() {
                     <span className="text-gray-500 sarabun-font">ไลน์ไอดี</span>
                     <span className="sarabun-font">{user?.line_id ? user?.line_id : "-"}</span>
                   </div>
-                  <div className="flex justify-between border-b pb-2">
+                  {/* <div className="flex justify-between border-b pb-2">
                     <span className="text-gray-500 sarabun-font">อีเมล</span>
                     <span className="sarabun-font">{user?.email || "-"}</span>
-                  </div>
-                  <div className="flex justify-between border-b pb-2">
-                    <span className="text-gray-500 sarabun-font">รหัสผู้ใช้</span>
-                    <span className="sarabun-font">{user?.user_code || "-"}</span>
-                  </div>
+                  </div> */}
                   <div className="flex justify-between">
                     <span className="text-gray-500 sarabun-font">ที่อยู่</span>
                     <span className="text-right sarabun-font">
