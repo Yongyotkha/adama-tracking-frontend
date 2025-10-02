@@ -22,6 +22,12 @@ export default function FormUser({ fields, title, profile, form, onChange, disab
 
   );
 
+  useEffect(() => {
+    setImagePreview(profile || "/img/Image-not-found.png");
+  }, [profile]);
+
+  console.log('componance : ', imagePreview)
+
   const handleFieldChange = (attribute, value) => {
     form.setFieldsValue({ [attribute]: value });
   };
@@ -201,6 +207,7 @@ export default function FormUser({ fields, title, profile, form, onChange, disab
                     //     name={field.name}
                     //   />
                     // </div>
+
                     <div className="image-upload-container flex items-center gap-3 mb-4">
                       <img
                         src={imagePreview}

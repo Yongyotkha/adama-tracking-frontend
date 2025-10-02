@@ -209,13 +209,19 @@ export default function RedeemPointDetail() {
             {activeTab === "conditions" ? (
               <div
                 className="sarabun-font"
-                dangerouslySetInnerHTML={{ __html: reward.condition }}
+                dangerouslySetInnerHTML={{
+                  __html: reward.product_detail.replace(/\n/g, "<br/>"),
+                }}
               />
+
             ) : (
               <div
                 className="sarabun-font"
-                dangerouslySetInnerHTML={{ __html: reward.product_detail }}
+                dangerouslySetInnerHTML={{
+                  __html: reward.product_detail.replace(/\n/g, "<br/>"),
+                }}
               />
+
             )}
           </div>
         </div>
