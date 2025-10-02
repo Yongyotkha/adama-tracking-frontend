@@ -32,7 +32,10 @@ export default function EditOrViewRegisteredCustomer() {
       const res = await useServiceAPI.get(paths.pathCustomerRegisDetail, { id });
       if (res.status === 200 && res.data) {
         const d = res.data;
-        const profile = d.photo_path || "/img/profile.jpg";
+        const profile = d.profile_image || "/img/profile.jpg";
+
+        console.log('page : ', profile)
+
         setProfileImage(profile);
 
         setFields([
@@ -177,47 +180,6 @@ export default function EditOrViewRegisteredCustomer() {
       fetchOrderHistory();
     }
   }, [id]);
-
-  const orderColumns = [
-    { title: "Order No", dataIndex: "order_no" },
-    { title: "Order Date", dataIndex: "date" },
-    { title: "Dealer", dataIndex: "dealer" },
-    { title: "Amount", dataIndex: "amount" },
-    { title: "Status", dataIndex: "status" },
-  ];
-
-  const transactionColumns = [
-    { title: "Reward Code", dataIndex: "reward_code" },
-    { title: "Category", dataIndex: "category" },
-    { title: "Reward Name", dataIndex: "reward_name" },
-    { title: "QTY (Pcs)", dataIndex: "qty" },
-    { title: "Cost (THB)", dataIndex: "cost" },
-    { title: "Points Redeem", dataIndex: "points" },
-    { title: "Send By", dataIndex: "send_by" },
-    { title: "Send Date", dataIndex: "send_date" },
-    {
-      title: "Status",
-      dataIndex: "status",
-      render: (text) => (
-        <BadgeStatus text={text} bgColor="#00783F" textColor="#fff" />
-      ),
-    },
-  ];
-
-  const transactionData = [
-    {
-      key: 1,
-      reward_code: "RW000000001",
-      category: "อิเล็กทรอนิกส์",
-      reward_name: "พัดลม (14 นิ้ว)",
-      qty: 1,
-      cost: "790",
-      points: "2,000",
-      send_by: "Mail/Shipping",
-      send_date: "2025-05-26",
-      status: "Delivered",
-    },
-  ];
 
 
   return (
