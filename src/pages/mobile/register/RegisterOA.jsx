@@ -308,7 +308,7 @@ export default function RegisterOA() {
                 value={formData.shop_name}
                 onChange={handleInputChange}
                 name="shop_name"
-                readOnly
+                disabled
                 placeholder="ชื่อร้าน"
               />
             </div>
@@ -365,14 +365,14 @@ export default function RegisterOA() {
             {/* เบอร์โทรศัพท์มือถือ */}
             <div>
               <label className="text-gray-600 font-medium sarabun-font">
-                เบอร์โทรศัพท์มือถือ<span className="text-red-500">*</span>
+                เบอร์โทรศัพท์<span className="text-red-500">*</span>
               </label>
               <Input
                 className="mt-1 rounded-md h-10 sarabun-font"
                 value={formData.phone_number}
                 name="phone_number"
                 onChange={handleInputChange}
-                readOnly
+                disabled
                 placeholder="เบอร์มือถือ"
               />
             </div>

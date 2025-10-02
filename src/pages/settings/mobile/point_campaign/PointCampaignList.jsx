@@ -132,7 +132,7 @@ export default function PointCampaignList() {
     { title: "No", dataIndex: "key" },
     { title: "Campaign Name", dataIndex: "name" },
     { title: "Customer Group", dataIndex: "customer_type_name" },
-    // { title: "Type Name", dataIndex: "type_name" },
+    { title: "Type Name", dataIndex: "type_name" },
     { title: "Product", dataIndex: "product_name" },
     { title: "Campaign", dataIndex: "campaign" },
     { title: "Period", dataIndex: "period" },

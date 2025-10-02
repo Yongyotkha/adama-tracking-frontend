@@ -204,6 +204,7 @@ export default function CreatePointCampaign() {
           name: p?.product_name || "-",
           packsize: p?.packing_list || "-",
           category: p?.product_category || p?.product_group || "-",
+          point: p?.point || "-",
         }));
         if (!cancelled) {
           setProductRaw(rows);
@@ -855,6 +856,7 @@ export default function CreatePointCampaign() {
               { title: "Product Name", dataIndex: "name" },
               { title: "Packsize", dataIndex: "packsize", width: 160 },
               { title: "Category", dataIndex: "category", width: 160 },
+              { title: "Point/Ctn", dataIndex: "point", width: 160 },
             ]}
             dataSource={filteredProducts}
             loading={productLoading}

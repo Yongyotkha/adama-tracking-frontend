@@ -13,7 +13,7 @@ export default function RedeemPointDetail() {
   const navigate = useNavigate();
   const [reward, setReward] = useState(null);
   const [target, setTarget] = useState(null);
-  const [activeTab, setActiveTab] = useState("conditions");
+  const [activeTab, setActiveTab] = useState("details");
   const location = useLocation();
   const [isPointModalVisible, setIsPointModalVisible] = useState(false);
   const [isPointModalVisibleFalse, setIsPointModalVisibleFalse] = useState(false);
@@ -185,6 +185,16 @@ export default function RedeemPointDetail() {
           </p>
 
           <div className="flex justify-around gap-2 mt-6 rounded-lg sarabun-font">
+              <button
+              className={`flex-1 text-center py-2 rounded-lg ${activeTab === "details"
+                ? "bg-green-700 text-white"
+                : "bg-white text-[#00783F]"
+                }`}
+              onClick={() => setActiveTab("details")}
+            >
+              รายละเอียดสินค้า
+            </button>
+
             <button
               className={`flex-1 text-center py-2 rounded-lg ${activeTab === "conditions"
                 ? "bg-green-700 text-white"
@@ -194,19 +204,11 @@ export default function RedeemPointDetail() {
             >
               เงื่อนไข
             </button>
-            <button
-              className={`flex-1 text-center py-2 rounded-lg ${activeTab === "details"
-                ? "bg-green-700 text-white"
-                : "bg-white text-[#00783F]"
-                }`}
-              onClick={() => setActiveTab("details")}
-            >
-              รายละเอียดสินค้า
-            </button>
+
           </div>
 
           <div className="p-3 rounded-b-lg sarabun-font text-sm text-gray-700 mt-2">
-            {activeTab === "conditions" ? (
+            {activeTab === "details" ? (
               <div
                 className="sarabun-font"
                 dangerouslySetInnerHTML={{
@@ -218,7 +220,7 @@ export default function RedeemPointDetail() {
               <div
                 className="sarabun-font"
                 dangerouslySetInnerHTML={{
-                  __html: reward.product_detail.replace(/\n/g, "<br/>"),
+                  __html: reward.condition.replace(/\n/g, "<br/>"),
                 }}
               />
 
