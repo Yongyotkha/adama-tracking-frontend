@@ -48,7 +48,7 @@ const tabConfig = {
   farmer: {
     apiPath: paths.pathCustomerRegis,
     label: <span className="tab-title">Farmer</span>,
-    filters: [],
+    filters: COMMON_FILTERS,
     shopType: "farmer",
   },
 };
@@ -194,6 +194,26 @@ export default function RegisteredCustomerList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     activeTab,
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    JSON.stringify(tableParams.filters),
+  ]);
+
+  useEffect(() => {
+    // รีเซ็ตฟิลเตอร์เมื่อเปลี่ยนแท็บ เพื่อไม่ให้เงื่อนไขจากแท็บก่อนหน้าติดมาด้วย
+    setTableParams((prev) => ({
+      ...prev,
+      pagination: { ...prev.pagination, current: 1 },
+      filters: { status_code: "" }, // Default = All
+    }));
+
+  }, [activeTab]);
+
+  // แยก effect สำหรับยิง API ตาม pagination/filters
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
     tableParams.pagination.current,
     tableParams.pagination.pageSize,
     JSON.stringify(tableParams.filters),
