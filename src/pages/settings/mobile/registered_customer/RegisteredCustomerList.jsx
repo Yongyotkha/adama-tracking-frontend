@@ -102,7 +102,7 @@ export default function RegisteredCustomerList() {
           key: index + 1 + (current - 1) * pageSize,
           id: row.id,
           dealer_id: row.shop_code,
-          dealer_name: row.shop_name,
+          dealer_name: row.shop_name_custom,
           contact_name: `${row.contact_first_name ?? ""} ${row.contact_last_name ?? ""}`.trim(),
           phone: row.phone_number,
           subscribed: row.line_join_last_datetime?.split(" ")[0] || "-",
