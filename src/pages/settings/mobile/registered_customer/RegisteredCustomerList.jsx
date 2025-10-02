@@ -98,50 +98,149 @@ export default function RegisteredCustomerList() {
         const result = response.data || {};
         const customers = (result.data && result.data.data) || result.data || [];
 
-        const newData = customers.map((row, index) => ({
-          key: index + 1 + (current - 1) * pageSize,
-          id: row.id,
-          dealer_id: row.shop_code,
-          dealer_name: row.shop_name_custom,
-          contact_name: `${row.contact_first_name ?? ""} ${row.contact_last_name ?? ""}`.trim(),
-          phone: row.phone_number,
-          subscribed: row.line_join_last_datetime?.split(" ")[0] || "-",
-          point: "1,000",
-          status: (
-            <BadgeStatus
-              text={row.status_name}
-              bgColor={row.status_bg_color}
-              textColor={row.status_color}
-            />
-          ),
-          action: (
-            <Dropdown
-              menu={{
-                items: (row.action || []).map((item, idx) => ({
-                  key: idx,
-                  label: (
-                    <ItemDropDown
-                      mode={(item.action || "").toLowerCase()}
-                      onClick={() => {
-                        navigate(
-                          "/points/line/register-customer-list/" + (item.action || "").toLowerCase(),
-                          {
-                            state: { id: row.id, pageCode: "customer_regis" },
-                          }
-                        );
-                      }}
-                    />
-                  ),
-                })),
-              }}
-              placement="bottomRight"
-            >
-              <a onClick={(e) => e.preventDefault()}>
-                <img src="/img/icons/action.png" alt="action" className="w-5 h-5 inline-block" />
-              </a>
-            </Dropdown>
-          ),
-        }));
+        let newData = []
+        if (currentTab.shopType == 'dealer') {
+          newData = customers.map((row, index) => ({
+            key: index + 1 + (current - 1) * pageSize,
+            id: row.id,
+            dealer_id: row.shop_code,
+            dealer_name: row.shop_name_custom,
+            sale_name: row.sale_name,
+            contact_name: `${row.contact_first_name ?? ""} ${row.contact_last_name ?? ""}`.trim(),
+            phone: row.phone_number,
+            subscribed: row.line_join_last_datetime?.split(" ")[0] || "-",
+            point: "1,000",
+            status: (
+              <BadgeStatus
+                text={row.status_name}
+                bgColor={row.status_bg_color}
+                textColor={row.status_color}
+              />
+            ),
+            action: (
+              <Dropdown
+                menu={{
+                  items: (row.action || []).map((item, idx) => ({
+                    key: idx,
+                    label: (
+                      <ItemDropDown
+                        mode={(item.action || "").toLowerCase()}
+                        onClick={() => {
+                          navigate(
+                            "/points/line/register-customer-list/" + (item.action || "").toLowerCase(),
+                            {
+                              state: { id: row.id, pageCode: "customer_regis" },
+                            }
+                          );
+                        }}
+                      />
+                    ),
+                  })),
+                }}
+                placement="bottomRight"
+              >
+                <a onClick={(e) => e.preventDefault()}>
+                  <img src="/img/icons/action.png" alt="action" className="w-5 h-5 inline-block" />
+                </a>
+              </Dropdown>
+            ),
+          }));
+        } else if (currentTab.shopType == 'sub_dealer') {
+          newData = customers.map((row, index) => ({
+            key: index + 1 + (current - 1) * pageSize,
+            id: row.id,
+            dealer_id: row.shop_code,
+            dealer_name: row.dealer_name,
+            sale_name: row.sale_name,
+            contact_name: `${row.contact_first_name ?? ""} ${row.contact_last_name ?? ""}`.trim(),
+            phone: row.phone_number,
+            subscribed: row.line_join_last_datetime?.split(" ")[0] || "-",
+            point: "1,000",
+            status: (
+              <BadgeStatus
+                text={row.status_name}
+                bgColor={row.status_bg_color}
+                textColor={row.status_color}
+              />
+            ),
+            action: (
+              <Dropdown
+                menu={{
+                  items: (row.action || []).map((item, idx) => ({
+                    key: idx,
+                    label: (
+                      <ItemDropDown
+                        mode={(item.action || "").toLowerCase()}
+                        onClick={() => {
+                          navigate(
+                            "/points/line/register-customer-list/" + (item.action || "").toLowerCase(),
+                            {
+                              state: { id: row.id, pageCode: "customer_regis" },
+                            }
+                          );
+                        }}
+                      />
+                    ),
+                  })),
+                }}
+                placement="bottomRight"
+              >
+                <a onClick={(e) => e.preventDefault()}>
+                  <img src="/img/icons/action.png" alt="action" className="w-5 h-5 inline-block" />
+                </a>
+              </Dropdown>
+            ),
+          }));
+        } else if (currentTab.shopType == 'farmer') {
+          newData = customers.map((row, index) => ({
+            key: index + 1 + (current - 1) * pageSize,
+            id: row.id,
+            dealer_id: row.shop_code,
+            sub_dealer_name: row.sub_dealer_name,
+            dealer_name: row.dealer_name,
+            sale_name: row.sale_name,
+            contact_name: `${row.contact_first_name ?? ""} ${row.contact_last_name ?? ""}`.trim(),
+            phone: row.phone_number,
+            subscribed: row.line_join_last_datetime?.split(" ")[0] || "-",
+            point: "1,000",
+            status: (
+              <BadgeStatus
+                text={row.status_name}
+                bgColor={row.status_bg_color}
+                textColor={row.status_color}
+              />
+            ),
+            action: (
+              <Dropdown
+                menu={{
+                  items: (row.action || []).map((item, idx) => ({
+                    key: idx,
+                    label: (
+                      <ItemDropDown
+                        mode={(item.action || "").toLowerCase()}
+                        onClick={() => {
+                          navigate(
+                            "/points/line/register-customer-list/" + (item.action || "").toLowerCase(),
+                            {
+                              state: { id: row.id, pageCode: "customer_regis" },
+                            }
+                          );
+                        }}
+                      />
+                    ),
+                  })),
+                }}
+                placement="bottomRight"
+              >
+                <a onClick={(e) => e.preventDefault()}>
+                  <img src="/img/icons/action.png" alt="action" className="w-5 h-5 inline-block" />
+                </a>
+              </Dropdown>
+            ),
+          }));
+        }
+
+
 
         setDataSource(newData);
         setTableParams((prev) => ({
@@ -177,18 +276,49 @@ export default function RegisteredCustomerList() {
     }));
   };
 
-  const header = [
-    // { title: "Image", dataIndex: "image", render: () => <img src="/img/default-avatar.png" className="w-8 h-8 rounded-full" /> },
-    // { title: "Dealer ID", dataIndex: "dealer_id" },
-    { title: "Customer Name", dataIndex: "dealer_name" },
-    { title: "Contact Name", dataIndex: "contact_name" },
-    { title: "Contact Number", dataIndex: "phone" },
-    { title: "Subscribed", dataIndex: "subscribed" },
-    { title: "Current points", dataIndex: "point" },
-    { title: "Status", dataIndex: "status" },
-    { title: "Action", dataIndex: "action", align: "center" },
-  ];
+  let header = [];
 
+  if (currentTab.shopType == 'dealer') {
+    header = [
+      // { title: "Image", dataIndex: "image", render: () => <img src="/img/default-avatar.png" className="w-8 h-8 rounded-full" /> },
+      // { title: "Dealer ID", dataIndex: "dealer_id" },
+      { title: "Sale Name", dataIndex: "sale_name" },
+      { title: "Dealer Name", dataIndex: "dealer_name" },
+      { title: "Contact Name", dataIndex: "contact_name" },
+      { title: "Contact Number", dataIndex: "phone" },
+      { title: "Subscribed", dataIndex: "subscribed" },
+      { title: "Current points", dataIndex: "point" },
+      { title: "Status", dataIndex: "status" },
+      { title: "Action", dataIndex: "action", align: "center" },
+    ];
+  } else if (currentTab.shopType == 'sub_dealer') {
+    header = [
+      // { title: "Image", dataIndex: "image", render: () => <img src="/img/default-avatar.png" className="w-8 h-8 rounded-full" /> },
+      // { title: "Dealer ID", dataIndex: "dealer_id" },
+      { title: "Sale Name", dataIndex: "sale_name" },
+      { title: "Dealer Name", dataIndex: "dealer_name" },
+      { title: "Contact Name", dataIndex: "contact_name" },
+      { title: "Contact Number", dataIndex: "phone" },
+      { title: "Subscribed", dataIndex: "subscribed" },
+      { title: "Current points", dataIndex: "point" },
+      { title: "Status", dataIndex: "status" },
+      { title: "Action", dataIndex: "action", align: "center" },
+    ];
+  } else if (currentTab.shopType == 'farmer') {
+    header = [
+      // { title: "Image", dataIndex: "image", render: () => <img src="/img/default-avatar.png" className="w-8 h-8 rounded-full" /> },
+      // { title: "Dealer ID", dataIndex: "dealer_id" },
+      { title: "Sale Name", dataIndex: "sale_name" },
+      { title: "Dealer Name", dataIndex: "dealer_name" },
+      { title: "Sub Dealer Name", dataIndex: "sub_dealer_name" },
+      { title: "Contact Name", dataIndex: "contact_name" },
+      { title: "Contact Number", dataIndex: "phone" },
+      { title: "Subscribed", dataIndex: "subscribed" },
+      { title: "Current points", dataIndex: "point" },
+      { title: "Status", dataIndex: "status" },
+      { title: "Action", dataIndex: "action", align: "center" },
+    ];
+  }
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
