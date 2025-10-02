@@ -143,7 +143,7 @@ export default function EditUserOA() {
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
         <div className="w-full max-w-md py-4 flex justify-between items-center">
-          <h2 className="text-[#009845] text-lg font-semibold sarabun-font">แก้ไขข้อมูล</h2>
+          <h2 className="text-[#009845] text-lg font-semibold sarabun-font">แก้ไขข้อมูลสมาชิก</h2>
         </div>
 
         {/* Profile Image */}
@@ -195,8 +195,8 @@ export default function EditUserOA() {
             </div>
 
             <div>
-              <label className="text-gray-500 sarabun-font">เบอร์โทรเบอร์โทรศัพท์</label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.phone_number} name="phone_number" readOnly />
+              <label className="text-gray-500 sarabun-font">เบอร์โทรศัพท์</label>
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.phone_number} name="phone_number" disabled/>
             </div>
 
             <div>
