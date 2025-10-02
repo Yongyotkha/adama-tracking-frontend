@@ -411,9 +411,9 @@ export default function CreatePointCampaign() {
 
   // ===== helpers =====
   const PRODUCT_MODE_MAP = { all: 1, category: 2, specific: 3 };
-  const TYPE_MODE_MAP = { extra: 1, topup: 2, xpoint: 3 };
+  const TYPE_MODE_MAP = { extra: 1, topup: 2, xpoint: 3, extra_point: 4 };
   const PRODUCT_MODE_REVERSE = { 1: "all", 2: "category", 3: "specific" };
-  const TYPE_MODE_REVERSE = { 1: "extra", 2: "topup", 3: "xpoint" };
+  const TYPE_MODE_REVERSE = { 1: "extra", 2: "topup", 3: "xpoint", 4: "extra_point" };
 
   function deriveCustomerType(dealerArr = [], subArr = [], farmerArr = []) {
     const picked = [
@@ -423,18 +423,6 @@ export default function CreatePointCampaign() {
     ].filter(Boolean);
     if (picked.length !== 1) return 0;
     return picked[0] === "dealer" ? 1 : picked[0] === "sub" ? 2 : 3;
-  }
-
-  function firstValidExtraRow(rows = []) {
-    for (const r of rows) {
-      const s = Number(r?.value_start);
-      const e = Number(r?.value_end);
-      const p = Number(r?.point);
-      if (!Number.isNaN(s) && !Number.isNaN(e) && !Number.isNaN(p)) {
-        return { start: s, end: e, point: p };
-      }
-    }
-    return null;
   }
 
   // ====== detail preload targets (กระจาย target_id ไปยัง dealer/sub/farmer หลัง options มาแล้ว) ======
@@ -631,14 +619,19 @@ export default function CreatePointCampaign() {
         if (!payload.xpoint) throw new Error("กรุณากรอก X Point ให้ถูกต้อง");
       } else if (typeNum === 1) {
 
-        if (!extraRows) throw new Error("กรุณากรอก Extra Point อย่างน้อย 1 แถวให้ครบ");
-        payload.extra_point = extraRows;
+        if (!extraRows) throw new Error("กรุณากรอก Extra Point (Value) อย่างน้อย 1 แถวให้ครบ");
+        payload.extra_point_value = extraRows;
+      } else if (typeNum === 4) {
+
+        if (!extraRows) throw new Error("กรุณากรอก Extra Point (Point) อย่างน้อย 1 แถวให้ครบ");
+        payload.extra_point_point = extraRows;
       } else if (typeNum === 2) {
         ;
         if (!topupRows) throw new Error("กรุณากรอก Topup Point อย่างน้อย 1 แถวให้ครบ");
         payload.topup_point = topupRows;
       }
-
+      console.log('payload : ', payload)
+      // return false;
 
       let res;
       if (isEdit) {
@@ -748,8 +741,8 @@ export default function CreatePointCampaign() {
                 rules={[{ required: true, message: "Please select campaign type" }]}
               >
                 <Radio.Group>
-                  <Radio value="extra">Extra Point (Value)</Radio>
-                  <Radio value="extra">Extra Point (Points)</Radio>
+                  <Radio value="extra_value">Extra Point (Value)</Radio>
+                  <Radio value="extra_point">Extra Point (Points)</Radio>
                   {/* <Radio value="topup">Topup Point</Radio> */}
                   <Radio value="xpoint">X Point</Radio>
                 </Radio.Group>
@@ -836,7 +829,6 @@ export default function CreatePointCampaign() {
         </BoxPrimary>
       )}
 
-      {/* Product Mode: Specific */}
       {productMode === "specific" && (
         <BoxPrimary>
           <div className="flex items-center justify-between mb-3">
@@ -880,11 +872,10 @@ export default function CreatePointCampaign() {
         </BoxPrimary>
       )}
 
-      {/* Extra Point */}
-      {campaignMode === "extra" && (
+      {campaignMode === "extra_value" && (
         <BoxPrimary>
           <div className="flex items-center justify-between mb-3">
-            <div className="text-[#00783F] text-lg font-semibold">Extra Point</div>
+            <div className="text-[#00783F] text-lg font-semibold">Extra Point (Value)</div>
             <div className="flex items-center gap-2">
               <div style={{ width: 280 }}>
                 <Search placeholder="Search" disabled />
@@ -973,7 +964,99 @@ export default function CreatePointCampaign() {
         </BoxPrimary>
       )}
 
-      {/* Topup Point */}
+      {campaignMode === "extra_point" && (
+        <BoxPrimary>
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-[#00783F] text-lg font-semibold">Extra Point (Point)</div>
+            <div className="flex items-center gap-2">
+              <div style={{ width: 280 }}>
+                <Search placeholder="Search" disabled />
+              </div>
+              {!isView && (
+                <Button className="bg-[#00783f] text-white" type="button" icon={<PlusOutlined />} onClick={handleAddExtra}>
+                  Add Item
+                </Button>
+              )}
+            </div>
+          </div>
+          <TableComponent
+            header={[
+              { title: "No", render: (_, __, i) => i + 1, width: 70 },
+              {
+                title: "Value Start (THB)",
+                dataIndex: "value_start",
+                render: (v, record) => (
+                  <InputNumber
+                    min={0}
+                    style={{ width: "100%" }}
+                    placeholder="Enter"
+                    value={v}
+                    disabled={isView}
+                    onChange={(val) =>
+                      setExtraRows((prev) => prev.map((r) => (r.key === record.key ? { ...r, value_start: val } : r)))
+                    }
+                  />
+                ),
+              },
+              {
+                title: "Value End (THB)",
+                dataIndex: "value_end",
+                render: (v, record) => (
+                  <InputNumber
+                    min={0}
+                    style={{ width: "100%" }}
+                    placeholder="Enter"
+                    value={v}
+                    disabled={isView}
+                    onChange={(val) =>
+                      setExtraRows((prev) => prev.map((r) => (r.key === record.key ? { ...r, value_end: val } : r)))
+                    }
+                  />
+                ),
+              },
+              {
+                title: "Point",
+                dataIndex: "point",
+                render: (v, record) => (
+                  <InputNumber
+                    min={0}
+                    style={{ width: "100%" }}
+                    placeholder="Enter"
+                    value={v}
+                    disabled={isView}
+                    onChange={(val) =>
+                      setExtraRows((prev) => prev.map((r) => (r.key === record.key ? { ...r, point: val } : r)))
+                    }
+                  />
+                ),
+                width: 160,
+              },
+              {
+                title: "Action",
+                width: 90,
+                align: "center",
+                render: (_, record) =>
+                  isView ? null : (
+                    <DeleteOutlined
+                      onClick={() =>
+                        setExtraRows((prev) => (prev.length <= 1 ? prev : prev.filter((r) => r.key !== record.key)))
+                      }
+                      style={{
+                        color: "#ff4d4f",
+                        cursor: "pointer",
+                      }}
+                    />
+                  ),
+              },
+            ]}
+            dataSource={extraRows}
+            pagination={{ pageSize: 10, showSizeChanger: false }}
+            scroll
+          />
+        </BoxPrimary>
+      )}
+
+
       {campaignMode === "topup" && (
         <BoxPrimary>
           <div className="flex items-center justify-between mb-3">
@@ -1083,6 +1166,8 @@ export default function CreatePointCampaign() {
           />
         </BoxPrimary>
       )}
+
+
 
       <div className="flex justify-end space-x-4">
         <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />
