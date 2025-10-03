@@ -140,6 +140,32 @@ export default function PointCampaignList() {
     { title: "Action", dataIndex: "action" },
   ];
 
+  const buildCustomerTypeName = (item) => {
+    const gp = item?.group;
+    if (!gp || typeof gp !== "object") return item?.customer_type_name ?? "-";
+
+    // เรียงตามคีย์ตัวเลข 1,2,3 แล้ว join เป็น string
+    const names = Object.entries(gp)
+      .sort((a, b) => Number(a[0]) - Number(b[0]))
+      .map(([, v]) => String(v).trim())
+      .filter(Boolean);
+
+    return names.length ? names.join(", ") : (item?.customer_type_name ?? "-");
+  };
+
+  const buildCustomerTypeSubName = (item) => {
+    const gp = item?.group_sub;
+    if (!gp || typeof gp !== "object") return item?.customer_type_name ?? "-";
+
+    // เรียงตามคีย์ตัวเลข 1,2,3 แล้ว join เป็น string
+    const names = Object.entries(gp)
+      .sort((a, b) => Number(a[0]) - Number(b[0]))
+      .map(([, v]) => String(v).trim())
+      .filter(Boolean);
+
+    return names.length ? names.join(", ") : (item?.customer_type_name ?? "-");
+  };
+
   // ------- fetch list with new filter spec -------
   const fetchData = async () => {
     setTableLoading(true);
@@ -166,8 +192,8 @@ export default function PointCampaignList() {
       const formattedData = list.map((item, index) => ({
         key: index + 1 + (current - 1) * pageSize,
         name: item.name,
-        customer_type_name: item.customer_type_name,
-        type_name: item.type_name,
+        customer_type_name: buildCustomerTypeName(item),
+        type_name:  buildCustomerTypeSubName(item),
         product_name: item.product_name,
         campaign: item.type_name,
         period: `${formatDate(item.date_start)} - ${formatDate(item.date_end)}`,
