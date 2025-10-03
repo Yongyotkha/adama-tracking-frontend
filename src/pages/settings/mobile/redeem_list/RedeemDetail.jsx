@@ -87,7 +87,7 @@ export default function RedeemDetail() {
           shop_name: d.user?.shop_name || "-",
           customer_name: d.user?.name_en || d.user?.name_th || "-",
           contact_number: d.user?.phone_number || "-",
-          stock: 1,
+          stock: d.reward.value || 0,
           approve_by: d.approve_by || "-",
           reject_by: d.reject_by || "-",
           address: d.tranUserAddress.address || "-",
