@@ -116,7 +116,7 @@ export default function CreatePointCampaign() {
   // ====== เงื่อนไขโชว์ input ======
   const productMode = Form.useWatch("product_mode", form);
   const campaignMode = Form.useWatch("campaign_mode", form);
-
+  console.log('campaignMode : ', campaignMode)
   // ===== Product Categories (from API) =====
   const [productCategories, setProductCategories] = useState([]); // [{ key(record_id str), record_id num, id str, name str }]
   const [categoryLoading, setCategoryLoading] = useState(false);
@@ -371,24 +371,22 @@ export default function CreatePointCampaign() {
   // Extra / Topup editable tables
   // ==========================
   const [extraRows, setExtraRows] = useState();
+  const [extraRowsPoint, setExtraRowsPoint] = useState();
 
+  const handleAddExtra = () => {
+    const newRow = {
+      key: Date.now(), // ใช้ timestamp กัน key ซ้ำ
+      value_start: undefined,
+      value_end: undefined,
+      point: undefined,
+    };
 
-  const handleAddExtra = () =>
-    setExtraRows((prev) => {
-      const arr = Array.isArray(prev) ? prev : [];
-      const lastKey =
-        arr.length > 0 ? (Number(arr[arr.length - 1]?.key) || arr.length) : 0;
-      return [
-        ...arr,
-        {
-          key: lastKey + 1,
-          value_start: undefined,
-          value_end: undefined,
-          point: undefined,
-        },
-      ];
-    });
-
+    if (campaignMode === "extra_value") {
+      setExtraRows(prev => [...(Array.isArray(prev) ? prev : []), newRow]);
+    } else if (campaignMode === "extra_point") {
+      setExtraRowsPoint(prev => [...(Array.isArray(prev) ? prev : []), newRow]);
+    }
+  };
 
   const [topupRows, setTopupRows] = useState();
 
@@ -412,9 +410,9 @@ export default function CreatePointCampaign() {
 
   // ===== helpers =====
   const PRODUCT_MODE_MAP = { all: 1, category: 2, specific: 3 };
-  const TYPE_MODE_MAP = { extra: 1, topup: 2, xpoint: 3, extra_point: 4 };
+  const TYPE_MODE_MAP = { extra_value: 1, topup: 2, xpoint: 3, extra_point: 4 };
   const PRODUCT_MODE_REVERSE = { 1: "all", 2: "category", 3: "specific" };
-  const TYPE_MODE_REVERSE = { 1: "extra", 2: "topup", 3: "xpoint", 4: "extra_point" };
+  const TYPE_MODE_REVERSE = { 1: "extra_value", 2: "topup", 3: "xpoint", 4: "extra_point" };
 
   function deriveCustomerType(dealerArr = [], subArr = [], farmerArr = []) {
     const picked = [
@@ -490,22 +488,41 @@ export default function CreatePointCampaign() {
 
               let extra_row = extra[index]
 
-              console.log('extra_row : ', extra_row)
+              // console.log('extra_row : ', extra_row.type)
 
-              setExtraRows((prev) => {
-                const arr = Array.isArray(prev) ? prev : [];
-                const lastKey =
-                  arr.length > 0 ? (Number(arr[arr.length - 1]?.key) || arr.length) : 0;
-                return [
-                  ...arr,
-                  {
-                    key: lastKey + 1,
-                    value_start: extra_row.value_start,
-                    value_end: extra_row.value_end,
-                    point: extra_row.point,
-                  },
-                ];
-              })
+              if (extra_row.type == 'value') {
+                setExtraRows((prev) => {
+                  const arr = Array.isArray(prev) ? prev : [];
+                  const lastKey =
+                    arr.length > 0 ? (Number(arr[arr.length - 1]?.key) || arr.length) : 0;
+                  return [
+                    ...arr,
+                    {
+                      key: lastKey + 1,
+                      value_start: extra_row.value_start,
+                      value_end: extra_row.value_end,
+                      point: extra_row.point,
+                    },
+                  ];
+                })
+              } else if (extra_row.type == 'point') {
+                setExtraRowsPoint((prev) => {
+                  const arr = Array.isArray(prev) ? prev : [];
+                  const lastKey =
+                    arr.length > 0 ? (Number(arr[arr.length - 1]?.key) || arr.length) : 0;
+                  return [
+                    ...arr,
+                    {
+                      key: lastKey + 1,
+                      value_start: extra_row.value_start,
+                      value_end: extra_row.value_end,
+                      point: extra_row.point,
+                    },
+                  ];
+                })
+              }
+              console.log('extraRows: ', extraRows)
+              console.log('extraRowsPoint: ', extraRowsPoint)
             }
           }
 
@@ -597,7 +614,9 @@ export default function CreatePointCampaign() {
         values.target_subdealer,
         values.target_farmer
       );
-
+      console.log('TYPE_MODE_MAP : ', TYPE_MODE_MAP)
+      console.log('campaign_mode : ', values.campaign_mode)
+      console.log('typeNum : ', typeNum)
       const payload = {
         name: (values.campaign_name || "").trim(),
         product: productModeNum,
@@ -624,8 +643,8 @@ export default function CreatePointCampaign() {
         payload.extra_point_value = extraRows;
       } else if (typeNum === 4) {
 
-        if (!extraRows) throw new Error("กรุณากรอก Extra Point (Point) อย่างน้อย 1 แถวให้ครบ");
-        payload.extra_point_point = extraRows;
+        if (!extraRowsPoint) throw new Error("กรุณากรอก Extra Point (Point) อย่างน้อย 1 แถวให้ครบ");
+        payload.extra_point_point = extraRowsPoint;
       } else if (typeNum === 2) {
         ;
         if (!topupRows) throw new Error("กรุณากรอก Topup Point อย่างน้อย 1 แถวให้ครบ");
@@ -995,7 +1014,7 @@ export default function CreatePointCampaign() {
                     value={v}
                     disabled={isView}
                     onChange={(val) =>
-                      setExtraRows((prev) => prev.map((r) => (r.key === record.key ? { ...r, value_start: val } : r)))
+                      setExtraRowsPoint((prev) => prev.map((r) => (r.key === record.key ? { ...r, value_start: val } : r)))
                     }
                   />
                 ),
@@ -1011,7 +1030,7 @@ export default function CreatePointCampaign() {
                     value={v}
                     disabled={isView}
                     onChange={(val) =>
-                      setExtraRows((prev) => prev.map((r) => (r.key === record.key ? { ...r, value_end: val } : r)))
+                      setExtraRowsPoint((prev) => prev.map((r) => (r.key === record.key ? { ...r, value_end: val } : r)))
                     }
                   />
                 ),
@@ -1027,7 +1046,7 @@ export default function CreatePointCampaign() {
                     value={v}
                     disabled={isView}
                     onChange={(val) =>
-                      setExtraRows((prev) => prev.map((r) => (r.key === record.key ? { ...r, point: val } : r)))
+                      setExtraRowsPoint((prev) => prev.map((r) => (r.key === record.key ? { ...r, point: val } : r)))
                     }
                   />
                 ),
@@ -1041,7 +1060,7 @@ export default function CreatePointCampaign() {
                   isView ? null : (
                     <DeleteOutlined
                       onClick={() =>
-                        setExtraRows((prev) => (prev.length <= 1 ? prev : prev.filter((r) => r.key !== record.key)))
+                        setExtraRowsPoint((prev) => (prev.length <= 1 ? prev : prev.filter((r) => r.key !== record.key)))
                       }
                       style={{
                         color: "#ff4d4f",
@@ -1051,7 +1070,7 @@ export default function CreatePointCampaign() {
                   ),
               },
             ]}
-            dataSource={extraRows}
+            dataSource={extraRowsPoint}
             pagination={{ pageSize: 10, showSizeChanger: false }}
             scroll
           />
