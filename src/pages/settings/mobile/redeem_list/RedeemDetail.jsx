@@ -66,7 +66,7 @@ export default function RedeemDetail() {
       if (res?.status === 200) {
         // ✅ payload จริงอยู่ใต้ data.data
         const d = res.data;
-
+        console.log('d : ', d)
         // map response -> view model
         const vm = {
           id: d.id,
@@ -87,10 +87,10 @@ export default function RedeemDetail() {
           shop_name: d.user?.shop_name || "-",
           customer_name: d.user?.name_en || d.user?.name_th || "-",
           contact_number: d.user?.phone_number || "-",
-          stock: d.reward?.value ?? "-",
+          stock: 1,
           approve_by: d.approve_by || "-",
           reject_by: d.reject_by || "-",
-
+          address: d.tranUserAddress.address || "-",
           items: [
             {
               reward_code: d.reward?.code || "-",
