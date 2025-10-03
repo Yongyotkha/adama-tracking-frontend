@@ -81,7 +81,7 @@ export default function RedeemPoint() {
         <UserPointsSection />
         <SectionHeader title="แลกคะแนนสะสม" icon="/img/icons/trophy.png" />
 
-        <div className="w-full max-w-md mt-4 flex space-x-3">
+        <div className="w-full max-w-md mt-4 flex space-x-3 text-nowrap overflow-x-auto px-4">
           {categories.map((category) => (
             <button
               key={category.id || "all"}
@@ -93,6 +93,8 @@ export default function RedeemPoint() {
             </button>
           ))}
         </div>
+
+        
 
         <div className="w-full max-w-md mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {Object.values(rewards || {})
