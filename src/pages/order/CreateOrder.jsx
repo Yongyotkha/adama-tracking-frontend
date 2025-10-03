@@ -445,6 +445,7 @@ export default function CreateOrder() {
           minimumFractionDigits: 2,
         }),
     },
+    { title: "Point", dataIndex: "point", key: "point" },
     {
       title: <div className="text-center">Action</div>,
       key: "action",
