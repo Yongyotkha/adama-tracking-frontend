@@ -37,13 +37,7 @@ export default function TransportationDetail() {
   const [uploadedFiles, setUploadedFiles] = useState([]); // State for uploaded files
 
   const columns = [
-    {
-      title: "Reward Image",
-      dataIndex: "reward_image",
-      render: (src) => (
-        <img src={src} alt="banner" className="w-12 h-12 object-cover rounded" />
-      ),
-    },
+    { title: "Reward Image", dataIndex: "reward_image", align: "left"  },
     { title: "Reward Code", dataIndex: "reward_code", align: "left" },
     { title: "Reward Name", dataIndex: "reward_name", align: "left" },
     { title: "Cost (THB)", dataIndex: "reward_cost", align: "right", width: 120 },
@@ -64,10 +58,11 @@ export default function TransportationDetail() {
 
   const fillForm = (data) => {
     formTop.setFieldsValue({
-      sub_dealer_name: data.sub_dealer_name || "-",
       shop_name: data.shop_name || "-",
-      contact_number: data.contact_number || "-",
-      send_date: data.send_at ? dayjs(data.send_at).format("YYYY-MM-DD") : "-",
+      contact_name: data.contact_name || "-",
+      user_number: data.user_number || "-",
+      created_at: data.created_at.split(" ")[0] || "-",
+      user_address: data.user_address || "-",
       status_name: data.status_tran_namsse || "-",
       remark: data.remark || "-",
     });
@@ -218,24 +213,28 @@ export default function TransportationDetail() {
       <BoxPrimary>
         <Form form={formTop} layout="vertical" disabled>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Form.Item label="Customer Name" name="sub_dealer_name">
+            <Form.Item label="Customer Name" name="shop_name">
               <Input disabled />
             </Form.Item>
-            <Form.Item label="Contact Name" name="shop_name">
+            <Form.Item label="Contact Name" name="contact_name">
               <Input disabled />
             </Form.Item>
-            <Form.Item label="Contact Number" name="contact_number">
+            <Form.Item label="Contact Number" name="user_number">
               <Input disabled />
             </Form.Item>
-            <Form.Item label="Date" name="send_date">
+            <Form.Item label="Date" name="created_at">
               <Input disabled />
             </Form.Item>
-            <Form.Item label="Status" name="status_name">
+            <Form.Item label="Address" name="user_address">
               <Input disabled />
             </Form.Item>
             <Form.Item label="Remark" name="remark">
               <Input disabled />
             </Form.Item>
+            <Form.Item label="Status" name="status_name">
+              <Input disabled />
+            </Form.Item>
+
           </div>
         </Form>
       </BoxPrimary>
