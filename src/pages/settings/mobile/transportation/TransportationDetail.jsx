@@ -37,18 +37,43 @@ export default function TransportationDetail() {
   const [uploadedFiles, setUploadedFiles] = useState([]); // State for uploaded files
 
   const columns = [
-    {
-      title: "Reward Image",
-      dataIndex: "reward_image",
-      render: (src) => (
-        <img src={src} alt="banner" className="w-12 h-12 object-cover rounded" />
-      ),
-    },
-    { title: "Reward Code", dataIndex: "reward_code", align: "left" },
-    { title: "Reward Name", dataIndex: "reward_name", align: "left" },
-    { title: "Cost (THB)", dataIndex: "reward_cost", align: "right", width: 120 },
-    { title: "QTY (Pcs)", dataIndex: "reward_value", align: "right", width: 100 },
-  ];
+  {
+    title: "Reward Image",
+    dataIndex: "reward_image",
+    align: "left",
+    width: 80,
+    render: (src) => (
+      <img src={src} alt="banner" className="w-12 h-12 object-cover rounded" />
+    ),
+  },
+  {
+    title: "Reward Code",
+    dataIndex: "reward_code",
+    align: "left",
+    width: 150,
+    ellipsis: true,
+  },
+  {
+    title: "Reward Name",
+    dataIndex: "reward_name",
+    align: "left",
+    width: 250,
+    ellipsis: true,
+  },
+  {
+    title: "Cost (THB)",
+    dataIndex: "reward_cost",
+    align: "right",
+    width: 120,
+    render: (cost) => cost.toLocaleString(), // เพิ่ม comma separator
+  },
+  {
+    title: "QTY (Pcs)",
+    dataIndex: "reward_value",
+    align: "right",
+    width: 100,
+  },
+];
 
   // helper แปลงค่าจาก UI -> API
   const toApiSendBy = (uiValue) => {
