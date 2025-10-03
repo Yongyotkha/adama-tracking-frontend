@@ -451,7 +451,17 @@ export default function SalesPointCreate() {
           minimumFractionDigits: 2,
         }),
     },
-    { title: "Point", dataIndex: "point", key: "point" },
+  {
+     title: "Point",
+     key: "point",
+     dataIndex: "point",
+     align: "right",
+     width: 140,
+     render: (_, record) =>
+      (parseFloat(record.point || 0) * parseFloat(record.quantity || 0)).toLocaleString("en-US", {
+      minimumFractionDigits: 0,
+       }),
+  },
     {
       title: <div className="text-center">Action</div>,
       key: "action",
@@ -495,6 +505,7 @@ export default function SalesPointCreate() {
       (total, item) => total + parseFloat(item.net_amount || 0),
       0
     );
+    
 
     return (
       <tr className="bg-[#978B87]">

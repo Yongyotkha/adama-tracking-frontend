@@ -25,16 +25,52 @@ export default function RedeemDetail() {
 
   // ตารางสินค้า/ของรางวัล
   const columns = useMemo(
-    () => [
-      { title: "Reward Code", dataIndex: "reward_code", align: "left" },
-      // { title: "Category", dataIndex: "category_id", align: "left" },
-      { title: "Reward Name", dataIndex: "reward_name", align: "left" },
-      { title: "QTY (Pcs)", dataIndex: "qty", align: "right", width: 100 },
-      { title: "Cost (THB)", dataIndex: "cost", align: "right", width: 120 },
-      { title: "Points Redeem", dataIndex: "point_redeem", align: "right", width: 140 },
-    ],
-    []
-  );
+  () => [
+    {
+      title: "Reward Code",
+      dataIndex: "reward_code",
+      align: "left",
+      width: 150,
+      ellipsis: true,
+    },
+    // {
+    //   title: "Category",
+    //   dataIndex: "category_id",
+    //   align: "left",
+    //   width: 150,
+    //   ellipsis: true,
+    // },
+    {
+      title: "Reward Name",
+      dataIndex: "reward_name",
+      align: "left",
+      width: 250,
+      ellipsis: true,
+    },
+    {
+      title: "QTY (Pcs)",
+      dataIndex: "qty",
+      align: "right",
+      width: 100,
+    },
+    {
+      title: "Cost (THB)",
+      dataIndex: "cost",
+      align: "right",
+      width: 120,
+      render: (cost) => cost?.toLocaleString(), // เพิ่ม comma separator
+    },
+    {
+      title: "Points Redeem",
+      dataIndex: "point_redeem",
+      align: "right",
+      width: 140,
+      render: (points) => points?.toLocaleString(),
+    },
+  ],
+  []
+);
+
 
   const fillForm = (d) => {
     form.setFieldsValue({
@@ -271,7 +307,7 @@ export default function RedeemDetail() {
             <Form.Item label="Contact Name" name="customer_name"><Input disabled /></Form.Item>
             <Form.Item label="Contact Number" name="contact_number"><Input disabled /></Form.Item>
             <Form.Item label="Date" name="date"><Input disabled /></Form.Item>
-            <Form.Item label="Address" name="address"><Input disabled /></Form.Item>
+            <Form.Item label="Shipping Address" name="address"><Input disabled /></Form.Item>
 
             <Form.Item label="Stock (Pcs)" name="stock"><Input disabled /></Form.Item>
             <Form.Item label="Status" name="status"><Input disabled /></Form.Item>
