@@ -75,8 +75,8 @@ export default function CreateNewsPromotion() {
           code: promotion.code || "", // ✅ แสดง code กลับมา
           category: Number(promotion.category_id) || undefined,
           name: promotion.name || "",
-          description: promotion.description || "",
-          condition: promotion.condition || "",
+          // description: promotion.description || "",
+          // condition: promotion.condition || "",
           product_detail: promotion.product_detail || "",
           stock: promotion.stock ?? promotion.value ?? "",
           date_range: [
@@ -118,9 +118,9 @@ export default function CreateNewsPromotion() {
       { label: "Reward Code", name: "code", type: "text", required: false, col: 12, placeholder: "Code", disabled: true },
       { label: "Category", name: "category", type: "select", required: true, col: 12, options: categoryOptions, disabled: isView },
       { label: "Name", name: "name", type: "text", required: true, col: 24, placeholder: "Enter", disabled: isView },
-      { label: "Detail", name: "description", type: "text", required: true, col: 24, placeholder: "Enter", disabled: isView },
-      { label: "Condition", name: "condition", type: "textarea", required: true, col: 24, placeholder: "Enter", disabled: isView },
-      { label: "Product Detail", name: "product_detail", type: "textarea", required: true, col: 24, placeholder: "Enter", disabled: isView },
+      // { label: "Detail", name: "description", type: "text", required: true, col: 24, placeholder: "Enter", disabled: isView },
+      // { label: "Condition", name: "condition", type: "textarea", required: true, col: 24, placeholder: "Enter", disabled: isView },
+      { label: "Detail", name: "product_detail", type: "textarea", required: true, col: 24, placeholder: "Enter", disabled: isView },
       // { label: "Stock (Pcs)", name: "stock", type: "text", required: !isView, col: 8, placeholder: "Enter", disabled: isView },
       { label: "Period Date", name: "date_range", type: "date_range", required: true, col: 8, placeholder: "Start date — End date", disabled: isView },
       // { label: "Cost (THB)", name: "cost", type: "text", required: false, col: 4, placeholder: "Enter", disabled: isView },

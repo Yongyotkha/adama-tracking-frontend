@@ -84,7 +84,7 @@ export default function Promotion() {
         <SectionHeader title="ข่าวสารและโปรโมชั่น" icon="/img/icons/news.png" />
 
         {/* Tabs */}
-        <div className="w-full max-w-md mt-4 flex space-x-3">
+            <div className="w-full max-w-md mt-4 flex space-x-3 text-nowrap overflow-x-auto px-4">
           {categories.map((category) => (
             <button
               key={category.id}
