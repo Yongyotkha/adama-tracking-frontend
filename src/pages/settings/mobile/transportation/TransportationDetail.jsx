@@ -37,6 +37,13 @@ export default function TransportationDetail() {
   const [uploadedFiles, setUploadedFiles] = useState([]); // State for uploaded files
 
   const columns = [
+    {
+      title: "Reward Image",
+      dataIndex: "reward_image",
+      render: (src) => (
+        <img src={src} alt="banner" className="w-12 h-12 object-cover rounded" />
+      ),
+    },
     { title: "Reward Code", dataIndex: "reward_code", align: "left" },
     { title: "Reward Name", dataIndex: "reward_name", align: "left" },
     { title: "Cost (THB)", dataIndex: "reward_cost", align: "right", width: 120 },
