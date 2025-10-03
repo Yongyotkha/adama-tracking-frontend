@@ -140,13 +140,16 @@ export default function SalesPointDetail() {
       ),
     },
     {
-      title: <div className="text-center">Point</div>, dataIndex: "point", key: "point",
-      render: (text) => (
-        <div className="text-center">
-          {parseFloat(text || 0).toLocaleString("en-US")}
-        </div>
-      ),
-    },
+      title: "Point",
+      key: "point",
+      dataIndex: "point",
+      align: "right",
+      width: 140,
+      render: (_, record) =>
+        (parseFloat(record.point || 0) * parseFloat(record.quantity || 0)).toLocaleString("en-US", {
+          minimumFractionDigits: 0,
+    }),
+},
 
   ];
 
@@ -178,6 +181,10 @@ export default function SalesPointDetail() {
     );
     const totalAmount = dataSource.reduce(
       (total, item) => total + parseFloat(item.net_amount || 0),
+      0
+    );
+    const totalPoint = dataSource.reduce(
+      (total, item) => total + parseFloat(item.point || 0) * parseFloat(item.quantity || 0),
       0
     );
 

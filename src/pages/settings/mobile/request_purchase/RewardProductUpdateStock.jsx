@@ -73,10 +73,10 @@ export default function RewardProductUpdateStock() {
 
   const header = [
     { title: "Reward Code", dataIndex: "reward_code", align: "left" },
-    { title: "Category Name", dataIndex: "category_name", align: "left" },
     { title: "Reward Name", dataIndex: "reward_name", align: "left" },
+    { title: "Category Name", dataIndex: "category_name", align: "left" },
     { title: "Cost (THB)", dataIndex: "cost", align: "right", width: 140 },
-    { title: "QTY", dataIndex: "qty", align: "center", width: 180 },
+    { title: "QTY", dataIndex: "qty", align: "center", width: 300 },
     { title: "Sub Total (THB)", dataIndex: "sub_total", align: "right", width: 180 },
   ];
 

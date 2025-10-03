@@ -294,7 +294,17 @@ export default function SalesPointEdit() {
       key: "net_amount",
       render: (t) => toNumber(t).toLocaleString("en-US", { minimumFractionDigits: 2 }),
     },
-    { title: "Point", dataIndex: "point", key: "point" },
+    {
+      title: "Total Point",
+      key: "total_point",
+      dataIndex: "total_point",
+      align: "right",
+      width: 140,
+      render: (_, record) =>
+        (parseFloat(record.point || 0) * parseFloat(record.quantity || 0)).toLocaleString("en-US", {
+          minimumFractionDigits: 0,
+    }),
+},
   ];
 
   const headerOther = [

@@ -188,12 +188,15 @@ export default function SalesPointView() {
       ),
     },
     {
-      title: <div className="text-center">Point</div>,
-      dataIndex: "point",
+      title: "Point",
       key: "point",
-      render: (text) => (
-        <div className="text-center">{parseFloat(text || 0).toLocaleString("en-US")}</div>
-      ),
+      dataIndex: "point",
+      align: "right",
+      width: 140,
+      render: (_, record) =>
+        (parseFloat(record.point || 0) * parseFloat(record.quantity || 0)).toLocaleString("en-US", {
+          minimumFractionDigits: 0,
+    }),
     },
   ];
 
