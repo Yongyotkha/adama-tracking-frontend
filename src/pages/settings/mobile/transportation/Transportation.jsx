@@ -59,12 +59,12 @@ export default function Transportation() {
    * - status: select -> map ไป use_flag
    */
   const commonFilters = [
-    { key: "sub_dealer_name", type: "text", label: "Sub Dealer Name" },
+    { key: "shop_name", type: "text", label: "Customer Name" },
     { key: "send_by", type: "select", label: "Send By", options: SEND_BY_OPTIONS },
     { key: "send_at", type: "date", label: "Send Date" },
     { key: "dater", type: "dater", label: "Date Range" },
     // { key: "status_tran", type: "select", label: "Status (Tran)", options: STATUS_TRAN_OPTIONS, multiple: true },
-    { key: "keyword", type: "text", label: "Keyword" },
+    // { key: "keyword", type: "text", label: "Keyword" },
     // { key: "status", type: "select", label: "Status (Active)", options: STATUS_ACTIVE_OPTIONS }, // use_flag
   ];
   const filtersTransportation = commonFilters;
@@ -73,10 +73,10 @@ export default function Transportation() {
   /** ---------------- Columns ---------------- */
   const columns = [
     { title: "Date", dataIndex: "date", align: "left", width: 140 },
-    { title: "Customer Name", dataIndex: "sub_dealer_name", align: "left" },
-    { title: "Reward Code", dataIndex: "reward_code", align: "left", width: 160 },
+    { title: "Customer Name", dataIndex: "shop_name", align: "left" },
+    { title: "Reward Code", dataIndex: "reward_code", align: "left" },
     { title: "Reward Name", dataIndex: "reward_name", align: "left" },
-    { title: "QTY", dataIndex: "qty", align: "right", width: 100 },
+    // { title: "QTY", dataIndex: "qty", align: "right", width: 100 },
     { title: "Cost (THB)", dataIndex: "cost", align: "right", width: 120 },
     { title: "Send By", dataIndex: "send_by", align: "center", width: 140 },
     { title: "Send Date", dataIndex: "send_date", align: "center", width: 140 },
@@ -101,7 +101,7 @@ export default function Transportation() {
         page_size: pageSize,
         page_length: current,
         status_tran: statusTran,
-        sub_dealer_name: f.sub_dealer_name || "",
+        shop_name: f.shop_name || "",
         send_by: f.send_by || "",
         send_at: f.send_at || "",
         dater: f.dater || [],
@@ -114,10 +114,10 @@ export default function Transportation() {
         const mapped = rows.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           date: item.created_at?.split?.(" ")[0] || "-",
-          sub_dealer_name: item.sub_dealer_name || "-",
+          shop_name: item.shop_name || "-",
           reward_code: item.reward_code || "-",
           reward_name: item.reward_name || "-",
-          qty: item.reward_value ?? "-",
+          // qty: item.reward_value ?? "-",
           cost: item.reward_cost ?? "-",
           send_by: item.send_by || "-",
           send_date: item.send_at ? item.send_at.split(" ")[0] : "-",
@@ -215,10 +215,10 @@ export default function Transportation() {
         const mapped = rows.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           date: item.created_at ? item.created_at.split(" ")[0] : "-",
-          sub_dealer_name: item.sub_dealer_name || "-",
+          shop_name: item.shop_name || "-",
           reward_code: item.reward_code || "-",
           reward_name: item.reward_name || "-",
-          qty: item.reward_value ?? "-",
+          // qty: item.reward_value ?? "-",
           cost: item.reward_cost ?? "-",
           send_by: item.send_by || "-",
           send_date: item.send_at ? item.send_at.split(" ")[0] : "-",
