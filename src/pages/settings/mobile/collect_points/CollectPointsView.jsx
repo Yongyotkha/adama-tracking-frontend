@@ -1,3 +1,4 @@
+// src/pages/points/line/collect_points/CollectPointsView.jsx
 import React, { useEffect, useState, useContext, useRef } from "react";
 import { Form, Input } from "antd";
 import MainLayout from "../../../../layouts/MainLayout";
@@ -10,13 +11,12 @@ import { AuthContext } from "../../../../contexts/AuthContext";
 import dayjs from "dayjs";
 import FormCustom from "../../../../components/form_custom/FormCustom";
 import TableComponent from "../../../../components/table/TableComponent";
-// ⬇️ เปลี่ยนมาใช้ UploadSection
 import UploadSection from "../../../../components/file_upload/UploadSection";
 
 export default function CollectPointsView() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { showMsg, showNotification } = useContext(AuthContext);
+  const { showMsg } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
 
@@ -24,17 +24,14 @@ export default function CollectPointsView() {
   const [dataSource, setDataSource] = useState([]);
   const [dataSourceOther, setDataSourceOther] = useState([]);
 
-  // master สำหรับแสดงชื่อใน select (readonly)
-  const [dataSale, setDataSale] = useState([]);
-  const [dataDealer, setDataDealer] = useState([]);
-  const [dataSubDealer, setSubDataDealer] = useState([]);
+  // ชื่อที่จะแสดงในหัวฟอร์ม (มาจาก detail)
+  const [saleName, setSaleName] = useState("");
+  const [dealerName, setDealerName] = useState("");
+  const [subDealerName, setSubDealerName] = useState("");
 
   // ฟอร์มส่วนบน
-  const [getDocumentDate, setGetDocumentDate] = useState("");
-  const [getUserId, setGetUserId] = useState("");
-  const [getDealerId, setGetDealerId] = useState("");
-  const [getSubDealerId, setGetSubDealerId] = useState("");
-  const [getRemark, setGetRemark] = useState("");
+  const [documentDate, setDocumentDate] = useState("");
+  const [remark, setRemark] = useState("");
 
   // อัปโหลดไฟล์ (view-only)
   const [fileListBill, setFileListBill] = useState([]);
@@ -68,11 +65,13 @@ export default function CollectPointsView() {
         if (res?.status === 200 && res?.data) {
           const d = res.data;
 
-          setGetDocumentDate(d.document_date || "");
-          setGetUserId(d.user_id || "");
-          setGetDealerId(d.dealer_id || "");
-          setGetSubDealerId(d.sub_dealer_id || "");
-          setGetRemark(d.ref_remark || "");
+          // ✅ ใช้ชื่อจาก detail API
+          setSaleName(d.user_name || d.sale_name || "");
+          setDealerName(d.dealer_name || "");
+          setSubDealerName(d.sub_dealer_name || ""); // อาจเป็น null
+
+          setDocumentDate(d.document_date || "");
+          setRemark(d.ref_remark || "");
 
           const prod = Array.isArray(d.products) ? d.products : [];
           setDataSource(
@@ -132,28 +131,6 @@ export default function CollectPointsView() {
 
     fetchDetail();
   }, [document_number]);
-
-  useEffect(() => {
-    const getMaster = async () => {
-      if (!getUserId || !getDealerId) return;
-      setLoading(true);
-      try {
-        const [sale, dealer, sub_dealer] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterSaleDropdown, { status: "" }),
-          useServiceAPI.get(paths.pathUserLineDealer, { sale_id: getUserId }),
-          useServiceAPI.get(paths.pathUserLineSubDealer, { dealer_id: getDealerId }),
-        ]);
-        setDataSale(sale.data || []);
-        setDataDealer(dealer.data || []);
-        setSubDataDealer(sub_dealer.data || []);
-      } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
-    getMaster();
-  }, [getUserId, getDealerId]);
 
   const header = [
     { title: "No", dataIndex: "no", key: "no", width: 10 },
@@ -244,36 +221,34 @@ export default function CollectPointsView() {
     </tr>
   );
 
+  // ✅ ใช้ text แสดงชื่อจาก detail (ไม่ต้องโหลด master/ไม่ใช้ id)
   const formFields = [
     {
       key: "sale",
       label: "Sales",
       name: "sale",
-      type: "select",
+      type: "text",
       disabled: true,
-      options: dataSale,
-      placeholder: "",
-      value: getUserId,
+      value: "",
+      placeholder: saleName || "",
     },
     {
       key: "dealer",
       label: "Dealer",
       name: "dealer",
-      type: "select",
+      type: "text",
       disabled: true,
-      options: dataDealer,
-      placeholder: "",
-      value: getDealerId,
+      value: "",
+      placeholder: dealerName || "",
     },
     {
       key: "sub_dealer",
       label: "Sub Dealer",
       name: "sub_dealer",
-      type: "select",
+      type: "text",
       disabled: true,
-      options: dataSubDealer,
-      placeholder: "",
-      value: getSubDealerId,
+      value: "",
+      placeholder: subDealerName || "", // ถ้า null จะว่าง
     },
     {
       key: "order_no",
@@ -290,12 +265,11 @@ export default function CollectPointsView() {
       name: "order_date",
       type: "text",
       disabled: true,
-      placeholder: getDocumentDate || dayjs().format("YYYY-MM-DD"),
+      placeholder: documentDate || dayjs().format("YYYY-MM-DD"),
       value: "",
     },
   ];
 
-  // view-only: ไม่ให้อัปโหลด/ลบ — ส่ง noop handlers ไป
   const noop = () => {};
 
   return (
@@ -326,7 +300,7 @@ export default function CollectPointsView() {
         </BoxPrimary>
       )}
 
-      {/* ✅ ใช้ UploadSection แบบ view-only (disabled) */}
+      {/* view-only uploads */}
       <UploadSection
         title="Attached file/Picture"
         fileUploadRef={fileUploadRefBill}
@@ -350,7 +324,7 @@ export default function CollectPointsView() {
       />
 
       <BoxPrimary title="Remark">
-        <Input.TextArea placeholder="" value={getRemark} disabled className="bg-gray-100" />
+        <Input.TextArea placeholder="" value={remark} disabled className="bg-gray-100" />
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4 mt-4">
