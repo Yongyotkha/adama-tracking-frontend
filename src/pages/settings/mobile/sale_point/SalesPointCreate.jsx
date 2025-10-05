@@ -1,3 +1,4 @@
+// src/pages/points/line/sales_points/SalesPointCreate.jsx
 import React, { useEffect, useState, useContext, useRef } from "react";
 import { Form, Input, Select } from "antd";
 import MainLayout from "../../../../layouts/MainLayout";
@@ -13,73 +14,70 @@ import FormCustom from "../../../../components/form_custom/FormCustom";
 import TableComponent from "../../../../components/table/TableComponent";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import DynamicModal from "../../../../components/modal/DynamicModal";
-
-import FileUploadComponent from "../../../../components/file_upload/FileUploadComponent";
 import UploadSection from "../../../../components/file_upload/UploadSection";
 
 dayjs.extend(customParseFormat);
 
 export default function SalesPointCreate() {
+  const { showMsg } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
+
   const [fileList, setFileList] = useState([]);
   const [fileListReceive, setFileListReceive] = useState([]);
-  const fileUploadRef = useRef(null); // Reference for FileUploadComponent
-  const fileUploadRefReceive = useRef(null); // Reference for FileUploadComponent
+  const fileUploadRef = useRef(null);
+  const fileUploadRefReceive = useRef(null);
+
   const [loading, setLoading] = useState(false);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
+
   const [dataSource, setDataSource] = useState([]);
   const [dataSourceOther, setDataSourceOther] = useState([]);
+
   const [dataSale, setDataSale] = useState([]);
-  const [dataSaleId, setDataSaleId] = useState("");
-  const [dealerId, setDealerId] = useState("");
   const [dataDealer, setDataDealer] = useState([]);
   const [dataSubDealer, setSubDataDealer] = useState([]);
-  const [subDealerId, setSubDealerId] = useState("");
+
+  // ค่าที่เลือก (ใช้ undefined เมื่อยังไม่เลือก เพื่อกัน NaN/0)
+  const [dataSaleId, setDataSaleId] = useState(undefined);
+  const [dealerId, setDealerId] = useState(undefined);
+  const [subDealerId, setSubDealerId] = useState(undefined);
+
   const [searchProductData, setSearchProductData] = useState([]);
   const [getOtherProductData, setGetOtherProductData] = useState([]);
   const [inputRemark, setInputRemark] = useState("");
-  const [userInfo, setUserInfo] = useState(
-    JSON.parse(localStorage.getItem("users"))
-  );
 
+  const [userInfo] = useState(JSON.parse(localStorage.getItem("users")));
   const [formCustom] = Form.useForm();
 
+  // ===== โหลดค่าจาก state กรณีมาจากหน้า previous =====
   useEffect(() => {
     if (location.state?.data) {
+      const { user_id, dealer_id, sub_dealer_id, others, products, remark } =
+        location.state?.data;
 
-      const { user_id, others, products, remark } = location.state?.data;
-      setDataSaleId(parseInt(user_id));
-      setDataSource(products);
-      setDataSourceOther(others);
-      setInputRemark(remark);
-      console.log(remark);
-
+      setDataSaleId(user_id ? Number(user_id) : undefined);
+      setDealerId(dealer_id ? Number(dealer_id) : undefined);
+      setSubDealerId(sub_dealer_id ? Number(sub_dealer_id) : undefined);
+      setDataSource(products || []);
+      setDataSourceOther(others || []);
+      setInputRemark(remark || "");
     }
   }, [location.state]);
 
-  useEffect(() => {
-    if (dataSale.length > 0 && location.state?.data) {
-      setDealerId(location.state?.data?.dealer_id);
-    }
-  }, [dataSale]);
-
-  // Get Master
+  // ===== โหลด master sales =====
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [sale] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {
-            status: "",
-          }),
-        ]);
+        const res = await useServiceAPI.get(paths.pathMasterSaleDropdown, { status: "" });
+        const sales = res?.data || [];
+        setDataSale(sales);
 
-        setDataSale(sale.data);
-
-        const checkSaleId = sale.data.find((item) => item.id === userInfo.id);
-        if (checkSaleId) {
-          setDataSaleId(parseInt(userInfo.id));
+        // ตั้งต้นจาก user login ถ้ายังไม่ได้มาจาก state
+        if (!location.state?.data) {
+          const existing = sales.find((s) => String(s.id) === String(userInfo?.id));
+          if (existing) setDataSaleId(Number(userInfo.id));
         }
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -87,153 +85,328 @@ export default function SalesPointCreate() {
         setLoading(false);
       }
     };
-
     getMaster();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleFileRemove = (file) => {
+  // ===== โหลด dealer เมื่อเลือก sale =====
+  useEffect(() => {
+    const fetchDealer = async () => {
+      if (!dataSaleId) {
+        setDataDealer([]);
+        return;
+      }
+      setLoading(true);
+      try {
+        const dealer = await useServiceAPI.get(paths.pathUserLineDealer, { sale_id: dataSaleId });
+        setDataDealer(dealer?.data || []);
+      } catch (e) {
+        // no-op
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDealer();
+  }, [dataSaleId]);
+
+  // ===== โหลด sub dealer เมื่อเลือก dealer =====
+  useEffect(() => {
+    const fetchSubDealer = async () => {
+      if (!dealerId) {
+        setSubDataDealer([]);
+        return;
+      }
+      setLoading(true);
+      try {
+        const res = await useServiceAPI.get(paths.pathUserLineSubDealer, { dealer_id: dealerId });
+        setSubDataDealer(res?.data || []);
+      } catch (e) {
+        // no-op
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSubDealer();
+  }, [dealerId]);
+
+  // ===== Upload handlers =====
+  const handleFileRemove = (file) =>
     setFileList((prev) => prev.filter((f) => f.uid !== file.uid));
-  };
-
-  // ลบไฟล์ในส่วน Picture of product receive
-  const handleFileReceiveRemove = (file) => {
+  const handleFileReceiveRemove = (file) =>
     setFileListReceive((prev) => prev.filter((f) => f.uid !== file.uid));
-  };
-
 
   const handleUploadSuccess = (response) => {
-    const data = response.data;
-    const fileUpload = {
-      uid: data.file_key,
-      name: data.file_name,
-      status: "done",
-      url: data.file_url,
-    };
-
-    setFileList((prevFileList) => [...prevFileList, fileUpload]);
+    const d = response.data;
+    setFileList((prev) => [...prev, { uid: d.file_key, name: d.file_name, status: "done", url: d.file_url }]);
   };
-
   const handleUploadReceiveSuccess = (response) => {
-    const data = response.data;
-    const fileUpload = {
-      uid: data.file_key,
-      name: data.file_name,
-      status: "done",
-      url: data.file_url,
-    };
-
-    setFileListReceive((prevFileList) => [...prevFileList, fileUpload]);
+    const d = response.data;
+    setFileListReceive((prev) => [...prev, { uid: d.file_key, name: d.file_name, status: "done", url: d.file_url }]);
   };
 
-
-  // Close Modal
+  // ===== Modal handlers =====
   const handleCloseTeamModal = () => {
-    // Set Empty
     setGetOtherProductData([]);
-
     setIsTeamModalVisible(false);
   };
 
   const handleAddSelectedRows = (selectedRows) => {
     setGetOtherProductData((prev) => {
-      const newRows = selectedRows.filter(
-        (row) =>
-          !prev.some(
-            (getOtherProductData) => getOtherProductData.key === row.key
-          )
-      );
+      const newRows = selectedRows.filter((row) => !prev.some((r) => r.key === row.key));
       return [...prev, ...newRows];
     });
 
-    selectedRows.map((data) => {
+    selectedRows.forEach((data) => {
       const loadOtherProductDetail = async () => {
         setLoading(true);
         try {
-          const [otherProduct] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterPromotionDetail, {
-              promotion_id: data.key,
-            }),
-          ]);
-
-          const productData = otherProduct.data;
-
-          // อัปเดต DataSourceOther
-          setDataSourceOther((prev) => {
-            // ตรวจสอบว่ามี product_code ซ้ำหรือไม่
-            const existingIndex = prev.findIndex(
-              (item) => item.product_id === productData.id
-            );
-
-            if (existingIndex !== -1) {
-              // หากซ้ำ: เพิ่ม quantity
-              const updatedDataSource = prev.map((item, index) => {
-                if (index === existingIndex) {
-                  const updatedQuantity = item.quantity + 1; // Increment quantity
-                  const updatedNetAmount = (
-                    updatedQuantity *
-                    parseFloat(item.product_unit_thb.replace(/,/g, ""))
-                  ).toFixed(2); // Recalculate net_amount
-
-                  return {
-                    ...item,
-                    product_unit: item.unit,
-                    product_unit_value: item.unit_value,
-                    // quantity: item.quantity + 1,
-                    quantity: updatedQuantity,
-                    net_amount: updatedNetAmount, // Update net_amount
-                  };
-                }
-                return item;
-              });
-
-              // รีเซ็ต key และ no
-              return updatedDataSource.map((item, index) => ({
-                ...item,
-                key: index + 1,
-                no: index + 1,
-              }));
-            }
-
-            // หากไม่ซ้ำ: เพิ่มรายการใหม่
-            const newProduct = {
-              key: prev.length + 1,
-              no: prev.length + 1,
-              product_id: productData.id,
-              product_code: productData.code || "",
-              product_name: productData.name,
-              product_unit: productData.unit,
-              product_unit_thb: productData.value,
-              quantity: 1,
-              net_amount: productData.value,
-            };
-
-            const updatedDataSource = [...prev, newProduct];
-
-            // รีเซ็ต key และ no
-            return updatedDataSource.map((item, index) => ({
-              ...item,
-              key: index + 1,
-              no: index + 1,
-            }));
+          const { data: productData } = await useServiceAPI.get(paths.pathMasterPromotionDetail, {
+            promotion_id: data.key,
           });
-        } catch (error) {
-          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+
+          setDataSourceOther((prev) => {
+            const idx = prev.findIndex((i) => i.product_id === productData.id);
+            if (idx !== -1) {
+              const updated = prev.map((i, index) => {
+                if (index !== idx) return i;
+                const quantity = i.quantity + 1;
+                const net_amount = (quantity * parseFloat(i.product_unit_thb.replace(/,/g, ""))).toFixed(2);
+                return { ...i, product_unit: i.unit, product_unit_value: i.unit_value, quantity, net_amount };
+              });
+              return updated.map((i, index) => ({ ...i, key: index + 1, no: index + 1 }));
+            }
+            const next = [
+              ...prev,
+              {
+                key: prev.length + 1,
+                no: prev.length + 1,
+                product_id: productData.id,
+                product_code: productData.code || "",
+                product_name: productData.name,
+                product_unit: productData.unit,
+                product_unit_thb: productData.value,
+                quantity: 1,
+                net_amount: productData.value,
+              },
+            ];
+            return next.map((i, index) => ({ ...i, key: index + 1, no: index + 1 }));
+          });
+        } catch (e) {
+          showMsg("error", e.message || "เกิดข้อผิดพลาด");
         } finally {
           setLoading(false);
         }
       };
-
-      // ดึงข้อมูล
       loadOtherProductDetail();
     });
   };
 
-  const removeParticipant = (key) => {
-    setGetOtherProductData(
-      getOtherProductData.filter((item) => item.key !== key)
+  // ===== Cascading onChange =====
+  const handleChange = (field, value) => {
+    if (field === "sale") {
+      // เลือก sale ใหม่ -> ล้าง dealer/subDealer & options ถัดไป
+      setDataSaleId(value || undefined);
+      setDealerId(undefined);
+      setSubDealerId(undefined);
+      setDataDealer([]);
+      setSubDataDealer([]);
+    } else if (field === "dealer") {
+      setDealerId(value || undefined);
+      setSubDealerId(undefined);
+      setSubDataDealer([]);
+    } else if (field === "sub_dealer") {
+      setSubDealerId(value || undefined);
+    }
+  };
+
+  // ===== ตารางสินค้า (ย่อ) =====
+  const handleQuantityChange = (key, newQty) => {
+    setDataSource((prev) =>
+      prev.map((it) => {
+        if (it.key !== key) return it;
+        const quantity = Math.max(0, Number(newQty) || 0);
+        const net = (quantity * parseFloat(String(it.product_unit_thb).replace(/,/g, ""))).toFixed(2);
+        const foc = parseInt(quantity / (Number(it.product_campaign_order_min_foc) || 0)) || 0;
+        return { ...it, quantity, net_amount: net, foc };
+      })
     );
   };
 
+  const header = [
+    { title: "No", dataIndex: "no", key: "no" },
+    { title: "SKU", dataIndex: "product_code", key: "product_code" },
+    { title: "Product Name", dataIndex: "product_name", key: "product_name" },
+    { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
+    {
+      title: "THB/Unit",
+      dataIndex: "product_unit_thb",
+      key: "product_unit_thb",
+      render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+    },
+    {
+      title: <div className="text-center">QTY (ctn)</div>,
+      dataIndex: "quantity",
+      key: "quantity",
+      render: (_, record) => (
+        <div className="quantity-control flex justify-center items-center">
+          <img
+            src="/img/icons/collapse.png"
+            alt="decrease"
+            className="cursor-pointer w-6 h-6"
+            onClick={() => handleQuantityChange(record.key, (record.quantity || 0) - 1)}
+          />
+          <Input
+            inputMode="numeric"
+            min={0}
+            value={record.quantity}
+            onChange={(e) => handleQuantityChange(record.key, parseInt(e.target.value) || 0)}
+            className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
+          />
+          <img
+            src="/img/icons/expand.png"
+            alt="increase"
+            className="cursor-pointer w-6 h-6"
+            onClick={() => handleQuantityChange(record.key, (record.quantity || 0) + 1)}
+          />
+        </div>
+      ),
+    },
+    {
+      title: "Sub Total (THB)",
+      dataIndex: "net_amount",
+      key: "net_amount",
+      render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+    },
+    {
+      title: "Point",
+      key: "point",
+      dataIndex: "point",
+      align: "right",
+      width: 140,
+      render: (_, r) =>
+        (parseFloat(r.point || 0) * parseFloat(r.quantity || 0)).toLocaleString("en-US", {
+          minimumFractionDigits: 0,
+        }),
+    },
+    {
+      title: <div className="text-center">Action</div>,
+      key: "action",
+      render: (_, record) => (
+        <button className="delete-button flex justify-center mx-auto">
+          <img
+            src="/img/icons/delete.png"
+            alt="delete"
+            className="cursor-pointer w-6 h-6"
+            onClick={() => {
+              const updated = dataSource.filter((i) => i.key !== record.key).map((i, idx) => ({
+                ...i,
+                key: idx + 1,
+                no: idx + 1,
+              }));
+              setDataSource(updated);
+            }}
+          />
+        </button>
+      ),
+    },
+  ];
+
+  const footerOrderList = () => {
+    const totalQty = dataSource.reduce((t, i) => t + (Number(i.quantity) || 0), 0);
+    const totalAmount = dataSource.reduce((t, i) => t + (Number(String(i.net_amount).replace(/,/g, "")) || 0), 0);
+    const totalPoint = dataSource.reduce((t, i) => t + (Number(i.point) || 0) * (Number(i.quantity) || 0), 0);
+    return (
+      <tr className="bg-[#978B87]">
+        <td colSpan={9} className="text-right pr-2 text-white">
+          Item: {dataSource.length} &nbsp; | QTY (ctn): {totalQty}
+          &nbsp; | Total: {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} |
+          &nbsp; Total Point: {totalPoint.toLocaleString("en-US")}
+        </td>
+      </tr>
+    );
+  };
+
+  // ===== ค้นหา/เพิ่มสินค้า (คงของเดิม) =====
+  const onChangeProduct = async (value) => {
+    setSearchProductData([]);
+    setLoading(true);
+    try {
+      const productDetail = await useServiceAPI.get(paths.pathMasterProductDetail, { product_id: value });
+      const data = productDetail.data;
+
+      const i = dataSource.findIndex((it) => it.product_code === data.product_code);
+      if (i !== -1) {
+        const updated = dataSource.map((it, idx) => {
+          if (idx !== i) return it;
+          const quantity = (it.quantity || 0) + 1;
+          const net_amount = (quantity * parseFloat(String(it.product_unit_thb).replace(/,/g, ""))).toFixed(2);
+          return { ...it, quantity, net_amount };
+        });
+        setDataSource(updated);
+      } else {
+        const newRow = {
+          key: dataSource.length + 1,
+          no: dataSource.length + 1,
+          product_id: data.id,
+          product_code: data.product_code,
+          product_name: data.product_name,
+          product_unit: data.packing_list,
+          product_unit_thb: data.bath_unit,
+          product_campaign_order_min_foc: data.product_campaign_order_min_foc,
+          product_campaign_foc: data.product_campaign_foc,
+          quantity: 1,
+          foc: parseInt(1 / data.product_campaign_order_min_foc),
+          net_amount: (1 * parseFloat(String(data.bath_unit).replace(/,/g, ""))).toFixed(2),
+          point: data.point,
+        };
+        const next = [...dataSource, newRow].map((i, idx) => ({ ...i, key: idx + 1, no: idx + 1 }));
+        setDataSource(next);
+      }
+    } catch (e) {
+      showMsg("error", e.message || "เกิดข้อผิดพลาด");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onSearchProduct = async (value) => {
+    if (!value || value.length < 3) return;
+    setLoading(true);
+    try {
+      const res = await useServiceAPI.get(paths.pathMasterProducts, { keyword: value });
+      const options = (res?.data || []).map((d) => ({ value: d.id, label: d.name }));
+      setSearchProductData(options);
+    } catch (e) {
+      showMsg("error", e.message || "เกิดข้อผิดพลาด");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNavigateToOrderView = () => {
+    formCustom
+      .validateFields()
+      .then((values) => {
+        const body = {
+          document_date: values.order_date,
+          user_id: dataSaleId,
+          dealer_id: dealerId,
+          sub_dealer_id: subDealerId,
+          remark: inputRemark,
+          products: dataSource,
+          others: dataSourceOther,
+          fileList,
+          fileListReceive,
+        };
+        navigate("/points/line/sales-points-list/detail", { state: { data: body } });
+      })
+      .catch((e) => console.error("Validation Failed:", e));
+  };
+
+  const handleUploadClick = () => fileUploadRef.current?.triggerUpload();
+  const handleUploadReceiveClick = () => fileUploadRefReceive.current?.triggerUpload();
+
+  // ===== ฟิลด์ฟอร์ม (คุม disabled + placeholder ป้องกัน NaN) =====
   const formFields = [
     {
       label: "Sales",
@@ -241,30 +414,29 @@ export default function SalesPointCreate() {
       type: "select",
       options: dataSale,
       disabled: false,
-      required: false,
+      placeholder: "Select sales",
       moderef: true,
-      // value: parseInt(dataSaleId, 10),
-      value: parseInt(dataSaleId),
+      value: dataSaleId ?? undefined, // ใช้ undefined ถ้ายังไม่เลือก (กัน NaN)
     },
     {
       label: "Dealer",
       name: "dealer",
       type: "select",
       options: dataDealer,
-      disabled: false,
-      required: false,
+      disabled: !dataSaleId, // ต้องเลือก Sales ก่อน
+      placeholder: "Select dealer",
       moderef: false,
-      value: dealerId,
+      value: dealerId ?? undefined,
     },
     {
       label: "Sub Dealer",
       name: "sub_dealer",
       type: "select",
       options: dataSubDealer,
-      disabled: false,
-      required: false,
+      disabled: !dealerId, // ต้องเลือก Dealer ก่อน
+      placeholder: "Select sub dealer",
       moderef: false,
-      value: subDealerId,
+      value: subDealerId ?? undefined,
     },
     {
       label: "Order No",
@@ -287,403 +459,11 @@ export default function SalesPointCreate() {
     },
   ];
 
-  const getMasterDealer = async (value) => {
-    // setLoading(true);
-    try {
-      const [dealer] = await Promise.all([
-        useServiceAPI.get(paths.pathUserLineDealer, {
-          sale_id: value,
-        }),
-      ]);
-
-      setDataDealer(dealer.data);
-    } catch (error) {
-      // showMsg("error", error.message || "เกิดข้อผิดพลาด");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getMasterSubDealer = async (value) => {
-    try {
-      const [res] = await Promise.all([
-        useServiceAPI.get(paths.pathUserLineSubDealer, {
-          dealer_id: value,
-        }),
-      ]);
-
-      setSubDataDealer(res.data)
-
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
-
-  const handleChange = (filter, value) => {
-    console.log('filter ', filter, value)
-    if (filter == "sale") {
-      setDataSaleId(value);
-      getMasterDealer(value);
-    } else if (filter == "dealer") {
-      setDealerId(value);
-      getMasterSubDealer(value)
-    } else if (filter == "sub_dealer") {
-      console.log('set')
-      setSubDealerId(value)
-    }
-  };
-
-
-  const handleQuantityChange = (key, newQuantity) => {
-    setDataSource((prevData) =>
-      prevData.map((item) => {
-        if (item.key === key) {
-          const quantity = Math.max(0, newQuantity); // Prevent negative quantities
-          const net_amount = (
-            quantity * parseFloat(item.product_unit_thb.replace(/,/g, ""))
-          ).toFixed(2); // Calculate new net_amount
-          const foc = parseInt(quantity / item.product_campaign_order_min_foc);
-          return { ...item, quantity, net_amount, foc };
-        }
-        return item;
-      })
-    );
-  };
-
-  const handleQuantityChangeOther = (key, newQuantity) => {
-    setDataSourceOther((prevData) =>
-      prevData.map((item) => {
-        if (item.key === key) {
-          const quantity = Math.max(1, newQuantity); // Prevent quantity less than 1
-          const net_amount = (
-            quantity * parseFloat(item.product_unit_thb.replace(/,/g, ""))
-          ).toFixed(2); // Calculate new value
-          return { ...item, quantity, net_amount };
-        }
-        return item;
-      })
-    );
-  };
-
-  const handleDeleteOtherRow = (key) => {
-    setDataSourceOther((prev) => {
-      // ลบรายการที่มี key ตรงกับ key ที่รับมา
-      const updatedDataSource = prev.filter((item) => item.key !== key);
-
-      // รีเซ็ต key และ no
-      const resetDataSource = updatedDataSource.map((item, index) => ({
-        ...item,
-        key: index + 1,
-        no: index + 1,
-      }));
-
-      return resetDataSource;
-    });
-  };
-
-  const handleOtherInputChange = (key, field, value) => {
-    setDataSourceOther(
-      dataSourceOther.map((item) =>
-        item.key === key ? { ...item, [field]: value } : item
-      )
-    );
-  };
-
-  const header = [
-    { title: "No", dataIndex: "no", key: "no" },
-    { title: "SKU", dataIndex: "product_code", key: "product_code" },
-    { title: "Product Name", dataIndex: "product_name", key: "product_name" },
-    { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
-    {
-      title: "THB/Unit",
-      dataIndex: "product_unit_thb",
-      key: "product_unit_thb",
-      render: (text) =>
-        parseFloat(text || 0).toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-        }),
-    },
-    {
-      title: <div className="text-center">QTY (ctn)</div>,
-      dataIndex: "quantity",
-      key: "quantity",
-      render: (_, record) => (
-        <div className="quantity-control flex justify-center items-center">
-          <img
-            src="/img/icons/collapse.png"
-            alt="decrease"
-            className="cursor-pointer w-6 h-6"
-            onClick={() =>
-              handleQuantityChange(record.key, record.quantity - 1)
-            }
-          />
-          <Input
-            inputMode="numeric"
-            min={0}
-            value={record.quantity}
-            onChange={(e) =>
-              handleQuantityChange(record.key, parseInt(e.target.value) || 0)
-            }
-            className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
-          />
-          <img
-            src="/img/icons/expand.png"
-            alt="increase"
-            className="cursor-pointer w-6 h-6"
-            onClick={() =>
-              handleQuantityChange(record.key, record.quantity + 1)
-            }
-          />
-        </div>
-      ),
-    },
-    // { title: "FOC (ctn)", dataIndex: "foc", key: "foc" },
-    {
-      title: "Sub Total (THB)",
-      dataIndex: "net_amount",
-      key: "net_amount",
-      render: (text) =>
-        parseFloat(text || 0).toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-        }),
-    },
-  {
-     title: "Point",
-     key: "point",
-     dataIndex: "point",
-     align: "right",
-     width: 140,
-     render: (_, record) =>
-      (parseFloat(record.point || 0) * parseFloat(record.quantity || 0)).toLocaleString("en-US", {
-      minimumFractionDigits: 0,
-       }),
-  },
-    {
-      title: <div className="text-center">Action</div>,
-      key: "action",
-      render: (_, record) => (
-        <button className="delete-button flex justify-center mx-auto">
-          <img
-            src="/img/icons/delete.png"
-            alt="delete"
-            className="cursor-pointer w-6 h-6"
-            onClick={() => {
-              const updatedDataSource = dataSource.filter(
-                (item) => item.key !== record.key
-              );
-
-              // Reset keys and no after deletion
-              const resetDataSource = updatedDataSource.map((item, index) => ({
-                ...item,
-                key: index + 1,
-                no: index + 1,
-              }));
-
-              setDataSource(resetDataSource);
-            }}
-          />
-        </button>
-      ),
-    },
-  ];
-
-
-  const footerOrderList = () => {
-    const totalQuantity = dataSource.reduce(
-      (total, item) => total + parseFloat(item.quantity),
-      0
-    );
-    const totalFOC = dataSource.reduce(
-      (total, item) => total + parseFloat(item.foc),
-      0
-    );
-    const totalAmount = dataSource.reduce(
-      (total, item) => total + parseFloat(item.net_amount || 0),
-      0
-    );
-    
-
-    return (
-      <tr className="bg-[#978B87]">
-        <td colSpan={9} className="text-right pr-2 text-white">
-          Item: {dataSource.length} &nbsp; | QTY (ctn): {totalQuantity}
-          &nbsp; | Total:{" "}
-          {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} |
-          Total Point: {dataSource.reduce((total, item) => total + (parseFloat(item.point || 0) * parseFloat(item.quantity || 0)), 0).toLocaleString("en-US")}
-        </td>
-      </tr>
-    );
-  };
-
-  const onChangeProduct = (value) => {
-    // Set Empty
-    setSearchProductData([]);
-
-    const loadProductDetail = async () => {
-      setLoading(true);
-      try {
-        const [productDetail] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterProductDetail, {
-            product_id: value,
-          }),
-        ]);
-
-        const data = productDetail.data;
-
-        // Check for duplicate product_code
-        const existingProductIndex = dataSource.findIndex(
-          (item) => item.product_code === data.product_code
-        );
-
-        if (existingProductIndex !== -1) {
-          // If product_code exists, update the quantity
-          const updatedDataSource = dataSource.map((item, index) => {
-            if (index === existingProductIndex) {
-              const updatedQuantity = item.quantity + 1; // Increment quantity
-              const updatedNetAmount = (
-                updatedQuantity *
-                parseFloat(item.product_unit_thb.replace(/,/g, ""))
-              ).toFixed(2); // Recalculate net_amount
-
-              return {
-                ...item,
-                // quantity: item.quantity + 1, // Increment quantity
-                quantity: updatedQuantity,
-                net_amount: updatedNetAmount, // Update net_amount
-              };
-            }
-            return item;
-          });
-
-          setDataSource(updatedDataSource);
-        } else {
-          // If product_code does not exist, add a new entry
-          const newProductDataDetail = {
-            key: dataSource.length + 1,
-            no: dataSource.length + 1,
-            product_id: data.id,
-            product_code: data.product_code,
-            product_name: data.product_name,
-            product_unit: data.packing_list,
-            product_unit_thb: data.bath_unit,
-            product_campaign_order_min_foc: data.product_campaign_order_min_foc,
-            product_campaign_foc: data.product_campaign_foc,
-            quantity: 1, // Set initial quantity to 1
-            foc: parseInt(1 / data.product_campaign_order_min_foc),
-            // foc: data.product_campaign_foc,
-            // net_amount: data.bath_unit,
-            net_amount: (
-              1 * parseFloat(data.bath_unit.replace(/,/g, ""))
-            ).toFixed(2), // Calculate net_amount based on quantity 1
-            point: data.point,
-          };
-
-          const updatedDataSource = [...dataSource, newProductDataDetail];
-
-          // Reset the keys to ensure proper sequencing
-          const resetDataSource = updatedDataSource.map((item, index) => ({
-            ...item,
-            key: index + 1,
-            no: index + 1,
-          }));
-
-          setDataSource(resetDataSource);
-        }
-      } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProductDetail();
-  };
-
-  const onSearchProduct = (value) => {
-    if (value.length >= 3) {
-      const loadProducts = async () => {
-        setLoading(true);
-        try {
-          const [product] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterProducts, {
-              keyword: value,
-            }),
-          ]);
-
-          const newProductData = [];
-          product.data.map((data, index) => {
-            newProductData.push({
-              value: data.id,
-              label: data.name,
-            });
-          });
-
-          // Set Data
-          setSearchProductData(newProductData);
-        } catch (error) {
-          showMsg("error", error.message || "เกิดข้อผิดพลาด");
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      loadProducts();
-    }
-  };
-
-  const handleNavigateToOrderView = () => {
-    formCustom
-      .validateFields()
-      .then((values) => {
-        const body = {
-          document_date: values.order_date,
-          user_id: dataSaleId,
-          dealer_id: dealerId,
-          sub_dealer_id: subDealerId,
-          remark: inputRemark,
-          products: dataSource,
-          others: dataSourceOther,
-          fileList: fileList,
-          fileListReceive: fileListReceive
-        };
-        // console.log(body);
-        // return;
-        navigate("/points/line/sales-points-list/detail", {
-          state: {
-            data: body,
-          },
-        });
-      })
-      .catch((errorInfo) => {
-        console.error("Validation Failed:", errorInfo);
-      });
-  };
-
-  const handleUploadClick = async () => {
-    if (fileUploadRef.current) {
-      fileUploadRef.current.triggerUpload();
-    }
-  };
-
-  const handleUploadReceiveClick = async () => {
-    if (fileUploadRefReceive.current) {
-      fileUploadRefReceive.current.triggerUpload();
-    }
-  };
-
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Create Sales Point Order</div>
 
-      <FormCustom
-        fields={formFields}
-        form={formCustom}
-        onChange={handleChange}
-      />
+      <FormCustom fields={formFields} form={formCustom} onChange={handleChange} />
 
       <BoxPrimary title="Product">
         <div className="mb-3 flex justify-end">
@@ -701,14 +481,8 @@ export default function SalesPointCreate() {
       </BoxPrimary>
 
       <BoxPrimary title="Order List">
-        <TableComponent
-          header={header}
-          dataSource={dataSource}
-          pageSize={10}
-          footer={footerOrderList}
-        />
+        <TableComponent header={header} dataSource={dataSource} pageSize={10} footer={footerOrderList} />
       </BoxPrimary>
-
 
       {/* Attachments Section */}
       <UploadSection
@@ -720,23 +494,6 @@ export default function SalesPointCreate() {
         handleFileRemove={handleFileRemove}
       />
 
-      {/* <BoxPrimary>
-        <div className="flex items-center justify-between">
-          <div className="text-[#00783F] text-lg font-semibold mb-3">Picture of product receive</div>
-          <ActionButton
-            mode="add"
-            text="Upload File"
-            onClick={handleUploadReceiveClick}
-            className="hidden"
-          />
-        </div>
-        <FileUploadComponent
-          ref={fileUploadRefReceive}
-          dataFile={fileListReceive}
-          onUploadSuccess={handleUploadReceiveSuccess}
-        />
-
-      </BoxPrimary> */}
       <UploadSection
         title="Attached file/Picture"
         fileUploadRef={fileUploadRefReceive}
@@ -745,7 +502,7 @@ export default function SalesPointCreate() {
         handleUploadSuccess={handleUploadReceiveSuccess}
         handleFileRemove={handleFileReceiveRemove}
         modeUpload="receive"
-        disabled={true} // Enable view-only mode
+        disabled={true}
       />
 
       <BoxPrimary title="Remark">
@@ -760,19 +517,10 @@ export default function SalesPointCreate() {
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
-        <ActionButton
-          mode="back"
-          text="Back"
-          onClick={() => navigate("/points/line/sales-points-list")}
-        />
-        <ActionButton
-          mode="save"
-          text="Confirm"
-          onClick={() => handleNavigateToOrderView()}
-        />
+        <ActionButton mode="back" text="Back" onClick={() => navigate("/points/line/sales-points-list")} />
+        <ActionButton mode="save" text="Confirm" onClick={handleNavigateToOrderView} />
       </div>
 
-      {/* Modal for Add Participant */}
       <DynamicModal
         title="Add"
         isVisible={isTeamModalVisible}
@@ -781,12 +529,7 @@ export default function SalesPointCreate() {
           { title: "No", dataIndex: "no", key: "no", width: 50 },
           { title: "Name", dataIndex: "name", key: "name", width: 150 },
           { title: "Unit", dataIndex: "unit", key: "unit", width: 150 },
-          {
-            title: "Value (THB)",
-            dataIndex: "value",
-            key: "value",
-            width: 150,
-          },
+          { title: "Value (THB)", dataIndex: "value", key: "value", width: 150 },
         ]}
         dataSource={getOtherProductData}
         width="1200px"
