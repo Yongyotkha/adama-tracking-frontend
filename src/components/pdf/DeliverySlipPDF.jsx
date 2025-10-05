@@ -96,7 +96,7 @@ export default function DeliverySlipPDF() {
 
           <View style={styles.metaRow}>
             {/* <Text><Text style={styles.bold}>เลขที่เอกสาร :</Text> {fmt(data?.status_tran_namsse)}</Text> */}
-            <Text><Text style={styles.bold}>Date :</Text> {dmy(data?.created_at) || dmy(data?.created_at)}</Text>
+            <Text><Text style={[styles.bold ,{textAlign:"right"}]}>Date :</Text> {dmy(data?.created_at) || dmy(data?.created_at)}</Text>
           </View>
 
           {/* ผู้รับของ */}
