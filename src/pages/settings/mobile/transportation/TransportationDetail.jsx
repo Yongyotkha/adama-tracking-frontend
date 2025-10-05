@@ -114,6 +114,7 @@ export default function TransportationDetail() {
       const res = await useServiceAPI.get(`${paths.pathTransportDetail}/${id}`);
       if (res.status === 200) {
         const data = res.data || {};
+        data.reward_value=1
         setDetail(data);
 
         // Populate uploaded files for preview
