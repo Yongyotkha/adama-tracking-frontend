@@ -128,7 +128,7 @@ export default function DeliverySlipPDF() {
             {/* header */}
             <View style={styles.tr}>
               {/* <Text style={[styles.th, { flex: 1.2 }]}>รูปสินค้า </Text> */}
-              <Text style={[styles.th, { flex: 1.2 }]}>รหัสสินค้า </Text>
+              <Text style={[styles.th, { flex: 1.2 }]}>Reward Code </Text>
               <Text style={[styles.th, { flex: 4 }]}>รายละเอียด </Text>
               <Text style={[styles.th, { flex: 1 }, styles.cellLast]}>จำนวน/ชิ้น </Text>
             </View>
