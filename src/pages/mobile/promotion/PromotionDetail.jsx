@@ -181,7 +181,7 @@ export default function PromotionDetail() {
 
 
           <div className="gap-2 mt-6 rounded-lg sarabun-font">
-              รายละเอียด : {reward.description}
+              รายละเอียด : {reward.product_detail}
 
           </div>
 

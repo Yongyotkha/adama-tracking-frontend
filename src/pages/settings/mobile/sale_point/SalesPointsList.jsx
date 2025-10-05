@@ -100,9 +100,9 @@ export default function SalesPointsList() {
   ];
   const headerRequest = [
     { title: "No", width: 60, dataIndex: "key", align: "center" },
+    { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
     { title: "Dealer", width: 220, dataIndex: "dealer", align: "left" },
     { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
-    { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
     { title: "Request Date", width: 160, dataIndex: "request_date", align: "center" },
     { title: "Status", width: 160, dataIndex: "status", align: "center" },
     { title: "Action", width: 120, dataIndex: "action", align: "center" },

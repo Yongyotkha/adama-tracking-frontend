@@ -287,7 +287,7 @@ export default function RedeemPointConfirm() {
                     // กดปุ่ม "ยกเลิก"
                     setIsPointModalVisibleComfirm(false);
                 }}
-                src="/img/icons/forgot-password.png"
+                src="/img/icons/check-circle.png"
                 text={`<div class='text-center'>
       <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>คุณต้องการแลกคะแนน</p>
       <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>ใช้ ${target?.[0]?.point} คะแนนสำหรับแลกคูปองนี้</p>

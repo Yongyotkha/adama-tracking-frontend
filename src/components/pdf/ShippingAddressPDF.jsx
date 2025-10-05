@@ -12,10 +12,6 @@ Font.register({
   fonts: [
     { src: "/font/Sarabun/Sarabun-Regular.ttf" },
     { src: "/font/Sarabun/Sarabun-Bold.ttf", fontWeight: "bold" },
-    { src: "/font/Anuphan/Anuphan-Light.ttf", fontWeight: "300" },
-    { src: "/font/Anuphan/Anuphan-Medium.ttf", fontWeight: "500" },
-    { src: "/font/Anuphan/Anuphan-SemiBold.ttf", fontWeight: "600" },
-    { src: "/font/Anuphan/Anuphan-Thin.ttf", fontWeight: "100" },
   ],
 });
 
@@ -28,7 +24,7 @@ const styles = StyleSheet.create({
   recipientBox: { width: "65%", padding: 12 },
   label: { fontSize: 12, marginBottom: 6, fontWeight: "bold", textAlign: "center" },
   line: { marginTop: 2, marginBottom: 6 },
-  red: { color: "black", fontWeight: "bold" },
+  red: { color: "#E53935", fontWeight: "bold" },
 });
 
 const fmt = (v) => (v ? String(v).trim() : "-");
@@ -59,7 +55,7 @@ export default function ShippingAddressPDF() {
           <View style={styles.header}>
             <Image style={styles.logo} src="/favicon.png" />
             <View style={styles.company}>
-              <Text style={{ fontSize: 11, fontWeight: "bold" }}>บริษัท อดามา (ประเทศไทย) จำกัด </Text>
+              <Text style={{ fontSize: 11, fontWeight: "bold" }}>บริษัท อดามา (ประเทศไทย) จำกัด</Text>
               <Text style={{ fontSize: 10, fontWeight: "bold" }}>ADAMA (Thailand) Limited</Text>
               <Text>127/33 อาคารปัญจธานี ทาวเวอร์ ชั้น 28 ถนนนนทรี แขวงช่องนนทรี เขตยานนาวา กรุงเทพฯ 10120</Text>
               <Text>127/33 Panjathani Tower Building 28 floor , Nonsi Rd, Chong nonsi , Yannawa Bangkok 10120</Text>
@@ -73,12 +69,16 @@ export default function ShippingAddressPDF() {
               <Text style={styles.label}>ที่อยู่ผู้รับของ</Text>
               <Text style={styles.line}>
                 <Text>ร้าน : </Text>
-                <Text style={styles.red}>{fmt(data?.shop_name)} </Text>
+                <Text style={styles.red}>{fmt(data?.shop_name)}</Text>
+              </Text>
+              <Text style={styles.line}>
+                <Text>ผู้ติดต่อ : </Text>
+                <Text style={styles.red}>{fmt(data?.contact_name)}</Text>
               </Text>
               <Text style={styles.line}>
                 <Text>ที่อยู่ : </Text>
                 <Text style={styles.red}>
-                  {fmt(data?.user_address)} 
+                  {fmt(data?.user_address || data?.address || data?.shop_address)}
                 </Text>
               </Text>
               <Text style={styles.line}>

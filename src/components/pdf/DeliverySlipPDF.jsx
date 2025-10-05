@@ -6,19 +6,13 @@ import { useSearchParams } from "react-router-dom";
 import useServiceAPI from "../../services/corsService";
 import { paths } from "../../services/CorsPath";
 
-// ฟอนต์ + ปิดการตัดคำภาษาไทย
 Font.register({
   family: "Sarabun",
   fonts: [
     { src: "/font/Sarabun/Sarabun-Regular.ttf" },
     { src: "/font/Sarabun/Sarabun-Bold.ttf", fontWeight: "bold" },
-    { src: "/font/Anuphan/Anuphan-Light.ttf", fontWeight: "300" },
-    { src: "/font/Anuphan/Anuphan-Medium.ttf", fontWeight: "500" },
-    { src: "/font/Anuphan/Anuphan-SemiBold.ttf", fontWeight: "600" },
-    { src: "/font/Anuphan/Anuphan-Thin.ttf", fontWeight: "100" },
   ],
 });
-Font.registerHyphenationCallback((word) => [word]);
 
 const styles = StyleSheet.create({
   page: { padding: 28, fontFamily: "Sarabun", fontSize: 10 },
@@ -30,7 +24,7 @@ const styles = StyleSheet.create({
   bold: { fontWeight: "bold" },
   // recipient box
   box: { borderWidth: 1, borderColor: "#000", padding: 8, marginBottom: 8 },
-  red: { color: "black", fontWeight: "bold" },
+  red: { color: "#E53935", fontWeight: "bold" },
   // table
   table: { borderWidth: 1, borderColor: "#000" },
   tr: { flexDirection: "row" },
@@ -44,7 +38,6 @@ const styles = StyleSheet.create({
   signCol: { flex: 1, borderWidth: 1, borderColor: "#000", minHeight: 90, padding: 8, gap: 6 },
   line: { marginVertical: 2 },
   imgBox: { width: 70, height: 50, objectFit: "cover" },
-  boldTextRight: { textAlign: "right", fontWeight: "bold" },
 });
 
 const fmt = (v) => (v ? String(v).trim() : "-");
@@ -78,9 +71,10 @@ export default function DeliverySlipPDF() {
 
   // เตรียมข้อมูลสินค้า (1 แถว ตามตัวอย่าง)
   const itemImage =
-    data?.pictures?.[0]?.part || "/img/placeholder.png"; // เปลี่ยนเป็นรูปจริงถ้ามี
+    data?.reward_image?.[0]?.part || "/img/placeholder.png"; // เปลี่ยนเป็นรูปจริงถ้ามี
   const itemName = fmt(data?.reward_name);
   const itemDetail = fmt(data?.reward_cost); // ในตัวอย่าง reward_cost เป็น "TV"
+  const itemQty = fmt(data?.reward_value);
 
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
@@ -102,7 +96,7 @@ export default function DeliverySlipPDF() {
 
           <View style={styles.metaRow}>
             {/* <Text><Text style={styles.bold}>เลขที่เอกสาร :</Text> {fmt(data?.status_tran_namsse)}</Text> */}
-            <Text><Text style={styles.boldTextRight}>Date :</Text> {dmy(data?.send_at) || dmy(data?.created_at)}</Text>
+            <Text><Text style={styles.bold}>Date :</Text> {dmy(data?.created_at) || dmy(data?.created_at)}</Text>
           </View>
 
           {/* ผู้รับของ */}
@@ -148,6 +142,7 @@ export default function DeliverySlipPDF() {
                 {/* ใส่รายละเอียดรุ่น/สเป็กเพิ่มได้ตามจริง */}
               </View>
               <Text style={[styles.td, { flex: 1 }, styles.tdCenter, styles.cellLast]}>{1}</Text>
+
             </View>
           </View>
 
@@ -155,14 +150,18 @@ export default function DeliverySlipPDF() {
           <View style={styles.signRow}>
             <View style={styles.signCol}>
               <Text style={styles.bold}>พนักงานขนส่ง</Text>
-              <Text className="line">สายส่งที่ : ...............................................................</Text>
+              <View style={{ height: 10 }} />
+              {/* <Text className="line">สายส่งที่ : ...............................................................</Text> */}
               <Text>ชื่อพนักงาน : .......................................................................</Text>
+              <View style={{ height: 10 }} />
               <Text>วันที่รับ : ...........................................................................</Text>
             </View>
             <View style={styles.signCol}>
               <Text style={styles.bold}>ผู้รับของ</Text>
-              <Text>สายส่งที่ : ...........................................................................</Text>
+              <View style={{ height: 10 }} />
+              {/* <Text>สายส่งที่ : ...........................................................................</Text> */}
               <Text>ชื่อผู้รับของ : ......................................................................</Text>
+              <View style={{ height: 10 }} />
               <Text>วันที่รับ : ...........................................................................</Text>
             </View>
           </View>
