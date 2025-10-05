@@ -72,14 +72,18 @@ export default function ShippingAddressPDF() {
                 <Text style={styles.red}>{fmt(data?.shop_name)}</Text>
               </Text>
               <Text style={styles.line}>
+                <Text>ผู้ติดต่อ : </Text>
+                <Text style={styles.red}>{fmt(data?.contact_name)}</Text>
+              </Text>
+              <Text style={styles.line}>
                 <Text>ที่อยู่ : </Text>
                 <Text style={styles.red}>
-                  {fmt(data?.shipping_address || data?.address || data?.shop_address)}
+                  {fmt(data?.user_address || data?.address || data?.shop_address)}
                 </Text>
               </Text>
               <Text style={styles.line}>
                 <Text>โทร : </Text>
-                <Text style={styles.red}>{fmt(data?.contact_number)}</Text>
+                <Text style={styles.red}>{fmt(data?.user_number)}</Text>
               </Text>
             </View>
           </View>

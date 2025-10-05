@@ -137,8 +137,8 @@ export default function SalesPointEdit() {
         );
 
         formCustom.setFieldsValue({
-          sale: String(d.user_id || ""),
-          dealer: String(d.dealer_id || ""),
+          sale: String(d.sale_name || ""),
+          dealer: String(d.dealer_name || ""),
           sub_dealer: String(d.sub_dealer_id || ""),
           order_no: d.document_number || "",
           order_date: d.document_date || dayjs().format("YYYY-MM-DD"),
@@ -295,7 +295,7 @@ export default function SalesPointEdit() {
       render: (t) => toNumber(t).toLocaleString("en-US", { minimumFractionDigits: 2 }),
     },
     {
-      title: "Total Point",
+      title: "Point",
       key: "total_point",
       dataIndex: "total_point",
       align: "right",

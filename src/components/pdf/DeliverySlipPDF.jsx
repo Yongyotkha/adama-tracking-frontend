@@ -70,7 +70,7 @@ export default function DeliverySlipPDF() {
 
   // เตรียมข้อมูลสินค้า (1 แถว ตามตัวอย่าง)
   const itemImage =
-    data?.pictures?.[0]?.part || "/img/placeholder.png"; // เปลี่ยนเป็นรูปจริงถ้ามี
+    data?.reward_image?.[0]?.part || "/img/placeholder.png"; // เปลี่ยนเป็นรูปจริงถ้ามี
   const itemName = fmt(data?.reward_name);
   const itemDetail = fmt(data?.reward_cost); // ในตัวอย่าง reward_cost เป็น "TV"
   const itemQty = fmt(data?.reward_value);
@@ -83,7 +83,7 @@ export default function DeliverySlipPDF() {
           <View style={styles.header}>
             <Image style={styles.logo} src="/favicon.png" />
             <View style={styles.company}>
-              <Text style={{ fontSize: 11, fontWeight: "bold" }}>บริษัท อดามา (ประเทศไทย) จำกัด</Text>
+              <Text style={{ fontSize: 11, fontWeight: "bold" }}>บริษัท อดามา (ประเทศไทย) จำกัด </Text>
               <Text style={{ fontSize: 10, fontWeight: "bold" }}>ADAMA (Thailand) Limited</Text>
               <Text>127/33 อาคารปัญจธานี ทาวเวอร์ ชั้น 28 ถนนนนทรี แขวงช่องนนทรี เขตยานนาวา กรุงเทพฯ 10120</Text>
               <Text>127/33 Panjathani Tower Building 28 floor , Nonsi Rd, Chong nonsi , Yannawa Bangkok 10120</Text>
@@ -94,8 +94,8 @@ export default function DeliverySlipPDF() {
           <Text style={styles.title}>ใบส่งสินค้า</Text>
 
           <View style={styles.metaRow}>
-            <Text><Text style={styles.bold}>เลขที่เอกสาร :</Text> {fmt(data?.status_tran_namsse)}</Text>
-            <Text><Text style={styles.bold}>Date :</Text> {dmy(data?.send_at) || dmy(data?.created_at)}</Text>
+            {/* <Text><Text style={styles.bold}>เลขที่เอกสาร :</Text> {fmt(data?.status_tran_namsse)}</Text> */}
+            <Text><Text style={styles.bold}>Date :</Text> {dmy(data?.created_at) || dmy(data?.created_at)}</Text>
           </View>
 
           {/* ผู้รับของ */}
@@ -108,14 +108,18 @@ export default function DeliverySlipPDF() {
               <Text style={styles.red}>{fmt(data?.shop_name)}</Text>
             </Text>
             <Text style={styles.line}>
+              <Text>ผู้ติดต่อ : </Text>
+              <Text style={styles.red}>{fmt(data?.contact_name)}</Text>
+            </Text>
+            <Text style={styles.line}>
               <Text>ที่อยู่ : </Text>
               <Text style={styles.red}>
-                {fmt(data?.shipping_address || data?.address || data?.shop_address)}
+                {fmt(data?.user_address || data?.address || data?.shop_address)}
               </Text>
             </Text>
             <Text style={styles.line}>
               <Text>โทร : </Text>
-              <Text style={styles.red}>{fmt(data?.contact_number)}</Text>
+              <Text style={styles.red}>{fmt(data?.user_number)}</Text>
             </Text>
           </View>
 
@@ -123,21 +127,22 @@ export default function DeliverySlipPDF() {
           <View style={styles.table}>
             {/* header */}
             <View style={styles.tr}>
-              <Text style={[styles.th, { flex: 1.2 }]}>รูปสินค้า</Text>
-              <Text style={[styles.th, { flex: 4 }]}>รายละเอียด</Text>
-              <Text style={[styles.th, { flex: 1 }, styles.cellLast]}>จำนวน/ชิ้น</Text>
+              {/* <Text style={[styles.th, { flex: 1.2 }]}>รูปสินค้า</Text> */}
+              <Text style={[styles.th, { flex: 3 }]}>รายละเอียด</Text>
+              <Text style={[styles.th, { flex: 1 }, styles.cellLast]}> รายการ</Text>
             </View>
             {/* row */}
             <View style={styles.tr}>
-              <View style={[styles.td, { flex: 1.2, alignItems: "center", justifyContent: "center" }]}>
+              {/* <View style={[styles.td, { flex: 1.2, alignItems: "center", justifyContent: "center" }]}>
                 <Image src={itemImage} style={styles.imgBox} />
-              </View>
-              <View style={[styles.td, { flex: 4 }]}>
+              </View> */}
+              <View style={[styles.td, { flex: 3 }]}>
                 <Text>{itemName}</Text>
-                <Text>{itemDetail}</Text>
+                {/* <Text>{itemDetail}</Text> */}
                 {/* ใส่รายละเอียดรุ่น/สเป็กเพิ่มได้ตามจริง */}
               </View>
-              <Text style={[styles.td, { flex: 1 }, styles.tdCenter, styles.cellLast]}>{itemQty}</Text>
+              <Text style={[styles.td, { flex: 1 }, styles.tdCenter, styles.cellLast]}>{1}</Text>
+
             </View>
           </View>
 
@@ -145,14 +150,18 @@ export default function DeliverySlipPDF() {
           <View style={styles.signRow}>
             <View style={styles.signCol}>
               <Text style={styles.bold}>พนักงานขนส่ง</Text>
-              <Text className="line">สายส่งที่ : ...............................................................</Text>
+              <View style={{ height: 10 }} />
+              {/* <Text className="line">สายส่งที่ : ...............................................................</Text> */}
               <Text>ชื่อพนักงาน : .......................................................................</Text>
+              <View style={{ height: 10 }} />
               <Text>วันที่รับ : ...........................................................................</Text>
             </View>
             <View style={styles.signCol}>
               <Text style={styles.bold}>ผู้รับของ</Text>
-              <Text>สายส่งที่ : ...........................................................................</Text>
+              <View style={{ height: 10 }} />
+              {/* <Text>สายส่งที่ : ...........................................................................</Text> */}
               <Text>ชื่อผู้รับของ : ......................................................................</Text>
+              <View style={{ height: 10 }} />
               <Text>วันที่รับ : ...........................................................................</Text>
             </View>
           </View>

@@ -98,7 +98,7 @@ export default function PointHistory() {
                       หมดอายุ: {item.expire_at == null ? "-" : item.expire_at}
                     </p> */}
                     {activeTab == "use" ? <p className="text-gray-700 text-sm sarabun-font">Reward Code : {item.reward_code}</p> : ""}
-                    {activeTab == "use" ? <p className="text-gray-700 text-sm sarabun-font">Reward Name : {item.reward_name}</p> : ""}
+                    {activeTab == "use" ? <p className="text-gray-700 text-sm sarabun-font truncate">Reward Name : {item.reward_name}</p> : ""}
                     {activeTab == "use" ? <BadgeStatus text={item.status_name} bgColor={item.status_bg_color} textColor={item.status_color}></BadgeStatus> : ""}
 
                   </div>
