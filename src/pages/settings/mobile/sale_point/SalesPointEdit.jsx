@@ -1,3 +1,4 @@
+// src/pages/points/line/sales_points/SalesPointEdit.jsx
 import React, { useEffect, useState, useContext, useRef } from "react";
 import { Form, Input, Select } from "antd";
 import MainLayout from "../../../../layouts/MainLayout";
@@ -10,8 +11,6 @@ import { AuthContext } from "../../../../contexts/AuthContext";
 import dayjs from "dayjs";
 import FormCustom from "../../../../components/form_custom/FormCustom";
 import TableComponent from "../../../../components/table/TableComponent";
-// ❌ ลบ FileUploadComponent เดิม
-// import FileUploadComponent from "../../../../components/file_upload/FileUploadComponent";
 import UploadSection from "../../../../components/file_upload/UploadSection";
 
 export default function SalesPointEdit() {
@@ -25,17 +24,20 @@ export default function SalesPointEdit() {
   const [dataSource, setDataSource] = useState([]);
   const [dataSourceOther, setDataSourceOther] = useState([]);
 
-  // master
-  const [dataSale, setDataSale] = useState([]);
-  const [dataDealer, setDataDealer] = useState([]);
-  const [dataSubDealer, setSubDataDealer] = useState([]);
-
   // ส่วนบน
   const [docNo, setDocNo] = useState("");
   const [docDate, setDocDate] = useState("");
+
+  // ids สำหรับ submit
   const [userId, setUserId] = useState("");
   const [dealerId, setDealerId] = useState("");
   const [subDealerId, setSubDealerId] = useState("");
+
+  // ชื่อที่จะแสดง (มาจาก detail)
+  const [saleName, setSaleName] = useState("");
+  const [dealerName, setDealerName] = useState("");
+  const [subDealerName, setSubDealerName] = useState("");
+
   const [remark, setRemark] = useState("");
 
   // อัปโหลดไฟล์
@@ -79,9 +81,17 @@ export default function SalesPointEdit() {
 
         setDocNo(d.document_number || "");
         setDocDate(d.document_date || "");
+
+        // เก็บ ids ไว้ใช้ตอน update
         setUserId(String(d.user_id || ""));
         setDealerId(String(d.dealer_id || ""));
         setSubDealerId(String(d.sub_dealer_id || ""));
+
+        // ✅ ใช้ “ชื่อ” จาก detail สำหรับแสดงในฟอร์ม
+        setSaleName(d.user_name || d.sale_name || "");
+        setDealerName(d.dealer_name || "");
+        setSubDealerName(d.sub_dealer_name || "");
+
         setRemark(d.ref_remark || "");
 
         const prod = Array.isArray(d.products) ? d.products : [];
@@ -136,22 +146,11 @@ export default function SalesPointEdit() {
           }))
         );
 
+        // เซ็ตค่าให้ text fields อื่น ๆ
         formCustom.setFieldsValue({
-          sale: String(d.user_id || ""),
-          dealer: String(d.dealer_id || ""),
-          sub_dealer: String(d.sub_dealer_id || ""),
           order_no: d.document_number || "",
           order_date: d.document_date || dayjs().format("YYYY-MM-DD"),
         });
-
-        const [sale, dealer, sub_dealer] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterSaleDropdown, { status: "" }),
-          useServiceAPI.get(paths.pathUserLineDealer, { sale_id: d.user_id }),
-          useServiceAPI.get(paths.pathUserLineSubDealer, { dealer_id: d.dealer_id }),
-        ]);
-        setDataSale(sale.data || []);
-        setDataDealer(dealer.data || []);
-        setSubDataDealer(sub_dealer.data || []);
       } catch (e) {
         console.error(e);
         showMsg("error", e?.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล");
@@ -303,8 +302,8 @@ export default function SalesPointEdit() {
       render: (_, record) =>
         (parseFloat(record.point || 0) * parseFloat(record.quantity || 0)).toLocaleString("en-US", {
           minimumFractionDigits: 0,
-    }),
-},
+        }),
+    },
   ];
 
   const headerOther = [
@@ -326,14 +325,17 @@ export default function SalesPointEdit() {
 
   const footerOrderList = () => {
     const totalQty = dataSource.reduce((sum, i) => sum + toNumber(i.quantity), 0);
-    // const totalFOC = dataSource.reduce((sum, i) => sum + toNumber(i.foc), 0);
     const totalAmount = dataSource.reduce((sum, i) => sum + toNumber(i.net_amount), 0);
+    const totalPoint = dataSource.reduce(
+      (sum, i) => sum + (toNumber(i.point) * toNumber(i.quantity)),
+      0
+    );
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
           Item: {dataSource.length} | QTY (ctn): {totalQty}&nbsp;| Total:{" "}
           {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}&nbsp;| 
-          Total Point: {dataSource.reduce((total, item) => total + (toNumber(item.point) * toNumber(item.quantity)), 0).toLocaleString("en-US")}
+          Total Point: {totalPoint.toLocaleString("en-US")}
         </td>
       </tr>
     );
@@ -351,11 +353,35 @@ export default function SalesPointEdit() {
     </tr>
   );
 
-  // ฟิลด์หัวฟอร์ม
+  // ฟิลด์หัวฟอร์ม (ใช้ text + ชื่อจาก detail)
   const formFields = [
-    { key: "sale", label: "Sales", name: "sale", type: "select", disabled: true, options: dataSale, value: userId },
-    { key: "dealer", label: "Dealer", name: "dealer", type: "select", disabled: true, options: dataDealer, value: dealerId },
-    { key: "sub_dealer", label: "Sub Dealer", name: "sub_dealer", type: "select", disabled: true, options: dataSubDealer, value: subDealerId },
+    {
+      key: "sale",
+      label: "Sales",
+      name: "sale",
+      type: "text",            // ✅ แสดงชื่อแทน select
+      disabled: true,
+      value: "",
+      placeholder: saleName || "",
+    },
+    {
+      key: "dealer",
+      label: "Dealer",
+      name: "dealer",
+      type: "text",            // ✅ แสดงชื่อแทน select
+      disabled: true,
+      value: "",
+      placeholder: dealerName || "",
+    },
+    {
+      key: "sub_dealer",
+      label: "Sub Dealer",
+      name: "sub_dealer",
+      type: "text",            // ✅ แสดงชื่อแทน select
+      disabled: true,
+      value: "",
+      placeholder: subDealerName || "",
+    },
     { key: "order_no", label: "Order No", name: "order_no", type: "text", disabled: true, value: docNo || document_number || "" },
     { key: "order_date", label: "Date", name: "order_date", type: "text", disabled: true, value: docDate || dayjs().format("YYYY-MM-DD") },
   ];
@@ -473,7 +499,6 @@ export default function SalesPointEdit() {
         </BoxPrimary>
       )}
 
-      {/* ✅ ใช้ UploadSection (ไม่ disabled) */}
       <UploadSection
         title="Attached file/Picture"
         fileUploadRef={fileUploadRefBill}
@@ -481,7 +506,7 @@ export default function SalesPointEdit() {
         handleUploadClick={handleUploadClickBill}
         handleUploadSuccess={handleUploadSuccessBill}
         handleFileRemove={handleFileRemoveBill}
-        modeUpload="activity"   // ปรับตาม backend
+        modeUpload="activity"
         disabled={false}
       />
 
@@ -492,7 +517,7 @@ export default function SalesPointEdit() {
         handleUploadClick={handleUploadClickPicture}
         handleUploadSuccess={handleUploadSuccessPicture}
         handleFileRemove={handleFileRemovePicture}
-        modeUpload="receive"    // ปรับตาม backend ถ้าต้องการ
+        modeUpload="receive"
         disabled={true}
       />
 

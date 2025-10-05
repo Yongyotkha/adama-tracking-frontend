@@ -24,17 +24,17 @@ export default function SalesPointView() {
   const [dataSource, setDataSource] = useState([]);
   const [dataSourceOther, setDataSourceOther] = useState([]);
 
-  // master สำหรับแสดงชื่อใน select (readonly)
-  const [dataSale, setDataSale] = useState([]);
-  const [dataDealer, setDataDealer] = useState([]);
-  const [dataSubDealer, setSubDataDealer] = useState([]);
-
-  // ฟอร์มส่วนบน
+  // ฟอร์มส่วนบน (ใช้ชื่อจาก detail)
   const [getDocumentDate, setGetDocumentDate] = useState("");
-  const [getUserId, setGetUserId] = useState("");
-  const [getDealerId, setGetDealerId] = useState("");
-  const [getSubDealerId, setGetSubDealerId] = useState("");
+  const [saleName, setSaleName] = useState("");              // ✅ ชื่อ Sales (จาก detail)
+  const [dealerName, setDealerName] = useState("");          // ✅ ชื่อ Dealer (จาก detail)
+  const [subDealerName, setSubDealerName] = useState("");    // ✅ ชื่อ Sub Dealer (จาก detail)
   const [getRemark, setGetRemark] = useState("");
+
+  // สำหรับโหลด master เดิมไม่จำเป็นแล้ว จึงตัดทิ้ง (เหลือไว้หากจะนำกลับมาใช้)
+  // const [dataSale, setDataSale] = useState([]);
+  // const [dataDealer, setDataDealer] = useState([]);
+  // const [dataSubDealer, setSubDataDealer] = useState([]);
 
   // อัปโหลดไฟล์
   const [fileListBill, setFileListBill] = useState([]);
@@ -70,11 +70,11 @@ export default function SalesPointView() {
         if (res?.status === 200 && res?.data) {
           const d = res.data;
 
-          // set ส่วนหัวฟอร์ม
+          // set ส่วนหัวฟอร์ม (ใช้ "ชื่อ" จาก detail)
           setGetDocumentDate(d.document_date || "");
-          setGetUserId(d.user_id || "");
-          setGetDealerId(d.dealer_id || "");
-          setGetSubDealerId(d.sub_dealer_id || "");
+          setSaleName(d.user_name || d.sale_name || "");         // ถ้ามี user_name ใช้ก่อน
+          setDealerName(d.dealer_name || "");
+          setSubDealerName(d.sub_dealer_name || "");
           setGetRemark(d.ref_remark || "");
 
           // products
@@ -139,28 +139,7 @@ export default function SalesPointView() {
     fetchDetail();
   }, [document_number]);
 
-  // 2) โหลด master (เพื่อให้ select disabled แสดงชื่อได้)
-  useEffect(() => {
-    const getMaster = async () => {
-      if (!getUserId || !getDealerId) return;
-      setLoading(true);
-      try {
-        const [sale, dealer, sub_dealer] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterSaleDropdown, { status: "" }),
-          useServiceAPI.get(paths.pathUserLineDealer, { sale_id: getUserId }),
-          useServiceAPI.get(paths.pathUserLineSubDealer, { dealer_id: getDealerId }),
-        ]);
-        setDataSale(sale.data || []);
-        setDataDealer(dealer.data || []);
-        setSubDataDealer(sub_dealer.data || []);
-      } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
-    getMaster();
-  }, [getUserId, getDealerId]);
+  // (ตัด useEffect โหลด master ออก เพราะเราแสดงชื่อจาก detail โดยตรง)
 
   // header ตาราง
   const header = [
@@ -196,7 +175,7 @@ export default function SalesPointView() {
       render: (_, record) =>
         (parseFloat(record.point || 0) * parseFloat(record.quantity || 0)).toLocaleString("en-US", {
           minimumFractionDigits: 0,
-    }),
+        }),
     },
   ];
 
@@ -227,11 +206,9 @@ export default function SalesPointView() {
       (total, item) => total + parseFloat(item.net_amount || 0),
       0
     );
-    // รวมแต้มจากคอลัมน์ point (ถ้าต้องคูณตามจำนวน ให้คอมเมนต์บรรทัดล่างไว้)
     const totalPoint = dataSource.reduce(
       (total, item) => total + parseFloat(item.point || 0),
       0
-      // (ต้องคูณจำนวน) => total + parseFloat(item.point || 0) * parseFloat(item.quantity || 0)
     );
 
     return (
@@ -258,37 +235,34 @@ export default function SalesPointView() {
     </tr>
   );
 
-  // ฟิลด์ฟอร์มแสดง readonly
+  // ฟิลด์ฟอร์มแสดง readonly (ใช้ชื่อจาก detail)
   const formFields = [
     {
       key: "sale",
       label: "Sales",
       name: "sale",
-      type: "select",
+      type: "text",                 // ✅ เปลี่ยนเป็น text
       disabled: true,
-      options: dataSale,
-      placeholder: "",
-      value: getUserId,
+      placeholder: saleName || "",
+      value: "",
     },
     {
       key: "dealer",
       label: "Dealer",
       name: "dealer",
-      type: "select",
+      type: "text",                 // ✅ เปลี่ยนเป็น text
       disabled: true,
-      options: dataDealer,
-      placeholder: "",
-      value: getDealerId,
+      placeholder: dealerName || "",
+      value: "",
     },
     {
       key: "sub_dealer",
       label: "Sub Dealer",
       name: "sub_dealer",
-      type: "select",
+      type: "text",                 // ✅ เปลี่ยนเป็น text
       disabled: true,
-      options: dataSubDealer,
-      placeholder: "",
-      value: getSubDealerId,
+      placeholder: subDealerName || "",
+      value: "",
     },
     {
       key: "order_no",
