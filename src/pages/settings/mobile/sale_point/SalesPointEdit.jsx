@@ -148,12 +148,9 @@ export default function SalesPointEdit() {
 
         // เซ็ตค่าให้ text fields อื่น ๆ
         formCustom.setFieldsValue({
-<<<<<<< HEAD
           sale: String(d.sale_name || ""),
           dealer: String(d.dealer_name || ""),
           sub_dealer: String(d.sub_dealer_id || ""),
-=======
->>>>>>> dev
           order_no: d.document_number || "",
           order_date: d.document_date || dayjs().format("YYYY-MM-DD"),
         });
