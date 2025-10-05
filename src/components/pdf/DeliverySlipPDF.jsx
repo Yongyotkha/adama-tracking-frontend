@@ -6,13 +6,19 @@ import { useSearchParams } from "react-router-dom";
 import useServiceAPI from "../../services/corsService";
 import { paths } from "../../services/CorsPath";
 
+// ฟอนต์ + ปิดการตัดคำภาษาไทย
 Font.register({
   family: "Sarabun",
   fonts: [
     { src: "/font/Sarabun/Sarabun-Regular.ttf" },
     { src: "/font/Sarabun/Sarabun-Bold.ttf", fontWeight: "bold" },
+    { src: "/font/Anuphan/Anuphan-Light.ttf", fontWeight: "300" },
+    { src: "/font/Anuphan/Anuphan-Medium.ttf", fontWeight: "500" },
+    { src: "/font/Anuphan/Anuphan-SemiBold.ttf", fontWeight: "600" },
+    { src: "/font/Anuphan/Anuphan-Thin.ttf", fontWeight: "100" },
   ],
 });
+Font.registerHyphenationCallback((word) => [word]);
 
 const styles = StyleSheet.create({
   page: { padding: 28, fontFamily: "Sarabun", fontSize: 10 },
@@ -24,7 +30,7 @@ const styles = StyleSheet.create({
   bold: { fontWeight: "bold" },
   // recipient box
   box: { borderWidth: 1, borderColor: "#000", padding: 8, marginBottom: 8 },
-  red: { color: "#E53935", fontWeight: "bold" },
+  red: { color: "black", fontWeight: "bold" },
   // table
   table: { borderWidth: 1, borderColor: "#000" },
   tr: { flexDirection: "row" },
@@ -34,9 +40,10 @@ const styles = StyleSheet.create({
   cellLast: { borderRightWidth: 0 },
   // signature area
   signRow: { flexDirection: "row", marginTop: 10, gap: 8 },
-  signCol: { flex: 1, borderWidth: 1, borderColor: "#000", minHeight: 90, padding: 8 },
+  signCol: { flex: 1, borderWidth: 1, borderColor: "#000", minHeight: 90, padding: 8 ,gap: 6},
   line: { marginVertical: 2 },
   imgBox: { width: 70, height: 50, objectFit: "cover" },
+  boldTextRight: { textAlign: "right", fontWeight: "bold" },
 });
 
 const fmt = (v) => (v ? String(v).trim() : "-");
@@ -73,7 +80,6 @@ export default function DeliverySlipPDF() {
     data?.pictures?.[0]?.part || "/img/placeholder.png"; // เปลี่ยนเป็นรูปจริงถ้ามี
   const itemName = fmt(data?.reward_name);
   const itemDetail = fmt(data?.reward_cost); // ในตัวอย่าง reward_cost เป็น "TV"
-  const itemQty = fmt(data?.reward_value);
 
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
@@ -83,7 +89,7 @@ export default function DeliverySlipPDF() {
           <View style={styles.header}>
             <Image style={styles.logo} src="/favicon.png" />
             <View style={styles.company}>
-              <Text style={{ fontSize: 11, fontWeight: "bold" }}>บริษัท อดามา (ประเทศไทย) จำกัด</Text>
+              <Text style={{ fontSize: 11, fontWeight: "bold" }}>บริษัท อดามา (ประเทศไทย) จำกัด </Text>
               <Text style={{ fontSize: 10, fontWeight: "bold" }}>ADAMA (Thailand) Limited</Text>
               <Text>127/33 อาคารปัญจธานี ทาวเวอร์ ชั้น 28 ถนนนนทรี แขวงช่องนนทรี เขตยานนาวา กรุงเทพฯ 10120</Text>
               <Text>127/33 Panjathani Tower Building 28 floor , Nonsi Rd, Chong nonsi , Yannawa Bangkok 10120</Text>
@@ -94,8 +100,8 @@ export default function DeliverySlipPDF() {
           <Text style={styles.title}>ใบส่งสินค้า</Text>
 
           <View style={styles.metaRow}>
-            <Text><Text style={styles.bold}>เลขที่เอกสาร :</Text> {fmt(data?.status_tran_namsse)}</Text>
-            <Text><Text style={styles.bold}>Date :</Text> {dmy(data?.send_at) || dmy(data?.created_at)}</Text>
+            {/* <Text><Text style={styles.bold}>เลขที่เอกสาร :</Text> {fmt(data?.status_tran_namsse)}</Text> */}
+            <Text><Text style={styles.boldTextRight}>Date :</Text> {dmy(data?.send_at) || dmy(data?.created_at)}</Text>
           </View>
 
           {/* ผู้รับของ */}
@@ -105,17 +111,15 @@ export default function DeliverySlipPDF() {
             </Text>
             <Text style={styles.line}>
               <Text>ร้าน : </Text>
-              <Text style={styles.red}>{fmt(data?.shop_name)}</Text>
+              <Text style={styles.red}>{fmt(data?.shop_name)} </Text>
             </Text>
             <Text style={styles.line}>
               <Text>ที่อยู่ : </Text>
-              <Text style={styles.red}>
-                {fmt(data?.shipping_address || data?.address || data?.shop_address)}
-              </Text>
+              <Text style={styles.red}> {fmt(data?.user_address)} </Text>
             </Text>
             <Text style={styles.line}>
               <Text>โทร : </Text>
-              <Text style={styles.red}>{fmt(data?.contact_number)}</Text>
+              <Text style={styles.red}>{fmt(data?.user_number)} </Text>
             </Text>
           </View>
 
@@ -123,21 +127,26 @@ export default function DeliverySlipPDF() {
           <View style={styles.table}>
             {/* header */}
             <View style={styles.tr}>
-              <Text style={[styles.th, { flex: 1.2 }]}>รูปสินค้า</Text>
-              <Text style={[styles.th, { flex: 4 }]}>รายละเอียด</Text>
-              <Text style={[styles.th, { flex: 1 }, styles.cellLast]}>จำนวน/ชิ้น</Text>
+              {/* <Text style={[styles.th, { flex: 1.2 }]}>รูปสินค้า </Text> */}
+              <Text style={[styles.th, { flex: 1.2 }]}>รหัสสินค้า </Text>
+              <Text style={[styles.th, { flex: 4 }]}>รายละเอียด </Text>
+              <Text style={[styles.th, { flex: 1 }, styles.cellLast]}>จำนวน/ชิ้น </Text>
             </View>
             {/* row */}
             <View style={styles.tr}>
               <View style={[styles.td, { flex: 1.2, alignItems: "center", justifyContent: "center" }]}>
-                <Image src={itemImage} style={styles.imgBox} />
+                {/* อันนี้แสดงผล */}
+                {/* <Image src='/img/Image-not-found.png' style={styles.imgBox} />  */}
+                {/* อันนี้ไม่แสดงผล แก้ไขให้แสดงผลภาพเว็บอื่นได้ */}
+                {/* <Image src='https://adama-api.mtsc.co.th/storage/adama-smile/uploads/files/activity/20251001/4CFD8582-80A7-4AD1-9D2F-263210CF5DC9.png' style={styles.imgBox} /> */}
+                <Text>{data?.reward_code}</Text>
               </View>
               <View style={[styles.td, { flex: 4 }]}>
-                <Text>{itemName}</Text>
-                <Text>{itemDetail}</Text>
+                <Text>{itemName} </Text>
+                {/* <Text>{itemDetail}</Text> */}
                 {/* ใส่รายละเอียดรุ่น/สเป็กเพิ่มได้ตามจริง */}
               </View>
-              <Text style={[styles.td, { flex: 1 }, styles.tdCenter, styles.cellLast]}>{itemQty}</Text>
+              <Text style={[styles.td, { flex: 1 }, styles.tdCenter, styles.cellLast]}>{1}</Text>
             </View>
           </View>
 
