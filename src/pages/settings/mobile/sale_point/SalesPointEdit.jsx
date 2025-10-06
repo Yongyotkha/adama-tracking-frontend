@@ -150,7 +150,8 @@ export default function SalesPointEdit() {
         formCustom.setFieldsValue({
           sale: String(d.sale_name || ""),
           dealer: String(d.dealer_name || ""),
-          sub_dealer: String(d.sub_dealer_id || ""),
+          // sub_dealer: String(d.sub_dealer_id || ""),
+          sub_dealer: String(d.sub_dealer_name || ""),
           order_no: d.document_number || "",
           order_date: d.document_date || dayjs().format("YYYY-MM-DD"),
         });

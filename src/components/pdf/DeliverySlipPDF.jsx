@@ -28,13 +28,14 @@ const styles = StyleSheet.create({
   // table
   table: { borderWidth: 1, borderColor: "#000" },
   tr: { flexDirection: "row" },
+  trHead: { flexDirection: "row", borderBottomWidth: 1, borderColor: "#000" },
   th: { flex: 1, padding: 6, borderRightWidth: 1, borderColor: "#000", textAlign: "center", fontWeight: "bold" },
   td: { flex: 1, padding: 6, borderRightWidth: 1, borderColor: "#000" },
   tdCenter: { textAlign: "center" },
   cellLast: { borderRightWidth: 0 },
   // signature area
   signRow: { flexDirection: "row", marginTop: 10, gap: 8 },
-  signCol: { flex: 1, borderWidth: 1, borderColor: "#000", minHeight: 90, padding: 8 },
+  signCol: { flex: 1, borderWidth: 1, borderColor: "#000", minHeight: 90, padding: 8, gap: 6 },
   line: { marginVertical: 2 },
   imgBox: { width: 70, height: 50, objectFit: "cover" },
 });
@@ -95,49 +96,48 @@ export default function DeliverySlipPDF() {
 
           <View style={styles.metaRow}>
             {/* <Text><Text style={styles.bold}>เลขที่เอกสาร :</Text> {fmt(data?.status_tran_namsse)}</Text> */}
-            <Text><Text style={styles.bold}>Date :</Text> {dmy(data?.created_at) || dmy(data?.created_at)}</Text>
+            <Text><Text style={[styles.bold ,{textAlign:"right"}]}>Date :</Text> {dmy(data?.created_at) || dmy(data?.created_at)}</Text>
           </View>
 
           {/* ผู้รับของ */}
           <View style={styles.box}>
             <Text style={{ marginBottom: 4 }}>
-              <Text style={styles.bold}>ผู้รับของ</Text>
+              <Text style={[styles.bold ,{fontSize: 11}]}>ผู้รับของ</Text>
             </Text>
             <Text style={styles.line}>
-              <Text>ร้าน : </Text>
-              <Text style={styles.red}>{fmt(data?.shop_name)}</Text>
+              <Text style={{ fontSize: 10, fontWeight: "bold" }}>ร้าน : </Text>
+              <Text>{fmt(data?.shop_name)} </Text>
             </Text>
             <Text style={styles.line}>
-              <Text>ผู้ติดต่อ : </Text>
-              <Text style={styles.red}>{fmt(data?.contact_name)}</Text>
+              <Text style={{ fontSize: 10, fontWeight: "bold" }}>ที่อยู่ : </Text>
+              <Text> {fmt(data?.user_address)} </Text>
             </Text>
             <Text style={styles.line}>
-              <Text>ที่อยู่ : </Text>
-              <Text style={styles.red}>
-                {fmt(data?.user_address || data?.address || data?.shop_address)}
-              </Text>
-            </Text>
-            <Text style={styles.line}>
-              <Text>โทร : </Text>
-              <Text style={styles.red}>{fmt(data?.user_number)}</Text>
+              <Text style={{ fontSize: 10, fontWeight: "bold" }}>โทร : </Text>
+              <Text>{fmt(data?.user_number)} </Text>
             </Text>
           </View>
 
           {/* ตารางสินค้า */}
           <View style={styles.table}>
             {/* header */}
-            <View style={styles.tr}>
-              {/* <Text style={[styles.th, { flex: 1.2 }]}>รูปสินค้า</Text> */}
-              <Text style={[styles.th, { flex: 3 }]}>รายละเอียด</Text>
-              <Text style={[styles.th, { flex: 1 }, styles.cellLast]}> รายการ</Text>
+            <View style={styles.trHead}>
+              {/* <Text style={[styles.th, { flex: 1.2 }]}>รูปสินค้า </Text> */}
+              {/* <Text style={[styles.th, { flex: 1.2 }]}>Reward Code </Text> */}
+              <Text style={[styles.th, { flex: 4 }]}>รายละเอียด </Text>
+              <Text style={[styles.th, { flex: 1 }, styles.cellLast]}>จำนวน/ชิ้น </Text>
             </View>
             {/* row */}
             <View style={styles.tr}>
-              {/* <View style={[styles.td, { flex: 1.2, alignItems: "center", justifyContent: "center" }]}>
-                <Image src={itemImage} style={styles.imgBox} />
-              </View> */}
-              <View style={[styles.td, { flex: 3 }]}>
-                <Text>{itemName}</Text>
+              {/* <View style={[styles.td, { flex: 1.2, alignItems: "center", justifyContent: "center" }]}> */}
+              {/* อันนี้แสดงผล */}
+              {/* <Image src='/img/Image-not-found.png' style={styles.imgBox} />  */}
+              {/* อันนี้ไม่แสดงผล แก้ไขให้แสดงผลภาพเว็บอื่นได้ */}
+              {/* <Image src='https://adama-api.mtsc.co.th/storage/adama-smile/uploads/files/activity/20251001/4CFD8582-80A7-4AD1-9D2F-263210CF5DC9.png' style={styles.imgBox} /> */}
+              {/* <Text>{data?.reward_code}</Text> */}
+              {/* </View> */}
+              <View style={[styles.td, { flex: 4 }]}>
+                <Text>{itemName} </Text>
                 {/* <Text>{itemDetail}</Text> */}
                 {/* ใส่รายละเอียดรุ่น/สเป็กเพิ่มได้ตามจริง */}
               </View>
