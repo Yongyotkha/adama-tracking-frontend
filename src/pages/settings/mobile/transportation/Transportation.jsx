@@ -14,8 +14,12 @@ const { TabPane } = Tabs;
 
 /** ---------- Send By options (ค่าตรง API) ---------- */
 const SEND_BY_OPTIONS = [
-  { id: "Mail/Ship", name: "Mail/Ship" },
-  { id: "Staff", name: "Staff" },
+  { value: "Express", label: "Express" },
+  { value: "staff", label: "Staff" },
+  { value: "SMS", label: "SMS" },
+  { value: "Vendor", label: "Vendor" },
+  { value: "Post", label: "Post" },
+  { value: "Other", label: "Other" },
 ];
 
 /** ---------- Status Tran options ---------- */
