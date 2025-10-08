@@ -34,7 +34,7 @@ export default function CustomerLineList() {
   const filters = [
     // { key: "shop_name", type: "text", label: "Customer Name" },
     // { key: "contact_name", type: "text", label: "Contact Name" },
-    { key: "date", type: "dater", label: "Date" },
+    // { key: "date", type: "dater", label: "Date" },
     {
       key: "contact_type_id",
       type: "select",

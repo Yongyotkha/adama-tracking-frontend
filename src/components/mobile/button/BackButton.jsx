@@ -32,7 +32,7 @@ const BackButton = ({ className, url, type = null }) => {
         className={`w-full py-3 bg-[#E0DCDB] rounded-lg text-[#A19793] sarabun-font flex items-center justify-center space-x-2 ${className}`}
       >
 
-        <img src="/img/icons/back.png" className="w-6 h-6" alt="" />
+        <img src="/img/icons/return.png" className="w-6 h-6" alt="" />
         <span className="sarabun-font">ย้อนกลับ</span>
       </button>
     </div>

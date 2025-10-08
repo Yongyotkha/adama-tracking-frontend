@@ -134,7 +134,7 @@ export default function OrderHistory() {
                         {isComplete ? "รับสินค้าสำเร็จ" : "รับสินค้าไม่สำเร็จ"}
                       </p>
                       <p className="text-gray-700 sarabun-font text-sm font-semibold mt-1">
-                        รายการ {order.line_product} / รวม {order.net_amount_display} / คะแนน {order.point}
+                        {order.line_product} รายการ/รวม{order.net_amount_display}/คะแนน{order.point}
                       </p>
                     </div>
                   </div>

@@ -281,7 +281,7 @@ export default function TransportationDetail() {
             <Form.Item label="Date" name="created_at">
               <Input disabled />
             </Form.Item>
-            <Form.Item label="Address" name="user_address">
+            <Form.Item label="Shipping Address" name="user_address">
               <Input disabled />
             </Form.Item>
             <Form.Item label="Remark" name="remark">
