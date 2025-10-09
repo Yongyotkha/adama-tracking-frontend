@@ -67,12 +67,8 @@ export default function CollectPointsDetail() {
       product_name: p?.product_name ?? "-",
       product_code: p?.product_code ?? "-",
       packing_list: p?.packing_list ?? "-",
-      point_extra: p?.point_extra ?? "-",
-      point_standard: p?.point_standard ?? "-",
-
+      points: p?.points ?? [],
       point: p?.point ?? "-",
-      point_topup: p?.point_topup ?? "-",
-      point_total: p?.point_total ?? "-",
       amount: Number(p?.net_amount ?? 0),
       point_x: Number(p?.point_x ?? 0),
       amount_display:
@@ -85,7 +81,7 @@ export default function CollectPointsDetail() {
 
 
   const totalQtyPoint = products.reduce(
-    (sum, item) => sum + item.point_total,
+    (sum, item) => sum + item.points.check_point + item.points.master_point,
     0
   );
 
@@ -188,7 +184,6 @@ export default function CollectPointsDetail() {
             <div className="mt-2 space-y-2">
               {products.length > 0 ? (
                 products.map((item, index) => (
-
                   <div
                     key={index}
                     className="flex items-start justify-between text-sm text-gray-700 sarabun-font"
@@ -201,20 +196,33 @@ export default function CollectPointsDetail() {
                           className="w-12 h-12 rounded object-cover border"
                         />
                       ) : null}
+
                       <div className="flex-1">
-                        <p>
-                          {item.qty} x {item.product_name}
-                        </p>
+                        <p>{item.qty} x {item.product_name}</p>
                         <p className="text-xs text-gray-500">บรรจุ : {item.packing_list}</p>
-                        <p className="text-xs text-gray-500">คะแนน : {item.point_standard}</p>
-                        {item.point_x !== 0 && (
-                          <p className="text-xs text-gray-500">คะแนน X Point : {item.point_x}</p>
+
+                        {(item.points.master_point) > 0 && (
+                          <p className="text-xs text-gray-500">
+                            คะแนน : {item.points.master_point}
+                          </p>
                         )}
-                        {item.point_extra > 0 && (
-                          <p className="text-xs text-gray-500">คะแนน Exttar Point : {item.point_extra}</p>
+
+                        {(item.points?.point_x?.length ?? 0) > 0 && (
+                          <p className="text-xs text-gray-500">
+                            คะแนน X Point : {(item.points?.point_x || []).reduce((a, b) => a + b, 0)}
+                          </p>
                         )}
-                        {item.point_topup !== 0 && (
-                          <p className="text-xs text-gray-500">คะแนน Topup Point : {item.point_topup}</p>
+
+                        {(item.points?.point_extra_point?.length ?? 0) > 0 && (
+                          <p className="text-xs text-gray-500">
+                            คะแนน Extra Value : {(item.points?.point_extra_point || []).reduce((a, b) => a + b, 0)}
+                          </p>
+                        )}
+
+                        {(item.points?.point_extra_value?.length ?? 0) > 0 && (
+                          <p className="text-xs text-gray-500">
+                            คะแนน Extra Point : {(item.points?.point_extra_value || []).reduce((a, b) => a + b, 0)}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -225,6 +233,7 @@ export default function CollectPointsDetail() {
                 <p className="text-gray-500 text-sm">ไม่มีรายการสินค้า</p>
               )}
             </div>
+
 
             {/* --- กล่องพรีวิว: รูปหน้าบิล/ใบสั่งสินค้า จาก API --- */}
             <div className="mt-3">
