@@ -179,6 +179,7 @@ import NewsPromotionList from "./pages/settings/mobile/news_promotion/NewsPromot
 import CreateNewsPromotion from "./pages/settings/mobile/news_promotion/CreateNewsPromotion";
 import ShippingAddressPDF from "./pages/pdf/ShippingAddressPDF";
 import DeliverySlipPDF from "./pages/pdf/DeliverySlipPDF";
+import SaleHistoryReport from "./pages/settings/mobile/report/SaleHistoryReport";
 
 
 const App = () => {
@@ -427,6 +428,8 @@ const App = () => {
 
             <Route path="/report/stock-report" element={<ReportStock />} />
 
+            <Route path="/report/line/sales-history-report" element={<SaleHistoryReport />} />
+
           </Route>
 
           <Route element={<LineOARoute />}>
@@ -462,9 +465,6 @@ const App = () => {
               <Route path="/mobile/point-history" element={< PointHistory />} />
               {/* <Route path="/mobile/point-history/detail" element={< PointHistoryDetail />} /> */}
               <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
-
-              {/* <Route path="/report/line/sales-history-report" element={<SaleHistoryReport />} /> */}
-              
 
             </Route>
 
