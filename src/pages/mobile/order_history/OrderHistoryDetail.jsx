@@ -80,6 +80,12 @@ export default function OrderHistoryDetail() {
     : [];
   const totalQty = products.reduce((sum, it) => sum + (Number.isFinite(it.qty) ? it.qty : 0), 0);
 
+
+  const totalQtyPoint = products.reduce(
+    (sum, item) => sum + item.points.check_point + item.points.master_point,
+    0
+  );
+
   const totalPrice = products.reduce(
     (sum, it) => sum + (Number.isFinite(it.amount) ? it.amount : 0),
     0
@@ -266,7 +272,7 @@ export default function OrderHistoryDetail() {
             <div className="mt-4 border-t pt-2 text-sm text-gray-800">
               <div className="flex justify-between font-semibold">
                 <p className="sarabun-font">จำนวนรวม (ลัง)</p>
-                <p>{totalQty} / คะแนน</p>
+                <p>{totalQty} / คะแนน {totalQtyPoint}</p>
               </div>
 
               <div className="flex justify-between font-semibold text-lg text-green-700 mt-1">
