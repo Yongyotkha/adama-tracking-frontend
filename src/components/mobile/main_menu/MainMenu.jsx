@@ -27,6 +27,7 @@ const MainMenu = () => {
                 icon: "/img/icons/redeem-oa.png",
                 text: "แลกคะแนนสะสม",
                 url: "/mobile/redeem-point",
+                count: 5, // << ตัวอย่างค่า
               },
               {
                 icon: "/img/icons/history-oa.png",
@@ -45,6 +46,7 @@ const MainMenu = () => {
                 icon: "/img/icons/scan-collect-oa.png",
                 text: "รับสินค้าเพื่อสะสมคะแนน",
                 url: "/mobile/collect-points",
+                count: 5, // << ตัวอย่างค่า
               },
               {
                 icon: "/img/icons/redeem-oa.png",
@@ -82,7 +84,13 @@ const MainMenu = () => {
   return (
     <div className="w-full max-w-md my-4 pb-4 flex flex-col space-y-3">
       {menuItems.map((item, index) => (
-        <MenuButton key={index} icon={item.icon} text={item.text} url={item.url} />
+        <MenuButton
+          key={index}
+          icon={item.icon}
+          text={item.text}
+          url={item.url}
+          count={item.count || 0}   // << เพิ่มบรรทัดนี้
+        />
       ))}
     </div>
   );

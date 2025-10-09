@@ -190,7 +190,7 @@ export default function ContactAdmin() {
           setIsConfirmationVisible(false);
           navigate("/mobile/verify"); // ✅ Navigate ไปยังหน้าถัดไป
         }}
-        src="/logo/Logo-Adama-Smile-2-New 1.png"
+        src="/img/icon/check-circle.png"
         text={`<p class='text-[#978B87] text-center sarabun-font'>${popupMessage}</p>`} // ✅ ทำให้ข้อความใน Popup เป็นแบบไดนามิก
         confirmText="ตกลง"
       />

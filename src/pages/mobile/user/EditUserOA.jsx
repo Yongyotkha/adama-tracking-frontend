@@ -241,10 +241,11 @@ export default function EditUserOA() {
             // กดปุ่ม "ยกเลิก"
             setIsPointModalVisibleComfirm(false);
           }}
-          src="/img/icons/forgot-password.png"
+          // src="/img/icon/warning-red.png"
+          src="/img/icon/warning-yellow.png"
           text={`<div class='text-center'>
-      <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>ยืนยันการทำรายการ</p>
-    </div>`}
+                  <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>ยืนยันการทำรายการ</p>
+                </div>`}
           confirmText="ยืนยัน"
           cancelText="ยกเลิก"
         />
