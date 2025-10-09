@@ -98,7 +98,7 @@ export default function SalesPointCreate() {
       }
       setLoading(true);
       try {
-        const dealer = await useServiceAPI.get(paths.pathUserLineDealer, { sale_id: dataSaleId });
+        const dealer = await useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: dataSaleId });
         setDataDealer(dealer?.data || []);
       } catch (e) {
         // no-op
