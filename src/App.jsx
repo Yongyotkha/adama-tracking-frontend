@@ -429,7 +429,7 @@ const App = () => {
 
           </Route>
 
-          {/* <Route element={<LineOARoute />}> */}
+          <Route element={<LineOARoute />}>
 
             <Route path="/mobile/login" element={< CheckLogin />} />
 
@@ -444,7 +444,7 @@ const App = () => {
             <Route path="/mobile/faq" element={< FaqOA />} />
             <Route path="/mobile/register" element={< RegisterOA />} />
             <Route path="/mobile/camera" element={< CameraView />} />
-            {/* <Route element={<LinePrivateRoute />}> */}
+            <Route element={<LinePrivateRoute />}>
               <Route path="/mobile/collect-points" element={< CollectPoints />} />
               <Route path="/mobile/collect-points/detail" element={<CollectPointsDetail />} />
               <Route path="/mobile/collect-points/advance-notice" element={< CollectPointsAdvance />} />
@@ -466,9 +466,9 @@ const App = () => {
               {/* <Route path="/report/line/sales-history-report" element={<SaleHistoryReport />} /> */}
               
 
-            {/* </Route> */}
+            </Route>
 
-          {/* </Route> */}
+          </Route>
 
           <Route path="/mobile/take-photo" element={< TakePhoto />} />
 
