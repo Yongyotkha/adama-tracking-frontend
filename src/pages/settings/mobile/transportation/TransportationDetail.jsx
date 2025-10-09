@@ -14,8 +14,12 @@ import { AuthContext } from "../../../../contexts/AuthContext";
 
 
 const SEND_BY_OPTIONS = [
-  { value: "mail/ship", label: "Mail/Ship" },
+  { value: "express", label: "Express" },
   { value: "staff", label: "Staff" },
+  { value: "sms", label: "SMS" },
+  { value: "vendor", label: "Vendor" },
+  { value: "post", label: "Post" },
+  { value: "other", label: "Other" },
 ];
 
 export default function TransportationDetail() {
@@ -77,14 +81,34 @@ export default function TransportationDetail() {
 
   // helper แปลงค่าจาก UI -> API
   const toApiSendBy = (uiValue) => {
-    if (!uiValue) return "Mail/Ship";
-    return uiValue.toLowerCase() === "staff" ? "Staff" : "Mail/Ship";
+    if (!uiValue) return "All";
+  const mapping = {
+    express: "Express",
+    staff: "Staff",
+    sms: "SMS",
+    vendor: "Vendor",
+    post: "Post",
+    other: "Other",
+  };
+  return mapping[uiValue.toLowerCase()] || "Mail/Ship";
   };
 
   // helper: API -> UI
   const toUiSendBy = (apiValue) => {
-    if (!apiValue) return "mail/ship";
-    return String(apiValue).toLowerCase() === "staff" ? "staff" : "mail/ship";
+  if (!apiValue) return "Select";
+
+  const value = String(apiValue).toLowerCase();
+
+  const mapping = {
+    express: "express",
+    staff: "staff",
+    sms: "sms",
+    vendor: "vendor",
+    post: "post",
+    other: "other",
+  };
+
+  return mapping[value] || "mail/ship";
   };
 
   const fillForm = (data) => {
@@ -99,7 +123,7 @@ export default function TransportationDetail() {
     });
 
     formBottom.setFieldsValue({
-      send_by: toUiSendBy(data.send_by) ?? "mail/ship",
+      send_by: toUiSendBy(data.send_by),
       send_date: data.send_at ? dayjs(data.send_at) : null,
       remark: data.remark || "",
       remark_tran: data.remark_tran || "-",
