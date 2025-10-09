@@ -1004,7 +1004,7 @@ export default function CreatePointCampaign() {
             header={[
               { title: "No", render: (_, __, i) => i + 1, width: 70 },
               {
-                title: "Value Start (THB)",
+                title: "Point Start",
                 dataIndex: "value_start",
                 render: (v, record) => (
                   <InputNumber
@@ -1020,7 +1020,7 @@ export default function CreatePointCampaign() {
                 ),
               },
               {
-                title: "Value End (THB)",
+                title: "Point End",
                 dataIndex: "value_end",
                 render: (v, record) => (
                   <InputNumber

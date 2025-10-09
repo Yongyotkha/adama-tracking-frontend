@@ -69,6 +69,7 @@ export default function OrderHistoryDetail() {
       product_code: p?.product_code ?? "-",
       packing_list: p?.packing_list ?? "-",
       amount: Number(p?.net_amount ?? 0),
+      points: p?.points ?? [],
       point: Number(p?.point ?? 0),
       amount_display:
         typeof p?.net_amount === "string" || typeof p?.net_amount === "number"
@@ -183,8 +184,30 @@ export default function OrderHistoryDetail() {
                         <p>
                           {item.qty} x {item.product_name}
                         </p>
-                        <p className="text-xs text-gray-500">บรรจุ : {item.packing_list}</p>
-                        <p className="text-xs text-gray-500">คะแนน : {item.point}</p>
+
+                        {(item.points.master_point) > 0 && (
+                          <p className="text-xs text-gray-500">
+                            Master Point : {item.points.master_point}
+                          </p>
+                        )}
+
+                        {(item.points?.point_x?.length ?? 0) > 0 && (
+                          <p className="text-xs text-gray-500">
+                            คะแนน X Point : {(item.points?.point_x || []).reduce((a, b) => a + b, 0)}
+                          </p>
+                        )}
+
+                        {(item.points?.point_extra_point?.length ?? 0) > 0 && (
+                          <p className="text-xs text-gray-500">
+                            คะแนน Extra Point Point : {(item.points?.point_extra_point || []).reduce((a, b) => a + b, 0)}
+                          </p>
+                        )}
+
+                        {(item.points?.point_extra_value?.length ?? 0) > 0 && (
+                          <p className="text-xs text-gray-500">
+                            คะแนน Extra Point Value : {(item.points?.point_extra_value || []).reduce((a, b) => a + b, 0)}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <p className="w-20 text-right">{item.amount_display}</p>
