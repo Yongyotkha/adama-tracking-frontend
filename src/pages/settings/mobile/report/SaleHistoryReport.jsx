@@ -1,520 +1,391 @@
+// src/pages/report/sales/SaleHistoryReport.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import { Form, Row, Col, Select, InputNumber, Table } from "antd";
+import { InputNumber, Table } from "antd";
 import MainLayout from "../../../../layouts/MainLayout";
 import Title from "../../../../components/title/Title";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import DynamicButton from "../../../../components/button/DynamicButton";
 import TableCustomComponent from "../../../../components/table/TableCustomComponent";
+import Filter from "../../../../components/filter/Filter";
+import useServiceAPI from "../../../../services/CorsService";
+import { paths } from "../../../../services/CorsPath";
 
-// -------------------- MOCK MASTERS --------------------
-const MOCK_SALES = [
-  { value: "S001", label: "Amorn Sriworakul" },
-  { value: "S002", label: "Warin Panjit" },
+// ---------------- Quarter / Months ----------------
+const QUARTER_MONTHS = [
+  { id: "Q1", name: "Quarter 1", months: ["Jan.", "Feb.", "Mar."] },
+  { id: "Q2", name: "Quarter 2", months: ["Apr.", "May", "Jun."] },
+  { id: "Q3", name: "Quarter 3", months: ["Jul", "Aug.", "Sept."] },
+  { id: "Q4", name: "Quarter 4", months: ["Oct.", "Nov.", "Dec."] },
 ];
 
-const MOCK_DEALERS_BY_SALE = {
-  S001: [
-    { value: "D001", label: "Adul Karn Kaset Co.,Ltd." },
-    { value: "D002", label: "Green Farm Co.,Ltd." },
-  ],
-  S002: [{ value: "D003", label: "Agri Mart Co.,Ltd." }],
-};
-
-const MOCK_SUB_DEALERS_BY_DEALER = {
-  D001: [
-    { value: "SD001", label: "ศูนย์พันธุ์พืช 1" },
-    { value: "SD002", label: "ศูนย์พันธุ์พืช 2" },
-  ],
-  D002: [{ value: "SD003", label: "โชคเกษตร" }],
-  D003: [],
-};
-
-const MOCK_PRODUCTS = [
-  { value: "Ossinate 15%SL", label: "Ossinate 15%SL" },
-  { value: "Apopo 20%SE", label: "Apopo 20%SE" },
-  { value: "Atraxen 90WG", label: "Atraxen 90WG" },
+// ---------------- Mock masters ----------------
+const PRODUCTS = [
+  { name: "Custodia 320 SC", pack: "20 x 0.5 Lt" },
+  { name: "Custodia 320 SC", pack: "20 x 1 Lt" },
+  { name: "Custodia 320 SC", pack: "40 x 0.25 Lt" },
+  { name: "Damatin", pack: "1 Kg x 12" },
+  { name: "Diazol 60% W/V EC", pack: "12 x 1 Lt" },
+  { name: "Durivo", pack: "0.25 Lt x 40" },
+  { name: "Fiesta 100 EC", pack: "0.25 Lt x 24" },
+  { name: "Formass", pack: "1 Lt x 12" },
+  { name: "Hamper 300 SC", pack: "0.25 Lt x 24" },
+  { name: "Hamper 300 SC", pack: "1 Lt x 12" },
+  { name: "Hamper 300 SC", pack: "20 Lt" },
 ];
 
 const YEARS = ["2026", "2025", "2024"];
+const yearOptions = YEARS.map((y) => ({ id: y, name: y }));
+const productOptions = PRODUCTS.map((p) => ({ id: p.name, name: p.name }));
 
-// -------------------- MOCK TABLE (เดือนใน Quarter) --------------------
-const MOCK_ITEMS = [
-  {
-    id: "Q1",
-    name: "Quarter 1",
-    product: [
-      // ต่อ productName ใน dataSource
-      {
-        product_name: "Ossinate 15%SL",
-        workplan_qty: 1000,
-        rolling_qty: 900,
-        actual_qty: 850,
-        workplan_value: 1200000,
-        rolling_value: 1080000,
-        actual_value: 1020000,
-      },
-      {
-        product_name: "Apopo 20%SE",
-        workplan_qty: 2000,
-        rolling_qty: 1800,
-        actual_qty: 1750,
-        workplan_value: 2400000,
-        rolling_value: 2160000,
-        actual_value: 2100000,
-      },
-      {
-        product_name: "Atraxen 90WG",
-        workplan_qty: 2500,
-        rolling_qty: 2400,
-        actual_qty: 2350,
-        workplan_value: 3000000,
-        rolling_value: 2880000,
-        actual_value: 2820000,
-      },
-    ],
-  },
-  {
-    id: "Q2",
-    name: "Quarter 2",
-    product: [
-      {
-        product_name: "Ossinate 15%SL",
-        workplan_qty: 1100,
-        rolling_qty: 1000,
-        actual_qty: 950,
-        workplan_value: 1320000,
-        rolling_value: 1200000,
-        actual_value: 1140000,
-      },
-      {
-        product_name: "Apopo 20%SE",
-        workplan_qty: 2100,
-        rolling_qty: 1900,
-        actual_qty: 1850,
-        workplan_value: 2520000,
-        rolling_value: 2280000,
-        actual_value: 2220000,
-      },
-      {
-        product_name: "Atraxen 90WG",
-        workplan_qty: 2600,
-        rolling_qty: 2450,
-        actual_qty: 2400,
-        workplan_value: 3120000,
-        rolling_value: 2940000,
-        actual_value: 2880000,
-      },
-    ],
-  },
-  {
-    id: "Q3",
-    name: "Quarter 3",
-    product: [
-      {
-        product_name: "Ossinate 15%SL",
-        workplan_qty: 900,
-        rolling_qty: 880,
-        actual_qty: 820,
-        workplan_value: 1080000,
-        rolling_value: 1056000,
-        actual_value: 984000,
-      },
-      {
-        product_name: "Apopo 20%SE",
-        workplan_qty: 1500,
-        rolling_qty: 1450,
-        actual_qty: 1400,
-        workplan_value: 1800000,
-        rolling_value: 1740000,
-        actual_value: 1680000,
-      },
-      {
-        product_name: "Atraxen 90WG",
-        workplan_qty: 2200,
-        rolling_qty: 2150,
-        actual_qty: 2100,
-        workplan_value: 2640000,
-        rolling_value: 2580000,
-        actual_value: 2520000,
-      },
-    ],
-  },
-  {
-    id: "Q4",
-    name: "Quarter 4",
-    product: [
-      {
-        product_name: "Ossinate 15%SL",
-        workplan_qty: 1200,
-        rolling_qty: 1100,
-        actual_qty: 1000,
-        workplan_value: 1440000,
-        rolling_value: 1320000,
-        actual_value: 1200000,
-      },
-      {
-        product_name: "Apopo 20%SE",
-        workplan_qty: 2300,
-        rolling_qty: 2200,
-        actual_qty: 2100,
-        workplan_value: 2760000,
-        rolling_value: 2640000,
-        actual_value: 2520000,
-      },
-      {
-        product_name: "Atraxen 90WG",
-        workplan_qty: 2700,
-        rolling_qty: 2600,
-        actual_qty: 2550,
-        workplan_value: 3240000,
-        rolling_value: 3120000,
-        actual_value: 3060000,
-      },
-    ],
-  },
-];
-
-// -------------------- UTIL --------------------
+// ------------- make mock monthly qty/value -------------
 const nf = (v) => `${parseInt(v || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+const buildMockRows = () => {
+  const rows = PRODUCTS.map((p, idx) => {
+    // สร้าง qty/value รายเดือนให้มี pattern ใกล้ภาพตัวอย่าง
+    const months = {};
+    QUARTER_MONTHS.forEach((q, qi) =>
+      q.months.forEach((m, mi) => {
+        const baseQty = (idx % 5 === 0 ? 100 : 0) + (mi === 0 ? 100 : mi === 1 ? 500 : 300);
+        const qty =
+          qi === 0
+            ? [100, 500, 300][mi] || 0
+            : qi === 1
+            ? [200, 100, 0][mi] || 0
+            : qi === 2
+            ? [0, 0, 0][mi] || 0
+            : [0, 0, 0][mi] || 0;
+
+        const value = qty * (2000 + (idx % 3) * 350); // mock value ตาม qty
+        months[m] = { qty, value };
+      })
+    );
+
+    // mock แถวซ้าย
+    const workPlanKG = idx % 3 === 0 ? 2500 : idx % 3 === 1 ? 0 : 1000;
+    const valueTHB = workPlanKG * (1540 + (idx % 4) * 320);
+
+    return {
+      key: idx + 1,
+      productName: p.name,
+      packSize: p.pack,
+      workPlanKG,
+      valueTHB,
+      months,
+    };
+  });
+  return rows;
+};
 
 export default function SaleHistoryReport() {
   const [loading, setLoading] = useState(false);
-  const [form] = Form.useForm();
 
-  // masters
-  const [sales, setSales] = useState(MOCK_SALES);
-  const [dealers, setDealers] = useState([]);
-  const [subs, setSubs] = useState([]);
-  const [products] = useState(MOCK_PRODUCTS);
-  const [years] = useState(YEARS);
+  // masters (ตามพฤติกรรม CollectPointsList)
+  const [saleList, setSaleList] = useState([]);
+  const [dealerList, setDealerList] = useState([]);
+  const [subDealerList, setSubDealerList] = useState([]);
+  const [filtersState, setFiltersState] = useState({});
 
-  // data table
-  const [itemColumn, setItemColumn] = useState(MOCK_ITEMS);
-  const [dataSource, setDataSource] = useState([]);
+  // table rows
+  const [dataRows, setDataRows] = useState([]);
 
-  // initial
+  // init rows
   useEffect(() => {
-    // mock rows (จาก products)
-    const rows = products.map((p, idx) => ({
-      key: idx + 1,
-      productName: p.value,
-    }));
-    setDataSource(rows);
-    form.setFieldsValue({ year_code: years[0] });
+    setDataRows(buildMockRows());
   }, []);
 
-  // filter dependencies
-  const handleSaleChange = (saleId) => {
-    form.setFieldsValue({ dealer_id: undefined, sub_dealer_id: undefined });
-    setSubs([]);
-    setDealers(MOCK_DEALERS_BY_SALE[saleId] || []);
-  };
+  // โหลด Sales master
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const sale = await useServiceAPI.get(paths.pathMasterSaleDropdown, {});
+        setSaleList(sale?.data || []);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
-  const handleDealerChange = (dealerId) => {
-    form.setFieldsValue({ sub_dealer_id: undefined });
-    setSubs(MOCK_SUB_DEALERS_BY_DEALER[dealerId] || []);
+  // ---------- Filters ----------
+  const filters = [
+    { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
+    { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dealerList, moderef: true },
+    { key: "sub_dealer", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerList },
+    { key: "year_code", type: "select", label: "Year", placeholder: "All", options: yearOptions },
+    { key: "product_name", type: "select", label: "Product", placeholder: "All", options: productOptions },
+  ];
+
+  const handleFilterChange = (f) => {
+    setFiltersState(f);
+
+    const saleId = typeof f.sale === "object" ? f.sale?.value ?? f.sale?.id : f.sale;
+    const dealerId = typeof f.dealer === "object" ? f.dealer?.value ?? f.dealer?.id : f.dealer;
+
+    if (dealerId) {
+      (async () => {
+        try {
+          const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
+            user_id: saleId || "",
+            dealer_id: dealerId,
+          });
+          const subs = (res?.data || []).map((item) => ({
+            name: item.sub_dealer_name,
+            id: item.sub_dealer_id,
+          }));
+          setSubDealerList(subs);
+        } catch {
+          setSubDealerList([]);
+        }
+      })();
+    } else if (saleId) {
+      (async () => {
+        try {
+          const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: saleId });
+          setDealerList(res?.data || []);
+          setSubDealerList([]);
+        } catch {
+          setDealerList([]);
+          setSubDealerList([]);
+        }
+      })();
+    } else {
+      setDealerList([]);
+      setSubDealerList([]);
+    }
   };
 
   const handleSearch = () => {
-    // mock: ไม่เรียก API แค่ถือโอกาสรีเฟรชคอลัมน์/ข้อมูล
     setLoading(true);
-    setTimeout(() => {
-      setItemColumn(MOCK_ITEMS); // สมมติได้คอลัมน์ตามปี/ฟิลเตอร์
-      setLoading(false);
-    }, 400);
+    setTimeout(() => setLoading(false), 350);
   };
 
-  // -------------------- columns --------------------
-  const header = useMemo(() => {
-    return [
-      {
-        title: "Quarter",
-        onHeaderCell: () => ({
-          style: {
-            backgroundColor: "#00783F",
-            color: "white",
-            fontWeight: "bold",
-            textAlign: "center",
-          },
-        }),
-        children: [
-          {
-            title: "Product Name",
-            dataIndex: "productName",
-            key: "productName",
-            fixed: "left",
-            width: 180,
-            onHeaderCell: () => ({
-              style: {
-                backgroundColor: "#00783F",
-                color: "white",
-                fontWeight: "bold",
-                textAlign: "center",
-              },
-            }),
-          },
-        ],
-      },
-      ...itemColumn.map((q, i) => ({
-        title: q.name,
-        key: q.id,
-        onHeaderCell: () => ({
-          style: {
-            backgroundColor: i % 2 === 1 ? "#00783F" : "#009845",
-            color: "white",
-            fontWeight: "bold",
-            textAlign: "center",
-          },
-        }),
-        children: [
-          {
-            title: "Work Plan (KG)",
-            width: 140,
-            onHeaderCell: () => ({
-              style: {
-                backgroundColor: i % 2 === 1 ? "#00783F" : "#009845",
-                color: "white",
-                fontWeight: "bold",
-                textAlign: "center",
-              },
-            }),
-            render: (_, record) => {
-              const d =
-                q.product.find((p) => p.product_name === record.productName) ||
-                {};
-              return <InputNumber className="w-full" value={d.workplan_qty || 0} readOnly formatter={nf} />;
-            },
-          },
-          {
-            title: "Rolling Forecast (KG)",
-            width: 160,
-            onHeaderCell: () => ({
-              style: {
-                backgroundColor: "#7DB41E",
-                color: "white",
-                fontWeight: "bold",
-                textAlign: "center",
-              },
-            }),
-            render: (_, record) => {
-              const d =
-                q.product.find((p) => p.product_name === record.productName) ||
-                {};
-              return <InputNumber className="w-full" value={d.rolling_qty || 0} readOnly formatter={nf} />;
-            },
-          },
-          {
-            title: "Actual (KG)",
-            width: 130,
-            onHeaderCell: () => ({
-              style: {
-                backgroundColor: "#93CC23",
-                color: "white",
-                fontWeight: "bold",
-                textAlign: "center",
-              },
-            }),
-            render: (_, record) => {
-              const d =
-                q.product.find((p) => p.product_name === record.productName) ||
-                {};
-              return <InputNumber className="w-full" value={d.actual_qty || 0} readOnly formatter={nf} />;
-            },
-          },
-          {
-            title: "Work Plan (Value)",
-            width: 160,
-            onHeaderCell: () => ({
-              style: {
-                backgroundColor: i % 2 === 1 ? "#00783F" : "#009845",
-                color: "white",
-                fontWeight: "bold",
-                textAlign: "center",
-              },
-            }),
-            render: (_, record) => {
-              const d =
-                q.product.find((p) => p.product_name === record.productName) ||
-                {};
-              return (
-                <InputNumber className="w-full" value={d.workplan_value || 0} readOnly formatter={nf} />
-              );
-            },
-          },
-          {
-            title: "Rolling Forecast (Value)",
-            width: 190,
-            onHeaderCell: () => ({
-              style: {
-                backgroundColor: "#7DB41E",
-                color: "white",
-                fontWeight: "bold",
-                textAlign: "center",
-              },
-            }),
-            render: (_, record) => {
-              const d =
-                q.product.find((p) => p.product_name === record.productName) ||
-                {};
-              return (
-                <InputNumber className="w-full" value={d.rolling_value || 0} readOnly formatter={nf} />
-              );
-            },
-          },
-          {
-            title: "Actual (Value)",
-            width: 150,
-            onHeaderCell: () => ({
-              style: {
-                backgroundColor: "#93CC23",
-                color: "white",
-                fontWeight: "bold",
-                textAlign: "center",
-              },
-            }),
-            render: (_, record) => {
-              const d =
-                q.product.find((p) => p.product_name === record.productName) ||
-                {};
-              return (
-                <InputNumber className="w-full" value={d.actual_value || 0} readOnly formatter={nf} />
-              );
-            },
-          },
-        ],
-      })),
-    ];
-  }, [itemColumn]);
+  const handleClear = () => {
+    setFiltersState({});
+    setDealerList([]);
+    setSubDealerList([]);
+  };
 
-  // footer summary
-  const footer = useMemo(() => {
-    const sums = itemColumn.map((q) => {
-      const sum = (f) => q.product.reduce((acc, p) => acc + (p[f] || 0), 0);
+  // ---------- Header style helper (ยกมาจาก WorkPlanSaleCreate) ----------
+  const applyTopLevelAndSpecificChildrenStyles = (columns) =>
+    columns.map((col, index) => {
+      const backgroundColor = index % 2 === 0 ? "#00783F" : "#009845";
+      const textColor = "white";
+
+      const styleChildren = (children, parentBgColor) =>
+        children.map((child) => {
+          const isFirstLevelChild = child.key === "firstChilden";
+          const isLastLevelChild = child.dataIndex;
+          const isQtyChild = child.title === "Qty (KG)";
+
+          if (!isFirstLevelChild && child.children && !isLastLevelChild) {
+            return { ...child, children: styleChildren(child.children, parentBgColor) };
+          }
+          return {
+            ...child,
+            onHeaderCell: () => ({
+              style: {
+                backgroundColor: isFirstLevelChild
+                  ? "#CBC5C3"
+                  : isQtyChild
+                  ? parentBgColor
+                  : isLastLevelChild
+                  ? parentBgColor
+                  : null,
+                color: isLastLevelChild || isQtyChild ? textColor : "black",
+                fontWeight: "bold",
+                textAlign: "center",
+              },
+            }),
+            ...(child.children ? { children: styleChildren(child.children, parentBgColor) } : {}),
+          };
+        });
+
       return {
-        id: q.id,
-        workplan_qty: sum("workplan_qty"),
-        rolling_qty: sum("rolling_qty"),
-        actual_qty: sum("actual_qty"),
-        workplan_value: sum("workplan_value"),
-        rolling_value: sum("rolling_value"),
-        actual_value: sum("actual_value"),
+        ...col,
+        onHeaderCell: () => ({
+          style: { backgroundColor, color: textColor, fontWeight: "bold", textAlign: "center" },
+        }),
+        ...(col.children ? { children: styleChildren(col.children, backgroundColor) } : {}),
       };
     });
 
+  // ---------- Columns (เลย์เอาต์เดียวกับ Monthly Work Plan) ----------
+  const baseColumns = useMemo(() => {
+    const left = {
+      title: "Quarter", // row 1
+      children: [
+        {
+          title: "Sale Plan (THB)", // row 2
+          children: [
+            {
+              title: "Month", // row 3
+              key: "firstChilden",
+              onHeaderCell: () => ({
+                style: {
+                  backgroundColor: "#00783F",
+                  color: "white",
+                  fontWeight: "bold",
+                  textAlign: "center",
+                },
+              }),
+              children: [
+                { title: "Product Name", dataIndex: "productName", width: 180, fixed: "left" },
+                { title: "Pack Size", dataIndex: "packSize", width: 130, fixed: "left" },
+                {
+                  title: "Work Plan (KG)",
+                  dataIndex: "workPlanKG",
+                  width: 140,
+                  fixed: "left",
+                  render: (v) => (
+                    <InputNumber className="w-full" disabled value={v || 0} formatter={nf} />
+                  ),
+                },
+                {
+                  title: "Value (THB)",
+                  dataIndex: "valueTHB",
+                  width: 160,
+                  fixed: "left",
+                  render: (v) => (
+                    <InputNumber className="w-full" disabled value={v || 0} formatter={nf} />
+                  ),
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const quarters = QUARTER_MONTHS.map((q) => ({
+      title: q.name,
+      children: [
+        {
+          // บรรทัด input รวมทั้ง Quarter
+          title: (
+            <InputNumber
+              disabled
+              className="w-full"
+              value={q.months.reduce(
+                (sum, m) =>
+                  sum +
+                  dataRows.reduce((acc, r) => acc + (r.months?.[m]?.value || 0), 0),
+                0
+              )}
+              formatter={nf}
+            />
+          ),
+          children: q.months.map((m) => ({
+            title: m,
+            dataIndex: `col_${q.id}_${m}`,
+            children: [
+              {
+                title: "Qty (KG)",
+                width: 120,
+                render: (_, record) => (
+                  <InputNumber
+                    className="w-full"
+                    disabled
+                    value={record.months?.[m]?.qty || 0}
+                    formatter={nf}
+                  />
+                ),
+              },
+              {
+                title: "Value (THB)",
+                width: 150,
+                render: (_, record) => (
+                  <InputNumber
+                    className="w-full"
+                    disabled
+                    value={record.months?.[m]?.value || 0}
+                    formatter={nf}
+                  />
+                ),
+              },
+            ],
+          })),
+        },
+      ],
+    }));
+
+    return [left, ...quarters];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataRows]);
+
+  const columns = useMemo(
+    () => applyTopLevelAndSpecificChildrenStyles(baseColumns),
+    [baseColumns]
+  );
+
+  // ---------- Footer (Total THB ต่อเดือน) ----------
+  const footer = useMemo(() => {
     // eslint-disable-next-line react/display-name
     return () => (
       <Table.Summary fixed>
         <Table.Summary.Row className="bg-[#978B87]">
-          <Table.Summary.Cell index={0}>
-            <b>Total (THB)</b>
+          <Table.Summary.Cell index={0} colSpan={4}>
+            Total (THB)
           </Table.Summary.Cell>
-          {sums.map((m) => (
-            <React.Fragment key={m.id}>
-              <Table.Summary.Cell>
-                <InputNumber className="w-full" readOnly value={m.workplan_qty} formatter={nf} />
+          {QUARTER_MONTHS.flatMap((q) =>
+            q.months.map((m) => (
+              <Table.Summary.Cell key={`${q.id}-${m}`} colSpan={2}>
+                <InputNumber
+                  className="w-full"
+                  disabled
+                  value={dataRows.reduce((acc, r) => acc + (r.months?.[m]?.value || 0), 0)}
+                  formatter={nf}
+                />
               </Table.Summary.Cell>
-              <Table.Summary.Cell>
-                <InputNumber className="w-full" readOnly value={m.rolling_qty} formatter={nf} />
-              </Table.Summary.Cell>
-              <Table.Summary.Cell>
-                <InputNumber className="w-full" readOnly value={m.actual_qty} formatter={nf} />
-              </Table.Summary.Cell>
-              <Table.Summary.Cell>
-                <InputNumber className="w-full" readOnly value={m.workplan_value} formatter={nf} />
-              </Table.Summary.Cell>
-              <Table.Summary.Cell>
-                <InputNumber className="w-full" readOnly value={m.rolling_value} formatter={nf} />
-              </Table.Summary.Cell>
-              <Table.Summary.Cell>
-                <InputNumber className="w-full" readOnly value={m.actual_value} formatter={nf} />
-              </Table.Summary.Cell>
-            </React.Fragment>
-          ))}
+            ))
+          )}
         </Table.Summary.Row>
       </Table.Summary>
     );
-  }, [itemColumn]);
+  }, [dataRows]);
 
   return (
     <MainLayout loading={loading}>
       <Title prefix="Sales History Report" />
 
-      <Form form={form} layout="vertical">
-        <BoxPrimary className="m-1 mb-4">
-          <Row gutter={16} align="middle">
-            <Col md={6}>
-              <Form.Item label="Sales" name="sale_id">
-                <Select
-                  placeholder="Select Sales"
-                  options={sales}
-                  onChange={handleSaleChange}
-                  allowClear
-                />
-              </Form.Item>
-            </Col>
-            <Col md={6}>
-              <Form.Item label="Dealer" name="dealer_id">
-                <Select
-                  placeholder="Select Dealer"
-                  options={dealers}
-                  onChange={handleDealerChange}
-                  allowClear
-                />
-              </Form.Item>
-            </Col>
-            <Col md={6}>
-              <Form.Item label="Sub Dealer" name="sub_dealer_id">
-                <Select placeholder="Select Sub Dealer" options={subs} allowClear />
-              </Form.Item>
-            </Col>
-            <Col md={6}>
-              <Form.Item label="Farmer" name="farmer_id">
-                <Select placeholder="Select Farmer" disabled allowClear />
-              </Form.Item>
-            </Col>
-
-            <Col md={6}>
-              <Form.Item label="Year" name="year_code">
-                <Select options={years.map((y) => ({ value: y, label: y }))} />
-              </Form.Item>
-            </Col>
-            <Col md={6}>
-              <Form.Item label="Product" name="product_name">
-                <Select placeholder="Select Product" options={products} allowClear />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <div className="flex justify-end gap-4 px-4 pt-5">
-            <DynamicButton
-              onClick={handleSearch}
-              name="btn-search"
-              text="Search"
-              iconSrc="/img/icons/search.png"
-              className="text-white px-4 py-3 rounded-[4px] bg-[#7DB41E]"
-            />
-            <DynamicButton
-              onClick={() => form.resetFields()}
-              name="btn-clear"
-              text="Clear"
-              iconSrc="/img/icons/trash.png"
-              className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
-            />
-          </div>
-        </BoxPrimary>
-      </Form>
+      {/* Filter แบบเดียวกับ CollectPointsList */}
+      <Filter
+        filters={[
+          ...filters,
+        ]}
+        onSearch={handleSearch}
+        onClear={handleClear}
+        onChange={handleFilterChange}
+      />
 
       <BoxPrimary>
+        <div className="text-[#00783F] text-xl pb-5">History</div>
+
         <TableCustomComponent
-          header={header}
-          dataSource={dataSource}
+          header={columns}
+          dataSource={dataRows}
           pagination={false}
           loading={loading}
-          onChange={() => {}}
-          scrollY={false}            // ❌ ปิดแนวตั้ง
-          scrollX="max-content"      // ✅ เปิดแนวนอน
+          scroll={true}          // ✅ ใช้สไตล์ TableCustom เหมือนหน้า WorkPlan
           footer={footer}
         />
+
+        <div className="flex justify-end gap-4 px-4 pt-5">
+          <DynamicButton
+            onClick={handleSearch}
+            name="btn-search"
+            text="Search"
+            iconSrc="/img/icons/search.png"
+            className="text-white px-4 py-3 rounded-[4px] bg-[#7DB41E]"
+          />
+          <DynamicButton
+            onClick={handleClear}
+            name="btn-clear"
+            text="Clear"
+            iconSrc="/img/icons/trash.png"
+            className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
+          />
+        </div>
       </BoxPrimary>
     </MainLayout>
   );
