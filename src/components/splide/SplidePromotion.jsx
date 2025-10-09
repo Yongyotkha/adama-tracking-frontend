@@ -13,16 +13,33 @@ const SplideComponent = () => {
       setLoading(true);
       try {
         const response = await useServiceAPI.get(paths.pathNewsPublicListByCategory, {
-          category_id: "", // Send empty string to fetch all promotions
+          category_id: "", // ดึงทั้งหมด
         });
 
         if (response.status === 200 && response.result) {
-          setPromotions(response.data);
+          const items = Array.isArray(response.data) ? response.data : [];
+
+          // เรียง "ล่าสุด" ก่อน: มี created_at ใช้ created_at, ถ้าไม่มีก็ใช้งาน id (เลขมาก = ใหม่)
+          const sorted = [...items].sort((a, b) => {
+            if (a.created_at && b.created_at) {
+              return new Date(b.created_at) - new Date(a.created_at);
+            }
+            const ai = Number(a.id) || 0;
+            const bi = Number(b.id) || 0;
+            return bi - ai;
+          });
+
+          // เลือกมา 5 รายการล่าสุด และกันรายการที่ไม่มีรูป
+          const top5 = sorted.filter(it => !!it.logo).slice(0, 5);
+
+          setPromotions(top5);
         } else {
           console.error("Failed to fetch promotions:", response);
+          setPromotions([]);
         }
       } catch (error) {
         console.error("Error fetching promotions:", error);
+        setPromotions([]);
       } finally {
         setLoading(false);
       }
@@ -39,16 +56,15 @@ const SplideComponent = () => {
         </h3>
         <button
           className="text-[#009845] sarabun-font text-sm"
-          onClick={() => window.location.href = "/mobile/promotion"}
+          onClick={() => (window.location.href = "/mobile/promotion")}
         >
           ดูทั้งหมด
         </button>
       </div>
-      
 
       {loading ? (
         <p className="text-center text-gray-500">กำลังโหลด...</p>
-      ) : (
+      ) : promotions.length > 0 ? (
         <Splide
           options={{
             type: "loop",
@@ -63,24 +79,19 @@ const SplideComponent = () => {
           }}
           className="shadow-lg rounded-xl mb-5 mt-2"
         >
-          {promotions.length > 0 ? (
-            promotions.map((promo) => (
-              <SplideSlide key={promo.id}>
-                <div className="flex flex-col items-center text-center">
-                  <img
-                    src={promo.logo}
-                    alt={promo.name}
-                    className="w-full max-w-full object-cover rounded-xl shadow-lg"
-                  />
-                  {/* <p className="mt-2 text-sm font-semibold">{promo.name}</p> */}
-                  {/* <p className="text-xs text-gray-500">{promo.description_shot}</p> */}
-                </div>
-              </SplideSlide>
-            ))
-          ) : (
-            <p className="text-center text-gray-500">ไม่มีโปรโมชั่นในขณะนี้</p>
-          )}
+          {promotions.map((promo) => (
+            <SplideSlide key={promo.id}>
+              <img
+                src={promo.logo}
+                alt={promo.name || "promotion"}
+                className="w-full h-[200px] object-cover rounded-xl"
+                loading="lazy"
+              />
+            </SplideSlide>
+          ))}
         </Splide>
+      ) : (
+        <p className="text-center text-gray-500">ไม่มีโปรโมชั่นในขณะนี้</p>
       )}
     </div>
   );
