@@ -20,79 +20,90 @@ const QUARTER_MONTHS = [
 
 // ---------------- Mock masters ----------------
 const PRODUCTS = [
-  { name: "Custodia 320 SC", pack: "20 x 0.5 Lt" },
-  { name: "Custodia 320 SC", pack: "20 x 1 Lt" },
-  { name: "Custodia 320 SC", pack: "40 x 0.25 Lt" },
-  { name: "Damatin", pack: "1 Kg x 12" },
-  { name: "Diazol 60% W/V EC", pack: "12 x 1 Lt" },
-  { name: "Durivo", pack: "0.25 Lt x 40" },
-  { name: "Fiesta 100 EC", pack: "0.25 Lt x 24" },
-  { name: "Formass", pack: "1 Lt x 12" },
-  { name: "Hamper 300 SC", pack: "0.25 Lt x 24" },
-  { name: "Hamper 300 SC", pack: "1 Lt x 12" },
-  { name: "Hamper 300 SC", pack: "20 Lt" },
+  { name: "Ossinate 15%SL", pack: "1Kg." },
+  { name: "Apopo 20%SE", pack: "1Lt." },
+  { name: "Atranex 90WG", pack: "5Kg." },
+  { name: "Baloric 320EC", pack: "0.5Lt." },
+  { name: "Bla-S", pack: "0.25Lt." },
+  { name: "Bumper P", pack: "0.5Lt." },
+  { name: "Custodia", pack: "1Lt" },
+  { name: "Damatin 5%WG", pack: "20Lt" },
+  { name: "Durivo 63SC", pack: "1Lt" },
+  { name: "Hamper", pack: "1Lt" },
 ];
 
 const YEARS = ["2026", "2025", "2024"];
 const yearOptions = YEARS.map((y) => ({ id: y, name: y }));
 const productOptions = PRODUCTS.map((p) => ({ id: p.name, name: p.name }));
 
-// ------------- make mock monthly qty/value -------------
+// ------------- helpers / mock -------------
 const nf = (v) => `${parseInt(v || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-const buildMockRows = () => {
-  const rows = PRODUCTS.map((p, idx) => {
-    // สร้าง qty/value รายเดือนให้มี pattern ใกล้ภาพตัวอย่าง
-    const months = {};
-    QUARTER_MONTHS.forEach((q, qi) =>
-      q.months.forEach((m, mi) => {
-        const baseQty = (idx % 5 === 0 ? 100 : 0) + (mi === 0 ? 100 : mi === 1 ? 500 : 300);
-        const qty =
-          qi === 0
-            ? [100, 500, 300][mi] || 0
-            : qi === 1
-            ? [200, 100, 0][mi] || 0
-            : qi === 2
-            ? [0, 0, 0][mi] || 0
-            : [0, 0, 0][mi] || 0;
-
-        const value = qty * (2000 + (idx % 3) * 350); // mock value ตาม qty
-        months[m] = { qty, value };
-      })
-    );
-
-    // mock แถวซ้าย
-    const workPlanKG = idx % 3 === 0 ? 2500 : idx % 3 === 1 ? 0 : 1000;
-    const valueTHB = workPlanKG * (1540 + (idx % 4) * 320);
-
-    return {
-      key: idx + 1,
+// ทำค่า “Value(THB)” ต่อเดือนให้คล้ายภาพ
+const buildMockRows = () =>
+  PRODUCTS.map((p, i) => {
+    const row = {
+      key: i + 1,
       productName: p.name,
       packSize: p.pack,
-      workPlanKG,
-      valueTHB,
-      months,
     };
+    // Q1: มีค่าสูง, Q2 ไล่ลง, Q3-Q4 ยังมีค่ากระจาย
+    const pattern = {
+      "Jan.": 1000, "Feb.": 1000, "Mar.": 1000,
+      "Apr.": 1000, "May": 500, "Jun.": 500,
+      "Jul": 500, "Aug.": 500, "Sept.": 500,
+      "Oct.": 500, "Nov.": 500, "Dec.": 500,
+    };
+    Object.entries(pattern).forEach(([m, base]) => {
+      // ทำ variance เล็กน้อยให้แต่ละแถวต่างกัน
+      const bump =
+        p.name.startsWith("Apopo") && (m === "Aug." || m === "Sept.")
+          ? 800
+          : p.name.startsWith("Atranex 90WG")
+          ? 1500
+          : 0;
+      row[m] = base + bump;
+    });
+    // บางแถวให้มีค่าสูงเฉพาะบางเดือนตามภาพ
+    if (p.name === "Bla-S") {
+      ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul", "Aug.", "Sept.", "Oct.", "Nov.", "Dec."].forEach(
+        (m) => (row[m] = 7250)
+      );
+    }
+    if (p.name === "Bumper P") {
+      row["Jan."] = 500;
+      row["Feb."] = 100;
+    }
+    if (p.name === "Hamper") {
+      row["Jan."] = 2000;
+      row["Feb."] = 2000;
+      row["Mar."] = 2000;
+      row["Apr."] = 2000;
+      row["May"] = 2000;
+      row["Jun."] = 2000;
+      row["Jul"] = 1300;
+      row["Aug."] = 1000;
+      row["Sept."] = 1000;
+      row["Oct."] = 1000;
+      row["Nov."] = 1300;
+      row["Dec."] = 1400;
+    }
+    return row;
   });
-  return rows;
-};
 
 export default function SaleHistoryReport() {
   const [loading, setLoading] = useState(false);
 
-  // masters (ตามพฤติกรรม CollectPointsList)
+  // masters (พฤติกรรมแบบ CollectPointsList)
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
-  const [filtersState, setFiltersState] = useState({});
 
   // table rows
   const [dataRows, setDataRows] = useState([]);
 
   // init rows
-  useEffect(() => {
-    setDataRows(buildMockRows());
-  }, []);
+  useEffect(() => setDataRows(buildMockRows()), []);
 
   // โหลด Sales master
   useEffect(() => {
@@ -117,8 +128,6 @@ export default function SaleHistoryReport() {
   ];
 
   const handleFilterChange = (f) => {
-    setFiltersState(f);
-
     const saleId = typeof f.sale === "object" ? f.sale?.value ?? f.sale?.id : f.sale;
     const dealerId = typeof f.dealer === "object" ? f.dealer?.value ?? f.dealer?.id : f.dealer;
 
@@ -157,101 +166,51 @@ export default function SaleHistoryReport() {
 
   const handleSearch = () => {
     setLoading(true);
-    setTimeout(() => setLoading(false), 350);
+    setTimeout(() => setLoading(false), 300);
   };
-
   const handleClear = () => {
-    setFiltersState({});
     setDealerList([]);
     setSubDealerList([]);
   };
 
-  // ---------- Header style helper (ยกมาจาก WorkPlanSaleCreate) ----------
-  const applyTopLevelAndSpecificChildrenStyles = (columns) =>
-    columns.map((col, index) => {
-      const backgroundColor = index % 2 === 0 ? "#00783F" : "#009845";
-      const textColor = "white";
-
-      const styleChildren = (children, parentBgColor) =>
-        children.map((child) => {
-          const isFirstLevelChild = child.key === "firstChilden";
-          const isLastLevelChild = child.dataIndex;
-          const isQtyChild = child.title === "Qty (KG)";
-
-          if (!isFirstLevelChild && child.children && !isLastLevelChild) {
-            return { ...child, children: styleChildren(child.children, parentBgColor) };
-          }
-          return {
-            ...child,
-            onHeaderCell: () => ({
-              style: {
-                backgroundColor: isFirstLevelChild
-                  ? "#CBC5C3"
-                  : isQtyChild
-                  ? parentBgColor
-                  : isLastLevelChild
-                  ? parentBgColor
-                  : null,
-                color: isLastLevelChild || isQtyChild ? textColor : "black",
-                fontWeight: "bold",
-                textAlign: "center",
-              },
-            }),
-            ...(child.children ? { children: styleChildren(child.children, parentBgColor) } : {}),
-          };
-        });
-
+  // ---------- header style (เหมือนหน้า Monthly Work Plan) ----------
+  const applyHeaderStyle = (cols) =>
+    cols.map((col, idx) => {
+      const bg = idx % 2 === 0 ? "#00783F" : "#009845";
+      const color = "white";
+      const styleKids = (kids, pbg) =>
+        kids.map((c) => ({
+          ...c,
+          onHeaderCell: () => ({
+            style: {
+              backgroundColor: c.key === "monthRoot" ? "#00783F" : pbg,
+              color: "white",
+              fontWeight: "bold",
+              textAlign: "center",
+            },
+          }),
+          ...(c.children ? { children: styleKids(c.children, pbg) } : {}),
+        }));
       return {
         ...col,
         onHeaderCell: () => ({
-          style: { backgroundColor, color: textColor, fontWeight: "bold", textAlign: "center" },
+          style: { backgroundColor: bg, color, fontWeight: "bold", textAlign: "center" },
         }),
-        ...(col.children ? { children: styleChildren(col.children, backgroundColor) } : {}),
+        ...(col.children ? { children: styleKids(col.children, bg) } : {}),
       };
     });
 
-  // ---------- Columns (เลย์เอาต์เดียวกับ Monthly Work Plan) ----------
+  // ---------- columns (ตามภาพ: Value(THB) อย่างเดียว) ----------
   const baseColumns = useMemo(() => {
     const left = {
-      title: "Quarter", // row 1
+      title: "Quarter",
       children: [
         {
-          title: "Sale Plan (THB)", // row 2
+          title: "Month",
+          key: "monthRoot",
           children: [
-            {
-              title: "Month", // row 3
-              key: "firstChilden",
-              onHeaderCell: () => ({
-                style: {
-                  backgroundColor: "#00783F",
-                  color: "white",
-                  fontWeight: "bold",
-                  textAlign: "center",
-                },
-              }),
-              children: [
-                { title: "Product Name", dataIndex: "productName", width: 180, fixed: "left" },
-                { title: "Pack Size", dataIndex: "packSize", width: 130, fixed: "left" },
-                {
-                  title: "Work Plan (KG)",
-                  dataIndex: "workPlanKG",
-                  width: 140,
-                  fixed: "left",
-                  render: (v) => (
-                    <InputNumber className="w-full" disabled value={v || 0} formatter={nf} />
-                  ),
-                },
-                {
-                  title: "Value (THB)",
-                  dataIndex: "valueTHB",
-                  width: 160,
-                  fixed: "left",
-                  render: (v) => (
-                    <InputNumber className="w-full" disabled value={v || 0} formatter={nf} />
-                  ),
-                },
-              ],
-            },
+            { title: "Product Name", dataIndex: "productName", width: 180, fixed: "left" },
+            { title: "Pack Size", dataIndex: "packSize", width: 120, fixed: "left" },
           ],
         },
       ],
@@ -259,81 +218,75 @@ export default function SaleHistoryReport() {
 
     const quarters = QUARTER_MONTHS.map((q) => ({
       title: q.name,
-      children: [
-        {
-          // บรรทัด input รวมทั้ง Quarter
-          title: (
-            <InputNumber
-              disabled
-              className="w-full"
-              value={q.months.reduce(
-                (sum, m) =>
-                  sum +
-                  dataRows.reduce((acc, r) => acc + (r.months?.[m]?.value || 0), 0),
-                0
-              )}
-              formatter={nf}
-            />
-          ),
-          children: q.months.map((m) => ({
-            title: m,
-            dataIndex: `col_${q.id}_${m}`,
-            children: [
-              {
-                title: "Qty (KG)",
-                width: 120,
-                render: (_, record) => (
-                  <InputNumber
-                    className="w-full"
-                    disabled
-                    value={record.months?.[m]?.qty || 0}
-                    formatter={nf}
-                  />
-                ),
-              },
-              {
-                title: "Value (THB)",
-                width: 150,
-                render: (_, record) => (
-                  <InputNumber
-                    className="w-full"
-                    disabled
-                    value={record.months?.[m]?.value || 0}
-                    formatter={nf}
-                  />
-                ),
-              },
-            ],
-          })),
-        },
-      ],
+      children: q.months.map((m) => ({
+        title: (
+          <div className="flex flex-col items-center">
+            <div>{m}</div>
+            <small>Value (THB)</small>
+          </div>
+        ),
+        dataIndex: m,
+        width: 140,
+        align: "right",
+        render: (v) => <InputNumber className="w-full" readOnly value={v || 0} formatter={nf} />,
+      })),
     }));
 
     return [left, ...quarters];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const columns = useMemo(() => applyHeaderStyle(baseColumns), [baseColumns]);
+
+  // ---------- แถว “Total” ใต้หัว Quarter (ให้เหมือนภาพ) ----------
+  const quarterTotals = useMemo(() => {
+    const monthSum = (m) => dataRows.reduce((s, r) => s + (r[m] || 0), 0);
+    return QUARTER_MONTHS.map((q) => ({
+      id: q.id,
+      total: q.months.reduce((acc, m) => acc + monthSum(m), 0),
+    }));
   }, [dataRows]);
 
-  const columns = useMemo(
-    () => applyTopLevelAndSpecificChildrenStyles(baseColumns),
-    [baseColumns]
+  const tableTitle = useMemo(
+    () => () => (
+      <div className="w-full">
+        <div className="grid" style={{ gridTemplateColumns: "300px repeat(4, 1fr)" }}>
+          <div className="px-2 py-1 bg-[#00783F] text-white font-bold rounded-tl-md">Total</div>
+          {quarterTotals.map((qt, i) => (
+            <div
+              key={qt.id}
+              className="px-2 py-1 flex justify-end items-center"
+              style={{
+                background: i % 2 === 0 ? "#009845" : "#00783F",
+                borderTopLeftRadius: 6,
+                borderTopRightRadius: 6,
+              }}
+            >
+              <InputNumber readOnly value={qt.total} formatter={nf} className="!w-[180px]" />
+            </div>
+          ))}
+        </div>
+      </div>
+    ),
+    [quarterTotals]
   );
 
-  // ---------- Footer (Total THB ต่อเดือน) ----------
+  // ---------- footer: Total (THB) ต่อเดือน ----------
   const footer = useMemo(() => {
     // eslint-disable-next-line react/display-name
     return () => (
       <Table.Summary fixed>
         <Table.Summary.Row className="bg-[#978B87]">
-          <Table.Summary.Cell index={0} colSpan={4}>
-            Total (THB)
+          <Table.Summary.Cell index={0}>
+            <b>Total (THB)</b>
           </Table.Summary.Cell>
+          <Table.Summary.Cell index={1} />
           {QUARTER_MONTHS.flatMap((q) =>
             q.months.map((m) => (
-              <Table.Summary.Cell key={`${q.id}-${m}`} colSpan={2}>
+              <Table.Summary.Cell key={`${q.id}-${m}`}>
                 <InputNumber
                   className="w-full"
-                  disabled
-                  value={dataRows.reduce((acc, r) => acc + (r.months?.[m]?.value || 0), 0)}
+                  readOnly
+                  value={dataRows.reduce((acc, r) => acc + (r[m] || 0), 0)}
                   formatter={nf}
                 />
               </Table.Summary.Cell>
@@ -348,26 +301,24 @@ export default function SaleHistoryReport() {
     <MainLayout loading={loading}>
       <Title prefix="Sales History Report" />
 
-      {/* Filter แบบเดียวกับ CollectPointsList */}
       <Filter
-        filters={[
-          ...filters,
-        ]}
+        filters={filters}
         onSearch={handleSearch}
         onClear={handleClear}
         onChange={handleFilterChange}
       />
 
       <BoxPrimary>
-        <div className="text-[#00783F] text-xl pb-5">History</div>
+        <div className="mb-2 text-[#00783F] font-semibold">History</div>
 
         <TableCustomComponent
           header={columns}
           dataSource={dataRows}
           pagination={false}
           loading={loading}
-          scroll={true}          // ✅ ใช้สไตล์ TableCustom เหมือนหน้า WorkPlan
+          scroll={true}
           footer={footer}
+          title={tableTitle}
         />
 
         <div className="flex justify-end gap-4 px-4 pt-5">
