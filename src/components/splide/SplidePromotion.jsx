@@ -44,6 +44,7 @@ const SplideComponent = () => {
           ดูทั้งหมด
         </button>
       </div>
+      
 
       {loading ? (
         <p className="text-center text-gray-500">กำลังโหลด...</p>
