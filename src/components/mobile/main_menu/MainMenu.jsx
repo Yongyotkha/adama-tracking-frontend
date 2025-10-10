@@ -52,7 +52,7 @@ const MainMenu = () => {
                 icon: "/img/icons/redeem-oa.png",
                 text: "แลกคะแนนสะสม",
                 url: "/mobile/redeem-point",
-                count: 5, // << ตัวอย่างค่า
+                // count: 5, // << ตัวอย่างค่า
               },
               {
                 icon: "/img/icons/history-oa.png",

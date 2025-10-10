@@ -206,10 +206,11 @@ export default function SalesPointView() {
       (total, item) => total + parseFloat(item.net_amount || 0),
       0
     );
-    const totalPoint = dataSource.reduce(
-      (total, item) => total + parseFloat(item.point || 0),
-      0
-    );
+    const totalPoint = dataSource.reduce((sum, record) => {
+      const point = parseFloat(record.point || 0);
+      const quantity = parseFloat(record.quantity || 0);
+      return sum + (point * quantity);
+    }, 0);
 
     return (
       <tr className="bg-[#978B87]">
