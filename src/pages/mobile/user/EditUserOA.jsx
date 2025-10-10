@@ -242,7 +242,7 @@ export default function EditUserOA() {
             setIsPointModalVisibleComfirm(false);
           }}
           // src="/img/icon/warning-red.png"
-          src="/img/icon/warning-yellow.png"
+          src="/img/icons/warning-yellow.png"
           text={`<div class='text-center'>
                   <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>ยืนยันการทำรายการ</p>
                 </div>`}

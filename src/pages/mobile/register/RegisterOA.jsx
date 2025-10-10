@@ -356,7 +356,7 @@ export default function RegisterOA() {
                     }));
                   }}
                   format="DD/MM/YYYY"
-                  className="mt-1 rounded-md h-10 sarabun-font"
+                  className="mt-1 rounded-md h-10 sarabun-font w-full"
                 />
 
               </div>
