@@ -46,7 +46,7 @@ const MainMenu = () => {
                 icon: "/img/icons/scan-collect-oa.png",
                 text: "รับสินค้าเพื่อสะสมคะแนน",
                 url: "/mobile/collect-points",
-                count: 5, // << ตัวอย่างค่า
+                count_sale_point: 1, // << ตัวอย่างค่า
               },
               {
                 icon: "/img/icons/redeem-oa.png",
@@ -90,7 +90,7 @@ const MainMenu = () => {
           icon={item.icon}
           text={item.text}
           url={item.url}
-          count={item.count || 0}   // << เพิ่มบรรทัดนี้
+          count={item.count_sale_point || 0}   // << เพิ่มบรรทัดนี้
         />
       ))}
     </div>

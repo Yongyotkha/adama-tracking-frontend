@@ -103,7 +103,7 @@ export default function CollectPointsDetail() {
   if (statusText == 'Waiting for Receive') {
     statusText = 'รอรับพัสดุ'
   } else if (statusText == 'Complete') {
-    statusText = 'ส่งสำเร็จพัสดุ'
+    statusText = 'รับสินค้าสำเร็จ'
   } else if (statusText == 'Draft') {
     statusText = 'แบบร่างรายการ'
   } else if (statusText == 'Waiting for Create') {

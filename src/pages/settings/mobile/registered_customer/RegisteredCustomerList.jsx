@@ -284,7 +284,7 @@ export default function RegisteredCustomerList() {
     header = [
       // { title: "Image", dataIndex: "image", render: () => <img src="/img/default-avatar.png" className="w-8 h-8 rounded-full" /> },
       // { title: "Dealer ID", dataIndex: "dealer_id" },
-      { title: "Sale Name", dataIndex: "sale_name" },
+      { title: "Sales Name", dataIndex: "sale_name" },
       { title: "Dealer Name", dataIndex: "dealer_name" },
       { title: "Contact Name", dataIndex: "contact_name" },
       { title: "Contact Number", dataIndex: "phone" },
@@ -297,7 +297,7 @@ export default function RegisteredCustomerList() {
     header = [
       // { title: "Image", dataIndex: "image", render: () => <img src="/img/default-avatar.png" className="w-8 h-8 rounded-full" /> },
       // { title: "Dealer ID", dataIndex: "dealer_id" },
-      { title: "Sale Name", dataIndex: "sale_name" },
+      { title: "Sales Name", dataIndex: "sale_name" },
       { title: "Dealer Name", dataIndex: "dealer_name" },
       { title: "Sub Dealer Name", dataIndex: "shop_name" },
       { title: "Contact Name", dataIndex: "contact_name" },
@@ -311,7 +311,7 @@ export default function RegisteredCustomerList() {
     header = [
       // { title: "Image", dataIndex: "image", render: () => <img src="/img/default-avatar.png" className="w-8 h-8 rounded-full" /> },
       // { title: "Dealer ID", dataIndex: "dealer_id" },
-      { title: "Sale Name", dataIndex: "sale_name" },
+      { title: "Sales Name", dataIndex: "sale_name" },
       { title: "Dealer Name", dataIndex: "dealer_name" },
       { title: "Sub Dealer Name", dataIndex: "sub_dealer_name" },
       { title: "Farmer Name", dataIndex: "shop_name_custom" },

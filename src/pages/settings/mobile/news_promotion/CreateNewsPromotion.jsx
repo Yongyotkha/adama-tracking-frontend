@@ -124,7 +124,7 @@ export default function CreateNewsPromotion() {
       // { label: "Stock (Pcs)", name: "stock", type: "text", required: !isView, col: 8, placeholder: "Enter", disabled: isView },
       { label: "Period Date", name: "date_range", type: "date_range", required: true, col: 8, placeholder: "Start date — End date", disabled: isView },
       // { label: "Cost (THB)", name: "cost", type: "text", required: false, col: 4, placeholder: "Enter", disabled: isView },
-      { label: "Campaign Publish", name: "use_flag", type: "switch", required: false, col: 4, value: true, disabled: isView },
+      { label: "Publish", name: "use_flag", type: "switch", required: false, col: 4, value: true, disabled: isView },
     ],
     [categoryOptions, isView]
   );

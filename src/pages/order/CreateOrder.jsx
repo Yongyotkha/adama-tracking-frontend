@@ -202,6 +202,7 @@ export default function CreateOrder() {
               product_unit_thb: productData.value,
               quantity: 1,
               net_amount: productData.value,
+              // point: productData.point,
             };
 
             const updatedDataSource = [...prev, newProduct];
@@ -445,7 +446,17 @@ export default function CreateOrder() {
           minimumFractionDigits: 2,
         }),
     },
-    { title: "Point", dataIndex: "point", key: "point" },
+    // {
+    //   title: "Point",
+    //   key: "point",
+    //   dataIndex: "point",
+    //   align: "right",
+    //   width: 140,
+    //   render: (_, r) =>
+    //     (parseFloat(r.point || 0) * parseFloat(r.quantity || 0)).toLocaleString("en-US", {
+    //       minimumFractionDigits: 0,
+    //     }),
+    // },
     {
       title: <div className="text-center">Action</div>,
       key: "action",
@@ -538,6 +549,17 @@ export default function CreateOrder() {
           minimumFractionDigits: 2,
         }),
     },
+    // {
+    //   title: "Point",
+    //   key: "point",
+    //   dataIndex: "point",
+    //   align: "right",
+    //   width: 140,
+    //   render: (_, r) =>
+    //     (parseFloat(r.point || 0) * parseFloat(r.quantity || 0)).toLocaleString("en-US", {
+    //       minimumFractionDigits: 0,
+    //     }),
+    // },
     {
       title: <div className="text-center">Action</div>,
       key: "action",

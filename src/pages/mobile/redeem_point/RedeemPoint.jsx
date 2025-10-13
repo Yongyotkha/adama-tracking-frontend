@@ -112,6 +112,7 @@ export default function RedeemPoint() {
                 </div>
                 <div className="mt-3 p-3">
                   <p className="font-bold text-[#00783F] sarabun-font">{reward.name}</p>
+                  <p className="font-bold text-[#00783F] sarabun-font">{reward.point}</p>
                   <p className="text-gray-500 text-sm sarabun-font">
                     {reward.description_short ?? reward.description ?? "-"}
                   </p>

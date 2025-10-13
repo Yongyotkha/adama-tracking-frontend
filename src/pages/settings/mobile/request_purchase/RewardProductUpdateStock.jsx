@@ -127,7 +127,7 @@ export default function RewardProductUpdateStock() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Update Stock</div>
+      <div className="title-page">Purchase Update</div>
 
       <BoxPrimary>
         <TableComponent header={header} dataSource={dataSource} pagination={false} />
