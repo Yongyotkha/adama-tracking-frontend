@@ -51,7 +51,7 @@ const UserPointsSection = () => {
         className="bg-[url('/img/bg-point.png')] bg-[length:100%_100%] bg-center bg-no-repeat text-white rounded-full flex items-center justify-center aspect-[1573/256] w-full cursor-pointer hover:opacity-90 transition"
       >
         <span className="sarabun-font text-md">
-          คุณมี {pointsData.currentPoints} คะแนน
+          คุณมี {Number(pointsData.currentPoints).toLocaleString("th-TH")} คะแนน
         </span>
       </div>
       <p className="text-[#A19793] sarabun-font text-xs mt-1 text-center">
