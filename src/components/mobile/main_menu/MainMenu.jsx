@@ -20,14 +20,14 @@ const MainMenu = () => {
         });
 
         if (response.status === 200 && response.result) {
-          console.log("hls:", response);
+          console.log("hls:", response.data.count_sale_point);
           if (response.data.shop_type == 'dealer') {
             setMenuItems([
               {
                 icon: "/img/icons/redeem-oa.png",
                 text: "แลกคะแนนสะสม",
                 url: "/mobile/redeem-point",
-                count: 5, // << ตัวอย่างค่า
+                count: response.data.count_sale_point, // << ตัวอย่างค่า
               },
               {
                 icon: "/img/icons/history-oa.png",
@@ -46,7 +46,7 @@ const MainMenu = () => {
                 icon: "/img/icons/scan-collect-oa.png",
                 text: "รับสินค้าเพื่อสะสมคะแนน",
                 url: "/mobile/collect-points",
-                count_sale_point: 1, // << ตัวอย่างค่า
+                count: response.data.count_sale_point, // << ตัวอย่างค่า
               },
               {
                 icon: "/img/icons/redeem-oa.png",
@@ -90,7 +90,7 @@ const MainMenu = () => {
           icon={item.icon}
           text={item.text}
           url={item.url}
-          count={item.count_sale_point || 0}   // << เพิ่มบรรทัดนี้
+          count={item.count || 0}   // << เพิ่มบรรทัดนี้
         />
       ))}
     </div>
