@@ -81,7 +81,7 @@ export default function CollectPointsDetail() {
 
 
   const totalQtyPoint = products.reduce(
-    (sum, item) => sum + item.points.check_point + item.points.master_point,
+    (sum, item) => sum + item.points.total_point,
     0
   );
 
@@ -311,7 +311,7 @@ export default function CollectPointsDetail() {
           src="/img/icons/check-circle.png"
           text={`<div class='text-center'>
             <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>ยินดีด้วยคุณได้รับคะแนน</p>
-            <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>${earnedPoints} คะแนน</p>
+            <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>${totalQtyPoint} คะแนน</p>
           </div>`}
           confirmText="ปิด"
         />
