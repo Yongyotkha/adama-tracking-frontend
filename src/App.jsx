@@ -407,6 +407,7 @@ const App = () => {
             <Route path="/points/line/pdf/delivery-slip" element={<DeliverySlipPDF />} />
 
             <Route path="/setting/line/request-purchase" element={<RequestPurchaseList />} />
+            
             <Route path="/setting/line/request-purchase/update-stock" element={<RewardProductUpdateStock />} />
 
             <Route path="/setting/line/redeem-request" element={<RedeemRequestList />} />
