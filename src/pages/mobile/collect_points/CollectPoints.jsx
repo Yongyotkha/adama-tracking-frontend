@@ -65,7 +65,7 @@ export default function CollectPoints() {
       const mapped = rows.map((item) => ({
         id: item.id,
         document_number: item.document_number,
-        date: item.updated_at || item.document_date,
+        date: item.document_date,
         amount: Number(item.net_amount || 0),
         amount_display:
           item.net_amount_display ??
@@ -79,7 +79,7 @@ export default function CollectPoints() {
         sub_dealer_name: item.sub_dealer_name,
         status_payment_name: item.status_payment_name,
       }));
-
+      console.log('mapped : ', mapped)
       // ตามโจทย์: in_progress ใส่ข้อมูลทั้งหมด ไม่ต้องกรอง status_code
       if (setAsActiveList) setOrderData(mapped);
       setDataByTab((prev) => ({ ...prev, in_progress: mapped }));
@@ -119,8 +119,8 @@ export default function CollectPoints() {
       console.log('rows : ', rows)
       const mapped = rows.map((item) => ({
         id: item.id,
+        date: item.document_date,
         document_number: item.document_number ?? "-",
-        date: item.receive_date,
         dealer_name: item.receive_shop, // ใช้เป็นชื่อแสดง
         amount: Number(item.point || 0),
         amount_display: new Intl.NumberFormat("th-TH").format(Number(item.point || 0)),
@@ -130,7 +130,7 @@ export default function CollectPoints() {
         status_interface_name: null,
         status_payment_name: null,
       }));
-
+      console.log('mapped : ', mapped)
       if (setAsActiveList) setOrderData(mapped);
       // อัปเดตจำนวนบนแท็บให้พร้อมใช้งานตั้งแต่หน้าโหลด
       setDataByTab((prev) => ({ ...prev, pre_receive: mapped }));
@@ -210,7 +210,7 @@ export default function CollectPoints() {
                       className="flex justify-between items-start p-4 bg-white rounded-lg shadow-md border-l-4 border-orange-500"
                       onClick={() =>
                         navigate("/mobile/collect-points/detail", {
-                          state: { document_number: order.document_number },
+                          state: { document_number: order.date },
                         })
                       }
                     >
@@ -242,7 +242,7 @@ export default function CollectPoints() {
                       key={index}
                       className="p-4 bg-white rounded-lg shadow-md border-l-4 border-green-500"
                     >
-                      <p className="text-gray-500 sarabun-font text-sm"> {order.document_date}</p>
+                      <p className="text-gray-500 sarabun-font text-sm">{order.date}</p>
                       <p className="text-gray-900 sarabun-font font-bold mt-1">
                         {`เลขที่ ${order.document_number}`}
                       </p>

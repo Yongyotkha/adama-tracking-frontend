@@ -630,9 +630,7 @@ export default function CreatePointCampaign() {
         values.target_subdealer,
         values.target_farmer
       );
-      console.log('TYPE_MODE_MAP : ', TYPE_MODE_MAP)
-      console.log('campaign_mode : ', values.campaign_mode)
-      console.log('typeNum : ', typeNum)
+
       const payload = {
         name: (values.campaign_name || "").trim(),
         product: productModeNum,

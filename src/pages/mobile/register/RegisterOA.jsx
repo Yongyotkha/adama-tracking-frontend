@@ -27,6 +27,7 @@ export default function RegisterOA() {
 
   const { lineProfile } = useOutletContext() || {};
   const [receive_point, set_receive_point] = useState(0);
+
   useEffect(() => {
     console.log("lineProfile", lineProfile);
 
@@ -38,6 +39,8 @@ export default function RegisterOA() {
   }, [lineProfile]);
 
   // const [formData, setFormData] = useState(location.state || {});
+
+  console.log('location.state : ', location.state)
   const [formData, setFormData] = useState(location.state || {
     shop_name: "",
     first_name: "",
@@ -47,7 +50,8 @@ export default function RegisterOA() {
     address: "",
     email: "",
     shop_code: "",
-    birth_date: null,
+    contact_name_th: "",
+    birth_date: "",
     birth_date_day: "",
     birth_date_month: "",
     birth_date_year: "",
@@ -101,12 +105,13 @@ export default function RegisterOA() {
     if (!isChecked) return;
 
     const formattedData = {
-      birth_date: formData.birth_date,
       shop_name: formData.shop_name,
       shop_code: formData.shop_code,
       phone_number: formData.phone_number,
       first_name: formData.first_name, // ต้องแก้
       last_name: formData.last_name, // ต้องแก้
+      birth_date: formData.birth_date,
+      contact_name_th: formData.contact_name_th,
       birth_date_day: formData.birth_date_day,
       birth_date_month: formData.birth_date_month,
       birth_date_year: formData.birth_date_year,
@@ -143,6 +148,7 @@ export default function RegisterOA() {
             phone_number,
             first_name,
             last_name,
+            birth_date,
             birth_date_day,
             birth_date_month,
             birth_date_year,
@@ -167,6 +173,7 @@ export default function RegisterOA() {
             phone_number,
             first_name,
             last_name,
+            birth_date,
             birth_date_day,
             birth_date_month,
             birth_date_year,
@@ -176,7 +183,7 @@ export default function RegisterOA() {
           };
 
           setStageUser(stateData)
-          
+
           const fetchUserProfile = async () => {
 
             try {
@@ -316,30 +323,18 @@ export default function RegisterOA() {
             {/* ชื่อ */}
             <div>
               <label className="text-gray-600 font-medium sarabun-font">
-                ชื่อ<span className="text-red-500">*</span>
+                ชื่อ-นามสกุล<span className="text-red-500">*</span>
               </label>
               <Input
                 className="mt-1 rounded-md h-10 sarabun-font"
-                value={formData.first_name}
+                value={formData.contact_name_th}
                 onChange={handleInputChange}
                 name="first_name"
-                placeholder="ชื่อ"
+                placeholder="ชื่อ-นามสกุล"
               />
             </div>
 
             {/* นามสกุล */}
-            <div>
-              <label className="text-gray-600 font-medium sarabun-font">
-                นามสกุล<span className="text-red-500">*</span>
-              </label>
-              <Input
-                className="mt-1 rounded-md h-10 sarabun-font"
-                value={formData.last_name}
-                name="last_name"
-                onChange={handleInputChange}
-                placeholder="นามสกุล"
-              />
-            </div>
 
             {/* วันเดือนปีเกิด */}
             <div>
