@@ -188,7 +188,7 @@ export default function CollectPoints() {
                 }`}
             >
               {tab.label}{" "}
-              <span className="ml-1 text-pink-600">
+              <span className="ml-1 text-red-600">
                 {dataByTab[tab.id]?.length || 0}
               </span>
             </button>
@@ -207,7 +207,7 @@ export default function CollectPoints() {
                   return (
                     <div
                       key={index}
-                      className="flex justify-between items-start p-4 bg-white rounded-lg shadow-md border-l-4 border-orange-500"
+                      className="flex justify-between items-start p-4 bg-white rounded-lg shadow-md border-l-4 border-green-500"
                       onClick={() =>
                         navigate("/mobile/collect-points/detail", {
                           state: { document_number: order.document_number },
@@ -216,7 +216,7 @@ export default function CollectPoints() {
                     >
                       <div className="flex flex-col">
                         <p className="text-gray-500 sarabun-font text-sm">{order.date}</p>
-                        <p className="text-gray-900 sarabun-font font-bold mt-1">
+                        <p className="text-gray-900 sarabun-font text-sm font-bold mt-1">
                           เลขที่ {order.document_number}
                         </p>
                         {/* {(order.dealer_name || order.sub_dealer_name) && (
@@ -226,10 +226,10 @@ export default function CollectPoints() {
                         )} */}
                       </div>
                       <div className="flex flex-col items-end text-right">
-                        <p className="text-orange-600 sarabun-font text-sm font-semibold">
+                        <p className="sarabun-font text-sm font-semibold" style={{ color: "rgb(117, 33, 87)" }}>
                           รอยืนยันรับ
                         </p>
-                        <p className="text-gray-700 sarabun-font text-sm font-semibold mt-1">
+                        <p className="text-gray-700 sarabun-font text-xs font-semibold mt-1">
                           {order.line_product} รายการ / รวม {order.amount_display}
                         </p>
                       </div>
@@ -242,8 +242,8 @@ export default function CollectPoints() {
                       key={index}
                       className="p-4 bg-white rounded-lg shadow-md border-l-4 border-green-500"
                     >
-                      <p className="text-gray-500 sarabun-font text-sm"> {order.document_date}</p>
-                      <p className="text-gray-900 sarabun-font font-bold mt-1">
+                      <p className="text-gray-900 sarabun-font text-sm">{order.document_datetime}</p>
+                      <p className="text-gray-900 sarabun-font text-sm font-bold mt-1">
                         {`เลขที่ ${order.document_number}`}
                       </p>
                       <div className="flex justify-between items-center mt-2">

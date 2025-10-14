@@ -101,7 +101,7 @@ export default function CollectPointsDetail() {
   let statusText = historydetail?.status_transaction_name;
 
   if (statusText == 'Waiting for Receive') {
-    statusText = 'รอรับพัสดุ'
+    statusText = 'รอยืนยันรับ'
   } else if (statusText == 'Complete') {
     statusText = 'รับสินค้าสำเร็จ'
   } else if (statusText == 'Draft') {
@@ -163,10 +163,7 @@ export default function CollectPointsDetail() {
           <div className="text-sm text-gray-500 sarabun-font">{displayDateTime}</div>
 
           <div className="flex justify-between items-center mt-1">
-            <p className="text-sm font-semibold text-gray-700 sarabun-font">เลขที่</p>
-            <p className="font-bold text-gray-900">
-              {historydetail?.document_number ?? documentNumber ?? "-"}
-            </p>
+            <p className="text-sm font-semibold text-gray-900 sarabun-font">เลขที่ {historydetail?.document_number ?? documentNumber ?? "-"}</p>
           </div>
 
           {/* Status จาก API */}
@@ -280,7 +277,7 @@ export default function CollectPointsDetail() {
             <div className="mt-4 border-t pt-2 text-sm text-gray-800">
               <div className="flex justify-between font-semibold">
                 <p className="sarabun-font">จำนวนรวม (ลัง)</p>
-                <p>{totalQty} / คะแนน {totalQtyPoint}</p>
+                <p>{totalQty} / คะแนน {Number(totalQtyPoint ?? 0).toLocaleString()} </p>
               </div>
 
               <div className="flex justify-between font-semibold text-lg text-green-700 mt-1">

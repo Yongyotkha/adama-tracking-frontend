@@ -495,7 +495,7 @@ export default function SalesPointCreate() {
       />
 
       <UploadSection
-        title="Attached file/Picture"
+        title="Attached file/Picture (Customer)"
         fileUploadRef={fileUploadRefReceive}
         fileList={fileListReceive}
         handleUploadClick={handleUploadReceiveClick}
