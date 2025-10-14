@@ -252,7 +252,6 @@ export default function PointCampaignList() {
             textColor={item.status_mapping_color}
           />
         ),
-
         action: (
           <Dropdown
             menu={{
