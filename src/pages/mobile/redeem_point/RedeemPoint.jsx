@@ -74,6 +74,13 @@ export default function RedeemPoint() {
     setActiveTab(id)
   };
 
+  // helper บนสุดของไฟล์ (นอก component ก็ได้)
+  const getRewardPoint = (reward) => {
+    const t = Array.isArray(reward?.target) ? reward.target[0] : reward?.target;
+    const p = t?.point;               // มาจาก API เป็น string ("2000")
+    return p ? Number(p).toLocaleString() : "-";  // => "2,000"
+  };
+
   return (
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
@@ -94,7 +101,7 @@ export default function RedeemPoint() {
           ))}
         </div>
 
-        
+
 
         <div className="w-full max-w-md mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {Object.values(rewards || {})
@@ -115,6 +122,14 @@ export default function RedeemPoint() {
                   <p className="font-bold text-[#00783F] sarabun-font">{reward.point}</p>
                   <p className="text-gray-500 text-sm sarabun-font">
                     {reward.description_short ?? reward.description ?? "-"}
+
+                  </p>
+                  <p className="text-gray-500 text-sm sarabun-font">
+                    คะแนน : {
+                      Array.isArray(reward.target)
+                        ? reward.target.map(t => Number(t.point).toLocaleString()).join(", ")
+                        : (reward.target?.point ? Number(reward.target.point).toLocaleString() : "-")
+                    }
                   </p>
                 </div>
               </div>
