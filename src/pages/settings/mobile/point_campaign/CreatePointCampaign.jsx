@@ -21,6 +21,7 @@ import { AuthContext } from "../../../../contexts/AuthContext";
 import TableComponent from "../../../../components/table/TableComponent";
 import useServiceAPI from "../../../../services/corsService";
 import { paths } from "../../../../services/CorsPath";
+import FileUploadComponent from "../../../../components/file_upload/FileUploadComponent";
 
 const { RangePicker } = DatePicker;
 const { Search } = Input;
@@ -62,7 +63,13 @@ export default function CreatePointCampaign() {
     : isEdit
       ? "Edit Point Campaign"
       : "View Point Campaign";
-
+  const formDisabled = isView;
+  const fileUploadRefReceive = useRef(null);
+  const [fileListReceive, setFileListReceive] = useState([]); // picture
+  const handleUploadReceiveSuccess = (resp) => {
+    const d = resp.data;
+    setFileListReceive((prev) => [...prev, { uid: d.file_key, name: d.file_name, status: "done", url: d.file_url }]);
+  };
 
   // ============ Target / Crop options from API ============
   const [dealerOptions, setDealerOptions] = useState([]);
@@ -300,6 +307,7 @@ export default function CreatePointCampaign() {
         const ids = targetKey.split(",").map(Number);
         const res = await useServiceAPI.post(paths.pathPointCampaignCustomer, { target_id: ids });
         const data = res?.data?.data || res?.data || [];
+
         const rows = data.map((it) => ({
           key: Number(it?.target_group_customer_id),
           name: it?.customer_name || "-",
@@ -307,6 +315,7 @@ export default function CreatePointCampaign() {
           type: it?.type || "-",
           address: it?.address || "-",
         }));
+
         if (!cancelled) {
           setTargetRows(rows);
 
@@ -466,9 +475,16 @@ export default function CreatePointCampaign() {
         const targetsArr = (d?.targets || []).map((x) => Number(x)).filter(Boolean);
         const customers = (d?.customers || []).map((x) => Number(x)).filter((n) => Number.isFinite(n));
         const categoryRecordIds = (d?.category || []).map(String).filter(Boolean); // <<< ADD
+        console.log('c.document_number : ', c.document_number)
 
+
+        const images = Array.isArray(c.image) ? c.image : (c.image ? [c.image] : []);
+        setFileListReceive(
+          images.map((u, idx) => ({ uid: String(idx + 1), name: `image_${idx + 1}`, status: "done", url: u }))
+        );
         if (!cancelled) {
           form.setFieldsValue({
+            document_number: c.document_number,
             campaign_name: c?.name ?? "",
             product_mode,
             campaign_mode,
@@ -624,6 +640,7 @@ export default function CreatePointCampaign() {
         use_flag: Number(values.status ?? 1),
         customer_type,
         customers: selectedRowKeys,
+        image: fileListReceive.map((f) => f.url),
         targets,
         crops,
         date_start: start ? dayjs(start).startOf("day").format("YYYY-MM-DD HH:mm:ss") : null,
@@ -685,11 +702,28 @@ export default function CreatePointCampaign() {
     { label: "Inactive", value: 0 },
   ];
 
-  const formDisabled = isView;
+
 
   return (
     <MainLayout loading={loading}>
       <div className="title-page">{pageTitle}</div>
+
+      <BoxPrimary>
+        <div className="flex items-center justify-between">
+          <label htmlFor="Banner" title="Banner">Files</label>
+          {!isView && (
+            <ActionButton mode="add" text="Upload File" onClick={() => fileUploadRefReceive.current?.triggerUpload()} />
+          )}
+        </div>
+
+        <FileUploadComponent
+          ref={fileUploadRefReceive}
+          dataFile={fileListReceive}
+          onUploadSuccess={handleUploadReceiveSuccess}
+          mode={isView ? "view" : "edit"}
+        />
+
+      </BoxPrimary>
 
       <BoxPrimary>
         <Form
@@ -698,6 +732,14 @@ export default function CreatePointCampaign() {
           disabled={formDisabled}
           initialValues={{ status: 1, product_mode: "all" }}
         >
+
+          <Form.Item
+            label="Campaign Code"
+            name="document_number"
+          >
+            <Input placeholder="Campaign Code" readOnly />
+          </Form.Item>
+
           {/* Campaign Name */}
           <Form.Item
             label="Campaign Name"
