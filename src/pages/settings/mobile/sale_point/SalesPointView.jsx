@@ -325,7 +325,7 @@ export default function SalesPointView() {
       />
 
       <UploadSection
-        title="Attached file/Picture"
+        title="Attached file/Picture (Customer)"
         fileUploadRef={fileUploadRefPicture}
         fileList={fileListPicture}
         handleUploadClick={() => {}}

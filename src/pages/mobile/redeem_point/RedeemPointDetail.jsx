@@ -181,7 +181,7 @@ export default function RedeemPointDetail() {
           </p>
 
           <p className="text-gray-600 text-sm sarabun-font mt-2">
-            ใช้ {target?.[0]?.point ?? "-"} คะแนน
+            ใช้ {Number(target?.[0]?.point ?? 0).toLocaleString()} คะแนน
           </p>
 
           <div className="flex justify-around gap-2 mt-6 rounded-lg sarabun-font">

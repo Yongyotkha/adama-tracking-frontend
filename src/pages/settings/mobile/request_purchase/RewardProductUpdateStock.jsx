@@ -13,6 +13,8 @@ export default function RewardProductUpdateStock() {
   const { state } = useLocation(); // Expecting { id: <id>, value: <initial value> }
   const [row, setRow] = useState(null);
   const [loading, setLoading] = useState(false);
+  
+  console.log('state : ',state)
 
   const subTotal = useMemo(() => (row?.cost || 0) * (row?.qty || 0), [row]);
   const formatMoney = (n) =>
@@ -50,7 +52,7 @@ export default function RewardProductUpdateStock() {
           category_name: data.reward_category || "-",
           reward_name: data.reward_name || "-",
           cost: Number(data.reward_cost) || 0,
-          qty: Number(state?.value || 0), // ค่าเริ่มต้นจาก list และจะบวกต่อจากค่านี้
+          qty: 1 // ค่าเริ่มต้นจาก list และจะบวกต่อจากค่านี้
         });
       }
     } catch (error) {

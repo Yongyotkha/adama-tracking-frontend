@@ -12,7 +12,7 @@ export const paths = {
 
   pathSalePointReceiveOrder: "sale-point-receive/create-order",
   pathSalePointReceiveDetailOrder: "sale-point-receive/detail-order",
-
+  pathSalePointReceiveDelete: "sale-point-receive/delete",
   pathSalePointReceive: "sale-point-receive/create",
   pathSalePointReceiveDetail: "sale-point-receive/detail",
   pathSalePointReceiveUpdate: "sale-point-receive/update",

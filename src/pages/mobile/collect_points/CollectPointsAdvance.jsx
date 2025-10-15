@@ -143,7 +143,7 @@ export default function CollectPointsAdvance() {
             />
           </div>
 
-          <div>
+          {/* <div>
             <label className="block text-sm text-gray-700 sarabun-font mb-1">
               ชื่อร้านยี่ปั๊ว
             </label>
@@ -154,6 +154,17 @@ export default function CollectPointsAdvance() {
               value={receiveShop}
               onChange={(e) => setReceiveShop(e.target.value)}   // เก็บชื่อร้าน
             />
+          </div> */}
+
+          <div>
+           <label className="block text-sm text-gray-700 sarabun-font mb-1">
+           ชื่อร้านยี่ปั๊ว<span className="text-red-500">*</span>
+           </label>
+           <Input
+           value={user?.dealer.dealer_name_en ?? ""}
+           disabled
+           className="h-10 rounded-md sarabun-font bg-gray-100"
+           />
           </div>
 
           <div>

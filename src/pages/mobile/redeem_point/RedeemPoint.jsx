@@ -118,19 +118,18 @@ export default function RedeemPoint() {
                   <img src={reward.image} alt={reward.name} className="w-full object-cover" />
                 </div>
                 <div className="mt-3 p-3">
-                  <p className="font-bold text-[#00783F] sarabun-font">{reward.name}</p>
-                  <p className="font-bold text-[#00783F] sarabun-font">{reward.point}</p>
                   <p className="text-gray-500 text-sm sarabun-font">
-                    {reward.description_short ?? reward.description ?? "-"}
-
-                  </p>
-                  <p className="text-gray-500 text-sm sarabun-font">
-                    คะแนน : {
+                    ใช้คะแนน : {
                       Array.isArray(reward.target)
                         ? reward.target.map(t => Number(t.point).toLocaleString()).join(", ")
                         : (reward.target?.point ? Number(reward.target.point).toLocaleString() : "-")
                     }
                   </p>
+                  <p className="font-bold text-[#00783F] sarabun-font line-clamp-2">{reward.name}</p>
+                  <p className="text-gray-500 text-xs sarabun-font line-clamp-2">
+                    {reward.description_short ?? reward.description ?? "-"}
+                  </p>
+                  
                 </div>
               </div>
             ))

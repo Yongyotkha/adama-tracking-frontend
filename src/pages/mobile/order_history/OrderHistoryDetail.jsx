@@ -96,11 +96,23 @@ export default function OrderHistoryDetail() {
     historydetail?.document_datetime ||
     (historydetail?.document_date ? `${historydetail.document_date}` : "-");
 
-  const statusText =
+  let statusText =
     historydetail?.status_transaction_name ||
     historydetail?.status_payment_name ||
     historydetail?.status_name ||
     "-";
+
+  if (statusText == 'Waiting for Receive') {
+    statusText = 'รอรับพัสดุ'
+  } else if (statusText == 'Complete') {
+    statusText = 'รับสินค้าสำเร็จ'
+  } else if (statusText == 'Draft') {
+    statusText = 'แบบร่างรายการ'
+  } else if (statusText == 'Waiting for Create') {
+    statusText = 'รอสร้างรายการ'
+  } else if (statusText == 'Reject') {
+    statusText = 'ยกเลิกรายการ'
+  }
 
   const statusTextColor = historydetail?.status_transaction_color || "#0ea5a0";
   const statusBgColor = historydetail?.status_transaction_bg_color || "#e6fffa";
@@ -153,10 +165,10 @@ export default function OrderHistoryDetail() {
           <div className="text-sm text-gray-500 sarabun-font">{displayDateTime}</div>
 
           <div className="flex justify-between items-center mt-1">
-            <p className="text-sm font-semibold text-gray-700 sarabun-font">เลขที่</p>
-            <p className="font-bold text-gray-900">
+            <p className="text-sm font-semibold text-gray-900 sarabun-font">เลขที่ {historydetail?.document_number ?? documentNumber ?? "-"}</p>
+            {/* <p className="font-bold text-gray-900">
               {historydetail?.document_number ?? documentNumber ?? "-"}
-            </p>
+            </p> */}
           </div>
 
           {/* Status จาก API */}
@@ -249,7 +261,7 @@ export default function OrderHistoryDetail() {
             {/* --- กล้อง: ถ่ายรูปสินค้าที่ได้รับ* --- */}
             <div className="mt-3">
               <label className="block text-sm text-gray-700 sarabun-font mb-1">
-                รูปหน้าบิลเงินสดหรือใบสั่งสินค้า
+                รูปสินค้าที่ได้รับ
                 <span className="text-red-500">*</span>
               </label>
               {historydetail?.picture && historydetail.picture.length > 0 ? (
@@ -272,7 +284,7 @@ export default function OrderHistoryDetail() {
             <div className="mt-4 border-t pt-2 text-sm text-gray-800">
               <div className="flex justify-between font-semibold">
                 <p className="sarabun-font">จำนวนรวม (ลัง)</p>
-                <p>{totalQty} / คะแนน {totalQtyPoint}</p>
+                <p>{totalQty} / คะแนน {Number(totalQtyPoint ?? 0).toLocaleString()}</p>
               </div>
 
               <div className="flex justify-between font-semibold text-lg text-green-700 mt-1">

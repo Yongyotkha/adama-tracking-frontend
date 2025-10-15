@@ -1,9 +1,8 @@
-// src/pages/settings/mobile/point_campaign/PointCampaignList.jsx
 import React, { useEffect, useState } from "react";
 import MainLayout from "../../../../layouts/MainLayout";
 import Filter from "../../../../components/filter/Filter";
 import TableComponent from "../../../../components/table/TableComponent";
-import { Dropdown } from "antd";
+import { Dropdown, Modal, notification } from "antd";
 import BadgeStatus from "../../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import ActionButton from "../../../../components/button/ActionButton";
@@ -165,6 +164,55 @@ export default function PointCampaignList() {
 
     return names.length ? names.join(", ") : (item?.customer_type_name ?? "-");
   };
+  const refetchAfterDelete = async () => {
+    // รีเฟรชด้วยหน้า/ฟิลเตอร์ปัจจุบัน
+    await fetchData();
+
+    // ถ้าหน้าว่างและ current > 1 ⇒ ถอยหน้าลง 1 แล้วค่อยรีเฟรชอีกครั้ง
+    setDataSource((prev) => {
+      if (prev.length === 0 && tableParams.pagination.current > 1) {
+        setTableParams((p) => ({
+          ...p,
+          pagination: { ...p.pagination, current: p.pagination.current - 1 },
+        }));
+      }
+      return prev;
+    });
+  };
+
+  const handleDelete = async (documentNumber) => {
+    try {
+      const response = await useServiceAPI.delete(paths.pathPointCampaignDelete, {
+        document_number: documentNumber,
+      });
+
+      if (response.status === 200) {
+        notification.success({
+          message: response.data?.message || "ลบข้อมูลสำเร็จ",
+          description:
+            Array.isArray(response.data?.message_line)
+              ? response.data.message_line.join("\n")
+              : "รายการถูกลบแล้ว",
+        });
+        await refetchAfterDelete();
+      } else {
+        const msg = error?.response?.data?.data;
+        notification.error({
+          message: msg?.Message?.Message_Header || "เกิดข้อผิดพลาด",
+          description:
+            Array.isArray(msg?.Message?.Message_Line)
+              ? msg.Message.Message_Line.join("\n")
+              : String(error?.message || error),
+        });
+      }
+    } catch (error) {
+      const message = error?.response?.data?.data;
+
+
+      showNotification?.("แจ้งเตือน", message?.Message?.Message_Header || "เกิดข้อผิดพลาด");
+    }
+  };
+
 
   // ------- fetch list with new filter spec -------
   const fetchData = async () => {
@@ -193,7 +241,7 @@ export default function PointCampaignList() {
         key: index + 1 + (current - 1) * pageSize,
         name: item.name,
         customer_type_name: buildCustomerTypeName(item),
-        type_name:  buildCustomerTypeSubName(item),
+        type_name: buildCustomerTypeSubName(item),
         product_name: item.product_name,
         campaign: item.type_name,
         period: `${formatDate(item.date_start)} - ${formatDate(item.date_end)}`,
@@ -207,20 +255,38 @@ export default function PointCampaignList() {
         action: (
           <Dropdown
             menu={{
-              items: (item.action || []).map((act, i) => ({
-                key: i,
-                label: (
-                  <ItemDropDown
-                    mode={String(act.action || "").toLowerCase()}
-                    onClick={() =>
-                      navigate(
-                        `/setting/line/point-campaign/${String(act.action || "").toLowerCase()}`,
-                        { state: { id: item.id } }
-                      )
+              items: (item.action || [])
+                // ✅ กรองปุ่มลบออก ถ้าอยู่ในสถานะ "ลบแล้ว"
+                .filter((act) => {
+                  const actionType = String(act.action || "").toLowerCase();
+                  const isDeleted =
+                    item.status_mapping_name === "ลบ" ||
+                    item.status_code === "DEL" ||
+                    item.use_flag === "0";
+                  return !(isDeleted && actionType === "delete");
+                })
+                .map((act, i) => {
+                  const actionType = String(act.action || "").toLowerCase();
+
+                  const handleClick = () => {
+                    if (actionType === "edit") {
+                      navigate(`/setting/line/point-campaign/edit`, { state: { id: item.id } });
+                    } else if (actionType === "delete") {
+                      handleDelete(item.document_number);
+                    } else {
+                      navigate(`/setting/line/point-campaign/${actionType}`, {
+                        state: { id: item.id },
+                      });
                     }
-                  />
-                ),
-              })),
+                  };
+
+                  return {
+                    key: i,
+                    label: (
+                      <ItemDropDown mode={actionType} onClick={handleClick} />
+                    ),
+                  };
+                }),
             }}
           >
             <a onClick={(e) => e.preventDefault()}>
@@ -229,6 +295,7 @@ export default function PointCampaignList() {
           </Dropdown>
         ),
       }));
+
 
       setDataSource(formattedData);
       setTableParams((prev) => ({
