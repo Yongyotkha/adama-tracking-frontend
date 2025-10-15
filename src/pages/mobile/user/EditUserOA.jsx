@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, Button, Input, Select, Checkbox, Spin } from "antd";
+import { Card, Button, Input, Select, Checkbox, Spin, DatePicker } from "antd";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { useNavigate, useLocation } from "react-router-dom";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
@@ -9,6 +9,7 @@ import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import DynamicPopUpConfirm from "../../../components/mobile/popup/DynamicPopUpConfirm";
+import dayjs from "dayjs";
 const { Option } = Select;
 
 export default function EditUserOA() {
@@ -23,6 +24,7 @@ export default function EditUserOA() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const [isFailModalVisible, setIsFailModalVisible] = useState(false);
+
   const [formData, setFormData] = useState({
     id: location.state.id,
     shop_name: userData.shop_name || "",
@@ -34,7 +36,9 @@ export default function EditUserOA() {
     email: userData.email || "",
     birth_date_day: "",
     birth_date_month: "",
-    birth_date_year: "",
+    birth_date_year: userData.email || "",
+    name_th: userData.name_th || "",
+    contact_birth_date_year: userData.contact_birth_date_year || ""
   });
 
   console.log('formData : ', userData)
@@ -185,18 +189,23 @@ export default function EditUserOA() {
             </div>
 
             <div>
-              <label className="text-gray-500 sarabun-font">ชื่อ</label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.first_name} name="first_name" onChange={handleInputChange} />
-            </div>
-
-            <div>
-              <label className="text-gray-500 sarabun-font">นามสกุล</label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.last_name} name="last_name" onChange={handleInputChange} />
+              <label className="text-gray-500 sarabun-font">ชื่อ - นามสกุล</label>
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.name_th} name="name_th" onChange={handleInputChange} />
             </div>
 
             <div>
               <label className="text-gray-500 sarabun-font">เบอร์โทรศัพท์</label>
-              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.phone_number} name="phone_number" disabled/>
+              <Input className="mt-1 sarabun-font text-[#A19793]" value={formData.phone_number} name="phone_number" disabled />
+            </div>
+            <div>
+              <label className="text-gray-500 sarabun-font">วันเกิด</label>
+
+              <DatePicker
+                name="contact_birth_date_year"
+                value={formData.contact_birth_date_year ? dayjs(formData.contact_birth_date_year, "YYYY-MM-DD") : null}
+                format="DD/MM/YYYY"
+                className="mt-1 rounded-md h-10 sarabun-font w-full"
+              />
             </div>
 
             <div>

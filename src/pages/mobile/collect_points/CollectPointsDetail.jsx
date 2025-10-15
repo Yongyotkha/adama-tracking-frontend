@@ -81,7 +81,7 @@ export default function CollectPointsDetail() {
 
 
   const totalQtyPoint = products.reduce(
-    (sum, item) => sum + item.points.total_point,
+    (sum, item) => sum + item.points.check_point,
     0
   );
 
@@ -210,15 +210,15 @@ export default function CollectPointsDetail() {
                           </p>
                         )}
 
-                        {(item.points?.point_extra_point?.length ?? 0) > 0 && (
+                        {(item.points?.point_extra_value?.length ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
-                            คะแนน Extra Value : {(item.points?.point_extra_point || []).reduce((a, b) => a + b, 0)}
+                            คะแนน Extra Value : {(item.points?.point_extra_value || []).reduce((a, b) => a + b, 0)}
                           </p>
                         )}
 
-                        {(item.points?.point_extra_value?.length ?? 0) > 0 && (
+                        {(item.points?.point_extra_point?.length ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
-                            คะแนน Extra Point : {(item.points?.point_extra_value || []).reduce((a, b) => a + b, 0)}
+                            คะแนน Extra Point : {(item.points?.point_extra_point || []).reduce((a, b) => a + b, 0)}
                           </p>
                         )}
                       </div>

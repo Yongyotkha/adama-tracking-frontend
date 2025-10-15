@@ -94,7 +94,7 @@ export default function UserDetail() {
                   </div>
                   <div className="flex justify-between border-b pb-2">
                     <span className="text-gray-500 sarabun-font">ชื่อ-นามสกุล</span>
-                    <span className="sarabun-font">{user?.contact_first_name || "-"} {user?.contact_last_name || "-"}</span>
+                    <span className="sarabun-font">{user?.name_th || "-"}</span>
                   </div>
                   <div className="flex justify-between border-b pb-2">
                     <span className="text-gray-500 sarabun-font">วันเดือนปีเกิด</span>
