@@ -6,7 +6,8 @@ import BackButton from "../../../components/mobile/button/BackButton";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../../contexts/AuthContext";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
-import CameraMobile from "../../../components/mobile/camera/CameraMobile";
+// import CameraMobile from "../../../components/mobile/camera/CameraMobile";
+import MobileCameraAuto from "../../../components/mobile/camera/MobileCameraAuto";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 export default function CollectPointsAdvance() {
@@ -190,7 +191,7 @@ export default function CollectPointsAdvance() {
 
 
           <div className="mt-3">
-            <CameraMobile
+            <MobileCameraAuto
               label="ถ่ายรูปบิลเงินสดหรือใบสั่งสินค้า"
               required
               value={productBills}
@@ -208,7 +209,7 @@ export default function CollectPointsAdvance() {
           </div>
 
           <div className="mt-3">
-            <CameraMobile
+            <MobileCameraAuto
               label="ถ่ายรูปสินค้าที่ได้รับ"
               required
               value={productPhotos}
