@@ -490,8 +490,8 @@ export default function CreatePointCampaign() {
             campaign_mode,
             campaign_value: campaign_mode === "xpoint" ? xpointVal : undefined,
             period: [
-              c?.date_start ? dayjs(c.date_start) : null,
-              c?.date_end ? dayjs(c.date_end) : null,
+              c?.date_start ? dayjs(c.date_start, 'YYYY-MM-DD HH:mm:ss') : null,
+              c?.date_end ? dayjs(c.date_end, 'YYYY-MM-DD HH:mm:ss') : null,
             ],
             status: Number(c?.use_flag ?? 1),
             target_crop: crops,
@@ -613,7 +613,7 @@ export default function CreatePointCampaign() {
 
       setLoading(true);
       const values = await form.validateFields();
-      const [start, end] = values.period || [];
+
 
       const productModeNum = PRODUCT_MODE_MAP[values.product_mode]; // 1/2/3
       const typeNum = TYPE_MODE_MAP[values.campaign_mode]; // 1/2/3
@@ -631,6 +631,7 @@ export default function CreatePointCampaign() {
         values.target_farmer
       );
 
+      const [start, end] = values.period || [];
       const payload = {
         name: (values.campaign_name || "").trim(),
         product: productModeNum,
@@ -641,8 +642,8 @@ export default function CreatePointCampaign() {
         image: fileListReceive.map((f) => f.url),
         targets,
         crops,
-        date_start: start ? dayjs(start).startOf("day").format("YYYY-MM-DD HH:mm:ss") : null,
-        date_end: end ? dayjs(end).endOf("day").format("YYYY-MM-DD HH:mm:ss") : null,
+        date_start: start ? dayjs(start).format('YYYY-MM-DD HH:mm:ss') : null,
+        date_end: end ? dayjs(end).format('YYYY-MM-DD HH:mm:ss') : null,
       };
 
 
@@ -827,7 +828,7 @@ export default function CreatePointCampaign() {
                 name="period"
                 rules={[{ required: true, message: "Please select period" }]}
               >
-                <RangePicker style={{ width: "100%" }} />
+                <RangePicker showTime style={{ width: "100%" }} />
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>

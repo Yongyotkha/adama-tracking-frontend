@@ -54,11 +54,11 @@ const UserPointsSection = () => {
           คุณมี {Number(pointsData.currentPoints).toLocaleString("th-TH")} คะแนน
         </span>
       </div>
-      <p className="text-[#A19793] sarabun-font text-xs mt-1 text-center">
+      {/* <p className="text-[#A19793] sarabun-font text-xs mt-1 text-center">
         {pointsData.expiringPoints > 0
           ? `${pointsData.expiryDate}`
           : "ไม่มีคะแนนหมดอายุ"}
-      </p>
+      </p> */}
     </div>
   );
 };
