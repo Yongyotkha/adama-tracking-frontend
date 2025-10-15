@@ -25,51 +25,51 @@ export default function RedeemDetail() {
 
   // ตารางสินค้า/ของรางวัล
   const columns = useMemo(
-  () => [
-    {
-      title: "Reward Code",
-      dataIndex: "reward_code",
-      align: "left",
-      width: 150,
-      ellipsis: true,
-    },
-    // {
-    //   title: "Category",
-    //   dataIndex: "category_id",
-    //   align: "left",
-    //   width: 150,
-    //   ellipsis: true,
-    // },
-    {
-      title: "Reward Name",
-      dataIndex: "reward_name",
-      align: "left",
-      width: 250,
-      ellipsis: true,
-    },
-    {
-      title: "QTY (Pcs)",
-      dataIndex: "qty",
-      align: "right",
-      width: 100,
-    },
-    {
-      title: "Cost (THB)",
-      dataIndex: "cost",
-      align: "right",
-      width: 120,
-      render: (cost) => cost?.toLocaleString(), // เพิ่ม comma separator
-    },
-    {
-      title: "Points Redeem",
-      dataIndex: "point_redeem",
-      align: "right",
-      width: 140,
-      render: (points) => points?.toLocaleString(),
-    },
-  ],
-  []
-);
+    () => [
+      {
+        title: "Reward Code",
+        dataIndex: "reward_code",
+        align: "left",
+        width: 150,
+        ellipsis: true,
+      },
+      // {
+      //   title: "Category",
+      //   dataIndex: "category_id",
+      //   align: "left",
+      //   width: 150,
+      //   ellipsis: true,
+      // },
+      {
+        title: "Reward Name",
+        dataIndex: "reward_name",
+        align: "left",
+        width: 250,
+        ellipsis: true,
+      },
+      {
+        title: "QTY (Pcs)",
+        dataIndex: "qty",
+        align: "right",
+        width: 100,
+      },
+      {
+        title: "Cost (THB)",
+        dataIndex: "cost",
+        align: "right",
+        width: 120,
+        render: (cost) => cost?.toLocaleString(), // เพิ่ม comma separator
+      },
+      {
+        title: "Points Redeem",
+        dataIndex: "point_redeem",
+        align: "right",
+        width: 140,
+        render: (points) => points?.toLocaleString(),
+      },
+    ],
+    []
+  );
 
 
   const fillForm = (d) => {
@@ -239,20 +239,7 @@ export default function RedeemDetail() {
     });
   };
 
-  // “Send to Purchase” – ยังไม่ต่อ API จริง เก็บ remark ได้ตาม requirement
-  // const handleSendToPurchase = async () => {
-  //   confirmWithRemark({
-  //     title: "Send to Purchase ?",
-  //     okText: "OK",
-  //     okType: "primary",
-  //     onOk: async (remark) => {
-  //       // วางไว้ก่อน – ยังไม่ยิง API
-  //       showNotification("success", "Sent", ["ส่งกลับไปที่ Purchase แล้ว"]);
-  //     },
-  //   });
-  // };
 
-  // ✅ Send to Purchase: GET /redeem/purchase/{reward_id} (ไม่มี remark) แล้วกลับหน้า List
   const handleSendToPurchase = async () => {
     const id = location?.state?.id;
     console.log(detail.reward_id)
@@ -272,7 +259,11 @@ export default function RedeemDetail() {
           const res = await useServiceAPI.get(`${paths.pathRedeemToPurchase}/${detail.reward_id}/${id}`);
           if (res?.status === 200) {
             showNotification("success", "Transaction completed", ["ส่งไป Purchase เรียบร้อย"]);
-            navigate("/points/line/redeem-reward-list");
+
+            console.log('res : ', res)
+            navigate("/setting/line/request-purchase/update-stock", {
+              state: { id: res.data.promotion_purchase },
+            })
           } else {
             showNotification("error", "Send failed", [res?.data?.message || "ไม่สามารถส่งไป Purchase ได้"]);
           }
@@ -324,14 +315,6 @@ export default function RedeemDetail() {
       <div className="flex justify-end gap-3 mt-4">
         <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />
 
-        {/* {(isRFA) && (
-          <ActionButton
-            mode="reject"
-            text="Send to Purchase"
-            onClick={handleSendToPurchase} // ⬅️ มี remark ผ่าน Modal แต่ยังไม่ยิง API
-          />
-        )} */}
-
         {isRFW && (
           <>
             {/* <ActionButton
@@ -345,12 +328,12 @@ export default function RedeemDetail() {
               text="Send to Purchase"
               onClick={handleSendToPurchase} // ⬅️ มี remark ผ่าน Modal แต่ยังไม่ยิง API
             />
-            <ActionButton
+            {/* <ActionButton
               mode="custom"
               text="Approve"
               className="bg-[#00783F]"
               onClick={handleApprove} // ⬅️ Modal + post RFA
-            />
+            /> */}
           </>
         )}
       </div>

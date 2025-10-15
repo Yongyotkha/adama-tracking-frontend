@@ -9,8 +9,10 @@ import DynamicButton from "../../../components/button/DynamicButton";
 import useServiceAPI from "../../../services/corsService";
 import { paths } from "../../../services/CorsPath";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
+import { notification } from "antd";
 
 export default function CollectPoints() {
+
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("in_progress");
@@ -41,8 +43,6 @@ export default function CollectPoints() {
     setLoading(true);
     const { current, pageSize } = tableParams.pagination;
 
-
-
     try {
       const requestData = {
         platform: "web",
@@ -65,7 +65,7 @@ export default function CollectPoints() {
       const mapped = rows.map((item) => ({
         id: item.id,
         document_number: item.document_number,
-        date: item.updated_at || item.document_date,
+        date: item.document_date,
         amount: Number(item.net_amount || 0),
         amount_display:
           item.net_amount_display ??
@@ -78,8 +78,9 @@ export default function CollectPoints() {
         dealer_name: item.dealer_name,
         sub_dealer_name: item.sub_dealer_name,
         status_payment_name: item.status_payment_name,
-      }));
 
+      }));
+      console.log('mapped : ', mapped)
       // ตามโจทย์: in_progress ใส่ข้อมูลทั้งหมด ไม่ต้องกรอง status_code
       if (setAsActiveList) setOrderData(mapped);
       setDataByTab((prev) => ({ ...prev, in_progress: mapped }));
@@ -119,8 +120,8 @@ export default function CollectPoints() {
       console.log('rows : ', rows)
       const mapped = rows.map((item) => ({
         id: item.id,
+        date: item.document_date,
         document_number: item.document_number ?? "-",
-        date: item.receive_date,
         dealer_name: item.receive_shop, // ใช้เป็นชื่อแสดง
         amount: Number(item.point || 0),
         amount_display: new Intl.NumberFormat("th-TH").format(Number(item.point || 0)),
@@ -130,7 +131,7 @@ export default function CollectPoints() {
         status_interface_name: null,
         status_payment_name: null,
       }));
-
+      console.log('mapped : ', mapped)
       if (setAsActiveList) setOrderData(mapped);
       // อัปเดตจำนวนบนแท็บให้พร้อมใช้งานตั้งแต่หน้าโหลด
       setDataByTab((prev) => ({ ...prev, pre_receive: mapped }));
@@ -161,7 +162,67 @@ export default function CollectPoints() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
-  // (ถ้าต้องการให้ pagination เปลี่ยนแล้วรีโหลดทั้งสองแท็บ แจ้งมาได้ เดี๋ยวผมเพิ่มให้ครับ)
+  const handleDelete = async (documentNumber) => {
+    try {
+      setLoading(true);
+
+      // ถ้า api เป็น hook
+      const res = await useServiceAPI.delete(paths.pathSalePointReceiveDelete, {
+        document_number: documentNumber,
+      });
+
+      // ถ้า wrapper ของคุณใช้ axios ตรงๆ อาจต้องเป็น:
+      // const res = await api.delete(paths.pathPointCampaignDelete, { data: { document_number: documentNumber } });
+
+      notification.success({
+        message: res?.data?.message || "ลบข้อมูลสำเร็จ",
+        description: Array.isArray(res?.data?.message_line)
+          ? res.data.message_line.join("\n")
+          : "รายการถูกลบแล้ว",
+      });
+
+      await refetchAfterDelete();
+    } catch (err) {
+      const msg = err?.response?.data?.data;
+      notification.error({
+        message: msg?.Message?.Message_Header || "เกิดข้อผิดพลาด",
+        description: Array.isArray(msg?.Message?.Message_Line)
+          ? msg.Message.Message_Line.join("\n")
+          : (err?.message ?? String(err)),
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const refetchAfterDelete = async () => {
+    // รีโหลดข้อมูลตามแท็บที่เปิดอยู่
+    if (activeTab === "in_progress") {
+      await fetchInProgress(true);
+    } else {
+      await fetchPreReceive(true);
+    }
+
+    // ถ้าหลังรีโหลดแล้วว่าง และ current > 1 ให้ถอยหน้าแล้ว fetch อีกรอบ
+    if (orderData.length === 0 && tableParams.pagination.current > 1) {
+      setTableParams((p) => ({
+        ...p,
+        pagination: { ...p.pagination, current: p.pagination.current - 1 },
+      }));
+
+      // รอ state อัปเดตแล้วค่อย fetch ใหม่ (setTimeout 0 เพื่อเข้า tick ถัดไป)
+      setTimeout(() => {
+        if (activeTab === "in_progress") {
+          fetchInProgress(true);
+        } else {
+          fetchPreReceive(true);
+        }
+      }, 0);
+    }
+  };
+
+
 
   return (
     <MobileLayout loading={loading}>
@@ -219,11 +280,7 @@ export default function CollectPoints() {
                         <p className="text-gray-900 sarabun-font text-sm font-bold mt-1">
                           เลขที่ {order.document_number}
                         </p>
-                        {/* {(order.dealer_name || order.sub_dealer_name) && (
-                          <p className="text-gray-600 sarabun-font text-xs mt-1">
-                            {order.dealer_name ?? order.sub_dealer_name}
-                          </p>
-                        )} */}
+
                       </div>
                       <div className="flex flex-col items-end text-right">
                         <p className="sarabun-font text-sm font-semibold" style={{ color: "rgb(117, 33, 87)" }}>
@@ -242,8 +299,13 @@ export default function CollectPoints() {
                       key={index}
                       className="p-4 bg-white rounded-lg shadow-md border-l-4 border-green-500"
                     >
+<<<<<<< HEAD
                       <p className="text-gray-900 sarabun-font text-sm">{order.document_datetime}</p>
                       <p className="text-gray-900 sarabun-font text-sm font-bold mt-1">
+=======
+                      <p className="text-gray-500 sarabun-font text-sm">{order.date}</p>
+                      <p className="text-gray-900 sarabun-font font-bold mt-1">
+>>>>>>> dev
                         {`เลขที่ ${order.document_number}`}
                       </p>
                       <div className="flex justify-between items-center mt-2">
@@ -257,12 +319,12 @@ export default function CollectPoints() {
                           >
                             ✎ แก้ไข
                           </button>
-                          <button className="border border-gray-300 text-gray-600 px-3 py-1 rounded-md text-sm"
-                            onClick={() =>
-                              navigate("/mobile/collect-points/advance-notice-update", {
-                                state: { receive_id: order.id },
-                              })
-                            }
+                          <button
+                            className="border border-gray-300 text-gray-600 px-3 py-1 rounded-md text-sm"
+                            onClick={(e) => {
+                              e.stopPropagation(); // กัน navigate ถ้ามี onClick container
+                              handleDelete(order.document_number); // <-- แก้จาก item เป็น order
+                            }}
                           >
                             🗑 ลบ
                           </button>
