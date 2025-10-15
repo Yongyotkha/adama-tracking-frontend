@@ -198,7 +198,7 @@ export default function SalesPointsList() {
         const newDataSource = data.map((order, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           orderNo: order.document_number,
-          sale: order.user_name,
+          sale: order.sale_name,
           sub_dealer: order.sub_dealer_name,
           dealer: order.dealer_name,
           value: order.net_amount_display,
