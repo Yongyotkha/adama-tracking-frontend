@@ -73,32 +73,6 @@ export default function RegisterOA() {
     setIsModalVisible(false);
   };
 
-  const [selectedMonth, setSelectedMonth] = useState("January");
-  const [selectedYear, setSelectedYear] = useState(2568);
-
-  // Function to check if a year is a leap year
-  const isLeapYear = (year) => {
-    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
-  };
-
-  // Function to determine the number of days in the selected month
-  const getDaysInMonth = (month, year) => {
-    const monthsWith31Days = [
-      "January",
-      "March",
-      "May",
-      "July",
-      "August",
-      "October",
-      "December",
-    ];
-    const monthsWith30Days = ["April", "June", "September", "November"];
-
-    if (monthsWith31Days.includes(month)) return 31;
-    if (monthsWith30Days.includes(month)) return 30;
-    return isLeapYear(year) ? 29 : 28; // February logic
-  };
-
 
   const handleRegister = () => {
 
@@ -108,8 +82,6 @@ export default function RegisterOA() {
       shop_name: formData.shop_name,
       shop_code: formData.shop_code,
       phone_number: formData.phone_number,
-      first_name: formData.first_name, // ต้องแก้
-      last_name: formData.last_name, // ต้องแก้
       birth_date: formData.birth_date,
       contact_name_th: formData.contact_name_th,
       birth_date_day: formData.birth_date_day,
@@ -125,17 +97,14 @@ export default function RegisterOA() {
       line_name: formData.line_name,
     };
 
-    // console.log('formattedData : ', formattedData)
-    // return false;
     setLoading(true);
+
     useServiceAPI
       .post(paths.pathRegisterShop, formattedData)
       .then((response) => {
         if (response.status === 200) {
           set_receive_point(response.data.point)
-          //localStorage.setItem("redirectPath", "/mobile/main");
           setIsSuccessModalVisible(true);
-          //navigate("/mobile/main", { state: formattedData });
 
           const {
             message,
@@ -158,7 +127,6 @@ export default function RegisterOA() {
             user_id, // <<< เพิ่มตรงนี้
           } = response.data;
 
-          // 👉 Save user_id to localStorage for all steps
           localStorage.setItem("user_id", user_id);
           console.log(user_id);
 
@@ -209,10 +177,6 @@ export default function RegisterOA() {
 
           if (response.data.user_id && !userInfo) {
             fetchUserProfile();
-          } else {
-            // console.log('case 6')
-            // return false
-            //navigate("/mobile/main", { state: stateData });
           }
         }
       })
@@ -253,15 +217,6 @@ export default function RegisterOA() {
       [name]: value,
     }));
   };
-
-  const handleDateChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-
 
   return (
     <MobileLayout loading={loading}>
@@ -448,7 +403,7 @@ export default function RegisterOA() {
         visible={isSuccessModalVisible}
         onConfirm={() => {
           setIsSuccessModalVisible(false);
-          //navigate("/mobile/verify");
+
           navigate("/mobile/main", { state: stageUser });
         }}
         src="/img/icons/check-circle.png"

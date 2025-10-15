@@ -68,7 +68,7 @@ export default function RewardProductUpdateStock() {
     try {
       const payload = { id: row.id, value: row.qty };
       const res = await useServiceAPI.post(paths.pathRequestPurchaseUpdateValue, payload);
-      if (res.status === 200) navigate(-1);
+      if (res.status === 200) navigate("/points/line/redeem-reward-list");
     } catch (error) {
       console.error("Failed to update stock:", error);
     } finally {
