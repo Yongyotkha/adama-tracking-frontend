@@ -104,7 +104,8 @@ const LinePrivateRoute = () => {
   if (loading) {
     return <MessageLayout loading={true} />;
   }
-
+  console.log('profile : ', profile)
+  console.log('isLoggedIn : ', isLoggedIn)
   if (isLoggedIn && profile) {
     return <Outlet context={{ lineProfile: profile }} />;
   } else {
