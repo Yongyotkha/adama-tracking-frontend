@@ -83,7 +83,7 @@ export default function CollectPointsView() {
               product_unit: p.product_unit,
               product_unit_thb: p.product_unit_thb,
               quantity: p.quantity,
-              point: p.quantity*p.point,
+              point: p.quantity * p.point,
               foc: p.foc || 0,
               net_amount: p.net_amount,
             }))
@@ -192,9 +192,14 @@ export default function CollectPointsView() {
       (total, item) => total + parseFloat(item.net_amount || 0),
       0
     );
+    // const totalPoint = dataSource.reduce(
+    //   (total, item) =>
+    //     total + (parseFloat(item.point || 0) * parseFloat(item.quantity || 0)),
+    //   0
+    // );
+
     const totalPoint = dataSource.reduce(
-      (total, item) =>
-        total + (parseFloat(item.point || 0) * parseFloat(item.quantity || 0)),
+      (total, item) => total + parseFloat(item.point || 0),
       0
     );
 
@@ -270,7 +275,7 @@ export default function CollectPointsView() {
     },
   ];
 
-  const noop = () => {};
+  const noop = () => { };
 
   return (
     <MainLayout loading={loading}>

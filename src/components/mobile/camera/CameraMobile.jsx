@@ -52,12 +52,6 @@ export default function CameraMobile({
   uploadMode = "activity",
   uploadExtra,
   onUploadSuccess,
-  liffId,             // ✅ ใช้คู่กับ external window และ deep link กลับเข้า LIFF
-  returnPath = "/",   // ✅ path ที่จะกลับเข้า LIFF (เช่น /mobile/collect-points/advance-notice)
-  forceExternalOnLineAndroid = true, // ✅ เปิด external browser อัตโนมัติเมื่ออยู่ใน LINE Android
-  autoOpenWhenExternal = true,       // ✅ ในนอก LINE (external=1) ให้ auto เปิดกล้อง
-  kind = "generic",
-  isAndroidInLine,    // ถ้าไม่ส่งมา จะตรวจจาก userAgent ให้เอง
 }) {
   const [open, setOpen] = useState(false);
   const [stream, setStream] = useState(null);
@@ -70,34 +64,6 @@ export default function CameraMobile({
 
   const videoRef = useRef(null);
   const trackRef = useRef(null);
-  const [isExternalPage, setIsExternalPage] = useState(false);
-
-  // ✅ helper: ตรวจสภาพแวดล้อม
-  const ua = typeof navigator !== "undefined" ? navigator.userAgent || "" : "";
-  const _isLine = /Line/i.test(ua);
-  const _isAndroid = /Android/i.test(ua);
-  const isLineAndroidInApp = typeof isAndroidInLine === "boolean"
-    ? isAndroidInLine
-    : (_isLine && _isAndroid);
-
-  // ✅ อ่าน query param ง่าย ๆ
-  const getQuery = (key) => {
-    try {
-      const u = new URL(window.location.href);
-      return u.searchParams.get(key);
-    } catch { return null; }
-  };
-
-  // ✅ external page = มี external=1
-  useEffect(() => {
-    const ext = getQuery("external") === "1";
-    setIsExternalPage(ext);
-    // ถ้าอยู่นอก LINE และตั้งค่าให้ auto เปิดกล้อง ก็เปิดเลย
-    if (ext && autoOpenWhenExternal) {
-      // เปิด modal กล้องทันที
-      setTimeout(() => openCamera(), 0);
-    }
-  }, []);
 
   const startCamera = async (mode = facing) => {
     try {
@@ -133,68 +99,16 @@ export default function CameraMobile({
 
   const stopCamera = () => {
     if (videoRef.current) {
-      try { videoRef.current.pause(); } catch { }
+      try { videoRef.current.pause(); } catch {}
     }
     if (stream) stream.getTracks().forEach((t) => t.stop());
     setStream(null);
     trackRef.current = null;
   };
 
-  // const openCamera = async () => {
-  //   setOpen(true);
-  //   await startCamera();
-  // };
-
   const openCamera = async () => {
     setOpen(true);
     await startCamera();
-  };
-
-  // ✅ ถ้าอยู่ใน LINE Android → เปิด external browser แทนการเปิดกล้องในแอป
-  const openCameraOrExternal = async () => {
-    if (forceExternalOnLineAndroid && isLineAndroidInApp) {
-      try {
-        const currentUrl = new URL(window.location.origin + returnPath, window.location.href);
-        // forward พารามิเตอร์สำคัญ (เช่น document_number) จาก uploadExtra
-        if (uploadExtra && typeof uploadExtra === "object") {
-          Object.entries(uploadExtra).forEach(([k, v]) => currentUrl.searchParams.set(k, String(v)));
-        }
-        currentUrl.searchParams.set("external", "1");
-        currentUrl.searchParams.set("kind", kind);
-
-        // ถ้าใช้ LIFF ID ได้ ให้เปิดผ่าน LIFF (จะได้ไม่ต้องออกจากแอป LINE โดยตรง)
-        if (liffId && liffId.startsWith("1657")) {
-          currentUrl.searchParams.set("liffId", liffId);
-        }
-        // ถ้าไม่มี LIFF ID ก็เปิดผ่าน window ปกติ (จะออกจากแอป LINE โดยตรง)
-        if (!liffId) {
-          window.location.href = currentUrl.toString();
-          return;
-        }
-
-        // ใช้ LIFF SDK เปิด external (จะได้ไม่ต้องออกจากแอป LINE โดยตรง)
-        const liffSdk = (window.liff) ? window.liff : null;
-        if (!liffSdk) {
-          // ถ้ายังไม่โหลด SDK ก็เปิด window ธรรมดา (จะออกนอก LINE อยู่ดีเพราะ external:true ใช้ไม่ได้)
-          window.location.href = currentUrl.toString();
-          return;
-        }
-        // ensure init (เผื่อบางหน้าคุณอยากเรียกฟังก์ชัน LIFF อื่น ๆ)
-        if (!liffSdk.isInClient || !liffSdk.isInClient()) {
-          // นอก LINE ก็แค่ไป external
-          window.location.href = currentUrl.toString();
-          return;
-        }
-        await liffSdk.init({ liffId });
-        liffSdk.openWindow({ url: currentUrl.toString(), external: true });
-        return;
-      } catch (e) {
-        console.warn("fallback open external failed, open camera here instead", e);
-        // ตกมาเปิดกล้องในหน้าเดิม (iOS ใช้ได้, Android ใน LINE จะ fail แต่เราลองให้ก่อน)
-      }
-    }
-    // กรณีปกติ: เปิดกล้องใน modal
-    await openCamera();
   };
 
   const closeCamera = () => {
@@ -279,23 +193,6 @@ export default function CameraMobile({
         }
 
         onUploadSuccess?.(response);
-        // ✅ กรณีอยู่นอก LINE (external=1) ให้เด้งกลับเข้า LIFF พร้อมสถานะ
-        if (isExternalPage && liffId) {
-          const back = new URL(`https://liff.line.me/${liffId}${returnPath}`);
-          // forward ข้อมูลจำเป็นกลับ
-          back.searchParams.set("uploaded", "1");
-          back.searchParams.set("kind", kind);
-          if (uploadExtra && typeof uploadExtra === "object") {
-            Object.entries(uploadExtra).forEach(([k, v]) =>
-              back.searchParams.set(k, String(v))
-            );
-          }
-          // กัน cache
-          back.searchParams.set("t", String(Date.now()));
-          window.location.replace(back.toString());
-          return; // ไม่ต้องปิด modal ต่อ
-        }
-        
         message.success("อัปโหลดรูปสำเร็จ");
       } catch (e) {
         console.error("Upload error:", e);
@@ -330,7 +227,7 @@ export default function CameraMobile({
   const Trigger = useMemo(() => {
     if (typeof renderTrigger === "function") return renderTrigger(openCamera);
     return (
-      <button type="button" onClick={openCameraOrExternal} className={triggerClassName}>
+      <button type="button" onClick={openCamera} className={triggerClassName}>
         <CameraOutlined />
         {triggerLabel}
       </button>
@@ -382,7 +279,7 @@ export default function CameraMobile({
         closable={false}
         onCancel={closeCamera}
         width="100vw"
-        style={{ top: 0, padding: 0, marginTop: 0, marginBottom: 0 }}
+        style={{ top: 0, padding: 0, marginTop: 0 , marginBottom: 0}}
         zIndex={5000}
         rootClassName="camera-fullscreen-modal"
         styles={{
@@ -435,8 +332,9 @@ export default function CameraMobile({
                 <Tooltip title="ไฟฉาย (ถ้ารองรับ)">
                   <button
                     onClick={toggleTorch}
-                    className={`w-10 h-10 rounded-full ${torchOn ? "bg-yellow-300" : "bg-white/80"
-                      } backdrop-blur flex items-center justify-center`}
+                    className={`w-10 h-10 rounded-full ${
+                      torchOn ? "bg-yellow-300" : "bg-white/80"
+                    } backdrop-blur flex items-center justify-center`}
                   >
                     <ThunderboltOutlined />
                   </button>

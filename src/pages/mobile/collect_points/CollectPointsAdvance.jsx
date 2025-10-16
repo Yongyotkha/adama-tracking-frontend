@@ -6,11 +6,12 @@ import BackButton from "../../../components/mobile/button/BackButton";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../../contexts/AuthContext";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
-import CameraMobile from "../../../components/mobile/camera/CameraMobile";
+// import CameraMobile from "../../../components/mobile/camera/CameraMobile";
 import MobileCameraAuto from "../../../components/mobile/camera/MobileCameraAuto";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import dayjs from "dayjs";
+
 export default function CollectPointsAdvance() {
   const [loading, setLoading] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
@@ -27,12 +28,6 @@ export default function CollectPointsAdvance() {
   const [isPointModalVisible, setIsPointModalVisible] = useState(false);
   const [earnedPoints, setEarnedPoints] = useState(0);
   const [receiveDate, setReceiveDate] = useState(dayjs().format("YYYY-MM-DD"));
-
-  const LIFF_ID = import.meta?.env?.VITE_LIFF_ID || process.env.REACT_APP_LIFF_ID || "<YOUR_LIFF_ID>";
-  // path ของเพจนี้ใน LIFF (ต้องเทียบกับ Router ของคุณ)
-  const RETURN_PATH = "/mobile/collect-points/advance-notice";
-
-
   useEffect(() => {
     const fetchUserProfile = async () => {
       setLoading(true);
@@ -61,19 +56,6 @@ export default function CollectPointsAdvance() {
     };
 
     fetchUserProfile();
-  }, []);
-
-  // เมื่อเด้งกลับจาก external browser
-  useEffect(() => {
-    try {
-      const u = new URL(window.location.href);
-      if (u.searchParams.get("uploaded") === "1") {
-        message.success("อัปโหลดรูปสำเร็จ");
-        // ล้าง query เพื่อไม่ให้เด้งซ้ำตอน refresh
-        u.searchParams.delete("uploaded");
-        window.history.replaceState({}, "", u.pathname + (u.search ? "?" + u.searchParams.toString() : ""));
-      }
-    } catch { }
   }, []);
 
   useEffect(() => {
@@ -164,6 +146,19 @@ export default function CollectPointsAdvance() {
             />
           </div>
 
+          {/* <div>
+            <label className="block text-sm text-gray-700 sarabun-font mb-1">
+              ชื่อร้านยี่ปั๊ว
+            </label>
+            <Input
+              disabled
+              placeholder="ระบุชื่อร้าน"
+              className="h-10 rounded-md sarabun-font"
+              value={receiveShop}
+              onChange={(e) => setReceiveShop(e.target.value)}   // เก็บชื่อร้าน
+            />
+          </div> */}
+
           <div>
             <label className="block text-sm text-gray-700 sarabun-font mb-1">
               ชื่อร้านยี่ปั๊ว<span className="text-red-500">*</span>
@@ -199,7 +194,7 @@ export default function CollectPointsAdvance() {
 
 
           <div className="mt-3">
-            <CameraMobile
+            <MobileCameraAuto
               label="ถ่ายรูปบิลเงินสดหรือใบสั่งสินค้า"
               required
               value={productBills}
@@ -213,15 +208,11 @@ export default function CollectPointsAdvance() {
               onUploadSuccess={() => {
                 // ถ้าต้องทำอย่างอื่นหลังอัปโหลดสำเร็จ ใส่เพิ่มได้
               }}
-              liffId={LIFF_ID}
-              returnPath={RETURN_PATH}
-              kind="bill"
-              forceExternalOnLineAndroid={true}
             />
           </div>
 
           <div className="mt-3">
-            <CameraMobile
+            <MobileCameraAuto
               label="ถ่ายรูปสินค้าที่ได้รับ"
               required
               value={productPhotos}
@@ -235,10 +226,6 @@ export default function CollectPointsAdvance() {
               onUploadSuccess={() => {
                 // ถ้าต้องทำอย่างอื่นหลังอัปโหลดสำเร็จ ใส่เพิ่มได้
               }}
-              liffId={LIFF_ID}
-              returnPath={RETURN_PATH}
-              kind="product"
-              forceExternalOnLineAndroid={true}
             />
           </div>
 
