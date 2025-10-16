@@ -83,7 +83,7 @@ export default function CollectPointsView() {
               product_unit: p.product_unit,
               product_unit_thb: p.product_unit_thb,
               quantity: p.quantity,
-              point: p.point,
+              point: p.quantity*p.point,
               foc: p.foc || 0,
               net_amount: p.net_amount,
             }))
