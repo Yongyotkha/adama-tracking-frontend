@@ -198,9 +198,9 @@ export default function CollectPointsDetail() {
                         <p>{item.qty} x {item.product_name}</p>
                         <p className="text-xs text-gray-500">บรรจุ : {item.packing_list}</p>
 
-                        {(item.points.master_point) > 0 && (
+                        {(item.points.standard_point) > 0 && (
                           <p className="text-xs text-gray-500">
-                            คะแนน : {item.points.master_point}
+                            คะแนน : {item.points.standard_point}
                           </p>
                         )}
 
