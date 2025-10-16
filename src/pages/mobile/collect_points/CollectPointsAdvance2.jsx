@@ -150,23 +150,27 @@ async function ensureUploadedUrls(
   }
   return uploadedResults;
 }
-
-/* ===================== Dual-path Camera Component ===================== */
+/* ===================== Dual-path Camera Component (patched) ===================== */
 function CameraDualPath({
   label = "ถ่ายรูป",
   maxCount = 10,
   defaultFacing = "environment",
   onChange,
-  value, // ✅ รับค่าเริ่มจากภายนอกเพื่อพรีฟิลด์ (array)
+  value,
 }) {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
-  const [items, setItems] = useState(value || []); // { previewUrl, source: 'stream'|'file', file?, uploadedUrl? }
+  const [items, setItems] = useState(value || []);
   const [error, setError] = useState("");
-  const [useFallback, setUseFallback] = useState(false);
+
+  // ✅ ตรวจจับ LINE Android แล้วบังคับ fallback
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const isLine = /\bLine\//i.test(navigator.userAgent);
+  const isLineAndroid = isAndroid && isLine;
+
+  const [useFallback, setUseFallback] = useState(isLineAndroid);
 
   useEffect(() => {
-    // sync เมื่อ value จากพ่อเปลี่ยน (เช่นหลังโหลด detail)
     if (Array.isArray(value)) setItems(value);
   }, [value]);
 
@@ -175,60 +179,88 @@ function CameraDualPath({
     onChange?.(next);
   };
 
-  const softConstraints = { video: { facingMode: defaultFacing }, audio: false };
-  const midConstraints = {
-    video: {
-      width: { ideal: 1280 },
-      height: { ideal: 720 },
-      facingMode: { ideal: defaultFacing },
+  // constraints ไล่จากนิ่ม → กลาง → แข็ง → true (ตัด facingMode ทิ้ง)
+  const variants = [
+    { video: { facingMode: defaultFacing }, audio: false },
+    {
+      video: {
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        facingMode: defaultFacing,
+      },
+      audio: false,
     },
-    audio: false,
-  };
-  const hardConstraints = {
-    video: { width: 1280, height: 720, facingMode: { ideal: defaultFacing } },
-    audio: false,
-  };
+    {
+      video: {
+        width: 1280,
+        height: 720,
+        facingMode: { ideal: defaultFacing },
+      },
+      audio: false,
+    },
+    { video: true, audio: false },
+  ];
 
   async function tryOpenCamera() {
     setError("");
     setUseFallback(false);
-    const variants = [softConstraints, midConstraints, hardConstraints];
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error("no-getUserMedia");
+    }
     for (const c of variants) {
       try {
-        const s = await navigator.mediaDevices.getUserMedia(c);
-        return s;
-      } catch (e) { }
+        return await navigator.mediaDevices.getUserMedia(c);
+      } catch (e) {
+        // ลองตัวถัดไป
+      }
     }
     throw new Error("no-camera");
   }
 
   const openCamera = async () => {
+    // ถ้าเป็น LINE Android ให้บังคับ fallback เสมอ
+    if (isLineAndroid) {
+      setUseFallback(true);
+      setError("เปิดกล้องสดใน LINE (Android) ไม่ได้ — ใช้โหมดกล้องของเครื่องแทน");
+      return;
+    }
+
     try {
       const stream = await tryOpenCamera();
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        // บาง WebView ต้อง set attribute ตรง ๆ
+        videoRef.current.setAttribute("playsinline", "");
         await videoRef.current.play?.();
       }
     } catch (e) {
-      console.log("openCamera failed → fallback to input capture:", e);
+      console.log("openCamera failed → fallback:", e);
       setUseFallback(true);
       setError("เปิดกล้องสดไม่ได้ สลับเป็นโหมดอัปโหลด/ถ่ายด้วยแอปกล้องของเครื่อง");
     }
   };
 
   const stopCamera = () => {
-    setUseFallback(false);
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
     if (videoRef.current) videoRef.current.srcObject = null;
+    // หยุดกล้องแล้วคงโหมดเดิมไว้; ถ้าต้องกลับไปสดเองให้กด "เปิดกล้อง"
   };
 
   const takePhoto = async () => {
     if (!videoRef.current) return;
     const v = videoRef.current;
+
+    // เผื่อบาง WebView ค่าเป็น 0 ให้รอ loadedmetadata
+    if (!v.videoWidth || !v.videoHeight) {
+      await new Promise((r) =>
+        v.addEventListener("loadedmetadata", () => r(), { once: true })
+      );
+    }
+
     const w = v.videoWidth || 1280;
     const h = v.videoHeight || 720;
 
@@ -292,7 +324,10 @@ function CameraDualPath({
 
       {!useFallback && (
         <video
-          ref={videoRef}
+          ref={(el) => {
+            videoRef.current = el;
+            if (el) el.setAttribute("playsinline", "");
+          }}
           playsInline
           muted
           autoPlay
@@ -334,13 +369,23 @@ function CameraDualPath({
       {useFallback && (
         <div className="space-y-2">
           {error && <p className="text-sm text-red-600">{error}</p>}
+          {/* ✅ ใช้ accept/capture แบบเข้ากันได้สูงสุด */}
           <input
+            id="cameraInput"
             type="file"
-            accept="image/*;capture=camera"
+            accept="image/*"
             capture={defaultFacing === "environment" ? "environment" : "user"}
             multiple
             onChange={onFileChange}
+            style={{ display: "none" }}
           />
+          <button
+            type="button"
+            className="px-3 py-2 rounded bg-black text-white"
+            onClick={() => document.getElementById("cameraInput")?.click()}
+          >
+            เปิดกล้อง (โหมดไฟล์)
+          </button>
           <p className="text-xs text-gray-600">
             โหมดนี้จะเปิดแอปกล้องของเครื่อง ถ่ายแล้วอัปโหลดกลับมา
           </p>
@@ -351,7 +396,6 @@ function CameraDualPath({
         <div className="grid grid-cols-3 gap-2 mt-2">
           {items.map((it, idx) => (
             <div key={idx} className="relative">
-              {/* ใน CameraDualPath เวลา render รูป */}
               <img
                 src={it.uploadedUrl || it.previewUrl}
                 alt={`preview-${idx}`}
@@ -377,6 +421,7 @@ function CameraDualPath({
     </div>
   );
 }
+
 
 /* ===================== Page: Create + Update ===================== */
 export default function CollectPointsAdvance2() {
