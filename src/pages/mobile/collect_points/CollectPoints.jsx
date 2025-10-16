@@ -231,10 +231,24 @@ export default function CollectPoints() {
         <UserPointsSection />
 
         <DynamicButton
-          text="ถ่ายรูปสินค้ากรณีได้รับสินค้าล่วงหน้า"
+          text="ถ่ายรูปสินค้ากรณีได้รับสินค้าล่วงหน้า 0"
           iconSrc="/img/icons/camera.png"
           className="text-white px-4 py-3 rounded-[4px] bg-[#752157] w-full max-w-md mt-6 sarabun-font"
           onClick={() => navigate("/mobile/collect-points/advance-notice")}
+        />
+
+        {/* <DynamicButton
+          text="getUserMedia + fallback input capture"
+          iconSrc="/img/icons/camera.png"
+          className="text-white px-4 py-3 rounded-[4px] bg-[#752157] w-full max-w-md mt-6 sarabun-font"
+          onClick={() => navigate("/mobile/collect-points/advance-notice1")}
+        /> */}
+
+        <DynamicButton
+          text="Dual-path: getUserMedia"
+          iconSrc="/img/icons/camera.png"
+          className="text-white px-4 py-3 rounded-[4px] bg-[#752157] w-full max-w-md mt-6 sarabun-font"
+          onClick={() => navigate("/mobile/collect-points/advance-notice2")}
         />
 
         <SectionHeader title="รายการรับสินค้า" icon="/img/icons/bill.png" />
