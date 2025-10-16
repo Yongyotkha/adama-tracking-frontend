@@ -5,9 +5,79 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ADAMA Smile</title>
+
+    <!-- บอก browser ว่าอย่า cache หน้า index.html (ช่วยส่วนหนึ่ง ต้องเสริมด้วย header ที่เซิร์ฟเวอร์) -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <!-- (สำคัญสำหรับ LINE) เติม query เวอร์ชันที่ URL อัตโนมัติ เพื่อตัด cache ของ LINE WebView -->
+    <script>
+      (function () {
+        var isLINE = /Line\/\d+/i.test(navigator.userAgent);
+        // ให้ CI/CD แทนค่านี้เป็น build id/commit hash/วันที่ เช่น 20251016-0930
+        var BUILD_ID = "__BUILD_ID__";
+
+        // ถ้าเปิดจาก LINE และยังไม่มีพารามิเตอร์ v ให้เติมแล้ว redirect เพื่อ bust cache
+        if (isLINE && !/[?&]v=/.test(location.search) && BUILD_ID !== "__BUILD_ID__") {
+          var sep = location.search && location.search.length ? "&" : "?";
+          var next = location.pathname + location.search + sep + "v=" + encodeURIComponent(BUILD_ID) + location.hash;
+          location.replace(next);
+        }
+      })();
+    </script>
+
+    <!-- (ใช้ครั้งเดียวถ้าเคยติดตั้ง Service Worker มาก่อน—แล้วค้างแคชเก่า)
+         เปิดบล็อกนี้ชั่วคราวสัก 1 deploy เพื่อถอด SW และล้าง caches -->
+    <!--
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+      }
+      if (window.caches) {
+        caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+      }
+    </script>
+    -->
   </head>
   <body>
     <div id="root"></div>
+
+    <!-- เช็คไฟล์ version.json เพื่อบังคับรีโหลดเมื่อมี build ใหม่ แม้อยู่ใน LINE -->
+    <script>
+      (function versionWatcher() {
+        var VERSION_KEY = "APP_VERSION";
+        async function check() {
+          try {
+            var res = await fetch("/version.json", { cache: "no-store" });
+            if (!res.ok) return;
+            var data = await res.json();
+            var latest = String(data.version || "");
+            var current = localStorage.getItem(VERSION_KEY);
+
+            if (current && latest && current !== latest) {
+              // เคลียร์ cache storage (ถ้ามี) แล้วรีโหลด
+              if (window.caches) {
+                var keys = await caches.keys();
+                await Promise.all(keys.map(k => caches.delete(k)));
+              }
+              localStorage.setItem(VERSION_KEY, latest);
+              location.reload();
+            } else if (latest && current !== latest) {
+              localStorage.setItem(VERSION_KEY, latest);
+            }
+          } catch (e) {
+            // เงียบไว้ ไม่เป็นไร
+          }
+        }
+
+        check();
+        // เช็คซ้ำเป็นระยะ (เช่น ทุก 60 วินาที)
+        setInterval(check, 60 * 1000);
+      })();
+    </script>
+
+    <!-- Vite dev จะใช้เส้นทางนี้ระหว่างพัฒนา; ตอน build จะถูกแทนเป็นไฟล์ /assets/*.js มี hash -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
