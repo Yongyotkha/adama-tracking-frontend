@@ -85,7 +85,7 @@ export default function CollectPointsList() {
         const newRows = (data || []).map((row, idx) => ({
           key: idx + 1 + (current - 1) * pageSize,
           orderNo: row.document_number,
-          sale: row.user_name,
+          sale: row.sale_name,
           dealer: row.dealer_name,
           sub_dealer: row.sub_dealer_name,
           value: row.net_amount_display,
