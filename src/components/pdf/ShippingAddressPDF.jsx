@@ -50,7 +50,7 @@ export default function ShippingAddressPDF() {
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
       <Document>
-        <Page size="A4"  orientation="landscape" style={styles.page}>
+        <Page size="A4" orientation="landscape" style={styles.page}>
           {/* Header company */}
           <View style={styles.header}>
             <Image style={styles.logo} src="/favicon.png" />
@@ -66,14 +66,14 @@ export default function ShippingAddressPDF() {
           {/* Recipient box (กลางหน้า) */}
           <View style={styles.recipientWrap}>
             <View style={styles.recipientBox}>
-              <Text style={[styles.label,{fontSize:15},{marginBottom:20}]}>ที่อยู่ผู้รับของ </Text>
+              <Text style={[styles.label, { fontSize: 15 }, { marginBottom: 20 }]}>ที่อยู่ผู้รับของ </Text>
               <Text style={styles.line}>
                 <Text>ร้าน : </Text>
                 <Text style={styles.red}>{fmt(data?.shop_name)} </Text>
               </Text>
               <Text style={styles.line}>
                 <Text>ผู้ติดต่อ : </Text>
-                <Text style={styles.red}>{fmt(data?.contact_name)} </Text>
+                <Text style={styles.red}>{fmt(data?.name_en)} </Text>
               </Text>
               <Text style={styles.line}>
                 <Text>ที่อยู่ : </Text>
@@ -87,6 +87,7 @@ export default function ShippingAddressPDF() {
               </Text>
             </View>
           </View>
+          
         </Page>
       </Document>
     </PDFViewer>

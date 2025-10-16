@@ -41,79 +41,80 @@ export default function TransportationDetail() {
   const [uploadedFiles, setUploadedFiles] = useState([]); // State for uploaded files
 
   const columns = [
-  {
-    title: "Reward Image",
-    dataIndex: "reward_image",
-    align: "left",
-    width: 80,
-    render: (src) => (
-      <img src={src} alt="banner" className="w-12 h-12 object-cover rounded" />
-    ),
-  },
-  {
-    title: "Reward Code",
-    dataIndex: "reward_code",
-    align: "left",
-    width: 150,
-    ellipsis: true,
-  },
-  {
-    title: "Reward Name",
-    dataIndex: "reward_name",
-    align: "left",
-    width: 250,
-    ellipsis: true,
-  },
-  {
-    title: "Cost (THB)",
-    dataIndex: "reward_cost",
-    align: "right",
-    width: 120,
-    render: (cost) => cost.toLocaleString(), // เพิ่ม comma separator
-  },
-  {
-    title: "QTY (Pcs)",
-    dataIndex: "reward_value",
-    align: "right",
-    width: 100,
-  },
-];
+    {
+      title: "Reward Image",
+      dataIndex: "reward_image",
+      align: "left",
+      width: 80,
+      render: (src) => (
+        <img src={src} alt="banner" className="w-12 h-12 object-cover rounded" />
+      ),
+    },
+    {
+      title: "Reward Code",
+      dataIndex: "reward_code",
+      align: "left",
+      width: 150,
+      ellipsis: true,
+    },
+    {
+      title: "Reward Name",
+      dataIndex: "reward_name",
+      align: "left",
+      width: 250,
+      ellipsis: true,
+    },
+    {
+      title: "Cost (THB)",
+      dataIndex: "reward_cost",
+      align: "right",
+      width: 120,
+      render: (cost) => cost.toLocaleString(), // เพิ่ม comma separator
+    },
+    {
+      title: "QTY (Pcs)",
+      dataIndex: "reward_value",
+      align: "right",
+      width: 100,
+    },
+  ];
 
   // helper แปลงค่าจาก UI -> API
   const toApiSendBy = (uiValue) => {
     if (!uiValue) return "All";
-  const mapping = {
-    express: "Express",
-    staff: "Staff",
-    sms: "SMS",
-    vendor: "Vendor",
-    post: "Post",
-    other: "Other",
-  };
-  return mapping[uiValue.toLowerCase()] || "Mail/Ship";
+    const mapping = {
+      express: "Express",
+      staff: "Staff",
+      sms: "SMS",
+      vendor: "Vendor",
+      post: "Post",
+      other: "Other",
+    };
+    return mapping[uiValue.toLowerCase()] || "Mail/Ship";
   };
 
   // helper: API -> UI
   const toUiSendBy = (apiValue) => {
-  if (!apiValue) return "Select";
+    if (!apiValue) return "Select";
 
-  const value = String(apiValue).toLowerCase();
+    const value = String(apiValue).toLowerCase();
 
-  const mapping = {
-    express: "express",
-    staff: "staff",
-    sms: "sms",
-    vendor: "vendor",
-    post: "post",
-    other: "other",
-  };
+    const mapping = {
+      express: "express",
+      staff: "staff",
+      sms: "sms",
+      vendor: "vendor",
+      post: "post",
+      other: "other",
+    };
 
-  return mapping[value] || "mail/ship";
+    return mapping[value] || "mail/ship";
   };
 
   const fillForm = (data) => {
     formTop.setFieldsValue({
       shop_name: data.shop_name || "-",
+      name_th: data.name_th || "-",
       contact_name: data.contact_name || "-",
       user_number: data.user_number || "-",
       created_at: data.created_at.split(" ")[0] || "-",
@@ -138,7 +139,7 @@ export default function TransportationDetail() {
       const res = await useServiceAPI.get(`${paths.pathTransportDetail}/${id}`);
       if (res.status === 200) {
         const data = res.data || {};
-        data.reward_value=1
+        data.reward_value = 1
         setDetail(data);
 
         // Populate uploaded files for preview
@@ -272,7 +273,7 @@ export default function TransportationDetail() {
             <Form.Item label="Customer Name" name="shop_name">
               <Input disabled />
             </Form.Item>
-            <Form.Item label="Contact Name" name="contact_name">
+            <Form.Item label="Contact Name" name="name_th">
               <Input disabled />
             </Form.Item>
             <Form.Item label="Contact Number" name="user_number">
