@@ -10,7 +10,6 @@ import CameraMobile from "../../../components/mobile/camera/CameraMobile";
 import MobileCameraAuto from "../../../components/mobile/camera/MobileCameraAuto";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
-import dayjs from "dayjs";
 export default function CollectPointsAdvance() {
   const [loading, setLoading] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
@@ -23,15 +22,10 @@ export default function CollectPointsAdvance() {
   const [productPhotos, setProductPhotos] = useState([]); // * สินค้าที่ได้รับ
   const [productBills, setProductBills] = useState([]); // * สินค้าที่ได้รับ
   const [user, setUser] = useState(null);
+  const [receiveDate, setReceiveDate] = useState("");
   const [receiveShop, setReceiveShop] = useState("");
   const [isPointModalVisible, setIsPointModalVisible] = useState(false);
   const [earnedPoints, setEarnedPoints] = useState(0);
-  const [receiveDate, setReceiveDate] = useState(dayjs().format("YYYY-MM-DD"));
-
-  const LIFF_ID = import.meta?.env?.VITE_LIFF_ID || process.env.REACT_APP_LIFF_ID || "<YOUR_LIFF_ID>";
-  // path ของเพจนี้ใน LIFF (ต้องเทียบกับ Router ของคุณ)
-  const RETURN_PATH = "/mobile/collect-points/advance-notice";
-
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -61,19 +55,6 @@ export default function CollectPointsAdvance() {
     };
 
     fetchUserProfile();
-  }, []);
-
-  // เมื่อเด้งกลับจาก external browser
-  useEffect(() => {
-    try {
-      const u = new URL(window.location.href);
-      if (u.searchParams.get("uploaded") === "1") {
-        message.success("อัปโหลดรูปสำเร็จ");
-        // ล้าง query เพื่อไม่ให้เด้งซ้ำตอน refresh
-        u.searchParams.delete("uploaded");
-        window.history.replaceState({}, "", u.pathname + (u.search ? "?" + u.searchParams.toString() : ""));
-      }
-    } catch { }
   }, []);
 
   useEffect(() => {
@@ -158,21 +139,32 @@ export default function CollectPointsAdvance() {
               format="YYYY-MM-DD"     // ใช้ format ที่ backend ต้องการ
               className="w-full h-10 rounded-md text-gray-700 sarabun-font"
               placeholder="เลือกวันที่"
-              value={dayjs(receiveDate)} // ✅ แสดงค่าใน picker
-              defaultValue={dayjs()}     // ✅ ค่าเริ่มต้นคือวันนี้
               onChange={(_, dateString) => setReceiveDate(dateString)}   // เก็บเป็น string
             />
           </div>
 
-          <div>
+          {/* <div>
             <label className="block text-sm text-gray-700 sarabun-font mb-1">
-              ชื่อร้านยี่ปั๊ว<span className="text-red-500">*</span>
+              ชื่อร้านยี่ปั๊ว
             </label>
             <Input
-              value={user?.dealer.dealer_name_en ?? ""}
               disabled
-              className="h-10 rounded-md sarabun-font bg-gray-100"
+              placeholder="ระบุชื่อร้าน"
+              className="h-10 rounded-md sarabun-font"
+              value={receiveShop}
+              onChange={(e) => setReceiveShop(e.target.value)}   // เก็บชื่อร้าน
             />
+          </div> */}
+
+          <div>
+           <label className="block text-sm text-gray-700 sarabun-font mb-1">
+           ชื่อร้านยี่ปั๊ว<span className="text-red-500">*</span>
+           </label>
+           <Input
+           value={user?.dealer.dealer_name_en ?? ""}
+           disabled
+           className="h-10 rounded-md sarabun-font bg-gray-100"
+           />
           </div>
 
           <div>
@@ -213,10 +205,6 @@ export default function CollectPointsAdvance() {
               onUploadSuccess={() => {
                 // ถ้าต้องทำอย่างอื่นหลังอัปโหลดสำเร็จ ใส่เพิ่มได้
               }}
-              liffId={LIFF_ID}
-              returnPath={RETURN_PATH}
-              kind="bill"
-              forceExternalOnLineAndroid={true}
             />
           </div>
 
@@ -235,10 +223,6 @@ export default function CollectPointsAdvance() {
               onUploadSuccess={() => {
                 // ถ้าต้องทำอย่างอื่นหลังอัปโหลดสำเร็จ ใส่เพิ่มได้
               }}
-              liffId={LIFF_ID}
-              returnPath={RETURN_PATH}
-              kind="product"
-              forceExternalOnLineAndroid={true}
             />
           </div>
 
