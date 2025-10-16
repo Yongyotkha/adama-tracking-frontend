@@ -284,7 +284,7 @@ export default function RegisterOA() {
                 className="mt-1 rounded-md h-10 sarabun-font"
                 value={formData.contact_name_th}
                 onChange={handleInputChange}
-                name="first_name"
+                name="contact_name_th"
                 placeholder="ชื่อ-นามสกุล"
               />
             </div>
