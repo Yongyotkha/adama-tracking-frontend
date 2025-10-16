@@ -332,7 +332,7 @@ export default function CollectPoints() {
                           <button className="bg-green-600 text-white px-3 py-1 rounded-md text-sm"
                             onClick={() =>
                               navigate("/mobile/collect-points/advance-notice2", {
-                                state: { receive_id: order.id },
+                                state: { document_number: order.document_number },
                               })
                             }
                           >

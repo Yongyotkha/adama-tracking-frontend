@@ -17,6 +17,18 @@ const dataUrlToFile = async (dataUrl, fileName = "photo.jpg") => {
   return new File([blob], fileName, { type: blob.type || "image/jpeg" });
 };
 
+const mapPartsToItems = (arr = []) =>
+  (arr || [])
+    .filter(x => typeof x?.part === "string" && x.part.length > 0)
+    .map(x => ({
+      previewUrl: x.part,   // ให้แสดงรูปได้ทันที
+      uploadedUrl: x.part,  // บอกว่าเป็น URL ที่อัปโหลดแล้ว
+      source: "url",
+      file: null,
+      type: x.type ?? undefined,
+      id: x.id ?? undefined,
+    }));
+
 async function compressDataUrl(
   dataUrl,
   { maxWidth = 1280, maxHeight = 1280, quality = 0.8 } = {}
@@ -339,8 +351,9 @@ function CameraDualPath({
         <div className="grid grid-cols-3 gap-2 mt-2">
           {items.map((it, idx) => (
             <div key={idx} className="relative">
+              {/* ใน CameraDualPath เวลา render รูป */}
               <img
-                src={it.previewUrl || it.uploadedUrl}
+                src={it.uploadedUrl || it.previewUrl}
                 alt={`preview-${idx}`}
                 className="w-full h-24 object-cover rounded"
               />
@@ -375,11 +388,11 @@ export default function CollectPointsAdvance2() {
   const navigate = useNavigate();
   const location = useLocation();
   const { userInfo } = useContext(AuthContext);
-  console.log('location.state? : ',location.state)
+  console.log('location.state? : ', location.state)
   // ถ้ามี document_number → โหมด Update
   const documentNumber =
-    typeof location !== "undefined" ? location.state?.receive_id : null;
-  console.log('documentNumber : ',documentNumber)
+    typeof location !== "undefined" ? location.state?.document_number : null;
+  console.log('documentNumber : ', documentNumber)
   const isUpdateMode = Boolean(documentNumber);
 
   const [user, setUser] = useState(null);
@@ -424,38 +437,35 @@ export default function CollectPointsAdvance2() {
       try {
         setLoading(true);
 
-        // ⚠️ ตั้ง endpoint ให้ถูกของจริง
-        // ตัวอย่าง: api.get(paths.pathSalePointReceiveDetail, { document_number })
         const res = await api.get(paths.pathSalePointReceiveDetail, {
           document_number: documentNumber,
         });
 
         if (res?.status === 200) {
-          const d = res?.data || {};
+          // บาง backend จะห่อด้วย data.data
+          const d = res?.data?.data ?? res?.data ?? {};
           setDetail(d);
 
-          // ⚠️ ปรับ mapping ให้ตรง API ของคุณ
-          // สมมติ API ส่งแบบ:
-          // {
-          //   receive_date: "2025-10-12",
-          //   receive_shop: "ร้านตัวอย่าง",
-          //   bill: ["https://.../bill1.jpg", "..."],
-          //   product: ["https://.../product1.jpg", "..."]
-          // }
-          if (d.receive_date) setReceiveDate(dayjs(d.receive_date).format("YYYY-MM-DD"));
-          if (d.receive_shop) setReceiveShop(d.receive_shop);
+          // วันที่/ร้าน (ถ้ามี)
+          if (d.document_date || d.receive_date) {
+            setReceiveDate(dayjs(d.document_date || d.receive_date).format("YYYY-MM-DD"));
+          }
+          if (d.sub_dealer_name || d.receive_shop) {
+            setReceiveShop(d.receive_shop || d.sub_dealer_name || "");
+          }
 
-          // พรีฟิลด์รูปเก่าเข้า component
-          const mapUrlsToItems = (arr = []) =>
-            (arr || []).map((u) => ({
-              previewUrl: u,       // ให้แสดงรูปได้ทันที
-              uploadedUrl: u,      // บอกว่าเป็น URL ที่อัปโหลดสำเร็จแล้ว
-              source: "url",
-              file: null,
-            }));
+          // ✅ พรีฟิลด์รูปเก่าเข้า component ให้ถูกต้อง
+          // bill = อาร์เรย์ของ object มี key 'part'
+          const billItems = mapPartsToItems(d.bill);
+          setProductBills(billItems);
 
-          setProductBills(mapUrlsToItems(d.bill));
-          setProductPhotos(mapUrlsToItems(d.product));
+          // product photos = ใช้จาก picture (type:2)
+          // *ถ้าหลังบ้านแยก type ให้กรองเฉพาะ type=2 ด้วยก็ได้*
+          const pictureItems = mapPartsToItems(
+            Array.isArray(d.picture) ? d.picture.filter(x => String(x.type) === "2") : []
+          );
+          setProductPhotos(pictureItems);
+
         } else {
           message.error(res?.data?.message || "ไม่พบข้อมูลสำหรับแก้ไข");
         }
@@ -470,6 +480,7 @@ export default function CollectPointsAdvance2() {
     fetchDetail();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isUpdateMode, documentNumber]);
+
 
   /* ---------- Submit สองโหมด ---------- */
   const handleSubmit = async () => {
@@ -508,7 +519,7 @@ export default function CollectPointsAdvance2() {
       let res;
       if (isUpdateMode) {
         // ⚠️ เปลี่ยน endpoint ให้ตรงของจริง
-        res = await api.post(paths.pathSalePointReceiveUpdate, payload);
+        res = await api.post(paths.pathSalePointReceiveUpdateRequest, payload);
       } else {
         res = await api.post(paths.pathSalePointReceive, payload);
       }
@@ -537,6 +548,21 @@ export default function CollectPointsAdvance2() {
         </h2>
 
         <div className="mt-4 space-y-4 sarabun-font">
+
+          {/* แสดงเลขที่เอกสารเฉพาะโหมดอัปเดต */}
+          {isUpdateMode && (
+            <div>
+              <label className="block text-sm text-gray-700 sarabun-font mb-1">
+                เลขที่เอกสาร
+              </label>
+              <Input
+                value={detail?.document_number ?? documentNumber ?? ""}
+                disabled
+                className="h-10 rounded-md sarabun-font bg-gray-100"
+              />
+            </div>
+          )}
+
           <div>
             <label className="block text-sm text-gray-700 sarabun-font mb-1">
               วันที่แจ้งรับสินค้าล่วงหน้า<span className="text-red-500">*</span>
