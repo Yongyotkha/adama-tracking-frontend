@@ -13,7 +13,7 @@ import BackTopLeftButton from "../../../components/mobile/button/BackTopLeftButt
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
-
+import liff from "@line/liff";
 
 export default function VerifyOA() {
   const [loading, setLoading] = useState(false);
@@ -24,7 +24,7 @@ export default function VerifyOA() {
   const [phone_number, setPhoneNumber] = useState("");
   const { Title, Text } = Typography;
   const formatPhoneNumber = (number) => number.replace(/\s+/g, "");
-
+  const { logout } = useContext(AuthContext); // ✅ เพิ่มบรรทัดนี้
   const { lineProfile } = useOutletContext() || {};
   useEffect(() => {
     console.log("lineProfile xxx : ", lineProfile);
@@ -34,6 +34,22 @@ export default function VerifyOA() {
     }
 
   }, []);
+
+
+  const confirmLogout = async () => {
+    try {
+      if (liff.isLoggedIn()) {
+        localStorage.removeItem("users");
+        logout("line"); // ✅ ตอนนี้ไม่ error แล้ว
+        liff.logout();
+        alert("User logged out from LIFF");
+        window.location.reload();
+      }
+    } catch (error) {
+      console.log(error);
+      alert("LIFF Logout Error:", error);
+    }
+  };
 
   const showConfirm = (title, content, btn_ok, btn_cancel) => {
     Modal.confirm({
@@ -114,8 +130,8 @@ export default function VerifyOA() {
       childrenStyle="flex flex-col items-center justify-center h-full mx-auto p-6 sarabun-font relative"
     >
       {/* <BackTopLeftButton /> */}
-      
-      <LogoGreenNew width="w-[100%]" className="mb-10 max-w-xs" />
+
+      <LogoGreenNew width="w-[100%]" className="mb-10 max-w-xs" onClick={confirmLogout} />
 
       <Title level={4}>
         <span className="text-[#8A8A8A] font-bold sarabun-font">
@@ -170,8 +186,14 @@ export default function VerifyOA() {
           className="text-green-600 text-sm cursor-pointer hover:underline sarabun-font">
           สมัครสมาชิก หรือติดต่อแจ้งหน้าที่?
         </Text>
-      </div>
 
+
+      </div>
+      <div className="text-center mt-10">
+
+
+        <button onClick={confirmLogout}>clear</button>
+      </div>
       <button
         onClick={() => {
           const isAndroid = /Android/i.test(navigator.userAgent);
