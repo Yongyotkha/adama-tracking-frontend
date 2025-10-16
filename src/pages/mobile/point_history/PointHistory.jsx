@@ -53,7 +53,19 @@ export default function PointHistory() {
     fetchPointHistory();
   }, [activeTab]);
 
-
+  const renderCampaignLabel = (item) => {
+    if (item.campaign_type === "1" && item.campaign_type !== "") {
+      return "EV";
+    } else if (item.campaign_type === "2" && item.campaign_type !== "") {
+      return "T";
+    } else if (item.campaign_type === "3" && item.campaign_type !== "") {
+      return "X";
+    } else if (item.campaign_type === "4" && item.campaign_type !== "") {
+      return "EV";
+    } else {
+      return "";
+    }
+  };
   return (
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
@@ -92,7 +104,7 @@ export default function PointHistory() {
                   <img src="/img/icons/point.png" className="h-5 w-5 my-auto" alt="point-icon" />
                   <div>
                     <p className="text-gray-500 text-sm sarabun-font">
-                      {item.created_at.split('.')[0]}
+                      {item.created_at.split('.')[0]} |         {item.document_number}
                     </p>
                     {/* <p className="text-gray-700 text-sm sarabun-font">
                       หมดอายุ: {item.expire_at == null ? "-" : item.expire_at}
@@ -107,6 +119,8 @@ export default function PointHistory() {
                   className={`font-bold sarabun-font ${activeTab === "use" ? "text-red-600" : "text-green-600"
                     }`}
                 >
+
+                  {renderCampaignLabel(item)}{" "}
                   {activeTab === "use" ? `-${item.point}` : `+${item.point}`}
 
                 </p>

@@ -82,7 +82,7 @@ export default function OrderHistoryDetail() {
 
 
   const totalQtyPoint = products.reduce(
-    (sum, item) => sum + item.points.check_point + item.points.master_point,
+    (sum, item) => sum + item.points.check_point,
     0
   );
 
@@ -203,9 +203,9 @@ export default function OrderHistoryDetail() {
                           {item.qty} x {item.product_name}
                         </p>
 
-                        {(item.points.master_point) > 0 && (
+                        {(item.points.standard_point) > 0 && (
                           <p className="text-xs text-gray-500">
-                            Master Point : {item.points.master_point}
+                            Master Point : {item.points.standard_point}
                           </p>
                         )}
 
