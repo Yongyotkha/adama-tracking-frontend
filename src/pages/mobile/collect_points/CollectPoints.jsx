@@ -237,12 +237,12 @@ export default function CollectPoints() {
           onClick={() => navigate("/mobile/collect-points/advance-notice")}
         />
 
-        {/* <DynamicButton
+        <DynamicButton
           text="getUserMedia + fallback input capture"
           iconSrc="/img/icons/camera.png"
           className="text-white px-4 py-3 rounded-[4px] bg-[#752157] w-full max-w-md mt-6 sarabun-font"
           onClick={() => navigate("/mobile/collect-points/advance-notice1")}
-        /> */}
+        />
 
         <DynamicButton
           text="Dual-path: getUserMedia"
