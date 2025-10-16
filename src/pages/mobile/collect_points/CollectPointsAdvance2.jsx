@@ -3,13 +3,10 @@ import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { Input, DatePicker, message } from "antd";
 import DynamicButton from "../../../components/button/DynamicButton";
 import BackButton from "../../../components/mobile/button/BackButton";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../../contexts/AuthContext";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
-
-// ❗ ใช้ service แบบอ็อบเจ็กต์ (ไม่เรียกเป็นฟังก์ชัน)
-import api from "../../../services/corsService"; // ปรับ path/casing ให้ตรงไฟล์จริงของคุณ
-
+import api from "../../../services/corsService";
 import { paths } from "../../../services/CorsPath";
 import dayjs from "dayjs";
 
@@ -64,7 +61,7 @@ async function compressFile(
   return new File([blob], name, { type: "image/jpeg" });
 }
 
-/** อัปโหลดรายการรูปให้เป็น URL/ID จริง */
+/** อัปโหลดรายการรูป: ถ้าเป็น URL จริงอยู่แล้วจะข้าม, ถ้าเป็น stream/blob จะอัปโหลด */
 async function ensureUploadedUrls(
   apiObj,
   uploadEndpoint,
@@ -75,7 +72,7 @@ async function ensureUploadedUrls(
   const uploadedResults = [];
 
   for (const it of items) {
-    // URL จริงอยู่แล้ว
+    // URL จริงอยู่แล้ว -> ใช้ต่อ
     if (typeof it.uploadedUrl === "string" && /^https?:\/\//i.test(it.uploadedUrl)) {
       uploadedResults.push(it.uploadedUrl);
       continue;
@@ -96,7 +93,7 @@ async function ensureUploadedUrls(
     }
     if (!fileObj) continue;
 
-    // บีบอัดซ้ำก่อนอัปโหลด ถ้ายังใหญ่
+    // บีบอัดก่อนอัปโหลด (ถ้าใหญ่)
     if (fileObj.size > 1_500_000) {
       try {
         fileObj = await compressFile(fileObj, {
@@ -112,14 +109,11 @@ async function ensureUploadedUrls(
     // อัปโหลด
     const form = new FormData();
     form.append("file", fileObj);
-    form.append("mode", modeUpload); // ✅ สำคัญ: API ฝั่งคุณต้องการ
+    form.append("mode", modeUpload);
     Object.entries(extra || {}).forEach(([k, v]) => form.append(k, v));
 
     try {
-      const res = await apiObj.post(uploadEndpoint, form); // ✅ สองพารามิเตอร์เท่านั้น
-      console.log("[UPLOAD RESPONSE]", res);
-
-      // พยายามดึง URL/ID ตามหลายรูปแบบที่พบบ่อย
+      const res = await apiObj.post(uploadEndpoint, form); // ใช้ signature เดิม
       const urlCandidate =
         res?.data?.url ||
         res?.url ||
@@ -132,7 +126,7 @@ async function ensureUploadedUrls(
       if (urlCandidate) {
         uploadedResults.push(urlCandidate);
       } else if (res?.data?.id) {
-        uploadedResults.push(String(res.data.id)); // fallback เก็บเป็น id
+        uploadedResults.push(String(res.data.id)); // fallback เป็น id
       } else {
         console.warn("Upload success but URL/ID not found. Response:", res);
       }
@@ -149,24 +143,27 @@ async function ensureUploadedUrls(
 function CameraDualPath({
   label = "ถ่ายรูป",
   maxCount = 10,
-  defaultFacing = "environment", // "environment" | "user"
+  defaultFacing = "environment",
   onChange,
+  value, // ✅ รับค่าเริ่มจากภายนอกเพื่อพรีฟิลด์ (array)
 }) {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
-  const [items, setItems] = useState([]); // { previewUrl, source: 'stream'|'file', file?, uploadedUrl? }
+  const [items, setItems] = useState(value || []); // { previewUrl, source: 'stream'|'file', file?, uploadedUrl? }
   const [error, setError] = useState("");
   const [useFallback, setUseFallback] = useState(false);
+
+  useEffect(() => {
+    // sync เมื่อ value จากพ่อเปลี่ยน (เช่นหลังโหลด detail)
+    if (Array.isArray(value)) setItems(value);
+  }, [value]);
 
   const emit = (next) => {
     setItems(next);
     onChange?.(next);
   };
 
-  const softConstraints = {
-    video: { facingMode: defaultFacing },
-    audio: false,
-  };
+  const softConstraints = { video: { facingMode: defaultFacing }, audio: false };
   const midConstraints = {
     video: {
       width: { ideal: 1280 },
@@ -176,11 +173,7 @@ function CameraDualPath({
     audio: false,
   };
   const hardConstraints = {
-    video: {
-      width: 1280,
-      height: 720,
-      facingMode: { ideal: defaultFacing },
-    },
+    video: { width: 1280, height: 720, facingMode: { ideal: defaultFacing } },
     audio: false,
   };
 
@@ -192,9 +185,7 @@ function CameraDualPath({
       try {
         const s = await navigator.mediaDevices.getUserMedia(c);
         return s;
-      } catch (e) {
-        // ลองตัวถัดไป
-      }
+      } catch (e) { }
     }
     throw new Error("no-camera");
   }
@@ -236,7 +227,6 @@ function CameraDualPath({
     ctx.drawImage(v, 0, 0, w, h);
 
     const rawDataUrl = canvas.toDataURL("image/jpeg", 0.92);
-    // บีบอัดก่อนเก็บลง state
     const compressedDataUrl = await compressDataUrl(rawDataUrl, {
       maxWidth: 1280,
       maxHeight: 1280,
@@ -288,7 +278,22 @@ function CameraDualPath({
         {label} <span className="text-red-500">*</span>
       </label>
 
-      <div className="flex gap-2 mb-2">
+      {!useFallback && (
+        <video
+          ref={videoRef}
+          playsInline
+          muted
+          autoPlay
+          style={{
+            width: "100%",
+            maxWidth: 480,
+            background: "#000",
+            borderRadius: 8,
+          }}
+        />
+      )}
+
+      <div className="flex gap-2 mb-2 mt-2">
         <button
           type="button"
           onClick={openCamera}
@@ -314,23 +319,6 @@ function CameraDualPath({
         )}
       </div>
 
-      {/* live video */}
-      {!useFallback && (
-        <video
-          ref={videoRef}
-          playsInline
-          muted
-          autoPlay
-          style={{
-            width: "100%",
-            maxWidth: 480,
-            background: "#000",
-            borderRadius: 8,
-          }}
-        />
-      )}
-
-      {/* fallback input capture */}
       {useFallback && (
         <div className="space-y-2">
           {error && <p className="text-sm text-red-600">{error}</p>}
@@ -347,7 +335,6 @@ function CameraDualPath({
         </div>
       )}
 
-      {/* preview */}
       {items?.length > 0 && (
         <div className="grid grid-cols-3 gap-2 mt-2">
           {items.map((it, idx) => (
@@ -378,31 +365,38 @@ function CameraDualPath({
   );
 }
 
-/* ===================== Page ===================== */
+/* ===================== Page: Create + Update ===================== */
 export default function CollectPointsAdvance2() {
   const [loading, setLoading] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
-  const navigate = useNavigate();
-  const { userInfo } = useContext(AuthContext);
-  const documentNumber =
-    typeof location !== "undefined" ? location.state?.document_number : null;
-
-  const [historydetail, setHistorydetail] = useState(null);
-  const [productBills, setProductBills] = useState([]); // [{ previewUrl, uploadedUrl?, file? }]
-  const [productPhotos, setProductPhotos] = useState([]); // same shape
-  const [user, setUser] = useState(null);
-  const [receiveShop, setReceiveShop] = useState("");
   const [isPointModalVisible, setIsPointModalVisible] = useState(false);
   const [earnedPoints, setEarnedPoints] = useState(0);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { userInfo } = useContext(AuthContext);
+  console.log('location.state? : ',location.state)
+  // ถ้ามี document_number → โหมด Update
+  const documentNumber =
+    typeof location !== "undefined" ? location.state?.receive_id : null;
+  console.log('documentNumber : ',documentNumber)
+  const isUpdateMode = Boolean(documentNumber);
+
+  const [user, setUser] = useState(null);
+  const [receiveShop, setReceiveShop] = useState("");
   const [receiveDate, setReceiveDate] = useState(dayjs().format("YYYY-MM-DD"));
 
-  // ✅ ใช้ endpoint อัปโหลดตัวเดียวกับโค้ดที่เวิร์ก
+  const [detail, setDetail] = useState(null); // ข้อมูลเดิมจาก API (ถ้ามี)
+  const [productBills, setProductBills] = useState([]);   // [{ previewUrl, uploadedUrl?, file? }]
+  const [productPhotos, setProductPhotos] = useState([]); // same shape
+
   const UPLOAD_ENDPOINT = paths.pathUpload;
 
+  /* ---------- โหลดข้อมูลโปรไฟล์ ---------- */
   useEffect(() => {
     const fetchUserProfile = async () => {
-      setLoading(true);
       try {
+        setLoading(true);
         const response = await api.get(paths.pathProfileDetail, { id: userInfo.id });
         if (response.status === 200 && response.result) {
           setUser(response.data);
@@ -419,25 +413,65 @@ export default function CollectPointsAdvance2() {
       }
     };
     fetchUserProfile();
-
-    return () => {
-      // cleanup blob url
-      productBills.forEach(
-        (f) =>
-          f.previewUrl &&
-          f.previewUrl.startsWith("blob:") &&
-          URL.revokeObjectURL(f.previewUrl)
-      );
-      productPhotos.forEach(
-        (f) =>
-          f.previewUrl &&
-          f.previewUrl.startsWith("blob:") &&
-          URL.revokeObjectURL(f.previewUrl)
-      );
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /* ---------- ถ้าเป็นโหมด Update: โหลดรายละเอียดเดิม ---------- */
+  useEffect(() => {
+    if (!isUpdateMode) return;
+
+    const fetchDetail = async () => {
+      try {
+        setLoading(true);
+
+        // ⚠️ ตั้ง endpoint ให้ถูกของจริง
+        // ตัวอย่าง: api.get(paths.pathSalePointReceiveDetail, { document_number })
+        const res = await api.get(paths.pathSalePointReceiveDetail, {
+          document_number: documentNumber,
+        });
+
+        if (res?.status === 200) {
+          const d = res?.data || {};
+          setDetail(d);
+
+          // ⚠️ ปรับ mapping ให้ตรง API ของคุณ
+          // สมมติ API ส่งแบบ:
+          // {
+          //   receive_date: "2025-10-12",
+          //   receive_shop: "ร้านตัวอย่าง",
+          //   bill: ["https://.../bill1.jpg", "..."],
+          //   product: ["https://.../product1.jpg", "..."]
+          // }
+          if (d.receive_date) setReceiveDate(dayjs(d.receive_date).format("YYYY-MM-DD"));
+          if (d.receive_shop) setReceiveShop(d.receive_shop);
+
+          // พรีฟิลด์รูปเก่าเข้า component
+          const mapUrlsToItems = (arr = []) =>
+            (arr || []).map((u) => ({
+              previewUrl: u,       // ให้แสดงรูปได้ทันที
+              uploadedUrl: u,      // บอกว่าเป็น URL ที่อัปโหลดสำเร็จแล้ว
+              source: "url",
+              file: null,
+            }));
+
+          setProductBills(mapUrlsToItems(d.bill));
+          setProductPhotos(mapUrlsToItems(d.product));
+        } else {
+          message.error(res?.data?.message || "ไม่พบข้อมูลสำหรับแก้ไข");
+        }
+      } catch (e) {
+        console.error("Load detail error:", e);
+        message.error("ไม่สามารถโหลดข้อมูลเดิมได้");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDetail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isUpdateMode, documentNumber]);
+
+  /* ---------- Submit สองโหมด ---------- */
   const handleSubmit = async () => {
     try {
       if (productBills.length === 0 || productPhotos.length === 0) {
@@ -446,9 +480,9 @@ export default function CollectPointsAdvance2() {
       }
       setLoading(true);
 
-      const extra = { document_number: historydetail?.document_number ?? documentNumber };
+      const extra = { document_number: detail?.document_number ?? documentNumber };
 
-      // ✅ ส่ง mode แยกสองชุดให้ตรงกับงาน
+      // อัปโหลดเฉพาะรายการที่ยังไม่เป็น URL เดิม
       const billUrls = await ensureUploadedUrls(api, UPLOAD_ENDPOINT, productBills, extra, "bill");
       const productUrls = await ensureUploadedUrls(api, UPLOAD_ENDPOINT, productPhotos, extra, "product");
 
@@ -464,13 +498,21 @@ export default function CollectPointsAdvance2() {
       }
 
       const payload = {
+        document_number: detail?.document_number ?? documentNumber, // สำคัญในโหมดอัปเดต
         product: productUrls,
         bill: billUrls,
         receive_date: receiveDate,
         receive_shop: receiveShop,
       };
 
-      const res = await api.post(paths.pathSalePointReceive, payload);
+      let res;
+      if (isUpdateMode) {
+        // ⚠️ เปลี่ยน endpoint ให้ตรงของจริง
+        res = await api.post(paths.pathSalePointReceiveUpdate, payload);
+      } else {
+        res = await api.post(paths.pathSalePointReceive, payload);
+      }
+
       if (res?.status === 200) {
         const pts = Number(res?.data?.point ?? 0);
         setEarnedPoints(pts);
@@ -491,7 +533,7 @@ export default function CollectPointsAdvance2() {
     <MobileLayout loading={loading}>
       <div className="w-full max-w-md mx-auto px-4 pb-8">
         <h2 className="text-green-700 text-lg font-bold mt-4 sarabun-font">
-          แจ้งรับสินค้าล่วงหน้า
+          {isUpdateMode ? "แก้ไขการแจ้งรับสินค้าล่วงหน้า" : "แจ้งรับสินค้าล่วงหน้า"}
         </h2>
 
         <div className="mt-4 space-y-4 sarabun-font">
@@ -505,7 +547,6 @@ export default function CollectPointsAdvance2() {
               className="w-full h-10 rounded-md text-gray-700 sarabun-font"
               placeholder="เลือกวันที่"
               value={dayjs(receiveDate)}
-              defaultValue={dayjs()}
               onChange={(_, dateString) => setReceiveDate(dateString)}
             />
           </div>
@@ -543,12 +584,13 @@ export default function CollectPointsAdvance2() {
             />
           </div>
 
-          {/* Dual-path: getUserMedia -> input capture */}
+          {/* พรีฟิลด์ค่า value สำหรับโหมด Update */}
           <CameraDualPath
             label="ถ่ายรูปบิลเงินสดหรือใบสั่งสินค้า"
             maxCount={20}
             defaultFacing="environment"
             onChange={setProductBills}
+            value={productBills}
           />
 
           <CameraDualPath
@@ -556,10 +598,11 @@ export default function CollectPointsAdvance2() {
             maxCount={20}
             defaultFacing="environment"
             onChange={setProductPhotos}
+            value={productPhotos}
           />
 
           <DynamicButton
-            text="บันทึก"
+            text={isUpdateMode ? "อัปเดตข้อมูล" : "บันทึก"}
             className="w-full bg-green-700 text-white py-3 rounded-md mt-6 sarabun-font"
             onClick={handleSubmit}
           />
@@ -575,7 +618,7 @@ export default function CollectPointsAdvance2() {
           }}
           src="/img/icons/check-circle.png"
           text={`<div class='text-center'>
-              <p class='text-[#4A4A4A] text-[18px] mt-1 sarabun-font'>ส่งข้อมูลสำเร็จ</p>
+              <p class='text-[#4A4A4A] text-[18px] mt-1 sarabun-font'>${isUpdateMode ? "อัปเดตข้อมูลสำเร็จ" : "ส่งข้อมูลสำเร็จ"}</p>
               <p class='text-[#A1A1A1] text-[14px] mt-1 sarabun-font'>รอดำเนินการจากทางเจ้าหน้าที่</p>
             </div>`}
           cancelText="ยกเลิก"
