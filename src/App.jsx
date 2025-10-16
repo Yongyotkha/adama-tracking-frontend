@@ -147,6 +147,8 @@ import EditMileage from "./pages/settings/mileage/EditMileage";
 import TranAddress from "./pages/mobile/user/settings/tran_address/TranAddress";
 import CreateTranAddress from "./pages/mobile/user/settings/tran_address/CreateTranAddress";
 import CollectPointsAdvance from "./pages/mobile/collect_points/CollectPointsAdvance";
+import CollectPointsAdvance1 from "./pages/mobile/collect_points/CollectPointsAdvance1";
+import CollectPointsAdvance2 from "./pages/mobile/collect_points/CollectPointsAdvance2";
 import CollectPointsAdvanceUpdate from "./pages/mobile/collect_points/CollectPointsAdvanceUpdate";
 import EditOrViewCustomerLine from "./pages/settings/mobile/customer/EditOrViewCustomerLine";
 import EditOrViewRegisteredCustomer from "./pages/settings/mobile/registered_customer/EditOrViewRegisteredCustomer";
@@ -452,6 +454,8 @@ const App = () => {
               <Route path="/mobile/collect-points" element={< CollectPoints />} />
               <Route path="/mobile/collect-points/detail" element={<CollectPointsDetail />} />
               <Route path="/mobile/collect-points/advance-notice" element={< CollectPointsAdvance />} />
+              <Route path="/mobile/collect-points/advance-notice1" element={< CollectPointsAdvance1 />} />
+              <Route path="/mobile/collect-points/advance-notice2" element={< CollectPointsAdvance2 />} />
               <Route path="/mobile/collect-points/advance-notice-update" element={< CollectPointsAdvanceUpdate />} />
               <Route path="/mobile/promotion" element={< Promotion />} />
               <Route path="/mobile/account" element={< MyAccountMobile />} />

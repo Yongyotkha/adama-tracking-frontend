@@ -16,6 +16,7 @@ export const paths = {
   pathSalePointReceive: "sale-point-receive/create",
   pathSalePointReceiveDetail: "sale-point-receive/detail",
   pathSalePointReceiveUpdate: "sale-point-receive/update",
+  pathSalePointReceiveUpdateRequest: "sale-point-receive/update_request",
 
   pathSalePointReceiveReward: "sale-point-receive/receive-reward",
   pathSalePointReceiveRewardConfirm: "sale-point-receive/receive-reward-confirm",
