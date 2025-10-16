@@ -27,6 +27,12 @@ export default function CollectPointsAdvance() {
   const [isPointModalVisible, setIsPointModalVisible] = useState(false);
   const [earnedPoints, setEarnedPoints] = useState(0);
   const [receiveDate, setReceiveDate] = useState(dayjs().format("YYYY-MM-DD"));
+
+  const LIFF_ID = import.meta?.env?.VITE_LIFF_ID || process.env.REACT_APP_LIFF_ID || "<YOUR_LIFF_ID>";
+  // path ของเพจนี้ใน LIFF (ต้องเทียบกับ Router ของคุณ)
+  const RETURN_PATH = "/mobile/collect-points/advance-notice";
+
+
   useEffect(() => {
     const fetchUserProfile = async () => {
       setLoading(true);
@@ -55,6 +61,19 @@ export default function CollectPointsAdvance() {
     };
 
     fetchUserProfile();
+  }, []);
+
+  // เมื่อเด้งกลับจาก external browser
+  useEffect(() => {
+    try {
+      const u = new URL(window.location.href);
+      if (u.searchParams.get("uploaded") === "1") {
+        message.success("อัปโหลดรูปสำเร็จ");
+        // ล้าง query เพื่อไม่ให้เด้งซ้ำตอน refresh
+        u.searchParams.delete("uploaded");
+        window.history.replaceState({}, "", u.pathname + (u.search ? "?" + u.searchParams.toString() : ""));
+      }
+    } catch { }
   }, []);
 
   useEffect(() => {
@@ -194,6 +213,10 @@ export default function CollectPointsAdvance() {
               onUploadSuccess={() => {
                 // ถ้าต้องทำอย่างอื่นหลังอัปโหลดสำเร็จ ใส่เพิ่มได้
               }}
+              liffId={LIFF_ID}
+              returnPath={RETURN_PATH}
+              kind="bill"
+              forceExternalOnLineAndroid={true}
             />
           </div>
 
@@ -212,6 +235,10 @@ export default function CollectPointsAdvance() {
               onUploadSuccess={() => {
                 // ถ้าต้องทำอย่างอื่นหลังอัปโหลดสำเร็จ ใส่เพิ่มได้
               }}
+              liffId={LIFF_ID}
+              returnPath={RETURN_PATH}
+              kind="product"
+              forceExternalOnLineAndroid={true}
             />
           </div>
 
