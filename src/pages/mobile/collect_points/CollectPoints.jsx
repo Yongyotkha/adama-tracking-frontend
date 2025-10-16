@@ -313,7 +313,7 @@ export default function CollectPoints() {
                       key={index}
                       className="p-4 bg-white rounded-lg shadow-md border-l-4 border-green-500"
                     >
-                      <p className="text-gray-900 sarabun-font text-sm">{order.document_datetime}</p>
+                      <p className="text-gray-500 sarabun-font text-sm">{order.date}</p>
                       <p className="text-gray-900 sarabun-font text-sm font-bold mt-1">
                         {`เลขที่ ${order.document_number}`}
                       </p>
