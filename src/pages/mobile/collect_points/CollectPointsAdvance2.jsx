@@ -634,7 +634,7 @@ export default function CollectPointsAdvance2() {
           />
         </div>
 
-        <BackButton url="/mobile/main" />
+        <BackButton url="/mobile/collect-points" />
 
         <DynamicPopUp
           visible={isSuccessModalVisible}
