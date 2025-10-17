@@ -66,6 +66,36 @@ export default function PointHistory() {
       return "";
     }
   };
+
+  const getStatusInfo = (code) => {
+    switch (code) {
+      case "RTP":
+        return {
+          text: "รอยืนยัน",
+          textColor: "#FFFFFF",
+          bgColor: "#F89E18",
+        };
+      case "RTD":
+        return {
+          text: "กำลังจัดส่ง",
+          textColor: "#FFFFFF",
+          bgColor: "#F89E18",
+        };
+      case "RTV":
+        return {
+          text: "จัดส่งสำเร็จ",
+          textColor: "#FFFFFF",
+          bgColor: "#009845",
+        };
+      default:
+        return {
+          text: code || "-",
+          textColor: "#000000",
+          bgColor: "#E0E0E0",
+        };
+    }
+  };
+
   return (
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
@@ -111,7 +141,18 @@ export default function PointHistory() {
                     </p> */}
                     {activeTab == "use" ? <p className="text-gray-700 text-sm sarabun-font">Reward Code : {item.reward_code}</p> : ""}
                     {activeTab == "use" ? <p className="text-gray-700 text-sm sarabun-font truncate">Reward Name : {item.reward_name}</p> : ""}
-                    {activeTab == "use" ? <BadgeStatus text={item.status_name} bgColor={item.status_bg_color} textColor={item.status_color}></BadgeStatus> : ""}
+
+
+                    {activeTab === "use" && (() => {
+                      const status = getStatusInfo(item.status_tran);
+                      return (
+                        <BadgeStatus
+                          text={status.text}
+                          bgColor={status.bgColor}
+                          textColor={status.textColor}
+                        />
+                      );
+                    })()}
 
                   </div>
                 </div>
