@@ -465,9 +465,9 @@ const App = () => {
               <Route path="/mobile/redeem-point" element={< RedeemPoint />} />
               <Route path="/mobile/redeem-point/detail" element={<RedeemPointDetail />} />
               <Route path="/mobile/redeem-point/confirm" element={<RedeemPointConfirm />} />
-              <Route path="/mobile/order-history" element={< OrderHistory />} />
+              <Route path="/mobile/order-history" element={< OrderHistory />} />แแแแ
               <Route path="/mobile/order-history/detail" element={<OrderHistoryDetail />} />
-              <Route path="/mobile/point-history" element={< PointHistory />} />
+              <Route path="/mobile/point-history" element={< PointHแแแแแแistory />} />
               {/* <Route path="/mobile/point-history/detail" element={< PointHistoryDetail />} /> */}
               <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
 
