@@ -94,12 +94,18 @@ export default function RedeemPointConfirm() {
             // ปรับตามรูปแบบ response ของระบบคุณได้เลย
             if (res.status === 200 || res.result === true) {
 
-                setEarnedPoints(res.data.targets.point);
+                if (res.data.status == false) {
+                    setIsPointModalVisibleFalse(true)
 
-                setIsPointModalVisibleComfirm(true);
+                } else {
+                    setEarnedPoints(res.data.targets.point);
+
+                    setIsPointModalVisibleComfirm(true);
+                }
+
             } else {
                 setIsPointModalVisibleFalse(true)
-                alert(res?.message || "ไม่สามารถแลกคะแนนได้ กรุณาลองใหม่");
+
             }
         } catch (err) {
             console.error("Redeem error:", err);
