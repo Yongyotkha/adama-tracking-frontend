@@ -120,7 +120,7 @@ export default function CollectPointsAdvance() {
   }, []);
 
   const handleSubmit = async () => {
-    if (productBills.length === 0 || productPhotos.length === 0) {
+    if (productPhotos.length === 0) {
       message.error("กรุณากรอกข้อมูลให้ครบในช่องที่มีเครื่องหมาย *");
       return;
     }
@@ -134,18 +134,18 @@ export default function CollectPointsAdvance() {
       return;
     }
 
-    const billUrls = productBills
-      .map((f) => f?.url)
-      .filter((u) => typeof u === "string" && /^https?:\/\//i.test(u));
-    if (billUrls.length === 0) {
-      message.error("กรุณาถ่ายและอัปโหลดรูปบิล/ใบสั่งสินค้าอย่างน้อย 1 รูป");
-      return;
-    }
+    // const billUrls = productBills
+    //   .map((f) => f?.url)
+    //   .filter((u) => typeof u === "string" && /^https?:\/\//i.test(u));
+    // if (billUrls.length === 0) {
+    //   message.error("กรุณาถ่ายและอัปโหลดรูปบิล/ใบสั่งสินค้าอย่างน้อย 1 รูป");
+    //   return;
+    // }
 
     // ====== payload ======
     const basePayload = {
       product: productUrls,
-      bill: billUrls,
+      bill: [],
       receive_date: receiveDate, // YYYY-MM-DD
       receive_shop: receiveShop,
     };

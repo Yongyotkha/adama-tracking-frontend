@@ -133,14 +133,13 @@ export default function PointHistory() {
                 <div className="flex gap-2 flex-wrap">
                   <img src="/img/icons/point.png" className="h-5 w-5 my-auto" alt="point-icon" />
                   <div>
-                    <p className="text-gray-500 text-sm sarabun-font">
-                      {item.created_at.split('.')[0]} | {item.document_number}
-                    </p>
 
-                    {activeTab == "receive" ? <p className="text-gray-700 text-sm sarabun-font">Reward Code : {item.reward_code}</p> : ""}
-                    {activeTab == "receive" ? <p className="text-gray-700 text-sm sarabun-font truncate">Reward Name : {item.reward_name}</p> : ""}
+                    {activeTab == "receive" ? <p className="text-gray-500 text-sm sarabun-font">{item.created_at.split('.')[0]}</p> : ""}
+                    {activeTab == "receive" ? <p className="text-gray-700 text-sm sarabun-font">
+                      {item.document_number ? 'Document No: ' + item.document_number : "Register Point"}</p> : ""}
 
 
+                    {activeTab == "use" ? <p className="text-gray-500 text-sm sarabun-font">{item.created_at.split('.')[0]} | {item.page}</p> : ""}
                     {activeTab == "use" ? <p className="text-gray-700 text-sm sarabun-font">Reward Code : {item.reward_code}</p> : ""}
                     {activeTab == "use" ? <p className="text-gray-700 text-sm sarabun-font truncate">Reward Name : {item.reward_name}</p> : ""}
 
