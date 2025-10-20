@@ -358,7 +358,7 @@ export default function PointCampaignList() {
   };
 
   const formatDate = (dateStr) =>
-    dateStr ? dayjs(dateStr).format("DD/MM/YYYY") : "-";
+    dateStr ? dayjs(dateStr).format("DD/MM/YYYY HH:mm:ss") : "-";
 
   return (
     <MainLayout loading={loading}>
