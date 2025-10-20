@@ -173,7 +173,7 @@ export default function PointHistory() {
                         สมัครสมาชิก
                       </p>
                     </div>
-                    
+
 
                     <div className="flex flex-col items-end text-right">
                       <p className="text-green-700 sarabun-font text-sm font-semibold mt-1">+ {new Intl.NumberFormat("th-TH").format(poinrRegister.point)} คะแนน</p>
