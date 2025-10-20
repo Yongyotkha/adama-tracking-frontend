@@ -351,7 +351,7 @@ export default function SalesPointCreate() {
           product_code: data.product_code,
           product_name: data.product_name,
           product_unit: data.packing_list,
-          product_unit_thb: data.bath_unit,
+          product_unit_thb: data.bath_unit_sale_point,
           product_campaign_order_min_foc: data.product_campaign_order_min_foc,
           product_campaign_foc: data.product_campaign_foc,
           quantity: 1,

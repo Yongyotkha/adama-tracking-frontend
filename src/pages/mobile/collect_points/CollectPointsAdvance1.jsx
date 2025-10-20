@@ -552,7 +552,7 @@ export default function CollectPointsAdvance1() {
           />
 
           <CameraDualPath
-            label="ถ่ายรูปสินค้าที่ได้รับ"
+            label="ถ่ายรูปบิลเงินสดและสินค้าที่ได้รับ (อย่างละ 1 รูป)"
             maxCount={20}
             defaultFacing="environment"
             onChange={setProductPhotos}
