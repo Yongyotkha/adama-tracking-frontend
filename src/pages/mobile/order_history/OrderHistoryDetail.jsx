@@ -86,6 +86,20 @@ export default function OrderHistoryDetail() {
     0
   );
 
+
+  // ช่วยฟังก์ชันเล็กๆ ให้รวม array แบบปลอดภัย
+  const sumArray = (arr) =>
+    (Array.isArray(arr) ? arr : []).reduce((a, b) => a + Number(b ?? 0), 0);
+
+  // คะแนนสะสมจาก Extra (point + value) ของทั้งบิล
+  const totalExtraAccum = products.reduce((sum, item) => {
+    const extraPoint = sumArray(item.points?.point_extra_point);
+    const extraValue = sumArray(item.points?.point_extra_value);
+    return sum + extraPoint + extraValue;
+  }, 0);
+
+  const totalExtraAccumDisplay = Number(totalExtraAccum).toLocaleString("th-TH");
+
   const totalPrice = products.reduce(
     (sum, it) => sum + (Number.isFinite(it.amount) ? it.amount : 0),
     0
@@ -202,6 +216,8 @@ export default function OrderHistoryDetail() {
                         <p>
                           {item.qty} x {item.product_name}
                         </p>
+                        <p className="text-xs text-gray-500">บรรจุ : {item.packing_list}</p>
+
 
                         {(item.points.standard_point) > 0 && (
                           <p className="text-xs text-gray-500">
@@ -284,7 +300,10 @@ export default function OrderHistoryDetail() {
             <div className="mt-4 border-t pt-2 text-sm text-gray-800">
               <div className="flex justify-between font-semibold">
                 <p className="sarabun-font">จำนวนรวม (ลัง)</p>
-                <p>{totalQty} / คะแนน {Number(totalQtyPoint ?? 0).toLocaleString()}</p>
+                <p>
+                  {totalQty} / คะแนน {Number(totalQtyPoint ?? 0).toLocaleString("th-TH")}
+                  {" "} / คะแนนสะสม {totalExtraAccumDisplay}
+                </p>
               </div>
 
               <div className="flex justify-between font-semibold text-lg text-green-700 mt-1">
