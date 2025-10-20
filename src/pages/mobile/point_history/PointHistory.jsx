@@ -9,11 +9,13 @@ import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
 import { AuthContext } from "../../../contexts/AuthContext";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
+import { Spin } from "antd";
+
 export default function PointHistory() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("receive"); // Default
-  const [transactionData, setTransactionData] = useState([]);
-
+  const [transactionData, setTransactionData] = useState([]); // สำหรับ use/expire
+  const [orderData, setOrderData] = useState([]); // สำหรับ receive (แบบ OrderHistory)
   const navigate = useNavigate();
   const { userInfo } = useContext(AuthContext);
 
@@ -24,33 +26,62 @@ export default function PointHistory() {
     { id: "expire", label: "คะแนนใกล้หมดอายุ", color: "border-orange-500" },
   ];
 
-
   useEffect(() => {
-    const fetchPointHistory = async () => {
+    const fetchData = async () => {
       setLoading(true);
-      console.log('activeTab : ', activeTab)
-      try {
-        const response = await useServiceAPI.get(paths.pathLogPoint, {
-          platform: "web",
-          type: activeTab,
-          page: "all"
-        });
 
-        if (response.status === 200 && response.data?.point) {
-          // ดึง array point จาก API มา set state
-          setTransactionData(response.data.point);
+      try {
+        if (activeTab === "receive") {
+          // 🔹 ดึงแบบ OrderHistory
+          setOrderData([]); // เคลียร์ก่อน
+          const requestData = {
+            platform: "web",
+            keyword: "",
+            use_flag: "1",
+            user_id: "",
+            dealer_id: "",
+            sub_dealer_id: "",
+            farmer_id: "",
+            trasaction_status_code: "",
+            payment_status_code: "",
+            status_code: "ODC", // เหมือน OrderHistory แท็บสำเร็จ
+            page: "all",
+            page_length: 1,
+            page_size: 10,
+          };
+
+          const response = await useServiceAPI.get(paths.pathSalePointCollectList, requestData);
+          if (response.status === 200) {
+            const rawData = response.data?.data ?? [];
+            setOrderData(rawData);
+          } else {
+            setOrderData([]);
+          }
         } else {
+          // 🔸 ใช้ API เดิมของ PointHistory
           setTransactionData([]);
+          const response = await useServiceAPI.get(paths.pathLogPoint, {
+            platform: "web",
+            type: activeTab, // "use" | "expire"
+            page: "all",
+          });
+
+          if (response.status === 200 && response.data?.point) {
+            setTransactionData(response.data.point);
+          } else {
+            setTransactionData([]);
+          }
         }
       } catch (error) {
         console.error("Error fetching point history:", error);
-        setTransactionData([]);
+        if (activeTab === "receive") setOrderData([]);
+        else setTransactionData([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPointHistory();
+    fetchData();
   }, [activeTab]);
 
   const renderCampaignLabel = (item) => {
@@ -70,29 +101,13 @@ export default function PointHistory() {
   const getStatusInfo = (code) => {
     switch (code) {
       case "RTP":
-        return {
-          text: "รอยืนยัน",
-          textColor: "#FFFFFF",
-          bgColor: "#F89E18",
-        };
+        return { text: "รอยืนยัน", textColor: "#FFFFFF", bgColor: "#F89E18" };
       case "RTD":
-        return {
-          text: "กำลังจัดส่ง",
-          textColor: "#FFFFFF",
-          bgColor: "#F89E18",
-        };
+        return { text: "กำลังจัดส่ง", textColor: "#FFFFFF", bgColor: "#F89E18" };
       case "RTV":
-        return {
-          text: "จัดส่งสำเร็จ",
-          textColor: "#FFFFFF",
-          bgColor: "#009845",
-        };
+        return { text: "จัดส่งสำเร็จ", textColor: "#FFFFFF", bgColor: "#009845" };
       default:
-        return {
-          text: code || "-",
-          textColor: "#000000",
-          bgColor: "#E0E0E0",
-        };
+        return { text: code || "-", textColor: "#000000", bgColor: "#E0E0E0" };
     }
   };
 
@@ -106,7 +121,7 @@ export default function PointHistory() {
         <UserPointsSection />
 
         {/* Section Header */}
-        <SectionHeader title="ประวัติการแลกคะแนน" icon="/img/icons/trophy.png" />
+        <SectionHeader title="ประวัติการทำรายการคะแนน" icon="/img/icons/trophy.png" />
 
         {/* Tabs */}
         <div className="w-full max-w-md mt-4 flex space-x-3 border-b">
@@ -122,61 +137,145 @@ export default function PointHistory() {
           ))}
         </div>
 
-        {/* Transactions List */}
+        {/* Content */}
         <div className="w-full max-w-md mt-4">
-          {transactionData.length > 0 ? (
-            transactionData.map((item, idx) => (
-              <div
-                key={idx}
-                className="flex justify-between items-center bg-white p-3 rounded-lg shadow-md mb-2"
-              >
-                <div className="flex gap-2 flex-wrap">
-                  <img src="/img/icons/point.png" className="h-5 w-5 my-auto" alt="point-icon" />
-                  <div>
+          {loading ? (
+            <div className="py-5 flex justify-center">
+              <Spin />
+            </div>
+          ) : activeTab === "receive" ? (
+            // ✅ แสดงเหมือน OrderHistory
+            <>
+              <h5 className="sarabun-font text-gray-700 mb-2">รายการทั้งหมด {orderData.length} รายการ</h5>
+              <div className="mt-2 space-y-3 min-h-[24px] flex flex-col justify-center items-center">
+                {
+                <div
+                  key={0}
+                  className={`flex justify-between items-start p-4 bg-white rounded-lg shadow-md border-l-4 cursor-pointer w-full`}
+                >
+                  <div className="flex flex-col">
+                    <p className="text-gray-500 sarabun-font text-sm">asf</p>
+                    <p className="text-gray-900 sarabun-font text-sm font-bold mt-1">
+                      เลขที่ asf
+                    </p>
+                  </div>
 
-                    {activeTab == "receive" ? <p className="text-gray-500 text-sm sarabun-font">{item.created_at.split('.')[0]}</p> : ""}
-                    {activeTab == "receive" ? <p className="text-gray-700 text-sm sarabun-font">
-                      {item.document_number ? 'Document No: ' + item.document_number : "Register Point"}</p> : ""}
-
-
-                    {activeTab == "use" ? <p className="text-gray-500 text-sm sarabun-font">{item.created_at.split('.')[0]} | {item.page}</p> : ""}
-                    {activeTab == "use" ? <p className="text-gray-700 text-sm sarabun-font">Reward Code : {item.reward_code}</p> : ""}
-                    {activeTab == "use" ? <p className="text-gray-700 text-sm sarabun-font truncate">Reward Name : {item.reward_name}</p> : ""}
-
-
-                    {activeTab === "use" && (() => {
-                      const status = getStatusInfo(item.status_tran);
-                      return (
-                        <BadgeStatus
-                          text={status.text}
-                          bgColor={status.bgColor}
-                          textColor={status.textColor}
-                        />
-                      );
-                    })()}
-
+                  <div className="flex flex-col items-end text-right">
+                    <p className={`sarabun-font font-semibold `}>สมัครสามาชิก</p>
+                    <p className="text-gray-700 sarabun-font text-xs font-semibold mt-1">
+                    ฟหด
+                    </p>
                   </div>
                 </div>
-                <p
-                  className={`font-bold sarabun-font ${activeTab === "use" ? "text-red-600" : "text-green-600"
-                    }`}
-                >
+                }
+                {orderData.length > 0 ? (
+                  orderData.map((order, index) => {
+                    const statusColor = "text-green-600";
+                    const borderColor = "border-green-500";
+                    return (
+                      <div
+                        key={index + 1}
+                        onClick={() =>
+                          navigate("/mobile/order-history/detail", {
+                            state: { document_number: order.document_number },
+                          })
+                        }
+                        className={`flex justify-between items-start p-4 bg-white rounded-lg shadow-md border-l-4 ${borderColor} cursor-pointer w-full`}
+                      >
+                        <div className="flex flex-col">
+                          <p className="text-gray-500 sarabun-font text-sm">{order.updated_at}</p>
+                          <p className="text-gray-900 sarabun-font text-sm font-bold mt-1">
+                            เลขที่ {order.document_number}
+                          </p>
+                        </div>
 
-                  {renderCampaignLabel(item)}{" "}
-                  {activeTab === "use" ? `-${item.point}` : `+${item.point}`}
+                        <div className="flex flex-col items-end text-right">
+                          <p className={`sarabun-font font-semibold ${statusColor}`}>รับสินค้าสำเร็จ</p>
+                          <p className="text-gray-700 sarabun-font text-xs font-semibold mt-1">
+                            {order.line_product} รายการ/รวม{order.net_amount_display}/คะแนน{" "}
+                            {Number(order.point ?? 0).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="text-center text-gray-500">ไม่มีข้อมูล</p>
+                )}
 
-                </p>
+
               </div>
-            ))
+            </>
           ) : (
-            <p className="text-center text-gray-500 mt-4">ไม่มีข้อมูล</p>
+            // 🔸 แท็บอื่น ใช้ layout เดิมของ PointHistory
+            <>
+              {transactionData.length > 0 ? (
+                transactionData.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex justify-between items-center bg-white p-3 rounded-lg shadow-md mb-2"
+                  >
+                    <div className="flex gap-2 flex-wrap">
+                      <img src="/img/icons/point.png" className="h-5 w-5 my-auto" alt="point-icon" />
+                      <div>
+                        {/* use */}
+                        {activeTab === "use" && (
+                          <>
+                            <p className="text-gray-500 text-sm sarabun-font">
+                              {item.created_at.split(".")[0]} | {item.page}
+                            </p>
+                            <p className="text-gray-700 text-sm sarabun-font">
+                              Reward Code : {item.reward_code}
+                            </p>
+                            <p className="text-gray-700 text-sm sarabun-font truncate">
+                              Reward Name : {item.reward_name}
+                            </p>
+                            {(() => {
+                              const status = getStatusInfo(item.status_tran);
+                              return (
+                                <BadgeStatus
+                                  text={status.text}
+                                  bgColor={status.bgColor}
+                                  textColor={status.textColor}
+                                />
+                              );
+                            })()}
+                          </>
+                        )}
+
+                        {/* expire / อื่น ๆ */}
+                        {activeTab !== "use" && activeTab !== "receive" && (
+                          <>
+                            <p className="text-gray-500 text-sm sarabun-font">
+                              {item.created_at.split(".")[0]}
+                            </p>
+                            <p className="text-gray-700 text-sm sarabun-font">
+                              {item.document_number
+                                ? "Document No: " + item.document_number
+                                : "Register Point"}
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <p
+                      className={`font-bold sarabun-font ${activeTab === "use" ? "text-red-600" : "text-green-600"
+                        }`}
+                    >
+                      {renderCampaignLabel(item)} {activeTab === "use" ? `-${item.point}` : `+${item.point}`}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-gray-500 mt-4">ไม่มีข้อมูล</p>
+              )}
+            </>
           )}
         </div>
-
 
         {/* Back Button */}
         <BackButton url="/mobile/main" />
       </div>
-    </MobileLayout >
+    </MobileLayout>
   );
 }

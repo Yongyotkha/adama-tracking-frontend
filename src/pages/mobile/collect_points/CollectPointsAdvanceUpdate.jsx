@@ -212,7 +212,7 @@ export default function CollectPointsAdvanceUpdate() {
             />
           </div>
 
-          <div className="mt-3">
+          {/* <div className="mt-3">
             <CameraMobile
               label="ถ่ายรูปบิลเงินสดหรือใบสั่งสินค้า"
               required
@@ -223,10 +223,10 @@ export default function CollectPointsAdvanceUpdate() {
               allowTorch={true}
               uploadOnCapture
               uploadMode="activity"
-              liffId="2007785344-oN4zkdDM"                      // ⬅️ ไม่มีช่องว่าง
+              liffId="2007785075-3Yjw7OdO"                      // ⬅️ ไม่มีช่องว่าง
               returnPath="/mobile/collect-points/advance-notice" // ⬅️ path กลับเข้า LIFF
             />
-          </div>
+          </div> */}
 
           <div className="mt-3">
             <CameraMobile
@@ -239,7 +239,7 @@ export default function CollectPointsAdvanceUpdate() {
               allowTorch={true}
               uploadOnCapture
               uploadMode="activity"
-              liffId="2007785344-oN4zkdDM"                      // ⬅️ ไม่มีช่องว่าง
+              liffId="2007785075-3Yjw7OdO"                      // ⬅️ ไม่มีช่องว่าง
               returnPath="/mobile/collect-points/advance-notice" // ⬅️ path กลับเข้า LIFF
             />
           </div>

@@ -232,7 +232,7 @@ export default function CollectPointsAdvance() {
             <Input value={user?.phone_number ?? ""} disabled className="h-10 rounded-md sarabun-font bg-gray-100" />
           </div>
 
-          <div className="mt-3">
+          {/* <div className="mt-3">
             <MobileCameraAuto
               label="ถ่ายรูปบิลเงินสดหรือใบสั่งสินค้า"
               required
@@ -246,7 +246,7 @@ export default function CollectPointsAdvance() {
               uploadExtra={{ document_number: historydetail?.document_number ?? documentNumber }} // NEW
               onUploadSuccess={() => { }}
             />
-          </div>
+          </div> */}
 
           <div className="mt-3">
             <MobileCameraAuto

@@ -295,7 +295,7 @@ export default function OrderHistoryDetail() {
           </div>
         </div>
 
-        <BackButton url="/mobile/order-history" />
+        <BackButton />
 
 
         {/* Success Points Modal */}

@@ -83,23 +83,7 @@ export default function OrderHistory() {
         <UserPointsSection />
         <SectionHeader title="รายละเอียดการสั่งซื้อ" icon="/img/icons/bill.png" />
 
-        {/* Tabs */}
-        {/* <div className="w-full max-w-md mt-4 flex space-x-3 border-b">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-2 text-sm font-semibold text-center sarabun-font ${activeTab === tab.id
-                ? `border-b-2 ${tab.color} ${tab.border}`
-                : "text-gray-400"
-                }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div> */}
 
-        {/* Order List */}
         <div className="w-full max-w-md mt-4">
           <h5 className="sarabun-font text-gray-700">รายการทั้งหมด {orderData.length} รายการ</h5>
           <div className="mt-2 space-y-3 min-h-[24px] flex flex-col justify-center items-center">
