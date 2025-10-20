@@ -204,13 +204,12 @@ export default function OrderHistoryDetail() {
                           บรรจุ: {item.packing_list}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm sarabun-font text-gray-900">{item.amount_display} บาท</p>
-                      </div>
+
                     </div>
 
                     {/* คะแนนต่อบรรทัด */}
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2 text-[12px] text-gray-600 sarabun-font">
+                    {/* คะแนนต่อบรรทัด — UPDATED: ไม่แบ่งครึ่ง, ชิดซ้าย */}
+                    <div className="mt-2 space-y-1 text-[12px] text-gray-600 sarabun-font">
                       {item.master_point > 0 && (
                         <div className="flex justify-between">
                           <span>Master Point</span>
@@ -236,7 +235,7 @@ export default function OrderHistoryDetail() {
                         </div>
                       )}
                       {Number(item?.points?.check_point ?? 0) > 0 && (
-                        <div className="flex justify-between col-span-2">
+                        <div className="flex justify-between">
                           <span>คะแนน</span>
                           <span className="font-semibold text-green-700">
                             {nf(item?.points?.check_point)}
@@ -244,6 +243,7 @@ export default function OrderHistoryDetail() {
                         </div>
                       )}
                     </div>
+
                   </div>
                 ))
               ) : (
@@ -253,15 +253,6 @@ export default function OrderHistoryDetail() {
 
             {/* สรุปผลรวม */}
             <div className="mt-4 border-t pt-3">
-              <div className="flex justify-between text-sm sarabun-font text-gray-700">
-                <span>จำนวนรายการ</span>
-                <span className="font-medium">{nf(summary.totalQty)}</span>
-              </div>
-              <div className="flex justify-between text-sm sarabun-font text-gray-700 mt-1">
-                <span>ยอดสุทธิ</span>
-                <span className="font-medium">{summary.totalAmountDisplay} บาท</span>
-              </div>
-
               <div className="h-3" />
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm sarabun-font">
                 <div className="flex justify-between text-gray-700">
