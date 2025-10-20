@@ -146,25 +146,27 @@ export default function PointHistory() {
           ) : activeTab === "receive" ? (
             // ✅ แสดงเหมือน OrderHistory
             <>
-              <h5 className="sarabun-font text-gray-700 mb-2">รายการทั้งหมด {orderData.length} รายการ</h5>
+              {/* <h5 className="sarabun-font text-gray-700 mb-2">รายการทั้งหมด {orderData.length} รายการ</h5> */}
               <div className="mt-2 space-y-3 min-h-[24px] flex flex-col justify-center items-center">
+
                 {
+                
                 <div
                   key={0}
                   className={`flex justify-between items-start p-4 bg-white rounded-lg shadow-md border-l-4 cursor-pointer w-full`}
                 >
+                    
                   <div className="flex flex-col">
-                    <p className="text-gray-500 sarabun-font text-sm">asf</p>
-                    <p className="text-gray-900 sarabun-font text-sm font-bold mt-1">
-                      เลขที่ asf
+                    
+                    <p className="text-gray-500 sarabun-font text-sm">วันที่สมัครสมาชิก</p>
+                    <p className="text-gray-900 sarabun-font text-xs font-bold mt-1">
+                      สมัครสมาชิก
                     </p>
                   </div>
 
                   <div className="flex flex-col items-end text-right">
-                    <p className={`sarabun-font font-semibold `}>สมัครสามาชิก</p>
-                    <p className="text-gray-700 sarabun-font text-xs font-semibold mt-1">
-                    ฟหด
-                    </p>
+                    <p className="text-green-700 sarabun-font text-sm font-semibold mt-1">+5,000 คะแนน</p>
+
                   </div>
                 </div>
                 }
@@ -184,16 +186,16 @@ export default function PointHistory() {
                       >
                         <div className="flex flex-col">
                           <p className="text-gray-500 sarabun-font text-sm">{order.updated_at}</p>
-                          <p className="text-gray-900 sarabun-font text-sm font-bold mt-1">
+                          <p className="text-gray-900 sarabun-font text-xs font-bold mt-1">
                             เลขที่ {order.document_number}
                           </p>
                         </div>
 
                         <div className="flex flex-col items-end text-right">
-                          <p className={`sarabun-font font-semibold ${statusColor}`}>รับสินค้าสำเร็จ</p>
-                          <p className="text-gray-700 sarabun-font text-xs font-semibold mt-1">
-                            {order.line_product} รายการ/รวม{order.net_amount_display}/คะแนน{" "}
-                            {Number(order.point ?? 0).toLocaleString()}
+                          {/* <p className={`sarabun-font font-semibold ${statusColor}`}>รับสินค้าสำเร็จ</p> */}
+                          <p className="text-green-700 sarabun-font text-sm font-semibold mt-1">
+                            +{" "}
+                            {Number(order.point ?? 0).toLocaleString()} คะแนน
                           </p>
                         </div>
                       </div>
