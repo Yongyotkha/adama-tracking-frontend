@@ -239,7 +239,7 @@ export default function OrderHistoryDetail() {
             {/* --- กล่องพรีวิว: รูปหน้าบิล/ใบสั่งสินค้า จาก API --- */}
             <div className="mt-3">
               <label className="block text-sm text-gray-700 sarabun-font mb-1">
-                รูปหน้าบิลเงินสดหรือใบสั่งสินค้า
+                บิลเงินสดหรือใบสั่งสินค้า
                 <span className="text-red-500">*</span>
               </label>
               {historydetail?.bill && historydetail.bill.length > 0 ? (
@@ -261,7 +261,7 @@ export default function OrderHistoryDetail() {
             {/* --- กล้อง: ถ่ายรูปสินค้าที่ได้รับ* --- */}
             <div className="mt-3">
               <label className="block text-sm text-gray-700 sarabun-font mb-1">
-                รูปสินค้าที่ได้รับ
+                รูปบิลเงินสดและสินค้าที่ได้รับ
                 <span className="text-red-500">*</span>
               </label>
               {historydetail?.picture && historydetail.picture.length > 0 ? (

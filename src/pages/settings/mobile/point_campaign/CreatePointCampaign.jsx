@@ -709,7 +709,7 @@ export default function CreatePointCampaign() {
 
       <BoxPrimary>
         <div className="flex items-center justify-between">
-          <label htmlFor="Banner" title="Banner">Files</label>
+          <label htmlFor="Banner" title="Banner">Upload Proposal</label>
           {!isView && (
             <ActionButton mode="add" text="Upload File" onClick={() => fileUploadRefReceive.current?.triggerUpload()} />
           )}
