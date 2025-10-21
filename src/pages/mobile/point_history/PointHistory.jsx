@@ -189,7 +189,7 @@ export default function PointHistory() {
                       <div
                         key={index + 1}
                         onClick={() =>
-                          navigate("/mobile/order-history/detail", {
+                          navigate("/mobile/point-history/detail", {
                             state: { document_number: order.document_number },
                           })
                         }
