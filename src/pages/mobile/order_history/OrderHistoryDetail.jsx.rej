@@ -1,0 +1,198 @@
+diff a/src/pages/mobile/order_history/OrderHistoryDetail.jsx b/src/pages/mobile/order_history/OrderHistoryDetail.jsx	(rejected hunks)
+@@ -107,191 +107,182 @@
+         qty,
+         product_name: p?.product_name ?? "-",
+         product_code: p?.product_code ?? "-",
+         packing_list: p?.packing_list ?? "-",
+         amount,
+         amount_display: nf(amount),
+         points: p?.points ?? {},
+         master_point: Number(p?.points?.standard_point ?? 0),
+         x_point: pointXSum,
+         extra_point: extraPointSum,
+         extra_value: extraValueSum,
+       };
+     });
+   }, [historydetail]);
+ 
+   const summary = useMemo(() => {
+     const totalQty = products.reduce((s, it) => s + (Number.isFinite(it.qty) ? it.qty : 0), 0);
+     const totalAmount = products.reduce((s, it) => s + (Number.isFinite(it.amount) ? it.amount : 0), 0);
+ 
+     // รวม check_point (คะแนนที่ใช้ตัดสินรวม)
+     const totalCheckPoint = products.reduce(
+       (s, it) => s + Number(it?.points?.check_point ?? 0),
+       0
+     );
+ 
+     // รวม Extra (point + value) ของทั้งบิล
+     const totalExtraAccum = products.reduce(
+       (s, it) => s + (Number(it.extra_point) + Number(it.extra_value)),
+       0
+     );
+ 
+     // รวม X Point (ถ้ามี)
+     const totalXPoint = products.reduce((s, it) => s + Number(it.x_point ?? 0), 0);
+ 
+     // รวม Master Point (standard_point)
+     const totalMasterPoint = products.reduce(
+       (s, it) => s + Number(it.master_point ?? 0),
+       0
+     );
+ 
+     return {
+       totalQty,
+       totalAmount,
+       totalAmountDisplay: nf(totalAmount),
+       totalCheckPoint,
+       totalExtraAccum,
+       totalXPoint,
+       totalMasterPoint,
+     };
+   }, [products]);
+ 
+   return (
+     <MobileLayout loading={loading}>
+       <div className="flex flex-col items-center w-full min-h-full px-4 pb-20">
+         {/* ส่วนหัวผู้ใช้ + คะแนน (ถ้าไม่ต้องการสามารถลบ 2 บรรทัดนี้ได้) */}
+         <HeadSectionUser />
+         <UserPointsSection />
+ 
+         <SectionHeader title="รายละเอียดคำสั่งซื้อ" icon="/img/icons/bill.png" />
+ 
+         {/* Order Card */}
+         <div className="bg-white rounded-2xl shadow-sm p-4 w-full max-w-md mt-4">
+           {/* แถวบน: วันที่/เลขที่/สถานะ */}
+           <div className="flex items-start justify-between gap-3">
+             <div className="flex-1">
+               <div className="text-xs text-gray-500 sarabun-font">{displayDateTime}</div>
+               <p className="text-sm font-semibold text-gray-900 sarabun-font mt-1">
+                 เลขที่ {historydetail?.document_number ?? documentNumber ?? "-"}
+               </p>
+               {(historydetail?.dealer_name || historydetail?.sub_dealer_name) && (
+                 <p className="text-xs text-gray-500 sarabun-font mt-1">
+                   {historydetail?.dealer_name}
+                   {historydetail?.sub_dealer_name ? ` • ${historydetail?.sub_dealer_name}` : ""}
+                 </p>
+               )}
+             </div>
+ 
+           </div>
+ 
+           {/* สินค้า */}
+           <div className="mt-4 border-t pt-3">
+             <h3 className="text-green-600 sarabun-font font-semibold">รายการสินค้า</h3>
+ 
+             <div className="mt-2 space-y-3">
+               {products.length > 0 ? (
+                 products.map((item, idx) => (
+                   <div
+                     key={`${item.product_code}-${idx}`}
+                     className="rounded-xl border border-gray-100 p-3"
+                   >
+                     <div className="flex justify-between items-start gap-3">
+                       <div className="flex-1">
+                         <p className="text-sm sarabun-font text-gray-900">
+                           {item.qty} × {item.product_name}
+                         </p>
+                         <p className="text-[11px] text-gray-500 sarabun-font mt-0.5">
+                           {item.product_code ? `รหัส: ${item.product_code} • ` : ""}
+                           บรรจุ: {item.packing_list}
+                         </p>
+                       </div>
+-                      <div className="text-right">
+-                        <p className="text-sm sarabun-font text-gray-900">{item.amount_display} บาท</p>
+-                      </div>
++
+                     </div>
+ 
+                     {/* คะแนนต่อบรรทัด */}
+-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2 text-[12px] text-gray-600 sarabun-font">
++                    {/* คะแนนต่อบรรทัด — UPDATED: ไม่แบ่งครึ่ง, ชิดซ้าย */}
++                    <div className="mt-2 space-y-1 text-[12px] text-gray-600 sarabun-font">
+                       {item.master_point > 0 && (
+                         <div className="flex justify-between">
+                           <span>Master Point</span>
+                           <span className="font-medium">{nf(item.master_point)}</span>
+                         </div>
+                       )}
+                       {item.x_point > 0 && (
+                         <div className="flex justify-between">
+                           <span>X Point</span>
+                           <span className="font-medium">{nf(item.x_point)}</span>
+                         </div>
+                       )}
+                       {item.extra_point > 0 && (
+                         <div className="flex justify-between">
+                           <span>Extra (Point)</span>
+                           <span className="font-medium">{nf(item.extra_point)}</span>
+                         </div>
+                       )}
+                       {item.extra_value > 0 && (
+                         <div className="flex justify-between">
+                           <span>Extra (Value)</span>
+                           <span className="font-medium">{nf(item.extra_value)}</span>
+                         </div>
+                       )}
+                       {Number(item?.points?.check_point ?? 0) > 0 && (
+-                        <div className="flex justify-between col-span-2">
++                        <div className="flex justify-between">
+                           <span>คะแนน</span>
+                           <span className="font-semibold text-green-700">
+                             {nf(item?.points?.check_point)}
+                           </span>
+                         </div>
+                       )}
+                     </div>
++
+                   </div>
+                 ))
+               ) : (
+                 <p className="text-gray-500 text-sm sarabun-font">ไม่มีรายการสินค้า</p>
+               )}
+             </div>
+ 
+             {/* สรุปผลรวม */}
+             <div className="mt-4 border-t pt-3">
+-              <div className="flex justify-between text-sm sarabun-font text-gray-700">
+-                <span>จำนวนรายการ</span>
+-                <span className="font-medium">{nf(summary.totalQty)}</span>
+-              </div>
+-              <div className="flex justify-between text-sm sarabun-font text-gray-700 mt-1">
+-                <span>ยอดสุทธิ</span>
+-                <span className="font-medium">{summary.totalAmountDisplay} บาท</span>
+-              </div>
+-
+               <div className="h-3" />
+               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm sarabun-font">
+                 <div className="flex justify-between text-gray-700">
+                   <span>Master Point รวม</span>
+                   <span className="font-medium">{nf(summary.totalMasterPoint)}</span>
+                 </div>
+                 <div className="flex justify-between text-gray-700">
+                   <span>X Point รวม</span>
+                   <span className="font-medium">{nf(summary.totalXPoint)}</span>
+                 </div>
+                 <div className="flex justify-between text-gray-700">
+                   <span>คะแนนสะสมพิเศษ</span>
+                   <span className="font-medium">{nf(summary.totalExtraAccum)}</span>
+                 </div>
+                 <div className="flex justify-between text-gray-900">
+                   <span className="font-semibold">คะแนนรวม</span>
+                   <span className="font-semibold text-green-700">
+                     {nf(summary.totalCheckPoint)} คะแนน
+                   </span>
+                 </div>
+               </div>
+             </div>
+           </div>
+         </div>
+ 
+         {/* ปุ่มกลับ */}
+         <div className="w-full max-w-md mt-4">
+           <BackButton />
+         </div>
+       </div>
+     </MobileLayout>
+   );
+ }
