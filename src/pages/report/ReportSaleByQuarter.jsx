@@ -13,6 +13,14 @@ import { AuthContext } from "../../contexts/AuthContext";
 import Title from "../../components/title/Title";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
 import DynamicButton from "../../components/button/DynamicButton";
+import ExportPeriodExcelButton from "../../components/export/ExportPeriodExcelButton";
+
+// ✅ ใช้ dayjs เฉพาะ fallback ปีปัจจุบัน
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export default function ReportSaleByMonth() {
   const [loading, setLoading] = useState(false);
@@ -420,6 +428,25 @@ export default function ReportSaleByMonth() {
     });
   };
 
+  // ---- helper ที่ยังใช้: แปลง year_code ให้เป็นข้อความ ----
+  const toText = (v) => {
+    if (v == null) return "";
+    if (typeof v === "string" || typeof v === "number") return String(v);
+    return (
+      v.name ?? // year มักอยู่ใน name เช่น "2025"
+      v.code ??
+      v.value ??
+      v.year ??
+      v.label ??
+      ""
+    );
+  };
+
+  // ✅ สร้าง yearText ไว้ใช้ทั้งชื่อไฟล์และ payload (fallback เป็นปีปัจจุบันด้วย dayjs)
+  const yearText =
+    toText(tableParams?.filters?.year_code) ||
+    dayjs().tz("Asia/Bangkok").format("YYYY");
+
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
@@ -498,13 +525,31 @@ export default function ReportSaleByMonth() {
                 className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
 
               />
+              {console.log("tableParams", tableParams?.filters?.year_code)}
+              <ExportPeriodExcelButton
+                text="Export Excel"
+                leftTopTitle="Quarter"
+                fileName={`Sales_Report_By_Quarter_${yearText}`}
+                getPayload={async () => {
+                  const values = await formCustom.validateFields();
+                  return {
+                    area_id: values.area_id || null,
+                    sale_id: values.sale_id || null,
+                    product_name: values.product_name || null,
+                    dealer_id: values.dealer_id || null,
+                    // ✅ ส่ง year_code เป็น primitive
+                    year_code: yearText || null,
+                  };
+                }}
+                requestData={(payload) =>
+                  useServiceAPI.get(paths.pathReportQuarterly, payload)
+                }
+              />
             </div>
           </BoxPrimary>
 
 
         </Form>
-
-
 
         <BoxPrimary>
           <TableCustomComponent
