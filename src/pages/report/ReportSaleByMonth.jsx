@@ -455,6 +455,19 @@ export default function ReportSaleByMonth() {
       (products.find((o) => o.value === vals.product_name) || {}).label ||
       vals.product_name;
 
+    // ปีจาก filter (รองรับกรณี year_code เป็น object) fallback ปีปัจจุบัน
+    // const yearText =
+    //   toText(tableParams?.filters?.year_code) ||
+    //   dayjs().tz("Asia/Bangkok").format("YYYY");
+
+    // const parts = [
+    //   `Sales_Report_By_Month_${yearText}`,
+    //   areaLabel ? `Area_${slug(areaLabel)}` : null,
+    //   salesLabel ? `Sales_${slug(salesLabel)}` : null,
+    //   dealerLabel ? `Dealer_${slug(dealerLabel)}` : null,
+    //   productLabel ? `Product_${slug(productLabel)}` : null,
+    // ].filter(Boolean);
+
     const parts = [
       `Sales_Report_By_Month`,
       areaLabel ? `${slug(areaLabel)}` : null,
