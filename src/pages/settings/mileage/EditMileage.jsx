@@ -7,6 +7,9 @@ import { Form } from "antd";
 import { AuthContext } from "../../../contexts/AuthContext";
 import FormCustom from "../../../components/form_custom/FormCustom";
 import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+dayjs.extend(customParseFormat);
+
 import useServiceAPI from "../../../services/CorsService";
 
 export default function EditMileage() {
@@ -33,44 +36,23 @@ export default function EditMileage() {
       if (response.status === 200) {
         const { data } = response;
 
-        const updatedFields = [
-          {
-            label: "Date",
-            name: "date",
-            type: "date",
-            required: true,
-            col: 6,
-            value: data.date || "",
-            disabled: true,
-          },
-          {
-            label: "Name",
-            name: "name",
-            type: "text",
-            required: true,
-            col: 6,
-            value: userInfo.name,
-            disabled: true,
-          },
-          {
-            label: "Mileage",
-            name: "mileage",
-            type: "text",
-            required: true,
-            col: 6,
-            value: data.mileage || "",
-            disabled: false,
-          },
-        ];
+        const initialValues = {
+          date: data.date ? dayjs(data.date, "YYYY-MM-DD") : null, // ✅ ต้องเป็น dayjs
+          name: userInfo.name || "",
+          mileage: data.mileage ?? "",
+        };
 
-        setFormFields(updatedFields);
+        setFormFields([
+          // ❗ แนะนำ “ไม่ต้อง” ใช้ value ใน field สำหรับ DatePicker
+          { label: "Date", name: "date", type: "date", required: true, col: 6, disabled: true },
+          { label: "Name", name: "name", type: "text", required: true, col: 6, disabled: true },
+          { label: "Mileage", name: "mileage", type: "text", required: true, col: 6, disabled: false },
+        ]);
 
-        const initialValues = updatedFields.reduce((acc, field) => {
-          acc[field.name] = field.value;
-          return acc;
-        }, {});
         form.setFieldsValue(initialValues);
       }
+
+
     } catch (error) {
       console.error("Error fetch mileage detail", error);
     } finally {
