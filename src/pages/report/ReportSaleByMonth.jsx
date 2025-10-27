@@ -13,6 +13,14 @@ import { AuthContext } from "../../contexts/AuthContext";
 import Title from "../../components/title/Title";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
 import DynamicButton from "../../components/button/DynamicButton";
+import ExportMonthlyExcelButton from "../../components/export/ExportMonthlyExcelButton";
+
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export default function ReportSaleByMonth() {
   const [loading, setLoading] = useState(false);
@@ -422,6 +430,57 @@ export default function ReportSaleByMonth() {
     });
   };
 
+  // แปลง object -> ข้อความสั้นๆ (รองรับ year_code ที่เป็น {id,name})
+  const toText = (v) => {
+    if (v == null) return "";
+    if (typeof v === "string" || typeof v === "number") return String(v);
+    return v.name ?? v.code ?? v.value ?? v.year ?? v.label ?? "";
+  };
+
+  // ทำให้ label เป็น slug สั้นๆอ่านง่าย
+  const slug = (s) => String(s ?? "").trim().replace(/\s+/g, "_");
+
+  // สร้างชื่อไฟล์ตามฟิลเตอร์ + เวลาปัจจุบัน
+  const buildMonthlyReportFileName = () => {
+    const vals = formCustom.getFieldsValue(); // {area_id, sale_id, dealer_id, product_name}
+
+    // map value -> label
+    const areaLabel =
+      (areaList.find((o) => o.value === vals.area_id) || {}).label;
+    const salesLabel =
+      (sales.find((o) => o.value === vals.sale_id) || {}).label;
+    const dealerLabel =
+      (dealers.find((o) => o.value === vals.dealer_id) || {}).label;
+    const productLabel =
+      (products.find((o) => o.value === vals.product_name) || {}).label ||
+      vals.product_name;
+
+    // ปีจาก filter (รองรับกรณี year_code เป็น object) fallback ปีปัจจุบัน
+    // const yearText =
+    //   toText(tableParams?.filters?.year_code) ||
+    //   dayjs().tz("Asia/Bangkok").format("YYYY");
+
+    // const parts = [
+    //   `Sales_Report_By_Month_${yearText}`,
+    //   areaLabel ? `Area_${slug(areaLabel)}` : null,
+    //   salesLabel ? `Sales_${slug(salesLabel)}` : null,
+    //   dealerLabel ? `Dealer_${slug(dealerLabel)}` : null,
+    //   productLabel ? `Product_${slug(productLabel)}` : null,
+    // ].filter(Boolean);
+
+    const parts = [
+      `Sales_Report_By_Month`,
+      areaLabel ? `${slug(areaLabel)}` : null,
+      salesLabel ? `${slug(salesLabel)}` : null,
+      dealerLabel ? `${slug(dealerLabel)}` : null,
+      productLabel ? `${slug(productLabel)}` : null,
+    ].filter(Boolean);
+
+    const ts = dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD_HHmm");
+    return `${parts.join("_")}_${ts}`;
+  };
+
+
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
@@ -502,6 +561,28 @@ export default function ReportSaleByMonth() {
                 className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
 
               />
+
+              <ExportMonthlyExcelButton
+                text="Export Excel"
+                fileName={buildMonthlyReportFileName()}
+                getPayload={async () => {
+                  const values = await formCustom.validateFields();
+                  return {
+                    area_id: values.area_id || null,
+                    sale_id: values.sale_id || null,
+                    product_name: values.product_name || null,
+                    dealer_id: values.dealer_id || null,
+                    // ส่งเป็น primitive กันกรณี year_code เป็น object
+                    year_code:
+                      toText(tableParams?.filters?.year_code) ||
+                      dayjs().tz("Asia/Bangkok").format("YYYY"),
+                  };
+                }}
+                requestData={(payload) =>
+                  useServiceAPI.get(paths.pathReportMonthly, payload)
+                }
+              />
+
             </div>
           </BoxPrimary>
 
