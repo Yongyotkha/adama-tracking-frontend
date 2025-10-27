@@ -21,7 +21,7 @@ export const paths = {
   pathSalePointReceiveReward: "sale-point-receive/receive-reward",
   pathSalePointReceiveRewardConfirm: "sale-point-receive/receive-reward-confirm",
   pathLogPoint: "sale-point-receive/point-log",
-
+  pathLogPointOne: "sale-point-receive/point-log-one",
   pathUserLineDealer: "user-line/dealers",
   pathUserLineSubDealer: "user-line/sub_dealers",
 

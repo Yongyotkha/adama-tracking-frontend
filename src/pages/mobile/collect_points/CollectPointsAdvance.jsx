@@ -250,7 +250,7 @@ export default function CollectPointsAdvance() {
 
           <div className="mt-3">
             <MobileCameraAuto
-              label="ถ่ายรูปสินค้าที่ได้รับ"
+              label="ถ่ายรูปบิลเงินสดและรูปรับสินค้าที่ได้รับ"
               required
               value={productPhotos}
               onChange={setProductPhotos}

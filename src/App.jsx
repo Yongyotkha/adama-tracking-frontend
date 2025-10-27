@@ -48,7 +48,7 @@ import FarmerCreate from "./pages/customer/Farmers/FarmersCreate";
 import CameraView from "./pages/mobile/collect_points/CameraView";
 import CustomerContactList from "./pages/customer/contact/List";
 import CustomerContactFrom from "./pages/customer/contact/From";
-
+import PointHistoryDetail from "./pages/mobile/order_history/PointHistoryDetail";
 import AdvanceExpense from "./pages/expenses/advance/AdvanceExpense";
 import PdfAdvanceExpense from "./pages/pdf/ViewAdvanceExpense";
 import ProductClaim from "./pages/expenses/product_claim/ProductClaim";
@@ -468,7 +468,7 @@ const App = () => {
               <Route path="/mobile/order-history" element={< OrderHistory />} />
               <Route path="/mobile/order-history/detail" element={<OrderHistoryDetail />} />
               <Route path="/mobile/point-history" element={< PointHistory />} />
-              {/* <Route path="/mobile/point-history/detail" element={< PointHistoryDetail />} /> */}
+              <Route path="/mobile/point-history/detail" element={< PointHistoryDetail />} />
               <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
 
             </Route>
