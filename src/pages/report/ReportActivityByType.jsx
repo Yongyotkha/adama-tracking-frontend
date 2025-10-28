@@ -10,6 +10,14 @@ import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
 import Title from "../../components/title/Title";
 
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import ExportActivityTypeExcelButton from "../../components/export/ExportActivityTypeExcelButton";
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+
 export default function ReportActivityByType() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -119,9 +127,6 @@ export default function ReportActivityByType() {
 
     fetchUserDetailAndSetArea();
   }, [userInfo?.id, areaList]); // 👈 สำคัญ: ต้องรอให้ areaList พร้อมก่อน
-
-
-
 
   const fetchData = async (filtersInput = tableParams.filters) => {
     setTableLoading(true);
@@ -321,7 +326,6 @@ export default function ReportActivityByType() {
     }
   };
 
-
   const footerSummary = () => {
     const total = (key) => dataSource.reduce((sum, row) => sum + (parseFloat(row[key]) || 0), 0);
     return (
@@ -344,6 +348,26 @@ export default function ReportActivityByType() {
     );
   };
 
+  const toText = (v) => (v == null ? "" : (typeof v === "string" || typeof v === "number") ? String(v) : (v.name ?? v.label ?? v.value ?? v.code ?? ""));
+  const buildFileName = () => {
+    const f = tableParams?.filters || {};
+    const ts = dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD_HHmm");
+    const yearText = toText(f.year_code) || dayjs().tz("Asia/Bangkok").format("YYYY");
+    const areaLabel = (areaList.find((x) => x.id === f.area_id) || {}).name;
+    const salesLabel = (sales.find((x) => x.id === f.user_id) || {}).name;
+    const terrLabel = (territoryList.find((x) => x.id === f.territory) || {}).name;
+    const monthLabel = f.month ? dayjs(f.month).format("YYYY-MM") : "";
+    const parts = [
+      `Activity_Report_By_Type_${yearText}`,
+      areaLabel && `Area_${areaLabel}`,
+      salesLabel && `Sales_${salesLabel}`,
+      terrLabel && `Territory_${terrLabel}`,
+      monthLabel && `Month_${monthLabel}`,
+      ts,
+    ].filter(Boolean).join("_").replace(/[\\/:*?"<>|]+/g, "-").replace(/\s+/g, "_");
+    return parts;
+  };
+
   return (
     <MainLayout loading={loading}>
       <Title prefix="Activity Report By Type" />
@@ -354,6 +378,26 @@ export default function ReportActivityByType() {
         onChange={handleFilterChange}
         values={tableParams.filters} // <-- เพิ่มบรรทัดนี้
       />
+      <div style={{ margin: "8px 0" }}>
+        <ExportActivityTypeExcelButton
+          text="Export Excel"
+          fileName={buildFileName()}
+          getPayload={async () => {
+            const f = tableParams?.filters || {};
+            return {
+              keyword: f.keyword || "",
+              year_code: toText(f.year_code) || undefined,
+              area_id: f.area_id,
+              user_id: f.user_id,
+              dealer_id: f.dealer_id,
+              crop_id: f.crop_id,
+              territory: f.territory,
+              document_date: f.month, // ตามต้นฉบับ
+            };
+          }}
+          requestData={(payload) => useServiceAPI.get(paths.pathReportActivityType, payload)}
+        />
+      </div>
       <BoxPrimary>
         <TableCustomComponent
           header={header}
