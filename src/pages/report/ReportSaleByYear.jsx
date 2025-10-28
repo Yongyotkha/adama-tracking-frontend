@@ -14,6 +14,14 @@ import Title from "../../components/title/Title";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
 import DynamicButton from "../../components/button/DynamicButton";
 
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import ExportPeriodExcelButton from "../../components/export/ExportPeriodExcelButton";
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+
 export default function ReportSaleByMonth() {
   const [loading, setLoading] = useState(false);
   const [years, setYears] = useState([]);
@@ -415,6 +423,22 @@ export default function ReportSaleByMonth() {
     });
   };
 
+  // helper: ทำคำให้เป็น slug สั้นๆอ่านง่าย (ช่องว่าง -> _)
+  const slug = (s) => String(s ?? "").trim().replace(/\s+/g, "_");
+
+  // ใช้แปลง year_code จาก object -> string
+  const toText = (v) => {
+    if (v == null) return "";
+    if (typeof v === "string" || typeof v === "number") return String(v);
+    return v.name ?? v.code ?? v.value ?? v.year ?? v.label ?? "";
+  };
+
+  // ปีที่จะใช้ในชื่อไฟล์/ส่ง API (fallback เป็นปีปัจจุบัน)
+  const yearText =
+    toText(tableParams?.filters?.year_code) ||
+    dayjs().tz("Asia/Bangkok").format("YYYY");
+
+
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
@@ -482,6 +506,64 @@ export default function ReportSaleByMonth() {
                 className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
 
               />
+
+              {/* <ExportPeriodExcelButton
+                text="Export Excel"
+                leftTopTitle="Month"            // หัวซ้ายบนของ Excel (รายปี = กลุ่มเป็นราย "เดือน")
+                fileName={`Sales_Report_By_Year_${yearText}`} // ตัวคอมโพเนนต์จะเติม _YYYY-MM-DD_HHmm ให้อัตโนมัติ
+                getPayload={async () => {
+                  const values = await formCustom.validateFields();
+                  return {
+                    area_id: values.area_id || null,
+                    sale_id: values.sale_id || null,
+                    product_name: values.product_name || null,
+                    dealer_id: values.dealer_id || null,
+                    year_code: yearText || null, // ✅ ส่งเป็น primitive
+                    page_length: 1,
+                    page_size: 100000,
+                  };
+                }}
+                requestData={(payload) => useServiceAPI.get(paths.pathReportYearly, payload)}
+              /> */}
+
+              {(() => {
+                // ⬇️ สร้างชื่อไฟล์ด้วยฟิลเตอร์ปัจจุบัน
+                const vals = formCustom.getFieldsValue(); // { area_id, sale_id, product_name }
+                const areaLabel = (areaList.find(o => o.value === vals.area_id) || {}).label;
+                const salesLabel = (sales.find(o => o.value === vals.sale_id) || {}).label;
+                const productLabel =
+                  (products.find(o => o.value === vals.product_name) || {}).label || vals.product_name;
+
+                const fileBaseParts = [
+                  `Sales_Report_By_Year`,
+                  areaLabel ? `${slug(areaLabel)}` : null,
+                  salesLabel ? `${slug(salesLabel)}` : null,
+                  productLabel ? `${slug(productLabel)}` : null,
+                ].filter(Boolean);
+
+                const fileBase = fileBaseParts.join("_");
+                return (
+                  <ExportPeriodExcelButton
+                    text="Export Excel"
+                    leftTopTitle="Month"
+                    fileName={fileBase} // ⚠️ ไม่ต้องใส่ timestamp ที่นี่ ปุ่มจะเติมให้เอง
+                    getPayload={async () => {
+                      const values = await formCustom.validateFields();
+                      return {
+                        area_id: values.area_id || null,
+                        sale_id: values.sale_id || null,
+                        product_name: values.product_name || null,
+                        dealer_id: values.dealer_id || null,
+                        year_code: yearText || null, // ส่งเป็น primitive ให้ API
+                        page_length: 1,
+                        page_size: 100000,
+                      };
+                    }}
+                    requestData={(payload) => useServiceAPI.get(paths.pathReportYearly, payload)}
+                  />
+                );
+              })()}
+
             </div>
           </BoxPrimary>
 
