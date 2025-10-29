@@ -8,6 +8,11 @@ import { AuthContext } from "../../contexts/AuthContext";
 import Title from "../../components/title/Title";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
 import DynamicButton from "../../components/button/DynamicButton";
+import ExportActivityExpenseExcelButton from "../../components/export/ExportActivityExpenseExcelButton";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(utc); dayjs.extend(timezone);
 
 export default function ReportSaleByMonth() {
   const [loading, setLoading] = useState(false);
@@ -293,11 +298,29 @@ export default function ReportSaleByMonth() {
     });
   };
 
+  // helper
+  const toText = (v) => (v == null ? "" : (typeof v === "string" || typeof v === "number") ? String(v) : (v.name ?? v.label ?? v.value ?? v.code ?? ""));
+  const buildFileName = () => {
+    const ts = dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD_HHmm");
+    const yearText = toText(tableParams?.filters?.year_code) || dayjs().tz("Asia/Bangkok").format("YYYY");
+    const fVals = formCustom.getFieldsValue();
+    const areaLabel = (areaList.find((x) => x.value === fVals.area_id) || {}).label;
+    const salesLabel = (sales.find((x) => x.value === fVals.sale_id) || {}).label;
+    const dealerLabel = (dealers.find((x) => x.value === fVals.dealer_id) || {}).label;
+    return [
+      `Activity_Expenses_By_Month_${yearText}`,
+      areaLabel && `Area_${areaLabel}`,
+      salesLabel && `Sales_${salesLabel}`,
+      dealerLabel && `Dealer_${dealerLabel}`,
+      ts,
+    ].filter(Boolean).join("_").replace(/[\\/:*?"<>|]+/g, "-").replace(/\s+/g, "_");
+  };
+
 
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Activity Expenses Report" />
+        <Title prefix="Activity Report By Month" />
 
         <Form form={formCustom} layout="vertical">
           <BoxPrimary className="m-1 mb-4">
@@ -359,6 +382,23 @@ export default function ReportSaleByMonth() {
                 iconSrc="/img/icons/trash.png"
                 className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
 
+              />
+
+              <ExportActivityExpenseExcelButton
+                text="Export Excel"
+                fileName={buildFileName()}
+                getPayload={async () => {
+                  const v = await formCustom.validateFields();
+                  return {
+                    sale_id: v.sale_id || null,
+                    dealer_id: v.dealer_id || null,
+                    area_id: v.area_id || null,
+                    year_code: toText(tableParams?.filters?.year_code) || null,
+                    page_length: 1,
+                    page_size: 100000,
+                  };
+                }}
+                requestData={(payload) => useServiceAPI.get(paths.pathReportActivityExpense, payload)}
               />
             </div>
           </BoxPrimary>

@@ -12,6 +12,11 @@ import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
 import Title from "../../components/title/Title";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
+import ExportActivityByMonthExcelButton from "../../components/export/ExportActivityByMonthExcelButton";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(utc); dayjs.extend(timezone);
 
 export default function ReportActivityByMonth() {
   const navigate = useNavigate();
@@ -247,17 +252,50 @@ export default function ReportActivityByMonth() {
     }),
   ];
 
+  // helper
+  const toText = (v) => (v == null ? "" : (typeof v === "string" || typeof v === "number") ? String(v) : (v.name ?? v.label ?? v.value ?? v.code ?? ""));
+  const buildFileName = () => {
+    const f = tableParams?.filters || {};
+    const ts = dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD_HHmm");
+    const yearText = toText(f.year_code) || dayjs().tz("Asia/Bangkok").format("YYYY");
+    const areaLabel = (areaList.find((x) => x.id === f.area_id) || {}).name;
+    const salesLabel = (sales.find((x) => x.id === f.user_id) || {}).name;
+    return [
+      `Activity_Report_By_Month_${yearText}`,
+      areaLabel && `Area_${areaLabel}`,
+      salesLabel && `Sales_${salesLabel}`,
+      ts,
+    ].filter(Boolean).join("_").replace(/[\\/:*?"<>|]+/g, "-").replace(/\s+/g, "_");
+  };
 
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Activity Report By Month" />
+        <Title prefix="Activity Expenses Report" />
 
         <Filter
           onSearch={handleSearch}
           onClear={handleClear}
           filters={filters}
         />
+
+        <div style={{ margin: "8px 0" }}>
+          <ExportActivityByMonthExcelButton
+            text="Export Excel"
+            fileName={buildFileName()}
+            getPayload={async () => {
+              const f = tableParams?.filters || {};
+              return {
+                keyword: f.keyword || "",
+                year_code: toText(f.year_code) || undefined,
+                user_id: f.user_id,
+                dealer_id: f.dealer_id,
+                crop_id: f.crop_id,
+              };
+            }}
+            requestData={(payload) => useServiceAPI.get(paths.pathReportActivityByMonth, payload)}
+          />
+        </div>
 
         <BoxPrimary>
           <TableCustomComponent
