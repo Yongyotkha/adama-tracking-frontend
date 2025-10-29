@@ -117,7 +117,7 @@ import RedeemPointDetail from "./pages/mobile/redeem_point/RedeemPointDetail";
 import RedeemPointConfirm from "./pages/mobile/redeem_point/RedeemPointConfirm";
 import Promotion from "./pages/mobile/promotion/Promotion";
 import PromotionDetail from "./pages/mobile/promotion/PromotionDetail";
-import ReportStock from "./pages/report/ReportStock";
+// import ReportStock from "./pages/report/ReportStock";
 import ContactUs from "./pages/mobile/user/settings/contact_us/ContactUs";
 import FaqOA from "./pages/mobile/user/settings/faq/Faq";
 import PrivacyPolicy from "./pages/mobile/user/settings/privacy_policy/PrivacyPolicy";
@@ -182,6 +182,10 @@ import CreateNewsPromotion from "./pages/settings/mobile/news_promotion/CreateNe
 import ShippingAddressPDF from "./pages/pdf/ShippingAddressPDF";
 import DeliverySlipPDF from "./pages/pdf/DeliverySlipPDF";
 import SaleHistoryReport from "./pages/settings/mobile/report/SaleHistoryReport";
+import ReportStock from "./pages/report/ReportStock";
+import ReportSellOutBySales from "./pages/report/ReportSellOutBySales";
+import ReportSellOutByDealer from "./pages/report/ReportSellOutByDealer";
+import ReportSellOutBySubDealer from "./pages/report/ReportSellOutBySubDealer";
 
 
 const App = () => {
@@ -427,9 +431,14 @@ const App = () => {
             <Route path="/report/activity-expense" element={<ReportActivityByMonth />} />
             <Route path="/report/activity-type" element={<ReportActivityByType />} />
             <Route path="/report/activity-month" element={<ReportActivityExpense />} />
+            <Route path="/report/stock-report" element={<ReportStock />} />
+            <Route path="/report/sell-out-report-sales" element={<ReportSellOutBySales />} />
+            <Route path="/report/sell-out-report-dealer" element={<ReportSellOutByDealer />} />
+            <Route path="/report/sell-out-report-sub-dealer" element={<ReportSellOutBySubDealer />} />
+
             {/* <Route path="/report/activity-expense" element={<ReportActivityExpense />} /> */}
 
-            <Route path="/report/stock-report" element={<ReportStock />} />
+            {/* <Route path="/report/stock-report" element={<ReportStock />} /> */}
 
             <Route path="/report/line/sales-history-report" element={<SaleHistoryReport />} />
 
