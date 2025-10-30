@@ -80,9 +80,15 @@ export default function EditMileage() {
         useServiceAPI
           .put(paths.pathMileageUpdate, dataToSend, setLoading)
           .then((response) => {
+            // console.log("Response after update:", response);
             if (response.status === 200) {
               navigate("/setting/mileage");
               showNotification("success", response.message, response.message_line);
+            } else if (response.status === 201) {
+              //navigate("/setting/mileage");
+              // console.log("Response for status 201:", response);
+
+              showNotification("error", response.message, response.message_line);
             }
           })
           .catch((error) => {
