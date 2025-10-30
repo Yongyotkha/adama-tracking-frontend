@@ -230,7 +230,7 @@ export default function DealerList() {
     {
       key: "dealers",
       type: "select",
-      label: "Dealers",
+      label: "Dealer",
       placeholder: "All",
       options: dealers,
       moderef: false,
@@ -259,7 +259,6 @@ export default function DealerList() {
       dataIndex: "dealerName",
       align: "left",
     },
-    { title: "Address", width: 300, dataIndex: "address", align: "left" },
     {
       title: "Contact Name",
       width: 200,
@@ -267,11 +266,12 @@ export default function DealerList() {
       align: "left",
     },
     {
-      title: "Phone No.",
+      title: "Contact Number",
       width: 150,
       dataIndex: "mobilePhone",
       align: "center",
     },
+    { title: "Address", width: 300, dataIndex: "address", align: "left" },
     {
       title: "Group Code",
       width: 150,

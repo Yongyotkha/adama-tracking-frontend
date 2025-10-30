@@ -331,7 +331,7 @@ export default function DealerList() {
     {
       key: "dealers",
       type: "select",
-      label: "Dealers",
+      label: "Dealer",
       placeholder: "All",
       options: dealerList,
       moderef: true,
@@ -339,14 +339,14 @@ export default function DealerList() {
     {
       key: "shop",
       type: "select",
-      label: "Shops",
+      label: "Sub Dealer",
       placeholder: "All",
       options: subDealerList,
     },
     {
       key: "farmers",
       type: "select",
-      label: "Farms",
+      label: "Farmer",
       placeholder: "All",
       options: farmList,
     },
@@ -394,15 +394,14 @@ export default function DealerList() {
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
     {
-      title: "Dealer",
+      title: "Dealer Name",
       width: 200,
       dataIndex: "dealerName",
       align: "left",
     },
-    { title: "Code", width: 100, dataIndex: "code", align: "left" },
+    // { title: "Code", width: 100, dataIndex: "code", align: "left" },
+    { title: "Sub Dealer Name", width: 200, dataIndex: "sub_dealer_name", align: "left" },
     { title: "Farmer Name", width: 200, dataIndex: "Name", align: "left" },
-    { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer_name", align: "left" },
-    { title: "Address", width: 300, dataIndex: "address", align: "left" },
     {
       title: "Contact Name",
       width: 200,
@@ -410,17 +409,18 @@ export default function DealerList() {
       align: "left",
     },
     {
-      title: "Phone No.",
+      title: "Contact Number",
       width: 150,
       dataIndex: "mobilePhone",
       align: "center",
     },
-    {
-      title: "Group Code",
-      width: 150,
-      dataIndex: "groupCode",
-      align: "center",
-    },
+    { title: "Address", width: 300, dataIndex: "address", align: "left" },
+    // {
+    //   title: "Group Code",
+    //   width: 150,
+    //   dataIndex: "groupCode",
+    //   align: "center",
+    // },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
@@ -468,7 +468,7 @@ export default function DealerList() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Farmers</div>
+        <div className="title-page">Farmer</div>
         <ActionButton
           text="Create"
           mode="create"
