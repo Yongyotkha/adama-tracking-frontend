@@ -7,6 +7,7 @@ import UserPointsSection from "../../../components/mobile/user_points_section/Us
 import BackButton from "../../../components/mobile/button/BackButton";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
+import './RedeemPoint.css';
 
 export default function RedeemPoint() {
   const [loading, setLoading] = useState(false);
@@ -88,22 +89,31 @@ export default function RedeemPoint() {
         <UserPointsSection />
         <SectionHeader title="แลกคะแนนสะสม" icon="/img/icons/trophy.png" />
 
-        <div className="w-full max-w-md mt-4 flex space-x-3 text-nowrap overflow-x-auto px-4">
-          {categories.map((category) => (
+        
+
+
+      <div className="w-full max-w-md mt-4 overflow-x-auto overflow-y-hidden min-h-[50px] px-4 scroll-container">
+        <div className="flex space-x-1 w-max items-center">
+          {categories
+          .filter(category => ![26, 27].includes(category.id)) // แก้ซ่อน id 26 และ 27
+          .map((category) => (
             <button
               key={category.id || "all"}
-
               onClick={() => handleCategoryClick(category.id)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold sarabun-font ${activeTab === category.id ? "bg-[#FFB347] text-white" : "bg-gray-300 text-gray-700"}`}
+              className={`px-4 py-2 rounded-full text-sm font-semibold sarabun-font transition-colors duration-300 ${
+                activeTab === category.id
+                  ? "bg-[#FFB347] text-white shadow-md"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
             >
               {category.name || category.text}
             </button>
           ))}
         </div>
+      </div>
 
 
-
-        <div className="w-full max-w-md mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="w-full max-w-4xl mt-6 grid grid-cols-2 sm:grid-cols-2 gap-4">
           {Object.values(rewards || {})
             .filter(r => String(r.use_flag) === '1' && String(r.status_code) === '1') // ถ้าต้องการแสดงเฉพาะ Active
             .map((reward) => (
@@ -114,27 +124,25 @@ export default function RedeemPoint() {
                   navigate("/mobile/redeem-point/detail", { state: { id: reward.id } })
                 }
               >
-                <div className="relative rounded-xl overflow-hidden shadow">
+                <div className="relative rounded-sm overflow-hidden">
                   <img src={reward.image} alt={reward.name} className="w-full object-cover" />
                 </div>
                 <div className="mt-3 p-3">
+                  <p className="font-bold text-[#00783F] sarabun-font text-sm line-clamp-1 ">{reward.name}</p>
+                  <p className="text-gray-500 text-xs sarabun-font line-clamp-1 mb-3">
+                    {reward.description_short ?? reward.description ?? "-"}
+                  </p>
                   <p className="text-gray-500 text-sm sarabun-font">
-                    ใช้คะแนน : {
+                    {
                       Array.isArray(reward.target)
                         ? reward.target.map(t => Number(t.point).toLocaleString()).join(", ")
                         : (reward.target?.point ? Number(reward.target.point).toLocaleString() : "-")
-                    }
+                    } คะแนน
                   </p>
-                  <p className="font-bold text-[#00783F] sarabun-font line-clamp-2">{reward.name}</p>
-                  <p className="text-gray-500 text-xs sarabun-font line-clamp-2">
-                    {reward.description_short ?? reward.description ?? "-"}
-                  </p>
-                  
                 </div>
               </div>
             ))
           }
-
         </div>
 
         <BackButton url="/mobile/main" />
