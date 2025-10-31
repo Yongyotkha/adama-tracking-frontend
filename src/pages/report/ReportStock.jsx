@@ -1,256 +1,396 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { Form, Row, Col, Select, DatePicker, InputNumber, Table } from "antd";
 import MainLayout from "../../layouts/MainLayout";
-import Filter from "../../components/filter/Filter";
-import BoxPrimary from "../../components/box_primary/BoxPrimary";
-import useServiceAPI from "../../services/CorsService";
-import { paths } from "../../services/CorsPath";
-import { AuthContext } from "../../contexts/AuthContext";
 import Title from "../../components/title/Title";
+import BoxPrimary from "../../components/box_primary/BoxPrimary";
+import DynamicButton from "../../components/button/DynamicButton";
+import TableComponent from "../../components/table/TableComponent"; // ✅ ใช้คอมโพเนนต์ที่ให้มา
 
-import TableExpand from "../../components/table/TableExpand";
+// ถ้ามี AuthContext สำหรับ notify ก็ใช้ได้เลย (ไม่บังคับ)
+import { AuthContext } from "../../contexts/AuthContext";
 
-export default function ReportStock() {
-  const [loading, setLoading] = useState(false);
-  const [dealers, setDealers] = useState([]);
-  const [dataSource, setDataSource] = useState(false);
-  const [tableLoading, setTableLoading] = useState(false);
-  const { showNotification, formatNumber } = useContext(AuthContext);
-  const [tableParams, setTableParams] = useState({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-    },
-    filters: {},
-    sortOrder: null,
-    sortField: null,
+const toComma = (n) =>
+  `${parseInt(Number(n) || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+// -------------------- Mock helpers --------------------
+const mockFetchStock = async ({ page, pageSize, filters }) => {
+  // สร้าง mock 40 แถว เพื่อเดโมการแบ่งหน้า
+  const base = [
+    "Bumper P 490",
+    "Super K 25-7-7",
+    "Green X 16-16-8",
+    "Ultra N 46-0-0",
+    "Root Plus 15-15-15",
+    "Max P 12-24-12",
+    "Grow 13-13-21",
+    "Power K 0-0-60",
+    "Bio Shield",
+    "CalMag Pro",
+  ];
+  const all = Array.from({ length: 40 }, (_, i) => {
+    const name = base[i % base.length];
+    const ls = (i % 7) + 3;
+    const si = i % 5 === 0 ? 0 : (i % 5) + 1;
+    const cs = Math.max(ls + si - ((i % 4) + 1), 0);
+    const so = (ls + si) - cs;
+    return {
+      key: i + 1,
+      product_name: name,
+      last_stock: ls,
+      sell_in: si,
+      current_stock: cs,
+      sell_out: so,
+    };
   });
 
-  useEffect(() => {
-    const getMaster = async () => {
-      setLoading(true);
-      try {
-        const [years, sales, activity, dealers] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterYear),
-          useServiceAPI.get(paths.pathMasterSaleDropdown),
-          useServiceAPI.get(paths.pathMasterActivityType),
-          useServiceAPI.get(paths.pathMasterDealerAll),
-        ]);
-        setYears(years.data);
-        setSales(sales.data);
-        setActivity(activity.data);
-        setDealers(dealers.data);
+  // สมมติ filter ตัดให้ดูผล (เช่น มี dealer)
+  const filtered = all.filter((r) => {
+    let ok = true;
+    if (filters?.dealer_id) ok = ok && r.product_name.toLowerCase().includes("p");
+    if (filters?.sale_id) ok = ok && r.key % 2 === 0;
+    return ok;
+  });
 
-        if (years.data.length > 0) {
-          setTableParams({
-            ...tableParams,
-            filters: { year_code: years.data[0] },
-          });
-        }
-      } catch (error) {
-        showNotification("error", error.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
-    // getMaster();
-  }, []);
+  const total = filtered.length;
+  const start = (page - 1) * pageSize;
+  const pageRows = filtered.slice(start, start + pageSize);
 
-  const fetchData = async () => {
-    setTableLoading(true);
-    const { current, pageSize } = tableParams.pagination;
-    const filters = tableParams.filters || {};
+  // delay เล็กน้อย
+  await new Promise((r) => setTimeout(r, 300));
 
-    const requestData = {
-      keyword: filters.keyword || "",
-      year_code: filters.year_code,
-      user_id: filters.user_id,
-      dealer_id: filters.dealer_id,
-      page_length: 1,
-      page_size: pageSize,
-    };
+  return { rows: pageRows, total };
+};
+// ------------------------------------------------------
 
-    console.log(requestData);
+export default function ReportStock() {
+  const { showNotification } = useContext(AuthContext) || {};
+  const [form] = Form.useForm();
 
-    try {
-      const response = await useServiceAPI.get(
-        paths.pathReportSaleByActivity,
-        requestData
-      );
+  const [loading, setLoading] = useState(false);      // page loading
+  const [tableLoading, setTableLoading] = useState(false);
 
-      if (response.status === 200) {
-        const { data_items, records_filtered, permission, items } =
-          response.data;
-        console.log(response.data);
+  // master dropdown (mock)
+  const [areaList] = useState([
+    { value: 1, label: "Area 1" },
+    { value: 2, label: "Area 2" },
+  ]);
+  const [salesList] = useState([
+    { value: 11, label: "Chainarong Jitsawaeng" },
+    { value: 12, label: "Somchai Prasert" },
+  ]);
+  const [dealerList] = useState([
+    { value: 21, label: "Kantar Co.,Ltd." },
+    { value: 22, label: "Siam Agri" },
+  ]);
+  const [subDealerList, setSubDealerList] = useState([
+    { value: 31, label: "กฤษณียมทรัพย์เกษตร" },
+    { value: 32, label: "รุ่งเรืองการเกษตร" },
+  ]);
 
-        const newDataSource = items.map((row, index) => ({
-          key: index + 1 + (current - 1) * pageSize,
-          activity_type: row.activity_type_name,
-          activity_type_id: row.activity_type_id,
+  // table
+  const [dataSource, setDataSource] = useState([]);
+  const [totalRecords, setTotalRecords] = useState(0);
 
-          nestedData: row.sub_items.map((subItem, index) => ({
-            key: subItem.sale_management_item_id,
-            no: index + 1,
-            name: subItem.name,
-            position: subItem.position_name,
-            territory: subItem.territory_name,
-            actionsubitem: (
-              <>
-                <DynamicButton
-                  iconSrc="/img/icons/delete.png"
-                  onClick={() =>
-                    handleDeleteItem(subItem.sale_management_item_id)
-                  }
-                />
-              </>
-            ),
-          })),
-        }));
+  // pagination + page size เหมือน "Show X entries"
+  const [pageSize, setPageSize] = useState(5);
+  const [current, setCurrent] = useState(1);
 
-        setDataSource(newDataSource);
-        setTableParams({
-          ...tableParams,
-          pagination: {
-            ...tableParams.pagination,
-            total: records_filtered,
+  const pagination = useMemo(
+    () => ({
+      current,
+      pageSize,
+      total: totalRecords,
+      showSizeChanger: false, // เราคุมด้วย "Show X entries" ข้างบนแทน
+    }),
+    [current, pageSize, totalRecords]
+  );
+
+  // columns
+  const header = useMemo(
+    () => [
+      {
+        title: "Product List",
+        dataIndex: "product_name",
+        key: "product_name",
+        onHeaderCell: () => ({
+          style: {
+            backgroundColor: "#00783F",
+            color: "white",
+            fontWeight: "bold",
+            textAlign: "left",
           },
-        });
-      }
-    } catch (error) {
-      console.error(error);
+        }),
+        render: (v) => <span className="font-medium">{v}</span>,
+      },
+      {
+        title: "Last Stock",
+        dataIndex: "last_stock",
+        key: "last_stock",
+        align: "right",
+        onHeaderCell: () => ({
+          style: {
+            backgroundColor: "#00783F",
+            color: "white",
+            fontWeight: "bold",
+            textAlign: "center",
+          },
+        }),
+        render: (val) => (
+          <InputNumber className="w-full" readOnly value={Number(val) || 0}
+            formatter={(v) => toComma(v)} />
+        ),
+      },
+      {
+        title: "Sell In",
+        dataIndex: "sell_in",
+        key: "sell_in",
+        align: "right",
+        onHeaderCell: () => ({
+          style: {
+            backgroundColor: "#00783F",
+            color: "white",
+            fontWeight: "bold",
+            textAlign: "center",
+          },
+        }),
+        render: (val) => (
+          <InputNumber className="w-full" readOnly value={Number(val) || 0}
+            formatter={(v) => toComma(v)} />
+        ),
+      },
+      {
+        title: "Current Stock",
+        dataIndex: "current_stock",
+        key: "current_stock",
+        align: "right",
+        onHeaderCell: () => ({
+          style: {
+            backgroundColor: "#00783F",
+            color: "white",
+            fontWeight: "bold",
+            textAlign: "center",
+          },
+        }),
+        render: (val) => (
+          <InputNumber className="w-full" readOnly value={Number(val) || 0}
+            formatter={(v) => toComma(v)} />
+        ),
+      },
+      {
+        title: "Sell Out",
+        dataIndex: "sell_out",
+        key: "sell_out",
+        align: "right",
+        onHeaderCell: () => ({
+          style: {
+            backgroundColor: "#00783F",
+            color: "white",
+            fontWeight: "bold",
+            textAlign: "center",
+          },
+        }),
+        render: (val) => (
+          <InputNumber className="w-full" readOnly value={Number(val) || 0}
+            formatter={(v) => toComma(v)} />
+        ),
+      },
+    ],
+    []
+  );
+
+  const footer = useMemo(() => {
+    const sum = (k) =>
+      (dataSource || []).reduce((acc, r) => acc + (Number(r[k]) || 0), 0);
+
+    const keys = ["last_stock", "sell_in", "current_stock", "sell_out"];
+
+    // antd expects a function that returns <Table.Summary>*
+    return () => (
+      <Table.Summary fixed>
+        <Table.Summary.Row className="bg-[#978B87]">
+          <Table.Summary.Cell index={0}>
+            <b>Total</b>
+          </Table.Summary.Cell>
+
+          {keys.map((k, i) => (
+            <Table.Summary.Cell key={k} index={i + 1} align="right">
+              <InputNumber
+                className="w-full"
+                readOnly
+                value={sum(k)}
+                formatter={(v) =>
+                  `${parseInt(v || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                style={{ backgroundColor: "white" }}
+              />
+            </Table.Summary.Cell>
+          ))}
+        </Table.Summary.Row>
+      </Table.Summary>
+    );
+  }, [dataSource]);
+
+
+  // load mock ครั้งแรก
+  useEffect(() => {
+    setLoading(true);
+    // เซ็ตค่าตั้งต้นตามรูป
+    form.setFieldsValue({
+      area_id: 1,
+      sale_id: 11,
+      dealer_id: 21,
+      sub_dealer_id: 31,
+    });
+    setLoading(false);
+  }, [form]);
+
+  // fetch ตามหน้า/ขนาดหน้า
+  const doFetch = async () => {
+    setTableLoading(true);
+    try {
+      const f = form.getFieldsValue();
+      const { rows, total } = await mockFetchStock({
+        page: current,
+        pageSize,
+        filters: f,
+      });
+      setDataSource(rows);
+      setTotalRecords(total);
+    } catch (e) {
+      console.error(e);
+      showNotification?.("error", "โหลดข้อมูลไม่สำเร็จ");
     } finally {
       setTableLoading(false);
     }
   };
 
-  // useEffect(() => {
-  //   if (years.data.length > 0) {
-  //     fetchData();
-  //   }
-  // }, [
-  //   JSON.stringify(tableParams.filters),
-  // ]);
+  useEffect(() => {
+    doFetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current, pageSize]);
 
-  const handleTableChange = (pagination, filters, sorter) => {
-    console.log(pagination, filters, sorter);
-    setTableParams({
-      pagination,
-      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
-      // sortOrder: sorter.order === "descend" ? "desc" : "asc",
-      // sortField: sorter.field,
-    });
+  const handleSearch = () => {
+    setCurrent(1);
+    doFetch();
   };
 
-  const filters = [
-    {
-      key: "dealer",
-      type: "select",
-      label: "Dealer",
-      options: [],
-    },
-    {
-      key: "sub_dealer",
-      type: "select",
-      label: "Sub Dealer",
-      options: [],
-      size: 18,
-    },
-
-    {
-      key: "start_date",
-      type: "date",
-      label: "Start Date",
-      options: [],
-    },
-    {
-      key: "end_date",
-      type: "date",
-      label: "End Date",
-      options: [],
-    },
-  ];
-
-  const handleSearch = (filters) => {
-    setTableParams({
-      ...tableParams,
-      filters,
-      pagination: {
-        current: 1,
-        pageSize: 10,
-      },
-    });
+  const handleClear = () => {
+    form.resetFields(["area_id", "sale_id", "dealer_id", "sub_dealer_id", "month"]);
+    setCurrent(1);
+    doFetch();
   };
 
-  const handleClear = () => {ได
-    setTableParams({
-      ...tableParams,
-      filters: {},
-    });
+  const handleTableChange = (pg) => {
+    setCurrent(pg.current);
   };
 
-  const columns = [
-    {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-      width: 150,
-    },
-    {
-      title: "Position",
-      dataIndex: "position",
-      key: "position",
-      width: 200,
-    },
-    {
-      title: "Territory",
-      dataIndex: "territory",
-      key: "territory",
-      width: 150,
-    },
-    {
-      title: "Action",
-      dataIndex: "actionmain",
-      key: "actionmain",
-      width: 100,
-    },
-  ];
-
-  // Define the nested table columns
-  const nestedColumns = [
-    { title: "No", dataIndex: "no", key: "no", width: 80 },
-    { title: "Name", dataIndex: "name", key: "name", width: 150 },
-    { title: "Position", dataIndex: "position", key: "position", width: 200 },
-    {
-      title: "Territory",
-      dataIndex: "territory",
-      key: "territory",
-      width: 150,
-    },
-    { title: "Action", dataIndex: "actionsubitem", key: "action", width: 100 },
-  ];
+  // dealer -> sub dealer (mock)
+  const onValuesChange = (changed) => {
+    if (Object.prototype.hasOwnProperty.call(changed, "dealer_id")) {
+      const id = changed.dealer_id;
+      if (!id) {
+        setSubDealerList([]);
+        form.setFieldsValue({ sub_dealer_id: undefined });
+      } else {
+        // mock filter
+        setSubDealerList([
+          { value: 31, label: "กฤษณียมทรัพย์เกษตร" },
+          { value: 32, label: "สหกรณ์เกษตรรวมใจ" },
+        ]);
+      }
+    }
+  };
 
   return (
-    <>
-      <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Stock Report" />
+    <MainLayout loading={loading}>
+      <Title prefix="Stock Report" />
 
-        <Filter
-          onSearch={handleSearch}
-          onClear={handleClear}
-          filters={filters}
-        />
+      {/* ฟิลเตอร์ */}
+      <Form form={form} layout="vertical" onValuesChange={onValuesChange}>
+        <BoxPrimary className="m-1 mb-4">
+          <Row gutter={16} align="middle">
+            <Col md={6}>
+              <Form.Item label="Area" name="area_id">
+                <Select placeholder="Select Area" options={areaList} allowClear />
+              </Form.Item>
+            </Col>
+            <Col md={6}>
+              <Form.Item label="Sales" name="sale_id">
+                <Select placeholder="Select Sales" options={salesList} allowClear />
+              </Form.Item>
+            </Col>
+            <Col md={6}>
+              <Form.Item label="Dealer" name="dealer_id">
+                <Select placeholder="Select Dealer" options={dealerList} allowClear />
+              </Form.Item>
+            </Col>
+            <Col md={6}>
+              <Form.Item label="Sub Dealer" name="sub_dealer_id">
+                <Select placeholder="Select Sub Dealer" options={subDealerList} allowClear />
+              </Form.Item>
+            </Col>
+            <Col md={6}>
+              <Form.Item label="Month" name="month">
+                <DatePicker picker="month" style={{ width: "100%" }} placeholder="Select month" />
+              </Form.Item>
+            </Col>
+          </Row>
 
-        {dataSource.length > 0 && (
-          <BoxPrimary>
-            <TableExpand
-              // pagination={tableParams.pagination}
-              // onChange={handleTableChange}
-              data={dataSource}
-              columns={columns}
-              nestedColumns={nestedColumns}
+          <div className="flex justify-end gap-4 px-4 pt-5">
+            <DynamicButton
+              onClick={handleSearch}
+              name="btn-search"
+              text="Search"
+              iconSrc="/img/icons/search.png"
+              className="text-white px-4 py-3 rounded-[4px] bg-[#7DB41E]"
             />
-          </BoxPrimary>
-        )}
-      </MainLayout>
-    </>
+            <DynamicButton
+              onClick={handleClear}
+              name="btn-clear"
+              text="Clear"
+              iconSrc="/img/icons/trash.png"
+              className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
+            />
+          </div>
+        </BoxPrimary>
+      </Form>
+
+      {/* ส่วนควบคุม page size แบบ "Show X entries" */}
+      <div className="flex items-center gap-2 mb-2">
+        <span>Show</span>
+        <Select
+          value={pageSize}
+          onChange={(v) => {
+            setPageSize(v);
+            setCurrent(1);
+          }}
+          options={[5, 10, 20, 50].map((n) => ({ value: n, label: n }))}
+          style={{ width: 80 }}
+        />
+        <span>entries</span>
+      </div>
+
+      {/* ตาราง */}
+      <BoxPrimary>
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          loading={tableLoading}
+          pagination={pagination}
+          onChange={handleTableChange}
+          scroll // เปิด scroll X อัตโนมัติ (component จะกำหนดเอง)
+          footer={footer}
+        />
+        {/* ข้อความสรุป "Showing x to y of z entries" */}
+        <div className="text-sm text-[#6b7280] mt-2">
+          {(() => {
+            if (totalRecords === 0) return "Showing 0 to 0 of 0 entries";
+            const start = (current - 1) * pageSize + 1;
+            const end = Math.min(current * pageSize, totalRecords);
+            return `Showing ${start} to ${end} of ${totalRecords} entries`;
+          })()}
+        </div>
+      </BoxPrimary>
+    </MainLayout>
   );
 }

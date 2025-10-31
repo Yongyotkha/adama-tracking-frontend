@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
-import { Button } from "antd";
+import DynamicButton from "../../components/button/DynamicButton";
 
 export default function ExportActivityTypeExcelButton({
   getPayload,
@@ -9,17 +9,19 @@ export default function ExportActivityTypeExcelButton({
   fileName = "Activity_Report_By_Type",
   buttonProps,
   text = "Export Excel",
+  iconSrc = "/img/icons/excel.png",
+  className,
 }) {
   const [loading, setLoading] = useState(false);
 
   const handleExport = async () => {
+    if (loading) return;
     setLoading(true);
     try {
       const payload = await getPayload();
       const res = await requestData({ ...payload, page_length: 1, page_size: 100000 });
       if (res?.status !== 200) throw new Error("Export failed");
 
-      // ตารางนี้ใช้ dataSource แบน: activity_type_name, total_activity_plan, total_activity_list, total_activity_actual
       const rows = (res.data?.res || []).map((x) => ({
         activity_type_name: x.activity_type_name,
         total_activity_plan: Number(x.total_activity_plan) || 0,
@@ -46,7 +48,6 @@ export default function ExportActivityTypeExcelButton({
       });
       total.font = { bold: true };
 
-      // format number
       ["B", "C", "D"].forEach((col) => {
         for (let r = 2; r <= ws.rowCount; r++) ws.getCell(`${col}${r}`).numFmt = "#,##0";
       });
@@ -60,15 +61,17 @@ export default function ExportActivityTypeExcelButton({
     }
   };
 
+  const baseClass = "text-white px-4 py-3 rounded-[4px] bg-[#009845]";
+  const combinedClass = [baseClass, buttonProps?.className, className].filter(Boolean).join(" ");
+
   return (
-    <Button
-      type="primary"
+    <DynamicButton
+      type="button"
       onClick={handleExport}
-      loading={loading}
-      {...buttonProps}
-      style={{ backgroundColor: "#009845", borderColor: "#009845", ...buttonProps?.style }}
-    >
-      {text}
-    </Button>
+      text={loading ? "Exporting..." : text}
+      iconSrc={iconSrc}
+      className={combinedClass}
+      disabled={loading}
+    />
   );
 }

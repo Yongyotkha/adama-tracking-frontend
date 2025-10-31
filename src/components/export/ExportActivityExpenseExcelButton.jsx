@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
-import { Button } from "antd";
+import DynamicButton from "../../components/button/DynamicButton";
 
 export default function ExportActivityExpenseExcelButton({
   getPayload,
@@ -9,6 +9,8 @@ export default function ExportActivityExpenseExcelButton({
   fileName = "Activity_Expenses_By_Month",
   buttonProps,
   text = "Export Excel",
+  iconSrc = "/img/icons/expenses.png",
+  className,
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -20,22 +22,19 @@ export default function ExportActivityExpenseExcelButton({
   };
 
   const handleExport = async () => {
+    if (loading) return;
     setLoading(true);
     try {
       const payload = await getPayload();
       const res = await requestData(payload);
       if (res?.status !== 200) throw new Error("Export failed");
 
-      // shape จากหน้า Expense:
-      // res.data.item = [{ activity_type_name, item:[{ month_id, total_activity_plan_value, expense_actual, ... }] }, ...]
-      // res.data.month = [{ id, name }, ...]
       const activityTypes = res.data?.item || [];
       const months = res.data?.month || [];
 
       const wb = new ExcelJS.Workbook();
       const ws = wb.addWorksheet("Report");
 
-      // header 2 ชั้น
       const top = ["Activity Name"];
       const sub = [""];
       months.forEach((m) => { top.push(m.name, m.name); sub.push("Plan (Value)", "Actual (Value)"); });
@@ -60,7 +59,6 @@ export default function ExportActivityExpenseExcelButton({
         col += 2;
       });
 
-      // body
       activityTypes.forEach((act) => {
         const line = [act.activity_type_name];
         months.forEach((m) => {
@@ -72,23 +70,23 @@ export default function ExportActivityExpenseExcelButton({
         ws.addRow(line);
       });
 
-      // total row
       const totals = ["Total (THB)"];
       months.forEach((m) => {
         const sumPlan = activityTypes.reduce((s, act) => {
           const hit = (act.item || []).find((i) => i.month_id === m.id);
           const v = Number((hit?.total_activity_plan_value || "0").toString().replace(/,/g,"")) || 0;
-        return s + v;}, 0);
+          return s + v;
+        }, 0);
         const sumActual = activityTypes.reduce((s, act) => {
           const hit = (act.item || []).find((i) => i.month_id === m.id);
           const v = Number((hit?.expense_actual || "0").toString().replace(/,/g,"")) || 0;
-        return s + v;}, 0);
+          return s + v;
+        }, 0);
         totals.push(sumPlan, sumActual);
       });
       const tr = ws.addRow(totals);
       tr.font = { bold: true };
 
-      // number formats
       for (let c = 2; c <= ws.columnCount; c++) {
         for (let r = 3; r <= ws.rowCount; r++) ws.getCell(r, c).numFmt = "#,##0";
       }
@@ -102,15 +100,17 @@ export default function ExportActivityExpenseExcelButton({
     }
   };
 
+  const baseClass = "text-white px-4 py-3 rounded-[4px] bg-[#009845]";
+  const combinedClass = [baseClass, buttonProps?.className, className].filter(Boolean).join(" ");
+
   return (
-    <Button
-      type="primary"
+    <DynamicButton
+      type="button"
       onClick={handleExport}
-      loading={loading}
-      {...buttonProps}
-      style={{ backgroundColor: "#009845", borderColor: "#009845", ...buttonProps?.style }}
-    >
-      {text}
-    </Button>
+      text={loading ? "Exporting..." : text}
+      iconSrc={iconSrc}
+      className={combinedClass}
+      disabled={loading}
+    />
   );
 }

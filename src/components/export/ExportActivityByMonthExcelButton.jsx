@@ -1,18 +1,21 @@
 import React, { useState } from "react";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
-import { Button } from "antd";
+import DynamicButton from "../../components/button/DynamicButton";
 
 export default function ExportActivityByMonthExcelButton({
   getPayload,
   requestData,
   fileName = "Activity_Report_By_Month",
-  buttonProps,
+  buttonProps, // ยังคงรับไว้เผื่อเดิมมีการส่ง className เข้ามา
   text = "Export Excel",
+  iconSrc = "/img/icons/expenses.png", // ไอคอน Excel เริ่มต้น
+  className, // เผื่ออยากส่ง className เพิ่ม
 }) {
   const [loading, setLoading] = useState(false);
 
   const handleExport = async () => {
+    if (loading) return;
     setLoading(true);
     try {
       const payload = await getPayload();
@@ -47,9 +50,11 @@ export default function ExportActivityByMonthExcelButton({
       const tr = ws.addRow(["Total", ...activityHeaders.map((h) => h.total)]);
       tr.font = { bold: true };
 
-      // number fmt
+      // number format
       for (let c = 2; c <= ws.columnCount; c++) {
-        for (let r = 2; r <= ws.rowCount; r++) ws.getCell(r, c).numFmt = "#,##0";
+        for (let r = 2; r <= ws.rowCount; r++) {
+          ws.getCell(r, c).numFmt = "#,##0";
+        }
       }
 
       const buf = await wb.xlsx.writeBuffer();
@@ -61,15 +66,25 @@ export default function ExportActivityByMonthExcelButton({
     }
   };
 
+  // สไตล์เริ่มต้นให้เข้าธีมเดียวกับ DynamicButton ที่ใช้ปุ่มสีเขียวในโปรเจกต์
+  const baseClass =
+    "text-white px-4 py-3 rounded-[4px] bg-[#009845]";
+  const combinedClass = [
+    baseClass,
+    buttonProps?.className, // หากเคยส่งจากภายนอก
+    className,              // หากส่งเพิ่มใหม่
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <Button
-      type="primary"
+    <DynamicButton
+      type="button"
       onClick={handleExport}
-      loading={loading}
-      {...buttonProps}
-      style={{ backgroundColor: "#009845", borderColor: "#009845", ...buttonProps?.style }}
-    >
-      {text}
-    </Button>
+      text={loading ? "Exporting..." : text}
+      iconSrc={iconSrc}
+      className={combinedClass}
+      disabled={loading}
+    />
   );
 }
