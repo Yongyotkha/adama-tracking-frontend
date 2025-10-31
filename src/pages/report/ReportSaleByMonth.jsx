@@ -77,188 +77,212 @@ export default function ReportSaleByMonth() {
         },
       }),
       children: [
+        // Work Plan (KG)
         {
           title: "Work Plan(KG)",
-          key: index,
+          key: `wkqty_${index}`,
           width: 125,
           onHeaderCell: () => ({
             style: {
-              backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สีเขียวสลับ
+              backgroundColor: index % 2 === 1 ? "#00783F" : "#009845",
               color: "white",
               fontWeight: "bold",
               textAlign: "center",
             },
           }),
           render: (_, record) => {
-            const itemData = month.product.find(
-              (product) => product.product_name === record.productName
-            ) || {};
+            const itemData =
+              month.product.find(
+                (p) => normalize(p.product_name) === normalize(record.productName)
+              ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
                 value={
-                  isNaN(itemData.workplan_qty) || itemData.workplan_qty == null
-                    ? 0
-                    : itemData.workplan_qty
+                  Number.isFinite(Number(itemData.workplan_qty))
+                    ? Number(itemData.workplan_qty)
+                    : 0
                 }
-                formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                disabled={true}
+                formatter={(value) =>
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                disabled
               />
             );
           },
         },
+        // Rolling Forecast (KG)
         {
           title: "Rolling Forecast(KG)",
-          key: index,
+          key: `rlqty_${index}`,
           width: 125,
           onHeaderCell: () => ({
             style: {
-              backgroundColor: "#7DB41E", // สีเขียวสลับ
+              backgroundColor: "#7DB41E",
               color: "white",
               fontWeight: "bold",
               textAlign: "center",
             },
           }),
           render: (_, record) => {
-            const itemData = month.product.find(
-              (product) => product.product_name === record.productName
-            ) || {};
+            const itemData =
+              month.product.find(
+                (p) => normalize(p.product_name) === normalize(record.productName)
+              ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
                 value={
-                  isNaN(itemData.rolling_qty) || itemData.rolling_qty == null
-                    ? 0
-                    : itemData.rolling_qty
+                  Number.isFinite(Number(itemData.rolling_qty))
+                    ? Number(itemData.rolling_qty)
+                    : 0
                 }
-                formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                disabled={true}
+                formatter={(value) =>
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                disabled
               />
             );
           },
         },
+        // Actual (KG)
         {
           title: "Actual(KG)",
-          key: index,
+          key: `actqty_${index}`,
           width: 125,
           onHeaderCell: () => ({
             style: {
-              backgroundColor: "#93CC23", // สีเขียวสลับ
+              backgroundColor: "#93CC23",
               color: "white",
               fontWeight: "bold",
               textAlign: "center",
             },
           }),
           render: (_, record) => {
-            const itemData = month.product.find(
-              (product) => product.product_name === record.productName
-            ) || {};
+            const itemData =
+              month.product.find(
+                (p) => normalize(p.product_name) === normalize(record.productName)
+              ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
                 value={
-                  isNaN(itemData.actual_qty) || itemData.actual_qty == null
-                    ? 0
-                    : itemData.actual_qty
+                  Number.isFinite(Number(itemData.actual_qty))
+                    ? Number(itemData.actual_qty)
+                    : 0
                 }
-                formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                disabled={true}
+                formatter={(value) =>
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                disabled
               />
             );
           },
         },
+        // Work Plan (Value)
         {
           title: "Work Plan(Value)",
-          key: index,
+          key: `wkval_${index}`,
           width: 125,
           onHeaderCell: () => ({
             style: {
-              backgroundColor: index % 2 === 1 ? "#00783F" : "#009845", // สีเขียวสลับ
+              backgroundColor: index % 2 === 1 ? "#00783F" : "#009845",
               color: "white",
               fontWeight: "bold",
               textAlign: "center",
             },
           }),
           render: (_, record) => {
-            const itemData = month.product.find(
-              (product) => product.product_name === record.productName
-            ) || {};
+            const itemData =
+              month.product.find(
+                (p) => normalize(p.product_name) === normalize(record.productName)
+              ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
                 value={
-                  isNaN(itemData.workplan_value) || itemData.workplan_value == null
-                    ? 0
-                    : itemData.workplan_value
+                  Number.isFinite(Number(itemData.workplan_value))
+                    ? Number(itemData.workplan_value)
+                    : 0
                 }
-                formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                disabled={true}
+                formatter={(value) =>
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                disabled
               />
             );
           },
         },
+        // Rolling Forecast (Value)
         {
           title: "Rolling Forecast(Value)",
-          key: index,
+          key: `rlval_${index}`,
           width: 125,
           onHeaderCell: () => ({
             style: {
-              backgroundColor: "#7DB41E", // สีเขียวสลับ
+              backgroundColor: "#7DB41E",
               color: "white",
               fontWeight: "bold",
               textAlign: "center",
             },
           }),
           render: (_, record) => {
-            const itemData = month.product.find(
-              (product) => product.product_name === record.productName
-            ) || {};
+            const itemData =
+              month.product.find(
+                (p) => normalize(p.product_name) === normalize(record.productName)
+              ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
                 value={
-                  isNaN(itemData.rolling_value) || itemData.rolling_value == null
-                    ? 0
-                    : itemData.rolling_value
+                  Number.isFinite(Number(itemData.rolling_value))
+                    ? Number(itemData.rolling_value)
+                    : 0
                 }
-                formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                disabled={true}
+                formatter={(value) =>
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                disabled
               />
             );
           },
         },
+        // Actual (Value)
         {
           title: "Actual(Value)",
-          key: index,
+          key: `actval_${index}`,
           width: 125,
           onHeaderCell: () => ({
             style: {
-              backgroundColor: "#93CC23", // สีเขียวสลับ
+              backgroundColor: "#93CC23",
               color: "white",
               fontWeight: "bold",
               textAlign: "center",
             },
           }),
           render: (_, record) => {
-            const itemData = month.product.find(
-              (product) => product.product_name === record.productName
-            ) || {};
+            const itemData =
+              month.product.find(
+                (p) => normalize(p.product_name) === normalize(record.productName)
+              ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
                 value={
-                  isNaN(itemData.actual_value) || itemData.actual_value == null
-                    ? 0
-                    : itemData.actual_value
+                  Number.isFinite(Number(itemData.actual_value))
+                    ? Number(itemData.actual_value)
+                    : 0
                 }
-                formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                disabled={true}
+                formatter={(value) =>
+                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                disabled
               />
             );
           },
@@ -266,6 +290,7 @@ export default function ReportSaleByMonth() {
       ],
     })),
   ];
+
 
   const [tableParams, setTableParams] = useState({
     pagination: {
@@ -479,7 +504,14 @@ export default function ReportSaleByMonth() {
     const ts = dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD_HHmm");
     return `${parts.join("_")}_${ts}`;
   };
-
+  // ทำให้ชื่อสินค้าตรงกันแบบกันพลาดช่องว่าง/ตัวพิมพ์/อักขระผสม
+  const normalize = (s) =>
+    (s ?? "")
+      .toString()
+      .normalize("NFKC")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
 
   return (
     <>
