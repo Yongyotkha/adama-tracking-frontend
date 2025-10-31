@@ -227,7 +227,7 @@ export default function CreateSubDealer() {
       disabled: isViewMode,
     },
     {
-      label: "Shop Name",
+      label: "Sub Dealer Name",
       name: "shop_name",
       type: "text",
       required: false,
@@ -1097,7 +1097,7 @@ export default function CreateSubDealer() {
 
         {/* แสดงปุ่ม Edit เฉพาะในโหมด Edit */}
         {mode === "Edit" && (
-          <ActionButton text="Edit" mode="save" onClick={handleSaveEdit} />
+          <ActionButton text="Update" mode="save" onClick={handleSaveEdit} />
         )}
 
         {/* แสดงปุ่ม Save เฉพาะในโหมด Create เท่านั้น */}

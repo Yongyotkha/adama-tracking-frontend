@@ -48,7 +48,7 @@ export default function EditOrViewRegisteredCustomer() {
             type: "text",
             col: 6,
             disabled: true,
-            value: `${d.contact_first_name || ""} ${d.contact_last_name || ""}`,
+            value:d.name_th,
           },
           {
             name: "contact_number",

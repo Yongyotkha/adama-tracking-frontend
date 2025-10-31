@@ -290,7 +290,7 @@ export default function SubDealerList() {
     {
       key: "dealers",
       type: "select",
-      label: "Dealers",
+      label: "Dealer",
       placeholder: "All",
       options: dealerList,
       moderef: true,
@@ -298,7 +298,7 @@ export default function SubDealerList() {
     {
       key: "shop",
       type: "select",
-      label: "Shops",
+      label: "Sub Dealer",
       placeholder: "All",
       options: subDealerList,
     },
@@ -353,8 +353,8 @@ export default function SubDealerList() {
     { title: "Dealer Name", width: 200, dataIndex: "dealerName", align: "left" },
     { title: "Sub Dealer Name", width: 200, dataIndex: "subDealerName", align: "left" },
     { title: "Contact Name", width: 200, dataIndex: "contactName", align: "left" },
+    { title: "Contact Number", width: 150, dataIndex: "phone", align: "center" },
     { title: "Address", width: 300, dataIndex: "address", align: "left" },
-    { title: "Phone", width: 150, dataIndex: "phone", align: "center" },
     { title: "By Sales", width: 150, dataIndex: "sale", align: "center" },
     { title: "Status Type", width: 100, dataIndex: "channel_type", align: "center" },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
