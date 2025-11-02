@@ -213,7 +213,7 @@ export default function CollectPointsAdvance() {
 
           <div>
             <label className="block text-sm text-gray-700 sarabun-font mb-1">
-              ชื่อร้านยี่ปั๊ว<span className="text-red-500">*</span>
+              ชื่อร้านยี่ปั๊ว<span className="text-red-500"></span>
             </label>
             <Input
               value={user?.dealer?.dealer_name_en ?? ""}
@@ -250,7 +250,7 @@ export default function CollectPointsAdvance() {
 
           <div className="mt-3">
             <MobileCameraAuto
-              label="ถ่ายรูปบิลเงินสดและรูปรับสินค้าที่ได้รับ"
+              label="ถ่ายรูปบิลเงินสดและสินค้าที่ได้รับ (อย่างละ 1 รูป)"
               required
               value={productPhotos}
               onChange={setProductPhotos}

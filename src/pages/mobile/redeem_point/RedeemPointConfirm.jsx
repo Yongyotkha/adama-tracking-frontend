@@ -178,23 +178,32 @@ export default function RedeemPointConfirm() {
             <div className="flex flex-col items-center w-full h-full">
                 <SectionHeader title="ยืนยันการแลกของรางวัล" icon="/img/icons/trophy.png" />
 
-                <div className="w-full max-w-md bg-white rounded-lg mt-6">
-
-                    <h2 className="text-green-700 font-bold text-xl sarabun-font mt-4">
+                <div className="w-full max-w-md bg-white rounded-lg shadow-md mt-6 p-6">
+                    {/* ชื่อรางวัล */}
+                    <h2 className="text-green-700 font-bold text-lg sarabun-font mb-2">
                         {reward.name}
                     </h2>
 
-                    <h2 className="text-green-700 font-bold text-xl sarabun-font mt-4">
-                        ใช้ {target?.[0]?.point ?? "-"} คะแนน
-                    </h2>
+                    {/* รายละเอียด */}
+                    <p className="text-gray-600 text-sm sarabun-font mt-2 mb-4">
+                        {reward?.description ?? "-"}
+                    </p>
+              
+                    <p className="text-gray-600 text-sm sarabun-font mt-2 whitespace-pre-lin mb-4">
+                        รายละเอียดสินค้า : <br></br>
+                        <div
+                            className="sarabun-font"
+                            dangerouslySetInnerHTML={{
+                            __html: reward.product_detail.replace(/\n/g, "<br/>"),
+                            }}
+                        />
+                    </p>
 
-                    <p className="text-gray-600 text-sm sarabun-font mt-2">
-                        รายละเอียด : {reward?.description ?? "-"}
-                    </p>
-                    <p className="text-gray-600 text-sm sarabun-font mt-2">
-                        รายละเอียดเพิ่มเติม : {reward?.product_detail ?? "-"}
-                    </p>
-                </div>
+                    {/* คะแนนที่ใช้ */}
+                    <h2 className="text-gray-700 text-sm sarabun-font ">
+                    ใช้ {Number(target?.[0]?.point ?? 0).toLocaleString()} คะแนน
+                    </h2>
+                    </div>
 
 
                 <div className="w-full max-w-md space-y-3 mt-10">
@@ -261,11 +270,11 @@ export default function RedeemPointConfirm() {
                     setIsPointModalVisibleFalse(false);
                     //navigate("/mobile/redeem-point");
                 }}
-                src="/img/icons/check-circle.png"
+                src="/img/icons/warning-yellow.png"
                 text={`<div class='text-center'>
-            <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>ใช้ ${target?.[0]?.point} คะแนนสำหรับแลกคูปองนี้</p>
-            <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>คุณมี Point ไม่เพียงพอสำหรับรางวัลนี้</p>
-          </div>`}
+                <p class='text-yellow-500 text-[20px] font-bold mt-1 sarabun-font mb-4'>คุณมีคะแนนไม่เพียงพอสำหรับรางวัลนี้</p>
+                <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font mb-4'>ต้องใช้ ${Number(target?.[0]?.point??0).toLocaleString()} คะแนนสำหรับแลกคูปองนี้</p>
+            </div>`}
                 confirmText="ปิด"
             />
 
