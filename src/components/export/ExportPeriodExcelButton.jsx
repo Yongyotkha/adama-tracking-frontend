@@ -33,6 +33,15 @@ export default function ExportPeriodExcelButton({
   const setBodyNumber = (cell) => { cell.numFmt = "#,##0"; cell.alignment = { horizontal: "right" }; };
   const setBodyText = (cell) => (cell.alignment = { horizontal: "left" });
 
+  // 🔧 ช่วย normalize ชื่อสินค้าให้เทียบได้เสมอ
+  const normalize = (s) =>
+    (s ?? "")
+      .toString()
+      .normalize("NFKC")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+
   const handleExport = async () => {
     if (loading) return;
     setLoading(true);
@@ -43,6 +52,14 @@ export default function ExportPeriodExcelButton({
       if (response?.status !== 200) throw new Error("Export failed");
 
       const { items = [], data_items = [] } = response.data || {};
+
+      // ✅ เตรียม Map ต่อกลุ่ม: lookup เร็วและกันชื่อไม่ตรง
+      const groupsWithMap = items.map((grp) => ({
+        ...grp,
+        map: new Map(
+          (grp.product || []).map((p) => [normalize(p.product_name), p])
+        ),
+      }));
 
       const wb = new ExcelJS.Workbook();
       const ws = wb.addWorksheet("Report");
@@ -56,6 +73,7 @@ export default function ExportPeriodExcelButton({
         { title: "Actual(Value)", type: "actual_value", colorType: "actual" },
       ];
 
+      // ── Header 2 แถว ──────────────────────────────────────────────
       const r1 = ws.getRow(1);
       const r2 = ws.getRow(2);
       r1.getCell(1).value = leftTopTitle;
@@ -66,7 +84,7 @@ export default function ExportPeriodExcelButton({
       ws.getColumn(1).width = 28;
 
       let col = 2;
-      items.forEach((grp, idx) => {
+      groupsWithMap.forEach((grp, idx) => {
         const start = col;
         r1.getCell(col).value = grp.name;
         setHeaderStyle(r1.getCell(col), idx % 2 === 1 ? colorMainA : colorMainB);
@@ -84,6 +102,7 @@ export default function ExportPeriodExcelButton({
         col += subCols.length;
       });
 
+      // ── Body ─────────────────────────────────────────────────────
       let rowIdx = 3;
       data_items.forEach((row) => {
         const rw = ws.getRow(rowIdx);
@@ -92,33 +111,55 @@ export default function ExportPeriodExcelButton({
         setBodyText(rw.getCell(1));
 
         let c = 2;
-        items.forEach((grp) => {
-          const item = (grp.product || []).find((p) => p.product_name === prodName) || {};
-          const vals = [item.workplan_qty, item.rolling_qty, item.actual_qty, item.workplan_value, item.rolling_value, item.actual_value];
-          vals.forEach((v) => { const cell = rw.getCell(c++); cell.value = Number(v) || 0; setBodyNumber(cell); });
+        groupsWithMap.forEach((grp) => {
+          // ✅ ใช้ชื่อ normalize lookup จาก Map
+          const item = grp.map.get(normalize(prodName)) || {};
+          const vals = [
+            item.workplan_qty,
+            item.rolling_qty,
+            item.actual_qty,
+            item.workplan_value,
+            item.rolling_value,
+            item.actual_value,
+          ];
+          vals.forEach((v) => {
+            const cell = rw.getCell(c++);
+            cell.value = Number(v) || 0;
+            setBodyNumber(cell);
+          });
         });
         rowIdx++;
       });
 
+      // ── Summary Row ──────────────────────────────────────────────
       const sumRow = ws.getRow(rowIdx);
       sumRow.getCell(1).value = "Total (THB)";
       sumRow.getCell(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
       sumRow.getCell(1).alignment = { horizontal: "left" };
       sumRow.getCell(1).fill = fillSolid("#978B87");
 
-      let c = 2;
-      items.forEach((grp, idx) => {
+      let c2 = 2;
+      groupsWithMap.forEach((grp, idx) => {
         const sumField = (f) => (grp.product || []).reduce((acc, p) => acc + (Number(p[f]) || 0), 0);
-        const vals = [sumField("workplan_qty"), sumField("rolling_qty"), sumField("actual_qty"), sumField("workplan_value"), sumField("rolling_value"), sumField("actual_value")];
+        const vals = [
+          sumField("workplan_qty"),
+          sumField("rolling_qty"),
+          sumField("actual_qty"),
+          sumField("workplan_value"),
+          sumField("rolling_value"),
+          sumField("actual_value"),
+        ];
         vals.forEach((v, i) => {
-          const cell = sumRow.getCell(c++);
-          cell.value = Number(v) || 0; setBodyNumber(cell);
+          const cell = sumRow.getCell(c2++);
+          cell.value = Number(v) || 0;
+          setBodyNumber(cell);
           const t = subCols[i].colorType;
           cell.fill = t === "rolling" ? fillSolid(colorRolling) : t === "actual" ? fillSolid(colorActual) : fillSolid(idx % 2 === 1 ? colorMainA : colorMainB);
           cell.font = { color: { argb: "FFFFFFFF" }, bold: true };
         });
       });
 
+      // ── Save ─────────────────────────────────────────────────────
       const buffer = await wb.xlsx.writeBuffer();
       const safe = (v) => (typeof v === "string" ? v : "Sales_Report").replace(/[\\/:*?"<>|]+/g, "-");
       const ts = new Intl.DateTimeFormat("sv-SE", {

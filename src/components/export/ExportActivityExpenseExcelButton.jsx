@@ -9,7 +9,7 @@ export default function ExportActivityExpenseExcelButton({
   fileName = "Activity_Expenses_By_Month",
   buttonProps,
   text = "Export Excel",
-  iconSrc = "/img/icons/expenses.png",
+  iconSrc = "/img/icons/excel.png",
   className,
 }) {
   const [loading, setLoading] = useState(false);

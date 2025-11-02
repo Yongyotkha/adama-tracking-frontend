@@ -530,14 +530,26 @@ export default function ReportSaleByMonth() {
               />
               <DynamicButton
                 onClick={() => {
+                  // รีเซ็ตค่าฟิลด์ตัวกรอง
                   formCustom.resetFields(["area_id", "sale_id", "product_name", "dealer_id"]);
+
+                  // รีเซ็ตหน้า pagination กลับหน้า 1
+                  setTableParams(prev => ({
+                    ...prev,
+                    pagination: { ...prev.pagination, current: 1 },
+                  }));
+
+                  // ดึงข้อมูลใหม่ทันทีหลัง state อัปเดต (เลี่ยงอ่านค่าหน้า/ฟอร์มเก่า)
+                  queueMicrotask(() => fetchData());
+                  // หรือใช้ setTimeout 0 ก็ได้:
+                  // setTimeout(fetchData, 0);
                 }}
                 name="btn-clear"
                 text="Clear"
                 iconSrc="/img/icons/trash.png"
                 className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
-
               />
+
 
               {/* <ExportPeriodExcelButton
                 text="Export Excel"
