@@ -165,7 +165,7 @@ export default function PointHistory() {
                   </div>
 
                   <div className="flex flex-col items-end text-right">
-                    <p className="text-green-700 sarabun-font text-sm font-semibold mt-1">+5,000 คะแนน</p>
+                    <p className="text-green-700 sarabun-font text-sm font-semibold mt-1">+100 คะแนน</p>
 
                   </div>
                 </div>

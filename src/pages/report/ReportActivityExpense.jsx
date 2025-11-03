@@ -343,7 +343,7 @@ export default function ReportSaleByMonth() {
                   name="sale_id"
                 >
                   <Select
-                    placeholder="Select Sale"
+                    placeholder="Select Sales"
                     options={sales}
                   />
                 </Form.Item>
@@ -351,11 +351,11 @@ export default function ReportSaleByMonth() {
 
               <Col md={6}>
                 <Form.Item
-                  label="Dealers"
+                  label="Dealer"
                   name="dealer_id"
                 >
                   <Select
-                    placeholder="Select Dealers"
+                    placeholder="Select Dealer"
                     options={dealers}
                   />
                 </Form.Item>

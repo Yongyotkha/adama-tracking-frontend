@@ -205,7 +205,7 @@ export default function OrderHistoryDetail() {
 
                         {(item.points.standard_point) > 0 && (
                           <p className="text-xs text-gray-500">
-                            Master Point : {item.points.standard_point}
+                            คะแนน : {item.points.standard_point}
                           </p>
                         )}
 
