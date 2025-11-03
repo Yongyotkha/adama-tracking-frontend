@@ -161,15 +161,8 @@ export default function PointHistory() {
 
                 {
 
-<<<<<<< HEAD
                   <div className="flex flex-col items-end text-right">
                     <p className="text-green-700 sarabun-font text-sm font-semibold mt-1">+100 คะแนน</p>
-=======
-                  <div
-                    key={0}
-                    className={`flex justify-between items-start p-4 bg-white rounded-lg shadow-md border-l-4 cursor-pointer w-full`}
-                  >
->>>>>>> tom
 
                     <div className="flex flex-col">
 
