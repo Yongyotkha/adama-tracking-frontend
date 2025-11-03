@@ -227,7 +227,7 @@ export default function OrderHistoryDetail() {
 
                         {(item.points?.point_x?.length ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
-                            คะแนน X Point : {(item.points?.point_x || []).reduce((a, b) => a + b, 0)}
+                            คะแนนโบนัส : {(item.points?.point_x || []).reduce((a, b) => a + b, 0)}
                           </p>
                         )}
 
@@ -297,12 +297,19 @@ export default function OrderHistoryDetail() {
             </div>
 
             {/* Summary */}
-            <div className="mt-4 border-t pt-2 text-sm text-gray-800">
-              <div className="flex justify-between font-semibold">
-                <p className="sarabun-font">จำนวนรวม (ลัง)</p>
-                <p>
-                  {totalQty} / คะแนน {Number(totalQtyPoint ?? 0).toLocaleString("th-TH")}
-                  {" "} / คะแนนสะสม {totalExtraAccumDisplay}
+            
+            <div className="mt-4 border-t pt-2 text-sm text-gray-800 sarabun-font space-y-2">
+              {/* จำนวนรวม (ลัง) */}
+              <div className="flex justify-between items-center font-semibold">
+                <p>จำนวนรวม (ลัง)</p>
+                <p className="text-right">{totalQty}</p>
+              </div>
+
+              {/* คะแนนรวม */}
+              <div className="flex justify-between items-center font-semibold">
+                <p>คะแนนได้รับ</p>
+                <p className="text-right">
+                  {Number(totalQtyPoint ?? 0).toLocaleString("th-TH")} / คะแนนสะสม {totalExtraAccumDisplay}
                 </p>
               </div>
 

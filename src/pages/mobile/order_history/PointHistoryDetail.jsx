@@ -162,7 +162,7 @@ export default function PointHistoryDetail() {
         <HeadSectionUser />
         <UserPointsSection />
 
-        <SectionHeader title="รายละเอียดคำสั่งซื้อ" icon="/img/icons/bill.png" />
+        <SectionHeader title="รายละเอียดสะสมคะแนน" icon="/img/icons/bill.png" />
 
         {/* Order Card */}
         <div className="bg-white rounded-2xl shadow-sm p-4 w-full max-w-md mt-4">
@@ -173,12 +173,12 @@ export default function PointHistoryDetail() {
               <p className="text-sm font-semibold text-gray-900 sarabun-font mt-1">
                 เลขที่ {historydetail?.document_number ?? documentNumber ?? "-"}
               </p>
-              {(historydetail?.dealer_name || historydetail?.sub_dealer_name) && (
+              {/* {(historydetail?.dealer_name || historydetail?.sub_dealer_name) && (
                 <p className="text-xs text-gray-500 sarabun-font mt-1">
                   {historydetail?.dealer_name}
                   {historydetail?.sub_dealer_name ? ` • ${historydetail?.sub_dealer_name}` : ""}
                 </p>
-              )}
+              )} */}
             </div>
 
           </div>
@@ -211,13 +211,13 @@ export default function PointHistoryDetail() {
                     <div className="mt-2 space-y-1 text-[12px] text-gray-600 sarabun-font">
                       {item.master_point > 0 && (
                         <div className="flex justify-between">
-                          <span>Master Point</span>
+                          <span>คะแนน</span>
                           <span className="font-medium">{nf(item.master_point)}</span>
                         </div>
                       )}
                       {item.x_point > 0 && (
                         <div className="flex justify-between">
-                          <span>X Point</span>
+                          <span>คะแนนโบนัส</span>
                           <span className="font-medium">{nf(item.x_point)}</span>
                         </div>
                       )}
@@ -235,7 +235,7 @@ export default function PointHistoryDetail() {
                       )} */}
                       {Number(item?.points?.check_point ?? 0) > 0 && (
                         <div className="flex justify-between">
-                          <span>คะแนน</span>
+                          <span>คะแนนรวม</span>
                           <span className="font-semibold text-green-700">
                             {nf(item?.points?.check_point)}
                           </span>
@@ -251,24 +251,28 @@ export default function PointHistoryDetail() {
             </div>
 
             {/* สรุปผลรวม */}
+            
             <div className="mt-4 border-t pt-3">
               <div className="h-3" />
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm sarabun-font">
+              <div className="grid grid-cols-1 gap-y-2 text-sm sarabun-font">
                 <div className="flex justify-between text-gray-700">
-                  <span>Master Point รวม</span>
-                  <span className="font-medium">{nf(summary.totalMasterPoint)}</span>
+                  <span>คะแนน</span> {/* คะแนน Master Point */}
+                  <span className="font-medium text-right">{nf(summary.totalMasterPoint)}</span>
                 </div>
+
                 <div className="flex justify-between text-gray-700">
-                  <span>X Point รวม</span>
-                  <span className="font-medium">{nf(summary.totalXPoint)}</span>
+                  <span>คะแนนโบนัส</span> {/* คะแนน X Point */}
+                  <span className="font-medium text-right">{nf(summary.totalXPoint)}</span>
                 </div>
+
                 <div className="flex justify-between text-gray-700">
-                  <span>คะแนนสะสมพิเศษ</span>
-                  <span className="font-medium">{nf(summary.totalExtraAccum)}</span>
+                  <span>คะแนนสะสมพิเศษ</span> {/* รวมคะแนน Extra Point */}
+                  <span className="font-medium text-right">{nf(summary.totalExtraAccum)}</span>
                 </div>
-                <div className="flex justify-between text-gray-900">
-                  <span className="font-semibold">คะแนนรวม</span>
-                  <span className="font-semibold text-green-700">
+
+                <div className="flex justify-between text-gray-900 font-semibold">
+                  <span>คะแนนรวมได้รับ</span>
+                  <span className="text-green-700 text-right">
                     {nf(summary.totalCheckPoint)} คะแนน
                   </span>
                 </div>

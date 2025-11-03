@@ -161,23 +161,24 @@ export default function PointHistory() {
 
                 {
 
-                  <div className="flex flex-col items-end text-right">
-                    <p className="text-green-700 sarabun-font text-sm font-semibold mt-1">+100 คะแนน</p>
-
-                    <div className="flex flex-col">
-
-                      <p className="text-gray-500 sarabun-font text-sm"> {dayjs(poinrRegister.created_at).format("YYYY/MM/DD HH:mm")}</p>
-                      <p className="text-gray-900 sarabun-font text-xs font-bold mt-1">
-                        สมัครสมาชิก
-                      </p>
-                    </div>
-
-
-                    <div className="flex flex-col items-end text-right">
-                      <p className="text-green-700 sarabun-font text-sm font-semibold mt-1">+ {new Intl.NumberFormat("th-TH").format(poinrRegister.point)} คะแนน</p>
-
-                    </div>
+                  
+                <div className="flex justify-between items-start p-4 bg-white rounded-lg shadow-md border-l-4 border-green-500 w-full">
+                  <div className="flex flex-col">
+                    <p className="text-gray-500 sarabun-font text-sm">
+                      {dayjs(poinrRegister.created_at).format("YYYY-MM-DD HH:mm")}
+                    </p>
+                    <p className="text-gray-900 sarabun-font text-xs font-bold mt-1">
+                      สมัครสมาชิก
+                    </p>
                   </div>
+
+                  <div className="flex flex-col items-end text-right">
+                    <p className="text-green-700 sarabun-font text-sm font-semibold mt-1">
+                      +{new Intl.NumberFormat("th-TH").format(poinrRegister.point)} คะแนน
+                    </p>
+                  </div>
+                </div>
+
                 }
                 {orderData.length > 0 ? (
                   orderData.map((order, index) => {

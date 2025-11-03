@@ -84,7 +84,7 @@ export default function Promotion() {
         <SectionHeader title="ข่าวสารและโปรโมชั่น" icon="/img/icons/news.png" />
 
         {/* Tabs */}
-            <div className="w-full max-w-md mt-4 flex space-x-3 text-nowrap overflow-x-auto px-4">
+            {/* <div className="w-full max-w-md mt-4 flex space-x-3 text-nowrap overflow-x-auto px-4">
           {categories.map((category) => (
             <button
               key={category.id}
@@ -98,7 +98,7 @@ export default function Promotion() {
               {category.id ? category.name : category.text}
             </button>
           ))}
-        </div>
+        </div> */}
 
         {/* Promotions List */}
         <div className="w-full max-w-md mt-4">
@@ -106,29 +106,26 @@ export default function Promotion() {
             promotions.map((promo) => (
               <div
                 key={promo.id}
-                className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer mb-3"
-                // onClick={() => navigate(`/mobile/promotion/detail/${promo.id}`)}
+                className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer mb-4 transition-transform hover:scale-[1.02]"
                 onClick={() =>
                   navigate("/mobile/promotion/detail/", {
-                    state: {
-                      id: promo.id,
-                    },
+                    state: { id: promo.id },
                   })
                 }
               >
                 <img
                   src={promo.logo}
                   alt={promo.name}
-                  className="w-full object-cover"
+                  className="w-full h-40 object-cover"
                 />
-                {/* <div className="p-3">
-                  <p className="text-sm text-gray-500">
-                    {promo.description_shot}
-                  </p>
-                  <h3 className="font-semibold text-gray-800 sarabun-font">
+                <div className="p-4 space-y-1">
+                  <h3 className="font-semibold text-gray-800 sarabun-font text-base">
                     {promo.name}
                   </h3>
-                </div> */}
+                  <p className="text-sm text-gray-500 leading-snug">
+                    {promo.description_shot}
+                  </p>
+                </div>
               </div>
             ))
           ) : (

@@ -47,7 +47,7 @@ const UserPointsSection = () => {
       <div
         role="button"
         tabIndex={0}
-        // onClick={() => navigate("/mobile/point-history")}
+        onClick={() => navigate("/mobile/point-history")}
         className="bg-[url('/img/bg-point.png')] bg-[length:100%_100%] bg-center bg-no-repeat text-white rounded-full flex items-center justify-center aspect-[1573/256] w-full cursor-pointer hover:opacity-90 transition"
       >
         <span className="sarabun-font text-md">
