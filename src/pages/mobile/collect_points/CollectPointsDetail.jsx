@@ -206,7 +206,7 @@ export default function CollectPointsDetail() {
 
                         {(item.points?.point_x?.length ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
-                            คะแนน X Point : {(item.points?.point_x || []).reduce((a, b) => a + b, 0)}
+                            คะแนนโบนัส : {(item.points?.point_x || []).reduce((a, b) => a + b, 0)}
                           </p>
                         )}
 
@@ -275,9 +275,14 @@ export default function CollectPointsDetail() {
 
             {/* Summary */}
             <div className="mt-4 border-t pt-2 text-sm text-gray-800">
-              <div className="flex justify-between font-semibold">
+              <div className="flex justify-between font-semibold mt-1">
                 <p className="sarabun-font">จำนวนรวม (ลัง)</p>
-                <p>{totalQty} / คะแนน {Number(totalQtyPoint ?? 0).toLocaleString()} </p>
+                <p>{totalQty} </p>
+              </div>
+
+              <div className="flex justify-between font-semibold mt-1">
+                <p className="sarabun-font">คะแนนได้รับ</p>
+                <p>{Number(totalQtyPoint ?? 0).toLocaleString("th-TH")} /คะแนนสะสม {/*เพิ่มให้ดึงค่ารวม extra point ทั้งหมด*/}</p>
               </div>
 
               <div className="flex justify-between font-semibold text-lg text-green-700 mt-1">
@@ -290,12 +295,11 @@ export default function CollectPointsDetail() {
         </div>
         <button
           onClick={confirm}
-          className="mt-4 mb-6 w-full max-w-md bg-green-700 text-white py-3 rounded-md sarabun-font"
+          className="mt-4 mb-3 w-full max-w-md bg-green-700 text-white py-3 rounded-md sarabun-font"
         >
           ยืนยัน
         </button>
         <BackButton url="/mobile/collect-points" />
-
 
         <DynamicPopUp
           visible={isPointModalVisible}
