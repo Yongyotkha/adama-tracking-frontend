@@ -558,20 +558,26 @@ export default function ReportSaleByMonth() {
 
               />
               <DynamicButton
-                onClick={() => {
+                onClick={async () => {
                   formCustom.resetFields(["area_id", "sale_id", "product_name", "dealer_id"]);
+                  setTableParams(prev => ({
+                    ...prev,
+                    pagination: { ...prev.pagination, current: 1 }
+                  }));
+                  fetchData();
                 }}
                 name="btn-clear"
                 text="Clear"
                 iconSrc="/img/icons/trash.png"
                 className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
-
               />
+
               {console.log("tableParams", tableParams?.filters?.year_code)}
               <ExportPeriodExcelButton
                 text="Export Excel"
                 leftTopTitle="Quarter"
-                fileName={`Sales_Report_By_Quarter_${yearText}`}
+                fileName={`Sales_Report_By_Quarter`}
+                // fileName={`Sales_Report_By_Quarter_${yearText}`}
                 getPayload={async () => {
                   const values = await formCustom.validateFields();
                   return {
