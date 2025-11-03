@@ -111,13 +111,13 @@ export default function PointHistory() {
   const getStatusInfo = (code) => {
     switch (code) {
       case "RTP":
-        return { text: "รอยืนยัน", textColor: "#FFFFFF", bgColor: "#F89E18" };
+        return { text: "รอจัดส่ง", textColor: "#FFFFFF", bgColor: "#FBBF24" };
       case "RTD":
-        return { text: "กำลังจัดส่ง", textColor: "#FFFFFF", bgColor: "#F89E18" };
+        return { text: "กำลังจัดส่ง", textColor: "#FFFFFF", bgColor: "#3B82F6" };
       case "RTV":
-        return { text: "จัดส่งสำเร็จ", textColor: "#FFFFFF", bgColor: "#009845" };
+        return { text: "จัดส่งสำเร็จ", textColor: "#FFFFFF", bgColor: "#10B981" };
       default:
-        return { text: code || "-", textColor: "#000000", bgColor: "#E0E0E0" };
+        return { text: code || "รอดำเนินการ", textColor: "#000000", bgColor: "#D1D5DB" };
     }
   };
 
@@ -227,8 +227,8 @@ export default function PointHistory() {
                     key={idx}
                     className="flex justify-between items-center bg-white p-3 rounded-lg shadow-md mb-2"
                   >
-                    <div className="flex gap-2 flex-wrap">
-                      <img src="/img/icons/point.png" className="h-5 w-5 my-auto" alt="point-icon" />
+                    <div className="flex gap-2 flex-wrap ">
+                      <img src="/img/icons/point.png" className="h-5 w-5" alt="point-icon" />
                       <div>
                         {/* use */}
                         {activeTab === "use" && (
@@ -236,11 +236,11 @@ export default function PointHistory() {
                             <p className="text-gray-500 text-sm sarabun-font">
                               {item.created_at.split(".")[0]} | {item.page}
                             </p>
-                            <p className="text-gray-700 text-sm sarabun-font">
-                              Reward Code : {item.reward_code}
+                            <p className="text-gray-700 text-xs sarabun-font">
+                              รหัสรางวัล : {item.reward_code}
                             </p>
-                            <p className="text-gray-700 text-sm sarabun-font truncate">
-                              Reward Name : {item.reward_name}
+                            <p className="text-gray-700 text-xs sarabun-font truncate mb-2">
+                              ชื่อรางวัล : {item.reward_name}
                             </p>
                             {(() => {
                               const status = getStatusInfo(item.status_tran);

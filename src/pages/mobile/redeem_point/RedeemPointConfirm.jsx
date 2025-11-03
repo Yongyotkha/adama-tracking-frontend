@@ -273,7 +273,7 @@ export default function RedeemPointConfirm() {
                 src="/img/icons/warning-yellow.png"
                 text={`<div class='text-center'>
                 <p class='text-yellow-500 text-[20px] font-bold mt-1 sarabun-font mb-4'>คุณมีคะแนนไม่เพียงพอสำหรับรางวัลนี้</p>
-                <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font mb-4'>ต้องใช้ ${Number(target?.[0]?.point??0).toLocaleString()} คะแนนสำหรับแลกคูปองนี้</p>
+                <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font mb-4'>ต้องใช้ ${Number(target?.[0]?.point??0).toLocaleString()} คะแนนสำหรับแลกรางวัลนี้</p>
             </div>`}
                 confirmText="ปิด"
             />
@@ -286,8 +286,9 @@ export default function RedeemPointConfirm() {
                 }}
                 src="/img/icons/check-circle.png"
                 text={`<div class='text-center'>
-            <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>ใช้ ${target?.[0]?.point} คะแนนสำหรับแลกคูปองนี้</p>
-            <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>คุณแลกคูปองสำเร็จ</p>
+            <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font mb-4'>แลกของรางวัลสำเร็จ</p>
+            <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>คุณใช้ ${Number(target?.[0]?.point).toLocaleString("th-TH")} คะแนนเพื่อแลกของรางวัลนี้เรียบร้อยแล้ว</p>
+            
           </div>`}
                 confirmText="ปิด"
             />
@@ -302,11 +303,12 @@ export default function RedeemPointConfirm() {
                     // กดปุ่ม "ยกเลิก"
                     setIsPointModalVisibleComfirm(false);
                 }}
-                src="/img/icons/check-circle.png"
+                src="/img/icons/point.png"
                 text={`<div class='text-center'>
-      <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>คุณต้องการแลกคะแนน</p>
-      <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>ใช้ ${target?.[0]?.point} คะแนนสำหรับแลกคูปองนี้</p>
-    </div>`}
+                <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font mb-4'>แลกของรางวัล</p>
+                <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>ใช้ ${Number(target?.[0]?.point ?? 0).toLocaleString("th-TH")} คะแนนสำหรับแลกของรางวัลนี้</p>
+                
+                </div>`}
                 confirmText="ยืนยัน"
                 cancelText="ยกเลิก"
             />

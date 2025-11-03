@@ -292,7 +292,7 @@ export default function RegisteredCustomerList() {
       { title: "Contact Name", dataIndex: "contact_name" },
       { title: "Contact Number", dataIndex: "phone" },
       { title: "Subscribed", dataIndex: "subscribed" },
-      { title: "Current points", dataIndex: "point" },
+      { title: "Current Points", dataIndex: "point" },
       { title: "Status", dataIndex: "status" },
       { title: "Action", dataIndex: "action", align: "center" },
     ];
@@ -306,7 +306,7 @@ export default function RegisteredCustomerList() {
       { title: "Contact Name", dataIndex: "contact_name" },
       { title: "Contact Number", dataIndex: "phone" },
       { title: "Subscribed", dataIndex: "subscribed" },
-      { title: "Current points", dataIndex: "point" },
+      { title: "Current Points", dataIndex: "point" },
       { title: "Status", dataIndex: "status" },
       { title: "Action", dataIndex: "action", align: "center" },
     ];
@@ -321,7 +321,7 @@ export default function RegisteredCustomerList() {
       { title: "Contact Name", dataIndex: "contact_name" },
       { title: "Contact Number", dataIndex: "phone" },
       { title: "Subscribed", dataIndex: "subscribed" },
-      { title: "Current points", dataIndex: "point" },
+      { title: "Current Points", dataIndex: "point" },
       { title: "Status", dataIndex: "status" },
       { title: "Action", dataIndex: "action", align: "center" },
     ];
