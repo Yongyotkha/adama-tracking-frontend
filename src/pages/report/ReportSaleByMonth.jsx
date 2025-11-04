@@ -36,6 +36,15 @@ export default function ReportSaleByMonth() {
   const [areaList, setAreaList] = useState([]);
   const [formCustom] = Form.useForm();
 
+  // ทำให้ชื่อสินค้าตรงกันแบบกันพลาดช่องว่าง/ตัวพิมพ์/อักขระผสม
+  const normalize = (s) =>
+    (s ?? "")
+      .toString()
+      .normalize("NFKC")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+
   const header = [
     {
       title: "Month",
@@ -92,7 +101,7 @@ export default function ReportSaleByMonth() {
           }),
           render: (_, record) => {
             const itemData =
-              month.product.find(
+              (month.workplan_data_items || []).find(
                 (p) => normalize(p.product_name) === normalize(record.productName)
               ) || {};
             return (
@@ -127,7 +136,7 @@ export default function ReportSaleByMonth() {
           }),
           render: (_, record) => {
             const itemData =
-              month.product.find(
+              (month.workplan_data_items || []).find(
                 (p) => normalize(p.product_name) === normalize(record.productName)
               ) || {};
             return (
@@ -162,7 +171,7 @@ export default function ReportSaleByMonth() {
           }),
           render: (_, record) => {
             const itemData =
-              month.product.find(
+              (month.workplan_data_items || []).find(
                 (p) => normalize(p.product_name) === normalize(record.productName)
               ) || {};
             return (
@@ -197,7 +206,7 @@ export default function ReportSaleByMonth() {
           }),
           render: (_, record) => {
             const itemData =
-              month.product.find(
+              (month.workplan_data_items || []).find(
                 (p) => normalize(p.product_name) === normalize(record.productName)
               ) || {};
             return (
@@ -232,7 +241,7 @@ export default function ReportSaleByMonth() {
           }),
           render: (_, record) => {
             const itemData =
-              month.product.find(
+              (month.workplan_data_items || []).find(
                 (p) => normalize(p.product_name) === normalize(record.productName)
               ) || {};
             return (
@@ -267,7 +276,7 @@ export default function ReportSaleByMonth() {
           }),
           render: (_, record) => {
             const itemData =
-              month.product.find(
+              (month.workplan_data_items || []).find(
                 (p) => normalize(p.product_name) === normalize(record.productName)
               ) || {};
             return (
@@ -352,10 +361,6 @@ export default function ReportSaleByMonth() {
       fetchData();
     }
   }, [
-    // tableParams.pagination.current,
-    // tableParams.pagination.pageSize,
-    // tableParams.sortOrder,
-    // tableParams.sortField,
     JSON.stringify(tableParams.filters),
   ]);
 
@@ -383,25 +388,34 @@ export default function ReportSaleByMonth() {
 
     const values = await formCustom.validateFields(); // รับค่าจาก form
 
-    const payload = {
-      area_id: values.area_id || null,
-      sale_id: values.sale_id || null,
-      product_name: values.product_name || null,
-      dealer_id: values.dealer_id || null,
-      year_code: tableParams.filters.year_code || null,
-      page_length: 1,
-      page_size: pageSize,
-    };
+    // NEW: ปรับ payload ให้ตรง format ใหม่ (year_code, user_id, dealer_id)
+    const payload =
+    // {
+    //   // year_code: (tableParams.filters?.year_code ?? dayjs().tz("Asia/Bangkok").format("YYYY")),
+    //   year_code: (tableParams.filters?.year_code ?? dayjs().tz("Asia/Bangkok").format("YYYY")),
+    //   user_id:  "",
+    //   dealer_id:  "",
+    // };
+    // ยังไม่มี Filter component เลยตั้งค่าตายตัวก่อน
+    {
+      "year_code": "2025",
+      "user_id": "",
+      "dealer_id": ""
+    }
 
     try {
       const response = await useServiceAPI.get(
-        paths.pathReportMonthly,
+        paths.pathReportRollingWorkPlan,
         payload
       );
 
       if (response.status === 200) {
-
-        const { data_items, records_filtered, permission, items } = response.data;
+        // รองรับทั้งกรณี response.data และ response.data.data
+        const root = response?.data?.data ?? response?.data ?? {};
+        const data_items = root.data_items ?? [];
+        const items = root.items ?? [];
+        const records_filtered =
+          root.records_filtered ?? response?.data?.records_filtered;
 
         const newDataSource = data_items.map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
@@ -416,7 +430,7 @@ export default function ReportSaleByMonth() {
           ...tableParams,
           pagination: {
             ...tableParams.pagination,
-            total: records_filtered,
+            total: records_filtered ?? newDataSource.length,
           },
         });
 
@@ -440,8 +454,9 @@ export default function ReportSaleByMonth() {
 
   const calculateFooterSums = () => {
     return itemColumn.map((month) => {
+      const list = month?.workplan_data_items || [];
       const sumReducer = (field) =>
-        month.product.reduce((sum, product) => sum + (product[field] || 0), 0);
+        list.reduce((sum, product) => sum + (product[field] || 0), 0);
 
       return {
         id: month.id,
@@ -480,19 +495,6 @@ export default function ReportSaleByMonth() {
       (products.find((o) => o.value === vals.product_name) || {}).label ||
       vals.product_name;
 
-    // ปีจาก filter (รองรับกรณี year_code เป็น object) fallback ปีปัจจุบัน
-    // const yearText =
-    //   toText(tableParams?.filters?.year_code) ||
-    //   dayjs().tz("Asia/Bangkok").format("YYYY");
-
-    // const parts = [
-    //   `Sales_Report_By_Month_${yearText}`,
-    //   areaLabel ? `Area_${slug(areaLabel)}` : null,
-    //   salesLabel ? `Sales_${slug(salesLabel)}` : null,
-    //   dealerLabel ? `Dealer_${slug(dealerLabel)}` : null,
-    //   productLabel ? `Product_${slug(productLabel)}` : null,
-    // ].filter(Boolean);
-
     const parts = [
       `Sales_Report_By_Month`,
       areaLabel ? `${slug(areaLabel)}` : null,
@@ -504,14 +506,6 @@ export default function ReportSaleByMonth() {
     const ts = dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD_HHmm");
     return `${parts.join("_")}_${ts}`;
   };
-  // ทำให้ชื่อสินค้าตรงกันแบบกันพลาดช่องว่าง/ตัวพิมพ์/อักขระผสม
-  const normalize = (s) =>
-    (s ?? "")
-      .toString()
-      .normalize("NFKC")
-      .replace(/\s+/g, " ")
-      .trim()
-      .toLowerCase();
 
   return (
     <>
@@ -608,21 +602,20 @@ export default function ReportSaleByMonth() {
                 fileName={buildMonthlyReportFileName()}
                 getPayload={async () => {
                   const values = await formCustom.validateFields();
+                  const toPrimitive = (v) => {
+                    if (v == null) return "";
+                    if (typeof v === "string" || typeof v === "number") return String(v);
+                    return v.name ?? v.code ?? v.value ?? v.year ?? v.id ?? v.label ?? "";
+                  };
                   return {
-                    area_id: values.area_id || null,
-                    sale_id: values.sale_id || null,
-                    product_name: values.product_name || null,
-                    dealer_id: values.dealer_id || null,
-                    // ส่งเป็น primitive กันกรณี year_code เป็น object
-                    year_code:
-                      toText(tableParams?.filters?.year_code) ||
-                      dayjs().tz("Asia/Bangkok").format("YYYY"),
+                    year_code: toPrimitive(tableParams.filters?.year_code) || dayjs().tz("Asia/Bangkok").format("YYYY"),
+                    user_id: toPrimitive(values.sale_id),
+                    dealer_id: toPrimitive(values.dealer_id),
                   };
                 }}
-                requestData={(payload) =>
-                  useServiceAPI.get(paths.pathReportMonthly, payload)
-                }
+                requestData={(payload) => useServiceAPI.get(paths.pathReportRollingWorkPlan, payload)}
               />
+
 
             </div>
           </BoxPrimary>

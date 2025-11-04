@@ -5,6 +5,8 @@ import DynamicButton from "../../components/button/DynamicButton";
 
 /**
  * Reusable: ปุ่ม Export Excel สำหรับรายงานแบบ "รายเดือนมี 6 sub-columns"
+ * \- อัปเดตให้รองรับโครงสร้าง API ใหม่ของ pathReportRollingWorkPlan
+ * \- payload ภายนอกให้ส่งเข้ามาผ่าน getPayload() เท่านั้น (ควรเป็น {year_code, user_id, dealer_id})
  */
 export default function ExportMonthlyExcelButton({
   getPayload,
@@ -22,11 +24,19 @@ export default function ExportMonthlyExcelButton({
   const colorRolling = "#7DB41E";
   const colorActual = "#93CC23";
 
+  const hexToARGB = (hex) => {
+    const v = (hex || "").replace("#", "").trim();
+    if (v.length === 6) return `FF${v.toUpperCase()}`; // prepend alpha
+    if (v.length === 8) return v.toUpperCase(); // already ARGB
+    return "FFFFFFFF"; // fallback white
+  };
+
   const fillSolid = (hex) => ({
     type: "pattern",
     pattern: "solid",
-    fgColor: { argb: hex.replace("#", "") + "" },
+    fgColor: { argb: hexToARGB(hex) },
   });
+
   const setHeaderStyle = (cell, bgHex, align = "center") => {
     cell.fill = fillSolid(bgHex);
     cell.font = { color: { argb: "FFFFFFFF" }, bold: true };
@@ -55,29 +65,43 @@ export default function ExportMonthlyExcelButton({
       .trim()
       .toLowerCase();
 
+  const subCols = [
+    { title: "Work Plan(KG)", type: "workplan_qty", colorType: "main" },
+    { title: "Rolling Forecast(KG)", type: "rolling_qty", colorType: "rolling" },
+    { title: "Actual(KG)", type: "actual_qty", colorType: "actual" },
+    { title: "Work Plan(Value)", type: "workplan_value", colorType: "main" },
+    { title: "Rolling Forecast(Value)", type: "rolling_value", colorType: "rolling" },
+    { title: "Actual(Value)", type: "actual_value", colorType: "actual" },
+  ];
+
   const handleExport = async () => {
     if (loading) return;
     setLoading(true);
     try {
+      // ✅ ใช้ payload ตามที่ caller ส่งมา (คาดหวัง {year_code, user_id, dealer_id})
       const payload = await getPayload();
       const exportPayload = { ...payload, page_length: 1, page_size: 100000 };
+
       const response = await requestData(exportPayload);
       if (response?.status !== 200) throw new Error("Export failed");
 
-      const { items = [], data_items = [] } = response.data || {};
+      // ✅ รองรับ response.data.data หรือ response.data
+      const root = response?.data?.data ?? response?.data ?? {};
+      const items = root.items ?? [];
+      const data_items = root.data_items ?? [];
 
-      // ✅ เตรียม Map ต่อเดือนสำหรับ lookup แบบ normalize
-      const monthsWithMap = items.map((m) => ({
+      // ✅ เตรียม Map ต่อเดือนสำหรับ lookup แบบ normalize (จาก workplan_data_items)
+      const monthsWithMap = (items || []).map((m) => ({
         ...m,
         map: new Map(
-          (m.product || []).map((p) => [normalize(p.product_name), p])
+          ((m.workplan_data_items || [])).map((p) => [normalize(p.product_name), p])
         ),
       }));
 
       const wb = new ExcelJS.Workbook();
       const ws = wb.addWorksheet("Report");
 
-      // ── Header
+      // ── Header Row 1 & 2
       const r1 = ws.getRow(1);
       const r2 = ws.getRow(2);
       r1.getCell(1).value = "Month";
@@ -86,15 +110,6 @@ export default function ExportMonthlyExcelButton({
       setHeaderStyle(r2.getCell(1), colorMainA);
       ws.mergeCells(1, 1, 2, 1);
       ws.getColumn(1).width = 28;
-
-      const subCols = [
-        { title: "Work Plan(KG)", type: "workplan_qty", colorType: "main" },
-        { title: "Rolling Forecast(KG)", type: "rolling_qty", colorType: "rolling" },
-        { title: "Actual(KG)", type: "actual_qty", colorType: "actual" },
-        { title: "Work Plan(Value)", type: "workplan_value", colorType: "main" },
-        { title: "Rolling Forecast(Value)", type: "rolling_value", colorType: "rolling" },
-        { title: "Actual(Value)", type: "actual_value", colorType: "actual" },
-      ];
 
       let colIdx = 2;
       monthsWithMap.forEach((month, mIndex) => {
@@ -105,21 +120,21 @@ export default function ExportMonthlyExcelButton({
           const c = ws.getCell(2, colIdx + i);
           const sc = subCols[i];
           c.value = sc.title;
-          if (sc.colorType === "main")
-            setHeaderStyle(c, mIndex % 2 === 1 ? colorMainA : colorMainB);
+          if (sc.colorType === "main") setHeaderStyle(c, mIndex % 2 === 1 ? colorMainA : colorMainB);
           else if (sc.colorType === "rolling") setHeaderStyle(c, colorRolling);
           else setHeaderStyle(c, colorActual);
           ws.getColumn(colIdx + i).width = 16;
         }
         ws.mergeCells(1, start, 1, start + subCols.length - 1);
-        for (let i = 0; i < subCols.length; i++)
+        for (let i = 0; i < subCols.length; i++) {
           setHeaderStyle(ws.getCell(1, start + i), mIndex % 2 === 1 ? colorMainA : colorMainB);
+        }
         colIdx += subCols.length;
       });
 
-      // ── Body
+      // ── Body Rows
       let rowIdx = 3;
-      data_items.forEach((row) => {
+      (data_items || []).forEach((row) => {
         const r = ws.getRow(rowIdx);
         const prodName = row.product_name || row.productName || "";
         const key = normalize(prodName);
@@ -152,15 +167,12 @@ export default function ExportMonthlyExcelButton({
       sumRow.getCell(1).value = "Total (THB)";
       sumRow.getCell(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
       sumRow.getCell(1).alignment = { horizontal: "left" };
-      sumRow.getCell(1).fill = fillSolid("#978B87"); // ✅ แก้สีให้มี #
+      sumRow.getCell(1).fill = fillSolid("#978B87");
 
-      let c = 2;
+      let c2 = 2;
       monthsWithMap.forEach((month, mIndex) => {
-        const sumField = (field) =>
-          (month.product || []).reduce(
-            (acc, p) => acc + (Number(p[field]) || 0),
-            0
-          );
+        const list = month.workplan_data_items || [];
+        const sumField = (field) => list.reduce((acc, p) => acc + (Number(p?.[field]) || 0), 0);
         const vals = [
           sumField("workplan_qty"),
           sumField("rolling_qty"),
@@ -170,24 +182,21 @@ export default function ExportMonthlyExcelButton({
           sumField("actual_value"),
         ];
         vals.forEach((v, i) => {
-          const cell = sumRow.getCell(c++);
+          const cell = sumRow.getCell(c2++);
           cell.value = Number(v) || 0;
           setBodyNumber(cell);
           const t = subCols[i].colorType;
           cell.fill =
-            t === "rolling"
-              ? fillSolid(colorRolling)
-              : t === "actual"
-                ? fillSolid(colorActual)
-                : fillSolid(mIndex % 2 === 1 ? colorMainA : colorMainB);
+            t === "rolling" ? fillSolid(colorRolling) : t === "actual" ? fillSolid(colorActual) : fillSolid(mIndex % 2 === 1 ? colorMainA : colorMainB);
           cell.font = { color: { argb: "FFFFFFFF" }, bold: true };
         });
       });
 
+      // Freeze header
+      ws.views = [{ state: "frozen", xSplit: 1, ySplit: 2 }];
+
       const buffer = await wb.xlsx.writeBuffer();
-      // ปลอดภัยกับชื่อไฟล์
-      const safe = (v) =>
-        (typeof v === "string" ? v : "Sales_Report_By_Month").replace(/[\\/:*?"<>|]+/g, "-");
+      const safe = (v) => (typeof v === "string" ? v : "Sales_Report_By_Month").replace(/[\\/:*?"<>|]+/g, "-");
       saveAs(new Blob([buffer]), `${safe(fileName)}.xlsx`);
     } catch (err) {
       console.error(err);

@@ -353,6 +353,11 @@ export const paths = {
   pathReportProducts: "report/products",
   pathReportWrokplan: "report/sale/workplan",
   pathReportMonthly: "report/sale/monthly",
+  pathReportRollingWorkPlan: "report/rolling/workplance",
+  // report/rolling/workplance/year
+  pathReportRollingWorkPlanYear: "report/rolling/workplance/year",
+  pathReportRollingWorkPlanQuarter: "report/rolling/workplance/quarter",
+  
   pathReportQuarterly: "report/sale/quarterly",
   pathReportYearly: "report/sale/yearly",
 
