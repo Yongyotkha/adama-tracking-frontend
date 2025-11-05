@@ -451,17 +451,12 @@ export default function ReportSaleByMonth() {
   };
 
 
-  const toNum = (v) => {
-    if (v == null || v === "") return 0;
-    const n = Number(String(v).replace(/,/g, ""));
-    return Number.isFinite(n) ? n : 0;
-  };
 
   const calculateFooterSums = () => {
     return itemColumn.map((month) => {
       const list = month?.workplan_data_items || [];
       const sumReducer = (field) =>
-        list.reduce((sum, product) => sum + toNum(product[field]), 0);
+        list.reduce((sum, product) => sum + (product[field] || 0), 0);
 
       return {
         id: month.id,
