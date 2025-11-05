@@ -69,7 +69,7 @@ const LinePrivateRoute = () => {
     const checkLineLogin = async () => {
       try {
         await liff.init({
-          liffId: "2007785075-3Yjw7OdO",
+          liffId: "2007785344-oN4zkdDM",
           withLoginOnExternalBrowser: true,
         });
 
