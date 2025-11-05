@@ -164,7 +164,7 @@ export default function PromotionDetail() {
   return (
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
-        <SectionHeader title="รายละเอียดรางวัล" icon="/img/icons/trophy.png" />
+        {/* <SectionHeader title="รายละเอียดรางวัล" icon="/img/icons/trophy.png" /> */}
 
         <div className="w-full max-w-md bg-white rounded-lg mt-6">
           <div className="relative rounded-lg overflow-hidden">

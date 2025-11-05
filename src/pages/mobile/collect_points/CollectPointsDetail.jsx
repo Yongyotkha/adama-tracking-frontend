@@ -212,13 +212,13 @@ export default function CollectPointsDetail() {
 
                         {(item.points?.point_extra_value?.length ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
-                            คะแนน Extra Value : {(item.points?.point_extra_value || []).reduce((a, b) => a + b, 0)}
+                            Extra Value (สำหรับทดสอบ) : {(item.points?.point_extra_value || []).reduce((a, b) => a + b, 0)}
                           </p>
                         )}
 
                         {(item.points?.point_extra_point?.length ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
-                            คะแนน Extra Point : {(item.points?.point_extra_point || []).reduce((a, b) => a + b, 0)}
+                            Extra Point (สำหรับทดสอบ): {(item.points?.point_extra_point || []).reduce((a, b) => a + b, 0)}
                           </p>
                         )}
                       </div>
@@ -282,7 +282,7 @@ export default function CollectPointsDetail() {
 
               <div className="flex justify-between font-semibold mt-1">
                 <p className="sarabun-font">คะแนนได้รับ</p>
-                <p>{Number(totalQtyPoint ?? 0).toLocaleString("th-TH")} /คะแนนสะสม {/*เพิ่มให้ดึงค่ารวม extra point ทั้งหมด*/}</p>
+                <p>{Number(totalQtyPoint ?? 0).toLocaleString("th-TH")} / ปิดแคมเปญ {/*เพิ่มให้ดึงค่ารวม extra point ทั้งหมด*/}</p>
               </div>
 
               <div className="flex justify-between font-semibold text-lg text-green-700 mt-1">
