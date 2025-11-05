@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
@@ -195,6 +195,23 @@ export default function ReportActivityByMonth() {
     ].filter(Boolean).join("_").replace(/[\\/:*?"<>|]+/g, "-").replace(/\s+/g, "_");
   };
 
+  const footerTotals = useMemo(() => {
+    // สร้าง map: activity_type_id -> sum
+    const sums = {};
+    (itemColumn || []).forEach((act) => {
+      const price = Number(act?.total_value) || 0;
+      const sum = (dataSource || []).reduce((acc, row) => {
+        const it = (row?.item || []).find(
+          (x) => x?.activity_type_id === act?.activity_type_id
+        );
+        const qty = Number(it?.total) || 0; // ใช้ Number ปลอดภัยกับเลขทศนิยม/สตริง
+        return acc + qty * price;
+      }, 0);
+      sums[act.activity_type_id] = sum;
+    });
+    return sums;
+  }, [itemColumn, dataSource]);
+
   return (
     <MainLayout loading={loading}>
       <Title prefix="Activity Expenses Report" />
@@ -263,13 +280,21 @@ export default function ReportActivityByMonth() {
             <Table.Summary fixed>
               <Table.Summary.Row className="bg-[#978B87]">
                 <Table.Summary.Cell index={0}>Total</Table.Summary.Cell>
-                {itemColumn.map((month) => (
-                  <Table.Summary.Cell key={`sum_${month.activity_type_id}`} align="center">
+                {itemColumn.map((act) => (
+                  <Table.Summary.Cell
+                    key={`sum_${act.activity_type_id}`}
+                    align="center"
+                  >
                     <InputNumber
                       className="w-full"
                       disabled
-                      value={month.total_value}
-                      formatter={(value) => `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      value={footerTotals[act.activity_type_id] || 0}
+                      formatter={(value) =>
+                        `${Math.trunc(Number(value) || 0)}`.replace(
+                          /\B(?=(\d{3})+(?!\d))/g,
+                          ","
+                        )
+                      }
                       style={{ backgroundColor: "white" }}
                     />
                   </Table.Summary.Cell>
@@ -277,6 +302,7 @@ export default function ReportActivityByMonth() {
               </Table.Summary.Row>
             </Table.Summary>
           )}
+
         />
       </BoxPrimary>
     </MainLayout>
