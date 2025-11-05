@@ -36,14 +36,6 @@ export default function ReportSaleByMonth() {
   const [areaList, setAreaList] = useState([]);
   const [formCustom] = Form.useForm();
 
-  // ทำให้ชื่อสินค้าตรงกันแบบกันพลาดช่องว่าง/ตัวพิมพ์/อักขระผสม
-  const normalize = (s) =>
-    (s ?? "")
-      .toString()
-      .normalize("NFKC")
-      .replace(/\s+/g, " ")
-      .trim()
-      .toLowerCase();
 
   const header = [
     {
@@ -450,25 +442,54 @@ export default function ReportSaleByMonth() {
     });
   };
 
+  // ===== helper: แปลงค่าเป็นตัวเลขปลอดภัย =====
+  const toNum = (v) => {
+    if (v == null || v === "") return 0;
+    const n = Number(String(v).replace(/,/g, ""));
+    return Number.isFinite(n) ? n : 0;
+  };
 
+  // (คงไว้) ทำให้ชื่อสินค้าตรงกันแบบกันพลาดช่องว่าง/ตัวพิมพ์/อักขระผสม
+  const normalize = (s) =>
+    (s ?? "")
+      .toString()
+      .normalize("NFKC")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
 
+  // ===== แก้ฟังก์ชันรวม footer ให้รวมเฉพาะแถวที่แสดงจริง =====
   const calculateFooterSums = () => {
+    const rows = Array.isArray(dataSource) ? dataSource : [];
+
     return itemColumn.map((month) => {
-      const list = month?.workplan_data_items || [];
-      const sumReducer = (field) =>
-        list.reduce((sum, product) => sum + (product[field] || 0), 0);
+      const list = Array.isArray(month?.workplan_data_items)
+        ? month.workplan_data_items
+        : [];
+
+      // ทำ index หาเร็วด้วย product_name (รูปแบบเดียวกับ cell render)
+      const byProduct = new Map(
+        list.map((p) => [normalize(p.product_name), p])
+      );
+
+      const sumField = (field) =>
+        rows.reduce((acc, row) => {
+          const item = byProduct.get(normalize(row.productName));
+          return acc + toNum(item?.[field]);
+        }, 0);
 
       return {
         id: month.id,
-        workplan_qty: sumReducer("workplan_qty"),
-        rolling_qty: sumReducer("rolling_qty"),
-        actual_qty: sumReducer("actual_qty"),
-        workplan_value: sumReducer("workplan_value"),
-        rolling_value: sumReducer("rolling_value"),
-        actual_value: sumReducer("actual_value"),
+        workplan_qty: sumField("workplan_qty"),
+        rolling_qty: sumField("rolling_qty"),
+        actual_qty: sumField("actual_qty"),
+        workplan_value: sumField("workplan_value"),
+        rolling_value: sumField("rolling_value"),
+        actual_value: sumField("actual_value"),
       };
     });
   };
+
 
   // แปลง object -> ข้อความสั้นๆ (รองรับ year_code ที่เป็น {id,name})
   const toText = (v) => {
