@@ -205,25 +205,25 @@ export default function OrderHistoryDetail() {
 
                         {(item.points.standard_point) > 0 && (
                           <p className="text-xs text-gray-500">
-                            Master Point : {item.points.standard_point}
+                            คะแนน : {item.points.standard_point}
                           </p>
                         )}
 
                         {(item.points?.point_x?.length ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
-                            คะแนน X Point : {(item.points?.point_x || []).reduce((a, b) => a + b, 0)}
+                            คะแนนโบนัส : {(item.points?.point_x || []).reduce((a, b) => a + b, 0)}
                           </p>
                         )}
 
                         {(item.points?.point_extra_point?.length ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
-                            คะแนน Extra Point Point : {(item.points?.point_extra_point || []).reduce((a, b) => a + b, 0)}
+                            คะแนน Extra Point Point (สำหรับทดสอบ) : {(item.points?.point_extra_point || []).reduce((a, b) => a + b, 0)}
                           </p>
                         )}
 
                         {(item.points?.point_extra_value?.length ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
-                            คะแนน Extra Point Value : {(item.points?.point_extra_value || []).reduce((a, b) => a + b, 0)}
+                            คะแนน Extra Point Value (สำหรับทดสอบ) : {(item.points?.point_extra_value || []).reduce((a, b) => a + b, 0)}
                           </p>
                         )}
                       </div>

@@ -233,13 +233,13 @@ export default function OrderHistoryDetail() {
 
                         {(item.points?.point_extra_point?.length ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
-                            คะแนน Extra Point Point : {(item.points?.point_extra_point || []).reduce((a, b) => a + b, 0)}
+                            Extra Point Point (สำหรับทดสอบ) : {(item.points?.point_extra_point || []).reduce((a, b) => a + b, 0)}
                           </p>
                         )}
 
                         {(item.points?.point_extra_value?.length ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
-                            คะแนน Extra Point Value : {(item.points?.point_extra_value || []).reduce((a, b) => a + b, 0)}
+                            Extra Point Value (สำหรับทดสอบ) : {(item.points?.point_extra_value || []).reduce((a, b) => a + b, 0)}
                           </p>
                         )}
                       </div>
@@ -309,7 +309,7 @@ export default function OrderHistoryDetail() {
               <div className="flex justify-between items-center font-semibold">
                 <p>คะแนนได้รับ</p>
                 <p className="text-right">
-                  {Number(totalQtyPoint ?? 0).toLocaleString("th-TH")} / คะแนนสะสม {totalExtraAccumDisplay}
+                  {Number(totalQtyPoint ?? 0).toLocaleString("th-TH")} / ปิดแคมเปญ {totalExtraAccumDisplay}
                 </p>
               </div>
 

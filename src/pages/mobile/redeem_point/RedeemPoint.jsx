@@ -95,7 +95,7 @@ export default function RedeemPoint() {
       <div className="w-full max-w-md mt-4 overflow-x-auto overflow-y-hidden min-h-[50px] px-4 scroll-container">
         <div className="flex space-x-1 w-max items-center">
           {categories
-          .filter(category => ![26, 27].includes(category.id)) // แก้ซ่อน id 26 และ 27
+          .filter(category => parseInt(category.id) !== 26 && parseInt(category.id) !== 27)
           .map((category) => (
             <button
               key={category.id || "all"}
@@ -113,7 +113,7 @@ export default function RedeemPoint() {
       </div>
 
 
-        <div className="w-full max-w-4xl mt-6 grid grid-cols-2 sm:grid-cols-2 gap-4">
+        <div className="w-full max-w-md mt-6 grid grid-cols-2 sm:grid-cols-2 gap-4">
           {Object.values(rewards || {})
             .filter(r => String(r.use_flag) === '1' && String(r.status_code) === '1') // ถ้าต้องการแสดงเฉพาะ Active
             .map((reward) => (
@@ -128,6 +128,8 @@ export default function RedeemPoint() {
                   <img src={reward.image} alt={reward.name} className="w-full object-cover" />
                 </div>
                 <div className="mt-3 p-3">
+                  <p className="inline-block bg-[#00783F] text-[#ffffff] text-xs font-semibold sarabun-font px-3 py-1 rounded-full shadow-sm mb-2 ">
+                    {reward.category_name}</p>
                   <p className="font-bold text-[#00783F] sarabun-font text-sm line-clamp-1 ">{reward.name}</p>
                   <p className="text-gray-500 text-xs sarabun-font line-clamp-1 mb-3">
                     {reward.description_short ?? reward.description ?? "-"}
