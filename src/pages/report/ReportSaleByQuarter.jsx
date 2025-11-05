@@ -17,13 +17,7 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-// ---- helpers ------------------------------------------------------------
-const toText = (v) => {
-  if (v == null) return "";
-  if (typeof v === "string" || typeof v === "number") return String(v);
-  return v.name ?? v.code ?? v.value ?? v.year ?? v.label ?? "";
-};
-
+// ---------- helpers ----------
 const normalize = (s) =>
   (s ?? "")
     .toString()
@@ -32,18 +26,45 @@ const normalize = (s) =>
     .trim()
     .toLowerCase();
 
-// ------------------------------------------------------------------------
+const toNum = (v) => {
+  if (v == null || v === "") return 0;
+  const n = Number(String(v).replace(/,/g, ""));
+  return Number.isFinite(n) ? n : 0;
+};
+
+// ดึง year_code เป็น string เสมอ
+const getYearCodeFrom = (y) => {
+  if (y == null) return "";
+  if (typeof y === "string" || typeof y === "number") return String(y);
+  return y.year_code ?? y.code ?? y.value ?? y.label ?? y.name ?? y.year ?? "";
+};
+
+// เลือก “ปีล่าสุด” จากลิสต์ปี
+const pickLatestYearCode = (yearsArr) => {
+  if (!Array.isArray(yearsArr) || yearsArr.length === 0) {
+    return dayjs().tz("Asia/Bangkok").format("YYYY");
+  }
+  let best = yearsArr[0];
+  for (const cur of yearsArr) {
+    const b = Number(getYearCodeFrom(best)) || 0;
+    const c = Number(getYearCodeFrom(cur)) || 0;
+    if (c > b) best = cur;
+  }
+  return getYearCodeFrom(best);
+};
+
+// --------------------------------
 
 export default function ReportSaleByQuarter() {
   const [loading, setLoading] = useState(false);
   const [years, setYears] = useState([]);
+  const [areaList, setAreaList] = useState([]);
+  const [sales, setSales] = useState([]);
   const [dealers, setDealers] = useState([]);
-  const [areaList, setAreaList] = useState([]); // UI ยังอยู่ แต่จะไม่ถูกส่งใน payload
-  const [sales, setSales] = useState([]);       // UI ยังอยู่ แต่จะไม่ถูกส่งใน payload
-  const [products, setProducts] = useState([]); // UI ยังอยู่ แต่จะไม่ถูกส่งใน payload
+  const [products, setProducts] = useState([]);
 
-  const [itemColumn, setItemColumn] = useState([]); // items (Quarter groups)
-  const [dataSource, setDataSource] = useState(false); // data_items (product rows)
+  const [itemColumn, setItemColumn] = useState([]); // quarters
+  const [dataSource, setDataSource] = useState(false); // rows
   const [tableLoading, setTableLoading] = useState(false);
   const { showNotification } = useContext(AuthContext);
   const [formCustom] = Form.useForm();
@@ -55,6 +76,7 @@ export default function ReportSaleByQuarter() {
     sortField: null,
   });
 
+  // header
   const header = [
     {
       title: "Quarter",
@@ -304,58 +326,70 @@ export default function ReportSaleByQuarter() {
     })),
   ];
 
+  // รวม footer “เฉพาะแถวที่แสดงจริง”
   const calculateFooterSums = () => {
+    const rows = Array.isArray(dataSource) ? dataSource : [];
+
     return itemColumn.map((q) => {
-      const list = q?.workplan_data_items || [];
-      const sumReducer = (field) =>
-        list.reduce((sum, product) => sum + (Number(product?.[field]) || 0), 0);
+      const list = Array.isArray(q?.workplan_data_items)
+        ? q.workplan_data_items
+        : [];
+
+      const byProduct = new Map(
+        list.map((p) => [normalize(p.product_name), p])
+      );
+
+      const sumField = (field) =>
+        rows.reduce((acc, row) => {
+          const item = byProduct.get(normalize(row.productName));
+          return acc + toNum(item?.[field]);
+        }, 0);
 
       return {
         id: q.id,
-        workplan_qty: sumReducer("workplan_qty"),
-        rolling_qty: sumReducer("rolling_qty"),
-        actual_qty: sumReducer("actual_qty"),
-        workplan_value: sumReducer("workplan_value"),
-        rolling_value: sumReducer("rolling_value"),
-        actual_value: sumReducer("actual_value"),
+        workplan_qty: sumField("workplan_qty"),
+        rolling_qty: sumField("rolling_qty"),
+        actual_qty: sumField("actual_qty"),
+        workplan_value: sumField("workplan_value"),
+        rolling_value: sumField("rolling_value"),
+        actual_value: sumField("actual_value"),
       };
     });
   };
 
-  const yearText =
-    toText(tableParams?.filters?.year_code) ||
-    dayjs().tz("Asia/Bangkok").format("YYYY");
-
+  // ---------- init masters ----------
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [yearsRes, salesRes, productsRes, dealersRes, areasRes] =
-          await Promise.all([
-            useServiceAPI.get(paths.pathMasterYear),
-            useServiceAPI.get(paths.pathMasterSaleDropdown),
-            useServiceAPI.get(paths.pathReportProducts),
-            useServiceAPI.get(paths.pathMasterDealerAll),
-            useServiceAPI.get(paths.pathMasterAreas),
-          ]);
+        const [yearsRes, productsRes, areasRes] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterYear),
+          useServiceAPI.get(paths.pathReportProducts),
+          useServiceAPI.get(paths.pathMasterAreas),
+        ]);
 
-        setYears(yearsRes.data || []);
-        setSales((salesRes.data || []).map((x) => ({ value: x.id, label: x.name })));
+        const yearList = yearsRes.data || [];
+        setYears(yearList);
         setProducts(
           (productsRes.data || []).map((x) => ({
             value: x.product_name,
             label: x.product_name,
           }))
         );
-        setDealers((dealersRes.data || []).map((x) => ({ value: x.id, label: x.name })));
         setAreaList((areasRes.data || []).map((x) => ({ value: x.id, label: x.name })));
 
-        if ((yearsRes.data || []).length > 0) {
+        // เริ่มจากปีล่าสุด เก็บเป็น string เลย
+        if (yearList.length > 0) {
+          const latestYear = pickLatestYearCode(yearList);
           setTableParams((prev) => ({
             ...prev,
-            filters: { year_code: yearsRes.data[0] },
+            filters: { year_code: latestYear },
           }));
         }
+
+        // ล้าง sales/dealers ตอนเริ่ม
+        setSales([]);
+        setDealers([]);
       } catch (error) {
         showNotification("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -363,26 +397,97 @@ export default function ReportSaleByQuarter() {
       }
     };
     getMaster();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // เปลี่ยน Area → โหลด Sales
   useEffect(() => {
-    if (years.length > 0) fetchData();
+    const areaId = formCustom.getFieldValue("area_id");
+    if (!areaId) {
+      setSales([]);
+      formCustom.resetFields(["sale_id", "dealer_id"]);
+      setDealers([]);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterSaleReport, { area_id: areaId });
+        const list = Array.isArray(res?.data) ? res.data : [];
+        const saleOptions = list.map((item) => ({
+          value: Number(item.user_id),
+          label: item.user_name,
+        }));
+        setSales(saleOptions);
+        formCustom.resetFields(["sale_id", "dealer_id"]);
+        setDealers([]);
+      } catch {
+        setSales([]);
+        setDealers([]);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formCustom.getFieldValue("area_id")]);
+
+  // เปลี่ยน Sale → โหลด Dealers
+  useEffect(() => {
+    const saleId = formCustom.getFieldValue("sale_id");
+    if (!saleId) {
+      setDealers([]);
+      formCustom.resetFields(["dealer_id"]);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: saleId });
+        const list = Array.isArray(res?.data) ? res.data : [];
+        const dealerOptions = list.map((item) => ({
+          value: Number(item.id),
+          label: item.name,
+        }));
+        setDealers(dealerOptions);
+        formCustom.resetFields(["dealer_id"]);
+      } catch {
+        setDealers([]);
+        formCustom.resetFields(["dealer_id"]);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formCustom.getFieldValue("sale_id")]);
+
+  // โหลดข้อมูลเมื่อปี (filters) พร้อม
+  useEffect(() => {
+    if (getYearCodeFrom(tableParams?.filters?.year_code)) fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(tableParams.filters)]);
 
-  const handleSearch = () => fetchData();
+  const handleSearch = async () => {
+    const values = await formCustom.validateFields().catch(() => ({}));
+    const payload = {
+      year_code:
+        getYearCodeFrom(tableParams.filters?.year_code) ||
+        dayjs().tz("Asia/Bangkok").format("YYYY"),
+      user_id: values?.sale_id ?? "",
+      dealer_id: values?.dealer_id ?? "",
+      product_name: values?.product_name ?? "",
+      platform: "web",
+    };
+    await fetchData(payload);
+  };
 
-  const fetchData = async () => {
+  const fetchData = async (payloadFromCaller) => {
     setTableLoading(true);
     try {
-      const values = await formCustom.validateFields();
-
-      // ✅ ใช้ payload ใหม่เท่านั้น
-      const payload = {
-        year_code: yearText || "",
-        user_id: "", // ถ้ามี user_id ใน AuthContext ค่อยนำมาใส่ทีหลังได้
-        dealer_id: values.dealer_id ?? "",
+      const values = (await formCustom.validateFields().catch(() => ({}))) || {};
+      const fallbackPayload = {
+        year_code:
+          getYearCodeFrom(tableParams.filters?.year_code) ||
+          dayjs().tz("Asia/Bangkok").format("YYYY"),
+        user_id: values?.sale_id ?? "",
+        dealer_id: values?.dealer_id ?? "",
+        product_name: values?.product_name ?? "",
+        platform: "web",
       };
+      const payload = payloadFromCaller || fallbackPayload;
 
       const response = await useServiceAPI.get(
         paths.pathReportRollingWorkPlanQuarter,
@@ -425,25 +530,51 @@ export default function ReportSaleByQuarter() {
         <Form form={formCustom} layout="vertical">
           <BoxPrimary className="m-1 mb-4">
             <Row gutter={16} align="middle">
-              {/* ฟิลด์ที่เหลือไว้เพื่อช่วยค้นหาในหน้า แต่จะไม่ถูกส่งไปที่ API */}
               <Col md={6}>
                 <Form.Item label="Area" name="area_id">
-                  <Select placeholder="Select Area" options={areaList} />
+                  <Select
+                    placeholder="Select Area"
+                    options={areaList}
+                    onChange={() => {
+                      formCustom.resetFields(["sale_id", "dealer_id"]);
+                      setSales([]);
+                      setDealers([]);
+                    }}
+                    allowClear
+                  />
                 </Form.Item>
               </Col>
               <Col md={6}>
                 <Form.Item label="Sales" name="sale_id">
-                  <Select placeholder="Select Sale" options={sales} />
-                </Form.Item>
-              </Col>
-              <Col md={6}>
-                <Form.Item label="Product" name="product_name">
-                  <Select placeholder="Select Product" options={products} />
+                  <Select
+                    placeholder="Select Sale"
+                    options={sales}
+                    disabled={!formCustom.getFieldValue("area_id")}
+                    onChange={() => {
+                      formCustom.resetFields(["dealer_id"]);
+                      setDealers([]);
+                    }}
+                    allowClear
+                  />
                 </Form.Item>
               </Col>
               <Col md={6}>
                 <Form.Item label="Dealers" name="dealer_id">
-                  <Select placeholder="Select Dealers" options={dealers} />
+                  <Select
+                    placeholder="Select Dealers"
+                    options={dealers}
+                    disabled={!formCustom.getFieldValue("sale_id")}
+                    allowClear
+                  />
+                </Form.Item>
+              </Col>
+              <Col md={6}>
+                <Form.Item label="Product" name="product_name">
+                  <Select
+                    placeholder="Select Product"
+                    options={products}
+                    allowClear
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -457,8 +588,10 @@ export default function ReportSaleByQuarter() {
                 className="text-white px-4 py-3 rounded-[4px] bg-[#7DB41E]"
               />
               <DynamicButton
-                onClick={() => {
+                onClick={async () => {
                   formCustom.resetFields(["area_id", "sale_id", "product_name", "dealer_id"]);
+                  setSales([]);
+                  setDealers([]);
                   fetchData();
                 }}
                 name="btn-clear"
@@ -467,17 +600,20 @@ export default function ReportSaleByQuarter() {
                 className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
               />
 
-              {/* Export Excel: ใช้ payload ใหม่เหมือนกัน */}
               <ExportPeriodExcelButton
                 text="Export Excel"
                 leftTopTitle="Quarter"
                 fileName={`Sales_Report_By_Quarter`}
                 getPayload={async () => {
-                  const values = await formCustom.validateFields();
+                  const values = await formCustom.validateFields().catch(() => ({}));
                   return {
-                    year_code: yearText || "",
-                    user_id: "",
-                    dealer_id: values.dealer_id ?? "",
+                    year_code:
+                      getYearCodeFrom(tableParams.filters?.year_code) ||
+                      dayjs().tz("Asia/Bangkok").format("YYYY"),
+                    user_id: values?.sale_id ?? "",
+                    dealer_id: values?.dealer_id ?? "",
+                    product_name: values?.product_name ?? "",
+                    platform: "web",
                   };
                 }}
                 requestData={(payload) =>
