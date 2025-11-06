@@ -199,7 +199,9 @@ export default function ReportActivityByMonth() {
     // สร้าง map: activity_type_id -> sum
     const sums = {};
     (itemColumn || []).forEach((act) => {
-      const price = Number(act?.total_value) || 0;
+
+      console.log('act : ', act)
+      const price = Number(act?.unit_convert_value) || 0;
       const sum = (dataSource || []).reduce((acc, row) => {
         const it = (row?.item || []).find(
           (x) => x?.activity_type_id === act?.activity_type_id

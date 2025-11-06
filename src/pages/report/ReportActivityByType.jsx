@@ -40,7 +40,7 @@ export default function ReportActivityByType() {
     sortField: null,
   });
 
-  const mapSalesOptions = (salesList) => (salesList || []).map((sale) => ({ value: sale.id, label: sale.name }));
+  const mapSalesOptions = (salesList) => (salesList || []).map((sale) => ({ value: String(sale.id), label: sale.name }));
 
   const loadMasterData = async () => {
     setLoading(true);
@@ -55,7 +55,8 @@ export default function ReportActivityByType() {
       ]);
 
       setYears(yearsRes.data || []);
-      setAreaList((area.data || []).map(x => ({ value: x.id, label: x.name })));
+
+      setAreaList((area.data || []).map(x => ({ value: String(x.id), label: x.name })));
       setActivityList(activityType.data || []);
 
       if ((yearsRes.data || []).length > 0) {
@@ -81,7 +82,7 @@ export default function ReportActivityByType() {
       try {
         const res = await useServiceAPI.get(`${paths.pathMasterUsersDetail}/${userInfo.id}`);
         if (res.status === 200 && res.data?.area_id) {
-          const userAreaId = parseInt(res.data.area_id);
+          const userAreaId = String(res.data.area_id);
           const isValidArea = areaOpts.some(a => a.value === userAreaId);
           if (isValidArea) {
             // set form area
@@ -114,11 +115,11 @@ export default function ReportActivityByType() {
     const requestData = {
       keyword: f.keyword || "",
       year_code: 2025, // ฝั่งเดิม fix 2025
-      area_id: v.area_id || null,
-      user_id: v.user_id || null,
+      area_id: v.area_id ? Number(v.area_id) : null,
+      user_id: v.user_id ? Number(v.user_id) : null,
       dealer_id: v.dealer_id || null,
       crop_id: v.crop_id || null,
-      territory: v.territory || null,
+      territory: v.territory ? Number(v.territory) : null,
       document_date: v.month || null,
       page_length: 1,
       page_size: pageSize,
@@ -265,9 +266,9 @@ export default function ReportActivityByType() {
     const v = formCustom.getFieldsValue();
     const ts = dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD_HHmm");
     const yearText = toText(f.year_code) || dayjs().tz("Asia/Bangkok").format("YYYY");
-    const areaLabel = (areaList.find((x) => x.value === v.area_id) || {}).label;
-    const salesLabel = (sales.find((x) => x.value === v.user_id) || {}).label;
-    const terrLabel = (territoryList.find((x) => x.value === v.territory) || {}).label;
+    const areaLabel = (areaList.find((x) => x.value === String(v.area_id)) || {}).label;
+    const salesLabel = (sales.find((x) => x.value === String(v.user_id)) || {}).label;
+    const terrLabel = (territoryList.find((x) => x.value === String(v.territory)) || {}).label;
     const monthLabel = v.month ? dayjs(v.month).format("YYYY-MM") : "";
     return [
       `Activity_Report_By_Type_${yearText}`,
@@ -284,7 +285,8 @@ export default function ReportActivityByType() {
       <Title prefix="Activity Report By Type" />
 
       {/* === Row/Col filter form inside BoxPrimary === */}
-      <Form form={formCustom} layout="vertical" onValuesChange={onValuesChange}>
+      <Form form={formCustom} layout="vertical" onValuesChange={onValuesChange}
+        initialValues={{ area_id: undefined, user_id: undefined, territory: undefined, month: null }}>
         <BoxPrimary className="m-1 mb-4">
           <Row gutter={16} align="middle">
             <Col md={6}>
