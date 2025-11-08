@@ -320,7 +320,7 @@ export default function ReportSaleByMonth() {
   return (
     <>
       <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Activity Report By Month" />
+        <Title prefix="Activity Report By Value" />
 
         <Form form={formCustom} layout="vertical">
           <BoxPrimary className="m-1 mb-4">

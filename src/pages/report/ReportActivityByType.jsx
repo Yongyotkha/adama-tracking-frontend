@@ -243,7 +243,7 @@ export default function ReportActivityByType() {
     return (
       <Table.Summary fixed>
         <Table.Summary.Row className="bg-[#978B87]">
-          <Table.Summary.Cell><b>Total</b></Table.Summary.Cell>
+          <Table.Summary.Cell><b>Total (THB)</b></Table.Summary.Cell>
           {["total_activity_plan", "total_activity_list", "total_activity_actual"].map((key) => (
             <Table.Summary.Cell key={key} align="right">
               <InputNumber

@@ -281,7 +281,7 @@ export default function ReportActivityByMonth() {
           footer={() => (
             <Table.Summary fixed>
               <Table.Summary.Row className="bg-[#978B87]">
-                <Table.Summary.Cell index={0}>Total</Table.Summary.Cell>
+                <Table.Summary.Cell index={0}>Total (THB) </Table.Summary.Cell>
                 {itemColumn.map((act) => (
                   <Table.Summary.Cell
                     key={`sum_${act.activity_type_id}`}

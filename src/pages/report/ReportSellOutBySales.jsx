@@ -132,7 +132,7 @@ export default function ReportSellOutBySales() {
     return () => (
       <Table.Summary fixed>
         <Table.Summary.Row className="bg-[#978B87]">
-          <Table.Summary.Cell index={0}><b>Total</b></Table.Summary.Cell>
+          <Table.Summary.Cell index={0}><b>Total (THB)</b></Table.Summary.Cell>
           {monthsEN.flatMap((m, mi) =>
             subCols.map((sc, si) => {
               const k = `${m}_${sc.key}`;
@@ -171,7 +171,7 @@ export default function ReportSellOutBySales() {
 
   return (
     <MainLayout loading={loading}>
-      <Title prefix="Sell Out Report By Sales" />
+      <Title prefix="Sell Out Report" />
 
       <Form layout="vertical" form={form}>
         <BoxPrimary className="m-1 mb-4">

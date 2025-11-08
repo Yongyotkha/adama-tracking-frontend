@@ -351,7 +351,7 @@ export default function SaleHistoryReport() {
       <Table.Summary fixed>
         <Table.Summary.Row className="bg-[#978B87]">
           <Table.Summary.Cell index={0}>
-            <b>Total</b>
+            <b>Total (THB)</b>
           </Table.Summary.Cell>
           <Table.Summary.Cell index={1} />
           {allDataIndexes.map((dx) => (

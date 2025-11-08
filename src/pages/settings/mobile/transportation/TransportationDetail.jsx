@@ -64,18 +64,18 @@ export default function TransportationDetail() {
       width: 250,
       ellipsis: true,
     },
-    {
-      title: "Cost (THB)",
-      dataIndex: "reward_cost",
-      align: "right",
-      width: 120,
-      render: (cost) => cost.toLocaleString(), // เพิ่ม comma separator
-    },
+    // {
+    //   title: "Cost (THB)",
+    //   dataIndex: "reward_cost",
+    //   align: "right",
+    //   width: 120,
+    //   render: (cost) => cost.toLocaleString(), // เพิ่ม comma separator
+    // },
     {
       title: "QTY (Pcs)",
       dataIndex: "reward_value",
-      align: "right",
-      width: 100,
+      align: "center",
+      width: 200,
     },
   ];
 

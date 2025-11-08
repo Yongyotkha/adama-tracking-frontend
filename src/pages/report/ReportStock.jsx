@@ -123,7 +123,7 @@ export default function ReportStock() {
         render: (v) => <span className="font-medium">{v}</span>,
       },
       {
-        title: "Last Stock",
+        title: "Last Stock (ctn)",
         dataIndex: "last_stock",
         key: "last_stock",
         align: "right",
@@ -141,7 +141,7 @@ export default function ReportStock() {
         ),
       },
       {
-        title: "Sell In",
+        title: "Sell In (ctn)",
         dataIndex: "sell_in",
         key: "sell_in",
         align: "right",
@@ -159,7 +159,7 @@ export default function ReportStock() {
         ),
       },
       {
-        title: "Current Stock",
+        title: "Current Stock (ctn)",
         dataIndex: "current_stock",
         key: "current_stock",
         align: "right",
@@ -177,7 +177,7 @@ export default function ReportStock() {
         ),
       },
       {
-        title: "Sell Out",
+        title: "Sell Out (ctn)",
         dataIndex: "sell_out",
         key: "sell_out",
         align: "right",
@@ -209,7 +209,7 @@ export default function ReportStock() {
       <Table.Summary fixed>
         <Table.Summary.Row className="bg-[#978B87]">
           <Table.Summary.Cell index={0}>
-            <b>Total</b>
+            <b>Total (THB) </b>
           </Table.Summary.Cell>
 
           {keys.map((k, i) => (

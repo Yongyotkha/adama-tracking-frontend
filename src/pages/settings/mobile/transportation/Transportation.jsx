@@ -81,7 +81,7 @@ export default function Transportation() {
     { title: "Reward Code", dataIndex: "reward_code", align: "left" },
     { title: "Reward Name", dataIndex: "reward_name", align: "left" },
     // { title: "QTY", dataIndex: "qty", align: "right", width: 100 },
-    { title: "Cost (THB)", dataIndex: "cost", align: "right", width: 120 },
+    // { title: "Cost (THB)", dataIndex: "cost", align: "right", width: 120 },
     { title: "Send By", dataIndex: "send_by", align: "center", width: 140 },
     { title: "Send Date", dataIndex: "send_date", align: "center", width: 140 },
     { title: "Status", dataIndex: "status", align: "center", width: 140 },
