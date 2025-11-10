@@ -8,6 +8,7 @@ import DynamicButton from "../../../../components/button/DynamicButton";
 import TableCustomComponent from "../../../../components/table/TableCustomComponent";
 import useServiceAPI from "../../../../services/CorsService";
 import { paths } from "../../../../services/CorsPath";
+import ExportSaleHistoryExcelButton from "../../../../components/export/ExportSaleHistoryExcelButton";
 
 // ---------------- Quarter / Months ----------------
 const QUARTER_MONTHS = [
@@ -396,6 +397,20 @@ export default function SaleHistoryReport() {
               iconSrc="/img/icons/trash.png"
               className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
             />
+            <ExportSaleHistoryExcelButton
+              text="Export Excel"
+              fileName={`Sales_History_${form.getFieldValue('year') || '2025'}`}
+              getPayload={async () => ({
+                year: String(form.getFieldValue('year') || '2025'),
+                user_id: form.getFieldValue('user_id') || "",
+                dealer_id: form.getFieldValue('dealer_id') || "",
+                sub_dealer_id: form.getFieldValue('sub_dealer_id') || "",
+                product_id: form.getFieldValue('product_id') || "",
+              })}
+              requestData={(payload) => useServiceAPI.get(paths.pathReportSaleHistory, payload)}
+            />
+
+
           </div>
         </BoxPrimary>
       </Form>

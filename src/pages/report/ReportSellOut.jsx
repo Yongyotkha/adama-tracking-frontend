@@ -10,11 +10,12 @@ import dayjs from "dayjs";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
+import ExportSellOutExcelButton from "../../components/export/ExportSellOutExcelButton";
 
 const GREEN_A = "#00783F";
 const GREEN_B = "#009845";
 
-const monthsEN = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const monthsEN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const subCols = [
   { title: "Last Stock", key: "last_stock" },
   { title: "Sell In", key: "sell_in" },
@@ -228,10 +229,10 @@ export default function ReportSellOut() {
       for (let i = 1; i <= 12; i++) {
         const mObj = g.months?.[String(i)] || g.months?.[i] || {};
         const mName = monthsEN[i - 1];
-        row[`${mName}_last_stock`]    = Number(mObj.last)    || 0;
-        row[`${mName}_sell_in`]       = Number(mObj.in)      || 0;
+        row[`${mName}_last_stock`] = Number(mObj.last) || 0;
+        row[`${mName}_sell_in`] = Number(mObj.in) || 0;
         row[`${mName}_current_stock`] = Number(mObj.current) || 0;
-        row[`${mName}_sell_out`]      = Number(mObj.out)     || 0;
+        row[`${mName}_sell_out`] = Number(mObj.out) || 0;
       }
       return row;
     });
@@ -305,7 +306,7 @@ export default function ReportSellOut() {
           <Row gutter={16} align="middle">
             <Col md={6}>
               <Form.Item
-                label="Area (Step 1)"
+                label="Area"
                 name="area_id"
                 tooltip="เลือก Area ก่อนเพื่อเปิด Sales"
               >
@@ -319,7 +320,7 @@ export default function ReportSellOut() {
 
             <Col md={6}>
               <Form.Item
-                label="Sales (Step 2)"
+                label="Sales"
                 name="sales_id"
                 tooltip="เลือก Sales หลังจากเลือก Area"
               >
@@ -334,7 +335,7 @@ export default function ReportSellOut() {
 
             <Col md={6}>
               <Form.Item
-                label="Dealer (Step 3)"
+                label="Dealer"
                 name="dealer_id"
                 tooltip="เลือก Dealer หลังจากเลือก Sales"
               >
@@ -368,6 +369,23 @@ export default function ReportSellOut() {
               text="Clear"
               iconSrc="/img/icons/trash.png"
               className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
+            />
+
+            <ExportSellOutExcelButton
+              text="Export Excel"
+              fileName={`SellOut_${dayjs(form.getFieldValue('month') || dayjs()).format('YYYY')}`}
+              getPayload={async () => {
+                const v = form.getFieldsValue();
+                const year = v.month ? String(dayjs(v.month).year()) : String(dayjs().year());
+                return {
+                  year,
+                  area_id: v.area_id ?? "",
+                  user_id: v.sales_id ?? "",
+                  dealer_id: v.dealer_id ?? "",
+                  sub_dealer_id: v.sub_dealer_id ?? "",
+                };
+              }}
+              requestData={(payload) => useServiceAPI.get(paths.pathReportSellOut, payload)}
             />
           </div>
         </BoxPrimary>

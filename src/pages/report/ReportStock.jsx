@@ -10,6 +10,7 @@ import TableComponent from "../../components/table/TableComponent";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
+import ExportStockExcelButton from "../../components/export/ExportStockExcelButton";
 
 const toComma = (n) =>
   `${parseInt(Number(n) || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -459,6 +460,21 @@ export default function ReportStock() {
               iconSrc="/img/icons/trash.png"
               className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
             />
+            <ExportStockExcelButton
+              text="Export Excel"
+              fileName={`Stock_${(form.getFieldValue('month') || dayjs()).format('YYYY-MM')}`}
+              getPayload={async () => {
+                const v = form.getFieldsValue();
+                return {
+                  date: v.month ? dayjs(v.month).format("YYYY-MM") : dayjs().format("YYYY-MM"),
+                  area_id: v.area_id ?? "",
+                  user_id: v.sale_id || "",
+                  dealer_id: v.dealer_id || "",
+                  sub_dealer_id: v.sub_dealer_id || "",
+                };
+              }}
+              requestData={(payload) => useServiceAPI.get(paths.pathReportStock, payload)}
+            />
           </div>
         </BoxPrimary>
       </Form>
@@ -493,10 +509,10 @@ export default function ReportStock() {
           {totalRecords === 0
             ? "Showing 0 to 0 of 0 entries"
             : (() => {
-                const start = (current - 1) * pageSize + 1;
-                const end = Math.min(current * pageSize, totalRecords);
-                return `Showing ${start} to ${end} of ${totalRecords} entries`;
-              })()}
+              const start = (current - 1) * pageSize + 1;
+              const end = Math.min(current * pageSize, totalRecords);
+              return `Showing ${start} to ${end} of ${totalRecords} entries`;
+            })()}
         </div>
       </BoxPrimary>
     </MainLayout>
