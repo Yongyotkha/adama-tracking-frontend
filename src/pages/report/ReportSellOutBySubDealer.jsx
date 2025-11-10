@@ -1,5 +1,5 @@
-// src/pages/report/ReportSellOutBySubDealer.jsx
-import React, { useMemo, useState } from "react";
+// src/pages/report/ReportSellOut.jsx
+import React, { useMemo, useState, useEffect } from "react";
 import { Form, Row, Col, Select, DatePicker, InputNumber, Table } from "antd";
 import MainLayout from "../../layouts/MainLayout";
 import Title from "../../components/title/Title";
@@ -7,6 +7,8 @@ import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import DynamicButton from "../../components/button/DynamicButton";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
 import dayjs from "dayjs";
+import useServiceAPI from "../../services/CorsService";
+import { paths } from "../../services/CorsPath";
 
 const GREEN_A = "#00783F";
 const GREEN_B = "#009845";
@@ -21,43 +23,12 @@ const subCols = [
 
 const fmt = (n) => `${parseInt(Number(n) || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-/** สร้าง mock ข้อมูล Sub Dealer ครบ 12 เดือน */
-const makeMockSubDealerRows = (n = 10, seed = 0) => {
-  const subs = [
-    "ร้านวิบุลทรัพย์การเกษตร",
-    "ร้านเทียนชัยเจริญพาณิชย์",
-    "หจก.เกษตรรุ่งเรือง",
-    "บุญมีการเกษตร",
-    "โชคธนบดีการเกษตร",
-  ];
-  const rows = [];
-  for (let i = 0; i < n; i++) {
-    const name = subs[i % subs.length] + (i >= subs.length ? ` #${Math.floor(i / subs.length)}` : "");
-    const row = { key: i + 1, sub_dealer_name: name };
-
-    monthsEN.forEach((m, idx) => {
-      const base = (i + idx + seed) % 7;
-      const lastStock = 4 + ((base + 1) % 4);
-      const sellIn = (base + idx) % 5;
-      const current = Math.max(lastStock + sellIn - ((i + idx) % 4), 0);
-      const sellOut = lastStock + sellIn - current;
-
-      row[`${m}_last_stock`] = lastStock;
-      row[`${m}_sell_in`] = sellIn;
-      row[`${m}_current_stock`] = current;
-      row[`${m}_sell_out`] = sellOut;
-    });
-    rows.push(row);
-  }
-  return rows;
-};
-
-export default function ReportSellOutBySubDealer() {
+export default function ReportSellOut() {
   const [form] = Form.useForm();
   const [loading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
 
-  // Filter options (mock)
+  // Filter options (ใช้ mock ไปก่อน — ถ้าต้องดึงจาก API ค่อยต่อเพิ่ม)
   const areaOptions = [
     { value: 1, label: "Area 1" },
     { value: 2, label: "Area 2" },
@@ -72,7 +43,7 @@ export default function ReportSellOutBySubDealer() {
   ];
 
   // Table data + page size (ใช้คุมความสูงของตาราง)
-  const [data, setData] = useState(makeMockSubDealerRows(10, 0));
+  const [data, setData] = useState([]); // จะมาจาก API
   const [pageSize, setPageSize] = useState(5);
 
   // ----- columns -----
@@ -89,7 +60,7 @@ export default function ReportSellOutBySubDealer() {
       }),
       children: [
         {
-          title: "Sub Dealer",
+          title: "Sub Dealer / Group",
           dataIndex: "sub_dealer_name",
           fixed: "left",
           width: 300,
@@ -175,32 +146,82 @@ export default function ReportSellOutBySubDealer() {
     );
   }, [data]);
 
-  // ----- actions (mock) -----
-  const handleSearch = async () => {
+  // ---------- helpers ----------
+  const buildPayload = () => {
+    const v = form.getFieldsValue();
+    const year = v.month ? String(dayjs(v.month).year()) : String(dayjs().year());
+    return {
+      year,                         // "2025"
+      area_id: v.area_id ?? "",     // อนุญาตส่ง "" ตามสเปค
+      user_id: v.sales_id ?? "",
+      dealer_id: v.dealer_id ?? "",
+      sub_dealer_id: v.sub_dealer_id ?? "",
+    };
+  };
+
+  const mapApiToRows = (apiData = []) => {
+    // โครงสร้าง API: data = [{ group_id, group_name, months: { "1":{...}, ..., "12":{...} }, totals: {...} }]
+    return apiData.map((g, idx) => {
+      const row = {
+        key: g.group_id || idx + 1,
+        sub_dealer_name: g.group_name || "All",
+      };
+      // ใส่ค่า 12 เดือน
+      for (let i = 1; i <= 12; i++) {
+        const mObj = g.months?.[String(i)] || g.months?.[i] || {};
+        const mName = monthsEN[i - 1]; // Jan..Dec
+        row[`${mName}_last_stock`]   = Number(mObj.last)    || 0;
+        row[`${mName}_sell_in`]      = Number(mObj.in)      || 0;
+        row[`${mName}_current_stock`]= Number(mObj.current) || 0;
+        row[`${mName}_sell_out`]     = Number(mObj.out)     || 0;
+      }
+      return row;
+    });
+  };
+
+  const fetchSellOut = async () => {
     setTableLoading(true);
     try {
-      const v = form.getFieldsValue();
-      const y = v.month ? dayjs(v.month).year() : dayjs().year();
-      // seed ให้ต่างตาม filter เพื่อเห็นผล
-      const seed =
-        (y % 7) +
-        (v.area_id ? v.area_id : 0) +
-        (v.sales_id ? v.sales_id % 5 : 0) +
-        (v.dealer_id ? v.dealer_id % 3 : 0);
-      setData(makeMockSubDealerRows(10, seed));
+      const payload = buildPayload();
+      const res = await useServiceAPI.get(paths.pathReportSellOut, payload);
+      const groups = res?.data || [];
+      setData(mapApiToRows(groups));
+    } catch (err) {
+      console.error(err);
+      setData([]);
     } finally {
       setTableLoading(false);
     }
   };
 
+  // ----- first load with defaults -----
+  useEffect(() => {
+    // ค่า default: ปี = ปีปัจจุบัน, ตัวกรองอื่นว่าง
+    form.setFieldsValue({
+      month: dayjs(), // ใช้สำหรับเลือกปี
+      area_id: undefined,
+      sales_id: undefined,
+      dealer_id: undefined,
+      sub_dealer_id: undefined,
+    });
+    fetchSellOut();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ----- actions -----
+  const handleSearch = async () => {
+    await fetchSellOut();
+  };
+
   const handleClear = () => {
-    form.resetFields(["area_id", "sales_id", "dealer_id", "month"]);
-    setData(makeMockSubDealerRows(10, 0));
+    form.resetFields(["area_id", "sales_id", "dealer_id", "sub_dealer_id", "month"]);
+    form.setFieldsValue({ month: dayjs() });
+    fetchSellOut();
   };
 
   return (
     <MainLayout loading={loading}>
-      <Title prefix="Sell Out Report By Sub Dealer" />
+      <Title prefix="Sell Out Report" />
 
       <Form layout="vertical" form={form}>
         <BoxPrimary className="m-1 mb-4">
@@ -221,7 +242,7 @@ export default function ReportSellOutBySubDealer() {
               </Form.Item>
             </Col>
             <Col md={6}>
-              <Form.Item label="Month" name="month" initialValue={dayjs()}>
+              <Form.Item label="Month (for year)" name="month" initialValue={dayjs()}>
                 <DatePicker picker="month" style={{ width: "100%" }} />
               </Form.Item>
             </Col>
@@ -268,7 +289,7 @@ export default function ReportSellOutBySubDealer() {
           scroll
           scrollX
           scrollY
-          rowHeight={56}  // เผื่อคอมโพเนนต์ของคุณใช้คำนวณความสูง
+          rowHeight={56}
           extraY={230}
           footer={footer}
         />
