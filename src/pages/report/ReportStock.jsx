@@ -1,75 +1,27 @@
+// src/pages/report/ReportStock.jsx
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Form, Row, Col, Select, DatePicker, InputNumber, Table } from "antd";
+import dayjs from "dayjs";
 import MainLayout from "../../layouts/MainLayout";
 import Title from "../../components/title/Title";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import DynamicButton from "../../components/button/DynamicButton";
-import TableComponent from "../../components/table/TableComponent"; // ✅ ใช้คอมโพเนนต์ที่ให้มา
-
-// ถ้ามี AuthContext สำหรับ notify ก็ใช้ได้เลย (ไม่บังคับ)
+import TableComponent from "../../components/table/TableComponent";
+import useServiceAPI from "../../services/CorsService";
+import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
 
 const toComma = (n) =>
   `${parseInt(Number(n) || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-// -------------------- Mock helpers --------------------
-const mockFetchStock = async ({ page, pageSize, filters }) => {
-  // สร้าง mock 40 แถว เพื่อเดโมการแบ่งหน้า
-  const base = [
-    "Bumper P 490",
-    "Super K 25-7-7",
-    "Green X 16-16-8",
-    "Ultra N 46-0-0",
-    "Root Plus 15-15-15",
-    "Max P 12-24-12",
-    "Grow 13-13-21",
-    "Power K 0-0-60",
-    "Bio Shield",
-    "CalMag Pro",
-  ];
-  const all = Array.from({ length: 40 }, (_, i) => {
-    const name = base[i % base.length];
-    const ls = (i % 7) + 3;
-    const si = i % 5 === 0 ? 0 : (i % 5) + 1;
-    const cs = Math.max(ls + si - ((i % 4) + 1), 0);
-    const so = (ls + si) - cs;
-    return {
-      key: i + 1,
-      product_name: name,
-      last_stock: ls,
-      sell_in: si,
-      current_stock: cs,
-      sell_out: so,
-    };
-  });
-
-  // สมมติ filter ตัดให้ดูผล (เช่น มี dealer)
-  const filtered = all.filter((r) => {
-    let ok = true;
-    if (filters?.dealer_id) ok = ok && r.product_name.toLowerCase().includes("p");
-    if (filters?.sale_id) ok = ok && r.key % 2 === 0;
-    return ok;
-  });
-
-  const total = filtered.length;
-  const start = (page - 1) * pageSize;
-  const pageRows = filtered.slice(start, start + pageSize);
-
-  // delay เล็กน้อย
-  await new Promise((r) => setTimeout(r, 300));
-
-  return { rows: pageRows, total };
-};
-// ------------------------------------------------------
-
 export default function ReportStock() {
   const { showNotification } = useContext(AuthContext) || {};
   const [form] = Form.useForm();
 
-  const [loading, setLoading] = useState(false);      // page loading
+  const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
 
-  // master dropdown (mock)
+  // dropdown masters (เดี๋ยวย้ายเป็น API ได้ภายหลัง)
   const [areaList] = useState([
     { value: 1, label: "Area 1" },
     { value: 2, label: "Area 2" },
@@ -82,17 +34,15 @@ export default function ReportStock() {
     { value: 21, label: "Kantar Co.,Ltd." },
     { value: 22, label: "Siam Agri" },
   ]);
-  const [subDealerList, setSubDealerList] = useState([
-    { value: 31, label: "กฤษณียมทรัพย์เกษตร" },
-    { value: 32, label: "รุ่งเรืองการเกษตร" },
-  ]);
+  const [subDealerList, setSubDealerList] = useState([]);
 
-  // table
+  // เก็บข้อมูลเต็มจาก API แล้วตัดหน้าเอง
+  const [fullData, setFullData] = useState([]);
   const [dataSource, setDataSource] = useState([]);
   const [totalRecords, setTotalRecords] = useState(0);
 
-  // pagination + page size เหมือน "Show X entries"
-  const [pageSize, setPageSize] = useState(5);
+  // pagination + page size
+  const [pageSize, setPageSize] = useState(10);
   const [current, setCurrent] = useState(1);
 
   const pagination = useMemo(
@@ -100,7 +50,7 @@ export default function ReportStock() {
       current,
       pageSize,
       total: totalRecords,
-      showSizeChanger: false, // เราคุมด้วย "Show X entries" ข้างบนแทน
+      showSizeChanger: false,
     }),
     [current, pageSize, totalRecords]
   );
@@ -136,8 +86,7 @@ export default function ReportStock() {
           },
         }),
         render: (val) => (
-          <InputNumber className="w-full" readOnly value={Number(val) || 0}
-            formatter={(v) => toComma(v)} />
+          <InputNumber className="w-full" readOnly value={Number(val) || 0} formatter={toComma} />
         ),
       },
       {
@@ -154,8 +103,7 @@ export default function ReportStock() {
           },
         }),
         render: (val) => (
-          <InputNumber className="w-full" readOnly value={Number(val) || 0}
-            formatter={(v) => toComma(v)} />
+          <InputNumber className="w-full" readOnly value={Number(val) || 0} formatter={toComma} />
         ),
       },
       {
@@ -172,8 +120,7 @@ export default function ReportStock() {
           },
         }),
         render: (val) => (
-          <InputNumber className="w-full" readOnly value={Number(val) || 0}
-            formatter={(v) => toComma(v)} />
+          <InputNumber className="w-full" readOnly value={Number(val) || 0} formatter={toComma} />
         ),
       },
       {
@@ -190,8 +137,7 @@ export default function ReportStock() {
           },
         }),
         render: (val) => (
-          <InputNumber className="w-full" readOnly value={Number(val) || 0}
-            formatter={(v) => toComma(v)} />
+          <InputNumber className="w-full" readOnly value={Number(val) || 0} formatter={toComma} />
         ),
       },
     ],
@@ -204,14 +150,12 @@ export default function ReportStock() {
 
     const keys = ["last_stock", "sell_in", "current_stock", "sell_out"];
 
-    // antd expects a function that returns <Table.Summary>*
     return () => (
       <Table.Summary fixed>
         <Table.Summary.Row className="bg-[#978B87]">
           <Table.Summary.Cell index={0}>
-            <b>Total (THB) </b>
+            <b>Total</b>
           </Table.Summary.Cell>
-
           {keys.map((k, i) => (
             <Table.Summary.Cell key={k} index={i + 1} align="right">
               <InputNumber
@@ -230,61 +174,83 @@ export default function ReportStock() {
     );
   }, [dataSource]);
 
-
-  // load mock ครั้งแรก
+  // set default filter & first fetch
   useEffect(() => {
     setLoading(true);
-    // เซ็ตค่าตั้งต้นตามรูป
     form.setFieldsValue({
       area_id: 1,
-      sale_id: 11,
-      dealer_id: 21,
-      sub_dealer_id: 31,
+      sale_id: "", // ส่งไปเป็น user_id
+      dealer_id: "",
+      sub_dealer_id: "",
+      month: dayjs("2025-10-01"),
     });
     setLoading(false);
-  }, [form]);
+    fetchStock(); // โหลดครั้งแรก
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // fetch ตามหน้า/ขนาดหน้า
-  const doFetch = async () => {
+  // page slice จาก fullData
+  useEffect(() => {
+    const start = (current - 1) * pageSize;
+    setDataSource(fullData.slice(start, start + pageSize));
+  }, [fullData, current, pageSize]);
+
+  // --------- API call: pathReportStock ----------
+  const buildPayload = () => {
+    const v = form.getFieldsValue();
+    return {
+      date: v.month ? dayjs(v.month).format("YYYY-MM") : dayjs().format("YYYY-MM"),
+      area_id: v.area_id ?? 1,
+      user_id: v.sale_id || "", // mapping sale_id -> user_id
+      dealer_id: v.dealer_id || "",
+      sub_dealer_id: v.sub_dealer_id || "",
+    };
+  };
+
+  const fetchStock = async () => {
     setTableLoading(true);
     try {
-      const f = form.getFieldsValue();
-      const { rows, total } = await mockFetchStock({
-        page: current,
-        pageSize,
-        filters: f,
-      });
-      setDataSource(rows);
-      setTotalRecords(total);
+      const payload = buildPayload();
+      const res = await useServiceAPI.get(paths.pathReportStock, payload);
+      const items = res?.data || [];
+
+      const rows = items.map((it, idx) => ({
+        key: it.product_id ?? idx,
+        product_name: `${it.product_name}${it.product_size ? ` (${it.product_size})` : ""}`,
+        last_stock: Number(it.last) || 0,
+        sell_in: Number(it.in) || 0,
+        current_stock: Number(it.current) || 0,
+        sell_out: Number(it.out) || 0,
+      }));
+
+      setFullData(rows);
+      setTotalRecords(rows.length);
+      setCurrent(1); // กลับหน้า 1 เมื่อค้นหาใหม่
     } catch (e) {
       console.error(e);
+      setFullData([]);
+      setTotalRecords(0);
       showNotification?.("error", "โหลดข้อมูลไม่สำเร็จ");
     } finally {
       setTableLoading(false);
     }
   };
 
-  useEffect(() => {
-    doFetch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [current, pageSize]);
-
   const handleSearch = () => {
     setCurrent(1);
-    doFetch();
+    fetchStock();
   };
 
   const handleClear = () => {
     form.resetFields(["area_id", "sale_id", "dealer_id", "sub_dealer_id", "month"]);
+    form.setFieldsValue({ area_id: 1, month: dayjs() });
     setCurrent(1);
-    doFetch();
+    fetchStock();
   };
 
-  const handleTableChange = (pg) => {
-    setCurrent(pg.current);
-  };
+  const handleTableChange = (pg) => setCurrent(pg.current);
 
-  // dealer -> sub dealer (mock)
+  // dealer -> sub dealer (mock cascade)
   const onValuesChange = (changed) => {
     if (Object.prototype.hasOwnProperty.call(changed, "dealer_id")) {
       const id = changed.dealer_id;
@@ -292,7 +258,6 @@ export default function ReportStock() {
         setSubDealerList([]);
         form.setFieldsValue({ sub_dealer_id: undefined });
       } else {
-        // mock filter
         setSubDealerList([
           { value: 31, label: "กฤษณียมทรัพย์เกษตร" },
           { value: 32, label: "สหกรณ์เกษตรรวมใจ" },
@@ -305,7 +270,7 @@ export default function ReportStock() {
     <MainLayout loading={loading}>
       <Title prefix="Stock Report" />
 
-      {/* ฟิลเตอร์ */}
+      {/* Filters */}
       <Form form={form} layout="vertical" onValuesChange={onValuesChange}>
         <BoxPrimary className="m-1 mb-4">
           <Row gutter={16} align="middle">
@@ -355,7 +320,7 @@ export default function ReportStock() {
         </BoxPrimary>
       </Form>
 
-      {/* ส่วนควบคุม page size แบบ "Show X entries" */}
+      {/* Show X entries */}
       <div className="flex items-center gap-2 mb-2">
         <span>Show</span>
         <Select
@@ -370,7 +335,7 @@ export default function ReportStock() {
         <span>entries</span>
       </div>
 
-      {/* ตาราง */}
+      {/* Table */}
       <BoxPrimary>
         <TableComponent
           header={header}
@@ -378,17 +343,17 @@ export default function ReportStock() {
           loading={tableLoading}
           pagination={pagination}
           onChange={handleTableChange}
-          scroll // เปิด scroll X อัตโนมัติ (component จะกำหนดเอง)
+          scroll
           footer={footer}
         />
-        {/* ข้อความสรุป "Showing x to y of z entries" */}
         <div className="text-sm text-[#6b7280] mt-2">
-          {(() => {
-            if (totalRecords === 0) return "Showing 0 to 0 of 0 entries";
-            const start = (current - 1) * pageSize + 1;
-            const end = Math.min(current * pageSize, totalRecords);
-            return `Showing ${start} to ${end} of ${totalRecords} entries`;
-          })()}
+          {totalRecords === 0
+            ? "Showing 0 to 0 of 0 entries"
+            : (() => {
+                const start = (current - 1) * pageSize + 1;
+                const end = Math.min(current * pageSize, totalRecords);
+                return `Showing ${start} to ${end} of ${totalRecords} entries`;
+              })()}
         </div>
       </BoxPrimary>
     </MainLayout>
