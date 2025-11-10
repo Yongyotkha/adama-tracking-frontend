@@ -186,6 +186,7 @@ import ReportStock from "./pages/report/ReportStock";
 import ReportSellOutBySales from "./pages/report/ReportSellOutBySales";
 import ReportSellOutByDealer from "./pages/report/ReportSellOutByDealer";
 import ReportSellOutBySubDealer from "./pages/report/ReportSellOutBySubDealer";
+import ReportSellOut from "./pages/report/ReportSellOut";
 
 
 const App = () => {
@@ -435,6 +436,7 @@ const App = () => {
             <Route path="/report/sell-out-report-sales" element={<ReportSellOutBySales />} />
             <Route path="/report/sell-out-report-dealer" element={<ReportSellOutByDealer />} />
             <Route path="/report/sell-out-report-sub-dealer" element={<ReportSellOutBySubDealer />} />
+            <Route path="/report/sell-out-report" element={<ReportSellOut />} />
 
             {/* <Route path="/report/activity-expense" element={<ReportActivityExpense />} /> */}
 

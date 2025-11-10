@@ -366,6 +366,10 @@ export const paths = {
   pathReportActivityByMonth: "/report/activity/month",
   pathReportActivityExpense: "/report/activity/expense",
   pathReportActivityType: "/report/activity/type",
+  pathReportStock: "/report/stock",
+  pathReportSaleHistory: "/report/sale_point_item",
+  pathReportSellOut: "/report/stock_group",
+  
 
   // Line OA
   pathProfileDetail: "profile/detail",

@@ -1,4 +1,4 @@
-// src/pages/report/sales/SaleHistoryReport.jsx
+// src/pages/settings/mobile/report/SaleHistoryReport.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { Form, Row, Col, Select, InputNumber, Table } from "antd";
 import MainLayout from "../../../../layouts/MainLayout";
@@ -17,131 +17,32 @@ const QUARTER_MONTHS = [
   { id: "Q4", name: "Quarter 4", months: ["Oct.", "Nov.", "Dec."] },
 ];
 
-// ---------------- 4 Metrics (เรียงตามที่ขอ) ----------------
-const METRICS = [
-  { key: "value", label: "Value (THB)" },
-  { key: "qty", label: "QTY (KG)" },
-  { key: "point", label: "Point" },
-  { key: "camp", label: "Point Campaign" },
-];
-
-// ---------------- Mock masters (ตัวอย่างข้อมูล) ----------------
-const PRODUCTS = [
-  { name: "Ossinate 15%SL", pack: "1Kg." },
-  { name: "Apopo 20%SE", pack: "1Lt." },
-  { name: "Atranex 90WG", pack: "5Kg." },
-  { name: "Baloric 320EC", pack: "0.5Lt." },
-  { name: "Bla-S", pack: "0.25Lt." },
-  { name: "Bumper P", pack: "0.5Lt." },
-  { name: "Custodia", pack: "1Lt" },
-  { name: "Damatin 5%WG", pack: "20Lt" },
-  { name: "Durivo 63SC", pack: "1Lt" },
-  { name: "Hamper", pack: "1Lt" },
-];
+const MONTH_MAP = {
+  M01: "Jan.",
+  M02: "Feb.",
+  M03: "Mar.",
+  M04: "Apr.",
+  M05: "May",
+  M06: "Jun.",
+  M07: "Jul",
+  M08: "Aug.",
+  M09: "Sept.",
+  M10: "Oct.",
+  M11: "Nov.",
+  M12: "Dec.",
+};
 
 const YEARS = ["2026", "2025", "2024"];
-const yearOptions = YEARS.map((y) => ({ value: y, label: y }));
-const productOptions = PRODUCTS.map((p) => ({ value: p.name, label: p.name }));
-
-// ------------- helpers / mock -------------
-const nf = (v) =>
-  `${parseInt(v || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-
-// ทำค่า “Value / QTY / Point / Campaign” ต่อเดือน (mock)
-const buildMockRows = () =>
-  PRODUCTS.map((p, i) => {
-    const row = {
-      key: i + 1,
-      productName: p.name,
-      packSize: p.pack,
-    };
-
-    const baseVal = {
-      "Jan.": 1000,
-      "Feb.": 1000,
-      "Mar.": 1000,
-      "Apr.": 1000,
-      May: 500,
-      "Jun.": 500,
-      Jul: 500,
-      "Aug.": 500,
-      "Sept.": 500,
-      "Oct.": 500,
-      "Nov.": 500,
-      "Dec.": 500,
-    };
-
-    const baseQty = 1000;
-    const basePoint = 500;
-    const baseCamp = 500;
-
-    Object.entries(baseVal).forEach(([m, val]) => {
-      const bump =
-        p.name.startsWith("Apopo") && (m === "Aug." || m === "Sept.")
-          ? 800
-          : p.name.startsWith("Atranex 90WG")
-          ? 1500
-          : 0;
-
-      row[`${m}|value`] = val + bump;
-      row[`${m}|qty`] = baseQty;
-      row[`${m}|point`] = basePoint;
-      row[`${m}|camp`] = baseCamp;
-    });
-
-    if (p.name === "Bla-S") {
-      [
-        "Jan.",
-        "Feb.",
-        "Mar.",
-        "Apr.",
-        "May",
-        "Jun.",
-        "Jul",
-        "Aug.",
-        "Sept.",
-        "Oct.",
-        "Nov.",
-        "Dec.",
-      ].forEach((m) => {
-        row[`${m}|value`] = 7250;
-        row[`${m}|qty`] = baseQty;
-        row[`${m}|point`] = basePoint;
-        row[`${m}|camp`] = baseCamp;
-      });
-    }
-
-    if (p.name === "Bumper P") {
-      row["Jan.|value"] = 500;
-      row["Feb.|value"] = 100;
-    }
-
-    if (p.name === "Hamper") {
-      const set = (m, v) => (row[`${m}|value`] = v);
-      set("Jan.", 2000);
-      set("Feb.", 2000);
-      set("Mar.", 2000);
-      set("Apr.", 2000);
-      set("May", 2000);
-      set("Jun.", 2000);
-      set("Jul", 1300);
-      set("Aug.", 1000);
-      set("Sept.", 1000);
-      set("Oct.", 1000);
-      set("Nov.", 1300);
-      set("Dec.", 1400);
-    }
-
-    return row;
-  });
+const nf = (v) => `${parseInt(v || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 export default function SaleHistoryReport() {
   const [loading, setLoading] = useState(false);
 
-  // masters from API
+  // dropdown masters
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
+  const [productList, setProductList] = useState([]); // สำหรับ filter product
 
   // table rows
   const [dataRows, setDataRows] = useState([]);
@@ -149,10 +50,7 @@ export default function SaleHistoryReport() {
   // filter form
   const [form] = Form.useForm();
 
-  // init rows (mock)
-  useEffect(() => setDataRows(buildMockRows()), []);
-
-  // โหลด Sales master
+  // ---------- load masters ----------
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -163,22 +61,31 @@ export default function SaleHistoryReport() {
         setLoading(false);
       }
     })();
+
+    // initial form values
+    form.setFieldsValue({
+      year: "2025",
+      user_id: "",
+      dealer_id: "",
+      sub_dealer_id: "",
+      product_id: "",
+    });
+
+    // first fetch
+    fetchHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ---------- Filter handlers ----------
+  // ---------- filter cascade ----------
   const handleFilterCascade = async (changedValues, allValues) => {
-    // เมื่อเลือก Sale -> โหลด Dealer
-    if ("sale_id" in changedValues) {
-      const saleId = changedValues.sale_id;
-      form.setFieldsValue({ dealer_id: undefined, sub_dealer_id: undefined });
+    if ("user_id" in changedValues) {
+      const saleId = changedValues.user_id;
+      form.setFieldsValue({ dealer_id: "", sub_dealer_id: "" });
       setSubDealerList([]);
       if (saleId) {
         try {
-          const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
-            user_id: saleId,
-          });
-          const dealers = (res?.data || []).map((d) => ({ value: d.id, label: d.name }));
-          setDealerList(dealers);
+          const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: saleId });
+          setDealerList((res?.data || []).map((d) => ({ value: d.id, label: d.name })));
         } catch {
           setDealerList([]);
         }
@@ -187,22 +94,22 @@ export default function SaleHistoryReport() {
       }
     }
 
-    // เมื่อเลือก Dealer -> โหลด Sub-dealer
     if ("dealer_id" in changedValues) {
-      const saleId = allValues.sale_id || "";
+      const saleId = allValues.user_id || "";
       const dealerId = changedValues.dealer_id;
-      form.setFieldsValue({ sub_dealer_id: undefined });
+      form.setFieldsValue({ sub_dealer_id: "" });
       if (dealerId) {
         try {
           const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
             user_id: saleId,
             dealer_id: dealerId,
           });
-          const subs = (res?.data || []).map((s) => ({
-            value: s.sub_dealer_id,
-            label: s.sub_dealer_name,
-          }));
-          setSubDealerList(subs);
+          setSubDealerList(
+            (res?.data || []).map((s) => ({
+              value: s.sub_dealer_id,
+              label: s.sub_dealer_name,
+            }))
+          );
         } catch {
           setSubDealerList([]);
         }
@@ -212,17 +119,67 @@ export default function SaleHistoryReport() {
     }
   };
 
-  const handleSearch = () => {
-    // ตรงนี้ผูกกับ API จริงได้ตาม payload ที่ต้องการจาก form.getFieldsValue()
-    setLoading(true);
-    // demo: แค่หน่วง
-    setTimeout(() => setLoading(false), 300);
+  // ---------- api fetch ----------
+  const buildPayload = () => {
+    const v = form.getFieldsValue();
+    return {
+      year: String(v.year || "2025"),
+      user_id: v.user_id || "",
+      dealer_id: v.dealer_id || "",
+      sub_dealer_id: v.sub_dealer_id || "",
+      product_id: v.product_id || "",
+    };
   };
 
+  const fetchHistory = async () => {
+    setLoading(true);
+    try {
+      const payload = buildPayload();
+      // ใช้ POST หรือ GET ตามที่ backend กำหนด — ปรับได้
+      const res = await useServiceAPI.get(paths.pathReportSaleHistory, payload);
+      const products = res?.data?.products || [];
+
+      // เก็บ product list สำหรับ filter
+      setProductList(
+        products.map((p) => ({ value: p.product_id, label: `${p.product_name} (${p.product_unit})` }))
+      );
+
+      // map -> table rows (Value เฉพาะ)
+      const rows = products.map((p, idx) => {
+        const row = {
+          key: `${p.product_id}-${idx}`,
+          productName: p.product_name,
+          packSize: p.product_unit,
+        };
+        // เติม value รายเดือน
+        Object.entries(MONTH_MAP).forEach(([k, monthLabel]) => {
+          const val = parseFloat(p[k] || 0);
+          row[`${monthLabel}|value`] = isNaN(val) ? 0 : val;
+        });
+        return row;
+      });
+
+      setDataRows(rows);
+    } catch (e) {
+      setDataRows([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = () => fetchHistory();
   const handleClear = () => {
     form.resetFields();
+    form.setFieldsValue({
+      year: "2025",
+      user_id: "",
+      dealer_id: "",
+      sub_dealer_id: "",
+      product_id: "",
+    });
     setDealerList([]);
     setSubDealerList([]);
+    fetchHistory();
   };
 
   // ---------- header style ----------
@@ -230,18 +187,21 @@ export default function SaleHistoryReport() {
     cols.map((col, idx) => {
       const bg = idx % 2 === 0 ? "#00783F" : "#009845";
       const styleKids = (kids, pbg) =>
-        (kids || []).map((c) => ({
-          ...c,
-          onHeaderCell: () => ({
-            style: {
-              backgroundColor: c.key === "monthRoot" ? "#00783F" : pbg,
-              color: "white",
-              fontWeight: "bold",
-              textAlign: "center",
-            },
-          }),
-          ...(c.children ? { children: styleKids(c.children, pbg) } : {}),
-        }));
+        (kids || []).map((c) => {
+          const isWhite = String(c.key || "").startsWith("totalRow");
+          return {
+            ...c,
+            onHeaderCell: () => ({
+              style: {
+                backgroundColor: isWhite ? "#ffffff" : (c.key === "monthRoot" ? "#00783F" : pbg),
+                color: isWhite ? "#333" : "white",
+                fontWeight: "bold",
+                textAlign: "center",
+              },
+            }),
+            ...(c.children ? { children: styleKids(c.children, pbg) } : {}),
+          };
+        });
       return {
         ...col,
         onHeaderCell: () => ({
@@ -256,56 +216,8 @@ export default function SaleHistoryReport() {
       };
     });
 
-  // ---------- columns: (Q1..Q4) x 4 metrics ----------
-  const baseColumns = useMemo(() => {
-    const left = {
-      title: "Quarter",
-      children: [
-        {
-          title: "Month",
-          key: "monthRoot",
-          children: [
-            { title: "Product Name", dataIndex: "productName", width: 180, fixed: "left" },
-            { title: "Pack Size", dataIndex: "packSize", width: 120, fixed: "left" },
-          ],
-        },
-      ],
-    };
-
-    const makeMetricQuarterColumns = (metric) =>
-      QUARTER_MONTHS.map((q) => ({
-        title: q.name,
-        key: `${q.id}_${metric.key}`,
-        children: q.months.map((m) => ({
-          title: (
-            <div className="flex flex-col items-center">
-              <div>{m}</div>
-              <small>{metric.label}</small>
-            </div>
-          ),
-          dataIndex: `${m}|${metric.key}`,
-          width: 140,
-          align: "right",
-          render: (v) => (
-            <InputNumber className="w-full" readOnly value={v || 0} formatter={nf} />
-          ),
-        })),
-      }));
-
-    const metricColumns = [
-      ...makeMetricQuarterColumns(METRICS[0]), // Value Q1-4
-      ...makeMetricQuarterColumns(METRICS[1]), // QTY Q1-4
-      ...makeMetricQuarterColumns(METRICS[2]), // Point Q1-4
-      ...makeMetricQuarterColumns(METRICS[3]), // Campaign Q1-4
-    ];
-
-    return [left, ...metricColumns];
-  }, []);
-
-  const columns = useMemo(() => applyHeaderStyle(baseColumns), [baseColumns]);
-
-  // ---------- Title: รวมเฉพาะ Value ----------
-  const quarterTotalsValueOnly = useMemo(() => {
+  // ---------- quarter totals (เฉพาะ Value) ----------
+  const quarterTotals = useMemo(() => {
     const monthSumValue = (m) =>
       dataRows.reduce((s, r) => s + (r[`${m}|value`] || 0), 0);
     return QUARTER_MONTHS.map((q) => ({
@@ -314,47 +226,74 @@ export default function SaleHistoryReport() {
     }));
   }, [dataRows]);
 
-  const tableTitle = useMemo(
-    () => () => (
-      <div className="w-full">
-        <div className="grid" style={{ gridTemplateColumns: "300px repeat(4, 1fr)" }}>
-          <div className="px-2 py-1 bg-[#00783F] text-white font-bold rounded-tl-md">
-            Total (Value)
-          </div>
-          {quarterTotalsValueOnly.map((qt, i) => (
-            <div
-              key={qt.id}
-              className="px-2 py-1 flex justify-end items-center"
-              style={{
-                background: i % 2 === 0 ? "#009845" : "#00783F",
-                borderTopLeftRadius: 6,
-                borderTopRightRadius: 6,
-              }}
-            >
-              <InputNumber readOnly value={qt.total} formatter={nf} className="!w-[180px]" />
-            </div>
-          ))}
-        </div>
-      </div>
-    ),
-    [quarterTotalsValueOnly]
-  );
+  // ---------- columns (White row ใต้ Quarter + Month เดิม) ----------
+  const baseColumns = useMemo(() => {
+    const left = {
+      title: "Quarter",
+      children: [
+        {
+          title: "Total (Value)",
+          key: "totalRow-left",
+          children: [
+            {
+              title: "Month",
+              key: "monthRoot",
+              children: [
+                { title: "Product Name", dataIndex: "productName", width: 220, fixed: "left" },
+                { title: "Pack Size", dataIndex: "packSize", width: 160, fixed: "left" },
+              ],
+            },
+          ],
+        },
+      ],
+    };
 
-  // ---------- Footer: รวมทุกคอลัมน์ที่แสดง ----------
+    const valueQuarterCols = QUARTER_MONTHS.map((q) => ({
+      title: q.name,
+      key: `${q.id}_value`,
+      children: [
+        {
+          title: (
+            <InputNumber
+              readOnly
+              className="w-full"
+              value={quarterTotals.find((t) => t.id === q.id)?.total || 0}
+              formatter={nf}
+            />
+          ),
+          key: `totalRow-${q.id}-value`,
+          children: q.months.map((m) => ({
+            title: (
+              <div className="flex flex-col items-center">
+                <div>{m}</div>
+                <small>Value (THB)</small>
+              </div>
+            ),
+            dataIndex: `${m}|value`,
+            width: 140,
+            align: "right",
+            render: (v) => <InputNumber className="w-full" readOnly value={v || 0} formatter={nf} />,
+          })),
+        },
+      ],
+    }));
+
+    return [left, ...valueQuarterCols];
+  }, [quarterTotals]);
+
+  const columns = useMemo(() => applyHeaderStyle(baseColumns), [baseColumns]);
+
+  // ---------- footer รวมทุกเดือน (Value) ----------
   const footer = useMemo(() => {
-    const metricOrder = ["value", "qty", "point", "camp"];
-    const allDataIndexes = metricOrder.flatMap((metric) =>
-      QUARTER_MONTHS.flatMap((q) => q.months.map((m) => `${m}|${metric}`))
-    );
-
+    const allMonthIdx = QUARTER_MONTHS.flatMap((q) => q.months.map((m) => `${m}|value`));
     return () => (
       <Table.Summary fixed>
         <Table.Summary.Row className="bg-[#978B87]">
           <Table.Summary.Cell index={0}>
-            <b>Total (THB)</b>
+            <b>Total</b>
           </Table.Summary.Cell>
           <Table.Summary.Cell index={1} />
-          {allDataIndexes.map((dx) => (
+          {allMonthIdx.map((dx) => (
             <Table.Summary.Cell key={`sum-${dx}`}>
               <InputNumber
                 className="w-full"
@@ -373,12 +312,17 @@ export default function SaleHistoryReport() {
     <MainLayout loading={loading}>
       <Title prefix="Sales History Report" />
 
-      {/* ===== Filter แบบ Box + Row/Col (เหมือน ReportSaleByMonth) ===== */}
+      {/* ===== Filters ===== */}
       <Form form={form} layout="vertical" onValuesChange={handleFilterCascade}>
         <BoxPrimary className="m-1 mb-4">
           <Row gutter={16} align="middle">
+            <Col md={4}>
+              <Form.Item label="Year" name="year" initialValue={YEARS[1]}>
+                <Select options={YEARS.map((y) => ({ value: y, label: y }))} />
+              </Form.Item>
+            </Col>
             <Col md={6}>
-              <Form.Item label="Sales" name="sale_id">
+              <Form.Item label="Sales" name="user_id">
                 <Select placeholder="Select Sales" options={saleList} allowClear />
               </Form.Item>
             </Col>
@@ -392,14 +336,15 @@ export default function SaleHistoryReport() {
                 <Select placeholder="Select Sub Dealer" options={subDealerList} allowClear />
               </Form.Item>
             </Col>
-            <Col md={3}>
-              <Form.Item label="Year" name="year_code" initialValue={YEARS[0]}>
-                <Select placeholder="Select Year" options={yearOptions} allowClear />
-              </Form.Item>
-            </Col>
-            <Col md={3}>
-              <Form.Item label="Product" name="product_name">
-                <Select placeholder="Select Product" options={productOptions} allowClear />
+            <Col md={6}>
+              <Form.Item label="Product" name="product_id">
+                <Select
+                  placeholder="All Products"
+                  options={productList}
+                  allowClear
+                  showSearch
+                  optionFilterProp="label"
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -422,8 +367,8 @@ export default function SaleHistoryReport() {
           </div>
         </BoxPrimary>
       </Form>
-      {/* ============================================================= */}
 
+      {/* ===== Table ===== */}
       <BoxPrimary>
         <div className="mb-2 text-[#00783F] font-semibold">History</div>
 
@@ -435,7 +380,6 @@ export default function SaleHistoryReport() {
           scrollX
           scrollY={false}
           footer={footer}
-          title={tableTitle}
         />
       </BoxPrimary>
     </MainLayout>
