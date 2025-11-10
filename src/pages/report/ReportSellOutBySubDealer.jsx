@@ -1,5 +1,5 @@
 // src/pages/report/ReportSellOut.jsx
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useContext } from "react";
 import { Form, Row, Col, Select, DatePicker, InputNumber, Table } from "antd";
 import MainLayout from "../../layouts/MainLayout";
 import Title from "../../components/title/Title";
@@ -9,6 +9,7 @@ import TableCustomComponent from "../../components/table/TableCustomComponent";
 import dayjs from "dayjs";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
+import { AuthContext } from "../../contexts/AuthContext";
 
 const GREEN_A = "#00783F";
 const GREEN_B = "#009845";
@@ -25,28 +26,27 @@ const fmt = (n) => `${parseInt(Number(n) || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g
 
 export default function ReportSellOut() {
   const [form] = Form.useForm();
-  const [loading] = useState(false);
+  const { showNotification } = useContext(AuthContext) || {};
+
+  const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
 
-  // Filter options (ใช้ mock ไปก่อน — ถ้าต้องดึงจาก API ค่อยต่อเพิ่ม)
-  const areaOptions = [
-    { value: 1, label: "Area 1" },
-    { value: 2, label: "Area 2" },
-  ];
-  const salesOptions = [
-    { value: 101, label: "Chainarong Jitsawaeng" },
-    { value: 102, label: "Supakorn N." },
-  ];
-  const dealerOptions = [
-    { value: 201, label: "Permudomphan Chemi Ltd. Part." },
-    { value: 202, label: "V K Fertilizer Ltd. Part." },
-  ];
+  // masters from API
+  const [areaList, setAreaList] = useState([]);
+  const [sales, setSales] = useState([]);
+  const [dealers, setDealers] = useState([]);
+  const [subDealers, setSubDealers] = useState([]);
 
-  // Table data + page size (ใช้คุมความสูงของตาราง)
-  const [data, setData] = useState([]); // จะมาจาก API
+  // table data + page size
+  const [data, setData] = useState([]);
   const [pageSize, setPageSize] = useState(5);
 
-  // ----- columns -----
+  // watch step values -> disable next steps
+  const selectedArea = Form.useWatch("area_id", form);
+  const selectedSales = Form.useWatch("sales_id", form);
+  const selectedDealer = Form.useWatch("dealer_id", form);
+
+  // ---------- columns ----------
   const header = useMemo(() => {
     const firstBlock = {
       title: "Month",
@@ -77,7 +77,7 @@ export default function ReportSellOut() {
     };
 
     const monthBlocks = monthsEN.map((m, i) => {
-      const c = i % 2 === 0 ? GREEN_B : GREEN_A; // สลับสีตามภาพตัวอย่าง
+      const c = i % 2 === 0 ? GREEN_B : GREEN_A;
       return {
         title: m,
         onHeaderCell: () => ({
@@ -102,12 +102,7 @@ export default function ReportSellOut() {
             },
           }),
           render: (val) => (
-            <InputNumber
-              className="w-full"
-              readOnly
-              value={Number(val) || 0}
-              formatter={(v) => fmt(v)}
-            />
+            <InputNumber className="w-full" readOnly value={Number(val) || 0} formatter={(v) => fmt(v)} />
           ),
         })),
       };
@@ -116,7 +111,7 @@ export default function ReportSellOut() {
     return [firstBlock, ...monthBlocks];
   }, []);
 
-  // ----- footer summary -----
+  // ---------- footer ----------
   const footer = useMemo(() => {
     const sum = (k) => (data || []).reduce((s, r) => s + (Number(r[k]) || 0), 0);
     return () => (
@@ -146,13 +141,117 @@ export default function ReportSellOut() {
     );
   }, [data]);
 
+  // ---------- API: masters ----------
+  useEffect(() => {
+    const loadAreas = async () => {
+      setLoading(true);
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterAreas);
+        const list = Array.isArray(res?.data) ? res.data : [];
+        setAreaList(list.map((x) => ({ value: x.id, label: x.name })));
+      } catch (e) {
+        setAreaList([]);
+        showNotification?.("error", "โหลด Area ไม่สำเร็จ");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadAreas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // เปลี่ยน Area → โหลด Sales
+  useEffect(() => {
+    const areaId = form.getFieldValue("area_id");
+    if (!areaId) {
+      setSales([]);
+      form.resetFields(["sales_id", "dealer_id", "sub_dealer_id"]);
+      setDealers([]);
+      setSubDealers([]);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterSaleReport, { area_id: areaId });
+        const list = Array.isArray(res?.data) ? res.data : [];
+        setSales(list.map((x) => ({ value: Number(x.user_id), label: x.user_name })));
+        form.resetFields(["sales_id", "dealer_id", "sub_dealer_id"]);
+        setDealers([]);
+        setSubDealers([]);
+      } catch {
+        setSales([]);
+        setDealers([]);
+        setSubDealers([]);
+        form.resetFields(["sales_id", "dealer_id", "sub_dealer_id"]);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.getFieldValue("area_id")]);
+
+  // เปลี่ยน Sales → โหลด Dealer
+  useEffect(() => {
+    const salesId = form.getFieldValue("sales_id");
+    if (!salesId) {
+      setDealers([]);
+      setSubDealers([]);
+      form.resetFields(["dealer_id", "sub_dealer_id"]);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: salesId });
+        const list = Array.isArray(res?.data) ? res.data : [];
+        setDealers(list.map((x) => ({ value: Number(x.id), label: x.name })));
+        setSubDealers([]);
+        form.resetFields(["dealer_id", "sub_dealer_id"]);
+      } catch {
+        setDealers([]);
+        setSubDealers([]);
+        form.resetFields(["dealer_id", "sub_dealer_id"]);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.getFieldValue("sales_id")]);
+
+  // เปลี่ยน Dealer → โหลด Sub Dealer  ⭐️ NEW
+  useEffect(() => {
+    const salesId = form.getFieldValue("sales_id");
+    const dealerId = form.getFieldValue("dealer_id");
+    if (!salesId || !dealerId) {
+      setSubDealers([]);
+      form.resetFields(["sub_dealer_id"]);
+      return;
+    }
+    (async () => {
+      try {
+        // ใช้ paths.pathMasterSubDealerAll พร้อม user_id + dealer_id
+        const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
+          user_id: salesId,
+          dealer_id: dealerId,
+        });
+        const list = Array.isArray(res?.data) ? res.data : [];
+        setSubDealers(
+          list.map((s) => ({
+            value: s.sub_dealer_id,
+            label: s.sub_dealer_name,
+          }))
+        );
+        form.resetFields(["sub_dealer_id"]);
+      } catch {
+        setSubDealers([]);
+        form.resetFields(["sub_dealer_id"]);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.getFieldValue("dealer_id")]);
+
   // ---------- helpers ----------
   const buildPayload = () => {
     const v = form.getFieldsValue();
     const year = v.month ? String(dayjs(v.month).year()) : String(dayjs().year());
     return {
-      year,                         // "2025"
-      area_id: v.area_id ?? "",     // อนุญาตส่ง "" ตามสเปค
+      year,                          // "2025"
+      area_id: v.area_id ?? "",
       user_id: v.sales_id ?? "",
       dealer_id: v.dealer_id ?? "",
       sub_dealer_id: v.sub_dealer_id ?? "",
@@ -160,20 +259,19 @@ export default function ReportSellOut() {
   };
 
   const mapApiToRows = (apiData = []) => {
-    // โครงสร้าง API: data = [{ group_id, group_name, months: { "1":{...}, ..., "12":{...} }, totals: {...} }]
+    // apiData: [{ group_id, group_name, months: {"1":{...},...,"12":{...}}, totals:{...} }]
     return apiData.map((g, idx) => {
       const row = {
         key: g.group_id || idx + 1,
         sub_dealer_name: g.group_name || "All",
       };
-      // ใส่ค่า 12 เดือน
       for (let i = 1; i <= 12; i++) {
         const mObj = g.months?.[String(i)] || g.months?.[i] || {};
-        const mName = monthsEN[i - 1]; // Jan..Dec
-        row[`${mName}_last_stock`]   = Number(mObj.last)    || 0;
-        row[`${mName}_sell_in`]      = Number(mObj.in)      || 0;
-        row[`${mName}_current_stock`]= Number(mObj.current) || 0;
-        row[`${mName}_sell_out`]     = Number(mObj.out)     || 0;
+        const mName = monthsEN[i - 1];
+        row[`${mName}_last_stock`]    = Number(mObj.last)    || 0;
+        row[`${mName}_sell_in`]       = Number(mObj.in)      || 0;
+        row[`${mName}_current_stock`] = Number(mObj.current) || 0;
+        row[`${mName}_sell_out`]      = Number(mObj.out)     || 0;
       }
       return row;
     });
@@ -189,58 +287,130 @@ export default function ReportSellOut() {
     } catch (err) {
       console.error(err);
       setData([]);
+      showNotification?.("error", "โหลดรายงาน Sell Out ไม่สำเร็จ");
     } finally {
       setTableLoading(false);
     }
   };
 
-  // ----- first load with defaults -----
+  // ---------- first load ----------
   useEffect(() => {
-    // ค่า default: ปี = ปีปัจจุบัน, ตัวกรองอื่นว่าง
     form.setFieldsValue({
-      month: dayjs(), // ใช้สำหรับเลือกปี
+      month: dayjs(), // ใช้เลือกปี
       area_id: undefined,
       sales_id: undefined,
       dealer_id: undefined,
       sub_dealer_id: undefined,
     });
-    fetchSellOut();
+    fetchSellOut(); // โหลด all (ไม่มีตัวกรอง)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ----- actions -----
+  // ---------- cascade reset (UI only) ----------
+  const onValuesChange = (changed) => {
+    if (Object.prototype.hasOwnProperty.call(changed, "area_id")) {
+      form.setFieldsValue({ sales_id: undefined, dealer_id: undefined, sub_dealer_id: undefined });
+    }
+    if (Object.prototype.hasOwnProperty.call(changed, "sales_id")) {
+      form.setFieldsValue({ dealer_id: undefined, sub_dealer_id: undefined });
+    }
+    if (Object.prototype.hasOwnProperty.call(changed, "dealer_id")) {
+      form.setFieldsValue({ sub_dealer_id: undefined });
+    }
+  };
+
+  // ---------- actions ----------
   const handleSearch = async () => {
+    // “ห้ามเลือก sale ถ้าไม่เลือก area”
+    const v = form.getFieldsValue();
+    if (v.sales_id && !v.area_id) {
+      showNotification?.("warning", "กรุณาเลือก Area ก่อนเลือก Sales");
+      return;
+    }
+    // “ห้ามเลือก dealer ถ้าไม่เลือก sales”
+    if (v.dealer_id && !v.sales_id) {
+      showNotification?.("warning", "กรุณาเลือก Sales ก่อนเลือก Dealer");
+      return;
+    }
     await fetchSellOut();
   };
 
   const handleClear = () => {
     form.resetFields(["area_id", "sales_id", "dealer_id", "sub_dealer_id", "month"]);
     form.setFieldsValue({ month: dayjs() });
+    setSales([]);
+    setDealers([]);
+    setSubDealers([]);
     fetchSellOut();
   };
 
+  // ---------- UI ----------
   return (
     <MainLayout loading={loading}>
       <Title prefix="Sell Out Report" />
 
-      <Form layout="vertical" form={form}>
+      <Form layout="vertical" form={form} onValuesChange={onValuesChange}>
         <BoxPrimary className="m-1 mb-4">
           <Row gutter={16} align="middle">
             <Col md={6}>
-              <Form.Item label="Area" name="area_id">
-                <Select placeholder="Select Area" options={areaOptions} allowClear />
+              <Form.Item
+                label="Area"
+                name="area_id"
+                tooltip="เลือก Area ก่อนเพื่อเปิด Sales"
+              >
+                <Select
+                  placeholder="Select Area"
+                  options={areaList}
+                  allowClear
+                />
               </Form.Item>
             </Col>
+
             <Col md={6}>
-              <Form.Item label="Sales" name="sales_id">
-                <Select placeholder="Select Sales" options={salesOptions} allowClear />
+              <Form.Item
+                label="Sales"
+                name="sales_id"
+                tooltip="เลือก Sales หลังจากเลือก Area"
+              >
+                <Select
+                  placeholder="Select Sales"
+                  options={sales}
+                  allowClear
+                  disabled={!selectedArea}
+                />
               </Form.Item>
             </Col>
+
             <Col md={6}>
-              <Form.Item label="Dealer" name="dealer_id">
-                <Select placeholder="Select Dealer" options={dealerOptions} allowClear />
+              <Form.Item
+                label="Dealer"
+                name="dealer_id"
+                tooltip="เลือก Dealer หลังจากเลือก Sales"
+              >
+                <Select
+                  placeholder="Select Dealer"
+                  options={dealers}
+                  allowClear
+                  disabled={!selectedSales}
+                />
               </Form.Item>
             </Col>
+
+            <Col md={6}>
+              <Form.Item
+                label="Sub Dealer"
+                name="sub_dealer_id"
+                tooltip="เลือก Sub Dealer หลังจากเลือก Dealer"
+              >
+                <Select
+                  placeholder="Select Sub Dealer"
+                  options={subDealers}
+                  allowClear
+                  disabled={!selectedDealer}
+                />
+              </Form.Item>
+            </Col>
+
             <Col md={6}>
               <Form.Item label="Month (for year)" name="month" initialValue={dayjs()}>
                 <DatePicker picker="month" style={{ width: "100%" }} />

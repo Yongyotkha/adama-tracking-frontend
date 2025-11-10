@@ -50,6 +50,10 @@ export default function SaleHistoryReport() {
   // filter form
   const [form] = Form.useForm();
 
+  // ---- watch for step disable ----
+  const selectedSales = Form.useWatch("user_id", form);
+  const selectedDealer = Form.useWatch("dealer_id", form);
+
   // ---------- load masters ----------
   useEffect(() => {
     (async () => {
@@ -65,22 +69,24 @@ export default function SaleHistoryReport() {
     // initial form values
     form.setFieldsValue({
       year: "2025",
-      user_id: "",
-      dealer_id: "",
-      sub_dealer_id: "",
-      product_id: "",
+      user_id: undefined,
+      dealer_id: undefined,
+      sub_dealer_id: undefined,
+      product_id: undefined,
     });
 
-    // first fetch
+    // first fetch (ทั้งหมด)
     fetchHistory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ---------- filter cascade ----------
   const handleFilterCascade = async (changedValues, allValues) => {
+    // Step 1: Sales -> Dealer
     if ("user_id" in changedValues) {
       const saleId = changedValues.user_id;
-      form.setFieldsValue({ dealer_id: "", sub_dealer_id: "" });
+      form.setFieldsValue({ dealer_id: undefined, sub_dealer_id: undefined });
+      setDealerList([]);
       setSubDealerList([]);
       if (saleId) {
         try {
@@ -89,15 +95,15 @@ export default function SaleHistoryReport() {
         } catch {
           setDealerList([]);
         }
-      } else {
-        setDealerList([]);
       }
     }
 
+    // Step 2: Dealer -> Sub Dealer
     if ("dealer_id" in changedValues) {
       const saleId = allValues.user_id || "";
       const dealerId = changedValues.dealer_id;
-      form.setFieldsValue({ sub_dealer_id: "" });
+      form.setFieldsValue({ sub_dealer_id: undefined });
+      setSubDealerList([]);
       if (dealerId) {
         try {
           const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
@@ -113,8 +119,6 @@ export default function SaleHistoryReport() {
         } catch {
           setSubDealerList([]);
         }
-      } else {
-        setSubDealerList([]);
       }
     }
   };
@@ -135,13 +139,15 @@ export default function SaleHistoryReport() {
     setLoading(true);
     try {
       const payload = buildPayload();
-      // ใช้ POST หรือ GET ตามที่ backend กำหนด — ปรับได้
       const res = await useServiceAPI.get(paths.pathReportSaleHistory, payload);
       const products = res?.data?.products || [];
 
-      // เก็บ product list สำหรับ filter
+      // เก็บ product list สำหรับ filter (ดึงมาจากผลลัพธ์)
       setProductList(
-        products.map((p) => ({ value: p.product_id, label: `${p.product_name} (${p.product_unit})` }))
+        products.map((p) => ({
+          value: p.product_id,
+          label: `${p.product_name} (${p.product_unit})`,
+        }))
       );
 
       // map -> table rows (Value เฉพาะ)
@@ -151,7 +157,6 @@ export default function SaleHistoryReport() {
           productName: p.product_name,
           packSize: p.product_unit,
         };
-        // เติม value รายเดือน
         Object.entries(MONTH_MAP).forEach(([k, monthLabel]) => {
           const val = parseFloat(p[k] || 0);
           row[`${monthLabel}|value`] = isNaN(val) ? 0 : val;
@@ -172,13 +177,14 @@ export default function SaleHistoryReport() {
     form.resetFields();
     form.setFieldsValue({
       year: "2025",
-      user_id: "",
-      dealer_id: "",
-      sub_dealer_id: "",
-      product_id: "",
+      user_id: undefined,
+      dealer_id: undefined,
+      sub_dealer_id: undefined,
+      product_id: undefined,
     });
     setDealerList([]);
     setSubDealerList([]);
+    setProductList([]);
     fetchHistory();
   };
 
@@ -312,30 +318,56 @@ export default function SaleHistoryReport() {
     <MainLayout loading={loading}>
       <Title prefix="Sales History Report" />
 
-      {/* ===== Filters ===== */}
+      {/* ===== Filters (Step Select) ===== */}
       <Form form={form} layout="vertical" onValuesChange={handleFilterCascade}>
         <BoxPrimary className="m-1 mb-4">
           <Row gutter={16} align="middle">
-            <Col md={4}>
+            <Col md={6}>
               <Form.Item label="Year" name="year" initialValue={YEARS[1]}>
                 <Select options={YEARS.map((y) => ({ value: y, label: y }))} />
               </Form.Item>
             </Col>
+
             <Col md={6}>
-              <Form.Item label="Sales" name="user_id">
+              <Form.Item
+                label="Sales"
+                name="user_id"
+                tooltip="เลือก Sales ก่อนเพื่อเปิด Dealer"
+              >
                 <Select placeholder="Select Sales" options={saleList} allowClear />
               </Form.Item>
             </Col>
+
             <Col md={6}>
-              <Form.Item label="Dealer" name="dealer_id">
-                <Select placeholder="Select Dealer" options={dealerList} allowClear />
+              <Form.Item
+                label="Dealer"
+                name="dealer_id"
+                tooltip="เลือก Dealer หลังจากเลือก Sales"
+              >
+                <Select
+                  placeholder="Select Dealer"
+                  options={dealerList}
+                  allowClear
+                  disabled={!selectedSales}
+                />
               </Form.Item>
             </Col>
+
             <Col md={6}>
-              <Form.Item label="Sub Dealer" name="sub_dealer_id">
-                <Select placeholder="Select Sub Dealer" options={subDealerList} allowClear />
+              <Form.Item
+                label="Sub Dealer"
+                name="sub_dealer_id"
+                tooltip="เลือก Sub Dealer หลังจากเลือก Dealer"
+              >
+                <Select
+                  placeholder="Select Sub Dealer"
+                  options={subDealerList}
+                  allowClear
+                  disabled={!selectedDealer}
+                />
               </Form.Item>
             </Col>
+
             <Col md={6}>
               <Form.Item label="Product" name="product_id">
                 <Select

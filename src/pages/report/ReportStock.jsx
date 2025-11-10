@@ -21,20 +21,16 @@ export default function ReportStock() {
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
 
-  // dropdown masters (เดี๋ยวย้ายเป็น API ได้ภายหลัง)
-  const [areaList] = useState([
-    { value: 1, label: "Area 1" },
-    { value: 2, label: "Area 2" },
-  ]);
-  const [salesList] = useState([
-    { value: 11, label: "Chainarong Jitsawaeng" },
-    { value: 12, label: "Somchai Prasert" },
-  ]);
-  const [dealerList] = useState([
-    { value: 21, label: "Kantar Co.,Ltd." },
-    { value: 22, label: "Siam Agri" },
-  ]);
+  //masters (ดึงจาก API)
+  const [areaList, setAreaList] = useState([]);
+  const [salesList, setSalesList] = useState([]);
+  const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
+
+  // watch สำหรับควบคุม disable แบบ step
+  const selectedArea = Form.useWatch("area_id", form);
+  const selectedSale = Form.useWatch("sale_id", form);
+  const selectedDealer = Form.useWatch("dealer_id", form);
 
   // เก็บข้อมูลเต็มจาก API แล้วตัดหน้าเอง
   const [fullData, setFullData] = useState([]);
@@ -174,20 +170,118 @@ export default function ReportStock() {
     );
   }, [dataSource]);
 
+  // ---------- Masters: โหลด Area ตอนเริ่ม ----------
+  useEffect(() => {
+    const loadAreas = async () => {
+      setLoading(true);
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterAreas);
+        const list = Array.isArray(res?.data) ? res.data : [];
+        setAreaList(list.map((x) => ({ value: x.id, label: x.name })));
+      } catch (e) {
+        setAreaList([]);
+        showNotification?.("error", "โหลด Area ไม่สำเร็จ");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadAreas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // set default filter & first fetch
   useEffect(() => {
     setLoading(true);
     form.setFieldsValue({
-      area_id: 1,
-      sale_id: "", // ส่งไปเป็น user_id
-      dealer_id: "",
-      sub_dealer_id: "",
+      area_id: undefined,          // เริ่มต้นว่าง เพื่อบังคับเลือกเป็น Step
+      sale_id: undefined,          // ส่งไปเป็น user_id
+      dealer_id: undefined,
+      sub_dealer_id: undefined,
       month: dayjs("2025-10-01"),
     });
     setLoading(false);
-    fetchStock(); // โหลดครั้งแรก
+    fetchStock(); // โหลดรวมทั้งหมด (ไม่มีตัวกรอง)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // เปลี่ยน Area → โหลด Sales
+  useEffect(() => {
+    const areaId = form.getFieldValue("area_id");
+    if (!areaId) {
+      setSalesList([]);
+      setDealerList([]);
+      setSubDealerList([]);
+      form.resetFields(["sale_id", "dealer_id", "sub_dealer_id"]);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterSaleReport, { area_id: areaId });
+        const list = Array.isArray(res?.data) ? res.data : [];
+        setSalesList(list.map((x) => ({ value: Number(x.user_id), label: x.user_name })));
+        setDealerList([]);
+        setSubDealerList([]);
+        form.resetFields(["sale_id", "dealer_id", "sub_dealer_id"]);
+      } catch {
+        setSalesList([]);
+        setDealerList([]);
+        setSubDealerList([]);
+        form.resetFields(["sale_id", "dealer_id", "sub_dealer_id"]);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.getFieldValue("area_id")]);
+
+  // เปลี่ยน Sales → โหลด Dealer
+  useEffect(() => {
+    const saleId = form.getFieldValue("sale_id");
+    if (!saleId) {
+      setDealerList([]);
+      setSubDealerList([]);
+      form.resetFields(["dealer_id", "sub_dealer_id"]);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: saleId });
+        const list = Array.isArray(res?.data) ? res.data : [];
+        setDealerList(list.map((x) => ({ value: Number(x.id), label: x.name })));
+        setSubDealerList([]);
+        form.resetFields(["dealer_id", "sub_dealer_id"]);
+      } catch {
+        setDealerList([]);
+        setSubDealerList([]);
+        form.resetFields(["dealer_id", "sub_dealer_id"]);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.getFieldValue("sale_id")]);
+
+  // เปลี่ยน Dealer → โหลด Sub Dealer (paths.pathMasterSubDealerAll)
+  useEffect(() => {
+    const saleId = form.getFieldValue("sale_id");
+    const dealerId = form.getFieldValue("dealer_id");
+    if (!saleId || !dealerId) {
+      setSubDealerList([]);
+      form.resetFields(["sub_dealer_id"]);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
+          user_id: saleId,
+          dealer_id: dealerId,
+        });
+        const list = Array.isArray(res?.data) ? res.data : [];
+        setSubDealerList(list.map((s) => ({ value: s.sub_dealer_id, label: s.sub_dealer_name })));
+        form.resetFields(["sub_dealer_id"]);
+      } catch {
+        setSubDealerList([]);
+        form.resetFields(["sub_dealer_id"]);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.getFieldValue("dealer_id")]);
 
   // page slice จาก fullData
   useEffect(() => {
@@ -200,7 +294,7 @@ export default function ReportStock() {
     const v = form.getFieldsValue();
     return {
       date: v.month ? dayjs(v.month).format("YYYY-MM") : dayjs().format("YYYY-MM"),
-      area_id: v.area_id ?? 1,
+      area_id: v.area_id ?? "",
       user_id: v.sale_id || "", // mapping sale_id -> user_id
       dealer_id: v.dealer_id || "",
       sub_dealer_id: v.sub_dealer_id || "",
@@ -237,32 +331,46 @@ export default function ReportStock() {
   };
 
   const handleSearch = () => {
+    // บังคับลำดับการเลือก: ห้ามเลือก Sales/Dealer/Sub Dealer ถ้ายังไม่ผ่าน step ก่อน
+    const v = form.getFieldsValue();
+    if (v.sale_id && !v.area_id) {
+      showNotification?.("warning", "กรุณาเลือก Area ก่อนเลือก Sales");
+      return;
+    }
+    if (v.dealer_id && !v.sale_id) {
+      showNotification?.("warning", "กรุณาเลือก Sales ก่อนเลือก Dealer");
+      return;
+    }
+    if (v.sub_dealer_id && !v.dealer_id) {
+      showNotification?.("warning", "กรุณาเลือก Dealer ก่อนเลือก Sub Dealer");
+      return;
+    }
     setCurrent(1);
     fetchStock();
   };
 
   const handleClear = () => {
     form.resetFields(["area_id", "sale_id", "dealer_id", "sub_dealer_id", "month"]);
-    form.setFieldsValue({ area_id: 1, month: dayjs() });
+    setSalesList([]);
+    setDealerList([]);
+    setSubDealerList([]);
+    form.setFieldsValue({ month: dayjs() });
     setCurrent(1);
     fetchStock();
   };
 
   const handleTableChange = (pg) => setCurrent(pg.current);
 
-  // dealer -> sub dealer (mock cascade)
+  // UI reset ฝั่งฟอร์ม (กันกรณีเซ็ตค่าเอง)
   const onValuesChange = (changed) => {
+    if (Object.prototype.hasOwnProperty.call(changed, "area_id")) {
+      form.setFieldsValue({ sale_id: undefined, dealer_id: undefined, sub_dealer_id: undefined });
+    }
+    if (Object.prototype.hasOwnProperty.call(changed, "sale_id")) {
+      form.setFieldsValue({ dealer_id: undefined, sub_dealer_id: undefined });
+    }
     if (Object.prototype.hasOwnProperty.call(changed, "dealer_id")) {
-      const id = changed.dealer_id;
-      if (!id) {
-        setSubDealerList([]);
-        form.setFieldsValue({ sub_dealer_id: undefined });
-      } else {
-        setSubDealerList([
-          { value: 31, label: "กฤษณียมทรัพย์เกษตร" },
-          { value: 32, label: "สหกรณ์เกษตรรวมใจ" },
-        ]);
-      }
+      form.setFieldsValue({ sub_dealer_id: undefined });
     }
   };
 
@@ -275,25 +383,60 @@ export default function ReportStock() {
         <BoxPrimary className="m-1 mb-4">
           <Row gutter={16} align="middle">
             <Col md={6}>
-              <Form.Item label="Area" name="area_id">
+              <Form.Item
+                label="Area"
+                name="area_id"
+                tooltip="เลือก Area ก่อนเพื่อเปิด Sales"
+              >
                 <Select placeholder="Select Area" options={areaList} allowClear />
               </Form.Item>
             </Col>
+
             <Col md={6}>
-              <Form.Item label="Sales" name="sale_id">
-                <Select placeholder="Select Sales" options={salesList} allowClear />
+              <Form.Item
+                label="Sales"
+                name="sale_id"
+                tooltip="เลือก Sales หลังจากเลือก Area"
+              >
+                <Select
+                  placeholder="Select Sales"
+                  options={salesList}
+                  allowClear
+                  disabled={!selectedArea}
+                />
               </Form.Item>
             </Col>
+
             <Col md={6}>
-              <Form.Item label="Dealer" name="dealer_id">
-                <Select placeholder="Select Dealer" options={dealerList} allowClear />
+              <Form.Item
+                label="Dealer"
+                name="dealer_id"
+                tooltip="เลือก Dealer หลังจากเลือก Sales"
+              >
+                <Select
+                  placeholder="Select Dealer"
+                  options={dealerList}
+                  allowClear
+                  disabled={!selectedSale}
+                />
               </Form.Item>
             </Col>
+
             <Col md={6}>
-              <Form.Item label="Sub Dealer" name="sub_dealer_id">
-                <Select placeholder="Select Sub Dealer" options={subDealerList} allowClear />
+              <Form.Item
+                label="Sub Dealer"
+                name="sub_dealer_id"
+                tooltip="เลือก Sub Dealer หลังจากเลือก Dealer"
+              >
+                <Select
+                  placeholder="Select Sub Dealer"
+                  options={subDealerList}
+                  allowClear
+                  disabled={!selectedDealer}
+                />
               </Form.Item>
             </Col>
+
             <Col md={6}>
               <Form.Item label="Month" name="month">
                 <DatePicker picker="month" style={{ width: "100%" }} placeholder="Select month" />
