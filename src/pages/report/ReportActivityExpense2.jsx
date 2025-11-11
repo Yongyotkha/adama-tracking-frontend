@@ -1,0 +1,377 @@
+// src/pages/report/ReportActivityByMonth.jsx
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import MainLayout from "../../layouts/MainLayout";
+import BoxPrimary from "../../components/box_primary/BoxPrimary";
+import TableCustomComponent from "../../components/table/TableCustomComponent";
+import { InputNumber, Table, Form, Row, Col, Select } from "antd";
+import useServiceAPI from "../../services/CorsService";
+import { paths } from "../../services/CorsPath";
+import { AuthContext } from "../../contexts/AuthContext";
+import Title from "../../components/title/Title";
+import ExportActivityByMonthExcelButton from "../../components/export/ExportActivityByMonthExcelButton";
+import DynamicButton from "../../components/button/DynamicButton";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(utc); dayjs.extend(timezone);
+
+export default function ReportActivityByMonth() {
+  const { showNotification } = useContext(AuthContext) || {};
+  const [loading, setLoading] = useState(false);
+
+  // masters
+  const [years, setYears] = useState([]);
+  const [areaList, setAreaList] = useState([]);
+  const [salesList, setSalesList] = useState([]);
+  const [dealerList, setDealerList] = useState([]);
+
+  // table
+  const [itemColumn, setItemColumn] = useState([]);
+  const [permission, setPermission] = useState([]);
+  const [dataSource, setDataSource] = useState([]);
+  const [tableLoading, setTableLoading] = useState(false);
+
+  // form & step-watch
+  const [form] = Form.useForm();
+  const selectedArea = Form.useWatch("area_id", form);
+  const selectedSale = Form.useWatch("user_id", form);
+
+  // local table params (keep year filter)
+  const [tableParams, setTableParams] = useState({
+    pagination: { current: 1, pageSize: 10 },
+    filters: {},
+  });
+
+  // ====== Load masters: Year + Area ======
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const [yearsRes, areaRes] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterYear),
+          useServiceAPI.get(paths.pathMasterAreas),
+        ]);
+        const yearList = yearsRes?.data || [];
+        setYears(yearList);
+        setAreaList((areaRes?.data || []).map(a => ({ value: a.id, label: a.name })));
+
+        // default year
+        if (yearList.length > 0) {
+          setTableParams(prev => ({ ...prev, filters: { year_code: yearList[0] } }));
+        }
+      } catch (e) {
+        showNotification?.("error", e?.message || "โหลดข้อมูลตั้งต้นไม่สำเร็จ");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  // ====== Cascade: Area → Sales ======
+  useEffect(() => {
+    const areaId = form.getFieldValue("area_id");
+    if (!areaId) {
+      setSalesList([]); setDealerList([]);
+      form.resetFields(["user_id", "dealer_id"]);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterSaleReport, { area_id: areaId });
+        const list = Array.isArray(res?.data) ? res.data : [];
+        setSalesList(list.map(x => ({ value: Number(x.user_id ?? x.id), label: x.user_name ?? x.name })));
+        setDealerList([]);
+        form.resetFields(["user_id", "dealer_id"]);
+      } catch {
+        setSalesList([]); setDealerList([]);
+        form.resetFields(["user_id", "dealer_id"]);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.getFieldValue("area_id")]);
+
+  // ====== Cascade: Sales → Dealer ======
+  useEffect(() => {
+    const saleId = form.getFieldValue("user_id");
+    if (!saleId) {
+      setDealerList([]);
+      form.resetFields(["dealer_id"]);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: saleId });
+        const list = Array.isArray(res?.data) ? res.data : [];
+        setDealerList(list.map(x => ({ value: Number(x.id), label: x.name })));
+        form.resetFields(["dealer_id"]);
+      } catch {
+        setDealerList([]);
+        form.resetFields(["dealer_id"]);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.getFieldValue("user_id")]);
+
+  // ====== Fetch ======
+  const fetchData = async (overrideFilters) => {
+    setTableLoading(true);
+    try {
+      const f = overrideFilters ?? tableParams.filters ?? {};
+      const v = form.getFieldsValue();
+
+      const requestData = {
+        keyword: f.keyword || "",
+        year_code: f.year_code,               // year filter
+        area_id: v.area_id || null,
+        user_id: v.user_id || null,           // sales
+        dealer_id: v.dealer_id || null,       // dealer
+        page_length: 1,
+        page_size: tableParams.pagination.pageSize,
+      };
+
+      const response = await useServiceAPI.get(paths.pathReportActivityByMonth, requestData);
+      if (response?.status === 200) {
+        const { item, records_filtered, permission, total } = response.data || {};
+        const rows = (item || []).map((row, index) => ({
+          key: index + 1,
+          month_name: row.month_name,
+          month_id: row.month_id,
+          item: row.item,
+        }));
+        setPermission(permission || []);
+        setDataSource(rows);
+        setItemColumn(total || []);
+        setTableParams(prev => ({
+          ...prev,
+          pagination: { ...prev.pagination, total: records_filtered || rows.length },
+        }));
+      }
+    } catch (e) {
+      console.error(e);
+      setDataSource([]);
+      setItemColumn([]);
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (years.length > 0) fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(tableParams.filters)]);
+
+  const handleSearch = () => fetchData();
+
+  const handleClear = async () => {
+    form.resetFields(["area_id", "user_id", "dealer_id"]);
+    setSalesList([]); setDealerList([]);
+    const defaultYear = years?.[0];
+    setTableParams(prev => ({
+      ...prev,
+      filters: { year_code: defaultYear },
+      pagination: { current: 1, pageSize: 10 },
+    }));
+    await fetchData({ year_code: defaultYear });
+  };
+
+  const handleTableChange = (pagination) => {
+    setTableParams(prev => ({ ...prev, pagination }));
+  };
+
+  // ====== Table header ======
+  const columnColors = ["#009845", "#7DB41E", "#93CC23"];
+  const header = [
+    {
+      title: "Month",
+      dataIndex: "month_name",
+      key: "month_name",
+      fixed: "left",
+      width: 125,
+      onHeaderCell: () => ({
+        style: {
+          backgroundColor: "#00783F",
+          color: "white",
+          fontWeight: "bold",
+          textAlign: "center",
+        },
+      }),
+    },
+    ...itemColumn.map((act, index) => {
+      const bgColor = columnColors[index % columnColors.length];
+      const activityId = act.activity_type_id;
+      return {
+        title: act.activity_type_name,
+        key: `activity_${activityId}`,
+        width: 125,
+        onHeaderCell: () => ({
+          style: { backgroundColor: bgColor, color: "white", fontWeight: "bold", textAlign: "center" },
+        }),
+        render: (_, record) => {
+          const activityItem = (record.item || []).find(x => x.activity_type_id === activityId);
+          const set_value = activityItem ? Number(activityItem.total) || 0 : 0;
+          return (
+            <InputNumber
+              className="w-full"
+              min={0}
+              value={set_value}
+              formatter={(value) => `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+              disabled
+            />
+          );
+        },
+      };
+    }),
+  ];
+
+  // ====== Export helpers ======
+  const toText = (v) =>
+    v == null ? "" : (typeof v === "string" || typeof v === "number") ? String(v) : (v.name ?? v.label ?? v.value ?? v.code ?? "");
+
+  const buildFileName = () => {
+    const f = tableParams?.filters || {};
+    const v = form.getFieldsValue();
+    const ts = dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD_HHmm");
+    const yearText = toText(f.year_code) || dayjs().tz("Asia/Bangkok").format("YYYY");
+    const areaLabel = (areaList.find((x) => x.value === v.area_id) || {}).label;
+    const salesLabel = (salesList.find((x) => x.value === v.user_id) || {}).label;
+    const dealerLabel = (dealerList.find((x) => x.value === v.dealer_id) || {}).label;
+    return [
+      `Activity_Report_By_Month_${yearText}`,
+      areaLabel && `Area_${areaLabel}`,
+      salesLabel && `Sales_${salesLabel}`,
+      dealerLabel && `Dealer_${dealerLabel}`,
+      ts,
+    ]
+      .filter(Boolean)
+      .join("_")
+      .replace(/[\\/:*?"<>|]+/g, "-")
+      .replace(/\s+/g, "_");
+  };
+
+  const footerTotals = useMemo(() => {
+    const sums = {};
+    (itemColumn || []).forEach((act) => {
+      const price = Number(act?.unit_convert_value) || 0;
+      const sum = (dataSource || []).reduce((acc, row) => {
+        const it = (row?.item || []).find((x) => x?.activity_type_id === act?.activity_type_id);
+        const qty = Number(it?.total) || 0;
+        return acc + qty * price;
+      }, 0);
+      sums[act.activity_type_id] = sum;
+    });
+    return sums;
+  }, [itemColumn, dataSource]);
+
+  // ====== UI ======
+  return (
+    <MainLayout loading={loading}>
+      <Title prefix="Activity Expenses Report" />
+
+      <Form
+        form={form}
+        layout="vertical"
+        onValuesChange={(chg) => {
+          // reset ตาม step
+          if ("area_id" in chg) form.setFieldsValue({ user_id: undefined, dealer_id: undefined });
+          if ("user_id" in chg) form.setFieldsValue({ dealer_id: undefined });
+        }}
+      >
+        <BoxPrimary className="m-1 mb-4">
+          <Row gutter={16} align="middle">
+            <Col md={6}>
+              <Form.Item label="Area" name="area_id" tooltip="เลือก Area ก่อนเพื่อเปิด Sales">
+                <Select placeholder="Select Area" options={areaList} allowClear />
+              </Form.Item>
+            </Col>
+            <Col md={6}>
+              <Form.Item label="Sales" name="user_id" tooltip="เลือก Sales หลังจากเลือก Area">
+                <Select
+                  placeholder="Select Sales"
+                  options={salesList}
+                  allowClear
+                  disabled={!selectedArea}
+                />
+              </Form.Item>
+            </Col>
+            <Col md={6}>
+              <Form.Item label="Dealer" name="dealer_id" tooltip="เลือก Dealer หลังจากเลือก Sales">
+                <Select
+                  placeholder="Select Dealer"
+                  options={dealerList}
+                  allowClear
+                  disabled={!selectedSale}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <div className="flex justify-end gap-4 px-4 pt-5">
+            <DynamicButton
+              onClick={handleSearch}
+              name="btn-search"
+              text="Search"
+              iconSrc="/img/icons/search.png"
+              className="text-white px-4 py-3 rounded-[4px] bg-[#7DB41E]"
+            />
+            <DynamicButton
+              onClick={handleClear}
+              name="btn-clear"
+              text="Clear"
+              iconSrc="/img/icons/trash.png"
+              className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
+            />
+            <ExportActivityByMonthExcelButton
+              text="Export Excel"
+              fileName={buildFileName()}
+              getPayload={async () => {
+                const f = tableParams?.filters || {};
+                const v = form.getFieldsValue();
+                return {
+                  keyword: f.keyword || "",
+                  year_code: toText(f.year_code) || undefined,
+                  area_id: v.area_id || null,
+                  user_id: v.user_id || null,
+                  dealer_id: v.dealer_id || null,
+                };
+              }}
+              requestData={(payload) =>
+                useServiceAPI.get(paths.pathReportActivityByMonth, payload)
+              }
+            />
+          </div>
+        </BoxPrimary>
+      </Form>
+
+      <BoxPrimary>
+        <TableCustomComponent
+          header={header}
+          dataSource={dataSource}
+          pagination={false}
+          loading={tableLoading}
+          onChange={handleTableChange}
+          scrollY={false}
+          footer={() => (
+            <Table.Summary fixed>
+              <Table.Summary.Row className="bg-[#978B87]">
+                <Table.Summary.Cell index={0}>Total (THB)</Table.Summary.Cell>
+                {itemColumn.map((act) => (
+                  <Table.Summary.Cell key={`sum_${act.activity_type_id}`} align="center">
+                    <InputNumber
+                      className="w-full"
+                      disabled
+                      value={footerTotals[act.activity_type_id] || 0}
+                      formatter={(value) =>
+                        `${Math.trunc(Number(value) || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      style={{ backgroundColor: "white" }}
+                    />
+                  </Table.Summary.Cell>
+                ))}
+              </Table.Summary.Row>
+            </Table.Summary>
+          )}
+        />
+      </BoxPrimary>
+    </MainLayout>
+  );
+}

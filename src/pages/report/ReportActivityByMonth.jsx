@@ -1,159 +1,201 @@
 // src/pages/report/ReportActivityByMonth.jsx
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
-import TableCustomComponent from "../../components/table/TableCustomComponent";
-import { InputNumber, Table, Form, Row, Col, Select } from "antd";
+import { InputNumber, Select, Table, Form, Row, Col } from "antd";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
 import Title from "../../components/title/Title";
-import ExportActivityByMonthExcelButton from "../../components/export/ExportActivityByMonthExcelButton";
+import TableCustomComponent from "../../components/table/TableCustomComponent";
 import DynamicButton from "../../components/button/DynamicButton";
+import ExportActivityExpenseExcelButton from "../../components/export/ExportActivityExpenseExcelButton";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc); dayjs.extend(timezone);
 
-export default function ReportActivityByMonth() {
-  const { showNotification } = useContext(AuthContext) || {};
+export default function ReportSaleByMonth() {
   const [loading, setLoading] = useState(false);
-
-  // masters
   const [years, setYears] = useState([]);
-  const [areaList, setAreaList] = useState([]);
-  const [salesList, setSalesList] = useState([]);
-  const [dealerList, setDealerList] = useState([]);
-
-  // table
+  const [sales, setSales] = useState([]);
+  const [subDealers, setSubDealers] = useState([]);
   const [itemColumn, setItemColumn] = useState([]);
-  const [permission, setPermission] = useState([]);
-  const [dataSource, setDataSource] = useState([]);
+  const [dataSource, setDataSource] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
+  const { showNotification } = useContext(AuthContext);
+  const [areaList, setAreaList] = useState([]);
+  const [formCustom] = Form.useForm();
 
-  // form & step-watch
-  const [form] = Form.useForm();
-  const selectedArea = Form.useWatch("area_id", form);
-  const selectedSale = Form.useWatch("user_id", form);
+  // watch สำหรับ disable ตามลำดับ step
+  const selectedArea = Form.useWatch("area_id", formCustom);
+  const selectedSale = Form.useWatch("sale_id", formCustom);
 
-  // local table params (keep year filter)
+  const header = [
+    {
+      title: "Month",
+      onHeaderCell: () => ({
+        style: { backgroundColor: "#00783F", color: "white", fontWeight: "bold", textAlign: "center" },
+      }),
+      children: [
+        {
+          title: "Activity Name",
+          dataIndex: "productName",
+          key: "productName",
+          fixed: "left",
+          width: 125,
+          onHeaderCell: () => ({
+            style: { backgroundColor: "#00783F", color: "white", fontWeight: "bold", textAlign: "center" },
+          }),
+        },
+      ],
+    },
+    ...itemColumn.map((month, index) => ({
+      title: month.name,
+      key: index,
+      onHeaderCell: () => ({
+        style: {
+          backgroundColor: index % 2 === 1 ? "#7DB41E" : "#009845",
+          color: "white",
+          fontWeight: "bold",
+          textAlign: "center",
+        },
+      }),
+      children: [
+        {
+          title: "Plan (Value)",
+          key: `plan_${index}`,
+          width: 125,
+          onHeaderCell: () => ({
+            style: {
+              backgroundColor: index % 2 === 1 ? "#7DB41E" : "#009845",
+              color: "white",
+              fontWeight: "bold",
+              textAlign: "center",
+            },
+          }),
+          render: (_, record) => {
+            const itemData = month.product.find((p) => p.product_name === record.productName) || {};
+            const val = isNaN(itemData.workplan_value) || itemData.workplan_value == null ? 0 : itemData.workplan_value;
+            return (
+              <InputNumber
+                className="w-full"
+                min={0}
+                value={val}
+                formatter={(v) => `${parseInt(v || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                disabled
+              />
+            );
+          },
+        },
+        {
+          title: "Actual (Value)",
+          key: `actual_${index}`,
+          width: 125,
+          onHeaderCell: () => ({
+            style: {
+              backgroundColor: index % 2 === 1 ? "#7DB41E" : "#009845",
+              color: "white",
+              fontWeight: "bold",
+              textAlign: "center",
+            },
+          }),
+          render: (_, record) => {
+            const itemData = month.product.find((p) => p.product_name === record.productName) || {};
+            const val = isNaN(itemData.actual_value) || itemData.actual_value == null ? 0 : itemData.actual_value;
+            return (
+              <InputNumber
+                className="w-full"
+                min={0}
+                value={val}
+                formatter={(v) => `${parseInt(v || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                disabled
+              />
+            );
+          },
+        },
+      ],
+    })),
+  ];
+
   const [tableParams, setTableParams] = useState({
     pagination: { current: 1, pageSize: 10 },
     filters: {},
+    sortOrder: null,
+    sortField: null,
   });
 
-  // ====== Load masters: Year + Area ======
+  // ===== Masters =====
   useEffect(() => {
-    (async () => {
+    const getMaster = async () => {
       setLoading(true);
       try {
-        const [yearsRes, areaRes] = await Promise.all([
+        const [yearsRes, resArea] = await Promise.all([
           useServiceAPI.get(paths.pathMasterYear),
           useServiceAPI.get(paths.pathMasterAreas),
         ]);
-        const yearList = yearsRes?.data || [];
-        setYears(yearList);
-        setAreaList((areaRes?.data || []).map(a => ({ value: a.id, label: a.name })));
-
-        // default year
-        if (yearList.length > 0) {
-          setTableParams(prev => ({ ...prev, filters: { year_code: yearList[0] } }));
+        setYears(yearsRes.data || []);
+        setAreaList((resArea.data || []).map((x) => ({ value: x.id, label: x.name })));
+        if ((yearsRes.data || []).length > 0) {
+          setTableParams((prev) => ({ ...prev, filters: { year_code: yearsRes.data[0] } }));
         }
-      } catch (e) {
-        showNotification?.("error", e?.message || "โหลดข้อมูลตั้งต้นไม่สำเร็จ");
+      } catch (error) {
+        showNotification?.("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
         setLoading(false);
       }
-    })();
+    };
+    getMaster();
   }, []);
 
-  // ====== Cascade: Area → Sales ======
+  // Area → Sales
   useEffect(() => {
-    const areaId = form.getFieldValue("area_id");
+    const areaId = formCustom.getFieldValue("area_id");
     if (!areaId) {
-      setSalesList([]); setDealerList([]);
-      form.resetFields(["user_id", "dealer_id"]);
+      setSales([]); setSubDealers([]);
+      formCustom.resetFields(["sale_id", "sub_dealer_id"]);
       return;
     }
     (async () => {
       try {
         const res = await useServiceAPI.get(paths.pathMasterSaleReport, { area_id: areaId });
         const list = Array.isArray(res?.data) ? res.data : [];
-        setSalesList(list.map(x => ({ value: Number(x.user_id ?? x.id), label: x.user_name ?? x.name })));
-        setDealerList([]);
-        form.resetFields(["user_id", "dealer_id"]);
+        setSales(list.map((s) => ({ value: Number(s.user_id ?? s.id), label: s.user_name ?? s.name })));
+        setSubDealers([]);
+        formCustom.resetFields(["sale_id", "sub_dealer_id"]);
       } catch {
-        setSalesList([]); setDealerList([]);
-        form.resetFields(["user_id", "dealer_id"]);
+        setSales([]); setSubDealers([]);
+        formCustom.resetFields(["sale_id", "sub_dealer_id"]);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.getFieldValue("area_id")]);
+  }, [formCustom.getFieldValue("area_id")]);
 
-  // ====== Cascade: Sales → Dealer ======
+  // Sales → Sub Dealer
   useEffect(() => {
-    const saleId = form.getFieldValue("user_id");
+    const saleId = formCustom.getFieldValue("sale_id");
     if (!saleId) {
-      setDealerList([]);
-      form.resetFields(["dealer_id"]);
+      setSubDealers([]);
+      formCustom.resetFields(["sub_dealer_id"]);
       return;
     }
     (async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: saleId });
+        const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
+          user_id: saleId,
+          // ไม่มี Dealer ใน flow นี้ ส่งค่าว่างให้ backend กรองตาม user ได้
+          dealer_id: "",
+        });
         const list = Array.isArray(res?.data) ? res.data : [];
-        setDealerList(list.map(x => ({ value: Number(x.id), label: x.name })));
-        form.resetFields(["dealer_id"]);
+        setSubDealers(list.map((s) => ({ value: s.sub_dealer_id, label: s.sub_dealer_name })));
+        formCustom.resetFields(["sub_dealer_id"]);
       } catch {
-        setDealerList([]);
-        form.resetFields(["dealer_id"]);
+        setSubDealers([]);
+        formCustom.resetFields(["sub_dealer_id"]);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.getFieldValue("user_id")]);
-
-  // ====== Fetch ======
-  const fetchData = async (overrideFilters) => {
-    setTableLoading(true);
-    try {
-      const f = overrideFilters ?? tableParams.filters ?? {};
-      const v = form.getFieldsValue();
-
-      const requestData = {
-        keyword: f.keyword || "",
-        year_code: f.year_code,               // year filter
-        area_id: v.area_id || null,
-        user_id: v.user_id || null,           // sales
-        dealer_id: v.dealer_id || null,       // dealer
-        page_length: 1,
-        page_size: tableParams.pagination.pageSize,
-      };
-
-      const response = await useServiceAPI.get(paths.pathReportActivityByMonth, requestData);
-      if (response?.status === 200) {
-        const { item, records_filtered, permission, total } = response.data || {};
-        const rows = (item || []).map((row, index) => ({
-          key: index + 1,
-          month_name: row.month_name,
-          month_id: row.month_id,
-          item: row.item,
-        }));
-        setPermission(permission || []);
-        setDataSource(rows);
-        setItemColumn(total || []);
-        setTableParams(prev => ({
-          ...prev,
-          pagination: { ...prev.pagination, total: records_filtered || rows.length },
-        }));
-      }
-    } catch (e) {
-      console.error(e);
-      setDataSource([]);
-      setItemColumn([]);
-    } finally {
-      setTableLoading(false);
-    }
-  };
+  }, [formCustom.getFieldValue("sale_id")]);
 
   useEffect(() => {
     if (years.length > 0) fetchData();
@@ -162,84 +204,86 @@ export default function ReportActivityByMonth() {
 
   const handleSearch = () => fetchData();
 
-  const handleClear = async () => {
-    form.resetFields(["area_id", "user_id", "dealer_id"]);
-    setSalesList([]); setDealerList([]);
-    const defaultYear = years?.[0];
-    setTableParams(prev => ({
-      ...prev,
-      filters: { year_code: defaultYear },
-      pagination: { current: 1, pageSize: 10 },
-    }));
-    await fetchData({ year_code: defaultYear });
-  };
-
-  const handleTableChange = (pagination) => {
-    setTableParams(prev => ({ ...prev, pagination }));
-  };
-
-  // ====== Table header ======
-  const columnColors = ["#009845", "#7DB41E", "#93CC23"];
-  const header = [
-    {
-      title: "Month",
-      dataIndex: "month_name",
-      key: "month_name",
-      fixed: "left",
-      width: 125,
-      onHeaderCell: () => ({
-        style: {
-          backgroundColor: "#00783F",
-          color: "white",
-          fontWeight: "bold",
-          textAlign: "center",
-        },
-      }),
-    },
-    ...itemColumn.map((act, index) => {
-      const bgColor = columnColors[index % columnColors.length];
-      const activityId = act.activity_type_id;
-      return {
-        title: act.activity_type_name,
-        key: `activity_${activityId}`,
-        width: 125,
-        onHeaderCell: () => ({
-          style: { backgroundColor: bgColor, color: "white", fontWeight: "bold", textAlign: "center" },
-        }),
-        render: (_, record) => {
-          const activityItem = (record.item || []).find(x => x.activity_type_id === activityId);
-          const set_value = activityItem ? Number(activityItem.total) || 0 : 0;
-          return (
-            <InputNumber
-              className="w-full"
-              min={0}
-              value={set_value}
-              formatter={(value) => `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-              disabled
-            />
-          );
-        },
+  const fetchData = async () => {
+    setTableLoading(true);
+    try {
+      const values = await formCustom.validateFields().catch(() => ({}));
+      const payload = {
+        sale_id: values.sale_id || null,
+        sub_dealer_id: values.sub_dealer_id || null, // ⬅️ ใช้ sub dealer
+        area_id: values.area_id || null,
+        year_code: tableParams.filters.year_code || null,
       };
-    }),
-  ];
 
-  // ====== Export helpers ======
+      const response = await useServiceAPI.get(paths.pathReportActivityExpense, payload);
+
+      if (response.status === 200) {
+        const { item: activityTypes, month: monthList } = response.data;
+
+        // columns per month
+        const itemColumnData = monthList.map((month) => {
+          const monthId = month.id;
+          const productData = activityTypes.map((activity) => {
+            const matchingMonthItem = activity.item.find((i) => i.month_id === monthId);
+            return {
+              product_name: activity.activity_type_name,
+              workplan_qty: Number((matchingMonthItem?.total_activity_plan_count || "0").toString().replace(/,/g, "")) || 0,
+              rolling_qty: 0,
+              actual_qty: 0,
+              workplan_value: Number((matchingMonthItem?.total_activity_plan_value || "0").toString().replace(/,/g, "")) || 0,
+              rolling_value: 0,
+              actual_value: Number((matchingMonthItem?.expense_actual || "0").toString().replace(/,/g, "")) || 0,
+            };
+          });
+          return { ...month, product: productData };
+        });
+
+        const dataSourceFormatted = activityTypes.map((activity, index) => ({
+          key: index,
+          productName: activity.activity_type_name,
+        }));
+
+        setItemColumn(itemColumnData);
+        setDataSource(dataSourceFormatted);
+        setTableParams((prev) => ({
+          ...prev,
+          pagination: { ...prev.pagination, total: dataSourceFormatted.length },
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching report data:", error);
+      showNotification?.("error", error.message || "ไม่สามารถโหลดข้อมูลรายงานได้");
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
+  const handleTableChange = (pagination, filters, sorter) => {
+    setTableParams({ pagination, filters: tableParams.filters });
+  };
+
+  const calculateFooterSums = () =>
+    itemColumn.map((month) => {
+      const workplan_value = month.product.reduce((sum, p) => sum + (Number(p.workplan_value) || 0), 0);
+      const actual_value = month.product.reduce((sum, p) => sum + (Number(p.actual_value) || 0), 0);
+      return { id: month.id, workplan_value, actual_value };
+    });
+
   const toText = (v) =>
-    v == null ? "" : (typeof v === "string" || typeof v === "number") ? String(v) : (v.name ?? v.label ?? v.value ?? v.code ?? "");
+    v == null ? "" : typeof v === "string" || typeof v === "number" ? String(v) : v.name ?? v.label ?? v.value ?? v.code ?? "";
 
   const buildFileName = () => {
-    const f = tableParams?.filters || {};
-    const v = form.getFieldsValue();
     const ts = dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD_HHmm");
-    const yearText = toText(f.year_code) || dayjs().tz("Asia/Bangkok").format("YYYY");
-    const areaLabel = (areaList.find((x) => x.value === v.area_id) || {}).label;
-    const salesLabel = (salesList.find((x) => x.value === v.user_id) || {}).label;
-    const dealerLabel = (dealerList.find((x) => x.value === v.dealer_id) || {}).label;
+    const yearText = toText(tableParams?.filters?.year_code) || dayjs().tz("Asia/Bangkok").format("YYYY");
+    const fVals = formCustom.getFieldsValue();
+    const areaLabel = (areaList.find((x) => x.value === fVals.area_id) || {}).label;
+    const salesLabel = (sales.find((x) => x.value === fVals.sale_id) || {}).label;
+    const subDealerLabel = (subDealers.find((x) => x.value === fVals.sub_dealer_id) || {}).label;
     return [
-      `Activity_Report_By_Month_${yearText}`,
+      `Activity_Expenses_By_Month_${yearText}`,
       areaLabel && `Area_${areaLabel}`,
       salesLabel && `Sales_${salesLabel}`,
-      dealerLabel && `Dealer_${dealerLabel}`,
+      subDealerLabel && `SubDealer_${subDealerLabel}`,
       ts,
     ]
       .filter(Boolean)
@@ -248,59 +292,33 @@ export default function ReportActivityByMonth() {
       .replace(/\s+/g, "_");
   };
 
-  const footerTotals = useMemo(() => {
-    const sums = {};
-    (itemColumn || []).forEach((act) => {
-      const price = Number(act?.unit_convert_value) || 0;
-      const sum = (dataSource || []).reduce((acc, row) => {
-        const it = (row?.item || []).find((x) => x?.activity_type_id === act?.activity_type_id);
-        const qty = Number(it?.total) || 0;
-        return acc + qty * price;
-      }, 0);
-      sums[act.activity_type_id] = sum;
-    });
-    return sums;
-  }, [itemColumn, dataSource]);
-
-  // ====== UI ======
   return (
-    <MainLayout loading={loading}>
-      <Title prefix="Activity Expenses Report" />
+    <MainLayout loading={loading} childrenStyle={""}>
+      <Title prefix="Activity Report By Value" />
 
       <Form
-        form={form}
+        form={formCustom}
         layout="vertical"
         onValuesChange={(chg) => {
-          // reset ตาม step
-          if ("area_id" in chg) form.setFieldsValue({ user_id: undefined, dealer_id: undefined });
-          if ("user_id" in chg) form.setFieldsValue({ dealer_id: undefined });
+          if ("area_id" in chg) formCustom.setFieldsValue({ sale_id: undefined, sub_dealer_id: undefined });
+          if ("sale_id" in chg) formCustom.setFieldsValue({ sub_dealer_id: undefined });
         }}
       >
         <BoxPrimary className="m-1 mb-4">
           <Row gutter={16} align="middle">
             <Col md={6}>
-              <Form.Item label="Area" name="area_id" tooltip="เลือก Area ก่อนเพื่อเปิด Sales">
+              <Form.Item label="Area" name="area_id">
                 <Select placeholder="Select Area" options={areaList} allowClear />
               </Form.Item>
             </Col>
             <Col md={6}>
-              <Form.Item label="Sales" name="user_id" tooltip="เลือก Sales หลังจากเลือก Area">
-                <Select
-                  placeholder="Select Sales"
-                  options={salesList}
-                  allowClear
-                  disabled={!selectedArea}
-                />
+              <Form.Item label="Sales" name="sale_id" tooltip="เลือก Sales หลังจากเลือก Area">
+                <Select placeholder="Select Sales" options={sales} allowClear disabled={!selectedArea} />
               </Form.Item>
             </Col>
             <Col md={6}>
-              <Form.Item label="Dealer" name="dealer_id" tooltip="เลือก Dealer หลังจากเลือก Sales">
-                <Select
-                  placeholder="Select Dealer"
-                  options={dealerList}
-                  allowClear
-                  disabled={!selectedSale}
-                />
+              <Form.Item label="Sub Dealer" name="sub_dealer_id" tooltip="เลือก Sub Dealer หลังจากเลือก Sales">
+                <Select placeholder="Select Sub Dealer" options={subDealers} allowClear disabled={!selectedSale} />
               </Form.Item>
             </Col>
           </Row>
@@ -314,29 +332,31 @@ export default function ReportActivityByMonth() {
               className="text-white px-4 py-3 rounded-[4px] bg-[#7DB41E]"
             />
             <DynamicButton
-              onClick={handleClear}
+              onClick={() => {
+                formCustom.resetFields(["area_id", "sale_id", "sub_dealer_id"]);
+                setSales([]); setSubDealers([]);
+              }}
               name="btn-clear"
               text="Clear"
               iconSrc="/img/icons/trash.png"
               className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
             />
-            <ExportActivityByMonthExcelButton
+
+            <ExportActivityExpenseExcelButton
               text="Export Excel"
               fileName={buildFileName()}
               getPayload={async () => {
-                const f = tableParams?.filters || {};
-                const v = form.getFieldsValue();
+                const v = await formCustom.validateFields().catch(() => ({}));
                 return {
-                  keyword: f.keyword || "",
-                  year_code: toText(f.year_code) || undefined,
+                  sale_id: v.sale_id || null,
+                  sub_dealer_id: v.sub_dealer_id || null, // ⬅️ ส่ง sub dealer
                   area_id: v.area_id || null,
-                  user_id: v.user_id || null,
-                  dealer_id: v.dealer_id || null,
+                  year_code: toText(tableParams?.filters?.year_code) || null,
+                  page_length: 1,
+                  page_size: 100000,
                 };
               }}
-              requestData={(payload) =>
-                useServiceAPI.get(paths.pathReportActivityByMonth, payload)
-              }
+              requestData={(payload) => useServiceAPI.get(paths.pathReportActivityExpense, payload)}
             />
           </div>
         </BoxPrimary>
@@ -350,26 +370,38 @@ export default function ReportActivityByMonth() {
           loading={tableLoading}
           onChange={handleTableChange}
           scrollY={false}
-          footer={() => (
-            <Table.Summary fixed>
-              <Table.Summary.Row className="bg-[#978B87]">
-                <Table.Summary.Cell index={0}>Total (THB)</Table.Summary.Cell>
-                {itemColumn.map((act) => (
-                  <Table.Summary.Cell key={`sum_${act.activity_type_id}`} align="center">
-                    <InputNumber
-                      className="w-full"
-                      disabled
-                      value={footerTotals[act.activity_type_id] || 0}
-                      formatter={(value) =>
-                        `${Math.trunc(Number(value) || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      style={{ backgroundColor: "white" }}
-                    />
+          footer={() => {
+            const footerData = calculateFooterSums();
+            return (
+              <Table.Summary fixed>
+                <Table.Summary.Row className="bg-[#978B87]">
+                  <Table.Summary.Cell index={0}>
+                    <b>Total (THB)</b>
                   </Table.Summary.Cell>
-                ))}
-              </Table.Summary.Row>
-            </Table.Summary>
-          )}
+                  {footerData.map((month, index) => (
+                    <React.Fragment key={`${month.id}_${index}`}>
+                      <Table.Summary.Cell align="center">
+                        <InputNumber
+                          className="w-full"
+                          readOnly
+                          value={month.workplan_value}
+                          formatter={(v) => `${parseInt(v || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                        />
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell align="center">
+                        <InputNumber
+                          className="w-full"
+                          readOnly
+                          value={month.actual_value}
+                          formatter={(v) => `${parseInt(v || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                        />
+                      </Table.Summary.Cell>
+                    </React.Fragment>
+                  ))}
+                </Table.Summary.Row>
+              </Table.Summary>
+            );
+          }}
         />
       </BoxPrimary>
     </MainLayout>
