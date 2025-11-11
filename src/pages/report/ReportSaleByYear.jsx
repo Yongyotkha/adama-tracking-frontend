@@ -602,7 +602,7 @@ export default function ReportSaleByYear() {
                 </Form.Item>
               </Col>
 
-              <Col md={6}>
+              <Col md={6} className="hidden">
                 <Form.Item label="Product" name="product_name">
                   <Select placeholder="Select Product" options={products} allowClear />
                 </Form.Item>
