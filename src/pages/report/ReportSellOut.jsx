@@ -172,7 +172,7 @@ export default function ReportSellOut() {
       try {
         const res = await useServiceAPI.get(paths.pathMasterSaleReport, { area_id: areaId });
         const list = Array.isArray(res?.data) ? res.data : [];
-        setSales(list.map((x) => ({ value: Number(x.user_id), label: x.user_name })));
+        setSales(list.map((x) => ({ value: Number(x.id), label: x.name })));
         form.resetFields(["sales_id", "dealer_id"]);
         setDealers([]);
       } catch {

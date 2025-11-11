@@ -414,8 +414,8 @@ export default function ReportSaleByQuarter() {
         const res = await useServiceAPI.get(paths.pathMasterSaleReport, { area_id: areaId });
         const list = Array.isArray(res?.data) ? res.data : [];
         const saleOptions = list.map((item) => ({
-          value: Number(item.user_id),
-          label: item.user_name,
+          value: Number(item.id),
+          label: item.name,
         }));
         setSales(saleOptions);
         formCustom.resetFields(["sale_id", "dealer_id"]);

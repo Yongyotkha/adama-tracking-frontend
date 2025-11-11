@@ -219,7 +219,7 @@ export default function ReportStock() {
       try {
         const res = await useServiceAPI.get(paths.pathMasterSaleReport, { area_id: areaId });
         const list = Array.isArray(res?.data) ? res.data : [];
-        setSalesList(list.map((x) => ({ value: Number(x.user_id), label: x.user_name })));
+        setSalesList(list.map((x) => ({ value: Number(x.id), label: x.name })));
         setDealerList([]);
         setSubDealerList([]);
         form.resetFields(["sale_id", "dealer_id", "sub_dealer_id"]);

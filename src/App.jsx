@@ -433,7 +433,7 @@ const App = () => {
             <Route path="/report/activity-type" element={<ReportActivityByType />} />
             <Route path="/report/activity-month" element={<ReportActivityExpense />} />
             <Route path="/report/stock-report" element={<ReportStock />} />
-            <Route path="/report/sell-out-report-sales" element={<ReportSellOutBySales />} />
+            <Route path="/report/sell-out-report-sales" element={<ReportSellOut />} />
             <Route path="/report/sell-out-report-dealer" element={<ReportSellOutByDealer />} />
             <Route path="/report/sell-out-report-sub-dealer" element={<ReportSellOut />} />
             <Route path="/report/sell-out-report" element={<ReportSellOut />} />

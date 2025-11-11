@@ -50,7 +50,8 @@ export const paths = {
   pathMasterProductGroups: "master/product-groups",
   pathMasterProductList: "master/product-list",
   pathMasterProductCategorys: "master/product-categorys",
-  pathMasterSaleReport: "master/sale-report",
+  // pathMasterSaleReport: "master/sale-report",
+  pathMasterSaleReport: "master/area_user_sale",
 
 
 
