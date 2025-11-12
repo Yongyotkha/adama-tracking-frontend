@@ -8,7 +8,7 @@ import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
 import Title from "../../components/title/Title";
-import ExportActivityByMonthExcelButton from "../../components/export/ExportActivityByMonthExcelButton";
+import ExportActivityExpenseExcelButton from "../../components/export/ExportActivityExpenseExcelButton";
 import DynamicButton from "../../components/button/DynamicButton";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -138,6 +138,8 @@ export default function ReportActivityByMonth() {
           month_id: row.month_id,
           item: row.item,
         }));
+
+        console.log("Response Activity By Month:", response.data);
         setPermission(permission || []);
         setDataSource(rows);
         setItemColumn(total || []);
@@ -208,7 +210,7 @@ export default function ReportActivityByMonth() {
         }),
         render: (_, record) => {
           const activityItem = (record.item || []).find(x => x.activity_type_id === activityId);
-          const set_value = activityItem ? Number(activityItem.total) || 0 : 0;
+          const set_value = activityItem ? Number(activityItem.total_unit_convert_value) || 0 : 0;
           return (
             <InputNumber
               className="w-full"
@@ -248,19 +250,24 @@ export default function ReportActivityByMonth() {
       .replace(/\s+/g, "_");
   };
 
+  // แก้เป็น:
   const footerTotals = useMemo(() => {
     const sums = {};
     (itemColumn || []).forEach((act) => {
       const price = Number(act?.unit_convert_value) || 0;
       const sum = (dataSource || []).reduce((acc, row) => {
         const it = (row?.item || []).find((x) => x?.activity_type_id === act?.activity_type_id);
+        const valueFromAPI = Number(it?.total_unit_convert_value);
+        if (!Number.isNaN(valueFromAPI) && valueFromAPI > 0) return acc + valueFromAPI;
         const qty = Number(it?.total) || 0;
         return acc + qty * price;
       }, 0);
+      sums[act.activity_type_id] = sums[act.activity_type_id] || 0;
       sums[act.activity_type_id] = sum;
     });
     return sums;
   }, [itemColumn, dataSource]);
+
 
   // ====== UI ======
   return (
@@ -320,7 +327,7 @@ export default function ReportActivityByMonth() {
               iconSrc="/img/icons/trash.png"
               className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
             />
-            <ExportActivityByMonthExcelButton
+            <ExportActivityExpenseExcelButton
               text="Export Excel"
               fileName={buildFileName()}
               getPayload={async () => {

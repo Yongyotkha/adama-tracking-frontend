@@ -9,7 +9,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import Title from "../../components/title/Title";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
 import DynamicButton from "../../components/button/DynamicButton";
-import ExportActivityExpenseExcelButton from "../../components/export/ExportActivityExpenseExcelButton";
+import ExportActivityByMonthExcelButton from "../../components/export/ExportActivityByMonthExcelButton";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -342,7 +342,7 @@ export default function ReportSaleByMonth() {
               className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
             />
 
-            <ExportActivityExpenseExcelButton
+            <ExportActivityByMonthExcelButton
               text="Export Excel"
               fileName={buildFileName()}
               getPayload={async () => {

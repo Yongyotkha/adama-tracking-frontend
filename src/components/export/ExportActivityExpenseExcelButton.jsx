@@ -3,10 +3,13 @@ import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import DynamicButton from "../../components/button/DynamicButton";
 
+const GREEN_MAIN = "#009845";   // เขียวหลัก
+const GREEN_LIGHT = "#7DB41E";  // เขียวอ่อน
+
 export default function ExportActivityExpenseExcelButton({
   getPayload,
   requestData,
-  fileName = "Activity_Expenses_By_Month",
+  fileName = "Activity_Report_By_Month",
   buttonProps,
   text = "Export Excel",
   iconSrc = "/img/icons/excel.png",
@@ -14,81 +17,112 @@ export default function ExportActivityExpenseExcelButton({
 }) {
   const [loading, setLoading] = useState(false);
 
-  const fill = (hex) => ({ type: "pattern", pattern: "solid", fgColor: { argb: hex.replace("#","") } });
-  const head = (cell, hex) => {
-    cell.fill = fill(hex);
-    cell.font = { color: { argb: "FFFFFFFF" }, bold: true };
-    cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
-  };
-
   const handleExport = async () => {
     if (loading) return;
     setLoading(true);
     try {
       const payload = await getPayload();
-      const res = await requestData(payload);
+      const res = await requestData({ ...payload, page_length: 1, page_size: 100000 });
       if (res?.status !== 200) throw new Error("Export failed");
 
-      const activityTypes = res.data?.item || [];
-      const months = res.data?.month || [];
+      const items = res.data?.item || [];
+      const totalsMeta = res.data?.total || [];
+
+      // ใช้ meta จาก total: id, name, unit price (อย่าใช้ total_value ที่ผิด)
+      const activityHeaders = totalsMeta.map(t => ({
+        id: String(t.activity_type_id),
+        name: t.activity_type_name,
+        price: Number(t.unit_convert_value) || 0,
+      }));
 
       const wb = new ExcelJS.Workbook();
       const ws = wb.addWorksheet("Report");
 
-      const top = ["Activity Name"];
-      const sub = [""];
-      months.forEach((m) => { top.push(m.name, m.name); sub.push("Plan (Value)", "Actual (Value)"); });
-      ws.addRow(top);
-      ws.addRow(sub);
+      // Freeze header + column A
+      ws.views = [{ state: "frozen", xSplit: 1, ySplit: 1 }];
 
-      head(ws.getCell(1,1), "#00783F");
-      head(ws.getCell(2,1), "#00783F");
-      ws.mergeCells(1,1,2,1);
-      ws.getColumn(1).width = 28;
+      // Header row
+      ws.getRow(1).values = ["Month", ...activityHeaders.map(h => h.name)];
+      ws.columns = [{ key: "m", width: 18 }, ...activityHeaders.map(() => ({ width: 16 }))];
 
-      let col = 2;
-      months.forEach((m, idx) => {
-        const mainColor = idx % 2 === 1 ? "#7DB41E" : "#009845";
-        ws.mergeCells(1, col, 1, col + 1);
-        head(ws.getCell(1, col), mainColor);
-        head(ws.getCell(1, col + 1), mainColor);
-        head(ws.getCell(2, col), mainColor);
-        head(ws.getCell(2, col + 1), mainColor);
-        ws.getColumn(col).width = 16;
-        ws.getColumn(col + 1).width = 16;
-        col += 2;
+      // สไตล์หัวตาราง: เขียวหลักคอลัมน์ "Month", ที่เหลือสลับ เขียวหลัก/เขียวอ่อน
+      ws.getCell(1, 1).fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: GREEN_MAIN.replace("#", "") },
+      };
+      ws.getCell(1, 1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+      ws.getCell(1, 1).alignment = { vertical: "middle", horizontal: "center" };
+
+      activityHeaders.forEach((h, idx) => {
+        const colIndex = idx + 2; // เริ่มที่คอลัมน์ B
+        const color = idx % 2 === 0 ? GREEN_LIGHT : GREEN_MAIN;
+        const cell = ws.getCell(1, colIndex);
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: color.replace("#", "") },
+        };
+        cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+        cell.alignment = { vertical: "middle", horizontal: "center" };
       });
 
-      activityTypes.forEach((act) => {
-        const line = [act.activity_type_name];
-        months.forEach((m) => {
-          const hit = (act.item || []).find((i) => i.month_id === m.id) || {};
-          const planVal = Number((hit.total_activity_plan_value || "0").toString().replace(/,/g,"")) || 0;
-          const actualVal = Number((hit.expense_actual || "0").toString().replace(/,/g,"")) || 0;
-          line.push(planVal, actualVal);
+      // เขียนแถวรายเดือน
+      items.forEach((row) => {
+        const line = [row.month_name];
+        activityHeaders.forEach((h) => {
+          const hit = (row.item || []).find((x) => String(x.activity_type_id) === h.id);
+          // ถ้ามี value เป็นเงินมาแล้ว ใช้เลย; ไม่งั้นคูณจาก qty * price
+          const valFromAPI = Number(hit?.total_unit_convert_value);
+          const qty = Number(hit?.total ?? 0);
+          const value = !Number.isNaN(valFromAPI) && valFromAPI > 0 ? valFromAPI : qty * h.price;
+          line.push(value);
         });
         ws.addRow(line);
       });
 
-      const totals = ["Total (THB)"];
-      months.forEach((m) => {
-        const sumPlan = activityTypes.reduce((s, act) => {
-          const hit = (act.item || []).find((i) => i.month_id === m.id);
-          const v = Number((hit?.total_activity_plan_value || "0").toString().replace(/,/g,"")) || 0;
-          return s + v;
-        }, 0);
-        const sumActual = activityTypes.reduce((s, act) => {
-          const hit = (act.item || []).find((i) => i.month_id === m.id);
-          const v = Number((hit?.expense_actual || "0").toString().replace(/,/g,"")) || 0;
-          return s + v;
-        }, 0);
-        totals.push(sumPlan, sumActual);
+      // คำนวณรวมใหม่จากข้อมูลรายเดือนจริง
+      const grandTotals = activityHeaders.map((h) => {
+        let sum = 0;
+        items.forEach((row) => {
+          const hit = (row.item || []).find((x) => String(x.activity_type_id) === h.id);
+          const valFromAPI = Number(hit?.total_unit_convert_value);
+          const qty = Number(hit?.total ?? 0);
+          sum += (!Number.isNaN(valFromAPI) && valFromAPI > 0) ? valFromAPI : qty * h.price;
+        });
+        return sum;
       });
-      const tr = ws.addRow(totals);
-      tr.font = { bold: true };
 
+      // แถว Total
+      const tr = ws.addRow(["Total (THB)", ...grandTotals]);
+      tr.font = { bold: true };
+      tr.eachCell((cell, col) => {
+        const idx = col - 2; // ตำแหน่งกิจกรรม (เริ่มจาก 0)
+        if (col === 1) {
+          cell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: GREEN_MAIN.replace("#", "") },
+          };
+          cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+          cell.alignment = { vertical: "middle", horizontal: "center" };
+        } else if (col >= 2) {
+          const color = idx % 2 === 0 ? GREEN_LIGHT : GREEN_MAIN;
+          cell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: color.replace("#", "") },
+          };
+          cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+        }
+      });
+
+      // จัดรูปแบบตัวเลขให้ทุกคอลัมน์ B..สุดท้าย (ทั้งเนื้อและ total)
       for (let c = 2; c <= ws.columnCount; c++) {
-        for (let r = 3; r <= ws.rowCount; r++) ws.getCell(r, c).numFmt = "#,##0";
+        for (let r = 2; r <= ws.rowCount; r++) {
+          ws.getCell(r, c).numFmt = '#,##0';
+          ws.getCell(r, c).alignment = { horizontal: "right" };
+        }
       }
 
       const buf = await wb.xlsx.writeBuffer();

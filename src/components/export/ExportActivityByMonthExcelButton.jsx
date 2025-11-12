@@ -6,54 +6,124 @@ import DynamicButton from "../../components/button/DynamicButton";
 export default function ExportActivityByMonthExcelButton({
   getPayload,
   requestData,
-  fileName = "Activity_Report_By_Month",
-  buttonProps, // ยังคงรับไว้เผื่อเดิมมีการส่ง className เข้ามา
+  fileName = "Activity_Expenses_By_Month",
+  buttonProps,
   text = "Export Excel",
-  iconSrc = "/img/icons/excel.png", // ไอคอน Excel เริ่มต้น
-  className, // เผื่ออยากส่ง className เพิ่ม
+  iconSrc = "/img/icons/excel.png",
+  className,
 }) {
   const [loading, setLoading] = useState(false);
+
+  const fill = (hex) => ({ type: "pattern", pattern: "solid", fgColor: { argb: hex.replace("#", "") } });
+  const head = (cell, hex) => {
+    cell.fill = fill(hex);
+    cell.font = { color: { argb: "FFFFFFFF" }, bold: true };
+    cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+  };
 
   const handleExport = async () => {
     if (loading) return;
     setLoading(true);
     try {
       const payload = await getPayload();
-      const res = await requestData({ ...payload, page_length: 1, page_size: 100000 });
+      const res = await requestData(payload);
       if (res?.status !== 200) throw new Error("Export failed");
 
-      // response.data: { item: [{month_name, item:[{activity_type_id,total}, ...]}], total: [{activity_type_id, activity_type_name, total_value}] }
-      const items = res.data?.item || [];
-      const totals = res.data?.total || [];
-
-      const activityHeaders = totals.map((t) => ({
-        id: t.activity_type_id,
-        name: t.activity_type_name,
-        total: Number(t.total_value) || 0,
-      }));
+      const activityTypes = res.data?.item || [];
+      const months = res.data?.month || [];
 
       const wb = new ExcelJS.Workbook();
       const ws = wb.addWorksheet("Report");
 
-      ws.getRow(1).values = ["Month", ...activityHeaders.map((h) => h.name)];
-      ws.columns = [{ key: "m", width: 18 }, ...activityHeaders.map(() => ({ width: 16 }))];
+      // ⛳ Freeze หัว 2 แถว + คอลัมน์ซ้าย 1 คอลัมน์
+      ws.views = [{ state: "frozen", xSplit: 1, ySplit: 2 }];
 
-      items.forEach((row) => {
-        const line = [row.month_name];
-        activityHeaders.forEach((h) => {
-          const hit = (row.item || []).find((x) => x.activity_type_id === h.id);
-          line.push(Number(hit?.total ?? 0));
+      // ===== Header 2 แถว =====
+      const top = ["Activity Name"];
+      const sub = [""];
+      months.forEach((m) => { top.push(m.name, m.name); sub.push("Plan (Value)", "Actual (Value)"); });
+      ws.addRow(top);
+      ws.addRow(sub);
+
+      const head = (cell, hex) => {
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: hex.replace("#", "") } };
+        cell.font = { color: { argb: "FFFFFFFF" }, bold: true };
+        cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+      };
+
+      // คอลัมน์ A (ชื่อกิจกรรม)
+      head(ws.getCell(1, 1), "#00783F");
+      head(ws.getCell(2, 1), "#00783F");
+      ws.mergeCells(1, 1, 2, 1);
+      ws.getColumn(1).width = 28;
+
+      // หัวรายเดือน (สลับเขียวหลัก/เขียวอ่อน)
+      let col = 2;
+      months.forEach((m, idx) => {
+        const mainColor = idx % 2 === 1 ? "#7DB41E" : "#009845";
+        ws.mergeCells(1, col, 1, col + 1);
+        head(ws.getCell(1, col), mainColor);
+        head(ws.getCell(1, col + 1), mainColor);
+        head(ws.getCell(2, col), mainColor);
+        head(ws.getCell(2, col + 1), mainColor);
+        ws.getColumn(col).width = 16;
+        ws.getColumn(col + 1).width = 16;
+        col += 2;
+      });
+
+      // ===== เนื้อข้อมูลรายกิจกรรม =====
+      activityTypes.forEach((act) => {
+        const line = [act.activity_type_name];
+        months.forEach((m) => {
+          const hit = (act.item || []).find((i) => i.month_id === m.id) || {};
+          const planVal = Number((hit.total_activity_plan_value || "0").toString().replace(/,/g, "")) || 0;
+          const actualVal = Number((hit.expense_actual || "0").toString().replace(/,/g, "")) || 0;
+          line.push(planVal, actualVal);
         });
         ws.addRow(line);
       });
 
-      const tr = ws.addRow(["Total", ...activityHeaders.map((h) => h.total)]);
+      // ===== แถว Total (ทำสีให้เหมือนหัวคอลัมน์ และตัวอักษรสีขาว) =====
+      const totals = ["Total (THB)"];
+      months.forEach((m) => {
+        const sumPlan = activityTypes.reduce((s, act) => {
+          const hit = (act.item || []).find((i) => i.month_id === m.id);
+          const v = Number((hit?.total_activity_plan_value || "0").toString().replace(/,/g, "")) || 0;
+          return s + v;
+        }, 0);
+        const sumActual = activityTypes.reduce((s, act) => {
+          const hit = (act.item || []).find((i) => i.month_id === m.id);
+          const v = Number((hit?.expense_actual || "0").toString().replace(/,/g, "")) || 0;
+          return s + v;
+        }, 0);
+        totals.push(sumPlan, sumActual);
+      });
+      const tr = ws.addRow(totals);
       tr.font = { bold: true };
 
-      // number format
+      // สไตล์พื้นหลังแถว Total
+      // ช่อง A = เขียวหลัก
+      const paint = (cell, hex) => {
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: hex.replace("#", "") } };
+        cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+        cell.alignment = { vertical: "middle", horizontal: "center" };
+      };
+      paint(ws.getCell(tr.number, 1), "#009845");
+
+      // คอลัมน์ตัวเลขของ Total: สลับสีตามคู่ (Plan/Actual) ของแต่ละเดือน
+      let startCol = 2;
+      months.forEach((m, idx) => {
+        const color = idx % 2 === 1 ? "#7DB41E" : "#009845";
+        paint(ws.getCell(tr.number, startCol), color); // Plan
+        paint(ws.getCell(tr.number, startCol + 1), color); // Actual
+        startCol += 2;
+      });
+
+      // รูปแบบตัวเลข + ชิดขวา
       for (let c = 2; c <= ws.columnCount; c++) {
-        for (let r = 2; r <= ws.rowCount; r++) {
+        for (let r = 3; r <= ws.rowCount; r++) {
           ws.getCell(r, c).numFmt = "#,##0";
+          ws.getCell(r, c).alignment = { horizontal: "right" };
         }
       }
 
@@ -66,16 +136,8 @@ export default function ExportActivityByMonthExcelButton({
     }
   };
 
-  // สไตล์เริ่มต้นให้เข้าธีมเดียวกับ DynamicButton ที่ใช้ปุ่มสีเขียวในโปรเจกต์
-  const baseClass =
-    "text-white px-4 py-3 rounded-[4px] bg-[#009845]";
-  const combinedClass = [
-    baseClass,
-    buttonProps?.className, // หากเคยส่งจากภายนอก
-    className,              // หากส่งเพิ่มใหม่
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const baseClass = "text-white px-4 py-3 rounded-[4px] bg-[#009845]";
+  const combinedClass = [baseClass, buttonProps?.className, className].filter(Boolean).join(" ");
 
   return (
     <DynamicButton

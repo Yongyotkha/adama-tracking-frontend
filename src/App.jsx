@@ -83,7 +83,7 @@ import ReportSaleByMonth from "./pages/report/ReportSaleByMonth";
 import ReportSaleByQuarter from "./pages/report/ReportSaleByQuarter";
 import ReportSaleByYear from "./pages/report/ReportSaleByYear";
 import ReportActivity from "./pages/report/ReportActivity";
-import ReportActivityExpense2 from "./pages/report/ReportActivityExpense2";
+import ReportActivityExpense from "./pages/report/ReportActivityExpense";
 import ReportActivityByMonth from "./pages/report/ReportActivityByMonth";
 import ReportActivityByType from "./pages/report/ReportActivityByType";
 // END ------------- Activity ------------- END
@@ -429,7 +429,7 @@ const App = () => {
             <Route path="/report/quarterly" element={<ReportSaleByQuarter />} />
             <Route path="/report/yearly" element={<ReportSaleByYear />} />
             <Route path="/report/activity" element={<ReportActivity />} />
-            <Route path="/report/activity-expense" element={<ReportActivityExpense2 />} />
+            <Route path="/report/activity-expense" element={<ReportActivityExpense />} />
             <Route path="/report/activity-type" element={<ReportActivityByType />} />
             <Route path="/report/activity-month" element={<ReportActivityByMonth />} />
             <Route path="/report/stock-report" element={<ReportStock />} />
