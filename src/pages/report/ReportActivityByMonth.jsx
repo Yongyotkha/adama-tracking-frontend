@@ -369,7 +369,7 @@ export default function ReportSaleByMonth() {
           pagination={false}
           loading={tableLoading}
           onChange={handleTableChange}
-          scrollY={false}
+          scrollY={true}
           footer={() => {
             const footerData = calculateFooterSums();
             return (

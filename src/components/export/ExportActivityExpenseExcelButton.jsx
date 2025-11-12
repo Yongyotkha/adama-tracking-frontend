@@ -16,6 +16,26 @@ export default function ExportActivityExpenseExcelButton({
   className,
 }) {
   const [loading, setLoading] = useState(false);
+  // เพิ่ม helper สำหรับตัดข้อความเป็น 2 บรรทัด
+  const wrapHeader = (name, limit = 14, window = 8) => {
+    if (!name) return "";
+    const txt = String(name).trim();
+    if (txt.length <= limit) return txt;                     // สั้นพอ ไม่ต้องตัด
+
+    // หาจุดเว้นวรรคใกล้ ๆ limit เพื่อแทรก \n
+    const left = txt.lastIndexOf(" ", limit);
+    const right = txt.indexOf(" ", limit);
+    const nearBreak =
+      (left !== -1 && limit - left <= window) ? left :
+        (right !== -1 && right - limit <= window) ? right : -1;
+
+    if (nearBreak !== -1) {
+      return txt.slice(0, nearBreak) + "\n" + txt.slice(nearBreak + 1);
+    }
+    // ไม่มีเว้นวรรคใกล้ ๆ — บังคับตัดกลางคำ
+    return txt.slice(0, limit) + "\n" + txt.slice(limit);
+  };
+
 
   const handleExport = async () => {
     if (loading) return;
@@ -41,30 +61,26 @@ export default function ExportActivityExpenseExcelButton({
       // Freeze header + column A
       ws.views = [{ state: "frozen", xSplit: 1, ySplit: 1 }];
 
-      // Header row
-      ws.getRow(1).values = ["Month", ...activityHeaders.map(h => h.name)];
+      // Header row (แทนบรรทัดเดิม)
+      ws.getRow(1).values = ["Month", ...activityHeaders.map(h => wrapHeader(h.name))];
       ws.columns = [{ key: "m", width: 18 }, ...activityHeaders.map(() => ({ width: 16 }))];
 
-      // สไตล์หัวตาราง: เขียวหลักคอลัมน์ "Month", ที่เหลือสลับ เขียวหลัก/เขียวอ่อน
-      ws.getCell(1, 1).fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: GREEN_MAIN.replace("#", "") },
-      };
-      ws.getCell(1, 1).font = { bold: true, color: { argb: "FFFFFFFF" } };
-      ws.getCell(1, 1).alignment = { vertical: "middle", horizontal: "center" };
+      // ความสูงแถวหัวให้พอดี 2 บรรทัด
+      ws.getRow(1).height = 34; // ปรับได้ 32–38 ตามฟอนต์/สเกลของคุณ
 
+      // สไตล์หัวคอลัมน์ A
+      ws.getCell(1, 1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: GREEN_MAIN.replace("#", "") } };
+      ws.getCell(1, 1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+      ws.getCell(1, 1).alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+
+      // สไตล์หัวคอลัมน์กิจกรรม (เพิ่ม wrapText: true)
       activityHeaders.forEach((h, idx) => {
-        const colIndex = idx + 2; // เริ่มที่คอลัมน์ B
+        const colIndex = idx + 2;
         const color = idx % 2 === 0 ? GREEN_LIGHT : GREEN_MAIN;
         const cell = ws.getCell(1, colIndex);
-        cell.fill = {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: color.replace("#", "") },
-        };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color.replace("#", "") } };
         cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-        cell.alignment = { vertical: "middle", horizontal: "center" };
+        cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
       });
 
       // เขียนแถวรายเดือน

@@ -631,7 +631,7 @@ export default function ReportSaleByQuarter() {
             pagination={false}
             loading={tableLoading}
             onChange={handleTableChange}
-            scrollY={false}
+            scrollY={true}
             footer={() => {
               const footerData = calculateFooterSums();
               return (
