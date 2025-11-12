@@ -11,6 +11,10 @@ import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
 import ExportSellOutExcelButton from "../../components/export/ExportSellOutExcelButton";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const GREEN_A = "#00783F";
 const GREEN_B = "#009845";
@@ -24,6 +28,38 @@ const subCols = [
 ];
 
 const fmt = (n) => `${parseInt(Number(n) || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+// -------- helpers for export file name ----------
+const slug = (s) =>
+  String(s ?? "")
+    .normalize("NFKC")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/[\\/:*?"<>|]+/g, "-")   // กันอักขระต้องห้าม
+    .replace(/\s+/g, "_");
+
+const getLabelFrom = (options, value) =>
+  (Array.isArray(options) ? options.find((o) => o?.value === value) : null)?.label || "";
+
+const buildSellOutReportFileName = (form, { areaList, sales, dealers }) => {
+  const v = form.getFieldsValue();
+  const year = (v.month ? dayjs(v.month) : dayjs()).format("YYYY");
+  const area = getLabelFrom(areaList, v.area_id);
+  const sale = getLabelFrom(sales, v.sales_id);
+  const dealer = getLabelFrom(dealers, v.dealer_id);
+
+  const parts = [
+    "SellOut_Report",
+    `Y${year}`,
+    area && `Area_${slug(area)}`,
+    sale && `Sales_${slug(sale)}`,
+    dealer && `Dealer_${slug(dealer)}`,
+  ].filter(Boolean);
+
+  const ts = dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD_HHmm");
+  return `${parts.join("_")}_${ts}`;
+};
+
 
 export default function ReportSellOut() {
   const [form] = Form.useForm();
@@ -373,7 +409,7 @@ export default function ReportSellOut() {
 
             <ExportSellOutExcelButton
               text="Export Excel"
-              fileName={`SellOut_${dayjs(form.getFieldValue('month') || dayjs()).format('YYYY')}`}
+              fileName={buildSellOutReportFileName(form, { areaList, sales, dealers })}
               getPayload={async () => {
                 const v = form.getFieldsValue();
                 const year = v.month ? String(dayjs(v.month).year()) : String(dayjs().year());
