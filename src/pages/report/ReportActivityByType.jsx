@@ -40,7 +40,12 @@ export default function ReportActivityByType() {
     sortField: null,
   });
 
-  const mapSalesOptions = (salesList) => (salesList || []).map((sale) => ({ value: String(sale.id), label: sale.name }));
+  // state สำหรับบังคับ step UI: Area > Sales > Territory
+  const [isAreaSelected, setIsAreaSelected] = useState(false);
+  const [isSalesSelected, setIsSalesSelected] = useState(false);
+
+  const mapSalesOptions = (salesList) =>
+    (salesList || []).map((sale) => ({ value: String(sale.id), label: sale.name }));
 
   const loadMasterData = async () => {
     setLoading(true);
@@ -56,7 +61,7 @@ export default function ReportActivityByType() {
 
       setYears(yearsRes.data || []);
 
-      setAreaList((area.data || []).map(x => ({ value: String(x.id), label: x.name })));
+      setAreaList((area.data || []).map((x) => ({ value: String(x.id), label: x.name })));
       setActivityList(activityType.data || []);
 
       if ((yearsRes.data || []).length > 0) {
@@ -72,39 +77,12 @@ export default function ReportActivityByType() {
     }
   };
 
-  useEffect(() => { loadMasterData(); }, []);
-
-  // set default area from user profile, then load sales for that area
   useEffect(() => {
-    const fetchUserDetailAndSetArea = async () => {
-      const areaOpts = areaList || [];
-      if (!userInfo?.id || areaOpts.length === 0) return;
-      try {
-        const res = await useServiceAPI.get(`${paths.pathMasterUsersDetail}/${userInfo.id}`);
-        if (res.status === 200 && res.data?.area_id) {
-          const userAreaId = String(res.data.area_id);
-          const isValidArea = areaOpts.some(a => a.value === userAreaId);
-          if (isValidArea) {
-            // set form area
-            formCustom.setFieldsValue({ area_id: userAreaId });
+    loadMasterData();
+  }, []);
 
-            // load sales by area
-            const salesRes = await useServiceAPI.get(paths.pathMasterSalesByArea, { area_id: userAreaId });
-            if (salesRes.status === 200) {
-              setSales(mapSalesOptions(salesRes.data));
-            }
-
-            // refresh data with this area
-            await fetchData({ ...tableParams.filters });
-          }
-        }
-      } catch {
-        showNotification("error", "โหลดข้อมูลผู้ใช้ล้มเหลว");
-      }
-    };
-    fetchUserDetailAndSetArea();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userInfo?.id, areaList?.length]);
+  // ❌ ลบ useEffect ที่ auto set Area จาก profile ออก (ให้ Area ว่าง, ไม่ active เอง)
+  // useEffect เดิมถูกลบทิ้งไปแล้ว
 
   const fetchData = async (filtersInput = tableParams.filters) => {
     setTableLoading(true);
@@ -158,6 +136,8 @@ export default function ReportActivityByType() {
     formCustom.resetFields(["area_id", "user_id", "territory", "month", "dealer_id", "crop_id"]);
     setSales([]);
     setTerritoryList([]);
+    setIsAreaSelected(false);
+    setIsSalesSelected(false);
     setTableParams((prev) => ({
       ...prev,
       filters: { year_code: defaultYear ?? prev.filters?.year_code },
@@ -166,7 +146,7 @@ export default function ReportActivityByType() {
     await fetchData({ year_code: defaultYear ?? tableParams.filters?.year_code });
   };
 
-  // ===== Dependent selects via onValuesChange =====
+  // ===== Dependent selects via onValuesChange (ใช้ทำ Step UI ด้วย) =====
   const onValuesChange = async (changed, all) => {
     // Area changed -> load sales of area
     if (Object.prototype.hasOwnProperty.call(changed, "area_id")) {
@@ -174,6 +154,11 @@ export default function ReportActivityByType() {
       setSales([]);
       setTerritoryList([]);
       formCustom.setFieldsValue({ user_id: undefined, territory: undefined });
+
+      // อัปเดต state สำหรับ step
+      setIsAreaSelected(!!newAreaId);
+      setIsSalesSelected(false);
+
       if (newAreaId) {
         try {
           const res = await useServiceAPI.get(paths.pathMasterSalesByArea, { area_id: newAreaId });
@@ -189,11 +174,15 @@ export default function ReportActivityByType() {
       const newUserId = changed.user_id;
       setTerritoryList([]);
       formCustom.setFieldsValue({ territory: undefined });
+
+      // อัปเดต state สำหรับ step
+      setIsSalesSelected(!!newUserId);
+
       if (newUserId) {
         try {
           const res = await useServiceAPI.get(paths.pathMasterSalesByArea2, { user_id: newUserId });
           if (res.status === 200) {
-            const options = (res.data.data || []).map(t => ({ value: t.id, label: t.name }));
+            const options = (res.data.data || []).map((t) => ({ value: t.id, label: t.name }));
             setTerritoryList(options);
           }
         } catch {
@@ -243,7 +232,9 @@ export default function ReportActivityByType() {
     return (
       <Table.Summary fixed>
         <Table.Summary.Row className="bg-[#978B87]">
-          <Table.Summary.Cell><b>Total (THB)</b></Table.Summary.Cell>
+          <Table.Summary.Cell>
+            <b>Total (THB)</b>
+          </Table.Summary.Cell>
           {["total_activity_plan", "total_activity_list", "total_activity_actual"].map((key) => (
             <Table.Summary.Cell key={key} align="right">
               <InputNumber
@@ -260,7 +251,12 @@ export default function ReportActivityByType() {
     );
   };
 
-  const toText = (v) => (v == null ? "" : (typeof v === "string" || typeof v === "number") ? String(v) : (v.name ?? v.label ?? v.value ?? v.code ?? ""));
+  const toText = (v) =>
+    v == null
+      ? ""
+      : typeof v === "string" || typeof v === "number"
+      ? String(v)
+      : v.name ?? v.label ?? v.value ?? v.code ?? "";
   const buildFileName = () => {
     const f = tableParams?.filters || {};
     const v = formCustom.getFieldsValue();
@@ -277,7 +273,11 @@ export default function ReportActivityByType() {
       terrLabel && `Territory_${terrLabel}`,
       monthLabel && `Month_${monthLabel}`,
       ts,
-    ].filter(Boolean).join("_").replace(/[\\/:*?"<>|]+/g, "-").replace(/\s+/g, "_");
+    ]
+      .filter(Boolean)
+      .join("_")
+      .replace(/[\\/:*?"<>|]+/g, "-")
+      .replace(/\s+/g, "_");
   };
 
   return (
@@ -285,25 +285,45 @@ export default function ReportActivityByType() {
       <Title prefix="Activity Report By Type" />
 
       {/* === Row/Col filter form inside BoxPrimary === */}
-      <Form form={formCustom} layout="vertical" onValuesChange={onValuesChange}
-        initialValues={{ area_id: undefined, user_id: undefined, territory: undefined, month: null }}>
+      <Form
+        form={formCustom}
+        layout="vertical"
+        onValuesChange={onValuesChange}
+        initialValues={{ area_id: undefined, user_id: undefined, territory: undefined, month: null }}
+      >
         <BoxPrimary className="m-1 mb-4">
           <Row gutter={16} align="middle">
+            {/* STEP 1: Area */}
             <Col md={6}>
               <Form.Item label="Area" name="area_id">
                 <Select placeholder="Select Area" options={areaList} allowClear />
               </Form.Item>
             </Col>
+
+            {/* STEP 2: Sales (disable จนกว่า Area จะถูกเลือก) */}
             <Col md={6}>
               <Form.Item label="Sales" name="user_id">
-                <Select placeholder="Select Sales" options={sales} allowClear />
+                <Select
+                  placeholder="Select Sales"
+                  options={sales}
+                  allowClear
+                  disabled={!isAreaSelected}
+                />
               </Form.Item>
             </Col>
+
+            {/* STEP 3: Territory (disable จนกว่า Sales จะถูกเลือก) */}
             <Col md={6}>
               <Form.Item label="Territory" name="territory">
-                <Select placeholder="Select Territory" options={territoryList} allowClear />
+                <Select
+                  placeholder="Select Territory"
+                  options={territoryList}
+                  allowClear
+                  disabled={!isSalesSelected}
+                />
               </Form.Item>
             </Col>
+
             <Col md={6}>
               <Form.Item label="Month" name="month">
                 <DatePicker picker="month" style={{ width: "100%" }} placeholder="Select month" />
