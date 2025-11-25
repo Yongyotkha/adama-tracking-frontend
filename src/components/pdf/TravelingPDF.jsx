@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   },
   footerInfoCell: {
     width: 190,
-    height: 30,           // เตี้ยลง
+    height: 33,           // เตี้ยลง
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#000",
