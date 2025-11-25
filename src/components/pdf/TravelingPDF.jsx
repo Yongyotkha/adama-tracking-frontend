@@ -98,8 +98,8 @@ const styles = StyleSheet.create({
     borderColor: "#000",
     paddingLeft: 2,
     paddingRight: 2,
-    paddingTop: 1.25,
-    paddingBottom: 1.25,
+    paddingTop: 1,
+    paddingBottom: 1,      // ลดความสูง row
     flexGrow: 1,
   },
   tableHeaderCell: {
@@ -110,8 +110,8 @@ const styles = StyleSheet.create({
     borderColor: "#000",
     paddingLeft: 2,
     paddingRight: 2,
-    paddingTop: 1.25,
-    paddingBottom: 1.25,
+    paddingTop: 1,
+    paddingBottom: 1,
     textAlign: "center",
     fontWeight: "bold",
     flexGrow: 1,
@@ -119,65 +119,71 @@ const styles = StyleSheet.create({
   rightAlign: { textAlign: "right" },
   centerAlign: { textAlign: "center" },
   footer: {
-    fontSize: 8,
+    position: "absolute",  // ตรึงไว้ด้านล่างหน้า
+    bottom: 12,
+    left: 12,
+    right: 12,
+    fontSize: 7.5,
   },
   footerRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    justifyContent: 'space-between'
+    justifyContent: "space-between",
   },
-  footerColTotalsRow: {
-    flexDirection: "column",
-    gap: 4,
-  },
-  footerTotalsRow: {
-    flexDirection: "row",
-    gap: 4,
-  },
+
+  // --- เพิ่ม / แก้ส่วน Remark ---
   footerRemarkRow: {
-    flexDirection: "column",
-    gap: 4,
+    marginTop: 3,
+    marginLeft: 2,
+    marginRight: 2,
   },
   footerRemarkCell: {
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#000",
-    padding: 5,
-    marginLeft: 2,
-    marginRight: 2,
+    padding: 3,
     textAlign: "left",
-    width: 200,
-    height: 91,
+    width: "100%",
+    minHeight: 28,        // เตี้ยลงให้พอดีหน้า
+  },
+  footerColTotalsRow: {
+    flexDirection: "column",
+    gap: 2,
+  },
+  footerTotalsRow: {
+    flexDirection: "row",
+    gap: 2,
   },
   footerCell: {
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#000",
-    padding: 3.5,
+    padding: 2,
     marginLeft: 2,
     marginRight: 2,
     textAlign: "left",
-    width: 200,
+    width: 190,
   },
   footerInfoRow: {
     flexDirection: "row",
   },
   footerInfo: {
     flexDirection: "row",
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   footerInfoCell: {
-    width: 200,
-    height: 43,
+    width: 190,
+    height: 30,           // เตี้ยลง
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#000",
-    padding: 4,
+    padding: 3,
     marginLeft: 2,
     marginRight: 2,
-    marginBottom: 4,
+    marginBottom: 2,
     textAlign: "left",
   },
+
 });
 
 const TravelingPDF = ({ title }) => {
@@ -287,7 +293,7 @@ const TravelingPDF = ({ title }) => {
     if (!isNaN(value)) return formatNumber(value); // Otherwise, return as float
     return value; // If it's neither, return the value as is
   };
-  
+
   useEffect(() => {
     const loadDataTraveling = async () => {
       setLoading(true);
@@ -456,6 +462,13 @@ const TravelingPDF = ({ title }) => {
                   </View>
                 </View>
               </View>
+            </View>
+
+            {/* กรอบ Remark ล่างสุด */}
+            <View style={styles.footerRemarkRow}>
+              <Text style={styles.footerRemarkCell}>
+                Remark: {data.remark || " "}
+              </Text>
             </View>
 
           </View>
