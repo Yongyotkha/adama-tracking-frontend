@@ -1,3 +1,4 @@
+// src/pages/expenses/advance/AdvanceExpense.jsx
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
@@ -23,6 +24,7 @@ export default function AdvanceExpense() {
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
   const { showNotification } = useContext(AuthContext);
+
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -87,26 +89,31 @@ export default function AdvanceExpense() {
   ];
 
   const handleSearch = (filters) => {
-    setTableParams({
-      ...tableParams,
+    setTableParams((prev) => ({
+      ...prev,
+      pagination: {
+        ...prev.pagination,
+        current: 1, // reset ไปหน้า 1 เมื่อค้นหาใหม่
+      },
       filters,
-    });
+    }));
   };
 
   const handleClear = () => {
-    setTableParams({
-      ...tableParams,
+    setTableParams((prev) => ({
+      ...prev,
+      pagination: {
+        ...prev.pagination,
+        current: 1,
+      },
       filters: {},
-    });
+    }));
   };
 
   const handleChange = (filter) => {
     if (filter.dealer) {
-      console.log('dealer')
       const getMasterDealer = async () => {
-
         try {
-
           const [res] = await Promise.all([
             useServiceAPI.get(paths.pathMasterSubDealerAll, {
               user_id: filter.sale,
@@ -121,37 +128,36 @@ export default function AdvanceExpense() {
 
           setSubDealerList(set_sub_dealer);
         } catch (error) {
-          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+          // ถ้ามีฟังก์ชัน showMsg ใช้ตัวนี้, ถ้าไม่มีให้เปลี่ยนเป็น showNotification ตามระบบคุณ
+          console.error(error);
         }
       };
 
       getMasterDealer();
+      return;
+    }
 
-    } else if (filter.sale) {
-      console.log('sale')
+    if (filter.sale) {
       const getMasterSubDealer = async () => {
-
         try {
-
           const [res] = await Promise.all([
             useServiceAPI.get(paths.pathMasterDealerDropdown, {
               user_id: filter.sale,
             }),
           ]);
 
-
           setDealerList(res.data);
         } catch (error) {
-          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+          console.error(error);
         }
       };
 
       getMasterSubDealer();
-
-    } else {
-      handleClear();
+      return;
     }
 
+    // ไม่มี else ที่ไป clear filter แล้ว
+    // เพื่อให้ field อื่น ๆ เช่น expense_no ใช้งานได้ปกติ
   };
 
   const handleDelete = async (documentNumber) => {
@@ -159,10 +165,9 @@ export default function AdvanceExpense() {
       title: "Do you want to delete ?",
       icon: <ExclamationCircleFilled />,
       content: [],
-      centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+      centered: true,
       async onOk() {
         try {
-          // Call API to delete the event
           const response = await useServiceAPI.delete(
             `/activity-expense/delete?document_number=${encodeURIComponent(
               documentNumber
@@ -170,14 +175,12 @@ export default function AdvanceExpense() {
           );
           await fetchData();
           if (response.status === 200) {
-            // Show success notification
             showNotification(
               "success",
               response.data.message || "Event deleted successfully!",
               response.data.message_line || ["The event has been removed."]
             );
           } else {
-            // Show error notification if response is not 200
             console.error("Failed to delete event:", response.message);
             showNotification(
               "error",
@@ -186,7 +189,6 @@ export default function AdvanceExpense() {
             );
           }
         } catch (error) {
-          // Handle errors and show an error notification
           console.error("Error deleting event:", error);
           showNotification(
             "error",
@@ -198,7 +200,7 @@ export default function AdvanceExpense() {
     });
   };
 
-  // Master
+  // โหลด Master
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
@@ -211,6 +213,7 @@ export default function AdvanceExpense() {
         setActivityList(activityType.data);
         setSaleList(sale.data);
       } catch (error) {
+        console.error(error);
       } finally {
         setLoading(false);
       }
@@ -246,14 +249,16 @@ export default function AdvanceExpense() {
 
     const requestData = {
       page_code: "expense_advance",
-      keyword: filters.keyword || "",
+      // ✅ ให้ Expense No ไปแมปที่ keyword
+      keyword: filters.expense_no || "",
       use_flag: "1",
       user_id: filters.sale,
       dealer_id: filters.dealer,
       sub_dealer_id: filters.customer,
       date: filters.date,
       activity_type_id: filters.type_of_meeting,
-      document_number_referrent: filters.activity_reference,
+      // ✅ Activity Reference แมปตรงนี้
+      document_number_referrent: filters.activity_reference || "",
       customer_name: "",
       page: "all",
       page_mode: "list",
@@ -272,80 +277,77 @@ export default function AdvanceExpense() {
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
 
-        const newDataSource = data.map((row, index) => {
-          return {
-            key: index + 1 + (current - 1) * pageSize,
-            customer: row.sub_dealer_name,
-            dealersd: row.dealer_name,
-            expenseNo: row.document_number,
-            activityReference: row.document_number_referrent,
-            typeOfMeeting: row.activity_type_name,
-            date: row.document_date,
-            sale: row.user_name,
-            status: (
-              <BadgeStatus
-                text={row.transaction_status_name}
-                bgColor={row.transaction_status_bg_color}
-                textColor={row.transaction_status_color}
-              />
-            ),
-            action: (
-              // <Dropdown menu={{ items: actionItems }} placement="bottom">
-              <Dropdown
-                menu={{
-                  items: row.action.map((actionItem, actionIndex) => {
-                    let path = "";
-                    let mode = actionItem.action.toLowerCase();
-                    let onClickHandler = null;
+        const newDataSource = data.map((row, index) => ({
+          key: index + 1 + (current - 1) * pageSize,
+          customer: row.sub_dealer_name,
+          dealersd: row.dealer_name,
+          expenseNo: row.document_number,
+          activityReference: row.document_number_referrent,
+          typeOfMeeting: row.activity_type_name,
+          date: row.document_date,
+          sale: row.user_name,
+          status: (
+            <BadgeStatus
+              text={row.transaction_status_name}
+              bgColor={row.transaction_status_bg_color}
+              textColor={row.transaction_status_color}
+            />
+          ),
+          action: (
+            <Dropdown
+              menu={{
+                items: row.action.map((actionItem, actionIndex) => {
+                  let path = "";
+                  let mode = actionItem.action.toLowerCase();
+                  let onClickHandler = null;
 
-                    if (
-                      actionItem.action.toLowerCase() == "edit" ||
-                      actionItem.action.toLowerCase() == "view"
-                    ) {
-                      path = `/activity/${actionItem.action.toLowerCase()}`;
-                      onClickHandler = () => {
-                        navigate(path, {
-                          state: {
-                            documentNumber: row.document_number,
-                            pageCode: row.page_code,
-                            page_mode: actionItem.action,
-                          },
-                        });
-                      };
-                    } else {
-                      onClickHandler = () => handleDelete(row.document_number);
-                    }
-                    return {
-                      key: actionIndex,
-                      label: (
-                        <ItemDropDown mode={mode} onClick={onClickHandler} />
-                      ),
+                  if (
+                    actionItem.action.toLowerCase() === "edit" ||
+                    actionItem.action.toLowerCase() === "view"
+                  ) {
+                    path = `/activity/${actionItem.action.toLowerCase()}`;
+                    onClickHandler = () => {
+                      navigate(path, {
+                        state: {
+                          documentNumber: row.document_number,
+                          pageCode: row.page_code,
+                          page_mode: actionItem.action,
+                        },
+                      });
                     };
-                  }),
-                }}
-                placement="bottom"
-              >
-                <a onClick={(e) => e.preventDefault()}>
-                  <img
-                    src="/img/icons/action.png"
-                    alt="Actions icon"
-                    className="inline-block w-5 h-5"
-                  />
-                </a>
-              </Dropdown>
-            ),
-          };
-        });
+                  } else {
+                    onClickHandler = () => handleDelete(row.document_number);
+                  }
+                  return {
+                    key: actionIndex,
+                    label: (
+                      <ItemDropDown mode={mode} onClick={onClickHandler} />
+                    ),
+                  };
+                }),
+              }}
+              placement="bottom"
+            >
+              <a onClick={(e) => e.preventDefault()}>
+                <img
+                  src="/img/icons/action.png"
+                  alt="Actions icon"
+                  className="inline-block w-5 h-5"
+                />
+              </a>
+            </Dropdown>
+          ),
+        }));
 
         setDataSource(newDataSource);
 
-        setTableParams({
-          ...tableParams,
+        setTableParams((prev) => ({
+          ...prev,
           pagination: {
-            ...tableParams.pagination,
+            ...prev.pagination,
             total: records_filtered,
           },
-        });
+        }));
       }
     } catch (error) {
       console.error(error);
@@ -356,6 +358,7 @@ export default function AdvanceExpense() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     tableParams.pagination.current,
     tableParams.pagination.pageSize,
@@ -365,12 +368,14 @@ export default function AdvanceExpense() {
   ]);
 
   const handleTableChange = (pagination, filters, sorter) => {
-    setTableParams({
+    setTableParams((prev) => ({
+      ...prev,
       pagination,
-      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+      filters: prev.filters, // รักษาค่าฟิลเตอร์เดิม
+      // ถ้าต้องใช้ sort ให้ uncomment ด้านล่าง
       // sortOrder: sorter.order === "descend" ? "desc" : "asc",
       // sortField: sorter.field,
-    });
+    }));
   };
 
   return (
@@ -380,13 +385,12 @@ export default function AdvanceExpense() {
         <ActionButton
           mode="create"
           text="Create"
-          onClick={(e) =>
+          onClick={() =>
             navigate("/activity/create", {
               state: {
                 pageCode: "expense_advance",
               },
             })
-
           }
         />
       </div>
