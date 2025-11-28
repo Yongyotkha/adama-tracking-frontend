@@ -303,7 +303,7 @@ export default function ApprovalAdvanceExpense() {
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Advance Expense (Approval)</div>
+        <div className="title-page">Advance Expense</div>
       </div>
 
       <Filter
