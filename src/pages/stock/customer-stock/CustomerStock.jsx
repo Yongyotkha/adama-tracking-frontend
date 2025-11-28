@@ -253,30 +253,7 @@ export default function CustomerStock() {
 
         function btn_action(docno) {
           //4,5,6
-          if (
-            userInfo.role_id == 4 ||
-            userInfo.role_id == 5 ||
-            userInfo.role_id == 6
-          ) {
-            return [
-              {
-                key: 1,
-                label: (
-                  <ItemDropDown
-                    mode="view"
-                    onClick={() => {
-                      navigate("/customer-stock/view", {
-                        state: {
-                          document_number: docno,
-                        },
-                      });
-                    }}
-                  />
-                ),
-              },
-            ];
-          } else {
-            return [
+return [
               {
                 key: 1,
                 label: (
@@ -319,7 +296,6 @@ export default function CustomerStock() {
                 ),
               },
             ];
-          }
         }
 
         const newDataSource = data.map((stock, index) => ({
