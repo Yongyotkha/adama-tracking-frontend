@@ -1,3 +1,4 @@
+// src/pages/expenses/advance/ApprovalAdvanceExpense.jsx
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
@@ -19,23 +20,29 @@ export default function ApprovalAdvanceExpense() {
   const location = useLocation();
   const { role } = useParams();
   const { confirm } = Modal;
+  const { showNotification } = useContext(AuthContext);
+
+  // Loading + Table
   const [loading, setLoading] = useState(false);
-  const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
+  const [dataSource, setDataSource] = useState([]);
+
+  // Master
   const [activityList, setActivityList] = useState([]);
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
-  const { showNotification } = useContext(AuthContext);
+  const [subDealerList, setSubDealerList] = useState([]);
+
+  // ค่า filter ปัจจุบัน
+  const [filterValues, setFilterValues] = useState({});
+
+  // Table params
   const [tableParams, setTableParams] = useState({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-    },
+    pagination: { current: 1, pageSize: 10, total: 0 },
     filters: {},
-    sortOrder: null,
-    sortField: null,
   });
 
+  // ---------- Filter UI ----------
   const filters = [
     {
       key: "sale",
@@ -46,11 +53,19 @@ export default function ApprovalAdvanceExpense() {
       moderef: true,
     },
     {
+      key: "dealer",
+      type: "select",
+      label: "Dealer",
+      placeholder: "All",
+      options: dealerList,
+      moderef: true,
+    },
+    {
       key: "customer",
       type: "select",
       label: "Sub Dealer",
       placeholder: "All",
-      options: dealerList,
+      options: subDealerList,
     },
     {
       key: "expense_no",
@@ -79,243 +94,174 @@ export default function ApprovalAdvanceExpense() {
     },
   ];
 
-  const handleSearch = (filters) => {
-    setTableParams({
-      ...tableParams,
-      filters,
-    });
-  };
-
-  const handleClear = () => {
-    setTableParams({
-      ...tableParams,
-      filters: {},
-    });
-  };
-
-  const handleChange = (filter) => {
-    if (filter) {
-      const getMasterDealer = async () => {
-        try {
-          const [dealer] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterDealerDropdown, {
-              user_id: filter.sale,
-            }),
-          ]);
-
-          setDealerList(dealer.data);
-        } catch (error) {
-          showMsg("error", error.message || "เกิดข้อผิดพลาด");
-        }
-      };
-
-      getMasterDealer();
-    } else {
-      handleClear();
-    }
-  };
-
-  const handleDelete = async (documentNumber) => {
-    confirm({
-      title: "Do you want to delete ?",
-      icon: <ExclamationCircleFilled />,
-      content: [],
-      centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
-      async onOk() {
-        try {
-          // Call API to delete the event
-          const response = await useServiceAPI.delete(
-            `/activity-expense/delete?document_number=${encodeURIComponent(
-              documentNumber
-            )}&page_code=${encodeURIComponent("expense_advance")}`
-          );
-          await fetchData();
-          if (response.status === 200) {
-            // Show success notification
-            showNotification(
-              "success",
-              response.data.message || "Event deleted successfully!",
-              response.data.message_line || ["The event has been removed."]
-            );
-          } else {
-            // Show error notification if response is not 200
-            console.error("Failed to delete event:", response.message);
-            showNotification(
-              "error",
-              response.message || "Failed to delete event.",
-              response.message_line || ["Please try again later."]
-            );
-          }
-        } catch (error) {
-          // Handle errors and show an error notification
-          console.error("Error deleting event:", error);
-          showNotification(
-            "error",
-            "An error occurred while deleting the event.",
-            ["Please try again later."]
-          );
-        }
-      },
-    });
-  };
-
-  // Master
+  // ---------- Master ----------
   useEffect(() => {
-    const getMaster = async () => {
+    const loadMaster = async () => {
       setLoading(true);
       try {
         const [activityType, sale] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterDealerAll, {}),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
         ]);
 
-        setActivityList(activityType.data);
-        setSaleList(sale.data);
-      } catch (error) {
+        setActivityList(activityType.data || []);
+        setSaleList(sale.data || []);
+      } catch (err) {
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
-    getMaster();
+    loadMaster();
   }, []);
 
-  const header = [
-    { title: "No", dataIndex: "key", align: "center" },
-    { title: "Sub Dealer", dataIndex: "customer", align: "left" },
-    { title: "Dealer", dataIndex: "dealer", align: "left" },
-    { title: "Expense No", dataIndex: "expenseNo", align: "left" },
-    {
-      title: "Activity Reference",
-      dataIndex: "activityReference",
-      align: "left",
-    },
-    { title: "Type of Meeting", dataIndex: "typeOfMeeting", align: "center" },
-    { title: "Date", dataIndex: "date", align: "center" },
-    { title: "Status", dataIndex: "status", align: "center" },
-    { title: "Action", dataIndex: "action", align: "center" },
-  ];
+  // ---------- Sales → Dealer ----------
+  useEffect(() => {
+    const sale = filterValues.sale;
 
+    if (!sale) {
+      setDealerList([]);
+      setSubDealerList([]);
+      return;
+    }
+
+    const getDealer = async () => {
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
+          user_id: sale,
+        });
+        setDealerList(res.data || []);
+      } catch (err) {
+        console.error("Error load dealer:", err);
+      }
+    };
+
+    getDealer();
+  }, [filterValues.sale]);
+
+  // ---------- Dealer → Sub Dealer ----------
+  useEffect(() => {
+    const sale = filterValues.sale;
+    const dealer = filterValues.dealer;
+
+    if (!dealer || !sale) {
+      setSubDealerList([]);
+      return;
+    }
+
+    const getSubDealer = async () => {
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
+          user_id: sale,
+          dealer_id: dealer,
+        });
+
+        const formatted = res.data.map((d) => ({
+          id: d.sub_dealer_id,
+          name: d.sub_dealer_name,
+        }));
+
+        setSubDealerList(formatted);
+      } catch (err) {
+        console.error("Error load subdealer:", err);
+      }
+    };
+
+    getSubDealer();
+  }, [filterValues.dealer, filterValues.sale]);
+
+  // ---------- Fetch Data ----------
   const fetchData = async () => {
     setTableLoading(true);
+
     const { current, pageSize } = tableParams.pagination;
-    const filters = tableParams.filters || {};
+    const filters = tableParams.filters;
 
-    const sortOrder = tableParams.sortOrder || "desc";
-    const sortField = tableParams.sortField || "document_number";
-
-    const requestData = {
+    const req = {
       page_code: "expense_advance",
-      keyword: filters.keyword || "",
+      keyword: filters.expense_no || "", // Expense No
       use_flag: "1",
       user_id: filters.sale,
-      dealer_id: filters.customer,
+      dealer_id: filters.dealer,
+      sub_dealer_id: filters.customer,
       activity_type_id: filters.type_of_meeting,
       document_number_referrent: filters.activity_reference,
-      customer_name: "",
+      date: filters.date || "",
       page: "all",
       page_mode: "waiting_" + role,
-      orderby_column: sortField,
-      orderby: sortOrder,
+      orderby_column: "document_number",
+      orderby: "desc",
       page_length: current,
       page_size: pageSize,
     };
 
     try {
-      const response = await useServiceAPI.get(
-        paths.pathActivityExpenseList,
-        requestData
-      );
+      const res = await useServiceAPI.get(paths.pathActivityExpenseList, req);
 
-      if (response.status === 200) {
+      if (res.status === 200) {
+        const { data, records_filtered } = res.data;
 
-        console.log('action text : ', role.charAt(0).toUpperCase() + role.slice(1).toLowerCase())
+        const formatted = data.map((row, index) => ({
+          key: index + 1 + (current - 1) * pageSize,
+          customer: row.sub_dealer_name,
+          dealer: row.dealer_name,
+          expenseNo: row.document_number,
+          activityReference: row.document_number_referrent,
+          typeOfMeeting: row.activity_type_name,
+          date: row.document_date,
+          status: (
+            <BadgeStatus
+              text={row.transaction_status_name}
+              bgColor={row.transaction_status_bg_color}
+              textColor={row.transaction_status_color}
+            />
+          ),
 
-        let text_action = role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+          action: (
+            <Dropdown
+              menu={{
+                items: [
+                  {
+                    key: "view",
+                    label: (
+                      <ItemDropDown
+                        mode="view"
+                        text="View"
+                        onClick={() =>
+                          navigate("/activity/approve", {
+                            state: {
+                              documentNumber: row.document_number,
+                              pageCode: row.page_code,
+                              page_mode: "view",
+                            },
+                          })
+                        }
+                      />
+                    ),
+                  },
+                ],
+              }}
+            >
+              <a onClick={(e) => e.preventDefault()}>
+                <img
+                  src="/img/icons/action.png"
+                  alt="Actions icon"
+                  className="inline-block w-5 h-5"
+                />
+              </a>
+            </Dropdown>
+          ),
+        }));
 
-        if (trim(role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()) == 'Head-of-sales') {
-          text_action = 'HOS'
-        } else if (trim(role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()) == 'Area') {
-          text_action = 'RSM'
-        } else if (trim(role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()) == 'Accounting') {
-          text_action = ''
-        }
-        const { data, records_filtered } = response.data;
-
-        const newDataSource = data.map((row, index) => {
-          return {
-            key: index + 1 + (current - 1) * pageSize,
-            customer: row.sub_dealer_name,
-            dealer: row.dealer_name,
-            expenseNo: row.document_number,
-            activityReference: row.document_number_referrent,
-            typeOfMeeting: row.activity_type_name,
-            date: row.document_date,
-            status: (
-              <BadgeStatus
-                text={row.transaction_status_name}
-                bgColor={row.transaction_status_bg_color}
-                textColor={row.transaction_status_color}
-              />
-            ),
-            action: (
-              // <Dropdown menu={{ items: actionItems }} placement="bottom">
-              <Dropdown
-                menu={{
-                  items: row.action.map((actionItem, actionIndex) => {
-                    let path = "";
-                    let text = "";
-                    let mode = actionItem.action.toLowerCase();
-                    let onClickHandler = null;
-                    path = `/activity/approve`;
-                    text = `View ${text_action}`;
-                    onClickHandler = () => {
-                      navigate(path, {
-                        state: {
-                          documentNumber: row.document_number,
-                          pageCode: row.page_code,
-                          page_mode: actionItem.action.toLowerCase(),
-                        },
-                      });
-                    };
-                    return {
-                      key: actionIndex,
-                      label: (
-                        <ItemDropDown
-                          mode={mode}
-                          onClick={onClickHandler}
-                          text={text}
-                        />
-                      ),
-                    };
-                  }),
-                }}
-                placement="bottom"
-              >
-                <a onClick={(e) => e.preventDefault()}>
-                  <img
-                    src="/img/icons/action.png"
-                    alt="Actions icon"
-                    className="inline-block w-5 h-5"
-                  />
-                </a>
-              </Dropdown>
-            ),
-          };
-        });
-
-        setDataSource(newDataSource);
-
-        setTableParams({
-          ...tableParams,
-          pagination: {
-            ...tableParams.pagination,
-            total: records_filtered,
-          },
-        });
+        setDataSource(formatted);
+        setTableParams((prev) => ({
+          ...prev,
+          pagination: { ...prev.pagination, total: records_filtered },
+        }));
       }
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
     } finally {
       setTableLoading(false);
     }
@@ -327,49 +273,69 @@ export default function ApprovalAdvanceExpense() {
     location.pathname,
     tableParams.pagination.current,
     tableParams.pagination.pageSize,
-    tableParams.sortOrder,
-    tableParams.sortField,
     JSON.stringify(tableParams.filters),
   ]);
 
-  const handleTableChange = (pagination, filters, sorter) => {
-    setTableParams({
-      pagination,
-      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
-      // sortOrder: sorter.order === "descend" ? "desc" : "asc",
-      // sortField: sorter.field,
-    });
+  // ---------- Search ----------
+  const handleSearch = (values) => {
+    setFilterValues(values);
+
+    setTableParams((prev) => ({
+      ...prev,
+      pagination: { ...prev.pagination, current: 1 },
+      filters: values,
+    }));
+  };
+
+  // ---------- Clear ----------
+  const handleClear = () => {
+    setFilterValues({});
+    setDealerList([]);
+    setSubDealerList([]);
+
+    setTableParams((prev) => ({
+      ...prev,
+      filters: {},
+      pagination: { ...prev.pagination, current: 1 },
+    }));
   };
 
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Advance Expense</div>
-        <ActionButton
-          mode="create"
-          text="Create"
-          onClick={(e) =>
-            navigate("/activity/create", {
-              state: {
-                pageCode: "expense_advance",
-              },
-            })
-          }
-        />
       </div>
+
       <Filter
+        filters={filters}
+        values={filterValues}
+        onChange={(v) => setFilterValues(v)}
         onSearch={handleSearch}
         onClear={handleClear}
-        onChange={handleChange}
-        filters={filters}
       />
+
       <BoxPrimary>
         <TableComponent
-          header={header}
+          header={[
+            { title: "No", dataIndex: "key", align: "center" },
+            { title: "Sub Dealer", dataIndex: "customer" },
+            { title: "Dealer", dataIndex: "dealer" },
+            { title: "Expense No", dataIndex: "expenseNo" },
+            { title: "Activity Reference", dataIndex: "activityReference" },
+            { title: "Type of Meeting", dataIndex: "typeOfMeeting" },
+            { title: "Date", dataIndex: "date" },
+            { title: "Status", dataIndex: "status", align: "center" },
+            { title: "Action", dataIndex: "action", align: "center" },
+          ]}
           dataSource={dataSource}
           pagination={tableParams.pagination}
           loading={tableLoading}
-          onChange={handleTableChange}
+          onChange={(pagination) =>
+            setTableParams((prev) => ({
+              ...prev,
+              pagination,
+            }))
+          }
         />
       </BoxPrimary>
     </MainLayout>
