@@ -14,25 +14,12 @@ const { TabPane } = Tabs;
 
 /** ---------- Send By options (ค่าตรง API) ---------- */
 const SEND_BY_OPTIONS = [
-  { value: "Express", label: "Express" },
-  { value: "staff", label: "Staff" },
-  { value: "SMS", label: "SMS" },
-  { value: "Vendor", label: "Vendor" },
-  { value: "Post", label: "Post" },
-  { value: "Other", label: "Other" },
-];
-
-/** ---------- Status Tran options ---------- */
-const STATUS_TRAN_OPTIONS = [
-  { id: "RTP", name: "Prepare" },
-  { id: "RTD", name: "Delivery" },
-  { id: "RTV", name: "Delivered" },
-];
-
-/** ---------- Active/Inactive map to use_flag ---------- */
-const STATUS_ACTIVE_OPTIONS = [
-  { id: "1", name: "Active" },
-  { id: "0", name: "Inactive" },
+  { id: "Express", name: "Express" },
+  { id: "staff", name: "Staff" },
+  { id: "SMS", name: "SMS" },
+  { id: "Vendor", name: "Vendor" },
+  { id: "Post", name: "Post" },
+  { id: "Other", name: "Other" },
 ];
 
 export default function Transportation() {
@@ -57,20 +44,41 @@ export default function Transportation() {
   });
 
   /** ---------------- Filters ----------------
-   * เพิ่ม:
-   * - status_tran: multiple
-   * - keyword: text
-   * - status: select -> map ไป use_flag
+   * ใช้ตาม body:
+   * - shop_name
+   * - send_by
+   * - send_at
+   * - dater (array)
+   * use_flag fix เป็น "1" ใน body
    */
   const commonFilters = [
-    { key: "shop_name", type: "text", label: "Customer Name" },
-    { key: "send_by", type: "select", label: "Send By", options: SEND_BY_OPTIONS },
-    { key: "send_at", type: "date", label: "Send Date" },
-    { key: "dater", type: "dater", label: "Date Range" },
-    // { key: "status_tran", type: "select", label: "Status (Tran)", options: STATUS_TRAN_OPTIONS, multiple: true },
-    // { key: "keyword", type: "text", label: "Keyword" },
-    // { key: "status", type: "select", label: "Status (Active)", options: STATUS_ACTIVE_OPTIONS }, // use_flag
+    {
+      key: "shop_name",
+      type: "text",
+      label: "Customer Name",
+      placeholder: "All",
+    },
+    {
+      key: "send_by",
+      type: "select",
+      label: "Send By",
+      options: SEND_BY_OPTIONS,
+      placeholder: "All",
+    },
+    {
+      key: "send_at",
+      type: "date",
+      label: "Send Date",
+      placeholder: "YYYY-MM-DD",
+    },
+    {
+      key: "dater",
+      type: "dater", // ให้ตรงกับ component Filter ที่คุณใช้ (date range)
+      label: "Date Range",
+      placeholder: "Select date range",
+    },
   ];
+
   const filtersTransportation = commonFilters;
   const filtersPreparation = commonFilters;
 
@@ -80,37 +88,37 @@ export default function Transportation() {
     { title: "Customer Name", dataIndex: "shop_name", align: "left" },
     { title: "Reward Code", dataIndex: "reward_code", align: "left" },
     { title: "Reward Name", dataIndex: "reward_name", align: "left" },
-    // { title: "QTY", dataIndex: "qty", align: "right", width: 100 },
-    // { title: "Cost (THB)", dataIndex: "cost", align: "right", width: 120 },
     { title: "Send By", dataIndex: "send_by", align: "center", width: 140 },
     { title: "Send Date", dataIndex: "send_date", align: "center", width: 140 },
     { title: "Status", dataIndex: "status", align: "center", width: 140 },
     { title: "Action", dataIndex: "action", align: "center", width: 90 },
   ];
 
-  /** ---------------- Fetch: Transportation List ---------------- */
+  /** ---------------- Helper: map filters → body ---------------- */
+  const buildRequestBody = (f) => {
+    return {
+      send_by: f.send_by || "",
+      shop_name: f.shop_name || "",
+      send_at: f.send_at || "",
+      dater: Array.isArray(f.dater) ? f.dater : [],
+      use_flag: "1", // fixed active
+    };
+  };
+
+  /** ---------------- Fetch: Transportation List (RTD/RTV) ---------------- */
   const fetchTransportation = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const f = tableParams.filters || {};
 
-    // default status_tran ถ้าไม่เลือกในแท็บนี้ = ["RTD","RTV"]
-    const statusTran =
-      Array.isArray(f.status_tran) && f.status_tran.length > 0
-        ? f.status_tran
-        : ["RTD", "RTV"];
+    const baseBody = buildRequestBody(f);
 
     try {
       const res = await useServiceAPI.get(paths.pathTransportList, {
+        ...baseBody,
+        status_tran: ["RTD", "RTV"], // แยกจาก Tab นี้
         page_size: pageSize,
         page_length: current,
-        status_tran: statusTran,
-        shop_name: f.shop_name || "",
-        send_by: f.send_by || "",
-        send_at: f.send_at || "",
-        dater: f.dater || [],
-        keyword: f.keyword || "",
-        use_flag: f.status ?? "", // map status -> use_flag
       });
 
       if (res.status === 200) {
@@ -121,8 +129,6 @@ export default function Transportation() {
           shop_name: item.shop_name || "-",
           reward_code: item.reward_code || "-",
           reward_name: item.reward_name || "-",
-          // qty: item.reward_value ?? "-",
-          cost: item.reward_cost ?? "-",
           send_by: item.send_by || "-",
           send_date: item.send_at ? item.send_at.split(" ")[0] : "-",
           status: (
@@ -156,11 +162,14 @@ export default function Transportation() {
                           label: (
                             <ItemDropDown
                               mode="edit"
-                              text={"Delivery"}
+                              text="Delivery"
                               onClick={() =>
-                                navigate("/points/line/transportation/delivery", {
-                                  state: { id: item.id, mode: "delivery" },
-                                })
+                                navigate(
+                                  "/points/line/transportation/delivery",
+                                  {
+                                    state: { id: item.id, mode: "delivery" },
+                                  }
+                                )
                               }
                             />
                           ),
@@ -172,7 +181,11 @@ export default function Transportation() {
               placement="bottomRight"
             >
               <a onClick={(e) => e.preventDefault()}>
-                <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
+                <img
+                  src="/img/icons/action.png"
+                  alt="action"
+                  className="inline-block w-5 h-5"
+                />
               </a>
             </Dropdown>
           ),
@@ -181,7 +194,10 @@ export default function Transportation() {
         setDataSource(mapped);
         setTableParams((prev) => ({
           ...prev,
-          pagination: { ...prev.pagination, total: res.data.records_filtered },
+          pagination: {
+            ...prev.pagination,
+            total: res.data.records_filtered,
+          },
         }));
       }
     } finally {
@@ -189,29 +205,20 @@ export default function Transportation() {
     }
   };
 
-  /** ---------------- Fetch: Preparation List ---------------- */
+  /** ---------------- Fetch: Preparation List (RTP) ---------------- */
   const fetchPreparation = async () => {
     setPrepTableLoading(true);
     const { current, pageSize } = prepTableParams.pagination;
     const f = prepTableParams.filters || {};
 
-    // default status_tran ถ้าไม่เลือกในแท็บนี้ = ["RTP"]
-    const statusTran =
-      Array.isArray(f.status_tran) && f.status_tran.length > 0
-        ? f.status_tran
-        : ["RTP"];
+    const baseBody = buildRequestBody(f);
 
     try {
       const res = await useServiceAPI.get(paths.pathTransportList, {
+        ...baseBody,
+        status_tran: ["RTP"], // แยกจาก Tab นี้
         page_size: pageSize,
         page_length: current,
-        status_tran: statusTran,
-        sub_dealer_name: f.sub_dealer_name || "",
-        send_by: f.send_by || "",
-        send_at: f.send_at || "",
-        dater: f.dater || [],
-        keyword: f.keyword || "",
-        use_flag: f.status ?? "", // map status -> use_flag
       });
 
       if (res.status === 200) {
@@ -222,8 +229,6 @@ export default function Transportation() {
           shop_name: item.shop_name || "-",
           reward_code: item.reward_code || "-",
           reward_name: item.reward_name || "-",
-          // qty: item.reward_value ?? "-",
-          cost: item.reward_cost ?? "-",
           send_by: item.send_by || "-",
           send_date: item.send_at ? item.send_at.split(" ")[0] : "-",
           status: (
@@ -255,7 +260,11 @@ export default function Transportation() {
               placement="bottomRight"
             >
               <a onClick={(e) => e.preventDefault()}>
-                <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
+                <img
+                  src="/img/icons/action.png"
+                  alt="action"
+                  className="inline-block w-5 h-5"
+                />
               </a>
             </Dropdown>
           ),
@@ -264,7 +273,10 @@ export default function Transportation() {
         setPrepDataSource(mapped);
         setPrepTableParams((prev) => ({
           ...prev,
-          pagination: { ...prev.pagination, total: res.data.records_filtered },
+          pagination: {
+            ...prev.pagination,
+            total: res.data.records_filtered,
+          },
         }));
       }
     } finally {
@@ -274,8 +286,11 @@ export default function Transportation() {
 
   /** ---------------- Effects ---------------- */
   useEffect(() => {
-    if (activeTab === "transport") fetchTransportation();
-    else fetchPreparation();
+    if (activeTab === "transport") {
+      fetchTransportation();
+    } else {
+      fetchPreparation();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     activeTab,
@@ -293,6 +308,7 @@ export default function Transportation() {
       pagination: { ...prev.pagination, current: 1 },
     }));
   };
+
   const onClearTransport = () => {
     setTableParams((prev) => ({
       ...prev,
@@ -308,6 +324,7 @@ export default function Transportation() {
       pagination: { ...prev.pagination, current: 1 },
     }));
   };
+
   const onClearPrep = () => {
     setPrepTableParams((prev) => ({
       ...prev,
@@ -322,29 +339,51 @@ export default function Transportation() {
         <div className="title-page">Reward Transaction</div>
       </div>
 
-      <Tabs className="custom-tabs" activeKey={activeTab} onChange={setActiveTab}>
-        <TabPane tab={<span className="tab-title">Transaction List</span>} key="transport">
-          <Filter filters={filtersTransportation} onSearch={onSearchTransport} onClear={onClearTransport} />
+      <Tabs
+        className="custom-tabs"
+        activeKey={activeTab}
+        onChange={setActiveTab}
+      >
+        <TabPane
+          tab={<span className="tab-title">Transaction List</span>}
+          key="transport"
+        >
+          <Filter
+            filters={filtersTransportation}
+            onSearch={onSearchTransport}
+            onClear={onClearTransport}
+          />
           <BoxPrimary className="mt-4">
             <TableComponent
               header={columns}
               dataSource={dataSource}
               loading={tableLoading}
               pagination={tableParams.pagination}
-              onChange={(pagination) => setTableParams((prev) => ({ ...prev, pagination }))}
+              onChange={(pagination) =>
+                setTableParams((prev) => ({ ...prev, pagination }))
+              }
             />
           </BoxPrimary>
         </TabPane>
 
-        <TabPane tab={<span className="tab-title">Transaction Preparation List</span>} key="preparation">
-          <Filter filters={filtersPreparation} onSearch={onSearchPrep} onClear={onClearPrep} />
+        <TabPane
+          tab={<span className="tab-title">Transaction Preparation List</span>}
+          key="preparation"
+        >
+          <Filter
+            filters={filtersPreparation}
+            onSearch={onSearchPrep}
+            onClear={onClearPrep}
+          />
           <BoxPrimary className="mt-4">
             <TableComponent
               header={columns}
               dataSource={prepDataSource}
               loading={prepTableLoading}
               pagination={prepTableParams.pagination}
-              onChange={(pagination) => setPrepTableParams((prev) => ({ ...prev, pagination }))}
+              onChange={(pagination) =>
+                setPrepTableParams((prev) => ({ ...prev, pagination }))
+              }
             />
           </BoxPrimary>
         </TabPane>

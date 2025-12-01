@@ -59,7 +59,7 @@ export default function CustomerStock() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [status, dealer,stock_created] = await Promise.all([
+        const [status, dealer, stock_created] = await Promise.all([
           useServiceAPI.get(paths.pathMasterStatus, {
             status_type: "order",
           }),
@@ -233,7 +233,7 @@ export default function CustomerStock() {
       page_size: pageSize,
       //user_id: userInfo.id,
       use_flag: "1",
-      user_create:filterValues.stock_created,
+      user_create: filterValues.stock_created,
       dealer_id: filterValues.dealer || "",
       sub_dealer_id: filterValues.sub_dealer || "",
       trasaction_status_code: "",
@@ -338,13 +338,14 @@ return [
         }));
 
         setDataSource(newDataSource);
-        setTableParams({
-          ...tableParams,
+        setTableParams((prev) => ({
+          ...prev,
           pagination: {
-            ...tableParams.pagination,
+            ...prev.pagination,
             total: records_filtered,
           },
-        });
+        }));
+
       }
     } catch (error) {
       console.error(error);
@@ -431,10 +432,18 @@ return [
   };
 
   const handleClear = () => {
-    setTableParams({
-      ...tableParams,
+    // เคลียร์ค่าใน filter (ใช้กับ Filter UI + fetchData)
+    setFilterValues({});
+
+    // รีเซ็ต tableParams -> useEffect จะเรียก fetchData ให้เอง 1 ครั้ง
+    setTableParams((prev) => ({
+      ...prev,
       filters: {},
-    });
+      pagination: {
+        ...prev.pagination,
+        current: 1,
+      },
+    }));
   };
 
   const handleChange = (filter) => {
