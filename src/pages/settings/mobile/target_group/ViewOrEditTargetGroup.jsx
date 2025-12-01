@@ -199,8 +199,7 @@ export default function ViewOrEditTargetGroup() {
       const res = await useServiceAPI.post(paths.pathTargetGroupDetail, { id });
 
       const { header, selectedIds, targetKey } = extractDetail(res);
-      console.log(header);
-      set_type_id(header?.target);
+      set_type_id(header?.type);
       // 1) เซ็ต target (สำหรับ UI) + checkboxes'
 
 
@@ -213,12 +212,12 @@ export default function ViewOrEditTargetGroup() {
       // 3) เติมค่าฟอร์มให้ครบทั้ง 3 ช่อง (แม้จะ disabled ก็ยังโชว์ค่า)
       form.setFieldsValue({
         target_name: targetKey,                         // "dealer" | "sub_dealer" | "farmer"
-        type_name: header?.target ? String(header.target) : undefined, // "1" | "2" ...
+        type_name: header?.type ? String(header.type) : undefined, // "1" | "2" ...
         status: String(header?.use_flag ?? 1),          // "1" | "0"
       });
 
       // 4) โหลด rows ทั้งหมด (เพื่อให้แสดงตาราง)
-      await fetchMasterRows(targetKey, header?.target);
+      await fetchMasterRows(targetKey, header?.type);
     } catch (e) {
       console.error("fetch detail error", e);
       showMsg?.("error", e?.message || "โหลดรายละเอียดไม่สำเร็จ");
