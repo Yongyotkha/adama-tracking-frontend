@@ -149,6 +149,15 @@ const AdvanceExpensePDF = () => {
 
     return `${day}-${month}-${year} ${hours}:${minutes}`;
   };
+
+
+  // ✅ แก้ตรงนี้: เลือกรายการที่มี estimate หรือ actual ไม่เท่ากับ 0
+  const visibleItems = dataItems.filter(
+    (item) =>
+      Number(item.estimate_sale_qty || 0) !== 0 ||
+      Number(item.acutal_sale_qty || 0) !== 0
+  );
+
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
       <Document>
@@ -312,19 +321,29 @@ const AdvanceExpensePDF = () => {
               </View>
             </View>
             {/* Data Rows */}
-            {dataItems.filter(item => Number(item.estimate_sale_qty) != 0).length > 0 ? (
-              dataItems.map((item, index) =>
-                Number(item.estimate_sale_qty) != 0 && (
-                  <View style={styles.tableRow} key={index}>
-                    <Text style={[styles.tableCell, { flex: 2, minWidth: 21, textAlign: 'start' }]}>{item.product_name}</Text>
-                    <Text style={[styles.tableCell, { flex: 2, minWidth: 21, textAlign: 'start' }]}>{item.packing_list}</Text>
-                    <Text style={styles.tableCell}>{formatNumber(item.estimate_sale_qty)}</Text>
-                    <Text style={styles.tableCell}>{formatNumber(Number(item.bath_ltkg || 1) * Number(item.estimate_sale_qty || 0))}</Text>
-                    <Text style={styles.tableCell}>{formatNumber(item.acutal_sale_qty)}</Text>
-                    <Text style={[styles.tableCell, styles.tableCellLast]}>{formatNumber(Number(item.bath_ltkg || 1) * Number(item.acutal_sale_qty || 0))}</Text>
-                  </View>
-                )
-              )
+            {visibleItems.length > 0 ? (
+              visibleItems.map((item, index) => (
+                <View style={styles.tableRow} key={index}>
+                  <Text style={[styles.tableCell, { flex: 2, minWidth: 21, textAlign: 'start' }]}>
+                    {item.product_name}
+                  </Text>
+                  <Text style={[styles.tableCell, { flex: 2, minWidth: 21, textAlign: 'start' }]}>
+                    {item.packing_list}
+                  </Text>
+                  <Text style={styles.tableCell}>
+                    {formatNumber(item.estimate_sale_qty)}
+                  </Text>
+                  <Text style={styles.tableCell}>
+                    {formatNumber(Number(item.bath_ltkg || 1) * Number(item.estimate_sale_qty || 0))}
+                  </Text>
+                  <Text style={styles.tableCell}>
+                    {formatNumber(item.acutal_sale_qty)}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.tableCellLast]}>
+                    {formatNumber(Number(item.bath_ltkg || 1) * Number(item.acutal_sale_qty || 0))}
+                  </Text>
+                </View>
+              ))
             ) : (
               <View style={styles.tableRow}>
                 <Text style={[styles.tableCell, { flex: 2, minWidth: 21, textAlign: 'start' }]}>-</Text>
@@ -334,8 +353,8 @@ const AdvanceExpensePDF = () => {
                 <Text style={[styles.tableCell, { flex: 1 }]}>-</Text>
                 <Text style={[styles.tableCell, styles.tableCellLast]}>-</Text>
               </View>
-
             )}
+
 
             {/* Total Row */}
             <View style={[styles.tableRow, { borderTopWidth: 1 }]}>
