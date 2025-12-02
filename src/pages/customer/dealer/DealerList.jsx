@@ -29,33 +29,31 @@ export default function DealerList() {
     sortField: null,
   });
 
+  // ---------- Load master: Status, Sales, Dealer All ----------
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [dataStatus, sale] = await Promise.all([
+        const [dataStatus, sale, dealerAll] = await Promise.all([
           useServiceAPI.get(paths.pathMasterStatus, {
             status_type: "status",
           }),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathMasterDealerAll, {}),
         ]);
 
-        const Status = [];
-        dataStatus.data.map((data, index) => {
-          Status.push({
-            id: data.code,
-            name: data.name,
-          });
-        });
+        const Status = (dataStatus.data || []).map((data) => ({
+          id: data.code,
+          name: data.name,
+        }));
 
-        // console.log('dealer : ', dealer)
-        // set_dealers(dealer.data)
         setStatus(Status);
-        setSaleList(sale.data);
-        setPosition(producttype.data);
-        setRoles(roles.data);
+        setSaleList(sale.data || []);
+        set_dealers(dealerAll.data || []);
       } catch (error) {
-        showMsg("error", error.message || "error");
+        console.error(error.message || "error");
+        // ถ้ามี showMsg อยู่ในโปรเจกต์เดิม สามารถใช้ตรงนี้ได้
+        // showMsg("error", error.message || "error");
       } finally {
         setLoading(false);
       }
@@ -63,33 +61,10 @@ export default function DealerList() {
     getMaster();
   }, []);
 
-
-  useEffect(() => {
-    const sale = filterValues.sale;
-
-    if (sale) {
-      const userId =
-        typeof sale === "object" && sale.value ? sale.value : sale;
-
-      const getDealersBySale = async () => {
-        try {
-
-          const response = await useServiceAPI.get(
-            paths.pathMasterDealerDropdown,
-            { user_id: userId }
-          );
-          set_dealers(response.data);
-        } catch (error) {
-          showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer");
-        }
-      };
-
-      getDealersBySale();
-    }
-  }, [filterValues.sale]);
-
+  // ---------- Fetch table data ----------
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     tableParams.pagination.current,
     tableParams.pagination.pageSize,
@@ -99,11 +74,11 @@ export default function DealerList() {
   ]);
 
   const fetchData = async () => {
-
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
-    console.log('----------fetch------------', filters)
+    console.log("----------fetch------------", filters);
+
     const requestData = {
       sale: filters.sale || "",
       dealers: filters.dealers || "",
@@ -122,13 +97,13 @@ export default function DealerList() {
         const { data, records_filtered } = response.data;
         const newDataSource = elementHtml(data, current, pageSize);
         setDataSource(newDataSource);
-        setTableParams({
-          ...tableParams,
+        setTableParams((prev) => ({
+          ...prev,
           pagination: {
-            ...tableParams.pagination,
+            ...prev.pagination,
             total: records_filtered,
           },
-        });
+        }));
       }
     } catch (error) {
       console.error(error);
@@ -142,17 +117,15 @@ export default function DealerList() {
       ...tableParams,
       pagination: {
         ...tableParams.pagination,
-        current: 1, // Reset current page to 1
-        pageSize: 10, // Ensure the page size is set to 10
+        current: 1,
+        pageSize: 10,
       },
       filters: {
         ...filters,
-        page_length: 1, // Set default page_length
-        page_size: 10, // Set default page_size
+        page_length: 1,
+        page_size: 10,
       },
     };
-    console.log("set : ", set);
-    console.log("dataSource : ", dataSource);
     setTableParams(set);
   };
 
@@ -232,7 +205,7 @@ export default function DealerList() {
       type: "select",
       label: "Dealer",
       placeholder: "All",
-      options: dealers,
+      options: dealers, // ✅ ใช้ Dealer All
       moderef: false,
     },
     {
@@ -244,10 +217,15 @@ export default function DealerList() {
   ];
 
   const handleClear = () => {
-    setTableParams({
-      ...tableParams,
+    setTableParams((prev) => ({
+      ...prev,
       filters: {},
-    });
+      pagination: {
+        ...prev.pagination,
+        current: 1,
+      },
+    }));
+    setFilterValues({});
   };
 
   const header = [
@@ -283,35 +261,23 @@ export default function DealerList() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-  const actionItems = [
-    {
-      key: "1",
-      label: <ItemDropDown mode="edit" link="/customer/dealer/edit-info" />,
-    },
-  ];
-
   const handleTableChange = (pagination, filters, sorter) => {
-    setTableParams({
+    setTableParams((prev) => ({
+      ...prev,
       pagination,
-      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+      filters: prev.filters, // รักษาฟิลเตอร์เดิม
       sortOrder: sorter.order === "descend" ? "desc" : "asc",
       sortField: sorter.field,
-    });
+    }));
   };
-
 
   const handleChange = (filters) => {
-    setFilterValues(filters);
+    setFilterValues(filters); // ตอนนี้ใช้เก็บเฉย ๆ เผื่ออนาคต
   };
-
-
-
 
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Dealer</div>
-      {/* 
-      <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} /> */}
 
       <Filter
         onSearch={handleSearch}
@@ -319,7 +285,6 @@ export default function DealerList() {
         onChange={handleChange}
         filters={filters}
       />
-
 
       <BoxPrimary>
         <TableComponent

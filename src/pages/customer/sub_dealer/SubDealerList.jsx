@@ -27,7 +27,7 @@ export default function SubDealerList() {
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
 
-  // keep current filter values (for cascade)
+  // keep current filter values
   const [filterValues, setFilterValues] = useState({});
 
   // table params
@@ -83,10 +83,9 @@ export default function SubDealerList() {
       placeholder: "All",
       options: Status,
     },
-    // ✅ เพิ่ม filter Create Date
     {
       key: "create_date",
-      type: "date", // ให้ตรงกับที่ Filter รองรับ (เช่น range picker)
+      type: "date",
       label: "Create Date",
       placeholder: "Select date",
     },
@@ -102,7 +101,6 @@ export default function SubDealerList() {
     { title: "Address", width: 300, dataIndex: "address", align: "left" },
     { title: "By Sales", width: 150, dataIndex: "sale", align: "center" },
     { title: "Status Type", width: 100, dataIndex: "channel_type", align: "center" },
-    // ✅ คอลัมน์ Create Date
     {
       title: "Create Date",
       width: 140,
@@ -113,16 +111,18 @@ export default function SubDealerList() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-  // ---------- Load master (status + sales) ----------
+  // ---------- Load masters: Status, Sales, DealerAll, SubDealerAll ----------
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [dataStatus, sale] = await Promise.all([
+        const [dataStatus, sale, dealerRes, subDealerRes] = await Promise.all([
           useServiceAPI.get(paths.pathMasterStatus, {
             status_type: "status",
           }),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathMasterDealerAll, {}),
+          useServiceAPI.get(paths.pathMasterSubDealerAll, {}),
         ]);
 
         const statusOpts = (dataStatus?.data || []).map((data) => ({
@@ -132,6 +132,13 @@ export default function SubDealerList() {
 
         setStatus(statusOpts);
         setSaleList(sale.data || []);
+        setDealerList(dealerRes.data || []);
+
+        const formattedSubDealer = (subDealerRes.data || []).map((item) => ({
+          name: item.sub_dealer_name,
+          id: item.sub_dealer_id,
+        }));
+        setSubDealerList(formattedSubDealer);
       } catch (error) {
         console.log(error.message);
       } finally {
@@ -142,77 +149,7 @@ export default function SubDealerList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ---------- Cascade: Sales -> Dealer ----------
-  useEffect(() => {
-    const sale = filterValues.sale;
-
-    if (!sale) {
-      setDealerList([]);
-      setSubDealerList([]);
-      return;
-    }
-
-    const userId = typeof sale === "object" && sale.value ? sale.value : sale;
-
-    const getDealersBySale = async () => {
-      try {
-        const response = await useServiceAPI.get(
-          paths.pathMasterDealerDropdown,
-          { user_id: userId }
-        );
-        setDealerList(response.data || []);
-        setSubDealerList([]); // reset sub-dealer list
-      } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer");
-      }
-    };
-
-    getDealersBySale();
-  }, [filterValues.sale]);
-
-  // ---------- Cascade: Dealer -> SubDealer ----------
-  useEffect(() => {
-    const sale = filterValues.sale;
-    const dealer = filterValues.dealers;
-
-    if (!dealer) {
-      setSubDealerList([]);
-      return;
-    }
-
-    const userId =
-      typeof sale === "object" && sale?.value ? sale.value : sale;
-    const dealerId =
-      typeof dealer === "object" && dealer.value ? dealer.value : dealer;
-
-    const getSubDealersBySale = async () => {
-      try {
-        const response = await useServiceAPI.get(
-          paths.pathMasterSubDealerAll,
-          {
-            user_id: userId,
-            dealer_id: dealerId,
-          }
-        );
-
-        const formattedSubDealer = (response.data || []).map((item) => ({
-          name: item.sub_dealer_name,
-          id: item.sub_dealer_id,
-        }));
-
-        setSubDealerList(formattedSubDealer);
-      } catch (error) {
-        showMsg(
-          "error",
-          error.message || "เกิดข้อผิดพลาดในการโหลด Sub-dealer"
-        );
-      }
-    };
-
-    getSubDealersBySale();
-  }, [filterValues.dealers, filterValues.sale]);
-
-  // ---------- Delete handler (ใช้ popup component: Modal.confirm) ----------
+  // ---------- Delete handler ----------
   const handleDelete = (id) => {
     Modal.confirm({
       title: "ยืนยันการลบ?",
@@ -270,7 +207,6 @@ export default function SubDealerList() {
       sub_dealer_id: filters.shop || "",
       province: filters.province || "",
       channel_type: filters.channel_type || "",
-      // ✅ filter create date (สมมติเป็น array [start, end])
       create_date_start:
         filters.create_date && filters.create_date[0]
           ? filters.create_date[0]
@@ -279,7 +215,6 @@ export default function SubDealerList() {
         filters.create_date && filters.create_date[1]
           ? filters.create_date[1]
           : "",
-      // ✅ sort ตาม created_at ล่าสุดไปเก่า (ให้ backend ใช้ถ้ารองรับ)
       sort_field: "created_at",
       sort_order: "desc",
     };
@@ -296,7 +231,6 @@ export default function SubDealerList() {
         const newDataSource = (data || []).map((item, index) => {
           const id = item.id;
 
-          // build action items แบบ TargetGroupList
           const items =
             (item.action || []).map((actionItem, actionIndex) => {
               const action = actionItem.action;
@@ -342,7 +276,6 @@ export default function SubDealerList() {
             phone: item.mobile_phone,
             sale: item.sale_list_name,
             channel_type: item.channel_type,
-            // ✅ แสดง created_at เฉพาะวันที่ (เหมือนตัวอย่าง)
             createDate: item.created_at ? item.created_at.split(" ")[0] : "",
             status: (
               <BadgeStatus
@@ -352,10 +285,7 @@ export default function SubDealerList() {
               />
             ),
             action: (
-              <Dropdown
-                menu={{ items }}
-                placement="bottomRight"
-              >
+              <Dropdown menu={{ items }} placement="bottomRight">
                 <a onClick={(e) => e.preventDefault()}>
                   <img
                     src="/img/icons/action.png"
@@ -396,7 +326,6 @@ export default function SubDealerList() {
 
   // ---------- Filter handlers ----------
   const handleSearch = (filtersFromUI) => {
-    // ถ้า sale/dealer เปลี่ยนจะจัดการ cascade ผ่าน useEffect จาก filterValues อยู่แล้ว
     setTableParams((prev) => ({
       ...prev,
       pagination: { ...prev.pagination, current: 1, pageSize: 10 },
@@ -411,8 +340,6 @@ export default function SubDealerList() {
 
   const handleClear = () => {
     setFilterValues({});
-    setDealerList([]);
-    setSubDealerList([]);
     setTableParams((prev) => ({
       ...prev,
       filters: {},
@@ -420,12 +347,10 @@ export default function SubDealerList() {
     }));
   };
 
-  // ใช้ onChange เพื่ออัปเดตค่าฟิลเตอร์ (สำหรับ cascade)
   const handleFilterChange = (values) => {
     setFilterValues(values);
   };
 
-  // ---------- Table change (pagination) ----------
   const handleTableChange = (pagination) => {
     setTableParams((prev) => ({
       ...prev,
