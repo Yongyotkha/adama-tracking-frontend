@@ -131,33 +131,45 @@ export default function ActivityPlanList() {
       if (response.status === 200) {
         const { data } = response;
 
-        // Prepare dataSourceSummary
-        const newDataSource = data?.activity_type.map((activity, index) => {
-          // Create a row object with type and qty for each month
-          const monthData = activity.data_items.reduce((acc, item) => {
-            acc[`month_${item.month_id}`] = item.qty || "-";
-            return acc;
-          }, {});
-          return {
+        // ---------- Build rows ----------
+        const newDataSource = data.activity_type.map((activity, index) => {
+          const row = {
             key: index,
             type: activity.activity_type_name,
-            ...monthData,
           };
+
+          // เติมค่าแต่ละเดือน + เก็บ total เพื่อใช้คำนวณ
+          let totalQty = 0;
+
+          activity.data_items.forEach((item) => {
+            const key = `month_${item.month_id}`;
+            const value = item.qty || 0;
+            row[key] = value;
+            totalQty += value;
+          });
+
+          row.total_qty = totalQty;
+
+          return row;
         });
 
-        const totalRow = {
-          key: "total",
-          type: "Total",
-        };
+        // ---------- สร้างแถว TOTAL ----------
+        const totalRow = { key: "total", type: "Total (Value)" };
 
-        // คำนวณยอดรวมแต่ละเดือน
+        // รวมค่าแต่ละเดือน
         for (let i = 1; i <= 12; i++) {
-          const monthKey = `month_${i}`;
-          totalRow[monthKey] = newDataSource.reduce((sum, row) => {
-            const value = row[monthKey];
-            return sum + (typeof value === "number" ? value : 0);
-          }, 0);
+          const key = `month_${i}`;
+          totalRow[key] = newDataSource.reduce(
+            (sum, r) => sum + (r[key] || 0),
+            0
+          );
         }
+
+        // รวม TOTAL QTY
+        totalRow.total_qty = newDataSource.reduce(
+          (sum, r) => sum + (r.total_qty || 0),
+          0
+        );
 
         newDataSource.push(totalRow);
 
@@ -170,6 +182,7 @@ export default function ActivityPlanList() {
       setTableLoading(false);
     }
   };
+
 
   const filters = [
     {
@@ -240,6 +253,15 @@ export default function ActivityPlanList() {
         align: "center",
       }))
       : []),
+    // 👉 เพิ่มตรงนี้ (Total QTY)
+    {
+      title: "Total QTY",
+      dataIndex: "total_qty",
+      key: "total_qty",
+      width: 120,
+      align: "center",
+    },
+
   ];
 
   const fetchData = async () => {
