@@ -24,7 +24,7 @@ export default function ViewOrEditTargetGroup() {
   const [typeOptions, setTypeOptions] = useState([]);
   const [uploadOpen, setUploadOpen] = useState(mode === "upload");
   const { showNotification, showMsg } = useContext(AuthContext);
-  // const [type_id, set_type_id] = useState(null);
+  const [type_id, set_type_id] = useState(null);
   const isView = mode === "view";
   const isEdit = mode === "edit";
   const lockTopInputs = isView || isEdit;   // ล็อกบนสุดทั้ง view + edit
@@ -108,54 +108,58 @@ export default function ViewOrEditTargetGroup() {
     };
   }
 
-  const fetchTypeOptions = async (targetKey, { resetTypeField = true } = {}) => {
+  const fetchTypeOptions = async (targetKey) => {
     try {
       const targetId = TARGET_MAP[targetKey];
       const res = await useServiceAPI.get(paths.pathTargetGroupType, { target: targetId });
       const raw = res?.data || [];
       const opts = raw.map((it) => ({
         label: it.name ?? String(it.id),
-        value: String(it.id),
+        value: String(it.id),            // ✅ ใช้ string ให้ตรงกับ form.setFieldsValue
       }));
       setTypeOptions(opts);
 
-      if (resetTypeField && !lockTopInputs) {
+      if (!lockTopInputs) {
+        // โหมดแก้ไข/ดู ไม่ควรเคลียร์ค่าเดิม
         form.setFieldValue("type_name", undefined);
       }
-
-      return raw; // 👈 สำคัญ
     } catch (err) {
       console.error("Error fetching type options", err);
       showMsg?.("error", err?.message || "เกิดข้อผิดพลาดขณะดึงประเภท");
       setTypeOptions([]);
-      return [];
     }
   };
 
 
-
   const fetchMasterRows = async (type, overrideTypeId) => {
+
+    // โหลดรายการแถว (ทั้งหมด) เพื่อให้แสดงในตาราง และติ๊กตาม selectedRowKeys
     try {
       let apiPath = paths.pathMasterDealerAll;
       if (type === "sub_dealer") apiPath = paths.pathMasterSubDealerAll;
       else if (type === "farmer") apiPath = paths.pathMasterFarmer;
 
+      //const res = await useServiceAPI.get(apiPath, { target: true, type_id: type_id });
+
+      // เลือก type_id ที่จะส่งให้ชัดเจน: ถ้ามี override ใช้อันนั้นก่อน
+      const effectiveTypeId =
+        overrideTypeId ?? type_id ?? form.getFieldValue("type_name");
+
       const params = { target: true };
-
-      // ใช้ overrideTypeId ก่อน ถ้าไม่มีค่อยดึงจาก form
-      const rawTypeId = overrideTypeId ?? form.getFieldValue("type_name");
-
-      // แปลงเป็นเลขอย่างปลอดภัย
-      const numTypeId = rawTypeId != null && `${rawTypeId}` !== "" ? Number(rawTypeId) : null;
-
-      if (Number.isFinite(numTypeId)) {
-        params.type_id = numTypeId;
+      if (effectiveTypeId !== undefined && effectiveTypeId !== null && `${effectiveTypeId}` !== "") {
+        // แปลงเป็น Number ถ้า backend คาดหวังเป็นตัวเลข
+        params.type_id = Number(effectiveTypeId);
       }
 
+      // debug ได้ตามต้องการ
+      // console.log("fetchMasterRows params:", params);
+
       const res = await useServiceAPI.get(apiPath, params);
+
       const raw = res?.data || [];
       let formatted = [];
 
+      // ใน fetchMasterRows() ปรับ map ให้ key เป็น Number เสมอ
       if (type === "dealer") {
         formatted = raw.map((item) => ({
           key: Number(item.id),
@@ -195,31 +199,25 @@ export default function ViewOrEditTargetGroup() {
       const res = await useServiceAPI.post(paths.pathTargetGroupDetail, { id });
 
       const { header, selectedIds, targetKey } = extractDetail(res);
+      set_type_id(header?.type);
+      // 1) เซ็ต target (สำหรับ UI) + checkboxes'
+
 
       setTargetType(targetKey);
       setSelectedRowKeys(selectedIds);
 
-      // 1) โหลด type list ตาม target และรับ raw กลับมา
-      const rawTypes = await fetchTypeOptions(targetKey, { resetTypeField: false });
+      // 2) โหลดตัวเลือก type ตาม target ก่อน
+      await fetchTypeOptions(targetKey);
 
-      // 2) หา type id จาก "ชื่อ" (เช่น "Pull")
-      let selectedTypeId;
-      if (header?.type) {
-        const match = rawTypes.find((t) => t.name === header.type);
-        if (match) {
-          selectedTypeId = String(match.id); // เช่น "4"
-        }
-      }
-
-      // 3) เซ็ตค่าฟอร์ม
+      // 3) เติมค่าฟอร์มให้ครบทั้ง 3 ช่อง (แม้จะ disabled ก็ยังโชว์ค่า)
       form.setFieldsValue({
-        target_name: targetKey,                          // "sub_dealer"
-        type_name: selectedTypeId,                      // "4" (id), ไม่ใช่ "Pull"
-        status: String(header?.use_flag ?? 1),
+        target_name: targetKey,                         // "dealer" | "sub_dealer" | "farmer"
+        type_name: header?.type ? String(header.type) : undefined, // "1" | "2" ...
+        status: String(header?.use_flag ?? 1),          // "1" | "0"
       });
 
-      // 4) โหลด rows ทั้งหมด โดยส่ง id จริงเข้าไป
-      await fetchMasterRows(targetKey, selectedTypeId);
+      // 4) โหลด rows ทั้งหมด (เพื่อให้แสดงตาราง)
+      await fetchMasterRows(targetKey, header?.type);
     } catch (e) {
       console.error("fetch detail error", e);
       showMsg?.("error", e?.message || "โหลดรายละเอียดไม่สำเร็จ");
