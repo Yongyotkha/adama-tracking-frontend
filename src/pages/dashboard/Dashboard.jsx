@@ -1140,7 +1140,7 @@ export default function Dashboard() {
                   value={selectedSale}
                   onChange={(value) => setSelectedSale(value)} // ใช้ตัวเดียวกับด้านบน
                   placeholder={loading ? "Loading..." : "Select Sale"}
-                  disabled={loading}
+                  disabled={true}
                   options={sales}
                   showSearch
                   allowClear
