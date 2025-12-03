@@ -35,6 +35,8 @@ export default function Dashboard() {
   const [totalSaleValue, setTotalSaleValue] = useState(0); // เก็บค่ารวมทั้งหมด
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedSale, setSelectedSale] = useState(null);
+
   const [selectedSalesByDealer, setSelectedSalesByDealer] = useState(null);
   const [selectedMonthsSalesByDealer, setSelectedMonthsSalesByDealer] =
     useState(null);
@@ -116,8 +118,12 @@ export default function Dashboard() {
             label: item.name,
           }));
 
-          console.log(formattedSales);
           setSales(formattedSales);
+
+          // set ค่า default ให้ selectedSale เป็นตัวแรก
+          if (formattedSales.length > 0) {
+            setSelectedSale(formattedSales[0].value);
+          }
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -131,17 +137,77 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
+    const fetchDealerBySale = async () => {
+      // ถ้ายังไม่ได้เลือก sale → เคลียร์ dealer และค่า dependent ทุกตัว
+      if (!selectedSale) {
+        setDealer([]);
+        setSelectedSdByD(null);
+        setSelectedDealerPlan(null);
+        setSelectedDealerTopActivity(null);
+        setSelectedDealerActivity(null);
+        setSelectedSalesByDealer(null);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await useServiceAPI.get(
+          paths.pathMasterDealerDropdown,
+          { user_id: selectedSale } // 👈 ใช้ user_id ตามตัวอย่าง OrderList
+        );
+
+        if (response.status === 200 && response.data?.length > 0) {
+          const formattedDealers = response.data.map((item) => ({
+            value: item.id,
+            label: item.name,
+          }));
+
+          setDealer(formattedDealers);
+
+          // default ให้ Sub Dealer By Dealer ใช้ dealer แรก
+          setSelectedSdByD(formattedDealers[0].value);
+
+          // (option) ถ้าอยาก reset filter dealer อื่น ๆ ด้วยเมื่อเปลี่ยน sale:
+          // setSelectedDealerPlan(null);
+          // setSelectedDealerTopActivity(null);
+          // setSelectedDealerActivity(null);
+          // setSelectedSalesByDealer(null);
+        } else {
+          setDealer([]);
+          setSelectedSdByD(null);
+          setSelectedDealerPlan(null);
+          setSelectedDealerTopActivity(null);
+          setSelectedDealerActivity(null);
+          setSelectedSalesByDealer(null);
+        }
+      } catch (error) {
+        console.error("Error fetching dealers by sale:", error);
+        showNotification("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDealerBySale();
+  }, [selectedSale]);
+
+
+
+  useEffect(() => {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
         const response = await useServiceAPI.get(paths.pathDashBordCustomer, {
           year_code: selectedYear,
+          sale_id: selectedSale, // เพิ่ม sale_id เป็นค่าจากทุก action ที่มีการเลือก sale,
         });
         if (response.status === 200) {
           const data = response.data || {};
           const cleanedData = Object.fromEntries(
             Object.entries(data).map(([key, value]) => [key.trim(), value])
           );
+
+          console.log(cleanedData);
 
           setDashboardData(cleanedData);
         } else {
@@ -156,7 +222,7 @@ export default function Dashboard() {
     if (selectedYear) {
       fetchDashboardData();
     }
-  }, [selectedYear]);
+  }, [selectedYear, selectedSale]);
 
   const fetchDashboardDataExpense = async () => {
     setLoading(true);
@@ -164,6 +230,7 @@ export default function Dashboard() {
       const response = await useServiceAPI.get(paths.pathDashBordExpense, {
         year_code: selectedYear,
         month_id: selectedMonthsExpense,
+        sale_id: selectedSale,
       });
       if (response.status === 200) {
         const data = response.data || {};
@@ -188,7 +255,7 @@ export default function Dashboard() {
     if (selectedYear) {
       fetchDashboardDataExpense();
     }
-  }, [selectedYear, selectedMonthsExpense]);
+  }, [selectedYear, selectedMonthsExpense, selectedSale]);
 
   useEffect(() => {
     const fetchDashboardDataSalesByDealer = async () => {
@@ -200,6 +267,7 @@ export default function Dashboard() {
             year_code: selectedYear,
             dealer_id: selectedSalesByDealer,
             month_id: selectedMonthsSalesByDealer,
+            sale_id: selectedSale,
           }
         );
         if (response.status === 200) {
@@ -220,7 +288,7 @@ export default function Dashboard() {
     if (selectedYear) {
       fetchDashboardDataSalesByDealer();
     }
-  }, [selectedYear, selectedSalesByDealer, selectedMonthsSalesByDealer]);
+  }, [selectedYear, selectedSalesByDealer, selectedMonthsSalesByDealer, selectedSale]);
 
   useEffect(() => {
     if (
@@ -270,6 +338,7 @@ export default function Dashboard() {
           year_code: selectedYear,
           dealer_id: selectedDealerPlan,
           month_id: selectedMonthsDealerPlan,
+          sale_id: selectedSale,
         });
         if (response.status === 200 && response.data) {
           const data = response.data.map((item) => ({
@@ -303,7 +372,7 @@ export default function Dashboard() {
     if (selectedYear) {
       fetchDealerPlanData();
     }
-  }, [selectedYear, selectedDealerPlan, selectedMonthsDealerPlan]);
+  }, [selectedYear, selectedDealerPlan, selectedMonthsDealerPlan, selectedSale]);
 
   useEffect(() => {
     const fetchTopActivityData = async () => {
@@ -315,6 +384,7 @@ export default function Dashboard() {
             year_code: selectedYear,
             dealer_id: selectedDealerTopActivity,
             month_id: selectedMonthsTopActivity,
+            sale_id: selectedSale,
           }
         );
         if (response.status === 200 && response.data) {
@@ -350,7 +420,7 @@ export default function Dashboard() {
     if (selectedYear) {
       fetchTopActivityData();
     }
-  }, [selectedYear, selectedDealerTopActivity, selectedMonthsTopActivity]);
+  }, [selectedYear, selectedDealerTopActivity, selectedMonthsTopActivity, selectedSale]);
 
   useEffect(() => {
     const fetchSubDealerPlanData = async () => {
@@ -361,6 +431,7 @@ export default function Dashboard() {
           {
             year_code: selectedYear,
             sub_dealer_id: selectedSubdealerPlan,
+            sale_id: selectedSale,
           }
         );
         if (response.status === 200 && response.data) {
@@ -391,7 +462,7 @@ export default function Dashboard() {
     if (selectedYear) {
       fetchSubDealerPlanData();
     }
-  }, [selectedYear, selectedSubdealerPlan]);
+  }, [selectedYear, selectedSubdealerPlan, selectedSale]);
 
   useEffect(() => {
     const fetchSubDealerByDealerData = async () => {
@@ -402,6 +473,7 @@ export default function Dashboard() {
           {
             year_code: selectedYear,
             dealer_id: selectedSdByD,
+            sale_id: selectedSale,
           }
         );
         // if (response.status === 200 && response.data) {
@@ -451,7 +523,7 @@ export default function Dashboard() {
       // if (selectedYear) {
       fetchSubDealerByDealerData();
     }
-  }, [selectedYear, selectedSdByD]);
+  }, [selectedYear, selectedSdByD, selectedSale]);
 
   useEffect(() => {
     const fetchSaleCropData = async () => {
@@ -459,8 +531,9 @@ export default function Dashboard() {
       try {
         const response = await useServiceAPI.get(paths.pathDashBordSaleCrop, {
           year_code: selectedYear,
-          dealer_id: selectedSaleByCrop,
+          dealer_id: selectedSaleByCrop, // ถ้ายังต้องส่ง dealer_id อยู่
           month_id: selectedMonthsSaleByCrop,
+          sale_id: selectedSale,
         });
         if (response.status === 200 && response.data) {
           // const data = response.data.map((item) => ({
@@ -538,7 +611,7 @@ export default function Dashboard() {
     if (selectedYear) {
       fetchSaleCropData();
     }
-  }, [selectedYear, selectedSaleByCrop, selectedMonthsSaleByCrop]);
+  }, [selectedYear, selectedSaleByCrop, selectedMonthsSaleByCrop, selectedSale]);
 
   useEffect(() => {
     const fetchListActivityData = async () => {
@@ -546,7 +619,8 @@ export default function Dashboard() {
       try {
         const payload = {
           year_code: selectedYear,
-          sale_id: selectedSaleActivity,
+          // sale_id: selectedSaleActivity,
+          sale_id: selectedSale, // 👈 ดึงจาก sale ด้านบน
           month_id: selectedMonthsActivity,
           dealer: selectedDealerActivity
         };
@@ -599,10 +673,11 @@ export default function Dashboard() {
     if (selectedYear) {
       fetchListActivityData();
     }
-  }, [selectedYear, selectedSaleActivity, selectedMonthsActivity, selectedDealerActivity]);
+    // }, [selectedYear, selectedSaleActivity, selectedMonthsActivity, selectedDealerActivity]);
+  }, [selectedYear, selectedSale, selectedMonthsActivity, selectedDealerActivity]);
 
-  function select_sale_all_page(value){
-    console.log('sale : ',value)
+  function select_sale_all_page(value) {
+    console.log('sale : ', value)
     setSelectedSaleActivity(value);
     setSelectedSaleByCrop(value);
   }
@@ -614,8 +689,13 @@ export default function Dashboard() {
 
         <div className="flex gap-2 items-center">
           <Select
-            className="w-36"
-            onChange={(value) => select_sale_all_page(value)}
+            className="w-full md:w-48"
+            value={selectedSale}
+            onChange={(value) => {
+              setSelectedSale(value);
+              setSelectedSaleByCrop(value);   // ถ้ายังใช้ state นี้อยู่
+              setSelectedSaleActivity(value); // ถ้ายังใช้ state นี้อยู่
+            }}
             placeholder={loading ? "Loading..." : "Select Sale"}
             disabled={loading}
             options={sales}
@@ -623,6 +703,7 @@ export default function Dashboard() {
             allowClear
             optionFilterProp="label"
           />
+
           <Select
             className="w-40"
             value={selectedYear}
@@ -1056,17 +1137,15 @@ export default function Dashboard() {
               <div className="flex flex-wrap gap-2">
                 <Select
                   className="mb-4 w-36"
-                  value={selectedSaleActivity}
-                  onChange={(value) => {
-                    setSelectedSaleActivity(value);
-                  }}
+                  value={selectedSale}
+                  onChange={(value) => setSelectedSale(value)} // ใช้ตัวเดียวกับด้านบน
                   placeholder={loading ? "Loading..." : "Select Sale"}
                   disabled={loading}
                   options={sales}
                   showSearch
                   allowClear
                   optionFilterProp="label"
-                ></Select>
+                />
                 <Select
                   className="w-36"
                   value={selectedMonthsActivity}
@@ -1222,13 +1301,13 @@ export default function Dashboard() {
               </h3>
               <div className="flex flex-wrap gap-2">
                 <Select
-                  className="mb-4 w-36"
+                  className="mb-4 w-48 "
                   value={selectedSaleByCrop}
                   onChange={(value) => {
                     setSelectedSaleByCrop(value);
                   }}
-                  placeholder={loading ? "Loading..." : "Select Sale"}
-                  disabled={loading}
+                  placeholder={loading ? "Loading..." : "Select Sale (Top)"}
+                  disabled={true}
                   options={sales}
                   showSearch
                   allowClear
