@@ -120,10 +120,10 @@ export default function Dashboard() {
 
           setSales(formattedSales);
 
-          // set ค่า default ให้ selectedSale เป็นตัวแรก
-          if (formattedSales.length > 0) {
-            setSelectedSale(formattedSales[0].value);
-          }
+          // // set ค่า default ให้ selectedSale เป็นตัวแรก
+          // if (formattedSales.length > 0) {
+          //   setSelectedSale(formattedSales[0].value);
+          // }
         }
       } catch (error) {
         console.error("Error fetching data:", error);

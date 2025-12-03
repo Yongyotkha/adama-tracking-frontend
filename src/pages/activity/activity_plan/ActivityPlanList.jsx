@@ -130,15 +130,15 @@ export default function ActivityPlanList() {
 
       if (response.status === 200) {
         const { data } = response;
+        console.log("data summary : ", data.activity_type);
 
-        // ---------- Build rows ----------
+        // ---------- สร้าง rows ของแต่ละ activity (แสดงเป็น QTY เหมือนเดิม) ----------
         const newDataSource = data.activity_type.map((activity, index) => {
           const row = {
             key: index,
             type: activity.activity_type_name,
           };
 
-          // เติมค่าแต่ละเดือน + เก็บ total เพื่อใช้คำนวณ
           let totalQty = 0;
 
           activity.data_items.forEach((item) => {
@@ -148,7 +148,7 @@ export default function ActivityPlanList() {
             totalQty += value;
           });
 
-          row.total_qty = totalQty;
+          row.total_qty = totalQty; // total qty ทั้งปีของ activity นี้
 
           return row;
         });
@@ -156,22 +156,42 @@ export default function ActivityPlanList() {
         // ---------- สร้างแถว TOTAL ----------
         const totalRow = { key: "total", type: "Total (Value)" };
 
-        // รวมค่าแต่ละเดือน
-        for (let i = 1; i <= 12; i++) {
-          const key = `month_${i}`;
-          totalRow[key] = newDataSource.reduce(
-            (sum, r) => sum + (r[key] || 0),
-            0
-          );
+        let totalYearValue = 0; // ใช้เก็บยอดรวมทั้งปี (ตัวเลข)
+
+        // คำนวณมูลค่าต่อเดือน
+        for (let month = 1; month <= 12; month++) {
+          let monthTotalValue = 0;
+
+          data.activity_type.forEach((activity) => {
+            // แปลง unit_convert_value เป็นตัวเลข
+            const unitValue =
+              parseFloat(
+                String(activity.unit_convert_value || "0").replace(/,/g, "")
+              ) || 0;
+
+            // หา data ของเดือนนั้นใน activity นี้
+            const monthItem = activity.data_items.find(
+              (item) => Number(item.month_id) === month
+            );
+
+            const qty = monthItem?.qty || 0;
+
+            monthTotalValue += unitValue * qty;
+          });
+
+          // สะสมยอดทั้งปี (เป็นตัวเลข)
+          totalYearValue += monthTotalValue;
+
+          // เก็บลง row โดย format เป็น 1,000,000
+          totalRow[`month_${month}`] = monthTotalValue.toLocaleString("en-US");
         }
 
-        // รวม TOTAL QTY
-        totalRow.total_qty = newDataSource.reduce(
-          (sum, r) => sum + (r.total_qty || 0),
-          0
-        );
+        // รวมทั้งปีแล้ว format เช่นกัน
+        totalRow.total_qty = totalYearValue.toLocaleString("en-US");
 
+        // push ต่อท้ายเหมือนเดิม
         newDataSource.push(totalRow);
+
 
         setDataSourceSummary(newDataSource);
         setDataSummary(data);
