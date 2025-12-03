@@ -54,15 +54,15 @@ export default function FarmerList() {
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
           useServiceAPI.get(paths.pathMasterDealerAll, {}),
           useServiceAPI.get(paths.pathMasterSubDealerAll, {}),
-          useServiceAPI.get(paths.pathMasterFarmer, {}),
+          useServiceAPI.get(paths.pathMasterFarmer, {}),   // <-- ดึง Farmer ทั้งหมด
         ]);
 
         const StatusArr = (dataStatus.data || []).map((data) => ({
           id: data.code,
           name: data.name,
         }));
-
         setStatus(StatusArr);
+
         setSaleList(sales.data || []);
         setDataDealer(dealerRes.data || []);
 
@@ -72,11 +72,13 @@ export default function FarmerList() {
         }));
         setSubDealerList(formattedSubDealer);
 
+        // 👇 สำคัญ: map ให้ name = farmer_name
         const formattedFarmers = (farmerRes.data || []).map((item) => ({
-          name: item.farmer_name,
           id: item.farmer_id,
+          name: item.farmer_name || item.farmer_id, // กันกรณีชื่อว่าง
         }));
         setFarmList(formattedFarmers);
+
       } catch (error) {
         console.log(error);
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -84,6 +86,7 @@ export default function FarmerList() {
         setLoading(false);
       }
     };
+
     getMaster();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -106,18 +109,40 @@ export default function FarmerList() {
     const filters = tableParams.filters || {};
     console.log("filterValues : ", filterValues);
 
+    // ✅ แปลงค่าจาก Filter เผื่อเป็น object { value, label }
+    const sale =
+      typeof filterValues.sale === "object" && filterValues.sale?.value
+        ? filterValues.sale.value
+        : filterValues.sale;
+
+    const dealer =
+      typeof filterValues.dealers === "object" && filterValues.dealers?.value
+        ? filterValues.dealers.value
+        : filterValues.dealers;
+
+    const shop =
+      typeof filterValues.shop === "object" && filterValues.shop?.value
+        ? filterValues.shop.value
+        : filterValues.shop;
+
+    const farmer =
+      typeof filterValues.farmers === "object" && filterValues.farmers?.value
+        ? filterValues.farmers.value
+        : filterValues.farmers;
+
     const requestData = {
       keyword: filters.keyword || "",
       province: filters.province || "",
       use_flag: filters.use_flag || "",
-      sale_id: filterValues.sale || "",
-      dealer_id: filterValues.dealers || "",
-      sub_dealer_id: filterValues.shop || "",
-      farmer_id: filterValues.farmers || "",
+      sale_id: sale || "",
+      dealer_id: dealer || "",
+      sub_dealer_id: shop || "",
+      farmer_id: farmer || "",          // ✅ ส่งเป็น id ตามเดิม
       page_length: current,
       page_size: pageSize,
       user_id: userInfo.id,
     };
+
     console.log("requestData : ", requestData);
 
     try {
@@ -239,6 +264,7 @@ export default function FarmerList() {
       label: "Farmer",
       placeholder: "All",
       options: farmList,
+      moderef: true,
     },
     {
       key: "use_flag",

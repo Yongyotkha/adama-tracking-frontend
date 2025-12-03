@@ -1,6 +1,6 @@
 // src/pages/report/ReportSellOut.jsx
 import React, { useMemo, useState, useEffect, useContext } from "react";
-import { Form, Row, Col, Select, DatePicker, InputNumber, Table } from "antd";
+import { Form, Row, Col, Select, InputNumber, Table } from "antd"; // 🔁 เอา DatePicker ออก
 import MainLayout from "../../layouts/MainLayout";
 import Title from "../../components/title/Title";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
@@ -19,7 +19,20 @@ dayjs.extend(timezone);
 const GREEN_A = "#00783F";
 const GREEN_B = "#009845";
 
-const monthsEN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const monthsEN = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 const subCols = [
   { title: "Last Stock", key: "last_stock" },
   { title: "Sell In", key: "sell_in" },
@@ -27,7 +40,8 @@ const subCols = [
   { title: "Sell Out", key: "sell_out" },
 ];
 
-const fmt = (n) => `${parseInt(Number(n) || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+const fmt = (n) =>
+  `${parseInt(Number(n) || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 // -------- helpers for export file name ----------
 const slug = (s) =>
@@ -35,15 +49,17 @@ const slug = (s) =>
     .normalize("NFKC")
     .replace(/\s+/g, " ")
     .trim()
-    .replace(/[\\/:*?"<>|]+/g, "-")   // กันอักขระต้องห้าม
+    .replace(/[\\/:*?"<>|]+/g, "-") // กันอักขระต้องห้าม
     .replace(/\s+/g, "_");
 
 const getLabelFrom = (options, value) =>
-  (Array.isArray(options) ? options.find((o) => o?.value === value) : null)?.label || "";
+  (Array.isArray(options) ? options.find((o) => o?.value === value) : null)
+    ?.label || "";
 
 const buildSellOutReportFileName = (form, { areaList, sales, dealers }) => {
   const v = form.getFieldsValue();
-  const year = (v.month ? dayjs(v.month) : dayjs()).format("YYYY");
+  const rawYear = v.year ?? dayjs().year();
+  const year = String(rawYear);
   const area = getLabelFrom(areaList, v.area_id);
   const sale = getLabelFrom(sales, v.sales_id);
   const dealer = getLabelFrom(dealers, v.dealer_id);
@@ -60,7 +76,6 @@ const buildSellOutReportFileName = (form, { areaList, sales, dealers }) => {
   return `${parts.join("_")}_${ts}`;
 };
 
-
 export default function ReportSellOut() {
   const [form] = Form.useForm();
   const { showNotification } = useContext(AuthContext) || {};
@@ -72,6 +87,8 @@ export default function ReportSellOut() {
   const [areaList, setAreaList] = useState([]);
   const [sales, setSales] = useState([]);
   const [dealers, setDealers] = useState([]);
+  const [yearList, setYearList] = useState([]);
+  const [defaultYear, setDefaultYear] = useState(null);
 
   // table data + page size
   const [data, setData] = useState([]);
@@ -137,7 +154,12 @@ export default function ReportSellOut() {
             },
           }),
           render: (val) => (
-            <InputNumber className="w-full" readOnly value={Number(val) || 0} formatter={(v) => fmt(v)} />
+            <InputNumber
+              className="w-full"
+              readOnly
+              value={Number(val) || 0}
+              formatter={(v) => fmt(v)}
+            />
           ),
         })),
       };
@@ -159,7 +181,11 @@ export default function ReportSellOut() {
             subCols.map((sc, si) => {
               const k = `${m}_${sc.key}`;
               return (
-                <Table.Summary.Cell key={k} index={mi * 10 + si + 1} align="right">
+                <Table.Summary.Cell
+                  key={k}
+                  index={mi * 10 + si + 1}
+                  align="right"
+                >
                   <InputNumber
                     className="w-full"
                     readOnly
@@ -176,22 +202,47 @@ export default function ReportSellOut() {
     );
   }, [data]);
 
-  // ---------- API: masters ----------
+  // ---------- API: masters (Area + Year) ----------
   useEffect(() => {
-    const loadAreas = async () => {
+    const loadMasters = async () => {
       setLoading(true);
       try {
-        const res = await useServiceAPI.get(paths.pathMasterAreas);
-        const list = Array.isArray(res?.data) ? res.data : [];
-        setAreaList(list.map((x) => ({ value: x.id, label: x.name })));
+        const [areaRes, yearRes] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterAreas),
+          useServiceAPI.get(paths.pathMasterYear),
+        ]);
+
+        // Area
+        const areaRaw = Array.isArray(areaRes?.data) ? areaRes.data : [];
+        setAreaList(areaRaw.map((x) => ({ value: x.id, label: x.name })));
+
+        // Year
+        const yearRaw = Array.isArray(yearRes?.data) ? yearRes.data : [];
+        const yearOptions = yearRaw.map((y) => ({
+          value: y.id, // id = 2025, 2026
+          label: y.name,
+        }));
+        setYearList(yearOptions);
+
+        // set default year (ถ้ามีปีปัจจุบันใน list ใช้อันนั้น, ไม่มีก็เอาอันแรก)
+        if (yearOptions.length > 0) {
+          const currentYear = dayjs().year();
+          const matched =
+            yearOptions.find((y) => Number(y.value) === currentYear) ||
+            yearOptions[0];
+
+          setDefaultYear(matched.value);
+          form.setFieldsValue({ year: matched.value });
+        }
       } catch (e) {
         setAreaList([]);
-        showNotification?.("error", "โหลด Area ไม่สำเร็จ");
+        setYearList([]);
+        showNotification?.("error", "โหลดข้อมูลตัวกรองไม่สำเร็จ");
       } finally {
         setLoading(false);
       }
     };
-    loadAreas();
+    loadMasters();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -206,7 +257,9 @@ export default function ReportSellOut() {
     }
     (async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathMasterSaleReport, { area_id: areaId });
+        const res = await useServiceAPI.get(paths.pathMasterSaleReport, {
+          area_id: areaId,
+        });
         const list = Array.isArray(res?.data) ? res.data : [];
         setSales(list.map((x) => ({ value: Number(x.id), label: x.name })));
         form.resetFields(["sales_id", "dealer_id"]);
@@ -230,7 +283,9 @@ export default function ReportSellOut() {
     }
     (async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: salesId });
+        const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
+          user_id: salesId,
+        });
         const list = Array.isArray(res?.data) ? res.data : [];
         setDealers(list.map((x) => ({ value: Number(x.id), label: x.name })));
         form.resetFields(["dealer_id"]);
@@ -245,9 +300,11 @@ export default function ReportSellOut() {
   // ---------- helpers ----------
   const buildPayload = () => {
     const v = form.getFieldsValue();
-    const year = v.month ? String(dayjs(v.month).year()) : String(dayjs().year());
+    const rawYear = v.year ?? defaultYear ?? dayjs().year();
+    const year = String(rawYear); // ✅ ส่งเป็น id ปี
+
     return {
-      year,                          // "2025"
+      year, // ex. "2025"
       area_id: v.area_id ?? "",
       user_id: v.sales_id ?? "",
       dealer_id: v.dealer_id ?? "",
@@ -256,7 +313,7 @@ export default function ReportSellOut() {
   };
 
   const mapApiToRows = (apiData = []) => {
-    // apiData: [{ group_id, group_name, months: {"1":{...},...,"12":{...}}, totals:{...} }]
+    // apiData: [{ group_id, group_name, months: {"1":{...},...,"12":{...}} }]
     return apiData.map((g, idx) => {
       const row = {
         key: g.group_id || idx + 1,
@@ -293,13 +350,12 @@ export default function ReportSellOut() {
   // ---------- first load ----------
   useEffect(() => {
     form.setFieldsValue({
-      month: dayjs(), // ใช้เลือกปี
       area_id: undefined,
       sales_id: undefined,
       dealer_id: undefined,
       sub_dealer_id: undefined,
     });
-    fetchSellOut(); // โหลด all (ไม่มีตัวกรอง)
+    fetchSellOut(); // โหลดครั้งแรก (ใช้ปี default / ปีปัจจุบัน)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -315,7 +371,6 @@ export default function ReportSellOut() {
 
   // ---------- actions ----------
   const handleSearch = async () => {
-    // ตามสเปค “ห้ามเลือก sale ต้องเลือก area ก่อน”
     const v = form.getFieldsValue();
     if (v.sales_id && !v.area_id) {
       showNotification?.("warning", "กรุณาเลือก Area ก่อนเลือก Sales");
@@ -325,8 +380,15 @@ export default function ReportSellOut() {
   };
 
   const handleClear = () => {
-    form.resetFields(["area_id", "sales_id", "dealer_id", "sub_dealer_id", "month"]);
-    form.setFieldsValue({ month: dayjs() });
+    form.resetFields([
+      "area_id",
+      "sales_id",
+      "dealer_id",
+      "sub_dealer_id",
+      "year",
+    ]);
+    const rawYear = defaultYear ?? dayjs().year();
+    form.setFieldsValue({ year: rawYear });
     setSales([]);
     setDealers([]);
     fetchSellOut();
@@ -384,9 +446,15 @@ export default function ReportSellOut() {
               </Form.Item>
             </Col>
 
+            {/* 🔁 เปลี่ยนจาก DatePicker เป็น Select Year */}
             <Col md={6}>
-              <Form.Item label="Month (for year)" name="month" initialValue={dayjs()}>
-                <DatePicker picker="month" style={{ width: "100%" }} />
+              <Form.Item label="Year" name="year">
+                <Select
+                  placeholder="Select year"
+                  options={yearList}
+                  // ถ้าอยากให้เคลียร์ไม่ได้ ให้เอา allowClear ออก
+                  allowClear={false}
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -409,10 +477,15 @@ export default function ReportSellOut() {
 
             <ExportSellOutExcelButton
               text="Export Excel"
-              fileName={buildSellOutReportFileName(form, { areaList, sales, dealers })}
+              fileName={buildSellOutReportFileName(form, {
+                areaList,
+                sales,
+                dealers,
+              })}
               getPayload={async () => {
                 const v = form.getFieldsValue();
-                const year = v.month ? String(dayjs(v.month).year()) : String(dayjs().year());
+                const rawYear = v.year ?? defaultYear ?? dayjs().year();
+                const year = String(rawYear);
                 return {
                   year,
                   area_id: v.area_id ?? "",
@@ -421,7 +494,9 @@ export default function ReportSellOut() {
                   sub_dealer_id: v.sub_dealer_id ?? "",
                 };
               }}
-              requestData={(payload) => useServiceAPI.get(paths.pathReportSellOut, payload)}
+              requestData={(payload) =>
+                useServiceAPI.get(paths.pathReportSellOut, payload)
+              }
             />
           </div>
         </BoxPrimary>
