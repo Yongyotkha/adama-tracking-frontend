@@ -1,8 +1,9 @@
+// src/pages/report/ReportActivityByType.jsx
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
-import { InputNumber, Table, Form, Row, Col, Select, DatePicker } from "antd";
+import { InputNumber, Table, Form, Row, Col, Select } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
@@ -13,7 +14,9 @@ import DynamicButton from "../../components/button/DynamicButton";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-dayjs.extend(utc); dayjs.extend(timezone);
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export default function ReportActivityByType() {
   const navigate = useNavigate();
@@ -23,7 +26,9 @@ export default function ReportActivityByType() {
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
 
-  const [years, setYears] = useState([]);
+  const [years, setYears] = useState([]); // [{value,label}]
+  const [defaultYear, setDefaultYear] = useState(null);
+
   const [sales, setSales] = useState([]);
   const [areaList, setAreaList] = useState([]);
   const [activityList, setActivityList] = useState([]);
@@ -59,18 +64,38 @@ export default function ReportActivityByType() {
         useServiceAPI.get(paths.pathMasterAreas),
       ]);
 
-      setYears(yearsRes.data || []);
+      // ===== Year master (เหมือน ReportSellOut) =====
+      const yearRaw = Array.isArray(yearsRes?.data) ? yearsRes.data : [];
+      const yearOptions = yearRaw.map((y) => ({
+        value: y.id, // ex. 2025
+        label: y.name, // ex. 2025
+      }));
+      setYears(yearOptions);
+
+      // เลือกปีปัจจุบันถ้ามี ไม่มีก็ใช้ตัวแรก
+      let initialYearValue = null;
+      if (yearOptions.length > 0) {
+        const currentYear = dayjs().year();
+        const matched =
+          yearOptions.find((y) => Number(y.value) === currentYear) || yearOptions[0];
+        initialYearValue = matched.value;
+        setDefaultYear(matched.value);
+      }
 
       setAreaList((area.data || []).map((x) => ({ value: String(x.id), label: x.name })));
       setActivityList(activityType.data || []);
 
-      if ((yearsRes.data || []).length > 0) {
-        const defaultYear = yearsRes.data[0];
-        const initialFilters = { year_code: defaultYear };
+      if (initialYearValue != null) {
+        const initialFilters = { year_code: initialYearValue };
+
         setTableParams((prev) => ({ ...prev, filters: initialFilters }));
+        // set default year ลงใน form
+        formCustom.setFieldsValue({ year_code: initialYearValue });
+
         await fetchData(initialFilters);
       }
     } catch (error) {
+      console.error(error);
       showNotification("error", error.message || "เกิดข้อผิดพลาด");
     } finally {
       setLoading(false);
@@ -79,10 +104,8 @@ export default function ReportActivityByType() {
 
   useEffect(() => {
     loadMasterData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // ❌ ลบ useEffect ที่ auto set Area จาก profile ออก (ให้ Area ว่าง, ไม่ active เอง)
-  // useEffect เดิมถูกลบทิ้งไปแล้ว
 
   const fetchData = async (filtersInput = tableParams.filters) => {
     setTableLoading(true);
@@ -90,17 +113,26 @@ export default function ReportActivityByType() {
     const f = filtersInput || {};
     const v = formCustom.getFieldsValue();
 
+    const yearFromForm = v.year_code || f.year_code || defaultYear;
+    let documentDate = null;
+
+    if (v.month && yearFromForm) {
+      // ส่งเป็น YYYY-MM-01 ให้ backend ใช้ตัดเอาเฉพาะเดือน/ปี
+      documentDate = `${yearFromForm}-${v.month}-01`;
+    }
+
     const requestData = {
       keyword: f.keyword || "",
-      year_code: 2025, // ฝั่งเดิม fix 2025
+      year_code: yearFromForm || null,
       area_id: v.area_id ? Number(v.area_id) : null,
       user_id: v.user_id ? Number(v.user_id) : null,
       dealer_id: v.dealer_id || null,
       crop_id: v.crop_id || null,
-      territory: v.territory ? Number(v.territory) : null,
-      document_date: v.month || null,
+      // ❗ territory จะไม่ถูกใช้กรอง report นี้
+      territory: null,
+      document_date: documentDate,
       page_length: 1,
-      page_size: pageSize,
+      page_size: 100,
     };
 
     try {
@@ -131,19 +163,24 @@ export default function ReportActivityByType() {
   };
 
   const handleClear = async () => {
-    // เคลียร์เฉพาะฟิลด์ในฟอร์ม แล้วโหลดข้อมูลใหม่ (รักษา year_code เดิม)
-    const defaultYear = years?.[0];
+    const defaultYearValue = defaultYear ?? years?.[0]?.value ?? null;
+
     formCustom.resetFields(["area_id", "user_id", "territory", "month", "dealer_id", "crop_id"]);
+    // set year กลับเป็น default (หรือของเดิมถ้าไม่มี default)
+    if (defaultYearValue != null) {
+      formCustom.setFieldsValue({ year_code: defaultYearValue });
+    }
+
     setSales([]);
     setTerritoryList([]);
     setIsAreaSelected(false);
     setIsSalesSelected(false);
     setTableParams((prev) => ({
       ...prev,
-      filters: { year_code: defaultYear ?? prev.filters?.year_code },
+      filters: { year_code: defaultYearValue ?? prev.filters?.year_code },
       pagination: { current: 1, pageSize: 10 },
     }));
-    await fetchData({ year_code: defaultYear ?? tableParams.filters?.year_code });
+    await fetchData({ year_code: defaultYearValue ?? tableParams.filters?.year_code });
   };
 
   // ===== Dependent selects via onValuesChange (ใช้ทำ Step UI ด้วย) =====
@@ -189,6 +226,15 @@ export default function ReportActivityByType() {
           showNotification("error", "โหลด Territory ไม่สำเร็จ");
         }
       }
+    }
+
+    // Year changed -> sync เข้า tableParams.filters.year_code
+    if (Object.prototype.hasOwnProperty.call(changed, "year_code")) {
+      const newYear = changed.year_code;
+      setTableParams((prev) => ({
+        ...prev,
+        filters: { ...prev.filters, year_code: newYear },
+      }));
     }
   };
 
@@ -257,15 +303,24 @@ export default function ReportActivityByType() {
       : typeof v === "string" || typeof v === "number"
       ? String(v)
       : v.name ?? v.label ?? v.value ?? v.code ?? "";
+
   const buildFileName = () => {
     const f = tableParams?.filters || {};
     const v = formCustom.getFieldsValue();
     const ts = dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD_HHmm");
-    const yearText = toText(f.year_code) || dayjs().tz("Asia/Bangkok").format("YYYY");
+
+    const yearText =
+      toText(v.year_code) ||
+      toText(f.year_code) ||
+      dayjs().tz("Asia/Bangkok").format("YYYY");
+
     const areaLabel = (areaList.find((x) => x.value === String(v.area_id)) || {}).label;
     const salesLabel = (sales.find((x) => x.value === String(v.user_id)) || {}).label;
     const terrLabel = (territoryList.find((x) => x.value === String(v.territory)) || {}).label;
-    const monthLabel = v.month ? dayjs(v.month).format("YYYY-MM") : "";
+
+    const monthText = v.month ? String(v.month).padStart(2, "0") : "";
+    const monthLabel = yearText && monthText ? `${yearText}-${monthText}` : "";
+
     return [
       `Activity_Report_By_Type_${yearText}`,
       areaLabel && `Area_${areaLabel}`,
@@ -280,6 +335,21 @@ export default function ReportActivityByType() {
       .replace(/\s+/g, "_");
   };
 
+  const monthOptions = [
+    { value: "01", label: "January" },
+    { value: "02", label: "February" },
+    { value: "03", label: "March" },
+    { value: "04", label: "April" },
+    { value: "05", label: "May" },
+    { value: "06", label: "June" },
+    { value: "07", label: "July" },
+    { value: "08", label: "August" },
+    { value: "09", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" },
+  ];
+
   return (
     <MainLayout loading={loading}>
       <Title prefix="Activity Report By Type" />
@@ -289,7 +359,13 @@ export default function ReportActivityByType() {
         form={formCustom}
         layout="vertical"
         onValuesChange={onValuesChange}
-        initialValues={{ area_id: undefined, user_id: undefined, territory: undefined, month: null }}
+        initialValues={{
+          area_id: undefined,
+          user_id: undefined,
+          territory: undefined,
+          month: undefined,
+          year_code: undefined,
+        }}
       >
         <BoxPrimary className="m-1 mb-4">
           <Row gutter={16} align="middle">
@@ -324,9 +400,21 @@ export default function ReportActivityByType() {
               </Form.Item>
             </Col>
 
-            <Col md={6}>
+            {/* Month */}
+            <Col md={3}>
               <Form.Item label="Month" name="month">
-                <DatePicker picker="month" style={{ width: "100%" }} placeholder="Select month" />
+                <Select placeholder="Select month" options={monthOptions} allowClear />
+              </Form.Item>
+            </Col>
+
+            {/* Year (ดึงจาก master year) */}
+            <Col md={3}>
+              <Form.Item label="Year" name="year_code">
+                <Select
+                  placeholder="Select year"
+                  options={years}
+                  allowClear={false}
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -352,18 +440,28 @@ export default function ReportActivityByType() {
               getPayload={async () => {
                 const f = tableParams?.filters || {};
                 const v = formCustom.getFieldsValue();
+
+                const yearFromForm = v.year_code || f.year_code || defaultYear;
+                let documentDate = null;
+                if (v.month && yearFromForm) {
+                  documentDate = `${yearFromForm}-${v.month}-01`;
+                }
+
                 return {
                   keyword: f.keyword || "",
-                  year_code: toText(f.year_code) || undefined,
+                  year_code: yearFromForm || undefined,
                   area_id: v.area_id || null,
                   user_id: v.user_id || null,
                   dealer_id: v.dealer_id || null,
                   crop_id: v.crop_id || null,
-                  territory: v.territory || null,
-                  document_date: v.month || null,
+                  // ❗ export ก็ไม่กรอง territory เช่นกัน
+                  territory: null,
+                  document_date: documentDate,
                 };
               }}
-              requestData={(payload) => useServiceAPI.get(paths.pathReportActivityType, payload)}
+              requestData={(payload) =>
+                useServiceAPI.get(paths.pathReportActivityType, payload)
+              }
             />
           </div>
         </BoxPrimary>
