@@ -12,13 +12,13 @@ import useServiceAPI from "../../../services/corsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 
-export default function DealerList() {
+export default function FarmerList() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const navigate = useNavigate();
   const [tableLoading, setTableLoading] = useState(false);
   const [Status, setStatus] = useState([]);
-  const [Position, setPosition] = useState([]);
+  const [Position, setPosition] = useState([]); // ยังไม่ใช้ แต่คงไว้ตามโค้ดเดิม
   const { showMsg, showNotification, userInfo } = useContext(AuthContext);
   const [tableParams, setTableParams] = useState({
     pagination: {
@@ -30,51 +30,71 @@ export default function DealerList() {
     sortField: null,
   });
 
-
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDataDealer] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
   const [farmList, setFarmList] = useState([]);
-  const [farmerList, setFarmerList] = useState([]);
   const [filterValues, setFilterValues] = useState({});
 
+  // ---------- Load masters: Status, Sales, DealerAll, SubDealerAll, FarmerAll ----------
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [dataStatus, sales] = await Promise.all([
+        const [
+          dataStatus,
+          sales,
+          dealerRes,
+          subDealerRes,
+          farmerRes,
+        ] = await Promise.all([
           useServiceAPI.get(paths.pathMasterStatus, {
             status_type: "status",
           }),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathMasterDealerAll, {}),
+          useServiceAPI.get(paths.pathMasterSubDealerAll, {}),
+          useServiceAPI.get(paths.pathMasterFarmer, {}),   // <-- ดึง Farmer ทั้งหมด
         ]);
 
-        const Status = [];
-        dataStatus.data.map((data, index) => {
-          Status.push({
-            id: data.code,
-            name: data.name,
-          });
-        });
+        const StatusArr = (dataStatus.data || []).map((data) => ({
+          id: data.code,
+          name: data.name,
+        }));
+        setStatus(StatusArr);
 
-        setStatus(Status);
-        setSaleList(sales.data);
+        setSaleList(sales.data || []);
+        setDataDealer(dealerRes.data || []);
 
-        // setPosition(producttype.data);
-        // setRoles(roles.data);
+        const formattedSubDealer = (subDealerRes.data || []).map((item) => ({
+          name: item.sub_dealer_name,
+          id: item.sub_dealer_id,
+        }));
+        setSubDealerList(formattedSubDealer);
+
+        // 👇 สำคัญ: map ให้ name = farmer_name
+        const formattedFarmers = (farmerRes.data || []).map((item) => ({
+          id: item.farmer_id,
+          name: item.farmer_name || item.farmer_id, // กันกรณีชื่อว่าง
+        }));
+        setFarmList(formattedFarmers);
+
       } catch (error) {
         console.log(error);
-
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
         setLoading(false);
       }
     };
+
     getMaster();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ---------- Fetch data ----------
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     tableParams.pagination.current,
     tableParams.pagination.pageSize,
@@ -83,153 +103,48 @@ export default function DealerList() {
     JSON.stringify(tableParams.filters),
   ]);
 
-  useEffect(() => {
-    console.log('getDealersBySale');
-    const sale = filterValues.sale;
-
-    if (sale) {
-      const userId = typeof sale === "object" && sale.value ? sale.value : sale;
-
-      const getDealersBySale = async () => {
-        try {
-          const response = await useServiceAPI.get(
-            paths.pathMasterDealerDropdown,
-            { user_id: userId }
-          );
-          setDataDealer(response.data);
-          setSubDealerList([]); // reset sub-dealer list
-        } catch (error) {
-          showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer");
-        }
-      };
-
-      getDealersBySale();
-    }
-  }, [filterValues.sale]);
-
-  useEffect(() => {
-    console.log('getSubDealersBySale');
-    const sale = filterValues.sale;
-    const dealer = filterValues.dealers;
-
-    if (dealer) {
-      const userId =
-        typeof sale === "object" && sale?.value ? sale.value : sale;
-      const dealerId =
-        typeof dealer === "object" && dealer.value ? dealer.value : dealer;
-
-      const getSubDealersBySale = async () => {
-        try {
-          const response = await useServiceAPI.get(
-            paths.pathMasterSubDealerAll,
-            {
-              user_id: userId,
-              dealer_id: dealerId,
-            }
-          );
-
-          const formattedSubDealer = response.data.map((item) => ({
-            name: item.sub_dealer_name,
-            id: item.sub_dealer_id,
-          }));
-
-          setSubDealerList(formattedSubDealer);
-        } catch (error) {
-          showMsg(
-            "error",
-            error.message || "เกิดข้อผิดพลาดในการโหลด Sub-dealer"
-          );
-        }
-      };
-
-      getSubDealersBySale();
-    }
-  }, [filterValues.dealers]);
-
-  useEffect(() => {
-    const shop = filterValues.shop;
-
-    if (shop) {
-      console.log('getFarmerByShop');
-
-      const getFarmerByShop = async () => {
-        try {
-          const response = await useServiceAPI.get(paths.pathMasterFarmer, {
-            sub_dealer_id: shop,
-          });
-
-          const formattedFarmers = response.data.map((item) => ({
-            name: item.farmer_name,
-            id: item.farmer_id,
-          }));
-
-          setFarmList(formattedFarmers); // ✅ เซ็ตไปยังฟิลด์ Farm ไม่ใช่ SubDealer
-        } catch (error) {
-          showMsg(
-            "error",
-            error.message || "เกิดข้อผิดพลาดในการโหลด Farmers"
-          );
-        }
-      };
-
-      getFarmerByShop();
-    }
-  }, [filterValues.shop]);
-
-  useEffect(() => {
-    const getMaster = async () => {
-      setLoading(true);
-      try {
-        const [dataStatus, sales] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterStatus, {
-            status_type: "status",
-          }),
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
-        ]);
-
-        const Status = [];
-        dataStatus.data.map((data, index) => {
-          Status.push({
-            id: data.code,
-            name: data.name,
-          });
-        });
-
-        setStatus(Status);
-        setSaleList(sales.data);
-
-        // setPosition(producttype.data);
-        // setRoles(roles.data);
-      } catch (error) {
-        console.log(error);
-
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
-    getMaster();
-  }, []);
-
   const fetchData = async () => {
-
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
-    console.log('filterValues : ', filterValues)
+    console.log("filterValues : ", filterValues);
+
+    // ✅ แปลงค่าจาก Filter เผื่อเป็น object { value, label }
+    const sale =
+      typeof filterValues.sale === "object" && filterValues.sale?.value
+        ? filterValues.sale.value
+        : filterValues.sale;
+
+    const dealer =
+      typeof filterValues.dealers === "object" && filterValues.dealers?.value
+        ? filterValues.dealers.value
+        : filterValues.dealers;
+
+    const shop =
+      typeof filterValues.shop === "object" && filterValues.shop?.value
+        ? filterValues.shop.value
+        : filterValues.shop;
+
+    const farmer =
+      typeof filterValues.farmers === "object" && filterValues.farmers?.value
+        ? filterValues.farmers.value
+        : filterValues.farmers;
+
     const requestData = {
       keyword: filters.keyword || "",
       province: filters.province || "",
       use_flag: filters.use_flag || "",
-      sale_id: filterValues.sale || "",
-      dealer_id: filterValues.dealers || "",
-      sub_dealer_id: filterValues.shop || "",
-      farmer_id: filterValues.farmers || "",
+      sale_id: sale || "",
+      dealer_id: dealer || "",
+      sub_dealer_id: shop || "",
+      farmer_id: farmer || "",          // ✅ ส่งเป็น id ตามเดิม
       page_length: current,
       page_size: pageSize,
       user_id: userInfo.id,
     };
-    console.log('requestData : ', requestData)
+
+    console.log("requestData : ", requestData);
+
     try {
       const response = await useServiceAPI.get(
         paths.pathCustomerFarmers,
@@ -271,9 +186,9 @@ export default function DealerList() {
                               mod: actionItem.action,
                             },
                           });
-                        } else if (actionItem.action.toLowerCase() === "view") {
-                          console.log(2222222222222222);
-
+                        } else if (
+                          actionItem.action.toLowerCase() === "view"
+                        ) {
                           navigate("/customer/farmers/create", {
                             state: {
                               id: data.id,
@@ -304,13 +219,13 @@ export default function DealerList() {
         }));
 
         setDataSource(newDataSource);
-        setTableParams({
-          ...tableParams,
+        setTableParams((prev) => ({
+          ...prev,
           pagination: {
-            ...tableParams.pagination,
+            ...prev.pagination,
             total: records_filtered,
           },
-        });
+        }));
       }
     } catch (error) {
       console.error(error);
@@ -349,17 +264,8 @@ export default function DealerList() {
       label: "Farmer",
       placeholder: "All",
       options: farmList,
+      moderef: true,
     },
-    // {
-    //   key: "keyword",
-    //   type: "text",
-    //   label: "Keyword",
-    // },
-    // {
-    //   key: "province",
-    //   type: "text",
-    //   label: "Province",
-    // },
     {
       key: "use_flag",
       label: "Status",
@@ -368,27 +274,33 @@ export default function DealerList() {
     },
   ];
 
-  const handleSearch = (filters) => {
-    setTableParams({
-      ...tableParams,
+  const handleSearch = (filtersFromUI) => {
+    setTableParams((prev) => ({
+      ...prev,
       pagination: {
-        ...tableParams.pagination,
+        ...prev.pagination,
         current: 1,
         pageSize: 10,
       },
       filters: {
-        ...filters,
+        ...filtersFromUI,
         page_length: 1,
         page_size: 10,
       },
-    });
+    }));
+    setFilterValues(filtersFromUI);
   };
 
   const handleClear = () => {
-    setTableParams({
-      ...tableParams,
+    setFilterValues({});
+    setTableParams((prev) => ({
+      ...prev,
       filters: {},
-    });
+      pagination: {
+        ...prev.pagination,
+        current: 1,
+      },
+    }));
   };
 
   const header = [
@@ -399,8 +311,12 @@ export default function DealerList() {
       dataIndex: "dealerName",
       align: "left",
     },
-    // { title: "Code", width: 100, dataIndex: "code", align: "left" },
-    { title: "Sub Dealer Name", width: 200, dataIndex: "sub_dealer_name", align: "left" },
+    {
+      title: "Sub Dealer Name",
+      width: 200,
+      dataIndex: "sub_dealer_name",
+      align: "left",
+    },
     { title: "Farmer Name", width: 200, dataIndex: "Name", align: "left" },
     {
       title: "Contact Name",
@@ -415,29 +331,24 @@ export default function DealerList() {
       align: "center",
     },
     { title: "Address", width: 300, dataIndex: "address", align: "left" },
-    // {
-    //   title: "Group Code",
-    //   width: 150,
-    //   dataIndex: "groupCode",
-    //   align: "center",
-    // },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
   const handleTableChange = (pagination, filters, sorter) => {
-    setTableParams({
+    setTableParams((prev) => ({
+      ...prev,
       pagination,
-      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+      filters: prev.filters,
       sortOrder: sorter.order === "descend" ? "desc" : "asc",
       sortField: sorter.field,
-    });
+    }));
   };
 
   const handleDeleteItem = async (record) => {
     try {
       const requestData = {
-        id: record, // ส่ง ID ที่ต้องการลบ
+        id: record,
       };
 
       const response = await useServiceAPI.delete(
@@ -447,7 +358,6 @@ export default function DealerList() {
 
       if (response.status === 200) {
         fetchData();
-        // showMsg("success", "Record deleted successfully.");
         showNotification("success", response.message, response.message_line);
       } else {
         console.error("Failed to delete record:", response.message);
@@ -455,7 +365,6 @@ export default function DealerList() {
       }
     } catch (error) {
       console.error("Error deleting record:", error);
-
       showNotification("error", error.message, error.message_line);
     }
   };

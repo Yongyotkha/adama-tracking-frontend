@@ -130,36 +130,68 @@ export default function ActivityPlanList() {
 
       if (response.status === 200) {
         const { data } = response;
+        console.log("data summary : ", data.activity_type);
 
-        // Prepare dataSourceSummary
-        const newDataSource = data?.activity_type.map((activity, index) => {
-          // Create a row object with type and qty for each month
-          const monthData = activity.data_items.reduce((acc, item) => {
-            acc[`month_${item.month_id}`] = item.qty || "-";
-            return acc;
-          }, {});
-          return {
+        // ---------- สร้าง rows ของแต่ละ activity (แสดงเป็น QTY เหมือนเดิม) ----------
+        const newDataSource = data.activity_type.map((activity, index) => {
+          const row = {
             key: index,
             type: activity.activity_type_name,
-            ...monthData,
           };
+
+          let totalQty = 0;
+
+          activity.data_items.forEach((item) => {
+            const key = `month_${item.month_id}`;
+            const value = item.qty || 0;
+            row[key] = value;
+            totalQty += value;
+          });
+
+          row.total_qty = totalQty; // total qty ทั้งปีของ activity นี้
+
+          return row;
         });
 
-        const totalRow = {
-          key: "total",
-          type: "Total",
-        };
+        // ---------- สร้างแถว TOTAL ----------
+        const totalRow = { key: "total", type: "Total (Value)" };
 
-        // คำนวณยอดรวมแต่ละเดือน
-        for (let i = 1; i <= 12; i++) {
-          const monthKey = `month_${i}`;
-          totalRow[monthKey] = newDataSource.reduce((sum, row) => {
-            const value = row[monthKey];
-            return sum + (typeof value === "number" ? value : 0);
-          }, 0);
+        let totalYearValue = 0; // ใช้เก็บยอดรวมทั้งปี (ตัวเลข)
+
+        // คำนวณมูลค่าต่อเดือน
+        for (let month = 1; month <= 12; month++) {
+          let monthTotalValue = 0;
+
+          data.activity_type.forEach((activity) => {
+            // แปลง unit_convert_value เป็นตัวเลข
+            const unitValue =
+              parseFloat(
+                String(activity.unit_convert_value || "0").replace(/,/g, "")
+              ) || 0;
+
+            // หา data ของเดือนนั้นใน activity นี้
+            const monthItem = activity.data_items.find(
+              (item) => Number(item.month_id) === month
+            );
+
+            const qty = monthItem?.qty || 0;
+
+            monthTotalValue += unitValue * qty;
+          });
+
+          // สะสมยอดทั้งปี (เป็นตัวเลข)
+          totalYearValue += monthTotalValue;
+
+          // เก็บลง row โดย format เป็น 1,000,000
+          totalRow[`month_${month}`] = monthTotalValue.toLocaleString("en-US");
         }
 
+        // รวมทั้งปีแล้ว format เช่นกัน
+        totalRow.total_qty = totalYearValue.toLocaleString("en-US");
+
+        // push ต่อท้ายเหมือนเดิม
         newDataSource.push(totalRow);
+
 
         setDataSourceSummary(newDataSource);
         setDataSummary(data);
@@ -170,6 +202,7 @@ export default function ActivityPlanList() {
       setTableLoading(false);
     }
   };
+
 
   const filters = [
     {
@@ -240,6 +273,15 @@ export default function ActivityPlanList() {
         align: "center",
       }))
       : []),
+    // 👉 เพิ่มตรงนี้ (Total QTY)
+    {
+      title: "Total QTY",
+      dataIndex: "total_qty",
+      key: "total_qty",
+      width: 120,
+      align: "center",
+    },
+
   ];
 
   const fetchData = async () => {

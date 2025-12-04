@@ -171,7 +171,7 @@ export default function ReportStock() {
       <Table.Summary fixed>
         <Table.Summary.Row className="bg-[#978B87]">
           <Table.Summary.Cell index={0}>
-            <b>Total</b>
+            <b>Total (THB)</b>
           </Table.Summary.Cell>
           {keys.map((k, i) => (
             <Table.Summary.Cell key={k} index={i + 1} align="right">
