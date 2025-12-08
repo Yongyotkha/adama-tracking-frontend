@@ -58,6 +58,8 @@ const pickLatestYearCode = (yearsArr) => {
 export default function ReportSaleByQuarter() {
   const [loading, setLoading] = useState(false);
   const [years, setYears] = useState([]); // [{ value, label }]
+  const [defaultYear, setDefaultYear] = useState(null);
+
   const [areaList, setAreaList] = useState([]);
   const [sales, setSales] = useState([]);
   const [dealers, setDealers] = useState([]);
@@ -145,7 +147,10 @@ export default function ReportSaleByQuarter() {
                     : 0
                 }
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
               />
@@ -179,7 +184,10 @@ export default function ReportSaleByQuarter() {
                     : 0
                 }
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
               />
@@ -213,7 +221,10 @@ export default function ReportSaleByQuarter() {
                     : 0
                 }
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
               />
@@ -247,7 +258,10 @@ export default function ReportSaleByQuarter() {
                     : 0
                 }
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
               />
@@ -281,7 +295,10 @@ export default function ReportSaleByQuarter() {
                     : 0
                 }
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
               />
@@ -315,7 +332,10 @@ export default function ReportSaleByQuarter() {
                     : 0
                 }
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
               />
@@ -368,7 +388,7 @@ export default function ReportSaleByQuarter() {
           useServiceAPI.get(paths.pathMasterAreas),
         ]);
 
-        // map Year → options สำหรับ Select
+        // map Year → options
         const yearRaw = Array.isArray(yearsRes?.data) ? yearsRes.data : [];
         const yearOptions = yearRaw.map((y) => {
           const yc = getYearCodeFrom(y);
@@ -386,18 +406,22 @@ export default function ReportSaleByQuarter() {
           (areasRes.data || []).map((x) => ({ value: x.id, label: x.name }))
         );
 
-        // เริ่มจากปีล่าสุด เก็บเป็น string เลย
+        // default = last year
         if (yearOptions.length > 0) {
           const latestYear = pickLatestYearCode(yearOptions);
-          setTableParams((prev) => ({
-            ...prev,
-            filters: { ...prev.filters, year_code: latestYear },
-          }));
-          // set default ให้ Year Select ด้วย
+          setDefaultYear(latestYear);
           formCustom.setFieldsValue({ year_code: latestYear });
+
+          // initial fetch
+          await fetchData({
+            year_code: latestYear,
+            user_id: "",
+            dealer_id: "",
+            product_name: "",
+            platform: "web",
+          });
         }
 
-        // ล้าง sales/dealers ตอนเริ่ม
         setSales([]);
         setDealers([]);
       } catch (error) {
@@ -421,7 +445,9 @@ export default function ReportSaleByQuarter() {
     }
     (async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathMasterSaleReport, { area_id: areaId });
+        const res = await useServiceAPI.get(paths.pathMasterSaleReport, {
+          area_id: areaId,
+        });
         const list = Array.isArray(res?.data) ? res.data : [];
         const saleOptions = list.map((item) => ({
           value: Number(item.id),
@@ -448,7 +474,9 @@ export default function ReportSaleByQuarter() {
     }
     (async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: saleId });
+        const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
+          user_id: saleId,
+        });
         const list = Array.isArray(res?.data) ? res.data : [];
         const dealerOptions = list.map((item) => ({
           value: Number(item.id),
@@ -464,18 +492,17 @@ export default function ReportSaleByQuarter() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formCustom.getFieldValue("sale_id")]);
 
-  // โหลดข้อมูลเมื่อปี (filters) พร้อม
-  useEffect(() => {
-    if (getYearCodeFrom(tableParams?.filters?.year_code)) fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(tableParams.filters)]);
+  // ❌ ไม่ auto-fetch ตาม year อีกต่อไป → ใช้เฉพาะ Search / Clear
 
   const handleSearch = async () => {
     const values = await formCustom.validateFields().catch(() => ({}));
+    const yearFromForm =
+      getYearCodeFrom(values?.year_code) ||
+      defaultYear ||
+      dayjs().tz("Asia/Bangkok").format("YYYY");
+
     const payload = {
-      year_code:
-        getYearCodeFrom(tableParams.filters?.year_code) ||
-        dayjs().tz("Asia/Bangkok").format("YYYY"),
+      year_code: yearFromForm,
       user_id: values?.sale_id ?? "",
       dealer_id: values?.dealer_id ?? "",
       product_name: values?.product_name ?? "",
@@ -488,10 +515,13 @@ export default function ReportSaleByQuarter() {
     setTableLoading(true);
     try {
       const values = (await formCustom.validateFields().catch(() => ({}))) || {};
+      const yearFromForm =
+        getYearCodeFrom(values?.year_code) ||
+        defaultYear ||
+        dayjs().tz("Asia/Bangkok").format("YYYY");
+
       const fallbackPayload = {
-        year_code:
-          getYearCodeFrom(tableParams.filters?.year_code) ||
-          dayjs().tz("Asia/Bangkok").format("YYYY"),
+        year_code: yearFromForm,
         user_id: values?.sale_id ?? "",
         dealer_id: values?.dealer_id ?? "",
         product_name: values?.product_name ?? "",
@@ -581,24 +611,18 @@ export default function ReportSaleByQuarter() {
                 </Form.Item>
               </Col>
 
-              {/* Year filter จาก master year */}
+              {/* Year filter จาก master year (ไม่มี onChange → ใช้ตอน Search/Clear เท่านั้น) */}
               <Col md={6}>
                 <Form.Item label="Year" name="year_code">
                   <Select
                     placeholder="Select Year"
                     options={years}
                     allowClear={false}
-                    onChange={(value) => {
-                      setTableParams((prev) => ({
-                        ...prev,
-                        filters: { ...prev.filters, year_code: value },
-                      }));
-                    }}
                   />
                 </Form.Item>
               </Col>
 
-              {/* product hidden (ใช้ใน payload) */}
+              {/* ซ่อน product name ถ้าต้องการใช้เป็น filter เพิ่ม */}
               <Form.Item name="product_name" hidden>
                 <Select options={products} />
               </Form.Item>
@@ -614,22 +638,38 @@ export default function ReportSaleByQuarter() {
               />
               <DynamicButton
                 onClick={async () => {
-                  const currentYear =
-                    getYearCodeFrom(tableParams.filters?.year_code) ||
-                    pickLatestYearCode(years);
-
+                  // Clear filters + reset year to last year
                   formCustom.resetFields([
                     "area_id",
                     "sale_id",
                     "product_name",
                     "dealer_id",
+                    "year_code",
                   ]);
-                  if (currentYear) {
-                    formCustom.setFieldsValue({ year_code: currentYear });
-                  }
                   setSales([]);
                   setDealers([]);
-                  fetchData();
+
+                  const yearToUse =
+                    defaultYear ||
+                    pickLatestYearCode(years) ||
+                    dayjs().tz("Asia/Bangkok").format("YYYY");
+
+                  if (yearToUse) {
+                    formCustom.setFieldsValue({ year_code: yearToUse });
+                  }
+
+                  setTableParams((prev) => ({
+                    ...prev,
+                    pagination: { ...prev.pagination, current: 1 },
+                  }));
+
+                  await fetchData({
+                    year_code: yearToUse,
+                    user_id: "",
+                    dealer_id: "",
+                    product_name: "",
+                    platform: "web",
+                  });
                 }}
                 name="btn-clear"
                 text="Clear"
@@ -642,11 +682,15 @@ export default function ReportSaleByQuarter() {
                 leftTopTitle="Quarter"
                 fileName={`Sales_Report_By_Quarter`}
                 getPayload={async () => {
-                  const values = await formCustom.validateFields().catch(() => ({}));
+                  const values = await formCustom
+                    .validateFields()
+                    .catch(() => ({}));
+                  const yearFromForm =
+                    getYearCodeFrom(values?.year_code) ||
+                    defaultYear ||
+                    dayjs().tz("Asia/Bangkok").format("YYYY");
                   return {
-                    year_code:
-                      getYearCodeFrom(tableParams.filters?.year_code) ||
-                      dayjs().tz("Asia/Bangkok").format("YYYY"),
+                    year_code: yearFromForm,
                     user_id: values?.sale_id ?? "",
                     dealer_id: values?.dealer_id ?? "",
                     product_name: values?.product_name ?? "",
@@ -654,7 +698,10 @@ export default function ReportSaleByQuarter() {
                   };
                 }}
                 requestData={(payload) =>
-                  useServiceAPI.get(paths.pathReportRollingWorkPlanQuarter, payload)
+                  useServiceAPI.get(
+                    paths.pathReportRollingWorkPlanQuarter,
+                    payload
+                  )
                 }
               />
             </div>
@@ -674,7 +721,9 @@ export default function ReportSaleByQuarter() {
               return (
                 <Table.Summary fixed>
                   <Table.Summary.Row className="bg-[#978B87]">
-                    <Table.Summary.Cell index={0}>Total (THB)</Table.Summary.Cell>
+                    <Table.Summary.Cell index={0}>
+                      Total (THB)
+                    </Table.Summary.Cell>
                     {footerData.map((q, index) => (
                       <React.Fragment key={`${q.id}_${index}`}>
                         <Table.Summary.Cell align="center">

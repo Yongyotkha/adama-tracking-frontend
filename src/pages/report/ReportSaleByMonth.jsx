@@ -70,6 +70,8 @@ const pickLatestYearCode = (yearsArr) => {
 export default function ReportSaleByMonth() {
   const [loading, setLoading] = useState(false);
   const [years, setYears] = useState([]); // [{ value, label }]
+  const [defaultYear, setDefaultYear] = useState(null); // ✅ ใช้จำ last year จาก master
+
   const [sales, setSales] = useState([]);
   const [products, setProducts] = useState([]);
   const [dealers, setDealers] = useState([]);
@@ -77,7 +79,7 @@ export default function ReportSaleByMonth() {
   const [defaultOption, setDefaultOption] = useState();
   const [dataSource, setDataSource] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
-  const { showNotification, formatNumber } = useContext(AuthContext);
+  const { showNotification } = useContext(AuthContext);
   const [areaList, setAreaList] = useState([]);
   const [formCustom] = Form.useForm();
 
@@ -358,6 +360,7 @@ export default function ReportSaleByMonth() {
     sortField: null,
   });
 
+  // โหลด master (รวม year)
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
@@ -392,13 +395,19 @@ export default function ReportSaleByMonth() {
         setSales([]);
         setDealers([]);
 
+        // ตั้งปีเริ่มต้นเป็นปีล่าสุด และ fetch data รอบแรก
         if (yearOptions.length > 0) {
           const latestYearCode = pickLatestYearCode(yearOptions);
-          setTableParams((prev) => ({
-            ...prev,
-            filters: { ...prev.filters, year_code: latestYearCode },
-          }));
+          setDefaultYear(latestYearCode); // ✅ เก็บ last year ไว้ใช้ตอน Clear
           formCustom.setFieldsValue({ year_code: latestYearCode });
+
+          await fetchData({
+            year_code: latestYearCode,
+            user_id: "",
+            dealer_id: "",
+            product_name: "",
+            platform: "web",
+          });
         }
       } catch (error) {
         showNotification("error", error.message || "เกิดข้อผิดพลาด");
@@ -470,14 +479,6 @@ export default function ReportSaleByMonth() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formCustom.getFieldValue("sale_id")]);
 
-  // โหลดข้อมูลเมื่อ year_code ใน filters พร้อม
-  useEffect(() => {
-    if (getYearCodeFrom(tableParams.filters?.year_code)) {
-      fetchData();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(tableParams.filters)]);
-
   // defaultOption → permission_id (ถ้ามีใช้)
   useEffect(() => {
     setTableParams((prev) => ({
@@ -493,11 +494,16 @@ export default function ReportSaleByMonth() {
     }));
   }, [defaultOption]);
 
+  // ---- CLICK SEARCH → ใช้ year จาก form เท่านั้น ----
   const handleSearch = async () => {
     const values = await formCustom.validateFields().catch(() => ({}));
-    const year = tableParams.filters?.year_code;
+    const yearFromForm =
+      getYearCodeFrom(values?.year_code) ||
+      defaultYear ||
+      dayjs().tz("Asia/Bangkok").format("YYYY");
+
     const payload = {
-      year_code: getYearCodeFrom(year),
+      year_code: yearFromForm,
       user_id: values?.sale_id ?? "",
       dealer_id: values?.dealer_id ?? "",
       product_name: values?.product_name ?? "",
@@ -511,11 +517,13 @@ export default function ReportSaleByMonth() {
     const { current, pageSize } = tableParams.pagination;
 
     const values = (await formCustom.validateFields().catch(() => ({}))) || {};
+    const yearFromForm =
+      getYearCodeFrom(values?.year_code) ||
+      defaultYear ||
+      dayjs().tz("Asia/Bangkok").format("YYYY");
 
     const fallbackPayload = {
-      year_code:
-        getYearCodeFrom(tableParams.filters?.year_code) ||
-        dayjs().tz("Asia/Bangkok").format("YYYY"),
+      year_code: yearFromForm,
       user_id: values?.sale_id ?? "",
       dealer_id: values?.dealer_id ?? "",
       product_name: values?.product_name ?? "",
@@ -675,24 +683,18 @@ export default function ReportSaleByMonth() {
                 </Form.Item>
               </Col>
 
-              {/* Year filter */}
+              {/* Year: ไม่มี onChange → ใช้ตอนกด Search / Clear เท่านั้น */}
               <Col md={6}>
                 <Form.Item label="Year" name="year_code">
                   <Select
                     placeholder="Select Year"
                     options={years}
                     allowClear={false}
-                    onChange={(value) => {
-                      setTableParams((prev) => ({
-                        ...prev,
-                        filters: { ...prev.filters, year_code: value },
-                      }));
-                    }}
                   />
                 </Form.Item>
               </Col>
 
-              {/* product hidden (ใช้ใน payload) */}
+              {/* product hidden (ใช้ใน payload ถ้าต้องใช้) */}
               <Form.Item name="product_name" hidden>
                 <Select options={products} />
               </Form.Item>
@@ -706,21 +708,42 @@ export default function ReportSaleByMonth() {
                 iconSrc="/img/icons/search.png"
                 className="text-white px-4 py-3 rounded-[4px] bg-[#7DB41E]"
               />
+
               <DynamicButton
                 onClick={async () => {
+                  // ✅ Clear ทุก filter + รีเซ็ต year กลับไป defaultYear (last year from master)
                   formCustom.resetFields([
                     "area_id",
                     "sale_id",
                     "product_name",
                     "dealer_id",
+                    "year_code",
                   ]);
                   setSales([]);
                   setDealers([]);
+
+                  // ปีที่จะใช้หลัง Clear = defaultYear (last year) ถ้าไม่มีค่อย fallback จาก years / current year
+                  const yearToUse =
+                    defaultYear ||
+                    pickLatestYearCode(years) ||
+                    dayjs().tz("Asia/Bangkok").format("YYYY");
+
+                  if (yearToUse) {
+                    formCustom.setFieldsValue({ year_code: yearToUse });
+                  }
+
                   setTableParams((prev) => ({
                     ...prev,
                     pagination: { ...prev.pagination, current: 1 },
                   }));
-                  fetchData();
+
+                  // ✅ refresh data ด้วย last year เสมอ
+                  await fetchData({
+                    year_code: yearToUse,
+                    user_id: "",
+                    dealer_id: "",
+                    product_name: "",
+                  });
                 }}
                 name="btn-clear"
                 text="Clear"
@@ -733,11 +756,12 @@ export default function ReportSaleByMonth() {
                 fileName={buildMonthlyReportFileName()}
                 getPayload={async () => {
                   const values = await formCustom.validateFields().catch(() => ({}));
-                  const year =
-                    getYearCodeFrom(tableParams.filters?.year_code) ||
+                  const yearFromForm =
+                    getYearCodeFrom(values?.year_code) ||
+                    defaultYear ||
                     dayjs().tz("Asia/Bangkok").format("YYYY");
                   return {
-                    year_code: String(year),
+                    year_code: String(yearFromForm),
                     user_id: values?.sale_id ?? "",
                     dealer_id: values?.dealer_id ?? "",
                     product_name: values?.product_name ?? "",
