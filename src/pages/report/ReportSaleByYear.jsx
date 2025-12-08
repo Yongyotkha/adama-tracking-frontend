@@ -57,7 +57,7 @@ const pickLatestYearCode = (yearsArr) => {
 
 export default function ReportSaleByYear() {
   const [loading, setLoading] = useState(false);
-  const [years, setYears] = useState([]);
+  const [years, setYears] = useState([]); // [{ value, label }]
   const [areaList, setAreaList] = useState([]);
   const [sales, setSales] = useState([]);
   const [dealers, setDealers] = useState([]);
@@ -374,8 +374,17 @@ export default function ReportSaleByYear() {
           useServiceAPI.get(paths.pathMasterAreas),
         ]);
 
-        const yearList = yearsRes.data || [];
-        setYears(yearList);
+        // ===== Year master: map เป็น options สำหรับ Year Select =====
+        const yearRaw = Array.isArray(yearsRes?.data) ? yearsRes.data : [];
+        const yearOptions = yearRaw.map((y) => {
+          const yc = getYearCodeFrom(y);
+          return {
+            value: yc, // ex. "2025"
+            label: yc, // ex. "2025"
+          };
+        });
+        setYears(yearOptions);
+
         setProducts(
           (productsRes?.data || []).map((x) => ({
             value: x.product_name,
@@ -385,12 +394,14 @@ export default function ReportSaleByYear() {
         setAreaList((areasRes?.data || []).map((x) => ({ value: x.id, label: x.name })));
 
         // ตั้งปีเริ่มต้น = ปีล่าสุด (เก็บเป็น string)
-        if (yearList.length > 0) {
-          const latestYear = pickLatestYearCode(yearList);
+        if (yearOptions.length > 0) {
+          const latestYear = pickLatestYearCode(yearOptions);
           setTableParams((prev) => ({
             ...prev,
-            filters: { year_code: latestYear },
+            filters: { ...prev.filters, year_code: latestYear },
           }));
+          // ให้ Year Select แสดงค่าปีล่าสุดด้วย
+          formCustom.setFieldsValue({ year_code: latestYear });
         }
 
         // เคลียร์ sale/dealer ตอนเริ่ม
@@ -551,7 +562,6 @@ export default function ReportSaleByYear() {
     return `${parts.join("_")}_${ts}`;
   };
 
-
   // ---------------- UI
   return (
     <>
@@ -602,11 +612,29 @@ export default function ReportSaleByYear() {
                 </Form.Item>
               </Col>
 
-              <Col md={6} className="hidden">
-                <Form.Item label="Product" name="product_name">
-                  <Select placeholder="Select Product" options={products} allowClear />
+              {/* Year filter จาก master year */}
+              <Col md={6}>
+                <Form.Item label="Year" name="year_code">
+                  <Select
+                    placeholder="Select Year"
+                    options={years}
+                    allowClear={false}
+                    onChange={(value) => {
+                      // sync เข้า tableParams.filters.year_code → useEffect เดิมจะ fetchData ให้อัตโนมัติ
+                      setTableParams((prev) => ({
+                        ...prev,
+                        filters: { ...prev.filters, year_code: value },
+                      }));
+                    }}
+                  />
                 </Form.Item>
               </Col>
+
+              {/* ถ้าต้องการซ่อน product ไว้ใช้งานภายใน สามารถใช้ Form.Item hidden แยกแบบนี้ได้
+                  และยังใช้ buildPayload ได้เหมือนเดิม */}
+              <Form.Item name="product_name" hidden>
+                <Select options={products} />
+              </Form.Item>
             </Row>
 
             <div className="flex justify-end gap-3 px-4 pt-5">
@@ -619,9 +647,19 @@ export default function ReportSaleByYear() {
               />
               <DynamicButton
                 onClick={async () => {
+                  const currentYear =
+                    getYearCodeFrom(tableParams.filters?.year_code) ||
+                    pickLatestYearCode(years);
+
                   formCustom.resetFields(["area_id", "sale_id", "dealer_id", "product_name"]);
+
+                  if (currentYear) {
+                    formCustom.setFieldsValue({ year_code: currentYear });
+                  }
+
                   setSales([]);
                   setDealers([]);
+                  // reload ด้วยปีเดิม (tableParams ยังถือ year_code อยู่แล้ว)
                   fetchData();
                 }}
                 name="btn-clear"
@@ -638,7 +676,6 @@ export default function ReportSaleByYear() {
                   useServiceAPI.get(paths.pathReportRollingWorkPlanYear, payload)
                 }
               />
-
             </div>
           </BoxPrimary>
         </Form>
@@ -649,7 +686,7 @@ export default function ReportSaleByYear() {
             dataSource={dataSource}
             pagination={false}
             loading={tableLoading}
-            onChange={() => { }}
+            onChange={() => {}}
             footer={() => {
               const footerData = calculateFooterSums();
               return (
@@ -664,7 +701,10 @@ export default function ReportSaleByYear() {
                             readOnly
                             value={period.workplan_qty}
                             formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `${parseInt(value || 0, 10)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
                             }
                           />
                         </Table.Summary.Cell>
@@ -674,7 +714,10 @@ export default function ReportSaleByYear() {
                             readOnly
                             value={period.rolling_qty}
                             formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `${parseInt(value || 0, 10)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
                             }
                           />
                         </Table.Summary.Cell>
@@ -684,7 +727,10 @@ export default function ReportSaleByYear() {
                             readOnly
                             value={period.actual_qty}
                             formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `${parseInt(value || 0, 10)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
                             }
                           />
                         </Table.Summary.Cell>
@@ -694,7 +740,10 @@ export default function ReportSaleByYear() {
                             readOnly
                             value={period.workplan_value}
                             formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `${parseInt(value || 0, 10)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
                             }
                           />
                         </Table.Summary.Cell>
@@ -704,7 +753,10 @@ export default function ReportSaleByYear() {
                             readOnly
                             value={period.rolling_value}
                             formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `${parseInt(value || 0, 10)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
                             }
                           />
                         </Table.Summary.Cell>
@@ -714,7 +766,10 @@ export default function ReportSaleByYear() {
                             readOnly
                             value={period.actual_value}
                             formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `${parseInt(value || 0, 10)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
                             }
                           />
                         </Table.Summary.Cell>

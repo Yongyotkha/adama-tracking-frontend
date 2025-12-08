@@ -1,3 +1,4 @@
+// src/pages/report/ReportSaleByMonth.jsx
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import Filter from "../../components/filter/Filter";
@@ -22,9 +23,53 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+// ===== helpers =====
+const normalize = (s) =>
+  (s ?? "")
+    .toString()
+    .normalize("NFKC")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+
+const toNum = (v) => {
+  if (v == null || v === "") return 0;
+  const n = Number(String(v).replace(/,/g, ""));
+  return Number.isFinite(n) ? n : 0;
+};
+
+// ดึง year_code เป็น string เสมอ (รองรับทั้ง object/string/number)
+const getYearCodeFrom = (y) => {
+  if (y == null) return "";
+  if (typeof y === "string" || typeof y === "number") return String(y);
+  return (
+    y.year_code ??
+    y.code ??
+    y.value ??
+    y.label ??
+    y.name ??
+    y.year ??
+    ""
+  );
+};
+
+// หา “ปีล่าสุด” จากลิสต์ปี
+const pickLatestYearCode = (yearsArr) => {
+  if (!Array.isArray(yearsArr) || yearsArr.length === 0) {
+    return dayjs().tz("Asia/Bangkok").format("YYYY");
+  }
+  let best = yearsArr[0];
+  for (const cur of yearsArr) {
+    const b = Number(getYearCodeFrom(best)) || 0;
+    const c = Number(getYearCodeFrom(cur)) || 0;
+    if (c > b) best = cur;
+  }
+  return getYearCodeFrom(best);
+};
+
 export default function ReportSaleByMonth() {
   const [loading, setLoading] = useState(false);
-  const [years, setYears] = useState([]);
+  const [years, setYears] = useState([]); // [{ value, label }]
   const [sales, setSales] = useState([]);
   const [products, setProducts] = useState([]);
   const [dealers, setDealers] = useState([]);
@@ -104,7 +149,10 @@ export default function ReportSaleByMonth() {
                     : 0
                 }
                 formatter={(value) =>
-                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
               />
@@ -138,7 +186,10 @@ export default function ReportSaleByMonth() {
                     : 0
                 }
                 formatter={(value) =>
-                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
               />
@@ -172,7 +223,10 @@ export default function ReportSaleByMonth() {
                     : 0
                 }
                 formatter={(value) =>
-                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
               />
@@ -206,7 +260,10 @@ export default function ReportSaleByMonth() {
                     : 0
                 }
                 formatter={(value) =>
-                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
               />
@@ -240,7 +297,10 @@ export default function ReportSaleByMonth() {
                     : 0
                 }
                 formatter={(value) =>
-                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
               />
@@ -274,7 +334,10 @@ export default function ReportSaleByMonth() {
                     : 0
                 }
                 formatter={(value) =>
-                  `${parseInt(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
               />
@@ -295,35 +358,6 @@ export default function ReportSaleByMonth() {
     sortField: null,
   });
 
-  // ดึง year_code เป็น string เสมอ (รองรับทั้ง object/string/number)
-  const getYearCodeFrom = (y) => {
-    if (y == null) return "";
-    if (typeof y === "string" || typeof y === "number") return String(y);
-    return (
-      y.year_code ??
-      y.code ??
-      y.value ??
-      y.label ??
-      y.name ??
-      y.year ??
-      ""
-    );
-  };
-
-  // หา “ปีล่าสุด” จากลิสต์ปี (ถ้า API ส่งเป็น object ให้เทียบค่าที่ดึงได้)
-  const pickLatestYearCode = (yearsArr) => {
-    if (!Array.isArray(yearsArr) || yearsArr.length === 0) {
-      return dayjs().tz("Asia/Bangkok").format("YYYY");
-    }
-    let best = yearsArr[0];
-    for (const cur of yearsArr) {
-      const b = Number(getYearCodeFrom(best)) || 0;
-      const c = Number(getYearCodeFrom(cur)) || 0;
-      if (c > b) best = cur;
-    }
-    return getYearCodeFrom(best);
-  };
-
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
@@ -334,15 +368,21 @@ export default function ReportSaleByMonth() {
           useServiceAPI.get(paths.pathMasterAreas),
         ]);
 
-        setYears(yearsRes.data);
+        const yearRaw = Array.isArray(yearsRes?.data) ? yearsRes.data : [];
+        const yearOptions = yearRaw.map((y) => {
+          const yc = getYearCodeFrom(y);
+          return { value: yc, label: yc };
+        });
+        setYears(yearOptions);
+
         setProducts(
-          productsRes.data.map((item) => ({
+          (productsRes.data || []).map((item) => ({
             value: item.product_name,
             label: item.product_name,
           }))
         );
         setAreaList(
-          resArea.data.map((item) => ({
+          (resArea.data || []).map((item) => ({
             value: item.id,
             label: item.name,
           }))
@@ -352,14 +392,14 @@ export default function ReportSaleByMonth() {
         setSales([]);
         setDealers([]);
 
-        if (yearsRes.data.length > 0) {
-          const latestYearCode = pickLatestYearCode(yearsRes.data); // <-- ได้ "2025" เป็นต้น
+        if (yearOptions.length > 0) {
+          const latestYearCode = pickLatestYearCode(yearOptions);
           setTableParams((prev) => ({
             ...prev,
-            filters: { year_code: latestYearCode }, // เก็บเป็นสตริงเลย
+            filters: { ...prev.filters, year_code: latestYearCode },
           }));
+          formCustom.setFieldsValue({ year_code: latestYearCode });
         }
-
       } catch (error) {
         showNotification("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -367,6 +407,7 @@ export default function ReportSaleByMonth() {
       }
     };
     getMaster();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // เมื่อเปลี่ยน Area → โหลด Sales
@@ -397,6 +438,7 @@ export default function ReportSaleByMonth() {
         setDealers([]);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formCustom.getFieldValue("area_id")]);
 
   // เมื่อเปลี่ยน Sale → โหลด Dealers
@@ -425,14 +467,18 @@ export default function ReportSaleByMonth() {
         formCustom.resetFields(["dealer_id"]);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formCustom.getFieldValue("sale_id")]);
 
+  // โหลดข้อมูลเมื่อ year_code ใน filters พร้อม
   useEffect(() => {
-    if (years.length > 0) {
+    if (getYearCodeFrom(tableParams.filters?.year_code)) {
       fetchData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(tableParams.filters)]);
 
+  // defaultOption → permission_id (ถ้ามีใช้)
   useEffect(() => {
     setTableParams((prev) => ({
       ...prev,
@@ -447,22 +493,19 @@ export default function ReportSaleByMonth() {
     }));
   }, [defaultOption]);
 
-  // ⬇⬇⬇ แก้ตรงนี้: handleSearch สร้าง payload จากฟิลเตอร์ แล้วส่งให้ fetchData ⬇⬇⬇
   const handleSearch = async () => {
     const values = await formCustom.validateFields().catch(() => ({}));
     const year = tableParams.filters?.year_code;
     const payload = {
-      year_code: getYearCodeFrom(year),     // ✅ แปลงให้ชัวร์
+      year_code: getYearCodeFrom(year),
       user_id: values?.sale_id ?? "",
       dealer_id: values?.dealer_id ?? "",
       product_name: values?.product_name ?? "",
       platform: "web",
     };
     await fetchData(payload);
-
   };
 
-  // ปรับ fetchData ให้รับ payload จาก caller; ถ้าไม่มีก็ประกอบเองจากค่าปัจจุบัน
   const fetchData = async (payloadFromCaller) => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -471,7 +514,7 @@ export default function ReportSaleByMonth() {
 
     const fallbackPayload = {
       year_code:
-        String(tableParams.filters?.year_code) ||
+        getYearCodeFrom(tableParams.filters?.year_code) ||
         dayjs().tz("Asia/Bangkok").format("YYYY"),
       user_id: values?.sale_id ?? "",
       dealer_id: values?.dealer_id ?? "",
@@ -518,28 +561,12 @@ export default function ReportSaleByMonth() {
     }
   };
 
-  const handleTableChange = (pagination, filters, sorter) => {
+  const handleTableChange = (pagination) => {
     setTableParams({
       pagination,
       filters: tableParams.filters,
     });
   };
-
-  // ===== helper: แปลงค่าเป็นตัวเลขปลอดภัย =====
-  const toNum = (v) => {
-    if (v == null || v === "") return 0;
-    const n = Number(String(v).replace(/,/g, ""));
-    return Number.isFinite(n) ? n : 0;
-  };
-
-  // ปรับชื่อให้เท่ากัน
-  const normalize = (s) =>
-    (s ?? "")
-      .toString()
-      .normalize("NFKC")
-      .replace(/\s+/g, " ")
-      .trim()
-      .toLowerCase();
 
   // รวม footer เฉพาะแถวที่แสดงจริง
   const calculateFooterSums = () => {
@@ -570,12 +597,6 @@ export default function ReportSaleByMonth() {
         actual_value: sumField("actual_value"),
       };
     });
-  };
-
-  const toText = (v) => {
-    if (v == null) return "";
-    if (typeof v === "string" || typeof v === "number") return String(v);
-    return v.name ?? v.code ?? v.value ?? v.year ?? v.label ?? "";
   };
 
   const slug = (s) => String(s ?? "").trim().replace(/\s+/g, "_");
@@ -654,11 +675,27 @@ export default function ReportSaleByMonth() {
                 </Form.Item>
               </Col>
 
-              <Col md={6} className="hidden">
-                <Form.Item label="Product" name="product_name">
-                  <Select placeholder="Select Product" options={products} allowClear />
+              {/* Year filter */}
+              <Col md={6}>
+                <Form.Item label="Year" name="year_code">
+                  <Select
+                    placeholder="Select Year"
+                    options={years}
+                    allowClear={false}
+                    onChange={(value) => {
+                      setTableParams((prev) => ({
+                        ...prev,
+                        filters: { ...prev.filters, year_code: value },
+                      }));
+                    }}
+                  />
                 </Form.Item>
               </Col>
+
+              {/* product hidden (ใช้ใน payload) */}
+              <Form.Item name="product_name" hidden>
+                <Select options={products} />
+              </Form.Item>
             </Row>
 
             <div className="flex justify-end gap-4 px-4 pt-5">
@@ -697,7 +734,7 @@ export default function ReportSaleByMonth() {
                 getPayload={async () => {
                   const values = await formCustom.validateFields().catch(() => ({}));
                   const year =
-                    tableParams.filters?.year_code ||
+                    getYearCodeFrom(tableParams.filters?.year_code) ||
                     dayjs().tz("Asia/Bangkok").format("YYYY");
                   return {
                     year_code: String(year),
@@ -738,7 +775,7 @@ export default function ReportSaleByMonth() {
                             readOnly
                             value={month.workplan_qty}
                             formatter={(value) =>
-                              `${parseInt(value)}`.replace(
+                              `${parseInt(value || 0, 10)}`.replace(
                                 /\B(?=(\d{3})+(?!\d))/g,
                                 ","
                               )
@@ -751,7 +788,7 @@ export default function ReportSaleByMonth() {
                             readOnly
                             value={month.rolling_qty}
                             formatter={(value) =>
-                              `${parseInt(value)}`.replace(
+                              `${parseInt(value || 0, 10)}`.replace(
                                 /\B(?=(\d{3})+(?!\d))/g,
                                 ","
                               )
@@ -764,7 +801,7 @@ export default function ReportSaleByMonth() {
                             readOnly
                             value={month.actual_qty}
                             formatter={(value) =>
-                              `${parseInt(value)}`.replace(
+                              `${parseInt(value || 0, 10)}`.replace(
                                 /\B(?=(\d{3})+(?!\d))/g,
                                 ","
                               )
@@ -777,7 +814,7 @@ export default function ReportSaleByMonth() {
                             readOnly
                             value={month.workplan_value}
                             formatter={(value) =>
-                              `${parseInt(value)}`.replace(
+                              `${parseInt(value || 0, 10)}`.replace(
                                 /\B(?=(\d{3})+(?!\d))/g,
                                 ","
                               )
@@ -790,7 +827,7 @@ export default function ReportSaleByMonth() {
                             readOnly
                             value={month.rolling_value}
                             formatter={(value) =>
-                              `${parseInt(value)}`.replace(
+                              `${parseInt(value || 0, 10)}`.replace(
                                 /\B(?=(\d{3})+(?!\d))/g,
                                 ","
                               )
@@ -803,7 +840,7 @@ export default function ReportSaleByMonth() {
                             readOnly
                             value={month.actual_value}
                             formatter={(value) =>
-                              `${parseInt(value)}`.replace(
+                              `${parseInt(value || 0, 10)}`.replace(
                                 /\B(?=(\d{3})+(?!\d))/g,
                                 ","
                               )

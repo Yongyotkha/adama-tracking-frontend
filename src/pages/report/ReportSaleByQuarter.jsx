@@ -57,7 +57,7 @@ const pickLatestYearCode = (yearsArr) => {
 
 export default function ReportSaleByQuarter() {
   const [loading, setLoading] = useState(false);
-  const [years, setYears] = useState([]);
+  const [years, setYears] = useState([]); // [{ value, label }]
   const [areaList, setAreaList] = useState([]);
   const [sales, setSales] = useState([]);
   const [dealers, setDealers] = useState([]);
@@ -368,23 +368,33 @@ export default function ReportSaleByQuarter() {
           useServiceAPI.get(paths.pathMasterAreas),
         ]);
 
-        const yearList = yearsRes.data || [];
-        setYears(yearList);
+        // map Year → options สำหรับ Select
+        const yearRaw = Array.isArray(yearsRes?.data) ? yearsRes.data : [];
+        const yearOptions = yearRaw.map((y) => {
+          const yc = getYearCodeFrom(y);
+          return { value: yc, label: yc };
+        });
+        setYears(yearOptions);
+
         setProducts(
           (productsRes.data || []).map((x) => ({
             value: x.product_name,
             label: x.product_name,
           }))
         );
-        setAreaList((areasRes.data || []).map((x) => ({ value: x.id, label: x.name })));
+        setAreaList(
+          (areasRes.data || []).map((x) => ({ value: x.id, label: x.name }))
+        );
 
         // เริ่มจากปีล่าสุด เก็บเป็น string เลย
-        if (yearList.length > 0) {
-          const latestYear = pickLatestYearCode(yearList);
+        if (yearOptions.length > 0) {
+          const latestYear = pickLatestYearCode(yearOptions);
           setTableParams((prev) => ({
             ...prev,
-            filters: { year_code: latestYear },
+            filters: { ...prev.filters, year_code: latestYear },
           }));
+          // set default ให้ Year Select ด้วย
+          formCustom.setFieldsValue({ year_code: latestYear });
         }
 
         // ล้าง sales/dealers ตอนเริ่ม
@@ -516,10 +526,10 @@ export default function ReportSaleByQuarter() {
   };
 
   const handleTableChange = (pagination) => {
-    setTableParams({
+    setTableParams((prev) => ({
+      ...prev,
       pagination,
-      filters: tableParams.filters,
-    });
+    }));
   };
 
   return (
@@ -544,6 +554,7 @@ export default function ReportSaleByQuarter() {
                   />
                 </Form.Item>
               </Col>
+
               <Col md={6}>
                 <Form.Item label="Sales" name="sale_id">
                   <Select
@@ -558,6 +569,7 @@ export default function ReportSaleByQuarter() {
                   />
                 </Form.Item>
               </Col>
+
               <Col md={6}>
                 <Form.Item label="Dealers" name="dealer_id">
                   <Select
@@ -568,15 +580,28 @@ export default function ReportSaleByQuarter() {
                   />
                 </Form.Item>
               </Col>
-              <Col md={6} className="hidden">
-                <Form.Item label="Product" name="product_name">
+
+              {/* Year filter จาก master year */}
+              <Col md={6}>
+                <Form.Item label="Year" name="year_code">
                   <Select
-                    placeholder="Select Product"
-                    options={products}
-                    allowClear
+                    placeholder="Select Year"
+                    options={years}
+                    allowClear={false}
+                    onChange={(value) => {
+                      setTableParams((prev) => ({
+                        ...prev,
+                        filters: { ...prev.filters, year_code: value },
+                      }));
+                    }}
                   />
                 </Form.Item>
               </Col>
+
+              {/* product hidden (ใช้ใน payload) */}
+              <Form.Item name="product_name" hidden>
+                <Select options={products} />
+              </Form.Item>
             </Row>
 
             <div className="flex justify-end gap-4 px-4 pt-5">
@@ -589,7 +614,19 @@ export default function ReportSaleByQuarter() {
               />
               <DynamicButton
                 onClick={async () => {
-                  formCustom.resetFields(["area_id", "sale_id", "product_name", "dealer_id"]);
+                  const currentYear =
+                    getYearCodeFrom(tableParams.filters?.year_code) ||
+                    pickLatestYearCode(years);
+
+                  formCustom.resetFields([
+                    "area_id",
+                    "sale_id",
+                    "product_name",
+                    "dealer_id",
+                  ]);
+                  if (currentYear) {
+                    formCustom.setFieldsValue({ year_code: currentYear });
+                  }
                   setSales([]);
                   setDealers([]);
                   fetchData();
@@ -646,7 +683,10 @@ export default function ReportSaleByQuarter() {
                             readOnly
                             value={q.workplan_qty}
                             formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `${parseInt(value || 0, 10)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
                             }
                           />
                         </Table.Summary.Cell>
@@ -656,7 +696,10 @@ export default function ReportSaleByQuarter() {
                             readOnly
                             value={q.rolling_qty}
                             formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `${parseInt(value || 0, 10)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
                             }
                           />
                         </Table.Summary.Cell>
@@ -666,7 +709,10 @@ export default function ReportSaleByQuarter() {
                             readOnly
                             value={q.actual_qty}
                             formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `${parseInt(value || 0, 10)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
                             }
                           />
                         </Table.Summary.Cell>
@@ -676,7 +722,10 @@ export default function ReportSaleByQuarter() {
                             readOnly
                             value={q.workplan_value}
                             formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `${parseInt(value || 0, 10)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
                             }
                           />
                         </Table.Summary.Cell>
@@ -686,7 +735,10 @@ export default function ReportSaleByQuarter() {
                             readOnly
                             value={q.rolling_value}
                             formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `${parseInt(value || 0, 10)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
                             }
                           />
                         </Table.Summary.Cell>
@@ -696,7 +748,10 @@ export default function ReportSaleByQuarter() {
                             readOnly
                             value={q.actual_value}
                             formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `${parseInt(value || 0, 10)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
                             }
                           />
                         </Table.Summary.Cell>
