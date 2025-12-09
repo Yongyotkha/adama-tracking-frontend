@@ -49,11 +49,14 @@ export default function SalesPointsList() {
   // ----------- Request tab states -----------
   const [requestDataSource, setRequestDataSource] = useState([]);
   const [requestTableLoading, setRequestTableLoading] = useState(false);
+  // ---------- Default params ----------
   const [requestTableParams, setRequestTableParams] = useState({
     pagination: { current: 1, pageSize: 50 },
     filters: {},
+
+    // 👇 Default sort ต้องเป็น document_date
     sortOrder: "desc",
-    sortField: "created_at",
+    sortField: "document_date",
   });
   const [requestFiltersValues, setRequestFiltersValues] = useState({});
 
@@ -104,10 +107,14 @@ export default function SalesPointsList() {
     { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
     { title: "Dealer", width: 220, dataIndex: "dealer", align: "left" },
     { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
-    { title: "Request Date", width: 160, dataIndex: "request_date", align: "center" },
+
+    // 👇 ใช้ key document_date เพื่อให้ sort ตรงกับวันที่จริง
+    { title: "Request Date", width: 160, dataIndex: "document_date", align: "center" },
+
     { title: "Status", width: 160, dataIndex: "status", align: "center" },
     { title: "Action", width: 120, dataIndex: "action", align: "center" },
   ];
+
 
   // ---------- ACTION in Request ----------
   const getActionForRequest = (record) => {
@@ -283,19 +290,20 @@ export default function SalesPointsList() {
     const { current, pageSize } = requestTableParams.pagination;
     const filters = requestTableParams.filters || {};
     const sortOrder = requestTableParams.sortOrder || "desc";
-    const sortField = requestTableParams.sortField || "document_number";
 
-    // ✅ Fix สถานะเป็น ODI และไม่มีช่องให้เลือกในหน้าจอ
+    // 👇 default sort field = document_date
+    const sortField = requestTableParams.sortField || "document_date";
+
     const payload = {
       user_id: filters.sale || "",
       dealer_id: filters.dealer || "",
       sub_dealer_id: filters.sub_dealer || "",
-      keyword: "",                  // 🔒 ซ่อน Order No -> ไม่ส่ง keyword จากฟิลด์นี้
+      keyword: "",
       status_code: "ODI",
       dater: filters.dater || [],
       page: "all",
       use_flag: 1,
-      orderby_column: sortField,
+      orderby_column: sortField, // 👈 ส่ง document_date
       orderby: sortOrder,
       platform: "web",
       page_length: current,
@@ -319,7 +327,10 @@ export default function SalesPointsList() {
             dealer: item.dealer_name ?? "-",
             sub_dealer: item.sub_dealer_name ?? "-",
             sale: item.sale_name ?? "-",
-            request_date: requestDate,
+
+            // 👇 ต้องใช้ document_date ให้ตรงกับ headerRequest
+            document_date: requestDate,
+
             status: (
               <BadgeStatus
                 text={item.status_transaction_name}
@@ -331,17 +342,15 @@ export default function SalesPointsList() {
           };
         });
 
-        // bind action menu
         setRequestDataSource(mapped.map((row) => ({ ...row, action: getActionForRequest(row) })));
 
         setRequestTableParams((prev) => ({
           ...prev,
           pagination: {
             ...prev.pagination,
-            total:
-              typeof res.data?.records_filtered === "number"
-                ? res.data.records_filtered
-                : rows.length,
+            total: typeof res.data?.records_filtered === "number"
+              ? res.data.records_filtered
+              : rows.length,
           },
         }));
       }
@@ -352,6 +361,7 @@ export default function SalesPointsList() {
       setRequestTableLoading(false);
     }
   };
+
 
   // =========================================
   // ============ FILTER HANDLERS ============
@@ -376,7 +386,7 @@ export default function SalesPointsList() {
     setTableParams((prev) => ({
       ...prev,
       pagination,
-      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortOrder: sorter.order === "desc",
       sortField: sorter.field || prev.sortField,
     }));
   };
@@ -443,7 +453,7 @@ export default function SalesPointsList() {
     setRequestTableParams((prev) => ({
       ...prev,
       pagination,
-      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortOrder: sorter.order === "desc",
       sortField: sorter.field || prev.sortField,
     }));
   };

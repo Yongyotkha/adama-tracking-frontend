@@ -32,6 +32,27 @@ const getLabelFrom = (options, value) =>
   (Array.isArray(options) ? options.find((o) => o?.value === value) : null)
     ?.label || "";
 
+// ดึง year_code เป็น string เสมอ (ใช้ร่วมกับ master year)
+const getYearCodeFrom = (y) => {
+  if (y == null) return "";
+  if (typeof y === "string" || typeof y === "number") return String(y);
+  return y.year_code ?? y.code ?? y.value ?? y.label ?? y.name ?? y.year ?? "";
+};
+
+// เลือก “ปีล่าสุด” จากลิสต์ปี
+const pickLatestYearCode = (yearsArr) => {
+  if (!Array.isArray(yearsArr) || yearsArr.length === 0) {
+    return dayjs().tz("Asia/Bangkok").format("YYYY");
+  }
+  let best = yearsArr[0];
+  for (const cur of yearsArr) {
+    const b = Number(getYearCodeFrom(best)) || 0;
+    const c = Number(getYearCodeFrom(cur)) || 0;
+    if (c > b) best = cur;
+  }
+  return getYearCodeFrom(best);
+};
+
 const buildStockReportFileName = (
   form,
   { areaList, salesList, dealerList, subDealerList }
@@ -60,7 +81,7 @@ const buildStockReportFileName = (
   return `${parts.join("_")}_${ts}`;
 };
 
-// สร้าง options เดือน / ปี
+// สร้าง options เดือน
 const monthOptions = [
   { value: 1, label: "January" },
   { value: 2, label: "February" },
@@ -76,16 +97,6 @@ const monthOptions = [
   { value: 12, label: "December" },
 ];
 
-const buildYearOptions = (range = 5) => {
-  const currentYear = dayjs().year();
-  const years = [];
-  for (let i = 0; i < range; i += 1) {
-    const y = currentYear - i;
-    years.push({ value: y, label: String(y) });
-  }
-  return years;
-};
-
 export default function ReportStock() {
   const { showNotification } = useContext(AuthContext) || {};
   const [form] = Form.useForm();
@@ -98,7 +109,7 @@ export default function ReportStock() {
   const [salesList, setSalesList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
-  const [yearOptions] = useState(buildYearOptions(7)); // ย้อนหลัง 7 ปี
+  const [yearOptions, setYearOptions] = useState([]); // << ใช้ master year
 
   // watch
   const selectedArea = Form.useWatch("area_id", form);
@@ -249,10 +260,7 @@ export default function ReportStock() {
                 readOnly
                 value={totals[k]}
                 formatter={(v) =>
-                  `${parseInt(v || 0)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(v || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
                 style={{ backgroundColor: "white" }}
               />
@@ -263,38 +271,50 @@ export default function ReportStock() {
     );
   }, [dataSource]);
 
-  // ---------- Masters ----------
+  // ---------- Masters (Area + Master Year) ----------
   useEffect(() => {
     (async () => {
       setLoading(true);
       try {
-        const res = await useServiceAPI.get(paths.pathMasterAreas);
-        const list = Array.isArray(res?.data) ? res.data : [];
-        setAreaList(list.map((x) => ({ value: x.id, label: x.name })));
+        const [areaRes, yearRes] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterAreas),
+          useServiceAPI.get(paths.pathMasterYear),
+        ]);
+
+        // Area
+        const areaRaw = Array.isArray(areaRes?.data) ? areaRes.data : [];
+        setAreaList(areaRaw.map((x) => ({ value: x.id, label: x.name })));
+
+        // Year from master
+        const yearRaw = Array.isArray(yearRes?.data) ? yearRes.data : [];
+        const yearOpts = yearRaw.map((y) => {
+          const yc = getYearCodeFrom(y);
+          return { value: yc, label: yc };
+        });
+        setYearOptions(yearOpts);
+
+        // set default filters
+        const now = dayjs();
+        const defaultYear = pickLatestYearCode(yearOpts);
+        form.setFieldsValue({
+          area_id: undefined,
+          sale_id: undefined,
+          dealer_id: undefined,
+          sub_dealer_id: undefined,
+          month: now.month() + 1, // 1-12
+          year: defaultYear || now.year(),
+        });
+
+        // first fetch
+        await fetchStock();
       } catch {
         setAreaList([]);
-        showNotification?.("error", "โหลด Area ไม่สำเร็จ");
+        setYearOptions([]);
+        showNotification?.("error", "โหลดข้อมูล Master ไม่สำเร็จ");
       } finally {
         setLoading(false);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // set default filter & first fetch
-  useEffect(() => {
-    setLoading(true);
-    const now = dayjs();
-    form.setFieldsValue({
-      area_id: undefined,
-      sale_id: undefined,
-      dealer_id: undefined,
-      sub_dealer_id: undefined,
-      month: now.month() + 1, // 1-12
-      year: now.year(),
-    });
-    setLoading(false);
-    fetchStock();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -341,10 +361,9 @@ export default function ReportStock() {
     }
     (async () => {
       try {
-        const res = await useServiceAPI.get(
-          paths.pathMasterDealerDropdown,
-          { user_id: saleId }
-        );
+        const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
+          user_id: saleId,
+        });
         const list = Array.isArray(res?.data) ? res.data : [];
         setDealerList(
           list.map((x) => ({ value: Number(x.id), label: x.name }))
@@ -467,9 +486,12 @@ export default function ReportStock() {
     setSalesList([]);
     setDealerList([]);
     setSubDealerList([]);
+
+    const defaultYear = pickLatestYearCode(yearOptions);
+
     form.setFieldsValue({
       month: now.month() + 1,
-      year: now.year(),
+      year: defaultYear || now.year(),
     });
     fetchStock();
   };
@@ -568,7 +590,7 @@ export default function ReportStock() {
               <Form.Item label="Year" name="year">
                 <Select
                   placeholder="Select year"
-                  options={yearOptions}
+                  options={yearOptions} // << ใช้ master year
                   allowClear={false}
                 />
               </Form.Item>
