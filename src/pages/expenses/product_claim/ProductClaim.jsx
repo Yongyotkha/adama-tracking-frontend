@@ -13,7 +13,7 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { ExclamationCircleFilled } from "@ant-design/icons";
-
+import dayjs from "dayjs";
 export default function ProductClaim() {
   const { showMsg, showNotification } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
@@ -36,6 +36,7 @@ export default function ProductClaim() {
       use_flag: "1",              // สถานะการใช้งาน
       user_id: "",                // Sale ID (ยังไม่ได้ใช้ filter ในหน้าจอ)
       dealer_id: "",              // Dealer ID
+      document_date: "",
       trasaction_status_code: "ODW", // ✅ FIX ODW ทุกครั้ง
       payment_status_code: "",    // การชำระเงิน
       page: "all",                // fixed
@@ -67,35 +68,46 @@ export default function ProductClaim() {
       placeholder: "All",
       options: dealerList, // ✅ ใช้ master dealer all
     },
-    {
-      key: "status",
-      type: "select",
-      label: "Status",
-      placeholder: "All",
-      options: statusList,
-    },
+    // {
+    //   key: "status",
+    //   type: "select",
+    //   label: "Status",
+    //   placeholder: "All",
+    //   options: statusList,
+    // },
   ];
-
-  // กด Search → map values จาก Filter ไปเก็บใน tableParams.filters
+  // กด Search
   const handleSearch = (values) => {
+    // แปลง claim_date -> YYYY-MM-DD (รองรับทั้ง string และ dayjs)
+    let docDate = "";
+    if (values.claim_date) {
+      if (dayjs.isDayjs(values.claim_date)) {
+        docDate = values.claim_date.format("YYYY-MM-DD");
+      } else {
+        // เผื่อ Filter ส่งมาเป็น string อยู่แล้ว
+        docDate = dayjs(values.claim_date).isValid()
+          ? dayjs(values.claim_date).format("YYYY-MM-DD")
+          : "";
+      }
+    }
+
     setTableParams((prev) => ({
       ...prev,
       pagination: {
         ...prev.pagination,
-        current: 1, // reset ไปหน้า 1 ทุกครั้งที่ search
+        current: 1,
       },
       filters: {
         ...prev.filters,
         keyword: values.claim_no || "",
         dealer_id: values.dealer_id || "",
-        // trasaction_status_code ยัง FIX = "ODW" เหมือนเดิม
-        trasaction_status_code: "ODW",
-        // อื่น ๆ ถ้าต้องการใช้เพิ่ม ก็ map ได้ เช่น payment_status_code, user_id ฯลฯ
+        document_date: docDate || "",
+        trasaction_status_code: "ODW", // fix ODW
       },
     }));
   };
 
-  // กด Clear → reset filter กลับ default แต่ยัง FIX ODW
+  // กด Clear
   const handleClear = () => {
     setTableParams((prev) => ({
       ...prev,
@@ -108,7 +120,8 @@ export default function ProductClaim() {
         use_flag: "1",
         user_id: "",
         dealer_id: "",
-        trasaction_status_code: "ODW", // ✅ reset กลับ ODW
+        document_date: "",
+        trasaction_status_code: "ODW",
         payment_status_code: "",
         page: "all",
       },
@@ -211,6 +224,7 @@ export default function ProductClaim() {
       user_id: filters.user_id ?? "",
       dealer_id: filters.dealer_id ?? "",
       trasaction_status_code: "ODW", // ✅ FIX ส่ง ODW ตลอดไม่ต้องพึ่ง filter
+      document_date: filters.document_date ?? "", // ✅ ส่ง claim date เข้า API
       payment_status_code: filters.payment_status_code ?? "",
       page: filters.page ?? "all",
       orderby_column: sortField,
