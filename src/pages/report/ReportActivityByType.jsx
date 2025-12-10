@@ -63,25 +63,37 @@ export default function ReportActivityByType() {
     (apiRes?.data?.res || []).map((item) => ({
       key: item.activity_type_id,
       activity_type_name: item.activity_type_name,
-      total_activity_plan: parseFloat(item.total_activity_plan),
-      total_activity_list: parseInt(item.total_activity_list),
-      total_activity_actual: parseInt(item.total_activity_actual),
+
+      // ✅ เก็บราคา/ค่าใช้จ่ายต่อ 1 activity (unit_convert_value) เป็นตัวเลข
+      unit_convert_value: parseFloat(item.unit_convert_value) || 0,
+
+      // qty ยังเป็นจำนวน activity เหมือนเดิม
+      total_activity_plan: Number(item.total_activity_plan) || 0,
+      total_activity_list: Number(item.total_activity_list) || 0,
+      total_activity_actual: Number(item.total_activity_actual) || 0,
     }));
 
-  const calcTotals = (rows) => ({
-    total_activity_plan: rows.reduce(
-      (sum, r) => sum + (parseFloat(r.total_activity_plan) || 0),
-      0
-    ),
-    total_activity_list: rows.reduce(
-      (sum, r) => sum + (parseInt(r.total_activity_list) || 0),
-      0
-    ),
-    total_activity_actual: rows.reduce(
-      (sum, r) => sum + (parseInt(r.total_activity_actual) || 0),
-      0
-    ),
-  });
+  const calcTotals = (rows) => {
+    return rows.reduce(
+      (acc, r) => {
+        const price = Number(r.unit_convert_value) || 0; // THB ต่อ 1 activity
+        const planQty = Number(r.total_activity_plan) || 0;
+        const listQty = Number(r.total_activity_list) || 0;
+        const actualQty = Number(r.total_activity_actual) || 0;
+
+        return {
+          total_activity_plan: acc.total_activity_plan + planQty * price,
+          total_activity_list: acc.total_activity_list + listQty * price,
+          total_activity_actual: acc.total_activity_actual + actualQty * price,
+        };
+      },
+      {
+        total_activity_plan: 0,
+        total_activity_list: 0,
+        total_activity_actual: 0,
+      }
+    );
+  };
 
   const loadMasterData = async () => {
     setLoading(true);
@@ -385,8 +397,8 @@ export default function ReportActivityByType() {
     v == null
       ? ""
       : typeof v === "string" || typeof v === "number"
-      ? String(v)
-      : v.name ?? v.label ?? v.value ?? v.code ?? "";
+        ? String(v)
+        : v.name ?? v.label ?? v.value ?? v.code ?? "";
 
   const buildFileName = () => {
     const f = tableParams?.filters || {};

@@ -396,19 +396,27 @@ export default function ReportSaleByMonth() {
         setDealers([]);
 
         // ตั้งปีเริ่มต้นเป็นปีล่าสุด และ fetch data รอบแรก
+        // ตั้งปีเริ่มต้นเป็น "ปีปัจจุบัน" จาก master year (ไม่มีก็ใช้ตัวแรก)
         if (yearOptions.length > 0) {
-          const latestYearCode = pickLatestYearCode(yearOptions);
-          setDefaultYear(latestYearCode); // ✅ เก็บ last year ไว้ใช้ตอน Clear
-          formCustom.setFieldsValue({ year_code: latestYearCode });
+          const currentYear = dayjs().tz("Asia/Bangkok").format("YYYY");
+
+          const matched =
+            yearOptions.find((y) => getYearCodeFrom(y) === currentYear) ||
+            yearOptions[0];
+
+          const initialYear = getYearCodeFrom(matched);
+
+          setDefaultYear(initialYear);
+          formCustom.setFieldsValue({ year_code: initialYear });
 
           await fetchData({
-            year_code: latestYearCode,
+            year_code: initialYear,
             user_id: "",
             dealer_id: "",
             product_name: "",
-            platform: "web",
           });
         }
+
       } catch (error) {
         showNotification("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -711,7 +719,7 @@ export default function ReportSaleByMonth() {
 
               <DynamicButton
                 onClick={async () => {
-                  // ✅ Clear ทุก filter + รีเซ็ต year กลับไป defaultYear (last year from master)
+                  // Clear filters + reset year to current year
                   formCustom.resetFields([
                     "area_id",
                     "sale_id",
@@ -722,11 +730,8 @@ export default function ReportSaleByMonth() {
                   setSales([]);
                   setDealers([]);
 
-                  // ปีที่จะใช้หลัง Clear = defaultYear (last year) ถ้าไม่มีค่อย fallback จาก years / current year
                   const yearToUse =
-                    defaultYear ||
-                    pickLatestYearCode(years) ||
-                    dayjs().tz("Asia/Bangkok").format("YYYY");
+                    defaultYear || dayjs().tz("Asia/Bangkok").format("YYYY");
 
                   if (yearToUse) {
                     formCustom.setFieldsValue({ year_code: yearToUse });
@@ -737,12 +742,12 @@ export default function ReportSaleByMonth() {
                     pagination: { ...prev.pagination, current: 1 },
                   }));
 
-                  // ✅ refresh data ด้วย last year เสมอ
                   await fetchData({
                     year_code: yearToUse,
                     user_id: "",
                     dealer_id: "",
                     product_name: "",
+                    platform: "web",
                   });
                 }}
                 name="btn-clear"

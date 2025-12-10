@@ -13,11 +13,29 @@ import ExportActivityByMonthExcelButton from "../../components/export/ExportActi
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-dayjs.extend(utc); dayjs.extend(timezone);
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+// ===== helpers year =====
+const getYearCodeFrom = (y) => {
+  if (y == null) return "";
+  if (typeof y === "string" || typeof y === "number") return String(y);
+  return (
+    y.year_code ??
+    y.code ??
+    y.value ??
+    y.label ??
+    y.name ??
+    y.year ??
+    ""
+  );
+};
 
 export default function ReportSaleByMonth() {
   const [loading, setLoading] = useState(false);
-  const [years, setYears] = useState([]);
+  const [years, setYears] = useState([]);        // year codes string[]
+  const [defaultYear, setDefaultYear] = useState(null);
+
   const [sales, setSales] = useState([]);
   const [subDealers, setSubDealers] = useState([]);
   const [itemColumn, setItemColumn] = useState([]);
@@ -35,7 +53,12 @@ export default function ReportSaleByMonth() {
     {
       title: "Month",
       onHeaderCell: () => ({
-        style: { backgroundColor: "#00783F", color: "white", fontWeight: "bold", textAlign: "center" },
+        style: {
+          backgroundColor: "#00783F",
+          color: "white",
+          fontWeight: "bold",
+          textAlign: "center",
+        },
       }),
       children: [
         {
@@ -45,7 +68,12 @@ export default function ReportSaleByMonth() {
           fixed: "left",
           width: 125,
           onHeaderCell: () => ({
-            style: { backgroundColor: "#00783F", color: "white", fontWeight: "bold", textAlign: "center" },
+            style: {
+              backgroundColor: "#00783F",
+              color: "white",
+              fontWeight: "bold",
+              textAlign: "center",
+            },
           }),
         },
       ],
@@ -75,14 +103,26 @@ export default function ReportSaleByMonth() {
             },
           }),
           render: (_, record) => {
-            const itemData = month.product.find((p) => p.product_name === record.productName) || {};
-            const val = isNaN(itemData.workplan_value) || itemData.workplan_value == null ? 0 : itemData.workplan_value;
+            const itemData =
+              month.product.find(
+                (p) => p.product_name === record.productName
+              ) || {};
+            const val =
+              isNaN(itemData.workplan_value) ||
+                itemData.workplan_value == null
+                ? 0
+                : itemData.workplan_value;
             return (
               <InputNumber
                 className="w-full"
                 min={0}
                 value={val}
-                formatter={(v) => `${parseInt(v || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                formatter={(v) =>
+                  `${parseInt(v || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
+                }
                 disabled
               />
             );
@@ -101,14 +141,26 @@ export default function ReportSaleByMonth() {
             },
           }),
           render: (_, record) => {
-            const itemData = month.product.find((p) => p.product_name === record.productName) || {};
-            const val = isNaN(itemData.actual_value) || itemData.actual_value == null ? 0 : itemData.actual_value;
+            const itemData =
+              month.product.find(
+                (p) => p.product_name === record.productName
+              ) || {};
+            const val =
+              isNaN(itemData.actual_value) ||
+                itemData.actual_value == null
+                ? 0
+                : itemData.actual_value;
             return (
               <InputNumber
                 className="w-full"
                 min={0}
                 value={val}
-                formatter={(v) => `${parseInt(v || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                formatter={(v) =>
+                  `${parseInt(v || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
+                }
                 disabled
               />
             );
@@ -134,11 +186,31 @@ export default function ReportSaleByMonth() {
           useServiceAPI.get(paths.pathMasterYear),
           useServiceAPI.get(paths.pathMasterAreas),
         ]);
-        setYears(yearsRes.data || []);
-        setAreaList((resArea.data || []).map((x) => ({ value: x.id, label: x.name })));
-        if ((yearsRes.data || []).length > 0) {
-          setTableParams((prev) => ({ ...prev, filters: { year_code: yearsRes.data[0] } }));
-        }
+
+        const yearRaw = yearsRes.data || [];
+        const yearCodes = yearRaw
+          .map((y) => getYearCodeFrom(y))
+          .filter(Boolean);
+
+        setYears(yearCodes);
+
+        // ✅ default = option แรก
+        const firstYear =
+          yearCodes[0] || dayjs().tz("Asia/Bangkok").format("YYYY");
+        setDefaultYear(firstYear);
+
+        setTableParams((prev) => ({
+          ...prev,
+          filters: { ...prev.filters, year_code: firstYear },
+        }));
+        formCustom.setFieldsValue({ year_code: firstYear });
+
+        setAreaList(
+          (resArea.data || []).map((x) => ({
+            value: x.id,
+            label: x.name,
+          }))
+        );
       } catch (error) {
         showNotification?.("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -146,25 +218,35 @@ export default function ReportSaleByMonth() {
       }
     };
     getMaster();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Area → Sales
   useEffect(() => {
     const areaId = formCustom.getFieldValue("area_id");
     if (!areaId) {
-      setSales([]); setSubDealers([]);
+      setSales([]);
+      setSubDealers([]);
       formCustom.resetFields(["sale_id", "sub_dealer_id"]);
       return;
     }
     (async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathMasterSaleReport, { area_id: areaId });
+        const res = await useServiceAPI.get(paths.pathMasterSaleReport, {
+          area_id: areaId,
+        });
         const list = Array.isArray(res?.data) ? res.data : [];
-        setSales(list.map((s) => ({ value: Number(s.user_id ?? s.id), label: s.user_name ?? s.name })));
+        setSales(
+          list.map((s) => ({
+            value: Number(s.user_id ?? s.id),
+            label: s.user_name ?? s.name,
+          }))
+        );
         setSubDealers([]);
         formCustom.resetFields(["sale_id", "sub_dealer_id"]);
       } catch {
-        setSales([]); setSubDealers([]);
+        setSales([]);
+        setSubDealers([]);
         formCustom.resetFields(["sale_id", "sub_dealer_id"]);
       }
     })();
@@ -183,11 +265,15 @@ export default function ReportSaleByMonth() {
       try {
         const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
           user_id: saleId,
-          // ไม่มี Dealer ใน flow นี้ ส่งค่าว่างให้ backend กรองตาม user ได้
           dealer_id: "",
         });
         const list = Array.isArray(res?.data) ? res.data : [];
-        setSubDealers(list.map((s) => ({ value: s.sub_dealer_id, label: s.sub_dealer_name })));
+        setSubDealers(
+          list.map((s) => ({
+            value: s.sub_dealer_id,
+            label: s.sub_dealer_name,
+          }))
+        );
         formCustom.resetFields(["sub_dealer_id"]);
       } catch {
         setSubDealers([]);
@@ -198,9 +284,11 @@ export default function ReportSaleByMonth() {
   }, [formCustom.getFieldValue("sale_id")]);
 
   useEffect(() => {
-    if (years.length > 0) fetchData();
+    if (years.length > 0 && tableParams.filters.year_code) {
+      fetchData();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(tableParams.filters)]);
+  }, [JSON.stringify(tableParams.filters), years.length]);
 
   const handleSearch = () => fetchData();
 
@@ -208,14 +296,23 @@ export default function ReportSaleByMonth() {
     setTableLoading(true);
     try {
       const values = await formCustom.validateFields().catch(() => ({}));
+      const yearCode =
+        tableParams.filters.year_code ||
+        defaultYear ||
+        years[0] ||
+        dayjs().tz("Asia/Bangkok").format("YYYY");
+
       const payload = {
         sale_id: values.sale_id || null,
         sub_dealer_id: values.sub_dealer_id || null, // ⬅️ ใช้ sub dealer
         area_id: values.area_id || null,
-        year_code: tableParams.filters.year_code || null,
+        year_code: yearCode,
       };
 
-      const response = await useServiceAPI.get(paths.pathReportActivityExpense, payload);
+      const response = await useServiceAPI.get(
+        paths.pathReportActivityExpense,
+        payload
+      );
 
       if (response.status === 200) {
         const { item: activityTypes, month: monthList } = response.data;
@@ -224,15 +321,32 @@ export default function ReportSaleByMonth() {
         const itemColumnData = monthList.map((month) => {
           const monthId = month.id;
           const productData = activityTypes.map((activity) => {
-            const matchingMonthItem = activity.item.find((i) => i.month_id === monthId);
+            const matchingMonthItem = activity.item.find(
+              (i) => i.month_id === monthId
+            );
             return {
               product_name: activity.activity_type_name,
-              workplan_qty: Number((matchingMonthItem?.total_activity_plan_count || "0").toString().replace(/,/g, "")) || 0,
+              workplan_qty:
+                Number(
+                  (matchingMonthItem?.total_activity_plan_count || "0")
+                    .toString()
+                    .replace(/,/g, "")
+                ) || 0,
               rolling_qty: 0,
               actual_qty: 0,
-              workplan_value: Number((matchingMonthItem?.total_activity_plan_value || "0").toString().replace(/,/g, "")) || 0,
+              workplan_value:
+                Number(
+                  (matchingMonthItem?.total_activity_plan_value || "0")
+                    .toString()
+                    .replace(/,/g, "")
+                ) || 0,
               rolling_value: 0,
-              actual_value: Number((matchingMonthItem?.expense_actual || "0").toString().replace(/,/g, "")) || 0,
+              actual_value:
+                Number(
+                  (matchingMonthItem?.expense_actual || "0")
+                    .toString()
+                    .replace(/,/g, "")
+                ) || 0,
             };
           });
           return { ...month, product: productData };
@@ -247,12 +361,18 @@ export default function ReportSaleByMonth() {
         setDataSource(dataSourceFormatted);
         setTableParams((prev) => ({
           ...prev,
-          pagination: { ...prev.pagination, total: dataSourceFormatted.length },
+          pagination: {
+            ...prev.pagination,
+            total: dataSourceFormatted.length,
+          },
         }));
       }
     } catch (error) {
       console.error("Error fetching report data:", error);
-      showNotification?.("error", error.message || "ไม่สามารถโหลดข้อมูลรายงานได้");
+      showNotification?.(
+        "error",
+        error.message || "ไม่สามารถโหลดข้อมูลรายงานได้"
+      );
     } finally {
       setTableLoading(false);
     }
@@ -264,21 +384,37 @@ export default function ReportSaleByMonth() {
 
   const calculateFooterSums = () =>
     itemColumn.map((month) => {
-      const workplan_value = month.product.reduce((sum, p) => sum + (Number(p.workplan_value) || 0), 0);
-      const actual_value = month.product.reduce((sum, p) => sum + (Number(p.actual_value) || 0), 0);
+      const workplan_value = month.product.reduce(
+        (sum, p) => sum + (Number(p.workplan_value) || 0),
+        0
+      );
+      const actual_value = month.product.reduce(
+        (sum, p) => sum + (Number(p.actual_value) || 0),
+        0
+      );
       return { id: month.id, workplan_value, actual_value };
     });
 
   const toText = (v) =>
-    v == null ? "" : typeof v === "string" || typeof v === "number" ? String(v) : v.name ?? v.label ?? v.value ?? v.code ?? "";
+    v == null
+      ? ""
+      : typeof v === "string" || typeof v === "number"
+        ? String(v)
+        : v.name ?? v.label ?? v.value ?? v.code ?? "";
 
   const buildFileName = () => {
     const ts = dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD_HHmm");
-    const yearText = toText(tableParams?.filters?.year_code) || dayjs().tz("Asia/Bangkok").format("YYYY");
+    const yearText =
+      toText(tableParams?.filters?.year_code) ||
+      dayjs().tz("Asia/Bangkok").format("YYYY");
     const fVals = formCustom.getFieldsValue();
-    const areaLabel = (areaList.find((x) => x.value === fVals.area_id) || {}).label;
-    const salesLabel = (sales.find((x) => x.value === fVals.sale_id) || {}).label;
-    const subDealerLabel = (subDealers.find((x) => x.value === fVals.sub_dealer_id) || {}).label;
+    const areaLabel = (areaList.find((x) => x.value === fVals.area_id) || {})
+      .label;
+    const salesLabel = (sales.find((x) => x.value === fVals.sale_id) || {})
+      .label;
+    const subDealerLabel = (
+      subDealers.find((x) => x.value === fVals.sub_dealer_id) || {}
+    ).label;
     return [
       `Activity_Expenses_By_Month_${yearText}`,
       areaLabel && `Area_${areaLabel}`,
@@ -300,25 +436,69 @@ export default function ReportSaleByMonth() {
         form={formCustom}
         layout="vertical"
         onValuesChange={(chg) => {
-          if ("area_id" in chg) formCustom.setFieldsValue({ sale_id: undefined, sub_dealer_id: undefined });
-          if ("sale_id" in chg) formCustom.setFieldsValue({ sub_dealer_id: undefined });
+          if ("area_id" in chg)
+            formCustom.setFieldsValue({
+              sale_id: undefined,
+              sub_dealer_id: undefined,
+            });
+          if ("sale_id" in chg)
+            formCustom.setFieldsValue({ sub_dealer_id: undefined });
         }}
       >
         <BoxPrimary className="m-1 mb-4">
           <Row gutter={16} align="middle">
+            {/* Year filter */}
+            <Col md={6}>
+              <Form.Item label="Year" name="year_code">
+                <Select
+                  placeholder="Select Year"
+                  options={years.map((y) => ({ value: y, label: y }))}
+                  allowClear={false}
+                  onChange={(value) => {
+                    setTableParams((prev) => ({
+                      ...prev,
+                      filters: { ...prev.filters, year_code: value },
+                    }));
+                  }}
+                />
+              </Form.Item>
+            </Col>
+
             <Col md={6}>
               <Form.Item label="Area" name="area_id">
-                <Select placeholder="Select Area" options={areaList} allowClear />
+                <Select
+                  placeholder="Select Area"
+                  options={areaList}
+                  allowClear
+                />
               </Form.Item>
             </Col>
             <Col md={6}>
-              <Form.Item label="Sales" name="sale_id" tooltip="เลือก Sales หลังจากเลือก Area">
-                <Select placeholder="Select Sales" options={sales} allowClear disabled={!selectedArea} />
+              <Form.Item
+                label="Sales"
+                name="sale_id"
+                tooltip="เลือก Sales หลังจากเลือก Area"
+              >
+                <Select
+                  placeholder="Select Sales"
+                  options={sales}
+                  allowClear
+                  disabled={!selectedArea}
+                />
               </Form.Item>
             </Col>
             <Col md={6}>
-              <Form.Item label="Sub Dealer" name="sub_dealer_id" tooltip="เลือก Sub Dealer หลังจากเลือก Sales">
-                <Select placeholder="Select Sub Dealer" options={subDealers} allowClear disabled={!selectedSale} />
+              <Form.Item
+                label="Sub Dealer"
+                name="sub_dealer_id"
+                tooltip="เลือก Sub Dealer หลังจากเลือก Sales"
+              >
+                <Select
+                  placeholder="Select Sub Dealer"
+                  options={subDealers}
+                  allowClear
+                  disabled={!selectedSale}
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -333,8 +513,32 @@ export default function ReportSaleByMonth() {
             />
             <DynamicButton
               onClick={() => {
-                formCustom.resetFields(["area_id", "sale_id", "sub_dealer_id"]);
-                setSales([]); setSubDealers([]);
+                formCustom.resetFields([
+                  "area_id",
+                  "sale_id",
+                  "sub_dealer_id",
+                  "year_code",
+                ]);
+                setSales([]);
+                setSubDealers([]);
+
+                const yearToUse =
+                  defaultYear ||
+                  years[0] ||
+                  dayjs().tz("Asia/Bangkok").format("YYYY");
+
+                if (yearToUse) {
+                  formCustom.setFieldsValue({ year_code: yearToUse });
+                }
+
+                setTableParams((prev) => ({
+                  ...prev,
+                  filters: { ...prev.filters, year_code: yearToUse },
+                  pagination: {
+                    ...prev.pagination,
+                    current: 1,
+                  },
+                }));
               }}
               name="btn-clear"
               text="Clear"
@@ -347,16 +551,28 @@ export default function ReportSaleByMonth() {
               fileName={buildFileName()}
               getPayload={async () => {
                 const v = await formCustom.validateFields().catch(() => ({}));
+                const yearCode =
+                  toText(formCustom.getFieldValue("year_code")) ||
+                  tableParams.filters.year_code ||
+                  defaultYear ||
+                  years[0] ||
+                  dayjs().tz("Asia/Bangkok").format("YYYY");
+
                 return {
                   sale_id: v.sale_id || null,
-                  sub_dealer_id: v.sub_dealer_id || null, // ⬅️ ส่ง sub dealer
+                  sub_dealer_id: v.sub_dealer_id || null,
                   area_id: v.area_id || null,
-                  year_code: toText(tableParams?.filters?.year_code) || null,
+                  year_code: yearCode,
                   page_length: 1,
                   page_size: 100000,
                 };
               }}
-              requestData={(payload) => useServiceAPI.get(paths.pathReportActivityExpense, payload)}
+              requestData={(payload) =>
+                useServiceAPI.get(
+                  paths.pathReportActivityExpense,
+                  payload
+                )
+              }
             />
           </div>
         </BoxPrimary>
@@ -385,7 +601,12 @@ export default function ReportSaleByMonth() {
                           className="w-full"
                           readOnly
                           value={month.workplan_value}
-                          formatter={(v) => `${parseInt(v || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                          formatter={(v) =>
+                            `${parseInt(v || 0, 10)}`.replace(
+                              /\B(?=(\d{3})+(?!\d))/g,
+                              ","
+                            )
+                          }
                         />
                       </Table.Summary.Cell>
                       <Table.Summary.Cell align="center">
@@ -393,7 +614,12 @@ export default function ReportSaleByMonth() {
                           className="w-full"
                           readOnly
                           value={month.actual_value}
-                          formatter={(v) => `${parseInt(v || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                          formatter={(v) =>
+                            `${parseInt(v || 0, 10)}`.replace(
+                              /\B(?=(\d{3})+(?!\d))/g,
+                              ","
+                            )
+                          }
                         />
                       </Table.Summary.Cell>
                     </React.Fragment>

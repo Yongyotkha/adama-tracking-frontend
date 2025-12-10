@@ -411,20 +411,29 @@ export default function ReportSaleByYear() {
           (areasRes?.data || []).map((x) => ({ value: x.id, label: x.name }))
         );
 
-        // default = last year
+        // default = current year (now) จาก master year ถ้ามี
         if (yearOptions.length > 0) {
-          const latestYear = pickLatestYearCode(yearOptions);
-          setDefaultYear(latestYear);
-          formCustom.setFieldsValue({ year_code: latestYear });
+          const currentYear = dayjs().tz("Asia/Bangkok").format("YYYY");
+
+          // พยายามหา year ปัจจุบันใน options ก่อน ไม่มีก็ใช้ตัวแรก
+          const matched =
+            yearOptions.find((y) => getYearCodeFrom(y) === currentYear) ||
+            yearOptions[0];
+
+          const initialYear = getYearCodeFrom(matched);
+
+          setDefaultYear(initialYear);
+          formCustom.setFieldsValue({ year_code: initialYear });
 
           await fetchData({
-            year_code: latestYear,
+            year_code: initialYear,
             user_id: "",
             dealer_id: "",
             product_name: "",
             platform: "web",
           });
         }
+
 
         setSales([]);
         setDealers([]);
@@ -664,7 +673,7 @@ export default function ReportSaleByYear() {
               />
               <DynamicButton
                 onClick={async () => {
-                  // Clear filters + reset year to last year
+                  // Clear filters + reset year to current year
                   formCustom.resetFields([
                     "area_id",
                     "sale_id",
@@ -677,9 +686,7 @@ export default function ReportSaleByYear() {
                   setDealers([]);
 
                   const yearToUse =
-                    defaultYear ||
-                    pickLatestYearCode(years) ||
-                    dayjs().tz("Asia/Bangkok").format("YYYY");
+                    defaultYear || dayjs().tz("Asia/Bangkok").format("YYYY");
 
                   if (yearToUse) {
                     formCustom.setFieldsValue({ year_code: yearToUse });
@@ -724,7 +731,7 @@ export default function ReportSaleByYear() {
             dataSource={dataSource}
             pagination={false}
             loading={tableLoading}
-            onChange={() => {}}
+            onChange={() => { }}
             footer={() => {
               const footerData = calculateFooterSums();
               return (

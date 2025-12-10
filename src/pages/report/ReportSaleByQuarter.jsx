@@ -406,15 +406,22 @@ export default function ReportSaleByQuarter() {
           (areasRes.data || []).map((x) => ({ value: x.id, label: x.name }))
         );
 
-        // default = last year
+        // default = current year from master (fallback เป็น option แรก)
         if (yearOptions.length > 0) {
-          const latestYear = pickLatestYearCode(yearOptions);
-          setDefaultYear(latestYear);
-          formCustom.setFieldsValue({ year_code: latestYear });
+          const currentYear = dayjs().tz("Asia/Bangkok").format("YYYY");
+
+          const matched =
+            yearOptions.find((y) => getYearCodeFrom(y) === currentYear) ||
+            yearOptions[0];
+
+          const initialYear = getYearCodeFrom(matched);
+
+          setDefaultYear(initialYear);
+          formCustom.setFieldsValue({ year_code: initialYear });
 
           // initial fetch
           await fetchData({
-            year_code: latestYear,
+            year_code: initialYear,
             user_id: "",
             dealer_id: "",
             product_name: "",
@@ -638,7 +645,7 @@ export default function ReportSaleByQuarter() {
               />
               <DynamicButton
                 onClick={async () => {
-                  // Clear filters + reset year to last year
+                  // Clear filters + reset year to current year
                   formCustom.resetFields([
                     "area_id",
                     "sale_id",
@@ -650,9 +657,7 @@ export default function ReportSaleByQuarter() {
                   setDealers([]);
 
                   const yearToUse =
-                    defaultYear ||
-                    pickLatestYearCode(years) ||
-                    dayjs().tz("Asia/Bangkok").format("YYYY");
+                    defaultYear || dayjs().tz("Asia/Bangkok").format("YYYY");
 
                   if (yearToUse) {
                     formCustom.setFieldsValue({ year_code: yearToUse });

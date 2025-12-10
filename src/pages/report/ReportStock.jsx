@@ -1,4 +1,3 @@
-// src/pages/report/ReportStock.jsx
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Form, Row, Col, Select, InputNumber, Table } from "antd";
 import dayjs from "dayjs";
@@ -228,21 +227,29 @@ export default function ReportStock() {
     []
   );
 
-  // ✅ Footer: แสดง Total (THB) = sum(qty * unit_convert_value) ต่อ column
+  // ✅ Footer: ใช้ตัวแปร total_* จาก API โดยตรง (Total (THB))
   const footer = useMemo(() => {
-    const safeNum = (v) => Number(v) || 0;
-    const sumTHB = (qtyKey) =>
-      (dataSource || []).reduce((acc, r) => {
-        const qty = safeNum(r[qtyKey]);
-        const unit = safeNum(r.unit_convert_value);
-        return acc + qty * unit;
-      }, 0);
+    const safeNum = (v) => Number(String(v || 0).replace(/,/g, "")) || 0;
+
+    // mapping: columnKey -> field total_* ใน data
+    const totalKeyByColumn = {
+      last_stock: "total_last",
+      sell_in: "total_in",
+      current_stock: "total_current",
+      sell_out: "total_out",
+    };
+
+    const sumByTotalKey = (totalKey) =>
+      (dataSource || []).reduce(
+        (acc, r) => acc + safeNum(r[totalKey]),
+        0
+      );
 
     const totals = {
-      last_stock: sumTHB("last_stock"),
-      sell_in: sumTHB("sell_in"),
-      current_stock: sumTHB("current_stock"),
-      sell_out: sumTHB("sell_out"),
+      last_stock: sumByTotalKey(totalKeyByColumn.last_stock),
+      sell_in: sumByTotalKey(totalKeyByColumn.sell_in),
+      current_stock: sumByTotalKey(totalKeyByColumn.current_stock),
+      sell_out: sumByTotalKey(totalKeyByColumn.sell_out),
     };
 
     const keys = ["last_stock", "sell_in", "current_stock", "sell_out"];
@@ -260,7 +267,10 @@ export default function ReportStock() {
                 readOnly
                 value={totals[k]}
                 formatter={(v) =>
-                  `${parseInt(v || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(v || 0)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 style={{ backgroundColor: "white" }}
               />
@@ -295,14 +305,14 @@ export default function ReportStock() {
 
         // set default filters
         const now = dayjs();
-        const defaultYear = pickLatestYearCode(yearOpts);
+        const firstYear = yearOpts[0]?.value ?? now.year();
         form.setFieldsValue({
           area_id: undefined,
           sale_id: undefined,
           dealer_id: undefined,
           sub_dealer_id: undefined,
           month: now.month() + 1, // 1-12
-          year: defaultYear || now.year(),
+          year: firstYear,
         });
 
         // first fetch
@@ -434,13 +444,23 @@ export default function ReportStock() {
 
       const rows = items.map((it, idx) => ({
         key: it.product_id ?? idx,
-        product_name: `${it.product_name}${
-          it.product_size ? ` (${it.product_size})` : ""
-        }`,
+        product_name: `${it.product_name}${it.product_size ? ` (${it.product_size})` : ""
+          }`,
+
+        // qty (ctn)
         last_stock: Number(it.last) || 0,
         sell_in: Number(it.in) || 0,
         current_stock: Number(it.current) || 0,
         sell_out: Number(it.out) || 0,
+
+        // ✅ total ใหม่ จาก backend (THB)
+        total_last: Number(String(it.total_last || 0).replace(/,/g, "")) || 0,
+        total_in: Number(String(it.total_in || 0).replace(/,/g, "")) || 0,
+        total_current:
+          Number(String(it.total_current || 0).replace(/,/g, "")) || 0,
+        total_out: Number(String(it.total_out || 0).replace(/,/g, "")) || 0,
+
+        // unit price (ถ้าจะใช้ต่อ)
         unit_convert_value: parseFloat(
           String(it.unit_convert_value || "0").replace(/,/g, "")
         ),
