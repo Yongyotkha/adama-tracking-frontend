@@ -447,25 +447,9 @@ export default function ReportSaleByMonth() {
       >
         <BoxPrimary className="m-1 mb-4">
           <Row gutter={16} align="middle">
-            {/* Year filter */}
-            <Col md={6}>
-              <Form.Item label="Year" name="year_code">
-                <Select
-                  placeholder="Select Year"
-                  options={years.map((y) => ({ value: y, label: y }))}
-                  allowClear={false}
-                  onChange={(value) => {
-                    setTableParams((prev) => ({
-                      ...prev,
-                      filters: { ...prev.filters, year_code: value },
-                    }));
-                  }}
-                />
-              </Form.Item>
-            </Col>
 
             <Col md={6}>
-              <Form.Item label="Area" name="area_id">
+              <Form.Item label="Area" name="area_id" tooltip="เลือก Area ก่อนเพื่อเปิด Sales">
                 <Select
                   placeholder="Select Area"
                   options={areaList}
@@ -498,6 +482,23 @@ export default function ReportSaleByMonth() {
                   options={subDealers}
                   allowClear
                   disabled={!selectedSale}
+                />
+              </Form.Item>
+            </Col>
+
+            {/* Year filter */}
+            <Col md={6}>
+              <Form.Item label="Year" name="year_code">
+                <Select
+                  placeholder="Select Year"
+                  options={years.map((y) => ({ value: y, label: y }))}
+                  allowClear={false}
+                  onChange={(value) => {
+                    setTableParams((prev) => ({
+                      ...prev,
+                      filters: { ...prev.filters, year_code: value },
+                    }));
+                  }}
                 />
               </Form.Item>
             </Col>

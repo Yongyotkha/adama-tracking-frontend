@@ -60,18 +60,35 @@ const FilterByOrder = ({ onSearch, onClear, onChange, filters }) => {
                 <label className="block text-gray-700">{filter.label}</label>
                 {filter.type === "select" && (
                   <Select
-                    value={filterValues[filter.key] || ""}
+                    value={filterValues[filter.key] ?? undefined}
                     onChange={(value) => handleFilterChange(filter.key, value)}
                     placeholder={filter.placeholder || "Select"}
                     className="w-full"
+                    allowClear
+                    showSearch
+                    optionFilterProp="label"
+                    filterOption={(input, option) => {
+                      const label = (option?.label ?? "").toString().toLowerCase();
+                      return label.includes((input ?? "").toLowerCase());
+                    }}
+                    disabled={filter.disabled || false}
                   >
-                    <Option value="">{filter.placeholder || "All"}</Option>
-                    {filter.options.map((option, key) => (
-                      <Option key={key} value={option.id}>
-                        {option.name}
-                      </Option>
-                    ))}
+                    <Option value={undefined} label={filter.placeholder || "All"}>
+                      {filter.placeholder || "All"}
+                    </Option>
+
+                    {(filter.options || []).map((option, idx) => {
+                      const value = filter.key === "status" ? option.code : option.id;
+                      const label = option.name ?? String(option.id ?? "");
+
+                      return (
+                        <Option key={idx} value={value} label={label}>
+                          {label}
+                        </Option>
+                      );
+                    })}
                   </Select>
+
                 )}
                 {filter.type === "text" && (
                   <Input
