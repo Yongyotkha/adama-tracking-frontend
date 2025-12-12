@@ -23,9 +23,11 @@ const { TabPane } = Tabs;
  */
 const STATUS_OPTIONS_LIST = [
   { id: "ODC", name: "Complete" },
-  { id: "ODW", name: "Waiting for Receive" },
+  { id: "ODW", name: "Waiting for Approve" },
+  { id: "ODI", name: "Waiting for Create" },
   { id: "ODD", name: "Draft" },
   { id: "ODR", name: "Reject" },
+  
 ];
 
 export default function SalesPointsList() {
