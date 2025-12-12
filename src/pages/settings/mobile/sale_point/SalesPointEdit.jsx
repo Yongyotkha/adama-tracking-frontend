@@ -1,5 +1,5 @@
 // src/pages/points/line/sales_points/SalesPointEdit.jsx
-import React, { useEffect, useState, useContext, useRef } from "react";
+import React, { useEffect, useState, useContext, useRef, useMemo } from "react";
 import { Form, Input, Select } from "antd";
 import MainLayout from "../../../../layouts/MainLayout";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
@@ -41,7 +41,7 @@ export default function SalesPointEdit() {
   const [remark, setRemark] = useState("");
 
   // อัปโหลดไฟล์
-  const [fileListBill, setFileListBill] = useState([]);       // bill
+  const [fileListBill, setFileListBill] = useState([]); // bill
   const [fileListPicture, setFileListPicture] = useState([]); // picture
   const fileUploadRefBill = useRef(null);
   const fileUploadRefPicture = useRef(null);
@@ -50,7 +50,14 @@ export default function SalesPointEdit() {
   const [searchProductData, setSearchProductData] = useState([]);
 
   const [formCustom] = Form.useForm();
+
+  // ✅ รับจากหน้า list
   const document_number = location.state?.document_number;
+  const statusFromList = location.state?.status_code; // ODC = Complete
+  const [statusCode, setStatusCode] = useState(statusFromList || "");
+
+  // ✅ ถ้าไม่ใช่ Complete ให้ลบสินค้าได้
+  const canDeleteProducts = statusCode !== "ODC";
 
   // ---------- helpers ----------
   const toNumber = (v) => Number(String(v ?? "0").replace(/,/g, "")) || 0;
@@ -63,6 +70,15 @@ export default function SalesPointEdit() {
     } catch {
       return "file";
     }
+  };
+
+  // ✅ ลบสินค้าออกจากตาราง (re-index key/no)
+  const handleRemoveRow = (rowKey) => {
+    setDataSource((prev) =>
+      prev
+        .filter((i) => i.key !== rowKey)
+        .map((i, idx) => ({ ...i, key: idx + 1, no: idx + 1 }))
+    );
   };
 
   // 1) ดึงรายละเอียด
@@ -81,6 +97,9 @@ export default function SalesPointEdit() {
 
         setDocNo(d.document_number || "");
         setDocDate(d.document_date || "");
+
+        // ✅ กันกรณีไม่ได้ส่ง status มาจาก list
+        setStatusCode(statusFromList || d.status_code || "");
 
         // เก็บ ids ไว้ใช้ตอน update
         setUserId(String(d.user_id || ""));
@@ -105,7 +124,8 @@ export default function SalesPointEdit() {
             product_unit: p.product_unit,
             product_unit_thb: p.product_unit_thb,
             point: p.point,
-            product_campaign_order_min_foc: Number(p.product_campaign_order_min_foc) || 0,
+            product_campaign_order_min_foc:
+              Number(p.product_campaign_order_min_foc) || 0,
             product_campaign_foc: Number(p.product_campaign_foc) || 0,
             quantity: toNumber(p.quantity),
             foc: toNumber(p.foc),
@@ -150,7 +170,6 @@ export default function SalesPointEdit() {
         formCustom.setFieldsValue({
           sale: String(d.sale_name || ""),
           dealer: String(d.dealer_name || ""),
-          // sub_dealer: String(d.sub_dealer_id || ""),
           sub_dealer: String(d.sub_dealer_name || ""),
           order_no: d.document_number || "",
           order_date: d.document_date || dayjs().format("YYYY-MM-DD"),
@@ -185,11 +204,19 @@ export default function SalesPointEdit() {
 
   // ---------- ค้นหา/เลือกสินค้า ----------
   const onSearchProduct = async (value) => {
+    // ✅ ถ้า complete ไม่ให้เพิ่มสินค้า
+    if (!canDeleteProducts) return;
+
     if (!value || value.length < 3) return;
     setLoading(true);
     try {
-      const res = await useServiceAPI.get(paths.pathMasterProducts, { keyword: value });
-      const options = (res?.data || []).map((p) => ({ value: p.id, label: p.name }));
+      const res = await useServiceAPI.get(paths.pathMasterProducts, {
+        keyword: value,
+      });
+      const options = (res?.data || []).map((p) => ({
+        value: p.id,
+        label: p.name,
+      }));
       setSearchProductData(options);
     } catch (e) {
       showMsg("error", e?.message || "ค้นหาสินค้าไม่สำเร็จ");
@@ -199,10 +226,15 @@ export default function SalesPointEdit() {
   };
 
   const onChangeProduct = async (productId) => {
+    // ✅ ถ้า complete ไม่ให้เพิ่มสินค้า
+    if (!canDeleteProducts) return;
+
     setSearchProductData([]);
     setLoading(true);
     try {
-      const res = await useServiceAPI.get(paths.pathMasterProductDetail, { product_id: productId });
+      const res = await useServiceAPI.get(paths.pathMasterProductDetail, {
+        product_id: productId,
+      });
       const d = res?.data;
       if (!d) return;
 
@@ -214,7 +246,9 @@ export default function SalesPointEdit() {
           const unitTHB = toNumber(row.product_unit_thb);
           const net = quantity * unitTHB;
           const foc = row.product_campaign_order_min_foc
-            ? Math.floor(quantity / toNumber(row.product_campaign_order_min_foc))
+            ? Math.floor(
+                quantity / toNumber(row.product_campaign_order_min_foc)
+              )
             : 0;
           return { ...row, quantity, foc, net_amount: Number(net.toFixed(2)) };
         });
@@ -242,7 +276,11 @@ export default function SalesPointEdit() {
           foc,
           net_amount: Number(net.toFixed(2)),
         };
-        const updated = [...dataSource, newRow].map((it, idx) => ({ ...it, key: idx + 1, no: idx + 1 }));
+        const updated = [...dataSource, newRow].map((it, idx) => ({
+          ...it,
+          key: idx + 1,
+          no: idx + 1,
+        }));
         setDataSource(updated);
       }
     } catch (e) {
@@ -252,63 +290,91 @@ export default function SalesPointEdit() {
     }
   };
 
-  const header = [
-    { title: "No", dataIndex: "no", key: "no", width: 50 },
-    { title: "SKU", dataIndex: "product_code", key: "product_code" },
-    { title: "Product Name", dataIndex: "product_name", key: "product_name" },
-    { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
-    {
-      title: "THB/Unit",
-      dataIndex: "product_unit_thb",
-      key: "product_unit_thb",
-      render: (t) => toNumber(t).toLocaleString("en-US", { minimumFractionDigits: 2 }),
-    },
-    {
-      title: <div className="text-center">QTY (ctn)</div>,
-      dataIndex: "quantity",
-      key: "quantity",
-      render: (_, r) => (
-        <div className="quantity-control flex justify-center items-center">
-          <img
-            src="/img/icons/collapse.png"
-            className="w-6 h-6 cursor-pointer"
-            onClick={() => handleQty(r.key, r.quantity - 1)}
-            alt="decrease"
-          />
-          <Input
-            inputMode="numeric"
-            min={0}
-            value={r.quantity}
-            onChange={(e) => handleQty(r.key, parseInt(e.target.value) || 0)}
-            className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
-          />
-          <img
-            src="/img/icons/expand.png"
-            className="w-6 h-6 cursor-pointer"
-            onClick={() => handleQty(r.key, r.quantity + 1)}
-            alt="increase"
-          />
-        </div>
-      ),
-    },
-    {
-      title: "Sub Total (THB)",
-      dataIndex: "net_amount",
-      key: "net_amount",
-      render: (t) => toNumber(t).toLocaleString("en-US", { minimumFractionDigits: 2 }),
-    },
-    {
-      title: "Point",
-      key: "total_point",
-      dataIndex: "total_point",
-      align: "right",
-      width: 140,
-      render: (_, record) =>
-        (parseFloat(record.point || 0) * parseFloat(record.quantity || 0)).toLocaleString("en-US", {
-          minimumFractionDigits: 0,
-        }),
-    },
-  ];
+  // ✅ header (เพิ่มถังขยะเฉพาะกรณีไม่ใช่ ODC)
+  const header = useMemo(() => {
+    const base = [
+      { title: "No", dataIndex: "no", key: "no", width: 50 },
+      { title: "SKU", dataIndex: "product_code", key: "product_code" },
+      { title: "Product Name", dataIndex: "product_name", key: "product_name" },
+      { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
+      {
+        title: "THB/Unit",
+        dataIndex: "product_unit_thb",
+        key: "product_unit_thb",
+        render: (t) =>
+          toNumber(t).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+      },
+      {
+        title: <div className="text-center">QTY (ctn)</div>,
+        dataIndex: "quantity",
+        key: "quantity",
+        render: (_, r) => (
+          <div className="quantity-control flex justify-center items-center">
+            <img
+              src="/img/icons/collapse.png"
+              className="w-6 h-6 cursor-pointer"
+              onClick={() => handleQty(r.key, r.quantity - 1)}
+              alt="decrease"
+            />
+            <Input
+              inputMode="numeric"
+              min={0}
+              value={r.quantity}
+              onChange={(e) => handleQty(r.key, parseInt(e.target.value) || 0)}
+              className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
+            />
+            <img
+              src="/img/icons/expand.png"
+              className="w-6 h-6 cursor-pointer"
+              onClick={() => handleQty(r.key, r.quantity + 1)}
+              alt="increase"
+            />
+          </div>
+        ),
+      },
+      {
+        title: "Sub Total (THB)",
+        dataIndex: "net_amount",
+        key: "net_amount",
+        render: (t) =>
+          toNumber(t).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+      },
+      {
+        title: "Point",
+        key: "total_point",
+        dataIndex: "total_point",
+        align: "right",
+        width: 140,
+        render: (_, record) =>
+          (parseFloat(record.point || 0) * parseFloat(record.quantity || 0)).toLocaleString(
+            "en-US",
+            { minimumFractionDigits: 0 }
+          ),
+      },
+    ];
+
+    if (!canDeleteProducts) return base;
+
+    return [
+      ...base,
+      {
+        title: <div className="text-center">Action</div>,
+        key: "action",
+        width: 90,
+        align: "center",
+        render: (_, record) => (
+          <button className="delete-button flex justify-center mx-auto">
+            <img
+              src="/img/icons/delete.png"
+              alt="delete"
+              className="cursor-pointer w-6 h-6"
+              onClick={() => handleRemoveRow(record.key)}
+            />
+          </button>
+        ),
+      },
+    ];
+  }, [canDeleteProducts, dataSource]);
 
   const headerOther = [
     { title: "No", dataIndex: "no", key: "no", width: 50 },
@@ -331,14 +397,14 @@ export default function SalesPointEdit() {
     const totalQty = dataSource.reduce((sum, i) => sum + toNumber(i.quantity), 0);
     const totalAmount = dataSource.reduce((sum, i) => sum + toNumber(i.net_amount), 0);
     const totalPoint = dataSource.reduce(
-      (sum, i) => sum + (toNumber(i.point) * toNumber(i.quantity)),
+      (sum, i) => sum + toNumber(i.point) * toNumber(i.quantity),
       0
     );
     return (
       <tr className="bg-[#978B87]">
-        <td colSpan={9} className="text-right pr-2 text-white">
+        <td colSpan={canDeleteProducts ? 10 : 9} className="text-right pr-2 text-white">
           Item: {dataSource.length} | QTY (ctn): {totalQty}&nbsp;| Total:{" "}
-          {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}&nbsp;| 
+          {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}&nbsp;|
           Total Point: {totalPoint.toLocaleString("en-US")}
         </td>
       </tr>
@@ -350,9 +416,9 @@ export default function SalesPointEdit() {
       <td colSpan={6} className="text-right pr-2 text-white">
         Item: {dataSourceOther.length} &nbsp; QTY:{" "}
         {dataSourceOther.reduce((t, i) => t + (toNumber(i.quantity) || 0), 0)} &nbsp; Total:{" "}
-        {dataSourceOther.reduce((t, i) => t + toNumber(i.net_amount), 0).toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-        })}
+        {dataSourceOther
+          .reduce((t, i) => t + toNumber(i.net_amount), 0)
+          .toLocaleString("en-US", { minimumFractionDigits: 2 })}
       </td>
     </tr>
   );
@@ -363,7 +429,7 @@ export default function SalesPointEdit() {
       key: "sale",
       label: "Sales",
       name: "sale",
-      type: "text",            // ✅ แสดงชื่อแทน select
+      type: "text",
       disabled: true,
       value: "",
       placeholder: saleName || "",
@@ -372,7 +438,7 @@ export default function SalesPointEdit() {
       key: "dealer",
       label: "Dealer",
       name: "dealer",
-      type: "text",            // ✅ แสดงชื่อแทน select
+      type: "text",
       disabled: true,
       value: "",
       placeholder: dealerName || "",
@@ -381,13 +447,27 @@ export default function SalesPointEdit() {
       key: "sub_dealer",
       label: "Sub Dealer",
       name: "sub_dealer",
-      type: "text",            // ✅ แสดงชื่อแทน select
+      type: "text",
       disabled: true,
       value: "",
       placeholder: subDealerName || "",
     },
-    { key: "order_no", label: "Order No", name: "order_no", type: "text", disabled: true, value: docNo || document_number || "" },
-    { key: "order_date", label: "Date", name: "order_date", type: "text", disabled: true, value: docDate || dayjs().format("YYYY-MM-DD") },
+    {
+      key: "order_no",
+      label: "Order No",
+      name: "order_no",
+      type: "text",
+      disabled: true,
+      value: docNo || document_number || "",
+    },
+    {
+      key: "order_date",
+      label: "Date",
+      name: "order_date",
+      type: "text",
+      disabled: true,
+      value: docDate || dayjs().format("YYYY-MM-DD"),
+    },
   ];
 
   // ===== UploadSection handlers =====
@@ -396,12 +476,22 @@ export default function SalesPointEdit() {
 
   const handleUploadSuccessBill = (response) => {
     const data = response.data;
-    const uploaded = { uid: data.file_key, name: data.file_name, status: "done", url: data.file_url };
+    const uploaded = {
+      uid: data.file_key,
+      name: data.file_name,
+      status: "done",
+      url: data.file_url,
+    };
     setFileListBill((prev) => [...prev, uploaded]);
   };
   const handleUploadSuccessPicture = (response) => {
     const data = response.data;
-    const uploaded = { uid: data.file_key, name: data.file_name, status: "done", url: data.file_url };
+    const uploaded = {
+      uid: data.file_key,
+      name: data.file_name,
+      status: "done",
+      url: data.file_url,
+    };
     setFileListPicture((prev) => [...prev, uploaded]);
   };
 
@@ -448,7 +538,10 @@ export default function SalesPointEdit() {
       const res = await useServiceAPI.put(paths.pathSalePointOrderUpdate, payload);
 
       if (res?.status === 200) {
-        showMsg("success", res.data?.data?.message_line?.join("\n") || "Update successful");
+        showMsg(
+          "success",
+          res.data?.data?.message_line?.join("\n") || "Update successful"
+        );
         navigate("/points/line/sales-points-list");
       } else {
         showMsg("warning", res?.data?.message || "อัปเดตไม่สำเร็จ");
@@ -466,20 +559,23 @@ export default function SalesPointEdit() {
 
       <FormCustom fields={formFields} form={formCustom} onChange="" />
 
-      <BoxPrimary title="Product">
-        <div className="mb-3 flex justify-end">
-          <Select
-            showSearch
-            placeholder="Search Product"
-            optionFilterProp="label"
-            className="w-full"
-            onChange={onChangeProduct}
-            onSearch={onSearchProduct}
-            options={searchProductData}
-            value=""
-          />
-        </div>
-      </BoxPrimary>
+      {/* ✅ ถ้าเป็น Complete (ODC) ไม่ต้องให้ค้นหา/เพิ่มสินค้า */}
+      {canDeleteProducts && (
+        <BoxPrimary title="Product">
+          <div className="mb-3 flex justify-end">
+            <Select
+              showSearch
+              placeholder="Search Product"
+              optionFilterProp="label"
+              className="w-full"
+              onChange={onChangeProduct}
+              onSearch={onSearchProduct}
+              options={searchProductData}
+              value=""
+            />
+          </div>
+        </BoxPrimary>
+      )}
 
       <BoxPrimary title="Order List">
         <TableComponent

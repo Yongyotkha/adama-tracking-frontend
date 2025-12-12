@@ -398,22 +398,6 @@ export default function ReportActivityExpense() {
       >
         <BoxPrimary className="m-1 mb-4">
           <Row gutter={16} align="middle">
-            {/* Year filter */}
-            <Col md={6}>
-              <Form.Item label="Year" name="year_code">
-                <Select
-                  placeholder="Select Year"
-                  options={years.map((y) => ({ value: y, label: y }))}
-                  allowClear={false}
-                  onChange={(value) => {
-                    setTableParams((prev) => ({
-                      ...prev,
-                      filters: { ...prev.filters, year_code: value },
-                    }));
-                  }}
-                />
-              </Form.Item>
-            </Col>
 
             <Col md={6}>
               <Form.Item
@@ -456,6 +440,23 @@ export default function ReportActivityExpense() {
                 />
               </Form.Item>
             </Col>
+            {/* Year filter */}
+            <Col md={6}>
+              <Form.Item label="Year" name="year_code">
+                <Select
+                  placeholder="Select Year"
+                  options={years.map((y) => ({ value: y, label: y }))}
+                  allowClear={false}
+                  onChange={(value) => {
+                    setTableParams((prev) => ({
+                      ...prev,
+                      filters: { ...prev.filters, year_code: value },
+                    }));
+                  }}
+                />
+              </Form.Item>
+            </Col>
+
           </Row>
 
           <div className="flex justify-end gap-4 px-4 pt-5">

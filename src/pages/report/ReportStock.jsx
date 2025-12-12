@@ -152,10 +152,11 @@ export default function ReportStock() {
           <InputNumber
             className="w-full"
             readOnly
-            value={Number(val) || 0}
-            formatter={toComma}
+            value={displayZero(val, null)}   // ส่ง null ให้ InputNumber ว่าง
+            formatter={formatterZeroAsDash}  // หรืออยากให้เป็น "" ก็เปลี่ยนใน formatter
           />
         ),
+
       },
       {
         title: "Sell In (ctn)",
@@ -174,8 +175,8 @@ export default function ReportStock() {
           <InputNumber
             className="w-full"
             readOnly
-            value={Number(val) || 0}
-            formatter={toComma}
+            value={displayZero(val, null)}   // ส่ง null ให้ InputNumber ว่าง
+            formatter={formatterZeroAsDash}  // หรืออยากให้เป็น "" ก็เปลี่ยนใน formatter
           />
         ),
       },
@@ -196,8 +197,8 @@ export default function ReportStock() {
           <InputNumber
             className="w-full"
             readOnly
-            value={Number(val) || 0}
-            formatter={toComma}
+            value={displayZero(val, null)}   // ส่ง null ให้ InputNumber ว่าง
+            formatter={formatterZeroAsDash}  // หรืออยากให้เป็น "" ก็เปลี่ยนใน formatter
           />
         ),
       },
@@ -218,8 +219,8 @@ export default function ReportStock() {
           <InputNumber
             className="w-full"
             readOnly
-            value={Number(val) || 0}
-            formatter={toComma}
+            value={displayZero(val, null)}   // ส่ง null ให้ InputNumber ว่าง
+            formatter={formatterZeroAsDash}  // หรืออยากให้เป็น "" ก็เปลี่ยนใน formatter
           />
         ),
       },
@@ -265,13 +266,8 @@ export default function ReportStock() {
               <InputNumber
                 className="w-full"
                 readOnly
-                value={totals[k]}
-                formatter={(v) =>
-                  `${parseInt(v || 0)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
-                }
+                value={displayZero(totals[k], null)}
+                formatter={formatterZeroAsDash}
                 style={{ backgroundColor: "white" }}
               />
             </Table.Summary.Cell>
@@ -531,6 +527,19 @@ export default function ReportStock() {
       form.setFieldsValue({ sub_dealer_id: undefined });
     }
   };
+
+  const displayZero = (val, emptyText = "-") => {
+    const n = Number(val);
+    if (!Number.isFinite(n) || n === 0) return emptyText; // 0 / null / undefined / NaN
+    return n;
+  };
+
+  const formatterZeroAsDash = (v) => {
+    const n = Number(String(v ?? "").replace(/,/g, ""));
+    if (!Number.isFinite(n) || n === 0) return "-";
+    return `${parseInt(n)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
 
   return (
     <MainLayout loading={loading}>
