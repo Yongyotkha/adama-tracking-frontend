@@ -1,8 +1,8 @@
 // API EndPoint
 // export const endPoint = import.meta.env.VITE_API_BASE_URL;
-export const endPoint = "https://adama-api.mtsc.co.th/api"; //Test API
+//export const endPoint = "https://adama-api.mtsc.co.th/api"; //Test API
 //export const endPoint = "https://api-uat.adama.co.th/api"; //UAT API
-//export const endPoint = "http://127.0.0.1:8000/api";
+export const endPoint = "http://127.0.0.1:8000/api";
 
 export const paths = {
   pathLogList: "log/list",
@@ -19,7 +19,8 @@ export const paths = {
   pathSalePointReceiveUpdateRequest: "sale-point-receive/update_request",
 
   pathSalePointReceiveReward: "sale-point-receive/receive-reward",
-  pathSalePointReceiveRewardConfirm: "sale-point-receive/receive-reward-confirm",
+  pathSalePointReceiveRewardConfirm:
+    "sale-point-receive/receive-reward-confirm",
   pathLogPoint: "sale-point-receive/point-log",
   pathLogPointOne: "sale-point-receive/point-log-one",
   pathUserLineDealer: "user-line/dealers",
@@ -52,9 +53,6 @@ export const paths = {
   pathMasterProductCategorys: "master/product-categorys",
   // pathMasterSaleReport: "master/sale-report",
   pathMasterSaleReport: "master/area_user_sale",
-
-
-
 
   pathMasterProductByCrop: "master/product-by-crop",
   pathMasterSaleAll: "master/sale-all/list",
@@ -97,8 +95,6 @@ export const paths = {
   pathExpenseMaterialDel: "expense-material/del",
   pathExpenseMaterialItem: "expense-material/item",
 
-
-
   //Products
   pathSaleManagementProductsList: "products-management/list",
   pathSaleManagementProductsDetail: "products-management/detail",
@@ -135,7 +131,6 @@ export const paths = {
   pathMasterSalesByArea: "master/area_user_sale",
   pathMasterSalesByArea2: "master/area_user_sale_2",
 
-
   // contact
   pathCustomerContactList: "sale-customer-contact/list",
   pathCustomerContactCreate: "sale-customer-contact/create",
@@ -168,7 +163,6 @@ export const paths = {
   // List
   pathMasterSale: "sale-management/list",
   pathMasterProduct: "products-management/list",
-
 
   pathMasterActivityType: "master/activity-type",
   pathMasterSaleDropdown: "master/sale",
@@ -206,14 +200,13 @@ export const paths = {
   pathMasterPromotionUser: "promotion-management/list_user",
   pathPromotionCategory: "promotion-management/category",
 
-  //Promotion banner 
+  //Promotion banner
   pathPromotionBannerList: "promotion-banner/list",
   pathPromotionBannerDetail: "promotion-banner/detail",
   pathPromotionBannerCreate: "promotion-banner/create",
   pathPromotionBannerUpdate: "promotion-banner/update",
   pathPromotionBannerDelete: "promotion-banner/delete",
   pathPromotionBannerCategory: "promotion-banner/category",
-
 
   //Sale
   pathSaleManagementlist: "sale-management/list",
@@ -233,7 +226,6 @@ export const paths = {
   //area plan
   pathGetWorkPlanAreaList: "/work-plan/area/list",
   pathWorkPlanAreaStep1: "/work-plan/area/workplan_step1",
-
 
   //sale plan
   pathGetWorkPlanSaleList: "/work-plan/sale/list",
@@ -289,7 +281,6 @@ export const paths = {
   pathGetOrderDetail: "order/detail",
   pathGetOrderWaitingList: "order/list",
   pathGetOrderChangeStatus: "order/status",
-
 
   // Sale Point Order
   pathSalePointOrderList: "/sale-point/list",
@@ -371,7 +362,6 @@ export const paths = {
   pathReportSaleHistory: "/report/sale_point_item",
   pathReportSellOut: "/report/stock_group",
 
-
   // Line OA
   pathProfileDetail: "profile/detail",
   pathProfileImage: "/profile/update-image",
@@ -426,6 +416,4 @@ export const paths = {
   pathPointCampaignTarget: "campaign/target",
   pathPointCampaignCustomer: "campaign/customer",
   pathPointCampaignDelete: "campaign/delete",
-
-
 };
