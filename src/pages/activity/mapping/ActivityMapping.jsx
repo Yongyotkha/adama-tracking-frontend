@@ -253,9 +253,6 @@ export default function ActivityMapping() {
   const loadDataMappingList = async (filters) => {
     setLoading(true);
     try {
-      renderCount.current += 1;
-      console.log(`🔄 loadDataMappingList รอบที่: ${renderCount.current}`);
-
       const activityType = Array.isArray(filters.activity_type) ? filters.activity_type : [];
       const sales = Array.isArray(filters.sales) ? filters.sales : [];
       const dealer = Array.isArray(filters.dealer) ? filters.dealer : [];
@@ -266,31 +263,30 @@ export default function ActivityMapping() {
 
       let filteredData = dataMapping;
 
-      console.log('filteredData : ', filteredData.length)
-
-      if (sub_dealers.length > 0) {
-        filteredData = filteredData.filter((item) =>
-          sub_dealers.includes(item.sub_dealer_id)
-        );
-      }
-
-      if (activityType.length > 0) {
-        filteredData = filteredData.filter((item) =>
-          activityType.includes(item.activity_type_id)
-        );
-      }
-
-      if (month.length > 0) {
+      // ✅ 1) YEAR filter มาก่อน (สำคัญสุด)
+      if (year.length > 0) {
         filteredData = filteredData.filter((item) => {
-          const docMonth = new Date(item.document_date).getMonth() + 1; // getMonth() เริ่มที่ 0
-          return month.includes(String(docMonth)); // เปรียบเทียบแบบ string
+          const itemYear = String(item.year ?? new Date(item.document_date).getFullYear());
+          return year.includes(itemYear);
         });
       }
 
-      console.log('month : ', month)
-      console.log('sub_dealers : ', sub_dealers.length)
-      console.log('filteredData : ', filteredData.length)
-      console.log('=====================================================')
+      // ✅ 2) แล้วค่อย filter อื่น ๆ
+      if (sub_dealers.length > 0) {
+        filteredData = filteredData.filter((item) => sub_dealers.includes(item.sub_dealer_id));
+      }
+
+      if (activityType.length > 0) {
+        filteredData = filteredData.filter((item) => activityType.includes(item.activity_type_id));
+      }
+
+      // ✅ 3) MONTH filter (หลัง year)
+      if (month.length > 0) {
+        filteredData = filteredData.filter((item) => {
+          const docMonth = new Date(item.document_date).getMonth() + 1;
+          return month.includes(String(docMonth));
+        });
+      }
 
       setLocations(
         filteredData.map((data, index) => ({
@@ -317,12 +313,11 @@ export default function ActivityMapping() {
           remark: data.remark ?? "",
         }))
       );
-    } catch (error) {
-      console.error(error);
     } finally {
       setLoading(false);
     }
   };
+
 
   const mockFilters = useMemo(() => [
     { key: 1, filter_type: "activity_type", filter_type_name: "Activity Type", data: activityType },
