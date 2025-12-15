@@ -36,8 +36,7 @@ export default function ReportActivityByType() {
   const [dataSource, setDataSource] = useState([]);
   const [defaultOption, setDefaultOption] = useState();
 
-  // fixed total by sale
-  const [saleTotals, setSaleTotals] = useState({
+  const [tableTotals, setTableTotals] = useState({
     total_activity_plan: 0,
     total_activity_list: 0,
     total_activity_actual: 0,
@@ -137,7 +136,6 @@ export default function ReportActivityByType() {
 
         // initial load = ยังไม่เลือก territory → table + total ตรงกัน
         await fetchData(initialFilters);
-        await fetchSaleTotals(initialFilters);
       }
     } catch (error) {
       console.error(error);
@@ -155,7 +153,6 @@ export default function ReportActivityByType() {
   // ดึงข้อมูลตาม filter ปัจจุบัน (ใช้ territory ตามที่เลือก)
   const fetchData = async (filtersInput = tableParams.filters) => {
     setTableLoading(true);
-    const { pageSize } = tableParams.pagination;
     const f = filtersInput || {};
     const v = formCustom.getFieldsValue();
 
@@ -163,7 +160,6 @@ export default function ReportActivityByType() {
     let documentDate = null;
 
     if (v.month && yearFromForm) {
-      // ส่งเป็น YYYY-MM-01 ให้ backend ใช้ตัดเอาเฉพาะเดือน/ปี
       documentDate = `${yearFromForm}-${v.month}-01`;
     }
 
@@ -174,7 +170,7 @@ export default function ReportActivityByType() {
       user_id: v.user_id ? Number(v.user_id) : null,
       dealer_id: v.dealer_id || null,
       crop_id: v.crop_id || null,
-      territory: v.territory ? Number(v.territory) : null, // ใช้ territory ปัจจุบัน
+      territory: v.territory ? Number(v.territory) : null,
       document_date: documentDate,
       page_length: 1,
       page_size: 100,
@@ -183,53 +179,24 @@ export default function ReportActivityByType() {
     try {
       const res = await useServiceAPI.get(paths.pathReportActivityType, requestData);
       const rows = mapApiToRows(res);
+
       setDataSource(rows);
+
+      // ✅ คำนวณ Total (THB) จากข้อมูลเดียวกัน
+      setTableTotals(calcTotals(rows));
     } catch (err) {
       console.error(err);
+      setDataSource([]);
+      setTableTotals({
+        total_activity_plan: 0,
+        total_activity_list: 0,
+        total_activity_actual: 0,
+      });
     } finally {
       setTableLoading(false);
     }
   };
 
-  // ดึงข้อมูลเฉพาะ "ระดับ Sale" (ไม่กรอง territory) แล้วเก็บ total ไว้ใช้ใน footer
-  const fetchSaleTotals = async (filtersInput = tableParams.filters) => {
-    const f = filtersInput || {};
-    const v = formCustom.getFieldsValue();
-
-    const yearFromForm = v.year_code || f.year_code || defaultYear;
-    let documentDate = null;
-
-    if (v.month && yearFromForm) {
-      documentDate = `${yearFromForm}-${v.month}-01`;
-    }
-
-    const requestData = {
-      keyword: f.keyword || "",
-      year_code: yearFromForm || null,
-      area_id: v.area_id ? Number(v.area_id) : null,
-      user_id: v.user_id ? Number(v.user_id) : null,
-      dealer_id: v.dealer_id || null,
-      crop_id: v.crop_id || null,
-      territory: null, // ❗ ไม่กรอง territory → ได้ total ทั้ง Sale
-      document_date: documentDate,
-      page_length: 1,
-      page_size: 100,
-    };
-
-    try {
-      const res = await useServiceAPI.get(paths.pathReportActivityType, requestData);
-      const rows = mapApiToRows(res);
-      setSaleTotals(calcTotals(rows));
-    } catch (err) {
-      console.error(err);
-      // ถ้า error ให้ fallback เป็น 0
-      setSaleTotals({
-        total_activity_plan: 0,
-        total_activity_list: 0,
-        total_activity_actual: 0,
-      });
-    }
-  };
 
   const handleTableChange = (pagination) => {
     setTableParams((prev) => ({ ...prev, pagination }));
@@ -238,7 +205,7 @@ export default function ReportActivityByType() {
   const handleSearch = async () => {
     const filters = tableParams.filters;
     // ดึง data ปกติ + total by sale พร้อมกัน
-    await Promise.all([fetchData(filters), fetchSaleTotals(filters)]);
+    await fetchData(filters);
   };
 
   const handleClear = async () => {
@@ -268,7 +235,6 @@ export default function ReportActivityByType() {
     }));
     const filters = { year_code: defaultYearValue ?? tableParams.filters?.year_code };
     await fetchData(filters);
-    await fetchSaleTotals(filters);
   };
 
   // ===== Dependent selects via onValuesChange (ใช้ทำ Step UI ด้วย) =====
@@ -367,31 +333,31 @@ export default function ReportActivityByType() {
   ];
 
   // ✅ ใช้ saleTotals ที่ fix จากระดับ Sale เท่านั้น
-  const footerSummary = () => {
-    return (
-      <Table.Summary fixed>
-        <Table.Summary.Row className="bg-[#978B87]">
-          <Table.Summary.Cell>
-            <b>Total (THB)</b>
-          </Table.Summary.Cell>
-          {["total_activity_plan", "total_activity_list", "total_activity_actual"].map((key) => (
+  const footerSummary = () => (
+    <Table.Summary fixed>
+      <Table.Summary.Row className="bg-[#978B87]">
+        <Table.Summary.Cell>
+          <b>Total (THB)</b>
+        </Table.Summary.Cell>
+
+        {["total_activity_plan", "total_activity_list", "total_activity_actual"].map(
+          (key) => (
             <Table.Summary.Cell key={key} align="right">
               <InputNumber
                 className="w-full"
                 disabled
-                value={saleTotals[key] || 0}
-                formatter={(val) => `${parseInt(val || 0)}`.replace(
-                  /\B(?=(\d{3})+(?!\d))/g,
-                  ","
-                )}
+                value={tableTotals[key] || 0}
+                formatter={(val) =>
+                  `${parseInt(val || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
                 style={{ backgroundColor: "white" }}
               />
             </Table.Summary.Cell>
-          ))}
-        </Table.Summary.Row>
-      </Table.Summary>
-    );
-  };
+          )
+        )}
+      </Table.Summary.Row>
+    </Table.Summary>
+  );
 
   const toText = (v) =>
     v == null
@@ -533,32 +499,10 @@ export default function ReportActivityByType() {
             <ExportActivityTypeExcelButton
               text="Export Excel"
               fileName={buildFileName()}
-              getPayload={async () => {
-                const f = tableParams?.filters || {};
-                const v = formCustom.getFieldsValue();
-
-                const yearFromForm = v.year_code || f.year_code || defaultYear;
-                let documentDate = null;
-                if (v.month && yearFromForm) {
-                  documentDate = `${yearFromForm}-${v.month}-01`;
-                }
-
-                return {
-                  keyword: f.keyword || "",
-                  year_code: yearFromForm || undefined,
-                  area_id: v.area_id || null,
-                  user_id: v.user_id || null,
-                  dealer_id: v.dealer_id || null,
-                  crop_id: v.crop_id || null,
-                  // export ให้กรอง territory ตามที่เลือกปกติ
-                  territory: v.territory || null,
-                  document_date: documentDate,
-                };
-              }}
-              requestData={(payload) =>
-                useServiceAPI.get(paths.pathReportActivityType, payload)
-              }
+              rows={dataSource}
+              totals={tableTotals}
             />
+
           </div>
         </BoxPrimary>
       </Form>
