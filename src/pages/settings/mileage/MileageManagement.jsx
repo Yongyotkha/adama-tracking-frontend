@@ -34,8 +34,8 @@ export default function MileageManagement() {
   const header = [
     { title: "No", width: 50, dataIndex: "no", align: "left" },
     { title: "Date", width: 150, dataIndex: "date", align: "left" },
-    { title: "Mileage", width: 150, dataIndex: "mileage", align: "right" },
     { title: "Name", width: 200, dataIndex: "name", align: "left" },
+    { title: "Mileage", width: 150, dataIndex: "mileage", align: "right" },
     { title: "Last Modified", width: 150, dataIndex: "lastModified", align: "left" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
@@ -84,7 +84,7 @@ export default function MileageManagement() {
           no: index + 1 + (current - 1) * pageSize,
           date: item.date || "-",
           mileage: formatNumber(item.mileage) || "-",
-          name: item.user_name || "-",     // แสดงชื่อจาก API
+          name: item.user_name_en || "-",     // แสดงชื่อจาก API
           lastModified: "-",               // ถ้ามี field ในอนาคตค่อยมาใส่
           action: (
             <Dropdown

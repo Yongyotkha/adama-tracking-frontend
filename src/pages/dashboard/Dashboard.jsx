@@ -1178,48 +1178,62 @@ export default function Dashboard() {
 
               </div>
             </div>
-            <table className="w-full table-auto border-collapse">
-              <thead>
-                <tr className="border-b border-gray-300">
-                  <th className="text-left py-2 font-semibold">Type</th>
-                  <th className="text-center py-2 font-semibold">Plan</th>
-                  <th className="text-center py-2 font-semibold">Value</th>
-                  <th className="text-left py-2 font-semibold">Actual</th>
-                  <th className="text-center py-2 font-semibold">Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                {listActivityData.map((item, index) => {
-                  return (
-                    <tr
-                      key={index}
-                      className="border-b border-gray-200 hover:bg-gray-100"
-                    >
-                      <td className="py-2 flex items-end gap-2">
-                        <img
-                          src={item.icon}
-                          alt={item.type}
-                          className="w-6 h-6"
-                        />
-                        <span>{item.type}</span>
+            {/* <div className="w-full overflow-x-auto"> */}
+              <table className="w-full table-auto border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-300">
+                    <th className="text-left py-2 font-semibold">Type</th>
+
+                    <th className="text-center py-2 font-semibold whitespace-normal">
+                      <span className="block leading-tight">Plan</span>
+                      <span className="block text-xs text-gray-500">(qty)</span>
+                    </th>
+
+                    <th className="text-center py-2 font-semibold whitespace-normal">
+                      <span className="block leading-tight">Plan</span>
+                      <span className="block text-xs text-gray-500">(thb)</span>
+                    </th>
+
+                    <th className="text-center py-2 font-semibold whitespace-normal">
+                      <span className="block leading-tight">Actual</span>
+                      <span className="block text-xs text-gray-500">(qty)</span>
+                    </th>
+
+                    <th className="text-center py-2 font-semibold whitespace-normal">
+                      <span className="block leading-tight">Actual</span>
+                      <span className="block text-xs text-gray-500">(thb)</span>
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {listActivityData.map((item, index) => (
+                    <tr key={index} className="border-b border-gray-200 hover:bg-gray-100">
+                      <td className="py-2">
+                        <div className="flex items-center gap-2">
+                          <img src={item.icon} alt={item.type} className="w-6 h-6" />
+                          <span className="whitespace-normal break-words">{item.type}</span>
+                        </div>
+                      </td>
+
+                      <td className="text-center py-2 text-gray-700">
+                        {item.plan?.toLocaleString?.() ?? 0}
                       </td>
                       <td className="text-center py-2 text-gray-700">
-                        {item.plan.toLocaleString() || 0}
+                        {item.plan_value?.toLocaleString?.() ?? 0}
                       </td>
                       <td className="text-center py-2 text-gray-700">
-                        {item.plan_value.toLocaleString() || 0}
+                        {item.actual?.toLocaleString?.() ?? 0}
                       </td>
                       <td className="text-center py-2 text-gray-700">
-                        {item.actual.toLocaleString() || 0}
-                      </td>
-                      <td className="text-center py-2 text-gray-700">
-                        {item.actual_value.toLocaleString() || 0}
+                        {item.actual_value?.toLocaleString?.() ?? 0}
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            {/* </div> */}
+
           </BoxPrimary>
         </Col>
       </Row>
