@@ -209,19 +209,17 @@ export default function PointHistoryDetail() {
                     {/* คะแนนต่อบรรทัด */}
                     {/* คะแนนต่อบรรทัด — UPDATED: ไม่แบ่งครึ่ง, ชิดซ้าย */}
                     <div className="mt-2 space-y-1 text-[12px] text-gray-600 sarabun-font">
-                      {item.master_point > 0 && (
-                        <div className="flex justify-between">
-                          <span>คะแนน</span>
-                          <span className="font-medium">{nf(item.master_point)}</span>
-                        </div>
-                      )}
+                      <div className="flex justify-between">
+                        <span>คะแนน</span>
+                        <span className="font-medium">{nf(item.master_point)}</span>
+                      </div>
                       {item.x_point > 0 && (
                         <div className="flex justify-between">
                           <span>คะแนนโบนัส</span>
                           <span className="font-medium">{nf(item.x_point)}</span>
                         </div>
                       )}
-                      {/* {item.extra_point > 0 && (
+                      {item.extra_point > 0 && (
                         <div className="flex justify-between">
                           <span>Extra (Point)</span>
                           <span className="font-medium">{nf(item.extra_point)}</span>
@@ -232,15 +230,15 @@ export default function PointHistoryDetail() {
                           <span>Extra (Value)</span>
                           <span className="font-medium">{nf(item.extra_value)}</span>
                         </div>
-                      )} */}
-                      {Number(item?.points?.check_point ?? 0) > 0 && (
+                      )}
+                      {/* {Number(item?.points?.check_point ?? 0) > 0 && (
                         <div className="flex justify-between">
-                          <span>คะแนนรวม</span>
+                          <span>Check Point</span>
                           <span className="font-semibold text-green-700">
                             {nf(item?.points?.check_point)}
                           </span>
                         </div>
-                      )}
+                      )} */}
                     </div>
 
                   </div>
@@ -251,7 +249,7 @@ export default function PointHistoryDetail() {
             </div>
 
             {/* สรุปผลรวม */}
-            
+
             <div className="mt-4 border-t pt-3">
               <div className="h-3" />
               <div className="grid grid-cols-1 gap-y-2 text-sm sarabun-font">
