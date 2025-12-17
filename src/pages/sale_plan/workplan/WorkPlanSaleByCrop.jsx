@@ -128,22 +128,22 @@ export default function WorkPlanSaleByCrop() {
           textAlign: "left",
         },
       }),
-      render: (text, record) => (
-        <InputNumber
-          className="w-full"
-          min={0}
-          max={100}
-          value={
-            localQtyState[cropItem.crop_id]?.[record.product_id]?.percentage ||
-            0
-          }
-          onChange={(value) =>
-            handlePercentChange(value, cropItem.crop_id, record)
-          }
-          formatter={(value) => `${parseInt(value)}%`}
-          disabled={!permission.edit || cropItem.crop_id == 7}
-        />
-      ),
+      render: (text, record) => {
+        const cid = String(cropItem.crop_id);
+        const pid = String(record.product_id);
+
+        return (
+          <InputNumber
+            className="w-full"
+            min={0}
+            max={100}
+            value={localQtyState?.[cid]?.[pid]?.percentage ?? 0}
+            onChange={(value) => handlePercentChange(value, cropItem.crop_id, record)}
+            formatter={(value) => `${parseInt(value)}%`}
+            disabled={!permission.edit || String(cropItem.crop_id) === "7"}
+          />
+        );
+      }
     })),
     ...crop.map((cropItem) => ({
       title: (
@@ -223,32 +223,21 @@ export default function WorkPlanSaleByCrop() {
       .then((response) => {
         if (response.status === 200) {
           const newLocalState = response.data.crop_items.reduce((acc, crop) => {
-            // Initialize crop_id object if it doesn't exist
-            if (!acc[crop.crop_id]) {
-              acc[crop.crop_id] = {};
-            }
+            const cropId = String(crop.crop_id);     // ✅ normalize
 
-            // Process data_items
+            if (!acc[cropId]) acc[cropId] = {};
+
             crop.data_items.forEach((item) => {
-              const productId = item.product_id;
+              const productId = String(item.product_id);  // ✅ normalize
 
-              const percentage = parseFloat(item.percentage || 0);
-              const qty = parseFloat(item.qty || 0);
-              const value = parseFloat(item.value || 0);
-
-              // Assign product data to the crop_id
-              acc[crop.crop_id][productId] = {
-                percentage,
-                qty,
-                value,
+              acc[cropId][productId] = {
+                percentage: parseFloat(item.percentage || 0),
+                qty: parseFloat(item.qty || 0),
+                value: parseFloat(item.value || 0),
               };
             });
 
-            // Assign amount_target to the crop_id
-            acc[crop.crop_id].amount_target = parseFloat(
-              crop.amount_target || 0
-            );
-
+            acc[cropId].amount_target = parseFloat(crop.amount_target || 0);
             return acc;
           }, {});
 
@@ -257,8 +246,8 @@ export default function WorkPlanSaleByCrop() {
           setLocalQtyState(newLocalState);
 
           const newData = response.data.data_items.map((item) => ({
-            key: item.product_id,
-            product_id: item.product_id,
+            key: String(item.product_id),          // ✅ key เป็น string
+            product_id: String(item.product_id),   // ✅ สำคัญ
             product_code: item.product_code,
             product_name: item.product_name,
             pack_size: item.pack_size,
@@ -387,9 +376,9 @@ export default function WorkPlanSaleByCrop() {
 
           return {
             ...product, // ข้อมูลตั้งต้น
-            percentage: localProductData.percentage  || 0,
+            percentage: localProductData.percentage || 0,
             qty: localProductData.qty || 0,
-            value: localProductData.value  || 0,
+            value: localProductData.value || 0,
           };
         });
 
