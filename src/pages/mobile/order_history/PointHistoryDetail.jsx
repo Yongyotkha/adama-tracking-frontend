@@ -271,7 +271,7 @@ export default function PointHistoryDetail() {
                 <div className="flex justify-between text-gray-900 font-semibold">
                   <span>คะแนนรวมได้รับ</span>
                   <span className="text-green-700 text-right">
-                    {nf(summary.totalCheckPoint)} คะแนน
+                    {nf(summary.totalCheckPoint+summary.totalMasterPoint)} คะแนน
                   </span>
                 </div>
               </div>

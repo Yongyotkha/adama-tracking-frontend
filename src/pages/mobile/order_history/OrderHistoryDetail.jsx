@@ -86,6 +86,11 @@ export default function OrderHistoryDetail() {
     0
   );
 
+  const totalMasterPoint = products.reduce(
+    (sum, item) => sum + item.points.standard_point,
+    0
+  );
+
 
   // ช่วยฟังก์ชันเล็กๆ ให้รวม array แบบปลอดภัย
   const sumArray = (arr) =>
@@ -297,7 +302,7 @@ export default function OrderHistoryDetail() {
             </div>
 
             {/* Summary */}
-            
+
             <div className="mt-4 border-t pt-2 text-sm text-gray-800 sarabun-font space-y-2">
               {/* จำนวนรวม (ลัง) */}
               <div className="flex justify-between items-center font-semibold">
@@ -309,7 +314,7 @@ export default function OrderHistoryDetail() {
               <div className="flex justify-between items-center font-semibold">
                 <p>คะแนนได้รับ</p>
                 <p className="text-right">
-                  {Number(totalQtyPoint ?? 0).toLocaleString("th-TH")} / ปิดแคมเปญ {totalExtraAccumDisplay}
+                  {Number(totalQtyPoint+totalMasterPoint ?? 0).toLocaleString("th-TH")} / ปิดแคมเปญ {totalExtraAccumDisplay}
                 </p>
               </div>
 
@@ -321,7 +326,7 @@ export default function OrderHistoryDetail() {
           </div>
         </div>
 
-        <BackButton url={"/mobile/order-history"}/>
+        <BackButton url={"/mobile/order-history"} />
 
 
         {/* Success Points Modal */}
