@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/api";
-import { Layout, Checkbox, Button, Collapse } from "antd";
+import { Layout, Checkbox, Button, Collapse, Radio } from "antd";
 import { UpOutlined, DownOutlined } from "@ant-design/icons";
 import MainLayout from "../../../layouts/MainLayout";
 import useServiceAPI from "../../../services/CorsService";
@@ -447,24 +447,50 @@ export default function ActivityMapping() {
                 const panelHeader = (
                   <div className="flex justify-between items-center w-full">
                     <span>{category.filter_type_name}</span>
-                    <Checkbox
-                      indeterminate={indeterminate}
-                      checked={checkAll}
-                      onChange={onCheckAllChange}
-                      onClick={(e) => e.stopPropagation()}
-                    />
+
+                    {category.filter_type !== "year" && (
+                      <Checkbox
+                        indeterminate={indeterminate}
+                        checked={checkAll}
+                        onChange={onCheckAllChange}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    )}
                   </div>
                 );
 
                 return (
                   <Panel header={panelHeader} key={category.key} className="custom-collapse my-2">
-                    <Checkbox.Group
-                      options={(category.data || []).map((item) => ({ label: item.name, value: item.id }))}
-                      value={selected}
-                      onChange={onGroupChange}
-                      className="filter-checkbox-group"
-                    />
+                    {category.filter_type === "year" ? (
+                      <Radio.Group
+                        value={selected?.[0]}          // radio ใช้ค่าเดียว
+                        onChange={(e) => {
+                          setCheckedFilters((prev) => ({
+                            ...prev,
+                            year: e.target.value ? [e.target.value] : [],
+                          }));
+                        }}
+                        className="flex flex-col gap-2"
+                      >
+                        {(category.data || []).map((item) => (
+                          <Radio key={item.id} value={item.id}>
+                            {item.name}
+                          </Radio>
+                        ))}
+                      </Radio.Group>
+                    ) : (
+                      <Checkbox.Group
+                        options={(category.data || []).map((item) => ({
+                          label: item.name,
+                          value: item.id,
+                        }))}
+                        value={selected}
+                        onChange={onGroupChange}
+                        className="filter-checkbox-group"
+                      />
+                    )}
                   </Panel>
+
                 );
               })}
             </Collapse>
