@@ -1,101 +1,115 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import {
-  GoogleMap,
-  LoadScript,
-  Marker,
-  InfoWindow,
-} from "@react-google-maps/api";
-import { Layout, Checkbox, Button, Collapse, Tooltip } from "antd";
+import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/api";
+import { Layout, Checkbox, Button, Collapse } from "antd";
 import { UpOutlined, DownOutlined } from "@ant-design/icons";
 import MainLayout from "../../../layouts/MainLayout";
-import { useNavigate, useLocation } from "react-router-dom";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import DynamicAutoComplete from "../../../components/autocomplete/DynamicAutoComplete";
-import dayjs from "dayjs";
 
 export default function ActivityMapping() {
-  const navigate = useNavigate();
+  const { Content } = Layout;
+  const { Panel } = Collapse;
+
   const [loading, setLoading] = useState(false);
-  const [isFilterCollapsed, setIsFilterCollapsed] = useState(false); // Manage vertical collapse state
-  const [checkedFilters, setCheckedFilters] = useState({}); // Manage checked state for all filters
+  const [isFilterCollapsed, setIsFilterCollapsed] = useState(false);
+  const [checkedFilters, setCheckedFilters] = useState({});
   const [isAllChecked, setIsAllChecked] = useState(true);
 
-  const [dataApiKey, setDataApiKay] = useState(
-    "AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik"
-  );
+  const [dataApiKey] = useState("AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik");
 
-  const [locations, setLocations] = useState([]);
-  const [locationMarkerIcon, setLocationMarkerIcon] = useState([]);
-  const [locationWindowInfo, setlocationWindowInfo] = useState(null);
-  const [dataMapZoom, setDataMapZoom] = useState(10);
   const [dataMapping, setDataMapping] = useState([]);
   const [activityType, setActivityType] = useState([]);
-  const [dataDealer, setDataDealer] = useState([]);
   const [dataSales, setDataSales] = useState([]);
+  const [dataDealer, setDataDealer] = useState([]);
   const [dataSubDealer, setDataSubDealer] = useState([]);
   const [dataArea, setDataArea] = useState([]);
   const [dataYear, setDataYear] = useState([]);
   const [dataMonths, setDataMonths] = useState([]);
   const [dataUserStructure, setDataUserStructure] = useState([]);
-  const renderCount = useRef(0);
-  const [currentLocation, setCurrentLocation] = useState({
-    lat: 0.0,
-    lng: 0.0,
-  });
 
-  const [currentLocationAddress, setCurrentLocationAddress] = useState("");
+  const [locations, setLocations] = useState([]);
+  const [locationMarkerIcon, setLocationMarkerIcon] = useState([]);
+  const [locationWindowInfo, setlocationWindowInfo] = useState(null);
+
+  const [dataMapZoom, setDataMapZoom] = useState(10);
+  const [currentLocation, setCurrentLocation] = useState({ lat: 0.0, lng: 0.0 });
+  const [currentLocationAddress] = useState("");
 
   const [searchOptions, setSearchOptions] = useState([]);
-  const [searchKeyword, setSearchKeyword] = useState("");
+  const renderCount = useRef(0);
 
+  const mapContainerStyle = useMemo(() => ({ width: "100%", height: "100vh" }), []);
+
+  // -----------------------------
+  // ✅ Filters model (ประกาศก่อนใช้)
+  // -----------------------------
+  const mockFilters = useMemo(
+    () => [
+      { key: 1, filter_type: "activity_type", filter_type_name: "Activity Type", data: activityType },
+      { key: 6, filter_type: "sales", filter_type_name: "Sales", data: dataSales },
+      { key: 2, filter_type: "dealer", filter_type_name: "Dealer", data: dataDealer },
+      { key: 3, filter_type: "sub_dealers", filter_type_name: "Sub Dealer", data: dataSubDealer },
+      { key: 4, filter_type: "year", filter_type_name: "Years", data: dataYear },
+      { key: 5, filter_type: "month", filter_type_name: "Months", data: dataMonths },
+    ],
+    [activityType, dataSales, dataDealer, dataSubDealer, dataYear, dataMonths]
+  );
+
+  // -----------------------------
+  // ✅ Auto-sync: Sales -> Dealer (จาก dataUserStructure)
+  // -----------------------------
   useEffect(() => {
-    if (!dataUserStructure || dataUserStructure.length === 0) return;
-    const selectedDealers = checkedFilters.dealer || [];
+    if (!dataUserStructure?.length) return;
 
-    const matchedSubDealers = dataUserStructure
-      .flatMap((user) => user.dealers)
-      .filter((dealer) => selectedDealers.includes(dealer.dealer_id))
-      .flatMap((dealer) =>
-        dealer.sub_dealer.map((sub) => ({ id: sub.id, name: sub.name }))
-      );
-
-    const uniqueSubs = [...new Map(matchedSubDealers.map((s) => [s.id, s])).values()]
-      .sort((a, b) => a.name.localeCompare(b.name));
-
-    setDataSubDealer(uniqueSubs);
-
-    // ✅ Auto-select sub_dealer
-    setCheckedFilters((prev) => ({
-      ...prev,
-      sub_dealers: uniqueSubs.map((s) => s.id),
-    }));
-  }, [checkedFilters.dealer, dataUserStructure]);
-
-  useEffect(() => {
-    if (!dataUserStructure || dataUserStructure.length === 0) return;
     const selectedSales = checkedFilters.sales || [];
-
     const matchedDealers = dataUserStructure
       .filter((user) => selectedSales.includes(user.sale_id))
       .flatMap((user) => user.dealers.map((d) => ({ id: d.dealer_id, name: d.name })));
 
-    const uniqueDealers = [...new Map(matchedDealers.map((d) => [d.id, d])).values()]
-      .sort((a, b) => a.name.localeCompare(b.name));
+    const uniqueDealers = [...new Map(matchedDealers.map((d) => [d.id, d])).values()].sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
 
     setDataDealer(uniqueDealers);
 
-    // ✅ Auto-select dealer
+    // ✅ Auto-select dealer ตาม sales
     setCheckedFilters((prev) => ({
       ...prev,
       dealer: uniqueDealers.map((d) => d.id),
     }));
   }, [checkedFilters.sales, dataUserStructure]);
 
-  // Fetch Data
+  // -----------------------------
+  // ✅ Auto-sync: Dealer -> SubDealer (จาก dataUserStructure)
+  // -----------------------------
   useEffect(() => {
+    if (!dataUserStructure?.length) return;
 
-    const loadDataMappingListFirst = async () => {
+    const selectedDealers = checkedFilters.dealer || [];
+    const matchedSubDealers = dataUserStructure
+      .flatMap((u) => u.dealers)
+      .filter((d) => selectedDealers.includes(d.dealer_id))
+      .flatMap((d) => d.sub_dealer.map((s) => ({ id: s.id, name: s.name })));
+
+    const uniqueSubs = [...new Map(matchedSubDealers.map((s) => [s.id, s])).values()].sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+
+    setDataSubDealer(uniqueSubs);
+
+    // ✅ Auto-select sub_dealer ตาม dealer
+    setCheckedFilters((prev) => ({
+      ...prev,
+      sub_dealers: uniqueSubs.map((s) => s.id),
+    }));
+  }, [checkedFilters.dealer, dataUserStructure]);
+
+  // -----------------------------
+  // ✅ First load: fetch masters + mapping list
+  // -----------------------------
+  useEffect(() => {
+    const loadFirst = async () => {
       setLoading(true);
       try {
         const [mapping, activity, userStruck, areas, years, months] = await Promise.all([
@@ -115,202 +129,128 @@ export default function ActivityMapping() {
           useServiceAPI.get(paths.pathMasterMonths, {}),
         ]);
 
-        setDataMapping(mapping.data);
-        setActivityType(activity.data);
-
-        // 👉 เก็บข้อมูลที่ดึงมาจาก userStruck (API ใหม่)
+        setDataMapping(mapping.data || []);
+        setActivityType(activity.data || []);
         setDataUserStructure(userStruck.data || []);
+        setDataArea(areas.data || []);
+        setDataYear(years.data || []);
+        setDataMonths(months.data || []);
 
-        // 👇 ดึง sales, dealer, sub_dealer จาก userStruck
-        const salesList = userStruck.data.map((user, index) => ({
-          key: index,
-          id: user.sale_id,
-          name: user.name,
+        // sales/dealer/subdealer จาก userStruck
+        const salesList = (userStruck.data || []).map((u, idx) => ({
+          key: idx,
+          id: u.sale_id,
+          name: u.name,
         }));
-        const dealerList = userStruck.data.flatMap((user) =>
-          user.dealers.map((dealer) => ({
-            id: dealer.dealer_id,
-            name: dealer.name,
-          }))
+
+        const dealerList = (userStruck.data || []).flatMap((u) =>
+          u.dealers.map((d) => ({ id: d.dealer_id, name: d.name }))
         );
-        const subDealerList = userStruck.data.flatMap((user) =>
-          user.dealers.flatMap((dealer) =>
-            dealer.sub_dealer.map((sub) => ({
-              id: sub.id,
-              name: sub.name,
-            }))
-          )
+
+        const subDealerList = (userStruck.data || []).flatMap((u) =>
+          u.dealers.flatMap((d) => d.sub_dealer.map((s) => ({ id: s.id, name: s.name })))
+        );
+
+        const uniqDealer = [...new Map(dealerList.map((x) => [x.id, x])).values()].sort((a, b) =>
+          a.name.localeCompare(b.name)
+        );
+        const uniqSub = [...new Map(subDealerList.map((x) => [x.id, x])).values()].sort((a, b) =>
+          a.name.localeCompare(b.name)
         );
 
         setDataSales(salesList);
-        setDataDealer(
-          [...new Map(dealerList.map((item) => [item.id, item])).values()].sort((a, b) =>
-            a.name.localeCompare(b.name)
-          )
-        );
-        setDataSubDealer(
-          [...new Map(subDealerList.map((item) => [item.id, item])).values()].sort((a, b) =>
-            a.name.localeCompare(b.name)
-          )
-        );
-
-        // ตั้งค่าปีและเดือน
-        setDataArea(areas.data);
-        setDataYear(years.data);
-        setDataMonths(months.data);
+        setDataDealer(uniqDealer);
+        setDataSubDealer(uniqSub);
 
         const initialFilters = {
-          activity_type: activity.data.map((i) => i.id),
+          activity_type: (activity.data || []).map((i) => i.id),
           sales: salesList.map((i) => i.id),
           dealer: dealerList.map((i) => i.id),
           sub_dealers: subDealerList.map((i) => i.id),
-          year: years.data.length > 0 ? [years.data[0].id] : [],
-          month: months.data.map((i) => i.id),
+          year: (years.data || []).length > 0 ? [years.data[0].id] : [],
+          month: (months.data || []).map((i) => i.id),
+          area: (areas.data || []).map((i) => i.id),
         };
 
-        setCheckedFilters(initialFilters); // ✅ ตั้งค่า default filters
-        loadDataMappingList(initialFilters); // ✅ โหลดข้อมูลทันทีเมื่อหน้าโหลดเสร็จ
-
-
-      } catch (error) {
-        console.error(error);
+        setCheckedFilters(initialFilters);
+      } catch (e) {
+        console.error(e);
       } finally {
         setLoading(false);
       }
     };
 
-
-    loadDataMappingListFirst();
+    loadFirst();
   }, []);
 
-  useEffect(() => {
-    const filtersReady = mockFilters.every((f) => f.data && f.data.length > 0);
-    if (filtersReady) {
-      loadDataMappingList(checkedFilters);
-    } else {
-      setLocations([])
-    }
-  }, [checkedFilters]);
-
-  // useEffect(() => {
-
-  //   const filtersReady = [activityType, dataSales, dataDealer, dataSubDealer, dataYear, dataMonths]
-  //     .every((f) => f.length > 0);
-
-
-  //   if (filtersReady) {
-  //     loadDataMappingList(checkedFilters);
-
-  //   } else {
-  //     setLocations([])
-  //   }
-  // }, [activityType, dataSales, dataDealer, dataSubDealer, dataYear, dataMonths]);
-
-  const { Content } = Layout;
-  const { Panel } = Collapse;
-
-  const mapContainerStyle = {
-    width: "100%",
-    height: "100vh",
-  };
-
-  const toggleAll = (isChecked) => {
-    const updatedFilters = {};
-
-    if (isChecked) {
-      // ✅ Check เฉพาะกลุ่มที่ต้องการ
-      const targetTypes = ["activity_type", "sales", "dealer", "sub_dealers", "year", "month"];
-
-      targetTypes.forEach((filterType) => {
-        const filterData = mockFilters.find((f) => f.filter_type === filterType)?.data || [];
-        updatedFilters[filterType] = filterData.map((item) => item.id);
-      });
-
-      setCheckedFilters(updatedFilters);
-      setIsAllChecked(isChecked);
-      loadDataMappingList(updatedFilters);
-
-    } else {
-      // ❌ Uncheck ทั้งหมด
-      // mockFilters.forEach((filter) => {
-      //   updatedFilters[filter.filter_type] = [];
-      // });
-      console.log('uncheckkkkkkkkkkk')
-      setCheckedFilters(updatedFilters);
-      setIsAllChecked(isChecked);
-      setLocations([])
-    }
-
-
-
-    // 🔥 เรียก API แสดงข้อมูลตาม filter ที่เลือก
-
-
-    console.log("🌀 toggleAll executed with filters:", updatedFilters);
-  };
-
-
+  // -----------------------------
+  // ✅ Load mapping by filters (client-side filter)
+  // -----------------------------
   const loadDataMappingList = async (filters) => {
     setLoading(true);
     try {
-      const activityType = Array.isArray(filters.activity_type) ? filters.activity_type : [];
-      const sales = Array.isArray(filters.sales) ? filters.sales : [];
-      const dealer = Array.isArray(filters.dealer) ? filters.dealer : [];
-      const sub_dealers = Array.isArray(filters.sub_dealers) ? filters.sub_dealers : [];
-      const area = Array.isArray(filters.area) ? filters.area : [];
-      const year = Array.isArray(filters.year) ? filters.year.map(String) : [];
-      const month = Array.isArray(filters.month) ? filters.month.map(String) : [];
+      const activityTypeIds = Array.isArray(filters.activity_type) ? filters.activity_type : [];
+      const subDealerIds = Array.isArray(filters.sub_dealers) ? filters.sub_dealers : [];
+      const yearIds = Array.isArray(filters.year) ? filters.year.map(String) : [];
+      const monthIds = Array.isArray(filters.month) ? filters.month.map(String) : [];
 
-      let filteredData = dataMapping;
+      // ✅ Priority: ถ้าไม่เลือก Activity Type เลย -> ไม่ต้องแสดงหมุด
+      if (activityTypeIds.length === 0) {
+        setLocations([]);
+        setlocationWindowInfo(null);
+        return;
+      }
 
-      // ✅ 1) YEAR filter มาก่อน (สำคัญสุด)
-      if (year.length > 0) {
-        filteredData = filteredData.filter((item) => {
+      let filtered = dataMapping;
+
+      // YEAR ก่อน
+      if (yearIds.length > 0) {
+        filtered = filtered.filter((item) => {
           const itemYear = String(item.year ?? new Date(item.document_date).getFullYear());
-          return year.includes(itemYear);
+          return yearIds.includes(itemYear);
         });
       }
 
-      // ✅ 2) แล้วค่อย filter อื่น ๆ
-      if (sub_dealers.length > 0) {
-        filteredData = filteredData.filter((item) => sub_dealers.includes(item.sub_dealer_id));
+      // sub dealer
+      if (subDealerIds.length > 0) {
+        filtered = filtered.filter((item) => subDealerIds.includes(item.sub_dealer_id));
       }
 
-      if (activityType.length > 0) {
-        filteredData = filteredData.filter((item) => activityType.includes(item.activity_type_id));
-      }
+      // ✅ activity type (ตอนนี้บังคับแล้วว่า length > 0 เสมอ)
+      filtered = filtered.filter((item) => activityTypeIds.includes(item.activity_type_id));
 
-      // ✅ 3) MONTH filter (หลัง year)
-      if (month.length > 0) {
-        filteredData = filteredData.filter((item) => {
+      // month หลัง year
+      if (monthIds.length > 0) {
+        filtered = filtered.filter((item) => {
           const docMonth = new Date(item.document_date).getMonth() + 1;
-          return month.includes(String(docMonth));
+          return monthIds.includes(String(docMonth));
         });
       }
 
       setLocations(
-        filteredData.map((data, index) => ({
-          key: index + 1,
-          id: index + 1,
-          document_number: data.document_number,
-          title: data.activity_type_name,
-          lat: parseFloat(data.location_latitude),
-          lng: parseFloat(data.location_longitude),
-          address: data.location_address,
-          details: data.description,
-          activity_type_id: data.activity_type_id,
-          activity_type_name: data.activity_type_name,
-          dealer_id: data.dealer_id,
-          dealer_name: data.dealer_name,
-          area_id: data.area_id,
-          area_name: data.area_name,
-          year: data.year,
-          activity_image: data.activity_image,
-          activity_image_location: data.activity_image_location,
-          crop_id_list: data.crop_id_list,
-          document_date_display: data.document_date_display,
-          assing_user_list: data.assing_user_list ?? [],
-          remark: data.remark ?? "",
+        filtered.map((d, idx) => ({
+          key: idx + 1,
+          id: idx + 1,
+          document_number: d.document_number,
+          lat: parseFloat(d.location_latitude),
+          lng: parseFloat(d.location_longitude),
+          address: d.location_address,
+          remark: d.remark ?? "",
+          description: d.description,
+          activity_type_id: d.activity_type_id,
+          activity_type_name: d.activity_type_name,
+          dealer_id: d.dealer_id,
+          dealer_name: d.dealer_name,
+          area_id: d.area_id,
+          area_name: d.area_name,
+          year: d.year,
+          activity_image: d.activity_image,
+          activity_image_location: d.activity_image_location,
+          crop_id_list: d.crop_id_list,
+          document_date_display: d.document_date_display,
+          assing_user_list: d.assing_user_list ?? [],
+          sub_dealer_id: d.sub_dealer_id,
+          sub_dealer_name: d.sub_dealer_name,
         }))
       );
     } finally {
@@ -318,366 +258,208 @@ export default function ActivityMapping() {
     }
   };
 
-
-  const mockFilters = useMemo(() => [
-    { key: 1, filter_type: "activity_type", filter_type_name: "Activity Type", data: activityType },
-    { key: 6, filter_type: "sales", filter_type_name: "Sales", data: dataSales },
-    { key: 2, filter_type: "dealer", filter_type_name: "Dealer", data: dataDealer },
-    { key: 3, filter_type: "sub_dealers", filter_type_name: "Sub Dealer", data: dataSubDealer },
-    { key: 4, filter_type: "year", filter_type_name: "Years", data: dataYear },
-    { key: 5, filter_type: "month", filter_type_name: "Months", data: dataMonths },
-  ], [activityType, dataSales, dataDealer, dataSubDealer, dataYear, dataMonths]);
-
-
-
-  //console.log('mockFilters : ', mockFilters)
-
-  // Initialize all checkboxes as selected on page load
+  // โหลดเมื่อ filter พร้อม + เปลี่ยนค่า
   useEffect(() => {
-    // Set Current Location
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = parseFloat(position.coords.latitude);
-          const lng = parseFloat(position.coords.longitude);
-
-          const fetchCurrentLocation = async () => {
-            // ดึงข้อมูลที่อยู่จาก Google Maps Geocoding API
-            //const fetchedAddress = await fetchAddress(lat, lng);
-            //setCurrentLocationAddress(fetchedAddress);
-          };
-
-          fetchCurrentLocation();
-
-          const getCurrentLocation = {
-            key: locations.length + 1,
-            id: locations.length + 1,
-            document_number: "",
-            title: "",
-            lat: lat,
-            lng: lng,
-            details: currentLocationAddress,
-          };
-
-          // Set State: ตำแหน่งปัจจุบัน
-          setCurrentLocation(getCurrentLocation);
-        },
-        (error) => {
-          console.error("Error getting current location:", error);
-        }
-      );
+    const filtersReady = mockFilters.every((f) => Array.isArray(f.data) && f.data.length > 0);
+    if (!filtersReady) {
+      setLocations([]);
+      return;
     }
-  }, [dataMapping]);
-
-  // ดึงที่อยู่จาก Google Maps Geocoding API
-  const fetchAddress = async (lat, lng) => {
-    const apiKey = dataApiKey; // ใส่ Google Maps API Key ของคุณ
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
-
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (data.status === "OK" && data.results.length > 0) {
-        return data.results[0].formatted_address; // คืนค่าที่อยู่
-      } else {
-        console.error("Geocoding API error:", data.status);
-        return "Address not found";
-      }
-    } catch (error) {
-      console.error("Error fetching address:", error);
-      return "Error fetching address";
+    if (!dataMapping?.length) {
+      setLocations([]);
+      return;
     }
-  };
+    loadDataMappingList(checkedFilters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkedFilters, mockFilters, dataMapping]);
 
-
-
-
+  // -----------------------------
+  // ✅ Markers state
+  // -----------------------------
   useEffect(() => {
     if (locations.length > 0) {
-      renderMarkerLocation();
+      setLocationMarkerIcon(
+        locations.map((d, idx) => ({
+          key: idx + 1,
+          document_number: d.document_number,
+
+          lat: d.lat,
+          lng: d.lng,
+
+          address: d.address,
+          remark: d.remark,
+          description: d.description,
+
+          activity_type_name: d.activity_type_name,
+          dealer_name: d.dealer_name,
+          dealer_id: d.dealer_id,
+          area_name: d.area_name,
+
+          activity_image: d.activity_image,
+          activity_image_location: d.activity_image_location,
+
+          crop_id_list: d.crop_id_list,
+          document_date_display: d.document_date_display,
+          assing_user_list: d.assing_user_list,
+
+          // ✅ เพิ่ม
+          sub_dealer_id: d.sub_dealer_id,
+          sub_dealer_name: d.sub_dealer_name,
+        }))
+      );
     } else {
-      setLocationMarkerIcon([]); // 👉 clear marker ด้วยถ้าไม่มี location
+      setLocationMarkerIcon([]);
     }
-    //console.log("locations", locations);
   }, [locations]);
 
-  const renderMarkerLocation = () => {
-    // Set MarkerLocation
-    setLocationMarkerIcon(
-      locations.map((data, index) => ({
-        key: index + 1,
-        id: locations.length + 1,
-        document_number: data.document_number,
-        title: data.activity_type_name,
-        lat: data.lat,
-        lng: data.lng,
-        address: data.address,
-        details: data.description,
-        activity_type_id: data.activity_type_id,
-        activity_type_name: data.activity_type_name,
-        dealer_id: data.dealer_id,
-        dealer_name: data.dealer_name,
-        area_id: data.area_id,
-        area_name: data.area_name,
-        year: data.year,
-        activity_image: data.activity_image,
-        activity_image_location: data.activity_image_location,
-        crop_id_list: data.crop_id_list,
-        document_date_display: data.document_date_display,
-        assing_user_list: data.assing_user_list,
-        remark: data.remark,
+  // -----------------------------
+  // ✅ Current GPS location
+  // -----------------------------
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = parseFloat(pos.coords.latitude);
+        const lng = parseFloat(pos.coords.longitude);
+        setCurrentLocation({ lat, lng });
+      },
+      (err) => console.error("Error getting current location:", err)
+    );
+  }, [dataMapping]);
+
+  // -----------------------------
+  // ✅ Master "Check All"
+  // -----------------------------
+  const toggleAll = (isChecked) => {
+    if (!isChecked) {
+      setCheckedFilters({});
+      setIsAllChecked(false);
+      setLocations([]);
+      return;
+    }
+
+    const updated = {};
+    const targetTypes = ["activity_type", "sales", "dealer", "sub_dealers", "year", "month"];
+    targetTypes.forEach((t) => {
+      const items = mockFilters.find((f) => f.filter_type === t)?.data || [];
+      updated[t] = items.map((x) => x.id);
+    });
+
+    setCheckedFilters(updated);
+    setIsAllChecked(true);
+  };
+
+  // update isAllChecked
+  useEffect(() => {
+    const allSelected = mockFilters.every((cat) => {
+      const total = (cat.data || []).map((x) => x.id);
+      const selected = checkedFilters[cat.filter_type] || [];
+      if (total.length === 0) return false;
+      return total.every((id) => selected.includes(id));
+    });
+    setIsAllChecked(allSelected);
+  }, [checkedFilters, mockFilters]);
+
+  // -----------------------------
+  // ✅ Search box
+  // -----------------------------
+  const handleSearch = (text) => {
+    if (!text) {
+      setSearchOptions([]);
+      return;
+    }
+    const regex = new RegExp(text, "i");
+    const results = (dataMapping || []).filter((item) => item.location_address && regex.test(item.location_address));
+    setSearchOptions(
+      results.map((item) => ({
+        value: item.location_address,
+        lat: parseFloat(item.location_latitude),
+        lng: parseFloat(item.location_longitude),
       }))
     );
   };
 
-  // ฟังก์ชันสำหรับการตรวจสอบว่าเลือกทั้งหมดหรือไม่
-  useEffect(() => {
-    const allFiltersSelected = mockFilters.every((filterItem) => {
-      return filterItem.data.every((item) =>
-        checkedFilters[filterItem.filter_type]?.includes(item.id)
-      );
-
-    });
-
-    setIsAllChecked(allFiltersSelected);
-  }, [checkedFilters]);
-
-  useEffect(() => {
-    if (dataYear.length > 0) {
-      setCheckedFilters((prev) => ({
-        ...prev,
-        year: [dataYear[0].id], // 👈 เลือก default ปีแรกใน list
-      }));
-    }
-  }, [dataYear]);
-
-
-
-  const handleSearch = (text) => {
-    setSearchKeyword(text);
-
-    if (text) {
-      // ใช้ RegExp เพื่อค้นหาข้อความที่คล้ายกัน
-      const regex = new RegExp(text, "i"); // 'i' หมายถึง case-insensitive
-      console.log(regex);
-
-      // ค้นหาใน dataMapping
-      const results = dataMapping.filter(
-        (item) => item.location_address && regex.test(item.location_address) // ค้นหาข้อความใน location_address
-      );
-
-      console.log(results);
-
-      // อัปเดต options สำหรับ AutoComplete
-      setSearchOptions(
-        results.map((item) => ({
-          value: item.location_address,
-          lat: parseFloat(item.location_latitude),
-          lng: parseFloat(item.location_longitude),
-        }))
-      );
-
-      // อัปเดต checkbox ให้ตรงกับผลลัพธ์
-      const updatedFilters = { ...checkedFilters };
-      mockFilters.forEach((filterCategory) => {
-        const matchingIds = results
-          .map((result) => result[filterCategory.filter_type + "_id"])
-          .filter((id) => id !== undefined); // ลบค่าที่เป็น undefined
-
-        updatedFilters[filterCategory.filter_type] = [
-          ...(updatedFilters[filterCategory.filter_type] || []),
-          ...matchingIds,
-        ].filter((id, index, self) => self.indexOf(id) === index); // ลบค่าซ้ำ
-      });
-
-
-      setCheckedFilters(updatedFilters);
-    } else {
-      setSearchOptions([]);
-    }
-  };
-
-
-  useEffect(() => {
-    if (mockFilters.every((f) => f.data.length > 0)) {
-      setCheckedFilters((prevFilters) => {
-        const updated = { ...prevFilters };
-        mockFilters.forEach((filter) => {
-          if (filter.filter_type !== 'sales' && !updated[filter.filter_type]) {
-            updated[filter.filter_type] = filter.data.map((item) => item.id);
-          }
-        });
-        return updated;
-      });
-
-      setIsAllChecked(true);
-    }
-  }, [activityType, dataDealer, dataSubDealer, dataYear, dataMonths]);
-
-  const handleSelect = (value, option) => {
-    // Set the map center to the selected lat and lng
+  const handleSelect = (_, option) => {
     setCurrentLocation({ lat: option.lat, lng: option.lng });
-    setDataMapZoom(15); // Set a higher zoom level for focusing
+    setDataMapZoom(15);
   };
 
-  useEffect(() => {
-    console.log(locationWindowInfo);
-  }, [locationWindowInfo]);
-
+  // -----------------------------
+  // ✅ Render
+  // -----------------------------
   return (
     <MainLayout loading={loading}>
       <Layout>
-        {/* Filter Section */}
+        {/* Filter */}
         <div
           className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${isFilterCollapsed ? "max-h-12" : "max-h-[600px] overflow-y-auto"
             }`}
           style={{ width: "300px" }}
         >
-          <div className="sticky top-0 z-[1] bg-white flex justify-between items-center px-4 py-2 border-b cursor-pointer" onClick={() => setIsFilterCollapsed(!isFilterCollapsed)}>
+          <div
+            className="sticky top-0 z-[1] bg-white flex justify-between items-center px-4 py-2 border-b cursor-pointer"
+            onClick={() => setIsFilterCollapsed((s) => !s)}
+          >
             <div className="flex items-center gap-2">
-              <img
-                src="/img/icons/filter-green.png"
-                alt="Filter Icon"
-                className="w-5 h-5"
-              />
+              <img src="/img/icons/filter-green.png" alt="Filter Icon" className="w-5 h-5" />
               <span className="text-lg text-[#00783F]">Filter</span>
             </div>
-            <Button
-              type="text"
-              icon={isFilterCollapsed ? <DownOutlined /> : <UpOutlined />}
-            // onClick={() => setIsFilterCollapsed(!isFilterCollapsed)}
-            />
+            <Button type="text" icon={isFilterCollapsed ? <DownOutlined /> : <UpOutlined />} />
           </div>
-          {/* Search Box */}
+
+          {/* Search */}
           <div className="w-full my-2 px-2">
             <DynamicAutoComplete
               options={searchOptions}
               placeholder="Search locations (Min length 3)"
               onSearch={handleSearch}
-              onSelect={handleSelect} // Trigger when a location is selected
-              className="w-full rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              onSelect={handleSelect}
+              className="w-full rounded-md shadow-sm"
               style={{ width: "100%" }}
             />
           </div>
 
-          <div
-            className={`transition-all duration-300 ${isFilterCollapsed ? "opacity-0" : "opacity-100"
-              } px-3 pb-4`}
-          >
-            {/* Master "All" Checkbox */}
+          <div className={`transition-all duration-300 ${isFilterCollapsed ? "opacity-0" : "opacity-100"} px-3 pb-4`}>
             <div className="flex justify-between">
-
-              <Checkbox
-                indeterminate={Object.keys(checkedFilters).some(
-                  (filterType) =>
-                    checkedFilters[filterType]?.length > 0 &&
-                    checkedFilters[filterType]?.length <
-                    (mockFilters.find((filter) => filter.filter_type === filterType)?.data.length || 0)
-                )}
-                checked={isAllChecked}
-                onChange={(e) => toggleAll(e.target.checked)}
-              >
+              <Checkbox checked={isAllChecked} onChange={(e) => toggleAll(e.target.checked)}>
                 Check All
               </Checkbox>
-
-
             </div>
 
-            {/* Collapsible Filter Categories */}
-            {/* <Collapse
-              defaultActiveKey={["Activity Type"]}
-              className="rounded-lg border-0"
-            >
-              {mockFilters.map((category) => {
-                // console.log(category); // Log the full category object
-
-                return (
-                  <Panel
-                    header={category.filter_type_name}
-                    key={category.key}
-                    className="custom-collapse my-2"
-                  >
-                    <Checkbox.Group
-                      options={category.data.map((item) => ({
-                        label: item.name,
-                        value: item.id,
-                      }))}
-                      value={checkedFilters[category.filter_type]}
-                      onChange={(list) => {
-                        //console.log(list, category.filter_type);
-
-                        setCheckedFilters((prevFilters) => ({
-                          ...prevFilters,
-                          [category.filter_type]: list,
-                        }));
-
-                        // เฉพาะเมื่อเป็น sales ให้เรียก fetch dealer ใหม่
-                        if (category.filter_type === "sales") {
-                          //fetchDealersBySale(list); // <-- เรียก API ที่เราเขียนไว้
-                        }
-                      }}
-
-                      className="filter-checkbox-group"
-                    />
-                  </Panel>
-                );
-              })}
-
-            </Collapse> */}
-
-            {/* โค้ดใหม่ มี Checkbox sale , dealer */}
+            {/* ✅ ทุกหัวข้อมี check all */}
             <Collapse defaultActiveKey={["Activity Type"]} className="rounded-lg border-0">
               {mockFilters.map((category) => {
                 const selected = checkedFilters[category.filter_type] || [];
-                const totalOptions = category.data.map((item) => item.id);
-                const checkAll = selected.length === totalOptions.length;
-                const indeterminate = selected.length > 0 && selected.length < totalOptions.length;
+                const allIds = (category.data || []).map((x) => x.id);
+                const checkAll = allIds.length > 0 && selected.length === allIds.length;
+                const indeterminate = selected.length > 0 && selected.length < allIds.length;
 
                 const onCheckAllChange = (e) => {
-                  const newChecked = e.target.checked ? totalOptions : [];
-                  setCheckedFilters((prev) => ({
-                    ...prev,
-                    [category.filter_type]: newChecked,
-                  }));
-
-                  if (category.filter_type === "sales") {
-                    fetchDealersBySale(newChecked);
-                  }
+                  const newChecked = e.target.checked ? allIds : [];
+                  setCheckedFilters((prev) => ({ ...prev, [category.filter_type]: newChecked }));
                 };
 
                 const onGroupChange = (list) => {
-                  setCheckedFilters((prev) => ({
-                    ...prev,
-                    [category.filter_type]: list,
-                  }));
-
-                  if (category.filter_type === "sales") {
-                    fetchDealersBySale(list);
-                  }
+                  setCheckedFilters((prev) => ({ ...prev, [category.filter_type]: list }));
                 };
 
                 const panelHeader = (
                   <div className="flex justify-between items-center w-full">
                     <span>{category.filter_type_name}</span>
-
-                    {category.filter_type_name === 'Dealer' || category.filter_type_name === 'Sub Dealer' ? (
-                      <Checkbox
-                        indeterminate={indeterminate}
-                        checked={checkAll}
-                        onChange={onCheckAllChange}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : null}
+                    <Checkbox
+                      indeterminate={indeterminate}
+                      checked={checkAll}
+                      onChange={onCheckAllChange}
+                      onClick={(e) => e.stopPropagation()}
+                    />
                   </div>
                 );
+
                 return (
                   <Panel header={panelHeader} key={category.key} className="custom-collapse my-2">
                     <Checkbox.Group
-                      options={category.data.map((item) => ({
-                        label: item.name,
-                        value: item.id,
-                      }))}
+                      options={(category.data || []).map((item) => ({ label: item.name, value: item.id }))}
                       value={selected}
                       onChange={onGroupChange}
                       className="filter-checkbox-group"
@@ -686,11 +468,10 @@ export default function ActivityMapping() {
                 );
               })}
             </Collapse>
-
           </div>
         </div>
 
-        {/* Map Section */}
+        {/* Map */}
         <Layout>
           <Content>
             <LoadScript googleMapsApiKey={dataApiKey}>
@@ -699,148 +480,99 @@ export default function ActivityMapping() {
                 center={currentLocation}
                 zoom={dataMapZoom}
                 options={{
-                  styles: [
-                    {
-                      featureType: "poi", // Points of Interest
-                      stylers: [{ visibility: "off" }], // Turn off POI visibility
-                    },
-                  ],
+                  styles: [{ featureType: "poi", stylers: [{ visibility: "off" }] }],
                 }}
               >
-                {locationMarkerIcon.length > 0 &&
-                  locationMarkerIcon.map((location, locationIndex) => (
-                    <Marker
-                      key={crypto.randomUUID()}
-                      position={{
-                        lat: parseFloat(location.lat),
-                        lng: parseFloat(location.lng),
-                      }}
-                      icon={{
-                        url: location.activity_image_location,
-                        scaledSize: { width: 25.5, height: 35 },
-                      }}
-                      options={{
-                        suppressInfoWindow: true, // ปิดการแสดง InfoWindow เริ่มต้น
-                      }}
-                      onClick={() => {
-                        const newLocationWindowInfo = {
-                          url_img: location.activity_image,
-                          lat: parseFloat(location.lat),
-                          lng: parseFloat(location.lng),
-                          address: location.address,
-                          title: location.title || "No Title",
-                          details: location.details || "No Details",
-                          activity_type_name: location.activity_type_name,
-                          dealer_name: location.dealer_name,
-                          area_name: location.area_name,
-                          crop_list: location.crop_id_list,
-                          document_date_display: location.document_date_display,
-                          assing_user_list: location.assing_user_list,
-                          remark: location.remark,
-                          document_number: location.document_number,
-                        };
-                        setlocationWindowInfo(newLocationWindowInfo);
-                        console.log(
-                          "newLocationWindowInfo",
-                          newLocationWindowInfo
-                        );
-                      }}
-                    />
-                  ))}
+                {locationMarkerIcon.map((loc) => (
+                  <Marker
+                    key={loc.key}
+                    position={{ lat: parseFloat(loc.lat), lng: parseFloat(loc.lng) }}
+                    icon={{ url: loc.activity_image_location, scaledSize: { width: 25.5, height: 35 } }}
+                    options={{ suppressInfoWindow: true }}
+                    onClick={() => {
+                      setlocationWindowInfo({
+                        url_img: loc.activity_image,
+                        lat: parseFloat(loc.lat),
+                        lng: parseFloat(loc.lng),
+                        title: loc.activity_type_name || "No Activity Type",
+                        dealer_name: loc.dealer_name,
+                        area_name: loc.area_name,
+                        crop_list: loc.crop_id_list,
+                        document_date_display: loc.document_date_display,
+                        assing_user_list: loc.assing_user_list,
+                        remark: loc.remark,
+                        address: loc.address,
+                        document_number: loc.document_number,
+
+                        // ✅ เพิ่ม
+                        sub_dealer_id: loc.sub_dealer_id,
+                        sub_dealer_name: loc.sub_dealer_name,
+                      });
+                    }}
+                  />
+                ))}
 
                 {locationWindowInfo && (
                   <InfoWindow
-                    position={{
-                      lat: parseFloat(locationWindowInfo.lat),
-                      lng: parseFloat(locationWindowInfo.lng),
-                    }}
+                    position={{ lat: parseFloat(locationWindowInfo.lat), lng: parseFloat(locationWindowInfo.lng) }}
                     onCloseClick={() => setlocationWindowInfo(null)}
-                    options={{
-                      pixelOffset: new window.google.maps.Size(0, -30),
-                    }}
+                    options={{ pixelOffset: new window.google.maps.Size(0, -30) }}
                   >
                     <div>
+                      {/* Header + View icon (new tab) */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img
-                          src={locationWindowInfo.url_img}
-                          className="w-6 h-6"
-                          alt=""
-                        />
-                        {locationWindowInfo.activity_type_name ||
-                          "No Activity Type"}
+                        <img src={locationWindowInfo.url_img} className="w-6 h-6" alt="" />
+                        {locationWindowInfo.title}
+
                         <img
                           src="/img/icons/view.png"
                           alt="View"
                           className="w-6 h-6 rounded-sm cursor-pointer ms-5"
                           onClick={() => {
-                            navigate("/activity/view", {
-                              state: {
-                                documentNumber:
-                                  locationWindowInfo.document_number,
-                                pageCode: "activity_transaction",
-                              },
-                            });
+                            const url =
+                              `/activity/view?documentNumber=${encodeURIComponent(locationWindowInfo.document_number)}` +
+                              `&pageCode=${encodeURIComponent("activity_transaction")}` +
+                              `&from=mapping`;
+                            window.open(url, "_blank", "noopener,noreferrer");
                           }}
                         />
                       </div>
+
+                      {/* Dealer */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img
-                          src="/img/icons/shop.png"
-                          className="w-6 h-6"
-                          alt=""
-                        />
+                        <img src="/img/icons/shop.png" className="w-6 h-6" alt="" />
                         {locationWindowInfo.dealer_name || "No Dealer Name"}
                       </div>
+
+                      {/* ✅ SubDealer แทน Address */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img
-                          src="/img/icons/location.png"
-                          className="w-6 h-6"
-                          alt=""
-                        />
-                        {locationWindowInfo.address || "No Address Available"}
+                        <img src="/img/icons/shop.png" className="w-6 h-6" alt="" />
+                        {locationWindowInfo.sub_dealer_name || "No Sub Dealer"}
                       </div>
-                      {/* <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src="/img/icons/crops.png" className="w-6 h-6" alt="" />{locationWindowInfo.crop_id_list || "No Crops Listed"}
-                      </div> */}
+
+                      {/* Crops */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img
-                          src="/img/icons/crops.png"
-                          className="w-6 h-6"
-                          alt=""
-                        />
-                        {locationWindowInfo.crop_list &&
-                          locationWindowInfo.crop_list.length > 0
-                          ? locationWindowInfo.crop_list
-                            .map((crop) => crop.name)
-                            .join(", ")
+                        <img src="/img/icons/crops.png" className="w-6 h-6" alt="" />
+                        {Array.isArray(locationWindowInfo.crop_list) && locationWindowInfo.crop_list.length > 0
+                          ? locationWindowInfo.crop_list.map((c) => c.name).join(", ")
                           : "No Crops Listed"}
                       </div>
 
+                      {/* Date */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img
-                          src="/img/icons/calendar.png"
-                          className="w-6 h-6"
-                          alt=""
-                        />
-                        {locationWindowInfo.document_date_display ||
-                          "No Date Available"}
+                        <img src="/img/icons/calendar.png" className="w-6 h-6" alt="" />
+                        {locationWindowInfo.document_date_display || "No Date Available"}
                       </div>
+
+                      {/* Description */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img
-                          src="/img/icons/details.png"
-                          className="w-6 h-6"
-                          alt=""
-                        />
+                        <img src="/img/icons/details.png" className="w-6 h-6" alt="" />
                         {locationWindowInfo.remark || "No Description"}
                       </div>
 
+                      {/* Assigned users */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        {/* <img
-                          src={"/img/icons/default-avatar.png"}
-                          alt={"No Name"}
-                          className="w-6 h-6 rounded-full border border-gray-300"
-                        /> */}
-                        {Array.isArray(locationWindowInfo?.assing_user_list) &&
+                        {Array.isArray(locationWindowInfo.assing_user_list) &&
                           locationWindowInfo.assing_user_list.length > 0 ? (
                           locationWindowInfo.assing_user_list.map((user) => (
                             <div key={user.id} className="flex items-center gap-2">
@@ -855,7 +587,6 @@ export default function ActivityMapping() {
                         ) : (
                           <span className="text-sm text-gray-500">No assigned users</span>
                         )}
-
                       </div>
                     </div>
                   </InfoWindow>
