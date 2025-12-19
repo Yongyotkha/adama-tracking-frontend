@@ -240,15 +240,19 @@ export default function OrderList() {
               textColor={order.status_interface_color}
             />
           ),
-          note: (
-            <BadgeStatus
-              text="!"
-              bgColor={"#F89E18"}
-              textColor={"#FFFFFF"}
-              className="sarabun-font fs-30 font-bold"
-              onClick={() => openNotePopup(order)}
-            />
-          ),
+          note:
+            order.status_code === "ODW" ? (
+              null
+            ) : (
+              <BadgeStatus
+                text="!"
+                bgColor="#F89E18"
+                textColor="#FFFFFF"
+                className="sarabun-font fs-30 font-bold"
+                onClick={() => openNotePopup(order)}
+              />
+            ),
+
           createdBy: order.created_by,
           action: (
             <Dropdown
@@ -464,7 +468,7 @@ export default function OrderList() {
             {/* ✅ ตอนนี้ยังไม่มี reject_remark จากหลังบ้าน -> fallback */}
             <Input.TextArea
               rows={4}
-              value={noteData.reject_remark || noteData.ref_remark || "-"}
+              value={noteData.reject_remark || "-"}
               disabled
               className="sarabun-font bg-gray-100"
             />

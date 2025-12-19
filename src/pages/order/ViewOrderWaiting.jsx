@@ -23,9 +23,22 @@ export default function ViewOrderWaiting() {
 
   const [formCustom] = Form.useForm();
 
-  // ✅ Popup Reject state
-  const [rejectVisible, setRejectVisible] = useState(false);
-  const [rejectRemark, setRejectRemark] = useState("");
+  // ✅ Modal เดียว: ใช้ทั้ง Reject / Confirm
+  const [actionVisible, setActionVisible] = useState(false);
+  const [actionType, setActionType] = useState(""); // "reject" | "confirm"
+  const [actionRemark, setActionRemark] = useState("");
+
+  const openActionModal = (type) => {
+    setActionType(type);
+    setActionRemark("");
+    setActionVisible(true);
+  };
+
+  const closeActionModal = () => {
+    setActionVisible(false);
+    setActionType("");
+    setActionRemark("");
+  };
 
   // Get Data
   useEffect(() => {
@@ -164,30 +177,33 @@ export default function ViewOrderWaiting() {
     </tr>
   );
 
-  // ✅ เปิด popup แทนยิง API ทันที
-  const handleReject = () => {
-    setRejectRemark("");
-    setRejectVisible(true);
-  };
+  // ✅ เปิด modal
+  const handleReject = () => openActionModal("reject");
+  const handleConfirm = () => openActionModal("confirm");
 
-  // ✅ ยิง API เมื่อกดยืนยันใน popup
-  const confirmReject = async () => {
-    if (!rejectRemark.trim()) {
+  // ✅ ยิง PUT แบบเดียวกัน
+  const confirmAction = async () => {
+    const status_code = actionType === "reject" ? "ODR" : "ODC";
+
+    if (actionType === "reject" && !actionRemark.trim()) {
       showMsg("error", "กรุณากรอกเหตุผลในการ Reject");
       return;
     }
 
     const body = {
       document_number: documentNumber,
-      status_code: "ODR",
-      remark: rejectRemark.trim(),
+      status_code,
+      remark:
+        actionType === "reject"
+          ? actionRemark.trim()
+          : actionRemark.trim() || "Complete",
     };
 
     setLoading(true);
     try {
       const response = await useServiceAPI.put(paths.pathGetOrderChangeStatus, body);
 
-      setRejectVisible(false);
+      closeActionModal();
 
       showNotification("success", response.message, response.message_line).then(() => {
         navigate("/order-waiting/list");
@@ -199,31 +215,6 @@ export default function ViewOrderWaiting() {
     }
   };
 
-  const handleConfirm = () => {
-    const body = {
-      document_number: documentNumber,
-      status_code: "ODC",
-      remark: "Complete",
-    };
-
-    const updateStatus = async () => {
-      setLoading(true);
-      try {
-        const response = await useServiceAPI.put(paths.pathGetOrderChangeStatus, body);
-
-        showNotification("success", response.message, response.message_line).then(() => {
-          navigate("/order-waiting/list");
-        });
-      } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    updateStatus();
-  };
-
   return (
     <MainLayout loading={loading}>
       <div className="title-page">View Order Waiting</div>
@@ -231,29 +222,53 @@ export default function ViewOrderWaiting() {
       <FormUser fields={formFieldData} form={formCustom} />
 
       <BoxPrimary title="Order List">
-        <TableComponent header={header} dataSource={dataSource} pageSize={10} footer={footerOrderList} pagination={false} />
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pageSize={10}
+          footer={footerOrderList}
+          pagination={false}
+        />
       </BoxPrimary>
 
       <BoxPrimary title="Other">
-        <TableComponent header={headerOther} dataSource={dataSourceOther} pageSize={10} footer={footerOther} pagination={false} />
+        <TableComponent
+          header={headerOther}
+          dataSource={dataSourceOther}
+          pageSize={10}
+          footer={footerOther}
+          pagination={false}
+        />
       </BoxPrimary>
 
       <BoxPrimary title="Remark">
-        <Input.TextArea placeholder="Remark" value={dataOrderDetail.ref_remark} disabled className="bg-gray-100" />
+        <Input.TextArea
+          placeholder="Remark"
+          value={dataOrderDetail.ref_remark}
+          disabled
+          className="bg-gray-100"
+        />
       </BoxPrimary>
 
-      {/* ✅ POPUP Reject with remark */}
-      <Modal open={rejectVisible} footer={null} centered closable={false}>
+      {/* ✅ Modal เดียว: Reject / Confirm */}
+      <Modal
+        open={actionVisible}
+        footer={null}
+        centered
+        closable={false}
+        onCancel={closeActionModal}
+      >
         <div className="flex flex-col justify-between items-center min-h-[150px]">
-
           <div className="text-[#978B87] text-sm text-start mb-4 sarabun-font w-full">
-            <div className="font-semibold mb-2">Note</div>
+            <div className="font-semibold mb-2">
+              {actionType === "reject" ? "Reject Note" : "Confirm Note"}
+            </div>
 
             <Input.TextArea
               rows={3}
-              value={rejectRemark}
-              onChange={(e) => setRejectRemark(e.target.value)}
-              placeholder="Please enter a reason..."
+              value={actionRemark}
+              onChange={(e) => setActionRemark(e.target.value)}
+              placeholder={actionType === "reject" ? "Please enter a reason..." : "Optional note..."}
               className="sarabun-font"
             />
           </div>
@@ -261,7 +276,7 @@ export default function ViewOrderWaiting() {
           <div className="flex w-full gap-2">
             <Button
               type="button"
-              onClick={() => setRejectVisible(false)}
+              onClick={closeActionModal}
               className="flex-1 bg-gray-300 flex items-center justify-center py-5 rounded-md"
             >
               <span className="sarabun-font text-black">Cancel</span>
@@ -269,10 +284,12 @@ export default function ViewOrderWaiting() {
 
             <Button
               type="button"
-              onClick={confirmReject}
+              onClick={confirmAction}
               className="flex-1 bg-[#009845] flex items-center justify-center py-5 rounded-md"
             >
-              <span className="sarabun-font text-white">Save</span>
+              <span className="sarabun-font text-white">
+                {actionType === "reject" ? "Save" : "Confirm"}
+              </span>
             </Button>
           </div>
         </div>
