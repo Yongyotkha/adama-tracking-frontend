@@ -454,7 +454,7 @@ export default function OrderList() {
       </BoxPrimary>
 
       <Modal open={noteVisible} footer={null} centered closable={false} onCancel={closeNotePopup}>
-        <div className="flex flex-col justify-between items-center min-h-[250px]">
+        <div className="flex flex-col justify-between items-center min-h-[150px]">
           {/* <img src="/img/icons/note.png" alt="note" className="h-24 object-contain mb-4" /> */}
 
           <div className="text-[#978B87] text-sm text-center mb-4 sarabun-font w-full">
@@ -473,7 +473,7 @@ export default function OrderList() {
           <Button
             type="button"
             onClick={closeNotePopup}
-            className="w-full bg-[#009845] flex items-center justify-center py-5 rounded-md"
+            className="w-full bg-[#B6AEAB] flex items-center justify-center py-5 rounded-md"
           >
             <span className="sarabun-font text-white">Close</span>
           </Button>

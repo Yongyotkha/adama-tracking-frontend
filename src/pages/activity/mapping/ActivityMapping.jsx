@@ -554,7 +554,7 @@ export default function ActivityMapping() {
 
                       {/* ✅ SubDealer แทน Address */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src="/img/icons/shop.png" className="w-6 h-6" alt="" />
+                        <img src="/img/icons/location.png" className="w-6 h-6" alt="" />
                         {locationWindowInfo.sub_dealer_name || "No Sub Dealer"}
                       </div>
 
