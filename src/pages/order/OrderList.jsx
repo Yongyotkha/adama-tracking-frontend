@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
-import { Dropdown, Modal, Select } from "antd";
+import { Button, Dropdown, Input, Modal, Select } from "antd";
 import FilterByOrder from "../../components/filter/FilterByOrder";
 import ActionButton from "../../components/button/ActionButton";
 import BadgeStatus from "../../components/badge/BadgeStatus";
@@ -38,6 +38,28 @@ export default function OrderList() {
 
   const [saleList, setSaleList] = useState([]);
 
+  // ✅ Note Popup
+  const [noteVisible, setNoteVisible] = useState(false);
+  const [noteData, setNoteData] = useState({
+    orderNo: "",
+    status: "",
+    reject_remark: "",
+    ref_remark: "",
+  });
+
+  const openNotePopup = (order) => {
+    setNoteData({
+      orderNo: order.document_number,
+      status: order.status_transaction_name,
+      reject_remark: order.reject_remark || "", // ✅ เผื่อ backend ทำมาให้
+      ref_remark: order.ref_remark || "",
+    });
+    setNoteVisible(true);
+  };
+
+  const closeNotePopup = () => setNoteVisible(false);
+
+
   useEffect(() => {
     const sale = filterValues.sale;
 
@@ -61,7 +83,7 @@ export default function OrderList() {
       getDealersBySale();
     }
   }, [filterValues.sale]);
-  
+
   // Get Master
   useEffect(() => {
     const getMaster = async () => {
@@ -144,23 +166,18 @@ export default function OrderList() {
     { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
     { title: "Dealer", width: 200, dataIndex: "dealer", align: "left" },
     { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
-    {
-      title: "Order Date",
-      width: 150,
-      dataIndex: "orderDate",
-      align: "center",
-    },
-    {
-      title: "Pay Overdue",
-      width: 150,
-      dataIndex: "payOverdue",
-      align: "center",
-    },
+    { title: "Order Date", width: 150, dataIndex: "orderDate", align: "center" },
+    { title: "Pay Overdue", width: 150, dataIndex: "payOverdue", align: "center" },
     { title: "Status", width: 150, dataIndex: "status", align: "center" },
     { title: "SAP Status", width: 150, dataIndex: "sapStatus", align: "center" },
+
+    // ✅ NEW: Note column
+    { title: "Note", width: 120, dataIndex: "note", align: "center" },
+
     { title: "Create By", width: 150, dataIndex: "createdBy", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
+
 
 
   const fetchData = async () => {
@@ -221,6 +238,15 @@ export default function OrderList() {
               text={order.status_interface_name}
               bgColor={order.status_interface_bg_color}
               textColor={order.status_interface_color}
+            />
+          ),
+          note: (
+            <BadgeStatus
+              text="!"
+              bgColor={"#F89E18"}
+              textColor={"#FFFFFF"}
+              className="sarabun-font fs-30 font-bold"
+              onClick={() => openNotePopup(order)}
             />
           ),
           createdBy: order.created_by,
@@ -426,6 +452,34 @@ export default function OrderList() {
           onChange={handleTableChange}
         />
       </BoxPrimary>
+
+      <Modal open={noteVisible} footer={null} centered closable={false} onCancel={closeNotePopup}>
+        <div className="flex flex-col justify-between items-center min-h-[250px]">
+          {/* <img src="/img/icons/note.png" alt="note" className="h-24 object-contain mb-4" /> */}
+
+          <div className="text-[#978B87] text-sm text-center mb-4 sarabun-font w-full">
+            <div className="font-semibold mb-2">Order: {noteData.orderNo}</div>
+            <div className="mb-3">Status: {noteData.status || "-"}</div>
+
+            {/* ✅ ตอนนี้ยังไม่มี reject_remark จากหลังบ้าน -> fallback */}
+            <Input.TextArea
+              rows={4}
+              value={noteData.reject_remark || noteData.ref_remark || "-"}
+              disabled
+              className="sarabun-font bg-gray-100"
+            />
+          </div>
+
+          <Button
+            type="button"
+            onClick={closeNotePopup}
+            className="w-full bg-[#009845] flex items-center justify-center py-5 rounded-md"
+          >
+            <span className="sarabun-font text-white">Close</span>
+          </Button>
+        </div>
+      </Modal>
+
     </MainLayout>
   );
 }

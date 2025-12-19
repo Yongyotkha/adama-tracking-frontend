@@ -147,15 +147,15 @@ export default function CreateActivity() {
     pageCode == "expense_advance"
       ? "Advance Expense"
       : pageCode == "expense_clearing"
-      ? "Clearing Expense"
-      : "Activity";
+        ? "Clearing Expense"
+        : "Activity";
 
   const menuURL =
     pageCode == "expense_advance"
       ? "/expenses/advance"
       : pageCode == "expense_clearing"
-      ? "/expenses/clearing"
-      : "/activity/list";
+        ? "/expenses/clearing"
+        : "/activity/list";
 
   const SaleOptions = saleList.map((sale) => ({ id: sale.id, name: sale.name, selected: false }));
 
@@ -226,8 +226,8 @@ export default function CreateActivity() {
             ? Number(activityDetail.dealer_id)
             : undefined
           : activityDetail.sub_dealer_id != null
-          ? Number(activityDetail.sub_dealer_id)
-          : undefined,
+            ? Number(activityDetail.sub_dealer_id)
+            : undefined,
       moderef: true,
     },
     {
@@ -556,12 +556,12 @@ export default function CreateActivity() {
           min={0}
           value={record.estimate_sale_qty}
           disabled={
-            forceReadOnly ||
+            forceReadOnly || mode === "view" ||
             (pageCode == "expense_clearing"
               ? true
               : mode === "create"
-              ? false
-              : !activityDetail?.permission?.edit)
+                ? false
+                : !activityDetail?.permission?.edit)
           }
           onChange={(value) => handleInputChange(value, record.key, "estimate_sale_qty", record.bath_ltkg, record)}
           formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
@@ -811,7 +811,7 @@ export default function CreateActivity() {
             };
             showNotification("success", response.data.message, response.data.message_line, 2).then(successCallback);
           })
-          .catch(() => {});
+          .catch(() => { });
       } else {
         useServiceAPI
           .post(paths.pathActivityExpenseCreate, body, setLoading)
@@ -829,7 +829,7 @@ export default function CreateActivity() {
             };
             showNotification("success", response.data.message, response.data.message_line, 2).then(successCallback);
           })
-          .catch(() => {});
+          .catch(() => { });
       }
     } catch (err) {
       console.error("Error:", err);
@@ -886,7 +886,7 @@ export default function CreateActivity() {
           {mode} {menuTitle}
         </div>
 
-        {pageCode != "expense_advance" && pageCode != "expense_clearing" ? (
+        {mode !== "view" && pageCode !== "expense_advance" && pageCode !== "expense_clearing" ? (
           !isBtnExpenseActive ? (
             <ActionButton
               mode="create"
@@ -903,6 +903,7 @@ export default function CreateActivity() {
             />
           )
         ) : null}
+
       </div>
 
       <FormCustom fields={formFields} form={formCustom} onChange={handleChange} mode={documentNumber ? "edit" : "create"} />
@@ -1081,12 +1082,12 @@ export default function CreateActivity() {
                       min={0}
                       placeholder="0"
                       disabled={
-                        forceReadOnly ||
+                        forceReadOnly || mode === "view" ||
                         (pageCode == "expense_clearing"
                           ? true
                           : mode === "create"
-                          ? false
-                          : !activityDetail?.permission?.edit)
+                            ? false
+                            : !activityDetail?.permission?.edit)
                       }
                       formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                       value={activityDetail?.expense_participant_estimate}
