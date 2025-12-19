@@ -10,6 +10,7 @@ import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import Title from "../../../components/title/Title";
 import { ExclamationCircleFilled } from "@ant-design/icons";
+import ExportWorkPlanSubDealerExcelButton from "../../../components/export/ExportWorkPlanSubDealerExcelButton";
 
 export default function WorkPlanSaleBySubDealer() {
   const location = useLocation();
@@ -444,7 +445,7 @@ export default function WorkPlanSaleBySubDealer() {
         value: Math.max(
           0,
           (originalPlan - totalOtherQty - finalQty) *
-            (Number(unitConvertValue) || 0)
+          (Number(unitConvertValue) || 0)
         ),
       };
 
@@ -514,7 +515,7 @@ export default function WorkPlanSaleBySubDealer() {
           amount_target: totalAmountTarget, // Update total_amount_target
         };
       });
-  
+
       await useServiceAPI
         .post(paths.pathWorkPlanSaleSubDealer, {
           year_code: location?.state?.year_code,
@@ -592,6 +593,10 @@ export default function WorkPlanSaleBySubDealer() {
 
   const percent =
     dealerAmountTarget > 0 ? (totalAmountTarget * 100) / dealerAmountTarget : 0;
+
+  const activeDealer = dealers.find((d) => d.dealer_id === activeKey);
+  const dealerName = activeDealer?.dealer_name || "";
+  const exportFileName = `Work Plan Sub Dealer By ${dealerName}`;
 
   return (
     <>
@@ -673,7 +678,22 @@ export default function WorkPlanSaleBySubDealer() {
         </BoxPrimary>
 
         <BoxPrimary>
-          <div className="text-[#00783F] text-xl pb-5">Work Plan</div>
+          <div className="flex items-center justify-between pb-5">
+            <div className="text-[#00783F] text-xl">Work Plan</div>
+
+            <ExportWorkPlanSubDealerExcelButton
+              text="Export"
+              fileName={exportFileName}
+              yearName={yearName}
+              dealerName={dealerName}
+              dataSource={dataSource}
+              subDealers={subDealers}
+              activeKey={activeKey}
+              localQtyState={localQtyState}
+              totalValue={totalValue}
+            />
+
+          </div>
 
           <TableCustomComponent
             header={columns}

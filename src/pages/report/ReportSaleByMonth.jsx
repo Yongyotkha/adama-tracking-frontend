@@ -77,7 +77,7 @@ export default function ReportSaleByMonth() {
   const [dealers, setDealers] = useState([]);
   const [itemColumn, setItemColumn] = useState([]);
   const [defaultOption, setDefaultOption] = useState();
-  const [dataSource, setDataSource] = useState(false);
+  const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const { showNotification } = useContext(AuthContext);
   const [areaList, setAreaList] = useState([]);
@@ -410,6 +410,7 @@ export default function ReportSaleByMonth() {
           formCustom.setFieldsValue({ year_code: initialYear });
 
           await fetchData({
+            area_id: "",                // ✅ เพิ่ม
             year_code: initialYear,
             user_id: "",
             dealer_id: "",
@@ -511,6 +512,7 @@ export default function ReportSaleByMonth() {
       dayjs().tz("Asia/Bangkok").format("YYYY");
 
     const payload = {
+      area_id: values?.area_id ?? "",    // ✅ เพิ่ม
       year_code: yearFromForm,
       user_id: values?.sale_id ?? "",
       dealer_id: values?.dealer_id ?? "",
@@ -531,6 +533,7 @@ export default function ReportSaleByMonth() {
       dayjs().tz("Asia/Bangkok").format("YYYY");
 
     const fallbackPayload = {
+      area_id: values?.area_id ?? "",     // ✅ เพิ่ม
       year_code: yearFromForm,
       user_id: values?.sale_id ?? "",
       dealer_id: values?.dealer_id ?? "",
@@ -641,6 +644,7 @@ export default function ReportSaleByMonth() {
     const ts = dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD_HHmm");
     return `${parts.join("_")}_${ts}`;
   };
+  
 
   return (
     <>
@@ -743,6 +747,7 @@ export default function ReportSaleByMonth() {
                   }));
 
                   await fetchData({
+                    area_id: "",                // ✅ เพิ่ม
                     year_code: yearToUse,
                     user_id: "",
                     dealer_id: "",
@@ -766,6 +771,7 @@ export default function ReportSaleByMonth() {
                     defaultYear ||
                     dayjs().tz("Asia/Bangkok").format("YYYY");
                   return {
+                    area_id: values?.area_id ?? "",   // ✅ เพิ่ม
                     year_code: String(yearFromForm),
                     user_id: values?.sale_id ?? "",
                     dealer_id: values?.dealer_id ?? "",
