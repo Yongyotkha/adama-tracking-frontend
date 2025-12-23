@@ -66,7 +66,7 @@ export default function ReportSaleByYear() {
   const [products, setProducts] = useState([]);
 
   const [itemColumn, setItemColumn] = useState([]); // items (มี workplan_data_items ข้างใน)
-  const [dataSource, setDataSource] = useState(false); // data_items → แถวสินค้า
+  const [dataSource, setDataSource] = useState([]); // data_items → แถวสินค้า
   const [tableLoading, setTableLoading] = useState(false);
   const { showNotification } = useContext(AuthContext);
   const [formCustom] = Form.useForm();
@@ -426,12 +426,14 @@ export default function ReportSaleByYear() {
           formCustom.setFieldsValue({ year_code: initialYear });
 
           await fetchData({
+            area_id: "",                // ✅ เพิ่ม
             year_code: initialYear,
             user_id: "",
             dealer_id: "",
             product_name: "",
             platform: "web",
           });
+
         }
 
 
@@ -517,6 +519,7 @@ export default function ReportSaleByYear() {
       dayjs().tz("Asia/Bangkok").format("YYYY");
 
     return {
+      area_id: values?.area_id ?? "",   // ✅ เพิ่ม
       year_code: yearFromForm,
       user_id: values?.sale_id ?? "",
       dealer_id: values?.dealer_id ?? "",
@@ -698,6 +701,7 @@ export default function ReportSaleByYear() {
                   }));
 
                   await fetchData({
+                    area_id: "",
                     year_code: yearToUse,
                     user_id: "",
                     dealer_id: "",

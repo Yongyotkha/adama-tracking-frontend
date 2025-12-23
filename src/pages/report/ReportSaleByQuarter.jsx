@@ -39,20 +39,6 @@ const getYearCodeFrom = (y) => {
   return y.year_code ?? y.code ?? y.value ?? y.label ?? y.name ?? y.year ?? "";
 };
 
-// เลือก “ปีล่าสุด” จากลิสต์ปี
-const pickLatestYearCode = (yearsArr) => {
-  if (!Array.isArray(yearsArr) || yearsArr.length === 0) {
-    return dayjs().tz("Asia/Bangkok").format("YYYY");
-  }
-  let best = yearsArr[0];
-  for (const cur of yearsArr) {
-    const b = Number(getYearCodeFrom(best)) || 0;
-    const c = Number(getYearCodeFrom(cur)) || 0;
-    if (c > b) best = cur;
-  }
-  return getYearCodeFrom(best);
-};
-
 // --------------------------------
 
 export default function ReportSaleByQuarter() {
@@ -66,7 +52,7 @@ export default function ReportSaleByQuarter() {
   const [products, setProducts] = useState([]);
 
   const [itemColumn, setItemColumn] = useState([]); // quarters
-  const [dataSource, setDataSource] = useState(false); // rows
+  const [dataSource, setDataSource] = useState([]); // rows
   const [tableLoading, setTableLoading] = useState(false);
   const { showNotification } = useContext(AuthContext);
   const [formCustom] = Form.useForm();
@@ -421,6 +407,7 @@ export default function ReportSaleByQuarter() {
 
           // initial fetch
           await fetchData({
+            area_id: "",                // ✅ เพิ่ม
             year_code: initialYear,
             user_id: "",
             dealer_id: "",
@@ -509,12 +496,14 @@ export default function ReportSaleByQuarter() {
       dayjs().tz("Asia/Bangkok").format("YYYY");
 
     const payload = {
+      area_id: values?.area_id ?? "",     // ✅ เพิ่ม
       year_code: yearFromForm,
       user_id: values?.sale_id ?? "",
       dealer_id: values?.dealer_id ?? "",
       product_name: values?.product_name ?? "",
       platform: "web",
     };
+
     await fetchData(payload);
   };
 
@@ -528,6 +517,7 @@ export default function ReportSaleByQuarter() {
         dayjs().tz("Asia/Bangkok").format("YYYY");
 
       const fallbackPayload = {
+        area_id: values?.area_id ?? "",     // ✅ เพิ่ม
         year_code: yearFromForm,
         user_id: values?.sale_id ?? "",
         dealer_id: values?.dealer_id ?? "",
@@ -568,6 +558,7 @@ export default function ReportSaleByQuarter() {
       pagination,
     }));
   };
+  
 
   return (
     <>
@@ -669,6 +660,7 @@ export default function ReportSaleByQuarter() {
                   }));
 
                   await fetchData({
+                    area_id: "",                // ✅ เพิ่ม
                     year_code: yearToUse,
                     user_id: "",
                     dealer_id: "",
@@ -695,6 +687,7 @@ export default function ReportSaleByQuarter() {
                     defaultYear ||
                     dayjs().tz("Asia/Bangkok").format("YYYY");
                   return {
+                    area_id: values?.area_id ?? "",
                     year_code: yearFromForm,
                     user_id: values?.sale_id ?? "",
                     dealer_id: values?.dealer_id ?? "",
