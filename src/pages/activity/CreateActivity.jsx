@@ -100,6 +100,18 @@ export default function CreateActivity() {
   const [participants, setParticipants] = useState([]);
   const [participantUsers, setParticipantUsers] = useState([]);
 
+  const toNumber = (v, fallback = 0) => {
+    if (v === null || v === undefined || v === "") return fallback;
+    if (typeof v === "number") return Number.isFinite(v) ? v : fallback;
+
+    // รองรับ ".00" -> "0.00"
+    const s = String(v).trim();
+    const normalized = s.startsWith(".") ? `0${s}` : s;
+
+    const n = parseFloat(normalized);
+    return Number.isFinite(n) ? n : fallback;
+  };
+
   // ✅ หากเปิดด้วย URL แล้ว state ไม่มา
   useEffect(() => {
     if (!documentNumber && documentNumberFromUrl) {
@@ -339,6 +351,38 @@ export default function CreateActivity() {
 
         const d = activityDetailRes.data;
 
+
+        // ✅ normalize numeric fields
+        const normalized = {
+          ...d,
+          expense_advance: toNumber(d.expense_advance, 0),
+          expense_actual: toNumber(d.expense_actual, 0),
+          expense_participant_estimate: toNumber(d.expense_participant_estimate, 0),
+          expense_particapant_actual: toNumber(d.expense_particapant_actual, 0),
+
+          expense_product_total_estimate_sale: toNumber(d.expense_product_total_estimate_sale, 0),
+          expense_product_total_acutal_sale: toNumber(d.expense_product_total_acutal_sale, 0),
+
+          // ที่คุณเอามา map ใส่ expense_actual_exp/expense_actual_sale
+          expense_expense_actual_exp: toNumber(d.expense_expense_actual_exp, 0),
+          expense_expense_actual_sale: toNumber(d.expense_expense_actual_sale, 0),
+          expense_actual_exp: toNumber(d.expense_actual_exp ?? d.expense_expense_actual_exp, 0),
+          expense_actual_sale: toNumber(d.expense_actual_sale ?? d.expense_expense_actual_sale, 0),
+
+          // ✅ normalize list rows (สำคัญมากสำหรับ InputNumber ใน table)
+          expense_product_data_list: (d.expense_product_data_list || []).map((el, idx) => ({
+            key: idx + 1,
+            product_name: el.product_name,
+            packing_list: el.packing_list,
+            estimate_sale_qty: toNumber(el.estimate_sale_qty, 0),
+            acutal_sale_qty: toNumber(el.acutal_sale_qty, 0),
+            bath_ltkg: toNumber(el.bath_ltkg, 0),
+            product_code: el.product_code,
+            product_id: el.product_id,
+            id: el.id ?? el.product_id,
+          })),
+        };
+
         const productListIds = d.product_list.map((p) => p.id);
         const userListIds = d.assing_user_list.map((p) => p.id);
         const cropListIds = d.crop_id_list.map((p) => p.id);
@@ -379,16 +423,26 @@ export default function CreateActivity() {
 
         setFileList(imageList);
         setParticipants(participantData);
-        setIsBtnExpenseActive(d.is_expense);
+        setIsBtnExpenseActive(normalized.is_expense);
 
         setActivityDetail((prev) => ({
-          ...d,
+          ...prev,
+          ...normalized,
           crop_id_list: cropListIds,
           product_list: productListIds,
           assing_user_list: userListIds,
-          expense_actual_exp: d.expense_expense_actual_exp,
-          expense_product_data_list,
         }));
+
+        expenseForm.setFieldsValue({
+          advance_expense: normalized.expense_advance,
+          actual_expense: normalized.expense_actual,
+        });
+
+        participantForm.setFieldsValue({
+          estimate_participant: normalized.expense_participant_estimate,
+          actual_participant: normalized.expense_particapant_actual,
+        });
+
       } finally {
         setLoading(false);
       }
@@ -868,13 +922,15 @@ export default function CreateActivity() {
     }
   };
 
+  const adv = toNumber(activityDetail.expense_advance, 0);
+  const act = toNumber(activityDetail.expense_actual, 0);
+
   let return_to_company = 0;
   let return_to_staff = 0;
-  if (parseInt(activityDetail.expense_advance) > parseInt(activityDetail.expense_actual)) {
-    return_to_company = activityDetail.expense_advance - activityDetail.expense_actual;
-  } else {
-    return_to_staff = activityDetail.expense_actual - activityDetail.expense_advance;
-  }
+  if (adv > act) return_to_company = adv - act;
+  else return_to_staff = act - adv;
+
+  console.log(activityDetail.expense_advance);
 
   // =========================================================
   // ✅ Render
@@ -943,8 +999,8 @@ export default function CreateActivity() {
                       className="w-full"
                       min={0}
                       formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                      value={activityDetail.expense_advance}
-                      onChange={(value) => setActivityDetail({ ...activityDetail, expense_advance: value })}
+                      value={toNumber(activityDetail.expense_advance, 0)}
+                      onChange={(value) => setActivityDetail({ ...activityDetail, expense_advance: toNumber(value, 0) })}
                       disabled={
                         forceReadOnly ||
                         mode === "view" ||
@@ -962,8 +1018,9 @@ export default function CreateActivity() {
                       className="w-full"
                       min={0}
                       formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                      value={activityDetail.expense_actual}
-                      onChange={(value) => setActivityDetail({ ...activityDetail, expense_actual: value })}
+                      value={toNumber(activityDetail.expense_actual, 0)}
+                      onChange={(value) => setActivityDetail({ ...activityDetail, expense_actual: toNumber(value, 0) })}
+
                       disabled={
                         forceReadOnly ||
                         (pageCode != "expense_clearing" || mode === "create"
@@ -973,36 +1030,33 @@ export default function CreateActivity() {
                     />
                   </Form.Item>
                 </Col>
-
+                
                 <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item className="mb-3" label="Estimate Sale" name="actual_exp">
+                  <Form.Item className="mb-3" label="Estimate Sale">
                     <InputNumber
                       className="w-full"
                       min={0}
                       placeholder="0"
-                      value={activityDetail?.expense_actual_exp || activityDetail?.expense_expense_actual_exp || 0}
-                      disabled={true}
-                      formatter={(value) =>
-                        Number(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
+                      value={toNumber(activityDetail?.expense_actual_exp ?? activityDetail?.expense_product_total_estimate_sale, 0)}
+                      disabled
+                      formatter={(value) => Number(value || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                     />
                   </Form.Item>
                 </Col>
 
                 <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item className="mb-3" label="Actual sale" name="actual_sale">
+                  <Form.Item className="mb-3" label="Actual sale">
                     <InputNumber
                       className="w-full"
                       min={0}
                       placeholder="0"
-                      value={activityDetail?.expense_actual_sale || activityDetail?.expense_expense_actual_sale || 0}
-                      disabled={true}
-                      formatter={(value) =>
-                        Number(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
+                      value={toNumber(activityDetail?.expense_actual_sale ?? activityDetail?.expense_product_total_acutal_sale, 0)}
+                      disabled
+                      formatter={(value) => Number(value || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                     />
                   </Form.Item>
                 </Col>
+
 
                 {pageCode === "expense_clearing" && (
                   <>
@@ -1090,8 +1144,8 @@ export default function CreateActivity() {
                             : !activityDetail?.permission?.edit)
                       }
                       formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                      value={activityDetail?.expense_participant_estimate}
-                      onChange={(value) => setActivityDetail({ ...activityDetail, expense_participant_estimate: value })}
+                      value={toNumber(activityDetail?.expense_participant_estimate, 0)}
+                      onChange={(value) => setActivityDetail({ ...activityDetail, expense_participant_estimate: toNumber(value, 0) })}
                     />
                   </Form.Item>
                 </Col>
