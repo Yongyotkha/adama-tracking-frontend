@@ -60,6 +60,7 @@ export default function CreateActivity() {
   const viewSegment = mode === "view";
   const isViewMode = mode === "view";
   const isCreate = mode === "create";
+  const isApproveMode = mode === "approve";
 
   const [loading, setLoading] = useState(false);
   const [firstCallData, setFirstCallData] = useState(true);
@@ -188,8 +189,8 @@ export default function CreateActivity() {
     {
       label: "Activity Reference",
       name: "activity_reference",
-      type: pageCode != "activity_transaction" ? (viewSegment ? "hidden" : "search") : "hidden",
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      type: pageCode !== "activity_transaction" ? (viewSegment ? "hidden" : "search") : "hidden",
+      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
       required: false,
       col: 24,
       value: "",
@@ -1004,8 +1005,9 @@ export default function CreateActivity() {
                       disabled={
                         forceReadOnly ||
                         mode === "view" ||
+                        mode === "approve" ||
                         (mode === "create" && pageCode === "expense_clearing") ||
-                        (pageCode === "expense_clearing" && !activityDetail?.permission?.edit)
+                        (pageCode === "expense_clearing" && pageCode !== "expense_advance")
                       }
                     />
                   </Form.Item>
@@ -1030,7 +1032,7 @@ export default function CreateActivity() {
                     />
                   </Form.Item>
                 </Col>
-                
+
                 <Col xs={24} sm={12} md={12} lg={6}>
                   <Form.Item className="mb-3" label="Estimate Sale">
                     <InputNumber
