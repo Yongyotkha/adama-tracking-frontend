@@ -194,12 +194,20 @@ export default function ActivityMapping() {
       const yearIds = Array.isArray(filters.year) ? filters.year.map(String) : [];
       const monthIds = Array.isArray(filters.month) ? filters.month.map(String) : [];
 
-      // ✅ Priority: ถ้าไม่เลือก Activity Type เลย -> ไม่ต้องแสดงหมุด
+      // ✅ Priority 1: ถ้าไม่เลือก Activity Type → ไม่แสดง
       if (activityTypeIds.length === 0) {
         setLocations([]);
         setlocationWindowInfo(null);
         return;
       }
+
+      // ✅ Priority 2: ถ้าไม่เลือก Year → ไม่แสดง
+      if (yearIds.length === 0) {
+        setLocations([]);
+        setlocationWindowInfo(null);
+        return;
+      }
+
 
       let filtered = dataMapping;
 
@@ -546,7 +554,7 @@ export default function ActivityMapping() {
 
                       {/* ✅ SubDealer แทน Address */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src="/img/icons/shop.png" className="w-6 h-6" alt="" />
+                        <img src="/img/icons/location.png" className="w-6 h-6" alt="" />
                         {locationWindowInfo.sub_dealer_name || "No Sub Dealer"}
                       </div>
 
