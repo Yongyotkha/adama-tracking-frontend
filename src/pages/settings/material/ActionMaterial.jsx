@@ -56,17 +56,25 @@ export default function ActionMaterial() {
             const cropIds = mat.crops.map(Number);
             const productIds = mat.products.map(Number);
 
-            // ดึง Product ทั้งหมดก่อน
-            const productRes = await useServiceAPI.get(paths.pathMasterProductByCrop, {
-              platform: "web",
-              crop_list: cropIds,
-            });
 
-            const mappedProducts = productRes.data.map(item => ({
-              value: item.id,
-              label: item.product_name,
-            }));
+            let mappedProducts = [];
 
+            if (Array.isArray(cropIds) && cropIds.length > 0) {
+              try {
+                const productRes = await useServiceAPI.get(paths.pathMasterProductByCrop, {
+                  platform: "web",
+                  crop_list: cropIds,
+                });
+
+                mappedProducts = (productRes?.data || []).map(item => ({
+                  value: item.id,
+                  label: item.product_name,
+                }));
+              } catch (e) {
+                // ถ้า 422 crop_list required หรือ api มีปัญหา ให้ "ไม่พัง" และไปต่อ
+                mappedProducts = [];
+              }
+            }
             setProducts(mappedProducts);
 
             // 🧠 สร้าง options พร้อม label
