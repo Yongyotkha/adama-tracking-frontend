@@ -314,7 +314,7 @@ export default function OrderHistoryDetail() {
               <div className="flex justify-between items-center font-semibold">
                 <p>คะแนนได้รับ</p>
                 <p className="text-right">
-                  {Number(totalQtyPoint+totalMasterPoint ?? 0).toLocaleString("th-TH")} / ปิดแคมเปญ {totalExtraAccumDisplay}
+                  {Number((totalQtyPoint ?? 0) + (totalMasterPoint ?? 0)).toLocaleString("th-TH")} / ปิดแคมเปญ {totalExtraAccumDisplay}
                 </p>
               </div>
 

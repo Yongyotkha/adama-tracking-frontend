@@ -288,7 +288,7 @@ export default function CollectPointsDetail() {
 
               <div className="flex justify-between font-semibold mt-1">
                 <p className="sarabun-font">คะแนนได้รับ</p>
-                <p>{Number(totalQtyPoint+totalMasterPoint ?? 0).toLocaleString("th-TH")} / ปิดแคมเปญ {/*เพิ่มให้ดึงค่ารวม extra point ทั้งหมด*/}</p>
+                <p>{Number((totalQtyPoint ?? 0) + (totalMasterPoint ?? 0)).toLocaleString("th-TH")} / ปิดแคมเปญ {/*เพิ่มให้ดึงค่ารวม extra point ทั้งหมด*/}</p>
               </div>
 
               <div className="flex justify-between font-semibold text-lg text-green-700 mt-1">
