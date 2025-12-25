@@ -238,13 +238,13 @@ export default function OrderHistoryDetail() {
 
                         {(item.points?.point_extra_point?.length ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
-                            Extra Point Point (สำหรับทดสอบ) : {(item.points?.point_extra_point || []).reduce((a, b) => a + b, 0)}
+                            Extra Point : {(item.points?.point_extra_point || []).reduce((a, b) => a + b, 0)}
                           </p>
                         )}
 
                         {(item.points?.point_extra_value?.length ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
-                            Extra Point Value (สำหรับทดสอบ) : {(item.points?.point_extra_value || []).reduce((a, b) => a + b, 0)}
+                            Extra Value : {(item.points?.point_extra_value || []).reduce((a, b) => a + b, 0)}
                           </p>
                         )}
                       </div>
