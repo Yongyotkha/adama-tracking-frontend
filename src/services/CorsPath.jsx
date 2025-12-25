@@ -46,6 +46,7 @@ export const paths = {
   pathMasterAreas: "master/areas",
   pathMasterRoles: "master/roles",
   pathMasterCrop: "master/crop",
+  pathMasterSubDealerCrop: "master/sub-dealer-crop",
   pathMasterProductTypes: "master/product-types",
   pathMasterProductGroups: "master/product-groups",
   pathMasterProductList: "master/product-list",
@@ -63,7 +64,6 @@ export const paths = {
   pathMasterSubDealerAll: "master/sub-dealer-all",
   pathMasterSubDealerSubDealers: "master/dealer-sub-dealers",
   pathMasterDealeretSubDealer: "master/sub-dealer-by-dealer",
-  pathMasterSubDealerCrop: "master/sub-dealer-crop",
   pathMasterSubDealerCustomer: "master/sub-dealer-customer",
   pathMasterPermission: "master/permission",
   pathMasterProductUnit: "master/product-unit",
@@ -338,8 +338,10 @@ export const paths = {
 
   // Expense Sample
   pathSampleExpenseList: "expense/sample/list",
-  pathSampleExpenseDetails: "expense/sample/create",
+  pathSampleExpenseDetailsAndCreate: "expense/sample/create",
   pathSampleGetDealer: "expense/sample/get-dealer-id",
+  pathSampleStatus: "expense/sample/status",
+
 
   // Claim
   pathClaimList: "claim/list",
