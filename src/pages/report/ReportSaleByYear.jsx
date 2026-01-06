@@ -64,18 +64,20 @@ export default function ReportSaleByYear() {
   const [sales, setSales] = useState([]);
   const [dealers, setDealers] = useState([]);
   const [products, setProducts] = useState([]);
-  const [areaId, setAreaId] = useState();
-  const [roleId, setRoleId] = useState();
+
   const [itemColumn, setItemColumn] = useState([]); // items (มี workplan_data_items ข้างใน)
   const [dataSource, setDataSource] = useState([]); // data_items → แถวสินค้า
   const [tableLoading, setTableLoading] = useState(false);
   const { showNotification, userInfo } = useContext(AuthContext);
+  const [areaId, setAreaId] = useState();
+  const [roleId, setRoleId] = useState();
   const [formCustom] = Form.useForm();
   const watchedAreaId = Form.useWatch("area_id", formCustom);
   const watchedSaleId = Form.useWatch("sale_id", formCustom);
 
   const isAdmin = Number(roleId) === 1;
 
+  //load user detail to get area_id and role_id
   useEffect(() => {
     useServiceAPI
       .get(`${paths.pathMasterUsersDetail}/${userInfo.id}`, {}, setLoading)
