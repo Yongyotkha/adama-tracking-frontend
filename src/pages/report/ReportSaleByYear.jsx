@@ -79,30 +79,32 @@ export default function ReportSaleByYear() {
 
   //load user detail to get area_id and role_id
   useEffect(() => {
-    useServiceAPI
-      .get(`${paths.pathMasterUsersDetail}/${userInfo.id}`, {}, setLoading)
-      .then((response) => {
-        if (response.status === 200) {
+    (async () => {
+      try {
+        const response = await useServiceAPI.get(
+          `${paths.pathMasterUsersDetail}/${userInfo.id}`,
+          {},
+          setLoading
+        );
+
+        if (response?.status === 200) {
           const aId = response.data.area_id;
           const rId = response.data.role_id;
 
           setAreaId(aId);
           setRoleId(rId);
 
-          // ✅ สำคัญ: set ลง form เพื่อให้ trigger โหลด sales ตาม area
-          formCustom.setFieldsValue({ area_id: aId });
+          // ✅ ใช้ String ให้ match options
+          formCustom.setFieldsValue({ area_id: String(aId) });
         }
-      })
-      .catch((error) => {
+      } catch (error) {
         console.log(error);
-        if (error.status === 422) {
-          showNotification("error", error.message);
-        } else {
-          showNotification("error", "เกิดข้อผิดพลาด");
-        }
-      });
+        if (error?.status === 422) showNotification("error", error.message);
+        else showNotification("error", "เกิดข้อผิดพลาด");
+      }
+    })();
 
-    fetchData();
+    // ❌ ไม่เรียก fetchData ตรงนี้
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -445,7 +447,7 @@ export default function ReportSaleByYear() {
           }))
         );
         setAreaList(
-          (areasRes?.data || []).map((x) => ({ value: x.id, label: x.name }))
+          (areasRes?.data || []).map((x) => ({ value: String(x.id), label: x.name }))
         );
 
         // default = current year (now) จาก master year ถ้ามี
@@ -475,8 +477,8 @@ export default function ReportSaleByYear() {
         }
 
 
-        setSales([]);
-        setDealers([]);
+        // setSales([]);
+        // setDealers([]);
       } catch (error) {
         showNotification("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -489,39 +491,68 @@ export default function ReportSaleByYear() {
 
   // เปลี่ยน Area → โหลด Sales
   useEffect(() => {
-    if (!watchedAreaId) {
-      setSales([]);
-      formCustom.resetFields(["sale_id", "dealer_id"]);
-      setDealers([]);
-      return;
-    }
+    let alive = true;
 
-    (async () => {
+    const run = async () => {
+      if (!watchedAreaId) {
+        setSales([]);
+        setDealers([]);
+        formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
+        return;
+      }
+
+      console.log("Load sales for area:", watchedAreaId);
+
       try {
         const res = await useServiceAPI.get(paths.pathMasterSaleReport, {
           area_id: watchedAreaId,
         });
-        const list = Array.isArray(res?.data) ? res.data : [];
-        const saleOptions = list.map((item) => ({
-          value: Number(item.id),
+
+        console.log("pathMasterSaleReport res:", res);
+
+        // ✅ robust: รองรับ res.data เป็น array หรือ res.data.data
+        const raw = res?.data?.data ?? res?.data ?? [];
+        const list = Array.isArray(raw) ? raw : [];
+
+        console.log("Sales raw list:", list);
+
+        const options = list.map((item) => ({
+          value: String(item.id), // ✅ ใช้ string ให้ match กับ form/select
           label: item.name,
         }));
-        setSales(saleOptions);
 
-        // ถ้าเปลี่ยน area (เฉพาะ admin) ค่อย reset sale/dealer
-        if (isAdmin) {
-          formCustom.resetFields(["sale_id", "dealer_id"]);
-          setDealers([]);
-        }
-      } catch {
+        if (!alive) return;
+
+        setSales(options);
+
+        // ✅ reset dependents หลังโหลด area ใหม่ (ปลอดภัยกว่า)
+        formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
+        setDealers([]);
+      } catch (e) {
+        console.log("Load sales error:", e);
+        if (!alive) return;
         setSales([]);
         setDealers([]);
       }
-    })();
+    };
+
+    run();
+
+    return () => {
+      alive = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedAreaId, isAdmin]);
+  }, [watchedAreaId]);
+
+  // ✅ log ที่ถูกต้อง: log เมื่อ state เปลี่ยนจริง
+  useEffect(() => {
+    console.log("Sales state changed:", sales);
+  }, [sales]);
 
 
+  useEffect(() => {
+    console.log("Sales state changed:", sales);
+  }, [sales]);
   // เปลี่ยน Sale → โหลด Dealers
   useEffect(() => {
     if (!watchedSaleId) {
@@ -676,7 +707,7 @@ export default function ReportSaleByYear() {
                   <Select
                     placeholder="Select Sales"
                     options={sales}
-                    disabled={!formCustom.getFieldValue("area_id")}
+                    disabled={!watchedAreaId}
                     onChange={() => {
                       formCustom.resetFields(["dealer_id"]);
                       setDealers([]);
@@ -732,7 +763,7 @@ export default function ReportSaleByYear() {
                     ...(isAdmin ? ["area_id"] : []),  // ✅ ถ้าไม่ใช่ admin อย่า reset area_id
                   ]);
 
-                  setSales([]);
+                  // setSales([]);
                   setDealers([]);
 
                   const yearToUse =

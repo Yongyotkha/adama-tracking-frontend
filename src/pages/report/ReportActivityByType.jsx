@@ -22,6 +22,11 @@ export default function ReportActivityByType() {
   const navigate = useNavigate();
   const location = useLocation();
   const { showNotification, userInfo } = useContext(AuthContext);
+  const [areaId, setAreaId] = useState();
+  const [roleId, setRoleId] = useState();
+  const [formCustom] = Form.useForm();
+  const watchedAreaId = Form.useWatch("area_id", formCustom);
+  const watchedSaleId = Form.useWatch("user_id", formCustom);
 
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
@@ -42,7 +47,52 @@ export default function ReportActivityByType() {
     total_activity_actual: 0,
   });
 
-  const [formCustom] = Form.useForm();
+
+  const isAdmin = Number(roleId) === 1;
+
+  //load user detail to get area_id and role_id
+  useEffect(() => {
+    (async () => {
+      try {
+        const response = await useServiceAPI.get(
+          `${paths.pathMasterUsersDetail}/${userInfo.id}`,
+          {},
+          setLoading
+        );
+
+        if (response?.status === 200) {
+          const aId = response.data.area_id;
+          const rId = response.data.role_id;
+
+          setAreaId(aId);
+          setRoleId(rId);
+
+          // ✅ set area ในฟอร์ม (ใช้ String ให้ชน options)
+          formCustom.setFieldsValue({ area_id: String(aId) });
+
+          // ✅ ถ้าไม่ใช่ admin ให้โหลด Sales ของ area ทันที
+          if (Number(rId) !== 1) {
+            setIsAreaSelected(true);
+            setIsSalesSelected(false);
+            await loadSalesByArea(String(aId));
+          }
+        }
+      } catch (error) {
+        console.log(error);
+        if (error?.status === 422) showNotification("error", error.message);
+        else showNotification("error", "เกิดข้อผิดพลาด");
+      }
+    })();
+
+    // ❗ไม่ต้อง fetchData ทันทีแบบเดิม เพราะฟอร์ม/ปีอาจยังไม่พร้อม
+    // fetchData();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
+
+
 
   const [tableParams, setTableParams] = useState({
     pagination: { current: 1, pageSize: 10 },
@@ -211,31 +261,54 @@ export default function ReportActivityByType() {
   const handleClear = async () => {
     const defaultYearValue = defaultYear ?? years?.[0]?.value ?? null;
 
-    formCustom.resetFields([
-      "area_id",
-      "user_id",
-      "territory",
-      "month",
-      "dealer_id",
-      "crop_id",
-    ]);
-    // set year กลับเป็น default (หรือของเดิมถ้าไม่มี default)
+    const fieldsToReset = isAdmin
+      ? ["area_id", "user_id", "territory", "month", "dealer_id", "crop_id"]
+      : ["user_id", "territory", "month", "dealer_id", "crop_id"];
+
+    formCustom.resetFields(fieldsToReset);
+
     if (defaultYearValue != null) {
       formCustom.setFieldsValue({ year_code: defaultYearValue });
     }
 
-    setSales([]);
     setTerritoryList([]);
-    setIsAreaSelected(false);
     setIsSalesSelected(false);
+
+    if (!isAdmin && areaId) {
+      // ✅ คง area + โหลด sales กลับ
+      formCustom.setFieldsValue({ area_id: String(areaId) });
+      setIsAreaSelected(true);
+      await loadSalesByArea(String(areaId));
+    } else {
+      setSales([]);
+      setIsAreaSelected(false);
+    }
+
     setTableParams((prev) => ({
       ...prev,
       filters: { year_code: defaultYearValue ?? prev.filters?.year_code },
       pagination: { current: 1, pageSize: 10 },
     }));
+
     const filters = { year_code: defaultYearValue ?? tableParams.filters?.year_code };
     await fetchData(filters);
   };
+
+  const loadSalesByArea = async (area_id) => {
+    if (!area_id) {
+      setSales([]);
+      return;
+    }
+    try {
+      const res = await useServiceAPI.get(paths.pathMasterSalesByArea, { area_id });
+      if (res?.status === 200) setSales(mapSalesOptions(res.data));
+      else setSales([]);
+    } catch {
+      setSales([]);
+      showNotification("error", "โหลด Sales ไม่สำเร็จ");
+    }
+  };
+
 
   // ===== Dependent selects via onValuesChange (ใช้ทำ Step UI ด้วย) =====
   const onValuesChange = async (changed, all) => {
@@ -434,8 +507,14 @@ export default function ReportActivityByType() {
             {/* STEP 1: Area */}
             <Col md={6}>
               <Form.Item label="Area" name="area_id">
-                <Select placeholder="Select Area" options={areaList} allowClear />
+                <Select
+                  placeholder="Select Area"
+                  options={areaList}
+                  disabled={!isAdmin}     // ✅ non-admin ล็อก
+                  allowClear={isAdmin}    // ✅ admin เท่านั้นที่ clear ได้
+                />
               </Form.Item>
+
             </Col>
 
             {/* STEP 2: Sales (disable จนกว่า Area จะถูกเลือก) */}
