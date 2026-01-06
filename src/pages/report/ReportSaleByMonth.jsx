@@ -79,9 +79,50 @@ export default function ReportSaleByMonth() {
   const [defaultOption, setDefaultOption] = useState();
   const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
-  const { showNotification } = useContext(AuthContext);
+  const { showNotification, userInfo } = useContext(AuthContext);
   const [areaList, setAreaList] = useState([]);
   const [formCustom] = Form.useForm();
+  const [areaId, setAreaId] = useState();
+  const [roleId, setRoleId] = useState();
+  const isAdmin = Number(roleId) === 1;
+
+  useEffect(() => {
+    if (roleId == null || areaId == null) return;
+
+    // ถ้าไม่ใช่ admin => บังคับเลือก area ตาม areaId เสมอ
+    if (Number(roleId) !== 1) {
+      formCustom.setFieldsValue({ area_id: areaId });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roleId, areaId]);
+  useEffect(() => {
+    useServiceAPI
+      .get(`${paths.pathMasterUsersDetail}/${userInfo.id}`, {}, setLoading)
+      .then((response) => {
+        if (response.status === 200) {
+          const aId = response.data.area_id;
+          const rId = response.data.role_id;
+
+          setAreaId(aId);
+          setRoleId(rId);
+
+          // ✅ สำคัญ: set ลง form เพื่อให้ trigger โหลด sales ตาม area
+          formCustom.setFieldsValue({ area_id: aId });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        if (error.status === 422) {
+          showNotification("error", error.message);
+        } else {
+          showNotification("error", "เกิดข้อผิดพลาด");
+        }
+      });
+
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   const header = [
     {
@@ -644,7 +685,7 @@ export default function ReportSaleByMonth() {
     const ts = dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD_HHmm");
     return `${parts.join("_")}_${ts}`;
   };
-  
+
 
   return (
     <>
@@ -659,14 +700,16 @@ export default function ReportSaleByMonth() {
                   <Select
                     placeholder="Select Area"
                     options={areaList}
+                    disabled={!isAdmin}              // ✅ roleId != 1 ล็อก Area
+                    allowClear={isAdmin}             // ✅ admin เคลียร์ได้, non-admin เคลียร์ไม่ได้
                     onChange={() => {
                       formCustom.resetFields(["sale_id", "dealer_id"]);
                       setSales([]);
                       setDealers([]);
                     }}
-                    allowClear
                   />
                 </Form.Item>
+
               </Col>
 
               <Col md={6}>
@@ -723,16 +766,19 @@ export default function ReportSaleByMonth() {
 
               <DynamicButton
                 onClick={async () => {
-                  // Clear filters + reset year to current year
-                  formCustom.resetFields([
-                    "area_id",
-                    "sale_id",
-                    "product_name",
-                    "dealer_id",
-                    "year_code",
-                  ]);
+                  // ✅ ถ้าไม่ใช่ admin: อย่า reset area_id ทิ้ง
+                  const fieldsToReset = isAdmin
+                    ? ["area_id", "sale_id", "product_name", "dealer_id", "year_code"]
+                    : ["sale_id", "product_name", "dealer_id", "year_code"];
+
+                  formCustom.resetFields(fieldsToReset);
                   setSales([]);
                   setDealers([]);
+
+                  // ✅ non-admin: เซ็ต area กลับเป็น areaId เสมอ
+                  if (!isAdmin && areaId) {
+                    formCustom.setFieldsValue({ area_id: areaId });
+                  }
 
                   const yearToUse =
                     defaultYear || dayjs().tz("Asia/Bangkok").format("YYYY");
@@ -747,7 +793,7 @@ export default function ReportSaleByMonth() {
                   }));
 
                   await fetchData({
-                    area_id: "",                // ✅ เพิ่ม
+                    area_id: !isAdmin && areaId ? areaId : "",   // ✅ non-admin ยิงตาม area
                     year_code: yearToUse,
                     user_id: "",
                     dealer_id: "",
@@ -755,6 +801,7 @@ export default function ReportSaleByMonth() {
                     platform: "web",
                   });
                 }}
+
                 name="btn-clear"
                 text="Clear"
                 iconSrc="/img/icons/trash.png"
