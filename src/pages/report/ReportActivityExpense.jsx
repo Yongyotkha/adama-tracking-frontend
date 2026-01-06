@@ -45,7 +45,13 @@ const pickLatestYearCode = (yearsArr) => {
 };
 
 export default function ReportActivityExpense() {
-  const { showNotification } = useContext(AuthContext) || {};
+  const { showNotification, userInfo } = useContext(AuthContext);
+  const [areaId, setAreaId] = useState();
+  const [roleId, setRoleId] = useState();
+  const [formCustom] = Form.useForm();
+  const watchedAreaId = Form.useWatch("area_id", formCustom);
+  const watchedSaleId = Form.useWatch("user_id", formCustom);
+
   const [loading, setLoading] = useState(false);
 
   // masters
@@ -60,17 +66,50 @@ export default function ReportActivityExpense() {
   const [permission, setPermission] = useState([]);
   const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
-
+  const [isAreaSelected, setIsAreaSelected] = useState(false);
+  const [isSalesSelected, setIsSalesSelected] = useState(false);
   // form & step-watch
   const [form] = Form.useForm();
   const selectedArea = Form.useWatch("area_id", form);
   const selectedSale = Form.useWatch("user_id", form);
+  const isAdmin = Number(roleId) === 1;
+  //load user detail to get area_id and role_id
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await useServiceAPI.get(
+          `${paths.pathMasterUsersDetail}/${userInfo.id}`,
+          {},
+          setLoading
+        );
+
+        if (res?.status === 200) {
+          const aId = res.data.area_id;
+          const rId = res.data.role_id;
+
+          setAreaId(aId);
+          setRoleId(rId);
+
+          // ✅ roleId != 1 ให้ set area_id ลงฟอร์มทันที
+          if (Number(rId) !== 1) {
+            form.setFieldsValue({ area_id: aId });
+          }
+        }
+      } catch (e) {
+        showNotification("error", e?.message || "เกิดข้อผิดพลาด");
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   // local table params (keep year filter)
   const [tableParams, setTableParams] = useState({
     pagination: { current: 1, pageSize: 10 },
     filters: {},
   });
+
+
 
   // ====== Load masters: Year + Area ======
   useEffect(() => {
@@ -83,23 +122,23 @@ export default function ReportActivityExpense() {
         ]);
 
         const yearRaw = yearsRes?.data || [];
-        const yearCodes = yearRaw
-          .map((y) => getYearCodeFrom(y))
-          .filter(Boolean);
+        const yearCodes = yearRaw.map(getYearCodeFrom).filter(Boolean);
 
         setYears(yearCodes);
 
-        // ✅ default = option แรกจาก master year
-        const firstYear =
-          yearCodes[0] || dayjs().tz("Asia/Bangkok").format("YYYY");
-        setDefaultYear(firstYear);
+        const currentYear = dayjs().tz("Asia/Bangkok").format("YYYY");
+        const yearToUse = yearCodes.includes(currentYear)
+          ? currentYear
+          : (yearCodes[0] || currentYear);
 
-        // set default year filter + form
+        setDefaultYear(yearToUse);
+
+        // ✅ set default year filter + form “ครั้งเดียวพอ”
         setTableParams((prev) => ({
           ...prev,
-          filters: { ...prev.filters, year_code: firstYear },
+          filters: { ...prev.filters, year_code: yearToUse },
         }));
-        form.setFieldsValue({ year_code: firstYear });
+        form.setFieldsValue({ year_code: yearToUse });
 
         setAreaList(
           (areaRes?.data || []).map((a) => ({
@@ -118,65 +157,85 @@ export default function ReportActivityExpense() {
 
   // ====== Cascade: Area → Sales ======
   useEffect(() => {
-    const areaId = form.getFieldValue("area_id");
-    if (!areaId) {
-      setSalesList([]);
-      setDealerList([]);
-      form.resetFields(["user_id", "dealer_id"]);
-      return;
-    }
-    (async () => {
-      try {
-        const res = await useServiceAPI.get(paths.pathMasterSaleReport, {
-          area_id: areaId,
-        });
-        const list = Array.isArray(res?.data) ? res.data : [];
-        setSalesList(
-          list.map((x) => ({
-            value: Number(x.user_id ?? x.id),
-            label: x.user_name ?? x.name,
-          }))
-        );
-        setDealerList([]);
-        form.resetFields(["user_id", "dealer_id"]);
-      } catch {
+    let alive = true;
+
+    const loadSales = async () => {
+      if (!selectedArea) {
         setSalesList([]);
         setDealerList([]);
-        form.resetFields(["user_id", "dealer_id"]);
+        form.setFieldsValue({ user_id: undefined, dealer_id: undefined });
+        return;
       }
-    })();
+
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterSaleReport, {
+          area_id: selectedArea,
+        });
+
+        const raw = res?.data?.data ?? res?.data ?? [];
+        const list = Array.isArray(raw) ? raw : [];
+
+        const options = list.map((x) => ({
+          value: Number(x.user_id ?? x.id),      // id จริงของ sales
+          label: x.user_name ?? x.name,
+        }));
+
+        if (!alive) return;
+
+        setSalesList(options);
+        setDealerList([]);
+
+        // ✅ reset เฉพาะตอน area เปลี่ยนจริง (admin เปลี่ยนได้)
+        form.setFieldsValue({ user_id: undefined, dealer_id: undefined });
+      } catch (e) {
+        if (!alive) return;
+        setSalesList([]);
+        setDealerList([]);
+        form.setFieldsValue({ user_id: undefined, dealer_id: undefined });
+      }
+    };
+
+    loadSales();
+    return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.getFieldValue("area_id")]);
+  }, [selectedArea]);
+
 
   // ====== Cascade: Sales → Dealer ======
   useEffect(() => {
-    const saleId = form.getFieldValue("user_id");
-    if (!saleId) {
-      setDealerList([]);
-      form.resetFields(["dealer_id"]);
-      return;
-    }
-    (async () => {
-      try {
-        const res = await useServiceAPI.get(
-          paths.pathMasterDealerDropdown,
-          { user_id: saleId }
-        );
-        const list = Array.isArray(res?.data) ? res.data : [];
-        setDealerList(
-          list.map((x) => ({
-            value: Number(x.id),
-            label: x.name,
-          }))
-        );
-        form.resetFields(["dealer_id"]);
-      } catch {
+    let alive = true;
+
+    const loadDealers = async () => {
+      if (!selectedSale) {
         setDealerList([]);
-        form.resetFields(["dealer_id"]);
+        form.setFieldsValue({ dealer_id: undefined });
+        return;
       }
-    })();
+
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
+          user_id: selectedSale,
+        });
+
+        const raw = res?.data?.data ?? res?.data ?? [];
+        const list = Array.isArray(raw) ? raw : [];
+
+        if (!alive) return;
+
+        setDealerList(list.map((x) => ({ value: Number(x.id), label: x.name })));
+        form.setFieldsValue({ dealer_id: undefined });
+      } catch {
+        if (!alive) return;
+        setDealerList([]);
+        form.setFieldsValue({ dealer_id: undefined });
+      }
+    };
+
+    loadDealers();
+    return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.getFieldValue("user_id")]);
+  }, [selectedSale]);
+
 
   // ====== Fetch ======
   const fetchData = async (overrideFilters) => {
@@ -244,17 +303,22 @@ export default function ReportActivityExpense() {
   const handleSearch = () => fetchData();
 
   const handleClear = async () => {
-    form.resetFields(["area_id", "user_id", "dealer_id", "year_code"]);
-    setSalesList([]);
-    setDealerList([]);
-
     const yearToUse =
-      defaultYear ||
-      years[0] ||
-      dayjs().tz("Asia/Bangkok").format("YYYY");
+      defaultYear || years[0] || dayjs().tz("Asia/Bangkok").format("YYYY");
 
-    if (yearToUse) {
+    if (Number(roleId) !== 1) {
+      // ✅ non-admin: คง area เดิมไว้
+      form.resetFields(["user_id", "dealer_id", "year_code"]);
+      form.setFieldsValue({ area_id: areaId, year_code: yearToUse });
+
+      // ✅ ไม่ล้าง salesList เพราะ area ไม่ได้เปลี่ยน
+      setDealerList([]);
+    } else {
+      // ✅ admin: reset ได้หมด
+      form.resetFields(["area_id", "user_id", "dealer_id", "year_code"]);
       form.setFieldsValue({ year_code: yearToUse });
+      setSalesList([]);
+      setDealerList([]);
     }
 
     setTableParams((prev) => ({
@@ -265,6 +329,7 @@ export default function ReportActivityExpense() {
 
     await fetchData({ year_code: yearToUse });
   };
+
 
   const handleTableChange = (pagination) => {
     setTableParams((prev) => ({ ...prev, pagination }));
@@ -408,8 +473,10 @@ export default function ReportActivityExpense() {
                 <Select
                   placeholder="Select Area"
                   options={areaList}
-                  allowClear
+                  disabled={Number(roleId) !== 1}     // ✅ ล็อก
+                  allowClear={Number(roleId) === 1}  // ✅ admin เท่านั้นที่ล้างได้
                 />
+
               </Form.Item>
             </Col>
             <Col md={6}>
@@ -455,6 +522,7 @@ export default function ReportActivityExpense() {
                   }}
                 />
               </Form.Item>
+
             </Col>
 
           </Row>
