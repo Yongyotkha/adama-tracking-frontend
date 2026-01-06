@@ -41,13 +41,60 @@ export default function ReportSaleByMonth() {
   const [itemColumn, setItemColumn] = useState([]);
   const [dataSource, setDataSource] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
-  const { showNotification } = useContext(AuthContext);
-  const [areaList, setAreaList] = useState([]);
+  const { showNotification, userInfo } = useContext(AuthContext);
+  const [areaId, setAreaId] = useState();
+  const [roleId, setRoleId] = useState();
   const [formCustom] = Form.useForm();
+  const watchedAreaId = Form.useWatch("area_id", formCustom);
+  const watchedSaleId = Form.useWatch("sale_id", formCustom);
 
   // watch สำหรับ disable ตามลำดับ step
   const selectedArea = Form.useWatch("area_id", formCustom);
   const selectedSale = Form.useWatch("sale_id", formCustom);
+
+
+  const [areaList, setAreaList] = useState([]);
+
+  useEffect(() => {
+    if (!roleId || !areaId) return;
+
+    // ถ้าไม่ใช่ admin ให้ fix area ตาม user
+    if (Number(roleId) !== 1) {
+      formCustom.setFieldsValue({
+        area_id: areaId,
+        sale_id: undefined,
+        sub_dealer_id: undefined,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roleId, areaId]);
+
+  // watch สำหรับ disable ตามลำดับ step
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await useServiceAPI.get(
+          `${paths.pathMasterUsersDetail}/${userInfo.id}`,
+          {},
+          setLoading
+        );
+
+        if (res?.status === 200) {
+          const aId = res.data.area_id;
+          const rId = res.data.role_id;
+
+          setAreaId(aId);
+          setRoleId(rId);
+
+        }
+      } catch (e) {
+        showNotification("error", e?.message || "เกิดข้อผิดพลาด");
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   const header = [
     {
@@ -195,15 +242,21 @@ export default function ReportSaleByMonth() {
         setYears(yearCodes);
 
         // ✅ default = option แรก
-        const firstYear =
-          yearCodes[0] || dayjs().tz("Asia/Bangkok").format("YYYY");
-        setDefaultYear(firstYear);
+        const currentYear = dayjs().tz("Asia/Bangkok").format("YYYY");
+
+        // ถ้ามีปีปัจจุบันใน master ให้ใช้ปีนั้น
+        const yearToUse = yearCodes.includes(currentYear)
+          ? currentYear
+          : yearCodes[0];
+
+        setDefaultYear(yearToUse);
 
         setTableParams((prev) => ({
           ...prev,
-          filters: { ...prev.filters, year_code: firstYear },
+          filters: { ...prev.filters, year_code: yearToUse },
         }));
-        formCustom.setFieldsValue({ year_code: firstYear });
+
+        formCustom.setFieldsValue({ year_code: yearToUse });
 
         setAreaList(
           (resArea.data || []).map((x) => ({
@@ -223,18 +276,21 @@ export default function ReportSaleByMonth() {
 
   // Area → Sales
   useEffect(() => {
-    const areaId = formCustom.getFieldValue("area_id");
-    if (!areaId) {
+    const aId = watchedAreaId;
+
+    if (!aId) {
       setSales([]);
       setSubDealers([]);
       formCustom.resetFields(["sale_id", "sub_dealer_id"]);
       return;
     }
+
     (async () => {
       try {
         const res = await useServiceAPI.get(paths.pathMasterSaleReport, {
-          area_id: areaId,
+          area_id: aId,
         });
+
         const list = Array.isArray(res?.data) ? res.data : [];
         setSales(
           list.map((s) => ({
@@ -242,6 +298,8 @@ export default function ReportSaleByMonth() {
             label: s.user_name ?? s.name,
           }))
         );
+
+        // reset downstream
         setSubDealers([]);
         formCustom.resetFields(["sale_id", "sub_dealer_id"]);
       } catch {
@@ -251,22 +309,26 @@ export default function ReportSaleByMonth() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formCustom.getFieldValue("area_id")]);
+  }, [watchedAreaId]);
+
 
   // Sales → Sub Dealer
   useEffect(() => {
-    const saleId = formCustom.getFieldValue("sale_id");
-    if (!saleId) {
+    const sId = watchedSaleId;
+
+    if (!sId) {
       setSubDealers([]);
       formCustom.resetFields(["sub_dealer_id"]);
       return;
     }
+
     (async () => {
       try {
         const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
-          user_id: saleId,
+          user_id: sId,
           dealer_id: "",
         });
+
         const list = Array.isArray(res?.data) ? res.data : [];
         setSubDealers(
           list.map((s) => ({
@@ -274,6 +336,7 @@ export default function ReportSaleByMonth() {
             label: s.sub_dealer_name,
           }))
         );
+
         formCustom.resetFields(["sub_dealer_id"]);
       } catch {
         setSubDealers([]);
@@ -281,7 +344,8 @@ export default function ReportSaleByMonth() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formCustom.getFieldValue("sale_id")]);
+  }, [watchedSaleId]);
+
 
   useEffect(() => {
     if (years.length > 0 && tableParams.filters.year_code) {
@@ -453,8 +517,10 @@ export default function ReportSaleByMonth() {
                 <Select
                   placeholder="Select Area"
                   options={areaList}
-                  allowClear
+                  allowClear={Number(roleId) === 1}
+                  disabled={roleId != null && Number(roleId) !== 1}
                 />
+
               </Form.Item>
             </Col>
             <Col md={6}>
@@ -514,19 +580,20 @@ export default function ReportSaleByMonth() {
             />
             <DynamicButton
               onClick={() => {
-                formCustom.resetFields([
-                  "area_id",
-                  "sale_id",
-                  "sub_dealer_id",
-                  "year_code",
-                ]);
-                setSales([]);
+                formCustom.resetFields(["sale_id", "sub_dealer_id", "year_code"]);
+
+                // area: admin เคลียร์ได้ / non-admin fix ตาม areaId
+                if (roleId != null && Number(roleId) !== 1) {
+                  formCustom.setFieldsValue({ area_id: areaId });
+                } else {
+                  formCustom.resetFields(["area_id"]);
+                }
+
+                //setSales([]);
                 setSubDealers([]);
 
                 const yearToUse =
-                  defaultYear ||
-                  years[0] ||
-                  dayjs().tz("Asia/Bangkok").format("YYYY");
+                  defaultYear || years[0] || dayjs().tz("Asia/Bangkok").format("YYYY");
 
                 if (yearToUse) {
                   formCustom.setFieldsValue({ year_code: yearToUse });
@@ -535,12 +602,10 @@ export default function ReportSaleByMonth() {
                 setTableParams((prev) => ({
                   ...prev,
                   filters: { ...prev.filters, year_code: yearToUse },
-                  pagination: {
-                    ...prev.pagination,
-                    current: 1,
-                  },
+                  pagination: { ...prev.pagination, current: 1 },
                 }));
               }}
+
               name="btn-clear"
               text="Clear"
               iconSrc="/img/icons/trash.png"
