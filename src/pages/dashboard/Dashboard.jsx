@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Card, Row, Col, Select } from "antd";
 import MainLayout from "../../layouts/MainLayout";
 import { BarChart } from "@mui/x-charts/BarChart";
@@ -15,6 +15,7 @@ import DoughnutChartComponent from "../../components/charts/DoughnutChartCompone
 import formatNumber from "../../utils/number";
 import convertNumber from "../../utils/convertNumber";
 import percentage from "../../utils/percentage";
+import { AuthContext } from "../../contexts/AuthContext";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ export default function Dashboard() {
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedSale, setSelectedSale] = useState(null);
+  const { showNotification, userInfo } = useContext(AuthContext);
 
   const [selectedSalesByDealer, setSelectedSalesByDealer] = useState(null);
   const [selectedMonthsSalesByDealer, setSelectedMonthsSalesByDealer] =

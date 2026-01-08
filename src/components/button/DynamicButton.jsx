@@ -31,7 +31,7 @@ const DynamicButton = ({
   };
 
   const baseColor =
-    color || extractColorFromClassName(className) || "#009845"; // default
+    color || extractColorFromClassName(className) || ""; // default
 
   // ทำสี hover ให้สว่างขึ้นหน่อย
   const makeHoverColor = (c) => {
