@@ -142,7 +142,7 @@ export default function ReportActivityExpense() {
 
         setAreaList(
           (areaRes?.data || []).map((a) => ({
-            value: a.id,
+            value: String(a.id),
             label: a.name,
           }))
         );
