@@ -85,6 +85,12 @@ export default function CollectPointsDetail() {
     0
   );
 
+
+  const totalMasterPoint = products.reduce(
+    (sum, item) => sum + item.points.standard_point,
+    0
+  );
+
   const totalQty = products.reduce((sum, it) => sum + (Number.isFinite(it.qty) ? it.qty : 0), 0);
 
   const totalPrice = products.reduce(
@@ -212,13 +218,13 @@ export default function CollectPointsDetail() {
 
                         {(item.points?.point_extra_value?.length ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
-                            Extra Value (สำหรับทดสอบ) : {(item.points?.point_extra_value || []).reduce((a, b) => a + b, 0)}
+                            Extra Value : {(item.points?.point_extra_value || []).reduce((a, b) => a + b, 0)}
                           </p>
                         )}
 
                         {(item.points?.point_extra_point?.length ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
-                            Extra Point (สำหรับทดสอบ): {(item.points?.point_extra_point || []).reduce((a, b) => a + b, 0)}
+                            Extra Point : {(item.points?.point_extra_point || []).reduce((a, b) => a + b, 0)}
                           </p>
                         )}
                       </div>
@@ -280,9 +286,15 @@ export default function CollectPointsDetail() {
                 <p>{totalQty} </p>
               </div>
 
+
               <div className="flex justify-between font-semibold mt-1">
-                <p className="sarabun-font">คะแนนได้รับ</p>
-                <p>{Number(totalQtyPoint ?? 0).toLocaleString("th-TH")} / ปิดแคมเปญ {/*เพิ่มให้ดึงค่ารวม extra point ทั้งหมด*/}</p>
+                <p className="sarabun-font">คะแนน</p>
+                <p>{Number((totalMasterPoint ?? 0)).toLocaleString("th-TH")}</p>
+              </div>
+
+              <div className="flex justify-between font-semibold mt-1">
+                <p className="sarabun-font">คะแนนโบนัส</p>
+                <p>{Number((totalQtyPoint ?? 0)).toLocaleString("th-TH")}</p>
               </div>
 
               <div className="flex justify-between font-semibold text-lg text-green-700 mt-1">
@@ -312,7 +324,7 @@ export default function CollectPointsDetail() {
           src="/img/icons/check-circle.png"
           text={`<div class='text-center'>
             <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>ยินดีด้วยคุณได้รับคะแนน</p>
-            <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>${totalQtyPoint} คะแนน</p>
+            <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>${Number((totalQtyPoint ?? 0) + (totalMasterPoint ?? 0)).toLocaleString("th-TH")} คะแนน</p>
           </div>`}
           confirmText="ปิด"
         />

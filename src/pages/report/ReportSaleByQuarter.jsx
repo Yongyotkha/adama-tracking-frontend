@@ -54,8 +54,54 @@ export default function ReportSaleByQuarter() {
   const [itemColumn, setItemColumn] = useState([]); // quarters
   const [dataSource, setDataSource] = useState([]); // rows
   const [tableLoading, setTableLoading] = useState(false);
-  const { showNotification } = useContext(AuthContext);
+  const { showNotification, userInfo } = useContext(AuthContext);
+  const [areaId, setAreaId] = useState();
+  const [roleId, setRoleId] = useState();
   const [formCustom] = Form.useForm();
+  const watchedAreaId = Form.useWatch("area_id", formCustom);
+  const watchedSaleId = Form.useWatch("sale_id", formCustom);
+
+  const isAdmin = Number(roleId) === 1;
+  useEffect(() => {
+    if (roleId == null || areaId == null) return;
+
+    if (Number(roleId) !== 1) {
+      formCustom.setFieldsValue({ area_id: areaId });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roleId, areaId]);
+  //load user detail to get area_id and role_id
+  useEffect(() => {
+    useServiceAPI
+      .get(`${paths.pathMasterUsersDetail}/${userInfo.id}`, {}, setLoading)
+      .then((response) => {
+        if (response.status === 200) {
+          const aId = response.data.area_id;
+          const rId = response.data.role_id;
+
+          setAreaId(aId);
+          setRoleId(rId);
+
+          // ✅ สำคัญมาก: set ลง form เพื่อ trigger โหลด sales
+          formCustom.setFieldsValue({ area_id: aId });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        if (error.status === 422) {
+          showNotification("error", error.message);
+        } else {
+          showNotification("error", "เกิดข้อผิดพลาด");
+        }
+      });
+
+    // ❗ แนะนำ: อย่าเรียก fetchData() ทันที เพราะมันใช้ค่าจากฟอร์มที่ยังไม่พร้อม
+    // fetchData();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
 
   const [tableParams, setTableParams] = useState({
     pagination: { current: 1, pageSize: 10 },
@@ -389,7 +435,7 @@ export default function ReportSaleByQuarter() {
           }))
         );
         setAreaList(
-          (areasRes.data || []).map((x) => ({ value: x.id, label: x.name }))
+          (areasRes.data || []).map((x) => ({ value: String(x.id), label: x.name }))
         );
 
         // default = current year from master (fallback เป็น option แรก)
@@ -416,8 +462,6 @@ export default function ReportSaleByQuarter() {
           });
         }
 
-        setSales([]);
-        setDealers([]);
       } catch (error) {
         showNotification("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -430,24 +474,21 @@ export default function ReportSaleByQuarter() {
 
   // เปลี่ยน Area → โหลด Sales
   useEffect(() => {
-    const areaId = formCustom.getFieldValue("area_id");
-    if (!areaId) {
+    if (!watchedAreaId) {
       setSales([]);
       formCustom.resetFields(["sale_id", "dealer_id"]);
       setDealers([]);
       return;
     }
+
     (async () => {
       try {
         const res = await useServiceAPI.get(paths.pathMasterSaleReport, {
-          area_id: areaId,
+          area_id: watchedAreaId,
         });
         const list = Array.isArray(res?.data) ? res.data : [];
-        const saleOptions = list.map((item) => ({
-          value: Number(item.id),
-          label: item.name,
-        }));
-        setSales(saleOptions);
+        setSales(list.map((it) => ({ value: Number(it.id), label: it.name })));
+
         formCustom.resetFields(["sale_id", "dealer_id"]);
         setDealers([]);
       } catch {
@@ -456,27 +497,25 @@ export default function ReportSaleByQuarter() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formCustom.getFieldValue("area_id")]);
+  }, [watchedAreaId]);
+
 
   // เปลี่ยน Sale → โหลด Dealers
   useEffect(() => {
-    const saleId = formCustom.getFieldValue("sale_id");
-    if (!saleId) {
+    if (!watchedSaleId) {
       setDealers([]);
       formCustom.resetFields(["dealer_id"]);
       return;
     }
+
     (async () => {
       try {
         const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
-          user_id: saleId,
+          user_id: watchedSaleId,
         });
         const list = Array.isArray(res?.data) ? res.data : [];
-        const dealerOptions = list.map((item) => ({
-          value: Number(item.id),
-          label: item.name,
-        }));
-        setDealers(dealerOptions);
+        setDealers(list.map((it) => ({ value: Number(it.id), label: it.name })));
+
         formCustom.resetFields(["dealer_id"]);
       } catch {
         setDealers([]);
@@ -484,7 +523,8 @@ export default function ReportSaleByQuarter() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formCustom.getFieldValue("sale_id")]);
+  }, [watchedSaleId]);
+
 
   // ❌ ไม่ auto-fetch ตาม year อีกต่อไป → ใช้เฉพาะ Search / Clear
 
@@ -558,7 +598,7 @@ export default function ReportSaleByQuarter() {
       pagination,
     }));
   };
-  
+
 
   return (
     <>
@@ -573,13 +613,15 @@ export default function ReportSaleByQuarter() {
                   <Select
                     placeholder="Select Area"
                     options={areaList}
+                    disabled={Number(roleId) !== 1}
+                    allowClear={Number(roleId) === 1}
                     onChange={() => {
                       formCustom.resetFields(["sale_id", "dealer_id"]);
                       setSales([]);
                       setDealers([]);
                     }}
-                    allowClear
                   />
+
                 </Form.Item>
               </Col>
 
@@ -636,23 +678,14 @@ export default function ReportSaleByQuarter() {
               />
               <DynamicButton
                 onClick={async () => {
-                  // Clear filters + reset year to current year
-                  formCustom.resetFields([
-                    "area_id",
-                    "sale_id",
-                    "product_name",
-                    "dealer_id",
-                    "year_code",
-                  ]);
-                  setSales([]);
-                  setDealers([]);
+                  formCustom.resetFields(["product_name", "dealer_id", "year_code"]);
 
-                  const yearToUse =
-                    defaultYear || dayjs().tz("Asia/Bangkok").format("YYYY");
+                  // ✅ อย่าล้าง sales ไม่งั้น dropdown ว่าง
+                  // setSales([]);
+                  setDealers([]); // dealer ต้องล้าง เพราะขึ้นกับ sale
 
-                  if (yearToUse) {
-                    formCustom.setFieldsValue({ year_code: yearToUse });
-                  }
+                  const yearToUse = defaultYear || dayjs().tz("Asia/Bangkok").format("YYYY");
+                  if (yearToUse) formCustom.setFieldsValue({ year_code: yearToUse });
 
                   setTableParams((prev) => ({
                     ...prev,
@@ -660,7 +693,6 @@ export default function ReportSaleByQuarter() {
                   }));
 
                   await fetchData({
-                    area_id: "",                // ✅ เพิ่ม
                     year_code: yearToUse,
                     user_id: "",
                     dealer_id: "",
@@ -668,6 +700,7 @@ export default function ReportSaleByQuarter() {
                     platform: "web",
                   });
                 }}
+
                 name="btn-clear"
                 text="Clear"
                 iconSrc="/img/icons/trash.png"
