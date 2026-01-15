@@ -3,7 +3,7 @@ import { useContext, useEffect, useState } from "react";
 import liff from "@line/liff";
 import MessageLayout from "../../layouts/MessageLayout";
 import { AuthContext } from "../../contexts/AuthContext";
-
+const LIFF_ID = import.meta.env.VITE_LIFF_ID;
 const LineOARoute = () => {
   const location = useLocation();
   const [isLineLoggedIn, setIsLineLoggedIn] = useState(false);
@@ -15,7 +15,7 @@ const LineOARoute = () => {
       //
       try {
         await liff.init({
-          liffId: "2007785344-oN4zkdDM",
+          liffId: LIFF_ID,
           withLoginOnExternalBrowser: true,
         });
         console.log("LIFF Init success");
@@ -31,7 +31,7 @@ const LineOARoute = () => {
 
           try {
             const profile = await liff.getProfile();
-            console.log('profile line liff : ', profile)
+            console.log("profile line liff : ", profile);
             setLineProfile(profile);
             setIsLineLoggedIn(false);
           } catch (profileError) {
@@ -50,8 +50,6 @@ const LineOARoute = () => {
     initLIFF();
   }, []);
 
-
-
   if (isLineLoggedIn) {
     return <MessageLayout loading={isLineLoggedIn} />;
   }
@@ -69,7 +67,7 @@ const LinePrivateRoute = () => {
     const checkLineLogin = async () => {
       try {
         await liff.init({
-          liffId: "2007785344-oN4zkdDM",
+          liffId: LIFF_ID,
           withLoginOnExternalBrowser: true,
         });
 
@@ -104,14 +102,13 @@ const LinePrivateRoute = () => {
   if (loading) {
     return <MessageLayout loading={true} />;
   }
-  console.log('profile : ', profile)
-  console.log('isLoggedIn : ', isLoggedIn)
+  console.log("profile : ", profile);
+  console.log("isLoggedIn : ", isLoggedIn);
   if (isLoggedIn && profile) {
     return <Outlet context={{ lineProfile: profile }} />;
   } else {
     return <Navigate to="/mobile/verify" />;
   }
 };
-
 
 export { LineOARoute, LinePrivateRoute };

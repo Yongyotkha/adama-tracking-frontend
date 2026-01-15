@@ -10,7 +10,7 @@ import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 import CameraMobile from "../../../components/mobile/camera/CameraMobile";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
-
+const LIFF_ID = import.meta.env.VITE_LIFF_ID;
 export default function CollectPointsAdvanceUpdate() {
   const [loading, setLoading] = useState(false);
   const location = useLocation();
@@ -22,7 +22,7 @@ export default function CollectPointsAdvanceUpdate() {
   const [productPhotos, setProductPhotos] = useState([]); // * สินค้าที่ได้รับ
   const [productBills, setProductBills] = useState([]); // * หน้าบิล/ใบสั่งสินค้า
   const [user, setUser] = useState(null);
-  const [receiveDate, setReceiveDate] = useState("");   // "YYYY-MM-DD"
+  const [receiveDate, setReceiveDate] = useState(""); // "YYYY-MM-DD"
   const [receiveShop, setReceiveShop] = useState("");
 
   // โหลดโปรไฟล์ผู้ใช้ (ข้อมูลแสดงผล)
@@ -30,7 +30,9 @@ export default function CollectPointsAdvanceUpdate() {
     const fetchUserProfile = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathProfileDetail, { id: userInfo.id });
+        const response = await useServiceAPI.get(paths.pathProfileDetail, {
+          id: userInfo.id,
+        });
         if (response.status === 200 && response.result) {
           setUser(response.data);
         } else {
@@ -52,7 +54,10 @@ export default function CollectPointsAdvanceUpdate() {
       setLoading(true);
       try {
         const body = { platform: "web", id: String(receive_id), page: "all" };
-        const res = await useServiceAPI.get(paths.pathSalePointReceiveDetail, body);
+        const res = await useServiceAPI.get(
+          paths.pathSalePointReceiveDetail,
+          body
+        );
         if (res?.status === 200 && res?.result && res?.data) {
           const { receive, bill = [], product = [] } = res.data;
 
@@ -124,14 +129,17 @@ export default function CollectPointsAdvanceUpdate() {
       id: String(receive_id),
       product: productUrls,
       bill: billUrls,
-      receive_date: receiveDate,            // "YYYY-MM-DD"
+      receive_date: receiveDate, // "YYYY-MM-DD"
       receive_shop: receiveShop.trim(),
     };
 
     try {
       setLoading(true);
       // หาก backend แยก path update ให้เปลี่ยนบรรทัดนี้
-      const res = await useServiceAPI.post(paths.pathSalePointReceiveUpdate, payload);
+      const res = await useServiceAPI.post(
+        paths.pathSalePointReceiveUpdate,
+        payload
+      );
       if (res?.status === 200) {
         setIsSuccessModalVisible(true);
       } else {
@@ -223,7 +231,7 @@ export default function CollectPointsAdvanceUpdate() {
               allowTorch={true}
               uploadOnCapture
               uploadMode="activity"
-              liffId="2007785344-oN4zkdDM"                      // ⬅️ ไม่มีช่องว่าง
+                            liffId={LIFF_ID}                       // ⬅️ ไม่มีช่องว่าง
               returnPath="/mobile/collect-points/advance-notice" // ⬅️ path กลับเข้า LIFF
             />
           </div> */}
@@ -239,7 +247,7 @@ export default function CollectPointsAdvanceUpdate() {
               allowTorch={true}
               uploadOnCapture
               uploadMode="activity"
-              liffId="2007785344-oN4zkdDM"                      // ⬅️ ไม่มีช่องว่าง
+              liffId={LIFF_ID} // ⬅️ ไม่มีช่องว่าง
               returnPath="/mobile/collect-points/advance-notice" // ⬅️ path กลับเข้า LIFF
             />
           </div>

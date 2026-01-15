@@ -40,9 +40,8 @@ export default function MyAccount() {
   }, []);
 
   useEffect(() => {
-    console.log('lineProfile', lineProfile);
+    console.log("lineProfile", lineProfile);
   }, [lineProfile]);
-
 
   console.log("location ", location.state);
 
@@ -149,7 +148,9 @@ export default function MyAccount() {
                 <MainButton
                   type="link"
                   to="/mobile/tran-address"
-                  icon={<EnvironmentOutlined className="text-lg text-gray-500" />}
+                  icon={
+                    <EnvironmentOutlined className="text-lg text-gray-500" />
+                  }
                   label="ที่อยู่สำหรับการจัดส่ง"
                 />
 
@@ -196,8 +197,7 @@ export default function MyAccount() {
               onCancel={() => setIsLogoutModalOpen(false)}
               onConfirm={confirmLogout}
             />
-            <BackButton url={'/mobile/main'} />
-
+            <BackButton url={"/mobile/main"} />
           </>
         )}
       </div>

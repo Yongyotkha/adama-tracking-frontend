@@ -77,6 +77,13 @@ export default function TargetGroupList() {
         { id: "2", name: "Video" },
       ],
     },
+
+    {
+      key: "created_at",
+      type: "date",
+      label: "Create Date",
+      placeholder: "YYYY-MM-DD",
+    },
     {
       key: "use_flag",
       type: "select",
@@ -125,6 +132,7 @@ export default function TargetGroupList() {
       keyword: f.keyword ?? "",
       type: f.type ?? "",
       use_flag: f.use_flag ?? "",
+      created_at: f.created_at ?? "",
     };
 
     try {
