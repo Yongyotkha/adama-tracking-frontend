@@ -435,7 +435,7 @@ export default function ReportSaleByQuarter() {
           }))
         );
         setAreaList(
-          (areasRes.data || []).map((x) => ({ value: x.id, label: x.name }))
+          (areasRes.data || []).map((x) => ({ value: String(x.id), label: x.name }))
         );
 
         // default = current year from master (fallback เป็น option แรก)

@@ -257,10 +257,10 @@ export default function ReportSaleByMonth() {
         }));
 
         formCustom.setFieldsValue({ year_code: yearToUse });
-
+        console.log(resArea.data);
         setAreaList(
           (resArea.data || []).map((x) => ({
-            value: x.id,
+            value: String(x.id),
             label: x.name,
           }))
         );

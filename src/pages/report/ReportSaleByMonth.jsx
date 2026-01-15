@@ -427,7 +427,7 @@ export default function ReportSaleByMonth() {
         );
         setAreaList(
           (resArea.data || []).map((item) => ({
-            value: item.id,
+            value: String(item.id),
             label: item.name,
           }))
         );
