@@ -333,7 +333,6 @@ export const paths = {
   pathSampleGetDealer: "expense/sample/get-dealer-id",
   pathSampleStatus: "expense/sample/status",
 
-
   // Claim
   pathClaimList: "claim/list",
   pathClaimCreate: "claim/create",
@@ -410,6 +409,11 @@ export const paths = {
   pathTargetGroupType: "target-group/type",
   pathTargetGroupMasterType: "target-group/type",
   pathTargetGroupMasterGroup: "target-group/group",
+
+  pathInfoList: "info/list",
+  pathInfoCreate: "info/create",
+  pathInfoEdit: "info/edit",
+  pathInfoDetail: "info/detail",
 
   pathPointCampaignList: "campaign/list",
   pathPointCampaignCreate: "campaign/create",

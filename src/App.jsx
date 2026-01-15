@@ -158,6 +158,9 @@ import SalesPointDetail from "./pages/settings/mobile/sale_point/SalesPointDetai
 import SalesPointCreate from "./pages/settings/mobile/sale_point/SalesPointCreate";
 import SalesPointView from "./pages/settings/mobile/sale_point/SalesPointView";
 // import SalesPointRequestCreate from "./pages/settings/mobile/sale_point/SalesPointRequestCreate";
+import InfoList from "./pages/settings/mobile/info/InfoList";
+import CreateInfo from "./pages/settings/mobile/info/CreateInfo";
+import ViewOrEditInfo from "./pages/settings/mobile/info/ViewOrEditInfo";
 import TargetGroupList from "./pages/settings/mobile/target_group/TargetGroupList";
 import CreateTargetGroup from "./pages/settings/mobile/target_group/CreateTargetGroup";
 import PointCampaignList from "./pages/settings/mobile/point_campaign/PointCampaignList";
@@ -188,59 +191,111 @@ import ReportSellOutByDealer from "./pages/report/ReportSellOutByDealer";
 import ReportSellOutBySubDealer from "./pages/report/ReportSellOutBySubDealer";
 import ReportSellOut from "./pages/report/ReportSellOut";
 
-
 const App = () => {
   return (
     <Router>
       <AuthProvider>
         <Routes>
-
           <Route element={<PublicRoute />}>
-
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/verify-otp" element={<Verify />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/change-password" element={<ChangePassword />} />
-            <Route path="/first-change-password" element={<FirstChangePassword />} />
-
+            <Route
+              path="/first-change-password"
+              element={<FirstChangePassword />}
+            />
           </Route>
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
-
             <Route path="/" element={<Dashboard />} />
 
             {/* Work Plan Route */}
             <Route path="/sale-plan/work-plan" element={<WorkPlan />} />
             <Route path="/sale-plan/work-plan-area" element={<WorkPlan />} />
             <Route path="/sale-plan/work-plan-sale" element={<WorkPlan />} />
-            <Route path="/sale-plan/work-plan/create" element={<WorkPlanCreate />} />
-            <Route path="/sale-plan/work-plan/create-2" element={<WorkPlanCreateStepTwo />} />
-            <Route path="/sale-plan/work-plan-area/sale-area-create" element={<WorkPlanAreaCreate />} />
-            <Route path="/sale-plan/work-plan-sale/sale-create" element={<WorkPlanSaleCreate />} />
-            <Route path="/sale-plan/work-plan-sale/sale-by-crop" element={<WorkPlanSaleByCrop />} />
-            <Route path="/sale-plan/work-plan-sale/sale-by-dealer" element={<WorkPlanSaleByDealer />} />
-            <Route path="/sale-plan/work-plan-sale/sale-by-dealer-month" element={<WorkPlanSaleByDealerMonth />} />
-            <Route path="/sale-plan/work-plan-sale/sale-by-subdealer" element={<WorkPlanSaleBySubDealer />} />
+            <Route
+              path="/sale-plan/work-plan/create"
+              element={<WorkPlanCreate />}
+            />
+            <Route
+              path="/sale-plan/work-plan/create-2"
+              element={<WorkPlanCreateStepTwo />}
+            />
+            <Route
+              path="/sale-plan/work-plan-area/sale-area-create"
+              element={<WorkPlanAreaCreate />}
+            />
+            <Route
+              path="/sale-plan/work-plan-sale/sale-create"
+              element={<WorkPlanSaleCreate />}
+            />
+            <Route
+              path="/sale-plan/work-plan-sale/sale-by-crop"
+              element={<WorkPlanSaleByCrop />}
+            />
+            <Route
+              path="/sale-plan/work-plan-sale/sale-by-dealer"
+              element={<WorkPlanSaleByDealer />}
+            />
+            <Route
+              path="/sale-plan/work-plan-sale/sale-by-dealer-month"
+              element={<WorkPlanSaleByDealerMonth />}
+            />
+            <Route
+              path="/sale-plan/work-plan-sale/sale-by-subdealer"
+              element={<WorkPlanSaleBySubDealer />}
+            />
 
             {/* Rolling Rorecast Route */}
-            <Route path="/sale-plan/rolling-forecast" element={<RollingForecast />} />
-            <Route path="/sale-plan/rolling-forecast-area" element={<RollingForecast />} />
-            <Route path="/sale-plan/rolling-forecast-sale" element={<RollingForecast />} />
-            <Route path="/sale-plan/rolling-forecast/month" element={<RollingForecastMonth />} />
-            <Route path="/sale-plan/rolling-forecast/dealer" element={<RollingForecastDealer />} />
-            <Route path="/sale-plan/rolling-forecast/quarter" element={<RollingForecastQuarter />} />
+            <Route
+              path="/sale-plan/rolling-forecast"
+              element={<RollingForecast />}
+            />
+            <Route
+              path="/sale-plan/rolling-forecast-area"
+              element={<RollingForecast />}
+            />
+            <Route
+              path="/sale-plan/rolling-forecast-sale"
+              element={<RollingForecast />}
+            />
+            <Route
+              path="/sale-plan/rolling-forecast/month"
+              element={<RollingForecastMonth />}
+            />
+            <Route
+              path="/sale-plan/rolling-forecast/dealer"
+              element={<RollingForecastDealer />}
+            />
+            <Route
+              path="/sale-plan/rolling-forecast/quarter"
+              element={<RollingForecastQuarter />}
+            />
 
             {/* Activity Route */}
             <Route path="/activity/plan" element={<ActivityPlanList />} />
-            <Route path="/activity/plan/dealer" element={<ActivityPlanDealer />} />
-            <Route path="/activity/plan/sub-dealer" element={<ActivityPlanSubDealer />} />
-            <Route path="/activity/plan/dealer/month/:mode" element={<ActivityPlanDealerMonth />} />
+            <Route
+              path="/activity/plan/dealer"
+              element={<ActivityPlanDealer />}
+            />
+            <Route
+              path="/activity/plan/sub-dealer"
+              element={<ActivityPlanSubDealer />}
+            />
+            <Route
+              path="/activity/plan/dealer/month/:mode"
+              element={<ActivityPlanDealerMonth />}
+            />
 
             <Route path="/activity/list" element={<ActivityList />} />
             <Route path="/activity/:mode" element={<CreateActivity />} />
-            <Route path="/activity/creates" element={<CreateActivityManyShop />} />
+            <Route
+              path="/activity/creates"
+              element={<CreateActivityManyShop />}
+            />
 
             <Route path="/activity/calendar" element={<ActivityCalendar />} />
             <Route path="/activity/mapping" element={<ActivityMapping />} />
@@ -256,37 +311,83 @@ const App = () => {
 
             {/* Customer Stock List */}
             <Route path="/customer-stock/list" element={<CustomerStock />} />
-            <Route path="/customer-stock/:mode" element={<CustomerStockCreate />} />
-            <Route path="/customer-stock/edit" element={<CustomerStockEdit />} />
-            <Route path="/customer-stock/view" element={<CustomerStockView />} />
+            <Route
+              path="/customer-stock/:mode"
+              element={<CustomerStockCreate />}
+            />
+            <Route
+              path="/customer-stock/edit"
+              element={<CustomerStockEdit />}
+            />
+            <Route
+              path="/customer-stock/view"
+              element={<CustomerStockView />}
+            />
 
             {/* Expenses Route */}
             <Route path="/expenses/advance" element={<AdvanceExpense />} />
-            <Route path="/expenses/advance/pdf" element={<PdfAdvanceExpense />} />
-            <Route path="/expenses/product-claim-list" element={<ProductClaim />} />
-            <Route path="/expenses/product-claim-waiting-list" element={<ProductClaim />} />
-            <Route path="/expenses/product-claim/create" element={<CreateClaimRequest />} />
-            <Route path="/expenses/product-claim/edit" element={<CreateClaimRequest />} />
+            <Route
+              path="/expenses/advance/pdf"
+              element={<PdfAdvanceExpense />}
+            />
+            <Route
+              path="/expenses/product-claim-list"
+              element={<ProductClaim />}
+            />
+            <Route
+              path="/expenses/product-claim-waiting-list"
+              element={<ProductClaim />}
+            />
+            <Route
+              path="/expenses/product-claim/create"
+              element={<CreateClaimRequest />}
+            />
+            <Route
+              path="/expenses/product-claim/edit"
+              element={<CreateClaimRequest />}
+            />
             <Route path="/expenses/traveling" element={<Traveling />} />
-            <Route path="/expenses/traveling/create" element={<CreateTraveling />} />
-            <Route path="/expenses/traveling/edit" element={<EditTraveling />} />
-            <Route path="/expenses/traveling/view" element={<ViewTraveling />} />
+            <Route
+              path="/expenses/traveling/create"
+              element={<CreateTraveling />}
+            />
+            <Route
+              path="/expenses/traveling/edit"
+              element={<EditTraveling />}
+            />
+            <Route
+              path="/expenses/traveling/view"
+              element={<ViewTraveling />}
+            />
             <Route path="/expenses/traveling/pdf" element={<PdfTraveling />} />
             <Route path="/expenses/clearing" element={<ClearingExpense />} />
-            <Route path="/expenses/clearing/pdf" element={<PDFClearingExpense />} />
+            <Route
+              path="/expenses/clearing/pdf"
+              element={<PDFClearingExpense />}
+            />
 
             <Route path="/expenses/sample" element={<SampleExpense />} />
-            <Route path="/expenses/sample/:mode" element={<ActionSampleExpense />} />
-
+            <Route
+              path="/expenses/sample/:mode"
+              element={<ActionSampleExpense />}
+            />
 
             <Route path="/expenses/material" element={<MaterialExpense />} />
-            <Route path="/expenses/material/:mode" element={<ActionMaterialExpense />} />
-
+            <Route
+              path="/expenses/material/:mode"
+              element={<ActionMaterialExpense />}
+            />
 
             {/* Approval Expenses Route */}
 
-            <Route path="/expenses/advance/approval/:role" element={<ApprovalAdvanceExpense />} />
-            <Route path="/expenses/clearing/approval/:role" element={<ApprovalClearingExpense />} />
+            <Route
+              path="/expenses/advance/approval/:role"
+              element={<ApprovalAdvanceExpense />}
+            />
+            <Route
+              path="/expenses/clearing/approval/:role"
+              element={<ApprovalClearingExpense />}
+            />
 
             {/* <Route path="/expenses/advance/approval/area" element={<AdvanceExpenseArea />} />
             <Route path="/expenses/advance/approval/head-of-sales" element={<AdvanceExpenseHead />} />
@@ -297,13 +398,28 @@ const App = () => {
 
             {/* Customer Route */}
             <Route path="/customer/dealer" element={<Dealer />} />
-            <Route path="/customer/dealer/edit-info" element={<EditInformation />} />
-            <Route path="/customer/dealer/view-info" element={<EditInformation />} />
+            <Route
+              path="/customer/dealer/edit-info"
+              element={<EditInformation />}
+            />
+            <Route
+              path="/customer/dealer/view-info"
+              element={<EditInformation />}
+            />
 
             <Route path="/customer/sub-dealer" element={<SubDealer />} />
-            <Route path="/customer/sub-dealer/create" element={<CreateSubDealer />} />
-            <Route path="/customer/sub-dealer/edit" element={<CreateSubDealer />} />
-            <Route path="/customer/sub-dealer/view" element={<CreateSubDealer />} />
+            <Route
+              path="/customer/sub-dealer/create"
+              element={<CreateSubDealer />}
+            />
+            <Route
+              path="/customer/sub-dealer/edit"
+              element={<CreateSubDealer />}
+            />
+            <Route
+              path="/customer/sub-dealer/view"
+              element={<CreateSubDealer />}
+            />
 
             {/* <Route path="/customer/sub-dealer/edit" element={<EditSubDealer />} /> */}
             {/* <Route path="/customer/sub-dealer/view" element={<EditSubDealer />} /> */}
@@ -312,10 +428,18 @@ const App = () => {
             <Route path="/customer/farmers/create" element={<FarmerCreate />} />
 
             <Route path="/customer/contact" element={<CustomerContactList />} />
-            <Route path="/customer/contact/edit" element={<CustomerContactFrom />} />
+            <Route
+              path="/customer/contact/edit"
+              element={<CustomerContactFrom />}
+            />
 
             {/* Setting Route */}
             <Route path="/setting/log-login" element={<LogUser />} />
+
+            <Route path="/setting/info/list" element={<InfoList />} />
+            <Route path="/setting/info/create" element={<CreateInfo />} />
+            <Route path="/setting/info/edit" element={<ViewOrEditInfo />} />
+            <Route path="/setting/info/view" element={<ViewOrEditInfo />} />
 
             <Route path="/setting/role" element={<SettingRole />} />
             <Route path="/setting/profile" element={<ProfileUser />} />
@@ -330,44 +454,100 @@ const App = () => {
             <Route path="/setting/product" element={<SettingProduct />} />
             <Route path="/setting/product/edit" element={<EditProduct />} />
             <Route path="/setting/promotion" element={<SettingPromotion />} />
-            <Route path="/setting/promotion/create" element={<CreatePromotion />} />
+            <Route
+              path="/setting/promotion/create"
+              element={<CreatePromotion />}
+            />
             <Route path="/setting/promotion/edit" element={<EditPromotion />} />
 
             <Route path="/setting/material" element={<Material />} />
-            <Route path="/setting/material/transaction" element={<Transaction />} />
-            <Route path="/setting/material/:mode" element={<ActionMaterial />} />
+            <Route
+              path="/setting/material/transaction"
+              element={<Transaction />}
+            />
+            <Route
+              path="/setting/material/:mode"
+              element={<ActionMaterial />}
+            />
 
             {/* Line OA Settings */}
-            <Route path="/setting/line/target-group" element={<TargetGroupList />} />
-            <Route path="/setting/line/target-group/create" element={<CreateTargetGroup />} />
-            <Route path="/setting/line/target-group/:mode" element={<ViewOrEditTargetGroup />} />
+            <Route
+              path="/setting/line/target-group"
+              element={<TargetGroupList />}
+            />
+            <Route
+              path="/setting/line/target-group/create"
+              element={<CreateTargetGroup />}
+            />
+            <Route
+              path="/setting/line/target-group/:mode"
+              element={<ViewOrEditTargetGroup />}
+            />
             {/* <Route path="/setting/line/target-group/create" element={<CreateTargetGroup />} /> */}
             {/* <Route path="/setting/line/promotion/edit" element={<EditPromotion />} /> */}
 
-            <Route path="/points/line/customer-support-list" element={<CustomerLineList />} />
-            <Route path="/points/line/customer-support-list/:mode" element={<EditOrViewCustomerLine />} />
+            <Route
+              path="/points/line/customer-support-list"
+              element={<CustomerLineList />}
+            />
+            <Route
+              path="/points/line/customer-support-list/:mode"
+              element={<EditOrViewCustomerLine />}
+            />
 
             {/* <Route path="/points/line/customer-support-list/view" element={<CustomerSupportView />} /> */}
             {/* <Route path="/points/line/customer-support-list/edit" element={<CustomerSupportEdit />} /> */}
 
-            <Route path="/points/line/register-customer-list" element={<RegisteredCustomerList />} />
-            <Route path="/points/line/register-customer-list/:mode" element={<EditOrViewRegisteredCustomer />} />
-            <Route path="/points/line/register-customer/detail" element={<RegisteredCustomerDetail />} />
-            <Route path="/points/line/customer-support/create" element={<CreateCustomerLine />} />
+            <Route
+              path="/points/line/register-customer-list"
+              element={<RegisteredCustomerList />}
+            />
+            <Route
+              path="/points/line/register-customer-list/:mode"
+              element={<EditOrViewRegisteredCustomer />}
+            />
+            <Route
+              path="/points/line/register-customer/detail"
+              element={<RegisteredCustomerDetail />}
+            />
+            <Route
+              path="/points/line/customer-support/create"
+              element={<CreateCustomerLine />}
+            />
             {/* <Route path="/points/line/customer/edit" element={<EditCustomerLine />} /> */}
 
-
-            <Route path="/points/line/sales-points-list" element={<SalesPointsList />} />
+            <Route
+              path="/points/line/sales-points-list"
+              element={<SalesPointsList />}
+            />
             {/* SalesPointActionMode = View + Edit + Create */}
             {/* <Route path="/points/line/sales-points-list/:mode" element={<SalesPointActionMode />} />  */}
-            <Route path="/points/line/sales-points-list/create" element={<SalesPointCreate />} />
-            <Route path="/points/line/sales-points-list/edit" element={<SalesPointEdit />} />
-            <Route path="/points/line/sales-points-list/view" element={<SalesPointView />} />
-            <Route path="/points/line/sales-points-list/detail" element={<SalesPointDetail />} />
+            <Route
+              path="/points/line/sales-points-list/create"
+              element={<SalesPointCreate />}
+            />
+            <Route
+              path="/points/line/sales-points-list/edit"
+              element={<SalesPointEdit />}
+            />
+            <Route
+              path="/points/line/sales-points-list/view"
+              element={<SalesPointView />}
+            />
+            <Route
+              path="/points/line/sales-points-list/detail"
+              element={<SalesPointDetail />}
+            />
             {/* <Route path="/points/line/sales-points-request/:mode" element={<SalesPointRequestMode />} /> */}
 
-            <Route path="/points/line/collect-points-list" element={<CollectPointsList />} />
-            <Route path="/points/line/collect-points-list/view" element={<CollectPointsView />} />
+            <Route
+              path="/points/line/collect-points-list"
+              element={<CollectPointsList />}
+            />
+            <Route
+              path="/points/line/collect-points-list/view"
+              element={<CollectPointsView />}
+            />
             {/* <Route path="/points/line/collect-points/create" element={<CollectPointCreate />} /> */}
             {/* <Route path="/points/line/collect-points/detail" element={<CollectPointDetail />} /> */}
 
@@ -376,117 +556,228 @@ const App = () => {
             {/* <Route path="/points/line/sales-points-list/create" element={<CreateSalesPoint />} /> */}
             {/* <Route path="/points/line/sales-points-list/:mode" element={<ActionSalePoints />} /> */}
 
-
             {/* <Route path="/points/line/sales-points-request-create" element={<SalesPointRequestCreate />} /> */}
 
-            <Route path="/setting/line/point-campaign" element={<PointCampaignList />} />
-            <Route path="/setting/line/point-campaign/create" element={<CreatePointCampaign />} />
-            <Route path="/setting/line/point-campaign/:mode" element={<CreatePointCampaign />} />
+            <Route
+              path="/setting/line/point-campaign"
+              element={<PointCampaignList />}
+            />
+            <Route
+              path="/setting/line/point-campaign/create"
+              element={<CreatePointCampaign />}
+            />
+            <Route
+              path="/setting/line/point-campaign/:mode"
+              element={<CreatePointCampaign />}
+            />
 
-            <Route path="/setting/line/reward-campaign" element={<RewardCampaignList />} />
-            <Route path="/setting/line/reward-campaign/:mode" element={<CreateRewardCampaign />} />
+            <Route
+              path="/setting/line/reward-campaign"
+              element={<RewardCampaignList />}
+            />
+            <Route
+              path="/setting/line/reward-campaign/:mode"
+              element={<CreateRewardCampaign />}
+            />
 
-
-            <Route path="/setting/line/news-promotion" element={<NewsPromotionList />} />
-            <Route path="/setting/line/news-promotion/:mode" element={<CreateNewsPromotion />} />
+            <Route
+              path="/setting/line/news-promotion"
+              element={<NewsPromotionList />}
+            />
+            <Route
+              path="/setting/line/news-promotion/:mode"
+              element={<CreateNewsPromotion />}
+            />
 
             {/* <Route path="/setting/line/reward-campaign/edit" element={<EditPromotion />} /> */}
 
-
             {/* <Route path="/setting/line/reward-campaign/:mode" element={<EditOrViewRewardCampaign />} /> */}
 
-
-            <Route path="/points/line/expire-point" element={<ExpirePointList />} />
+            <Route
+              path="/points/line/expire-point"
+              element={<ExpirePointList />}
+            />
             {/* <Route path="/setting/line/point-campaign" element={<ManageNewsList />} /> */}
             {/* <Route path="/setting/line/point-campaign/create" element={<CreateManageNews />} /> */}
             {/* <Route path="/setting/line/reward-campaign" element={<ManagePromotionList />} /> */}
             {/* <Route path="/setting/line/reward-campaign/create" element={<CreateManagePromotion />} /> */}
 
-            <Route path="/points/line/redeem-reward-list" element={<RedeemList />} />
-            <Route path="/points/line/redeem-reward/:mode" element={<RedeemDetail />} />
-            <Route path="/points/line/transportation" element={<Transportation />} />
-            <Route path="/points/line/transpotation" element={<Transportation />} />
+            <Route
+              path="/points/line/redeem-reward-list"
+              element={<RedeemList />}
+            />
+            <Route
+              path="/points/line/redeem-reward/:mode"
+              element={<RedeemDetail />}
+            />
+            <Route
+              path="/points/line/transportation"
+              element={<Transportation />}
+            />
+            <Route
+              path="/points/line/transpotation"
+              element={<Transportation />}
+            />
 
-            <Route path="/points/line/transportation/:mode" element={<TransportationDetail />} />
-            <Route path="/points/line/transpotation/:mode" element={<TransportationDetail />} />
+            <Route
+              path="/points/line/transportation/:mode"
+              element={<TransportationDetail />}
+            />
+            <Route
+              path="/points/line/transpotation/:mode"
+              element={<TransportationDetail />}
+            />
 
-            <Route path="/points/line/pdf/shipping-address" element={<ShippingAddressPDF />} />
-            <Route path="/points/line/pdf/delivery-slip" element={<DeliverySlipPDF />} />
+            <Route
+              path="/points/line/pdf/shipping-address"
+              element={<ShippingAddressPDF />}
+            />
+            <Route
+              path="/points/line/pdf/delivery-slip"
+              element={<DeliverySlipPDF />}
+            />
 
-            <Route path="/setting/line/request-purchase" element={<RequestPurchaseList />} />
+            <Route
+              path="/setting/line/request-purchase"
+              element={<RequestPurchaseList />}
+            />
 
-            <Route path="/setting/line/request-purchase/update-stock" element={<RewardProductUpdateStock />} />
+            <Route
+              path="/setting/line/request-purchase/update-stock"
+              element={<RewardProductUpdateStock />}
+            />
 
-            <Route path="/setting/line/redeem-request" element={<RedeemRequestList />} />
-            <Route path="/setting/line/redeem-product" element={<RedeemProduct />} />
+            <Route
+              path="/setting/line/redeem-request"
+              element={<RedeemRequestList />}
+            />
+            <Route
+              path="/setting/line/redeem-product"
+              element={<RedeemProduct />}
+            />
 
             <Route path="/setting/mileage" element={<MileageManagement />} />
             <Route path="/setting/mileage/edit" element={<EditMileage />} />
-
 
             {/* Report Route */}
             <Route path="/report/monthly" element={<ReportSaleByMonth />} />
             <Route path="/report/quarterly" element={<ReportSaleByQuarter />} />
             <Route path="/report/yearly" element={<ReportSaleByYear />} />
             <Route path="/report/activity" element={<ReportActivity />} />
-            <Route path="/report/activity-expense" element={<ReportActivityExpense />} />
-            <Route path="/report/activity-type" element={<ReportActivityByType />} />
-            <Route path="/report/activity-month" element={<ReportActivityByMonth />} />
+            <Route
+              path="/report/activity-expense"
+              element={<ReportActivityExpense />}
+            />
+            <Route
+              path="/report/activity-type"
+              element={<ReportActivityByType />}
+            />
+            <Route
+              path="/report/activity-month"
+              element={<ReportActivityByMonth />}
+            />
             <Route path="/report/stock-report" element={<ReportStock />} />
-            <Route path="/report/sell-out-report-sales" element={<ReportSellOut />} />
-            <Route path="/report/sell-out-report-dealer" element={<ReportSellOutByDealer />} />
-            <Route path="/report/sell-out-report-sub-dealer" element={<ReportSellOut />} />
+            <Route
+              path="/report/sell-out-report-sales"
+              element={<ReportSellOut />}
+            />
+            <Route
+              path="/report/sell-out-report-dealer"
+              element={<ReportSellOutByDealer />}
+            />
+            <Route
+              path="/report/sell-out-report-sub-dealer"
+              element={<ReportSellOut />}
+            />
             <Route path="/report/sell-out-report" element={<ReportSellOut />} />
 
             {/* <Route path="/report/activity-expense" element={<ReportActivityExpense />} /> */}
 
             {/* <Route path="/report/stock-report" element={<ReportStock />} /> */}
 
-            <Route path="/report/line/sales-history-report" element={<SaleHistoryReport />} />
-
+            <Route
+              path="/report/line/sales-history-report"
+              element={<SaleHistoryReport />}
+            />
           </Route>
 
           <Route element={<LineOARoute />}>
-
-            <Route path="/mobile/login" element={< CheckLogin />} />
+            <Route path="/mobile/login" element={<CheckLogin />} />
 
             <Route path="/mobile/verify" element={<VerifyOA />} />
             <Route path="/mobile/otp" element={<OtpOA />} />
-            <Route path="/mobile/contact-admin" element={< ContactAdmin />} />
-            <Route path="/mobile/contact-us" element={< ContactUs />} />
-            <Route path="/mobile/tran-address" element={< TranAddress />} />
-            <Route path="/mobile/tran-address/create" element={< CreateTranAddress />} />
-            <Route path="/mobile/privacy-policy" element={< PrivacyPolicy />} />
-            <Route path="/mobile/terms-conditions" element={< TermsConditions />} />
-            <Route path="/mobile/faq" element={< FaqOA />} />
-            <Route path="/mobile/register" element={< RegisterOA />} />
-            <Route path="/mobile/camera" element={< CameraView />} />
+            <Route path="/mobile/contact-admin" element={<ContactAdmin />} />
+            <Route path="/mobile/contact-us" element={<ContactUs />} />
+            <Route path="/mobile/tran-address" element={<TranAddress />} />
+            <Route
+              path="/mobile/tran-address/create"
+              element={<CreateTranAddress />}
+            />
+            <Route path="/mobile/privacy-policy" element={<PrivacyPolicy />} />
+            <Route
+              path="/mobile/terms-conditions"
+              element={<TermsConditions />}
+            />
+            <Route path="/mobile/faq" element={<FaqOA />} />
+            <Route path="/mobile/register" element={<RegisterOA />} />
+            <Route path="/mobile/camera" element={<CameraView />} />
             <Route element={<LinePrivateRoute />}>
-              <Route path="/mobile/collect-points" element={< CollectPoints />} />
-              <Route path="/mobile/collect-points/detail" element={<CollectPointsDetail />} />
-              <Route path="/mobile/collect-points/advance-notice" element={< CollectPointsAdvance />} />
-              <Route path="/mobile/collect-points/advance-notice1" element={< CollectPointsAdvance1 />} />
-              <Route path="/mobile/collect-points/advance-notice2" element={< CollectPointsAdvance2 />} />
-              <Route path="/mobile/collect-points/advance-notice-update" element={< CollectPointsAdvanceUpdate />} />
-              <Route path="/mobile/promotion" element={< Promotion />} />
-              <Route path="/mobile/account" element={< MyAccountMobile />} />
-              <Route path="/mobile/user/detail" element={< UserDetail />} />
-              <Route path="/mobile/user/edit" element={< EditUserOA />} />
-              <Route path="/mobile/main" element={< MainOA />} />
-              <Route path="/mobile/redeem-point" element={< RedeemPoint />} />
-              <Route path="/mobile/redeem-point/detail" element={<RedeemPointDetail />} />
-              <Route path="/mobile/redeem-point/confirm" element={<RedeemPointConfirm />} />
-              <Route path="/mobile/order-history" element={< OrderHistory />} />
-              <Route path="/mobile/order-history/detail" element={<OrderHistoryDetail />} />
-              <Route path="/mobile/point-history" element={< PointHistory />} />
-              <Route path="/mobile/point-history/detail" element={< PointHistoryDetail />} />
-              <Route path="/mobile/promotion/detail/" element={<PromotionDetail />} />
-
+              <Route
+                path="/mobile/collect-points"
+                element={<CollectPoints />}
+              />
+              <Route
+                path="/mobile/collect-points/detail"
+                element={<CollectPointsDetail />}
+              />
+              <Route
+                path="/mobile/collect-points/advance-notice"
+                element={<CollectPointsAdvance />}
+              />
+              <Route
+                path="/mobile/collect-points/advance-notice1"
+                element={<CollectPointsAdvance1 />}
+              />
+              <Route
+                path="/mobile/collect-points/advance-notice2"
+                element={<CollectPointsAdvance2 />}
+              />
+              <Route
+                path="/mobile/collect-points/advance-notice-update"
+                element={<CollectPointsAdvanceUpdate />}
+              />
+              <Route path="/mobile/promotion" element={<Promotion />} />
+              <Route path="/mobile/account" element={<MyAccountMobile />} />
+              <Route path="/mobile/user/detail" element={<UserDetail />} />
+              <Route path="/mobile/user/edit" element={<EditUserOA />} />
+              <Route path="/mobile/main" element={<MainOA />} />
+              <Route path="/mobile/redeem-point" element={<RedeemPoint />} />
+              <Route
+                path="/mobile/redeem-point/detail"
+                element={<RedeemPointDetail />}
+              />
+              <Route
+                path="/mobile/redeem-point/confirm"
+                element={<RedeemPointConfirm />}
+              />
+              <Route path="/mobile/order-history" element={<OrderHistory />} />
+              <Route
+                path="/mobile/order-history/detail"
+                element={<OrderHistoryDetail />}
+              />
+              <Route path="/mobile/point-history" element={<PointHistory />} />
+              <Route
+                path="/mobile/point-history/detail"
+                element={<PointHistoryDetail />}
+              />
+              <Route
+                path="/mobile/promotion/detail/"
+                element={<PromotionDetail />}
+              />
             </Route>
-
           </Route>
 
-          <Route path="/mobile/take-photo" element={< TakePhoto />} />
+          <Route path="/mobile/take-photo" element={<TakePhoto />} />
 
           {/* Error Route */}
           <Route path="/error/403" element={<Error403 />} />
@@ -494,7 +785,6 @@ const App = () => {
           <Route path="/error/500" element={<Error500 />} />
           <Route path="/error/503" element={<Error503 />} />
           <Route path="/wiki" element={<Wiki />} />
-
         </Routes>
       </AuthProvider>
     </Router>
