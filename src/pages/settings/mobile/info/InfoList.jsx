@@ -1,32 +1,70 @@
+// src/pages/settings/mobile/target_group/TargetGroupList.jsx
 import React, { useEffect, useState } from "react";
 import MainLayout from "../../../../layouts/MainLayout";
+import Filter from "../../../../components/filter/Filter";
 import TableComponent from "../../../../components/table/TableComponent";
-import { Dropdown, Image } from "antd";
+import { Dropdown } from "antd";
 import BadgeStatus from "../../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import ActionButton from "../../../../components/button/ActionButton";
 import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../../components/dropdown/ItemDropDown";
-import useServiceAPI from "../../../../services/CorsService";
+import useServiceAPI from "../../../../services/corsService";
 import { paths } from "../../../../services/CorsPath";
 
-export default function InfoList() {
+export default function TargetGroupList() {
   const navigate = useNavigate();
 
+  // page states
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
 
+  // keep current filter values
+  const [filterValues, setFilterValues] = useState({});
+
+  // table params
   const [tableParams, setTableParams] = useState({
     pagination: { current: 1, pageSize: 10, total: 0 },
     filters: {},
   });
 
+  // ---------- Filters UI ----------
+  // NOTE: pathInfoList ตัวอย่างไม่ได้บังคับ filter อื่น ๆ
+  // เลยทำ filter แบบเบา ๆ: keyword + type + status(use_flag)
+  const filters = [
+    {
+      key: "keyword",
+      type: "text",
+      label: "Keyword",
+      placeholder: "Search name...",
+    },
+    {
+      key: "type",
+      type: "select",
+      label: "Type",
+      options: [
+        { id: "1", name: "File" },
+        { id: "2", name: "Video" },
+      ],
+    },
+    {
+      key: "use_flag",
+      type: "select",
+      label: "Status",
+      options: [
+        { id: "1", name: "Active" },
+        { id: "0", name: "Inactive" },
+      ],
+    },
+  ];
+
+  // ---------- Table header ----------
   const header = [
     { title: "No", dataIndex: "key", width: 70, align: "center" },
     { title: "Name", dataIndex: "name" },
-    { title: "Type", dataIndex: "type" },
-    { title: "Image", dataIndex: "file", align: "center" },
+    { title: "Type", dataIndex: "type", width: 90, align: "center" },
+    { title: "File", dataIndex: "file", width: 120, align: "center" },
     {
       title: "Create Date",
       dataIndex: "created_at",
@@ -37,32 +75,38 @@ export default function InfoList() {
     { title: "Action", dataIndex: "action", width: 90, align: "center" },
   ];
 
+  // ---------- Fetch data (pathInfoList) ----------
   const fetchData = async () => {
     setTableLoading(true);
 
     const { current, pageSize } = tableParams.pagination;
+    const f = tableParams.filters || {};
 
+    // ✅ ให้ตรงตามตัวอย่าง API:
+    // page_length = limit
+    // page_size   = page
     const requestData = {
       platform: "web",
       orderby_column: "created_at",
       orderby: "desc",
       page_length: pageSize,
       page_size: current,
+
+      // optional filters (ถ้า backend รองรับก็ใช้ได้)
+      keyword: f.keyword ?? "",
+      type: f.type ?? "",
+      use_flag: f.use_flag ?? "",
     };
 
     try {
-      // Assuming POST for list based on complex params usually sent in body
       const res = await useServiceAPI.get(paths.pathInfoList, requestData);
-      console.log("res : ", res);
-      if (res.status === 200) {
-        const result = res.data;
-        // Adjust based on response structure
-        // "data": [ ... ]
-        // "recordsTotal": ...
-        const list = result?.data || [];
+      if (res?.status === 200) {
+        const result = res?.data || {};
+        const list = result;
 
         const formatted = list.map((item, index) => {
           const id = item.id;
+
           const items = [
             {
               key: "view",
@@ -70,7 +114,7 @@ export default function InfoList() {
                 <ItemDropDown
                   mode="view"
                   onClick={() =>
-                    navigate("/setting/info/view", { state: { id } })
+                    navigate("/setting/mobile/info/view", { state: { id } })
                   }
                 />
               ),
@@ -81,35 +125,38 @@ export default function InfoList() {
                 <ItemDropDown
                   mode="edit"
                   onClick={() =>
-                    navigate("/setting/info/edit", { state: { id } })
+                    navigate("/setting/mobile/info/edit", { state: { id } })
                   }
                 />
               ),
             },
+            // ถ้ามี api ลบจริงค่อยผูกเพิ่ม (ตอนนี้ไม่เดา path)
+            // {
+            //   key: "delete",
+            //   label: <ItemDropDown mode="delete" onClick={() => handleDelete(id)} />,
+            // },
           ];
-
-          const isActive = item.use_flag === "1";
 
           return {
             key: index + 1 + (current - 1) * pageSize,
-            name: item.name,
-            type: item.type === "1" ? "Type 1" : item.type,
+            name: item.name ?? "-",
+            type:
+              String(item.type) === "1"
+                ? "File"
+                : String(item.type) === "2"
+                ? "Video"
+                : "-",
             file: item.file ? (
-              <Image
-                src={item.file}
-                width={50}
-                height={50}
-                style={{ objectFit: "cover" }}
-              />
+              <a href={item.file} target="_blank" rel="noreferrer">
+                View
+              </a>
             ) : (
               "-"
             ),
-            created_at: item.created_at || "-",
+            created_at: item.created_at ? item.created_at.split(" ")[0] : "-",
             status: (
               <BadgeStatus
-                text={isActive ? "Active" : "Inactive"}
-                bgColor={isActive ? "#F6FFED" : "#F5F5F5"}
-                textColor={isActive ? "#52C41A" : "#8C8C8C"}
+                text={String(item.use_flag) === "1" ? "Active" : "Inactive"}
               />
             ),
             action: (
@@ -126,26 +173,58 @@ export default function InfoList() {
           };
         });
 
+        console.log("formatted : ", list);
+
         setDataSource(formatted);
+
+        // ✅ total ต้องอิง recordsFiltered ที่ root
         setTableParams((prev) => ({
           ...prev,
           pagination: {
             ...prev.pagination,
-            total: result?.recordsTotal ?? result?.data?.recordsTotal ?? 0,
+            total: Number(result?.recordsFiltered ?? 0),
           },
         }));
       }
     } catch (err) {
-      console.error("Failed to fetch info list:", err);
+      console.error("Failed to fetch:", err);
     } finally {
       setTableLoading(false);
     }
   };
 
+  // ---------- Effects ----------
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tableParams.pagination.current, tableParams.pagination.pageSize]);
+  }, [
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    JSON.stringify(tableParams.filters),
+  ]);
+
+  // ---------- Filter handlers ----------
+  const handleSearch = (filtersFromUI) => {
+    setTableParams((prev) => ({
+      ...prev,
+      pagination: { ...prev.pagination, current: 1 },
+      filters: { ...filtersFromUI },
+    }));
+    setFilterValues({ ...filtersFromUI });
+  };
+
+  const handleClear = () => {
+    setFilterValues({});
+    setTableParams((prev) => ({
+      ...prev,
+      filters: {},
+      pagination: { ...prev.pagination, current: 1 },
+    }));
+  };
+
+  const handleFilterChange = (values) => {
+    setFilterValues(values);
+  };
 
   return (
     <MainLayout loading={loading}>
@@ -154,9 +233,17 @@ export default function InfoList() {
         <ActionButton
           mode="create"
           text="Create"
-          onClick={() => navigate("/setting/info/create")}
+          onClick={() => navigate("/setting/mobile/info/create")}
         />
       </div>
+
+      <Filter
+        filters={filters}
+        onChange={handleFilterChange}
+        onSearch={handleSearch}
+        onClear={handleClear}
+        values={filterValues}
+      />
 
       <BoxPrimary>
         <TableComponent

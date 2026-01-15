@@ -72,7 +72,8 @@ export default function CreateInfo() {
               rules={[{ required: true, message: "Please select type" }]}
             >
               <Select>
-                <Select.Option value={1}>Type 1</Select.Option>
+                <Select.Option value={1}>File</Select.Option>
+                <Select.Option value={2}>Video</Select.Option>
               </Select>
             </Form.Item>
 
