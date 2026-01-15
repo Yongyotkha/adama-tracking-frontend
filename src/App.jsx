@@ -159,7 +159,7 @@ import SalesPointCreate from "./pages/settings/mobile/sale_point/SalesPointCreat
 import SalesPointView from "./pages/settings/mobile/sale_point/SalesPointView";
 // import SalesPointRequestCreate from "./pages/settings/mobile/sale_point/SalesPointRequestCreate";
 import InfoList from "./pages/settings/mobile/info/InfoList";
-import CreateInfo from "./pages/settings/mobile/info/CreateInfo";
+import ActionInfo from "./pages/settings/mobile/info/ActionInfo";
 import ViewOrEditInfo from "./pages/settings/mobile/info/ViewOrEditInfo";
 import TargetGroupList from "./pages/settings/mobile/target_group/TargetGroupList";
 import CreateTargetGroup from "./pages/settings/mobile/target_group/CreateTargetGroup";
@@ -437,8 +437,8 @@ const App = () => {
             <Route path="/setting/log-login" element={<LogUser />} />
 
             <Route path="/setting/info/list" element={<InfoList />} />
-            <Route path="/setting/info/create" element={<CreateInfo />} />
-            <Route path="/setting/info/edit" element={<ViewOrEditInfo />} />
+            <Route path="/setting/info/create" element={<ActionInfo />} />
+            <Route path="/setting/info/edit" element={<ActionInfo />} />
             <Route path="/setting/info/view" element={<ViewOrEditInfo />} />
 
             <Route path="/setting/role" element={<SettingRole />} />

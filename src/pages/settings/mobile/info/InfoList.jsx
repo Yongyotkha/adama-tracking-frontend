@@ -114,7 +114,7 @@ export default function TargetGroupList() {
                 <ItemDropDown
                   mode="view"
                   onClick={() =>
-                    navigate("/setting/mobile/info/view", { state: { id } })
+                    navigate("/setting/info/view", { state: { id } })
                   }
                 />
               ),
@@ -125,7 +125,7 @@ export default function TargetGroupList() {
                 <ItemDropDown
                   mode="edit"
                   onClick={() =>
-                    navigate("/setting/mobile/info/edit", { state: { id } })
+                    navigate("/setting/info/edit", { state: { id } })
                   }
                 />
               ),
@@ -233,7 +233,7 @@ export default function TargetGroupList() {
         <ActionButton
           mode="create"
           text="Create"
-          onClick={() => navigate("/setting/mobile/info/create")}
+          onClick={() => navigate("/setting/info/create")}
         />
       </div>
 

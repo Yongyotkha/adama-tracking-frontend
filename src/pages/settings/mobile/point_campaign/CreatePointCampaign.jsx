@@ -47,7 +47,8 @@ export default function CreatePointCampaign() {
   // id รับจาก state ก่อน ถ้าไม่มีค่อยอ่านจาก query ?id=...
   const idFromState = location.state?.id;
   const idFromQuery = new URLSearchParams(location.search).get("id");
-  const recordId = idFromState ?? (idFromQuery ? Number(idFromQuery) : undefined);
+  const recordId =
+    idFromState ?? (idFromQuery ? Number(idFromQuery) : undefined);
 
   console.log("mode:", mode, "recordId:", recordId);
 
@@ -61,14 +62,17 @@ export default function CreatePointCampaign() {
   const pageTitle = isCreate
     ? "Create Point Campaign"
     : isEdit
-      ? "Edit Point Campaign"
-      : "View Point Campaign";
+    ? "Edit Point Campaign"
+    : "View Point Campaign";
   const formDisabled = isView;
   const fileUploadRefReceive = useRef(null);
   const [fileListReceive, setFileListReceive] = useState([]); // picture
   const handleUploadReceiveSuccess = (resp) => {
     const d = resp.data;
-    setFileListReceive((prev) => [...prev, { uid: d.file_key, name: d.file_name, status: "done", url: d.file_url }]);
+    setFileListReceive((prev) => [
+      ...prev,
+      { uid: d.file_key, name: d.file_name, status: "done", url: d.file_url },
+    ]);
   };
 
   // ============ Target / Crop options from API ============
@@ -83,7 +87,11 @@ export default function CreatePointCampaign() {
         const res = await useServiceAPI.get(paths.pathPointCampaignTarget);
         const arr = res?.data?.data || res?.data || [];
 
-        const groupMap = { Dealer: "dealer", "Sub Dealer": "sub", Farmer: "farmer" };
+        const groupMap = {
+          Dealer: "dealer",
+          "Sub Dealer": "sub",
+          Farmer: "farmer",
+        };
         const buckets = { dealer: [], sub: [], farmer: [] };
         const seen = { dealer: new Set(), sub: new Set(), farmer: new Set() };
 
@@ -95,25 +103,24 @@ export default function CreatePointCampaign() {
 
           seen[g].add(label.toLowerCase());
           buckets[g].push({ label, value: id });
-
-
-
         });
 
-        console.log('buckets : ', buckets)
+        console.log("buckets : ", buckets);
 
         setDealerOptions(buckets.dealer);
         setSubDealerOptions(buckets.sub);
         setFarmerOptions(buckets.farmer);
-      } catch (_) { }
+      } catch (_) {}
     };
 
     const fetchCrops = async () => {
       try {
         const res = await useServiceAPI.get(paths.pathMasterCrop);
         const arr = res?.data?.data || res?.data || [];
-        setCropOptions(arr.map((c) => ({ label: c?.name || "-", value: String(c?.id) })));
-      } catch (_) { }
+        setCropOptions(
+          arr.map((c) => ({ label: c?.name || "-", value: String(c?.id) }))
+        );
+      } catch (_) {}
     };
 
     fetchTargets();
@@ -123,7 +130,7 @@ export default function CreatePointCampaign() {
   // ====== เงื่อนไขโชว์ input ======
   const productMode = Form.useWatch("product_mode", form);
   const campaignMode = Form.useWatch("campaign_mode", form);
-  console.log('campaignMode : ', campaignMode)
+  console.log("campaignMode : ", campaignMode);
   // ===== Product Categories (from API) =====
   const [productCategories, setProductCategories] = useState([]); // [{ key(record_id str), record_id num, id str, name str }]
   const [categoryLoading, setCategoryLoading] = useState(false);
@@ -150,7 +157,9 @@ export default function CreatePointCampaign() {
         if (!cancelled) setCategoryLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -163,20 +172,27 @@ export default function CreatePointCampaign() {
     if (!detailCategoryKeys.length) return;
 
     // ตาราง Category ใช้ key เป็น record_id (string)
-    const allowed = new Set(productCategories.map(c => String(c.record_id ?? c.key)));
-    const fromDetail = detailCategoryKeys.filter(k => allowed.has(k));
+    const allowed = new Set(
+      productCategories.map((c) => String(c.record_id ?? c.key))
+    );
+    const fromDetail = detailCategoryKeys.filter((k) => allowed.has(k));
 
-    setSelectedCategoryKeys(prev => {
+    setSelectedCategoryKeys((prev) => {
       // ถ้าผู้ใช้เริ่มเลือกเองแล้ว ถือว่าจบ preselect และไม่ override
       if (prev.length > 0) {
         preselectCategoryDoneRef.current = true;
-        return prev.filter(k => allowed.has(k)); // เคลียร์ key ที่ไม่อยู่ในรายการ
+        return prev.filter((k) => allowed.has(k)); // เคลียร์ key ที่ไม่อยู่ในรายการ
       }
       preselectCategoryDoneRef.current = true;
       return fromDetail; // เช็คตาม detail
     });
-  }, [isEdit, productMode, categoryLoading, productCategories, detailCategoryKeys]);
-
+  }, [
+    isEdit,
+    productMode,
+    categoryLoading,
+    productCategories,
+    detailCategoryKeys,
+  ]);
 
   const filteredCategories = useMemo(() => {
     if (!categorySearch) return productCategories;
@@ -215,7 +231,9 @@ export default function CreatePointCampaign() {
         }));
         if (!cancelled) {
           setProductRaw(rows);
-          setSelectedProductKeys((prev) => prev.filter((k) => rows.some((r) => r.key === k)));
+          setSelectedProductKeys((prev) =>
+            prev.filter((k) => rows.some((r) => r.key === k))
+          );
         }
       } catch (_) {
         if (!cancelled) {
@@ -227,7 +245,9 @@ export default function CreatePointCampaign() {
         if (!cancelled) setProductLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [productMode, productCategoryFilter, showNotification]);
 
   const filteredProducts = useMemo(() => {
@@ -249,7 +269,9 @@ export default function CreatePointCampaign() {
 
   const selectedTargetIds = useMemo(() => {
     const arr = [...watchDealer, ...watchSub, ...watchFarmer];
-    return Array.from(new Set(arr)).map((x) => Number(x)).filter(Boolean);
+    return Array.from(new Set(arr))
+      .map((x) => Number(x))
+      .filter(Boolean);
   }, [watchDealer, watchSub, watchFarmer]);
 
   const showSelectTargetTable = selectedTargetIds.length > 0;
@@ -276,14 +298,14 @@ export default function CreatePointCampaign() {
     if (!targetRows.length) return;
     if (preselectDoneRef.current) return; // กัน override หลังผู้ใช้เริ่มแก้เอง
 
-    const allowed = new Set(targetRows.map(r => Number(r.key)));
-    const fromDetail = detailCustomers.filter(id => allowed.has(Number(id)));
+    const allowed = new Set(targetRows.map((r) => Number(r.key)));
+    const fromDetail = detailCustomers.filter((id) => allowed.has(Number(id)));
 
-    setSelectedRowKeys(prev => {
+    setSelectedRowKeys((prev) => {
       // ถ้า user เริ่มเลือกเองแล้ว ให้ถือว่า preselect เสร็จ ไม่ไปยุ่ง
       if (prev.length > 0) {
         preselectDoneRef.current = true;
-        return prev.filter(k => allowed.has(Number(k))); // เคลียร์ key ที่หลุด
+        return prev.filter((k) => allowed.has(Number(k))); // เคลียร์ key ที่หลุด
       }
       preselectDoneRef.current = true;
       return fromDetail;
@@ -305,7 +327,9 @@ export default function CreatePointCampaign() {
       setTargetLoading(true);
       try {
         const ids = targetKey.split(",").map(Number);
-        const res = await useServiceAPI.post(paths.pathPointCampaignCustomer, { target_id: ids });
+        const res = await useServiceAPI.post(paths.pathPointCampaignCustomer, {
+          target_id: ids,
+        });
         const data = res?.data?.data || res?.data || [];
 
         const rows = data.map((it) => ({
@@ -320,16 +344,16 @@ export default function CreatePointCampaign() {
           setTargetRows(rows);
 
           // จำกัด selection ให้เป็น key ที่ยังอยู่ใน rows เท่านั้น
-          const allowed = new Set(rows.map(r => Number(r.key)));
+          const allowed = new Set(rows.map((r) => Number(r.key)));
 
           // ค่าที่มาจาก detail (เลือกเฉพาะที่อยู่ใน rows จริง ๆ)
           const fromDetail = isEdit
-            ? detailCustomers.filter(id => allowed.has(Number(id)))
+            ? detailCustomers.filter((id) => allowed.has(Number(id)))
             : [];
 
-          setSelectedRowKeys(prev => {
+          setSelectedRowKeys((prev) => {
             // ค่าที่ user เคยติ๊กค้างไว้และยังอยู่ใน rows
-            const prevKept = prev.filter(k => allowed.has(Number(k)));
+            const prevKept = prev.filter((k) => allowed.has(Number(k)));
             // รวมกันแบบไม่ซ้ำ
             const merged = Array.from(new Set([...prevKept, ...fromDetail]));
             return merged;
@@ -337,7 +361,10 @@ export default function CreatePointCampaign() {
         }
       } catch (e) {
         if (!cancelled) {
-          showNotification?.("error", e?.response?.data?.message || "โหลดรายชื่อลูกค้าไม่สำเร็จ");
+          showNotification?.(
+            "error",
+            e?.response?.data?.message || "โหลดรายชื่อลูกค้าไม่สำเร็จ"
+          );
           setTargetRows([]);
           setSelectedRowKeys([]);
         }
@@ -346,7 +373,9 @@ export default function CreatePointCampaign() {
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [targetKey, showNotification]);
 
   const filteredTargetRows = useMemo(() => {
@@ -372,9 +401,9 @@ export default function CreatePointCampaign() {
   const selectTargetRowSel = isView
     ? undefined
     : {
-      selectedRowKeys,
-      onChange: (keys) => setSelectedRowKeys(keys),
-    };
+        selectedRowKeys,
+        onChange: (keys) => setSelectedRowKeys(keys),
+      };
 
   // ==========================
   // Extra / Topup editable tables
@@ -391,9 +420,12 @@ export default function CreatePointCampaign() {
     };
 
     if (campaignMode === "extra_value") {
-      setExtraRows(prev => [...(Array.isArray(prev) ? prev : []), newRow]);
+      setExtraRows((prev) => [...(Array.isArray(prev) ? prev : []), newRow]);
     } else if (campaignMode === "extra_point") {
-      setExtraRowsPoint(prev => [...(Array.isArray(prev) ? prev : []), newRow]);
+      setExtraRowsPoint((prev) => [
+        ...(Array.isArray(prev) ? prev : []),
+        newRow,
+      ]);
     }
   };
 
@@ -403,7 +435,7 @@ export default function CreatePointCampaign() {
     setTopupRows((prev) => {
       const arr = Array.isArray(prev) ? prev : [];
       const lastKey =
-        arr.length > 0 ? (Number(arr[arr.length - 1]?.key) || arr.length) : 0;
+        arr.length > 0 ? Number(arr[arr.length - 1]?.key) || arr.length : 0;
       return [
         ...arr,
         {
@@ -416,12 +448,16 @@ export default function CreatePointCampaign() {
       ];
     });
 
-
   // ===== helpers =====
   const PRODUCT_MODE_MAP = { all: 1, category: 2, specific: 3 };
   const TYPE_MODE_MAP = { extra_value: 1, topup: 2, xpoint: 3, extra_point: 4 };
   const PRODUCT_MODE_REVERSE = { 1: "all", 2: "category", 3: "specific" };
-  const TYPE_MODE_REVERSE = { 1: "extra_value", 2: "topup", 3: "xpoint", 4: "extra_point" };
+  const TYPE_MODE_REVERSE = {
+    1: "extra_value",
+    2: "topup",
+    3: "xpoint",
+    4: "extra_point",
+  };
 
   function deriveCustomerType(dealerArr = [], subArr = [], farmerArr = []) {
     const picked = [
@@ -439,9 +475,15 @@ export default function CreatePointCampaign() {
   useEffect(() => {
     if (!targetsFromDetail.length) return;
     const ids = targetsFromDetail.map(String);
-    const dealerSel = dealerOptions.map((o) => o.value).filter((v) => ids.includes(v));
-    const subSel = subDealerOptions.map((o) => o.value).filter((v) => ids.includes(v));
-    const farmerSel = farmerOptions.map((o) => o.value).filter((v) => ids.includes(v));
+    const dealerSel = dealerOptions
+      .map((o) => o.value)
+      .filter((v) => ids.includes(v));
+    const subSel = subDealerOptions
+      .map((o) => o.value)
+      .filter((v) => ids.includes(v));
+    const farmerSel = farmerOptions
+      .map((o) => o.value)
+      .filter((v) => ids.includes(v));
     form.setFieldsValue({
       target_dealer: dealerSel,
       target_subdealer: subSel,
@@ -457,9 +499,10 @@ export default function CreatePointCampaign() {
     let cancelled = false;
     (async () => {
       try {
-
         setLoading(true);
-        const res = await useServiceAPI.post(paths.pathPointCampaignDetail, { id: recordId });
+        const res = await useServiceAPI.post(paths.pathPointCampaignDetail, {
+          id: recordId,
+        });
         const d = res?.data || {};
         const c = d?.campaign || {};
 
@@ -472,15 +515,29 @@ export default function CreatePointCampaign() {
           .filter((n) => Number.isFinite(n)); // <<< ADD
 
         const crops = (d?.crops || []).map(String);
-        const targetsArr = (d?.targets || []).map((x) => Number(x)).filter(Boolean);
-        const customers = (d?.customers || []).map((x) => Number(x)).filter((n) => Number.isFinite(n));
-        const categoryRecordIds = (d?.category || []).map(String).filter(Boolean); // <<< ADD
-        console.log('c.document_number : ', c.document_number)
+        const targetsArr = (d?.targets || [])
+          .map((x) => Number(x))
+          .filter(Boolean);
+        const customers = (d?.customers || [])
+          .map((x) => Number(x))
+          .filter((n) => Number.isFinite(n));
+        const categoryRecordIds = (d?.category || [])
+          .map(String)
+          .filter(Boolean); // <<< ADD
+        console.log("c.document_number : ", c.document_number);
 
-
-        const images = Array.isArray(c.image) ? c.image : (c.image ? [c.image] : []);
+        const images = Array.isArray(c.image)
+          ? c.image
+          : c.image
+          ? [c.image]
+          : [];
         setFileListReceive(
-          images.map((u, idx) => ({ uid: String(idx + 1), name: `image_${idx + 1}`, status: "done", url: u }))
+          images.map((u, idx) => ({
+            uid: String(idx + 1),
+            name: `image_${idx + 1}`,
+            status: "done",
+            url: u,
+          }))
         );
         if (!cancelled) {
           form.setFieldsValue({
@@ -490,27 +547,28 @@ export default function CreatePointCampaign() {
             campaign_mode,
             campaign_value: campaign_mode === "xpoint" ? xpointVal : undefined,
             period: [
-              c?.date_start ? dayjs(c.date_start, 'YYYY-MM-DD HH:mm:ss') : null,
-              c?.date_end ? dayjs(c.date_end, 'YYYY-MM-DD HH:mm:ss') : null,
+              c?.date_start ? dayjs(c.date_start, "YYYY-MM-DD HH:mm:ss") : null,
+              c?.date_end ? dayjs(c.date_end, "YYYY-MM-DD HH:mm:ss") : null,
             ],
             status: Number(c?.use_flag ?? 1),
             target_crop: crops,
           });
 
-          console.log('d:', d)
-          let extra = d.extra
+          console.log("d:", d);
+          let extra = d.extra;
           if (extra) {
             for (let index in extra) {
-
-              let extra_row = extra[index]
+              let extra_row = extra[index];
 
               // console.log('extra_row : ', extra_row.type)
 
-              if (extra_row.type == 'value') {
+              if (extra_row.type == "value") {
                 setExtraRows((prev) => {
                   const arr = Array.isArray(prev) ? prev : [];
                   const lastKey =
-                    arr.length > 0 ? (Number(arr[arr.length - 1]?.key) || arr.length) : 0;
+                    arr.length > 0
+                      ? Number(arr[arr.length - 1]?.key) || arr.length
+                      : 0;
                   return [
                     ...arr,
                     {
@@ -520,12 +578,14 @@ export default function CreatePointCampaign() {
                       point: extra_row.point,
                     },
                   ];
-                })
-              } else if (extra_row.type == 'point') {
+                });
+              } else if (extra_row.type == "point") {
                 setExtraRowsPoint((prev) => {
                   const arr = Array.isArray(prev) ? prev : [];
                   const lastKey =
-                    arr.length > 0 ? (Number(arr[arr.length - 1]?.key) || arr.length) : 0;
+                    arr.length > 0
+                      ? Number(arr[arr.length - 1]?.key) || arr.length
+                      : 0;
                   return [
                     ...arr,
                     {
@@ -535,25 +595,26 @@ export default function CreatePointCampaign() {
                       point: extra_row.point,
                     },
                   ];
-                })
+                });
               }
-              console.log('extraRows: ', extraRows)
-              console.log('extraRowsPoint: ', extraRowsPoint)
+              console.log("extraRows: ", extraRows);
+              console.log("extraRowsPoint: ", extraRowsPoint);
             }
           }
 
-          let topup = d.topup
+          let topup = d.topup;
           if (topup) {
             for (let index in topup) {
+              let row = topup[index];
 
-              let row = topup[index]
-
-              console.log('row : ', row)
+              console.log("row : ", row);
 
               setTopupRows((prev) => {
                 const arr = Array.isArray(prev) ? prev : [];
                 const lastKey =
-                  arr.length > 0 ? (Number(arr[arr.length - 1]?.key) || arr.length) : 0;
+                  arr.length > 0
+                    ? Number(arr[arr.length - 1]?.key) || arr.length
+                    : 0;
                 return [
                   ...arr,
                   {
@@ -574,13 +635,19 @@ export default function CreatePointCampaign() {
           setDetailProductKeys(productsFromDetail); // <<< ADD
         }
       } catch (e) {
-        showNotification?.("error", "โหลดข้อมูลไม่สำเร็จ", e?.response?.data?.message || "");
+        showNotification?.(
+          "error",
+          "โหลดข้อมูลไม่สำเร็จ",
+          e?.response?.data?.message || ""
+        );
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [isCreate, recordId, form, showNotification]);
 
   useEffect(() => {
@@ -588,42 +655,46 @@ export default function CreatePointCampaign() {
     if (!isEdit) return;
     if (productMode !== "specific") return;
     if (preselectProductDoneRef.current) return;
-    if (productLoading) return;           // <<< รอให้สินค้าหมดโหลดก่อน (อย่าใช้ categoryLoading)
+    if (productLoading) return; // <<< รอให้สินค้าหมดโหลดก่อน (อย่าใช้ categoryLoading)
     if (!productRaw.length) return;
     if (!detailProductKeys.length) return;
 
-    const allowed = new Set(productRaw.map(r => Number(r.key)));
-    const fromDetail = detailProductKeys.filter(id => allowed.has(Number(id)));
+    const allowed = new Set(productRaw.map((r) => Number(r.key)));
+    const fromDetail = detailProductKeys.filter((id) =>
+      allowed.has(Number(id))
+    );
 
-    setSelectedProductKeys(prev => {
+    setSelectedProductKeys((prev) => {
       // ถ้าผู้ใช้เริ่มเลือกเองแล้ว ให้ถือว่า preselect เสร็จ และคงไว้เฉพาะที่ยังมองเห็น
       if (prev.length > 0) {
         preselectProductDoneRef.current = true;
-        return prev.filter(k => allowed.has(Number(k)));
+        return prev.filter((k) => allowed.has(Number(k)));
       }
       preselectProductDoneRef.current = true;
       return fromDetail; // เลือกตาม detail
     });
   }, [isEdit, productMode, productLoading, productRaw, detailProductKeys]);
 
-
   // ====== Save (รองรับ create/edit + ส่งเฉพาะฟิลด์ตาม type) ======
   const onSave = async () => {
     try {
-
       setLoading(true);
       const values = await form.validateFields();
-
 
       const productModeNum = PRODUCT_MODE_MAP[values.product_mode]; // 1/2/3
       const typeNum = TYPE_MODE_MAP[values.campaign_mode]; // 1/2/3
 
-      const categoryIds = (selectedCategoryKeys || []).map(Number).filter(Number.isFinite);
-      const productIds = (selectedProductKeys || []).map(Number).filter(Number.isFinite);
+      const categoryIds = (selectedCategoryKeys || [])
+        .map(Number)
+        .filter(Number.isFinite);
+      const productIds = (selectedProductKeys || [])
+        .map(Number)
+        .filter(Number.isFinite);
 
       const targets = selectedTargetIds;
-      const crops = (values.target_crop || []).map(Number).filter(Number.isFinite);
-
+      const crops = (values.target_crop || [])
+        .map(Number)
+        .filter(Number.isFinite);
 
       const customer_type = deriveCustomerType(
         values.target_dealer,
@@ -642,46 +713,53 @@ export default function CreatePointCampaign() {
         image: fileListReceive.map((f) => f.url),
         targets,
         crops,
-        date_start: start ? dayjs(start).format('YYYY-MM-DD HH:mm:ss') : null,
-        date_end: end ? dayjs(end).format('YYYY-MM-DD HH:mm:ss') : null,
+        date_start: start ? dayjs(start).format("YYYY-MM-DD HH:mm:ss") : null,
+        date_end: end ? dayjs(end).format("YYYY-MM-DD HH:mm:ss") : null,
       };
 
-
-      if (productModeNum === 2) payload.categorys = categoryIds;   // record_id[]
-      if (productModeNum === 3) payload.products = productIds;     // product id[]
+      if (productModeNum === 2) payload.categorys = categoryIds; // record_id[]
+      if (productModeNum === 3) payload.products = productIds; // product id[]
 
       if (typeNum === 3) {
         payload.xpoint = Number(values.campaign_value || 0);
         if (!payload.xpoint) throw new Error("กรุณากรอก X Point ให้ถูกต้อง");
       } else if (typeNum === 1) {
-
-        if (!extraRows) throw new Error("กรุณากรอก Extra Point (Value) อย่างน้อย 1 แถวให้ครบ");
+        if (!extraRows)
+          throw new Error(
+            "กรุณากรอก Extra Point (Value) อย่างน้อย 1 แถวให้ครบ"
+          );
         payload.extra_point_value = extraRows;
       } else if (typeNum === 4) {
-
-        if (!extraRowsPoint) throw new Error("กรุณากรอก Extra Point (Point) อย่างน้อย 1 แถวให้ครบ");
+        if (!extraRowsPoint)
+          throw new Error(
+            "กรุณากรอก Extra Point (Point) อย่างน้อย 1 แถวให้ครบ"
+          );
         payload.extra_point_point = extraRowsPoint;
       } else if (typeNum === 2) {
-        ;
-        if (!topupRows) throw new Error("กรุณากรอก Topup Point อย่างน้อย 1 แถวให้ครบ");
+        if (!topupRows)
+          throw new Error("กรุณากรอก Topup Point อย่างน้อย 1 แถวให้ครบ");
         payload.topup_point = topupRows;
       }
-      console.log('payload : ', payload)
+      console.log("payload : ", payload);
       // return false;
 
       let res;
       if (isEdit) {
-        res = await useServiceAPI.put(paths.pathPointCampaignUpdate, { ...payload, id: recordId });
+        res = await useServiceAPI.put(paths.pathPointCampaignUpdate, {
+          ...payload,
+          id: recordId,
+        });
       } else {
         res = await useServiceAPI.post(paths.pathPointCampaignCreate, payload);
       }
-
 
       if (res?.status === 200) {
         const id = res?.data?.data?.id;
         showNotification?.(
           "success",
-          isEdit ? "อัปเดตข้อมูล Point Campaign เรียบร้อยแล้ว" : "เพิ่มข้อมูล Point Campaign เรียบร้อยแล้ว",
+          isEdit
+            ? "อัปเดตข้อมูล Point Campaign เรียบร้อยแล้ว"
+            : "เพิ่มข้อมูล Point Campaign เรียบร้อยแล้ว",
           `ID: ${id ?? recordId ?? "-"}`
         );
         navigate(-1);
@@ -701,17 +779,21 @@ export default function CreatePointCampaign() {
     { label: "Inactive", value: 0 },
   ];
 
-
-
   return (
     <MainLayout loading={loading}>
       <div className="title-page">{pageTitle}</div>
 
       <BoxPrimary>
         <div className="flex items-center justify-between">
-          <label htmlFor="Banner" title="Banner">Upload Proposal</label>
+          <label htmlFor="Banner" title="Banner">
+            Upload Proposal
+          </label>
           {!isView && (
-            <ActionButton mode="add" text="Upload File" onClick={() => fileUploadRefReceive.current?.triggerUpload()} />
+            <ActionButton
+              mode="add"
+              text="Upload File"
+              onClick={() => fileUploadRefReceive.current?.triggerUpload()}
+            />
           )}
         </div>
 
@@ -721,7 +803,6 @@ export default function CreatePointCampaign() {
           onUploadSuccess={handleUploadReceiveSuccess}
           mode={isView ? "view" : "edit"}
         />
-
       </BoxPrimary>
 
       <BoxPrimary>
@@ -731,11 +812,7 @@ export default function CreatePointCampaign() {
           disabled={formDisabled}
           initialValues={{ status: 1, product_mode: "all" }}
         >
-
-          <Form.Item
-            label="Campaign Code"
-            name="document_number"
-          >
+          <Form.Item label="Campaign Code" name="document_number">
             <Input placeholder="Campaign Code" readOnly />
           </Form.Item>
 
@@ -785,7 +862,9 @@ export default function CreatePointCampaign() {
               <Form.Item
                 label="Product"
                 name="product_mode"
-                rules={[{ required: true, message: "Please select product mode" }]}
+                rules={[
+                  { required: true, message: "Please select product mode" },
+                ]}
               >
                 <Radio.Group>
                   <Radio value="all">All Product</Radio>
@@ -799,7 +878,9 @@ export default function CreatePointCampaign() {
               <Form.Item
                 label="Campaign"
                 name="campaign_mode"
-                rules={[{ required: true, message: "Please select campaign type" }]}
+                rules={[
+                  { required: true, message: "Please select campaign type" },
+                ]}
               >
                 <Radio.Group>
                   <Radio value="extra_value">Extra Point (Value)</Radio>
@@ -814,7 +895,11 @@ export default function CreatePointCampaign() {
                   name="campaign_value"
                   rules={[{ required: true, message: "Please enter a number" }]}
                 >
-                  <InputNumber style={{ width: 160 }} placeholder="Enter point (X)" min={0} />
+                  <InputNumber
+                    style={{ width: 160 }}
+                    placeholder="Enter point (X)"
+                    min={0}
+                  />
                 </Form.Item>
               )}
             </Col>
@@ -844,9 +929,15 @@ export default function CreatePointCampaign() {
       {showSelectTargetTable && (
         <BoxPrimary>
           <div className="flex items-center justify-between mb-3">
-            <div className="text-[#00783F] text-lg font-semibold">Select Customer</div>
+            <div className="text-[#00783F] text-lg font-semibold">
+              Select Customer
+            </div>
             <div style={{ width: 280 }}>
-              <Search placeholder="Search" allowClear onChange={(e) => setSearchKeyword(e.target.value)} />
+              <Search
+                placeholder="Search"
+                allowClear
+                onChange={(e) => setSearchKeyword(e.target.value)}
+              />
             </div>
           </div>
           <TableComponent
@@ -864,9 +955,15 @@ export default function CreatePointCampaign() {
       {productMode === "category" && (
         <BoxPrimary>
           <div className="flex items-center justify-between mb-3">
-            <div className="text-[#00783F] text-lg font-semibold">Select Category</div>
+            <div className="text-[#00783F] text-lg font-semibold">
+              Select Category
+            </div>
             <div style={{ width: 280 }}>
-              <Search placeholder="Search" allowClear onChange={(e) => setCategorySearch(e.target.value)} />
+              <Search
+                placeholder="Search"
+                allowClear
+                onChange={(e) => setCategorySearch(e.target.value)}
+              />
             </div>
           </div>
           <TableComponent
@@ -882,9 +979,9 @@ export default function CreatePointCampaign() {
               isView
                 ? undefined
                 : {
-                  selectedRowKeys: selectedCategoryKeys, // record_id (string)
-                  onChange: (keys) => setSelectedCategoryKeys(keys),
-                }
+                    selectedRowKeys: selectedCategoryKeys, // record_id (string)
+                    onChange: (keys) => setSelectedCategoryKeys(keys),
+                  }
             }
           />
         </BoxPrimary>
@@ -893,7 +990,9 @@ export default function CreatePointCampaign() {
       {productMode === "specific" && (
         <BoxPrimary>
           <div className="flex items-center justify-between mb-3">
-            <div className="text-[#00783F] text-lg font-semibold">Select Product</div>
+            <div className="text-[#00783F] text-lg font-semibold">
+              Select Product
+            </div>
             <div className="flex items-center gap-2">
               <Select
                 allowClear
@@ -905,7 +1004,12 @@ export default function CreatePointCampaign() {
                 disabled={isView}
               />
               <div style={{ width: 280 }}>
-                <Search placeholder="Search" allowClear onChange={(e) => setProductSearch(e.target.value)} disabled={isView} />
+                <Search
+                  placeholder="Search"
+                  allowClear
+                  onChange={(e) => setProductSearch(e.target.value)}
+                  disabled={isView}
+                />
               </div>
             </div>
           </div>
@@ -926,9 +1030,9 @@ export default function CreatePointCampaign() {
               isView
                 ? undefined
                 : {
-                  selectedRowKeys: selectedProductKeys,
-                  onChange: (keys) => setSelectedProductKeys(keys),
-                }
+                    selectedRowKeys: selectedProductKeys,
+                    onChange: (keys) => setSelectedProductKeys(keys),
+                  }
             }
           />
         </BoxPrimary>
@@ -937,13 +1041,20 @@ export default function CreatePointCampaign() {
       {campaignMode === "extra_value" && (
         <BoxPrimary>
           <div className="flex items-center justify-between mb-3">
-            <div className="text-[#00783F] text-lg font-semibold">Extra Point (Value)</div>
+            <div className="text-[#00783F] text-lg font-semibold">
+              Extra Point (Value)
+            </div>
             <div className="flex items-center gap-2">
               <div style={{ width: 280 }}>
                 <Search placeholder="Search" disabled />
               </div>
               {!isView && (
-                <Button className="bg-[#00783f] text-white" type="button" icon={<PlusOutlined />} onClick={handleAddExtra}>
+                <Button
+                  className="bg-[#00783f] text-white"
+                  type="button"
+                  icon={<PlusOutlined />}
+                  onClick={handleAddExtra}
+                >
                   Add Item
                 </Button>
               )}
@@ -963,7 +1074,11 @@ export default function CreatePointCampaign() {
                     value={v}
                     disabled={isView}
                     onChange={(val) =>
-                      setExtraRows((prev) => prev.map((r) => (r.key === record.key ? { ...r, value_start: val } : r)))
+                      setExtraRows((prev) =>
+                        prev.map((r) =>
+                          r.key === record.key ? { ...r, value_start: val } : r
+                        )
+                      )
                     }
                   />
                 ),
@@ -979,7 +1094,11 @@ export default function CreatePointCampaign() {
                     value={v}
                     disabled={isView}
                     onChange={(val) =>
-                      setExtraRows((prev) => prev.map((r) => (r.key === record.key ? { ...r, value_end: val } : r)))
+                      setExtraRows((prev) =>
+                        prev.map((r) =>
+                          r.key === record.key ? { ...r, value_end: val } : r
+                        )
+                      )
                     }
                   />
                 ),
@@ -995,7 +1114,11 @@ export default function CreatePointCampaign() {
                     value={v}
                     disabled={isView}
                     onChange={(val) =>
-                      setExtraRows((prev) => prev.map((r) => (r.key === record.key ? { ...r, point: val } : r)))
+                      setExtraRows((prev) =>
+                        prev.map((r) =>
+                          r.key === record.key ? { ...r, point: val } : r
+                        )
+                      )
                     }
                   />
                 ),
@@ -1009,7 +1132,11 @@ export default function CreatePointCampaign() {
                   isView ? null : (
                     <DeleteOutlined
                       onClick={() =>
-                        setExtraRows((prev) => (prev.length <= 1 ? prev : prev.filter((r) => r.key !== record.key)))
+                        setExtraRows((prev) =>
+                          prev.length <= 1
+                            ? prev
+                            : prev.filter((r) => r.key !== record.key)
+                        )
                       }
                       style={{
                         color: "#ff4d4f",
@@ -1029,13 +1156,20 @@ export default function CreatePointCampaign() {
       {campaignMode === "extra_point" && (
         <BoxPrimary>
           <div className="flex items-center justify-between mb-3">
-            <div className="text-[#00783F] text-lg font-semibold">Extra Point (Point)</div>
+            <div className="text-[#00783F] text-lg font-semibold">
+              Extra Point (Point)
+            </div>
             <div className="flex items-center gap-2">
               <div style={{ width: 280 }}>
                 <Search placeholder="Search" disabled />
               </div>
               {!isView && (
-                <Button className="bg-[#00783f] text-white" type="button" icon={<PlusOutlined />} onClick={handleAddExtra}>
+                <Button
+                  className="bg-[#00783f] text-white"
+                  type="button"
+                  icon={<PlusOutlined />}
+                  onClick={handleAddExtra}
+                >
                   Add Item
                 </Button>
               )}
@@ -1055,7 +1189,11 @@ export default function CreatePointCampaign() {
                     value={v}
                     disabled={isView}
                     onChange={(val) =>
-                      setExtraRowsPoint((prev) => prev.map((r) => (r.key === record.key ? { ...r, value_start: val } : r)))
+                      setExtraRowsPoint((prev) =>
+                        prev.map((r) =>
+                          r.key === record.key ? { ...r, value_start: val } : r
+                        )
+                      )
                     }
                   />
                 ),
@@ -1071,7 +1209,11 @@ export default function CreatePointCampaign() {
                     value={v}
                     disabled={isView}
                     onChange={(val) =>
-                      setExtraRowsPoint((prev) => prev.map((r) => (r.key === record.key ? { ...r, value_end: val } : r)))
+                      setExtraRowsPoint((prev) =>
+                        prev.map((r) =>
+                          r.key === record.key ? { ...r, value_end: val } : r
+                        )
+                      )
                     }
                   />
                 ),
@@ -1087,7 +1229,11 @@ export default function CreatePointCampaign() {
                     value={v}
                     disabled={isView}
                     onChange={(val) =>
-                      setExtraRowsPoint((prev) => prev.map((r) => (r.key === record.key ? { ...r, point: val } : r)))
+                      setExtraRowsPoint((prev) =>
+                        prev.map((r) =>
+                          r.key === record.key ? { ...r, point: val } : r
+                        )
+                      )
                     }
                   />
                 ),
@@ -1101,7 +1247,11 @@ export default function CreatePointCampaign() {
                   isView ? null : (
                     <DeleteOutlined
                       onClick={() =>
-                        setExtraRowsPoint((prev) => (prev.length <= 1 ? prev : prev.filter((r) => r.key !== record.key)))
+                        setExtraRowsPoint((prev) =>
+                          prev.length <= 1
+                            ? prev
+                            : prev.filter((r) => r.key !== record.key)
+                        )
                       }
                       style={{
                         color: "#ff4d4f",
@@ -1118,11 +1268,12 @@ export default function CreatePointCampaign() {
         </BoxPrimary>
       )}
 
-
       {campaignMode === "topup" && (
         <BoxPrimary>
           <div className="flex items-center justify-between mb-3">
-            <div className="text-[#00783F] text-lg font-semibold">Topup Point</div>
+            <div className="text-[#00783F] text-lg font-semibold">
+              Topup Point
+            </div>
             <div className="flex items-center gap-2">
               <div style={{ width: 280 }}>
                 <Search placeholder="Search" disabled />
@@ -1151,7 +1302,13 @@ export default function CreatePointCampaign() {
                     value={v}
                     disabled={isView}
                     onChange={(e) =>
-                      setTopupRows((prev) => prev.map((r) => (r.key === record.key ? { ...r, name: e.target.value } : r)))
+                      setTopupRows((prev) =>
+                        prev.map((r) =>
+                          r.key === record.key
+                            ? { ...r, name: e.target.value }
+                            : r
+                        )
+                      )
                     }
                   />
                 ),
@@ -1167,7 +1324,11 @@ export default function CreatePointCampaign() {
                     disabled={isView}
                     onChange={(e) =>
                       setTopupRows((prev) =>
-                        prev.map((r) => (r.key === record.key ? { ...r, description: e.target.value } : r))
+                        prev.map((r) =>
+                          r.key === record.key
+                            ? { ...r, description: e.target.value }
+                            : r
+                        )
                       )
                     }
                   />
@@ -1184,7 +1345,11 @@ export default function CreatePointCampaign() {
                     value={v}
                     disabled={isView}
                     onChange={(val) =>
-                      setTopupRows((prev) => prev.map((r) => (r.key === record.key ? { ...r, point: val } : r)))
+                      setTopupRows((prev) =>
+                        prev.map((r) =>
+                          r.key === record.key ? { ...r, point: val } : r
+                        )
+                      )
                     }
                   />
                 ),
@@ -1201,7 +1366,11 @@ export default function CreatePointCampaign() {
                     value={v}
                     disabled={isView}
                     onChange={(val) =>
-                      setTopupRows((prev) => prev.map((r) => (r.key === record.key ? { ...r, value: val } : r)))
+                      setTopupRows((prev) =>
+                        prev.map((r) =>
+                          r.key === record.key ? { ...r, value: val } : r
+                        )
+                      )
                     }
                   />
                 ),
@@ -1215,7 +1384,11 @@ export default function CreatePointCampaign() {
                   isView ? null : (
                     <DeleteOutlined
                       onClick={() =>
-                        setTopupRows((prev) => (prev.length <= 1 ? prev : prev.filter((r) => r.key !== record.key)))
+                        setTopupRows((prev) =>
+                          prev.length <= 1
+                            ? prev
+                            : prev.filter((r) => r.key !== record.key)
+                        )
                       }
                       style={{ color: "#ff4d4f", cursor: "pointer" }}
                     />
@@ -1228,8 +1401,6 @@ export default function CreatePointCampaign() {
           />
         </BoxPrimary>
       )}
-
-
 
       <div className="flex justify-end space-x-4">
         <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />
