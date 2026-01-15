@@ -137,57 +137,60 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   }, [userInfo]);
 
   const handleSaleChange = async (saleId) => {
-    setSelectedSale(saleId); // Update the selected value for SaleID
-
-    if (saleId) {
-      try {
-        const response = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
-          user_id: saleId,
-        });
-
-        if (response.result) {
-          setShopOptions(
-            response.data.map((item) => ({
-              label: item.sub_dealer_name, // Use sub_dealer_name for display
-              value: item.sub_dealer_id, // Use sub_dealer_id as the value
-            }))
-          );
-        } else {
-          console.error("Error fetching Sub Dealer options:", response.message);
-          setShopOptions([]); // Reset options in case of an error
-        }
-      } catch (error) {
-        console.error("Error fetching Sub Dealer options:", error);
-        setShopOptions([]); // Reset options in case of an error
-      }
-    } else {
-      // Reset Shop options and value when "All" is selected
+    // ✅ กด clear (saleId จะเป็น undefined)
+    if (!saleId) {
+      setSelectedSale(null);
+      setSelectedShop(null);
       setShopOptions([]);
-      setSelectedShop(null); // Reset UI for ShopID dropdown
 
-      sendData({
-        saleId: "", // Reset SaleID
-        shopId: "", // Reset ShopID
-      });
-
+      // fetch all
+      sendData({ saleId: "", shopId: "" });
       return;
     }
 
-    // Notify parent with SaleID and reset ShopID
+    setSelectedSale(saleId);
+
+    // โหลด shop ตาม sale
+    try {
+      const response = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
+        user_id: saleId,
+      });
+
+      if (response.result) {
+        setShopOptions(
+          response.data.map((item) => ({
+            label: item.sub_dealer_name,
+            value: item.sub_dealer_id,
+          }))
+        );
+      } else {
+        setShopOptions([]);
+      }
+    } catch (e) {
+      setShopOptions([]);
+    }
+
+    // reset shop เมื่อเปลี่ยน sale
+    setSelectedShop(null);
+
     sendData({
       saleId,
-      shopId: "", // Reset ShopID
+      shopId: "",
     });
-
-    setSelectedShop(null); // Reset UI for ShopID dropdown
   };
 
   const handleShopChange = (shopId) => {
-    setSelectedShop(shopId);
+    // ✅ กด clear (shopId จะเป็น undefined)
+    if (!shopId) {
+      setSelectedShop(null);
 
-    sendData({
-      shopId,
-    });
+      // fetch all ของ shop ภายใต้ sale เดิม (หรือถ้าอยาก all ทั้งหมดให้ส่ง saleId ด้วยเป็น "")
+      sendData({ shopId: "" });
+      return;
+    }
+
+    setSelectedShop(shopId);
+    sendData({ shopId });
   };
 
   const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -491,8 +494,14 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
               className="min-w-[150px]"
               placeholder="Select a Sale Territory"
               options={[{ label: "All", value: "" }, ...saleOptions]}
-              value={selectedSale} // Bind state to SaleID dropdown
+              value={selectedSale}
               onChange={handleSaleChange}
+              showSearch
+              allowClear
+              optionFilterProp="label"
+              filterOption={(input, option) =>
+                (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+              }
             />
 
             <Select
@@ -500,9 +509,15 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
               className="min-w-[150px]"
               placeholder="Select a Shop"
               options={[{ label: "All", value: "" }, ...shopOptions]}
-              value={selectedShop} // Bind state to ShopID dropdown
+              value={selectedShop}
               onChange={handleShopChange}
-              disabled={!selectedSale || selectedSale === ""} // Disable if no Sale is selected or "All" is selected
+              disabled={!selectedSale}   // ✅ clear แล้วจะ disabled
+              showSearch
+              allowClear
+              optionFilterProp="label"
+              filterOption={(input, option) =>
+                (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+              }
             />
           </div>
           {selectedDate ? (

@@ -40,13 +40,13 @@ export default function CustomerStockEdit() {
   const [dataSourceOther, setDataSourceOther] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
 
-  useEffect(() => {
-    const total = dataSource.reduce(
-      (sum, item) => sum + parseFloat(item.net_amount || 0),
-      0
-    );
-    setTotalValue(total);
-  }, [dataSource]);
+  // useEffect(() => {
+  //   const total = dataSource.reduce(
+  //     (sum, item) => sum + parseFloat(item.net_amount || 0),
+  //     0
+  //   );
+  //   setTotalValue(total);
+  // }, [dataSource]);
 
   useEffect(() => {
     console.log("user effect : ", documentNumber);
@@ -138,6 +138,8 @@ export default function CustomerStockEdit() {
             })),
           ];
         });
+
+        setTotalValue(stockDetail.data.net_amount_display);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -458,9 +460,6 @@ export default function CustomerStockEdit() {
           min={0}
           disabled={true}
           value={totalValue}
-          formatter={(value) =>
-            `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
         />
       </BoxPrimary>
 

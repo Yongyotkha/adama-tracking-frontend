@@ -57,17 +57,58 @@ const pickLatestYearCode = (yearsArr) => {
 
 export default function ReportSaleByYear() {
   const [loading, setLoading] = useState(false);
-  const [years, setYears] = useState([]);
+  const [years, setYears] = useState([]); // [{ value, label }]
+  const [defaultYear, setDefaultYear] = useState(null);
+
   const [areaList, setAreaList] = useState([]);
   const [sales, setSales] = useState([]);
   const [dealers, setDealers] = useState([]);
   const [products, setProducts] = useState([]);
 
   const [itemColumn, setItemColumn] = useState([]); // items (มี workplan_data_items ข้างใน)
-  const [dataSource, setDataSource] = useState(false); // data_items → แถวสินค้า
+  const [dataSource, setDataSource] = useState([]); // data_items → แถวสินค้า
   const [tableLoading, setTableLoading] = useState(false);
-  const { showNotification } = useContext(AuthContext);
+  const { showNotification, userInfo } = useContext(AuthContext);
+  const [areaId, setAreaId] = useState();
+  const [roleId, setRoleId] = useState();
   const [formCustom] = Form.useForm();
+  const watchedAreaId = Form.useWatch("area_id", formCustom);
+  const watchedSaleId = Form.useWatch("sale_id", formCustom);
+
+  const isAdmin = Number(roleId) === 1;
+
+  //load user detail to get area_id and role_id
+  useEffect(() => {
+    (async () => {
+      try {
+        const response = await useServiceAPI.get(
+          `${paths.pathMasterUsersDetail}/${userInfo.id}`,
+          {},
+          setLoading
+        );
+
+        if (response?.status === 200) {
+          const aId = response.data.area_id;
+          const rId = response.data.role_id;
+
+          setAreaId(aId);
+          setRoleId(rId);
+
+          // ✅ ใช้ String ให้ match options
+          formCustom.setFieldsValue({ area_id: String(aId) });
+        }
+      } catch (error) {
+        console.log(error);
+        if (error?.status === 422) showNotification("error", error.message);
+        else showNotification("error", "เกิดข้อผิดพลาด");
+      }
+    })();
+
+    // ❌ ไม่เรียก fetchData ตรงนี้
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
 
   const [tableParams, setTableParams] = useState({
     pagination: { current: 1, pageSize: 10 },
@@ -107,7 +148,7 @@ export default function ReportSaleByYear() {
       ],
     },
     ...itemColumn.map((period, index) => ({
-      title: period.name, // e.g., "Year"
+      title: period.name,
       key: `period_${index}`,
       onHeaderCell: () => ({
         style: {
@@ -118,7 +159,6 @@ export default function ReportSaleByYear() {
         },
       }),
       children: [
-        // Work Plan (KG)
         {
           title: "Work Plan (KG)",
           key: `wkqty_${index}`,
@@ -134,7 +174,8 @@ export default function ReportSaleByYear() {
           render: (_, record) => {
             const itemData =
               (period.workplan_data_items || []).find(
-                (p) => normalize(p.product_name) === normalize(record.productName)
+                (p) =>
+                  normalize(p.product_name) === normalize(record.productName)
               ) || {};
             return (
               <InputNumber
@@ -146,14 +187,16 @@ export default function ReportSaleByYear() {
                     : 0
                 }
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
               />
             );
           },
         },
-        // Rolling Forecast (KG)
         {
           title: "Rolling Forecast (KG)",
           key: `rlqty_${index}`,
@@ -169,7 +212,8 @@ export default function ReportSaleByYear() {
           render: (_, record) => {
             const itemData =
               (period.workplan_data_items || []).find(
-                (p) => normalize(p.product_name) === normalize(record.productName)
+                (p) =>
+                  normalize(p.product_name) === normalize(record.productName)
               ) || {};
             return (
               <InputNumber
@@ -181,14 +225,16 @@ export default function ReportSaleByYear() {
                     : 0
                 }
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
               />
             );
           },
         },
-        // Actual (KG)
         {
           title: "Actual (KG)",
           key: `actqty_${index}`,
@@ -204,7 +250,8 @@ export default function ReportSaleByYear() {
           render: (_, record) => {
             const itemData =
               (period.workplan_data_items || []).find(
-                (p) => normalize(p.product_name) === normalize(record.productName)
+                (p) =>
+                  normalize(p.product_name) === normalize(record.productName)
               ) || {};
             return (
               <InputNumber
@@ -216,14 +263,16 @@ export default function ReportSaleByYear() {
                     : 0
                 }
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
               />
             );
           },
         },
-        // Work Plan (Value)
         {
           title: "Work Plan (Value)",
           key: `wkval_${index}`,
@@ -239,7 +288,8 @@ export default function ReportSaleByYear() {
           render: (_, record) => {
             const itemData =
               (period.workplan_data_items || []).find(
-                (p) => normalize(p.product_name) === normalize(record.productName)
+                (p) =>
+                  normalize(p.product_name) === normalize(record.productName)
               ) || {};
             return (
               <InputNumber
@@ -251,14 +301,16 @@ export default function ReportSaleByYear() {
                     : 0
                 }
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
               />
             );
           },
         },
-        // Rolling Forecast (Value)
         {
           title: "Rolling Forecast (Value)",
           key: `rlval_${index}`,
@@ -274,7 +326,8 @@ export default function ReportSaleByYear() {
           render: (_, record) => {
             const itemData =
               (period.workplan_data_items || []).find(
-                (p) => normalize(p.product_name) === normalize(record.productName)
+                (p) =>
+                  normalize(p.product_name) === normalize(record.productName)
               ) || {};
             return (
               <InputNumber
@@ -286,14 +339,16 @@ export default function ReportSaleByYear() {
                     : 0
                 }
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
               />
             );
           },
         },
-        // Actual (Value)
         {
           title: "Actual (Value)",
           key: `actval_${index}`,
@@ -309,7 +364,8 @@ export default function ReportSaleByYear() {
           render: (_, record) => {
             const itemData =
               (period.workplan_data_items || []).find(
-                (p) => normalize(p.product_name) === normalize(record.productName)
+                (p) =>
+                  normalize(p.product_name) === normalize(record.productName)
               ) || {};
             return (
               <InputNumber
@@ -321,7 +377,10 @@ export default function ReportSaleByYear() {
                     : 0
                 }
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${parseInt(value || 0, 10)}`.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    ","
+                  )
                 }
                 disabled
               />
@@ -374,28 +433,52 @@ export default function ReportSaleByYear() {
           useServiceAPI.get(paths.pathMasterAreas),
         ]);
 
-        const yearList = yearsRes.data || [];
-        setYears(yearList);
+        const yearRaw = Array.isArray(yearsRes?.data) ? yearsRes.data : [];
+        const yearOptions = yearRaw.map((y) => {
+          const yc = getYearCodeFrom(y);
+          return { value: yc, label: yc };
+        });
+        setYears(yearOptions);
+
         setProducts(
           (productsRes?.data || []).map((x) => ({
             value: x.product_name,
             label: x.product_name,
           }))
         );
-        setAreaList((areasRes?.data || []).map((x) => ({ value: x.id, label: x.name })));
+        setAreaList(
+          (areasRes?.data || []).map((x) => ({ value: String(x.id), label: x.name }))
+        );
 
-        // ตั้งปีเริ่มต้น = ปีล่าสุด (เก็บเป็น string)
-        if (yearList.length > 0) {
-          const latestYear = pickLatestYearCode(yearList);
-          setTableParams((prev) => ({
-            ...prev,
-            filters: { year_code: latestYear },
-          }));
+        // default = current year (now) จาก master year ถ้ามี
+        if (yearOptions.length > 0) {
+          const currentYear = dayjs().tz("Asia/Bangkok").format("YYYY");
+
+          // พยายามหา year ปัจจุบันใน options ก่อน ไม่มีก็ใช้ตัวแรก
+          const matched =
+            yearOptions.find((y) => getYearCodeFrom(y) === currentYear) ||
+            yearOptions[0];
+
+          const initialYear = getYearCodeFrom(matched);
+
+          setDefaultYear(initialYear);
+          formCustom.setFieldsValue({ year_code: initialYear });
+
+          const currentArea = formCustom.getFieldValue("area_id") ?? "";
+
+          await fetchData({
+            area_id: isAdmin ? "" : currentArea,   // ✅ ถ้าไม่ใช่ admin ใช้ area ที่ถูก set ไว้
+            year_code: initialYear,
+            user_id: "",
+            dealer_id: "",
+            product_name: "",
+            platform: "web",
+          });
         }
 
-        // เคลียร์ sale/dealer ตอนเริ่ม
-        setSales([]);
-        setDealers([]);
+
+        // setSales([]);
+        // setDealers([]);
       } catch (error) {
         showNotification("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -408,43 +491,81 @@ export default function ReportSaleByYear() {
 
   // เปลี่ยน Area → โหลด Sales
   useEffect(() => {
-    const areaId = formCustom.getFieldValue("area_id");
-    if (!areaId) {
-      setSales([]);
-      formCustom.resetFields(["sale_id", "dealer_id"]);
-      setDealers([]);
-      return;
-    }
-    (async () => {
+    let alive = true;
+
+    const run = async () => {
+      if (!watchedAreaId) {
+        setSales([]);
+        setDealers([]);
+        formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
+        return;
+      }
+
+      console.log("Load sales for area:", watchedAreaId);
+
       try {
-        const res = await useServiceAPI.get(paths.pathMasterSaleReport, { area_id: areaId });
-        const list = Array.isArray(res?.data) ? res.data : [];
-        const saleOptions = list.map((item) => ({
-          value: Number(item.id),
+        const res = await useServiceAPI.get(paths.pathMasterSaleReport, {
+          area_id: watchedAreaId,
+        });
+
+        console.log("pathMasterSaleReport res:", res);
+
+        // ✅ robust: รองรับ res.data เป็น array หรือ res.data.data
+        const raw = res?.data?.data ?? res?.data ?? [];
+        const list = Array.isArray(raw) ? raw : [];
+
+        console.log("Sales raw list:", list);
+
+        const options = list.map((item) => ({
+          value: String(item.id), // ✅ ใช้ string ให้ match กับ form/select
           label: item.name,
         }));
-        setSales(saleOptions);
-        formCustom.resetFields(["sale_id", "dealer_id"]);
+
+        if (!alive) return;
+
+        setSales(options);
+
+        // ✅ reset dependents หลังโหลด area ใหม่ (ปลอดภัยกว่า)
+        formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
         setDealers([]);
-      } catch {
+      } catch (e) {
+        console.log("Load sales error:", e);
+        if (!alive) return;
         setSales([]);
         setDealers([]);
       }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formCustom.getFieldValue("area_id")]);
+    };
 
+    run();
+
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedAreaId]);
+
+  // ✅ log ที่ถูกต้อง: log เมื่อ state เปลี่ยนจริง
+  useEffect(() => {
+    console.log("Sales state changed:", sales);
+  }, [sales]);
+
+
+  useEffect(() => {
+    console.log("Sales state changed:", sales);
+  }, [sales]);
   // เปลี่ยน Sale → โหลด Dealers
   useEffect(() => {
-    const saleId = formCustom.getFieldValue("sale_id");
-    if (!saleId) {
+    if (!watchedSaleId) {
       setDealers([]);
       formCustom.resetFields(["dealer_id"]);
       return;
     }
+
     (async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: saleId });
+        const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
+          user_id: watchedSaleId,
+        });
         const list = Array.isArray(res?.data) ? res.data : [];
         const dealerOptions = list.map((item) => ({
           value: Number(item.id),
@@ -458,21 +579,22 @@ export default function ReportSaleByYear() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formCustom.getFieldValue("sale_id")]);
+  }, [watchedSaleId]);
 
-  // โหลดข้อมูลครั้งแรก/เมื่อปีพร้อม
-  useEffect(() => {
-    if (getYearCodeFrom(tableParams?.filters?.year_code)) fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(tableParams.filters)]);
 
-  // ---------------- Fetch data (ใช้ payload เดียวกับ Month/Quarter)
+  // ❌ ไม่ auto-fetch ตาม year อีกต่อไป
+
+  // ---------------- Fetch data
   const buildPayload = async () => {
     const values = await formCustom.validateFields().catch(() => ({}));
+    const yearFromForm =
+      getYearCodeFrom(values?.year_code) ||
+      defaultYear ||
+      dayjs().tz("Asia/Bangkok").format("YYYY");
+
     return {
-      year_code:
-        getYearCodeFrom(tableParams.filters?.year_code) ||
-        dayjs().tz("Asia/Bangkok").format("YYYY"),
+      area_id: values?.area_id ?? "",   // ✅ เพิ่ม
+      year_code: yearFromForm,
       user_id: values?.sale_id ?? "",
       dealer_id: values?.dealer_id ?? "",
       product_name: values?.product_name ?? "",
@@ -523,12 +645,12 @@ export default function ReportSaleByYear() {
 
   // สร้างชื่อไฟล์ตามฟิลเตอร์ + ปี + เวลาปัจจุบัน
   const buildYearlyReportFileName = () => {
-    const vals = formCustom.getFieldsValue(); // {area_id, sale_id, dealer_id, product_name}
+    const vals = formCustom.getFieldsValue();
     const year =
-      getYearCodeFrom(tableParams.filters?.year_code) ||
+      getYearCodeFrom(vals.year_code) ||
+      defaultYear ||
       dayjs().tz("Asia/Bangkok").format("YYYY");
 
-    // map value -> label (จาก options ปัจจุบัน)
     const getLabel = (list, val) =>
       (list.find((o) => o.value === val) || {}).label;
 
@@ -551,7 +673,6 @@ export default function ReportSaleByYear() {
     return `${parts.join("_")}_${ts}`;
   };
 
-
   // ---------------- UI
   return (
     <>
@@ -566,14 +687,19 @@ export default function ReportSaleByYear() {
                   <Select
                     placeholder="Select Area"
                     options={areaList}
+                    disabled={!isAdmin}          // ✅ roleId != 1 ห้ามเปลี่ยน
+                    allowClear={isAdmin}         // ✅ roleId != 1 ห้ามล้าง
                     onChange={() => {
+                      // admin เท่านั้นที่เปลี่ยน area ได้
+                      if (!isAdmin) return;
+
                       formCustom.resetFields(["sale_id", "dealer_id"]);
                       setSales([]);
                       setDealers([]);
                     }}
-                    allowClear
                   />
                 </Form.Item>
+
               </Col>
 
               <Col md={6}>
@@ -581,7 +707,7 @@ export default function ReportSaleByYear() {
                   <Select
                     placeholder="Select Sales"
                     options={sales}
-                    disabled={!formCustom.getFieldValue("area_id")}
+                    disabled={!watchedAreaId}
                     onChange={() => {
                       formCustom.resetFields(["dealer_id"]);
                       setDealers([]);
@@ -602,11 +728,21 @@ export default function ReportSaleByYear() {
                 </Form.Item>
               </Col>
 
-              <Col md={6} className="hidden">
-                <Form.Item label="Product" name="product_name">
-                  <Select placeholder="Select Product" options={products} allowClear />
+              {/* Year filter (ใช้ตอน Search/Clear เท่านั้น) */}
+              <Col md={6}>
+                <Form.Item label="Year" name="year_code">
+                  <Select
+                    placeholder="Select Year"
+                    options={years}
+                    allowClear={false}
+                  />
                 </Form.Item>
               </Col>
+
+              {/* product hidden */}
+              <Form.Item name="product_name" hidden>
+                <Select options={products} />
+              </Form.Item>
             </Row>
 
             <div className="flex justify-end gap-3 px-4 pt-5">
@@ -619,26 +755,57 @@ export default function ReportSaleByYear() {
               />
               <DynamicButton
                 onClick={async () => {
-                  formCustom.resetFields(["area_id", "sale_id", "dealer_id", "product_name"]);
-                  setSales([]);
+                  formCustom.resetFields([
+                    "sale_id",
+                    "dealer_id",
+                    "product_name",
+                    "year_code",
+                    ...(isAdmin ? ["area_id"] : []),  // ✅ ถ้าไม่ใช่ admin อย่า reset area_id
+                  ]);
+
+                  // setSales([]);
                   setDealers([]);
-                  fetchData();
+
+                  const yearToUse =
+                    defaultYear || dayjs().tz("Asia/Bangkok").format("YYYY");
+
+                  formCustom.setFieldsValue({ year_code: yearToUse });
+
+                  // ✅ ถ้าไม่ใช่ admin ให้ set area_id กลับเป็น areaId ของ user
+                  const areaToUse = isAdmin ? "" : (areaId ?? formCustom.getFieldValue("area_id") ?? "");
+                  if (!isAdmin && areaId) formCustom.setFieldsValue({ area_id: areaId });
+
+                  setTableParams((prev) => ({
+                    ...prev,
+                    pagination: { ...prev.pagination, current: 1 },
+                  }));
+
+                  await fetchData({
+                    area_id: areaToUse,
+                    year_code: yearToUse,
+                    user_id: "",
+                    dealer_id: "",
+                    product_name: "",
+                    platform: "web",
+                  });
                 }}
+
                 name="btn-clear"
                 text="Clear"
                 iconSrc="/img/icons/trash.png"
                 className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
               />
-              {/* Export Excel: ใช้ payload เดียวกัน */}
               <ExportMonthlyExcelButton
                 text="Export Excel"
                 fileName={buildYearlyReportFileName()}
                 getPayload={buildPayload}
                 requestData={(payload) =>
-                  useServiceAPI.get(paths.pathReportRollingWorkPlanYear, payload)
+                  useServiceAPI.get(
+                    paths.pathReportRollingWorkPlanYear,
+                    payload
+                  )
                 }
               />
-
             </div>
           </BoxPrimary>
         </Form>
@@ -655,7 +822,9 @@ export default function ReportSaleByYear() {
               return (
                 <Table.Summary fixed>
                   <Table.Summary.Row className="bg-[#978B87]">
-                    <Table.Summary.Cell index={0}>Total (THB)</Table.Summary.Cell>
+                    <Table.Summary.Cell index={0}>
+                      Total (THB)
+                    </Table.Summary.Cell>
                     {footerData.map((period, index) => (
                       <React.Fragment key={`${period.id}_${index}`}>
                         <Table.Summary.Cell align="center">
@@ -664,7 +833,10 @@ export default function ReportSaleByYear() {
                             readOnly
                             value={period.workplan_qty}
                             formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `${parseInt(value || 0, 10)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
                             }
                           />
                         </Table.Summary.Cell>
@@ -674,7 +846,10 @@ export default function ReportSaleByYear() {
                             readOnly
                             value={period.rolling_qty}
                             formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `${parseInt(value || 0, 10)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
                             }
                           />
                         </Table.Summary.Cell>
@@ -684,7 +859,10 @@ export default function ReportSaleByYear() {
                             readOnly
                             value={period.actual_qty}
                             formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `${parseInt(value || 0, 10)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
                             }
                           />
                         </Table.Summary.Cell>
@@ -694,7 +872,10 @@ export default function ReportSaleByYear() {
                             readOnly
                             value={period.workplan_value}
                             formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `${parseInt(value || 0, 10)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
                             }
                           />
                         </Table.Summary.Cell>
@@ -704,7 +885,10 @@ export default function ReportSaleByYear() {
                             readOnly
                             value={period.rolling_value}
                             formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `${parseInt(value || 0, 10)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
                             }
                           />
                         </Table.Summary.Cell>
@@ -714,7 +898,10 @@ export default function ReportSaleByYear() {
                             readOnly
                             value={period.actual_value}
                             formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `${parseInt(value || 0, 10)}`.replace(
+                                /\B(?=(\d{3})+(?!\d))/g,
+                                ","
+                              )
                             }
                           />
                         </Table.Summary.Cell>

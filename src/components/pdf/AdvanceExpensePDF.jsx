@@ -375,21 +375,27 @@ const AdvanceExpensePDF = () => {
                 <Text style={styles.footerLabel}>Advance</Text>
                 <View style={styles.footerContentRow}>
                   <Text style={{ flex: 2, textAlign: "start" }}>Request By :</Text>
-                  <Text style={{ flex: 4, textAlign: "start" }}>{dataHeader.user_name}</Text>
+                  {/* <Text style={{ flex: 4, textAlign: "start" }}>{dataHeader.user_name}</Text> */}
+                  <Text style={{ flex: 4, textAlign: "start",lineHeight: 1.25 }}>   </Text>
                   <Text style={{ flex: 1, textAlign: "start" }}>Date</Text>
-                  <Text style={{ flex: 2, textAlign: "start" }}>{formatDate(dataHeader.created_at)}</Text>
+                  {/* <Text style={{ flex: 2, textAlign: "start" }}>{formatDate(dataHeader.created_at)}</Text> */}
+                  <Text style={{ flex: 2, textAlign: "start",lineHeight: 1.25 }}>   </Text>
                 </View>
                 <View style={styles.footerContentRow}>
-                  <Text style={{ flex: 2, textAlign: "start" }}>Approved By :</Text>
-                  <Text style={{ flex: 4, textAlign: "start" }}> {dataHeader?.approve_by?.user_name_en || "-"}</Text>
+                  <Text style={{ flex: 2, textAlign: "start" }}>Checked by :</Text>
+                  {/* <Text style={{ flex: 4, textAlign: "start" }}> {dataHeader?.approve_by?.user_name_en || "-"}</Text> */}
+                  <Text style={{ flex: 4, textAlign: "start",lineHeight: 1.25 }}>   </Text>
                   <Text style={{ flex: 1, textAlign: "start" }}>Date</Text>
-                  <Text style={{ flex: 2, textAlign: "start" }}> {formatDate(dataHeader?.approve_by?.created_at)}</Text>
+                  {/* <Text style={{ flex: 2, textAlign: "start" }}> {formatDate(dataHeader?.approve_by?.created_at)}</Text> */}
+                  <Text style={{ flex: 2, textAlign: "start",lineHeight: 1.25 }}>   </Text>
                 </View>
                 <View style={styles.footerContentRow}>
-                  <Text style={{ flex: 2, textAlign: "start" }}>Clearing By :</Text>
-                  <Text style={{ flex: 4, textAlign: "start" }}> {dataHeader?.approve_clearing_by?.user_name_en || "-"}</Text>
+                  <Text style={{ flex: 2, textAlign: "start" }}>Approved by :</Text>
+                  {/* <Text style={{ flex: 4, textAlign: "start" }}> {dataHeader?.approve_clearing_by?.user_name_en || "-"}</Text> */}
+                  <Text style={{ flex: 4, textAlign: "start",lineHeight: 1.25 }}>   </Text>
                   <Text style={{ flex: 1, textAlign: "start" }}>Date</Text>
-                  <Text style={{ flex: 2, textAlign: "start" }}> {formatDate(dataHeader?.approve_clearing_by?.created_at)}</Text>
+                  {/* <Text style={{ flex: 2, textAlign: "start" }}> {formatDate(dataHeader?.approve_clearing_by?.created_at)}</Text> */}
+                  <Text style={{ flex: 2, textAlign: "start",lineHeight: 1.25 }}>   </Text>
                 </View>
               </View>
 
@@ -398,21 +404,27 @@ const AdvanceExpensePDF = () => {
                 <Text style={styles.footerLabel}>Clearing</Text>
                 <View style={styles.footerContentRow}>
                   <Text style={{ flex: 2, textAlign: "start" }}>Request By :</Text>
-                  <Text style={{ flex: 4, textAlign: "start" }}> {dataHeader?.clearing_create?.user_name_en || "-"}</Text>
+                  {/* <Text style={{ flex: 4, textAlign: "start" }}> {dataHeader?.clearing_create?.user_name_en || "-"}</Text> */}
+                  <Text style={{ flex: 4, textAlign: "start",lineHeight: 1.25 }}>   </Text>
                   <Text style={{ flex: 1, textAlign: "start" }}>Date</Text>
-                  <Text style={{ flex: 2, textAlign: "start" }}> {formatDate(dataHeader?.clearing_create?.created_at)}</Text>
+                  {/* <Text style={{ flex: 2, textAlign: "start" }}> {formatDate(dataHeader?.clearing_create?.created_at)}</Text> */}
+                  <Text style={{ flex: 2, textAlign: "start",lineHeight: 1.25 }}>   </Text>
                 </View>
                 <View style={styles.footerContentRow}>
-                  <Text style={{ flex: 2, textAlign: "start" }}>Approved By :</Text>
-                  <Text style={{ flex: 4, textAlign: "start" }}>  {dataHeader?.clearing_approve?.user_name_en || "-"}</Text>
+                  <Text style={{ flex: 2, textAlign: "start" }}>Checked by :</Text>
+                  {/* <Text style={{ flex: 4, textAlign: "start" }}>  {dataHeader?.clearing_approve?.user_name_en || "-"}</Text> */}
+                  <Text style={{ flex: 4, textAlign: "start",lineHeight: 1.25 }}>   </Text>
                   <Text style={{ flex: 1, textAlign: "start" }}>Date</Text>
-                  <Text style={{ flex: 2, textAlign: "start" }}> {formatDate(dataHeader?.clearing_approve?.created_at)}</Text>
+                  {/* <Text style={{ flex: 2, textAlign: "start" }}> {formatDate(dataHeader?.clearing_approve?.created_at)}</Text> */}
+                  <Text style={{ flex: 2, textAlign: "start",lineHeight: 1.25 }}>   </Text>
                 </View>
                 <View style={styles.footerContentRow}>
-                  <Text style={{ flex: 2, textAlign: "start" }}>Clearing By :</Text>
-                  <Text style={{ flex: 4, textAlign: "start" }}> {dataHeader?.clearing_by?.user_name_en || "-"} </Text>
+                  <Text style={{ flex: 2, textAlign: "start" }}>Approved by :</Text>
+                  {/* <Text style={{ flex: 4, textAlign: "start" }}> {dataHeader?.clearing_by?.user_name_en || "-"} </Text> */}
+                  <Text style={{ flex: 4, textAlign: "start",lineHeight: 1.25 }}>   </Text>
                   <Text style={{ flex: 1, textAlign: "start" }}>Date</Text>
-                  <Text style={{ flex: 2, textAlign: "start" }}>  {formatDate(dataHeader?.clearing_by?.created_at)}</Text>
+                  {/* <Text style={{ flex: 2, textAlign: "start" }}>  {formatDate(dataHeader?.clearing_by?.created_at)}</Text> */}
+                  <Text style={{ flex: 2, textAlign: "start",lineHeight: 1.25 }}>   </Text>
                 </View>
               </View>
             </View>

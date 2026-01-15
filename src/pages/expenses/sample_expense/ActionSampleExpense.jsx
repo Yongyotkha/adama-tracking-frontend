@@ -52,56 +52,61 @@ export default function ActionSampleExpense() {
   useEffect(() => {
     const getDataSample = () => {
       useServiceAPI
-        .get(paths.pathSampleExpenseDetails, {
+        .get(paths.pathSampleExpenseDetailsAndCreate, {
           document_number: location?.state?.document_number,
         })
         .then((response) => {
           if (response.status === 200) {
             console.log(response);
 
-            const responseData = response.data;
-            const productData = response.data.products;
+            const responseData = response.data.header;
+            const productData = response.data.items;
+
+            // ตรวจสอบว่าข้อมูลใน response มีความสมบูรณ์หรือไม่
+            if (!responseData || !productData || productData.length === 0) {
+              showNotification("error", "ข้อมูลไม่ครบถ้วน");
+              return;  // ถ้าไม่มีข้อมูลหรือข้อมูลไม่ถูกต้องก็หยุดการทำงาน
+            }
+
             const newProductDataDetails = productData.map((data, index) => {
               return {
-                key: index + 1, // กำหนด key ที่ไม่ซ้ำ
-                no: index + 1, // กำหนดเลขที่สินค้าตามลำดับ
+                key: index + 1,
+                no: index + 1,
                 sku: data.product_code,
-                productId: data.id,
+                productId: data.product_id,
                 productName: data.product_name,
-                packSize: data.pack_size,
-                quantity: data.qty || 0, // ตั้งค่า quantity เป็น 1 เมื่อเพิ่มสินค้าใหม่
-                value: data.value || 0, // ราคาของสินค้า
-                totalValue: data.qty * data.unit_convert_value,
-                remark: data.remark,
-                warehouseSend: data.warehouse_send || 0,
-                receive: data.receive || 0,
+                packSize: data.product_unit,
+                quantity: data.quantity || 0,
+                value: data.net_amount || 0,
+                totalValue: data.quantity * data.net_amount,
+                remark: data.ref_remark,
               };
             });
 
-            const updatedDataSource = [...dataSource, ...newProductDataDetails];
-            setDataSource(updatedDataSource);
-
+            setDataSource(newProductDataDetails); // ตั้งค่า dataSource
             setData({
               ...data,
               document_number: responseData.document_number,
-              // document_datetime: responseData.document_datetime,
+              document_datetime: dayjs(responseData.document_datetime),
               dealer_id: responseData.dealer_id,
               sub_dealer_id: responseData.sub_dealer_id,
               crop_id: responseData.crop_id,
-              request_value: responseData.value,
-              warehouse_value: responseData.warehouse_value,
-              receive_value: responseData.receive_value,
-              url_file_list: responseData.url_file_list,
-              file_name_list: responseData.file_name_list,
-              remark: responseData.document_number,
+              request_value: responseData.net_amount,
+              warehouse_value: responseData.net_amount_product,
+              receive_value: responseData.quantity_product,
+              remark: responseData.ref_remark,
             });
+          } else {
+            // ถ้า status code ไม่ใช่ 200 ให้แสดงข้อผิดพลาด
+            showNotification("error", "ไม่สามารถดึงข้อมูลได้");
           }
         })
         .catch((error) => {
+          console.error("Error fetching data:", error);
           if (error.status === 422) {
-            showNotification("error", error.message);
+            showNotification("error", error.message || "ข้อผิดพลาดในการดึงข้อมูล");
           } else {
-            showNotification("error", "เกิดข้อผิดพลาด");
+            showNotification("error", "เกิดข้อผิดพลาดในการเชื่อมต่อ");
           }
         });
     };
@@ -110,6 +115,71 @@ export default function ActionSampleExpense() {
       getDataSample();
     }
   }, []);
+
+  const handleSave = () => {
+    // Extract document_date from data (format it to 'YYYY-MM-DD')
+    const documentDate = data?.document_datetime ? dayjs(data.document_datetime).format('YYYY-MM-DD') : null;
+
+    // Ensure user_id is available (from data or fallback to userInfo)
+    const userId = data?.user_id || userInfo?.id;
+    console.log(documentDate + " - " + userId);
+
+    // Check if both document_date and user_id are present
+    if (!documentDate || !userId) {
+      showNotification("error", "Document date and user ID are required.");
+      return; // Don't proceed if required fields are missing
+    }
+
+    // Prepare the file_list
+    const fileList = data.url_file_list || [];
+
+    // Format the products data to match the expected structure
+    const formattedProduct = dataSource?.map((item) => ({
+      product_id: item.productId,
+      product_code: item.sku,
+      product_name: item.productName,
+      product_unit: item.packSize,  // You can add the correct product unit
+      product_unit_thb: item.value, // You can pass the unit value (price per unit)
+      quantity: item.quantity,
+      foc: 0,  // Assuming 'foc' is 0 unless there's specific logic for it
+      net_amount: item.value,  // Assuming the value is the net amount
+    }));
+
+    // Prepare the payload
+    const payload = {
+      document_date: documentDate, // Include document_date (formatted)
+      user_id: userId, // Include user_id from the data state
+      dealer_id: isSubDealerDisabled ? null : data?.dealer_id, // If 'No Sub Dealer' checkbox is checked, set dealer_id to null
+      sub_dealer_id: isSubDealerDisabled ? null : data?.sub_dealer_id, // Similarly for sub_dealer_id
+      crop_id: data?.crop_id, // Crop ID from the state
+      remark: data?.remark || data?.ref_remark, // Ensure remark is passed
+      file_list: fileList, // File URLs
+      products: formattedProduct, // Include the formatted products
+    };
+
+    // Make the API request to save the data
+    useServiceAPI
+      .post(paths.pathSampleExpenseDetailsAndCreate, payload, setLoading)
+      .then((response) => {
+        if (response.status === 200) {
+          const successCallback = () => {
+            navigate("/expenses/sample");
+          };
+          showNotification(
+            "success",
+            response.data.message,
+            response.data.message_line
+          ).then(successCallback);
+        }
+      })
+      .catch((error) => {
+        if (error.status === 422) {
+          showNotification("error", error.message);
+        } else {
+          showNotification("error", "เกิดข้อผิดพลาด");
+        }
+      });
+  };
 
   useEffect(() => {
     const getMasterDealer = async () => {
@@ -140,65 +210,45 @@ export default function ActionSampleExpense() {
   }, []);
 
   useEffect(() => {
-    const getDealerId = () => {
-      useServiceAPI
-        .post(paths.pathSampleGetDealer, { sub_dealer_id: data?.sub_dealer_id })
-        .then((response) => {
-          if (response.status === 200) {
-            console.log(response);
-            setData({
-              ...data,
-              dealer_id: response.data.id,
-            });
-          }
-        })
-        .catch((error) => {
-          if (error.status === 422) {
-            showNotification("error", error.message);
-          } else {
-            showNotification("error", "เกิดข้อผิดพลาด");
-          }
-        });
-    };
-
-    if (data?.sub_dealer_id) {
-      getDealerId();
-    }
-  }, [data?.sub_dealer_id]);
-
-  useEffect(() => {
+    // Function to fetch crops based on the "No Sub Dealer" checkbox state
     const getMasterCrop = () => {
+      let path = paths.pathMasterSubDealerCrop; // Default path when "No Sub Dealer" is unchecked
+
+      if (isSubDealerDisabled) {
+        path = paths.pathMasterCrop;  // Use the master crop path when "No Sub Dealer" is checked
+      }
+
+      // Clear the crops and reset crop selection every time the checkbox is toggled
+      setCrops([]);
+      setData({
+        ...data,
+        crop_id: null,  // Clear the crop_id
+        crop_name: null,  // Clear the crop_name
+        dealer_id: null,  // Clear the dealer_id
+        dealer_name: null,  // Clear the dealer_name
+        sub_dealer_id: null,  // Clear the sub_dealer_id
+        sub_dealer_name: null,  // Clear the sub_dealer_name
+      });
+
       useServiceAPI
-        .get(paths.pathMasterCrop, { dealer_id: data?.dealer_id })
+        .get(path) // Fetch crops from the selected path
         .then((response) => {
           if (response.status === 200) {
-            console.log(response);
-
-            const formattedCrops = response?.data.map((item) => ({
-              value: item.id,
-              label: item.name,
-            }));
-
-            // setData({
-            //   ...data,
-            //   crop_id: null,
-            // });
-            setCrops(formattedCrops);
+            // Set crops based on the fetched data
+            setCrops(response?.data.map((item) => ({ value: item.id, label: item.name })));
           }
         })
         .catch((error) => {
-          if (error.status === 422) {
-            showNotification("error", error.message);
-          } else {
-            showNotification("error", "เกิดข้อผิดพลาด");
-          }
+          showNotification("error", error.message || "เกิดข้อผิดพลาด");
         });
     };
 
-    if (data?.dealer_id) {
-      getMasterCrop();
-    }
-  }, [data?.dealer_id]);
+    // Trigger fetching crops when the checkbox is toggled
+    getMasterCrop();
+
+  }, [isSubDealerDisabled]); // Trigger the effect when checkbox state changes
+
+
 
   const handleUploadChange = (info) => {
     const { file, fileList: updatedFileList } = info;
@@ -239,16 +289,14 @@ export default function ActionSampleExpense() {
               src="/img/icons/collapse.png"
               alt="decrease"
               className="cursor-pointer w-6 h-6"
-              onClick={() =>
-                handleQuantityChange(record.key, record.quantity - 1)
-              }
+              onClick={() => handleQuantityChange(record.key, Math.max(1, record.quantity - 1))}
             />
             <Input
               inputMode="numeric"
               min={1}
-              value={record.quantity}
+              value={Math.floor(record.quantity)}  // Ensures only whole numbers are shown
               onChange={(e) =>
-                handleQuantityChange(record.key, parseInt(e.target.value) || 1)
+                handleQuantityChange(record.key, Math.floor(parseInt(e.target.value)) || 1) // Set to whole number only
               }
               className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
             />
@@ -256,9 +304,7 @@ export default function ActionSampleExpense() {
               src="/img/icons/expand.png"
               alt="increase"
               className="cursor-pointer w-6 h-6"
-              onClick={() =>
-                handleQuantityChange(record.key, record.quantity + 1)
-              }
+              onClick={() => handleQuantityChange(record.key, Math.min(100, record.quantity + 1))}  // Example max limit of 100
             />
           </div>
         ),
@@ -280,40 +326,40 @@ export default function ActionSampleExpense() {
           />
         ),
     },
-    {
-      title: "Warehouse Send",
-      dataIndex: "warehouseSend",
-      key: "warehouseSend",
-      render: (_, record) =>
-        isViewMode ? (
-          record.warehouseSend
-        ) : (
-          <Input
-            value={record.warehouseSend}
-            onChange={(e) =>
-              handleInputChange(record.key, "warehouseSend", e.target.value)
-            }
-            disabled={true}
-          />
-        ),
-    },
-    {
-      title: "Receive",
-      dataIndex: "receive",
-      key: "receive",
-      render: (_, record) =>
-        isViewMode ? (
-          record.receive
-        ) : (
-          <Input
-            value={record.receive}
-            onChange={(e) =>
-              handleInputChange(record.key, "receive", e.target.value)
-            }
-            disabled={true}
-          />
-        ),
-    },
+    // {
+    //   title: "Warehouse Send",
+    //   dataIndex: "warehouseSend",
+    //   key: "warehouseSend",
+    //   render: (_, record) =>
+    //     isViewMode ? (
+    //       record.warehouseSend
+    //     ) : (
+    //       <Input
+    //         value={record.warehouseSend}
+    //         onChange={(e) =>
+    //           handleInputChange(record.key, "warehouseSend", e.target.value)
+    //         }
+    //         disabled={true}
+    //       />
+    //     ),
+    // },
+    // {
+    //   title: "Receive",
+    //   dataIndex: "receive",
+    //   key: "receive",
+    //   render: (_, record) =>
+    //     isViewMode ? (
+    //       record.receive
+    //     ) : (
+    //       <Input
+    //         value={record.receive}
+    //         onChange={(e) =>
+    //           handleInputChange(record.key, "receive", e.target.value)
+    //         }
+    //         disabled={true}
+    //       />
+    //     ),
+    // },
     {
       title: "Action",
       dataIndex: "action",
@@ -477,45 +523,6 @@ export default function ActionSampleExpense() {
     }
   };
 
-  const handleSave = () => {
-    const formattedProduct = dataSource?.map((item) => ({
-      product_id: item.productId,
-      product_code: item.sku,
-      product_name: item.productName,
-      pack_size: item.packSize,
-      qty: item.quantity,
-      value: item.value,
-      remark: item.remark,
-      warehouse_send: item.warehouseSend,
-      receive: item.receive,
-    }));
-
-    data.products = formattedProduct;
-
-    console.log(data);
-
-    useServiceAPI
-      .post(paths.pathSampleExpenseDetails, data, setLoading)
-      .then((response) => {
-        if (response.status === 200) {
-          const successCallback = () => {
-            navigate("/expenses/sample");
-          };
-          showNotification(
-            "success",
-            response.data.message,
-            response.data.message_line
-          ).then(successCallback);
-        }
-      })
-      .catch((error) => {
-        if (error.status === 422) {
-          showNotification("error", error.message);
-        } else {
-          showNotification("error", "เกิดข้อผิดพลาด");
-        }
-      });
-  };
 
   return (
     <MainLayout loading={loading}>
@@ -523,8 +530,8 @@ export default function ActionSampleExpense() {
         {mode === "create"
           ? "Create Sample Expense"
           : mode === "edit"
-          ? "Edit Sample Expense"
-          : "View Sample Expense"}
+            ? "Edit Sample Expense"
+            : "View Sample Expense"}
       </div>
 
       <BoxPrimary>
@@ -543,7 +550,7 @@ export default function ActionSampleExpense() {
           <div>
             <label className="block mb-1 text-sm">Sample Expense Code</label>
             <Input
-              value="Generate"
+              value={data.document_number || "-"}
               disabled
               className="w-full border-gray-300 bg-gray-100 text-gray-500 focus:ring-green-500 focus:border-green-500 rounded-md"
             />
@@ -578,18 +585,20 @@ export default function ActionSampleExpense() {
                 setIsSubDealerDisabled(e.target.checked);
                 setData({
                   ...data,
-                  crop_id: null,
+                  crop_id: null, // Clear the crop_id when toggling the checkbox
                   sub_dealer_id: null,
                   dealer_id: null,
                 });
-                setCrops([]);
+                setCrops([]); // Clear the crops list
               }}
               disabled={isViewMode}
             >
               No Sub Dealer
             </Checkbox>
+
           </div>
 
+          {/* Dealer Field */}
           {/* Dealer Field */}
           <div>
             <label className="block mb-1 text-sm">Dealer</label>
@@ -597,19 +606,23 @@ export default function ActionSampleExpense() {
               disabled={!isSubDealerDisabled}
               placeholder="Dealer"
               className="w-full border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
-              options={dealers}
+              options={dealers} // Make sure this is an array of { value: id, label: name }
               showSearch
               optionFilterProp="label"
               onChange={(value) => {
+                const selectedDealer = dealers.find((dealer) => dealer.value === value);
                 setData({
                   ...data,
                   dealer_id: value,
+                  dealer_name: selectedDealer?.label || "", // Store dealer name as well
                 });
               }}
-              value={data?.dealer_id}
-            ></Select>
+              value={data?.dealer_name} // Display the dealer's name (which matches the options label)
+            />
           </div>
 
+
+          {/* Crop Field */}
           {/* Crop Field */}
           <div>
             <label className="block mb-1 text-sm">Crop</label>
@@ -619,22 +632,24 @@ export default function ActionSampleExpense() {
               className="w-full border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
               showSearch
               optionFilterProp="label"
-              options={crops}
-              onChange={(value) =>
+              options={crops} // Make sure this is an array of { value: id, label: name }
+              onChange={(value) => {
+                const selectedCrop = crops.find((crop) => crop.value === value);
                 setData({
                   ...data,
                   crop_id: value,
-                })
-              }
-              value={Number(data?.crop_id)}
+                  crop_name: selectedCrop?.label || "", // Store crop name as well
+                });
+              }}
+              value={data?.crop_name} // Display the crop's name (which matches the options label)
             />
-
           </div>
+
         </div>
       </BoxPrimary>
 
-      <BoxPrimary title="Product Sample">
-        {!isViewMode && (
+      {!isViewMode && (
+        <BoxPrimary title="Product Sample">
           <div className="mb-3 flex justify-end">
             <Select
               showSearch
@@ -647,8 +662,8 @@ export default function ActionSampleExpense() {
               value=""
             />
           </div>
-        )}
-      </BoxPrimary>
+        </BoxPrimary>
+      )}
 
       <BoxPrimary title="List">
         <TableComponent
@@ -739,17 +754,19 @@ export default function ActionSampleExpense() {
 
       <BoxPrimary title="Remark">
         <Input.TextArea
-          placeholder="Remark"
+          placeholder={data?.ref_remark || "Remark"} // Show ref_remark as the placeholder
           rows={3}
-          disabled={isViewMode}
+          disabled={isViewMode} // Disable editing if in view mode
           onChange={(e) =>
             setData({
               ...data,
-              remark: e.target.value,
+              remark: e.target.value, // Update the remark as user types
             })
           }
+          value={data?.remark || data?.ref_remark} // Show the updated remark value or the original ref_remark if no update
         />
       </BoxPrimary>
+
 
       <div className="flex justify-end space-x-4 mt-6">
         <ActionButton

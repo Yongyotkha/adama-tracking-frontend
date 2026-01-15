@@ -141,10 +141,10 @@ export default function ExportPeriodExcelButton({
             sc.color === "rolling"
               ? COLOR_ROLLING
               : sc.color === "actual"
-              ? COLOR_ACTUAL
-              : idx % 2 === 1
-              ? COLOR_MAIN_A
-              : COLOR_MAIN_B;
+                ? COLOR_ACTUAL
+                : idx % 2 === 1
+                  ? COLOR_MAIN_A
+                  : COLOR_MAIN_B;
 
           setHeaderStyle(c, bg);
         }
@@ -158,6 +158,8 @@ export default function ExportPeriodExcelButton({
         }
         col += SUB_COLS.length;
       });
+      // ✅ Freeze header 2 rows + first column (Fix head + Fix side)
+      ws.views = [{ state: "frozen", xSplit: 1, ySplit: 2, topLeftCell: "B3" }];
 
       // --- Body rows ---
       let rowIdx = 3;
@@ -199,10 +201,10 @@ export default function ExportPeriodExcelButton({
             sc.color === "rolling"
               ? COLOR_ROLLING
               : sc.color === "actual"
-              ? COLOR_ACTUAL
-              : idx % 2 === 1
-              ? COLOR_MAIN_A
-              : COLOR_MAIN_B;
+                ? COLOR_ACTUAL
+                : idx % 2 === 1
+                  ? COLOR_MAIN_A
+                  : COLOR_MAIN_B;
           cell.fill = fillSolid(bg);
           cell.font = { color: { argb: "FFFFFFFF" }, bold: true };
         });

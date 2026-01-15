@@ -10,7 +10,6 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import formatNumber from "../../../utils/number";
 import { AuthContext } from "../../../contexts/AuthContext";
 import FileUploadComponent from "../../../components/file_upload/FileUploadComponent";
 
@@ -26,7 +25,7 @@ export default function CustomerStockCreate() {
   const [searchProductData, setSearchProductData] = useState([]);
   const [formCustom] = Form.useForm();
   const [fileList, setFileList] = useState([]);
-  const fileUploadRef = useRef(null); // Reference for FileUploadComponent
+  const fileUploadRef = useRef(null);
   const [inputRemark, setInputRemark] = useState("");
   const [totalValue, setTotalValue] = useState(0);
 
@@ -46,7 +45,7 @@ export default function CustomerStockCreate() {
           useServiceAPI.get(paths.pathMasterDealerAll),
         ]);
 
-        setDalers(dealer.data);
+        setDalers(dealer.data || []);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -67,7 +66,6 @@ export default function CustomerStockCreate() {
       required: true,
       moderef: true,
       value: dealerId,
-      // value: dataSaleId,
     },
     {
       label: "Sub Dealer",
@@ -91,64 +89,31 @@ export default function CustomerStockCreate() {
   ];
 
   const handleChange = (filter, value) => {
-    console.log("filter", filter, "value", value);
-    if (filter == "dealer") {
+    if (filter === "dealer") {
       setDealerId(value);
-    } else if (filter == "sub_dealer") {
+    } else if (filter === "sub_dealer") {
       setSubDalersId(value);
     }
   };
 
-  useEffect(() => {
-    console.log("use effect dealerId : ", dealerId);
-    if (dealerId) {
-      getMasterSubDealer();
-    }
-  }, [dealerId]);
-
-  const getMasterSubDealer = async () => {
-    // setLoading(true);
-
-    try {
-      const response = await useServiceAPI.get(
-        `${paths.pathCustomerDealerDetail}?id=${value}`
-      );
-      console.log("pathCustomerDealerDetail : ", response);
-
-      //setSubDalers(dealer.data);
-    } catch (error) {
-      // showMsg("error", error.message || "เกิดข้อผิดพลาด");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // โหลด Sub Dealer จาก Dealer
   useEffect(() => {
     const getMasterSubDealer = async () => {
       try {
         const response = await useServiceAPI.get(
           `${paths.pathCustomerDealerDetail}?id=${dealerId}`
         );
-        //console.log("useEffect getMasterSubDealer : ", response);
         setSubDealerDisabled(false);
         if (response.status === 200) {
-          const sub_dealer = response.data.network_list;
-          const newSubDealers = [];
-
-          //console.log("sub_dealer : ", sub_dealer);
-
-          if (sub_dealer.length > 0) {
-            sub_dealer.map((value, index) => {
-              newSubDealers.push({
-                id: value.sub_dealer_id,
-                name: value.sub_dealer_name,
-              });
-            });
-            setSubDalers(newSubDealers);
-          } else {
-            setSubDalers([]);
-            setSubDalersId("");
-          }
+          const sub_dealer = response.data.network_list || [];
+          const newSubDealers = sub_dealer.map((v) => ({
+            id: v.sub_dealer_id,
+            name: v.sub_dealer_name,
+          }));
+          setSubDalers(newSubDealers);
+        } else {
+          setSubDalers([]);
+          setSubDalersId("");
         }
       } catch (error) {
         console.error(error);
@@ -164,18 +129,82 @@ export default function CustomerStockCreate() {
       setSubDalersId("");
       getMasterSubDealer();
     } else {
-      console.log("useEffect getMasterSubDealer id null");
       setSubDalers([]);
       setSubDalersId("");
+      setSubDealerDisabled(true);
     }
   }, [dealerId]);
 
+  // ✅ ดึง Product ชุดล่าสุดจาก dealer (และถ้ามี sub_dealer ให้ส่งไปด้วย)
   useEffect(() => {
-    if (location.state?.data) {
-      const { user_id } = location.state?.data;
-      setDataSaleId(user_id);
-    }
-  }, [location.state]);
+    const fetchLastProducts = async () => {
+      // ต้องมี dealer ก่อนอย่างน้อย
+      if (!dealerId) {
+        setDataSource([]);
+        return;
+      }
+
+      try {
+        setLoading(true);
+
+        // ประกอบ params dynamic
+        const params = { dealer_id: dealerId };
+        if (subDealerId) {
+          params.sub_dealer_id = subDealerId;
+        }
+
+        const res = await useServiceAPI.get(
+          paths.pathStockCreateGetLastProduct,
+          params
+        );
+
+        if (res.status === 200 && Array.isArray(res.data)) {
+          const list = res.data;
+          const mapped = list.map((item, index) => {
+            const qty = Number(item.quantity || 0);
+            const unitThb = parseFloat(
+              String(item.product_unit_thb || "0").replace(/,/g, "")
+            );
+            const netAmountStr =
+              item.net_amount ||
+              (qty * (isNaN(unitThb) ? 0 : unitThb)).toFixed(2);
+            const netAmount = netAmountStr;
+
+            const minFoc = Number(item.product_campaign_order_min_foc || 0);
+            const foc = minFoc > 0 ? parseInt(qty / minFoc, 10) : 0;
+
+            return {
+              key: index + 1,
+              no: index + 1,
+              product_id: item.product_id,
+              product_code: item.product_code,
+              product_name: item.product_name,
+              product_unit: item.product_unit,
+              product_unit_thb: item.product_unit_thb,
+              product_campaign_order_min_foc:
+                item.product_campaign_order_min_foc,
+              product_campaign_foc: item.product_campaign_foc,
+              quantity: qty,
+              foc,
+              net_amount: netAmount,
+            };
+          });
+
+          setDataSource(mapped);
+        } else {
+          setDataSource([]);
+        }
+      } catch (error) {
+        console.error(error);
+        showMsg("error", error.message || "ไม่สามารถโหลดรายการสินค้าได้");
+        setDataSource([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLastProducts();
+  }, [dealerId, subDealerId]);
 
   useEffect(() => {
     const total = dataSource.reduce(
@@ -184,8 +213,6 @@ export default function CustomerStockCreate() {
     );
     setTotalValue(total);
   }, [dataSource]);
-
-  //console.log("userInfo : ", userInfo);
 
   const handleUploadClick = async () => {
     if (fileUploadRef.current) {
@@ -209,12 +236,16 @@ export default function CustomerStockCreate() {
     setDataSource((prevData) =>
       prevData.map((item) => {
         if (item.key === key) {
-          const quantity = Math.max(0, newQuantity); // Prevent negative quantities
+          const quantity = Math.max(0, newQuantity);
+          const unitPrice = parseFloat(
+            String(item.product_unit_thb || "0").replace(/,/g, "")
+          );
           const net_amount = (
-            quantity * parseFloat(item.product_unit_thb.replace(/,/g, ""))
-          ).toFixed(2); // Calculate new net_amount
-          const foc = parseInt(quantity / item.product_campaign_order_min_foc);
-          //console.log('here : ',{ ...item, quantity, net_amount, foc })
+            quantity * (isNaN(unitPrice) ? 0 : unitPrice)
+          ).toFixed(2);
+          const minFoc = Number(item.product_campaign_order_min_foc || 0);
+          const foc = minFoc > 0 ? parseInt(quantity / minFoc, 10) : 0;
+
           return { ...item, quantity, net_amount, foc };
         }
         return item;
@@ -246,7 +277,10 @@ export default function CustomerStockCreate() {
             min={0}
             value={record.quantity}
             onChange={(e) =>
-              handleQuantityChange(record.key, parseInt(e.target.value) || 0)
+              handleQuantityChange(
+                record.key,
+                parseInt(e.target.value, 10) || 0
+              )
             }
             className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
           />
@@ -274,14 +308,11 @@ export default function CustomerStockCreate() {
               const updatedDataSource = dataSource.filter(
                 (item) => item.key !== record.key
               );
-
-              // Reset keys and no after deletion
               const resetDataSource = updatedDataSource.map((item, index) => ({
                 ...item,
                 key: index + 1,
                 no: index + 1,
               }));
-
               setDataSource(resetDataSource);
             }}
           />
@@ -292,7 +323,7 @@ export default function CustomerStockCreate() {
 
   const footerOrderList = () => {
     const totalQuantity = dataSource.reduce(
-      (total, item) => total + parseFloat(item.quantity),
+      (total, item) => total + parseFloat(item.quantity || 0),
       0
     );
 
@@ -306,8 +337,6 @@ export default function CustomerStockCreate() {
   };
 
   const onChangeProduct = (value) => {
-    // Set Empty
-
     setSearchProductData([]);
 
     const loadProductDetail = async () => {
@@ -321,26 +350,25 @@ export default function CustomerStockCreate() {
 
         const data = productDetail.data;
 
-        // Check for duplicate product_code
         const existingProductIndex = dataSource.findIndex(
           (item) => item.product_code === data.product_code
         );
 
         if (existingProductIndex !== -1) {
-          // If product_code exists, update the quantity
           const updatedDataSource = dataSource.map((item, index) => {
             if (index === existingProductIndex) {
-              const updatedQuantity = item.quantity + 1; // Increment quantity
+              const updatedQuantity = item.quantity + 1;
+              const unitPrice = parseFloat(
+                String(item.product_unit_thb || "0").replace(/,/g, "")
+              );
               const updatedNetAmount = (
-                updatedQuantity *
-                parseFloat(item.product_unit_thb.replace(/,/g, ""))
-              ).toFixed(2); // Recalculate net_amount
+                updatedQuantity * (isNaN(unitPrice) ? 0 : unitPrice)
+              ).toFixed(2);
 
               return {
                 ...item,
-                // quantity: item.quantity + 1, // Increment quantity
                 quantity: updatedQuantity,
-                net_amount: updatedNetAmount, // Update net_amount
+                net_amount: updatedNetAmount,
               };
             }
             return item;
@@ -348,7 +376,6 @@ export default function CustomerStockCreate() {
 
           setDataSource(updatedDataSource);
         } else {
-          // If product_code does not exist, add a new entry
           const newProductDataDetail = {
             key: dataSource.length + 1,
             no: dataSource.length + 1,
@@ -357,20 +384,17 @@ export default function CustomerStockCreate() {
             product_name: data.product_name,
             product_unit: data.packing_list,
             product_unit_thb: data.bath_unit,
-            product_campaign_order_min_foc: data.product_campaign_order_min_foc,
+            product_campaign_order_min_foc:
+              data.product_campaign_order_min_foc,
             product_campaign_foc: data.product_campaign_foc,
-            quantity: 1, // Set initial quantity to 1
-            foc: parseInt(1 / data.product_campaign_order_min_foc),
-            // foc: data.product_campaign_foc,
-            // net_amount: data.bath_unit,
+            quantity: 1,
+            foc: parseInt(1 / data.product_campaign_order_min_foc, 10),
             net_amount: (
-              1 * parseFloat(data.bath_unit.replace(/,/g, ""))
-            ).toFixed(2), // Calculate net_amount based on quantity 1
+              1 * parseFloat(String(data.bath_unit || "0").replace(/,/g, ""))
+            ).toFixed(2),
           };
 
           const updatedDataSource = [...dataSource, newProductDataDetail];
-
-          // Reset the keys to ensure proper sequencing
           const resetDataSource = updatedDataSource.map((item, index) => ({
             ...item,
             key: index + 1,
@@ -401,14 +425,13 @@ export default function CustomerStockCreate() {
           ]);
 
           const newProductData = [];
-          product.data.map((data, index) => {
+          product.data.map((data) => {
             newProductData.push({
               value: data.id,
               label: data.name,
             });
           });
 
-          // Set Data
           setSearchProductData(newProductData);
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -436,24 +459,21 @@ export default function CustomerStockCreate() {
           product_code: item.product_code,
           product_name: item.product_name,
           product_unit: item.product_unit,
-          product_unit_thb: parseFloat(item.product_unit_thb),
+          product_unit_thb: parseFloat(
+            String(item.product_unit_thb || "0").replace(/,/g, "")
+          ),
           product_campaign_order_min_foc: item.product_campaign_order_min_foc,
           product_campaign_foc: item.product_campaign_foc,
           quantity: item.quantity,
           foc: item.foc,
-          net_amount: parseFloat(item.net_amount),
+          net_amount: parseFloat(item.net_amount || 0),
         })),
         others: [],
       };
 
-      console.log("payload to submit:", payload);
-      //exit()
-
       const response = await useServiceAPI.post(paths.pathStockCreate, payload);
 
-      console.log("response", response);
-
-      if (response.message == "Save successfully") {
+      if (response.message === "Save successfully") {
         showMsg("success", "ส่งข้อมูลสำเร็จ");
         navigate("/customer-stock/list");
       } else {
@@ -461,7 +481,6 @@ export default function CustomerStockCreate() {
       }
     } catch (error) {
       console.log("Validation or submission error : ", error);
-
       showMsg("error", error.message || "กรุณากรอกข้อมูลให้ครบถ้วน");
     }
   };
@@ -496,7 +515,6 @@ export default function CustomerStockCreate() {
           header={header}
           dataSource={dataSource}
           pagination={false}
-          // pageSize={10}
           footer={footerOrderList}
         />
       </BoxPrimary>

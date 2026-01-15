@@ -19,7 +19,8 @@ export const paths = {
   pathSalePointReceiveUpdateRequest: "sale-point-receive/update_request",
 
   pathSalePointReceiveReward: "sale-point-receive/receive-reward",
-  pathSalePointReceiveRewardConfirm: "sale-point-receive/receive-reward-confirm",
+  pathSalePointReceiveRewardConfirm:
+    "sale-point-receive/receive-reward-confirm",
   pathLogPoint: "sale-point-receive/point-log",
   pathLogPointOne: "sale-point-receive/point-log-one",
   pathUserLineDealer: "user-line/dealers",
@@ -46,15 +47,13 @@ export const paths = {
   pathMasterAreas: "master/areas",
   pathMasterRoles: "master/roles",
   pathMasterCrop: "master/crop",
+  pathMasterSubDealerCrop: "master/sub-dealer-crop",
   pathMasterProductTypes: "master/product-types",
   pathMasterProductGroups: "master/product-groups",
   pathMasterProductList: "master/product-list",
   pathMasterProductCategorys: "master/product-categorys",
   // pathMasterSaleReport: "master/sale-report",
   pathMasterSaleReport: "master/area_user_sale",
-
-
-
 
   pathMasterProductByCrop: "master/product-by-crop",
   pathMasterSaleAll: "master/sale-all/list",
@@ -63,7 +62,6 @@ export const paths = {
   pathMasterSubDealerAll: "master/sub-dealer-all",
   pathMasterSubDealerSubDealers: "master/dealer-sub-dealers",
   pathMasterDealeretSubDealer: "master/sub-dealer-by-dealer",
-  pathMasterSubDealerCrop: "master/sub-dealer-crop",
   pathMasterSubDealerCustomer: "master/sub-dealer-customer",
   pathMasterPermission: "master/permission",
   pathMasterProductUnit: "master/product-unit",
@@ -96,8 +94,6 @@ export const paths = {
   pathExpenseMaterialEdit: "expense-material/edit",
   pathExpenseMaterialDel: "expense-material/del",
   pathExpenseMaterialItem: "expense-material/item",
-
-
 
   //Products
   pathSaleManagementProductsList: "products-management/list",
@@ -135,7 +131,6 @@ export const paths = {
   pathMasterSalesByArea: "master/area_user_sale",
   pathMasterSalesByArea2: "master/area_user_sale_2",
 
-
   // contact
   pathCustomerContactList: "sale-customer-contact/list",
   pathCustomerContactCreate: "sale-customer-contact/create",
@@ -168,7 +163,6 @@ export const paths = {
   // List
   pathMasterSale: "sale-management/list",
   pathMasterProduct: "products-management/list",
-
 
   pathMasterActivityType: "master/activity-type",
   pathMasterSaleDropdown: "master/sale",
@@ -206,14 +200,13 @@ export const paths = {
   pathMasterPromotionUser: "promotion-management/list_user",
   pathPromotionCategory: "promotion-management/category",
 
-  //Promotion banner 
+  //Promotion banner
   pathPromotionBannerList: "promotion-banner/list",
   pathPromotionBannerDetail: "promotion-banner/detail",
   pathPromotionBannerCreate: "promotion-banner/create",
   pathPromotionBannerUpdate: "promotion-banner/update",
   pathPromotionBannerDelete: "promotion-banner/delete",
   pathPromotionBannerCategory: "promotion-banner/category",
-
 
   //Sale
   pathSaleManagementlist: "sale-management/list",
@@ -233,7 +226,6 @@ export const paths = {
   //area plan
   pathGetWorkPlanAreaList: "/work-plan/area/list",
   pathWorkPlanAreaStep1: "/work-plan/area/workplan_step1",
-
 
   //sale plan
   pathGetWorkPlanSaleList: "/work-plan/sale/list",
@@ -290,7 +282,6 @@ export const paths = {
   pathGetOrderWaitingList: "order/list",
   pathGetOrderChangeStatus: "order/status",
 
-
   // Sale Point Order
   pathSalePointOrderList: "/sale-point/list",
   pathSalePointOrderCreate: "/sale-point/create",
@@ -338,8 +329,10 @@ export const paths = {
 
   // Expense Sample
   pathSampleExpenseList: "expense/sample/list",
-  pathSampleExpenseDetails: "expense/sample/create",
+  pathSampleExpenseDetailsAndCreate: "expense/sample/create",
   pathSampleGetDealer: "expense/sample/get-dealer-id",
+  pathSampleStatus: "expense/sample/status",
+
 
   // Claim
   pathClaimList: "claim/list",
@@ -370,7 +363,6 @@ export const paths = {
   pathReportStock: "/report/stock",
   pathReportSaleHistory: "/report/sale_point_item",
   pathReportSellOut: "/report/stock_group",
-
 
   // Line OA
   pathProfileDetail: "profile/detail",
@@ -426,6 +418,4 @@ export const paths = {
   pathPointCampaignTarget: "campaign/target",
   pathPointCampaignCustomer: "campaign/customer",
   pathPointCampaignDelete: "campaign/delete",
-
-
 };

@@ -23,20 +23,19 @@ export default function MileageManagement() {
       current: 1,
       pageSize: 10,
     },
-    filters: {},
+    filters: {},        // <- ตรงนี้จะเก็บ name ด้วย
     sortOrder: null,
     sortField: null,
   });
 
   const { userInfo } = useContext(AuthContext);
-
   const navigate = useNavigate();
 
   const header = [
     { title: "No", width: 50, dataIndex: "no", align: "left" },
     { title: "Date", width: 150, dataIndex: "date", align: "left" },
-    { title: "Mileage", width: 150, dataIndex: "mileage", align: "right" },
     { title: "Name", width: 200, dataIndex: "name", align: "left" },
+    { title: "Mileage", width: 150, dataIndex: "mileage", align: "right" },
     { title: "Last Modified", width: 150, dataIndex: "lastModified", align: "left" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
@@ -52,39 +51,41 @@ export default function MileageManagement() {
     const today = dayjs();
     const startOfMonth = today.startOf("month").format("YYYY-MM-DD");
     const endOfToday = today.format("YYYY-MM-DD");
-    // console.log(userInfo);
+
     const requestData = {
       user_id: userInfo.id,
       start_date: startOfMonth,
       end_date: endOfToday,
+      // ✅ เพิ่ม name จาก filter เข้า payload
+      name: filters.name || "",       // <--- ตรงนี้ตามที่ต้องการ
       page_length: current,
       page_size: pageSize,
     };
 
     try {
-      const response = await useServiceAPI.get(paths.pathMileageList, requestData);
+      const response = await useServiceAPI.get(
+        paths.pathMileageList,
+        requestData
+      );
 
-      // const formatNumber = (val) =>
-      //   !isNaN(Number(val)) ? new Intl.NumberFormat().format(val) : "-";
       const formatNumber = (val) =>
         !isNaN(Number(val))
           ? Number(val).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
           : "-";
-
 
       if (response.status === 200) {
         const result = response.data;
-        console.log(result);
+
         const newDataSource = result.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           no: index + 1 + (current - 1) * pageSize,
           date: item.date || "-",
           mileage: formatNumber(item.mileage) || "-",
-          name: item.user_name, // No name in API, fallback
-          lastModified: "-", // No lastModified in API, fallback
+          name: item.user_name_en || "-",     // แสดงชื่อจาก API
+          lastModified: "-",               // ถ้ามี field ในอนาคตค่อยมาใส่
           action: (
             <Dropdown
               menu={{
@@ -106,15 +107,6 @@ export default function MileageManagement() {
                       />
                     ),
                   },
-                  // {
-                  //   key: "delete",
-                  //   label: (
-                  //     <ItemDropDown
-                  //       mode="delete"
-                  //       // onClick={() => handleDelete(item.user_id)}
-                  //     />
-                  //   ),
-                  // },
                 ],
               }}
               placement="bottom"
@@ -128,28 +120,27 @@ export default function MileageManagement() {
               </a>
             </Dropdown>
           ),
-
         }));
 
         setDataSource(newDataSource);
-        setTableParams({
-          ...tableParams,
+        setTableParams((prev) => ({
+          ...prev,
           pagination: {
-            ...tableParams.pagination,
-            total: result.length,  // <-- no records_filtered, use array length
+            ...prev.pagination,
+            total: result.length, // ถ้า API มี records_filtered ค่อยเปลี่ยนทีหลัง
           },
-        });
+        }));
       }
     } catch (error) {
       console.error(error);
     } finally {
       setTableLoading(false);
     }
-
   };
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     tableParams.pagination.current,
     tableParams.pagination.pageSize,
@@ -159,59 +150,61 @@ export default function MileageManagement() {
   ]);
 
   const handleTableChange = (pagination, filters, sorter) => {
-    setTableParams({
+    setTableParams((prev) => ({
+      ...prev,
       pagination,
-      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
+      filters: prev.filters, // รักษาค่า filter name เดิมไว้
       sortOrder: sorter.order === "descend" ? "desc" : "asc",
       sortField: sorter.field,
-    });
+    }));
   };
 
+  // ✅ เปลี่ยน key เป็น name เพื่อ map กับ payload
   const filters = [
     {
-      key: "keyword",
+      key: "name",
       type: "text",
       label: "Name",
+      placeholder: "Search by name",
     },
   ];
 
-  const handleSearch = (filters) => {
-    setTableParams({
-      ...tableParams,
+  const handleSearch = (filtersValue) => {
+    setTableParams((prev) => ({
+      ...prev,
       pagination: {
-        ...tableParams.pagination,
-        current: 1, // Reset current page to 1
-        pageSize: 10, // Ensure the page size is set to 10
+        ...prev.pagination,
+        current: 1,
+        pageSize: 10,
       },
       filters: {
-        ...filters,
-        page_length: 1, // Set default page_length
-        page_size: 10,  // Set default page_size
+        ...prev.filters,
+        name: filtersValue.name || "", // เก็บ name ไว้ใน state
       },
-    });
+    }));
   };
 
   const handleClear = () => {
-    setTableParams({
-      ...tableParams,
-      filters: {},
-    });
+    setTableParams((prev) => ({
+      ...prev,
+      pagination: {
+        ...prev.pagination,
+        current: 1,
+      },
+      filters: {}, // เคลียร์ name ออก
+    }));
   };
-
 
   return (
     <MainLayout loading={loading}>
-
       <div className="flex items-center justify-between">
         <div className="title-page">Mileage Management</div>
-        {/* <ActionButton mode="create" text="Create" onClick={(e) => navigate("/setting/promotion/create")} /> */}
       </div>
 
       <Filter
         onSearch={handleSearch}
         onClear={handleClear}
         filters={filters}
-        onChange={handleTableChange}
       />
 
       <BoxPrimary>
@@ -223,7 +216,6 @@ export default function MileageManagement() {
           onChange={handleTableChange}
         />
       </BoxPrimary>
-
     </MainLayout>
   );
 }

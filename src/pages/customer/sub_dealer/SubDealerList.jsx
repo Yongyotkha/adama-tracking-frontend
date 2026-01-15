@@ -89,6 +89,12 @@ export default function SubDealerList() {
       label: "Create Date",
       placeholder: "Select date",
     },
+    {
+      key: "name",
+      type: "text",
+      label: "Name",
+      placeholder: "Enter name",
+    },
   ];
 
   // ---------- Table header ----------
@@ -196,25 +202,26 @@ export default function SubDealerList() {
     const filters = tableParams.filters || {};
 
     const requestData = {
-      keyword: filters.keyword || "",
+      keyword: filters.keyword || filters.name || "",
+
       use_flag: filters.use_flag || "",
       contact_phone_number: filters.contact_phone_number || "",
       contact_name: filters.contact_name || "",
+
       page_length: current,
       page_size: pageSize,
+
       user_id: filters.sale || "",
       dealer_id: filters.dealers || "",
       sub_dealer_id: filters.shop || "",
       province: filters.province || "",
       channel_type: filters.channel_type || "",
+
       create_date_start:
-        filters.create_date && filters.create_date[0]
-          ? filters.create_date[0]
-          : "",
+        filters.create_date && filters.create_date[0] ? filters.create_date[0] : "",
       create_date_end:
-        filters.create_date && filters.create_date[1]
-          ? filters.create_date[1]
-          : "",
+        filters.create_date && filters.create_date[1] ? filters.create_date[1] : "",
+
       sort_field: "created_at",
       sort_order: "desc",
     };
