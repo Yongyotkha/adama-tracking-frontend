@@ -21,7 +21,12 @@ export default function ActionInfo() {
   const location = useLocation();
 
   const modeFromState = location.state?.mode;
-  const mode = modeFromParams ?? modeFromState ?? "create";
+  const isEditPath = location.pathname.includes("/edit");
+  const isViewPath = location.pathname.includes("/view");
+  const mode =
+    modeFromParams ??
+    modeFromState ??
+    (isEditPath ? "edit" : isViewPath ? "view" : "create");
 
   const idFromState = location.state?.id;
   const idFromQuery = new URLSearchParams(location.search).get("id");
@@ -105,7 +110,7 @@ export default function ActionInfo() {
         });
 
         // ex response: { status:"success", data:{...} }
-        const data = res?.data?.data;
+        const data = res?.data;
 
         if (!data) {
           showNotification?.("error", "ไม่พบข้อมูล");
@@ -168,7 +173,7 @@ export default function ActionInfo() {
 
       let res;
       if (isEdit) {
-        res = await useServiceAPI.post(paths.pathInfoEdit, {
+        res = await useServiceAPI.put(paths.pathInfoEdit, {
           ...payload,
           id: String(recordId),
         });

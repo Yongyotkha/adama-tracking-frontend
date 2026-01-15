@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import MainLayout from "../../../../layouts/MainLayout";
 import Filter from "../../../../components/filter/Filter";
 import TableComponent from "../../../../components/table/TableComponent";
-import { Dropdown } from "antd";
+import { Dropdown, Modal } from "antd";
 import BadgeStatus from "../../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import ActionButton from "../../../../components/button/ActionButton";
@@ -29,6 +29,35 @@ export default function TargetGroupList() {
     filters: {},
   });
 
+  const handleDelete = (id) => {
+    Modal.confirm({
+      title: "Confirm Delete",
+      content: "Are you sure you want to delete this item?",
+      okText: "Yes",
+      okType: "danger",
+      cancelText: "No",
+      onOk: async () => {
+        try {
+          const res = await useServiceAPI.delete(paths.pathInfoDelete, { id });
+          if (res?.status === 200) {
+            fetchData();
+          } else {
+            Modal.error({
+              title: "Delete Failed",
+              content: res?.data?.message || "Something went wrong",
+            });
+          }
+        } catch (error) {
+          console.error("Delete error:", error);
+          Modal.error({
+            title: "Delete Failed",
+            content: "Something went wrong",
+          });
+        }
+      },
+    });
+  };
+
   // ---------- Filters UI ----------
   // NOTE: pathInfoList ตัวอย่างไม่ได้บังคับ filter อื่น ๆ
   // เลยทำ filter แบบเบา ๆ: keyword + type + status(use_flag)
@@ -44,7 +73,7 @@ export default function TargetGroupList() {
       type: "select",
       label: "Type",
       options: [
-        { id: "1", name: "File" },
+        { id: "1", name: "Document" },
         { id: "2", name: "Video" },
       ],
     },
@@ -114,7 +143,9 @@ export default function TargetGroupList() {
                 <ItemDropDown
                   mode="view"
                   onClick={() =>
-                    navigate("/setting/info/view", { state: { id } })
+                    navigate("/setting/info/view", {
+                      state: { id, mode: "view" },
+                    })
                   }
                 />
               ),
@@ -125,16 +156,19 @@ export default function TargetGroupList() {
                 <ItemDropDown
                   mode="edit"
                   onClick={() =>
-                    navigate("/setting/info/edit", { state: { id } })
+                    navigate("/setting/info/edit", {
+                      state: { id, mode: "edit" },
+                    })
                   }
                 />
               ),
             },
-            // ถ้ามี api ลบจริงค่อยผูกเพิ่ม (ตอนนี้ไม่เดา path)
-            // {
-            //   key: "delete",
-            //   label: <ItemDropDown mode="delete" onClick={() => handleDelete(id)} />,
-            // },
+            {
+              key: "delete",
+              label: (
+                <ItemDropDown mode="delete" onClick={() => handleDelete(id)} />
+              ),
+            },
           ];
 
           return {
@@ -142,7 +176,7 @@ export default function TargetGroupList() {
             name: item.name ?? "-",
             type:
               String(item.type) === "1"
-                ? "File"
+                ? "Document"
                 : String(item.type) === "2"
                 ? "Video"
                 : "-",
@@ -157,6 +191,8 @@ export default function TargetGroupList() {
             status: (
               <BadgeStatus
                 text={String(item.use_flag) === "1" ? "Active" : "Inactive"}
+                bgColor={String(item.use_flag) === "1" ? "#009845" : "#F89E18"}
+                textColor="#FFFFFF"
               />
             ),
             action: (

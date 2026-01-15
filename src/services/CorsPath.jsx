@@ -414,6 +414,7 @@ export const paths = {
   pathInfoCreate: "info/create",
   pathInfoEdit: "info/edit",
   pathInfoDetail: "info/detail",
+  pathInfoDelete: "info/delete",
 
   pathPointCampaignList: "campaign/list",
   pathPointCampaignCreate: "campaign/create",

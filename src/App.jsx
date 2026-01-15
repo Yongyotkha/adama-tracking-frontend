@@ -439,7 +439,7 @@ const App = () => {
             <Route path="/setting/info/list" element={<InfoList />} />
             <Route path="/setting/info/create" element={<ActionInfo />} />
             <Route path="/setting/info/edit" element={<ActionInfo />} />
-            <Route path="/setting/info/view" element={<ViewOrEditInfo />} />
+            <Route path="/setting/info/view" element={<ActionInfo />} />
 
             <Route path="/setting/role" element={<SettingRole />} />
             <Route path="/setting/profile" element={<ProfileUser />} />
