@@ -12,6 +12,7 @@ import DoughnutChartComponent from "../../components/charts/DoughnutChartCompone
 import formatNumber from "../../utils/number";
 import convertNumber from "../../utils/convertNumber";
 import percentage from "../../utils/percentage";
+import { AuthContext } from "../../contexts/AuthContext";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -47,6 +48,7 @@ export default function Dashboard() {
 
   // selectedSale (จะได้จาก salesByArea)
   const [selectedSale, setSelectedSale] = useState(null);
+  const { showNotification, userInfo } = useContext(AuthContext);
 
   const [selectedSalesByDealer, setSelectedSalesByDealer] = useState(null);
   const [selectedMonthsSalesByDealer, setSelectedMonthsSalesByDealer] =
