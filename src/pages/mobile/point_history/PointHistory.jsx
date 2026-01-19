@@ -159,27 +159,6 @@ export default function PointHistory() {
               {/* <h5 className="sarabun-font text-gray-700 mb-2">รายการทั้งหมด {orderData.length} รายการ</h5> */}
               <div className="mt-2 space-y-3 min-h-[24px] flex flex-col justify-center items-center">
 
-                {
-
-                  
-                <div className="flex justify-between items-start p-4 bg-white rounded-lg shadow-md border-l-4 border-green-500 w-full">
-                  <div className="flex flex-col">
-                    <p className="text-gray-500 sarabun-font text-sm">
-                      {dayjs(poinrRegister.created_at).format("YYYY-MM-DD HH:mm")}
-                    </p>
-                    <p className="text-gray-900 sarabun-font text-xs font-bold mt-1">
-                      สมัครสมาชิก
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col items-end text-right hidden">
-                    <p className="text-green-700 sarabun-font text-sm font-semibold mt-1 hidden">
-                      +{new Intl.NumberFormat("th-TH").format(poinrRegister.point)} คะแนน
-                    </p>
-                  </div>
-                </div>
-
-                }
                 {orderData.length > 0 ? (
                   orderData.map((order, index) => {
                     const statusColor = "text-green-600";
