@@ -108,7 +108,7 @@ export default function PointHistoryDetail() {
               <p className="sarabun-font text-gray-600">จำนวนรายการ</p>
               <p className="sarabun-font font-bold">{totalItems}</p>
             </div>
-            <div className="flex justify-between mt-1">
+            <div className="flex justify-between mt-1 hidden">
               <p className="sarabun-font text-gray-600">ยอดรวมสุทธิ (บาท)</p>
               <p className="sarabun-font font-bold text-green-700">{totalPrice}</p>
             </div>

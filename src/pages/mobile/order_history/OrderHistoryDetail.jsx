@@ -318,7 +318,7 @@ export default function OrderHistoryDetail() {
                 </p>
               </div>
 
-              <div className="flex justify-between font-semibold text-lg text-green-700 mt-1">
+              <div className="flex justify-between font-semibold text-lg text-green-700 mt-1 hidden">
                 <p className="sarabun-font">ยอดรวมสุทธิ (บาท)</p>
                 <p>{totalPriceDisplay}</p>
               </div>
