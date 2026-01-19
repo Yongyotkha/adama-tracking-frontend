@@ -407,8 +407,8 @@ export default function RegisterOA() {
           navigate("/mobile/main", { state: stageUser });
         }}
         src="/img/icons/check-circle.png"
-        text={`<p class='text-[#8A8A8A] text-center sarabun-font'>ยินดีด้วย<br/>คุณลงทะเบียนสำเร็จ ได้รับ Welcome Point</p>
-         <p class='text-[#009845] text-center text-[24px] font-bold sarabun-font'>${Number(receive_point).toLocaleString()} Point</p>`}
+        text={`<p class='text-[#8A8A8A] text-center sarabun-font'>ยินดีด้วย<br/>คุณลงทะเบียนสำเร็จ</p>
+         <p class='text-[#009845] text-center text-[24px] font-bold sarabun-font hidden'>${Number(receive_point).toLocaleString()} Point</p>`}
         confirmText="เริ่มใช้งานกันเลย !"
       />
 
