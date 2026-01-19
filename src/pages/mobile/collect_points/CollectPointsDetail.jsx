@@ -229,7 +229,7 @@ export default function CollectPointsDetail() {
                         )}
                       </div>
                     </div>
-                    <p className="w-20 text-right">{item.amount_display}</p>
+                    {/* <p className="w-20 text-right">{item.amount_display}</p> */}
                   </div>
                 ))
               ) : (

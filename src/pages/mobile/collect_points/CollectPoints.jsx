@@ -302,7 +302,7 @@ export default function CollectPoints() {
                           รอยืนยันรับ
                         </p>
                         <p className="text-gray-700 sarabun-font text-xs font-semibold mt-1">
-                          {order.line_product} รายการ / รวม {order.amount_display}
+                          {order.line_product} รายการ
                         </p>
                       </div>
                     </div>
