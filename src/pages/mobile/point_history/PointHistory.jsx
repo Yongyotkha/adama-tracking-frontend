@@ -172,8 +172,8 @@ export default function PointHistory() {
                     </p>
                   </div>
 
-                  <div className="flex flex-col items-end text-right">
-                    <p className="text-green-700 sarabun-font text-sm font-semibold mt-1">
+                  <div className="flex flex-col items-end text-right hidden">
+                    <p className="text-green-700 sarabun-font text-sm font-semibold mt-1 hidden">
                       +{new Intl.NumberFormat("th-TH").format(poinrRegister.point)} คะแนน
                     </p>
                   </div>
