@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import { Dropdown } from "antd";
@@ -11,6 +11,7 @@ import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import ExportMileageExcelButton from "../../../components/export/ExportMileageExcelButton";
 
 dayjs.extend(customParseFormat);
 
@@ -18,12 +19,19 @@ export default function MileageManagement() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
+
+  // ✅ options สำหรับ select name
+  const [nameOptions, setNameOptions] = useState([]);
+
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
       pageSize: 10,
     },
-    filters: {},        // <- ตรงนี้จะเก็บ name ด้วย
+    filters: {
+      name: undefined, // ✅ ให้เป็น user_id ที่เลือกจาก dropdown
+      month: dayjs().format("YYYY-MM"), // ✅ default เดือนปัจจุบัน
+    },
     sortOrder: null,
     sortField: null,
   });
@@ -40,52 +48,70 @@ export default function MileageManagement() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
+  const formatNumber = (val) =>
+    !isNaN(Number(val))
+      ? Number(val).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+      : "-";
+
+  // ✅ คำนวณช่วงวันจากเดือนที่เลือก
+  const buildDateRangeFromMonth = (monthStr) => {
+    const m = monthStr ? dayjs(monthStr, "YYYY-MM") : dayjs();
+    return {
+      start_date: m.startOf("month").format("YYYY-MM-DD"),
+      end_date: m.endOf("month").format("YYYY-MM-DD"),
+    };
+  };
+
   const fetchData = async () => {
     setTableLoading(true);
+
     const { current, pageSize } = tableParams.pagination;
-
     const filters = tableParams.filters || {};
-    const sortOrder = tableParams.sortOrder || "asc";
-    const sortField = tableParams.sortField || "name";
+    const month = filters.month || dayjs().format("YYYY-MM");
 
-    const today = dayjs();
-    const startOfMonth = today.startOf("month").format("YYYY-MM-DD");
-    const endOfToday = today.format("YYYY-MM-DD");
+    const { start_date, end_date } = buildDateRangeFromMonth(month);
 
     const requestData = {
       user_id: userInfo.id,
-      start_date: startOfMonth,
-      end_date: endOfToday,
-      // ✅ เพิ่ม name จาก filter เข้า payload
-      name: filters.name || "",       // <--- ตรงนี้ตามที่ต้องการ
+      start_date,
+      end_date,
+      // ✅ name ส่งเป็น user_id จาก dropdown (backend รับ key name เหมือนเดิม)
+      name: filters.name ?? "",
       page_length: current,
       page_size: pageSize,
     };
 
     try {
-      const response = await useServiceAPI.get(
-        paths.pathMileageList,
-        requestData
-      );
-
-      const formatNumber = (val) =>
-        !isNaN(Number(val))
-          ? Number(val).toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })
-          : "-";
+      const response = await useServiceAPI.get(paths.pathMileageList, requestData);
 
       if (response.status === 200) {
-        const result = response.data;
+        const result = Array.isArray(response.data) ? response.data : [];
+
+        // ✅ ทำ dropdown options (unique จาก result)
+        const map = new Map();
+        for (const r of result) {
+          if (!r?.user_id) continue;
+          if (!map.has(r.user_id)) {
+            map.set(r.user_id, {
+              id: r.user_id,
+              name: r.user_name_en
+                ? `${r.user_name_en}${r.user_name ? ` (${r.user_name})` : ""}`
+                : r.user_name || String(r.user_id),
+            });
+          }
+        }
+        setNameOptions(Array.from(map.values()));
 
         const newDataSource = result.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           no: index + 1 + (current - 1) * pageSize,
           date: item.date || "-",
           mileage: formatNumber(item.mileage) || "-",
-          name: item.user_name_en || "-",     // แสดงชื่อจาก API
-          lastModified: "-",               // ถ้ามี field ในอนาคตค่อยมาใส่
+          name: item.user_name_en || item.user_name || "-",
+          lastModified: "-",
           action: (
             <Dropdown
               menu={{
@@ -123,11 +149,12 @@ export default function MileageManagement() {
         }));
 
         setDataSource(newDataSource);
+
         setTableParams((prev) => ({
           ...prev,
           pagination: {
             ...prev.pagination,
-            total: result.length, // ถ้า API มี records_filtered ค่อยเปลี่ยนทีหลัง
+            total: result.length, // ถ้า API มี total จริงให้เปลี่ยนเป็น field นั้น
           },
         }));
       }
@@ -149,25 +176,35 @@ export default function MileageManagement() {
     JSON.stringify(tableParams.filters),
   ]);
 
-  const handleTableChange = (pagination, filters, sorter) => {
+  const handleTableChange = (pagination, _filters, sorter) => {
     setTableParams((prev) => ({
       ...prev,
       pagination,
-      filters: prev.filters, // รักษาค่า filter name เดิมไว้
+      filters: prev.filters, // ✅ อย่าทับ filter ที่เราเก็บเอง
       sortOrder: sorter.order === "descend" ? "desc" : "asc",
       sortField: sorter.field,
     }));
   };
 
-  // ✅ เปลี่ยน key เป็น name เพื่อ map กับ payload
-  const filters = [
-    {
-      key: "name",
-      type: "text",
-      label: "Name",
-      placeholder: "Search by name",
-    },
-  ];
+  // ✅ Filter: name = select, month = month picker
+  const filters = useMemo(
+    () => [
+      {
+        key: "name",
+        type: "select",
+        label: "Name",
+        placeholder: "All",
+        options: nameOptions, // [{id,name}]
+      },
+      {
+        key: "month",
+        type: "month",
+        label: "Month",
+        placeholder: "Select month",
+      },
+    ],
+    [nameOptions]
+  );
 
   const handleSearch = (filtersValue) => {
     setTableParams((prev) => ({
@@ -179,7 +216,8 @@ export default function MileageManagement() {
       },
       filters: {
         ...prev.filters,
-        name: filtersValue.name || "", // เก็บ name ไว้ใน state
+        name: filtersValue.name ?? undefined,
+        month: filtersValue.month || dayjs().format("YYYY-MM"),
       },
     }));
   };
@@ -191,21 +229,31 @@ export default function MileageManagement() {
         ...prev.pagination,
         current: 1,
       },
-      filters: {}, // เคลียร์ name ออก
+      filters: {
+        name: undefined,
+        month: dayjs().format("YYYY-MM"),
+      },
     }));
   };
 
   return (
     <MainLayout loading={loading}>
+      {/* ✅ หัวข้อ + ปุ่ม export ด้านขวา */}
       <div className="flex items-center justify-between">
         <div className="title-page">Mileage Management</div>
+
+        <ExportMileageExcelButton
+          text="Export Excel"
+          month={tableParams.filters?.month}
+          selectedUserId={tableParams.filters?.name}
+          nameOptions={nameOptions}
+          userInfoId={userInfo.id}
+          requestData={(payload) => useServiceAPI.get(paths.pathMileageList, payload)}
+          pageSize={5000}
+        />
       </div>
 
-      <Filter
-        onSearch={handleSearch}
-        onClear={handleClear}
-        filters={filters}
-      />
+      <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
 
       <BoxPrimary>
         <TableComponent
