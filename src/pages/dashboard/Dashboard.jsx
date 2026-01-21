@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Card, Row, Col, Select, Tooltip } from "antd";
 import MainLayout from "../../layouts/MainLayout";
 import { BarChart } from "@mui/x-charts/BarChart";
@@ -78,6 +78,8 @@ export default function Dashboard() {
     plan: "",
     actual: "",
   });
+
+  const [isSaleLocked, setIsSaleLocked] = useState(false);
 
   const valueFormatterMB = (value) => {
     if (typeof value !== "number" || isNaN(value)) return "0.0 M THB";
@@ -244,6 +246,49 @@ export default function Dashboard() {
       alive = false;
     };
   }, [selectedArea]);
+
+  useEffect(() => {
+    const loginSaleId = getLoginSaleId(userInfo);
+    if (!selectedArea) {
+      setIsSaleLocked(false);
+      return;
+    }
+
+    // ต้องมี list sales ก่อน
+    if (!Array.isArray(salesByArea) || salesByArea.length === 0) {
+      setIsSaleLocked(false);
+      return;
+    }
+
+    // หา sale ของคน login ว่ามีอยู่ใน options นี้ไหม
+    const found = salesByArea.find(
+      (s) => String(s.value) === String(loginSaleId)
+    );
+
+    if (found) {
+      // ✅ ล็อคเป็นตัวเอง
+      setSelectedSale(found.value);
+      setSelectedSaleByCrop(found.value);
+      setSelectedSaleActivity(found.value);
+
+      setIsSaleLocked(true);
+    } else {
+      // ✅ ถ้าไม่เจอใน list ของ area นี้ ให้เลือกเองได้
+      setIsSaleLocked(false);
+    }
+  }, [selectedArea, salesByArea, userInfo]);
+
+  const getLoginSaleId = (u) => {
+    if (!u) return null;
+
+    // ✅ ใช้อันที่โปรเจคคุณมีจริง (เลือก 1)
+    return (
+      u.sale_id ??         // กรณีมี sale_id
+      u.user_id ??         // กรณีใช้ user_id
+      u.id ??              // ตอนอื่นคุณใช้ userInfo.id
+      null
+    );
+  };
 
   // ===============================
   // ✅ Cascade: Sale -> Dealer (ใช้ของเดิม)
@@ -649,17 +694,17 @@ export default function Dashboard() {
 
         <div className="flex gap-2 items-center flex-wrap">
           {/* <Tooltip title="เลือก Area ก่อนเพื่อเปิด Sales" placement="top"> */}
-            <Select
-              className="w-full md:w-48"
-              value={selectedArea}
-              onChange={(value) => setSelectedArea(value)}
-              placeholder={loading ? "Loading..." : "Select Area"}
-              disabled={loading || areas.length === 1}
-              options={areas}
-              showSearch
-              allowClear
-              optionFilterProp="label"
-            />
+          <Select
+            className="w-full md:w-48"
+            value={selectedArea}
+            onChange={(value) => setSelectedArea(value)}
+            placeholder={loading ? "Loading..." : "Select Area"}
+            disabled={loading || areas.length === 1}
+            options={areas}
+            showSearch
+            allowClear
+            optionFilterProp="label"
+          />
           {/* </Tooltip> */}
 
           <Tooltip title="เลือก Sales หลังจากเลือก Area" placement="top">
@@ -674,10 +719,10 @@ export default function Dashboard() {
               placeholder={
                 loading ? "Loading..." : !selectedArea ? "Select Area first" : "Select Sale"
               }
-              disabled={loading || !selectedArea}
+              disabled={loading || !selectedArea || isSaleLocked}
               options={salesByArea}
               showSearch
-              allowClear
+              allowClear={!isSaleLocked}
               optionFilterProp="label"
             />
           </Tooltip>
