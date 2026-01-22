@@ -178,6 +178,8 @@ export default function RegisterOA() {
           if (response.data.user_id && !userInfo) {
             fetchUserProfile();
           }
+        } else if (response.status === 409) {
+          showMsg("error", "เบอร์โทรศัพท์นี้ได้ลงทะเบียนแล้ว");
         }
       })
       .catch((error) => {
