@@ -207,10 +207,12 @@ export default function CustomerStockCreate() {
   }, [dealerId, subDealerId]);
 
   useEffect(() => {
-    const total = dataSource.reduce(
-      (sum, item) => sum + parseFloat(item.net_amount || 0),
-      0
-    );
+    const total = dataSource.reduce((sum, item) => {
+      const net = parseFloat(item.net_amount || 0);
+      const qty = parseFloat(item.quantity || 0);
+      return sum + net * qty;
+    }, 0);
+
     setTotalValue(total);
   }, [dataSource]);
 
