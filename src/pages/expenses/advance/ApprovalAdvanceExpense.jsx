@@ -209,6 +209,8 @@ export default function ApprovalAdvanceExpense() {
           expenseNo: row.document_number,
           activityReference: row.document_number_referrent,
           typeOfMeeting: row.activity_type_name,
+          // ✅ เพิ่ม Sales (จาก user_name)
+          sale: row.user_name,
           date: row.document_date,
           status: (
             <BadgeStatus
@@ -323,6 +325,8 @@ export default function ApprovalAdvanceExpense() {
             { title: "Expense No", dataIndex: "expenseNo" },
             { title: "Activity Reference", dataIndex: "activityReference" },
             { title: "Type of Meeting", dataIndex: "typeOfMeeting" },
+            // ✅ เพิ่มตรงนี้ก่อน Date
+            { title: "Sales", dataIndex: "sale" ,width: '200px'},
             { title: "Date", dataIndex: "date" },
             { title: "Status", dataIndex: "status", align: "center" },
             { title: "Action", dataIndex: "action", align: "center" },
