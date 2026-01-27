@@ -1213,11 +1213,13 @@ export default function CreateActivity() {
           />
         )}
 
-        {activityDetail?.permission?.btn_reject && activityDetail?.transaction_status_name !== "Convert" && mode !== "approve" && (
+        {/* {activityDetail?.permission?.btn_reject && activityDetail?.transaction_status_name !== "Convert" && mode !== "approve" && ( */}
+        {activityDetail?.permission?.btn_reject && activityDetail?.transaction_status_name !== "Convert" && (
           <ActionButton mode="reject" text={btn_reject} onClick={() => handleApproval("reject")} disabled={forceReadOnly} />
         )}
 
-        {activityDetail?.permission?.btn_approved && activityDetail?.transaction_status_name !== "Convert" && mode == "approve" && (
+        {/* {activityDetail?.permission?.btn_approved && activityDetail?.transaction_status_name !== "Convert" && mode !== "approve" && ( */}
+        {activityDetail?.permission?.btn_approved && activityDetail?.transaction_status_name !== "Convert" && (
           <ActionButton mode="save" text={btn_approve} onClick={() => handleApproval("approved")} disabled={forceReadOnly} />
         )}
       </div>
