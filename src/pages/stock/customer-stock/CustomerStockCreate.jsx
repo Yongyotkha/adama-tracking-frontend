@@ -160,15 +160,39 @@ export default function CustomerStockCreate() {
 
         if (res.status === 200 && Array.isArray(res.data)) {
           const list = res.data;
+          // const mapped = list.map((item, index) => {
+          //   const qty = Number(item.quantity || 0);
+          //   const unitThb = parseFloat(
+          //     String(item.product_unit_thb || "0").replace(/,/g, "")
+          //   );
+          //   const netAmountStr =
+          //     item.net_amount ||
+          //     (qty * (isNaN(unitThb) ? 0 : unitThb)).toFixed(2);
+          //   const netAmount = netAmountStr;
+
+          //   const minFoc = Number(item.product_campaign_order_min_foc || 0);
+          //   const foc = minFoc > 0 ? parseInt(qty / minFoc, 10) : 0;
+
+          //   return {
+          //     key: index + 1,
+          //     no: index + 1,
+          //     product_id: item.product_id,
+          //     product_code: item.product_code,
+          //     product_name: item.product_name,
+          //     product_unit: item.product_unit,
+          //     product_unit_thb: item.product_unit_thb,
+          //     product_campaign_order_min_foc:
+          //       item.product_campaign_order_min_foc,
+          //     product_campaign_foc: item.product_campaign_foc,
+          //     quantity: qty,
+          //     foc,
+          //     net_amount: netAmount,
+          //   };
+          // });
           const mapped = list.map((item, index) => {
             const qty = Number(item.quantity || 0);
-            const unitThb = parseFloat(
-              String(item.product_unit_thb || "0").replace(/,/g, "")
-            );
-            const netAmountStr =
-              item.net_amount ||
-              (qty * (isNaN(unitThb) ? 0 : unitThb)).toFixed(2);
-            const netAmount = netAmountStr;
+
+            const netUnit = parseFloat(String(item.net_amount || "0").replace(/,/g, "")); // ✅ ราคาต่อหน่วย
 
             const minFoc = Number(item.product_campaign_order_min_foc || 0);
             const foc = minFoc > 0 ? parseInt(qty / minFoc, 10) : 0;
@@ -181,14 +205,14 @@ export default function CustomerStockCreate() {
               product_name: item.product_name,
               product_unit: item.product_unit,
               product_unit_thb: item.product_unit_thb,
-              product_campaign_order_min_foc:
-                item.product_campaign_order_min_foc,
+              product_campaign_order_min_foc: item.product_campaign_order_min_foc,
               product_campaign_foc: item.product_campaign_foc,
               quantity: qty,
               foc,
-              net_amount: netAmount,
+              net_amount: netUnit, // ✅ เก็บเป็น unit price
             };
           });
+
 
           setDataSource(mapped);
         } else {
@@ -208,13 +232,14 @@ export default function CustomerStockCreate() {
 
   useEffect(() => {
     const total = dataSource.reduce((sum, item) => {
-      const net = parseFloat(item.net_amount || 0);
-      const qty = parseFloat(item.quantity || 0);
-      return sum + net * qty;
+      const netUnit = Number(item.net_amount || 0);
+      const qty = Number(item.quantity || 0);
+      return sum + netUnit * qty;
     }, 0);
 
     setTotalValue(total);
   }, [dataSource]);
+
 
   const handleUploadClick = async () => {
     if (fileUploadRef.current) {
@@ -235,25 +260,20 @@ export default function CustomerStockCreate() {
   };
 
   const handleQuantityChange = (key, newQuantity) => {
-    setDataSource((prevData) =>
-      prevData.map((item) => {
-        if (item.key === key) {
-          const quantity = Math.max(0, newQuantity);
-          const unitPrice = parseFloat(
-            String(item.product_unit_thb || "0").replace(/,/g, "")
-          );
-          const net_amount = (
-            quantity * (isNaN(unitPrice) ? 0 : unitPrice)
-          ).toFixed(2);
-          const minFoc = Number(item.product_campaign_order_min_foc || 0);
-          const foc = minFoc > 0 ? parseInt(quantity / minFoc, 10) : 0;
+    setDataSource((prev) =>
+      prev.map((item) => {
+        if (item.key !== key) return item;
 
-          return { ...item, quantity, net_amount, foc };
-        }
-        return item;
+        const quantity = Math.max(0, Number(newQuantity || 0));
+
+        const minFoc = Number(item.product_campaign_order_min_foc || 0);
+        const foc = minFoc > 0 ? parseInt(quantity / minFoc, 10) : 0;
+
+        return { ...item, quantity, foc }; // ✅ ไม่แตะ net_amount (เพราะเป็นราคาต่อหน่วย)
       })
     );
   };
+
 
   const header = [
     { title: "No", dataIndex: "no", key: "no" },
