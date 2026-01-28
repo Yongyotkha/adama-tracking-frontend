@@ -351,6 +351,7 @@ export default function Dashboard() {
         const response = await useServiceAPI.get(paths.pathDashBordCustomer, {
           year_code: selectedYear,
           sale_id: selectedSale,
+          area_id: selectedArea,          // ✅ ส่ง area_id ไปด้วย
         });
 
         if (response.status === 200) {
@@ -370,7 +371,8 @@ export default function Dashboard() {
     };
 
     if (selectedYear) fetchDashboardData();
-  }, [selectedYear, selectedSale]);
+  }, [selectedYear, selectedSale, selectedArea]);   // ✅ ให้ re-run ตอนเปลี่ยน Area ด้วย
+
 
   // ===============================
   // ✅ Expense
@@ -382,6 +384,7 @@ export default function Dashboard() {
         year_code: selectedYear,
         month_id: selectedMonthsExpense,
         sale_id: selectedSale,
+        area_id: selectedArea,  // ✅ เพิ่ม area_id
       });
 
       if (response.status === 200) {
@@ -403,7 +406,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (selectedYear) fetchDashboardDataExpense();
-  }, [selectedYear, selectedMonthsExpense, selectedSale]);
+  }, [selectedYear, selectedMonthsExpense, selectedSale, selectedArea]);  // ✅
 
   // ===============================
   // ✅ Sales by Dealer
@@ -417,6 +420,7 @@ export default function Dashboard() {
           dealer_id: selectedSalesByDealer,
           month_id: selectedMonthsSalesByDealer,
           sale_id: selectedSale,
+          area_id: selectedArea,    // ✅ เพิ่ม area_id
         });
 
         if (response.status === 200) {
@@ -434,7 +438,14 @@ export default function Dashboard() {
     };
 
     if (selectedYear) fetchDashboardDataSalesByDealer();
-  }, [selectedYear, selectedSalesByDealer, selectedMonthsSalesByDealer, selectedSale]);
+  }, [
+    selectedYear,
+    selectedSalesByDealer,
+    selectedMonthsSalesByDealer,
+    selectedSale,
+    selectedArea,   // ✅ ให้ re-fetch เมื่อเปลี่ยน Area
+  ]);
+
 
   // ===============================
   // ✅ Cal percentage
@@ -474,6 +485,7 @@ export default function Dashboard() {
           dealer_id: selectedDealerPlan,
           month_id: selectedMonthsDealerPlan,
           sale_id: selectedSale,
+          area_id: selectedArea,   // ✅ เพิ่ม area_id
         });
 
         if (response.status === 200 && response.data) {
@@ -493,7 +505,7 @@ export default function Dashboard() {
     };
 
     if (selectedYear) fetchDealerPlanData();
-  }, [selectedYear, selectedDealerPlan, selectedMonthsDealerPlan, selectedSale]);
+  }, [selectedYear, selectedDealerPlan, selectedMonthsDealerPlan, selectedSale, selectedArea]);
 
   // ===============================
   // ✅ Top Activity
@@ -507,6 +519,7 @@ export default function Dashboard() {
           dealer_id: selectedDealerTopActivity,
           month_id: selectedMonthsTopActivity,
           sale_id: selectedSale,
+          area_id: selectedArea,   // ✅ เพิ่ม area_id
         });
 
         if (response.status === 200 && response.data) {
@@ -528,7 +541,7 @@ export default function Dashboard() {
     };
 
     if (selectedYear) fetchTopActivityData();
-  }, [selectedYear, selectedDealerTopActivity, selectedMonthsTopActivity, selectedSale]);
+  }, [selectedYear, selectedDealerTopActivity, selectedMonthsTopActivity, selectedSale, selectedArea]);
 
   // ===============================
   // ✅ Sub Dealer Plan
@@ -541,6 +554,7 @@ export default function Dashboard() {
           year_code: selectedYear,
           sub_dealer_id: selectedSubdealerPlan,
           sale_id: selectedSale,
+          area_id: selectedArea,   // ✅ เพิ่ม area_id
         });
 
         if (response.status === 200 && response.data) {
@@ -559,7 +573,7 @@ export default function Dashboard() {
     };
 
     if (selectedYear) fetchSubDealerPlanData();
-  }, [selectedYear, selectedSubdealerPlan, selectedSale]);
+  }, [selectedYear, selectedSubdealerPlan, selectedSale, selectedArea]);
 
   // ===============================
   // ✅ Sub Dealer by Dealer
@@ -572,6 +586,7 @@ export default function Dashboard() {
           year_code: selectedYear,
           dealer_id: selectedSdByD,
           sale_id: selectedSale,
+          area_id: selectedArea,     // ✅ ส่ง area_id
         });
 
         if (response.status === 200 && response.data) {
@@ -601,7 +616,8 @@ export default function Dashboard() {
     };
 
     if (selectedYear && selectedSdByD) fetchSubDealerByDealerData();
-  }, [selectedYear, selectedSdByD, selectedSale]);
+  }, [selectedYear, selectedSdByD, selectedSale, selectedArea]);   // ✅
+
 
   // ===============================
   // ✅ Sales by Crop
@@ -615,6 +631,7 @@ export default function Dashboard() {
           dealer_id: selectedSaleByCrop,
           month_id: selectedMonthsSaleByCrop,
           sale_id: selectedSale,
+          area_id: selectedArea,   // ✅ เพิ่ม area_id
         });
 
         if (response.status === 200 && response.data) {
@@ -646,7 +663,14 @@ export default function Dashboard() {
     };
 
     if (selectedYear) fetchSaleCropData();
-  }, [selectedYear, selectedSaleByCrop, selectedMonthsSaleByCrop, selectedSale]);
+  }, [
+    selectedYear,
+    selectedSaleByCrop,
+    selectedMonthsSaleByCrop,
+    selectedSale,
+    selectedArea,   // ✅ Trigger ใหม่ตอนเปลี่ยน Area
+  ]);
+
 
   // ===============================
   // ✅ List Activity
@@ -660,6 +684,7 @@ export default function Dashboard() {
           sale_id: selectedSale,
           month_id: selectedMonthsActivity,
           dealer: selectedDealerActivity,
+          area_id: selectedArea,   // ✅ เพิ่ม area_id
         };
 
         const response = await useServiceAPI.get(paths.pathDashBordListActivity, payload);
@@ -684,7 +709,7 @@ export default function Dashboard() {
     };
 
     if (selectedYear) fetchListActivityData();
-  }, [selectedYear, selectedSale, selectedMonthsActivity, selectedDealerActivity]);
+  }, [selectedYear, selectedSale, selectedMonthsActivity, selectedDealerActivity, selectedArea]);
 
   return (
     <MainLayout loading={loading}>
