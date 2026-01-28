@@ -48,6 +48,16 @@ export default function CustomerStockEdit() {
   //   console.log(total);
   //   setTotalValue(total);
   // }, [dataSource]);
+  useEffect(() => {
+    const total = dataSource.reduce((sum, item) => {
+      const netUnit = Number(item.net_amount || 0); // ✅ unit
+      const qty = Number(item.quantity || 0);
+      return sum + netUnit * qty;
+    }, 0);
+
+    setTotalValue(total);
+  }, [dataSource]);
+
 
   function formatNumber(value) {
     if (!value) return "0";
@@ -112,9 +122,7 @@ export default function CustomerStockEdit() {
         setDataSource((prev) => {
           const newProducts = stockDetail.data.products.filter(
             (newItem) =>
-              !prev.some(
-                (prevItem) => prevItem.product_code === newItem.product_code
-              )
+              !prev.some((prevItem) => prevItem.product_code === newItem.product_code)
           );
 
           return [
@@ -124,9 +132,12 @@ export default function CustomerStockEdit() {
               no: prev.length + index + 1,
               key: prev.length + index + 1,
               quantity: parseInt(item.quantity),
+              net_amount: parseFloat(String(item.net_amount || "0").replace(/,/g, "")), // ✅ unit price
+              product_unit_thb: String(item.product_unit_thb || "0").replace(/,/g, ""), // ✅ กัน comma
             })),
           ];
         });
+
 
         setDataSourceOther((prev) => {
           const newOthers = stockDetail.data.others.filter(
@@ -148,7 +159,7 @@ export default function CustomerStockEdit() {
           ];
         });
         console.log("stockDetail.data.net_amount_display : ", stockDetail.data.net_amount_display);
-        setTotalValue(stockDetail.data.net_amount_display);
+        // setTotalValue(stockDetail.data.net_amount_display);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -239,18 +250,18 @@ export default function CustomerStockEdit() {
   const handleQuantityChange = (key, newQuantity) => {
     setDataSource((prevData) =>
       prevData.map((item) => {
-        if (item.key === key) {
-          const quantity = Math.max(0, newQuantity); // Prevent negative quantities
-          const net_amount = (
-            quantity * parseFloat(item.product_unit_thb.replace(/,/g, ""))
-          ).toFixed(2); // Calculate new net_amount
-          const foc = parseInt(quantity / item.product_campaign_order_min_foc);
-          return { ...item, quantity, net_amount, foc };
-        }
-        return item;
+        if (item.key !== key) return item;
+
+        const quantity = Math.max(0, Number(newQuantity || 0));
+
+        const minFoc = Number(item.product_campaign_order_min_foc || 0);
+        const foc = minFoc > 0 ? parseInt(quantity / minFoc, 10) : 0;
+
+        return { ...item, quantity, foc }; // ✅ ไม่คำนวณ net_amount
       })
     );
   };
+
 
   const header = [
     { title: "No", dataIndex: "no", key: "no" },
@@ -359,18 +370,8 @@ export default function CustomerStockEdit() {
           // If product_code exists, update the quantity
           const updatedDataSource = dataSource.map((item, index) => {
             if (index === existingProductIndex) {
-              const updatedQuantity = item.quantity + 1; // Increment quantity
-              const updatedNetAmount = (
-                updatedQuantity *
-                parseFloat(item.product_unit_thb.replace(/,/g, ""))
-              ).toFixed(2); // Recalculate net_amount
-
-              return {
-                ...item,
-                // quantity: item.quantity + 1, // Increment quantity
-                quantity: updatedQuantity,
-                net_amount: updatedNetAmount, // Update net_amount
-              };
+              const updatedQuantity = item.quantity + 1;
+              return { ...item, quantity: updatedQuantity };
             }
             return item;
           });
@@ -392,9 +393,11 @@ export default function CustomerStockEdit() {
             foc: parseInt(1 / data.product_campaign_order_min_foc),
             // foc: data.product_campaign_foc,
             // net_amount: data.bath_unit,
-            net_amount: (
-              1 * parseFloat(data.bath_unit.replace(/,/g, ""))
-            ).toFixed(2), // Calculate net_amount based on quantity 1
+            // net_amount: (
+            //   1 * parseFloat(data.bath_unit.replace(/,/g, ""))
+            // ).toFixed(2), // Calculate net_amount based on quantity 1
+            net_amount: parseFloat(String(data.net_amount || data.bath_unit || "0").replace(/,/g, "")), // ✅ unit
+
           };
 
           const updatedDataSource = [...dataSource, newProductDataDetail];
@@ -537,9 +540,9 @@ export default function CustomerStockEdit() {
           min={0}
           disabled={true}
           value={totalValue}
-          // formatter={(value) =>
-          //   `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          // }
+        formatter={(value) =>
+          `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+        }
         />
       </BoxPrimary>
 
