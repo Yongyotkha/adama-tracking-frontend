@@ -13,47 +13,52 @@ import { paths } from "../../../services/CorsPath";
 export default function DealerList() {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-  const [dealers, set_dealers] = useState([]);
-  const navigate = useNavigate();
+  const [dealers, setDealers] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
+
   const [Status, setStatus] = useState([]);
-  const [filterValues, setFilterValues] = useState({});
   const [saleList, setSaleList] = useState([]);
+  const [targetList, setTargetList] = useState([]); // ✅ NEW
+
+  const [filterValues, setFilterValues] = useState({});
+  const navigate = useNavigate();
+
   const [tableParams, setTableParams] = useState({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-    },
+    pagination: { current: 1, pageSize: 10, total: 0 },
     filters: {},
     sortOrder: null,
     sortField: null,
   });
 
-  // ---------- Load master: Status, Sales, Dealer All ----------
+  // ---------- Load master: Status, Sales, Dealer All, Target ----------
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [dataStatus, sale, dealerAll] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterStatus, {
-            status_type: "status",
-          }),
+        const [dataStatus, sale, dealerAll, targetRes] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterStatus, { status_type: "status" }),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
           useServiceAPI.get(paths.pathMasterDealerAll, {}),
+          useServiceAPI.get(paths.pathMasterTarget, { user_type: 1 }), // ✅ NEW
         ]);
 
-        const Status = (dataStatus.data || []).map((data) => ({
-          id: data.code,
-          name: data.name,
+        const statusOpts = (dataStatus?.data || []).map((d) => ({
+          id: d.code,
+          name: d.name,
         }));
 
-        setStatus(Status);
-        setSaleList(sale.data || []);
-        set_dealers(dealerAll.data || []);
+        setStatus(statusOpts);
+        setSaleList(sale?.data || []);
+        setDealers(dealerAll?.data || []);
+
+        // ✅ map master target -> {id,name}
+        const targets = (targetRes?.data || []).map((x) => ({
+          id: x.id ?? x.target_group_id ?? x.code,
+          name: x.name ?? x.target_group_name ?? x.title,
+        }));
+        setTargetList(targets);
       } catch (error) {
-        console.error(error.message || "error");
-        // ถ้ามี showMsg อยู่ในโปรเจกต์เดิม สามารถใช้ตรงนี้ได้
-        // showMsg("error", error.message || "error");
+        console.error(error?.message || "error");
       } finally {
         setLoading(false);
       }
@@ -77,31 +82,29 @@ export default function DealerList() {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
-    console.log("----------fetch------------", filters);
 
     const requestData = {
       sale: filters.sale || "",
       dealers: filters.dealers || "",
       use_flag: filters.use_flag || "",
+      target_group_id: filters.target_group_id || "", // ✅ NEW
       page_length: current,
       page_size: pageSize,
     };
 
     try {
-      const response = await useServiceAPI.get(
-        paths.pathCustomerDealer,
-        requestData
-      );
+      const response = await useServiceAPI.get(paths.pathCustomerDealer, requestData);
 
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
-        const newDataSource = elementHtml(data, current, pageSize);
+        const newDataSource = elementHtml(data || [], current, pageSize);
+
         setDataSource(newDataSource);
         setTableParams((prev) => ({
           ...prev,
           pagination: {
             ...prev.pagination,
-            total: records_filtered,
+            total: records_filtered || 0,
           },
         }));
       }
@@ -112,62 +115,63 @@ export default function DealerList() {
     }
   };
 
-  const handleSearch = (filters) => {
-    const set = {
-      ...tableParams,
-      pagination: {
-        ...tableParams.pagination,
-        current: 1,
-        pageSize: 10,
-      },
+  const handleSearch = (filtersFromUI) => {
+    setTableParams((prev) => ({
+      ...prev,
+      pagination: { ...prev.pagination, current: 1, pageSize: 10 },
       filters: {
-        ...filters,
+        ...filtersFromUI,
         page_length: 1,
         page_size: 10,
       },
-    };
-    setTableParams(set);
+    }));
+    setFilterValues(filtersFromUI);
+  };
+
+  const handleClear = () => {
+    setTableParams((prev) => ({
+      ...prev,
+      filters: {},
+      pagination: { ...prev.pagination, current: 1 },
+    }));
+    setFilterValues({});
   };
 
   function elementHtml(data, current, pageSize) {
-    const element = data.map((data, index) => ({
+    return (data || []).map((row, index) => ({
       key: index + 1 + (current - 1) * pageSize,
-      code: data.dealer_code,
-      dealerName: data.dealer_name_en,
-      address: data.address,
-      contactName: data.contact_name,
-      mobilePhone: data.contact_phone_number || "-",
-      groupCode: data.group_code,
-      sale: data.sale_list_name,
+      code: row.dealer_code,
+      dealerName: row.dealer_name_en,
+      contactName: row.contact_name,
+      mobilePhone: row.contact_phone_number || "-",
+      address: row.address,
+      groupCode: row.group_code,
+      targetGroupName: row.target_group_name || "-", // ✅ NEW
+      sale: row.sale_list_name,
       status: (
         <BadgeStatus
-          text={data.status_name}
-          bgColor={data.status_bg_color}
-          textColor={data.status_color}
+          text={row.status_name}
+          bgColor={row.status_bg_color}
+          textColor={row.status_color}
         />
       ),
       action: (
         <Dropdown
           menu={{
-            items: data.action.map((actionItem, actionIndex) => ({
+            items: (row.action || []).map((actionItem, actionIndex) => ({
               key: actionIndex,
               label: (
                 <ItemDropDown
-                  mode={actionItem.action.toLowerCase()}
+                  mode={(actionItem.action || "").toLowerCase()}
                   onClick={() => {
-                    if (actionItem.action.toLowerCase() === "edit") {
+                    const mode = (actionItem.action || "").toLowerCase();
+                    if (mode === "edit") {
                       navigate("/customer/dealer/edit-info", {
-                        state: {
-                          id: data.id,
-                          mod: actionItem.action,
-                        },
+                        state: { id: row.id, mod: actionItem.action },
                       });
-                    } else if (actionItem.action.toLowerCase() === "view") {
+                    } else if (mode === "view") {
                       navigate("/customer/dealer/view-info", {
-                        state: {
-                          id: data.id,
-                          mod: actionItem.action,
-                        },
+                        state: { id: row.id, mod: actionItem.action },
                       });
                     }
                   }}
@@ -187,10 +191,9 @@ export default function DealerList() {
         </Dropdown>
       ),
     }));
-
-    return element;
   }
 
+  // ---------- Filters UI ----------
   const filters = [
     {
       key: "sale",
@@ -205,74 +208,52 @@ export default function DealerList() {
       type: "select",
       label: "Dealer",
       placeholder: "All",
-      options: dealers, // ✅ ใช้ Dealer All
+      options: dealers,
+      moderef: false,
+    },
+    {
+      key: "target_group_id", // ✅ NEW
+      type: "select",
+      label: "Target",
+      placeholder: "All",
+      options: targetList,
       moderef: false,
     },
     {
       key: "use_flag",
       label: "Status",
       type: "select",
+      placeholder: "All",
       options: Status,
     },
   ];
 
-  const handleClear = () => {
-    setTableParams((prev) => ({
-      ...prev,
-      filters: {},
-      pagination: {
-        ...prev.pagination,
-        current: 1,
-      },
-    }));
-    setFilterValues({});
-  };
-
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
     { title: "Code", width: 100, dataIndex: "code", align: "left" },
-    {
-      title: "Dealer Name",
-      width: 200,
-      dataIndex: "dealerName",
-      align: "left",
-    },
-    {
-      title: "Contact Name",
-      width: 200,
-      dataIndex: "contactName",
-      align: "left",
-    },
-    {
-      title: "Contact Number",
-      width: 150,
-      dataIndex: "mobilePhone",
-      align: "center",
-    },
+    { title: "Dealer Name", width: 200, dataIndex: "dealerName", align: "left" },
+    { title: "Contact Name", width: 200, dataIndex: "contactName", align: "left" },
+    { title: "Contact Number", width: 150, dataIndex: "mobilePhone", align: "center" },
     { title: "Address", width: 300, dataIndex: "address", align: "left" },
-    {
-      title: "Group Code",
-      width: 150,
-      dataIndex: "groupCode",
-      align: "center",
-    },
+    { title: "Group Code", width: 150, dataIndex: "groupCode", align: "center" },
+    { title: "Target Group", width: 180, dataIndex: "targetGroupName", align: "left" }, // ✅ NEW
     { title: "By Sales", width: 150, dataIndex: "sale", align: "center" },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-  const handleTableChange = (pagination, filters, sorter) => {
+  const handleTableChange = (pagination, _filters, sorter) => {
     setTableParams((prev) => ({
       ...prev,
       pagination,
-      filters: prev.filters, // รักษาฟิลเตอร์เดิม
-      sortOrder: sorter.order === "descend" ? "desc" : "asc",
-      sortField: sorter.field,
+      filters: prev.filters,
+      sortOrder: sorter?.order === "descend" ? "desc" : "asc",
+      sortField: sorter?.field,
     }));
   };
 
-  const handleChange = (filters) => {
-    setFilterValues(filters); // ตอนนี้ใช้เก็บเฉย ๆ เผื่ออนาคต
+  const handleChange = (values) => {
+    setFilterValues(values);
   };
 
   return (
@@ -284,6 +265,7 @@ export default function DealerList() {
         onClear={handleClear}
         onChange={handleChange}
         filters={filters}
+        values={filterValues}
       />
 
       <BoxPrimary>

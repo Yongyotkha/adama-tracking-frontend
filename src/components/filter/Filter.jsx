@@ -169,6 +169,7 @@ const Filter = ({ onSearch, onClear, onChange, filters, onValueChange, values })
                     onChange={(dates, dateString) => {
                       handleFilterChange(filter.key, dateString)
                     }}
+                    className="w-full"
                   />
                 )}
               </Col>

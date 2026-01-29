@@ -1,7 +1,7 @@
 // API EndPoint
 // export const endPoint = import.meta.env.VITE_API_BASE_URL;
-export const endPoint = "https://adama-api.mtsc.co.th/api"; //Test API
-// export const endPoint = "https://api-uat.adama.co.th/api"; //UAT API
+// export const endPoint = "https://adama-api.mtsc.co.th/api"; //Test API
+export const endPoint = "https://api-uat.adama.co.th/api"; //UAT API
 //export const endPoint = "http://127.0.0.1:8000/api";
 
 export const paths = {
@@ -47,6 +47,7 @@ export const paths = {
   pathMasterAreas: "master/areas",
   pathMasterRoles: "master/roles",
   pathMasterCrop: "master/crop",
+  pathMasterTarget: "master/target",
   pathMasterSubDealerCrop: "master/sub-dealer-crop",
   pathMasterProductTypes: "master/product-types",
   pathMasterProductGroups: "master/product-groups",

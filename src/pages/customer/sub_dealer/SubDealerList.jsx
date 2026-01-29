@@ -16,54 +16,34 @@ export default function SubDealerList() {
   const navigate = useNavigate();
   const { showNotification } = useContext(AuthContext);
 
-  // page states
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
 
-  // masters
   const [Status, setStatus] = useState([]);
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
+  const [targetList, setTargetList] = useState([]); // ✅ NEW
 
-  // keep current filter values
   const [filterValues, setFilterValues] = useState({});
 
-  // table params
   const [tableParams, setTableParams] = useState({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-      total: 0,
-    },
+    pagination: { current: 1, pageSize: 10, total: 0 },
     filters: {},
   });
 
-  // ---------- Filters UI ----------
   const filters = [
+    { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
+    { key: "dealers", type: "select", label: "Dealer", placeholder: "All", options: dealerList, moderef: true },
+    { key: "shop", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerList },
     {
-      key: "sale",
+      key: "target_group_id", // ✅ NEW
       type: "select",
-      label: "Sales",
+      see: "",
+      label: "Target",
       placeholder: "All",
-      options: saleList,
-      moderef: true,
-    },
-    {
-      key: "dealers",
-      type: "select",
-      label: "Dealer",
-      placeholder: "All",
-      options: dealerList,
-      moderef: true,
-    },
-    {
-      key: "shop",
-      type: "select",
-      label: "Sub Dealer",
-      placeholder: "All",
-      options: subDealerList,
+      options: targetList,
     },
     {
       key: "channel_type",
@@ -76,28 +56,11 @@ export default function SubDealerList() {
         { id: "New", name: "New" },
       ],
     },
-    {
-      key: "use_flag",
-      type: "select",
-      label: "Status",
-      placeholder: "All",
-      options: Status,
-    },
-    {
-      key: "create_date",
-      type: "date",
-      label: "Create Date",
-      placeholder: "Select date",
-    },
-    {
-      key: "name",
-      type: "text",
-      label: "Name",
-      placeholder: "Enter name",
-    },
+    { key: "use_flag", type: "select", label: "Status", placeholder: "All", options: Status },
+    { key: "create_date", type: "date", label: "Create Date", placeholder: "Select date" },
+    { key: "name", type: "text", label: "Name", placeholder: "Enter name" },
   ];
 
-  // ---------- Table header ----------
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
     { title: "Dealer Name", width: 200, dataIndex: "dealerName", align: "left" },
@@ -105,57 +68,51 @@ export default function SubDealerList() {
     { title: "Contact Name", width: 200, dataIndex: "contactName", align: "left" },
     { title: "Contact Number", width: 150, dataIndex: "phone", align: "center" },
     { title: "Address", width: 300, dataIndex: "address", align: "left" },
+    { title: "Target Group", width: 180, dataIndex: "targetGroupName", align: "left" }, // ✅ NEW
     { title: "By Sales", width: 150, dataIndex: "sale", align: "center" },
     { title: "Status Type", width: 100, dataIndex: "channel_type", align: "center" },
-    {
-      title: "Create Date",
-      width: 140,
-      dataIndex: "createDate",
-      align: "center",
-    },
+    { title: "Create Date", width: 140, dataIndex: "createDate", align: "center" },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-  // ---------- Load masters: Status, Sales, DealerAll, SubDealerAll ----------
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [dataStatus, sale, dealerRes, subDealerRes] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterStatus, {
-            status_type: "status",
-          }),
+        const [dataStatus, sale, dealerRes, subDealerRes, targetRes] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterStatus, { status_type: "status" }),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
           useServiceAPI.get(paths.pathMasterDealerAll, {}),
           useServiceAPI.get(paths.pathMasterSubDealerAll, {}),
+          useServiceAPI.get(paths.pathMasterTarget, { user_type: 2 }), // ✅ NEW
         ]);
 
-        const statusOpts = (dataStatus?.data || []).map((data) => ({
-          id: data.code,
-          name: data.name,
-        }));
+        setStatus((dataStatus?.data || []).map((d) => ({ id: d.code, name: d.name })));
+        setSaleList(sale?.data || []);
+        setDealerList(dealerRes?.data || []);
 
-        setStatus(statusOpts);
-        setSaleList(sale.data || []);
-        setDealerList(dealerRes.data || []);
+        setSubDealerList(
+          (subDealerRes?.data || []).map((item) => ({
+            name: item.sub_dealer_name,
+            id: item.sub_dealer_id,
+          }))
+        );
 
-        const formattedSubDealer = (subDealerRes.data || []).map((item) => ({
-          name: item.sub_dealer_name,
-          id: item.sub_dealer_id,
+        const targets = (targetRes?.data || []).map((x) => ({
+          id: x.id ?? x.target_group_id ?? x.code,
+          name: x.name ?? x.target_group_name ?? x.title,
         }));
-        setSubDealerList(formattedSubDealer);
+        setTargetList(targets);
       } catch (error) {
-        console.log(error.message);
+        console.log(error?.message);
       } finally {
         setLoading(false);
       }
     };
     getMaster();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ---------- Delete handler ----------
   const handleDelete = (id) => {
     Modal.confirm({
       title: "ยืนยันการลบ?",
@@ -166,10 +123,7 @@ export default function SubDealerList() {
       onOk: async () => {
         try {
           setTableLoading(true);
-          const response = await useServiceAPI.delete(
-            paths.pathDeleteSubDealer,
-            { id }
-          );
+          const response = await useServiceAPI.delete(paths.pathDeleteSubDealer, { id });
 
           if (response?.status === 200) {
             showNotification(
@@ -194,43 +148,36 @@ export default function SubDealerList() {
     });
   };
 
-  // ---------- Fetch data ----------
   const fetchData = async () => {
     setTableLoading(true);
 
     const { current, pageSize } = tableParams.pagination;
-    const filters = tableParams.filters || {};
+    const f = tableParams.filters || {};
 
     const requestData = {
-      keyword: filters.keyword || filters.name || "",
-
-      use_flag: filters.use_flag || "",
-      contact_phone_number: filters.contact_phone_number || "",
-      contact_name: filters.contact_name || "",
-
+      keyword: f.keyword || f.name || "",
+      use_flag: f.use_flag || "",
+      contact_phone_number: f.contact_phone_number || "",
+      contact_name: f.contact_name || "",
       page_length: current,
       page_size: pageSize,
 
-      user_id: filters.sale || "",
-      dealer_id: filters.dealers || "",
-      sub_dealer_id: filters.shop || "",
-      province: filters.province || "",
-      channel_type: filters.channel_type || "",
+      user_id: f.sale || "",
+      dealer_id: f.dealers || "",
+      sub_dealer_id: f.shop || "",
+      target_group_id: f.target_group_id || "", // ✅ NEW
+      province: f.province || "",
+      channel_type: f.channel_type || "",
 
-      create_date_start:
-        filters.create_date && filters.create_date[0] ? filters.create_date[0] : "",
-      create_date_end:
-        filters.create_date && filters.create_date[1] ? filters.create_date[1] : "",
+      create_date_start: f.create_date && f.create_date[0] ? f.create_date[0] : "",
+      create_date_end: f.create_date && f.create_date[1] ? f.create_date[1] : "",
 
       sort_field: "created_at",
       sort_order: "desc",
     };
 
     try {
-      const response = await useServiceAPI.get(
-        paths.pathCustomerSubDealerList,
-        requestData
-      );
+      const response = await useServiceAPI.get(paths.pathCustomerSubDealerList, requestData);
 
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
@@ -245,30 +192,18 @@ export default function SubDealerList() {
               if (action === "Delete") {
                 return {
                   key: `delete-${actionIndex}`,
-                  label: (
-                    <ItemDropDown
-                      mode="delete"
-                      onClick={() => handleDelete(id)}
-                    />
-                  ),
+                  label: <ItemDropDown mode="delete" onClick={() => handleDelete(id)} />,
                 };
               }
 
-              const navTarget =
-                action === "View"
-                  ? "/customer/sub-dealer/view"
-                  : "/customer/sub-dealer/edit";
+              const navTarget = action === "View" ? "/customer/sub-dealer/view" : "/customer/sub-dealer/edit";
 
               return {
                 key: `${action.toLowerCase()}-${actionIndex}`,
                 label: (
                   <ItemDropDown
                     mode={action.toLowerCase()}
-                    onClick={() =>
-                      navigate(navTarget, {
-                        state: { id, mode: action },
-                      })
-                    }
+                    onClick={() => navigate(navTarget, { state: { id, mode: action } })}
                   />
                 ),
               };
@@ -281,24 +216,17 @@ export default function SubDealerList() {
             contactName: item.contact_name,
             address: item.contact_address,
             phone: item.mobile_phone,
+            targetGroupName: item.target_group_name || "-", // ✅ NEW
             sale: item.sale_list_name,
             channel_type: item.channel_type,
             createDate: item.created_at ? item.created_at.split(" ")[0] : "",
             status: (
-              <BadgeStatus
-                text={item.status_name}
-                bgColor={item.status_bg_color}
-                textColor={item.status_color}
-              />
+              <BadgeStatus text={item.status_name} bgColor={item.status_bg_color} textColor={item.status_color} />
             ),
             action: (
               <Dropdown menu={{ items }} placement="bottomRight">
                 <a onClick={(e) => e.preventDefault()}>
-                  <img
-                    src="/img/icons/action.png"
-                    alt="button icon"
-                    className="inline-block w-5 h-5 mr-2"
-                  />
+                  <img src="/img/icons/action.png" alt="button icon" className="inline-block w-5 h-5 mr-2" />
                 </a>
               </Dropdown>
             ),
@@ -308,10 +236,7 @@ export default function SubDealerList() {
         setDataSource(newDataSource);
         setTableParams((prev) => ({
           ...prev,
-          pagination: {
-            ...prev.pagination,
-            total: records_filtered || 0,
-          },
+          pagination: { ...prev.pagination, total: records_filtered || 0 },
         }));
       }
     } catch (error) {
@@ -321,7 +246,6 @@ export default function SubDealerList() {
     }
   };
 
-  // ---------- Effects ----------
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -331,16 +255,11 @@ export default function SubDealerList() {
     JSON.stringify(tableParams.filters),
   ]);
 
-  // ---------- Filter handlers ----------
   const handleSearch = (filtersFromUI) => {
     setTableParams((prev) => ({
       ...prev,
       pagination: { ...prev.pagination, current: 1, pageSize: 10 },
-      filters: {
-        ...filtersFromUI,
-        page_length: 1,
-        page_size: 10,
-      },
+      filters: { ...filtersFromUI, page_length: 1, page_size: 10 },
     }));
     setFilterValues(filtersFromUI);
   };
@@ -359,10 +278,7 @@ export default function SubDealerList() {
   };
 
   const handleTableChange = (pagination) => {
-    setTableParams((prev) => ({
-      ...prev,
-      pagination,
-    }));
+    setTableParams((prev) => ({ ...prev, pagination }));
   };
 
   return (
@@ -372,11 +288,7 @@ export default function SubDealerList() {
         <ActionButton
           mode="create"
           text="Create"
-          onClick={() =>
-            navigate("/customer/sub-dealer/create", {
-              state: { mode: "Create" },
-            })
-          }
+          onClick={() => navigate("/customer/sub-dealer/create", { state: { mode: "Create" } })}
         />
       </div>
 
