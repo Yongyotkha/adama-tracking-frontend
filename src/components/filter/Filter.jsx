@@ -74,23 +74,25 @@ const Filter = ({ onSearch, onClear, onChange, filters, onValueChange, values })
                 <label className="block text-gray-700">{filter.label}</label>
                 {filter.type === "select" && (
                   <Select
-                    value={filterValues[filter.key] ?? undefined}
-                    onChange={(value) => handleFilterChange(filter.key, value)}
+                    value={
+                      filterValues[filter.key] === "" || filterValues[filter.key] === undefined
+                        ? undefined
+                        : filterValues[filter.key]
+                    }
+                    onChange={(value) => handleFilterChange(filter.key, value ?? "")}
                     placeholder={filter.placeholder || "Select"}
                     className="w-full"
                     allowClear
                     showSearch
-                    optionFilterProp="label" // ✅ ให้ค้นหาจาก label ของ option
+                    optionFilterProp="label"
                     filterOption={(input, option) => {
                       const label = (option?.label ?? "").toString().toLowerCase();
                       return label.includes((input ?? "").toLowerCase());
                     }}
                     disabled={filter.disabled || false}
-                  // ✅ ถ้า options เยอะ แนะนำเปิดไว้
-                  // virtual={false}
                   >
-                    {/* ✅ All */}
-                    <Option value={undefined} label={filter.placeholder || "All"}>
+                    {/* ✅ All = "" */}
+                    <Option value="" label={filter.placeholder || "All"}>
                       {filter.placeholder || "All"}
                     </Option>
 
@@ -106,6 +108,7 @@ const Filter = ({ onSearch, onClear, onChange, filters, onValueChange, values })
                     })}
                   </Select>
                 )}
+
 
                 {filter.type === "text" && (
                   <Input

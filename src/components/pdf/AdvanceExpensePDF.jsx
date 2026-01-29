@@ -45,6 +45,18 @@ const styles = StyleSheet.create({
   tableCellHeader: { borderBottomWidth: 1, padding: 5, fontWeight: "bold", textAlign: "center", flex: 1, borderRightWidth: 1, },
   tableCell: { padding: 5, flex: 1, textAlign: "center", borderRightWidth: 1 },
   tableCellLast: { borderRightWidth: 0 },
+  descriptionBox: {
+    width: "100%",
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderColor: "#000",
+    padding: 8,
+    minHeight: 55,
+    marginTop: 10,
+  },
+  descriptionTitle: { fontWeight: "bold", marginBottom: 4}, // ถ้าไม่เอาสีแดงก็ลบ color ได้
+  descriptionText: { fontSize: 9, lineHeight: 1.25 },
+
   footer: {
     marginTop: 10,
     fontSize: 9,
@@ -157,6 +169,19 @@ const AdvanceExpensePDF = () => {
       Number(item.estimate_sale_qty || 0) !== 0 ||
       Number(item.acutal_sale_qty || 0) !== 0
   );
+
+  const stripHtml = (html) => {
+    if (!html) return "-";
+    return String(html)
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/p>/gi, "\n")
+      .replace(/<[^>]+>/g, "")
+      .replace(/&nbsp;/g, " ")
+      .trim() || "-";
+  };
+
+  const descriptionText = stripHtml(dataHeader?.description);
+
 
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
@@ -366,6 +391,11 @@ const AdvanceExpensePDF = () => {
             </View>
           </View>
 
+          {/* Description (ต่อจาก Products ก่อน Footer) */}
+          <View style={styles.descriptionBox}>
+            <Text style={styles.descriptionTitle}>Description :</Text>
+            <Text style={styles.descriptionText}>{descriptionText}</Text>
+          </View>
 
           {/* Footer */}
           <View style={styles.footer}>
@@ -376,26 +406,26 @@ const AdvanceExpensePDF = () => {
                 <View style={styles.footerContentRow}>
                   <Text style={{ flex: 2, textAlign: "start" }}>Request By :</Text>
                   {/* <Text style={{ flex: 4, textAlign: "start" }}>{dataHeader.user_name}</Text> */}
-                  <Text style={{ flex: 4, textAlign: "start",lineHeight: 1.25 }}>   </Text>
+                  <Text style={{ flex: 4, textAlign: "start", lineHeight: 1.25 }}>   </Text>
                   <Text style={{ flex: 1, textAlign: "start" }}>Date</Text>
                   {/* <Text style={{ flex: 2, textAlign: "start" }}>{formatDate(dataHeader.created_at)}</Text> */}
-                  <Text style={{ flex: 2, textAlign: "start",lineHeight: 1.25 }}>   </Text>
+                  <Text style={{ flex: 2, textAlign: "start", lineHeight: 1.25 }}>   </Text>
                 </View>
                 <View style={styles.footerContentRow}>
                   <Text style={{ flex: 2, textAlign: "start" }}>Checked by :</Text>
                   {/* <Text style={{ flex: 4, textAlign: "start" }}> {dataHeader?.approve_by?.user_name_en || "-"}</Text> */}
-                  <Text style={{ flex: 4, textAlign: "start",lineHeight: 1.25 }}>   </Text>
+                  <Text style={{ flex: 4, textAlign: "start", lineHeight: 1.25 }}>   </Text>
                   <Text style={{ flex: 1, textAlign: "start" }}>Date</Text>
                   {/* <Text style={{ flex: 2, textAlign: "start" }}> {formatDate(dataHeader?.approve_by?.created_at)}</Text> */}
-                  <Text style={{ flex: 2, textAlign: "start",lineHeight: 1.25 }}>   </Text>
+                  <Text style={{ flex: 2, textAlign: "start", lineHeight: 1.25 }}>   </Text>
                 </View>
                 <View style={styles.footerContentRow}>
                   <Text style={{ flex: 2, textAlign: "start" }}>Approved by :</Text>
                   {/* <Text style={{ flex: 4, textAlign: "start" }}> {dataHeader?.approve_clearing_by?.user_name_en || "-"}</Text> */}
-                  <Text style={{ flex: 4, textAlign: "start",lineHeight: 1.25 }}>   </Text>
+                  <Text style={{ flex: 4, textAlign: "start", lineHeight: 1.25 }}>   </Text>
                   <Text style={{ flex: 1, textAlign: "start" }}>Date</Text>
                   {/* <Text style={{ flex: 2, textAlign: "start" }}> {formatDate(dataHeader?.approve_clearing_by?.created_at)}</Text> */}
-                  <Text style={{ flex: 2, textAlign: "start",lineHeight: 1.25 }}>   </Text>
+                  <Text style={{ flex: 2, textAlign: "start", lineHeight: 1.25 }}>   </Text>
                 </View>
               </View>
 
@@ -405,26 +435,26 @@ const AdvanceExpensePDF = () => {
                 <View style={styles.footerContentRow}>
                   <Text style={{ flex: 2, textAlign: "start" }}>Request By :</Text>
                   {/* <Text style={{ flex: 4, textAlign: "start" }}> {dataHeader?.clearing_create?.user_name_en || "-"}</Text> */}
-                  <Text style={{ flex: 4, textAlign: "start",lineHeight: 1.25 }}>   </Text>
+                  <Text style={{ flex: 4, textAlign: "start", lineHeight: 1.25 }}>   </Text>
                   <Text style={{ flex: 1, textAlign: "start" }}>Date</Text>
                   {/* <Text style={{ flex: 2, textAlign: "start" }}> {formatDate(dataHeader?.clearing_create?.created_at)}</Text> */}
-                  <Text style={{ flex: 2, textAlign: "start",lineHeight: 1.25 }}>   </Text>
+                  <Text style={{ flex: 2, textAlign: "start", lineHeight: 1.25 }}>   </Text>
                 </View>
                 <View style={styles.footerContentRow}>
                   <Text style={{ flex: 2, textAlign: "start" }}>Checked by :</Text>
                   {/* <Text style={{ flex: 4, textAlign: "start" }}>  {dataHeader?.clearing_approve?.user_name_en || "-"}</Text> */}
-                  <Text style={{ flex: 4, textAlign: "start",lineHeight: 1.25 }}>   </Text>
+                  <Text style={{ flex: 4, textAlign: "start", lineHeight: 1.25 }}>   </Text>
                   <Text style={{ flex: 1, textAlign: "start" }}>Date</Text>
                   {/* <Text style={{ flex: 2, textAlign: "start" }}> {formatDate(dataHeader?.clearing_approve?.created_at)}</Text> */}
-                  <Text style={{ flex: 2, textAlign: "start",lineHeight: 1.25 }}>   </Text>
+                  <Text style={{ flex: 2, textAlign: "start", lineHeight: 1.25 }}>   </Text>
                 </View>
                 <View style={styles.footerContentRow}>
                   <Text style={{ flex: 2, textAlign: "start" }}>Approved by :</Text>
                   {/* <Text style={{ flex: 4, textAlign: "start" }}> {dataHeader?.clearing_by?.user_name_en || "-"} </Text> */}
-                  <Text style={{ flex: 4, textAlign: "start",lineHeight: 1.25 }}>   </Text>
+                  <Text style={{ flex: 4, textAlign: "start", lineHeight: 1.25 }}>   </Text>
                   <Text style={{ flex: 1, textAlign: "start" }}>Date</Text>
                   {/* <Text style={{ flex: 2, textAlign: "start" }}>  {formatDate(dataHeader?.clearing_by?.created_at)}</Text> */}
-                  <Text style={{ flex: 2, textAlign: "start",lineHeight: 1.25 }}>   </Text>
+                  <Text style={{ flex: 2, textAlign: "start", lineHeight: 1.25 }}>   </Text>
                 </View>
               </View>
             </View>
