@@ -160,40 +160,8 @@ export default function CustomerStockCreate() {
 
         if (res.status === 200 && Array.isArray(res.data)) {
           const list = res.data;
-          // const mapped = list.map((item, index) => {
-          //   const qty = Number(item.quantity || 0);
-          //   const unitThb = parseFloat(
-          //     String(item.product_unit_thb || "0").replace(/,/g, "")
-          //   );
-          //   const netAmountStr =
-          //     item.net_amount ||
-          //     (qty * (isNaN(unitThb) ? 0 : unitThb)).toFixed(2);
-          //   const netAmount = netAmountStr;
-
-          //   const minFoc = Number(item.product_campaign_order_min_foc || 0);
-          //   const foc = minFoc > 0 ? parseInt(qty / minFoc, 10) : 0;
-
-          //   return {
-          //     key: index + 1,
-          //     no: index + 1,
-          //     product_id: item.product_id,
-          //     product_code: item.product_code,
-          //     product_name: item.product_name,
-          //     product_unit: item.product_unit,
-          //     product_unit_thb: item.product_unit_thb,
-          //     product_campaign_order_min_foc:
-          //       item.product_campaign_order_min_foc,
-          //     product_campaign_foc: item.product_campaign_foc,
-          //     quantity: qty,
-          //     foc,
-          //     net_amount: netAmount,
-          //   };
-          // });
           const mapped = list.map((item, index) => {
-            const qty = Number(item.quantity || 0);
-
-            const netUnit = parseFloat(String(item.net_amount || "0").replace(/,/g, "")); // ✅ ราคาต่อหน่วย
-
+            const qty = toIntFloor(item.quantity);
             const minFoc = Number(item.product_campaign_order_min_foc || 0);
             const foc = minFoc > 0 ? parseInt(qty / minFoc, 10) : 0;
 
@@ -204,17 +172,18 @@ export default function CustomerStockCreate() {
               product_code: item.product_code,
               product_name: item.product_name,
               product_unit: item.product_unit,
-              product_unit_thb: item.product_unit_thb,
+              product_unit_thb: toIntFloor(item.product_unit_thb),
               product_campaign_order_min_foc: item.product_campaign_order_min_foc,
               product_campaign_foc: item.product_campaign_foc,
               quantity: qty,
               foc,
-              net_amount: netUnit, // ✅ เก็บเป็น unit price
+
+              // ✅ เอาตัวนี้ไปใช้คำนวณ/ส่ง net_amount
+              unit_convert_order_value: toIntFloor(item.unit_convert_order_value),
             };
           });
-
-
           setDataSource(mapped);
+
         } else {
           setDataSource([]);
         }
@@ -230,16 +199,20 @@ export default function CustomerStockCreate() {
     fetchLastProducts();
   }, [dealerId, subDealerId]);
 
+  const toIntFloor = (val) => {
+    const n = Number(String(val ?? "0").replace(/,/g, ""));
+    return Number.isFinite(n) ? Math.floor(n) : 0;
+  };
+
   useEffect(() => {
     const total = dataSource.reduce((sum, item) => {
-      const netUnit = Number(item.net_amount || 0);
-      const qty = Number(item.quantity || 0);
-      return sum + netUnit * qty;
+      const unitValue = toIntFloor(item.unit_convert_order_value);
+      const qty = toIntFloor(item.quantity);
+      return sum + unitValue * qty;
     }, 0);
 
     setTotalValue(total);
   }, [dataSource]);
-
 
   const handleUploadClick = async () => {
     if (fileUploadRef.current) {
@@ -406,11 +379,14 @@ export default function CustomerStockCreate() {
             product_name: data.product_name,
             product_unit: data.packing_list,
             product_unit_thb: data.bath_unit,
-            product_campaign_order_min_foc:
-              data.product_campaign_order_min_foc,
+            product_campaign_order_min_foc: data.product_campaign_order_min_foc,
             product_campaign_foc: data.product_campaign_foc,
             quantity: 1,
             foc: parseInt(1 / data.product_campaign_order_min_foc, 10),
+
+            // ✅ ต้องมีตัวนี้ ไม่งั้น Total จะผิด/เป็น 0
+            unit_convert_order_value: toIntFloor(data.unit_convert_order_value ?? data.bath_unit ?? 0),
+
             net_amount: (
               1 * parseFloat(String(data.bath_unit || "0").replace(/,/g, ""))
             ).toFixed(2),
@@ -467,6 +443,7 @@ export default function CustomerStockCreate() {
   };
 
   const handleNavigateToOrderView = async () => {
+    console.log(dataSource);
     try {
       const values = await formCustom.validateFields();
       const payload = {
@@ -476,20 +453,26 @@ export default function CustomerStockCreate() {
         sub_dealer_id: values.sub_dealer || null,
         remark: inputRemark,
         file_list: fileList.map((file) => file.url),
-        products: dataSource.map((item) => ({
-          product_id: item.product_id,
-          product_code: item.product_code,
-          product_name: item.product_name,
-          product_unit: item.product_unit,
-          product_unit_thb: parseFloat(
-            String(item.product_unit_thb || "0").replace(/,/g, "")
-          ),
-          product_campaign_order_min_foc: item.product_campaign_order_min_foc,
-          product_campaign_foc: item.product_campaign_foc,
-          quantity: item.quantity,
-          foc: item.foc,
-          net_amount: parseFloat(item.net_amount || 0),
-        })),
+        products: dataSource.map((item) => {
+          const qty = toIntFloor(item.quantity);
+          const unitValue = toIntFloor(item.unit_convert_order_value);
+
+          // ✅ net_amount ที่ถูกต้อง: ยอดต่อบรรทัด = unit_convert_order_value * qty (ปัดลงแล้ว)
+          const lineNet = unitValue * qty;
+
+          return {
+            product_id: item.product_id,
+            product_code: item.product_code,
+            product_name: item.product_name,
+            product_unit: item.product_unit,
+            product_unit_thb: toIntFloor(item.product_unit_thb),
+            product_campaign_order_min_foc: item.product_campaign_order_min_foc,
+            product_campaign_foc: item.product_campaign_foc,
+            quantity: qty,
+            foc: toIntFloor(item.foc),
+            net_amount: lineNet, // ✅ ตรงกับ preview
+          };
+        }),
         others: [],
       };
 
