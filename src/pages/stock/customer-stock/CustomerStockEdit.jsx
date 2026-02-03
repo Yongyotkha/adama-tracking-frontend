@@ -34,14 +34,21 @@ export default function CustomerStockEdit() {
   const [dataSourceOther, setDataSourceOther] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
 
-  // ✅ Total Value (Edit) = SUM(line net_amount) และปัดลง
+  // ✅ ปัดลงเป็น int ทุกกรณี (string / ",")
+  const toIntFloor = (val) => {
+    const n = Number(String(val ?? "0").replace(/,/g, ""));
+    return Number.isFinite(n) ? Math.floor(n) : 0;
+  };
+
+  // ✅ Total Value (Edit) = SUM(unit_convert_order_value * quantity) (ปัดลงแบบ int)
   useEffect(() => {
     const total = dataSource.reduce((sum, item) => {
-      const lineNet = Number(item.net_amount || 0); // ✅ line amount
-      return sum + lineNet;
+      const unitValue = toIntFloor(item.unit_convert_order_value);
+      const qty = toIntFloor(item.quantity);
+      return sum + unitValue * qty;
     }, 0);
 
-    setTotalValue(Math.floor(total)); // ✅ ปัดลง
+    setTotalValue(total); // int ชัวร์
   }, [dataSource]);
 
   const getFileNameWithExtension = (url) => {
@@ -49,7 +56,7 @@ export default function CustomerStockEdit() {
     return parts.pop();
   };
 
-  // ✅ โหลดรายละเอียดเอกสาร
+  // ✅ โหลดรายละเอียดเอกสาร + map ให้พร้อมสูตรใหม่ (เหมือน Create)
   useEffect(() => {
     const loadDataStockDetail = async () => {
       setLoading(true);
@@ -73,19 +80,16 @@ export default function CustomerStockEdit() {
         setDataDetail(stockDetail.data || {});
         setInputRemark(stockDetail.data?.ref_remark || "");
 
-        // ✅ IMPORTANT: ใน Edit API ส่ง net_amount = "ยอดต่อบรรทัด" มาแล้ว
+        // ✅ IMPORTANT: ถึง API จะส่ง net_amount เดิมมา แต่เรา "ไม่ใช้"
+        // เราจะใช้ unit_convert_order_value เป็นตัวคำนวณจริงเสมอ
         const mappedProducts = (stockDetail.data.products || []).map(
           (item, index) => {
-            console.log(item.net_amount);
-            const qty =
-              Number(String(item.quantity || "0").replace(/,/g, "")) || 0;
+            const qty = toIntFloor(item.quantity);
 
-            const unitPrice =
-              Number(String(item.product_unit_thb || "0").replace(/,/g, "")) ||
-              0; // ✅ ราคา/ctn
-
-            const lineNet =
-              Number(String(item.net_amount || "0").replace(/,/g, "")) || 0; // ✅ ยอดต่อบรรทัด
+            const unitConvert = toIntFloor(item.unit_convert_order_value);
+            // fallback กันพัง ถ้าบางตัวไม่มี unit_convert_order_value
+            const fallbackUnit = toIntFloor(item.product_unit_thb);
+            const unitValue = unitConvert > 0 ? unitConvert : fallbackUnit;
 
             const minFoc = Number(item.product_campaign_order_min_foc || 0);
             const foc = minFoc > 0 ? parseInt(qty / minFoc, 10) : 0;
@@ -97,11 +101,14 @@ export default function CustomerStockEdit() {
               quantity: qty,
               foc,
 
-              // ✅ เก็บราคา/ctn ไว้ใช้ตอนเปลี่ยน qty
-              product_unit_thb: unitPrice,
+              // ✅ เก็บราคาอ้างอิงไว้
+              product_unit_thb: toIntFloor(item.product_unit_thb),
 
-              // ✅ เก็บ net_amount เป็น "ยอดต่อบรรทัด" (ใช้รวม total)
-              net_amount: lineNet,
+              // ✅ เก็บ unit_convert_order_value เป็น "unit price" ที่ใช้คำนวณจริง
+              unit_convert_order_value: unitValue,
+
+              // ❌ ไม่ต้องพึ่ง net_amount เดิมจาก API
+              // net_amount จะคำนวณตอนส่ง PUT เสมอ
             };
           }
         );
@@ -114,18 +121,10 @@ export default function CustomerStockEdit() {
             ...item,
             key: index + 1,
             no: index + 1,
-            quantity:
-              Number(String(item.quantity || "0").replace(/,/g, "")) || 0,
+            quantity: toIntFloor(item.quantity),
           })
         );
         setDataSourceOther(mappedOthers);
-
-        // ✅ ถ้าต้องการให้ Total ตรงกับหัวเอกสารแบบ 100% ตั้งต้นได้ (optional)
-        // setTotalValue(
-        //   Math.floor(
-        //     Number(String(stockDetail.data.net_amount || "0").replace(/,/g, "")) || 0
-        //   )
-        // );
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -153,20 +152,17 @@ export default function CustomerStockEdit() {
     setFileList((prev) => [...prev, fileUpload]);
   };
 
-  // ✅ เปลี่ยน QTY แล้วต้องคำนวณ line net_amount ใหม่ = product_unit_thb * qty
+  // ✅ เปลี่ยน QTY: ปรับ qty + foc (ไม่ต้องแตะ net_amount เพราะเราส่งคำนวณใหม่ตอน PUT)
   const handleQuantityChange = (key, newQuantity) => {
     setDataSource((prev) =>
       prev.map((item) => {
         if (item.key !== key) return item;
 
-        const qty = Math.max(0, Number(newQuantity || 0));
+        const qty = Math.max(0, toIntFloor(newQuantity));
         const minFoc = Number(item.product_campaign_order_min_foc || 0);
         const foc = minFoc > 0 ? parseInt(qty / minFoc, 10) : 0;
 
-        const unitPrice = Number(item.product_unit_thb || 0); // ✅ ราคา/ctn
-        const lineNet = unitPrice * qty; // ✅ line amount
-
-        return { ...item, quantity: qty, foc, net_amount: lineNet };
+        return { ...item, quantity: qty, foc };
       })
     );
   };
@@ -259,7 +255,7 @@ export default function CustomerStockEdit() {
 
   const footerOrderList = () => {
     const totalQuantity = dataSource.reduce(
-      (total, item) => total + Number(item.quantity || 0),
+      (total, item) => total + toIntFloor(item.quantity),
       0
     );
 
@@ -272,7 +268,7 @@ export default function CustomerStockEdit() {
     );
   };
 
-  // ✅ เพิ่มสินค้าใหม่: สร้าง line net_amount = product_unit_thb * qty(1)
+  // ✅ เพิ่มสินค้าใหม่: ต้องดึง unit_convert_order_value มาเก็บ และให้ qty=1
   const onChangeProduct = (value) => {
     setSearchProductData([]);
 
@@ -289,16 +285,19 @@ export default function CustomerStockEdit() {
           (item) => item.product_code === data.product_code
         );
 
-        const unitPrice =
-          Number(String(data.bath_unit || "0").replace(/,/g, "")) || 0;
+        // ✅ unit_convert_order_value เป็นตัวจริง ถ้าไม่มีให้ fallback bath_unit
+        const unitValue = toIntFloor(data.unit_convert_order_value) || toIntFloor(data.net_amount) || toIntFloor(data.bath_unit);
 
         if (existingIndex !== -1) {
-          // เพิ่ม qty แล้วคำนวณ line net ใหม่
+          // เพิ่ม qty (และ foc) — unitValue ไม่เปลี่ยน
           const updated = dataSource.map((item, idx) => {
             if (idx !== existingIndex) return item;
-            const newQty = Number(item.quantity || 0) + 1;
-            const lineNet = Number(item.product_unit_thb || 0) * newQty;
-            return { ...item, quantity: newQty, net_amount: lineNet };
+
+            const newQty = toIntFloor(item.quantity) + 1;
+            const minFoc = Number(item.product_campaign_order_min_foc || 0);
+            const foc = minFoc > 0 ? parseInt(newQty / minFoc, 10) : 0;
+
+            return { ...item, quantity: newQty, foc };
           });
           setDataSource(updated);
         } else {
@@ -313,12 +312,14 @@ export default function CustomerStockEdit() {
             product_code: data.product_code,
             product_name: data.product_name,
             product_unit: data.packing_list,
-            product_unit_thb: unitPrice, // ✅ ราคา/ctn
+            product_unit_thb: toIntFloor(data.bath_unit),
             product_campaign_order_min_foc: data.product_campaign_order_min_foc,
             product_campaign_foc: data.product_campaign_foc,
             quantity: qty,
             foc,
-            net_amount: unitPrice * qty, // ✅ line amount
+
+            // ✅ ใช้สูตรเดียวกับ Create
+            unit_convert_order_value: unitValue,
           };
 
           const updated = [...dataSource, newItem].map((x, idx) => ({
@@ -362,7 +363,7 @@ export default function CustomerStockEdit() {
     }
   };
 
-  // ✅ PUT Update: ส่ง net_amount เป็น "ยอดต่อบรรทัด" (line amount) ตาม requirement ของ API
+  // ✅ PUT Update: คำนวณ net_amount ใหม่ทุกครั้ง = unit_convert_order_value * quantity (ปัดลงแล้วเป็น int)
   const handleNavigateToOrderView = async () => {
     try {
       await formCustom.validateFields();
@@ -377,9 +378,11 @@ export default function CustomerStockEdit() {
         remark: inputRemark,
         file_list: fileList.map((f) => f.url),
         products: dataSource.map((item) => {
-          const qty = Number(item.quantity || 0);
-          const unitPrice = Number(item.product_unit_thb || 0);
-          const lineNet = Math.floor(unitPrice * qty); // ✅ ปัดลง
+          const qty = toIntFloor(item.quantity);
+          const unitValue = toIntFloor(item.unit_convert_order_value);
+
+          // ✅ ยอดต่อบรรทัด "ต้องเท่ากับ preview"
+          const lineNet = unitValue * qty;
 
           const minFoc = Number(item.product_campaign_order_min_foc || 0);
           const foc = minFoc > 0 ? parseInt(qty / minFoc, 10) : 0;
@@ -389,12 +392,13 @@ export default function CustomerStockEdit() {
             product_code: item.product_code,
             product_name: item.product_name,
             product_unit: item.product_unit,
-            product_unit_thb: unitPrice, // ✅ ราคา/ctn
+            product_unit_thb: toIntFloor(item.product_unit_thb),
+            unit_convert_order_value: unitValue, // ✅ ส่งไปด้วย (กันหลังบ้าน/flow อื่นใช้)
             product_campaign_order_min_foc: item.product_campaign_order_min_foc,
             product_campaign_foc: item.product_campaign_foc,
             quantity: qty,
             foc,
-            net_amount: lineNet, // ✅ line amount
+            net_amount: lineNet, // ✅ NEW ทุกครั้ง
           };
         }),
         others: [],
@@ -459,7 +463,11 @@ export default function CustomerStockEdit() {
       <BoxPrimary>
         <div className="flex items-center justify-between">
           <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
-          <ActionButton mode="add" text="Upload File" onClick={handleUploadClick} />
+          <ActionButton
+            mode="add"
+            text="Upload File"
+            onClick={handleUploadClick}
+          />
         </div>
         <FileUploadComponent
           mode="edit"
@@ -486,7 +494,11 @@ export default function CustomerStockEdit() {
           text="Back"
           onClick={() => navigate("/customer-stock/list")}
         />
-        <ActionButton mode="save" text="Confirm" onClick={handleNavigateToOrderView} />
+        <ActionButton
+          mode="save"
+          text="Confirm"
+          onClick={handleNavigateToOrderView}
+        />
       </div>
     </MainLayout>
   );

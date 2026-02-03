@@ -443,7 +443,7 @@ export default function CustomerStockCreate() {
   };
 
   const handleNavigateToOrderView = async () => {
-    console.log(dataSource);
+    // console.log(dataSource);
     try {
       const values = await formCustom.validateFields();
       const payload = {
