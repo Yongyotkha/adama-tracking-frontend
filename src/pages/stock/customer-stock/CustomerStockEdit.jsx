@@ -39,6 +39,8 @@ export default function CustomerStockEdit() {
   const [dataSource, setDataSource] = useState([]);
   const [dataSourceOther, setDataSourceOther] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
+  const [dealerId, setDealerId] = useState("");
+  const [subDealerId, setSubDealerId] = useState("");
 
   // useEffect(() => {
   //   const total = dataSource.reduce(
@@ -51,17 +53,13 @@ export default function CustomerStockEdit() {
 
   useEffect(() => {
     const total = dataSource.reduce((sum, item) => {
-      const unitPrice = Number(
-        String(item.product_unit_thb || 0).replace(/,/g, "")
-      ); // ✅ ราคา/หน่วย
+      const netUnit = Number(item.net_amount || 0); // ✅ unit price
       const qty = Number(item.quantity || 0);
-
-      return sum + unitPrice * qty;
+      return sum + netUnit * qty;
     }, 0);
 
     setTotalValue(total);
   }, [dataSource]);
-
 
   function formatNumber(value) {
     if (!value) return "0";
@@ -98,6 +96,8 @@ export default function CustomerStockEdit() {
         setFileList(imageList);
 
         setDataDetail(stockDetail.data);
+        setDealerId(stockDetail.data.dealer_id || "");
+        setSubDealerId(stockDetail.data.sub_dealer_id || "");
         setGetUserId(stockDetail.data.user_id);
         setGetDealerId(stockDetail.data.dealer_id);
         setInputRemark(stockDetail.data.ref_remark);
@@ -174,6 +174,65 @@ export default function CustomerStockEdit() {
 
     loadDataStockDetail();
   }, []);
+
+  useEffect(() => {
+    const fetchLastProducts = async () => {
+      if (!dealerId) {
+        setDataSource([]);
+        return;
+      }
+
+      try {
+        setLoading(true);
+
+        const params = { dealer_id: dealerId };
+        if (subDealerId) params.sub_dealer_id = subDealerId;
+
+        const res = await useServiceAPI.get(paths.pathStockCreateGetLastProduct, params);
+
+        if (res.status === 200 && Array.isArray(res.data)) {
+          const list = res.data;
+
+          const mapped = list.map((item, index) => {
+            const qty = Number(item.quantity || 0);
+
+            // ✅ unit price (เหมือน Create)
+            const netUnit = parseFloat(String(item.net_amount || "0").replace(/,/g, ""));
+
+            const minFoc = Number(item.product_campaign_order_min_foc || 0);
+            const foc = minFoc > 0 ? parseInt(qty / minFoc, 10) : 0;
+
+            return {
+              key: index + 1,
+              no: index + 1,
+              product_id: item.product_id,
+              product_code: item.product_code,
+              product_name: item.product_name,
+              product_unit: item.product_unit,
+              product_unit_thb: item.product_unit_thb, // เก็บไว้เฉยๆ
+              product_campaign_order_min_foc: item.product_campaign_order_min_foc,
+              product_campaign_foc: item.product_campaign_foc,
+              quantity: qty,
+              foc,
+              net_amount: netUnit, // ✅ unit price
+            };
+          });
+
+          setDataSource(mapped);
+        } else {
+          setDataSource([]);
+        }
+      } catch (error) {
+        console.error(error);
+        showMsg("error", error.message || "ไม่สามารถโหลดรายการสินค้าได้");
+        setDataSource([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLastProducts();
+  }, [dealerId, subDealerId]);
 
   useEffect(() => {
     const getMaster = async () => {
@@ -471,13 +530,7 @@ export default function CustomerStockEdit() {
         file_list: fileList.map((file) => file.url),
         products: dataSource.map((item) => {
           const qty = Number(item.quantity || 0);
-
-          // ✅ ดึง unit price จาก product_unit_thb (กัน comma ด้วย)
-          const unitPrice = Number(
-            String(item.product_unit_thb || 0).replace(/,/g, "")
-          );
-
-          // ✅ net_amount = qty * product_unit_thb
+          const unitPrice = Number(item.net_amount || 0); // ✅ ใช้ net_amount เป็น unit
           const lineNet = unitPrice * qty;
 
           return {
@@ -486,19 +539,16 @@ export default function CustomerStockEdit() {
             product_name: item.product_name,
             product_unit: item.product_unit,
 
-            // ส่งขึ้นไปแบบเป็นตัวเลข (ไม่มี comma)
-            product_unit_thb: unitPrice,
+            // ถ้าหลังบ้านต้องการ product_unit_thb ส่งไปด้วยก็ส่งได้ (อิงของเดิม)
+            product_unit_thb: Number(String(item.product_unit_thb || 0).replace(/,/g, "")),
 
             product_campaign_order_min_foc: item.product_campaign_order_min_foc,
             product_campaign_foc: item.product_campaign_foc,
             quantity: qty,
             foc: item.foc,
-
-            // ✅ ตรงตาม requirement: quantity * product_unit_thb
-            net_amount: lineNet,
+            net_amount: lineNet, // ✅ ยอดต่อบรรทัด
           };
         }),
-
         others: [],
       };
 

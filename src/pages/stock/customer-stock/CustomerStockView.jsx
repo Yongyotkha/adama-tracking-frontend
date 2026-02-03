@@ -139,7 +139,7 @@ export default function CustomerStockEdit() {
           ];
         });
 
-        setTotalValue(stockDetail.data.net_amount_display);
+        setTotalValue(stockDetail.data.net_amount);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -460,6 +460,9 @@ export default function CustomerStockEdit() {
           min={0}
           disabled={true}
           value={totalValue}
+          formatter={(value) =>
+            `${Math.floor(Number(value || 0))}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
         />
       </BoxPrimary>
 
