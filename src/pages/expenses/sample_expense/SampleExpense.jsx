@@ -92,7 +92,6 @@ export default function SampleExpense() {
     fetchStatusOptions();
     fetchSales(); // Fetch sales data
     fetchCrop(); // Fetch crop data
-    fetchStatus(); // Fetch status data
   }, [
     tableParams.pagination.current,
     tableParams.pagination.pageSize,
@@ -259,21 +258,6 @@ export default function SampleExpense() {
       }
     } catch (error) {
       console.error("Failed to fetch crops:", error);
-    }
-  };
-
-  const fetchStatus = async () => {
-    try {
-      const response = await useServiceAPI.get(paths.pathSampleStatus);
-      if (response.status === 200) {
-        const options = response.data.map((status) => ({
-          id: status.code, // We will use the status code
-          name: status.name, // Display status name
-        }));
-        setStatusOptions(options); // Set status options
-      }
-    } catch (error) {
-      console.error("Failed to fetch status options:", error);
     }
   };
 
