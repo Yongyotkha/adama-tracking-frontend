@@ -62,8 +62,8 @@ export default function CreatePointCampaign() {
   const pageTitle = isCreate
     ? "Create Point Campaign"
     : isEdit
-    ? "Edit Point Campaign"
-    : "View Point Campaign";
+      ? "Edit Point Campaign"
+      : "View Point Campaign";
   const formDisabled = isView;
   const fileUploadRefReceive = useRef(null);
   const [fileListReceive, setFileListReceive] = useState([]); // picture
@@ -110,7 +110,7 @@ export default function CreatePointCampaign() {
         setDealerOptions(buckets.dealer);
         setSubDealerOptions(buckets.sub);
         setFarmerOptions(buckets.farmer);
-      } catch (_) {}
+      } catch (_) { }
     };
 
     const fetchCrops = async () => {
@@ -120,7 +120,7 @@ export default function CreatePointCampaign() {
         setCropOptions(
           arr.map((c) => ({ label: c?.name || "-", value: String(c?.id) }))
         );
-      } catch (_) {}
+      } catch (_) { }
     };
 
     fetchTargets();
@@ -215,11 +215,15 @@ export default function CreatePointCampaign() {
   useEffect(() => {
     if (productMode !== "specific") return;
     let cancelled = false;
+
     (async () => {
       setProductLoading(true);
       try {
-        const body = { category_id: productCategoryFilter ?? "" }; // ถ้า wrapper รองรับ GET+params ได้
-        const res = await useServiceAPI.get(paths.pathMasterProductList, body);
+        // โหลดทั้งหมด (ส่งว่าง หรือไม่ส่ง body ตาม wrapper รองรับ)
+        const res = await useServiceAPI.get(paths.pathMasterProductList, {
+          category_id: "", // หรือไม่ส่ง body ก็ได้
+        });
+
         const arr = res?.data?.data || res?.data || [];
         const rows = arr.map((p) => ({
           key: Number(p?.id),
@@ -229,15 +233,18 @@ export default function CreatePointCampaign() {
           category: p?.product_category || p?.product_group || "-",
           point: p?.point || "-",
         }));
+
         if (!cancelled) {
           setProductRaw(rows);
-          setSelectedProductKeys((prev) =>
-            prev.filter((k) => rows.some((r) => r.key === k))
-          );
+
+          // ❌ ไม่ต้อง filter selectedProductKeys ทิ้ง
+          // setSelectedProductKeys((prev) => prev.filter(...))
         }
-      } catch (_) {
+      } catch (e) {
         if (!cancelled) {
           setProductRaw([]);
+          // จะล้าง selected หรือไม่ล้างก็ได้ แล้วแต่ requirement
+          // ถ้าอยากคงไว้แม้โหลด fail ก็อย่าล้าง
           setSelectedProductKeys([]);
           showNotification?.("error", "โหลดรายการสินค้าไม่สำเร็จ");
         }
@@ -245,27 +252,43 @@ export default function CreatePointCampaign() {
         if (!cancelled) setProductLoading(false);
       }
     })();
+
     return () => {
       cancelled = true;
     };
-  }, [productMode, productCategoryFilter, showNotification]);
+  }, [productMode, showNotification]);
+
 
   const filteredProducts = useMemo(() => {
-    if (!productSearch) return productRaw;
-    const q = productSearch.toLowerCase();
-    return productRaw.filter(
-      (p) =>
-        p.sku.toLowerCase().includes(q) ||
-        p.name.toLowerCase().includes(q) ||
-        (p.category || "").toLowerCase().includes(q) ||
-        (p.packsize || "").toLowerCase().includes(q)
-    );
-  }, [productRaw, productSearch]);
+    let rows = productRaw;
+
+    // filter ตาม category dropdown (ตัวอย่างนี้ใช้ text category)
+    if (productCategoryFilter) {
+      rows = rows.filter((p) => p.category === productCategoryFilter);
+    }
+
+    // search
+    if (productSearch) {
+      const q = productSearch.toLowerCase();
+      rows = rows.filter(
+        (p) =>
+          p.sku.toLowerCase().includes(q) ||
+          p.name.toLowerCase().includes(q) ||
+          (p.category || "").toLowerCase().includes(q) ||
+          (p.packsize || "").toLowerCase().includes(q)
+      );
+    }
+
+    return rows;
+  }, [productRaw, productCategoryFilter, productSearch]);
+
 
   // ====== Watch selections ======
   const watchDealer = Form.useWatch("target_dealer", form) || [];
   const watchSub = Form.useWatch("target_subdealer", form) || [];
   const watchFarmer = Form.useWatch("target_farmer", form) || [];
+  // ✅ เพิ่ม watch crop
+  const watchCrop = Form.useWatch("target_crop", form) || [];
 
   const selectedTargetIds = useMemo(() => {
     const arr = [...watchDealer, ...watchSub, ...watchFarmer];
@@ -273,6 +296,13 @@ export default function CreatePointCampaign() {
       .map((x) => Number(x))
       .filter(Boolean);
   }, [watchDealer, watchSub, watchFarmer]);
+
+  // ✅ crop_id เป็น number[]
+  const selectedCropIds = useMemo(() => {
+    return Array.from(new Set(watchCrop))
+      .map((x) => Number(x))
+      .filter(Boolean);
+  }, [watchCrop]);
 
   const showSelectTargetTable = selectedTargetIds.length > 0;
 
@@ -283,12 +313,19 @@ export default function CreatePointCampaign() {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]); // customer_id[]
 
   const targetKey = useMemo(() => {
-    const ids = [...watchDealer, ...watchSub, ...watchFarmer]
+    const targetIds = [...watchDealer, ...watchSub, ...watchFarmer]
       .map(Number)
       .filter(Boolean)
       .sort((a, b) => a - b);
-    return ids.join(",");
-  }, [watchDealer, watchSub, watchFarmer]);
+
+    const cropIds = (watchCrop || [])
+      .map(Number)
+      .filter(Boolean)
+      .sort((a, b) => a - b);
+
+    // key เปลี่ยนเมื่อ target/crop เปลี่ยน
+    return `${targetIds.join(",")}|${cropIds.join(",")}`;
+  }, [watchDealer, watchSub, watchFarmer, watchCrop]);
 
   const lastFetchKeyRef = useRef("");
 
@@ -326,12 +363,32 @@ export default function CreatePointCampaign() {
     (async () => {
       setTargetLoading(true);
       try {
-        const ids = targetKey.split(",").map(Number);
+        const [targetPart, cropPart] = targetKey.split("|");
+
+        const ids = (targetPart || "")
+          .split(",")
+          .filter(Boolean)
+          .map(Number);
+
+        const cropIds = (cropPart || "")
+          .split(",")
+          .filter(Boolean)
+          .map(Number);
+
+        if (!ids.length) {
+          if (!cancelled) {
+            setTargetRows([]);
+            setSelectedRowKeys([]);
+          }
+          return;
+        }
+
         const res = await useServiceAPI.post(paths.pathPointCampaignCustomer, {
           target_id: ids,
+          crop_id: cropIds, // ✅ ตาม Postman
         });
-        const data = res?.data?.data || res?.data || [];
 
+        const data = res?.data?.data || res?.data || [];
         const rows = data.map((it) => ({
           key: Number(it?.target_group_customer_id),
           name: it?.customer_name || "-",
@@ -343,20 +400,14 @@ export default function CreatePointCampaign() {
         if (!cancelled) {
           setTargetRows(rows);
 
-          // จำกัด selection ให้เป็น key ที่ยังอยู่ใน rows เท่านั้น
           const allowed = new Set(rows.map((r) => Number(r.key)));
-
-          // ค่าที่มาจาก detail (เลือกเฉพาะที่อยู่ใน rows จริง ๆ)
           const fromDetail = isEdit
             ? detailCustomers.filter((id) => allowed.has(Number(id)))
             : [];
 
           setSelectedRowKeys((prev) => {
-            // ค่าที่ user เคยติ๊กค้างไว้และยังอยู่ใน rows
             const prevKept = prev.filter((k) => allowed.has(Number(k)));
-            // รวมกันแบบไม่ซ้ำ
-            const merged = Array.from(new Set([...prevKept, ...fromDetail]));
-            return merged;
+            return Array.from(new Set([...prevKept, ...fromDetail]));
           });
         }
       } catch (e) {
@@ -376,7 +427,7 @@ export default function CreatePointCampaign() {
     return () => {
       cancelled = true;
     };
-  }, [targetKey, showNotification]);
+  }, [targetKey, showNotification, isEdit, detailCustomers]);
 
   const filteredTargetRows = useMemo(() => {
     if (!searchKeyword) return targetRows;
@@ -401,9 +452,9 @@ export default function CreatePointCampaign() {
   const selectTargetRowSel = isView
     ? undefined
     : {
-        selectedRowKeys,
-        onChange: (keys) => setSelectedRowKeys(keys),
-      };
+      selectedRowKeys,
+      onChange: (keys) => setSelectedRowKeys(keys),
+    };
 
   // ==========================
   // Extra / Topup editable tables
@@ -529,8 +580,8 @@ export default function CreatePointCampaign() {
         const images = Array.isArray(c.image)
           ? c.image
           : c.image
-          ? [c.image]
-          : [];
+            ? [c.image]
+            : [];
         setFileListReceive(
           images.map((u, idx) => ({
             uid: String(idx + 1),
@@ -979,9 +1030,9 @@ export default function CreatePointCampaign() {
               isView
                 ? undefined
                 : {
-                    selectedRowKeys: selectedCategoryKeys, // record_id (string)
-                    onChange: (keys) => setSelectedCategoryKeys(keys),
-                  }
+                  selectedRowKeys: selectedCategoryKeys, // record_id (string)
+                  onChange: (keys) => setSelectedCategoryKeys(keys),
+                }
             }
           />
         </BoxPrimary>
@@ -1024,15 +1075,18 @@ export default function CreatePointCampaign() {
             ]}
             dataSource={filteredProducts}
             loading={productLoading}
-            pagination={{ pageSize: 5, showSizeChanger: false }}
-            scroll
+            pagination={false}           // ✅ ไม่แบ่งหน้า
+            scroll                         // หรือไม่ใส่ก็ได้ถ้าจะใช้ scrollX default
+            scrollY="45vh"                 // ✅ เปิด scroll แนวตั้ง
+            scrollX={true}                 // แนวนอน (optional)
             rowSelection={
               isView
                 ? undefined
                 : {
-                    selectedRowKeys: selectedProductKeys,
-                    onChange: (keys) => setSelectedProductKeys(keys),
-                  }
+                  selectedRowKeys: selectedProductKeys,
+                  onChange: (keys) => setSelectedProductKeys(keys),
+                  preserveSelectedRowKeys: true,
+                }
             }
           />
         </BoxPrimary>

@@ -147,6 +147,7 @@ export const paths = {
   pathDashBordSaleCrop: "dashboard/sale/crop",
   pathDashBordSaleByDealer: "dashboard/sale/sale_by_dealer",
   pathDashBoardSubDealerByDealer: "dashboard/sale/sub_sale_by_dealer",
+  pathDashBoardPointUsers: "dashboard/point/users",
 
   // Sale
   pathSaleManagementDetail: "sale-management/sale-team/detail",

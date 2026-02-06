@@ -72,7 +72,15 @@ export default function Dashboard() {
     useState(null);
 
   const [selectedSubdealerPlan, setSelectedSubdealerPlan] = useState(null);
+  // Sub Dealer by Dealer
   const [selectedSdByD, setSelectedSdByD] = useState(null);
+
+  // Point Users (แยก state)
+  const [selectedSdByPointUser, setSelectedSdByPointUser] = useState("");
+
+  // ✅ Point Users
+  const [pointUsersData, setPointUsersData] = useState([]);
+  const [totalPointUsers, setTotalPointUsers] = useState(0);
 
   const [calPercentage, setCalPercentage] = useState({
     plan: "",
@@ -136,7 +144,10 @@ export default function Dashboard() {
             label: item.name,
           }));
           setDealer(formattedDealers);
-          setSelectedSdByD(formattedDealers[0]?.value);
+
+          setSelectedSdByD(formattedDealers[0]?.value ?? null);
+          // setSelectedSdByPointUser(formattedDealers[0]?.value ?? null);
+
         }
 
         // Sales All (เก็บไว้เฉย ๆ ถ้าอยากใช้ที่อื่น)
@@ -321,7 +332,10 @@ export default function Dashboard() {
           }));
 
           setDealer(formattedDealers);
-          setSelectedSdByD(formattedDealers[0]?.value);
+
+          setSelectedSdByD(formattedDealers[0]?.value ?? null);
+          // setSelectedSdByPointUser(formattedDealers[0]?.value ?? null);
+
         } else {
           setDealer([]);
           setSelectedSdByD(null);
@@ -710,6 +724,60 @@ export default function Dashboard() {
 
     if (selectedYear) fetchListActivityData();
   }, [selectedYear, selectedSale, selectedMonthsActivity, selectedDealerActivity, selectedArea]);
+
+
+  // ===============================
+  // ✅ Point Users (ใช้ dealer เดียวกับ Sub Dealer By Dealer)
+  // ===============================
+  useEffect(() => {
+    let alive = true;
+
+    const fetchPointUsers = async () => {
+      setLoading(true);
+      try {
+        const response = await useServiceAPI.get(paths.pathDashBoardPointUsers, {
+          sub_dealer_id: "",
+          dealer_id: selectedSdByPointUser || "", // ✅ ไม่เลือก = ""
+          sale_id: selectedSale || "",
+          area_id: selectedArea || "",
+        });
+
+        const payload = response?.data?.data ?? response?.data ?? {};
+        const items = Array.isArray(payload?.items) ? payload.items : [];
+        const total = Number(payload?.total_point ?? 0) || 0;
+
+        const mapped = items.map((it) => {
+          const isOther = it.sub_dealer_name === "Other";
+          return {
+            value: Number(it.total_point ?? 0) || 0,
+            label: it.sub_dealer_name || "Other",
+            percentage: it.percentage,
+            color: isOther ? "#e61e1e" : "#009845",
+          };
+        });
+
+        if (!alive) return;
+        setPointUsersData(mapped);
+        setTotalPointUsers(total);
+      } catch (error) {
+        if (!alive) return;
+        console.error("Error fetching Point Users:", error);
+        setPointUsersData([]);
+        setTotalPointUsers(0);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    };
+
+    // ✅ จะให้ยิงตอนไหนเลือกได้:
+    // - ถ้าต้องการให้โชว์ all ทันที: ไม่ต้องมีเงื่อนไข
+    // - ถ้าต้องการให้ต้องเลือก Year ก่อน: ใส่ if(selectedYear)
+    if (selectedYear) fetchPointUsers();
+
+    return () => {
+      alive = false;
+    };
+  }, [selectedYear, selectedSdByPointUser, selectedSale, selectedArea]);
 
   return (
     <MainLayout loading={loading}>
@@ -1310,6 +1378,36 @@ export default function Dashboard() {
                 <div className="relative" />
                 <DoughnutChartComponent data={saleCropData} />
               </div>
+            </div>
+          </Card>
+        </Col>
+
+        {/* Point Users */}
+        {/* pathDashBoardPointUsers */}
+        <Col xs={24} lg={24} xl={12}>
+          <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
+            <div className="flex flex-wrap items-center justify-between">
+              <h3 className="text-[#00783F] text-lg font-semibold mb-3">
+                Point Users
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                <Select
+                  className="mb-4 w-36"
+                  value={selectedSdByPointUser || undefined}   // ✅ ให้โชว์ placeholder เมื่อเป็น ""
+                  onChange={(v) => setSelectedSdByPointUser(v ?? "")}
+                  placeholder={loading ? "Loading..." : "All"}
+                  disabled={loading}
+                  showSearch
+                  allowClear
+                  optionFilterProp="label"
+                  options={dealer}
+                />
+
+              </div>
+            </div>
+
+            <div className="flex justify-center items-center">
+              <DoughnutChartComponent data={pointUsersData} />
             </div>
           </Card>
         </Col>
