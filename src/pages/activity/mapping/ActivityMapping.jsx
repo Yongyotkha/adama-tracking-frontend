@@ -162,17 +162,30 @@ export default function ActivityMapping() {
         setDataDealer(uniqDealer);
         setDataSubDealer(uniqSub);
 
+        const yearList = years.data || [];
+        const latestYearId =
+          yearList.length > 0
+            ? [...yearList].sort((a, b) => {
+              const ay = Number(String(a.name ?? a.id).replace(/\D/g, "")) || 0;
+              const by = Number(String(b.name ?? b.id).replace(/\D/g, "")) || 0;
+              return by - ay;
+            })[0]?.id
+            : null;
+
         const initialFilters = {
           activity_type: (activity.data || []).map((i) => i.id),
           sales: salesList.map((i) => i.id),
           dealer: dealerList.map((i) => i.id),
           sub_dealers: subDealerList.map((i) => i.id),
-          year: (years.data || []).length > 0 ? [years.data[0].id] : [],
+
+          // ✅ latest year
+          year: latestYearId ? [latestYearId] : [],
+
           month: (months.data || []).map((i) => i.id),
           area: (areas.data || []).map((i) => i.id),
         };
-
         setCheckedFilters(initialFilters);
+
       } catch (e) {
         console.error(e);
       } finally {

@@ -1,4 +1,9 @@
 // src/pages/expenses/advance/AdvanceExpense.jsx
+// ✅ Master: SaleDropdown + DealerAll + SubDealerAll (+ ActivityType)
+// ✅ No step (no onChange fetch master by sale/dealer)
+// ✅ Search triggers fetch, onChange only updates UI (filterValues)
+// ✅ Clear resets UI + fetches all + reset page to 1
+
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
@@ -16,148 +21,62 @@ import { ExclamationCircleFilled } from "@ant-design/icons";
 
 export default function AdvanceExpense() {
   const { confirm } = Modal;
+  const navigate = useNavigate();
+  const { showNotification } = useContext(AuthContext);
+
   const [loading, setLoading] = useState(false);
-  const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
+  const [dataSource, setDataSource] = useState([]);
+
   const [activityList, setActivityList] = useState([]);
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
-  const { showNotification } = useContext(AuthContext);
+
+  // ✅ Filter UI state (draft)
+  const [filterValues, setFilterValues] = useState({});
 
   const [tableParams, setTableParams] = useState({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-    },
+    pagination: { current: 1, pageSize: 10, total: 0 },
     filters: {},
     sortOrder: null,
     sortField: null,
   });
 
-  const navigate = useNavigate();
+  const getId = (v) => {
+    if (!v) return "";
+    if (typeof v === "object") return v.value ?? v.id ?? "";
+    return v;
+  };
 
   const filters = [
-    {
-      key: "sale",
-      type: "select",
-      label: "Sales",
-      placeholder: "All",
-      options: saleList,
-      moderef: true,
-    },
-    {
-      key: "dealer",
-      type: "select",
-      label: "Dealer",
-      placeholder: "All",
-      options: dealerList,
-      moderef: true,
-    },
-    {
-      key: "customer",
-      type: "select",
-      label: "Sub Dealer",
-      placeholder: "All",
-      options: subDealerList,
-    },
-    {
-      key: "expense_no",
-      type: "text",
-      label: "Expense No",
-      placeholder: "All",
-    },
-    {
-      key: "activity_reference",
-      type: "text",
-      label: "Activity Reference",
-      placeholder: "All",
-    },
-    {
-      key: "type_of_meeting",
-      type: "select",
-      label: "Type of Meeting",
-      placeholder: "All",
-      options: activityList,
-    },
-    {
-      key: "date",
-      type: "date",
-      label: "Date",
-      placeholder: "YYYY-MM-DD",
-    },
+    { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
+    { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dealerList, moderef: false },
+    { key: "customer", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerList },
+    { key: "expense_no", type: "text", label: "Expense No", placeholder: "All" },
+    { key: "activity_reference", type: "text", label: "Activity Reference", placeholder: "All" },
+    { key: "type_of_meeting", type: "select", label: "Type of Meeting", placeholder: "All", options: activityList },
+    { key: "date", type: "date", label: "Date", placeholder: "YYYY-MM-DD" },
   ];
 
-  const handleSearch = (filters) => {
+  // ✅ Search-only / Clear fetch all
+  const handleFilterChange = (values) => setFilterValues(values);
+
+  const handleSearch = (valuesFromUI) => {
     setTableParams((prev) => ({
       ...prev,
-      pagination: {
-        ...prev.pagination,
-        current: 1, // reset ไปหน้า 1 เมื่อค้นหาใหม่
-      },
-      filters,
+      pagination: { ...prev.pagination, current: 1, pageSize: 10 },
+      filters: { ...valuesFromUI },
     }));
   };
 
   const handleClear = () => {
+    setFilterValues({});
     setTableParams((prev) => ({
       ...prev,
-      pagination: {
-        ...prev.pagination,
-        current: 1,
-      },
+      pagination: { ...prev.pagination, current: 1, pageSize: 10 },
       filters: {},
     }));
-  };
-
-  const handleChange = (filter) => {
-    if (filter.dealer) {
-      const getMasterDealer = async () => {
-        try {
-          const [res] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterSubDealerAll, {
-              user_id: filter.sale,
-              dealer_id: filter.dealer,
-            }),
-          ]);
-
-          const set_sub_dealer = res.data.map((item) => ({
-            name: item.sub_dealer_name,
-            id: item.sub_dealer_id,
-          }));
-
-          setSubDealerList(set_sub_dealer);
-        } catch (error) {
-          // ถ้ามีฟังก์ชัน showMsg ใช้ตัวนี้, ถ้าไม่มีให้เปลี่ยนเป็น showNotification ตามระบบคุณ
-          console.error(error);
-        }
-      };
-
-      getMasterDealer();
-      return;
-    }
-
-    if (filter.sale) {
-      const getMasterSubDealer = async () => {
-        try {
-          const [res] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterDealerDropdown, {
-              user_id: filter.sale,
-            }),
-          ]);
-
-          setDealerList(res.data);
-        } catch (error) {
-          console.error(error);
-        }
-      };
-
-      getMasterSubDealer();
-      return;
-    }
-
-    // ไม่มี else ที่ไป clear filter แล้ว
-    // เพื่อให้ field อื่น ๆ เช่น expense_no ใช้งานได้ปกติ
   };
 
   const handleDelete = async (documentNumber) => {
@@ -169,9 +88,9 @@ export default function AdvanceExpense() {
       async onOk() {
         try {
           const response = await useServiceAPI.delete(
-            `/activity-expense/delete?document_number=${encodeURIComponent(
-              documentNumber
-            )}&page_code=${encodeURIComponent("expense_advance")}`
+            `/activity-expense/delete?document_number=${encodeURIComponent(documentNumber)}&page_code=${encodeURIComponent(
+              "expense_advance"
+            )}`
           );
           await fetchData();
           if (response.status === 200) {
@@ -181,7 +100,6 @@ export default function AdvanceExpense() {
               response.data.message_line || ["The event has been removed."]
             );
           } else {
-            console.error("Failed to delete event:", response.message);
             showNotification(
               "error",
               response.message || "Failed to delete event.",
@@ -189,29 +107,40 @@ export default function AdvanceExpense() {
             );
           }
         } catch (error) {
-          console.error("Error deleting event:", error);
-          showNotification(
-            "error",
-            "An error occurred while deleting the event.",
-            ["Please try again later."]
-          );
+          showNotification("error", "An error occurred while deleting the event.", ["Please try again later."]);
         }
       },
     });
   };
 
-  // โหลด Master
+  // ✅ Load Masters (Sale + DealerAll + SubDealerAll + ActivityType)
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [activityType, sale] = await Promise.all([
+        const [activityType, saleRes, dealerRes, subDealerRes] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathMasterDealerAll, {}),
+          useServiceAPI.get(paths.pathMasterSubDealerAll, {}),
         ]);
 
-        setActivityList(activityType.data);
-        setSaleList(sale.data);
+        setActivityList(activityType?.data || []);
+        setSaleList(saleRes?.data || []);
+
+        setDealerList(
+          (dealerRes?.data || []).map((d) => ({
+            id: d.id ?? d.dealer_id ?? d.code,
+            name: d.name ?? d.dealer_name ?? d.title,
+          }))
+        );
+
+        setSubDealerList(
+          (subDealerRes?.data || []).map((s) => ({
+            id: s.sub_dealer_id ?? s.id ?? s.code,
+            name: s.sub_dealer_name ?? s.name ?? s.title,
+          }))
+        );
       } catch (error) {
         console.error(error);
       } finally {
@@ -227,11 +156,7 @@ export default function AdvanceExpense() {
     { title: "Sub Dealer", dataIndex: "customer", align: "left" },
     { title: "Dealer", dataIndex: "dealersd", align: "left" },
     { title: "Expense No", dataIndex: "expenseNo", align: "left" },
-    {
-      title: "Activity Reference",
-      dataIndex: "activityReference",
-      align: "left",
-    },
+    { title: "Activity Reference", dataIndex: "activityReference", align: "left" },
     { title: "Type of Meeting", dataIndex: "typeOfMeeting", align: "center" },
     { title: "Date", dataIndex: "date", align: "center" },
     { title: "Sale", dataIndex: "sale", align: "left" },
@@ -242,23 +167,21 @@ export default function AdvanceExpense() {
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
-    const filters = tableParams.filters || {};
+    const f = tableParams.filters || {};
 
     const sortOrder = tableParams.sortOrder || "desc";
     const sortField = tableParams.sortField || "document_number";
 
     const requestData = {
       page_code: "expense_advance",
-      // ✅ ให้ Expense No ไปแมปที่ keyword
-      keyword: filters.expense_no || "",
+      keyword: f.expense_no || "",
       use_flag: "1",
-      user_id: filters.sale,
-      dealer_id: filters.dealer,
-      sub_dealer_id: filters.customer,
-      date: filters.date,
-      activity_type_id: filters.type_of_meeting,
-      // ✅ Activity Reference แมปตรงนี้
-      document_number_referrent: filters.activity_reference || "",
+      user_id: getId(f.sale),
+      dealer_id: getId(f.dealer),
+      sub_dealer_id: getId(f.customer),
+      date: f.date || "",
+      activity_type_id: getId(f.type_of_meeting),
+      document_number_referrent: f.activity_reference || "",
       customer_name: "",
       page: "all",
       page_mode: "list",
@@ -269,15 +192,12 @@ export default function AdvanceExpense() {
     };
 
     try {
-      const response = await useServiceAPI.get(
-        paths.pathActivityExpenseList,
-        requestData
-      );
+      const response = await useServiceAPI.get(paths.pathActivityExpenseList, requestData);
 
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
 
-        const newDataSource = data.map((row, index) => ({
+        const newDataSource = (data || []).map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           customer: row.sub_dealer_name,
           dealersd: row.dealer_name,
@@ -296,17 +216,14 @@ export default function AdvanceExpense() {
           action: (
             <Dropdown
               menu={{
-                items: row.action.map((actionItem, actionIndex) => {
+                items: (row.action || []).map((actionItem, actionIndex) => {
                   let path = "";
                   let mode = actionItem.action.toLowerCase();
                   let onClickHandler = null;
 
-                  if (
-                    actionItem.action.toLowerCase() === "edit" ||
-                    actionItem.action.toLowerCase() === "view"
-                  ) {
-                    path = `/activity/${actionItem.action.toLowerCase()}`;
-                    onClickHandler = () => {
+                  if (mode === "edit" || mode === "view") {
+                    path = `/activity/${mode}`;
+                    onClickHandler = () =>
                       navigate(path, {
                         state: {
                           documentNumber: row.document_number,
@@ -314,39 +231,29 @@ export default function AdvanceExpense() {
                           page_mode: actionItem.action,
                         },
                       });
-                    };
                   } else {
                     onClickHandler = () => handleDelete(row.document_number);
                   }
+
                   return {
                     key: actionIndex,
-                    label: (
-                      <ItemDropDown mode={mode} onClick={onClickHandler} />
-                    ),
+                    label: <ItemDropDown mode={mode} onClick={onClickHandler} />,
                   };
                 }),
               }}
               placement="bottom"
             >
               <a onClick={(e) => e.preventDefault()}>
-                <img
-                  src="/img/icons/action.png"
-                  alt="Actions icon"
-                  className="inline-block w-5 h-5"
-                />
+                <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
               </a>
             </Dropdown>
           ),
         }));
 
         setDataSource(newDataSource);
-
         setTableParams((prev) => ({
           ...prev,
-          pagination: {
-            ...prev.pagination,
-            total: records_filtered,
-          },
+          pagination: { ...prev.pagination, total: records_filtered || 0 },
         }));
       }
     } catch (error) {
@@ -367,14 +274,14 @@ export default function AdvanceExpense() {
     JSON.stringify(tableParams.filters),
   ]);
 
-  const handleTableChange = (pagination, filters, sorter) => {
+  const handleTableChange = (pagination, _filters, sorter) => {
     setTableParams((prev) => ({
       ...prev,
       pagination,
-      filters: prev.filters, // รักษาค่าฟิลเตอร์เดิม
-      // ถ้าต้องใช้ sort ให้ uncomment ด้านล่าง
-      // sortOrder: sorter.order === "descend" ? "desc" : "asc",
-      // sortField: sorter.field,
+      filters: prev.filters,
+      // ถ้าต้องใช้ sort ให้เปิดด้านล่าง
+      // sortOrder: sorter?.order === "ascend" ? "asc" : "desc",
+      // sortField: sorter?.field,
     }));
   };
 
@@ -387,19 +294,20 @@ export default function AdvanceExpense() {
           text="Create"
           onClick={() =>
             navigate("/activity/create", {
-              state: {
-                pageCode: "expense_advance",
-              },
+              state: { pageCode: "expense_advance" },
             })
           }
         />
       </div>
+
       <Filter
+        filters={filters}
+        values={filterValues}
+        onChange={handleFilterChange}
         onSearch={handleSearch}
         onClear={handleClear}
-        onChange={handleChange}
-        filters={filters}
       />
+
       <BoxPrimary>
         <TableComponent
           header={header}

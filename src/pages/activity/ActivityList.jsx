@@ -19,13 +19,15 @@ import { ExclamationCircleFilled } from "@ant-design/icons";
 export default function ActivityList() {
   const { confirm } = Modal;
   const [loading, setLoading] = useState(false);
-  const [dataSource, setDataSource] = useState(false);
+  const [dataSource, setDataSource] = useState([]);
   const [activityList, setActivityList] = useState([]);
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const { showMsg, showNotification } = useContext(AuthContext);
+  const [filterValues, setFilterValues] = useState({});
+
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -41,8 +43,8 @@ export default function ActivityList() {
   const [perceptionData, setPerceptionData] = useState([]);
   const [isProductModalVisible, setIsProductModalVisible] = useState(false);
   const [isMappingModalVisible, setIsMappingModalVisible] = useState(false);
-  const [isDealerDisabled, setIsDealerDisabled] = useState(true);
-  const [isSubDealerDisabled, setIsSubDealerDisabled] = useState(true);
+  // const [isDealerDisabled, setIsDealerDisabled] = useState(true);
+  // const [isSubDealerDisabled, setIsSubDealerDisabled] = useState(true);
 
   const navigate = useNavigate();
 
@@ -105,171 +107,41 @@ export default function ActivityList() {
   console.log(saleList)
 
   const filters = [
-    {
-      key: "keyword",
-      type: "text",
-      label: "Activity No",
-      placeholder: "Activity No",
-    },
-    {
-      key: "activity_type",
-      type: "select",
-      label: "Activity Type",
-      placeholder: "All",
-      options: activityList,
-    },
-    {
-      key: "sale",
-      type: "select",
-      label: "Sales",
-      placeholder: "All",
-      options: saleList,
-      moderef: true,
-    },
-    {
-      key: "dealer",
-      type: "select",
-      label: "Dealer",
-      placeholder: "All",
-      options: dealerList,  // ✅ ใช้ dealerList
-      disabled: isDealerDisabled,  // ✅ เพิ่มตรงนี้
-    },
-    {
-      key: "shop",
-      type: "select",
-      label: "Sub Dealer",
-      placeholder: "All",
-      options: subDealerList, // ✅ shop
-      disabled: isSubDealerDisabled, // ✅ เพิ่มตรงนี้
-    },
-    {
-      key: "Date",
-      type: "date",
-      label: "Date",
-    },
-    {
-      key: "created_by",
-      type: "select",
-      label: "Create By",
-      placeholder: "All",
-      options: userCreate,
-      moderef: true,
-    },
+    { key: "keyword", type: "text", label: "Activity No", placeholder: "Activity No" },
+    { key: "activity_type", type: "select", label: "Activity Type", placeholder: "All", options: activityList },
+
+    { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
+
+    // ✅ ไม่ต้อง disabled แล้ว
+    { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dealerList },
+
+    { key: "shop", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerList },
+
+    { key: "Date", type: "date", label: "Date" },
+    { key: "created_by", type: "select", label: "Create By", placeholder: "All", options: userCreate, moderef: true },
   ];
 
+  const handleChange = (newFilter) => {
+    // ✅ แค่เก็บค่าในฟอร์ม ไม่ต้อง fetch
+    setFilterValues(newFilter);
+  };
 
-  const handleSearch = (filters) => {
-    setTableParams({
-      ...tableParams,
-      filters,
-      pagination: {
-        current: 1,
-        pageSize: 10,
-      },
-    });
+  const handleSearch = (filtersFromUI) => {
+    // ✅ ค้นหาเมื่อกดปุ่ม Search เท่านั้น
+    setTableParams((prev) => ({
+      ...prev,
+      pagination: { ...prev.pagination, current: 1, pageSize: 10 },
+      filters: { ...filtersFromUI },
+    }));
   };
 
   const handleClear = () => {
-    setTableParams({
-      ...tableParams,
-      filters: {},
-    });
-  };
-
-  const handleChange = (newFilter) => {
-    const prevFilter = tableParams.filters;
-
-    const prevSale = prevFilter.sale;
-    const newSale = newFilter.sale;
-    const isSaleChanged = prevSale !== newSale;
-
-    const prevDealer = prevFilter.dealer;
-    const newDealer = newFilter.dealer;
-    const isDealerChanged = prevDealer !== newDealer;
-
-    if (isSaleChanged) {
-      console.log("🔁 Sale เปลี่ยน:", newSale);
-
-      const userId =
-        typeof newSale === "object" && newSale?.value
-          ? newSale.value
-          : newSale;
-
-      const getDealersAndSubDealersBySale = async () => {
-        try {
-          const dealerResponse = await useServiceAPI.get(
-            paths.pathMasterDealerDropdown,
-            { user_id: userId }
-          );
-
-          const formattedDealer = dealerResponse.data.map((item) => ({
-            name: item.name,
-            id: item.id,
-          }));
-
-          setDealerList(formattedDealer);
-          setIsDealerDisabled(false);
-          setIsSubDealerDisabled(false);
-        } catch (error) {
-          showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer/Sub-dealer");
-        }
-      };
-
-      getDealersAndSubDealersBySale();
-    }
-
-    if (isDealerChanged) {
-      console.log("🔁 Dealer เปลี่ยน:", newDealer);
-
-      const userId =
-        typeof newFilter.sale === "object" && newFilter.sale?.value
-          ? newFilter.sale.value
-          : newFilter.sale;
-
-      const dealerId =
-        typeof newDealer === "object" && newDealer?.value
-          ? newDealer.value
-          : newDealer;
-
-      const getSubDealers = async () => {
-        try {
-          const response = await useServiceAPI.get(
-            paths.pathMasterSubDealerAll,
-            {
-              user_id: userId,
-              dealer_id: dealerId,
-            }
-          );
-
-          const formattedSubDealer = response.data.map((item) => ({
-            name: item.sub_dealer_name,
-            id: item.sub_dealer_id,
-          }));
-
-          setSubDealerList(formattedSubDealer);
-          setIsSubDealerDisabled(false);
-        } catch (error) {
-          showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Sub-dealer");
-        }
-      };
-
-      getSubDealers();
-    }
-
-    if (!newSale) {
-      setDealerList([]);
-      setSubDealerList([]);
-      setIsDealerDisabled(true);
-      setIsSubDealerDisabled(true);
-    }
-
-    // สำคัญ: อัปเดต tableParams.filters
+    // ✅ ล้างฟอร์ม และ fetch ทั้งหมดใหม่
+    setFilterValues({});
     setTableParams((prev) => ({
       ...prev,
-      filters: {
-        ...prev.filters,
-        ...newFilter,
-      },
+      pagination: { ...prev.pagination, current: 1, pageSize: 10 },
+      filters: {},
     }));
   };
 
@@ -354,6 +226,12 @@ export default function ActivityList() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
+  const getId = (v) => {
+    if (!v) return "";
+    if (typeof v === "object") return v.value ?? v.id ?? "";
+    return v;
+  };
+
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -364,19 +242,23 @@ export default function ActivityList() {
 
     const requestData = {
       keyword: filters.keyword || "",
-      activity_type_id: filters.activity_type || "",
-      user_id: filters.sale || "",
-      create_by: filters.created_by || "",
-      sub_dealer_id: filters.shop || "", // ✅ ใส่ dealer_id ด้วย
-      master_dealer_id: parseInt(filters.dealer) || "", // ✅ shop เป็น sub_dealer_id
+      activity_type_id: getId(filters.activity_type),
+      user_id: getId(filters.sale),
+      create_by: getId(filters.created_by),
+
+      // ✅ อิสระ ไม่ต้อง step
+      master_dealer_id: getId(filters.dealer) ? parseInt(getId(filters.dealer), 10) : "",
+      sub_dealer_id: getId(filters.shop),
+
       page: "all",
       page_mode: "list",
       orderby_column: sortField,
       orderby: sortOrder,
       page_length: current,
       page_size: pageSize,
-      document_date: filters.Date ? dayjs(filters.Date).format('YYYY-MM-DD') : "",
+      document_date: filters.Date ? dayjs(filters.Date).format("YYYY-MM-DD") : "",
     };
+
 
     try {
       const response = await useServiceAPI.get(
@@ -489,17 +371,34 @@ export default function ActivityList() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [activityType, sale, userc] = await Promise.all([
+        const [activityType, sale, dealerRes, subDealerRes, userc] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
-          useServiceAPI.get(paths.pathActivityListUser, { "platform": "web" }),
+          useServiceAPI.get(paths.pathMasterDealerAll, {}),       // ✅ NEW
+          useServiceAPI.get(paths.pathMasterSubDealerAll, {}),    // ✅ NEW
+          useServiceAPI.get(paths.pathActivityListUser, {}),
         ]);
 
-        setActivityList(activityType.data);
-        setSaleList(sale.data);
-        setUserCreate(userc)
-        // console.log(sale.data);
+        setActivityList(activityType?.data || []);
+        setSaleList(sale?.data || []);
 
+        // ✅ dealer list (ปรับ map ให้ชัวร์)
+        setDealerList(
+          (dealerRes?.data || []).map((d) => ({
+            id: d.id ?? d.dealer_id ?? d.code,
+            name: d.name ?? d.dealer_name ?? d.title,
+          }))
+        );
+
+        // ✅ sub dealer list (ตามตัวอย่างหน้า Customer Sub Dealer)
+        setSubDealerList(
+          (subDealerRes?.data || []).map((item) => ({
+            name: item.sub_dealer_name,
+            id: item.sub_dealer_id,
+          }))
+        );
+
+        setUserCreate(userc || []);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล");
       } finally {
@@ -511,8 +410,10 @@ export default function ActivityList() {
   }, []);
 
 
+
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     tableParams.pagination.current,
     tableParams.pagination.pageSize,
@@ -520,6 +421,7 @@ export default function ActivityList() {
     tableParams.sortField,
     JSON.stringify(tableParams.filters),
   ]);
+
 
   return (
     <MainLayout loading={loading}>
@@ -543,6 +445,7 @@ export default function ActivityList() {
         onClear={handleClear}
         onChange={handleChange}
         filters={filters}
+        values={filterValues}
       />
 
       <BoxPrimary>

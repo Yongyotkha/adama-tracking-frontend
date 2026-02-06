@@ -90,8 +90,16 @@ export default function ActivityPlanList() {
             value: item.id,
             label: item.name,
           }));
+
+          // ✅ เลือกปีล่าสุดจาก label
+          const latest = [...formattedYearsOptions].sort((a, b) => {
+            const ay = Number(String(a.label).replace(/\D/g, "")) || 0;
+            const by = Number(String(b.label).replace(/\D/g, "")) || 0;
+            return by - ay;
+          })[0];
+
           setYears(formattedYearsOptions);
-          setSelectedYear(formattedYearsOptions[0].value);
+          setSelectedYear(latest?.value ?? null);
         }
         setStatus(status.data);
         setDealer(dealer.data);

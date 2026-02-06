@@ -113,8 +113,21 @@ export default function Dashboard() {
 
         // Years
         if (yearsRes?.data?.length > 0) {
-          setYears(yearsRes.data);
-          setSelectedYear(yearsRes.data[0]?.id);
+          // Years
+          if (yearsRes?.data?.length > 0) {
+            const list = yearsRes.data;
+
+            // หา year ล่าสุดจาก field name (เช่น "2024") หรือ fallback ใช้ id
+            const latest = [...list].sort((a, b) => {
+              const ay = Number(String(a.name ?? a.year ?? a.id).replace(/\D/g, "")) || 0;
+              const by = Number(String(b.name ?? b.year ?? b.id).replace(/\D/g, "")) || 0;
+              return by - ay;
+            })[0];
+
+            setYears(list);
+            setSelectedYear(latest?.id ?? null);
+          }
+
         }
 
         // Months

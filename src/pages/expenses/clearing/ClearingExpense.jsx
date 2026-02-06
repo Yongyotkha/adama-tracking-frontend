@@ -1,3 +1,10 @@
+// src/pages/expenses/clearing/ClearingExpense.jsx
+// ✅ Master: SaleDropdown + DealerAll + SubDealerAll (+ ActivityType)
+// ✅ Add Dealer + SubDealer filters (3 dropdowns: sales, dealers, subdealer)
+// ✅ No step (no onChange fetch master by sale)
+// ✅ Search triggers fetch, onChange only updates UI (filterValues)
+// ✅ Clear resets UI + fetches all + reset page to 1
+
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
@@ -15,102 +22,62 @@ import { ExclamationCircleFilled } from "@ant-design/icons";
 
 export default function ClearingExpense() {
   const { confirm } = Modal;
+  const navigate = useNavigate();
+  const { showNotification } = useContext(AuthContext);
+
   const [loading, setLoading] = useState(false);
+  const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+
   const [activityList, setActivityList] = useState([]);
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
-  const [tableLoading, setTableLoading] = useState(false);
-  const { showNotification } = useContext(AuthContext);
+  const [subDealerList, setSubDealerList] = useState([]);
+
+  // ✅ Filter UI state (draft)
+  const [filterValues, setFilterValues] = useState({});
+
   const [tableParams, setTableParams] = useState({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-    },
+    pagination: { current: 1, pageSize: 10, total: 0 },
     filters: {},
     sortOrder: null,
     sortField: null,
   });
 
-  const navigate = useNavigate();
+  const getId = (v) => {
+    if (!v) return "";
+    if (typeof v === "object") return v.value ?? v.id ?? "";
+    return v;
+  };
 
+  // ✅ 3 dropdowns + other fields
   const filters = [
-    {
-      key: "sale",
-      type: "select",
-      label: "Sales",
-      placeholder: "All",
-      options: saleList,
-      moderef: true,
-    },
-    {
-      key: "customer",
-      type: "select",
-      label: "Customer",
-      placeholder: "All",
-      options: dealerList,
-    },
-    {
-      key: "expense_no",
-      type: "text",
-      label: "Expense No",
-      placeholder: "All",
-    },
-    {
-      key: "activity_reference",
-      type: "text",
-      label: "Activity Reference",
-      placeholder: "All",
-    },
-    {
-      key: "type_of_meeting",
-      type: "select",
-      label: "Type of Meeting",
-      placeholder: "All",
-      options: activityList,
-    },
-    {
-      key: "date",
-      type: "date",
-      label: "Date",
-      placeholder: "YYYY-MM-DD",
-    },
+    { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
+    { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dealerList },
+    { key: "sub_dealer", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerList },
+    { key: "expense_no", type: "text", label: "Expense No", placeholder: "All" },
+    { key: "activity_reference", type: "text", label: "Activity Reference", placeholder: "All" },
+    { key: "type_of_meeting", type: "select", label: "Type of Meeting", placeholder: "All", options: activityList },
+    { key: "date", type: "date", label: "Date", placeholder: "YYYY-MM-DD" },
   ];
 
-  const handleSearch = (filters) => {
-    setTableParams({
-      ...tableParams,
-      filters,
-    });
+  const handleFilterChange = (values) => setFilterValues(values);
+
+  const handleSearch = (valuesFromUI) => {
+    setTableParams((prev) => ({
+      ...prev,
+      pagination: { ...prev.pagination, current: 1, pageSize: 10 },
+      filters: { ...valuesFromUI },
+    }));
   };
 
   const handleClear = () => {
-    setTableParams({
-      ...tableParams,
+    setFilterValues({});
+    setTableParams((prev) => ({
+      ...prev,
+      pagination: { ...prev.pagination, current: 1, pageSize: 10 },
       filters: {},
-    });
-  };
-
-  const handleChange = (filter) => {
-    if (filter) {
-      const getMasterDealer = async () => {
-        try {
-          const [dealer] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterDealerDropdown, {
-              user_id: filter.sale,
-            }),
-          ]);
-
-          setDealerList(dealer.data);
-        } catch (error) {
-          showMsg("error", error.message || "เกิดข้อผิดพลาด");
-        }
-      };
-
-      getMasterDealer();
-    } else {
-      handleClear();
-    }
+    }));
   };
 
   const handleDelete = async (documentNumber) => {
@@ -118,26 +85,22 @@ export default function ClearingExpense() {
       title: "Do you want to delete ?",
       icon: <ExclamationCircleFilled />,
       content: [],
-      centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+      centered: true,
       async onOk() {
         try {
-          // Call API to delete the event
           const response = await useServiceAPI.delete(
-            `/activity-expense/delete?document_number=${encodeURIComponent(
-              documentNumber
-            )}&page_code=${encodeURIComponent("expense_clearing")}`
+            `/activity-expense/delete?document_number=${encodeURIComponent(documentNumber)}&page_code=${encodeURIComponent(
+              "expense_clearing"
+            )}`
           );
           await fetchData();
           if (response.status === 200) {
-            // Show success notification
             showNotification(
               "success",
               response.data.message || "Event deleted successfully!",
               response.data.message_line || ["The event has been removed."]
             );
           } else {
-            // Show error notification if response is not 200
-            console.error("Failed to delete event:", response.message);
             showNotification(
               "error",
               response.message || "Failed to delete event.",
@@ -145,31 +108,42 @@ export default function ClearingExpense() {
             );
           }
         } catch (error) {
-          // Handle errors and show an error notification
-          console.error("Error deleting event:", error);
-          showNotification(
-            "error",
-            "An error occurred while deleting the event.",
-            ["Please try again later."]
-          );
+          showNotification("error", "An error occurred while deleting the event.", ["Please try again later."]);
         }
       },
     });
   };
 
-  // Master
+  // ✅ Load Masters (Sale + DealerAll + SubDealerAll + ActivityType)
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [activityType, sale] = await Promise.all([
+        const [activityType, saleRes, dealerRes, subDealerRes] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathMasterDealerAll, {}),
+          useServiceAPI.get(paths.pathMasterSubDealerAll, {}),
         ]);
 
-        setActivityList(activityType.data);
-        setSaleList(sale.data);
+        setActivityList(activityType?.data || []);
+        setSaleList(saleRes?.data || []);
+
+        setDealerList(
+          (dealerRes?.data || []).map((d) => ({
+            id: d.id ?? d.dealer_id ?? d.code,
+            name: d.name ?? d.dealer_name ?? d.title,
+          }))
+        );
+
+        setSubDealerList(
+          (subDealerRes?.data || []).map((s) => ({
+            id: s.sub_dealer_id ?? s.id ?? s.code,
+            name: s.sub_dealer_name ?? s.name ?? s.title,
+          }))
+        );
       } catch (error) {
+        console.error(error);
       } finally {
         setLoading(false);
       }
@@ -183,11 +157,7 @@ export default function ClearingExpense() {
     { title: "Sub Dealer", dataIndex: "customer", align: "left" },
     { title: "Dealer", dataIndex: "dealer", align: "left" },
     { title: "Expense No", dataIndex: "expenseNo", align: "left" },
-    {
-      title: "Activity Reference",
-      dataIndex: "activityReference",
-      align: "left",
-    },
+    { title: "Activity Reference", dataIndex: "activityReference", align: "left" },
     { title: "Type of Meeting", dataIndex: "typeOfMeeting", align: "center" },
     { title: "Date", dataIndex: "date", align: "center" },
     { title: "Status", dataIndex: "status", align: "center" },
@@ -197,20 +167,21 @@ export default function ClearingExpense() {
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
-    const filters = tableParams.filters || {};
+    const f = tableParams.filters || {};
 
     const sortOrder = tableParams.sortOrder || "desc";
     const sortField = tableParams.sortField || "document_number";
 
     const requestData = {
       page_code: "expense_clearing",
-      keyword: filters.keyword || "",
+      keyword: f.expense_no || "",
       use_flag: "1",
-      date: filters.date,
-      user_id: filters.sale,
-      dealer_id: filters.customer,
-      activity_type_id: filters.type_of_meeting,
-      document_number_referrent: filters.activity_reference,
+      date: f.date || "",
+      user_id: getId(f.sale),
+      dealer_id: getId(f.dealer),
+      sub_dealer_id: getId(f.sub_dealer), // ✅ NEW (เพิ่มเข้ามา)
+      activity_type_id: getId(f.type_of_meeting),
+      document_number_referrent: f.activity_reference || "",
       customer_name: "",
       page: "all",
       page_mode: "list",
@@ -221,88 +192,67 @@ export default function ClearingExpense() {
     };
 
     try {
-      const response = await useServiceAPI.get(
-        paths.pathActivityExpenseList,
-        requestData
-      );
+      const response = await useServiceAPI.get(paths.pathActivityExpenseList, requestData);
 
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
 
-        const newDataSource = data.map((row, index) => {
+        const newDataSource = (data || []).map((row, index) => ({
+          key: index + 1 + (current - 1) * pageSize,
+          customer: row.sub_dealer_name,
+          dealer: row.dealer_name,
+          expenseNo: row.document_number,
+          activityReference: row.document_number_referrent,
+          typeOfMeeting: row.activity_type_name,
+          date: row.document_date,
+          status: (
+            <BadgeStatus
+              text={row.transaction_status_name}
+              bgColor={row.transaction_status_bg_color}
+              textColor={row.transaction_status_color}
+            />
+          ),
+          action: (
+            <Dropdown
+              menu={{
+                items: (row.action || []).map((actionItem, actionIndex) => {
+                  const mode = actionItem.action.toLowerCase();
+                  let onClickHandler = null;
 
-          return {
-            key: index + 1 + (current - 1) * pageSize,
-            customer: row.sub_dealer_name,
-            dealer: row.dealer_name,
-            expenseNo: row.document_number,
-            activityReference: row.document_number_referrent,
-            typeOfMeeting: row.activity_type_name,
-            date: row.document_date,
-            status: (
-              <BadgeStatus
-                text={row.transaction_status_name}
-                bgColor={row.transaction_status_bg_color}
-                textColor={row.transaction_status_color}
-              />
-            ),
-            action: (
-              // <Dropdown menu={{ items: actionItems }} placement="bottom">
-              <Dropdown
-                menu={{
-                  items: row.action.map((actionItem, actionIndex) => {
-                    let path = "";
-                    let mode = actionItem.action.toLowerCase();
-                    let onClickHandler = null;
+                  if (mode === "edit" || mode === "view") {
+                    const path = `/activity/${mode}`;
+                    onClickHandler = () =>
+                      navigate(path, {
+                        state: {
+                          documentNumber: row.document_number,
+                          pageCode: row.page_code,
+                          page_mode: actionItem.action,
+                        },
+                      });
+                  } else {
+                    onClickHandler = () => handleDelete(row.document_number);
+                  }
 
-                    if (
-                      actionItem.action.toLowerCase() == "edit" ||
-                      actionItem.action.toLowerCase() == "view"
-                    ) {
-                      path = `/activity/${actionItem.action.toLowerCase()}`;
-                      onClickHandler = () => {
-                        navigate(path, {
-                          state: {
-                            documentNumber: row.document_number,
-                            pageCode: row.page_code,
-                            page_mode: actionItem.action,
-                          },
-                        });
-                      };
-                    } else {
-                      onClickHandler = () => handleDelete(row.document_number);
-                    }
-                    return {
-                      key: actionIndex,
-                      label: (
-                        <ItemDropDown mode={mode} onClick={onClickHandler} />
-                      ),
-                    };
-                  }),
-                }}
-                placement="bottom"
-              >
-                <a onClick={(e) => e.preventDefault()}>
-                  <img
-                    src="/img/icons/action.png"
-                    alt="Actions icon"
-                    className="inline-block w-5 h-5"
-                  />
-                </a>
-              </Dropdown>
-            ),
-          };
-        });
+                  return {
+                    key: actionIndex,
+                    label: <ItemDropDown mode={mode} onClick={onClickHandler} />,
+                  };
+                }),
+              }}
+              placement="bottom"
+            >
+              <a onClick={(e) => e.preventDefault()}>
+                <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+              </a>
+            </Dropdown>
+          ),
+        }));
 
         setDataSource(newDataSource);
-
-        setTableParams({
-          ...tableParams,
-          pagination: {
-            ...tableParams.pagination,
-            total: records_filtered,
-          },
-        });
+        setTableParams((prev) => ({
+          ...prev,
+          pagination: { ...prev.pagination, total: records_filtered || 0 },
+        }));
       }
     } catch (error) {
       console.error(error);
@@ -313,6 +263,7 @@ export default function ClearingExpense() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     tableParams.pagination.current,
     tableParams.pagination.pageSize,
@@ -321,13 +272,14 @@ export default function ClearingExpense() {
     JSON.stringify(tableParams.filters),
   ]);
 
-  const handleTableChange = (pagination, filters, sorter) => {
-    setTableParams({
+  const handleTableChange = (pagination, _filters, sorter) => {
+    setTableParams((prev) => ({
+      ...prev,
       pagination,
-      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
-      // sortOrder: sorter.order === "descend" ? "desc" : "asc",
-      sortField: sorter.field,
-    });
+      filters: prev.filters,
+      // sortField: sorter?.field,
+      // sortOrder: sorter?.order === "ascend" ? "asc" : "desc",
+    }));
   };
 
   return (
@@ -337,22 +289,22 @@ export default function ClearingExpense() {
         <ActionButton
           mode="create"
           text="Create"
-          onClick={(e) =>
-            // navigate("/activity/create?pageCode=expense_clearing")
+          onClick={() =>
             navigate("/activity/create", {
-              state: {
-                pageCode: "expense_clearing",
-              },
+              state: { pageCode: "expense_clearing" },
             })
           }
         />
       </div>
+
       <Filter
+        filters={filters}
+        values={filterValues}
+        onChange={handleFilterChange}
         onSearch={handleSearch}
         onClear={handleClear}
-        onChange={handleChange}
-        filters={filters}
       />
+
       <BoxPrimary>
         <TableComponent
           header={header}

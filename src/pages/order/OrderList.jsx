@@ -1,8 +1,13 @@
+// OrderList.jsx (complete - uses Filter.jsx, no step, search-only, clear fetch all)
+// ✅ Master: SaleDropdown + DealerAll (+ Status)
+// ✅ Search triggers fetch, onChange only updates UI (filterValues)
+// ✅ Clear resets UI + fetches all (filters = {}) + resets page to 1
+
 import React, { useEffect, useState, useContext } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
-import { Button, Dropdown, Input, Modal, Select } from "antd";
-import FilterByOrder from "../../components/filter/FilterByOrder";
+import { Button, Dropdown, Input, Modal } from "antd";
+import Filter from "../../components/filter/Filter";
 import ActionButton from "../../components/button/ActionButton";
 import BadgeStatus from "../../components/badge/BadgeStatus";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
@@ -16,27 +21,28 @@ import { ExclamationCircleFilled } from "@ant-design/icons";
 export default function OrderList() {
   const navigate = useNavigate();
   const { showMsg, showNotification } = useContext(AuthContext);
+  const { confirm } = Modal;
+
   const [loading, setLoading] = useState(false);
-  const [dataSource, setDataSource] = useState([]);
-  const [dataSale, setDataSale] = useState([]);
-  const [dataDealer, setDataDealer] = useState([]);
-  const [dataStatus, setDataStatus] = useState([]);
-  const [permission, setPermission] = useState([]);
-  const [defaultOption, setDefaultOption] = useState();
   const [tableLoading, setTableLoading] = useState(false);
+
+  const [dataSource, setDataSource] = useState([]);
+  const [permission, setPermission] = useState([]);
+
+  const [saleList, setSaleList] = useState([]);
+  const [dealerList, setDealerList] = useState([]);
+  const [statusList, setStatusList] = useState([]);
+
+  // ✅ Filter UI state (draft)
   const [filterValues, setFilterValues] = useState({});
+
+  // ✅ Table params state (only changes on Search / Clear / Pagination / Sort)
   const [tableParams, setTableParams] = useState({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-    },
+    pagination: { current: 1, pageSize: 10, total: 0 },
     filters: {},
     sortOrder: null,
     sortField: null,
   });
-  const { confirm } = Modal;
-
-  const [saleList, setSaleList] = useState([]);
 
   // ✅ Note Popup
   const [noteVisible, setNoteVisible] = useState(false);
@@ -51,7 +57,7 @@ export default function OrderList() {
     setNoteData({
       orderNo: order.document_number,
       status: order.status_transaction_name,
-      reject_remark: order.reject_remark || "", // ✅ เผื่อ backend ทำมาให้
+      reject_remark: order.reject_remark || "",
       ref_remark: order.ref_remark || "",
     });
     setNoteVisible(true);
@@ -59,55 +65,39 @@ export default function OrderList() {
 
   const closeNotePopup = () => setNoteVisible(false);
 
+  // ✅ helper (supports moderef objects)
+  const getId = (v) => {
+    if (!v) return "";
+    if (typeof v === "object") return v.value ?? v.id ?? "";
+    return v;
+  };
 
-  useEffect(() => {
-    const sale = filterValues.sale;
-
-    if (sale) {
-      const userId =
-        typeof sale === "object" && sale.value ? sale.value : sale;
-
-      const getDealersBySale = async () => {
-        try {
-          const response = await useServiceAPI.get(
-            paths.pathMasterDealerDropdown,
-            { user_id: userId }
-          );
-          setDataDealer(response.data);
-
-        } catch (error) {
-          showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer");
-        }
-      };
-
-      getDealersBySale();
-    }
-  }, [filterValues.sale]);
-
-  // Get Master
+  // ✅ Get Master: Sale + DealerAll + Status
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [sale, status] = await Promise.all([
+        const [saleRes, dealerRes, statusRes] = await Promise.all([
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
-          useServiceAPI.get(paths.pathMasterStatus, {
-            status_type: "order",
-          }),
+          useServiceAPI.get(paths.pathMasterDealerAll, {}),
+          useServiceAPI.get(paths.pathMasterStatus, { status_type: "order" }),
         ]);
 
+        setSaleList(saleRes?.data || []);
 
-        setSaleList(sale.data);
+        setDealerList(
+          (dealerRes?.data || []).map((d) => ({
+            id: d.id ?? d.dealer_id ?? d.code,
+            name: d.name ?? d.dealer_name ?? d.title,
+          }))
+        );
 
-        const dataStatus = [];
-        status.data.map((data, index) => {
-          dataStatus.push({
-            id: data.code,
-            name: data.name,
-          });
-        });
-        setDataStatus(dataStatus);
-
+        setStatusList(
+          (statusRes?.data || []).map((s) => ({
+            id: s.code,
+            name: s.name,
+          }))
+        );
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -116,48 +106,16 @@ export default function OrderList() {
     };
 
     getMaster();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ✅ Filters for Filter.jsx (NO SubDealer)
   const filters = [
-    {
-      key: "sale",
-      type: "select",
-      label: "Sales",
-      placeholder: "All",
-      options: saleList,
-      moderef: true,
-    },
-    {
-      key: "dealer",
-      type: "select",
-      label: "Dealer",
-      placeholder: "All",
-      options: dataDealer,
-      moderef: false,
-    },
-    {
-      key: "order_no",
-      type: "text",
-      label: "Order No",
-      placeholder: "Order No",
-      moderef: false,
-    },
-    {
-      key: "status",
-      type: "select",
-      label: "Status",
-      placeholder: "All",
-      options: dataStatus,
-      moderef: false,
-    },
-
-    {
-      key: "dater",
-      type: "dater",
-      label: "Date",
-      placeholder: "Date",
-      moderef: false,
-    },
+    { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
+    { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dealerList },
+    { key: "order_no", type: "text", label: "Order No", placeholder: "Order No" },
+    { key: "status", type: "select", label: "Status", placeholder: "All", options: statusList },
+    { key: "dater", type: "dater", label: "Date", placeholder: "Date" },
   ];
 
   const header = [
@@ -170,32 +128,27 @@ export default function OrderList() {
     { title: "Pay Overdue", width: 150, dataIndex: "payOverdue", align: "center" },
     { title: "Status", width: 150, dataIndex: "status", align: "center" },
     { title: "SAP Status", width: 150, dataIndex: "sapStatus", align: "center" },
-
-    // ✅ NEW: Note column
     { title: "Note", width: 120, dataIndex: "note", align: "center" },
-
     { title: "Create By", width: 150, dataIndex: "createdBy", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-
-
   const fetchData = async () => {
     setTableLoading(true);
+
     const { current, pageSize } = tableParams.pagination;
-    const filters = tableParams.filters || {};
+    const f = tableParams.filters || {};
     const sortOrder = tableParams.sortOrder || "desc";
     const sortField = tableParams.sortField || "document_number";
 
     const requestData = {
-      // user_id: filters.sale || defaultOption,
-      user_id: filters.sale || "",
-      dealer_id: filters.dealer || "",
-      keyword: filters.order_no || "",
-      trasaction_status_code: filters.status || "",
-      dater: filters.dater || "",
+      user_id: getId(f.sale),
+      dealer_id: getId(f.dealer),
+      keyword: f.order_no || "",
+      trasaction_status_code: getId(f.status),
+      dater: f.dater || "",
       page: "all",
-      use_flag: filters.use_flag || "",
+      use_flag: f.use_flag || "",
       orderby_column: sortField,
       orderby: sortOrder,
       page_length: current,
@@ -203,16 +156,13 @@ export default function OrderList() {
     };
 
     try {
-      const response = await useServiceAPI.get(
-        paths.pathGetOrderList,
-        requestData
-      );
+      const response = await useServiceAPI.get(paths.pathGetOrderList, requestData);
 
-      if (response.status === 200) {
-        const { data, records_filtered } = response.data;
-        setPermission(response.data.permission);
+      if (response?.status === 200) {
+        const { data, records_filtered, permission: perm } = response.data || {};
+        setPermission(perm || []);
 
-        const newDataSource = data.map((order, index) => ({
+        const rows = (data || []).map((order, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           orderNo: order.document_number,
           sale: order.user_name,
@@ -241,9 +191,7 @@ export default function OrderList() {
             />
           ),
           note:
-            order.status_code === "ODW" ? (
-              null
-            ) : (
+            order.status_code === "ODW" ? null : (
               <BadgeStatus
                 text="!"
                 bgColor="#F89E18"
@@ -252,28 +200,9 @@ export default function OrderList() {
                 onClick={() => openNotePopup(order)}
               />
             ),
-
           createdBy: order.created_by,
           action: (
             <Dropdown
-              // menu={{
-              //   items: order.action.map((actionItem, actionIndex) => ({
-              //     key: actionIndex,
-              //     label: (
-              //       <ItemDropDown mode={actionItem.action.toLowerCase()}
-              //       onClick={() => {
-              //         navigate("/order/view", {
-              //           state: {
-              //             document_number: order.document_number,
-              //           },
-              //         });
-              //       }}
-
-              //       />
-              //     ),
-              //   })),
-              // }}
-
               menu={{
                 items: [
                   {
@@ -282,11 +211,7 @@ export default function OrderList() {
                       <ItemDropDown
                         mode="view"
                         onClick={() => {
-                          navigate("/order/view", {
-                            state: {
-                              document_number: order.document_number,
-                            },
-                          });
+                          navigate("/order/view", { state: { document_number: order.document_number } });
                         }}
                       />
                     ),
@@ -297,48 +222,32 @@ export default function OrderList() {
                       <ItemDropDown
                         mode="edit"
                         onClick={() => {
-                          navigate("/order/edit", {
-                            state: {
-                              document_number: order.document_number,
-                            },
-                          });
+                          navigate("/order/edit", { state: { document_number: order.document_number } });
                         }}
                       />
                     ),
                   },
                   {
                     key: 3,
-                    label: (
-                      <ItemDropDown
-                        mode="delete"
-                        onClick={() => {
-                          handleDelete(order.document_number);
-                        }}
-                      />
-                    ),
+                    label: <ItemDropDown mode="delete" onClick={() => handleDelete(order.document_number)} />,
                   },
                 ],
               }}
               placement="bottom"
             >
               <a onClick={(e) => e.preventDefault()}>
-                <img
-                  src="/img/icons/action.png"
-                  alt="button icon"
-                  className="inline-block w-5 h-5 mr-2"
-                />
+                <img src="/img/icons/action.png" alt="button icon" className="inline-block w-5 h-5 mr-2" />
               </a>
             </Dropdown>
           ),
         }));
-        setDataSource(newDataSource);
-        setTableParams({
-          ...tableParams,
-          pagination: {
-            ...tableParams.pagination,
-            total: records_filtered,
-          },
-        });
+
+        setDataSource(rows);
+
+        setTableParams((prev) => ({
+          ...prev,
+          pagination: { ...prev.pagination, total: records_filtered || 0 },
+        }));
       }
     } catch (error) {
       console.error(error);
@@ -347,8 +256,10 @@ export default function OrderList() {
     }
   };
 
+  // ✅ fetch only when tableParams changed (Search/Clear/Pagination/Sort)
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     tableParams.pagination.current,
     tableParams.pagination.pageSize,
@@ -357,31 +268,34 @@ export default function OrderList() {
     JSON.stringify(tableParams.filters),
   ]);
 
-  const handleSearch = (filters) => {
-    setTableParams({
-      ...tableParams,
-      filters,
-    });
+  // ✅ Search-only / Clear fetch all
+  const handleFilterChange = (values) => setFilterValues(values);
+
+  const handleSearch = (valuesFromUI) => {
+    setTableParams((prev) => ({
+      ...prev,
+      pagination: { ...prev.pagination, current: 1, pageSize: 10 },
+      filters: { ...valuesFromUI },
+    }));
   };
 
   const handleClear = () => {
-    setTableParams({
-      ...tableParams,
+    setFilterValues({});
+    setTableParams((prev) => ({
+      ...prev,
+      pagination: { ...prev.pagination, current: 1, pageSize: 10 },
       filters: {},
-    });
+    }));
   };
 
-  const handleTableChange = (pagination, filters, sorter) => {
-    setTableParams({
+  const handleTableChange = (pagination, _filters, sorter) => {
+    setTableParams((prev) => ({
+      ...prev,
       pagination,
-      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
-      sortOrder: sorter.order === "descend" ? "desc" : "asc",
-      sortField: sorter.field,
-    });
-  };
-
-  const handleChange = (filters) => {
-    setFilterValues(filters);
+      filters: prev.filters, // keep current filters
+      sortOrder: sorter?.order === "ascend" ? "asc" : "desc",
+      sortField: sorter?.field,
+    }));
   };
 
   const handleDelete = async (documentNumber) => {
@@ -389,36 +303,33 @@ export default function OrderList() {
       title: "Do you want to delete ?",
       icon: <ExclamationCircleFilled />,
       content: [],
-      centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+      centered: true,
       async onOk() {
         try {
           const response = await useServiceAPI.delete(paths.pathGetOrderDelete, {
             document_number: documentNumber,
           });
 
-          if (response.status === 200) {
-            // Show success notification
-            showNotification("success",
-              response.data.message || "Event deleted successfully!",
-              response.data.message_line || ["The event has been removed."]
-            ).then(() => {
-
-            })
+          if (response?.status === 200) {
+            await showNotification(
+              "success",
+              response.data.message || "Deleted successfully!",
+              response.data.message_line || ["The order has been removed."]
+            );
+            fetchData();
           } else {
-            showNotification("warning",
-              response.data.message || "Event deleted successfully!",
-              response.data.message_line || ["The event has been removed."]
-            )
+            showNotification(
+              "warning",
+              response?.data?.message || "Cannot delete",
+              response?.data?.message_line || ["Please try again later."]
+            );
           }
-
         } catch (error) {
-          // Handle errors and show an error notification
-          if (error.response.data.status === 400) {
+          if (error?.response?.data?.status === 400) {
             const message = error.response.data.data;
-            showNotification("warning",
-              message.Message.Message_Header,
-              message.Message.Message_Line
-            )
+            showNotification("warning", message.Message.Message_Header, message.Message.Message_Line);
+          } else {
+            showNotification("error", "Delete failed", ["Please try again later."]);
           }
         }
       },
@@ -430,21 +341,18 @@ export default function OrderList() {
       <div className="flex justify-between items-center">
         <div className="title-page">Order List</div>
         <div className="flex gap-2">
-          {permission.btn_create && (
-            <ActionButton
-              mode="create"
-              text="Create"
-              onClick={(e) => navigate("/order/create")}
-            />
+          {permission?.btn_create && (
+            <ActionButton mode="create" text="Create" onClick={() => navigate("/order/create")} />
           )}
         </div>
       </div>
 
-      <FilterByOrder
+      <Filter
+        filters={filters}
+        values={filterValues}
+        onChange={handleFilterChange}
         onSearch={handleSearch}
         onClear={handleClear}
-        onChange={handleChange}
-        filters={filters}
       />
 
       <BoxPrimary>
@@ -459,19 +367,10 @@ export default function OrderList() {
 
       <Modal open={noteVisible} footer={null} centered closable={false} onCancel={closeNotePopup}>
         <div className="flex flex-col justify-between items-center min-h-[150px]">
-          {/* <img src="/img/icons/note.png" alt="note" className="h-24 object-contain mb-4" /> */}
-
           <div className="text-[#978B87] text-sm text-center mb-4 sarabun-font w-full">
             <div className="font-semibold mb-2">Order: {noteData.orderNo}</div>
             <div className="mb-3">Status: {noteData.status || "-"}</div>
-
-            {/* ✅ ตอนนี้ยังไม่มี reject_remark จากหลังบ้าน -> fallback */}
-            <Input.TextArea
-              rows={4}
-              value={noteData.reject_remark || "-"}
-              disabled
-              className="sarabun-font bg-gray-100"
-            />
+            <Input.TextArea rows={4} value={noteData.reject_remark || "-"} disabled className="sarabun-font bg-gray-100" />
           </div>
 
           <Button
@@ -483,7 +382,6 @@ export default function OrderList() {
           </Button>
         </div>
       </Modal>
-
     </MainLayout>
   );
 }
