@@ -25,7 +25,7 @@ export default function CustomerStockEdit() {
   const [formCustom] = Form.useForm();
   const [fileList, setFileList] = useState([]);
   const fileUploadRef = useRef(null);
-
+  const [submitting, setSubmitting] = useState(false);
   const [documentNumber] = useState(location.state.document_number);
 
   const [dataDetail, setDataDetail] = useState({});
@@ -110,7 +110,7 @@ export default function CustomerStockEdit() {
               // ❌ ไม่ต้องพึ่ง net_amount เดิมจาก API
               // net_amount จะคำนวณตอนส่ง PUT เสมอ
             };
-          }
+          },
         );
 
         setDataSource(mappedProducts);
@@ -122,7 +122,7 @@ export default function CustomerStockEdit() {
             key: index + 1,
             no: index + 1,
             quantity: toIntFloor(item.quantity),
-          })
+          }),
         );
         setDataSourceOther(mappedOthers);
       } catch (error) {
@@ -163,7 +163,7 @@ export default function CustomerStockEdit() {
         const foc = minFoc > 0 ? parseInt(qty / minFoc, 10) : 0;
 
         return { ...item, quantity: qty, foc };
-      })
+      }),
     );
   };
 
@@ -209,14 +209,19 @@ export default function CustomerStockEdit() {
             src="/img/icons/collapse.png"
             alt="decrease"
             className="cursor-pointer w-6 h-6"
-            onClick={() => handleQuantityChange(record.key, record.quantity - 1)}
+            onClick={() =>
+              handleQuantityChange(record.key, record.quantity - 1)
+            }
           />
           <Input
             inputMode="numeric"
             min={0}
             value={record.quantity}
             onChange={(e) =>
-              handleQuantityChange(record.key, parseInt(e.target.value, 10) || 0)
+              handleQuantityChange(
+                record.key,
+                parseInt(e.target.value, 10) || 0,
+              )
             }
             className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
           />
@@ -224,7 +229,9 @@ export default function CustomerStockEdit() {
             src="/img/icons/expand.png"
             alt="increase"
             className="cursor-pointer w-6 h-6"
-            onClick={() => handleQuantityChange(record.key, record.quantity + 1)}
+            onClick={() =>
+              handleQuantityChange(record.key, record.quantity + 1)
+            }
           />
         </div>
       ),
@@ -256,7 +263,7 @@ export default function CustomerStockEdit() {
   const footerOrderList = () => {
     const totalQuantity = dataSource.reduce(
       (total, item) => total + toIntFloor(item.quantity),
-      0
+      0,
     );
 
     return (
@@ -277,16 +284,19 @@ export default function CustomerStockEdit() {
       try {
         const productDetail = await useServiceAPI.get(
           paths.pathMasterProductDetail,
-          { product_id: value }
+          { product_id: value },
         );
         const data = productDetail.data;
 
         const existingIndex = dataSource.findIndex(
-          (item) => item.product_code === data.product_code
+          (item) => item.product_code === data.product_code,
         );
 
         // ✅ unit_convert_order_value เป็นตัวจริง ถ้าไม่มีให้ fallback bath_unit
-        const unitValue = toIntFloor(data.unit_convert_order_value) || toIntFloor(data.net_amount) || toIntFloor(data.bath_unit);
+        const unitValue =
+          toIntFloor(data.unit_convert_order_value) ||
+          toIntFloor(data.net_amount) ||
+          toIntFloor(data.bath_unit);
 
         if (existingIndex !== -1) {
           // เพิ่ม qty (และ foc) — unitValue ไม่เปลี่ยน
@@ -365,7 +375,10 @@ export default function CustomerStockEdit() {
 
   // ✅ PUT Update: คำนวณ net_amount ใหม่ทุกครั้ง = unit_convert_order_value * quantity (ปัดลงแล้วเป็น int)
   const handleNavigateToOrderView = async () => {
+    if (submitting) return;
     try {
+      setSubmitting(true); // 🔒 ล็อกปุ่มทันที
+
       await formCustom.validateFields();
 
       const payload = {
@@ -496,7 +509,8 @@ export default function CustomerStockEdit() {
         />
         <ActionButton
           mode="save"
-          text="Confirm"
+          text={submitting ? "Processing..." : "Confirm"}
+          disabled={submitting}
           onClick={handleNavigateToOrderView}
         />
       </div>
