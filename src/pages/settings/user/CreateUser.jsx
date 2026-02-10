@@ -39,7 +39,6 @@ export default function CreateUser() {
             useServiceAPI.get(paths.pathMasterTerritory, {}),
             useServiceAPI.get(paths.pathMasterAreas, {}),
             useServiceAPI.get(paths.pathMasterRoles, {}),
-            useServiceAPI.get(paths.pathMasterRoles, {}),
             useServiceAPI.get(paths.pathMasterPermission, {}),
           ]);
 
@@ -84,9 +83,9 @@ export default function CreateUser() {
             console.log(error.response.data.data.message);
             if (error.status == 422) {
               // showMsg("error", error.message);
-              showNotification("error",error.response.data.data.message);
+              showNotification("error", error.response.data.data.message);
             } else if (error.status == 500) {
-              showNotification("error",error.response.data.data.message);
+              showNotification("error", error.response.data.data.message);
             } else {
               showNotification("error", "เกิดข้อผิดพลาด");
             }
@@ -97,7 +96,7 @@ export default function CreateUser() {
       });
   };
 
-  
+
 
   const formFields = [
     {
@@ -129,6 +128,14 @@ export default function CreateUser() {
       col: 6,
       // disabled: true,
     },
+    {
+      label: "Car No",
+      name: "carno",
+      type: "text",
+      required: true, // ถ้าไม่บังคับเปลี่ยนเป็น false ได้
+      col: 6,
+    },
+
     {
       label: "Contact Number",
       name: "contact_number",

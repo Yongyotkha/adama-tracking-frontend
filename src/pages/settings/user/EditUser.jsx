@@ -29,10 +29,10 @@ export default function EditUser() {
   const [permission, setPermission] = useState([]);
 
   // อ่านสถานะ mod จาก state
-  const mode = location.state?.mod; 
+  const mode = location.state?.mod;
   const isViewMode = mode === "View";
 
-            
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -87,7 +87,7 @@ export default function EditUser() {
     }
   };
 
-  let  updatedFields = [
+  let updatedFields = [
     {
       label: "Profile Image",
       name: "profile", // ชื่อฟิลด์ในฟอร์ม
@@ -122,6 +122,17 @@ export default function EditUser() {
       disabled: true,
       value: userinfo.sales_emp_code
     },
+
+    // ✅ เพิ่ม Car No (ทะเบียนรถ)
+    {
+      label: "Car No",
+      name: "carno",
+      type: "text",
+      required: true, // ถ้าไม่บังคับเปลี่ยนเป็น false ได้
+      col: 6,
+      value: userinfo.carno ?? userinfo.car_no ?? "", // เผื่อ backend บางจุดชื่อไม่เหมือนกัน
+    },
+
     {
       label: "Contact Number",
       name: "contact_number",
@@ -199,7 +210,7 @@ export default function EditUser() {
       type: "select",
       required: false,
       col: 6,
-      options: permission ,
+      options: permission,
       // value: parseInt(userinfo.permission_id, 10),
     },
     {
@@ -221,9 +232,9 @@ export default function EditUser() {
         { name: "Inactive", id: 0, selected: false },
       ],
       // value: userinfo.use_flag === 1 ? "Active" : "Inactive" 
-      value: parseInt(userinfo.use_flag,10) === 1 ? "Active" : "Inactive"
+      value: parseInt(userinfo.use_flag, 10) === 1 ? "Active" : "Inactive"
     },
- 
+
   ];
 
   if (isViewMode) {
@@ -244,7 +255,7 @@ export default function EditUser() {
         if (values.date_of_joining) {
           values.date_of_joining = dayjs(values.date_of_joining).format("YYYY-MM-DD");
         }
-        
+
         let useFlagValue;
         if (values.use_flag === 1 || values.use_flag === 0) {
           useFlagValue = values.use_flag; // ถ้าค่าเป็น 1 หรือ 0 อยู่แล้ว ใช้ค่าเดิม
@@ -274,9 +285,9 @@ export default function EditUser() {
           .catch((error) => {
             if (error.status == 422) {
               // showMsg("error", error.message);
-              showNotification("error",error.response.data.data.message);
+              showNotification("error", error.response.data.data.message);
             } else if (error.status == 500) {
-              showNotification("error",error.response.data.data.message);
+              showNotification("error", error.response.data.data.message);
             } else {
               showNotification("error", "เกิดข้อผิดพลาด");
             }
