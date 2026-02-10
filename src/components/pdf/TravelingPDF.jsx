@@ -359,7 +359,7 @@ const TravelingPDF = ({ title }) => {
             <View style={styles.formDetails}>
               <Text style={styles.bold}>Name: {data.user_name || "-"}</Text>
               <Text>Department: {data.department_name || "-"}</Text>
-              <Text style={styles.bold}>Car no.: </Text>
+              <Text style={styles.bold}>Car no.: {data.carno || "-"}</Text>
             </View>
           </View>
 
