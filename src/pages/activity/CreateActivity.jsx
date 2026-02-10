@@ -1202,7 +1202,7 @@ export default function CreateActivity() {
           <ActionButton mode="save" text="Save" onClick={() => handleSave("save")} disabled={forceReadOnly} />
         )}
 
-        {/* {activityDetail?.permission?.btn_pdf && ( */}
+        {activityDetail?.permission?.btn_pdf && (
           <ActionButton
             mode="saveDraft"
             text="Export PDF"
@@ -1211,7 +1211,7 @@ export default function CreateActivity() {
               window.open(targetUrl, "_blank");
             }}
           />
-        {/* )} */}
+        )}
 
         {/* {activityDetail?.permission?.btn_reject && activityDetail?.transaction_status_name !== "Convert" && mode !== "approve" && ( */}
         {activityDetail?.permission?.btn_reject && activityDetail?.transaction_status_name !== "Convert" && (
