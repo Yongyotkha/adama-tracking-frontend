@@ -65,17 +65,22 @@ export default function CreateUser() {
       .validateFields()
       .then((values) => {
         if (values.date_of_joining) {
-          values.date_of_joining = dayjs(values.date_of_joining).format(
-            "YYYY-MM-DD"
-          );
+          values.date_of_joining = dayjs(values.date_of_joining).format("YYYY-MM-DD");
         }
 
+        const payload = {
+          ...values,
+          car_no: values.carno,   // ✅ map ชื่อใหม่
+        };
+
+        delete payload.carno;    // (ถ้า backend ไม่อยากได้ carno)
+
         useServiceAPI
-          .post(paths.pathMasterUsersCreate, values, setLoading)
+          .post(paths.pathMasterUsersCreate, payload, setLoading)
           .then((response) => {
-            if (response.status == 201) {
+            if (response.status === 201) {
               showNotification("success", response.data.message).then(() => {
-                navigate("/setting/user"); // นำทางไปยังหน้าล็อกอิน
+                navigate("/setting/user");
               });
             }
           })
