@@ -187,27 +187,63 @@ export default function CustomerStock() {
         const { data, records_filtered, permission: perm } = response.data;
         setPermission(perm || []);
 
-        const btn_action = (docno) => [
-          {
-            key: 1,
-            label: (
-              <ItemDropDown
-                mode="view"
-                onClick={() => navigate("/customer-stock/view", { state: { document_number: docno } })}
-              />
-            ),
-          },
-          {
-            key: 2,
-            label: (
-              <ItemDropDown
-                mode="edit"
-                onClick={() => navigate("/customer-stock/edit", { state: { document_number: docno } })}
-              />
-            ),
-          },
-          { key: 3, label: <ItemDropDown mode="delete" onClick={() => handleDelete(docno)} /> },
-        ];
+        const btn_action = (docno, actions = []) => {
+          const actionNames = (actions || [])
+            .map((a) => String(a?.action || "").trim().toLowerCase())
+            .filter(Boolean);
+
+          const items = [];
+
+          // ✅ View
+          if (actionNames.includes("view")) {
+            items.push({
+              key: "view",
+              label: (
+                <ItemDropDown
+                  mode="view"
+                  onClick={() =>
+                    navigate("/customer-stock/view", { state: { document_number: docno } })
+                  }
+                />
+              ),
+            });
+          }
+
+          // ✅ Edit
+          if (actionNames.includes("edit")) {
+            items.push({
+              key: "edit",
+              label: (
+                <ItemDropDown
+                  mode="edit"
+                  onClick={() =>
+                    navigate("/customer-stock/edit", { state: { document_number: docno } })
+                  }
+                />
+              ),
+            });
+          }
+
+          // ✅ Delete
+          if (actionNames.includes("delete")) {
+            items.push({
+              key: "delete",
+              label: <ItemDropDown mode="delete" onClick={() => handleDelete(docno)} />,
+            });
+          }
+
+          // กันกรณีไม่มี action เลย
+          if (items.length === 0) {
+            items.push({
+              key: "no_action",
+              label: <span className="text-gray-400">No action</span>,
+              disabled: true,
+            });
+          }
+
+          return items;
+        };
+
 
         setDataSource(
           (data || []).map((stock, index) => ({
@@ -230,12 +266,20 @@ export default function CustomerStock() {
             total_value: formatNumber2(stock.net_amount),
             createdBy: stock.created_by,
             action: (
-              <Dropdown menu={{ items: btn_action(stock.document_number) }} placement="bottom">
+              <Dropdown
+                menu={{ items: btn_action(stock.document_number, stock.action) }}
+                placement="bottom"
+              >
                 <a onClick={(e) => e.preventDefault()}>
-                  <img src="/img/icons/action.png" alt="button icon" className="inline-block w-5 h-5 mr-2" />
+                  <img
+                    src="/img/icons/action.png"
+                    alt="button icon"
+                    className="inline-block w-5 h-5 mr-2"
+                  />
                 </a>
               </Dropdown>
             ),
+
           }))
         );
 

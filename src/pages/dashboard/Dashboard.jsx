@@ -762,7 +762,8 @@ export default function Dashboard() {
         const mapped = items.map((it) => {
           const isOther = it.sub_dealer_name === "Other";
           return {
-            value: Number(it.total_point ?? 0) || 0,
+            value: Number(it.total_point ?? 0) || 0,          // point
+            total_value: Number(it.total_value ?? 0) || 0,    // ✅ money
             label: it.sub_dealer_name || "Other",
             percentage: it.percentage,
             color: isOther ? "#e61e1e" : "#009845",
@@ -1420,7 +1421,7 @@ export default function Dashboard() {
             </div>
 
             <div className="flex justify-center items-center">
-              <DoughnutChartComponent data={pointUsersData} />
+              <DoughnutChartComponent data={pointUsersData} tooltipMode="pointUsers" />
             </div>
           </Card>
         </Col>

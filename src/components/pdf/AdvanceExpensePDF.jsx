@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     minHeight: 55,
     marginTop: 10,
   },
-  descriptionTitle: { fontWeight: "bold", marginBottom: 4}, // ถ้าไม่เอาสีแดงก็ลบ color ได้
+  descriptionTitle: { fontWeight: "bold", marginBottom: 4 }, // ถ้าไม่เอาสีแดงก็ลบ color ได้
   descriptionText: { fontSize: 9, lineHeight: 1.25 },
 
   footer: {
@@ -119,6 +119,14 @@ const AdvanceExpensePDF = () => {
     loadDataAdvance();
   }, [getDocumentNumber, getPageCode]);
 
+  const formatNumber2 = (val) => {
+    const n = Number(val);
+    if (!Number.isFinite(n)) return "0.00";
+    return n.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return "-";
@@ -217,7 +225,7 @@ const AdvanceExpensePDF = () => {
               </View>
             </View>
             <View style={styles.sectionColumnTop}>
-              <Text style={{ fontWeight: "bold" }}>Advance Exp : {formatNumber(dataHeader.expense_advance)} THB</Text>
+              <Text style={{ fontWeight: "bold" }}>Advance Exp : {formatNumber2(dataHeader.expense_advance)} THB</Text>
               <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%", margin: 'auto' }}>
                 <Text style={{ textAlign: "center" }}>Exp :</Text>
                 <Text style={{ flex: 7, textAlign: "start", paddingLeft: 7 }}>
@@ -227,7 +235,7 @@ const AdvanceExpensePDF = () => {
             </View>
             <View style={styles.sectionColumnTop}>
               <Text style={{ fontWeight: "bold" }}>
-                Actual Exp: {formatNumber(dataHeader.expense_actual)} THB
+                Actual Exp: {formatNumber2(dataHeader.expense_actual)} THB
               </Text>
               <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%", margin: 'auto' }}>
                 <Text style={{ textAlign: "center" }}>Exp :</Text>
@@ -356,10 +364,10 @@ const AdvanceExpensePDF = () => {
                     {item.packing_list}
                   </Text>
                   <Text style={styles.tableCell}>
-                    {formatNumber(item.estimate_sale_qty)}
+                    {formatNumber2(item.estimate_sale_qty)}
                   </Text>
                   <Text style={styles.tableCell}>
-                    {formatNumber(Number(item.bath_ltkg || 1) * Number(item.estimate_sale_qty || 0))}
+                    {formatNumber2(Number(item.bath_ltkg || 1) * Number(item.estimate_sale_qty || 0))}
                   </Text>
                   <Text style={styles.tableCell}>
                     {formatNumber(item.acutal_sale_qty)}
@@ -385,9 +393,9 @@ const AdvanceExpensePDF = () => {
             <View style={[styles.tableRow, { borderTopWidth: 1 }]}>
               <Text style={[styles.tableCell, { flex: 4, minWidth: 42, borderRightWidth: 1, textAlign: 'start', fontWeight: 'bold' }]}>Total (THB) </Text>
               <Text style={[styles.tableCell]}>-</Text>
-              <Text style={[styles.tableCell]}> {formatNumber(dataHeader.expense_expense_actual_exp || 0)}</Text>
+              <Text style={[styles.tableCell]}> {formatNumber2(dataHeader.expense_expense_actual_exp || 0)}</Text>
               <Text style={[styles.tableCell]}>-</Text>
-              <Text style={[styles.tableCell, styles.tableCellLast]}> {formatNumber(dataHeader.expense_actual_sale || 0)} </Text>
+              <Text style={[styles.tableCell, styles.tableCellLast]}> {formatNumber2(dataHeader.expense_actual_sale || 0)} </Text>
             </View>
           </View>
 
