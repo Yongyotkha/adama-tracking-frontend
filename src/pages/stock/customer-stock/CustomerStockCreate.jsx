@@ -30,7 +30,7 @@ export default function CustomerStockCreate() {
   const [totalValue, setTotalValue] = useState(0);
 
   const [subDealerDisabled, setSubDealerDisabled] = useState(true);
-
+  const [submitting, setSubmitting] = useState(false);
   const [dealers, setDalers] = useState([]);
   const [dealerId, setDealerId] = useState("");
 
@@ -101,7 +101,7 @@ export default function CustomerStockCreate() {
     const getMasterSubDealer = async () => {
       try {
         const response = await useServiceAPI.get(
-          `${paths.pathCustomerDealerDetail}?id=${dealerId}`
+          `${paths.pathCustomerDealerDetail}?id=${dealerId}`,
         );
         setSubDealerDisabled(false);
         if (response.status === 200) {
@@ -155,7 +155,7 @@ export default function CustomerStockCreate() {
 
         const res = await useServiceAPI.get(
           paths.pathStockCreateGetLastProduct,
-          params
+          params,
         );
 
         if (res.status === 200 && Array.isArray(res.data)) {
@@ -173,17 +173,19 @@ export default function CustomerStockCreate() {
               product_name: item.product_name,
               product_unit: item.product_unit,
               product_unit_thb: toIntFloor(item.product_unit_thb),
-              product_campaign_order_min_foc: item.product_campaign_order_min_foc,
+              product_campaign_order_min_foc:
+                item.product_campaign_order_min_foc,
               product_campaign_foc: item.product_campaign_foc,
               quantity: qty,
               foc,
 
               // ✅ เอาตัวนี้ไปใช้คำนวณ/ส่ง net_amount
-              unit_convert_order_value: toIntFloor(item.unit_convert_order_value),
+              unit_convert_order_value: toIntFloor(
+                item.unit_convert_order_value,
+              ),
             };
           });
           setDataSource(mapped);
-
         } else {
           setDataSource([]);
         }
@@ -243,10 +245,9 @@ export default function CustomerStockCreate() {
         const foc = minFoc > 0 ? parseInt(quantity / minFoc, 10) : 0;
 
         return { ...item, quantity, foc }; // ✅ ไม่แตะ net_amount (เพราะเป็นราคาต่อหน่วย)
-      })
+      }),
     );
   };
-
 
   const header = [
     { title: "No", dataIndex: "no", key: "no" },
@@ -274,7 +275,7 @@ export default function CustomerStockCreate() {
             onChange={(e) =>
               handleQuantityChange(
                 record.key,
-                parseInt(e.target.value, 10) || 0
+                parseInt(e.target.value, 10) || 0,
               )
             }
             className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
@@ -301,7 +302,7 @@ export default function CustomerStockCreate() {
             className="cursor-pointer w-6 h-6"
             onClick={() => {
               const updatedDataSource = dataSource.filter(
-                (item) => item.key !== record.key
+                (item) => item.key !== record.key,
               );
               const resetDataSource = updatedDataSource.map((item, index) => ({
                 ...item,
@@ -319,7 +320,7 @@ export default function CustomerStockCreate() {
   const footerOrderList = () => {
     const totalQuantity = dataSource.reduce(
       (total, item) => total + parseFloat(item.quantity || 0),
-      0
+      0,
     );
 
     return (
@@ -346,7 +347,7 @@ export default function CustomerStockCreate() {
         const data = productDetail.data;
 
         const existingProductIndex = dataSource.findIndex(
-          (item) => item.product_code === data.product_code
+          (item) => item.product_code === data.product_code,
         );
 
         if (existingProductIndex !== -1) {
@@ -354,7 +355,7 @@ export default function CustomerStockCreate() {
             if (index === existingProductIndex) {
               const updatedQuantity = item.quantity + 1;
               const unitPrice = parseFloat(
-                String(item.product_unit_thb || "0").replace(/,/g, "")
+                String(item.product_unit_thb || "0").replace(/,/g, ""),
               );
               const updatedNetAmount = (
                 updatedQuantity * (isNaN(unitPrice) ? 0 : unitPrice)
@@ -385,7 +386,9 @@ export default function CustomerStockCreate() {
             foc: parseInt(1 / data.product_campaign_order_min_foc, 10),
 
             // ✅ ต้องมีตัวนี้ ไม่งั้น Total จะผิด/เป็น 0
-            unit_convert_order_value: toIntFloor(data.unit_convert_order_value ?? data.bath_unit ?? 0),
+            unit_convert_order_value: toIntFloor(
+              data.unit_convert_order_value ?? data.bath_unit ?? 0,
+            ),
 
             net_amount: (
               1 * parseFloat(String(data.bath_unit || "0").replace(/,/g, ""))
@@ -443,9 +446,14 @@ export default function CustomerStockCreate() {
   };
 
   const handleNavigateToOrderView = async () => {
-    // console.log(dataSource);
+    // 🛑 กันกดซ้ำ
+    if (submitting) return;
+
     try {
+      setSubmitting(true); // 🔒 ล็อกปุ่มทันที
+
       const values = await formCustom.validateFields();
+
       const payload = {
         document_date: dayjs().format("YYYY-MM-DD"),
         user_id: userInfo.id,
@@ -456,21 +464,13 @@ export default function CustomerStockCreate() {
         products: dataSource.map((item) => {
           const qty = toIntFloor(item.quantity);
           const unitValue = toIntFloor(item.unit_convert_order_value);
-
-          // ✅ net_amount ที่ถูกต้อง: ยอดต่อบรรทัด = unit_convert_order_value * qty (ปัดลงแล้ว)
-          const lineNet = unitValue * qty;
-
           return {
             product_id: item.product_id,
             product_code: item.product_code,
             product_name: item.product_name,
-            product_unit: item.product_unit,
-            product_unit_thb: toIntFloor(item.product_unit_thb),
-            product_campaign_order_min_foc: item.product_campaign_order_min_foc,
-            product_campaign_foc: item.product_campaign_foc,
             quantity: qty,
             foc: toIntFloor(item.foc),
-            net_amount: lineNet, // ✅ ตรงกับ preview
+            net_amount: unitValue * qty,
           };
         }),
         others: [],
@@ -483,10 +483,12 @@ export default function CustomerStockCreate() {
         navigate("/customer-stock/list");
       } else {
         showMsg("error", response.message || "เกิดข้อผิดพลาด");
+        setSubmitting(false); // ❗ ถ้า error ให้ปลดล็อก
       }
     } catch (error) {
       console.log("Validation or submission error : ", error);
       showMsg("error", error.message || "กรุณากรอกข้อมูลให้ครบถ้วน");
+      setSubmitting(false); // ❗ validation fail ก็ปลด
     }
   };
 
@@ -571,8 +573,9 @@ export default function CustomerStockCreate() {
         />
         <ActionButton
           mode="save"
-          text="Confirm"
-          onClick={() => handleNavigateToOrderView()}
+          text={submitting ? "Processing..." : "Confirm"}
+          disabled={submitting}
+          onClick={handleNavigateToOrderView}
         />
       </div>
     </MainLayout>
