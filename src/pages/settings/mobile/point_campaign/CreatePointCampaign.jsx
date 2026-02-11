@@ -825,6 +825,10 @@ export default function CreatePointCampaign() {
     }
   };
 
+  const handleRemoveReceive = (file) => {
+    setFileListReceive((prev) => prev.filter((f) => f.uid !== file.uid));
+  };
+
   const statusOptions = [
     { label: "Active", value: 1 },
     { label: "Inactive", value: 0 },
@@ -837,7 +841,7 @@ export default function CreatePointCampaign() {
       <BoxPrimary>
         <div className="flex items-center justify-between">
           <label htmlFor="Banner" title="Banner">
-            Upload Proposal
+            Upload Proposal (PDF, JPG, PNG only)
           </label>
           {!isView && (
             <ActionButton
@@ -847,11 +851,11 @@ export default function CreatePointCampaign() {
             />
           )}
         </div>
-
         <FileUploadComponent
           ref={fileUploadRefReceive}
           dataFile={fileListReceive}
           onUploadSuccess={handleUploadReceiveSuccess}
+          onRemove={handleRemoveReceive}
           mode={isView ? "view" : "edit"}
         />
       </BoxPrimary>
