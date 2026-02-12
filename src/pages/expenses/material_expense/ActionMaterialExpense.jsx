@@ -65,7 +65,6 @@ export default function ActionMaterialExpense() {
         if (mode === "edit" || mode === "view") {
 
           const res = await useServiceAPI.get(paths.pathExpenseMaterialOne, {
-            platform: "web",
             code: code,
             user_id: userInfo.id,
           });
@@ -81,7 +80,6 @@ export default function ActionMaterialExpense() {
 
 
             const productRes = await useServiceAPI.get(paths.pathMasterProductByCrop, {
-              platform: "web",
               crop_list: cropIds,
             });
 
@@ -207,7 +205,6 @@ export default function ActionMaterialExpense() {
         unit_price: values.price || "",
         remark: values.remark || "",
         images: images.join(","),
-        platform: "web",
         totalValueRequest: totalValueRequest,
         totalValueWareHoseSend: totalValueWareHoseSend,
         totalValueReceive: totalValueReceive,
@@ -260,7 +257,6 @@ export default function ActionMaterialExpense() {
       const selectedIds = formCustom.getFieldValue("product") || [];
 
       const productRes = await useServiceAPI.get(paths.pathMasterProductByCrop, {
-        platform: "web",
         crop_list: cropIds,
       });
 
@@ -286,7 +282,6 @@ export default function ActionMaterialExpense() {
     setLoading(true);
     try {
       const res = await useServiceAPI.get(paths.pathMasterMaterialProduct, {
-        platform: "web",
         products: selectedProductsIds,
       });
 
@@ -350,6 +345,7 @@ export default function ActionMaterialExpense() {
     { title: "No", dataIndex: "no", key: "no" },
     {
       title: "Photo",
+      align: "center",
       dataIndex: "material_photo",
       key: "material_photo",
       render: (url) =>
@@ -359,12 +355,13 @@ export default function ActionMaterialExpense() {
           "-"
         )
     },
-    { title: "Code", dataIndex: "material_code", key: "material_code" },
+    { title: "Code", dataIndex: "material_code", key: "material_code", align: "center" },
     { title: "Name", dataIndex: "material_name", key: "material_name" },
     { title: "Price", dataIndex: "material_price", key: "material_price" },
     { title: "Stock", dataIndex: "material_stcok", key: "material_stcok" },
     {
       title: "Request",
+      align: "center",
       dataIndex: "material_request",
       key: "material_request",
       render: (_, record) => (
@@ -399,7 +396,7 @@ export default function ActionMaterialExpense() {
     },
     { title: "Value", dataIndex: "material_value", key: "material_value" },
     {
-      title: "Warehouse Send", dataIndex: "material_wherehouse_send", key: "material_wherehouse_send",
+      title: "Warehouse Send", dataIndex: "material_wherehouse_send", key: "material_wherehouse_send", align: "center",
       render: (_, record) => (
         <Input
           disabled={true}
@@ -420,7 +417,7 @@ export default function ActionMaterialExpense() {
       )
     },
     {
-      title: "Receive", dataIndex: "material_receive", key: "material_receive",
+      title: "Receive", dataIndex: "material_receive", key: "material_receive", align: "center",
       render: (_, record) => (
         <Input
           disabled={true}
@@ -645,6 +642,14 @@ export default function ActionMaterialExpense() {
       />
       <div className="flex justify-end space-x-4 mt-6">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/expenses/material")} />
+        <ActionButton
+          mode="saveDraft"
+          text="Export PDF"
+          onClick={() => {
+            const targetUrl = `/expenses/material/pdf?material_number=${formCustom.getFieldValue("expense_material_code") || ""}`;
+            window.open(targetUrl, "_blank");
+          }}
+        />
         {mode !== "view" && (
           <ActionButton
             mode="update"
@@ -652,6 +657,7 @@ export default function ActionMaterialExpense() {
             onClick={action}
           />
         )}
+
       </div>
     </MainLayout>
   );

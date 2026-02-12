@@ -57,7 +57,7 @@ export default function ClearingExpense() {
     { key: "sub_dealer", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerList },
     { key: "expense_no", type: "text", label: "Expense No.", placeholder: "All" },
     { key: "activity_reference", type: "text", label: "Activity Reference", placeholder: "All" },
-    { key: "document_number_advance", type: "text", label: "Advance No.", placeholder: "All" },
+    { key: "advance_reference_no", type: "text", label: "Advance Reference", placeholder: "All" },
     { key: "type_of_meeting", type: "select", label: "Type of Meeting", placeholder: "All", options: activityList },
     { key: "date", type: "date", label: "Date", placeholder: "YYYY-MM-DD" },
   ];
@@ -159,7 +159,7 @@ export default function ClearingExpense() {
     { title: "Dealer", dataIndex: "dealer", align: "left" },
     { title: "Expense No", dataIndex: "expenseNo", align: "left" },
     { title: "Activity Reference", dataIndex: "activityReference", align: "left" },
-    { title: "Advance No.", dataIndex: "documentNumberAdvance", align: "left" },
+    { title: "Advance Reference", dataIndex: "documentNumberAdvance", align: "left" },
     { title: "Type of Meeting", dataIndex: "typeOfMeeting", align: "center" },
     { title: "Date", dataIndex: "date", align: "center" },
     { title: "Status", dataIndex: "status", align: "center" },
@@ -205,8 +205,8 @@ export default function ClearingExpense() {
           dealer: row.dealer_name,
           expenseNo: row.document_number,
           activityReference: row.document_number_referrent,
-          // ✅ FIX: Advance No. ให้ดึงจาก field จริงของ API
-          documentNumberAdvance: row.document_number_advance || row.advance_no || "",
+          // ✅ FIX: Advance Reference ให้ดึงจาก field จริงของ API
+          documentNumberAdvance: row.advance_reference_no || row.advance_no || "",
           typeOfMeeting: row.activity_type_name,
           date: row.document_date,
           status: (

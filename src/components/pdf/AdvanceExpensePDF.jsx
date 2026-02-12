@@ -29,18 +29,18 @@ Font.register({
 });
 
 const styles = StyleSheet.create({
-  page: { padding: 20, fontSize: 9, fontFamily: "Sarabun" },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
-  logo: { width: 60, height: 60 },
+  page: { padding: 15, fontSize: 8, fontFamily: "Sarabun" },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 0 },
+  logo: { width: 50, height: 50 },
   companyDetails: { flex: 1, paddingLeft: 10, fontSize: 8 },
   title: { textAlign: "center", fontSize: 14, fontWeight: "bold", marginBottom: 10 },
-  sectionTop: { flexDirection: "row", justifyContent: "space-between", lineHeight: 0.85, },
-  section: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10, borderStyle: "solid", lineHeight: 0.85 },
+  sectionTop: { flexDirection: "row", justifyContent: "space-between", lineHeight: 0.75, },
+  section: { flexDirection: "row", justifyContent: "space-between", marginBottom: 5, borderStyle: "solid", lineHeight: 0.75 },
   sectionColumn: { width: "100%", borderWidth: 1, borderColor: "#000", padding: 5 },
   sectionColumn2: { width: "100%", borderWidth: 1, borderColor: "#000", borderLeft: 0 },
   sectionColumnTop: { width: "50%", borderWidth: 1, borderColor: "#000", padding: 5, borderLeft: 0, borderBottom: 0 },
-  table: { display: "table", width: "100%", borderStyle: "solid", borderWidth: 1, borderColor: "#000" },
-  tableRow: { flexDirection: "row" },
+  table: { display: "table", width: "100%", borderStyle: "solid", borderWidth: 1, borderColor: "#000", lineHeight: 0.5, },
+  tableRow: { flexDirection: "row", lineHeight: 0.5 },
   tableCellMainHeader: { borderBottomWidth: 1, padding: 5, fontWeight: "bold", textAlign: "center", borderRightWidth: 1 },
   tableCellHeader: { borderBottomWidth: 1, padding: 5, fontWeight: "bold", textAlign: "center", flex: 1, borderRightWidth: 1, },
   tableCell: { padding: 5, flex: 1, textAlign: "center", borderRightWidth: 1 },
@@ -50,15 +50,15 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#000",
-    padding: 8,
-    minHeight: 55,
-    marginTop: 10,
+    padding: 10,
+    paddingTop: 5,
+    marginTop: 5,
   },
   descriptionTitle: { fontWeight: "bold", marginBottom: 4 }, // ถ้าไม่เอาสีแดงก็ลบ color ได้
-  descriptionText: { fontSize: 9, lineHeight: 1.25 },
+  descriptionText: { fontSize: 8, lineHeight: 0.75 },
 
   footer: {
-    marginTop: 10,
+    marginTop: 5,
     fontSize: 9,
     display: "table",
     width: "100%",
@@ -211,9 +211,27 @@ const AdvanceExpensePDF = () => {
           </Text>
 
           <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%" }}>
-            <Text style={{ marginRight: 'auto', paddingBottom: 5 }} ><Text style={{ fontWeight: 'bold' }}>{getPageCode === "expense_clearing" ? "Clearing Expense" : "Advance Expense"} No : </Text> : {getDocumentNumber}</Text>
-            <Text style={{ marginLeft: 'auto', paddingBottom: 5 }} ><Text style={{ fontWeight: 'bold' }}>Date</Text> : {formatDate(dataHeader.created_at)}</Text>
+            <Text style={{ marginRight: 'auto', paddingBottom: 5 }} >
+              <Text style={{ fontWeight: 'bold' }}>
+                {getPageCode === "expense_clearing" ? "Clearing Expense" : "Advance Expense"} No
+              </Text>
+              : {getDocumentNumber}
+
+              {/* Conditional rendering for "Advance Reference" section */}
+              {getPageCode === "expense_clearing" && (
+                <Text style={{ fontWeight: 'bold' }}>
+                  &nbsp; | Advance Reference No <Text style={{ fontWeight: 'light' }}> : {dataHeader.advance_reference_no}</Text>
+              </Text>
+              )}
+            </Text>
+
+
+
+            <Text style={{ marginLeft: 'auto', paddingBottom: 5 }} >
+              <Text style={{ fontWeight: 'bold' }}>Date</Text> : {formatDate(dataHeader.created_at)}
+            </Text>
           </View>
+
 
           {/* Details Section */}
 
