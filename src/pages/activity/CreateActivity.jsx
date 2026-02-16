@@ -1202,7 +1202,7 @@ export default function CreateActivity() {
           <ActionButton mode="save" text="Save" onClick={() => handleSave("save")} disabled={forceReadOnly} />
         )}
 
-        {activityDetail?.permission?.btn_pdf && (
+        {(activityDetail?.permission?.btn_export || activityDetail?.permission?.btn_pdf) && (
           <ActionButton
             mode="saveDraft"
             text="Export PDF"
