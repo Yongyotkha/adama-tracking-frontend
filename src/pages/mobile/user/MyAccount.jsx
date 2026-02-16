@@ -77,7 +77,7 @@ export default function MyAccount() {
       if (liff.isLoggedIn()) {
         localStorage.removeItem("users");
         logout("line");
-        liff.logout();
+        //liff.logout();
         window.location.reload();
 
         console.log("User logged out from LIFF");
