@@ -1,6 +1,6 @@
-export const endPoint = "https://api-staging.adama.co.th/api"; //Test API
+//export const endPoint = "https://api-staging.adama.co.th/api"; //Test API
 // export const endPoint = "https://api-uat.adama.co.th/api"; //UAT API
-// export const endPoint = "http://127.0.0.1:8000/api";
+export const endPoint = "http://127.0.0.1:8000/api"; //Localhost API
 
 export const paths = {
   pathLogList: "log/list",
