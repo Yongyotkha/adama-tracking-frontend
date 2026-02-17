@@ -29,7 +29,7 @@ export default function PointCampaignList() {
 
   // masters for filters
   const [groupOptions, setGroupOptions] = useState([]); // /target-group/group
-  const [typeOptions, setTypeOptions] = useState([]);   // /target-group/type (depends on group)
+  const [typeOptions, setTypeOptions] = useState([]); // /target-group/type (depends on group)
   const [filterValues, setFilterValues] = useState({});
   const { showNotification, userInfo } = useContext(AuthContext);
 
@@ -38,7 +38,10 @@ export default function PointCampaignList() {
     const loadGroups = async () => {
       setLoading(true);
       try {
-        const res = await useServiceAPI.get(paths.pathTargetGroupMasterGroup, {});
+        const res = await useServiceAPI.get(
+          paths.pathTargetGroupMasterGroup,
+          {},
+        );
         // [{ id, name }]
         const opts = (res?.data || []).map((x) => ({
           id: String(x.id),
@@ -65,7 +68,9 @@ export default function PointCampaignList() {
     const groupId = typeof g === "object" && g.value ? g.value : g;
     const loadTypes = async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathTargetGroupMasterType, { target: String(groupId) });
+        const res = await useServiceAPI.get(paths.pathTargetGroupMasterType, {
+          target: String(groupId),
+        });
         const opts = (res?.data || []).map((x) => ({
           id: String(x.id),
           name: String(x.name ?? "-"),
@@ -93,7 +98,7 @@ export default function PointCampaignList() {
       key: "type_id",
       type: "select",
       label: "Type",
-      options: typeOptions,   // depends on group
+      options: typeOptions, // depends on group
       disabled: !filterValues?.group_id, // lock until group selected
     },
     {
@@ -184,37 +189,76 @@ export default function PointCampaignList() {
 
   const handleDelete = async (documentNumber) => {
     try {
-      const response = await useServiceAPI.delete(paths.pathPointCampaignDelete, {
-        document_number: documentNumber,
-      });
+      const response = await useServiceAPI.delete(
+        paths.pathPointCampaignDelete,
+        {
+          document_number: documentNumber,
+        },
+      );
 
       if (response.status === 200) {
         notification.success({
           message: response.data?.message || "ลบข้อมูลสำเร็จ",
-          description:
-            Array.isArray(response.data?.message_line)
-              ? response.data.message_line.join("\n")
-              : "รายการถูกลบแล้ว",
+          description: Array.isArray(response.data?.message_line)
+            ? response.data.message_line.join("\n")
+            : "รายการถูกลบแล้ว",
         });
         await refetchAfterDelete();
       } else {
         const msg = error?.response?.data?.data;
         notification.error({
           message: msg?.Message?.Message_Header || "เกิดข้อผิดพลาด",
-          description:
-            Array.isArray(msg?.Message?.Message_Line)
-              ? msg.Message.Message_Line.join("\n")
-              : String(error?.message || error),
+          description: Array.isArray(msg?.Message?.Message_Line)
+            ? msg.Message.Message_Line.join("\n")
+            : String(error?.message || error),
         });
       }
     } catch (error) {
       const message = error?.response?.data?.data;
 
-
-      showNotification?.("แจ้งเตือน", message?.Message?.Message_Header || "เกิดข้อผิดพลาด");
+      showNotification?.(
+        "แจ้งเตือน",
+        message?.Message?.Message_Header || "เกิดข้อผิดพลาด",
+      );
     }
   };
 
+  const handleClone = (item) => {
+    Modal.confirm({
+      title: "Confirm Clone",
+      content: `Do you want to clone campaign "${item.name}" ?`,
+      okText: "Confirm",
+      cancelText: "Cancel",
+      centered: true,
+      onOk: async () => {
+        try {
+          const response = await useServiceAPI.post(
+            paths.pathPointCampaignClone, // <-- path clone ของคุณ
+            { document_number: item.document_number },
+          );
+
+          if (response.status === 200) {
+            notification.success({
+              message: response.data?.message || "Clone successful",
+            });
+
+            // ✅ รีโหลดข้อมูลใหม่
+            await fetchData();
+          } else {
+            notification.error({
+              message: "Clone failed",
+            });
+          }
+        } catch (error) {
+          const msg = error?.response?.data?.data;
+          showNotification?.(
+            "แจ้งเตือน",
+            msg?.Message?.Message_Header || "เกิดข้อผิดพลาด",
+          );
+        }
+      },
+    });
+  };
 
   // ------- fetch list with new filter spec -------
   const fetchData = async () => {
@@ -223,19 +267,22 @@ export default function PointCampaignList() {
     const f = tableParams.filters || {};
 
     const requestData = {
-      status: f.status ?? "",                         // 1/0
-      campaign_name: f.campaign_name ?? "",          // text like
-      group_id: f.group_id ?? "",                    // id from /target-group/group
-      type_id: f.type_id ?? "",                      // id from /target-group/type
-      campaign_product: f.campaign_product ?? "",    // 1,2,3
-      campaign_type: f.campaign_type ?? "",          // 1,2,3
-      dater: Array.isArray(f.dater) ? f.dater : [],  // ["YYYY-MM-DD","YYYY-MM-DD"]
+      status: f.status ?? "", // 1/0
+      campaign_name: f.campaign_name ?? "", // text like
+      group_id: f.group_id ?? "", // id from /target-group/group
+      type_id: f.type_id ?? "", // id from /target-group/type
+      campaign_product: f.campaign_product ?? "", // 1,2,3
+      campaign_type: f.campaign_type ?? "", // 1,2,3
+      dater: Array.isArray(f.dater) ? f.dater : [], // ["YYYY-MM-DD","YYYY-MM-DD"]
       page_size: pageSize,
       page_length: current,
     };
 
     try {
-      const res = await useServiceAPI.get(paths.pathPointCampaignList, requestData);
+      const res = await useServiceAPI.get(
+        paths.pathPointCampaignList,
+        requestData,
+      );
       const payload = res?.data || {};
       const list = payload?.data || [];
 
@@ -257,33 +304,43 @@ export default function PointCampaignList() {
         action: (
           <Dropdown
             menu={{
-              items: (item.action || [])
-                .map((act, i) => {
-                  const actionType = String(act.action || "").toLowerCase();
-                  const handleClick = () => {
-                    if (actionType === "edit") {
-                      navigate(`/setting/line/point-campaign/edit`, { state: { id: item.id } });
-                    } else if (actionType === "delete") {
-                      handleDelete(item.document_number);
-                    } else if (actionType === "clone") {
-                      // Implement Clone functionality
-                      navigate(`/setting/line/point-campaign/clone`, { state: { id: item.id } });
-                    } else {
-                      navigate(`/setting/line/point-campaign/${actionType}`, { state: { id: item.id } });
-                    }
-                  };
+              items: (item.action || []).map((act, i) => {
+                const actionType = String(act.action || "").toLowerCase();
+                const handleClick = () => {
+                  if (actionType === "edit") {
+                    navigate(`/setting/line/point-campaign/edit`, {
+                      state: { id: item.id },
+                    });
+                  } else if (actionType === "delete") {
+                    handleDelete(item.document_number);
+                  } else if (actionType === "clone") {
+                    handleClone(item);
+                  } else {
+                    navigate(`/setting/line/point-campaign/${actionType}`, {
+                      state: { id: item.id },
+                    });
+                  }
+                };
 
-                  return {
-                    key: i,
-                    label: (
-                      <ItemDropDown mode={actionType} onClick={handleClick} text={act.action} />
-                    ),
-                  };
-                }),
+                return {
+                  key: i,
+                  label: (
+                    <ItemDropDown
+                      mode={actionType}
+                      onClick={handleClick}
+                      text={act.action}
+                    />
+                  ),
+                };
+              }),
             }}
           >
             <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="action" className="w-5 h-5" />
+              <img
+                src="/img/icons/action.png"
+                alt="action"
+                className="w-5 h-5"
+              />
             </a>
           </Dropdown>
         ),
@@ -295,7 +352,9 @@ export default function PointCampaignList() {
         pagination: {
           ...prev.pagination,
           total:
-            payload?.records_filtered ?? payload?.records_total ?? formattedData.length,
+            payload?.records_filtered ??
+            payload?.records_total ??
+            formattedData.length,
         },
       }));
     } catch (error) {
