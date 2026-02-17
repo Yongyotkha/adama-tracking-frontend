@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../../layouts/MainLayout";
 import Filter from "../../../../components/filter/Filter";
 import TableComponent from "../../../../components/table/TableComponent";
@@ -11,6 +11,7 @@ import ItemDropDown from "../../../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../../../services/corsService";
 import { paths } from "../../../../services/CorsPath";
 import dayjs from "dayjs";
+import { AuthContext } from "../../../../contexts/AuthContext";
 
 export default function PointCampaignList() {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ export default function PointCampaignList() {
   const [groupOptions, setGroupOptions] = useState([]); // /target-group/group
   const [typeOptions, setTypeOptions] = useState([]);   // /target-group/type (depends on group)
   const [filterValues, setFilterValues] = useState({});
+  const { showNotification, userInfo } = useContext(AuthContext);
 
   // ------- load target-group master (group) once -------
   useEffect(() => {
@@ -256,34 +258,25 @@ export default function PointCampaignList() {
           <Dropdown
             menu={{
               items: (item.action || [])
-                // ✅ กรองปุ่มลบออก ถ้าอยู่ในสถานะ "ลบแล้ว"
-                .filter((act) => {
-                  const actionType = String(act.action || "").toLowerCase();
-                  const isDeleted =
-                    item.status_mapping_name === "ลบ" ||
-                    item.status_code === "DEL" ||
-                    item.use_flag === "0";
-                  return !(isDeleted && actionType === "delete");
-                })
                 .map((act, i) => {
                   const actionType = String(act.action || "").toLowerCase();
-
                   const handleClick = () => {
                     if (actionType === "edit") {
                       navigate(`/setting/line/point-campaign/edit`, { state: { id: item.id } });
                     } else if (actionType === "delete") {
                       handleDelete(item.document_number);
+                    } else if (actionType === "clone") {
+                      // Implement Clone functionality
+                      navigate(`/setting/line/point-campaign/clone`, { state: { id: item.id } });
                     } else {
-                      navigate(`/setting/line/point-campaign/${actionType}`, {
-                        state: { id: item.id },
-                      });
+                      navigate(`/setting/line/point-campaign/${actionType}`, { state: { id: item.id } });
                     }
                   };
 
                   return {
                     key: i,
                     label: (
-                      <ItemDropDown mode={actionType} onClick={handleClick} />
+                      <ItemDropDown mode={actionType} onClick={handleClick} text={act.action} />
                     ),
                   };
                 }),
@@ -296,16 +289,13 @@ export default function PointCampaignList() {
         ),
       }));
 
-
       setDataSource(formattedData);
       setTableParams((prev) => ({
         ...prev,
         pagination: {
           ...prev.pagination,
           total:
-            payload?.records_filtered ??
-            payload?.records_total ??
-            formattedData.length,
+            payload?.records_filtered ?? payload?.records_total ?? formattedData.length,
         },
       }));
     } catch (error) {

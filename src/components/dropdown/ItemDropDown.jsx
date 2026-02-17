@@ -35,7 +35,7 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
         </a>
       )}
 
-      {(mode == "view" || mode == "approved_area" || mode == "approved_head" || mode == "approved_accounting" ) && (
+      {(mode == "view" || mode == "approved_area" || mode == "approved_head" || mode == "approved_accounting" || mode == "clone" ) && (
         <a
           rel="noopener noreferrer"
           href={link}
