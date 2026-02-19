@@ -312,6 +312,12 @@ export default function CreatePointCampaign() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedRowKeys, setSelectedRowKeys] = useState([]); // customer_id[]
 
+  // ====== Filter (Sales / Dealer) for Select Customer ======
+  const [salesOptions, setSalesOptions] = useState([]);   // [{label,value}]
+  const [dealerFilterOptions, setDealerFilterOptions] = useState([]); // [{label,value}]
+  const [filterSale, setFilterSale] = useState(undefined);
+  const [filterDealer, setFilterDealer] = useState(undefined);
+
   const targetKey = useMemo(() => {
     const targetIds = [...watchDealer, ...watchSub, ...watchFarmer]
       .map(Number)
@@ -395,7 +401,14 @@ export default function CreatePointCampaign() {
           target_group: it?.target_name || "-",
           type: it?.type || "-",
           address: it?.address || "-",
+
+          // ✅ เก็บไว้ใช้ filter (รองรับหลายชื่อ field เผื่อ backend ส่งมาไม่เหมือนกัน)
+          sale_id: String(it?.sale_id ?? it?.user_id ?? ""),
+          sale_name: String(it?.sale_name ?? it?.sale ?? it?.user_name ?? ""),
+          dealer_id: String(it?.dealer_id ?? ""),
+          dealer_name: String(it?.dealer_name ?? ""),
         }));
+
 
         if (!cancelled) {
           setTargetRows(rows);
@@ -430,16 +443,34 @@ export default function CreatePointCampaign() {
   }, [targetKey, showNotification, isEdit, detailCustomers]);
 
   const filteredTargetRows = useMemo(() => {
-    if (!searchKeyword) return targetRows;
-    const q = searchKeyword.toLowerCase();
-    return targetRows.filter(
-      (r) =>
-        r.name.toLowerCase().includes(q) ||
-        r.address.toLowerCase().includes(q) ||
-        r.type.toLowerCase().includes(q) ||
-        r.target_group.toLowerCase().includes(q)
-    );
-  }, [targetRows, searchKeyword]);
+    let rows = targetRows;
+
+    // ✅ Filter: Sales
+    if (filterSale) {
+      rows = rows.filter((r) => String(r.sale_id || "") === String(filterSale));
+    }
+
+    // ✅ Filter: Dealer
+    if (filterDealer) {
+      rows = rows.filter((r) => String(r.dealer_id || "") === String(filterDealer));
+    }
+
+    // Search
+    if (searchKeyword) {
+      const q = searchKeyword.toLowerCase();
+      rows = rows.filter(
+        (r) =>
+          (r.name || "").toLowerCase().includes(q) ||
+          (r.address || "").toLowerCase().includes(q) ||
+          (r.type || "").toLowerCase().includes(q) ||
+          (r.target_group || "").toLowerCase().includes(q) ||
+          (r.sale_name || "").toLowerCase().includes(q) ||
+          (r.dealer_name || "").toLowerCase().includes(q)
+      );
+    }
+
+    return rows;
+  }, [targetRows, searchKeyword, filterSale, filterDealer]);
 
   const selectTargetColumns = [
     { title: "No", render: (_, __, index) => index + 1, width: 70 },
@@ -834,6 +865,42 @@ export default function CreatePointCampaign() {
     { label: "Inactive", value: 0 },
   ];
 
+  useEffect(() => {
+    const fetchMastersForFilter = async () => {
+      try {
+        const [saleRes, dealerRes] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathMasterDealerAll, {}),
+        ]);
+
+        setSalesOptions(
+          (saleRes?.data || []).map((s) => ({
+            label: s.name ?? s.title ?? "-",
+            value: String(s.id ?? s.value ?? s.user_id ?? ""),
+          }))
+        );
+
+        setDealerFilterOptions(
+          (dealerRes?.data || []).map((d) => ({
+            label: d.name ?? d.dealer_name ?? d.title ?? "-",
+            value: String(d.id ?? d.dealer_id ?? d.code ?? ""),
+          }))
+        );
+      } catch (e) {
+        // เงียบไว้ก็ได้ หรือแจ้งเตือนตามสไตล์โปรเจกต์
+        // showNotification?.("error", "โหลด master filter ไม่สำเร็จ");
+      }
+    };
+
+    fetchMastersForFilter();
+  }, []);
+
+  useEffect(() => {
+    setFilterSale(undefined);
+    setFilterDealer(undefined);
+  }, [targetKey]);
+
+
   return (
     <MainLayout loading={loading}>
       <div className="title-page">{pageTitle}</div>
@@ -987,20 +1054,50 @@ export default function CreatePointCampaign() {
             <div className="text-[#00783F] text-lg font-semibold">
               Select Customer
             </div>
-            <div style={{ width: 280 }}>
-              <Search
-                placeholder="Search"
+
+            <div className="flex items-center gap-2">
+              {/* ✅ 1) Sales */}
+              <Select
                 allowClear
-                onChange={(e) => setSearchKeyword(e.target.value)}
+                placeholder="Sales"
+                style={{ width: 200 }}
+                value={filterSale}
+                onChange={setFilterSale}
+                options={salesOptions}
+                disabled={isView}
               />
+
+              {/* ✅ 2) Dealer */}
+              <Select
+                allowClear
+                placeholder="Dealer"
+                style={{ width: 220 }}
+                value={filterDealer}
+                onChange={setFilterDealer}
+                options={dealerFilterOptions}
+                disabled={isView}
+              />
+
+              {/* Search */}
+              <div style={{ width: 280 }}>
+                <Search
+                  placeholder="Search"
+                  allowClear
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                />
+              </div>
             </div>
           </div>
+
           <TableComponent
             header={selectTargetColumns}
             dataSource={filteredTargetRows}
             loading={targetLoading}
-            pagination={{ pageSize: 10, showSizeChanger: false }}
-            scroll
+            // pagination={{ pageSize: 10, showSizeChanger: false }}
+            pagination={false}           // ✅ ไม่แบ่งหน้า
+            scroll                         // หรือไม่ใส่ก็ได้ถ้าจะใช้ scrollX default
+            scrollY="45vh"                 // ✅ เปิด scroll แนวตั้ง
+            scrollX={true}                 // แนวนอน (optional)
             rowSelection={selectTargetRowSel}
           />
         </BoxPrimary>
