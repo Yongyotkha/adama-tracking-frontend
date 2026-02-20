@@ -310,7 +310,7 @@ export default function CreatePointCampaign() {
   const [targetRows, setTargetRows] = useState([]);
   const [targetLoading, setTargetLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [selectedRowKeys, setSelectedRowKeys] = useState([]); // customer_id[]
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]); // target_group_customer_id[]
 
   // ====== Filter (Sales / Dealer) for Select Customer ======
   const [salesOptions, setSalesOptions] = useState([]);   // [{label,value}]
@@ -396,7 +396,7 @@ export default function CreatePointCampaign() {
 
         const data = res?.data?.data || res?.data || [];
         const rows = data.map((it) => ({
-          key: Number(it?.target_group_customer_id),
+          key: Number(it?.customer_id),
           name: it?.customer_name || "-",
           target_group: it?.target_name || "-",
           type: it?.type || "-",
@@ -480,13 +480,38 @@ export default function CreatePointCampaign() {
     { title: "Address", dataIndex: "address" },
   ];
 
-  const selectTargetRowSel = isView
-    ? undefined
-    : {
-      selectedRowKeys,
-      onChange: (keys) => setSelectedRowKeys(keys),
-    };
+  const selectTargetRowSel = useMemo(() => {
+    if (isView) return undefined;
 
+    return {
+      selectedRowKeys,
+      preserveSelectedRowKeys: true,
+
+      onChange: (newKeysInView) => {
+        // newKeysInView = keys ที่ "ถูกเลือก" ภายใต้ dataset ที่ table กำลังแสดงอยู่ (filteredTargetRows)
+
+        // key ที่อยู่ใน view ตอนนี้ (หลัง filter/search)
+        const viewKeys = new Set(filteredTargetRows.map((r) => Number(r.key)));
+
+        setSelectedRowKeys((prev) => {
+          const prevSet = new Set((prev || []).map(Number));
+          const newSet = new Set((newKeysInView || []).map(Number));
+
+          // 1) ลบเฉพาะ key ที่อยู่ใน view และตอนนี้ไม่ได้เลือกแล้ว
+          viewKeys.forEach((k) => {
+            if (!newSet.has(k)) prevSet.delete(k);
+          });
+
+          // 2) เพิ่ม key ที่อยู่ใน view และตอนนี้เลือกอยู่
+          newSet.forEach((k) => {
+            prevSet.add(k);
+          });
+
+          return Array.from(prevSet);
+        });
+      },
+    };
+  }, [isView, selectedRowKeys, filteredTargetRows]);
   // ==========================
   // Extra / Topup editable tables
   // ==========================
@@ -900,6 +925,10 @@ export default function CreatePointCampaign() {
     setFilterDealer(undefined);
   }, [targetKey]);
 
+  useEffect(() => {
+    setFilterSale(undefined);
+    setFilterDealer(undefined);
+  }, [targetKey]);
 
   return (
     <MainLayout loading={loading}>
@@ -1090,14 +1119,14 @@ export default function CreatePointCampaign() {
           </div>
 
           <TableComponent
+            rowKey="key"
             header={selectTargetColumns}
             dataSource={filteredTargetRows}
             loading={targetLoading}
-            // pagination={{ pageSize: 10, showSizeChanger: false }}
-            pagination={false}           // ✅ ไม่แบ่งหน้า
-            scroll                         // หรือไม่ใส่ก็ได้ถ้าจะใช้ scrollX default
-            scrollY="45vh"                 // ✅ เปิด scroll แนวตั้ง
-            scrollX={true}                 // แนวนอน (optional)
+            pagination={false}
+            scroll
+            scrollY="45vh"
+            scrollX={true}
             rowSelection={selectTargetRowSel}
           />
         </BoxPrimary>
