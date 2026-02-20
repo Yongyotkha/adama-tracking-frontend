@@ -648,7 +648,7 @@ export default function ActionSampleExpense() {
             />
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 hidden">
             <label className="text-sm font-medium text-gray-700">Total Value Warehouse Send:</label>
             <InputNumber
               className="w-40 text-right border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
@@ -661,7 +661,7 @@ export default function ActionSampleExpense() {
             />
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 h">
             <label className="text-sm font-medium text-gray-700">Total Value Receive:</label>
             <InputNumber
               className="w-40 text-right border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
@@ -677,7 +677,7 @@ export default function ActionSampleExpense() {
       </BoxPrimary>
 
       {/* Attach file (multiple) */}
-      <UploadSection
+      {/* <UploadSection
         title="Attach File"
         fileUploadRef={fileUploadRef}
         fileList={fileList}
@@ -685,7 +685,7 @@ export default function ActionSampleExpense() {
         handleUploadSuccess={handleUploadSuccess}
         handleFileRemove={handleFileRemove}
         disabled={isViewMode}
-      />
+      /> */}
 
       {/* Remark */}
       <BoxPrimary title="Remark">
