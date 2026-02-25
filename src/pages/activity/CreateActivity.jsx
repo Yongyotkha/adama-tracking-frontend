@@ -201,7 +201,7 @@ export default function CreateActivity() {
       type: "select",
       typeMode: "string",
       options: activityList,
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
       value: activityDetail.activity_type_id ?? "",
@@ -212,7 +212,7 @@ export default function CreateActivity() {
       type: "select",
       typeMode: "number",
       options: SaleOptions,
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
       value: activityDetail.user_id != null ? Number(activityDetail.user_id) : undefined,
@@ -230,7 +230,7 @@ export default function CreateActivity() {
         const exists = dealerList.some((d) => Number(d.id) === currentId);
         return exists ? dealerList : [...dealerList, { id: currentId, name: currentName }];
       })(),
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
       required: true,
       col: pageCode !== "activity_transaction" ? 8 : 6,
       value:
@@ -250,7 +250,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: cropList,
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
       required: true,
       col: 6,
       value: activityDetail.crop_id_list,
@@ -262,7 +262,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: productList,
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
       required: true,
       col: pageCode != "activity_transaction" ? 18 : 24,
       value: activityDetail.product_list,
@@ -271,7 +271,7 @@ export default function CreateActivity() {
       label: "Date",
       name: "document_date",
       type: "date",
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
       required: true,
       col: pageCode != "activity_transaction" ? 6 : 8,
       value: activityDetail.document_date,
@@ -280,7 +280,7 @@ export default function CreateActivity() {
       label: "Location",
       name: "location_address",
       type: "text",
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
       required: false,
       col: 24,
       value: activityDetail.location_address ?? "",
@@ -291,7 +291,7 @@ export default function CreateActivity() {
       label: "Description",
       name: "description",
       type: "text-editor",
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
       required: false,
       col: 24,
       placeholder: "Add description",
@@ -304,7 +304,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: saleAllList,
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
       required: false,
       col: 24,
       value: activityDetail.assing_user_list,
@@ -1125,7 +1125,7 @@ export default function CreateActivity() {
               <div className="text-[#00783F] text-lg font-semibold mb-3">Participant</div>
 
               {pageCode === "expense_clearing" && !viewSegment && userInfo.role_id != 2 ? (
-                <ActionButton mode="add" text="Add" onClick={handleAddSelectedRows} disabled={forceReadOnly} />
+                <ActionButton mode="add" text="Add" onClick={handleAddSelectedRows} disabled={isApproveMode || isViewMode} />
               ) : null}
             </div>
 

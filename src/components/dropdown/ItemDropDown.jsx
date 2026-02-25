@@ -100,7 +100,7 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
       )}
 
       {/* For any mode that doesn't match the above, display as View */}
-      {!["edit", "delete", "view", "history", "create", "approve"].includes(mode) && (
+      {/* {!["edit", "delete", "view", "history", "create", "approve"].includes(mode) && (
         <a
           rel="noopener noreferrer"
           href={link}
@@ -114,7 +114,7 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
           />
           <span className="text-[#978B87] ms-3">{text || "View"}</span>
         </a>
-      )}
+      )} */}
     </>
   );
 }

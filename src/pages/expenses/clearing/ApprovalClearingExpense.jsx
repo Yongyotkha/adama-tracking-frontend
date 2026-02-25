@@ -196,6 +196,11 @@ export default function ApprovalClearingExpense() {
       dataIndex: "activityReference",
       align: "left",
     },
+    {
+      title: "Advance Reference",
+      dataIndex: "advanceReference",
+      align: "left",
+    },
     { title: "Type of Meeting", dataIndex: "typeOfMeeting", align: "center" },
     { title: "Date", dataIndex: "date", align: "center" },
     { title: "Status", dataIndex: "status", align: "center" },
@@ -268,9 +273,10 @@ export default function ApprovalClearingExpense() {
           return {
             key: index + 1 + (current - 1) * pageSize,
             customer: row.sub_dealer_name,
-            dealer:row.dealer_name,
+            dealer: row.dealer_name,
             expenseNo: row.document_number,
             activityReference: row.document_number_referrent,
+            advanceReference: row.advance_reference_no,
             typeOfMeeting: row.activity_type_name,
             date: row.document_date,
             status: bad_status,
