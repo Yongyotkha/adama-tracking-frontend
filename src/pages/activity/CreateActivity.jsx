@@ -50,11 +50,20 @@ export default function CreateActivity() {
 
   // ✅ เดิมเป็น const จาก state อย่างเดียว -> ต้อง fallback จาก URL
   const pageCode = pageCodeState || pageCodeFromUrl;
+  console.log("pageCode:", pageCode);
+  console.log("pageMode:", pageMode);
 
   // ✅ flag: เปิดมาจาก mapping?
   const fromMapping = locationParam?.state?.from === "mapping" || fromFromUrl === "mapping";
+  // console.log("fromMapping:", fromMapping);
   const forceReadOnly = fromMapping; // ✅ ใช้บังคับ readonly ใน Advance Expense
 
+  const pageModeLower = String(pageMode || "").toLowerCase();
+  const isPageView = pageModeLower === "view";
+  const isPageEdit = pageModeLower === "edit";
+  const isPageCreate = pageModeLower === "create" || !pageModeLower;
+
+  const canEdit = (isPageEdit || isPageCreate) && !forceReadOnly;
   // =========================================================
 
   const viewSegment = mode === "view";
@@ -190,7 +199,7 @@ export default function CreateActivity() {
       label: "Activity Reference",
       name: "activity_reference",
       type: pageCode !== "activity_transaction" ? (viewSegment ? "hidden" : "search") : "hidden",
-      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
       required: false,
       col: 24,
       value: "",
@@ -201,7 +210,7 @@ export default function CreateActivity() {
       type: "select",
       typeMode: "string",
       options: activityList,
-      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
       value: activityDetail.activity_type_id ?? "",
@@ -212,7 +221,7 @@ export default function CreateActivity() {
       type: "select",
       typeMode: "number",
       options: SaleOptions,
-      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
       value: activityDetail.user_id != null ? Number(activityDetail.user_id) : undefined,
@@ -230,7 +239,7 @@ export default function CreateActivity() {
         const exists = dealerList.some((d) => Number(d.id) === currentId);
         return exists ? dealerList : [...dealerList, { id: currentId, name: currentName }];
       })(),
-      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
       required: true,
       col: pageCode !== "activity_transaction" ? 8 : 6,
       value:
@@ -250,7 +259,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: cropList,
-      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
       required: true,
       col: 6,
       value: activityDetail.crop_id_list,
@@ -262,7 +271,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: productList,
-      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
       required: true,
       col: pageCode != "activity_transaction" ? 18 : 24,
       value: activityDetail.product_list,
@@ -271,7 +280,7 @@ export default function CreateActivity() {
       label: "Date",
       name: "document_date",
       type: "date",
-      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
       required: true,
       col: pageCode != "activity_transaction" ? 6 : 8,
       value: activityDetail.document_date,
@@ -280,7 +289,7 @@ export default function CreateActivity() {
       label: "Location",
       name: "location_address",
       type: "text",
-      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
       required: false,
       col: 24,
       value: activityDetail.location_address ?? "",
@@ -291,7 +300,7 @@ export default function CreateActivity() {
       label: "Description",
       name: "description",
       type: "text-editor",
-      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
       required: false,
       col: 24,
       placeholder: "Add description",
@@ -304,7 +313,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: saleAllList,
-      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
+      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
       required: false,
       col: 24,
       value: activityDetail.assing_user_list,
@@ -591,7 +600,7 @@ export default function CreateActivity() {
   if (pageCode !== "expense_clearing") isDisabled = true;
   else {
     if (mode === "create") isDisabled = false;
-    else isDisabled = !activityDetail?.permission?.edit;
+    // else isDisabled = !canEdit;
   }
 
   // =========================================================
@@ -610,14 +619,7 @@ export default function CreateActivity() {
           className="w-full"
           min={0}
           value={record.estimate_sale_qty}
-          disabled={
-            forceReadOnly || mode === "view" ||
-            (pageCode == "expense_clearing"
-              ? true
-              : mode === "create"
-                ? false
-                : !activityDetail?.permission?.edit)
-          }
+          disabled={!canEdit || pageCode === "expense_clearing"}
           onChange={(value) => handleInputChange(value, record.key, "estimate_sale_qty", record.bath_ltkg, record)}
           formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
         />
@@ -633,7 +635,7 @@ export default function CreateActivity() {
           className="w-full"
           min={0}
           value={record.acutal_sale_qty}
-          disabled={forceReadOnly || isDisabled}
+          disabled={!canEdit || pageCode === "expense_advance"}
           onChange={(value) => handleInputChange(value, record.key, "acutal_sale_qty", record.bath_ltkg, record)}
           formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
         />
@@ -719,7 +721,7 @@ export default function CreateActivity() {
       render: (_, record) => (
         <Input
           value={record.name}
-          disabled={forceReadOnly}
+          disabled={!canEdit}
           onChange={(e) => handleInputParticipantChange(record.key, "name", e.target.value)}
         />
       ),
@@ -732,7 +734,7 @@ export default function CreateActivity() {
       render: (_, record) => (
         <Input
           value={record.address}
-          disabled={forceReadOnly}
+          disabled={!canEdit}
           onChange={(e) => handleInputParticipantChange(record.key, "address", e.target.value)}
         />
       ),
@@ -745,7 +747,7 @@ export default function CreateActivity() {
       render: (_, record) => (
         <Input
           value={record.phone}
-          disabled={forceReadOnly}
+          disabled={!canEdit}
           onChange={(e) => handleInputParticipantChange(record.key, "phone", e.target.value)}
         />
       ),
@@ -758,7 +760,7 @@ export default function CreateActivity() {
         <DynamicButton
           iconSrc="/img/icons/delete.png"
           onClick={() => removeParticipant(record.key)}
-          disabled={forceReadOnly}
+          disabled={!canEdit}
         />
       ),
     },
@@ -949,14 +951,14 @@ export default function CreateActivity() {
               mode="create"
               text="Add Advance Expense"
               onClick={() => setIsBtnExpenseActive(!isBtnExpenseActive)}
-              disabled={forceReadOnly}
+              disabled={!canEdit}
             />
           ) : (
             <ActionButton
               mode="hide"
               text="Hide Advance Expense"
               onClick={() => setIsBtnExpenseActive(!isBtnExpenseActive)}
-              disabled={forceReadOnly}
+              disabled={!canEdit}
             />
           )
         ) : null}
@@ -1003,7 +1005,7 @@ export default function CreateActivity() {
                       value={toNumber(activityDetail.expense_advance, 0)}
                       onChange={(value) => setActivityDetail({ ...activityDetail, expense_advance: toNumber(value, 0) })}
                       disabled={
-                        forceReadOnly ||
+                        !canEdit ||
                         mode === "view" ||
                         mode === "approve" ||
                         (mode === "create" && pageCode === "expense_clearing") ||
@@ -1024,10 +1026,10 @@ export default function CreateActivity() {
                       onChange={(value) => setActivityDetail({ ...activityDetail, expense_actual: toNumber(value, 0) })}
 
                       disabled={
-                        forceReadOnly ||
+                        !canEdit ||
                         (pageCode != "expense_clearing" || mode === "create"
                           ? pageCode !== "expense_clearing"
-                          : !activityDetail?.permission?.edit)
+                          : !canEdit)
                       }
                     />
                   </Form.Item>
@@ -1105,13 +1107,13 @@ export default function CreateActivity() {
                   mode="add"
                   text="Upload File"
                   onClick={handleUploadClick}
-                  disabled={forceReadOnly || (mode === "create" ? false : !activityDetail?.permission?.edit)}
+                  disabled={!canEdit || (mode === "create" ? false : !canEdit)}
                 />
               </div>
 
               <FileUploadComponent
                 ref={fileUploadRef}
-                mode={mode === "create" ? false : !activityDetail?.permission?.edit ? "view" : "edit"}
+                mode={mode === "create" ? false : (canEdit ? "edit" : "view")}
                 dataFile={fileList}
                 modeUpload={pageCode}
                 onUploadSuccess={handleUploadSuccess}
@@ -1138,12 +1140,12 @@ export default function CreateActivity() {
                       min={0}
                       placeholder="0"
                       disabled={
-                        forceReadOnly || mode === "view" ||
+                        !canEdit || mode === "view" ||
                         (pageCode == "expense_clearing"
                           ? true
                           : mode === "create"
                             ? false
-                            : !activityDetail?.permission?.edit)
+                            : !canEdit)
                       }
                       formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                       value={toNumber(activityDetail?.expense_participant_estimate, 0)}
@@ -1158,7 +1160,7 @@ export default function CreateActivity() {
                       className="w-full"
                       min={0}
                       placeholder="0"
-                      disabled={forceReadOnly || mode === "approve" || mode === "view" || pageCode !== "expense_clearing"}
+                      disabled={!canEdit || mode === "approve" || mode === "view" || pageCode !== "expense_clearing"}
                       formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                       value={activityDetail?.expense_particapant_actual}
                       onChange={(value) => setActivityDetail({ ...activityDetail, expense_particapant_actual: value })}
@@ -1191,15 +1193,15 @@ export default function CreateActivity() {
         />
 
         {activityDetail?.permission?.btn_convert && (
-          <ActionButton mode="saveDraft" text="Convert to Clearing" onClick={() => handleSave("convert_clearing")} disabled={forceReadOnly} />
+          <ActionButton mode="saveDraft" text="Convert to Clearing" onClick={() => handleSave("convert_clearing")}/>
         )}
 
         {(activityDetail?.permission?.btn_draft || mode === "create") && (
-          <ActionButton mode="saveDraft" text="Draft" onClick={() => handleSave("draft")} disabled={forceReadOnly} />
+          <ActionButton mode="saveDraft" text="Draft" onClick={() => handleSave("draft")}/>
         )}
 
         {(activityDetail?.permission?.btn_save || mode === "create") && mode !== "view" && (
-          <ActionButton mode="save" text="Save" onClick={() => handleSave("save")} disabled={forceReadOnly} />
+          <ActionButton mode="save" text="Save" onClick={() => handleSave("save")}/>
         )}
 
         {(activityDetail?.permission?.btn_export || activityDetail?.permission?.btn_pdf) && (
@@ -1215,12 +1217,12 @@ export default function CreateActivity() {
 
         {/* {activityDetail?.permission?.btn_reject && activityDetail?.transaction_status_name !== "Convert" && mode !== "approve" && ( */}
         {activityDetail?.permission?.btn_reject && activityDetail?.transaction_status_name !== "Convert" && (
-          <ActionButton mode="reject" text={btn_reject} onClick={() => handleApproval("reject")} disabled={forceReadOnly} />
+          <ActionButton mode="reject" text={btn_reject} onClick={() => handleApproval("reject")}/>
         )}
 
         {/* {activityDetail?.permission?.btn_approved && activityDetail?.transaction_status_name !== "Convert" && mode !== "approve" && ( */}
         {activityDetail?.permission?.btn_approved && activityDetail?.transaction_status_name !== "Convert" && (
-          <ActionButton mode="save" text={btn_approve} onClick={() => handleApproval("approved")} disabled={forceReadOnly} />
+          <ActionButton mode="save" text={btn_approve} onClick={() => handleApproval("approved")}/>
         )}
       </div>
 

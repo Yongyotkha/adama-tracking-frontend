@@ -294,7 +294,7 @@ export default function AdvanceExpense() {
           text="Create"
           onClick={() =>
             navigate("/activity/create", {
-              state: { pageCode: "expense_advance" },
+              state: { pageCode: "expense_advance", page_mode: "create" },
             })
           }
         />
