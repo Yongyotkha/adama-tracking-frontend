@@ -130,6 +130,7 @@ export default function PointCampaignList() {
         { id: "1", name: "Active" },
       ],
     },
+
     { key: "dater", type: "dater", label: "Period" }, // will send ["YYYY-MM-DD","YYYY-MM-DD"]
   ];
 
@@ -141,6 +142,7 @@ export default function PointCampaignList() {
     { title: "Type Name", dataIndex: "type_name" },
     { title: "Product", dataIndex: "product_name" },
     { title: "Campaign", dataIndex: "campaign" },
+    { title: "Created At", dataIndex: "created_at" },
     { title: "Period", dataIndex: "period" },
     { title: "Status", dataIndex: "status" },
     { title: "Action", dataIndex: "action" },
@@ -233,33 +235,44 @@ export default function PointCampaignList() {
       onOk: async () => {
         try {
           const response = await useServiceAPI.post(
-            paths.pathPointCampaignClone, // <-- path clone ของคุณ
+            paths.pathPointCampaignClone,
             { document_number: item.document_number },
           );
 
           if (response.status === 200) {
+
+            const newId =
+              response.data?.data?.id ??
+              response.data?.id;
+
             notification.success({
               message: response.data?.message || "Clone successful",
             });
 
-            // ✅ รีโหลดข้อมูลใหม่
-            await fetchData();
+            // ✅ ไปหน้า edit
+            navigate(`/setting/line/point-campaign/edit`, {
+              state: { id: newId },
+            });
+
           } else {
             notification.error({
               message: "Clone failed",
             });
           }
+
         } catch (error) {
+
           const msg = error?.response?.data?.data;
+
           showNotification?.(
             "แจ้งเตือน",
             msg?.Message?.Message_Header || "เกิดข้อผิดพลาด",
           );
+
         }
       },
     });
   };
-
   // ------- fetch list with new filter spec -------
   const fetchData = async () => {
     setTableLoading(true);
@@ -293,6 +306,7 @@ export default function PointCampaignList() {
         type_name: buildCustomerTypeSubName(item),
         product_name: item.product_name,
         campaign: item.type_name,
+        created_at: `${formatDate(item.created_at)}`,
         period: `${formatDate(item.date_start)} - ${formatDate(item.date_end)}`,
         status: (
           <BadgeStatus
