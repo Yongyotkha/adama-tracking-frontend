@@ -426,4 +426,5 @@ export const paths = {
   pathPointCampaignTarget: "campaign/target",
   pathPointCampaignCustomer: "campaign/customer",
   pathPointCampaignDelete: "campaign/delete",
+  pathPointCampaignClone:"campaign/clone",
 };
