@@ -27,7 +27,7 @@ export default function ApprovalClearingExpense() {
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
-  const { showNotification , showMsg } = useContext(AuthContext);
+  const { showNotification, showMsg } = useContext(AuthContext);
   const [userList, setUserList] = useState([]);
   const [logs, setLogs] = useState([]);
 
@@ -204,6 +204,7 @@ export default function ApprovalClearingExpense() {
     },
     { title: "Type of Meeting", dataIndex: "typeOfMeeting", align: "center" },
     { title: "Date", dataIndex: "date", align: "center" },
+    { title: "Sale", dataIndex: "sale", align: "left" },
     { title: "Status", dataIndex: "status", align: "center" },
     { title: "Action", dataIndex: "action", align: "center" },
   ];
@@ -280,6 +281,7 @@ export default function ApprovalClearingExpense() {
             advanceReference: row.advance_reference_no,
             typeOfMeeting: row.activity_type_name,
             date: row.document_date,
+            sale: row.user_name,
             status: bad_status,
             action: (
               <Dropdown

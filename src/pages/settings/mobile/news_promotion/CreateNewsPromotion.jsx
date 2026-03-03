@@ -33,7 +33,7 @@ export default function CreateNewsPromotion() {
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        const res = await useServiceAPI.get(paths.pathPromotionBannerCategory);
+        const res = await useServiceAPI.get(paths.pathPromotionBannerCategory, { type: 2 });
         if (res?.status === 200) {
           const list = Array.isArray(res?.data?.data) ? res.data.data : res.data;
           const mapped = (list || []).map((c) => ({
@@ -90,8 +90,8 @@ export default function CreateNewsPromotion() {
         const images = Array.isArray(promotion.image)
           ? promotion.image
           : promotion.image
-          ? [promotion.image]
-          : [];
+            ? [promotion.image]
+            : [];
         setFileListReceive(
           images.map((u, idx) => ({
             uid: String(idx + 1),
@@ -230,7 +230,7 @@ export default function CreateNewsPromotion() {
       <BoxPrimary>
         <div className="flex items-center justify-between">
           <label htmlFor="Banner" title="Banner">Banner</label>
-        {!isView && (
+          {!isView && (
             <ActionButton
               mode="add"
               text="Upload File"

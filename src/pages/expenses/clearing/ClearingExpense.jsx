@@ -162,6 +162,7 @@ export default function ClearingExpense() {
     { title: "Advance Reference", dataIndex: "documentNumberAdvance", align: "left" },
     { title: "Type of Meeting", dataIndex: "typeOfMeeting", align: "center" },
     { title: "Date", dataIndex: "date", align: "center" },
+    { title: "Sale", dataIndex: "sale", align: "left" },
     { title: "Status", dataIndex: "status", align: "center" },
     { title: "Action", dataIndex: "action", align: "center" },
   ];
@@ -209,6 +210,7 @@ export default function ClearingExpense() {
           documentNumberAdvance: row.advance_reference_no || row.advance_no || "",
           typeOfMeeting: row.activity_type_name,
           date: row.document_date,
+          sale: row.user_name,
           status: (
             <BadgeStatus
               text={row.transaction_status_name}
