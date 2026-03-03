@@ -210,6 +210,7 @@ export const paths = {
   pathPromotionBannerUpdate: "promotion-banner/update",
   pathPromotionBannerDelete: "promotion-banner/delete",
   pathPromotionBannerCategory: "promotion-banner/category",
+  pathPromotionBannerCategoryฺBanner: "promotion-banner/category_banner",
 
   //Sale
   pathSaleManagementlist: "sale-management/list",
