@@ -203,7 +203,7 @@ export default function ReportActivityByType() {
       return [];
     }
     try {
-      const res = await useServiceAPI.get(paths.pathMasterSalesByArea, { area_id });
+      const res = await useServiceAPI.get(paths.pathMasterUserByArea, { area_id });
       if (res?.status === 200) {
         const opts = mapSalesOptions(res.data);
         setSales(opts);

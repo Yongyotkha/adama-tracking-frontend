@@ -341,7 +341,7 @@ export default function ReportStock() {
         });
 
         // first fetch
-        // await fetchStock();
+        await fetchStock();
       } catch {
         setAreaList([]);
         setYearOptions([]);
@@ -365,7 +365,7 @@ export default function ReportStock() {
     }
     (async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathMasterSaleReport, {
+        const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
           area_id: areaId,
         });
         const list = Array.isArray(res?.data) ? res.data : [];

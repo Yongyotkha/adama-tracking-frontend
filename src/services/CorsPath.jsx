@@ -174,6 +174,7 @@ export const paths = {
   pathMasterDealerBySale: "master/dealers",
 
   pathMasterSaleByArea: "/master/area_user_sale",
+  pathMasterUserByArea: "/master/area_user",
 
   //get header
   pathMasterGetSaleHeader: "master/get-sale-header",

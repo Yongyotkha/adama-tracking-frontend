@@ -16,6 +16,8 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+const ROLE_UNLOCK = [1, 2, 7, 8];
+
 // ===== helpers year =====
 const getYearCodeFrom = (y) => {
   if (y == null) return "";
@@ -310,7 +312,7 @@ export default function ReportActivityByMonth() {
 
     (async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathMasterSaleReport, {
+        const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
           area_id: aId,
         });
 

@@ -174,7 +174,7 @@ export default function ReportActivityExpense() {
       }
 
       try {
-        const res = await useServiceAPI.get(paths.pathMasterSaleReport, {
+        const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
           area_id: selectedArea,
         });
 
