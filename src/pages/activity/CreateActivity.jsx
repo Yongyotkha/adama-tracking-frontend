@@ -164,6 +164,7 @@ export default function CreateActivity() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isBtnExpenseActive]);
+  console.log(pageCode);
 
   const menuTitle =
     pageCode == "expense_advance"
@@ -841,7 +842,7 @@ export default function CreateActivity() {
       const body = {
         ...activityDetail,
         page_code: pageCode,
-        dealer_id: activityDetail.sub_dealer_id,
+        dealer_id: activityDetail.dealer_id,
         action_code: modeSave,
         image_list: imageLists,
         is_expense: isExpense,

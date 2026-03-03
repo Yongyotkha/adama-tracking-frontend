@@ -33,7 +33,7 @@ export default function CreateNewsPromotion() {
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        const res = await useServiceAPI.get(paths.pathPromotionBannerCategory);
+        const res = await useServiceAPI.get(paths.pathPromotionBannerCategoryฺBanner);
         if (res?.status === 200) {
           const list = Array.isArray(res?.data?.data) ? res.data.data : res.data;
           const mapped = (list || []).map((c) => ({
