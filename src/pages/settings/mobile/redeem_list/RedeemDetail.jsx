@@ -107,15 +107,8 @@ export default function RedeemDetail() {
         const vm = {
           id: d.id,
           reward_id: d.reward_id,
-          status_code: d.status, // RFA | RFR | RFW
-          status_name:
-            d.status === "RFA"
-              ? "Approve"
-              : d.status === "RFR"
-                ? "Reject"
-                : d.status === "RFW"
-                  ? "Waiting for Approve"
-                  : d.status || "-",
+          status_code: d.status, // RFA | RFR | RFW | RFP
+          status_name: d.status_name,
           status_bg_color: d.status === "RFA" ? "#009845" : d.status === "RFR" ? "#752157" : "#9CA3AF",
           status_color: "#FFFFFF",
 
