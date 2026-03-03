@@ -1,3 +1,4 @@
+// src/pages/report/ReportStock.jsx
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Form, Row, Col, Select, InputNumber, Table } from "antd";
 import dayjs from "dayjs";
@@ -97,7 +98,7 @@ const monthOptions = [
 ];
 
 export default function ReportStock() {
-  const { showNotification } = useContext(AuthContext) || {};
+  const { showNotification, userInfo } = useContext(AuthContext);
   const [form] = Form.useForm();
 
   const [loading, setLoading] = useState(false);
@@ -108,7 +109,7 @@ export default function ReportStock() {
   const [salesList, setSalesList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
-  const [yearOptions, setYearOptions] = useState([]); // << ใช้ master year
+  const [yearOptions, setYearOptions] = useState([]);
 
   // watch
   const selectedArea = Form.useWatch("area_id", form);
@@ -117,6 +118,20 @@ export default function ReportStock() {
 
   // data
   const [dataSource, setDataSource] = useState([]);
+  const [isSaleLocked, setIsSaleLocked] = useState(false);
+
+  // ✅ เก็บ Area ที่ “ตรงกับ userInfo” เพื่อใช้ disable option
+  const [activeAreaId, setActiveAreaId] = useState(null);
+
+  const getLoginSaleId = (u) => {
+    if (!u) return null;
+    return u.sale_id ?? u.user_id ?? u.id ?? null;
+  };
+
+  const getLoginAreaId = (u) => {
+    if (!u) return null;
+    return u.area_id ?? u.areaId ?? u.area ?? null;
+  };
 
   // columns
   const header = useMemo(
@@ -156,7 +171,6 @@ export default function ReportStock() {
             formatter={formatterZeroAsDash}  // หรืออยากให้เป็น "" ก็เปลี่ยนใน formatter
           />
         ),
-
       },
       {
         title: "Sell In (ctn)",
@@ -289,7 +303,8 @@ export default function ReportStock() {
 
         // Area
         const areaRaw = Array.isArray(areaRes?.data) ? areaRes.data : [];
-        setAreaList(areaRaw.map((x) => ({ value: x.id, label: x.name })));
+        const areaOpts = areaRaw.map((x) => ({ value: x.id, label: x.name }));
+        setAreaList(areaOpts);
 
         // Year from master
         const yearRaw = Array.isArray(yearRes?.data) ? yearRes.data : [];
@@ -299,20 +314,34 @@ export default function ReportStock() {
         });
         setYearOptions(yearOpts);
 
-        // set default filters
         const now = dayjs();
-        const firstYear = yearOpts[0]?.value ?? now.year();
+        // const defaultYear = pickLatestYearCode() ?? now.year();
+        const defaultYear = pickLatestYearCode(yearOptions) ?? now.year();
+
+        // ✅ ถ้ามี userInfo.area_id -> set activeAreaId ไว้ใช้ disable options
+        const uArea = getLoginAreaId(userInfo);
+        setActiveAreaId(uArea != null ? String(uArea) : null);
+
+        // ✅ ค่า default เดิม: เลือก Area ตัวแรก (ตามโค้ดเดิมของคุณ)
+        // const defaultAreaId = areaOpts[0]?.value;
+        // ✅ ถ้ามี area เดียว → auto select
+        // ✅ ถ้ามีหลาย area → ไม่เลือก
+        const defaultAreaId =
+          Array.isArray(areaOpts) && areaOpts.length === 1
+            ? areaOpts[0]?.value
+            : undefined;
+
         form.setFieldsValue({
-          area_id: undefined,
+          area_id: defaultAreaId,
           sale_id: undefined,
           dealer_id: undefined,
           sub_dealer_id: undefined,
-          month: now.month() + 1, // 1-12
-          year: firstYear,
+          month: now.month() + 1,
+          year: defaultYear,
         });
 
         // first fetch
-        await fetchStock();
+        // await fetchStock();
       } catch {
         setAreaList([]);
         setYearOptions([]);
@@ -355,6 +384,45 @@ export default function ReportStock() {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.getFieldValue("area_id")]);
+
+  // ✅ Lock logic: ถ้าพบ sale ของตัวเองใน salesList -> lock + set area ให้ match userInfo.area_id และ disable area
+  useEffect(() => {
+    const loginSaleId = getLoginSaleId(userInfo);
+    const loginAreaId = getLoginAreaId(userInfo);
+
+    if (!selectedArea) {
+      setIsSaleLocked(false);
+      return;
+    }
+    if (!Array.isArray(salesList) || salesList.length === 0) {
+      setIsSaleLocked(false);
+      return;
+    }
+
+    const foundSale = salesList.find(
+      (s) => String(s.value) === String(loginSaleId)
+    );
+
+    if (foundSale) {
+      // ✅ มี active sale -> เลือก area ให้ตรง userInfo และ lock
+      if (loginAreaId != null && String(selectedArea) !== String(loginAreaId)) {
+        form.setFieldsValue({ area_id: loginAreaId });
+        // area เปลี่ยนแล้ว salesList จะโหลดใหม่ เดี๋ยวค่อย set sale รอบถัดไป
+        return;
+      }
+
+      form.setFieldsValue({
+        sale_id: foundSale.value,
+        dealer_id: undefined,
+        sub_dealer_id: undefined,
+      });
+      setIsSaleLocked(true);
+      fetchStock();
+    } else {
+      // ✅ ไม่พบ sale -> ไม่ lock และ Area เลือกได้ปกติ
+      setIsSaleLocked(false);
+    }
+  }, [selectedArea, salesList, userInfo, form]);
 
   // Cascade: Sales → Dealer
   useEffect(() => {
@@ -491,6 +559,27 @@ export default function ReportStock() {
 
   const handleClear = () => {
     const now = dayjs();
+    const defaultYear = pickLatestYearCode(yearOptions);
+
+    if (isSaleLocked) {
+      // ✅ ล็อค Area + Sales: ไม่แตะ area_id / sale_id
+      form.resetFields(["dealer_id", "sub_dealer_id", "month", "year"]);
+
+      setDealerList([]);
+      setSubDealerList([]);
+
+      form.setFieldsValue({
+        dealer_id: undefined,
+        sub_dealer_id: undefined,
+        month: now.month() + 1,
+        year: defaultYear || now.year(),
+      });
+
+      fetchStock();
+      return;
+    }
+
+    // ✅ ไม่ล็อค: เคลียร์ทั้งหมดตามเดิม
     form.resetFields([
       "area_id",
       "sale_id",
@@ -499,16 +588,16 @@ export default function ReportStock() {
       "month",
       "year",
     ]);
+
     setSalesList([]);
     setDealerList([]);
     setSubDealerList([]);
-
-    const defaultYear = pickLatestYearCode(yearOptions);
 
     form.setFieldsValue({
       month: now.month() + 1,
       year: defaultYear || now.year(),
     });
+
     fetchStock();
   };
 
@@ -545,7 +634,6 @@ export default function ReportStock() {
     <MainLayout loading={loading}>
       <Title prefix="Stock Report" />
 
-      {/* Filters */}
       <Form form={form} layout="vertical" onValuesChange={onValuesChange}>
         <BoxPrimary className="m-1 mb-4">
           <Row gutter={16} align="middle">
@@ -559,6 +647,7 @@ export default function ReportStock() {
                   placeholder="Select Area"
                   options={areaList}
                   allowClear
+                  disabled={isSaleLocked} // ✅ ถ้า sale lock -> disable dropdown (ตามที่ต้องการ)
                 />
               </Form.Item>
             </Col>
@@ -571,8 +660,8 @@ export default function ReportStock() {
                 <Select
                   placeholder="Select Sales"
                   options={salesList}
-                  allowClear
-                  disabled={!selectedArea}
+                  allowClear={!isSaleLocked}
+                  disabled={!selectedArea || isSaleLocked}
                 />
               </Form.Item>
             </Col>

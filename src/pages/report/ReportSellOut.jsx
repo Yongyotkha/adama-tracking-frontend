@@ -78,8 +78,7 @@ const buildSellOutReportFileName = (form, { areaList, sales, dealers }) => {
 
 export default function ReportSellOut() {
   const [form] = Form.useForm();
-  const { showNotification } = useContext(AuthContext) || {};
-
+  const { showNotification, userInfo } = useContext(AuthContext) || {};
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
 
@@ -93,6 +92,21 @@ export default function ReportSellOut() {
   // table data + page size
   const [data, setData] = useState([]);
   const [pageSize, setPageSize] = useState(5);
+
+  const [isSaleLocked, setIsSaleLocked] = useState(false);
+
+  // (optional) เก็บไว้เผื่อใช้ต่อ เช่น disable option เฉพาะ area
+  const [activeAreaId, setActiveAreaId] = useState(null);
+
+  const getLoginSaleId = (u) => {
+    if (!u) return null;
+    return u.sale_id ?? u.user_id ?? u.id ?? null;
+  };
+
+  const getLoginAreaId = (u) => {
+    if (!u) return null;
+    return u.area_id ?? u.areaId ?? u.area ?? null;
+  };
 
   // watch step values -> disable next steps
   const selectedArea = Form.useWatch("area_id", form);
@@ -214,7 +228,24 @@ export default function ReportSellOut() {
 
         // Area
         const areaRaw = Array.isArray(areaRes?.data) ? areaRes.data : [];
-        setAreaList(areaRaw.map((x) => ({ value: x.id, label: x.name })));
+        const areaOpts = areaRaw.map((x) => ({ value: x.id, label: x.name }));
+        setAreaList(areaOpts);
+
+        // ✅ default area ใหม่:
+        // - ถ้ามี area เดียว → auto select
+        // - ถ้ามีหลาย area → ไม่เลือก
+        const defaultAreaId =
+          Array.isArray(areaOpts) && areaOpts.length === 1
+            ? areaOpts[0]?.value
+            : undefined;
+        // (ถ้าคุณอยาก reset ตัวอื่นไปด้วยในจังหวะนี้)
+        form.setFieldsValue({
+          area_id: defaultAreaId,
+          sales_id: undefined,
+          dealer_id: undefined,
+          sub_dealer_id: undefined,
+          // year จะ set ต่อในส่วน year logic เดิมของคุณได้
+        });
 
         // Year
         const yearRaw = Array.isArray(yearRes?.data) ? yearRes.data : [];
@@ -272,6 +303,42 @@ export default function ReportSellOut() {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.getFieldValue("area_id")]);
+
+  useEffect(() => {
+    const loginSaleId = getLoginSaleId(userInfo);
+    const loginAreaId = getLoginAreaId(userInfo);
+
+    if (!selectedArea) {
+      setIsSaleLocked(false);
+      return;
+    }
+    if (!Array.isArray(sales) || sales.length === 0) {
+      setIsSaleLocked(false);
+      return;
+    }
+
+    const foundSale = sales.find((s) => String(s.value) === String(loginSaleId));
+
+    if (foundSale) {
+      // ✅ มี sale ของตัวเอง -> บังคับ area ให้ตรง user และ lock
+      if (loginAreaId != null && String(selectedArea) !== String(loginAreaId)) {
+        form.setFieldsValue({ area_id: loginAreaId });
+        // area เปลี่ยนแล้ว sales จะ reload ใหม่ เดี๋ยวค่อย set sales รอบถัดไป
+        return;
+      }
+
+      form.setFieldsValue({
+        sales_id: foundSale.value,
+        dealer_id: undefined,
+        sub_dealer_id: undefined,
+      });
+
+      setIsSaleLocked(true);
+      fetchSellOut();
+    } else {
+      setIsSaleLocked(false);
+    }
+  }, [selectedArea, sales, userInfo, form]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // เปลี่ยน Sales → โหลด Dealer
   useEffect(() => {
@@ -355,7 +422,13 @@ export default function ReportSellOut() {
       dealer_id: undefined,
       sub_dealer_id: undefined,
     });
-    fetchSellOut(); // โหลดครั้งแรก (ใช้ปี default / ปีปัจจุบัน)
+    if (defaultYear) {
+      form.setFieldsValue({ year: defaultYear });
+    }
+    console.log(isSaleLocked);
+    if (!isSaleLocked) {
+      fetchSellOut(); // โหลดครั้งแรก (ใช้ปี default / ปีปัจจุบัน)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -380,15 +453,28 @@ export default function ReportSellOut() {
   };
 
   const handleClear = () => {
-    form.resetFields([
-      "area_id",
-      "sales_id",
-      "dealer_id",
-      "sub_dealer_id",
-      "year",
-    ]);
     const rawYear = defaultYear ?? dayjs().year();
+
+    if (isSaleLocked) {
+      // ✅ ล็อค Area + Sales: ไม่แตะ area_id / sales_id
+      form.resetFields(["dealer_id", "sub_dealer_id", "year"]);
+
+      setDealers([]);
+
+      form.setFieldsValue({
+        dealer_id: undefined,
+        sub_dealer_id: undefined,
+        year: rawYear,
+      });
+
+      fetchSellOut();
+      return;
+    }
+
+    // ✅ ไม่ล็อค: เคลียร์ทั้งหมดตามเดิม
+    form.resetFields(["area_id", "sales_id", "dealer_id", "sub_dealer_id", "year"]);
     form.setFieldsValue({ year: rawYear });
+
     setSales([]);
     setDealers([]);
     fetchSellOut();
@@ -412,6 +498,7 @@ export default function ReportSellOut() {
                   placeholder="Select Area"
                   options={areaList}
                   allowClear
+                  disabled={isSaleLocked}
                 />
               </Form.Item>
             </Col>
@@ -425,8 +512,8 @@ export default function ReportSellOut() {
                 <Select
                   placeholder="Select Sales"
                   options={sales}
-                  allowClear
-                  disabled={!selectedArea}
+                  allowClear={!isSaleLocked}
+                  disabled={!selectedArea || isSaleLocked}
                 />
               </Form.Item>
             </Col>

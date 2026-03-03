@@ -31,7 +31,7 @@ const getYearCodeFrom = (y) => {
   );
 };
 
-export default function ReportSaleByMonth() {
+export default function ReportActivityByMonth() {
   const [loading, setLoading] = useState(false);
   const [years, setYears] = useState([]);        // year codes string[]
   const [defaultYear, setDefaultYear] = useState(null);
@@ -54,6 +54,18 @@ export default function ReportSaleByMonth() {
 
 
   const [areaList, setAreaList] = useState([]);
+
+  const [isSaleLocked, setIsSaleLocked] = useState(false);
+
+  const getLoginSaleId = (u) => {
+    if (!u) return null;
+    return u.sale_id ?? u.user_id ?? u.id ?? null;
+  };
+
+  const getLoginAreaId = (u) => {
+    if (!u) return null;
+    return u.area_id ?? u.areaId ?? u.area ?? null;
+  };
 
   useEffect(() => {
     if (!roleId || !areaId) return;
@@ -258,12 +270,23 @@ export default function ReportSaleByMonth() {
 
         formCustom.setFieldsValue({ year_code: yearToUse });
         console.log(resArea.data);
-        setAreaList(
-          (resArea.data || []).map((x) => ({
-            value: String(x.id),
-            label: x.name,
-          }))
-        );
+        const areaOpts = (resArea.data || []).map((x) => ({
+          value: String(x.id),
+          label: x.name,
+        }));
+        setAreaList(areaOpts);
+
+        // ✅ ตามตัวอย่างที่คุณใช้
+        const defaultAreaId =
+          Array.isArray(areaOpts) && areaOpts.length === 1
+            ? areaOpts[0]?.value
+            : undefined;
+
+        formCustom.setFieldsValue({
+          area_id: defaultAreaId,
+          sale_id: undefined,
+          sub_dealer_id: undefined,
+        });
       } catch (error) {
         showNotification?.("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -311,6 +334,46 @@ export default function ReportSaleByMonth() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchedAreaId]);
 
+  useEffect(() => {
+    const loginSaleId = getLoginSaleId(userInfo);
+    const loginAreaId = getLoginAreaId(userInfo);
+
+    // ถ้า role เป็น admin (1) ให้ไม่ต้อง lock
+    if (roleId != null && Number(roleId) === 1) {
+      setIsSaleLocked(false);
+      return;
+    }
+
+    if (!selectedArea) {
+      setIsSaleLocked(false);
+      return;
+    }
+    if (!Array.isArray(sales) || sales.length === 0) {
+      setIsSaleLocked(false);
+      return;
+    }
+
+    const foundSale = sales.find((s) => String(s.value) === String(loginSaleId));
+
+    if (foundSale) {
+      // ถ้า area ไม่ตรง user -> บังคับให้ตรงก่อน
+      if (loginAreaId != null && String(selectedArea) !== String(loginAreaId)) {
+        formCustom.setFieldsValue({ area_id: String(loginAreaId) });
+        return; // รอ sales reload แล้วค่อย set sale รอบถัดไป
+      }
+
+      formCustom.setFieldsValue({
+        sale_id: foundSale.value,
+        sub_dealer_id: undefined,
+      });
+
+      setIsSaleLocked(true);
+      fetchData();
+    } else {
+      setIsSaleLocked(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedArea, sales, userInfo, roleId, formCustom]);
 
   // Sales → Sub Dealer
   useEffect(() => {
@@ -517,8 +580,8 @@ export default function ReportSaleByMonth() {
                 <Select
                   placeholder="Select Area"
                   options={areaList}
-                  allowClear={Number(roleId) === 1}
-                  disabled={roleId != null && Number(roleId) !== 1}
+                  allowClear={!isSaleLocked && Number(roleId) === 1}
+                  disabled={isSaleLocked || (roleId != null && Number(roleId) !== 1)}
                 />
 
               </Form.Item>
@@ -532,8 +595,8 @@ export default function ReportSaleByMonth() {
                 <Select
                   placeholder="Select Sales"
                   options={sales}
-                  allowClear
-                  disabled={!selectedArea}
+                  allowClear={!isSaleLocked}
+                  disabled={!selectedArea || isSaleLocked}
                 />
               </Form.Item>
             </Col>
@@ -580,16 +643,8 @@ export default function ReportSaleByMonth() {
             />
             <DynamicButton
               onClick={() => {
-                formCustom.resetFields(["sale_id", "sub_dealer_id", "year_code"]);
-
-                // area: admin เคลียร์ได้ / non-admin fix ตาม areaId
-                if (roleId != null && Number(roleId) !== 1) {
-                  formCustom.setFieldsValue({ area_id: areaId });
-                } else {
-                  formCustom.resetFields(["area_id"]);
-                }
-
-                //setSales([]);
+                // ✅ เคลียร์ปี / subdealer เสมอ
+                formCustom.resetFields(["sub_dealer_id", "year_code"]);
                 setSubDealers([]);
 
                 const yearToUse =
@@ -604,6 +659,23 @@ export default function ReportSaleByMonth() {
                   filters: { ...prev.filters, year_code: yearToUse },
                   pagination: { ...prev.pagination, current: 1 },
                 }));
+
+                if (isSaleLocked) {
+                  // ✅ lock อยู่: ไม่แตะ area_id / sale_id
+                  // แค่ ensure subDealer cleared แล้ว fetch
+                  fetchData();
+                  return;
+                }
+
+                // ✅ ไม่ lock: behavior เดิม (admin เคลียร์ area ได้, non-admin fix ตาม areaId)
+                formCustom.resetFields(["sale_id"]);
+                if (roleId != null && Number(roleId) !== 1) {
+                  formCustom.setFieldsValue({ area_id: areaId });
+                } else {
+                  formCustom.resetFields(["area_id"]);
+                }
+
+                fetchData();
               }}
 
               name="btn-clear"
