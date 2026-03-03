@@ -55,6 +55,9 @@ export default function ReportSaleByQuarter() {
   const [dealers, setDealers] = useState([]);
   const [products, setProducts] = useState([]);
 
+  // ✅ All behavior
+  const [hasOnlyAll, setHasOnlyAll] = useState(false);
+
   // table
   const [itemColumn, setItemColumn] = useState([]); // quarters
   const [dataSource, setDataSource] = useState([]);
@@ -113,6 +116,39 @@ export default function ReportSaleByQuarter() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ✅ helper: load sales by area (รองรับ ALL)
+  const loadSalesByArea = async (area_id) => {
+    if (!area_id) {
+      setSales([]);
+      return [];
+    }
+
+    // ✅ ALL -> ส่ง "all" ไปหา option sales
+    const areaIdForSales = area_id === "__ALL__" ? "all" : area_id;
+
+    try {
+      const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
+        area_id: areaIdForSales,
+      });
+
+      const raw = res?.data?.data ?? res?.data ?? [];
+      const list = Array.isArray(raw) ? raw : [];
+
+      const options = list.map((it) => ({
+        value: String(it.user_id ?? it.id),
+        label: it.user_name ?? it.name,
+      }));
+
+      setSales(options);
+      return options;
+    } catch (e) {
+      console.log(e);
+      setSales([]);
+      showNotification?.("error", "โหลด Sales ไม่สำเร็จ");
+      return [];
+    }
+  };
+
   // ===== load masters + initial fetch (wait userLoaded+roleId) =====
   useEffect(() => {
     if (!userLoaded) return;
@@ -141,10 +177,18 @@ export default function ReportSaleByQuarter() {
           }))
         );
 
-        const areaOpts = (areasRes?.data || []).map((x) => ({
+        // ✅ area ALL pattern (เหมือนหน้าอื่น)
+        const areaOptsRaw = (areasRes?.data || []).map((x) => ({
           value: String(x.id),
           label: x.name,
         }));
+        setHasOnlyAll(areaOptsRaw.length === 0);
+
+        const areaOpts =
+          areaOptsRaw.length === 0
+            ? [{ value: "__ALL__", label: "All", disabled: true }]
+            : [{ value: "__ALL__", label: "All" }, ...areaOptsRaw];
+
         setAreaList(areaOpts);
 
         // default year: current year if exists else first
@@ -158,21 +202,31 @@ export default function ReportSaleByQuarter() {
         formCustom.setFieldsValue({ year_code: initialYear });
 
         const isAdminNow = Number(roleId) === 1;
-        const areaToUse = isAdminNow
-          ? String(formCustom.getFieldValue("area_id") ?? "")
-          : String(areaId ?? "");
 
-        if (isAdminNow) {
-          await fetchData({
-            area_id: areaToUse,
+        // ✅ admin: default area = ALL ถ้ายังไม่เลือก + preload sales all
+        // if (isAdminNow) {
+          const curArea = formCustom.getFieldValue("area_id");
+          if (!curArea) formCustom.setFieldsValue({ area_id: "__ALL__" });
+          await loadSalesByArea(formCustom.getFieldValue("area_id") || "__ALL__");
+        // }
+
+        // ✅ initial fetch: admin เท่านั้น (คงตามของเดิม)
+        // if (isAdminNow) {
+          const payload = {
             year_code: initialYear,
             user_id: "",
             dealer_id: "",
             product_name: "",
             platform: "web",
-          });
-        }
+            // ✅ ALL -> ไม่ส่ง area_id
+            ...(formCustom.getFieldValue("area_id") &&
+            formCustom.getFieldValue("area_id") !== "__ALL__"
+              ? { area_id: formCustom.getFieldValue("area_id") }
+              : {}),
+          };
 
+          await fetchData(payload);
+        // }
       } catch (error) {
         showNotification("error", error?.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -197,35 +251,25 @@ export default function ReportSaleByQuarter() {
         return;
       }
 
-      try {
-        const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
-          area_id: watchedAreaId,
-        });
+      // ✅ ใช้ helper (รองรับ ALL -> ส่ง "all")
+      const salesOpts = await loadSalesByArea(watchedAreaId);
+      if (!alive) return;
 
-        const raw = res?.data?.data ?? res?.data ?? [];
-        const list = Array.isArray(raw) ? raw : [];
+      setDealers([]);
+      formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
 
-        const options = list.map((it) => ({
-          value: String(it.id),
-          label: it.name,
-        }));
-
-        if (!alive) return;
-
-        setSales(options);
-        setDealers([]);
-        formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
-      } catch (e) {
-        console.log(e);
-        if (!alive) return;
-        setSales([]);
-        setDealers([]);
-        formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
-        setIsSaleLocked(false);
-      }
+      // (sales ถูก set ใน helper แล้ว)
+      return salesOpts;
     };
 
-    loadSales();
+    loadSales().catch(() => {
+      if (!alive) return;
+      setSales([]);
+      setDealers([]);
+      formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
+      setIsSaleLocked(false);
+    });
+
     return () => {
       alive = false;
     };
@@ -237,12 +281,14 @@ export default function ReportSaleByQuarter() {
     const loginSaleId = getLoginSaleId(userInfo);
     const loginAreaId = getLoginAreaId(userInfo);
 
+    // admin ไม่ lock
     if (roleId != null && Number(roleId) === 1) {
       setIsSaleLocked(false);
       return;
     }
 
-    if (!watchedAreaId) {
+    // ✅ ALL -> ไม่ auto lock / ไม่ auto fetch
+    if (!watchedAreaId || watchedAreaId === "__ALL__") {
       setIsSaleLocked(false);
       return;
     }
@@ -378,11 +424,7 @@ export default function ReportSaleByQuarter() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.workplan_qty))
-                    ? Number(itemData.workplan_qty)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.workplan_qty)) ? Number(itemData.workplan_qty) : 0}
                 formatter={(value) =>
                   `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -412,11 +454,7 @@ export default function ReportSaleByQuarter() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.rolling_qty))
-                    ? Number(itemData.rolling_qty)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.rolling_qty)) ? Number(itemData.rolling_qty) : 0}
                 formatter={(value) =>
                   `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -446,9 +484,7 @@ export default function ReportSaleByQuarter() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.actual_qty)) ? Number(itemData.actual_qty) : 0
-                }
+                value={Number.isFinite(Number(itemData.actual_qty)) ? Number(itemData.actual_qty) : 0}
                 formatter={(value) =>
                   `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -478,11 +514,7 @@ export default function ReportSaleByQuarter() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.workplan_value))
-                    ? Number(itemData.workplan_value)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.workplan_value)) ? Number(itemData.workplan_value) : 0}
                 formatter={(value) =>
                   `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -512,11 +544,7 @@ export default function ReportSaleByQuarter() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.rolling_value))
-                    ? Number(itemData.rolling_value)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.rolling_value)) ? Number(itemData.rolling_value) : 0}
                 formatter={(value) =>
                   `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -546,11 +574,7 @@ export default function ReportSaleByQuarter() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.actual_value))
-                    ? Number(itemData.actual_value)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.actual_value)) ? Number(itemData.actual_value) : 0}
                 formatter={(value) =>
                   `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -595,17 +619,16 @@ export default function ReportSaleByQuarter() {
     try {
       const values = (await formCustom.validateFields().catch(() => ({}))) || {};
       const yearFromForm =
-        getYearCodeFrom(values?.year_code) ||
-        defaultYear ||
-        dayjs().tz("Asia/Bangkok").format("YYYY");
+        getYearCodeFrom(values?.year_code) || defaultYear || dayjs().tz("Asia/Bangkok").format("YYYY");
 
       const fallbackPayload = {
-        area_id: values?.area_id ?? "",
         year_code: yearFromForm,
         user_id: values?.sale_id ?? "",
         dealer_id: values?.dealer_id ?? "",
         product_name: values?.product_name ?? "",
         platform: "web",
+        // ✅ ALL -> ไม่ส่ง area_id
+        ...(values?.area_id && values.area_id !== "__ALL__" ? { area_id: values.area_id } : {}),
       };
 
       const payload = payloadFromCaller || fallbackPayload;
@@ -636,18 +659,19 @@ export default function ReportSaleByQuarter() {
   const handleSearch = async () => {
     const values = await formCustom.validateFields().catch(() => ({}));
     const yearFromForm =
-      getYearCodeFrom(values?.year_code) ||
-      defaultYear ||
-      dayjs().tz("Asia/Bangkok").format("YYYY");
+      getYearCodeFrom(values?.year_code) || defaultYear || dayjs().tz("Asia/Bangkok").format("YYYY");
 
-    await fetchData({
-      area_id: values?.area_id ?? "",
+    const payload = {
       year_code: yearFromForm,
       user_id: values?.sale_id ?? "",
       dealer_id: values?.dealer_id ?? "",
       product_name: values?.product_name ?? "",
       platform: "web",
-    });
+      // ✅ ALL -> ไม่ส่ง area_id
+      ...(values?.area_id && values.area_id !== "__ALL__" ? { area_id: values.area_id } : {}),
+    };
+
+    await fetchData(payload);
   };
 
   const handleTableChange = (pagination) => {
@@ -666,14 +690,17 @@ export default function ReportSaleByQuarter() {
                 <Select
                   placeholder="Select Area"
                   options={areaList}
-                  disabled={!isAdmin}
-                  allowClear={isAdmin}
-                  onChange={() => {
+                  disabled={!isAdmin || isSaleLocked || hasOnlyAll}
+                  allowClear={isAdmin && !isSaleLocked && !hasOnlyAll}
+                  onChange={async () => {
                     if (!isAdmin) return;
                     formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
                     setSales([]);
                     setDealers([]);
                     setIsSaleLocked(false);
+
+                    const newArea = formCustom.getFieldValue("area_id");
+                    if (newArea) await loadSalesByArea(newArea);
                   }}
                 />
               </Form.Item>
@@ -740,14 +767,20 @@ export default function ReportSaleByQuarter() {
                     pagination: { ...prev.pagination, current: 1 },
                   }));
 
-                  await fetchData({
-                    area_id: formCustom.getFieldValue("area_id") ?? "",
+                  const payload = {
                     year_code: yearToUse,
                     user_id: formCustom.getFieldValue("sale_id") ?? "",
                     dealer_id: "",
                     product_name: "",
                     platform: "web",
-                  });
+                    // ✅ ALL -> ไม่ส่ง area_id
+                    ...(formCustom.getFieldValue("area_id") &&
+                    formCustom.getFieldValue("area_id") !== "__ALL__"
+                      ? { area_id: formCustom.getFieldValue("area_id") }
+                      : {}),
+                  };
+
+                  await fetchData(payload);
                   return;
                 }
 
@@ -767,6 +800,12 @@ export default function ReportSaleByQuarter() {
                   formCustom.setFieldsValue({ area_id: String(areaId) });
                 }
 
+                // admin: default All + preload sales all
+                if (isAdmin) {
+                  formCustom.setFieldsValue({ area_id: "__ALL__" });
+                  await loadSalesByArea("__ALL__");
+                }
+
                 formCustom.setFieldsValue({ year_code: yearToUse });
 
                 setTableParams((prev) => ({
@@ -774,14 +813,21 @@ export default function ReportSaleByQuarter() {
                   pagination: { ...prev.pagination, current: 1 },
                 }));
 
-                await fetchData({
-                  area_id: isAdmin ? (formCustom.getFieldValue("area_id") ?? "") : String(areaId ?? ""),
+                const payload = {
                   year_code: yearToUse,
                   user_id: "",
                   dealer_id: "",
                   product_name: "",
                   platform: "web",
-                });
+                  // ✅ ALL -> ไม่ส่ง area_id
+                  ...(formCustom.getFieldValue("area_id") &&
+                  formCustom.getFieldValue("area_id") !== "__ALL__"
+                    ? { area_id: formCustom.getFieldValue("area_id") }
+                    : {}),
+                };
+
+                // ตาม logic เดิมของไฟล์: fetch ตอน clear
+                await fetchData(payload);
               }}
               name="btn-clear"
               text="Clear"
@@ -799,18 +845,21 @@ export default function ReportSaleByQuarter() {
                   getYearCodeFrom(values?.year_code) ||
                   defaultYear ||
                   dayjs().tz("Asia/Bangkok").format("YYYY");
-                return {
-                  area_id: values?.area_id ?? "",
+
+                const payload = {
                   year_code: yearFromForm,
                   user_id: values?.sale_id ?? "",
                   dealer_id: values?.dealer_id ?? "",
                   product_name: values?.product_name ?? "",
                   platform: "web",
                 };
+
+                // ✅ ALL -> ไม่ส่ง area_id
+                if (values?.area_id && values.area_id !== "__ALL__") payload.area_id = values.area_id;
+
+                return payload;
               }}
-              requestData={(payload) =>
-                useServiceAPI.get(paths.pathReportRollingWorkPlanQuarter, payload)
-              }
+              requestData={(payload) => useServiceAPI.get(paths.pathReportRollingWorkPlanQuarter, payload)}
             />
           </div>
         </BoxPrimary>

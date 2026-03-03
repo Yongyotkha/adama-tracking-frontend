@@ -56,6 +56,9 @@ export default function ReportSaleByMonth() {
   const [dealers, setDealers] = useState([]);
   const [products, setProducts] = useState([]);
 
+  // ✅ All behavior
+  const [hasOnlyAll, setHasOnlyAll] = useState(false);
+
   // table
   const [itemColumn, setItemColumn] = useState([]);
   const [dataSource, setDataSource] = useState([]);
@@ -114,6 +117,35 @@ export default function ReportSaleByMonth() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ===== helper: load sales by area (รองรับ ALL) =====
+  const loadSalesByArea = async (area_id) => {
+    if (!area_id) {
+      setSales([]);
+      return [];
+    }
+
+    // ✅ ALL -> ส่ง "all" ไปหา sales
+    const areaIdForSales = area_id === "__ALL__" ? "all" : area_id;
+
+    try {
+      const res = await useServiceAPI.get(paths.pathMasterUserByArea, { area_id: areaIdForSales });
+      const raw = res?.data?.data ?? res?.data ?? [];
+      const list = Array.isArray(raw) ? raw : [];
+
+      const saleOptions = list.map((item) => ({
+        value: String(item.user_id ?? item.id),
+        label: item.user_name ?? item.name,
+      }));
+
+      setSales(saleOptions);
+      return saleOptions;
+    } catch {
+      setSales([]);
+      showNotification?.("error", "โหลด Sales ไม่สำเร็จ");
+      return [];
+    }
+  };
+
   // ===== load masters + initial fetch =====
   useEffect(() => {
     if (!userLoaded) return;
@@ -142,10 +174,18 @@ export default function ReportSaleByMonth() {
           }))
         );
 
-        const areaOpts = (resArea?.data || []).map((item) => ({
+        // ✅ area ALL pattern
+        const areaOptsRaw = (resArea?.data || []).map((item) => ({
           value: String(item.id),
           label: item.name,
         }));
+        setHasOnlyAll(areaOptsRaw.length === 0);
+
+        const areaOpts =
+          areaOptsRaw.length === 0
+            ? [{ value: "__ALL__", label: "All", disabled: true }]
+            : [{ value: "__ALL__", label: "All" }, ...areaOptsRaw];
+
         setAreaList(areaOpts);
 
         // default year: current year if exists else first
@@ -157,18 +197,26 @@ export default function ReportSaleByMonth() {
         setDefaultYear(initialYear);
         formCustom.setFieldsValue({ year_code: initialYear });
 
+        // ✅ admin default area = ALL ถ้ายังไม่เลือก + preload sales all
         const isAdminNow = Number(roleId) === 1;
+        // if (isAdminNow) {
+          const curArea = formCustom.getFieldValue("area_id");
+          if (!curArea) formCustom.setFieldsValue({ area_id: "__ALL__" });
+          await loadSalesByArea(formCustom.getFieldValue("area_id") || "__ALL__");
+        // }
+
         const areaToUse = isAdminNow
           ? String(formCustom.getFieldValue("area_id") ?? "")
           : String(areaId ?? "");
 
+        // ✅ fetch initial: เหมือนเดิม (ทำทั้ง admin/non-admin)
         await fetchData({
-          area_id: areaToUse,
           year_code: initialYear,
           user_id: "",
           dealer_id: "",
           product_name: "",
           platform: "web",
+          ...(areaToUse && areaToUse !== "__ALL__" ? { area_id: areaToUse } : {}),
         });
       } catch (error) {
         showNotification("error", error?.message || "เกิดข้อผิดพลาด");
@@ -195,21 +243,9 @@ export default function ReportSaleByMonth() {
       }
 
       try {
-        const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
-          area_id: watchedAreaId,
-        });
-
-        const raw = res?.data?.data ?? res?.data ?? [];
-        const list = Array.isArray(raw) ? raw : [];
-
-        const saleOptions = list.map((item) => ({
-          value: String(item.id),
-          label: item.name,
-        }));
-
+        await loadSalesByArea(watchedAreaId);
         if (!alive) return;
 
-        setSales(saleOptions);
         setDealers([]);
         formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
       } catch (e) {
@@ -239,7 +275,8 @@ export default function ReportSaleByMonth() {
       return;
     }
 
-    if (!watchedAreaId) {
+    // ✅ ALL -> ไม่ auto lock / ไม่ auto fetch
+    if (!watchedAreaId || watchedAreaId === "__ALL__") {
       setIsSaleLocked(false);
       return;
     }
@@ -372,11 +409,7 @@ export default function ReportSaleByMonth() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.workplan_qty))
-                    ? Number(itemData.workplan_qty)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.workplan_qty)) ? Number(itemData.workplan_qty) : 0}
                 formatter={(value) =>
                   `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -406,11 +439,7 @@ export default function ReportSaleByMonth() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.rolling_qty))
-                    ? Number(itemData.rolling_qty)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.rolling_qty)) ? Number(itemData.rolling_qty) : 0}
                 formatter={(value) =>
                   `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -440,9 +469,7 @@ export default function ReportSaleByMonth() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.actual_qty)) ? Number(itemData.actual_qty) : 0
-                }
+                value={Number.isFinite(Number(itemData.actual_qty)) ? Number(itemData.actual_qty) : 0}
                 formatter={(value) =>
                   `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -472,11 +499,7 @@ export default function ReportSaleByMonth() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.workplan_value))
-                    ? Number(itemData.workplan_value)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.workplan_value)) ? Number(itemData.workplan_value) : 0}
                 formatter={(value) =>
                   `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -506,11 +529,7 @@ export default function ReportSaleByMonth() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.rolling_value))
-                    ? Number(itemData.rolling_value)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.rolling_value)) ? Number(itemData.rolling_value) : 0}
                 formatter={(value) =>
                   `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -540,11 +559,7 @@ export default function ReportSaleByMonth() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.actual_value))
-                    ? Number(itemData.actual_value)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.actual_value)) ? Number(itemData.actual_value) : 0}
                 formatter={(value) =>
                   `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -596,12 +611,12 @@ export default function ReportSaleByMonth() {
         dayjs().tz("Asia/Bangkok").format("YYYY");
 
       const fallbackPayload = {
-        area_id: values?.area_id ?? "",
         year_code: yearFromForm,
         user_id: values?.sale_id ?? "",
         dealer_id: values?.dealer_id ?? "",
         product_name: values?.product_name ?? "",
         platform: "web",
+        ...(values?.area_id && values.area_id !== "__ALL__" ? { area_id: values.area_id } : {}),
       };
 
       const payload = payloadFromCaller || fallbackPayload;
@@ -648,14 +663,16 @@ export default function ReportSaleByMonth() {
       defaultYear ||
       dayjs().tz("Asia/Bangkok").format("YYYY");
 
-    await fetchData({
-      area_id: values?.area_id ?? "",
+    const payload = {
       year_code: yearFromForm,
       user_id: values?.sale_id ?? "",
       dealer_id: values?.dealer_id ?? "",
       product_name: values?.product_name ?? "",
       platform: "web",
-    });
+      ...(values?.area_id && values.area_id !== "__ALL__" ? { area_id: values.area_id } : {}),
+    };
+
+    await fetchData(payload);
   };
 
   const handleTableChange = (pagination) => {
@@ -676,7 +693,10 @@ export default function ReportSaleByMonth() {
     const productLabel =
       (products.find((o) => o.value === vals.product_name) || {}).label || vals.product_name;
 
-    const year = getYearCodeFrom(vals.year_code) || defaultYear || dayjs().tz("Asia/Bangkok").format("YYYY");
+    const year =
+      getYearCodeFrom(vals.year_code) ||
+      defaultYear ||
+      dayjs().tz("Asia/Bangkok").format("YYYY");
 
     const parts = [
       `Sales_Report_By_Month`,
@@ -703,14 +723,18 @@ export default function ReportSaleByMonth() {
                 <Select
                   placeholder="Select Area"
                   options={areaList}
-                  disabled={!isAdmin}
-                  allowClear={isAdmin}
-                  onChange={() => {
+                  disabled={!isAdmin || isSaleLocked || hasOnlyAll}
+                  allowClear={isAdmin && !isSaleLocked && !hasOnlyAll}
+                  onChange={async () => {
                     if (!isAdmin) return;
+
                     formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
                     setSales([]);
                     setDealers([]);
                     setIsSaleLocked(false);
+
+                    const newArea = formCustom.getFieldValue("area_id");
+                    if (newArea) await loadSalesByArea(newArea);
                   }}
                 />
               </Form.Item>
@@ -777,14 +801,19 @@ export default function ReportSaleByMonth() {
                     pagination: { ...prev.pagination, current: 1 },
                   }));
 
-                  await fetchData({
-                    area_id: formCustom.getFieldValue("area_id") ?? "",
+                  const payload = {
                     year_code: yearToUse,
                     user_id: formCustom.getFieldValue("sale_id") ?? "",
                     dealer_id: "",
                     product_name: "",
                     platform: "web",
-                  });
+                    ...(formCustom.getFieldValue("area_id") &&
+                    formCustom.getFieldValue("area_id") !== "__ALL__"
+                      ? { area_id: formCustom.getFieldValue("area_id") }
+                      : {}),
+                  };
+
+                  await fetchData(payload);
                   return;
                 }
 
@@ -800,8 +829,15 @@ export default function ReportSaleByMonth() {
                 setDealers([]);
                 if (isAdmin) setSales([]);
 
+                // non-admin: คง area
                 if (!isAdmin && areaId != null) {
                   formCustom.setFieldsValue({ area_id: String(areaId) });
+                }
+
+                // admin: default All + preload sales all
+                if (isAdmin) {
+                  formCustom.setFieldsValue({ area_id: "__ALL__" });
+                  await loadSalesByArea("__ALL__");
                 }
 
                 formCustom.setFieldsValue({ year_code: yearToUse });
@@ -811,17 +847,19 @@ export default function ReportSaleByMonth() {
                   pagination: { ...prev.pagination, current: 1 },
                 }));
 
-                if (isAdmin) {
-                  await fetchData({
-                    area_id: isAdmin ? (formCustom.getFieldValue("area_id") ?? "") : String(areaId ?? ""),
-                    year_code: yearToUse,
-                    user_id: "",
-                    dealer_id: "",
-                    product_name: "",
-                    platform: "web",
-                  });
-                }
+                const payload = {
+                  year_code: yearToUse,
+                  user_id: "",
+                  dealer_id: "",
+                  product_name: "",
+                  platform: "web",
+                  ...(formCustom.getFieldValue("area_id") &&
+                  formCustom.getFieldValue("area_id") !== "__ALL__"
+                    ? { area_id: formCustom.getFieldValue("area_id") }
+                    : {}),
+                };
 
+                await fetchData(payload);
               }}
               name="btn-clear"
               text="Clear"
@@ -839,14 +877,18 @@ export default function ReportSaleByMonth() {
                   defaultYear ||
                   dayjs().tz("Asia/Bangkok").format("YYYY");
 
-                return {
-                  area_id: values?.area_id ?? "",
+                const payload = {
                   year_code: String(yearFromForm),
                   user_id: values?.sale_id ?? "",
                   dealer_id: values?.dealer_id ?? "",
                   product_name: values?.product_name ?? "",
                   platform: "web",
                 };
+
+                // ✅ ALL -> ไม่ส่ง area_id
+                if (values?.area_id && values.area_id !== "__ALL__") payload.area_id = values.area_id;
+
+                return payload;
               }}
               requestData={(payload) => useServiceAPI.get(paths.pathReportRollingWorkPlan, payload)}
             />

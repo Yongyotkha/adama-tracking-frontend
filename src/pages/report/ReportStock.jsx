@@ -120,6 +120,13 @@ export default function ReportStock() {
   const [dataSource, setDataSource] = useState([]);
   const [isSaleLocked, setIsSaleLocked] = useState(false);
 
+  const [summary, setSummary] = useState({
+    total_current: 0,
+    total_last: 0,
+    total_in: 0,
+    total_out: 0,
+  });
+
   // ✅ เก็บ Area ที่ “ตรงกับ userInfo” เพื่อใช้ disable option
   const [activeAreaId, setActiveAreaId] = useState(null);
 
@@ -244,27 +251,11 @@ export default function ReportStock() {
 
   // ✅ Footer: ใช้ตัวแปร total_* จาก API โดยตรง (Total (THB))
   const footer = useMemo(() => {
-    const safeNum = (v) => Number(String(v || 0).replace(/,/g, "")) || 0;
-
-    // mapping: columnKey -> field total_* ใน data
-    const totalKeyByColumn = {
-      last_stock: "total_last",
-      sell_in: "total_in",
-      current_stock: "total_current",
-      sell_out: "total_out",
-    };
-
-    const sumByTotalKey = (totalKey) =>
-      (dataSource || []).reduce(
-        (acc, r) => acc + safeNum(r[totalKey]),
-        0
-      );
-
     const totals = {
-      last_stock: sumByTotalKey(totalKeyByColumn.last_stock),
-      sell_in: sumByTotalKey(totalKeyByColumn.sell_in),
-      current_stock: sumByTotalKey(totalKeyByColumn.current_stock),
-      sell_out: sumByTotalKey(totalKeyByColumn.sell_out),
+      last_stock: summary?.total_last ?? 0,
+      sell_in: summary?.total_in ?? 0,
+      current_stock: summary?.total_current ?? 0,
+      sell_out: summary?.total_out ?? 0,
     };
 
     const keys = ["last_stock", "sell_in", "current_stock", "sell_out"];
@@ -289,7 +280,7 @@ export default function ReportStock() {
         </Table.Summary.Row>
       </Table.Summary>
     );
-  }, [dataSource]);
+  }, [summary]);
 
   // ---------- Masters (Area + Master Year) ----------
   useEffect(() => {
@@ -341,7 +332,7 @@ export default function ReportStock() {
         });
 
         // first fetch
-        await fetchStock();
+        // await fetchStock();
       } catch {
         setAreaList([]);
         setYearOptions([]);
@@ -355,7 +346,7 @@ export default function ReportStock() {
 
   // Cascade: Area → Sales
   useEffect(() => {
-    const areaId = form.getFieldValue("area_id");
+    const areaId = selectedArea;
     if (!areaId) {
       setSalesList([]);
       setDealerList([]);
@@ -383,7 +374,7 @@ export default function ReportStock() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.getFieldValue("area_id")]);
+  }, [selectedArea]);
 
   // ✅ Lock logic: ถ้าพบ sale ของตัวเองใน salesList -> lock + set area ให้ match userInfo.area_id และ disable area
   useEffect(() => {
@@ -426,7 +417,7 @@ export default function ReportStock() {
 
   // Cascade: Sales → Dealer
   useEffect(() => {
-    const saleId = form.getFieldValue("sale_id");
+    const saleId = selectedSale;
     if (!saleId) {
       setDealerList([]);
       setSubDealerList([]);
@@ -451,12 +442,12 @@ export default function ReportStock() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.getFieldValue("sale_id")]);
+  }, [selectedSale]);
 
   // Cascade: Dealer → SubDealer
   useEffect(() => {
-    const saleId = form.getFieldValue("sale_id");
-    const dealerId = form.getFieldValue("dealer_id");
+    const saleId = selectedSale;
+    const dealerId = selectedDealer;
     if (!saleId || !dealerId) {
       setSubDealerList([]);
       form.resetFields(["sub_dealer_id"]);
@@ -482,7 +473,7 @@ export default function ReportStock() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.getFieldValue("dealer_id")]);
+  }, [selectedSale, selectedDealer]);
 
   // --------- API call ---------
   const buildPayload = () => {
@@ -504,27 +495,38 @@ export default function ReportStock() {
     try {
       const payload = buildPayload();
       const res = await useServiceAPI.get(paths.pathReportStock, payload);
+
+      // ✅ ดึง data และ summary จาก API
       const items = res?.data || [];
+      const apiSummary = res?.summary || res?.data?.summary || null; // เผื่อโครง response ต่างกัน
+
+      setSummary({
+        total_current:
+          Number(String(apiSummary?.total_current ?? 0).replace(/,/g, "")) || 0,
+        total_last:
+          Number(String(apiSummary?.total_last ?? 0).replace(/,/g, "")) || 0,
+        total_in:
+          Number(String(apiSummary?.total_in ?? 0).replace(/,/g, "")) || 0,
+        total_out:
+          Number(String(apiSummary?.total_out ?? 0).replace(/,/g, "")) || 0,
+      });
 
       const rows = items.map((it, idx) => ({
         key: it.product_id ?? idx,
         product_name: `${it.product_name}${it.product_size ? ` (${it.product_size})` : ""
           }`,
 
-        // qty (ctn)
         last_stock: Number(it.last) || 0,
         sell_in: Number(it.in) || 0,
         current_stock: Number(it.current) || 0,
         sell_out: Number(it.out) || 0,
 
-        // ✅ total ใหม่ จาก backend (THB)
         total_last: Number(String(it.total_last || 0).replace(/,/g, "")) || 0,
         total_in: Number(String(it.total_in || 0).replace(/,/g, "")) || 0,
         total_current:
           Number(String(it.total_current || 0).replace(/,/g, "")) || 0,
         total_out: Number(String(it.total_out || 0).replace(/,/g, "")) || 0,
 
-        // unit price (ถ้าจะใช้ต่อ)
         unit_convert_value: parseFloat(
           String(it.unit_convert_value || "0").replace(/,/g, "")
         ),
@@ -534,6 +536,7 @@ export default function ReportStock() {
     } catch (e) {
       console.error(e);
       setDataSource([]);
+      setSummary({ total_current: 0, total_last: 0, total_in: 0, total_out: 0 }); // ✅ reset
       showNotification?.("error", "โหลดข้อมูลไม่สำเร็จ");
     } finally {
       setTableLoading(false);

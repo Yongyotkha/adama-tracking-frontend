@@ -271,18 +271,29 @@ export default function ReportActivityByMonth() {
         }));
 
         formCustom.setFieldsValue({ year_code: yearToUse });
-        console.log(resArea.data);
-        const areaOpts = (resArea.data || []).map((x) => ({
+        const areaOptsRaw = (resArea.data || []).map((x) => ({
           value: String(x.id),
           label: x.name,
         }));
+
+        // ✅ ถ้าไม่มี area เลย -> ใส่ ALL (disabled) 1 ตัว
+        const areaOpts =
+          areaOptsRaw.length === 0
+            ? [{ value: "__ALL__", label: "All", disabled: true }]
+            : areaOptsRaw;
+
         setAreaList(areaOpts);
 
-        // ✅ ตามตัวอย่างที่คุณใช้
+        // ✅ defaultAreaId:
+        // - ถ้าไม่มี area -> เซ็ต __ALL__ เพื่อให้โชว์ label ALL
+        // - ถ้ามี area เดียว -> auto select
+        // - ถ้ามีหลาย -> ไม่เลือก
         const defaultAreaId =
-          Array.isArray(areaOpts) && areaOpts.length === 1
-            ? areaOpts[0]?.value
-            : undefined;
+          areaOptsRaw.length === 0
+            ? "__ALL__"
+            : areaOptsRaw.length === 1
+              ? areaOptsRaw[0].value
+              : undefined;
 
         formCustom.setFieldsValue({
           area_id: defaultAreaId,
@@ -433,8 +444,14 @@ export default function ReportActivityByMonth() {
 
       const payload = {
         sale_id: values.sale_id || null,
-        sub_dealer_id: values.sub_dealer_id || null, // ⬅️ ใช้ sub dealer
-        area_id: values.area_id || null,
+        sub_dealer_id: values.sub_dealer_id || null,
+
+        // ✅ area_id ถ้าไม่มี หรือเป็น ALL -> ส่ง null
+        area_id:
+          !values.area_id || values.area_id === "__ALL__"
+            ? null
+            : values.area_id,
+
         year_code: yearCode,
       };
 
@@ -582,8 +599,8 @@ export default function ReportActivityByMonth() {
                 <Select
                   placeholder="Select Area"
                   options={areaList}
-                  allowClear={!isSaleLocked && Number(roleId) === 1}
-                  disabled={isSaleLocked || (roleId != null && Number(roleId) !== 1)}
+                  allowClear={!isSaleLocked && watchedAreaId !== "__ALL__"}
+                  disabled={isSaleLocked || areaList?.[0]?.value === "__ALL__"} // ถ้า list เป็น ALL อย่างเดียว ให้ disable ทั้ง dropdown
                 />
 
               </Form.Item>

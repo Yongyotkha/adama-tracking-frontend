@@ -39,22 +39,6 @@ const getYearCodeFrom = (y) => {
   return y.year_code ?? y.code ?? y.value ?? y.label ?? y.name ?? y.year ?? "";
 };
 
-// เลือก “ปีล่าสุด” จากลิสต์ปี
-const pickLatestYearCode = (yearsArr) => {
-  if (!Array.isArray(yearsArr) || yearsArr.length === 0) {
-    return dayjs().tz("Asia/Bangkok").format("YYYY");
-  }
-  let best = yearsArr[0];
-  for (const cur of yearsArr) {
-    const b = Number(getYearCodeFrom(best)) || 0;
-    const c = Number(getYearCodeFrom(cur)) || 0;
-    if (c > b) best = cur;
-  }
-  return getYearCodeFrom(best);
-};
-
-// --------------------------------
-
 export default function ReportSaleByYear() {
   const [loading, setLoading] = useState(false);
   const [years, setYears] = useState([]); // [{ value, label }]
@@ -68,14 +52,19 @@ export default function ReportSaleByYear() {
   const [itemColumn, setItemColumn] = useState([]); // items (มี workplan_data_items ข้างใน)
   const [dataSource, setDataSource] = useState([]); // data_items → แถวสินค้า
   const [tableLoading, setTableLoading] = useState(false);
+
   const { showNotification, userInfo } = useContext(AuthContext);
+
   const [areaId, setAreaId] = useState();
   const [roleId, setRoleId] = useState();
+  const isAdmin = Number(roleId) === 1;
+
   const [formCustom] = Form.useForm();
   const watchedAreaId = Form.useWatch("area_id", formCustom);
   const watchedSaleId = Form.useWatch("sale_id", formCustom);
 
-  const isAdmin = Number(roleId) === 1;
+  // ✅ All behavior
+  const [hasOnlyAll, setHasOnlyAll] = useState(false);
 
   // ✅ lock sale for non-admin
   const [isSaleLocked, setIsSaleLocked] = useState(false);
@@ -84,8 +73,8 @@ export default function ReportSaleByYear() {
   const [userLoaded, setUserLoaded] = useState(false);
 
   // ===== helpers (login) =====
-  const getLoginSaleId = (u) => (u ? (u.sale_id ?? u.user_id ?? u.id ?? null) : null);
-  const getLoginAreaId = (u) => (u ? (u.area_id ?? u.areaId ?? u.area ?? null) : null);
+  const getLoginSaleId = (u) => (u ? u.sale_id ?? u.user_id ?? u.id ?? null : null);
+  const getLoginAreaId = (u) => (u ? u.area_id ?? u.areaId ?? u.area ?? null : null);
 
   //load user detail to get area_id and role_id
   useEffect(() => {
@@ -185,23 +174,15 @@ export default function ReportSaleByYear() {
           render: (_, record) => {
             const itemData =
               (period.workplan_data_items || []).find(
-                (p) =>
-                  normalize(p.product_name) === normalize(record.productName)
+                (p) => normalize(p.product_name) === normalize(record.productName)
               ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.workplan_qty))
-                    ? Number(itemData.workplan_qty)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.workplan_qty)) ? Number(itemData.workplan_qty) : 0}
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
                 disabled
               />
@@ -223,23 +204,15 @@ export default function ReportSaleByYear() {
           render: (_, record) => {
             const itemData =
               (period.workplan_data_items || []).find(
-                (p) =>
-                  normalize(p.product_name) === normalize(record.productName)
+                (p) => normalize(p.product_name) === normalize(record.productName)
               ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.rolling_qty))
-                    ? Number(itemData.rolling_qty)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.rolling_qty)) ? Number(itemData.rolling_qty) : 0}
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
                 disabled
               />
@@ -261,23 +234,15 @@ export default function ReportSaleByYear() {
           render: (_, record) => {
             const itemData =
               (period.workplan_data_items || []).find(
-                (p) =>
-                  normalize(p.product_name) === normalize(record.productName)
+                (p) => normalize(p.product_name) === normalize(record.productName)
               ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.actual_qty))
-                    ? Number(itemData.actual_qty)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.actual_qty)) ? Number(itemData.actual_qty) : 0}
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
                 disabled
               />
@@ -299,23 +264,15 @@ export default function ReportSaleByYear() {
           render: (_, record) => {
             const itemData =
               (period.workplan_data_items || []).find(
-                (p) =>
-                  normalize(p.product_name) === normalize(record.productName)
+                (p) => normalize(p.product_name) === normalize(record.productName)
               ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.workplan_value))
-                    ? Number(itemData.workplan_value)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.workplan_value)) ? Number(itemData.workplan_value) : 0}
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
                 disabled
               />
@@ -337,23 +294,15 @@ export default function ReportSaleByYear() {
           render: (_, record) => {
             const itemData =
               (period.workplan_data_items || []).find(
-                (p) =>
-                  normalize(p.product_name) === normalize(record.productName)
+                (p) => normalize(p.product_name) === normalize(record.productName)
               ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.rolling_value))
-                    ? Number(itemData.rolling_value)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.rolling_value)) ? Number(itemData.rolling_value) : 0}
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
                 disabled
               />
@@ -375,23 +324,15 @@ export default function ReportSaleByYear() {
           render: (_, record) => {
             const itemData =
               (period.workplan_data_items || []).find(
-                (p) =>
-                  normalize(p.product_name) === normalize(record.productName)
+                (p) => normalize(p.product_name) === normalize(record.productName)
               ) || {};
             return (
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.actual_value))
-                    ? Number(itemData.actual_value)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.actual_value)) ? Number(itemData.actual_value) : 0}
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
                 disabled
               />
@@ -407,13 +348,8 @@ export default function ReportSaleByYear() {
     const rows = Array.isArray(dataSource) ? dataSource : [];
 
     return itemColumn.map((period) => {
-      const list = Array.isArray(period?.workplan_data_items)
-        ? period.workplan_data_items
-        : [];
-
-      const byProduct = new Map(
-        list.map((p) => [normalize(p.product_name), p])
-      );
+      const list = Array.isArray(period?.workplan_data_items) ? period.workplan_data_items : [];
+      const byProduct = new Map(list.map((p) => [normalize(p.product_name), p]));
 
       const sumField = (field) =>
         rows.reduce((acc, row) => {
@@ -461,10 +397,18 @@ export default function ReportSaleByYear() {
           }))
         );
 
-        const areaOpts = (areasRes?.data || []).map((x) => ({
+        // ✅ area ALL pattern
+        const areaOptsRaw = (areasRes?.data || []).map((x) => ({
           value: String(x.id),
           label: x.name,
         }));
+        setHasOnlyAll(areaOptsRaw.length === 0);
+
+        const areaOpts =
+          areaOptsRaw.length === 0
+            ? [{ value: "__ALL__", label: "All", disabled: true }]
+            : [{ value: "__ALL__", label: "All" }, ...areaOptsRaw];
+
         setAreaList(areaOpts);
 
         // default year
@@ -476,21 +420,32 @@ export default function ReportSaleByYear() {
         setDefaultYear(initialYear);
         formCustom.setFieldsValue({ year_code: initialYear });
 
-        // ✅ initial fetch ใช้ area ตาม role
+        // ✅ admin: default area = ALL ถ้ายังไม่เลือก
         const isAdminNow = Number(roleId) === 1;
-        const areaToUse = isAdminNow ? (formCustom.getFieldValue("area_id") ?? "") : String(areaId ?? "");
-
-        if (isAdminNow) {
-          await fetchData({
-            area_id: areaToUse,
-            year_code: initialYear,
-            user_id: "",
-            dealer_id: "",
-            product_name: "",
-            platform: "web",
-          });
+        // if (isAdminNow) {
+        const curArea = formCustom.getFieldValue("area_id");
+        if (!curArea) {
+          formCustom.setFieldsValue({ area_id: "__ALL__" });
         }
+        // โหลด sales all ทันที เพื่อให้ dropdown Sales ใช้งานได้
+        await loadSalesByArea(formCustom.getFieldValue("area_id") || "__ALL__");
+        // }
 
+        // ✅ initial fetch: admin เท่านั้น (เหมือนโค้ดเดิมของคุณ)
+        // if (isAdminNow) {
+        await fetchData({
+          year_code: initialYear,
+          user_id: "",
+          dealer_id: "",
+          product_name: "",
+          platform: "web",
+          // ✅ ALL -> ไม่ส่ง area_id
+          ...(formCustom.getFieldValue("area_id") &&
+            formCustom.getFieldValue("area_id") !== "__ALL__"
+            ? { area_id: formCustom.getFieldValue("area_id") }
+            : {}),
+        });
+        // }
       } catch (error) {
         showNotification("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -501,6 +456,35 @@ export default function ReportSaleByYear() {
     getMaster();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userLoaded, roleId]);
+
+  // ===== Load Sales by Area (รองรับ ALL) =====
+  const loadSalesByArea = async (area_id) => {
+    if (!area_id) {
+      setSales([]);
+      return [];
+    }
+
+    // ✅ ถ้าเลือก ALL -> ส่ง "all" ไปหา option sales
+    const areaIdForSales = area_id === "__ALL__" ? "all" : area_id;
+
+    try {
+      const res = await useServiceAPI.get(paths.pathMasterUserByArea, { area_id: areaIdForSales });
+      const raw = res?.data?.data ?? res?.data ?? [];
+      const list = Array.isArray(raw) ? raw : [];
+
+      const options = list.map((item) => ({
+        value: String(item.user_id ?? item.id),
+        label: item.user_name ?? item.name,
+      }));
+
+      setSales(options);
+      return options;
+    } catch {
+      setSales([]);
+      showNotification?.("error", "โหลด Sales ไม่สำเร็จ");
+      return [];
+    }
+  };
 
   // เปลี่ยน Area → โหลด Sales
   useEffect(() => {
@@ -516,24 +500,16 @@ export default function ReportSaleByYear() {
       }
 
       try {
-        const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
-          area_id: watchedAreaId,
-        });
-
-        const raw = res?.data?.data ?? res?.data ?? [];
-        const list = Array.isArray(raw) ? raw : [];
-
-        const options = list.map((item) => ({
-          value: String(item.id), // keep string
-          label: item.name,
-        }));
-
+        // ✅ ใช้ function กลาง (รองรับ ALL)
+        const options = await loadSalesByArea(watchedAreaId);
         if (!alive) return;
 
-        setSales(options);
-        setDealers([]);
         // reset downstream (แต่ sale จะถูก auto lock ใน effect ถัดไป)
+        setDealers([]);
         formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
+
+        // ถ้า ALL แล้ว admin อยากเลือก sales ได้ทันที (ไม่ reset sales ที่เพิ่ง set)
+        // (sales ถูก set แล้วใน loadSalesByArea)
       } catch (e) {
         if (!alive) return;
         setSales([]);
@@ -550,6 +526,7 @@ export default function ReportSaleByYear() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchedAreaId]);
 
+  // Auto select own sale (non-admin) + lock
   useEffect(() => {
     const loginSaleId = getLoginSaleId(userInfo);
     const loginAreaId = getLoginAreaId(userInfo);
@@ -560,7 +537,8 @@ export default function ReportSaleByYear() {
       return;
     }
 
-    if (!watchedAreaId) {
+    // ✅ ถ้า area เป็น ALL: ไม่ auto lock / ไม่ auto fetch
+    if (!watchedAreaId || watchedAreaId === "__ALL__") {
       setIsSaleLocked(false);
       return;
     }
@@ -585,7 +563,6 @@ export default function ReportSaleByYear() {
       });
 
       setIsSaleLocked(true);
-      // ✅ จะ fetch เลยก็ได้ (เหมือนหน้า ActivityExpense)
       fetchData();
     } else {
       setIsSaleLocked(false);
@@ -594,15 +571,6 @@ export default function ReportSaleByYear() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchedAreaId, sales, userInfo, roleId]);
 
-  // ✅ log ที่ถูกต้อง: log เมื่อ state เปลี่ยนจริง
-  useEffect(() => {
-    console.log("Sales state changed:", sales);
-  }, [sales]);
-
-
-  useEffect(() => {
-    console.log("Sales state changed:", sales);
-  }, [sales]);
   // เปลี่ยน Sale → โหลด Dealers
   useEffect(() => {
     let alive = true;
@@ -645,9 +613,6 @@ export default function ReportSaleByYear() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchedSaleId]);
 
-
-  // ❌ ไม่ auto-fetch ตาม year อีกต่อไป
-
   // ---------------- Fetch data
   const buildPayload = async () => {
     const values = await formCustom.validateFields().catch(() => ({}));
@@ -656,14 +621,18 @@ export default function ReportSaleByYear() {
       defaultYear ||
       dayjs().tz("Asia/Bangkok").format("YYYY");
 
-    return {
-      area_id: values?.area_id ?? "",   // ✅ เพิ่ม
+    const payload = {
       year_code: yearFromForm,
       user_id: values?.sale_id ?? "",
       dealer_id: values?.dealer_id ?? "",
       product_name: values?.product_name ?? "",
       platform: "web",
     };
+
+    // ✅ ALL -> ไม่ส่ง area_id
+    if (values?.area_id && values.area_id !== "__ALL__") payload.area_id = values.area_id;
+
+    return payload;
   };
 
   const handleSearch = async () => {
@@ -677,10 +646,7 @@ export default function ReportSaleByYear() {
       const fallbackPayload = await buildPayload();
       const payload = payloadFromCaller || fallbackPayload;
 
-      const response = await useServiceAPI.get(
-        paths.pathReportRollingWorkPlanYear,
-        payload
-      );
+      const response = await useServiceAPI.get(paths.pathReportRollingWorkPlanYear, payload);
 
       if (response?.status === 200) {
         const root = response?.data?.data ?? response?.data ?? {};
@@ -715,14 +681,12 @@ export default function ReportSaleByYear() {
       defaultYear ||
       dayjs().tz("Asia/Bangkok").format("YYYY");
 
-    const getLabel = (list, val) =>
-      (list.find((o) => o.value === val) || {}).label;
+    const getLabel = (list, val) => (list.find((o) => o.value === val) || {}).label;
 
     const areaLabel = getLabel(areaList, vals.area_id);
     const salesLabel = getLabel(sales, vals.sale_id);
     const dealerLabel = getLabel(dealers, vals.dealer_id);
-    const productLabel =
-      getLabel(products, vals.product_name) || vals.product_name;
+    const productLabel = getLabel(products, vals.product_name) || vals.product_name;
 
     const parts = [
       "Sales_Report_By_Year",
@@ -739,272 +703,257 @@ export default function ReportSaleByYear() {
 
   // ---------------- UI
   return (
-    <>
-      <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Sales Report By Year" />
+    <MainLayout loading={loading} childrenStyle={""}>
+      <Title prefix="Sales Report By Year" />
 
-        <Form form={formCustom} layout="vertical">
-          <BoxPrimary className="m-1 mb-4">
-            <Row gutter={16} align="middle">
-              <Col md={6}>
-                <Form.Item label="Area" name="area_id">
-                  <Select
-                    placeholder="Select Area"
-                    options={areaList}
-                    disabled={!isAdmin}          // ✅ roleId != 1 ห้ามเปลี่ยน
-                    allowClear={isAdmin}         // ✅ roleId != 1 ห้ามล้าง
-                    onChange={() => {
-                      // admin เท่านั้นที่เปลี่ยน area ได้
-                      if (!isAdmin) return;
+      <Form form={formCustom} layout="vertical">
+        <BoxPrimary className="m-1 mb-4">
+          <Row gutter={16} align="middle">
+            <Col md={6}>
+              <Form.Item label="Area" name="area_id">
+                <Select
+                  placeholder="Select Area"
+                  options={areaList}
+                  disabled={!isAdmin || isSaleLocked || hasOnlyAll}
+                  allowClear={isAdmin && !isSaleLocked && !hasOnlyAll}
+                  onChange={async () => {
+                    if (!isAdmin) return;
 
-                      formCustom.resetFields(["sale_id", "dealer_id"]);
-                      setSales([]);
-                      setDealers([]);
-                    }}
-                  />
-                </Form.Item>
-
-              </Col>
-
-              <Col md={6}>
-                <Form.Item label="Sales" name="sale_id">
-                  <Select
-                    placeholder="Select Sales"
-                    options={sales}
-                    allowClear={!isSaleLocked}
-                    disabled={!watchedAreaId || isSaleLocked}
-                    onChange={() => {
-                      formCustom.setFieldsValue({ dealer_id: undefined });
-                      setDealers([]);
-                    }}
-                  />
-                </Form.Item>
-              </Col>
-
-              <Col md={6}>
-                <Form.Item label="Dealers" name="dealer_id">
-                  <Select
-                    placeholder="Select Dealer"
-                    options={dealers}
-                    disabled={!formCustom.getFieldValue("sale_id")}
-                    allowClear
-                  />
-                </Form.Item>
-              </Col>
-
-              {/* Year filter (ใช้ตอน Search/Clear เท่านั้น) */}
-              <Col md={6}>
-                <Form.Item label="Year" name="year_code">
-                  <Select
-                    placeholder="Select Year"
-                    options={years}
-                    allowClear={false}
-                  />
-                </Form.Item>
-              </Col>
-
-              {/* product hidden */}
-              <Form.Item name="product_name" hidden>
-                <Select options={products} />
-              </Form.Item>
-            </Row>
-
-            <div className="flex justify-end gap-3 px-4 pt-5">
-              <DynamicButton
-                onClick={handleSearch}
-                name="btn-search"
-                text="Search"
-                iconSrc="/img/icons/search.png"
-                className="text-white px-4 py-3 rounded-[4px] bg-[#7DB41E]"
-              />
-              <DynamicButton
-                onClick={async () => {
-                  const yearToUse = defaultYear || dayjs().tz("Asia/Bangkok").format("YYYY");
-
-                  // ✅ ถ้า lock sale อยู่: ไม่แตะ area_id / sale_id
-                  if (isSaleLocked) {
-                    formCustom.resetFields(["dealer_id", "product_name", "year_code"]);
+                    formCustom.resetFields(["sale_id", "dealer_id"]);
+                    setSales([]);
                     setDealers([]);
-                    formCustom.setFieldsValue({
-                      dealer_id: undefined,
-                      year_code: yearToUse,
-                    });
 
-                    setTableParams((prev) => ({
-                      ...prev,
-                      pagination: { ...prev.pagination, current: 1 },
-                    }));
+                    const newArea = formCustom.getFieldValue("area_id");
+                    if (newArea) await loadSalesByArea(newArea);
+                  }}
+                />
+              </Form.Item>
+            </Col>
 
-                    await fetchData({
-                      area_id: formCustom.getFieldValue("area_id") ?? "",
-                      year_code: yearToUse,
-                      user_id: formCustom.getFieldValue("sale_id") ?? "",
-                      dealer_id: "",
-                      product_name: "",
-                      platform: "web",
-                    });
-                    return;
-                  }
+            <Col md={6}>
+              <Form.Item label="Sales" name="sale_id">
+                <Select
+                  placeholder="Select Sales"
+                  options={sales}
+                  allowClear={!isSaleLocked}
+                  disabled={!watchedAreaId || isSaleLocked}
+                  onChange={() => {
+                    formCustom.setFieldsValue({ dealer_id: undefined });
+                    setDealers([]);
+                  }}
+                />
+              </Form.Item>
+            </Col>
 
-                  // ✅ ไม่ lock
-                  formCustom.resetFields([
-                    "sale_id",
-                    "dealer_id",
-                    "product_name",
-                    "year_code",
-                    ...(isAdmin ? ["area_id"] : []), // non-admin ห้าม reset area
-                  ]);
+            <Col md={6}>
+              <Form.Item label="Dealers" name="dealer_id">
+                <Select
+                  placeholder="Select Dealer"
+                  options={dealers}
+                  disabled={!formCustom.getFieldValue("sale_id")}
+                  allowClear
+                />
+              </Form.Item>
+            </Col>
 
+            <Col md={6}>
+              <Form.Item label="Year" name="year_code">
+                <Select placeholder="Select Year" options={years} allowClear={false} />
+              </Form.Item>
+            </Col>
+
+            {/* product hidden */}
+            <Form.Item name="product_name" hidden>
+              <Select options={products} />
+            </Form.Item>
+          </Row>
+
+          <div className="flex justify-end gap-3 px-4 pt-5">
+            <DynamicButton
+              onClick={handleSearch}
+              name="btn-search"
+              text="Search"
+              iconSrc="/img/icons/search.png"
+              className="text-white px-4 py-3 rounded-[4px] bg-[#7DB41E]"
+            />
+
+            <DynamicButton
+              onClick={async () => {
+                const yearToUse = defaultYear || dayjs().tz("Asia/Bangkok").format("YYYY");
+
+                // ✅ ถ้า lock sale อยู่: ไม่แตะ area_id / sale_id
+                if (isSaleLocked) {
+                  formCustom.resetFields(["dealer_id", "product_name", "year_code"]);
                   setDealers([]);
-                  formCustom.setFieldsValue({ year_code: yearToUse });
-
-                  // non-admin: คง area กลับเป็นของ user
-                  if (!isAdmin && areaId != null) {
-                    formCustom.setFieldsValue({ area_id: String(areaId) });
-                  }
-
-                  // admin: reset sales list ได้
-                  if (isAdmin) setSales([]);
+                  formCustom.setFieldsValue({
+                    dealer_id: undefined,
+                    year_code: yearToUse,
+                  });
 
                   setTableParams((prev) => ({
                     ...prev,
                     pagination: { ...prev.pagination, current: 1 },
                   }));
 
-                  await fetchData({
-                    area_id: isAdmin ? (formCustom.getFieldValue("area_id") ?? "") : String(areaId ?? ""),
+                  const payload = {
                     year_code: yearToUse,
-                    user_id: "",
+                    user_id: formCustom.getFieldValue("sale_id") ?? "",
                     dealer_id: "",
                     product_name: "",
                     platform: "web",
-                  });
-                }}
+                    ...(formCustom.getFieldValue("area_id") &&
+                      formCustom.getFieldValue("area_id") !== "__ALL__"
+                      ? { area_id: formCustom.getFieldValue("area_id") }
+                      : {}),
+                  };
 
-                name="btn-clear"
-                text="Clear"
-                iconSrc="/img/icons/trash.png"
-                className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
-              />
-              <ExportMonthlyExcelButton
-                text="Export Excel"
-                fileName={buildYearlyReportFileName()}
-                getPayload={buildPayload}
-                requestData={(payload) =>
-                  useServiceAPI.get(
-                    paths.pathReportRollingWorkPlanYear,
-                    payload
-                  )
+                  await fetchData(payload);
+                  return;
                 }
-              />
-            </div>
-          </BoxPrimary>
-        </Form>
 
-        <BoxPrimary>
-          <TableCustomComponent
-            header={header}
-            dataSource={dataSource}
-            pagination={false}
-            loading={tableLoading}
-            onChange={() => { }}
-            footer={() => {
-              const footerData = calculateFooterSums();
-              return (
-                <Table.Summary fixed>
-                  <Table.Summary.Row className="bg-[#978B87]">
-                    <Table.Summary.Cell index={0}>
-                      Total (THB)
-                    </Table.Summary.Cell>
-                    {footerData.map((period, index) => (
-                      <React.Fragment key={`${period.id}_${index}`}>
-                        <Table.Summary.Cell align="center">
-                          <InputNumber
-                            className="w-full"
-                            readOnly
-                            value={period.workplan_qty}
-                            formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                          />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell align="center">
-                          <InputNumber
-                            className="w-full"
-                            readOnly
-                            value={period.rolling_qty}
-                            formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                          />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell align="center">
-                          <InputNumber
-                            className="w-full"
-                            readOnly
-                            value={period.actual_qty}
-                            formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                          />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell align="center">
-                          <InputNumber
-                            className="w-full"
-                            readOnly
-                            value={period.workplan_value}
-                            formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                          />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell align="center">
-                          <InputNumber
-                            className="w-full"
-                            readOnly
-                            value={period.rolling_value}
-                            formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                          />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell align="center">
-                          <InputNumber
-                            className="w-full"
-                            readOnly
-                            value={period.actual_value}
-                            formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                          />
-                        </Table.Summary.Cell>
-                      </React.Fragment>
-                    ))}
-                  </Table.Summary.Row>
-                </Table.Summary>
-              );
-            }}
-          />
+                // ✅ ไม่ lock
+                formCustom.resetFields([
+                  "sale_id",
+                  "dealer_id",
+                  "product_name",
+                  "year_code",
+                  ...(isAdmin ? ["area_id"] : []), // non-admin ห้าม reset area
+                ]);
+
+                setDealers([]);
+                formCustom.setFieldsValue({ year_code: yearToUse });
+
+                // non-admin: คง area กลับเป็นของ user
+                if (!isAdmin && areaId != null) {
+                  formCustom.setFieldsValue({ area_id: String(areaId) });
+                }
+
+                // admin: reset sales list ได้ + default All
+                if (isAdmin) {
+                  setSales([]);
+                  formCustom.setFieldsValue({ area_id: "__ALL__" });
+                  await loadSalesByArea("__ALL__");
+                }
+
+                setTableParams((prev) => ({
+                  ...prev,
+                  pagination: { ...prev.pagination, current: 1 },
+                }));
+
+                const payload = {
+                  year_code: yearToUse,
+                  user_id: "",
+                  dealer_id: "",
+                  product_name: "",
+                  platform: "web",
+                  ...(formCustom.getFieldValue("area_id") &&
+                    formCustom.getFieldValue("area_id") !== "__ALL__"
+                    ? { area_id: formCustom.getFieldValue("area_id") }
+                    : {}),
+                };
+
+                // admin เท่านั้นที่ fetch ตอน clear (ตาม logic เดิม)
+                if (isAdmin) await fetchData(payload);
+              }}
+              name="btn-clear"
+              text="Clear"
+              iconSrc="/img/icons/trash.png"
+              className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
+            />
+
+            <ExportMonthlyExcelButton
+              text="Export Excel"
+              fileName={buildYearlyReportFileName()}
+              getPayload={buildPayload}
+              requestData={(payload) => useServiceAPI.get(paths.pathReportRollingWorkPlanYear, payload)}
+            />
+          </div>
         </BoxPrimary>
-      </MainLayout>
-    </>
+      </Form>
+
+      <BoxPrimary>
+        <TableCustomComponent
+          header={header}
+          dataSource={dataSource}
+          pagination={false}
+          loading={tableLoading}
+          onChange={() => { }}
+          footer={() => {
+            const footerData = calculateFooterSums();
+            return (
+              <Table.Summary fixed>
+                <Table.Summary.Row className="bg-[#978B87]">
+                  <Table.Summary.Cell index={0}>Total (THB)</Table.Summary.Cell>
+                  {footerData.map((period, index) => (
+                    <React.Fragment key={`${period.id}_${index}`}>
+                      <Table.Summary.Cell align="center">
+                        <InputNumber
+                          className="w-full"
+                          readOnly
+                          value={period.workplan_qty}
+                          formatter={(value) =>
+                            `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                        />
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell align="center">
+                        <InputNumber
+                          className="w-full"
+                          readOnly
+                          value={period.rolling_qty}
+                          formatter={(value) =>
+                            `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                        />
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell align="center">
+                        <InputNumber
+                          className="w-full"
+                          readOnly
+                          value={period.actual_qty}
+                          formatter={(value) =>
+                            `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                        />
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell align="center">
+                        <InputNumber
+                          className="w-full"
+                          readOnly
+                          value={period.workplan_value}
+                          formatter={(value) =>
+                            `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                        />
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell align="center">
+                        <InputNumber
+                          className="w-full"
+                          readOnly
+                          value={period.rolling_value}
+                          formatter={(value) =>
+                            `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                        />
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell align="center">
+                        <InputNumber
+                          className="w-full"
+                          readOnly
+                          value={period.actual_value}
+                          formatter={(value) =>
+                            `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                        />
+                      </Table.Summary.Cell>
+                    </React.Fragment>
+                  ))}
+                </Table.Summary.Row>
+              </Table.Summary>
+            );
+          }}
+        />
+      </BoxPrimary>
+    </MainLayout>
   );
 }

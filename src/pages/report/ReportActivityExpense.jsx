@@ -20,15 +20,7 @@ dayjs.extend(timezone);
 const getYearCodeFrom = (y) => {
   if (y == null) return "";
   if (typeof y === "string" || typeof y === "number") return String(y);
-  return (
-    y.year_code ??
-    y.code ??
-    y.value ??
-    y.label ??
-    y.name ??
-    y.year ??
-    ""
-  );
+  return y.year_code ?? y.code ?? y.value ?? y.label ?? y.name ?? y.year ?? "";
 };
 
 export default function ReportActivityExpense() {
@@ -40,13 +32,14 @@ export default function ReportActivityExpense() {
   const [loading, setLoading] = useState(false);
 
   // masters
-  const [years, setYears] = useState([]); // array of string year codes
+  const [years, setYears] = useState([]);
   const [defaultYear, setDefaultYear] = useState(null);
+
   const [areaList, setAreaList] = useState([]);
   const [salesList, setSalesList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
 
-  // lock sale for non-admin (เลือก sales ของตัวเอง + lock)
+  // lock sale for non-admin
   const [isSaleLocked, setIsSaleLocked] = useState(false);
 
   // table
@@ -55,28 +48,21 @@ export default function ReportActivityExpense() {
   const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
 
-  // form & step-watch
+  // form & watch
   const [form] = Form.useForm();
   const selectedArea = Form.useWatch("area_id", form);
   const selectedSale = Form.useWatch("user_id", form);
   const isAdmin = Number(roleId) === 1;
 
-  // local table params (keep year filter)
+  // keep year filter
   const [tableParams, setTableParams] = useState({
     pagination: { current: 1, pageSize: 10 },
     filters: {},
   });
 
   // ===== helpers (login) =====
-  const getLoginSaleId = (u) => {
-    if (!u) return null;
-    return u.sale_id ?? u.user_id ?? u.id ?? null;
-  };
-
-  const getLoginAreaId = (u) => {
-    if (!u) return null;
-    return u.area_id ?? u.areaId ?? u.area ?? null;
-  };
+  const getLoginSaleId = (u) => (u ? u.sale_id ?? u.user_id ?? u.id ?? null : null);
+  const getLoginAreaId = (u) => (u ? u.area_id ?? u.areaId ?? u.area ?? null : null);
 
   // ===== load user detail to get area_id and role_id =====
   useEffect(() => {
@@ -96,7 +82,7 @@ export default function ReportActivityExpense() {
           setRoleId(rId);
 
           // ✅ non-admin: fix area ตาม user
-          if (Number(rId) !== 1) {
+          if (Number(rId) !== 1 && aId != null) {
             form.setFieldsValue({ area_id: String(aId) });
           }
         }
@@ -128,28 +114,45 @@ export default function ReportActivityExpense() {
 
         setDefaultYear(yearToUse);
 
-        // ✅ set default year filter + form
         setTableParams((prev) => ({
           ...prev,
           filters: { ...prev.filters, year_code: yearToUse },
         }));
         form.setFieldsValue({ year_code: yearToUse });
 
-        const areaOpts = (areaRes?.data || []).map((a) => ({
+        // ✅ area ALL pattern
+        const areaOptsRaw = (areaRes?.data || []).map((a) => ({
           value: String(a.id),
           label: a.name,
         }));
+
+        const areaOpts =
+          areaOptsRaw.length === 0
+            ? [{ value: "__ALL__", label: "All", disabled: true }]
+            : areaOptsRaw;
+
         setAreaList(areaOpts);
 
-        // ✅ admin: ถ้ามี area เดียว -> auto select
-        if (Number(roleId) === 1) {
-          const defaultAreaId =
-            Array.isArray(areaOpts) && areaOpts.length === 1
-              ? areaOpts[0]?.value
+        // default area:
+        // - ถ้าไม่มี area -> __ALL__
+        // - ถ้ามี area เดียว -> auto select
+        // - หลาย area -> ไม่เลือก
+        const defaultAreaId =
+          areaOptsRaw.length === 0
+            ? "__ALL__"
+            : areaOptsRaw.length === 1
+              ? areaOptsRaw[0]?.value
               : undefined;
 
-          if (defaultAreaId && !form.getFieldValue("area_id")) {
+        // admin: set default area ถ้ายังไม่เลือก
+        if (Number(roleId) === 1) {
+          if (!form.getFieldValue("area_id")) {
             form.setFieldsValue({ area_id: defaultAreaId });
+          }
+        } else {
+          // non-admin ถ้าไม่มี areaId (กรณีแปลก) -> ให้โชว์ ALL
+          if (!form.getFieldValue("area_id") && areaOptsRaw.length === 0) {
+            form.setFieldsValue({ area_id: "__ALL__" });
           }
         }
       } catch (e) {
@@ -173,9 +176,12 @@ export default function ReportActivityExpense() {
         return;
       }
 
+      // ✅ ถ้าเลือก ALL -> ส่ง null ไปหา option sales
+      const areaIdForSales = selectedArea === "__ALL__" ? 'all' : selectedArea;
+
       try {
         const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
-          area_id: selectedArea,
+          area_id: areaIdForSales,
         });
 
         const raw = res?.data?.data ?? res?.data ?? [];
@@ -213,13 +219,13 @@ export default function ReportActivityExpense() {
     const loginSaleId = getLoginSaleId(userInfo);
     const loginAreaId = getLoginAreaId(userInfo);
 
-    // admin ไม่ lock
     if (roleId != null && Number(roleId) === 1) {
       setIsSaleLocked(false);
       return;
     }
 
-    if (!selectedArea) {
+    // ✅ ถ้า area เป็น ALL: ไม่ auto lock / ไม่ auto fetch
+    if (!selectedArea || selectedArea === "__ALL__") {
       setIsSaleLocked(false);
       return;
     }
@@ -229,16 +235,10 @@ export default function ReportActivityExpense() {
       return;
     }
 
-    const foundSale = salesList.find(
-      (s) => String(s.value) === String(loginSaleId)
-    );
+    const foundSale = salesList.find((s) => String(s.value) === String(loginSaleId));
 
     if (foundSale) {
-      // ถ้า area ไม่ตรง user -> บังคับให้ตรงก่อน (sales จะ reload)
-      if (
-        loginAreaId != null &&
-        String(selectedArea) !== String(loginAreaId)
-      ) {
+      if (loginAreaId != null && String(selectedArea) !== String(loginAreaId)) {
         form.setFieldsValue({ area_id: String(loginAreaId) });
         return;
       }
@@ -249,7 +249,7 @@ export default function ReportActivityExpense() {
       });
 
       setIsSaleLocked(true);
-      fetchData(); // โหลดทันทีเมื่อ lock แล้ว
+      fetchData();
     } else {
       setIsSaleLocked(false);
     }
@@ -293,31 +293,33 @@ export default function ReportActivityExpense() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSale]);
 
-  // ====== Fetch ======
+  // ====== Fetch (Report) ======
   const fetchData = async (overrideFilters) => {
     setTableLoading(true);
     try {
       const f = overrideFilters ?? tableParams.filters ?? {};
       const v = form.getFieldsValue();
 
+      const year_code =
+        f.year_code ||
+        defaultYear ||
+        years[0] ||
+        dayjs().tz("Asia/Bangkok").format("YYYY");
+
+      // ✅ เงื่อนไขสำคัญ:
+      // - ALL -> "ไม่ส่ง area_id ไป report" (omit key)
+      // - ไม่ ALL -> ส่ง area_id ตามจริง
       const requestData = {
         keyword: f.keyword || "",
-        year_code:
-          f.year_code ||
-          defaultYear ||
-          years[0] ||
-          dayjs().tz("Asia/Bangkok").format("YYYY"),
-        area_id: v.area_id || null,
+        year_code,
         user_id: v.user_id || null,
         dealer_id: v.dealer_id || null,
         page_length: 1,
         page_size: tableParams.pagination.pageSize,
+        ...(v.area_id && v.area_id !== "__ALL__" ? { area_id: v.area_id } : {}),
       };
 
-      const response = await useServiceAPI.get(
-        paths.pathReportActivityByMonth,
-        requestData
-      );
+      const response = await useServiceAPI.get(paths.pathReportActivityByMonth, requestData);
 
       if (response?.status === 200) {
         const { item, records_filtered, permission, total } = response.data || {};
@@ -362,7 +364,6 @@ export default function ReportActivityExpense() {
       defaultYear || years[0] || dayjs().tz("Asia/Bangkok").format("YYYY");
 
     if (isSaleLocked) {
-      // ✅ lock อยู่: ไม่แตะ area_id / user_id (sales)
       form.resetFields(["dealer_id", "year_code"]);
       setDealerList([]);
       form.setFieldsValue({
@@ -381,12 +382,11 @@ export default function ReportActivityExpense() {
     }
 
     if (!isAdmin) {
-      // ✅ non-admin: คง area ตาม user + (ถ้ามี) set sale ของตัวเอง
       const loginSaleId = getLoginSaleId(userInfo);
 
       form.resetFields(["user_id", "dealer_id", "year_code"]);
       form.setFieldsValue({
-        area_id: areaId != null ? String(areaId) : undefined,
+        area_id: areaId != null ? String(areaId) : "__ALL__",
         user_id: loginSaleId != null ? Number(loginSaleId) : undefined,
         dealer_id: undefined,
         year_code: yearToUse,
@@ -394,11 +394,14 @@ export default function ReportActivityExpense() {
 
       setDealerList([]);
     } else {
-      // ✅ admin: reset ได้หมด + default area ถ้ามี area เดียว
+      // admin: ถ้าไม่มี area -> __ALL__ เพื่อให้โชว์ All
+      const areaRaw = areaList.filter((x) => x.value !== "__ALL__");
       const defaultAreaId =
-        Array.isArray(areaList) && areaList.length === 1
-          ? areaList[0]?.value
-          : undefined;
+        areaRaw.length === 0
+          ? "__ALL__"
+          : areaRaw.length === 1
+            ? areaRaw[0]?.value
+            : undefined;
 
       form.resetFields(["area_id", "user_id", "dealer_id", "year_code"]);
       form.setFieldsValue({
@@ -479,13 +482,12 @@ export default function ReportActivityExpense() {
     }),
   ];
 
-  // ====== Export helpers ======
   const toText = (v) =>
     v == null
       ? ""
       : typeof v === "string" || typeof v === "number"
-      ? String(v)
-      : v.name ?? v.label ?? v.value ?? v.code ?? "";
+        ? String(v)
+        : v.name ?? v.label ?? v.value ?? v.code ?? "";
 
   const footerTotals = useMemo(() => {
     const sums = {};
@@ -527,7 +529,6 @@ export default function ReportActivityExpense() {
       .replace(/\s+/g, "_");
   };
 
-  // ====== UI ======
   return (
     <MainLayout loading={loading}>
       <Title prefix="Activity Expenses Report" />
@@ -547,8 +548,8 @@ export default function ReportActivityExpense() {
                 <Select
                   placeholder="Select Area"
                   options={areaList}
-                  disabled={!isAdmin} // ✅ non-admin ล็อก
-                  allowClear={isAdmin} // ✅ admin เท่านั้นที่ล้างได้
+                  disabled={!isAdmin || isSaleLocked || areaList?.[0]?.value === "__ALL__"}
+                  allowClear={isAdmin && !isSaleLocked && areaList?.[0]?.value !== "__ALL__"}
                 />
               </Form.Item>
             </Col>
@@ -559,7 +560,7 @@ export default function ReportActivityExpense() {
                   placeholder="Select Sales"
                   options={salesList}
                   allowClear={!isSaleLocked}
-                  disabled={!selectedArea || isSaleLocked} // ✅ lock sales สำหรับ non-admin
+                  disabled={!selectedArea || isSaleLocked}
                 />
               </Form.Item>
             </Col>
@@ -613,20 +614,23 @@ export default function ReportActivityExpense() {
               getPayload={async () => {
                 const f = tableParams?.filters || {};
                 const v = form.getFieldsValue();
-                return {
+
+                const payload = {
                   keyword: f.keyword || "",
                   year_code:
                     toText(f.year_code) ||
                     defaultYear ||
                     dayjs().tz("Asia/Bangkok").format("YYYY"),
-                  area_id: v.area_id || null,
                   user_id: v.user_id || null,
                   dealer_id: v.dealer_id || null,
                 };
+
+                // ✅ export: ALL -> ไม่ส่ง area_id
+                if (v.area_id && v.area_id !== "__ALL__") payload.area_id = v.area_id;
+
+                return payload;
               }}
-              requestData={(payload) =>
-                useServiceAPI.get(paths.pathReportActivityByMonth, payload)
-              }
+              requestData={(payload) => useServiceAPI.get(paths.pathReportActivityByMonth, payload)}
             />
           </div>
         </BoxPrimary>
@@ -651,10 +655,7 @@ export default function ReportActivityExpense() {
                       disabled
                       value={footerTotals[act.activity_type_id] || 0}
                       formatter={(value) =>
-                        `${Math.trunc(Number(value) || 0)}`.replace(
-                          /\B(?=(\d{3})+(?!\d))/g,
-                          ","
-                        )
+                        `${Math.trunc(Number(value) || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                       }
                       style={{ backgroundColor: "white" }}
                     />
