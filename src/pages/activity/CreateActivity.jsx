@@ -838,11 +838,19 @@ export default function CreateActivity() {
 
       let expenseParticapantUserList = participantUsers.map((x) => x.id);
       let particapantList = participants.map((x) => ({ name: x.name, address: x.address, phone: x.phone }));
-
+      let userID = '';
+      if (pageCode === "activity_transaction") {
+        userID = activityDetail.dealer_id;
+      }
+      else{
+        userID = activityDetail.sub_dealer_id;
+      }
+      // console.log(userID);
+      
       const body = {
         ...activityDetail,
         page_code: pageCode,
-        dealer_id: activityDetail.dealer_id,
+        dealer_id: userID,
         action_code: modeSave,
         image_list: imageLists,
         is_expense: isExpense,
