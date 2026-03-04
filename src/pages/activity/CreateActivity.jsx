@@ -264,6 +264,7 @@ export default function CreateActivity() {
       required: true,
       col: 6,
       value: activityDetail.crop_id_list,
+      moderef: true,
     },
     {
       label: "Product",
@@ -670,12 +671,12 @@ export default function CreateActivity() {
     });
   };
 
-  const calculateGrandTotal = (field) => {
-    const number = productCropList
-      .reduce((sum, item) => sum + (item[field] || 0) * item.bath_ltkg, 0)
-      .toFixed(2);
-    return NumberFormatter(number);
-  };
+  // const calculateGrandTotal = (field) => {
+  //   const number = productCropList
+  //     .reduce((sum, item) => sum + (item[field] || 0) * item.bath_ltkg, 0)
+  //     .toFixed(2);
+  //   return NumberFormatter(number);
+  // };
 
   const footerOrderList = () => (
     <tr className="bg-[#978B87]">
