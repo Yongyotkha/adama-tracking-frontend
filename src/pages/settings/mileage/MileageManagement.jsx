@@ -64,6 +64,19 @@ export default function MileageManagement() {
       end_date: m.endOf("month").format("YYYY-MM-DD"),
     };
   };
+  useEffect(() => {
+    const getSaleMaster = async () => {
+      try {
+        const saleRes = await useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" });
+        setNameOptions(saleRes?.data || []);
+      } catch (e) {
+        console.error(e);
+        setNameOptions([]);
+      }
+    };
+
+    getSaleMaster();
+  }, []);
 
   const fetchData = async () => {
     setTableLoading(true);
@@ -79,7 +92,7 @@ export default function MileageManagement() {
       start_date,
       end_date,
       // ✅ name ส่งเป็น user_id จาก dropdown (backend รับ key name เหมือนเดิม)
-      name: filters.name ?? "",
+      sale_id: filters.name ?? "",
       page_length: current,
       page_size: pageSize,
     };
@@ -103,7 +116,7 @@ export default function MileageManagement() {
             });
           }
         }
-        setNameOptions(Array.from(map.values()));
+        // setNameOptions(Array.from(map.values()));
 
         const newDataSource = result.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
