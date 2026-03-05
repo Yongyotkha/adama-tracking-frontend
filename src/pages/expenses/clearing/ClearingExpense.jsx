@@ -122,7 +122,7 @@ export default function ClearingExpense() {
       try {
         const [activityType, saleRes, dealerRes, subDealerRes] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" }),
           useServiceAPI.get(paths.pathMasterDealerAll, {}),
           useServiceAPI.get(paths.pathMasterSubDealerAll, {}),
         ]);
