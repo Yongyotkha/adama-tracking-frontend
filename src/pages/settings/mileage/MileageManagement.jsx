@@ -40,7 +40,17 @@ export default function MileageManagement() {
   const navigate = useNavigate();
 
   const header = [
-    { title: "No", width: 50, dataIndex: "no", align: "left" },
+    {
+      title: "No",
+      width: 50,
+      key: "no",
+      align: "left",
+      render: (_, __, index) => {
+        const current = tableParams?.pagination?.current || 1;
+        const pageSize = tableParams?.pagination?.pageSize || 10;
+        return (current - 1) * pageSize + index + 1;
+      },
+    },
     { title: "Date", width: 150, dataIndex: "date", align: "left" },
     { title: "Name", width: 200, dataIndex: "name", align: "left" },
     { title: "Mileage", width: 150, dataIndex: "mileage", align: "right" },
@@ -120,7 +130,7 @@ export default function MileageManagement() {
 
         const newDataSource = result.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-          no: index + 1 + (current - 1) * pageSize,
+          // no: index + 1 + (current - 1) * pageSize,
           date: item.date || "-",
           mileage: formatNumber(item.mileage) || "-",
           name: item.user_name_en || item.user_name || "-",
@@ -167,7 +177,12 @@ export default function MileageManagement() {
           ...prev,
           pagination: {
             ...prev.pagination,
-            total: result.length, // ถ้า API มี total จริงให้เปลี่ยนเป็น field นั้น
+            total:
+              response?.total ||
+              response?.data?.total ||
+              response?.data?.pagination?.total ||
+              response?.pagination?.total ||
+              result.length,
           },
         }));
       }

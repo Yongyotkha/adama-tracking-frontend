@@ -81,13 +81,13 @@ export default function OrderWaitingList() {
     { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
     { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dealerList },
     { key: "order_no", type: "text", label: "Order No", placeholder: "Order No" },
-    {
-      key: "status",
-      type: "select",
-      label: "Status",
-      placeholder: "All",
-      options: (statusListRaw || []).map((s) => ({ id: s.code, name: s.name })),
-    },
+    // {
+    //   key: "status",
+    //   type: "select",
+    //   label: "Status",
+    //   placeholder: "All",
+    //   options: (statusListRaw || []).map((s) => ({ id: s.code, name: s.name })),
+    // },
     { key: "dater", type: "dater", label: "Date", placeholder: "Date" },
   ];
 
