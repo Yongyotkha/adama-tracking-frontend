@@ -80,7 +80,6 @@ export default function CreatePointCampaign() {
   const [subDealerOptions, setSubDealerOptions] = useState([]);
   const [farmerOptions, setFarmerOptions] = useState([]);
   const [cropOptions, setCropOptions] = useState([]);
-
   useEffect(() => {
     const fetchTargets = async () => {
       try {
@@ -930,6 +929,9 @@ export default function CreatePointCampaign() {
     setFilterDealer(undefined);
   }, [targetKey]);
 
+  const selectedCustomerCount = selectedRowKeys.length;
+  const selectedProductCount = selectedProductKeys.length;
+
   return (
     <MainLayout loading={loading}>
       <div className="title-page">{pageTitle}</div>
@@ -1081,7 +1083,8 @@ export default function CreatePointCampaign() {
         <BoxPrimary>
           <div className="flex items-center justify-between mb-3">
             <div className="text-[#00783F] text-lg font-semibold">
-              Select Customer
+              Select Customer{" "}
+              <span className="text-[#00783F]">({selectedCustomerCount})</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -1172,7 +1175,8 @@ export default function CreatePointCampaign() {
         <BoxPrimary>
           <div className="flex items-center justify-between mb-3">
             <div className="text-[#00783F] text-lg font-semibold">
-              Select Product
+              Select Product{" "}
+              <span className="text-[#00783F]">({selectedProductCount})</span>
             </div>
             <div className="flex items-center gap-2">
               <Select
