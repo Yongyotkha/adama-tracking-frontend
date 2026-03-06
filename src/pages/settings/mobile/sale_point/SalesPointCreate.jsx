@@ -383,25 +383,33 @@ export default function SalesPointCreate() {
     }
   };
 
-  const handleNavigateToOrderView = () => {
-    formCustom
-      .validateFields()
-      .then((values) => {
-        const body = {
-          document_date: values.order_date,
-          user_id: dataSaleId,
-          dealer_id: dealerId,
-          sub_dealer_id: subDealerId,
-          remark: inputRemark,
-          products: dataSource,
-          others: dataSourceOther,
-          fileList,
-          fileListReceive,
-        };
-        navigate("/points/line/sales-points-list/detail", { state: { data: body } });
-      })
-      .catch((e) => console.error("Validation Failed:", e));
-  };
+const handleNavigateToOrderView = () => {
+  formCustom
+    .validateFields()
+    .then((values) => {
+      if (!fileList || fileList.length === 0) {
+        showMsg("error", "กรุณาแนบไฟล์หรือรูปภาพอย่างน้อย 1 รายการ");
+        return;
+      }
+
+      const body = {
+        document_date: values.order_date,
+        user_id: dataSaleId,
+        dealer_id: dealerId,
+        sub_dealer_id: subDealerId,
+        remark: inputRemark,
+        products: dataSource,
+        others: dataSourceOther,
+        fileList,
+        fileListReceive,
+      };
+
+      navigate("/points/line/sales-points-list/detail", {
+        state: { data: body },
+      });
+    })
+    .catch((e) => console.error("Validation Failed:", e));
+};
 
   const handleUploadClick = () => fileUploadRef.current?.triggerUpload();
   const handleUploadReceiveClick = () => fileUploadRefReceive.current?.triggerUpload();

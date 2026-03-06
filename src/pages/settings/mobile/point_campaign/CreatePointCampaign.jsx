@@ -442,24 +442,23 @@ export default function CreatePointCampaign() {
   }, [targetKey, showNotification, isEdit, detailCustomers]);
 
   const filteredTargetRows = useMemo(() => {
-    let rows = targetRows;
+    let rows = [...targetRows];
 
-    // ✅ Filter: Sales
     if (filterSale) {
       rows = rows.filter((r) => String(r.sale_id || "") === String(filterSale));
     }
 
-    // ✅ Filter: Dealer
     if (filterDealer) {
       rows = rows.filter((r) => String(r.dealer_id || "") === String(filterDealer));
     }
 
-    // Search
     if (searchKeyword) {
       const q = searchKeyword.toLowerCase();
       rows = rows.filter(
         (r) =>
           (r.name || "").toLowerCase().includes(q) ||
+          (r.name_th || "").toLowerCase().includes(q) ||
+          (r.name_en || "").toLowerCase().includes(q) ||
           (r.address || "").toLowerCase().includes(q) ||
           (r.type || "").toLowerCase().includes(q) ||
           (r.target_group || "").toLowerCase().includes(q) ||
@@ -467,6 +466,24 @@ export default function CreatePointCampaign() {
           (r.dealer_name || "").toLowerCase().includes(q)
       );
     }
+
+    const groupPriority = {
+      Dealer: 1,
+      "Sub Dealer": 2,
+      Farmer: 3,
+    };
+
+    rows.sort((a, b) => {
+      const groupDiff =
+        (groupPriority[a.target_group] || 99) - (groupPriority[b.target_group] || 99);
+
+      if (groupDiff !== 0) return groupDiff;
+
+      return String(a.name || "").localeCompare(String(b.name || ""), "en", {
+        sensitivity: "base",
+        numeric: true,
+      });
+    });
 
     return rows;
   }, [targetRows, searchKeyword, filterSale, filterDealer]);
