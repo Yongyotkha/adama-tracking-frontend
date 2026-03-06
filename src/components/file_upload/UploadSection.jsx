@@ -12,11 +12,12 @@ const UploadSection = ({
   handleFileRemove,
   modeUpload = "activity",
   disabled = false, // New prop to control view-only mode
+  required = false, // New prop to indicate if the field is required
 }) => {
   return (
     <BoxPrimary>
       <div className="flex items-center justify-between mb-4">
-        <span className="text-[#00783F] text-lg font-semibold">{title}</span>
+        <span className="text-[#00783F] text-lg font-semibold">{title} {required && <span className="text-red-500">*</span>}</span>
         {!disabled && (
           <ActionButton mode="add" text="Upload File" onClick={handleUploadClick} />
         )}

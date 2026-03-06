@@ -500,6 +500,7 @@ const handleNavigateToOrderView = () => {
         handleUploadClick={handleUploadClick}
         handleUploadSuccess={handleUploadSuccess}
         handleFileRemove={handleFileRemove}
+        required={true}
       />
 
       <UploadSection

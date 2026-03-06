@@ -331,7 +331,7 @@ export default function CreateActivity() {
       try {
         const [activityTypeRes, saleRes, saleAllRes, perceptionRes] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" }),
+          useServiceAPI.get(paths.pathMasterSaleActivity, { status: "all", mode: "all" }),
           useServiceAPI.get(paths.pathMasterSaleDropdown, { status: "all", mode: "all" }),
           useServiceAPI.get(paths.pathMasterPerception, {}),
         ]);
@@ -843,11 +843,11 @@ export default function CreateActivity() {
       if (pageCode === "activity_transaction") {
         userID = activityDetail.dealer_id;
       }
-      else{
+      else {
         userID = activityDetail.sub_dealer_id;
       }
       // console.log(userID);
-      
+
       const body = {
         ...activityDetail,
         page_code: pageCode,
@@ -1203,15 +1203,15 @@ export default function CreateActivity() {
         />
 
         {activityDetail?.permission?.btn_convert && (
-          <ActionButton mode="saveDraft" text="Convert to Clearing" onClick={() => handleSave("convert_clearing")}/>
+          <ActionButton mode="saveDraft" text="Convert to Clearing" onClick={() => handleSave("convert_clearing")} />
         )}
 
         {(activityDetail?.permission?.btn_draft || mode === "create") && (
-          <ActionButton mode="saveDraft" text="Draft" onClick={() => handleSave("draft")}/>
+          <ActionButton mode="saveDraft" text="Draft" onClick={() => handleSave("draft")} />
         )}
 
         {(activityDetail?.permission?.btn_save || mode === "create") && mode !== "view" && (
-          <ActionButton mode="save" text="Save" onClick={() => handleSave("save")}/>
+          <ActionButton mode="save" text="Save" onClick={() => handleSave("save")} />
         )}
 
         {(activityDetail?.permission?.btn_export || activityDetail?.permission?.btn_pdf) && (
@@ -1227,12 +1227,12 @@ export default function CreateActivity() {
 
         {/* {activityDetail?.permission?.btn_reject && activityDetail?.transaction_status_name !== "Convert" && mode !== "approve" && ( */}
         {activityDetail?.permission?.btn_reject && activityDetail?.transaction_status_name !== "Convert" && (
-          <ActionButton mode="reject" text={btn_reject} onClick={() => handleApproval("reject")}/>
+          <ActionButton mode="reject" text={btn_reject} onClick={() => handleApproval("reject")} />
         )}
 
         {/* {activityDetail?.permission?.btn_approved && activityDetail?.transaction_status_name !== "Convert" && mode !== "approve" && ( */}
         {activityDetail?.permission?.btn_approved && activityDetail?.transaction_status_name !== "Convert" && (
-          <ActionButton mode="save" text={btn_approve} onClick={() => handleApproval("approved")}/>
+          <ActionButton mode="save" text={btn_approve} onClick={() => handleApproval("approved")} />
         )}
       </div>
 
