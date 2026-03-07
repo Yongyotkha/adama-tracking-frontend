@@ -98,6 +98,7 @@ export default function CreateActivity() {
   const [isBtnExpenseActive, setIsBtnExpenseActive] = useState(false);
 
   const [activityDetail, setActivityDetail] = useState({
+    document_number_referrent: "",
     product_list: [],
     crop_id_list: [],
     expense_product_data_list: [],
@@ -198,12 +199,12 @@ export default function CreateActivity() {
     },
     {
       label: "Activity Reference",
-      name: "activity_reference",
+      name: "document_number_referrent",
       type: pageCode !== "activity_transaction" ? (viewSegment ? "hidden" : "search") : "hidden",
       disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
       required: false,
       col: 24,
-      value: "",
+      value: activityDetail.document_number_referrent ?? "",
     },
     {
       label: "Activity Type",
@@ -440,6 +441,7 @@ export default function CreateActivity() {
         setActivityDetail((prev) => ({
           ...prev,
           ...normalized,
+          document_number_referrent: normalized.document_number_referrent || "",
           crop_id_list: cropListIds,
           product_list: productListIds,
           assing_user_list: userListIds,
@@ -495,7 +497,7 @@ export default function CreateActivity() {
           setActivityDetail((prev) => ({ ...prev, description: value }));
         } else if (attribue === "document_date") {
           setActivityDetail((prev) => ({ ...prev, document_date: value }));
-        } else if (attribue === "activity_reference") {
+        } else if (attribue === "document_number_referrent") {
           setLoading(true);
           try {
             const response = await useServiceAPI.get(paths.pathActivityDetail, { document_number: value });
@@ -509,11 +511,16 @@ export default function CreateActivity() {
             setActivityDetail((prev) => ({
               ...prev,
               ...d,
+              document_number_referrent: value, // ✅ ต้องมีบรรทัดนี้
               crop_id_list: cropListIds,
               product_list: productListIds,
               assing_user_list: userListIds,
               document_number: "",
             }));
+
+            formCustom.setFieldsValue({
+              document_number_referrent: value, // ✅ ให้หน้าฟอร์มเห็นค่าด้วย
+            });
           } finally {
             setLoading(false);
           }
@@ -850,6 +857,10 @@ export default function CreateActivity() {
 
       const body = {
         ...activityDetail,
+        document_number_referrent:
+          activityDetail.document_number_referrent ||
+          formCustom.getFieldValue("document_number_referrent") ||
+          "",
         page_code: pageCode,
         dealer_id: userID,
         action_code: modeSave,
