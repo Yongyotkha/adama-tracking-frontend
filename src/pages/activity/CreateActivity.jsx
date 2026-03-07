@@ -506,6 +506,12 @@ export default function CreateActivity() {
             const productListIds = d?.product_list?.map((p) => p.id);
             const userListIds = d.assing_user_list.map((p) => p.id);
             const cropListIds = d.crop_id_list.map((p) => p.id);
+            // ✅ สำคัญ: เติม options ของ crop จาก detail ที่ค้นมาเลย
+            const cropOptions = (d?.crop_id_list || []).map((item) => ({
+              id: item.id,
+              name: item.name,
+            }));
+            setCropList(cropOptions);
 
             setIsBtnExpenseActive(d.is_expense);
             setActivityDetail((prev) => ({
