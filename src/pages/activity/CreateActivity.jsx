@@ -950,7 +950,7 @@ export default function CreateActivity() {
       } else {
         userID = activityDetail.sub_dealer_id;
       }
-      console.log(userID);
+      // console.log(userID);
 
       const body = {
         ...activityDetail,

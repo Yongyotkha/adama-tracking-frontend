@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
-import { Dropdown, Modal } from "antd";
+import { Dropdown, Modal, Input } from "antd";
 import ActionButton from "../../../components/button/ActionButton";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
@@ -14,12 +14,13 @@ import { AuthContext } from "../../../contexts/AuthContext";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 import DynamicModal from "../../../components/modal/DynamicModal";
 
-
 export default function ApprovalClearingExpense() {
   const navigate = useNavigate();
   const location = useLocation();
   const { role } = useParams();
   const { confirm } = Modal;
+  const { TextArea } = Input;
+
   const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
@@ -27,14 +28,15 @@ export default function ApprovalClearingExpense() {
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
-  const { showNotification, showMsg } = useContext(AuthContext);
-  const [userList, setUserList] = useState([]);
+  const { showNotification, showMsg, userInfo } = useContext(AuthContext);
   const [logs, setLogs] = useState([]);
+  const [filterValues, setFilterValues] = useState({});
 
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
       pageSize: 10,
+      total: 0,
     },
     filters: {},
     sortOrder: null,
@@ -84,24 +86,46 @@ export default function ApprovalClearingExpense() {
     },
   ];
 
+  const getApproveRejectText = () => {
+    let approveText = "Approve";
+    let rejectText = "Reject";
 
+    if (userInfo?.role_id == 8) {
+      approveText = "Confirm";
+      rejectText = "Cancel";
+    }
+
+    return { approveText, rejectText };
+  };
+
+  const getId = (v) => {
+    if (!v) return "";
+    if (typeof v === "object") return v.value ?? v.id ?? "";
+    return v;
+  };
 
   const handleSearch = (filters) => {
-    setTableParams({
-      ...tableParams,
+    setFilterValues(filters);
+    setTableParams((prev) => ({
+      ...prev,
+      pagination: { ...prev.pagination, current: 1 },
       filters,
-    });
+    }));
   };
 
   const handleClear = () => {
-    setTableParams({
-      ...tableParams,
+    setFilterValues({});
+    setTableParams((prev) => ({
+      ...prev,
+      pagination: { ...prev.pagination, current: 1 },
       filters: {},
-    });
+    }));
   };
 
   const handleChange = (filter) => {
-    if (filter) {
+    setFilterValues(filter || {});
+
+    if (filter?.sale) {
       const getMasterDealer = async () => {
         try {
           const [dealer] = await Promise.all([
@@ -110,7 +134,7 @@ export default function ApprovalClearingExpense() {
             }),
           ]);
 
-          setDealerList(dealer.data);
+          setDealerList(dealer.data || []);
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
         }
@@ -118,7 +142,7 @@ export default function ApprovalClearingExpense() {
 
       getMasterDealer();
     } else {
-      handleClear();
+      setDealerList([]);
     }
   };
 
@@ -127,10 +151,9 @@ export default function ApprovalClearingExpense() {
       title: "Do you want to delete ?",
       icon: <ExclamationCircleFilled />,
       content: [],
-      centered: true, // ตัวเลือกนี้ช่วยจัดให้อยู่กลาง
+      centered: true,
       async onOk() {
         try {
-          // Call API to delete the event
           const response = await useServiceAPI.delete(
             `/activity-expense/delete?document_number=${encodeURIComponent(
               documentNumber
@@ -138,27 +161,22 @@ export default function ApprovalClearingExpense() {
           );
           await fetchData();
           if (response.status === 200) {
-            // Show success notification
             showNotification(
               "success",
-              response.data.message || "Event deleted successfully!",
-              response.data.message_line || ["The event has been removed."]
+              response.data.message || "Deleted successfully!",
+              response.data.message_line || ["The item has been removed."]
             );
           } else {
-            // Show error notification if response is not 200
-            console.error("Failed to delete event:", response.message);
             showNotification(
               "error",
-              response.message || "Failed to delete event.",
+              response.message || "Failed to delete.",
               response.message_line || ["Please try again later."]
             );
           }
         } catch (error) {
-          // Handle errors and show an error notification
-          console.error("Error deleting event:", error);
           showNotification(
             "error",
-            "An error occurred while deleting the event.",
+            "An error occurred while deleting.",
             ["Please try again later."]
           );
         }
@@ -166,7 +184,6 @@ export default function ApprovalClearingExpense() {
     });
   };
 
-  // Master
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
@@ -176,9 +193,10 @@ export default function ApprovalClearingExpense() {
           useServiceAPI.get(paths.pathMasterDealerAll, {}),
         ]);
 
-        setActivityList(activityType.data);
-        setSaleList(sale.data);
+        setActivityList(activityType.data || []);
+        setSaleList(sale.data || []);
       } catch (error) {
+        console.error(error);
       } finally {
         setLoading(false);
       }
@@ -186,6 +204,95 @@ export default function ApprovalClearingExpense() {
 
     getMaster();
   }, []);
+
+  const handleOpenPage = (row, mode = "view") => {
+    navigate("/activity/approve", {
+      state: {
+        documentNumber: row.document_number,
+        pageCode: row.page_code,
+        page_mode: mode,
+      },
+    });
+  };
+
+  const handleApprovalAction = async (row, action) => {
+    let remark = "";
+    const { approveText, rejectText } = getApproveRejectText();
+
+    confirm({
+      title: `Do you want to ${action === "approved" ? approveText : rejectText} ?`,
+      icon: <ExclamationCircleFilled />,
+      content:
+        action === "reject" ? (
+          <TextArea
+            placeholder="Please enter remark"
+            onChange={(e) => {
+              remark = e.target.value;
+            }}
+          />
+        ) : null,
+      centered: true,
+      async onOk() {
+        try {
+          const result = await useServiceAPI.put(paths.pathClearingApproval, {
+            document_number: row.document_number,
+            page_mode: "approve",
+            remark,
+            action_code: action,
+          });
+
+          await showNotification(
+            "success",
+            result?.data?.Message?.Message_Header || result?.data?.message || "Success",
+            result?.data?.Message?.Message_Line || result?.data?.message_line || ["Transaction completed"],
+            2
+          );
+
+          fetchData();
+        } catch (error) {
+          console.error(error);
+          showNotification("error", "Transaction failed", ["Please try again later."]);
+        }
+      },
+    });
+  };
+
+  const buildActionMenuItems = (row) => {
+    return (row.action || []).map((actionItem, actionIndex) => {
+      const rawMode = String(actionItem.action || "").toLowerCase().trim();
+
+      let itemMode = rawMode;
+      let itemText = actionItem.action;
+      let onClickHandler = null;
+
+      if (rawMode === "view") {
+        itemMode = "view";
+        onClickHandler = () => handleOpenPage(row, "view");
+      } else if (rawMode === "edit") {
+        itemMode = "edit";
+        onClickHandler = () => handleOpenPage(row, "edit");
+      } else if (rawMode === "delete") {
+        itemMode = "delete";
+        onClickHandler = () => handleDelete(row.document_number);
+      } else if (rawMode === "approve") {
+        itemMode = "approve";
+        itemText = getApproveRejectText().approveText;
+        onClickHandler = () => handleApprovalAction(row, "approved");
+      } else if (rawMode === "reject") {
+        itemMode = "reject";
+        itemText = getApproveRejectText().rejectText;
+        onClickHandler = () => handleApprovalAction(row, "reject");
+      } else {
+        itemMode = "view";
+        onClickHandler = () => handleOpenPage(row, "view");
+      }
+
+      return {
+        key: actionIndex,
+        label: <ItemDropDown mode={itemMode} onClick={onClickHandler} text={itemText} />,
+      };
+    });
+  };
 
   const header = [
     { title: "No", dataIndex: "key", align: "center" },
@@ -206,13 +313,27 @@ export default function ApprovalClearingExpense() {
     { title: "Date", dataIndex: "date", align: "center" },
     { title: "Sale", dataIndex: "sale", align: "left" },
     { title: "Status", dataIndex: "status", align: "center" },
-    { title: "Action", dataIndex: "action", align: "center" },
+    {
+      title: "Action",
+      dataIndex: "action",
+      align: "center",
+      render: (_, record) => (
+        <Dropdown menu={{ items: buildActionMenuItems(record.raw) }} placement="bottom">
+          <a onClick={(e) => e.preventDefault()}>
+            <img
+              src="/img/icons/action.png"
+              alt="Actions icon"
+              className="inline-block w-5 h-5"
+            />
+          </a>
+        </Dropdown>
+      ),
+    },
   ];
-
 
   useEffect(() => {
     console.log("logs updated:", logs);
-  }, [userList]);
+  }, [logs]);
 
   const fetchData = async () => {
     setTableLoading(true);
@@ -224,13 +345,14 @@ export default function ApprovalClearingExpense() {
 
     const requestData = {
       page_code: "expense_clearing",
-      keyword: filters.keyword || "",
+      document_number_advance_referrent: filters.expense_no || filters.document_number_advance_referrent || "",
       use_flag: "1",
-      user_id: filters.sale,
-      dealer_id: filters.customer,
-      activity_type_id: filters.type_of_meeting,
-      document_number_referrent: filters.activity_reference,
+      user_id: getId(filters.sale),
+      dealer_id: getId(filters.customer),
+      activity_type_id: getId(filters.type_of_meeting),
+      document_number_referrent: filters.activity_reference || "",
       customer_name: "",
+      date: filters.date || "",
       page: "all",
       orderby_column: sortField,
       orderby: sortOrder,
@@ -248,32 +370,32 @@ export default function ApprovalClearingExpense() {
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
 
-        let btn_view = role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()
-        btn_view = ''
-
-
-        const newDataSource = data.map((row, index) => {
-
-
-          let bad_status = <BadgeStatus
-            text={row.transaction_status_name}
-            bgColor={row.transaction_status_bg_color}
-            textColor={row.transaction_status_color}
-          />
-
-          if (row.transaction_status_name == 'Reject') {
-            bad_status = <BadgeStatus
+        const newDataSource = (data || []).map((row, index) => {
+          let bad_status = (
+            <BadgeStatus
               text={row.transaction_status_name}
               bgColor={row.transaction_status_bg_color}
               textColor={row.transaction_status_color}
-              onClick={async () => {
-                await fetchDialog(row.document_number);
-                setIsTerritoryModalVisible(true);
-              }}
             />
+          );
+
+          if (row.transaction_status_name === "Reject") {
+            bad_status = (
+              <BadgeStatus
+                text={row.transaction_status_name}
+                bgColor={row.transaction_status_bg_color}
+                textColor={row.transaction_status_color}
+                onClick={async () => {
+                  await fetchDialog(row.document_number);
+                  setIsTerritoryModalVisible(true);
+                }}
+              />
+            );
           }
+
           return {
             key: index + 1 + (current - 1) * pageSize,
+            raw: row,
             customer: row.sub_dealer_name,
             dealer: row.dealer_name,
             expenseNo: row.document_number,
@@ -283,60 +405,19 @@ export default function ApprovalClearingExpense() {
             date: row.document_date,
             sale: row.user_name,
             status: bad_status,
-            action: (
-              <Dropdown
-                menu={{
-                  items: row.action.map((actionItem, actionIndex) => {
-                    let path = "";
-                    let text = "";
-                    let mode = actionItem.action.toLowerCase();
-                    let onClickHandler = null;
-                    path = `/activity/approve`;
-                    text = `View ${btn_view}`;
-                    onClickHandler = () => {
-                      navigate(path, {
-                        state: {
-                          documentNumber: row.document_number,
-                          pageCode: row.page_code,
-                          page_mode: actionItem.action.toLowerCase(),
-                        },
-                      });
-                    };
-                    return {
-                      key: actionIndex,
-                      label: (
-                        <ItemDropDown
-                          mode={mode}
-                          onClick={onClickHandler}
-                          text={text}
-                        />
-                      ),
-                    };
-                  }),
-                }}
-                placement="bottom"
-              >
-                <a onClick={(e) => e.preventDefault()}>
-                  <img
-                    src="/img/icons/action.png"
-                    alt="Actions icon"
-                    className="inline-block w-5 h-5"
-                  />
-                </a>
-              </Dropdown>
-            ),
+            action: row.action || [],
           };
         });
 
         setDataSource(newDataSource);
 
-        setTableParams({
-          ...tableParams,
+        setTableParams((prev) => ({
+          ...prev,
           pagination: {
-            ...tableParams.pagination,
-            total: records_filtered,
+            ...prev.pagination,
+            total: records_filtered || 0,
           },
-        });
+        }));
       }
     } catch (error) {
       console.error(error);
@@ -347,6 +428,7 @@ export default function ApprovalClearingExpense() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     location.pathname,
     tableParams.pagination.current,
@@ -357,12 +439,12 @@ export default function ApprovalClearingExpense() {
   ]);
 
   const handleTableChange = (pagination, filters, sorter) => {
-    setTableParams({
+    setTableParams((prev) => ({
+      ...prev,
       pagination,
-      filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
-      // sortOrder: sorter.order === "descend" ? "desc" : "asc",
-      sortField: sorter.field,
-    });
+      filters: prev.filters,
+      sortField: sorter?.field,
+    }));
   };
 
   const logsColumns = [
@@ -388,7 +470,6 @@ export default function ApprovalClearingExpense() {
     },
   ];
 
-
   const fetchDialog = async (document_number) => {
     setLoading(true);
 
@@ -406,20 +487,17 @@ export default function ApprovalClearingExpense() {
           reason: item.remark,
           update_by: item.update_by,
         }));
-        console.log('territoryData : ', territoryData)
         setLogs(territoryData);
       } else {
         setLogs([]);
       }
-
     } catch (error) {
-      console.error("Error fetching user list:", error);
+      console.error("Error fetching logs:", error);
       setLogs([]);
     } finally {
       setLoading(false);
     }
   };
-
 
   return (
     <MainLayout loading={loading}>
@@ -428,8 +506,7 @@ export default function ApprovalClearingExpense() {
         <ActionButton
           mode="create"
           text="Create"
-          onClick={(e) =>
-            // navigate("/activity/create?pageCode=expense_clearing")
+          onClick={() =>
             navigate("/activity/create", {
               state: {
                 pageCode: "expense_clearing",
@@ -438,12 +515,15 @@ export default function ApprovalClearingExpense() {
           }
         />
       </div>
+
       <Filter
         onSearch={handleSearch}
         onClear={handleClear}
         onChange={handleChange}
         filters={filters}
+        values={filterValues}
       />
+
       <BoxPrimary>
         <TableComponent
           header={header}
@@ -453,6 +533,7 @@ export default function ApprovalClearingExpense() {
           onChange={handleTableChange}
         />
       </BoxPrimary>
+
       <DynamicModal
         title="Log Detail"
         isVisible={isTerritoryModalVisible}

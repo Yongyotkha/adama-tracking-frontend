@@ -1,13 +1,7 @@
-// src/pages/expenses/advance/AdvanceExpense.jsx
-// ✅ Master: SaleDropdown + DealerAll + SubDealerAll (+ ActivityType)
-// ✅ No step (no onChange fetch master by sale/dealer)
-// ✅ Search triggers fetch, onChange only updates UI (filterValues)
-// ✅ Clear resets UI + fetches all + reset page to 1
-
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
-import { Dropdown, Modal } from "antd";
+import { Dropdown, Modal, Input } from "antd";
 import ActionButton from "../../../components/button/ActionButton";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
@@ -21,19 +15,21 @@ import { ExclamationCircleFilled } from "@ant-design/icons";
 
 export default function AdvanceExpense() {
   const { confirm } = Modal;
+  const { TextArea } = Input;
   const navigate = useNavigate();
-  const { showNotification } = useContext(AuthContext);
+  const { showNotification, userInfo } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [pagePermission, setPagePermission] = useState({});
 
   const [activityList, setActivityList] = useState([]);
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
+  const [statusList, setStatusList] = useState([]);
 
-  // ✅ Filter UI state (draft)
   const [filterValues, setFilterValues] = useState({});
 
   const [tableParams, setTableParams] = useState({
@@ -49,6 +45,12 @@ export default function AdvanceExpense() {
     return v;
   };
 
+  const getStatusCode = (v) => {
+    if (!v) return "";
+    if (typeof v === "object") return v.code ?? v.value ?? v.id ?? "";
+    return v;
+  };
+
   const filters = [
     { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
     { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dealerList, moderef: false },
@@ -56,10 +58,10 @@ export default function AdvanceExpense() {
     { key: "expense_no", type: "text", label: "Expense No", placeholder: "All" },
     { key: "activity_reference", type: "text", label: "Activity Reference", placeholder: "All" },
     { key: "type_of_meeting", type: "select", label: "Type of Meeting", placeholder: "All", options: activityList },
+    { key: "status", type: "select", label: "Status", placeholder: "All", options: statusList },
     { key: "date", type: "date", label: "Date", placeholder: "YYYY-MM-DD" },
   ];
 
-  // ✅ Search-only / Clear fetch all
   const handleFilterChange = (values) => setFilterValues(values);
 
   const handleSearch = (valuesFromUI) => {
@@ -79,6 +81,28 @@ export default function AdvanceExpense() {
     }));
   };
 
+  const getApproveRejectText = () => {
+    let approveText = "Approve";
+    let rejectText = "Reject";
+
+    if (userInfo?.role_id == 8) {
+      approveText = "Confirm";
+      rejectText = "Cancel";
+    }
+
+    return { approveText, rejectText };
+  };
+
+  const handleOpenPage = (row, mode = "view") => {
+    navigate(`/activity/${mode}`, {
+      state: {
+        documentNumber: row.document_number,
+        pageCode: row.page_code,
+        page_mode: mode,
+      },
+    });
+  };
+
   const handleDelete = async (documentNumber) => {
     confirm({
       title: "Do you want to delete ?",
@@ -92,37 +116,118 @@ export default function AdvanceExpense() {
               "expense_advance"
             )}`
           );
+
           await fetchData();
+
           if (response.status === 200) {
             showNotification(
               "success",
-              response.data.message || "Event deleted successfully!",
-              response.data.message_line || ["The event has been removed."]
+              response.data.message || "Deleted successfully!",
+              response.data.message_line || ["The item has been removed."]
             );
           } else {
             showNotification(
               "error",
-              response.message || "Failed to delete event.",
+              response.message || "Failed to delete.",
               response.message_line || ["Please try again later."]
             );
           }
         } catch (error) {
-          showNotification("error", "An error occurred while deleting the event.", ["Please try again later."]);
+          showNotification("error", "An error occurred while deleting.", ["Please try again later."]);
         }
       },
     });
   };
 
-  // ✅ Load Masters (Sale + DealerAll + SubDealerAll + ActivityType)
+  const handleApprovalAction = async (row, action) => {
+    let remark = "";
+    const { approveText, rejectText } = getApproveRejectText();
+
+    confirm({
+      title: `Do you want to ${action === "approved" ? approveText : rejectText} ?`,
+      icon: <ExclamationCircleFilled />,
+      content:
+        action === "reject" ? (
+          <TextArea
+            placeholder="Please enter remark"
+            onChange={(e) => {
+              remark = e.target.value;
+            }}
+          />
+        ) : null,
+      centered: true,
+      async onOk() {
+        try {
+          const result = await useServiceAPI.put(paths.pathAdvanceApproval, {
+            document_number: row.document_number,
+            page_mode: "approve",
+            remark,
+            action_code: action,
+          });
+
+          await showNotification(
+            "success",
+            result?.data?.Message?.Message_Header || result?.data?.message || "Success",
+            result?.data?.Message?.Message_Line || result?.data?.message_line || ["Transaction completed"],
+            2
+          );
+
+          fetchData();
+        } catch (error) {
+          console.error(error);
+          showNotification("error", "Transaction failed", ["Please try again later."]);
+        }
+      },
+    });
+  };
+
+  const buildActionMenuItems = (row) => {
+    return (row.action || []).map((actionItem, actionIndex) => {
+      const rawMode = String(actionItem.action || "").toLowerCase().trim();
+
+      let itemMode = rawMode;
+      let itemText = actionItem.action;
+      let onClickHandler = null;
+
+      if (rawMode === "view") {
+        itemMode = "view";
+        onClickHandler = () => handleOpenPage(row, "view");
+      } else if (rawMode === "edit") {
+        itemMode = "edit";
+        onClickHandler = () => handleOpenPage(row, "edit");
+      } else if (rawMode === "delete") {
+        itemMode = "delete";
+        onClickHandler = () => handleDelete(row.document_number);
+      } else if (rawMode === "approve") {
+        itemMode = "approve";
+        itemText = getApproveRejectText().approveText;
+        onClickHandler = () => handleApprovalAction(row, "approved");
+      } else if (rawMode === "reject") {
+        itemMode = "delete";
+        itemText = getApproveRejectText().rejectText;
+        onClickHandler = () => handleApprovalAction(row, "reject");
+      } else {
+        itemMode = "view";
+        onClickHandler = () => handleOpenPage(row, "view");
+      }
+
+      return {
+        key: actionIndex,
+        label: <ItemDropDown mode={itemMode} onClick={onClickHandler} text={itemText} />,
+      };
+    });
+  };
+
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [activityType, saleRes, dealerRes, subDealerRes] = await Promise.all([
+        const [activityType, saleRes, dealerRes, subDealerRes, statusRes] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
           useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" }),
           useServiceAPI.get(paths.pathMasterDealerAll, {}),
           useServiceAPI.get(paths.pathMasterSubDealerAll, {}),
+          useServiceAPI.get(paths.pathMasterStatus, { status_type: "expense_advance" }),
         ]);
 
         setActivityList(activityType?.data || []);
@@ -131,6 +236,7 @@ export default function AdvanceExpense() {
         setDealerList(
           (dealerRes?.data || []).map((d) => ({
             id: d.id ?? d.dealer_id ?? d.code,
+            value: d.id ?? d.dealer_id ?? d.code,
             name: d.name ?? d.dealer_name ?? d.title,
           }))
         );
@@ -138,7 +244,17 @@ export default function AdvanceExpense() {
         setSubDealerList(
           (subDealerRes?.data || []).map((s) => ({
             id: s.sub_dealer_id ?? s.id ?? s.code,
+            value: s.sub_dealer_id ?? s.id ?? s.code,
             name: s.sub_dealer_name ?? s.name ?? s.title,
+          }))
+        );
+
+        setStatusList(
+          (statusRes?.data || []).map((s) => ({
+            id: s.code,
+            value: s.code,
+            code: s.code,
+            name: s.name,
           }))
         );
       } catch (error) {
@@ -161,7 +277,18 @@ export default function AdvanceExpense() {
     { title: "Date", dataIndex: "date", align: "center" },
     { title: "Sale", dataIndex: "sale", align: "left" },
     { title: "Status", dataIndex: "status", align: "center" },
-    { title: "Action", dataIndex: "action", align: "center" },
+    {
+      title: "Action",
+      dataIndex: "action",
+      align: "center",
+      render: (_, record) => (
+        <Dropdown menu={{ items: buildActionMenuItems(record.raw) }} placement="bottom">
+          <a onClick={(e) => e.preventDefault()}>
+            <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
+          </a>
+        </Dropdown>
+      ),
+    },
   ];
 
   const fetchData = async () => {
@@ -181,6 +308,7 @@ export default function AdvanceExpense() {
       sub_dealer_id: getId(f.customer),
       date: f.date || "",
       activity_type_id: getId(f.type_of_meeting),
+      status_code: getStatusCode(f.status),
       document_number_referrent: f.activity_reference || "",
       customer_name: "",
       page: "all",
@@ -189,16 +317,20 @@ export default function AdvanceExpense() {
       orderby: sortOrder,
       page_length: current,
       page_size: pageSize,
+      platform: "web",
     };
 
     try {
       const response = await useServiceAPI.get(paths.pathActivityExpenseList, requestData);
 
       if (response.status === 200) {
-        const { data, records_filtered } = response.data;
+        const { data, records_filtered, permission } = response.data;
+
+        setPagePermission(permission || {});
 
         const newDataSource = (data || []).map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
+          raw: row,
           customer: row.sub_dealer_name,
           dealersd: row.dealer_name,
           expenseNo: row.document_number,
@@ -213,41 +345,7 @@ export default function AdvanceExpense() {
               textColor={row.transaction_status_color}
             />
           ),
-          action: (
-            <Dropdown
-              menu={{
-                items: (row.action || []).map((actionItem, actionIndex) => {
-                  let path = "";
-                  let mode = actionItem.action.toLowerCase();
-                  let onClickHandler = null;
-
-                  if (mode === "edit" || mode === "view") {
-                    path = `/activity/${mode}`;
-                    onClickHandler = () =>
-                      navigate(path, {
-                        state: {
-                          documentNumber: row.document_number,
-                          pageCode: row.page_code,
-                          page_mode: actionItem.action,
-                        },
-                      });
-                  } else {
-                    onClickHandler = () => handleDelete(row.document_number);
-                  }
-
-                  return {
-                    key: actionIndex,
-                    label: <ItemDropDown mode={mode} onClick={onClickHandler} />,
-                  };
-                }),
-              }}
-              placement="bottom"
-            >
-              <a onClick={(e) => e.preventDefault()}>
-                <img src="/img/icons/action.png" alt="Actions icon" className="inline-block w-5 h-5" />
-              </a>
-            </Dropdown>
-          ),
+          action: row.action || [],
         }));
 
         setDataSource(newDataSource);
@@ -274,14 +372,11 @@ export default function AdvanceExpense() {
     JSON.stringify(tableParams.filters),
   ]);
 
-  const handleTableChange = (pagination, _filters, sorter) => {
+  const handleTableChange = (pagination) => {
     setTableParams((prev) => ({
       ...prev,
       pagination,
       filters: prev.filters,
-      // ถ้าต้องใช้ sort ให้เปิดด้านล่าง
-      // sortOrder: sorter?.order === "ascend" ? "asc" : "desc",
-      // sortField: sorter?.field,
     }));
   };
 
@@ -289,15 +384,17 @@ export default function AdvanceExpense() {
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Advance Expense</div>
-        <ActionButton
-          mode="create"
-          text="Create"
-          onClick={() =>
-            navigate("/activity/create", {
-              state: { pageCode: "expense_advance", page_mode: "create" },
-            })
-          }
-        />
+        {pagePermission?.btn_create && (
+          <ActionButton
+            mode="create"
+            text="Create"
+            onClick={() =>
+              navigate("/activity/create", {
+                state: { pageCode: "expense_advance", page_mode: "create" },
+              })
+            }
+          />
+        )}
       </div>
 
       <Filter

@@ -100,8 +100,24 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
         </a>
       )}
 
+      {mode === "reject" && (
+        <a
+          rel="noopener noreferrer"
+          href={link}
+          onClick={onClick}
+          className="block gap-1"
+        >
+          <img
+            src="/img/icons/reject.png"
+            alt="Reject icon"
+            className="inline-block h-3 m-auto"
+          />
+          <span className="text-[#978B87] ms-3">{text || "Reject"}</span>
+        </a>
+      )}
+
       {/* For any mode that doesn't match the above, display as View */}
-      {!["edit", "delete", "view", "history", "create", "approve"].includes(mode) && (
+      {!["edit", "delete", "view", "history", "create", "approve", "reject"].includes(mode) && (
         <a
           rel="noopener noreferrer"
           href={link}
