@@ -822,8 +822,7 @@ export default function CreateActivity() {
           className="w-full"
           min={0}
           value={record.estimate_sale_qty}
-          // disabled={!canEdit || pageCode === "expense_clearing"}
-          disabled={!canEdit || isRefLocked || pageCode === "expense_clearing"}
+          disabled={!canEdit || pageCode === "expense_clearing"}
           onChange={(value) => handleInputChange(value, record.key, "estimate_sale_qty", record.bath_ltkg, record)}
           formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
         />
@@ -839,8 +838,7 @@ export default function CreateActivity() {
           className="w-full"
           min={0}
           value={record.acutal_sale_qty}
-          // disabled={!canEdit || pageCode === "expense_advance"}
-          disabled={!canEdit || isRefLocked || pageCode === "expense_advance"}
+          disabled={!canEdit || pageCode === "expense_advance"}
           onChange={(value) => handleInputChange(value, record.key, "acutal_sale_qty", record.bath_ltkg, record)}
           formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
         />
@@ -926,7 +924,7 @@ export default function CreateActivity() {
       render: (_, record) => (
         <Input
           value={record.name}
-          disabled={!canEdit || isRefLocked}
+          disabled={!canEdit}
           onChange={(e) => handleInputParticipantChange(record.key, "name", e.target.value)}
         />
       ),
@@ -939,7 +937,7 @@ export default function CreateActivity() {
       render: (_, record) => (
         <Input
           value={record.address}
-          disabled={!canEdit || isRefLocked}
+          disabled={!canEdit}
           onChange={(e) => handleInputParticipantChange(record.key, "address", e.target.value)}
         />
       ),
@@ -952,7 +950,7 @@ export default function CreateActivity() {
       render: (_, record) => (
         <Input
           value={record.phone}
-          disabled={!canEdit || isRefLocked}
+          disabled={!canEdit}
           onChange={(e) => handleInputParticipantChange(record.key, "phone", e.target.value)}
         />
       ),
@@ -965,7 +963,7 @@ export default function CreateActivity() {
         <DynamicButton
           iconSrc="/img/icons/delete.png"
           onClick={() => removeParticipant(record.key)}
-          disabled={!canEdit || isRefLocked}
+          disabled={!canEdit}
         />
       ),
     },
@@ -1186,14 +1184,14 @@ export default function CreateActivity() {
                 mode="create"
                 text="Add Advance Expense"
                 onClick={() => setIsBtnExpenseActive(!isBtnExpenseActive)}
-                disabled={!canEdit || isRefLocked}
+                disabled={!canEdit}
               />
             ) : (
               <ActionButton
                 mode="hide"
                 text="Hide Advance Expense"
                 onClick={() => setIsBtnExpenseActive(!isBtnExpenseActive)}
-                disabled={!canEdit || isRefLocked}
+                disabled={!canEdit}
               />
             )
           ) : null}
@@ -1342,8 +1340,7 @@ export default function CreateActivity() {
                   mode="add"
                   text="Upload File"
                   onClick={handleUploadClick}
-                  // disabled={!canEdit || (mode === "create" ? false : !canEdit)}
-                  disabled={isRefLocked || !canEdit || (mode === "create" ? false : !canEdit)}
+                  disabled={!canEdit || (mode === "create" ? false : !canEdit)}
                 />
               </div>
 
@@ -1363,7 +1360,7 @@ export default function CreateActivity() {
               <div className="text-[#00783F] text-lg font-semibold mb-3">Participant</div>
 
               {pageCode === "expense_clearing" && !viewSegment && userInfo.role_id != 2 ? (
-                <ActionButton mode="add" text="Add" onClick={handleAddSelectedRows} disabled={isApproveMode || isViewMode || isRefLocked} />
+                <ActionButton mode="add" text="Add" onClick={handleAddSelectedRows} disabled={isApproveMode || isViewMode} />
               ) : null}
             </div>
 
@@ -1432,11 +1429,11 @@ export default function CreateActivity() {
           <ActionButton mode="saveDraft" text="Convert to Clearing" onClick={() => handleSave("convert_clearing")} />
         )}
 
-        {(activityDetail?.permission?.btn_draft || mode === "create")  && !isRefLocked && (
+        {(activityDetail?.permission?.btn_draft || mode === "create") && (
           <ActionButton mode="saveDraft" text="Draft" onClick={() => handleSave("draft")} />
         )}
 
-        {(activityDetail?.permission?.btn_save || mode === "create") && mode !== "view" && !isRefLocked && (
+        {(activityDetail?.permission?.btn_save || mode === "create") && mode !== "view" && (
           <ActionButton mode="save" text="Save" onClick={() => handleSave("save")} />
         )}
 
