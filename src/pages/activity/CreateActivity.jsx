@@ -471,6 +471,111 @@ export default function CreateActivity() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const resetActivityRefDetail = () => {
+    setCropList([]);
+    setProductList([]);
+    setDealerList([]);
+    setDealerCustomer([]);
+    setParticipants([]);
+    setFileList([]);
+
+    setActivityDetail((prev) => ({
+      ...prev,
+      document_number: "",
+      activity_type_id: undefined,
+      user_id: undefined,
+      dealer_id: undefined,
+      sub_dealer_id: undefined,
+      dealer_name: "",
+      sub_dealer_name: "",
+      crop_id_list: [],
+      product_list: [],
+      assing_user_list: [],
+      location_address: "",
+      description: "",
+      expense_product_data_list: [],
+      expense_product_total_estimate_sale: 0,
+      expense_product_total_acutal_sale: 0,
+      expense_actual_exp: 0,
+      expense_actual_sale: 0,
+      expense_expense_actual_exp: 0,
+      expense_expense_actual_sale: 0,
+      expense_participant_estimate: 0,
+      expense_particapant_actual: 0,
+      expense_advance: 0,
+      expense_actual: 0,
+    }));
+
+    expenseForm.resetFields();
+    participantForm.resetFields();
+  };
+
+  const loadActivityReferenceDetail = async (refNo) => {
+    if (!refNo) return;
+
+    setLoading(true);
+    try {
+      resetActivityRefDetail();
+
+      const response = await useServiceAPI.get(paths.pathActivityDetail, {
+        document_number: refNo,
+      });
+
+      const d = response.data || {};
+
+      const productListIds = (d?.product_list || []).map((p) => p.id);
+      const userListIds = (d?.assing_user_list || []).map((p) => p.id);
+      const cropListIds = (d?.crop_id_list || []).map((p) => p.id);
+
+      const cropOptions = (d?.crop_id_list || []).map((item) => ({
+        id: item.id,
+        name: item.name,
+      }));
+
+      setCropList(cropOptions);
+      setIsBtnExpenseActive(!!d.is_expense);
+
+      setActivityDetail((prev) => ({
+        ...prev,
+        ...d,
+        document_number: "",
+        document_number_referrent: refNo,
+        crop_id_list: cropListIds,
+        product_list: productListIds,
+        assing_user_list: userListIds,
+        expense_product_data_list: d?.expense_product_data_list || [],
+      }));
+
+      formCustom.setFieldsValue({
+        document_number_referrent: refNo,
+        activity_type_id: d?.activity_type_id,
+        user_id: d?.user_id != null ? Number(d.user_id) : undefined,
+        dealer_id: d?.dealer_id != null ? Number(d.dealer_id) : undefined,
+        sub_dealer_id: d?.sub_dealer_id != null ? Number(d.sub_dealer_id) : undefined,
+        crop_id_list: cropListIds,
+        product_list: productListIds,
+        assing_user_list: userListIds,
+        location_address: d?.location_address || "",
+        description: d?.description || "",
+        document_date: d?.document_date ? dayjs(d.document_date) : undefined,
+      });
+
+      expenseForm.setFieldsValue({
+        advance_expense: toNumber(d?.expense_advance, 0),
+        actual_expense: toNumber(d?.expense_actual, 0),
+      });
+
+      participantForm.setFieldsValue({
+        estimate_participant: toNumber(d?.expense_participant_estimate, 0),
+        actual_participant: toNumber(d?.expense_particapant_actual, 0),
+      });
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // =======================
   // handleChange
   // =======================
@@ -498,38 +603,16 @@ export default function CreateActivity() {
         } else if (attribue === "document_date") {
           setActivityDetail((prev) => ({ ...prev, document_date: value }));
         } else if (attribue === "document_number_referrent") {
-          setLoading(true);
-          try {
-            const response = await useServiceAPI.get(paths.pathActivityDetail, { document_number: value });
-            const d = response.data;
+          setActivityDetail((prev) => ({
+            ...prev,
+            document_number_referrent: value,
+          }));
 
-            const productListIds = d?.product_list?.map((p) => p.id);
-            const userListIds = d.assing_user_list.map((p) => p.id);
-            const cropListIds = d.crop_id_list.map((p) => p.id);
-            // ✅ สำคัญ: เติม options ของ crop จาก detail ที่ค้นมาเลย
-            const cropOptions = (d?.crop_id_list || []).map((item) => ({
-              id: item.id,
-              name: item.name,
-            }));
-            setCropList(cropOptions);
+          formCustom.setFieldsValue({
+            document_number_referrent: value,
+          });
 
-            setIsBtnExpenseActive(d.is_expense);
-            setActivityDetail((prev) => ({
-              ...prev,
-              ...d,
-              document_number_referrent: value, // ✅ ต้องมีบรรทัดนี้
-              crop_id_list: cropListIds,
-              product_list: productListIds,
-              assing_user_list: userListIds,
-              document_number: "",
-            }));
-
-            formCustom.setFieldsValue({
-              document_number_referrent: value, // ✅ ให้หน้าฟอร์มเห็นค่าด้วย
-            });
-          } finally {
-            setLoading(false);
-          }
+          await loadActivityReferenceDetail(value);
         }
       } catch (e) {
         console.log(e);
@@ -852,14 +935,22 @@ export default function CreateActivity() {
 
       let expenseParticapantUserList = participantUsers.map((x) => x.id);
       let particapantList = participants.map((x) => ({ name: x.name, address: x.address, phone: x.phone }));
-      let userID = '';
+      const hasActivityRef =
+        !!(
+          activityDetail.document_number_referrent ||
+          formCustom.getFieldValue("document_number_referrent")
+        );
+
+      let userID = "";
+
       if (pageCode === "activity_transaction") {
         userID = activityDetail.dealer_id;
-      }
-      else {
+      } else if (hasActivityRef) {
+        userID = activityDetail.dealer_id;
+      } else {
         userID = activityDetail.sub_dealer_id;
       }
-      // console.log(userID);
+      console.log(userID);
 
       const body = {
         ...activityDetail,
