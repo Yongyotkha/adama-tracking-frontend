@@ -223,7 +223,8 @@ export default function ClearingExpense() {
       try {
         const [activityType, saleRes, dealerRes, subDealerRes, statusRes] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" }),
+          // useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" }),
+          useServiceAPI.get(paths.pathMasterSaleActivity, { status: "all", mode: "all" }),
           useServiceAPI.get(paths.pathMasterDealerAll, {}),
           useServiceAPI.get(paths.pathMasterSubDealerAll, {}),
           useServiceAPI.get(paths.pathMasterStatus, { status_type: "expense_clearing" }),

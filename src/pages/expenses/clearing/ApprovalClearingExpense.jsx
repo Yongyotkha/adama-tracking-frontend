@@ -190,7 +190,9 @@ export default function ApprovalClearingExpense() {
       try {
         const [activityType, sale] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterDealerAll, {}),
+          // useServiceAPI.get(paths.pathMasterDealerAll, {}),
+          useServiceAPI.get(paths.pathMasterSaleActivity, { status: "all", mode: "all" }),
+
         ]);
 
         setActivityList(activityType.data || []);
