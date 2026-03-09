@@ -66,6 +66,12 @@ export default function ApprovalClearingExpense() {
       placeholder: "All",
     },
     {
+      key: "document_number_advance_referrent",
+      type: "text",
+      label: "Advance Reference",
+      placeholder: "All",
+    },
+    {
       key: "activity_reference",
       type: "text",
       label: "Activity Reference",
@@ -347,7 +353,8 @@ export default function ApprovalClearingExpense() {
 
     const requestData = {
       page_code: "expense_clearing",
-      document_number_advance_referrent: filters.expense_no || filters.document_number_advance_referrent || "",
+      document_number_advance_referrent: filters.document_number_advance_referrent || filters.document_number_advance_referrent || "",
+      keyword: filters.expense_no || filters.keyword || "",
       use_flag: "1",
       user_id: getId(filters.sale),
       dealer_id: getId(filters.customer),
