@@ -74,7 +74,7 @@ export default function CreateActivity() {
   const [loading, setLoading] = useState(false);
   const [firstCallData, setFirstCallData] = useState(true);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
-
+  const [isRefLocked, setIsRefLocked] = useState(false);
   const [activityList, setActivityList] = useState([]);
   const [saleList, setSaleList] = useState([]);
   const [saleAllList, setSaleAllList] = useState([]);
@@ -183,6 +183,8 @@ export default function CreateActivity() {
 
   const SaleOptions = saleList.map((sale) => ({ id: sale.id, name: sale.name, selected: false }));
 
+  // const baseFieldDisabled = isViewMode || isApproveMode || (!isCreate && !canEdit);
+  const baseFieldDisabled = isViewMode || isApproveMode || (!isCreate && !canEdit) || isRefLocked;
   // =========================================================
   // ✅ IMPORTANT: disabled ใน field เดิม (เพิ่ม forceReadOnly ได้ถ้าต้อง lock ทั้งหน้า)
   // =========================================================
@@ -201,7 +203,7 @@ export default function CreateActivity() {
       label: "Activity Reference",
       name: "document_number_referrent",
       type: pageCode !== "activity_transaction" ? (viewSegment ? "hidden" : "search") : "hidden",
-      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
+      disabled: baseFieldDisabled,
       required: false,
       col: 24,
       value: activityDetail.document_number_referrent ?? "",
@@ -212,7 +214,7 @@ export default function CreateActivity() {
       type: "select",
       typeMode: "string",
       options: activityList,
-      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
+      disabled: baseFieldDisabled,
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
       value: activityDetail.activity_type_id ?? "",
@@ -223,7 +225,7 @@ export default function CreateActivity() {
       type: "select",
       typeMode: "number",
       options: SaleOptions,
-      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
+      disabled: baseFieldDisabled,
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
       value: activityDetail.user_id != null ? Number(activityDetail.user_id) : undefined,
@@ -241,7 +243,7 @@ export default function CreateActivity() {
         const exists = dealerList.some((d) => Number(d.id) === currentId);
         return exists ? dealerList : [...dealerList, { id: currentId, name: currentName }];
       })(),
-      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
+      disabled: baseFieldDisabled,
       required: true,
       col: pageCode !== "activity_transaction" ? 8 : 6,
       value:
@@ -261,7 +263,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: cropList,
-      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
+      disabled: baseFieldDisabled,
       required: true,
       col: 6,
       value: activityDetail.crop_id_list,
@@ -274,7 +276,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: productList,
-      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
+      disabled: baseFieldDisabled,
       required: true,
       col: pageCode != "activity_transaction" ? 18 : 24,
       value: activityDetail.product_list,
@@ -283,7 +285,7 @@ export default function CreateActivity() {
       label: "Date",
       name: "document_date",
       type: "date",
-      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
+      disabled: baseFieldDisabled,
       required: true,
       col: pageCode != "activity_transaction" ? 6 : 8,
       value: activityDetail.document_date,
@@ -292,7 +294,7 @@ export default function CreateActivity() {
       label: "Location",
       name: "location_address",
       type: "text",
-      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
+      disabled: baseFieldDisabled,
       required: false,
       col: 24,
       value: activityDetail.location_address ?? "",
@@ -303,7 +305,7 @@ export default function CreateActivity() {
       label: "Description",
       name: "description",
       type: "text-editor",
-      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
+      disabled: baseFieldDisabled,
       required: false,
       col: 24,
       placeholder: "Add description",
@@ -316,7 +318,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: saleAllList,
-      disabled: isViewMode || isApproveMode || (!isCreate && !canEdit),
+      disabled: baseFieldDisabled,
       required: false,
       col: 24,
       value: activityDetail.assing_user_list,
@@ -471,43 +473,57 @@ export default function CreateActivity() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const resetActivityRefDetail = () => {
-    setCropList([]);
-    setProductList([]);
-    setDealerList([]);
-    setDealerCustomer([]);
-    setParticipants([]);
-    setFileList([]);
+  // const resetActivityRefDetail = () => {
+  //   setCropList([]);
+  //   setProductList([]);
+  //   setDealerList([]);
+  //   setDealerCustomer([]);
+  //   setParticipants([]);
+  //   setFileList([]);
 
-    setActivityDetail((prev) => ({
-      ...prev,
-      document_number: "",
-      activity_type_id: undefined,
-      user_id: undefined,
-      dealer_id: undefined,
-      sub_dealer_id: undefined,
-      dealer_name: "",
-      sub_dealer_name: "",
-      crop_id_list: [],
-      product_list: [],
-      assing_user_list: [],
-      location_address: "",
-      description: "",
-      expense_product_data_list: [],
-      expense_product_total_estimate_sale: 0,
-      expense_product_total_acutal_sale: 0,
-      expense_actual_exp: 0,
-      expense_actual_sale: 0,
-      expense_expense_actual_exp: 0,
-      expense_expense_actual_sale: 0,
-      expense_participant_estimate: 0,
-      expense_particapant_actual: 0,
-      expense_advance: 0,
-      expense_actual: 0,
-    }));
+  //   setActivityDetail((prev) => ({
+  //     ...prev,
+  //     document_number: "",
+  //     activity_type_id: undefined,
+  //     user_id: undefined,
+  //     dealer_id: undefined,
+  //     sub_dealer_id: undefined,
+  //     dealer_name: "",
+  //     sub_dealer_name: "",
+  //     crop_id_list: [],
+  //     product_list: [],
+  //     assing_user_list: [],
+  //     location_address: "",
+  //     description: "",
+  //     expense_product_data_list: [],
+  //     expense_product_total_estimate_sale: 0,
+  //     expense_product_total_acutal_sale: 0,
+  //     expense_actual_exp: 0,
+  //     expense_actual_sale: 0,
+  //     expense_expense_actual_exp: 0,
+  //     expense_expense_actual_sale: 0,
+  //     expense_participant_estimate: 0,
+  //     expense_particapant_actual: 0,
+  //     expense_advance: 0,
+  //     expense_actual: 0,
+  //   }));
 
-    expenseForm.resetFields();
-    participantForm.resetFields();
+  //   expenseForm.resetFields();
+  //   participantForm.resetFields();
+  // };
+
+  const mergeOptionsById = (oldOptions = [], newOptions = []) => {
+    const map = new Map();
+
+    [...oldOptions, ...newOptions].forEach((item) => {
+      if (!item) return;
+      const key = String(item.id);
+      if (!map.has(key)) {
+        map.set(key, item);
+      }
+    });
+
+    return Array.from(map.values());
   };
 
   const loadActivityReferenceDetail = async (refNo) => {
@@ -515,8 +531,6 @@ export default function CreateActivity() {
 
     setLoading(true);
     try {
-      resetActivityRefDetail();
-
       const response = await useServiceAPI.get(paths.pathActivityDetail, {
         document_number: refNo,
       });
@@ -532,7 +546,20 @@ export default function CreateActivity() {
         name: item.name,
       }));
 
-      setCropList(cropOptions);
+      const productOptions = (d?.product_list || []).map((item) => ({
+        id: item.id,
+        name: item.name ?? item.product_name ?? `${item.product_name || ""} ${item.packing_list ? `(${item.packing_list})` : ""}`.trim(),
+      }));
+
+      // โหลด dealer ตาม user เพื่อให้ dropdown ยังแก้ได้ตามปกติ
+      if (d?.user_id) {
+        await setupDealer(d.user_id);
+      }
+
+      // merge options เพื่อไม่ให้ dropdown ถูกจำกัดอยู่แค่ค่าจาก ref
+      setCropList((prev) => mergeOptionsById(prev, cropOptions));
+      setProductList((prev) => mergeOptionsById(prev, productOptions));
+
       setIsBtnExpenseActive(!!d.is_expense);
 
       setActivityDetail((prev) => ({
@@ -569,10 +596,88 @@ export default function CreateActivity() {
         estimate_participant: toNumber(d?.expense_participant_estimate, 0),
         actual_participant: toNumber(d?.expense_particapant_actual, 0),
       });
+
+      setIsRefLocked(true);
     } catch (e) {
       console.log(e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleClearReference = () => {
+    setIsRefLocked(false);
+    setIsBtnExpenseActive(false);
+    setCropList([]);
+    setProductList([]);
+    setDealerList([]);
+    setDealerCustomer([]);
+    setParticipants([]);
+    setFileList([]);
+
+    const defaultDate = locationParam?.state?.dateCalendar || dayjs();
+
+    const resetState = {
+      document_number: "",
+      document_number_referrent: "",
+      activity_type_id: undefined,
+      user_id: undefined,
+      dealer_id: undefined,
+      sub_dealer_id: undefined,
+      dealer_name: "",
+      sub_dealer_name: "",
+      crop_id_list: [],
+      product_list: [],
+      assing_user_list: [],
+      location_address: "",
+      description: "",
+      expense_product_data_list: [],
+      expense_product_total_estimate_sale: 0,
+      expense_product_total_acutal_sale: 0,
+      expense_actual_exp: 0,
+      expense_actual_sale: 0,
+      expense_expense_actual_exp: 0,
+      expense_expense_actual_sale: 0,
+      expense_participant_estimate: 0,
+      expense_particapant_actual: 0,
+      expense_advance: 0,
+      expense_actual: 0,
+      document_date: defaultDate,
+    };
+
+    setActivityDetail((prev) => ({
+      ...prev,
+      ...resetState,
+    }));
+
+    formCustom.setFieldsValue({
+      document_number: "",
+      document_number_referrent: "",
+      activity_type_id: undefined,
+      user_id: undefined,
+      dealer_id: undefined,
+      sub_dealer_id: undefined,
+      crop_id_list: [],
+      product_list: [],
+      assing_user_list: [],
+      location_address: "",
+      description: "",
+      document_date: defaultDate,
+    });
+
+    expenseForm.setFieldsValue({
+      advance_expense: 0,
+      actual_expense: 0,
+    });
+
+    participantForm.setFieldsValue({
+      estimate_participant: 0,
+      actual_participant: 0,
+    });
+
+    if (saleList.some((item) => item.id === userInfo.id)) {
+      handleChange("user_id", userInfo.user_data_id);
+      handleChange("assing_user_list", [userInfo.user_data_id]);
     }
   };
 
@@ -717,7 +822,8 @@ export default function CreateActivity() {
           className="w-full"
           min={0}
           value={record.estimate_sale_qty}
-          disabled={!canEdit || pageCode === "expense_clearing"}
+          // disabled={!canEdit || pageCode === "expense_clearing"}
+          disabled={!canEdit || isRefLocked || pageCode === "expense_clearing"}
           onChange={(value) => handleInputChange(value, record.key, "estimate_sale_qty", record.bath_ltkg, record)}
           formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
         />
@@ -733,7 +839,8 @@ export default function CreateActivity() {
           className="w-full"
           min={0}
           value={record.acutal_sale_qty}
-          disabled={!canEdit || pageCode === "expense_advance"}
+          // disabled={!canEdit || pageCode === "expense_advance"}
+          disabled={!canEdit || isRefLocked || pageCode === "expense_advance"}
           onChange={(value) => handleInputChange(value, record.key, "acutal_sale_qty", record.bath_ltkg, record)}
           formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
         />
@@ -819,7 +926,7 @@ export default function CreateActivity() {
       render: (_, record) => (
         <Input
           value={record.name}
-          disabled={!canEdit}
+          disabled={!canEdit || isRefLocked}
           onChange={(e) => handleInputParticipantChange(record.key, "name", e.target.value)}
         />
       ),
@@ -832,7 +939,7 @@ export default function CreateActivity() {
       render: (_, record) => (
         <Input
           value={record.address}
-          disabled={!canEdit}
+          disabled={!canEdit || isRefLocked}
           onChange={(e) => handleInputParticipantChange(record.key, "address", e.target.value)}
         />
       ),
@@ -845,7 +952,7 @@ export default function CreateActivity() {
       render: (_, record) => (
         <Input
           value={record.phone}
-          disabled={!canEdit}
+          disabled={!canEdit || isRefLocked}
           onChange={(e) => handleInputParticipantChange(record.key, "phone", e.target.value)}
         />
       ),
@@ -858,7 +965,7 @@ export default function CreateActivity() {
         <DynamicButton
           iconSrc="/img/icons/delete.png"
           onClick={() => removeParticipant(record.key)}
-          disabled={!canEdit}
+          disabled={!canEdit || isRefLocked}
         />
       ),
     },
@@ -1063,24 +1170,34 @@ export default function CreateActivity() {
           {mode} {menuTitle}
         </div>
 
-        {mode !== "view" && pageCode !== "expense_advance" && pageCode !== "expense_clearing" ? (
-          !isBtnExpenseActive ? (
+        <div className="flex items-center gap-2">
+          {isRefLocked && (
             <ActionButton
-              mode="create"
-              text="Add Advance Expense"
-              onClick={() => setIsBtnExpenseActive(!isBtnExpenseActive)}
-              disabled={!canEdit}
+              mode="reject"
+              text="Clear Ref"
+              onClick={handleClearReference}
+              disabled={isViewMode || isApproveMode}
             />
-          ) : (
-            <ActionButton
-              mode="hide"
-              text="Hide Advance Expense"
-              onClick={() => setIsBtnExpenseActive(!isBtnExpenseActive)}
-              disabled={!canEdit}
-            />
-          )
-        ) : null}
+          )}
 
+          {mode !== "view" && pageCode !== "expense_advance" && pageCode !== "expense_clearing" ? (
+            !isBtnExpenseActive ? (
+              <ActionButton
+                mode="create"
+                text="Add Advance Expense"
+                onClick={() => setIsBtnExpenseActive(!isBtnExpenseActive)}
+                disabled={!canEdit || isRefLocked}
+              />
+            ) : (
+              <ActionButton
+                mode="hide"
+                text="Hide Advance Expense"
+                onClick={() => setIsBtnExpenseActive(!isBtnExpenseActive)}
+                disabled={!canEdit || isRefLocked}
+              />
+            )
+          ) : null}
+        </div>
       </div>
 
       <FormCustom fields={formFields} form={formCustom} onChange={handleChange} mode={documentNumber ? "edit" : "create"} />
@@ -1225,7 +1342,8 @@ export default function CreateActivity() {
                   mode="add"
                   text="Upload File"
                   onClick={handleUploadClick}
-                  disabled={!canEdit || (mode === "create" ? false : !canEdit)}
+                  // disabled={!canEdit || (mode === "create" ? false : !canEdit)}
+                  disabled={isRefLocked || !canEdit || (mode === "create" ? false : !canEdit)}
                 />
               </div>
 
@@ -1245,7 +1363,7 @@ export default function CreateActivity() {
               <div className="text-[#00783F] text-lg font-semibold mb-3">Participant</div>
 
               {pageCode === "expense_clearing" && !viewSegment && userInfo.role_id != 2 ? (
-                <ActionButton mode="add" text="Add" onClick={handleAddSelectedRows} disabled={isApproveMode || isViewMode} />
+                <ActionButton mode="add" text="Add" onClick={handleAddSelectedRows} disabled={isApproveMode || isViewMode || isRefLocked} />
               ) : null}
             </div>
 
@@ -1314,11 +1432,11 @@ export default function CreateActivity() {
           <ActionButton mode="saveDraft" text="Convert to Clearing" onClick={() => handleSave("convert_clearing")} />
         )}
 
-        {(activityDetail?.permission?.btn_draft || mode === "create") && (
+        {(activityDetail?.permission?.btn_draft || mode === "create")  && !isRefLocked && (
           <ActionButton mode="saveDraft" text="Draft" onClick={() => handleSave("draft")} />
         )}
 
-        {(activityDetail?.permission?.btn_save || mode === "create") && mode !== "view" && (
+        {(activityDetail?.permission?.btn_save || mode === "create") && mode !== "view" && !isRefLocked && (
           <ActionButton mode="save" text="Save" onClick={() => handleSave("save")} />
         )}
 
