@@ -1052,9 +1052,13 @@ export default function CreateActivity() {
         userID = activityDetail.dealer_id;
       } else if (hasActivityRef) {
         userID = activityDetail.dealer_id;
+        if (modeSave === "convert_clearing") {
+          userID = activityDetail.sub_dealer_id;
+        }
       } else {
         userID = activityDetail.sub_dealer_id;
       }
+
       // console.log(userID);
 
       const body = {
