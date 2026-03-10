@@ -9,8 +9,7 @@ import { AuthContext } from "../../../contexts/AuthContext";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 import CameraMobile from "../../../components/mobile/camera/CameraMobile";
 import useServiceAPI from "../../../services/CorsService";
-import { paths } from "../../../services/CorsPath";
-const LIFF_ID = import.meta.env.VITE_LIFF_ID;
+import { paths, liffId as LIFF_ID } from "../../../services/CorsPath";
 export default function CollectPointsAdvanceUpdate() {
   const [loading, setLoading] = useState(false);
   const location = useLocation();

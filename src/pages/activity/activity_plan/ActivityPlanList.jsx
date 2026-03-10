@@ -10,7 +10,7 @@ import BadgeStatus from "../../../components/badge/BadgeStatus";
 import TableExpand from "../../../components/table/TableExpand";
 import { AuthContext } from "../../../contexts/AuthContext";
 import useServiceAPI from "../../../services/CorsService";
-import { paths } from "../../../services/CorsPath";
+import { paths, isUAT } from "../../../services/CorsPath";
 import TableCustomComponent from "../../../components/table/TableCustomComponent";
 import TableComponent from "../../../components/table/TableComponent";
 
@@ -38,8 +38,7 @@ export default function ActivityPlanList() {
     sortField: null,
   });
 
-  const endPoint = import.meta.env.VITE_API_BASE_URL;
-  const isUAT = endPoint === "https://api-uat.adama.co.th/api";
+
 
 
   const select_sale = (value) => {
