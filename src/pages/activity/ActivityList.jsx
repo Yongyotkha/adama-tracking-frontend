@@ -373,7 +373,7 @@ export default function ActivityList() {
       try {
         const [activityType, sale, dealerRes, subDealerRes, userc] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathMasterSaleTeam, {}),
           useServiceAPI.get(paths.pathMasterDealerAll, {}),       // ✅ NEW
           useServiceAPI.get(paths.pathMasterSubDealerAll, {}),    // ✅ NEW
           // useServiceAPI.get(paths.pathActivityListUser, {}),
