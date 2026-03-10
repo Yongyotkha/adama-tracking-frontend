@@ -376,7 +376,9 @@ export default function ActivityList() {
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
           useServiceAPI.get(paths.pathMasterDealerAll, {}),       // ✅ NEW
           useServiceAPI.get(paths.pathMasterSubDealerAll, {}),    // ✅ NEW
-          useServiceAPI.get(paths.pathActivityListUser, {}),
+          // useServiceAPI.get(paths.pathActivityListUser, {}),
+          useServiceAPI.get(paths.pathMasterSaleTeam, {}),
+
         ]);
 
         setActivityList(activityType?.data || []);
@@ -398,7 +400,7 @@ export default function ActivityList() {
           }))
         );
 
-        setUserCreate(userc || []);
+        setUserCreate(userc.data || []);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล");
       } finally {
