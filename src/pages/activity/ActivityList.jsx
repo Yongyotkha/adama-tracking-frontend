@@ -376,7 +376,8 @@ export default function ActivityList() {
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
           useServiceAPI.get(paths.pathMasterDealerAll, {}),       // ✅ NEW
           useServiceAPI.get(paths.pathMasterSubDealerAll, {}),    // ✅ NEW
-          useServiceAPI.get(paths.pathActivityListUser, {}),
+          // useServiceAPI.get(paths.pathActivityListUser, {}),
+          useServiceAPI.get(paths.pathMasterSaleTeam, {}),
         ]);
 
         setActivityList(activityType?.data || []);
@@ -397,8 +398,8 @@ export default function ActivityList() {
             id: item.sub_dealer_id,
           }))
         );
-
-        setUserCreate(userc || []);
+        console.log(userc.data);
+        setUserCreate(userc.data || []);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล");
       } finally {

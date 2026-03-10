@@ -32,8 +32,11 @@ export default function ActivityMapping() {
   const [locationMarkerIcon, setLocationMarkerIcon] = useState([]);
   const [locationWindowInfo, setlocationWindowInfo] = useState(null);
 
-  const [dataMapZoom, setDataMapZoom] = useState(10);
-  const [currentLocation, setCurrentLocation] = useState({ lat: 0.0, lng: 0.0 });
+  const [dataMapZoom, setDataMapZoom] = useState(6);
+  const [currentLocation, setCurrentLocation] = useState({
+    lat: 15.33899,
+    lng: 101.09336,
+  });
   const [currentLocationAddress] = useState("");
 
   const [searchOptions, setSearchOptions] = useState([]);
@@ -336,18 +339,18 @@ export default function ActivityMapping() {
   // -----------------------------
   // ✅ Current GPS location
   // -----------------------------
-  useEffect(() => {
-    if (!navigator.geolocation) return;
+  // useEffect(() => {
+  //   if (!navigator.geolocation) return;
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = parseFloat(pos.coords.latitude);
-        const lng = parseFloat(pos.coords.longitude);
-        setCurrentLocation({ lat, lng });
-      },
-      (err) => console.error("Error getting current location:", err)
-    );
-  }, [dataMapping]);
+  //   navigator.geolocation.getCurrentPosition(
+  //     (pos) => {
+  //       const lat = parseFloat(pos.coords.latitude);
+  //       const lng = parseFloat(pos.coords.longitude);
+  //       setCurrentLocation({ lat, lng });
+  //     },
+  //     (err) => console.error("Error getting current location:", err)
+  //   );
+  // }, [dataMapping]);
 
   // -----------------------------
   // ✅ Master "Check All"
