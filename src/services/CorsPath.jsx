@@ -1,8 +1,10 @@
-// API EndPoint
-// export const endPoint = import.meta.env.VITE_API_BASE_URL;
-//export const endPoint = "https://adama-api.mtsc.co.th/api"; //Test API
-export const endPoint = "https://api-uat.adama.co.th/api"; //UAT API
-//export const endPoint = "http://127.0.0.1:8000/api";
+const _env = (key) =>
+  (typeof window !== "undefined" && window.__ENV__?.[key]) ||
+  import.meta.env[key];
+
+export const endPoint = _env("VITE_API_BASE_URL");
+export const liffId = _env("VITE_LIFF_ID");
+export const isUAT = _env("VITE_IS_UAT") === "true";
 
 export const paths = {
   pathLogList: "log/list",
