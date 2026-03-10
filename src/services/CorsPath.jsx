@@ -1,6 +1,5 @@
 const _env = (key) =>
-  (typeof window !== "undefined" && window.__ENV__?.[key]) ||
-  import.meta.env[key];
+  (typeof window !== "undefined" && window.__ENV__?.[key]) || "";
 
 export const endPoint = _env("VITE_API_BASE_URL");
 export const liffId = _env("VITE_LIFF_ID");
