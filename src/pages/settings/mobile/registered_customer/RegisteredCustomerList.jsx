@@ -98,7 +98,7 @@ export default function RegisteredCustomerList() {
   const fetchSales = async () => {
     try {
       // ✅ แบบเดียวกับ OrderList
-      const res = await useServiceAPI.get(paths.pathMasterSaleDropdown, {});
+      const res = await useServiceAPI.get(paths.pathMasterSaleTeam, {});
       const list = Array.isArray(res?.data) ? res.data : [];
       setSales(list.map((x) => ({ id: Number(x.id), name: x.name })));
     } catch (e) {
