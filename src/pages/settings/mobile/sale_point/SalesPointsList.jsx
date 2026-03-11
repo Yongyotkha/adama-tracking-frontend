@@ -501,7 +501,7 @@ export default function SalesPointsList() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const sale = await useServiceAPI.get(paths.pathMasterSaleDropdown, {});
+        const sale = await useServiceAPI.get(paths.pathMasterSaleTeam, {});
         setSaleList(sale.data || []);
       } catch (error) {
         showMsg?.("error", error.message || "เกิดข้อผิดพลาด");

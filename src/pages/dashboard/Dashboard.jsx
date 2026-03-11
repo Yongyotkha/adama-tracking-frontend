@@ -227,7 +227,7 @@ export default function Dashboard() {
 
       setLoading(true);
       try {
-        const res = await useServiceAPI.get(paths.pathMasterSaleReport, {
+        const res = await useServiceAPI.get(paths.pathMasterSaleSingle, {
           area_id: selectedArea,
         });
 

@@ -209,7 +209,7 @@ export default function CollectPointsList() {
     const loadSales = async () => {
       setLoading(true);
       try {
-        const sale = await useServiceAPI.get(paths.pathMasterSaleDropdown, {});
+        const sale = await useServiceAPI.get(paths.pathMasterSaleTeam, {});
         setSaleList(sale.data || []);
       } catch (e) {
         showMsg("error", e?.message || "โหลด Sales ไม่สำเร็จ");

@@ -15,7 +15,7 @@ import ActionButton from "../button/ActionButton";
 import BadgeStatus from "../badge/BadgeStatus";
 import FormMappingModal from "../modal/FormMappingModal";
 
-const Calendar = ({ events, fetchEvents, loading, sendData }) => {
+const DynamicCalendar = ({ events, fetchEvents, loading, sendData }) => {
   const [view, setView] = useState("month");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
@@ -34,6 +34,11 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
         pageCode: 'activity_transaction',
       },
     });
+  };
+
+  const handleViewNewTab = (documentNumber) => {
+    const targetUrl = `/activity/view?documentNumber=${encodeURIComponent(documentNumber)}&pageCode=activity_transaction&page_mode=view&from=calendar`;
+    window.open(targetUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleDelete = async (documentNumber) => {
@@ -96,7 +101,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
             mode: "all",
           }
         }
-        const response = await useServiceAPI.get(paths.pathMasterSaleDropdown, send_sale);
+        const response = await useServiceAPI.get(paths.pathMasterSaleTeam, send_sale);
 
         const saleList = response.data.map((item) => ({
           label: item.name,
@@ -643,6 +648,24 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                           </p>
 
                                           <p
+                                            className="flex gap-1 mb-2 items-center mt-2"
+                                          >
+                                            <img
+                                              src="/img/icons/details.png"
+                                              className="h-6 w-6 me-2"
+                                              alt=""
+                                            />
+                                            <a
+                                              href={`/activity/view?documentNumber=${encodeURIComponent(event.document_number)}&pageCode=activity_transaction&page_mode=view&from=calendar`}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-[#00783F] font-semibold underline"
+                                              onClick={(e) => e.stopPropagation()}
+                                            >
+                                              {event.document_number || "-"}
+                                            </a>
+                                          </p>
+                                          <p
                                             lang="th"
                                             className="flex gap-1 mb-2 items-center"
                                           >
@@ -851,4 +874,4 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   );
 };
 
-export default Calendar;
+export default DynamicCalendar;

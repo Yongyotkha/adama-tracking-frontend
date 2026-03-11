@@ -40,23 +40,23 @@ export default function CreateActivity() {
   const documentNumberFromUrl = qs.get("documentNumber") || undefined;
   const pageCodeFromUrl = qs.get("pageCode") || undefined;
   const fromFromUrl = qs.get("from") || undefined;
+  const pageModeFromUrl = qs.get("page_mode") || undefined;
 
   const documentNumberState = locationParam?.state?.documentNumber;
   const pageCodeState = locationParam?.state?.pageCode;
   const pageModeState = locationParam?.state?.page_mode;
 
   const [documentNumber, setDocumentNumber] = useState(documentNumberState || documentNumberFromUrl);
-  const [pageMode, setPageMode] = useState(pageModeState);
+  const [pageMode, setPageMode] = useState(pageModeState || pageModeFromUrl);
 
-  // ✅ เดิมเป็น const จาก state อย่างเดียว -> ต้อง fallback จาก URL
   const pageCode = pageCodeState || pageCodeFromUrl;
-  console.log("pageCode:", pageCode);
-  console.log("pageMode:", pageMode);
 
   // ✅ flag: เปิดมาจาก mapping?
   const fromMapping = locationParam?.state?.from === "mapping" || fromFromUrl === "mapping";
-  // console.log("fromMapping:", fromMapping);
-  const forceReadOnly = fromMapping; // ✅ ใช้บังคับ readonly ใน Advance Expense
+  const fromCalendar = locationParam?.state?.from === "calendar" || fromFromUrl === "calendar";
+
+  // เปิดจาก mapping หรือ calendar => readonly
+  const forceReadOnly = fromMapping || fromCalendar;
 
   const pageModeLower = String(pageMode || "").toLowerCase();
   const isPageView = pageModeLower === "view";
@@ -122,6 +122,12 @@ export default function CreateActivity() {
     const n = parseFloat(normalized);
     return Number.isFinite(n) ? n : fallback;
   };
+
+  useEffect(() => {
+    if (!pageMode && pageModeFromUrl) {
+      setPageMode(pageModeFromUrl);
+    }
+  }, [pageMode, pageModeFromUrl]);
 
   // ✅ หากเปิดด้วย URL แล้ว state ไม่มา
   useEffect(() => {
@@ -1419,9 +1425,9 @@ export default function CreateActivity() {
         {/* ✅ NEW: ถ้ามาจาก mapping -> Close + ปิดแท็บ */}
         <ActionButton
           mode="back"
-          text={fromMapping ? "Close" : "Back"}
+          text={fromMapping || fromCalendar ? "Close" : "Back"}
           onClick={() => {
-            if (fromMapping) {
+            if (fromMapping || fromCalendar) {
               window.close();
               return;
             }

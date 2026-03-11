@@ -78,7 +78,7 @@ export default function OrderList() {
       setLoading(true);
       try {
         const [saleRes, dealerRes, statusRes] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathMasterSaleTeam, {}),
           useServiceAPI.get(paths.pathMasterDealerAll, {}),
           useServiceAPI.get(paths.pathMasterStatus, { status_type: "order" }),
         ]);

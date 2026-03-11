@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
 function generateRuntimeConfig() {
@@ -6,8 +6,9 @@ function generateRuntimeConfig() {
     name: 'generate-runtime-config',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
-        if (req.url === '/config.js') {
-          const env = server.config.env;
+        if (req.url.startsWith('/config.js')) {
+          const mode = server.config.mode;
+          const env = loadEnv(mode, server.config.root, 'VITE_');
           const content = `window.__ENV__ = {
   VITE_API_BASE_URL: "${env.VITE_API_BASE_URL || ''}",
   VITE_LIFF_ID: "${env.VITE_LIFF_ID || ''}",
