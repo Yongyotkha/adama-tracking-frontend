@@ -166,9 +166,8 @@ export default function SalesPointEdit() {
           }))
         );
 
-        // เซ็ตค่าให้ text fields อื่น ๆ
         formCustom.setFieldsValue({
-          sale: String(d.sale_name || ""),
+          sale: String(d.sale_name || d.user_name || ""),
           dealer: String(d.dealer_name || ""),
           sub_dealer: String(d.sub_dealer_name || ""),
           order_no: d.document_number || "",
@@ -204,10 +203,9 @@ export default function SalesPointEdit() {
 
   // ---------- ค้นหา/เลือกสินค้า ----------
   const onSearchProduct = async (value) => {
-    // ✅ ถ้า complete ไม่ให้เพิ่มสินค้า
     if (!canDeleteProducts) return;
-
     if (!value || value.length < 3) return;
+
     setLoading(true);
     try {
       const res = await useServiceAPI.get(paths.pathMasterProducts, {
@@ -226,7 +224,6 @@ export default function SalesPointEdit() {
   };
 
   const onChangeProduct = async (productId) => {
-    // ✅ ถ้า complete ไม่ให้เพิ่มสินค้า
     if (!canDeleteProducts) return;
 
     setSearchProductData([]);
@@ -246,9 +243,7 @@ export default function SalesPointEdit() {
           const unitTHB = toNumber(row.product_unit_thb);
           const net = quantity * unitTHB;
           const foc = row.product_campaign_order_min_foc
-            ? Math.floor(
-                quantity / toNumber(row.product_campaign_order_min_foc)
-              )
+            ? Math.floor(quantity / toNumber(row.product_campaign_order_min_foc))
             : 0;
           return { ...row, quantity, foc, net_amount: Number(net.toFixed(2)) };
         });
@@ -346,10 +341,11 @@ export default function SalesPointEdit() {
         align: "right",
         width: 140,
         render: (_, record) =>
-          (parseFloat(record.point || 0) * parseFloat(record.quantity || 0)).toLocaleString(
-            "en-US",
-            { minimumFractionDigits: 0 }
-          ),
+          (
+            parseFloat(record.point || 0) * parseFloat(record.quantity || 0)
+          ).toLocaleString("en-US", {
+            minimumFractionDigits: 0,
+          }),
       },
     ];
 
@@ -400,6 +396,7 @@ export default function SalesPointEdit() {
       (sum, i) => sum + toNumber(i.point) * toNumber(i.quantity),
       0
     );
+
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={canDeleteProducts ? 10 : 9} className="text-right pr-2 text-white">
@@ -423,7 +420,7 @@ export default function SalesPointEdit() {
     </tr>
   );
 
-  // ฟิลด์หัวฟอร์ม (ใช้ text + ชื่อจาก detail)
+  // ✅ ฟิลด์หัวฟอร์ม (เพิ่ม required ให้เหมือนหน้า create)
   const formFields = [
     {
       key: "sale",
@@ -431,6 +428,7 @@ export default function SalesPointEdit() {
       name: "sale",
       type: "text",
       disabled: true,
+      required: true,
       value: "",
       placeholder: saleName || "",
     },
@@ -440,6 +438,7 @@ export default function SalesPointEdit() {
       name: "dealer",
       type: "text",
       disabled: true,
+      required: true,
       value: "",
       placeholder: dealerName || "",
     },
@@ -449,6 +448,7 @@ export default function SalesPointEdit() {
       name: "sub_dealer",
       type: "text",
       disabled: true,
+      required: true,
       value: "",
       placeholder: subDealerName || "",
     },
@@ -458,6 +458,7 @@ export default function SalesPointEdit() {
       name: "order_no",
       type: "text",
       disabled: true,
+      required: true,
       value: docNo || document_number || "",
     },
     {
@@ -466,6 +467,7 @@ export default function SalesPointEdit() {
       name: "order_date",
       type: "text",
       disabled: true,
+      required: true,
       value: docDate || dayjs().format("YYYY-MM-DD"),
     },
   ];
@@ -484,6 +486,7 @@ export default function SalesPointEdit() {
     };
     setFileListBill((prev) => [...prev, uploaded]);
   };
+
   const handleUploadSuccessPicture = (response) => {
     const data = response.data;
     const uploaded = {
@@ -498,59 +501,79 @@ export default function SalesPointEdit() {
   const handleFileRemoveBill = (file) => {
     setFileListBill((prev) => prev.filter((f) => f.uid !== file.uid));
   };
+
   const handleFileRemovePicture = (file) => {
     setFileListPicture((prev) => prev.filter((f) => f.uid !== file.uid));
   };
 
   // 🔁 PUT Update
   const handleUpdate = async () => {
-    try {
-      if (!docNo) {
-        showMsg("error", "ไม่พบเลขที่เอกสาร");
-        return;
-      }
-      setLoading(true);
+    formCustom
+      .validateFields()
+      .then(async (values) => {
+        try {
+          if (!docNo) {
+            showMsg("error", "ไม่พบเลขที่เอกสาร");
+            return;
+          }
 
-      const payload = {
-        document_number: docNo,
-        document_date: docDate || dayjs().format("YYYY-MM-DD"),
-        user_id: Number(userId) || 0,
-        dealer_id: Number(dealerId) || 0,
-        sub_dealer_id: Number(subDealerId) || 0,
-        farmer_id: 1,
-        remark: remark || "",
-        picture: fileListPicture.map((f) => f.url).filter(Boolean),
-        bill: fileListBill.map((f) => f.url).filter(Boolean),
-        products: dataSource.map((p) => ({
-          product_id: Number(p.product_id),
-          product_code: p.product_code,
-          product_name: p.product_name,
-          product_unit: p.product_unit,
-          product_unit_thb: toNumber(p.product_unit_thb),
-          product_campaign_order_min_foc: Number(p.product_campaign_order_min_foc) || 0,
-          product_campaign_foc: Number(p.product_campaign_foc) || 0,
-          quantity: toNumber(p.quantity),
-          foc: toNumber(p.foc),
-          net_amount: toNumber(p.net_amount),
-        })),
-      };
+          if (!dataSource || dataSource.length === 0) {
+            showMsg("error", "กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ");
+            return;
+          }
 
-      const res = await useServiceAPI.put(paths.pathSalePointOrderUpdate, payload);
+          if (!fileListBill || fileListBill.length === 0) {
+            showMsg("error", "กรุณาแนบไฟล์หรือรูปภาพอย่างน้อย 1 รายการ");
+            return;
+          }
 
-      if (res?.status === 200) {
-        showMsg(
-          "success",
-          res.data?.data?.message_line?.join("\n") || "Update successful"
-        );
-        navigate("/points/line/sales-points-list");
-      } else {
-        showMsg("warning", res?.data?.message || "อัปเดตไม่สำเร็จ");
-      }
-    } catch (e) {
-      showMsg("error", e?.message || "อัปเดตไม่สำเร็จ");
-    } finally {
-      setLoading(false);
-    }
+          setLoading(true);
+
+          const payload = {
+            document_number: docNo,
+            document_date: values.order_date || docDate || dayjs().format("YYYY-MM-DD"),
+            user_id: Number(userId) || 0,
+            dealer_id: Number(dealerId) || 0,
+            sub_dealer_id: Number(subDealerId) || 0,
+            farmer_id: 1,
+            remark: remark || "",
+            picture: fileListPicture.map((f) => f.url).filter(Boolean),
+            bill: fileListBill.map((f) => f.url).filter(Boolean),
+            products: dataSource.map((p) => ({
+              product_id: Number(p.product_id),
+              product_code: p.product_code,
+              product_name: p.product_name,
+              product_unit: p.product_unit,
+              product_unit_thb: toNumber(p.product_unit_thb),
+              product_campaign_order_min_foc:
+                Number(p.product_campaign_order_min_foc) || 0,
+              product_campaign_foc: Number(p.product_campaign_foc) || 0,
+              quantity: toNumber(p.quantity),
+              foc: toNumber(p.foc),
+              net_amount: toNumber(p.net_amount),
+            })),
+          };
+
+          const res = await useServiceAPI.put(paths.pathSalePointOrderUpdate, payload);
+
+          if (res?.status === 200) {
+            showMsg(
+              "success",
+              res.data?.data?.message_line?.join("\n") || "Update successful"
+            );
+            navigate("/points/line/sales-points-list");
+          } else {
+            showMsg("warning", res?.data?.message || "อัปเดตไม่สำเร็จ");
+          }
+        } catch (e) {
+          showMsg("error", e?.message || "อัปเดตไม่สำเร็จ");
+        } finally {
+          setLoading(false);
+        }
+      })
+      .catch((e) => {
+        console.error("Validation Failed:", e);
+      });
   };
 
   return (
@@ -559,7 +582,6 @@ export default function SalesPointEdit() {
 
       <FormCustom fields={formFields} form={formCustom} onChange="" />
 
-      {/* ✅ ถ้าเป็น Complete (ODC) ไม่ต้องให้ค้นหา/เพิ่มสินค้า */}
       {canDeleteProducts && (
         <BoxPrimary title="Product">
           <div className="mb-3 flex justify-end">
@@ -608,6 +630,7 @@ export default function SalesPointEdit() {
         handleFileRemove={handleFileRemoveBill}
         modeUpload="activity"
         disabled={false}
+        required={true}
       />
 
       <UploadSection

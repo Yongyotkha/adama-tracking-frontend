@@ -151,18 +151,6 @@ export default function Dashboard() {
         }
 
         // Dealer All (ใช้ตอนยังไม่เลือก sale)
-        // if (dealersRes?.data?.length > 0) {
-        //   const formattedDealers = dealersRes.data.map((item) => ({
-        //     value: item.id,
-        //     label: item.name,
-        //   }));
-        //   setDealer(formattedDealers);
-
-        //   // setSelectedSdByD(formattedDealers[0]?.value ?? null);
-        //   setSelectedSdByD(null);
-        //   // setSelectedSdByPointUser(formattedDealers[0]?.value ?? null);
-
-        // }
         if (dealersRes?.data?.length > 0) {
           const formattedDealers = dealersRes.data.map((item) => ({
             value: item.id,
@@ -170,8 +158,20 @@ export default function Dashboard() {
           }));
           setDealer(formattedDealers);
 
-          setSelectedSdByD(null);
+          setSelectedSdByD(formattedDealers[0]?.value ?? null);
+          // setSelectedSdByD(null);
+          // setSelectedSdByPointUser(formattedDealers[0]?.value ?? null);
+
         }
+        // if (dealersRes?.data?.length > 0) {
+        //   const formattedDealers = dealersRes.data.map((item) => ({
+        //     value: item.id,
+        //     label: item.name,
+        //   }));
+        //   setDealer(formattedDealers);
+
+        //   setSelectedSdByD(null);
+        // }
 
         // Sales All (เก็บไว้เฉย ๆ ถ้าอยากใช้ที่อื่น)
         if (salesRes?.data?.length > 0) {
