@@ -225,7 +225,8 @@ export default function AdvanceExpense() {
         const [activityType, saleRes, dealerRes, subDealerRes, statusRes] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
           // useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" }),
-          useServiceAPI.get(paths.pathMasterSaleActivity, { status: "all", mode: "all" }),
+          // useServiceAPI.get(paths.pathMasterSaleTeam, {}),
+          useServiceAPI.get(paths.pathMasterSaleSingle, {}),
           useServiceAPI.get(paths.pathMasterDealerAll, {}),
           useServiceAPI.get(paths.pathMasterSubDealerAll, {}),
           useServiceAPI.get(paths.pathMasterStatus, { status_type: "expense_advance" }),

@@ -340,7 +340,8 @@ export default function CreateActivity() {
       try {
         const [activityTypeRes, saleRes, saleAllRes, perceptionRes] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterSaleActivity, { status: "all", mode: "all" }),
+          useServiceAPI.get(paths.pathMasterSaleSingle, {}),
+          // useServiceAPI.get(paths.pathMasterSaleActivity, { status: "all", mode: "all" }),
           useServiceAPI.get(paths.pathMasterSaleDropdown, { status: "all", mode: "all" }),
           useServiceAPI.get(paths.pathMasterPerception, {}),
         ]);

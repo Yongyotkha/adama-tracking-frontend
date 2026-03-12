@@ -151,6 +151,18 @@ export default function Dashboard() {
         }
 
         // Dealer All (ใช้ตอนยังไม่เลือก sale)
+        // if (dealersRes?.data?.length > 0) {
+        //   const formattedDealers = dealersRes.data.map((item) => ({
+        //     value: item.id,
+        //     label: item.name,
+        //   }));
+        //   setDealer(formattedDealers);
+
+        //   // setSelectedSdByD(formattedDealers[0]?.value ?? null);
+        //   setSelectedSdByD(null);
+        //   // setSelectedSdByPointUser(formattedDealers[0]?.value ?? null);
+
+        // }
         if (dealersRes?.data?.length > 0) {
           const formattedDealers = dealersRes.data.map((item) => ({
             value: item.id,
@@ -158,9 +170,7 @@ export default function Dashboard() {
           }));
           setDealer(formattedDealers);
 
-          setSelectedSdByD(formattedDealers[0]?.value ?? null);
-          // setSelectedSdByPointUser(formattedDealers[0]?.value ?? null);
-
+          setSelectedSdByD(null);
         }
 
         // Sales All (เก็บไว้เฉย ๆ ถ้าอยากใช้ที่อื่น)
@@ -294,13 +304,17 @@ export default function Dashboard() {
       setSelectedSale(found.value);
       setSelectedSaleByCrop(found.value);
       setSelectedSaleActivity(found.value);
-
-      setIsSaleLocked(true);
+      if (userInfo?.role_id === "1" || userInfo?.role_id === "2" || userInfo?.role_id === "3") {
+        setIsSaleLocked(false);
+      } else {
+        setIsSaleLocked(true);
+      }
     } else {
       // ✅ ถ้าไม่เจอใน list ของ area นี้ ให้เลือกเองได้
       setIsSaleLocked(false);
     }
-  }, [selectedArea, salesByArea, userInfo]);
+  }, [selectedArea, salesByArea, userInfo, isSaleLocked]);
+
 
   const getLoginSaleId = (u) => {
     if (!u) return null;
@@ -345,8 +359,9 @@ export default function Dashboard() {
           }));
 
           setDealer(formattedDealers);
-
-          setSelectedSdByD(formattedDealers[0]?.value ?? null);
+          setSelectedSdByD(null);
+          // setDealer(formattedDealers);
+          // setSelectedSdByD(formattedDealers[0]?.value ?? null);
           // setSelectedSdByPointUser(formattedDealers[0]?.value ?? null);
 
         } else {
@@ -609,24 +624,35 @@ export default function Dashboard() {
     const fetchSubDealerByDealerData = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathDashBoardSubDealerByDealer, {
+        const payload = {
           year_code: selectedYear,
-          dealer_id: selectedSdByD,
           sale_id: selectedSale,
-          area_id: selectedArea,     // ✅ ส่ง area_id
-        });
+          area_id: selectedArea,
+        };
+
+        if (selectedSdByD) {
+          payload.dealer_id = selectedSdByD;
+        }
+
+        const response = await useServiceAPI.get(
+          paths.pathDashBoardSubDealerByDealer,
+          payload
+        );
 
         if (response.status === 200 && response.data) {
           const data = response?.data?.items
             ?.sort((a, b) => {
-              const aValue = parseFloat(String(a.total_amount_target || "0").replace(/,/g, "")) || 0;
-              const bValue = parseFloat(String(b.total_amount_target || "0").replace(/,/g, "")) || 0;
+              const aValue =
+                parseFloat(String(a.total_amount_target || "0").replace(/,/g, "")) || 0;
+              const bValue =
+                parseFloat(String(b.total_amount_target || "0").replace(/,/g, "")) || 0;
               return bValue - aValue;
             })
             ?.map((item) => {
               const isOther = item.sub_dealer_name === "Other";
               return {
-                value: parseFloat(String(item.total_amount_target || "0").replace(/,/g, "")) || 0,
+                value:
+                  parseFloat(String(item.total_amount_target || "0").replace(/,/g, "")) || 0,
                 label: item.sub_dealer_name,
                 percentage: item.percentage,
                 color: isOther ? "#e61e1e" : "#009845",
@@ -634,16 +660,19 @@ export default function Dashboard() {
             });
 
           setSubdealerByDealerData(data || []);
+        } else {
+          setSubdealerByDealerData([]);
         }
       } catch (error) {
         console.error("Error fetching Sub Dealer By Dealer data:", error);
+        setSubdealerByDealerData([]);
       } finally {
         setLoading(false);
       }
     };
 
-    if (selectedYear && selectedSdByD) fetchSubDealerByDealerData();
-  }, [selectedYear, selectedSdByD, selectedSale, selectedArea]);   // ✅
+    if (selectedYear) fetchSubDealerByDealerData();
+  }, [selectedYear, selectedSdByD, selectedSale, selectedArea]);
 
 
   // ===============================
@@ -1335,8 +1364,8 @@ export default function Dashboard() {
               <div className="flex flex-wrap gap-2">
                 <Select
                   className="mb-4 w-36"
-                  value={selectedSdByD}
-                  onChange={(value) => setSelectedSdByD(value)}
+                  value={selectedSdByD || undefined}
+                  onChange={(value) => setSelectedSdByD(value ?? null)}
                   placeholder={loading ? "Loading..." : "Select by Dealer"}
                   disabled={loading}
                   showSearch
