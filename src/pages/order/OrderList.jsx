@@ -2,6 +2,7 @@
 // ✅ Master: SaleDropdown + DealerAll (+ Status)
 // ✅ Search triggers fetch, onChange only updates UI (filterValues)
 // ✅ Clear resets UI + fetches all (filters = {}) + resets page to 1
+// ✅ Fix: clear date range will NOT send dater: [] to API
 
 import React, { useEffect, useState, useContext } from "react";
 import MainLayout from "../../layouts/MainLayout";
@@ -70,6 +71,21 @@ export default function OrderList() {
     if (!v) return "";
     if (typeof v === "object") return v.value ?? v.id ?? "";
     return v;
+  };
+
+  // ✅ helper: remove empty dater before search
+  const normalizeFilters = (raw = {}) => {
+    const next = { ...raw };
+
+    if (
+      !next.dater ||
+      (Array.isArray(next.dater) && next.dater.length === 0) ||
+      (Array.isArray(next.dater) && next.dater.every((v) => !v))
+    ) {
+      delete next.dater;
+    }
+
+    return next;
   };
 
   // ✅ Get Master: Sale + DealerAll + Status
@@ -146,7 +162,6 @@ export default function OrderList() {
       dealer_id: getId(f.dealer),
       keyword: f.order_no || "",
       trasaction_status_code: getId(f.status),
-      dater: f.dater || "",
       page: "all",
       use_flag: f.use_flag || "",
       orderby_column: sortField,
@@ -154,6 +169,14 @@ export default function OrderList() {
       page_length: current,
       page_size: pageSize,
     };
+
+    // ✅ send dater only when has actual value
+    if (
+      f.dater &&
+      (!Array.isArray(f.dater) || (Array.isArray(f.dater) && f.dater.length > 0 && f.dater.some((v) => v)))
+    ) {
+      requestData.dater = f.dater;
+    }
 
     try {
       const response = await useServiceAPI.get(paths.pathGetOrderList, requestData);
@@ -272,10 +295,12 @@ export default function OrderList() {
   const handleFilterChange = (values) => setFilterValues(values);
 
   const handleSearch = (valuesFromUI) => {
+    const cleanedFilters = normalizeFilters(valuesFromUI);
+
     setTableParams((prev) => ({
       ...prev,
       pagination: { ...prev.pagination, current: 1, pageSize: 10 },
-      filters: { ...valuesFromUI },
+      filters: cleanedFilters,
     }));
   };
 
@@ -292,7 +317,7 @@ export default function OrderList() {
     setTableParams((prev) => ({
       ...prev,
       pagination,
-      filters: prev.filters, // keep current filters
+      filters: prev.filters,
       sortOrder: sorter?.order === "ascend" ? "asc" : "desc",
       sortField: sorter?.field,
     }));
