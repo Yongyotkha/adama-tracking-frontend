@@ -274,6 +274,11 @@ export default function AdvanceExpense() {
     { title: "Sub Dealer", dataIndex: "customer", align: "left" },
     { title: "Dealer", dataIndex: "dealersd", align: "left" },
     { title: "Expense No", dataIndex: "expenseNo", align: "left" },
+    {
+      title: "Advance Exp",
+      dataIndex: "advanceExp",
+      align: "right",
+    },
     { title: "Activity Reference", dataIndex: "activityReference", align: "left" },
     { title: "Type of Meeting", dataIndex: "typeOfMeeting", align: "center" },
     { title: "Date", dataIndex: "date", align: "center" },
@@ -336,6 +341,10 @@ export default function AdvanceExpense() {
           customer: row.sub_dealer_name,
           dealersd: row.dealer_name,
           expenseNo: row.document_number,
+          advanceExp: Number(row.expense_advance || 0).toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
           activityReference: row.document_number_referrent,
           typeOfMeeting: row.activity_type_name,
           date: row.document_date,

@@ -123,7 +123,7 @@ export default function UserDetail() {
             </div>
 
             {/* Back Button at Bottom */}
-            <BackButton />
+            <BackButton url="/mobile/account"/>
           </>
         )}
       </div>
