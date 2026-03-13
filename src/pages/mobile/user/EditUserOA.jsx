@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button, Input, DatePicker } from "antd";
 import { MobileLayout } from "../../../components/navbar/NavbarMobile";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -14,6 +14,7 @@ export default function EditUserOA() {
   const navigate = useNavigate();
   const location = useLocation();
   const userData = location.state?.user || {};
+  const fileInputRef = useRef(null);
 
   const [isPointModalVisibleComfirm, setIsPointModalVisibleComfirm] = useState(false);
 
@@ -37,6 +38,7 @@ export default function EditUserOA() {
     email: userData.email || "",
     name_th: userData.name_th || "",
     contact_birth_date_year: userData.contact_birth_date_year || "",
+    profile_image: userData.profile_image || "",
   });
 
   useEffect(() => {
@@ -51,30 +53,53 @@ export default function EditUserOA() {
       email: userData.email || "",
       name_th: userData.name_th || "",
       contact_birth_date_year: userData.contact_birth_date_year || "",
+      profile_image: userData.profile_image || "",
     });
 
     setImagePreview(userData.profile_image || "/img/icons/profile.png");
   }, [userData, location.state]);
 
+  const handleOpenFilePicker = () => {
+    fileInputRef.current?.click();
+  };
+
   const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setImagePreview(URL.createObjectURL(file));
+    const localPreview = URL.createObjectURL(file);
+    setImagePreview(localPreview);
 
     const uploadFormData = new FormData();
     uploadFormData.append("file", file);
     uploadFormData.append("mode", "profile");
 
     try {
+      setLoading(true);
+
       const response = await useServiceAPI.post(
         paths.pathUpload,
-        uploadFormData,
-        setLoading
+        uploadFormData
       );
-      setImagePreview(response.data.file_url);
+
+      const fileUrl =
+        response?.data?.file_url ||
+        response?.file_url ||
+        response?.data?.data?.file_url ||
+        "";
+
+      if (fileUrl) {
+        setImagePreview(fileUrl);
+        setFormData((prev) => ({
+          ...prev,
+          profile_image: fileUrl,
+        }));
+      }
     } catch (error) {
-      console.error("Error uploading form data:", error);
+      console.error("Error uploading image:", error);
+      setIsFailModalVisible(true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -111,14 +136,16 @@ export default function EditUserOA() {
         id: formData.id,
         name_th: formData.name_th || "",
         address: formData.address || "",
+        line_id: formData.line_id || "",
         contact_birth_date_year: formData.contact_birth_date_year || "",
+        profile_image: formData.profile_image || "",
       };
 
       const response = await useServiceAPI.put(paths.pathProfileDetail, payload);
 
-      if (response.status === 200 && response.result) {
+      if (response?.status === 200 && response?.result) {
         setIsSuccessModalVisible(true);
-        navigate("/mobile/user/detail", { state: { id: userData.id } });
+        navigate(-1);
       } else {
         setIsFailModalVisible(true);
       }
@@ -146,18 +173,19 @@ export default function EditUserOA() {
               alt="Profile"
               className="w-24 h-24 rounded-full object-cover mb-2 shadow-lg"
             />
+
             <input
+              ref={fileInputRef}
               type="file"
               accept="image/*"
               onChange={handleImageChange}
               style={{ display: "none" }}
-              id="imageUpload"
-              disabled
             />
+
             <Button
               icon={<EditOutlined />}
-              disabled
-              className="text-white absolute bottom-0 bg-[#009845] ms-[65px] rounded-full opacity-60 cursor-not-allowed"
+              onClick={handleOpenFilePicker}
+              className="text-white absolute bottom-0 bg-[#009845] ms-[65px] rounded-full"
             />
           </div>
         </div>
@@ -222,7 +250,7 @@ export default function EditUserOA() {
                 className="mt-1 sarabun-font text-[#A19793]"
                 value={formData.line_id}
                 name="line_id"
-                // disabled
+                onChange={handleInputChange}
               />
             </div>
 
@@ -240,9 +268,12 @@ export default function EditUserOA() {
         </div>
 
         <div className="w-full max-w-md flex justify-between align-bottom mt-auto space-x-2">
-          <BackButton />
+          {/* <BackButton /> */}
+          <BackButton url={'/mobile/account'} type={'account'} />
+
           <div className="w-full max-w-md mt-auto py-2">
             <button
+              type="button"
               onClick={before_save}
               className="w-full py-3 bg-[#009845] rounded-lg text-white sarabun-font flex items-center justify-center space-x-2"
             >
@@ -254,8 +285,8 @@ export default function EditUserOA() {
         <DynamicPopUpConfirm
           visible={isPointModalVisibleComfirm}
           onConfirm={async () => {
-            await handleSave();
             setIsPointModalVisibleComfirm(false);
+            await handleSave();
           }}
           onCancel={() => {
             setIsPointModalVisibleComfirm(false);

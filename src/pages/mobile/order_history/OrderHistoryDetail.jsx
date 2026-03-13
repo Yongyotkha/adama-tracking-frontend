@@ -67,7 +67,7 @@ export default function OrderHistoryDetail() {
       qty: Number(p?.quantity ?? 0),
       product_name: p?.product_name ?? "-",
       product_code: p?.product_code ?? "-",
-      packing_list: p?.packing_list ?? "-",
+      product_unit: p?.product_unit ?? "-",
       amount: Number(p?.net_amount ?? 0),
       points: p?.points ?? [],
       point: Number(p?.point ?? 0),
@@ -115,15 +115,11 @@ export default function OrderHistoryDetail() {
     historydetail?.document_datetime ||
     (historydetail?.document_date ? `${historydetail.document_date}` : "-");
 
-  let statusText =
-    historydetail?.status_transaction_name ||
-    historydetail?.status_payment_name ||
-    historydetail?.status_name ||
-    "-";
+  let statusText = historydetail?.status_transaction_name || "-";
 
   if (statusText == 'Waiting for Receive') {
     statusText = 'รอรับพัสดุ'
-  } else if (statusText == 'Complete') {
+  } else if (statusText == 'Complete' || statusText == 'Complate') {
     statusText = 'รับสินค้าสำเร็จ'
   } else if (statusText == 'Draft') {
     statusText = 'แบบร่างรายการ'
@@ -131,6 +127,10 @@ export default function OrderHistoryDetail() {
     statusText = 'รอสร้างรายการ'
   } else if (statusText == 'Reject') {
     statusText = 'ยกเลิกรายการ'
+  } else if (statusText == 'Waiting for Approve') {
+    statusText = 'รอการอนุมัติ'
+  } else if (statusText == 'Waiting for send') {
+    statusText = 'รอส่งสินค้า'
   }
 
   const statusTextColor = historydetail?.status_transaction_color || "#0ea5a0";
@@ -221,7 +221,7 @@ export default function OrderHistoryDetail() {
                         <p>
                           {item.qty} x {item.product_name}
                         </p>
-                        <p className="text-xs text-gray-500">บรรจุ : {item.packing_list}</p>
+                        <p className="text-xs text-gray-500">บรรจุ : {item.product_unit}</p>
 
 
                         {(item.points.standard_point) > 0 && (
