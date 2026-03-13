@@ -308,6 +308,11 @@ export default function ApprovalClearingExpense() {
     { title: "Dealer", dataIndex: "dealer", align: "left" },
     { title: "Expense No", dataIndex: "expenseNo", align: "left" },
     {
+      title: "Actual Exp",
+      dataIndex: "actualExp",
+      align: "right",
+    },
+    {
       title: "Activity Reference",
       dataIndex: "activityReference",
       align: "left",
@@ -408,6 +413,10 @@ export default function ApprovalClearingExpense() {
             customer: row.sub_dealer_name,
             dealer: row.dealer_name,
             expenseNo: row.document_number,
+            actualExp: Number(row.expense_actual_exp || 0).toLocaleString("en-US", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
             activityReference: row.document_number_referrent,
             advanceReference: row.advance_reference_no,
             typeOfMeeting: row.activity_type_name,

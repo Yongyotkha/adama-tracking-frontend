@@ -303,6 +303,10 @@ export default function ApprovalAdvanceExpense() {
           customer: row.sub_dealer_name,
           dealer: row.dealer_name,
           expenseNo: row.document_number,
+          advanceExp: Number(row.expense_advance || 0).toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
           activityReference: row.document_number_referrent,
           typeOfMeeting: row.activity_type_name,
           sale: row.user_name,
@@ -383,6 +387,11 @@ export default function ApprovalAdvanceExpense() {
             { title: "Sub Dealer", dataIndex: "customer" },
             { title: "Dealer", dataIndex: "dealer" },
             { title: "Expense No", dataIndex: "expenseNo" },
+            {
+              title: "Advance Exp",
+              dataIndex: "advanceExp",
+              align: "right",
+            },
             { title: "Activity Reference", dataIndex: "activityReference" },
             { title: "Type of Meeting", dataIndex: "typeOfMeeting" },
             { title: "Sales", dataIndex: "sale", width: "200px" },
