@@ -23,12 +23,16 @@ export default function ApprovalClearingExpense() {
 
   const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [tableLoading, setTableLoading] = useState(false);
+
   const [dataSource, setDataSource] = useState([]);
   const [activityList, setActivityList] = useState([]);
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
-  const [tableLoading, setTableLoading] = useState(false);
+  const [subDealerList, setSubDealerList] = useState([]);
+
   const { showNotification, showMsg, userInfo } = useContext(AuthContext);
+
   const [logs, setLogs] = useState([]);
   const [filterValues, setFilterValues] = useState({});
 
@@ -43,6 +47,12 @@ export default function ApprovalClearingExpense() {
     sortField: null,
   });
 
+  const getId = (v) => {
+    if (!v) return "";
+    if (typeof v === "object") return v.value ?? v.id ?? "";
+    return v;
+  };
+
   const filters = [
     {
       key: "sale",
@@ -53,28 +63,35 @@ export default function ApprovalClearingExpense() {
       moderef: true,
     },
     {
-      key: "customer",
+      key: "dealer",
       type: "select",
-      label: "Customer",
+      label: "Dealer",
       placeholder: "All",
       options: dealerList,
     },
     {
-      key: "expense_no",
-      type: "text",
-      label: "Expense No",
+      key: "sub_dealer",
+      type: "select",
+      label: "Sub Dealer",
       placeholder: "All",
+      options: subDealerList,
     },
     {
-      key: "document_number_advance_referrent",
+      key: "expense_no",
       type: "text",
-      label: "Advance Reference",
+      label: "Expense No.",
       placeholder: "All",
     },
     {
       key: "activity_reference",
       type: "text",
       label: "Activity Reference",
+      placeholder: "All",
+    },
+    {
+      key: "advance_reference_no",
+      type: "text",
+      label: "Advance Reference",
       placeholder: "All",
     },
     {
@@ -104,18 +121,12 @@ export default function ApprovalClearingExpense() {
     return { approveText, rejectText };
   };
 
-  const getId = (v) => {
-    if (!v) return "";
-    if (typeof v === "object") return v.value ?? v.id ?? "";
-    return v;
-  };
-
-  const handleSearch = (filters) => {
-    setFilterValues(filters);
+  const handleSearch = (valuesFromUI) => {
+    setFilterValues(valuesFromUI);
     setTableParams((prev) => ({
       ...prev,
-      pagination: { ...prev.pagination, current: 1 },
-      filters,
+      pagination: { ...prev.pagination, current: 1, pageSize: 10 },
+      filters: { ...valuesFromUI },
     }));
   };
 
@@ -123,33 +134,13 @@ export default function ApprovalClearingExpense() {
     setFilterValues({});
     setTableParams((prev) => ({
       ...prev,
-      pagination: { ...prev.pagination, current: 1 },
+      pagination: { ...prev.pagination, current: 1, pageSize: 10 },
       filters: {},
     }));
   };
 
-  const handleChange = (filter) => {
-    setFilterValues(filter || {});
-
-    if (filter?.sale) {
-      const getMasterDealer = async () => {
-        try {
-          const [dealer] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterDealerDropdown, {
-              user_id: filter.sale,
-            }),
-          ]);
-
-          setDealerList(dealer.data || []);
-        } catch (error) {
-          showMsg("error", error.message || "เกิดข้อผิดพลาด");
-        }
-      };
-
-      getMasterDealer();
-    } else {
-      setDealerList([]);
-    }
+  const handleChange = (values) => {
+    setFilterValues(values || {});
   };
 
   const handleDelete = async (documentNumber) => {
@@ -165,7 +156,9 @@ export default function ApprovalClearingExpense() {
               documentNumber
             )}&page_code=${encodeURIComponent("expense_clearing")}`
           );
+
           await fetchData();
+
           if (response.status === 200) {
             showNotification(
               "success",
@@ -194,17 +187,34 @@ export default function ApprovalClearingExpense() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [activityType, sale] = await Promise.all([
+        const [activityTypeRes, saleRes, dealerRes, subDealerRes] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          // useServiceAPI.get(paths.pathMasterDealerAll, {}),
-          useServiceAPI.get(paths.pathMasterSaleActivity, { status: "all", mode: "all" }),
-
+          useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" }),
+          useServiceAPI.get(paths.pathMasterDealerAll, {}),
+          useServiceAPI.get(paths.pathMasterSubDealerAll, {}),
         ]);
 
-        setActivityList(activityType.data || []);
-        setSaleList(sale.data || []);
+        setActivityList(activityTypeRes?.data || []);
+        setSaleList(saleRes?.data || []);
+
+        setDealerList(
+          (dealerRes?.data || []).map((d) => ({
+            id: d.id ?? d.dealer_id ?? d.code,
+            value: d.id ?? d.dealer_id ?? d.code,
+            name: d.name ?? d.dealer_name ?? d.title,
+          }))
+        );
+
+        setSubDealerList(
+          (subDealerRes?.data || []).map((s) => ({
+            id: s.sub_dealer_id ?? s.id ?? s.code,
+            value: s.sub_dealer_id ?? s.id ?? s.code,
+            name: s.sub_dealer_name ?? s.name ?? s.title,
+          }))
+        );
       } catch (error) {
         console.error(error);
+        showMsg?.("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
         setLoading(false);
       }
@@ -251,15 +261,21 @@ export default function ApprovalClearingExpense() {
 
           await showNotification(
             "success",
-            result?.data?.Message?.Message_Header || result?.data?.message || "Success",
-            result?.data?.Message?.Message_Line || result?.data?.message_line || ["Transaction completed"],
+            result?.data?.Message?.Message_Header ||
+              result?.data?.message ||
+              "Success",
+            result?.data?.Message?.Message_Line ||
+              result?.data?.message_line ||
+              ["Transaction completed"],
             2
           );
 
           fetchData();
         } catch (error) {
           console.error(error);
-          showNotification("error", "Transaction failed", ["Please try again later."]);
+          showNotification("error", "Transaction failed", [
+            "Please try again later.",
+          ]);
         }
       },
     });
@@ -297,7 +313,13 @@ export default function ApprovalClearingExpense() {
 
       return {
         key: actionIndex,
-        label: <ItemDropDown mode={itemMode} onClick={onClickHandler} text={itemText} />,
+        label: (
+          <ItemDropDown
+            mode={itemMode}
+            onClick={onClickHandler}
+            text={itemText}
+          />
+        ),
       };
     });
   };
@@ -307,21 +329,9 @@ export default function ApprovalClearingExpense() {
     { title: "Sub Dealer", dataIndex: "customer", align: "left" },
     { title: "Dealer", dataIndex: "dealer", align: "left" },
     { title: "Expense No", dataIndex: "expenseNo", align: "left" },
-    {
-      title: "Actual Exp",
-      dataIndex: "actualExp",
-      align: "right",
-    },
-    {
-      title: "Activity Reference",
-      dataIndex: "activityReference",
-      align: "left",
-    },
-    {
-      title: "Advance Reference",
-      dataIndex: "advanceReference",
-      align: "left",
-    },
+    { title: "Actual Exp", dataIndex: "actualExp", align: "right" },
+    { title: "Activity Reference", dataIndex: "activityReference", align: "left" },
+    { title: "Advance Reference", dataIndex: "documentNumberAdvance", align: "left" },
     { title: "Type of Meeting", dataIndex: "typeOfMeeting", align: "center" },
     { title: "Date", dataIndex: "date", align: "center" },
     { title: "Sale", dataIndex: "sale", align: "left" },
@@ -344,35 +354,34 @@ export default function ApprovalClearingExpense() {
     },
   ];
 
-  useEffect(() => {
-    console.log("logs updated:", logs);
-  }, [logs]);
-
   const fetchData = async () => {
     setTableLoading(true);
+
     const { current, pageSize } = tableParams.pagination;
-    const filters = tableParams.filters || {};
+    const f = tableParams.filters || {};
 
     const sortOrder = tableParams.sortOrder || "desc";
     const sortField = tableParams.sortField || "document_number";
 
     const requestData = {
       page_code: "expense_clearing",
-      document_number_advance_referrent: filters.document_number_advance_referrent || filters.document_number_advance_referrent || "",
-      keyword: filters.expense_no || filters.keyword || "",
+      keyword: f.expense_no || "",
       use_flag: "1",
-      user_id: getId(filters.sale),
-      dealer_id: getId(filters.customer),
-      activity_type_id: getId(filters.type_of_meeting),
-      document_number_referrent: filters.activity_reference || "",
+      date: f.date || "",
+      user_id: getId(f.sale),
+      dealer_id: getId(f.dealer),
+      sub_dealer_id: getId(f.sub_dealer),
+      activity_type_id: getId(f.type_of_meeting),
+      document_number_referrent: f.activity_reference || "",
+      document_number_advance_referrent: f.advance_reference_no || "",
       customer_name: "",
-      date: filters.date || "",
       page: "all",
       orderby_column: sortField,
       orderby: sortOrder,
       page_length: current,
       page_size: pageSize,
       page_mode: "waiting_" + role,
+      platform: "web",
     };
 
     try {
@@ -385,7 +394,7 @@ export default function ApprovalClearingExpense() {
         const { data, records_filtered } = response.data;
 
         const newDataSource = (data || []).map((row, index) => {
-          let bad_status = (
+          let badStatus = (
             <BadgeStatus
               text={row.transaction_status_name}
               bgColor={row.transaction_status_bg_color}
@@ -394,7 +403,7 @@ export default function ApprovalClearingExpense() {
           );
 
           if (row.transaction_status_name === "Reject") {
-            bad_status = (
+            badStatus = (
               <BadgeStatus
                 text={row.transaction_status_name}
                 bgColor={row.transaction_status_bg_color}
@@ -418,17 +427,16 @@ export default function ApprovalClearingExpense() {
               maximumFractionDigits: 2,
             }),
             activityReference: row.document_number_referrent,
-            advanceReference: row.advance_reference_no,
+            documentNumberAdvance: row.advance_reference_no || row.advance_no || "",
             typeOfMeeting: row.activity_type_name,
             date: row.document_date,
             sale: row.user_name,
-            status: bad_status,
+            status: badStatus,
             action: row.action || [],
           };
         });
 
         setDataSource(newDataSource);
-
         setTableParams((prev) => ({
           ...prev,
           pagination: {
@@ -456,36 +464,21 @@ export default function ApprovalClearingExpense() {
     JSON.stringify(tableParams.filters),
   ]);
 
-  const handleTableChange = (pagination, filters, sorter) => {
+  const handleTableChange = (pagination, _filters, sorter) => {
     setTableParams((prev) => ({
       ...prev,
       pagination,
       filters: prev.filters,
       sortField: sorter?.field,
+      sortOrder: sorter?.order === "descend" ? "desc" : "asc",
     }));
   };
 
   const logsColumns = [
-    {
-      title: "วันที่",
-      dataIndex: "date",
-      key: "date",
-    },
-    {
-      title: "สถานะ",
-      dataIndex: "status",
-      key: "status",
-    },
-    {
-      title: "เหตุผล",
-      dataIndex: "reason",
-      key: "reason",
-    },
-    {
-      title: "ผู้ดำเนินการ",
-      dataIndex: "update_by",
-      key: "update_by",
-    },
+    { title: "วันที่", dataIndex: "date", key: "date" },
+    { title: "สถานะ", dataIndex: "status", key: "status" },
+    { title: "เหตุผล", dataIndex: "reason", key: "reason" },
+    { title: "ผู้ดำเนินการ", dataIndex: "update_by", key: "update_by" },
   ];
 
   const fetchDialog = async (document_number) => {
@@ -493,7 +486,7 @@ export default function ApprovalClearingExpense() {
 
     try {
       const response = await useServiceAPI.get(paths.pathActivityExpenseLog, {
-        document_number: document_number,
+        document_number,
       });
 
       const rawData = response?.data ?? [];
@@ -535,11 +528,11 @@ export default function ApprovalClearingExpense() {
       </div>
 
       <Filter
-        onSearch={handleSearch}
-        onClear={handleClear}
-        onChange={handleChange}
         filters={filters}
         values={filterValues}
+        onChange={handleChange}
+        onSearch={handleSearch}
+        onClear={handleClear}
       />
 
       <BoxPrimary>
