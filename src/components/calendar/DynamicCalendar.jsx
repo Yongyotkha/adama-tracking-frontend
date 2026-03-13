@@ -113,25 +113,26 @@ const DynamicCalendar = ({ events, fetchEvents, loading, sendData }) => {
         setSaleOptions(saleList);
 
         // 👇 หาก role_id === 4 ให้ set ค่า default เป็น userInfo.id
-        if (userInfo.role_id == 4) {
+        // if (userInfo.role_id == 4) {
 
-          setSelectedSale(userInfo.id);
-          handleSaleChange(userInfo.id);
-          console.log('selected sale : ', userInfo.id)
-        } else if (userInfo.role_id == 5 || userInfo.role_id == 6) {
-          console.log('userInfo : ', userInfo)
+        //   setSelectedSale(userInfo.id);
+        //   handleSaleChange(userInfo.id);
+        //   console.log('selected sale : ', userInfo.id)
+        // } 
+        // else if (userInfo.role_id == 5 || userInfo.role_id == 6) {
+        //   console.log('userInfo : ', userInfo)
 
-          const headerResponse = await useServiceAPI.get(paths.pathMasterGetSaleHeader, {
-            status: "all",
-            user_id: userInfo.id,
-          });
-          console.log('header sale : ', headerResponse)
-          const sale_header_id = parseInt(headerResponse.data.header_user_id)
-          setSelectedSale(sale_header_id)
-          handleSaleChange(sale_header_id)
-          console.log('selected sale : ', sale_header_id)
+        //   const headerResponse = await useServiceAPI.get(paths.pathMasterGetSaleHeader, {
+        //     status: "all",
+        //     user_id: userInfo.id,
+        //   });
+        //   console.log('header sale : ', headerResponse)
+        //   const sale_header_id = parseInt(headerResponse.data.header_user_id)
+        //   setSelectedSale(sale_header_id)
+        //   handleSaleChange(sale_header_id)
+        //   console.log('selected sale : ', sale_header_id)
 
-        }
+        // }
 
       } catch (error) {
         console.error("Error fetching Sale options:", error);
@@ -493,37 +494,43 @@ const DynamicCalendar = ({ events, fetchEvents, loading, sendData }) => {
         {/* Right Side: Event Details */}
         <div className="col-span-1 md:col-span-1 lg:col-span-3 bg-[#F5F3F3] mb-5">
           <div className="flex justify-end items-center gap-4 pb-4">
-            <Select
-              lang="th"
-              name="select_sale"
-              className="min-w-[150px]"
-              placeholder="Select a Sale Territory"
-              options={[{ label: "All", value: "" }, ...saleOptions]}
-              value={selectedSale}
-              onChange={handleSaleChange}
-              showSearch
-              allowClear
-              optionFilterProp="label"
-              filterOption={(input, option) =>
-                (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-              }
-            />
+            <Tooltip title="Select Sale Territory" placement="bottom">
 
-            <Select
-              lang="th"
-              className="min-w-[150px]"
-              placeholder="Select a Shop"
-              options={[{ label: "All", value: "" }, ...shopOptions]}
-              value={selectedShop}
-              onChange={handleShopChange}
-              disabled={!selectedSale}   // ✅ clear แล้วจะ disabled
-              showSearch
-              allowClear
-              optionFilterProp="label"
-              filterOption={(input, option) =>
-                (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-              }
-            />
+              <Select
+                lang="th"
+                name="select_sale"
+                className="min-w-[150px]"
+                // placeholder="Select a Sale Territory"
+                placeholder="All"
+                options={[{ label: "All", value: "" }, ...saleOptions]}
+                value={selectedSale}
+                onChange={handleSaleChange}
+                showSearch
+                allowClear
+                optionFilterProp="label"
+                filterOption={(input, option) =>
+                  (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                }
+              />
+            </Tooltip>
+            <Tooltip title="Select Shop" placement="bottom">
+
+              <Select
+                lang="th"
+                className="min-w-[150px]"
+                placeholder="All"
+                options={[{ label: "All", value: "" }, ...shopOptions]}
+                value={selectedShop}
+                onChange={handleShopChange}
+                disabled={!selectedSale}   // ✅ clear แล้วจะ disabled
+                showSearch
+                allowClear
+                optionFilterProp="label"
+                filterOption={(input, option) =>
+                  (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                }
+              />
+            </Tooltip>
           </div>
           {selectedDate ? (
             <>
