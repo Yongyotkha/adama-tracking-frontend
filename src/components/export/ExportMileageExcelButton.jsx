@@ -18,6 +18,7 @@ const hexToARGB = (hex) => {
   const v = (hex || "#FFFFFF").replace("#", "").trim();
   return `FF${v.toUpperCase()}`;
 };
+
 const fillSolid = (hex) => ({
   type: "pattern",
   pattern: "solid",
@@ -44,14 +45,6 @@ const slug = (s) =>
     .replace(/[\\/:*?"<>|]+/g, "-")
     .replace(/\s+/g, "_");
 
-const buildDateRangeFromMonth = (monthStr) => {
-  const m = monthStr ? dayjs(monthStr, "YYYY-MM") : dayjs();
-  return {
-    start_date: m.startOf("month").format("YYYY-MM-DD"),
-    end_date: m.endOf("month").format("YYYY-MM-DD"),
-  };
-};
-
 const toNumber = (v) => {
   const n = Number(String(v ?? "").replace(/,/g, ""));
   return Number.isFinite(n) ? n : null;
@@ -61,46 +54,32 @@ export default function ExportMileageExcelButton({
   text = "Export Excel",
   iconSrc = "/img/icons/excel.png",
   className,
-
-  month,
-  selectedUserId, // user_id จาก dropdown (ใส่ใน payload key name)
-  nameOptions = [],
-
-  userInfoId,
-  requestData, // (payload) => useServiceAPI.get(paths.pathMileageList, payload)
-
+  filters = {},
+  requestData, // (filters, page, pageSize) => Promise
   pageSize = 5000,
-  freezeFirstColumn = false, // ถ้าต้องการ freeze คอลัมน์ No ด้วยให้ true
+  freezeFirstColumn = false,
 }) {
   const [loading, setLoading] = useState(false);
 
   const fileName = useMemo(() => {
-    const monthText = month || dayjs().format("YYYY-MM");
-    const picked = (nameOptions || []).find(
-      (x) => String(x.id) === String(selectedUserId)
-    );
-    const who = picked?.name ? `_${slug(picked.name)}` : "";
-    const ts = dayjs().format("YYYY-MM-DD_HHmm");
-    return `Mileage_Report_${monthText}${who}_${ts}`;
-  }, [month, selectedUserId, nameOptions]);
+    const dater = Array.isArray(filters?.dater) ? filters.dater : [];
+    const start = dater?.[0] || "";
+    const end = dater?.[1] || "";
+    const datePart =
+      start && end
+        ? `${start}_to_${end}`
+        : dayjs().format("YYYY-MM-DD_HHmm");
+
+    const who = filters?.name ? `_${slug(filters.name)}` : "";
+    return `Mileage_Report_${datePart}${who}`;
+  }, [filters]);
 
   const fetchAllPages = async () => {
-    const { start_date, end_date } = buildDateRangeFromMonth(month);
-
     let page = 1;
     let all = [];
 
     while (true) {
-      const payload = {
-        user_id: userInfoId,
-        start_date,
-        end_date,
-        name: selectedUserId ?? "",
-        page_length: page,
-        page_size: pageSize,
-      };
-
-      const res = await requestData(payload);
+      const res = await requestData(filters, page, pageSize);
       const rows = Array.isArray(res?.data) ? res.data : [];
 
       all = all.concat(rows);
@@ -108,7 +87,6 @@ export default function ExportMileageExcelButton({
       if (rows.length < pageSize) break;
       page += 1;
 
-      // safety
       if (page > 5000) break;
     }
 
@@ -125,7 +103,6 @@ export default function ExportMileageExcelButton({
       const wb = new ExcelJS.Workbook();
       const ws = wb.addWorksheet("Mileage");
 
-      // ===== Header row (เหมือนตาราง) =====
       const hr = ws.getRow(1);
       hr.height = 22;
 
@@ -140,43 +117,40 @@ export default function ExportMileageExcelButton({
         c.border = borderThin;
       });
 
-      // ===== Body =====
       let r = 2;
       items.forEach((it, idx) => {
         const row = ws.getRow(r);
 
-        // No
         row.getCell(1).value = idx + 1;
         row.getCell(1).alignment = { vertical: "middle", horizontal: "left" };
         row.getCell(1).border = borderThin;
 
-        // Date
         row.getCell(2).value = it?.date || "-";
         row.getCell(2).alignment = { vertical: "middle", horizontal: "left" };
         row.getCell(2).border = borderThin;
 
-        // Name
         row.getCell(3).value = it?.user_name_en || it?.user_name || "-";
-        row.getCell(3).alignment = { vertical: "middle", horizontal: "left", wrapText: true };
+        row.getCell(3).alignment = {
+          vertical: "middle",
+          horizontal: "left",
+          wrapText: true,
+        };
         row.getCell(3).border = borderThin;
 
-        // Mileage
         const mileageNum = toNumber(it?.mileage);
         const mCell = row.getCell(4);
-        mCell.value = mileageNum;                 // number
-        mCell.numFmt = '#,##0.00;-#,##0.00;"-";@'; // ถ้า null = "-"
+        mCell.value = mileageNum;
+        mCell.numFmt = '#,##0.00;-#,##0.00;"-";@';
         mCell.alignment = { vertical: "middle", horizontal: "right" };
         mCell.border = borderThin;
 
-        // Last Modified (ตอนนี้ใน UI เป็น "-")
-        row.getCell(5).value = "-";
+        row.getCell(5).value = it?.last_modified || "-";
         row.getCell(5).alignment = { vertical: "middle", horizontal: "left" };
         row.getCell(5).border = borderThin;
 
         r++;
       });
 
-      // ===== Freeze header (และ optionally freeze col No) =====
       ws.views = [
         {
           state: "frozen",
@@ -185,7 +159,6 @@ export default function ExportMileageExcelButton({
         },
       ];
 
-      // ===== export =====
       const buffer = await wb.xlsx.writeBuffer();
       saveAs(new Blob([buffer]), `${safeFile(fileName)}.xlsx`);
     } catch (e) {

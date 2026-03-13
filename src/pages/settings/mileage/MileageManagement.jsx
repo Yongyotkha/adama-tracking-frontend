@@ -23,6 +23,7 @@ export default function MileageManagement() {
     pagination: {
       current: 1,
       pageSize: 10,
+      total: 0,
     },
     filters: {},
     sortOrder: null,
@@ -54,9 +55,9 @@ export default function MileageManagement() {
   const formatNumber = (val) =>
     !isNaN(Number(val))
       ? Number(val).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
       : "-";
 
   const getId = (v) => {
@@ -76,29 +77,14 @@ export default function MileageManagement() {
       delete next.dater;
     }
 
+    if (!next.name) {
+      delete next.name;
+    }
+
     return next;
   };
 
-  useEffect(() => {
-    const getSaleMaster = async () => {
-      try {
-        const saleRes = await useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" });
-        setNameOptions(saleRes?.data || []);
-      } catch (e) {
-        console.error(e);
-        setNameOptions([]);
-      }
-    };
-
-    getSaleMaster();
-  }, []);
-
-  const fetchData = async () => {
-    setTableLoading(true);
-
-    const { current, pageSize } = tableParams.pagination;
-    const filters = tableParams.filters || {};
-
+  const buildMileageRequestData = (filters = {}, current = 1, pageSize = 10) => {
     const requestData = {
       user_id: userInfo.id,
       sale_id: getId(filters.name),
@@ -116,6 +102,35 @@ export default function MileageManagement() {
       requestData.end_date = filters.dater[1] || "";
     }
 
+    return requestData;
+  };
+
+  useEffect(() => {
+    const getSaleMaster = async () => {
+      setLoading(true);
+      try {
+        const saleRes = await useServiceAPI.get(paths.pathMasterSaleDropdown, {
+          mode: "all",
+        });
+        setNameOptions(saleRes?.data || []);
+      } catch (e) {
+        console.error(e);
+        setNameOptions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getSaleMaster();
+  }, []);
+
+  const fetchData = async () => {
+    setTableLoading(true);
+
+    const { current, pageSize } = tableParams.pagination;
+    const filters = tableParams.filters || {};
+    const requestData = buildMileageRequestData(filters, current, pageSize);
+
     try {
       const response = await useServiceAPI.get(paths.pathMileageList, requestData);
 
@@ -125,9 +140,9 @@ export default function MileageManagement() {
         const newDataSource = result.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           date: item.date || "-",
-          mileage: formatNumber(item.mileage) || "-",
+          mileage: formatNumber(item.mileage),
           name: item.user_name_en || item.user_name || "-",
-          lastModified: "-",
+          lastModified: item.last_modified || "-",
           action: (
             <Dropdown
               menu={{
@@ -181,6 +196,14 @@ export default function MileageManagement() {
       }
     } catch (error) {
       console.error(error);
+      setDataSource([]);
+      setTableParams((prev) => ({
+        ...prev,
+        pagination: {
+          ...prev.pagination,
+          total: 0,
+        },
+      }));
     } finally {
       setTableLoading(false);
     }
@@ -202,8 +225,8 @@ export default function MileageManagement() {
       ...prev,
       pagination,
       filters: prev.filters,
-      sortOrder: sorter?.order === "descend" ? "desc" : "asc",
-      sortField: sorter?.field,
+      sortOrder: sorter?.order === "descend" ? "desc" : sorter?.order === "ascend" ? "asc" : null,
+      sortField: sorter?.field || null,
     }));
   };
 
@@ -227,12 +250,13 @@ export default function MileageManagement() {
   );
 
   const handleFilterChange = (values) => {
-    setFilterValues(values);
+    setFilterValues(values || {});
   };
 
   const handleSearch = (filtersValue) => {
     const cleanedFilters = normalizeFilters(filtersValue);
 
+    setFilterValues(cleanedFilters);
     setTableParams((prev) => ({
       ...prev,
       pagination: {
@@ -256,7 +280,7 @@ export default function MileageManagement() {
       filters: {},
     }));
   };
-  
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -264,11 +288,13 @@ export default function MileageManagement() {
 
         <ExportMileageExcelButton
           text="Export Excel"
-          dater={tableParams.filters?.dater}
-          selectedUserId={tableParams.filters?.name}
-          nameOptions={nameOptions}
-          userInfoId={userInfo.id}
-          requestData={(payload) => useServiceAPI.get(paths.pathMileageList, payload)}
+          filters={tableParams.filters}
+          requestData={(filters, page, pageSize) =>
+            useServiceAPI.get(
+              paths.pathMileageList,
+              buildMileageRequestData(filters, page, pageSize)
+            )
+          }
           pageSize={5000}
         />
       </div>
