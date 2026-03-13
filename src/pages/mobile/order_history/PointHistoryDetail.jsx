@@ -107,7 +107,7 @@ export default function PointHistoryDetail() {
         qty,
         product_name: p?.product_name ?? "-",
         product_code: p?.product_code ?? "-",
-        packing_list: p?.packing_list ?? "-",
+        product_unit: p?.product_unit ?? "-",
         amount,
         amount_display: nf(amount),
         points: p?.points ?? {},
@@ -200,7 +200,7 @@ export default function PointHistoryDetail() {
                           {item.qty} × {item.product_name}
                         </p>
                         <p className="text-[11px] text-gray-500 sarabun-font mt-0.5">
-                          บรรจุ: {item.packing_list}
+                          บรรจุ: {item.product_unit}
                         </p>
                       </div>
 

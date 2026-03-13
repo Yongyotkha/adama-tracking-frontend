@@ -66,7 +66,7 @@ export default function CollectPointsDetail() {
       qty: Number(p?.quantity ?? 0),
       product_name: p?.product_name ?? "-",
       product_code: p?.product_code ?? "-",
-      packing_list: p?.packing_list ?? "-",
+      product_unit: p?.product_unit ?? "-",
       points: p?.points ?? [],
       point: p?.point ?? "-",
       amount: Number(p?.net_amount ?? 0),
@@ -202,7 +202,7 @@ export default function CollectPointsDetail() {
 
                       <div className="flex-1">
                         <p>{item.qty} x {item.product_name}</p>
-                        <p className="text-xs text-gray-500">บรรจุ : {item.packing_list}</p>
+                        <p className="text-xs text-gray-500">บรรจุ : {item.product_unit}</p>
 
                         {(item.points.standard_point) > 0 && (
                           <p className="text-xs text-gray-500">
