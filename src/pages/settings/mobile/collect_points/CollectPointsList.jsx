@@ -62,13 +62,18 @@ export default function CollectPointsList() {
     const { current, pageSize } = tableParams.pagination;
     const f = tableParams.filters || {};
 
+    const hasDateRange =
+      Array.isArray(f.dater) &&
+      f.dater.length === 2 &&
+      f.dater[0] &&
+      f.dater[1];
+
     const payload = {
       user_id: f.sale || "",
       dealer_id: f.dealer || "",
       sub_dealer_id: f.sub_dealer || "",
       keyword: f.order_no || "",
-      status_code: "ODC", // ✅ fix ODC เสมอ
-      dater: f.dater || "",
+      status_code: "ODC",
       page: "all",
       use_flag: 1,
       orderby_column: tableParams.sortField,
@@ -76,6 +81,7 @@ export default function CollectPointsList() {
       platform: "web",
       page_length: current,
       page_size: pageSize,
+      ...(hasDateRange ? { dater: f.dater } : {}),
     };
 
     try {
@@ -209,7 +215,8 @@ export default function CollectPointsList() {
     const loadSales = async () => {
       setLoading(true);
       try {
-        const sale = await useServiceAPI.get(paths.pathMasterSaleTeam, {});
+        // const sale = await useServiceAPI.get(paths.pathMasterSaleTeam, {});
+        const sale = await useServiceAPI.get(paths.pathMasterSaleSingle, {});
         setSaleList(sale.data || []);
       } catch (e) {
         showMsg("error", e?.message || "โหลด Sales ไม่สำเร็จ");

@@ -90,7 +90,7 @@ export default function SalesPointDetail() {
       try {
         const [sale, dealer, sub_dealer] = await Promise.all([
           useServiceAPI.get(paths.pathMasterSaleDropdown, { status: "" }),
-          useServiceAPI.get(paths.pathUserLineDealer, { sale_id: getUserId }),
+          useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: getUserId }),
           useServiceAPI.get(paths.pathUserLineSubDealer, { dealer_id: getDealerId }),
         ]);
 

@@ -125,6 +125,16 @@ export default function CreateActivity() {
     return Number.isFinite(n) ? n : fallback;
   };
 
+  const moneyFormatter = (value) => {
+    const num = Number(value ?? 0);
+    return num.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const moneyParser = (value) => value?.replace(/,/g, "") || "0";
+
   useEffect(() => {
     if (!pageMode && pageModeFromUrl) {
       setPageMode(pageModeFromUrl);
@@ -1285,7 +1295,8 @@ export default function CreateActivity() {
                       placeholder="Advance expense"
                       className="w-full"
                       min={0}
-                      formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      // formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      formatter={moneyFormatter}
                       value={toNumber(activityDetail.expense_advance, 0)}
                       onChange={(value) => setActivityDetail({ ...activityDetail, expense_advance: toNumber(value, 0) })}
                       disabled={
@@ -1305,7 +1316,8 @@ export default function CreateActivity() {
                       placeholder="Actual Expense"
                       className="w-full"
                       min={0}
-                      formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      // formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      formatter={moneyFormatter}
                       value={toNumber(activityDetail.expense_actual, 0)}
                       onChange={(value) => setActivityDetail({ ...activityDetail, expense_actual: toNumber(value, 0) })}
 

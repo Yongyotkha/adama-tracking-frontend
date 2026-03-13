@@ -75,6 +75,12 @@ export default function RedeemList() {
     <BadgeStatus text={item?.status_name || "-"} bgColor={item?.status_bg_color || "#9CA3AF"} textColor={item?.status_color || "#FFFFFF"} />
   );
 
+  const hasValidDateRange = (dater) =>
+    Array.isArray(dater) &&
+    dater.length === 2 &&
+    dater[0] &&
+    dater[1];
+
   // ---------------- Columns ----------------
   const commonHeaders = [
     { title: "No", dataIndex: "key", width: 60 },
@@ -154,12 +160,12 @@ export default function RedeemList() {
 
     const payload = {
       shop_name: f.shop_name || "",
-      dater: Array.isArray(f.dater) ? f.dater : [],
       status: statusArray,
       process: "receive-reward",
       page: "all",
       page_size: pageSize,
       page_length: current,
+      ...(hasValidDateRange(f.dater) ? { dater: f.dater } : {}),
     };
 
     try {
@@ -192,12 +198,12 @@ export default function RedeemList() {
 
     const payload = {
       shop_name: f.shop_name || "",
-      dater: Array.isArray(f.dater) ? f.dater : [],
       status: statusArray,
       process: "receive-reward",
       page: "all",
       page_size: pageSize,
       page_length: current,
+      ...(hasValidDateRange(f.dater) ? { dater: f.dater } : {}),
     };
 
     try {
