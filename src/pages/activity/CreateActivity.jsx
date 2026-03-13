@@ -107,6 +107,8 @@ export default function CreateActivity() {
 
   const { showNotification, userInfo } = useContext(AuthContext);
 
+  const isAutoSelectMySale = [5, 6].includes(Number(userInfo?.role_id));
+
   const [actualParticipantCount, setActualParticipantCount] = useState("0");
   const [participants, setParticipants] = useState([]);
   const [participantUsers, setParticipantUsers] = useState([]);
@@ -154,16 +156,38 @@ export default function CreateActivity() {
     btn_reject = "Cancel";
   }
 
+  // useEffect(() => {
+  //   if (!documentNumber) {
+  //     const exists = saleList.some((item) => item.id === userInfo.id);
+  //     if (exists) {
+  //       handleChange("user_id", userInfo.user_data_id);
+  //       handleChange("assing_user_list", [userInfo.user_data_id]);
+  //     }
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [saleList]);
   useEffect(() => {
-    if (!documentNumber) {
-      const exists = saleList.some((item) => item.id === userInfo.id);
-      if (exists) {
-        handleChange("user_id", userInfo.user_data_id);
-        handleChange("assing_user_list", [userInfo.user_data_id]);
-      }
-    }
+    if (!isAutoSelectMySale || documentNumber || saleList.length === 0) return;
+
+    const mySaleId = Number(userInfo?.user_data_id ?? userInfo?.id);
+    const mySale = saleList.find((item) => Number(item.id) === mySaleId);
+
+    if (!mySale) return;
+
+    setActivityDetail((prev) => ({
+      ...prev,
+      user_id: mySaleId,
+      assing_user_list: [mySaleId],
+    }));
+
+    formCustom.setFieldsValue({
+      user_id: mySaleId,
+      assing_user_list: [mySaleId],
+    });
+
+    setupDealer(mySaleId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [saleList]);
+  }, [saleList, documentNumber, isAutoSelectMySale]);
 
   useEffect(() => {
     if (documentNumber && isBtnExpenseActive && pageCode == "activity_transaction") {
@@ -683,9 +707,24 @@ export default function CreateActivity() {
       actual_participant: 0,
     });
 
-    if (saleList.some((item) => item.id === userInfo.id)) {
-      handleChange("user_id", userInfo.user_data_id);
-      handleChange("assing_user_list", [userInfo.user_data_id]);
+    if (isAutoSelectMySale) {
+      const mySaleId = Number(userInfo?.user_data_id ?? userInfo?.id);
+      const mySale = saleList.find((item) => Number(item.id) === mySaleId);
+
+      if (mySale) {
+        setActivityDetail((prev) => ({
+          ...prev,
+          user_id: mySaleId,
+          assing_user_list: [mySaleId],
+        }));
+
+        formCustom.setFieldsValue({
+          user_id: mySaleId,
+          assing_user_list: [mySaleId],
+        });
+
+        setupDealer(mySaleId);
+      }
     }
   };
 

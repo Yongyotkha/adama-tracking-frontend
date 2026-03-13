@@ -19,6 +19,10 @@ export default function AdvanceExpense() {
   const navigate = useNavigate();
   const { showNotification, userInfo } = useContext(AuthContext);
 
+  const saleAutoRoles = [5, 6];
+  const isAutoSaleSelf = saleAutoRoles.includes(Number(userInfo?.role_id));
+  const defaultSaleValue = isAutoSaleSelf ? userInfo?.id : undefined;
+
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
@@ -31,7 +35,6 @@ export default function AdvanceExpense() {
   const [statusList, setStatusList] = useState([]);
 
   const [filterValues, setFilterValues] = useState({});
-
   const [tableParams, setTableParams] = useState({
     pagination: { current: 1, pageSize: 10, total: 0 },
     filters: {},
@@ -65,6 +68,7 @@ export default function AdvanceExpense() {
   const handleFilterChange = (values) => setFilterValues(values);
 
   const handleSearch = (valuesFromUI) => {
+    setFilterValues(valuesFromUI);
     setTableParams((prev) => ({
       ...prev,
       pagination: { ...prev.pagination, current: 1, pageSize: 10 },
@@ -73,11 +77,12 @@ export default function AdvanceExpense() {
   };
 
   const handleClear = () => {
-    setFilterValues({});
+    const resetFilters = isAutoSaleSelf ? { sale: defaultSaleValue } : {};
+    setFilterValues(resetFilters);
     setTableParams((prev) => ({
       ...prev,
       pagination: { ...prev.pagination, current: 1, pageSize: 10 },
-      filters: {},
+      filters: resetFilters,
     }));
   };
 
@@ -225,8 +230,6 @@ export default function AdvanceExpense() {
         const [activityType, saleRes, dealerRes, subDealerRes, statusRes] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
           useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" }),
-          // useServiceAPI.get(paths.pathMasterSaleTeam, {}),
-          // useServiceAPI.get(paths.pathMasterSaleSingle, {}),
           useServiceAPI.get(paths.pathMasterDealerAll, {}),
           useServiceAPI.get(paths.pathMasterSubDealerAll, {}),
           useServiceAPI.get(paths.pathMasterStatus, { status_type: "expense_advance" }),
@@ -274,11 +277,7 @@ export default function AdvanceExpense() {
     { title: "Sub Dealer", dataIndex: "customer", align: "left" },
     { title: "Dealer", dataIndex: "dealersd", align: "left" },
     { title: "Expense No", dataIndex: "expenseNo", align: "left" },
-    {
-      title: "Advance Exp",
-      dataIndex: "advanceExp",
-      align: "right",
-    },
+    { title: "Advance Exp", dataIndex: "advanceExp", align: "right" },
     { title: "Activity Reference", dataIndex: "activityReference", align: "left" },
     { title: "Type of Meeting", dataIndex: "typeOfMeeting", align: "center" },
     { title: "Date", dataIndex: "date", align: "center" },
@@ -390,6 +389,24 @@ export default function AdvanceExpense() {
       filters: prev.filters,
     }));
   };
+
+  useEffect(() => {
+    if (!defaultSaleValue) return;
+
+    setFilterValues((prev) => ({
+      ...prev,
+      sale: defaultSaleValue,
+    }));
+
+    setTableParams((prev) => ({
+      ...prev,
+      pagination: { ...prev.pagination, current: 1 },
+      filters: {
+        ...prev.filters,
+        sale: defaultSaleValue,
+      },
+    }));
+  }, [defaultSaleValue]);
 
   return (
     <MainLayout loading={loading}>

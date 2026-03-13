@@ -143,23 +143,25 @@ const DynamicCalendar = ({ events, fetchEvents, loading, sendData }) => {
   }, [userInfo]);
 
   const handleSaleChange = async (saleId) => {
-    // ✅ กด clear (saleId จะเป็น undefined)
+    // clear sale
     if (!saleId) {
       setSelectedSale(null);
       setSelectedShop(null);
       setShopOptions([]);
 
-      // fetch all
-      sendData({ saleId: "", shopId: "" });
+      sendData({
+        saleId: "",
+        shopId: "",
+      });
       return;
     }
 
     setSelectedSale(saleId);
 
-    // โหลด shop ตาม sale
     try {
       const response = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
         user_id: saleId,
+        platform: "web",
       });
 
       if (response.result) {
@@ -176,7 +178,6 @@ const DynamicCalendar = ({ events, fetchEvents, loading, sendData }) => {
       setShopOptions([]);
     }
 
-    // reset shop เมื่อเปลี่ยน sale
     setSelectedShop(null);
 
     sendData({
@@ -186,17 +187,25 @@ const DynamicCalendar = ({ events, fetchEvents, loading, sendData }) => {
   };
 
   const handleShopChange = (shopId) => {
-    // ✅ กด clear (shopId จะเป็น undefined)
+    // clear sub-dealer
     if (!shopId) {
       setSelectedShop(null);
 
-      // fetch all ของ shop ภายใต้ sale เดิม (หรือถ้าอยาก all ทั้งหมดให้ส่ง saleId ด้วยเป็น "")
-      sendData({ shopId: "" });
+      // ✅ คง sale เดิมไว้ และล้างเฉพาะ dealer_id
+      sendData({
+        saleId: selectedSale || "",
+        shopId: "",
+      });
       return;
     }
 
     setSelectedShop(shopId);
-    sendData({ shopId });
+
+    // ✅ ส่ง sale เดิมกลับไปด้วยเสมอ
+    sendData({
+      saleId: selectedSale || "",
+      shopId,
+    });
   };
 
   const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
