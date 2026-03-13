@@ -10,22 +10,30 @@ import useServiceAPI from "../../../../services/corsService";
 import { paths } from "../../../../services/CorsPath";
 import { useNavigate } from "react-router-dom";
 
-// ✅ ใช้ Filter component ตัวแรก (มี onChange แล้ว set ค่าได้ทันที)
 const COMMON_FILTERS_BASE = [
   {
-    key: "sale_id", type: "select", label: "Sale Name", placeholder: "All",
+    key: "sale_id",
+    type: "select",
+    label: "Sale Name",
+    placeholder: "All",
     moderef: true,
-
   },
   {
     key: "dealer_id",
     type: "select",
     label: "Dealer Name",
     placeholder: "All",
-    disabled: true, // จะเปิดเมื่อเลือก sale
+    disabled: true,
     moderef: true,
   },
-  { key: "customer_name", type: "text", label: "Customer Name" },
+  {
+    key: "sub_dealer_id",
+    type: "select",
+    label: "Sub Dealer Name",
+    placeholder: "All",
+    disabled: true,
+    moderef: true,
+  },
   { key: "contact_name", type: "text", label: "Contact Name" },
   { key: "created_at", type: "date", label: "Created Date" },
   {
@@ -67,12 +75,11 @@ export default function RegisteredCustomerList() {
   const [activeTab, setActiveTab] = useState("dealer");
   const [dataSource, setDataSource] = useState([]);
 
-  // ✅ แยก filterValues สำหรับ Filter component (เพราะ Filter เก็บ state ภายใน)
   const [filterValues, setFilterValues] = useState({
     status_code: "",
     sale_id: "",
     dealer_id: "",
-    customer_name: "",
+    sub_dealer_id: "",
     contact_name: "",
     created_at: "",
   });
@@ -83,22 +90,20 @@ export default function RegisteredCustomerList() {
       status_code: "",
       sale_id: "",
       dealer_id: "",
+      sub_dealer_id: "",
     },
   });
 
-  // dropdown options (Filter component ใช้รูปแบบ {id,name})
-  const [sales, setSales] = useState([]); // [{id,name}]
-  const [dealers, setDealers] = useState([]); // [{id,name}]
+  const [sales, setSales] = useState([]);
+  const [dealers, setDealers] = useState([]);
+  const [subDealers, setSubDealers] = useState([]);
 
   const currentTab = tabConfig[activeTab];
 
-  // --------------------------
-  // masters (ใช้แบบ OrderList)
-  // --------------------------
   const fetchSales = async () => {
     try {
-      // ✅ แบบเดียวกับ OrderList
-      const res = await useServiceAPI.get(paths.pathMasterSaleTeam, {});
+      // const res = await useServiceAPI.get(paths.pathMasterSaleTeam, {});
+      const res = await useServiceAPI.get(paths.pathMasterSaleSingle, {});
       const list = Array.isArray(res?.data) ? res.data : [];
       setSales(list.map((x) => ({ id: Number(x.id), name: x.name })));
     } catch (e) {
@@ -113,44 +118,68 @@ export default function RegisteredCustomerList() {
       return;
     }
     try {
-      // ✅ แบบเดียวกับ OrderList
       const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
         user_id: saleId,
       });
       const list = Array.isArray(res?.data) ? res.data : [];
-      setDealers(list.map((x) => ({ id: Number(x.id), name: x.name })));
+      setDealers(
+        list.map((x) => ({
+          id: Number(x.id ?? x.dealer_id ?? x.code),
+          name: x.name ?? x.dealer_name ?? x.title,
+        }))
+      );
     } catch (e) {
       console.error("fetchDealersBySale failed", e);
       setDealers([]);
     }
   };
 
+  const fetchSubDealers = async () => {
+    try {
+      const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {});
+      const list = Array.isArray(res?.data) ? res.data : [];
+      setSubDealers(
+        list.map((x) => ({
+          id: Number(x.sub_dealer_id ?? x.id ?? x.code),
+          name: x.sub_dealer_name ?? x.name ?? x.title,
+        }))
+      );
+    } catch (e) {
+      console.error("fetchSubDealers failed", e);
+      setSubDealers([]);
+    }
+  };
+
   useEffect(() => {
     fetchSales();
+    fetchSubDealers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // --------------------------
-  // inject options into Filter
-  // --------------------------
   const filtersWithOptions = useMemo(() => {
     const saleSelected = !!filterValues.sale_id;
+    const dealerSelected = !!filterValues.dealer_id;
 
     return COMMON_FILTERS_BASE.map((f) => {
       if (f.key === "sale_id") return { ...f, options: sales };
-      if (f.key === "dealer_id")
+      if (f.key === "dealer_id") {
         return {
           ...f,
           options: dealers,
-          disabled: !saleSelected, // ✅ เปิดเมื่อเลือก sale แล้ว
+          disabled: !saleSelected,
         };
+      }
+      if (f.key === "sub_dealer_id") {
+        return {
+          ...f,
+          options: subDealers,
+          disabled: !dealerSelected && activeTab !== "farmer",
+        };
+      }
       return f;
     });
-  }, [sales, dealers, filterValues.sale_id]);
+  }, [sales, dealers, subDealers, filterValues.sale_id, filterValues.dealer_id, activeTab]);
 
-  // --------------------------
-  // data fetch
-  // --------------------------
   const fetchData = async () => {
     setTableLoading(true);
 
@@ -159,16 +188,12 @@ export default function RegisteredCustomerList() {
 
     const requestData = {
       shop_type: currentTab.shopType,
-
-      // ✅ เพิ่ม 2 ตัวนี้ตาม requirement
       sale_id: filters.sale_id || "",
       dealer_id: filters.dealer_id || "",
-
-      customer_name: filters.customer_name || "",
+      sub_dealer_id: filters.sub_dealer_id || "",
       contact_name: filters.contact_name || "",
       created_at: filters.created_at || "",
       status_code: filters.status_code ?? "",
-
       page_length: current,
       page_size: pageSize,
     };
@@ -209,7 +234,7 @@ export default function RegisteredCustomerList() {
                         onClick={() => {
                           navigate(
                             "/points/line/register-customer-list/" +
-                            (item.action || "").toLowerCase(),
+                              (item.action || "").toLowerCase(),
                             { state: { id: row.id, pageCode: "customer_regis" } }
                           );
                         }}
@@ -259,7 +284,7 @@ export default function RegisteredCustomerList() {
                         onClick={() => {
                           navigate(
                             "/points/line/register-customer-list/" +
-                            (item.action || "").toLowerCase(),
+                              (item.action || "").toLowerCase(),
                             { state: { id: row.id, pageCode: "customer_regis" } }
                           );
                         }}
@@ -310,7 +335,7 @@ export default function RegisteredCustomerList() {
                         onClick={() => {
                           navigate(
                             "/points/line/register-customer-list/" +
-                            (item.action || "").toLowerCase(),
+                              (item.action || "").toLowerCase(),
                             { state: { id: row.id, pageCode: "customer_regis" } }
                           );
                         }}
@@ -351,27 +376,28 @@ export default function RegisteredCustomerList() {
     }
   };
 
-  // --------------------------
-  // Filter callbacks
-  // --------------------------
-  // ✅ onChange (ทันทีที่เลือก sale -> โหลด dealer + reset dealer_id)
   const handleFilterChangeLive = (updatedValues) => {
-    setFilterValues(updatedValues);
-
-    const saleId = updatedValues?.sale_id || "";
+    const nextValues = { ...(updatedValues || {}) };
+    const saleId = nextValues?.sale_id || "";
     const prevSaleId = filterValues?.sale_id || "";
 
     if (String(saleId) !== String(prevSaleId)) {
-      // sale เปลี่ยน -> โหลด dealers + เคลียร์ dealer_id
       fetchDealersBySale(saleId);
-      setFilterValues((prev) => ({ ...prev, dealer_id: "" }));
+      nextValues.dealer_id = "";
+      nextValues.sub_dealer_id = "";
     }
 
-    // ถ้าเคลียร์ sale -> เคลียร์ dealers ด้วย
     if (!saleId && prevSaleId) {
       setDealers([]);
-      setFilterValues((prev) => ({ ...prev, dealer_id: "" }));
+      nextValues.dealer_id = "";
+      nextValues.sub_dealer_id = "";
     }
+
+    if (!nextValues.dealer_id) {
+      nextValues.sub_dealer_id = "";
+    }
+
+    setFilterValues(nextValues);
   };
 
   const handleSearch = (filters) => {
@@ -382,6 +408,7 @@ export default function RegisteredCustomerList() {
         status_code: "",
         sale_id: "",
         dealer_id: "",
+        sub_dealer_id: "",
         ...filters,
       },
     }));
@@ -393,7 +420,7 @@ export default function RegisteredCustomerList() {
       status_code: "",
       sale_id: "",
       dealer_id: "",
-      customer_name: "",
+      sub_dealer_id: "",
       contact_name: "",
       created_at: "",
     });
@@ -401,13 +428,15 @@ export default function RegisteredCustomerList() {
     setTableParams((prev) => ({
       ...prev,
       pagination: { ...prev.pagination, current: 1 },
-      filters: { status_code: "", sale_id: "", dealer_id: "" },
+      filters: {
+        status_code: "",
+        sale_id: "",
+        dealer_id: "",
+        sub_dealer_id: "",
+      },
     }));
   };
 
-  // --------------------------
-  // table header
-  // --------------------------
   const header = useMemo(() => {
     if (currentTab.shopType === "dealer") {
       return [
@@ -448,9 +477,6 @@ export default function RegisteredCustomerList() {
     ];
   }, [currentTab.shopType]);
 
-  // --------------------------
-  // effects
-  // --------------------------
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -462,13 +488,12 @@ export default function RegisteredCustomerList() {
   ]);
 
   useEffect(() => {
-    // reset when change tab
     setDealers([]);
     setFilterValues({
       status_code: "",
       sale_id: "",
       dealer_id: "",
-      customer_name: "",
+      sub_dealer_id: "",
       contact_name: "",
       created_at: "",
     });
@@ -476,7 +501,12 @@ export default function RegisteredCustomerList() {
     setTableParams((prev) => ({
       ...prev,
       pagination: { ...prev.pagination, current: 1 },
-      filters: { status_code: "", sale_id: "", dealer_id: "" },
+      filters: {
+        status_code: "",
+        sale_id: "",
+        dealer_id: "",
+        sub_dealer_id: "",
+      },
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
@@ -500,8 +530,8 @@ export default function RegisteredCustomerList() {
         filters={filtersWithOptions}
         onSearch={handleSearch}
         onClear={handleClear}
-        onChange={handleFilterChangeLive} // ✅ สำคัญ: ทำ cascade sale -> dealer
-        values={filterValues}            // ✅ ทำให้ตอน clear/tab change ค่าใน UI รีเซ็ตจริง
+        onChange={handleFilterChangeLive}
+        values={filterValues}
       />
 
       <BoxPrimary>
