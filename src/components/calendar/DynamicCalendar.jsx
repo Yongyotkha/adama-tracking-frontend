@@ -101,7 +101,7 @@ const DynamicCalendar = ({ events, fetchEvents, loading, sendData }) => {
             mode: "all",
           }
         }
-        const response = await useServiceAPI.get(paths.pathMasterSaleTeam, send_sale);
+        const response = await useServiceAPI.get(paths.pathMasterSaleTeamGroup, send_sale);
 
         const saleList = response.data.map((item) => ({
           label: item.name,

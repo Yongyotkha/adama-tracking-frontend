@@ -956,7 +956,7 @@ export default function Dashboard() {
               <div>
                 <h3 className="text-lg font-bold text-[#00783F]">Dealer</h3>
                 <div className="text-4xl font-bold text-[#00783F]">
-                  {dashboardData.dealer_count}
+                  {Number(dashboardData.dealer_count || 0).toLocaleString()}
                 </div>
               </div>
               <div>
@@ -978,7 +978,7 @@ export default function Dashboard() {
               <div>
                 <h3 className="text-lg font-bold text-[#00783F]">Sub Dealer</h3>
                 <div className="text-4xl font-bold text-[#00783F]">
-                  {dashboardData.sub_dealer_count}
+                  {Number(dashboardData.sub_dealer_count || 0).toLocaleString()}
                 </div>
               </div>
               <div>

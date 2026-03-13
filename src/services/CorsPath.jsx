@@ -271,6 +271,7 @@ export const paths = {
   pathActivityMappingStatusDetailUpdate: "/activity/mapping/detail",
   pathActivityListUser: "/activity/user_create_list",
   pathMasterSaleTeam: "master/sale-team",
+  pathMasterSaleTeamGroup: "master/sale-team-group",
   pathActivitySubDealers: "activity/sub_dealer",
 
   pathAdvanceApproval: "/activity-expense/advancechangestatus",
