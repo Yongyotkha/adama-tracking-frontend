@@ -54,9 +54,9 @@ export default function MileageManagement() {
   const formatNumber = (val) =>
     !isNaN(Number(val))
       ? Number(val).toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
       : "-";
 
   const getId = (v) => {
@@ -256,7 +256,7 @@ export default function MileageManagement() {
       filters: {},
     }));
   };
-
+  
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">

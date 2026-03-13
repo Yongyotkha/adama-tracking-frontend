@@ -165,9 +165,18 @@ const Filter = ({ onSearch, onClear, onChange, filters, onValueChange, values })
                 )}
                 {filter.type === "dater" && (
                   <RangePicker
+                    value={
+                      filterValues[filter.key] &&
+                        Array.isArray(filterValues[filter.key]) &&
+                        filterValues[filter.key].length === 2 &&
+                        filterValues[filter.key][0] &&
+                        filterValues[filter.key][1]
+                        ? [dayjs(filterValues[filter.key][0]), dayjs(filterValues[filter.key][1])]
+                        : null
+                    }
                     format="YYYY-MM-DD"
                     onChange={(dates, dateString) => {
-                      handleFilterChange(filter.key, dateString)
+                      handleFilterChange(filter.key, dateString);
                     }}
                     className="w-full"
                   />
