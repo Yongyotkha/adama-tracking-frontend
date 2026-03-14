@@ -804,8 +804,12 @@ export default function CreatePointCampaign() {
       setLoading(true);
       const values = await form.validateFields();
 
-      const productModeNum = PRODUCT_MODE_MAP[values.product_mode]; // 1/2/3
-      const typeNum = TYPE_MODE_MAP[values.campaign_mode]; // 1/2/3
+      if (!fileListReceive || fileListReceive.length === 0) {
+        throw new Error("Please upload proposal file");
+      }
+
+      const productModeNum = PRODUCT_MODE_MAP[values.product_mode];
+      const typeNum = TYPE_MODE_MAP[values.campaign_mode];
 
       const categoryIds = (selectedCategoryKeys || [])
         .map(Number)
@@ -840,31 +844,25 @@ export default function CreatePointCampaign() {
         date_end: end ? dayjs(end).format("YYYY-MM-DD HH:mm:ss") : null,
       };
 
-      if (productModeNum === 2) payload.categorys = categoryIds; // record_id[]
-      if (productModeNum === 3) payload.products = productIds; // product id[]
+      if (productModeNum === 2) payload.categorys = categoryIds;
+      if (productModeNum === 3) payload.products = productIds;
 
       if (typeNum === 3) {
         payload.xpoint = Number(values.campaign_value || 0);
         if (!payload.xpoint) throw new Error("กรุณากรอก X Point ให้ถูกต้อง");
       } else if (typeNum === 1) {
         if (!extraRows)
-          throw new Error(
-            "กรุณากรอก Extra Point (Value) อย่างน้อย 1 แถวให้ครบ"
-          );
+          throw new Error("กรุณากรอก Extra Point (Value) อย่างน้อย 1 แถวให้ครบ");
         payload.extra_point_value = extraRows;
       } else if (typeNum === 4) {
         if (!extraRowsPoint)
-          throw new Error(
-            "กรุณากรอก Extra Point (Point) อย่างน้อย 1 แถวให้ครบ"
-          );
+          throw new Error("กรุณากรอก Extra Point (Point) อย่างน้อย 1 แถวให้ครบ");
         payload.extra_point_point = extraRowsPoint;
       } else if (typeNum === 2) {
         if (!topupRows)
           throw new Error("กรุณากรอก Topup Point อย่างน้อย 1 แถวให้ครบ");
         payload.topup_point = topupRows;
       }
-      console.log("payload : ", payload);
-      // return false;
 
       let res;
       if (isEdit) {
@@ -956,8 +954,9 @@ export default function CreatePointCampaign() {
       <BoxPrimary>
         <div className="flex items-center justify-between">
           <label htmlFor="Banner" title="Banner">
-            Upload Proposal (PDF, JPG, PNG only)
+            Upload Proposal <span className="text-[#ff4d4f]">*</span> (PDF, JPG, PNG only)
           </label>
+
           {!isView && (
             <ActionButton
               mode="add"
