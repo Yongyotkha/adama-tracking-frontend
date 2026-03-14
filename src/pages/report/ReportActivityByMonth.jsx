@@ -615,7 +615,9 @@ export default function ReportActivityByMonth() {
                   placeholder="Select Sales"
                   options={sales}
                   allowClear={!isSaleLocked}
-                  disabled={!selectedArea || isSaleLocked}
+                  // disabled={!selectedArea || isSaleLocked}
+                  disabled={!selectedArea}
+
                 />
               </Form.Item>
             </Col>

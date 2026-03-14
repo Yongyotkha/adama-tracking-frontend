@@ -34,7 +34,19 @@ const COMMON_FILTERS_BASE = [
     disabled: true,
     moderef: true,
   },
-  { key: "contact_name", type: "text", label: "Sub Dealer Name" },
+  // ใช้ใน dealer / sub dealer
+  { key: "contact_name", type: "text", label: "Contact Name" },
+
+  // ใช้เฉพาะ farmer
+  {
+    key: "farmer_id",
+    type: "select",
+    label: "Farmer Name",
+    placeholder: "All",
+    disabled: true,
+    moderef: true,
+  },
+
   { key: "created_at", type: "date", label: "Created Date" },
   {
     key: "status_code",
@@ -80,6 +92,7 @@ export default function RegisteredCustomerList() {
     sale_id: "",
     dealer_id: "",
     sub_dealer_id: "",
+    farmer_id: "",
     contact_name: "",
     created_at: "",
   });
@@ -91,18 +104,21 @@ export default function RegisteredCustomerList() {
       sale_id: "",
       dealer_id: "",
       sub_dealer_id: "",
+      farmer_id: "",
+      contact_name: "",
+      created_at: "",
     },
   });
 
   const [sales, setSales] = useState([]);
   const [dealers, setDealers] = useState([]);
   const [subDealers, setSubDealers] = useState([]);
+  const [farmers, setFarmers] = useState([]);
 
   const currentTab = tabConfig[activeTab];
 
   const fetchSales = async () => {
     try {
-      // const res = await useServiceAPI.get(paths.pathMasterSaleTeam, {});
       const res = await useServiceAPI.get(paths.pathMasterSaleSingle, {});
       const list = Array.isArray(res?.data) ? res.data : [];
       setSales(list.map((x) => ({ id: Number(x.id), name: x.name })));
@@ -142,6 +158,7 @@ export default function RegisteredCustomerList() {
         list.map((x) => ({
           id: Number(x.sub_dealer_id ?? x.id ?? x.code),
           name: x.sub_dealer_name ?? x.name ?? x.title,
+          dealer_id: Number(x.dealer_id ?? 0),
         }))
       );
     } catch (e) {
@@ -150,18 +167,75 @@ export default function RegisteredCustomerList() {
     }
   };
 
+  const fetchFarmers = async () => {
+    try {
+      const res = await useServiceAPI.get(paths.pathMasterFarmer, {});
+      const list = Array.isArray(res?.data) ? res.data : [];
+      setFarmers(
+        list.map((x) => ({
+          id: Number(x.farmer_id ?? x.id),
+          name: x.farmer_name ?? "-",
+          dealer_id: Number(x.dealer_id ?? 0),
+          sub_dealer_id: Number(x.sub_dealer_id ?? 0),
+          contact_name: x.farmer_contact_name,
+          phone: x.farmer_contact_phone_number,
+        }))
+      );
+    } catch (e) {
+      console.error("fetchFarmers failed", e);
+      setFarmers([]);
+    }
+  };
+
   useEffect(() => {
     fetchSales();
     fetchSubDealers();
+    fetchFarmers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filtersWithOptions = useMemo(() => {
     const saleSelected = !!filterValues.sale_id;
     const dealerSelected = !!filterValues.dealer_id;
+    const subDealerSelected = !!filterValues.sub_dealer_id;
 
-    return COMMON_FILTERS_BASE.map((f) => {
+    const filteredSubDealers =
+      filterValues.dealer_id && activeTab === "farmer"
+        ? subDealers.filter(
+          (item) => String(item.dealer_id) === String(filterValues.dealer_id)
+        )
+        : subDealers;
+
+    const filteredFarmers = farmers.filter((item) => {
+      if (filterValues.sub_dealer_id) {
+        return (
+          String(item.sub_dealer_id) === String(filterValues.sub_dealer_id)
+        );
+      }
+      if (filterValues.dealer_id) {
+        return String(item.dealer_id) === String(filterValues.dealer_id);
+      }
+      return true;
+    });
+
+    let baseFilters = COMMON_FILTERS_BASE;
+
+    if (activeTab === "dealer") {
+      // dealer tab ซ่อน sub dealer และ farmer
+      baseFilters = COMMON_FILTERS_BASE.filter(
+        (f) => f.key !== "sub_dealer_id" && f.key !== "farmer_id"
+      );
+    } else if (activeTab === "sub_dealer") {
+      // sub dealer tab ใช้ contact_name, ไม่ใช้ farmer
+      baseFilters = COMMON_FILTERS_BASE.filter((f) => f.key !== "farmer_id");
+    } else if (activeTab === "farmer") {
+      // farmer tab ไม่ใช้ text contact_name filter แต่ใช้ farmer_id select แทน
+      baseFilters = COMMON_FILTERS_BASE.filter((f) => f.key !== "contact_name");
+    }
+
+    return baseFilters.map((f) => {
       if (f.key === "sale_id") return { ...f, options: sales };
+
       if (f.key === "dealer_id") {
         return {
           ...f,
@@ -169,16 +243,42 @@ export default function RegisteredCustomerList() {
           disabled: !saleSelected,
         };
       }
+
       if (f.key === "sub_dealer_id") {
+        const filteredSubDealers =
+          filterValues.dealer_id
+            ? subDealers.filter(
+              (item) => String(item.dealer_id) === String(filterValues.dealer_id)
+            )
+            : [];
+
         return {
           ...f,
-          options: subDealers,
-          disabled: !dealerSelected && activeTab !== "farmer",
+          options: activeTab === "farmer" ? filteredSubDealers : subDealers,
+          disabled: !dealerSelected,
         };
       }
+      
+      if (f.key === "farmer_id") {
+        return {
+          ...f,
+          options: filteredFarmers,
+          disabled: !dealerSelected && !subDealerSelected,
+        };
+      }
+
       return f;
     });
-  }, [sales, dealers, subDealers, filterValues.sale_id, filterValues.dealer_id, activeTab]);
+  }, [
+    sales,
+    dealers,
+    subDealers,
+    farmers,
+    filterValues.sale_id,
+    filterValues.dealer_id,
+    filterValues.sub_dealer_id,
+    activeTab,
+  ]);
 
   const fetchData = async () => {
     setTableLoading(true);
@@ -191,7 +291,8 @@ export default function RegisteredCustomerList() {
       sale_id: filters.sale_id || "",
       dealer_id: filters.dealer_id || "",
       sub_dealer_id: filters.sub_dealer_id || "",
-      contact_name: filters.contact_name || "",
+      farmer_id: filters.farmer_id || "",
+      contact_name: currentTab.shopType === "farmer" ? "" : filters.contact_name || "",
       created_at: filters.created_at || "",
       status_code: filters.status_code ?? "",
       page_length: current,
@@ -234,7 +335,7 @@ export default function RegisteredCustomerList() {
                         onClick={() => {
                           navigate(
                             "/points/line/register-customer-list/" +
-                              (item.action || "").toLowerCase(),
+                            (item.action || "").toLowerCase(),
                             { state: { id: row.id, pageCode: "customer_regis" } }
                           );
                         }}
@@ -284,7 +385,7 @@ export default function RegisteredCustomerList() {
                         onClick={() => {
                           navigate(
                             "/points/line/register-customer-list/" +
-                              (item.action || "").toLowerCase(),
+                            (item.action || "").toLowerCase(),
                             { state: { id: row.id, pageCode: "customer_regis" } }
                           );
                         }}
@@ -335,7 +436,7 @@ export default function RegisteredCustomerList() {
                         onClick={() => {
                           navigate(
                             "/points/line/register-customer-list/" +
-                              (item.action || "").toLowerCase(),
+                            (item.action || "").toLowerCase(),
                             { state: { id: row.id, pageCode: "customer_regis" } }
                           );
                         }}
@@ -378,23 +479,40 @@ export default function RegisteredCustomerList() {
 
   const handleFilterChangeLive = (updatedValues) => {
     const nextValues = { ...(updatedValues || {}) };
+
     const saleId = nextValues?.sale_id || "";
     const prevSaleId = filterValues?.sale_id || "";
+    const dealerId = nextValues?.dealer_id || "";
+    const prevDealerId = filterValues?.dealer_id || "";
+    const subDealerId = nextValues?.sub_dealer_id || "";
+    const prevSubDealerId = filterValues?.sub_dealer_id || "";
 
     if (String(saleId) !== String(prevSaleId)) {
       fetchDealersBySale(saleId);
       nextValues.dealer_id = "";
       nextValues.sub_dealer_id = "";
+      nextValues.farmer_id = "";
     }
 
     if (!saleId && prevSaleId) {
       setDealers([]);
       nextValues.dealer_id = "";
       nextValues.sub_dealer_id = "";
+      nextValues.farmer_id = "";
+    }
+
+    if (String(dealerId) !== String(prevDealerId)) {
+      nextValues.sub_dealer_id = "";
+      nextValues.farmer_id = "";
+    }
+
+    if (String(subDealerId) !== String(prevSubDealerId)) {
+      nextValues.farmer_id = "";
     }
 
     if (!nextValues.dealer_id) {
       nextValues.sub_dealer_id = "";
+      nextValues.farmer_id = "";
     }
 
     setFilterValues(nextValues);
@@ -409,6 +527,9 @@ export default function RegisteredCustomerList() {
         sale_id: "",
         dealer_id: "",
         sub_dealer_id: "",
+        farmer_id: "",
+        contact_name: "",
+        created_at: "",
         ...filters,
       },
     }));
@@ -421,6 +542,7 @@ export default function RegisteredCustomerList() {
       sale_id: "",
       dealer_id: "",
       sub_dealer_id: "",
+      farmer_id: "",
       contact_name: "",
       created_at: "",
     });
@@ -433,6 +555,9 @@ export default function RegisteredCustomerList() {
         sale_id: "",
         dealer_id: "",
         sub_dealer_id: "",
+        farmer_id: "",
+        contact_name: "",
+        created_at: "",
       },
     }));
   };
@@ -442,7 +567,7 @@ export default function RegisteredCustomerList() {
       return [
         { title: "Sales Name", dataIndex: "sale_name" },
         { title: "Dealer Name", dataIndex: "dealer_name" },
-        { title: "Sub Dealer Name", dataIndex: "contact_name" },
+        { title: "Contact Name", dataIndex: "contact_name" },
         { title: "Contact Number", dataIndex: "phone" },
         { title: "Subscribed", dataIndex: "subscribed" },
         { title: "Current Points", dataIndex: "point" },
@@ -455,7 +580,7 @@ export default function RegisteredCustomerList() {
         { title: "Sales Name", dataIndex: "sale_name" },
         { title: "Dealer Name", dataIndex: "dealer_name" },
         { title: "Sub Dealer Name", dataIndex: "shop_name" },
-        { title: "Sub Dealer Name", dataIndex: "contact_name" },
+        { title: "Contact Name", dataIndex: "contact_name" },
         { title: "Contact Number", dataIndex: "phone" },
         { title: "Subscribed", dataIndex: "subscribed" },
         { title: "Current Points", dataIndex: "point" },
@@ -468,7 +593,7 @@ export default function RegisteredCustomerList() {
       { title: "Dealer Name", dataIndex: "dealer_name" },
       { title: "Sub Dealer Name", dataIndex: "sub_dealer_name" },
       { title: "Farmer Name", dataIndex: "shop_name_custom" },
-      { title: "Sub Dealer Name", dataIndex: "contact_name" },
+      { title: "Contact Name", dataIndex: "contact_name" },
       { title: "Contact Number", dataIndex: "phone" },
       { title: "Subscribed", dataIndex: "subscribed" },
       { title: "Current Points", dataIndex: "point" },
@@ -494,6 +619,7 @@ export default function RegisteredCustomerList() {
       sale_id: "",
       dealer_id: "",
       sub_dealer_id: "",
+      farmer_id: "",
       contact_name: "",
       created_at: "",
     });
@@ -506,6 +632,9 @@ export default function RegisteredCustomerList() {
         sale_id: "",
         dealer_id: "",
         sub_dealer_id: "",
+        farmer_id: "",
+        contact_name: "",
+        created_at: "",
       },
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps

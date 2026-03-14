@@ -736,7 +736,8 @@ export default function ReportSaleByYear() {
                   placeholder="Select Sales"
                   options={sales}
                   allowClear={!isSaleLocked}
-                  disabled={!watchedAreaId || isSaleLocked}
+                  // disabled={!watchedAreaId || isSaleLocked}
+                  disabled={!watchedAreaId}
                   onChange={() => {
                     formCustom.setFieldsValue({ dealer_id: undefined });
                     setDealers([]);

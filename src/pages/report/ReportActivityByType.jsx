@@ -643,7 +643,8 @@ export default function ReportActivityByType() {
                   placeholder="Select Sales"
                   options={sales}
                   allowClear={!isSaleLocked}
-                  disabled={!isAreaSelected || isSaleLocked}
+                  // disabled={!isAreaSelected || isSaleLocked}
+                  disabled={!isAreaSelected}
                 />
               </Form.Item>
             </Col>

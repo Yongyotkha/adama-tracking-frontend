@@ -711,7 +711,8 @@ export default function ReportSaleByQuarter() {
                 <Select
                   placeholder="Select Sale"
                   options={sales}
-                  disabled={!watchedAreaId || isSaleLocked}
+                  // disabled={!watchedAreaId || isSaleLocked}
+                  disabled={!watchedAreaId}
                   allowClear={!isSaleLocked}
                   onChange={() => {
                     formCustom.setFieldsValue({ dealer_id: undefined });

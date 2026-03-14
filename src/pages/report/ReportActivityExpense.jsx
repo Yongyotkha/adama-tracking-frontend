@@ -560,7 +560,8 @@ export default function ReportActivityExpense() {
                   placeholder="Select Sales"
                   options={salesList}
                   allowClear={!isSaleLocked}
-                  disabled={!selectedArea || isSaleLocked}
+                  // disabled={!selectedArea || isSaleLocked}
+                  disabled={!selectedArea}
                 />
               </Form.Item>
             </Col>
