@@ -1,6 +1,6 @@
 // src/pages/report/ReportSellOut.jsx
 import React, { useMemo, useState, useEffect, useContext } from "react";
-import { Form, Row, Col, Select, InputNumber, Table } from "antd"; // 🔁 เอา DatePicker ออก
+import { Form, Row, Col, Select, InputNumber, Table } from "antd";
 import MainLayout from "../../layouts/MainLayout";
 import Title from "../../components/title/Title";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
@@ -13,6 +13,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import ExportSellOutExcelButton from "../../components/export/ExportSellOutExcelButton";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -33,6 +34,7 @@ const monthsEN = [
   "Nov",
   "Dec",
 ];
+
 const subCols = [
   { title: "Last Stock", key: "last_stock" },
   { title: "Sell In", key: "sell_in" },
@@ -41,7 +43,7 @@ const subCols = [
 ];
 
 const fmt = (n) =>
-  `${parseInt(Number(n) || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  `${parseInt(Number(n) || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 // -------- helpers for export file name ----------
 const slug = (s) =>
@@ -49,7 +51,7 @@ const slug = (s) =>
     .normalize("NFKC")
     .replace(/\s+/g, " ")
     .trim()
-    .replace(/[\\/:*?"<>|]+/g, "-") // กันอักขระต้องห้าม
+    .replace(/[\\/:*?"<>|]+/g, "-")
     .replace(/\s+/g, "_");
 
 const getLabelFrom = (options, value) =>
@@ -97,6 +99,9 @@ export default function ReportSellOut() {
 
   // (optional) เก็บไว้เผื่อใช้ต่อ เช่น disable option เฉพาะ area
   const [activeAreaId, setActiveAreaId] = useState(null);
+
+  // ✅ disable Sales เฉพาะ role_id 4, 5, 6
+  const isSaleRoleLocked = [4, 5, 6].includes(Number(userInfo?.role_id));
 
   const getLoginSaleId = (u) => {
     if (!u) return null;
@@ -231,31 +236,33 @@ export default function ReportSellOut() {
         const areaOpts = areaRaw.map((x) => ({ value: x.id, label: x.name }));
         setAreaList(areaOpts);
 
-        // ✅ default area ใหม่:
+        // เก็บ area จาก userInfo
+        const uArea = getLoginAreaId(userInfo);
+        setActiveAreaId(uArea != null ? String(uArea) : null);
+
+        // default area:
         // - ถ้ามี area เดียว → auto select
         // - ถ้ามีหลาย area → ไม่เลือก
         const defaultAreaId =
           Array.isArray(areaOpts) && areaOpts.length === 1
             ? areaOpts[0]?.value
             : undefined;
-        // (ถ้าคุณอยาก reset ตัวอื่นไปด้วยในจังหวะนี้)
+
         form.setFieldsValue({
           area_id: defaultAreaId,
           sales_id: undefined,
           dealer_id: undefined,
           sub_dealer_id: undefined,
-          // year จะ set ต่อในส่วน year logic เดิมของคุณได้
         });
 
         // Year
         const yearRaw = Array.isArray(yearRes?.data) ? yearRes.data : [];
         const yearOptions = yearRaw.map((y) => ({
-          value: y.id, // id = 2025, 2026
+          value: y.id,
           label: y.name,
         }));
         setYearList(yearOptions);
 
-        // set default year (ถ้ามีปีปัจจุบันใน list ใช้อันนั้น, ไม่มีก็เอาอันแรก)
         if (yearOptions.length > 0) {
           const currentYear = dayjs().year();
           const matched =
@@ -273,22 +280,25 @@ export default function ReportSellOut() {
         setLoading(false);
       }
     };
+
     loadMasters();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // เปลี่ยน Area → โหลด Sales
   useEffect(() => {
-    const areaId = form.getFieldValue("area_id");
+    const areaId = selectedArea;
+
     if (!areaId) {
       setSales([]);
       form.resetFields(["sales_id", "dealer_id"]);
       setDealers([]);
       return;
     }
+
     (async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
+        const res = await useServiceAPI.get(paths.pathMasterSaleSingle, {
           area_id: areaId,
         });
         const list = Array.isArray(res?.data) ? res.data : [];
@@ -302,16 +312,23 @@ export default function ReportSellOut() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.getFieldValue("area_id")]);
+  }, [selectedArea]);
 
+  // ✅ Lock logic: ทำเฉพาะ role 4,5,6 เท่านั้น
   useEffect(() => {
     const loginSaleId = getLoginSaleId(userInfo);
     const loginAreaId = getLoginAreaId(userInfo);
+
+    if (!isSaleRoleLocked) {
+      setIsSaleLocked(false);
+      return;
+    }
 
     if (!selectedArea) {
       setIsSaleLocked(false);
       return;
     }
+
     if (!Array.isArray(sales) || sales.length === 0) {
       setIsSaleLocked(false);
       return;
@@ -320,10 +337,8 @@ export default function ReportSellOut() {
     const foundSale = sales.find((s) => String(s.value) === String(loginSaleId));
 
     if (foundSale) {
-      // ✅ มี sale ของตัวเอง -> บังคับ area ให้ตรง user และ lock
       if (loginAreaId != null && String(selectedArea) !== String(loginAreaId)) {
         form.setFieldsValue({ area_id: loginAreaId });
-        // area เปลี่ยนแล้ว sales จะ reload ใหม่ เดี๋ยวค่อย set sales รอบถัดไป
         return;
       }
 
@@ -338,16 +353,18 @@ export default function ReportSellOut() {
     } else {
       setIsSaleLocked(false);
     }
-  }, [selectedArea, sales, userInfo, form]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedArea, sales, userInfo, form, isSaleRoleLocked]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // เปลี่ยน Sales → โหลด Dealer
   useEffect(() => {
-    const salesId = form.getFieldValue("sales_id");
+    const salesId = selectedSales;
+
     if (!salesId) {
       setDealers([]);
       form.resetFields(["dealer_id"]);
       return;
     }
+
     (async () => {
       try {
         const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
@@ -362,16 +379,16 @@ export default function ReportSellOut() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.getFieldValue("sales_id")]);
+  }, [selectedSales]);
 
   // ---------- helpers ----------
   const buildPayload = () => {
     const v = form.getFieldsValue();
     const rawYear = v.year ?? defaultYear ?? dayjs().year();
-    const year = String(rawYear); // ✅ ส่งเป็น id ปี
+    const year = String(rawYear);
 
     return {
-      year, // ex. "2025"
+      year,
       area_id: v.area_id ?? "",
       user_id: v.sales_id ?? "",
       dealer_id: v.dealer_id ?? "",
@@ -380,12 +397,12 @@ export default function ReportSellOut() {
   };
 
   const mapApiToRows = (apiData = []) => {
-    // apiData: [{ group_id, group_name, months: {"1":{...},...,"12":{...}} }]
     return apiData.map((g, idx) => {
       const row = {
         key: g.group_id || idx + 1,
         sub_dealer_name: g.group_name || "All",
       };
+
       for (let i = 1; i <= 12; i++) {
         const mObj = g.months?.[String(i)] || g.months?.[i] || {};
         const mName = monthsEN[i - 1];
@@ -394,6 +411,7 @@ export default function ReportSellOut() {
         row[`${mName}_current_stock`] = Number(mObj.current) || 0;
         row[`${mName}_sell_out`] = Number(mObj.out) || 0;
       }
+
       return row;
     });
   };
@@ -422,12 +440,13 @@ export default function ReportSellOut() {
       dealer_id: undefined,
       sub_dealer_id: undefined,
     });
+
     if (defaultYear) {
       form.setFieldsValue({ year: defaultYear });
     }
-    console.log(isSaleLocked);
+
     if (!isSaleLocked) {
-      fetchSellOut(); // โหลดครั้งแรก (ใช้ปี default / ปีปัจจุบัน)
+      fetchSellOut();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -445,10 +464,12 @@ export default function ReportSellOut() {
   // ---------- actions ----------
   const handleSearch = async () => {
     const v = form.getFieldsValue();
+
     if (v.sales_id && !v.area_id) {
       showNotification?.("warning", "กรุณาเลือก Area ก่อนเลือก Sales");
       return;
     }
+
     await fetchSellOut();
   };
 
@@ -456,10 +477,9 @@ export default function ReportSellOut() {
     const rawYear = defaultYear ?? dayjs().year();
 
     if (isSaleLocked) {
-      // ✅ ล็อค Area + Sales: ไม่แตะ area_id / sales_id
       form.resetFields(["dealer_id", "sub_dealer_id", "year"]);
 
-      setDealers([]);
+      // setDealers([]);
 
       form.setFieldsValue({
         dealer_id: undefined,
@@ -471,8 +491,13 @@ export default function ReportSellOut() {
       return;
     }
 
-    // ✅ ไม่ล็อค: เคลียร์ทั้งหมดตามเดิม
-    form.resetFields(["area_id", "sales_id", "dealer_id", "sub_dealer_id", "year"]);
+    form.resetFields([
+      "area_id",
+      "sales_id",
+      "dealer_id",
+      "sub_dealer_id",
+      "year",
+    ]);
     form.setFieldsValue({ year: rawYear });
 
     setSales([]);
@@ -512,9 +537,8 @@ export default function ReportSellOut() {
                 <Select
                   placeholder="Select Sales"
                   options={sales}
-                  allowClear={!isSaleLocked}
-                  // disabled={!selectedArea || isSaleLocked}
-                  disabled={!selectedArea}
+                  allowClear={!isSaleRoleLocked}
+                  disabled={!selectedArea || isSaleRoleLocked}
                 />
               </Form.Item>
             </Col>
@@ -534,13 +558,11 @@ export default function ReportSellOut() {
               </Form.Item>
             </Col>
 
-            {/* 🔁 เปลี่ยนจาก DatePicker เป็น Select Year */}
             <Col md={6}>
               <Form.Item label="Year" name="year">
                 <Select
                   placeholder="Select year"
                   options={yearList}
-                  // ถ้าอยากให้เคลียร์ไม่ได้ ให้เอา allowClear ออก
                   allowClear={false}
                 />
               </Form.Item>
@@ -590,7 +612,6 @@ export default function ReportSellOut() {
         </BoxPrimary>
       </Form>
 
-      {/* Show X entries */}
       <div className="flex items-center gap-2 mb-2">
         <span>Show</span>
         <Select

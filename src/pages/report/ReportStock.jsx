@@ -13,6 +13,7 @@ import ExportStockExcelButton from "../../components/export/ExportStockExcelButt
 import TableCustomComponent from "../../components/table/TableCustomComponent";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -130,6 +131,9 @@ export default function ReportStock() {
   // ✅ เก็บ Area ที่ “ตรงกับ userInfo” เพื่อใช้ disable option
   const [activeAreaId, setActiveAreaId] = useState(null);
 
+  // ✅ disable Sales เฉพาะ role_id 4, 5, 6
+  const isSaleRoleLocked = [4, 5, 6].includes(Number(userInfo?.role_id));
+
   const getLoginSaleId = (u) => {
     if (!u) return null;
     return u.sale_id ?? u.user_id ?? u.id ?? null;
@@ -138,6 +142,18 @@ export default function ReportStock() {
   const getLoginAreaId = (u) => {
     if (!u) return null;
     return u.area_id ?? u.areaId ?? u.area ?? null;
+  };
+
+  const displayZero = (val, emptyText = "-") => {
+    const n = Number(val);
+    if (!Number.isFinite(n) || n === 0) return emptyText;
+    return n;
+  };
+
+  const formatterZeroAsDash = (v) => {
+    const n = Number(String(v ?? "").replace(/,/g, ""));
+    if (!Number.isFinite(n) || n === 0) return "-";
+    return `${parseInt(n, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
   // columns
@@ -174,8 +190,8 @@ export default function ReportStock() {
           <InputNumber
             className="w-full"
             readOnly
-            value={displayZero(val, null)}   // ส่ง null ให้ InputNumber ว่าง
-            formatter={formatterZeroAsDash}  // หรืออยากให้เป็น "" ก็เปลี่ยนใน formatter
+            value={displayZero(val, null)}
+            formatter={formatterZeroAsDash}
           />
         ),
       },
@@ -196,8 +212,8 @@ export default function ReportStock() {
           <InputNumber
             className="w-full"
             readOnly
-            value={displayZero(val, null)}   // ส่ง null ให้ InputNumber ว่าง
-            formatter={formatterZeroAsDash}  // หรืออยากให้เป็น "" ก็เปลี่ยนใน formatter
+            value={displayZero(val, null)}
+            formatter={formatterZeroAsDash}
           />
         ),
       },
@@ -218,8 +234,8 @@ export default function ReportStock() {
           <InputNumber
             className="w-full"
             readOnly
-            value={displayZero(val, null)}   // ส่ง null ให้ InputNumber ว่าง
-            formatter={formatterZeroAsDash}  // หรืออยากให้เป็น "" ก็เปลี่ยนใน formatter
+            value={displayZero(val, null)}
+            formatter={formatterZeroAsDash}
           />
         ),
       },
@@ -240,8 +256,8 @@ export default function ReportStock() {
           <InputNumber
             className="w-full"
             readOnly
-            value={displayZero(val, null)}   // ส่ง null ให้ InputNumber ว่าง
-            formatter={formatterZeroAsDash}  // หรืออยากให้เป็น "" ก็เปลี่ยนใน formatter
+            value={displayZero(val, null)}
+            formatter={formatterZeroAsDash}
           />
         ),
       },
@@ -249,7 +265,7 @@ export default function ReportStock() {
     []
   );
 
-  // ✅ Footer: ใช้ตัวแปร total_* จาก API โดยตรง (Total (THB))
+  // Footer
   const footer = useMemo(() => {
     const totals = {
       last_stock: summary?.total_last ?? 0,
@@ -306,17 +322,13 @@ export default function ReportStock() {
         setYearOptions(yearOpts);
 
         const now = dayjs();
-        // const defaultYear = pickLatestYearCode() ?? now.year();
-        const defaultYear = pickLatestYearCode(yearOptions) ?? now.year();
+        const defaultYear = pickLatestYearCode(yearOpts) ?? now.year();
 
-        // ✅ ถ้ามี userInfo.area_id -> set activeAreaId ไว้ใช้ disable options
+        // เก็บ area จาก userInfo
         const uArea = getLoginAreaId(userInfo);
         setActiveAreaId(uArea != null ? String(uArea) : null);
 
-        // ✅ ค่า default เดิม: เลือก Area ตัวแรก (ตามโค้ดเดิมของคุณ)
-        // const defaultAreaId = areaOpts[0]?.value;
-        // ✅ ถ้ามี area เดียว → auto select
-        // ✅ ถ้ามีหลาย area → ไม่เลือก
+        // ถ้ามี area เดียว → auto select, ถ้ามีหลาย area → ไม่เลือก
         const defaultAreaId =
           Array.isArray(areaOpts) && areaOpts.length === 1
             ? areaOpts[0]?.value
@@ -331,8 +343,7 @@ export default function ReportStock() {
           year: defaultYear,
         });
 
-        // first fetch
-        // await fetchStock();
+        await fetchStock();
       } catch {
         setAreaList([]);
         setYearOptions([]);
@@ -354,15 +365,14 @@ export default function ReportStock() {
       form.resetFields(["sale_id", "dealer_id", "sub_dealer_id"]);
       return;
     }
+
     (async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
+        const res = await useServiceAPI.get(paths.pathMasterSaleSingle, {
           area_id: areaId,
         });
         const list = Array.isArray(res?.data) ? res.data : [];
-        setSalesList(
-          list.map((x) => ({ value: Number(x.id), label: x.name }))
-        );
+        setSalesList(list.map((x) => ({ value: Number(x.id), label: x.name })));
         setDealerList([]);
         setSubDealerList([]);
         form.resetFields(["sale_id", "dealer_id", "sub_dealer_id"]);
@@ -376,15 +386,21 @@ export default function ReportStock() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedArea]);
 
-  // ✅ Lock logic: ถ้าพบ sale ของตัวเองใน salesList -> lock + set area ให้ match userInfo.area_id และ disable area
+  // ✅ Lock logic: ทำเฉพาะ role 4,5,6 เท่านั้น
   useEffect(() => {
     const loginSaleId = getLoginSaleId(userInfo);
     const loginAreaId = getLoginAreaId(userInfo);
+
+    if (!isSaleRoleLocked) {
+      setIsSaleLocked(false);
+      return;
+    }
 
     if (!selectedArea) {
       setIsSaleLocked(false);
       return;
     }
+
     if (!Array.isArray(salesList) || salesList.length === 0) {
       setIsSaleLocked(false);
       return;
@@ -395,10 +411,8 @@ export default function ReportStock() {
     );
 
     if (foundSale) {
-      // ✅ มี active sale -> เลือก area ให้ตรง userInfo และ lock
       if (loginAreaId != null && String(selectedArea) !== String(loginAreaId)) {
         form.setFieldsValue({ area_id: loginAreaId });
-        // area เปลี่ยนแล้ว salesList จะโหลดใหม่ เดี๋ยวค่อย set sale รอบถัดไป
         return;
       }
 
@@ -410,10 +424,9 @@ export default function ReportStock() {
       setIsSaleLocked(true);
       fetchStock();
     } else {
-      // ✅ ไม่พบ sale -> ไม่ lock และ Area เลือกได้ปกติ
       setIsSaleLocked(false);
     }
-  }, [selectedArea, salesList, userInfo, form]);
+  }, [selectedArea, salesList, userInfo, form, isSaleRoleLocked]);
 
   // Cascade: Sales → Dealer
   useEffect(() => {
@@ -424,6 +437,7 @@ export default function ReportStock() {
       form.resetFields(["dealer_id", "sub_dealer_id"]);
       return;
     }
+
     (async () => {
       try {
         const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
@@ -453,6 +467,7 @@ export default function ReportStock() {
       form.resetFields(["sub_dealer_id"]);
       return;
     }
+
     (async () => {
       try {
         const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
@@ -481,8 +496,9 @@ export default function ReportStock() {
     const now = dayjs();
     const year = v.year || now.year();
     const month = v.month || now.month() + 1;
+
     return {
-      date: `${year}-${String(month).padStart(2, "0")}`, // YYYY-MM
+      date: `${year}-${String(month).padStart(2, "0")}`,
       area_id: v.area_id ?? "",
       user_id: v.sale_id || "",
       dealer_id: v.dealer_id || "",
@@ -496,9 +512,8 @@ export default function ReportStock() {
       const payload = buildPayload();
       const res = await useServiceAPI.get(paths.pathReportStock, payload);
 
-      // ✅ ดึง data และ summary จาก API
-      const items = res?.data || [];
-      const apiSummary = res?.summary || res?.data?.summary || null; // เผื่อโครง response ต่างกัน
+      const items = Array.isArray(res?.data) ? res.data : [];
+      const apiSummary = res?.summary || res?.data?.summary || null;
 
       setSummary({
         total_current:
@@ -513,20 +528,18 @@ export default function ReportStock() {
 
       const rows = items.map((it, idx) => ({
         key: it.product_id ?? idx,
-        product_name: `${it.product_name}${it.product_size ? ` (${it.product_size})` : ""
-          }`,
-
+        product_name: `${it.product_name}${
+          it.product_size ? ` (${it.product_size})` : ""
+        }`,
         last_stock: Number(it.last) || 0,
         sell_in: Number(it.in) || 0,
         current_stock: Number(it.current) || 0,
         sell_out: Number(it.out) || 0,
-
         total_last: Number(String(it.total_last || 0).replace(/,/g, "")) || 0,
         total_in: Number(String(it.total_in || 0).replace(/,/g, "")) || 0,
         total_current:
           Number(String(it.total_current || 0).replace(/,/g, "")) || 0,
         total_out: Number(String(it.total_out || 0).replace(/,/g, "")) || 0,
-
         unit_convert_value: parseFloat(
           String(it.unit_convert_value || "0").replace(/,/g, "")
         ),
@@ -536,7 +549,12 @@ export default function ReportStock() {
     } catch (e) {
       console.error(e);
       setDataSource([]);
-      setSummary({ total_current: 0, total_last: 0, total_in: 0, total_out: 0 }); // ✅ reset
+      setSummary({
+        total_current: 0,
+        total_last: 0,
+        total_in: 0,
+        total_out: 0,
+      });
       showNotification?.("error", "โหลดข้อมูลไม่สำเร็จ");
     } finally {
       setTableLoading(false);
@@ -545,6 +563,7 @@ export default function ReportStock() {
 
   const handleSearch = () => {
     const v = form.getFieldsValue();
+
     if (v.sale_id && !v.area_id) {
       showNotification?.("warning", "กรุณาเลือก Area ก่อนเลือก Sales");
       return;
@@ -557,6 +576,7 @@ export default function ReportStock() {
       showNotification?.("warning", "กรุณาเลือก Dealer ก่อนเลือก Sub Dealer");
       return;
     }
+
     fetchStock();
   };
 
@@ -565,10 +585,8 @@ export default function ReportStock() {
     const defaultYear = pickLatestYearCode(yearOptions);
 
     if (isSaleLocked) {
-      // ✅ ล็อค Area + Sales: ไม่แตะ area_id / sale_id
       form.resetFields(["dealer_id", "sub_dealer_id", "month", "year"]);
 
-      setDealerList([]);
       setSubDealerList([]);
 
       form.setFieldsValue({
@@ -582,7 +600,6 @@ export default function ReportStock() {
       return;
     }
 
-    // ✅ ไม่ล็อค: เคลียร์ทั้งหมดตามเดิม
     form.resetFields([
       "area_id",
       "sale_id",
@@ -620,19 +637,6 @@ export default function ReportStock() {
     }
   };
 
-  const displayZero = (val, emptyText = "-") => {
-    const n = Number(val);
-    if (!Number.isFinite(n) || n === 0) return emptyText; // 0 / null / undefined / NaN
-    return n;
-  };
-
-  const formatterZeroAsDash = (v) => {
-    const n = Number(String(v ?? "").replace(/,/g, ""));
-    if (!Number.isFinite(n) || n === 0) return "-";
-    return `${parseInt(n)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  };
-
-
   return (
     <MainLayout loading={loading}>
       <Title prefix="Stock Report" />
@@ -650,10 +654,11 @@ export default function ReportStock() {
                   placeholder="Select Area"
                   options={areaList}
                   allowClear
-                  disabled={isSaleLocked} // ✅ ถ้า sale lock -> disable dropdown (ตามที่ต้องการ)
+                  disabled={isSaleLocked}
                 />
               </Form.Item>
             </Col>
+
             <Col md={6}>
               <Form.Item
                 label="Sales"
@@ -663,12 +668,12 @@ export default function ReportStock() {
                 <Select
                   placeholder="Select Sales"
                   options={salesList}
-                  allowClear={!isSaleLocked}
-                  // disabled={!selectedArea || isSaleLocked}
-                  disabled={!selectedArea}
+                  allowClear={!isSaleRoleLocked}
+                  disabled={!selectedArea || isSaleRoleLocked}
                 />
               </Form.Item>
             </Col>
+
             <Col md={6}>
               <Form.Item
                 label="Dealer"
@@ -683,6 +688,7 @@ export default function ReportStock() {
                 />
               </Form.Item>
             </Col>
+
             <Col md={6}>
               <Form.Item
                 label="Sub Dealer"
@@ -698,7 +704,6 @@ export default function ReportStock() {
               </Form.Item>
             </Col>
 
-            {/* แยก Month / Year */}
             <Col md={3}>
               <Form.Item label="Month" name="month">
                 <Select
@@ -708,11 +713,12 @@ export default function ReportStock() {
                 />
               </Form.Item>
             </Col>
+
             <Col md={3}>
               <Form.Item label="Year" name="year">
                 <Select
                   placeholder="Select year"
-                  options={yearOptions} // << ใช้ master year
+                  options={yearOptions}
                   allowClear={false}
                 />
               </Form.Item>
@@ -754,7 +760,6 @@ export default function ReportStock() {
         </BoxPrimary>
       </Form>
 
-      {/* Table — ไม่มี pagination แล้ว */}
       <BoxPrimary>
         <TableCustomComponent
           header={header}

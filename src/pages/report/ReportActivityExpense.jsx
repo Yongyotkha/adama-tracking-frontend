@@ -180,7 +180,7 @@ export default function ReportActivityExpense() {
       const areaIdForSales = selectedArea === "__ALL__" ? 'all' : selectedArea;
 
       try {
-        const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
+        const res = await useServiceAPI.get(paths.pathMasterSaleSingle, {
           area_id: areaIdForSales,
         });
 
@@ -365,7 +365,7 @@ export default function ReportActivityExpense() {
 
     if (isSaleLocked) {
       form.resetFields(["dealer_id", "year_code"]);
-      setDealerList([]);
+      // setDealerList([]);
       form.setFieldsValue({
         dealer_id: undefined,
         year_code: yearToUse,
@@ -560,8 +560,7 @@ export default function ReportActivityExpense() {
                   placeholder="Select Sales"
                   options={salesList}
                   allowClear={!isSaleLocked}
-                  // disabled={!selectedArea || isSaleLocked}
-                  disabled={!selectedArea}
+                  disabled={!selectedArea || isSaleLocked}
                 />
               </Form.Item>
             </Col>

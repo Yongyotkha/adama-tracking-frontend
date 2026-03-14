@@ -323,7 +323,7 @@ export default function ReportActivityByMonth() {
 
     (async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
+        const res = await useServiceAPI.get(paths.pathMasterSaleSingle, {
           area_id: aId,
         });
 
@@ -615,9 +615,7 @@ export default function ReportActivityByMonth() {
                   placeholder="Select Sales"
                   options={sales}
                   allowClear={!isSaleLocked}
-                  // disabled={!selectedArea || isSaleLocked}
-                  disabled={!selectedArea}
-
+                  disabled={!selectedArea || isSaleLocked}
                 />
               </Form.Item>
             </Col>
@@ -666,7 +664,7 @@ export default function ReportActivityByMonth() {
               onClick={() => {
                 // ✅ เคลียร์ปี / subdealer เสมอ
                 formCustom.resetFields(["sub_dealer_id", "year_code"]);
-                setSubDealers([]);
+                // setSubDealers([]);
 
                 const yearToUse =
                   defaultYear || years[0] || dayjs().tz("Asia/Bangkok").format("YYYY");
