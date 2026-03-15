@@ -115,7 +115,7 @@ export default function OrderHistory() {
 
                     <div className="flex flex-col items-end text-right">
                       <p className={`sarabun-font font-semibold ${statusColor}`}>
-                        {isComplete ? "รับสินค้าสำเร็จหหหหหห" : "รับสินค้าไม่สำเร็จ"}
+                        {isComplete ? "รับสินค้าสำเร็จ" : "รับสินค้าไม่สำเร็จ"}
                       </p>
                       <p className="text-gray-700 sarabun-font text-xs font-semibold mt-1">
                         {order.line_product} รายการ / คะแนน {Number(order.point ?? 0).toLocaleString()}
