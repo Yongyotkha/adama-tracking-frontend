@@ -1,56 +1,160 @@
 // src/pages/report/ReportStock.jsx
 import React, { useContext, useEffect, useMemo, useState } from "react";
-import { Form, Row, Col, Select, DatePicker, InputNumber, Table } from "antd";
+import { Form, Row, Col, Select, InputNumber, Table } from "antd";
 import dayjs from "dayjs";
 import MainLayout from "../../layouts/MainLayout";
 import Title from "../../components/title/Title";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import DynamicButton from "../../components/button/DynamicButton";
-import TableComponent from "../../components/table/TableComponent";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
 import ExportStockExcelButton from "../../components/export/ExportStockExcelButton";
+import TableCustomComponent from "../../components/table/TableCustomComponent";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const toComma = (n) =>
   `${parseInt(Number(n) || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
+// --- helpers for export file name ---
+const slug = (s) =>
+  String(s ?? "")
+    .normalize("NFKC")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/[\\/:*?"<>|]+/g, "-")
+    .replace(/\s+/g, "_");
+
+const getLabelFrom = (options, value) =>
+  (Array.isArray(options) ? options.find((o) => o?.value === value) : null)
+    ?.label || "";
+
+// ดึง year_code เป็น string เสมอ (ใช้ร่วมกับ master year)
+const getYearCodeFrom = (y) => {
+  if (y == null) return "";
+  if (typeof y === "string" || typeof y === "number") return String(y);
+  return y.year_code ?? y.code ?? y.value ?? y.label ?? y.name ?? y.year ?? "";
+};
+
+// เลือก “ปีล่าสุด” จากลิสต์ปี
+const pickLatestYearCode = (yearsArr) => {
+  if (!Array.isArray(yearsArr) || yearsArr.length === 0) {
+    return dayjs().tz("Asia/Bangkok").format("YYYY");
+  }
+  let best = yearsArr[0];
+  for (const cur of yearsArr) {
+    const b = Number(getYearCodeFrom(best)) || 0;
+    const c = Number(getYearCodeFrom(cur)) || 0;
+    if (c > b) best = cur;
+  }
+  return getYearCodeFrom(best);
+};
+
+const buildStockReportFileName = (
+  form,
+  { areaList, salesList, dealerList, subDealerList }
+) => {
+  const v = form.getFieldsValue();
+  const now = dayjs();
+  const year = v.year || now.year();
+  const month = v.month || now.month() + 1; // 1-12
+  const monthText = `${year}-${String(month).padStart(2, "0")}`;
+
+  const area = getLabelFrom(areaList, v.area_id);
+  const sale = getLabelFrom(salesList, v.sale_id);
+  const dealer = getLabelFrom(dealerList, v.dealer_id);
+  const subDealer = getLabelFrom(subDealerList, v.sub_dealer_id);
+
+  const parts = [
+    "Stock_Report",
+    monthText,
+    area && `Area_${slug(area)}`,
+    sale && `Sales_${slug(sale)}`,
+    dealer && `Dealer_${slug(dealer)}`,
+    subDealer && `Sub_${slug(subDealer)}`,
+  ].filter(Boolean);
+
+  const ts = dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD_HHmm");
+  return `${parts.join("_")}_${ts}`;
+};
+
+// สร้าง options เดือน
+const monthOptions = [
+  { value: 1, label: "January" },
+  { value: 2, label: "February" },
+  { value: 3, label: "March" },
+  { value: 4, label: "April" },
+  { value: 5, label: "May" },
+  { value: 6, label: "June" },
+  { value: 7, label: "July" },
+  { value: 8, label: "August" },
+  { value: 9, label: "September" },
+  { value: 10, label: "October" },
+  { value: 11, label: "November" },
+  { value: 12, label: "December" },
+];
+
 export default function ReportStock() {
-  const { showNotification } = useContext(AuthContext) || {};
+  const { showNotification, userInfo } = useContext(AuthContext);
   const [form] = Form.useForm();
 
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
 
-  //masters (ดึงจาก API)
+  // masters
   const [areaList, setAreaList] = useState([]);
   const [salesList, setSalesList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
+  const [yearOptions, setYearOptions] = useState([]);
 
-  // watch สำหรับควบคุม disable แบบ step
+  // watch
   const selectedArea = Form.useWatch("area_id", form);
   const selectedSale = Form.useWatch("sale_id", form);
   const selectedDealer = Form.useWatch("dealer_id", form);
 
-  // เก็บข้อมูลเต็มจาก API แล้วตัดหน้าเอง
-  const [fullData, setFullData] = useState([]);
+  // data
   const [dataSource, setDataSource] = useState([]);
-  const [totalRecords, setTotalRecords] = useState(0);
+  const [isSaleLocked, setIsSaleLocked] = useState(false);
 
-  // pagination + page size
-  const [pageSize, setPageSize] = useState(10);
-  const [current, setCurrent] = useState(1);
+  const [summary, setSummary] = useState({
+    total_current: 0,
+    total_last: 0,
+    total_in: 0,
+    total_out: 0,
+  });
 
-  const pagination = useMemo(
-    () => ({
-      current,
-      pageSize,
-      total: totalRecords,
-      showSizeChanger: false,
-    }),
-    [current, pageSize, totalRecords]
-  );
+  // ✅ เก็บ Area ที่ “ตรงกับ userInfo” เพื่อใช้ disable option
+  const [activeAreaId, setActiveAreaId] = useState(null);
+
+  // ✅ disable Sales เฉพาะ role_id 4, 5, 6
+  const isSaleRoleLocked = [4, 5, 6].includes(Number(userInfo?.role_id));
+
+  const getLoginSaleId = (u) => {
+    if (!u) return null;
+    return u.sale_id ?? u.user_id ?? u.id ?? null;
+  };
+
+  const getLoginAreaId = (u) => {
+    if (!u) return null;
+    return u.area_id ?? u.areaId ?? u.area ?? null;
+  };
+
+  const displayZero = (val, emptyText = "-") => {
+    const n = Number(val);
+    if (!Number.isFinite(n) || n === 0) return emptyText;
+    return n;
+  };
+
+  const formatterZeroAsDash = (v) => {
+    const n = Number(String(v ?? "").replace(/,/g, ""));
+    if (!Number.isFinite(n) || n === 0) return "-";
+    return `${parseInt(n, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
 
   // columns
   const header = useMemo(
@@ -83,7 +187,12 @@ export default function ReportStock() {
           },
         }),
         render: (val) => (
-          <InputNumber className="w-full" readOnly value={Number(val) || 0} formatter={toComma} />
+          <InputNumber
+            className="w-full"
+            readOnly
+            value={displayZero(val, null)}
+            formatter={formatterZeroAsDash}
+          />
         ),
       },
       {
@@ -100,7 +209,12 @@ export default function ReportStock() {
           },
         }),
         render: (val) => (
-          <InputNumber className="w-full" readOnly value={Number(val) || 0} formatter={toComma} />
+          <InputNumber
+            className="w-full"
+            readOnly
+            value={displayZero(val, null)}
+            formatter={formatterZeroAsDash}
+          />
         ),
       },
       {
@@ -117,7 +231,12 @@ export default function ReportStock() {
           },
         }),
         render: (val) => (
-          <InputNumber className="w-full" readOnly value={Number(val) || 0} formatter={toComma} />
+          <InputNumber
+            className="w-full"
+            readOnly
+            value={displayZero(val, null)}
+            formatter={formatterZeroAsDash}
+          />
         ),
       },
       {
@@ -134,16 +253,26 @@ export default function ReportStock() {
           },
         }),
         render: (val) => (
-          <InputNumber className="w-full" readOnly value={Number(val) || 0} formatter={toComma} />
+          <InputNumber
+            className="w-full"
+            readOnly
+            value={displayZero(val, null)}
+            formatter={formatterZeroAsDash}
+          />
         ),
       },
     ],
     []
   );
 
+  // Footer
   const footer = useMemo(() => {
-    const sum = (k) =>
-      (dataSource || []).reduce((acc, r) => acc + (Number(r[k]) || 0), 0);
+    const totals = {
+      last_stock: summary?.total_last ?? 0,
+      sell_in: summary?.total_in ?? 0,
+      current_stock: summary?.total_current ?? 0,
+      sell_out: summary?.total_out ?? 0,
+    };
 
     const keys = ["last_stock", "sell_in", "current_stock", "sell_out"];
 
@@ -151,17 +280,15 @@ export default function ReportStock() {
       <Table.Summary fixed>
         <Table.Summary.Row className="bg-[#978B87]">
           <Table.Summary.Cell index={0}>
-            <b>Total</b>
+            <b>Total (THB)</b>
           </Table.Summary.Cell>
           {keys.map((k, i) => (
             <Table.Summary.Cell key={k} index={i + 1} align="right">
               <InputNumber
                 className="w-full"
                 readOnly
-                value={sum(k)}
-                formatter={(v) =>
-                  `${parseInt(v || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                }
+                value={displayZero(totals[k], null)}
+                formatter={formatterZeroAsDash}
                 style={{ backgroundColor: "white" }}
               />
             </Table.Summary.Cell>
@@ -169,45 +296,69 @@ export default function ReportStock() {
         </Table.Summary.Row>
       </Table.Summary>
     );
-  }, [dataSource]);
+  }, [summary]);
 
-  // ---------- Masters: โหลด Area ตอนเริ่ม ----------
+  // ---------- Masters (Area + Master Year) ----------
   useEffect(() => {
-    const loadAreas = async () => {
+    (async () => {
       setLoading(true);
       try {
-        const res = await useServiceAPI.get(paths.pathMasterAreas);
-        const list = Array.isArray(res?.data) ? res.data : [];
-        setAreaList(list.map((x) => ({ value: x.id, label: x.name })));
-      } catch (e) {
+        const [areaRes, yearRes] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterAreas),
+          useServiceAPI.get(paths.pathMasterYear),
+        ]);
+
+        // Area
+        const areaRaw = Array.isArray(areaRes?.data) ? areaRes.data : [];
+        const areaOpts = areaRaw.map((x) => ({ value: x.id, label: x.name }));
+        setAreaList(areaOpts);
+
+        // Year from master
+        const yearRaw = Array.isArray(yearRes?.data) ? yearRes.data : [];
+        const yearOpts = yearRaw.map((y) => {
+          const yc = getYearCodeFrom(y);
+          return { value: yc, label: yc };
+        });
+        setYearOptions(yearOpts);
+
+        const now = dayjs();
+        const defaultYear = pickLatestYearCode(yearOpts) ?? now.year();
+
+        // เก็บ area จาก userInfo
+        const uArea = getLoginAreaId(userInfo);
+        setActiveAreaId(uArea != null ? String(uArea) : null);
+
+        // ถ้ามี area เดียว → auto select, ถ้ามีหลาย area → ไม่เลือก
+        const defaultAreaId =
+          Array.isArray(areaOpts) && areaOpts.length === 1
+            ? areaOpts[0]?.value
+            : undefined;
+
+        form.setFieldsValue({
+          area_id: defaultAreaId,
+          // sale_id: undefined,
+          sale_id : form.getFieldValue("sale_id") || "", // ดึงค่าจาก sale 
+          dealer_id: undefined,
+          sub_dealer_id: undefined,
+          month: now.month() + 1,
+          year: defaultYear,
+        });
+
+        await fetchStock();
+      } catch {
         setAreaList([]);
-        showNotification?.("error", "โหลด Area ไม่สำเร็จ");
+        setYearOptions([]);
+        showNotification?.("error", "โหลดข้อมูล Master ไม่สำเร็จ");
       } finally {
         setLoading(false);
       }
-    };
-    loadAreas();
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // set default filter & first fetch
+  // Cascade: Area → Sales
   useEffect(() => {
-    setLoading(true);
-    form.setFieldsValue({
-      area_id: undefined,          // เริ่มต้นว่าง เพื่อบังคับเลือกเป็น Step
-      sale_id: undefined,          // ส่งไปเป็น user_id
-      dealer_id: undefined,
-      sub_dealer_id: undefined,
-      month: dayjs("2025-10-01"),
-    });
-    setLoading(false);
-    fetchStock(); // โหลดรวมทั้งหมด (ไม่มีตัวกรอง)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // เปลี่ยน Area → โหลด Sales
-  useEffect(() => {
-    const areaId = form.getFieldValue("area_id");
+    const areaId = selectedArea;
     if (!areaId) {
       setSalesList([]);
       setDealerList([]);
@@ -215,9 +366,12 @@ export default function ReportStock() {
       form.resetFields(["sale_id", "dealer_id", "sub_dealer_id"]);
       return;
     }
+
     (async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathMasterSaleReport, { area_id: areaId });
+        const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
+          area_id: areaId,
+        });
         const list = Array.isArray(res?.data) ? res.data : [];
         setSalesList(list.map((x) => ({ value: Number(x.id), label: x.name })));
         setDealerList([]);
@@ -231,22 +385,69 @@ export default function ReportStock() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.getFieldValue("area_id")]);
+  }, [selectedArea]);
 
-  // เปลี่ยน Sales → โหลด Dealer
+  // ✅ Lock logic: ทำเฉพาะ role 4,5,6 เท่านั้น
   useEffect(() => {
-    const saleId = form.getFieldValue("sale_id");
+    const loginSaleId = getLoginSaleId(userInfo);
+    const loginAreaId = getLoginAreaId(userInfo);
+
+    if (!isSaleRoleLocked) {
+      setIsSaleLocked(false);
+      return;
+    }
+
+    if (!selectedArea) {
+      setIsSaleLocked(false);
+      return;
+    }
+
+    if (!Array.isArray(salesList) || salesList.length === 0) {
+      setIsSaleLocked(false);
+      return;
+    }
+
+    const foundSale = salesList.find(
+      (s) => String(s.value) === String(loginSaleId)
+    );
+
+    if (foundSale) {
+      if (loginAreaId != null && String(selectedArea) !== String(loginAreaId)) {
+        form.setFieldsValue({ area_id: loginAreaId });
+        return;
+      }
+
+      form.setFieldsValue({
+        sale_id: foundSale.value,
+        dealer_id: undefined,
+        sub_dealer_id: undefined,
+      });
+      setIsSaleLocked(true);
+      fetchStock();
+    } else {
+      setIsSaleLocked(false);
+    }
+  }, [selectedArea, salesList, userInfo, form, isSaleRoleLocked]);
+
+  // Cascade: Sales → Dealer
+  useEffect(() => {
+    const saleId = selectedSale;
     if (!saleId) {
       setDealerList([]);
       setSubDealerList([]);
       form.resetFields(["dealer_id", "sub_dealer_id"]);
       return;
     }
+
     (async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: saleId });
+        const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
+          user_id: saleId,
+        });
         const list = Array.isArray(res?.data) ? res.data : [];
-        setDealerList(list.map((x) => ({ value: Number(x.id), label: x.name })));
+        setDealerList(
+          list.map((x) => ({ value: Number(x.id), label: x.name }))
+        );
         setSubDealerList([]);
         form.resetFields(["dealer_id", "sub_dealer_id"]);
       } catch {
@@ -256,17 +457,18 @@ export default function ReportStock() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.getFieldValue("sale_id")]);
+  }, [selectedSale]);
 
-  // เปลี่ยน Dealer → โหลด Sub Dealer (paths.pathMasterSubDealerAll)
+  // Cascade: Dealer → SubDealer
   useEffect(() => {
-    const saleId = form.getFieldValue("sale_id");
-    const dealerId = form.getFieldValue("dealer_id");
+    const saleId = selectedSale;
+    const dealerId = selectedDealer;
     if (!saleId || !dealerId) {
       setSubDealerList([]);
       form.resetFields(["sub_dealer_id"]);
       return;
     }
+
     (async () => {
       try {
         const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
@@ -274,7 +476,12 @@ export default function ReportStock() {
           dealer_id: dealerId,
         });
         const list = Array.isArray(res?.data) ? res.data : [];
-        setSubDealerList(list.map((s) => ({ value: s.sub_dealer_id, label: s.sub_dealer_name })));
+        setSubDealerList(
+          list.map((s) => ({
+            value: s.sub_dealer_id,
+            label: s.sub_dealer_name,
+          }))
+        );
         form.resetFields(["sub_dealer_id"]);
       } catch {
         setSubDealerList([]);
@@ -282,21 +489,19 @@ export default function ReportStock() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.getFieldValue("dealer_id")]);
+  }, [selectedSale, selectedDealer]);
 
-  // page slice จาก fullData
-  useEffect(() => {
-    const start = (current - 1) * pageSize;
-    setDataSource(fullData.slice(start, start + pageSize));
-  }, [fullData, current, pageSize]);
-
-  // --------- API call: pathReportStock ----------
+  // --------- API call ---------
   const buildPayload = () => {
     const v = form.getFieldsValue();
+    const now = dayjs();
+    const year = v.year || now.year();
+    const month = v.month || now.month() + 1;
+
     return {
-      date: v.month ? dayjs(v.month).format("YYYY-MM") : dayjs().format("YYYY-MM"),
+      date: `${year}-${String(month).padStart(2, "0")}`,
       area_id: v.area_id ?? "",
-      user_id: v.sale_id || "", // mapping sale_id -> user_id
+      user_id: v.sale_id || "",
       dealer_id: v.dealer_id || "",
       sub_dealer_id: v.sub_dealer_id || "",
     };
@@ -307,24 +512,50 @@ export default function ReportStock() {
     try {
       const payload = buildPayload();
       const res = await useServiceAPI.get(paths.pathReportStock, payload);
-      const items = res?.data || [];
+
+      const items = Array.isArray(res?.data) ? res.data : [];
+      const apiSummary = res?.summary || res?.data?.summary || null;
+
+      setSummary({
+        total_current:
+          Number(String(apiSummary?.total_current ?? 0).replace(/,/g, "")) || 0,
+        total_last:
+          Number(String(apiSummary?.total_last ?? 0).replace(/,/g, "")) || 0,
+        total_in:
+          Number(String(apiSummary?.total_in ?? 0).replace(/,/g, "")) || 0,
+        total_out:
+          Number(String(apiSummary?.total_out ?? 0).replace(/,/g, "")) || 0,
+      });
 
       const rows = items.map((it, idx) => ({
         key: it.product_id ?? idx,
-        product_name: `${it.product_name}${it.product_size ? ` (${it.product_size})` : ""}`,
+        product_name: `${it.product_name}${
+          it.product_size ? ` (${it.product_size})` : ""
+        }`,
         last_stock: Number(it.last) || 0,
         sell_in: Number(it.in) || 0,
         current_stock: Number(it.current) || 0,
         sell_out: Number(it.out) || 0,
+        total_last: Number(String(it.total_last || 0).replace(/,/g, "")) || 0,
+        total_in: Number(String(it.total_in || 0).replace(/,/g, "")) || 0,
+        total_current:
+          Number(String(it.total_current || 0).replace(/,/g, "")) || 0,
+        total_out: Number(String(it.total_out || 0).replace(/,/g, "")) || 0,
+        unit_convert_value: parseFloat(
+          String(it.unit_convert_value || "0").replace(/,/g, "")
+        ),
       }));
 
-      setFullData(rows);
-      setTotalRecords(rows.length);
-      setCurrent(1); // กลับหน้า 1 เมื่อค้นหาใหม่
+      setDataSource(rows);
     } catch (e) {
       console.error(e);
-      setFullData([]);
-      setTotalRecords(0);
+      setDataSource([]);
+      setSummary({
+        total_current: 0,
+        total_last: 0,
+        total_in: 0,
+        total_out: 0,
+      });
       showNotification?.("error", "โหลดข้อมูลไม่สำเร็จ");
     } finally {
       setTableLoading(false);
@@ -332,8 +563,8 @@ export default function ReportStock() {
   };
 
   const handleSearch = () => {
-    // บังคับลำดับการเลือก: ห้ามเลือก Sales/Dealer/Sub Dealer ถ้ายังไม่ผ่าน step ก่อน
     const v = form.getFieldsValue();
+
     if (v.sale_id && !v.area_id) {
       showNotification?.("warning", "กรุณาเลือก Area ก่อนเลือก Sales");
       return;
@@ -346,26 +577,58 @@ export default function ReportStock() {
       showNotification?.("warning", "กรุณาเลือก Dealer ก่อนเลือก Sub Dealer");
       return;
     }
-    setCurrent(1);
+
     fetchStock();
   };
 
   const handleClear = () => {
-    form.resetFields(["area_id", "sale_id", "dealer_id", "sub_dealer_id", "month"]);
+    const now = dayjs();
+    const defaultYear = pickLatestYearCode(yearOptions);
+
+    if (isSaleLocked) {
+      form.resetFields(["dealer_id", "sub_dealer_id", "month", "year"]);
+
+      setSubDealerList([]);
+
+      form.setFieldsValue({
+        dealer_id: undefined,
+        sub_dealer_id: undefined,
+        month: now.month() + 1,
+        year: defaultYear || now.year(),
+      });
+
+      fetchStock();
+      return;
+    }
+
+    form.resetFields([
+      "area_id",
+      "sale_id",
+      "dealer_id",
+      "sub_dealer_id",
+      "month",
+      "year",
+    ]);
+
     setSalesList([]);
     setDealerList([]);
     setSubDealerList([]);
-    form.setFieldsValue({ month: dayjs() });
-    setCurrent(1);
+
+    form.setFieldsValue({
+      month: now.month() + 1,
+      year: defaultYear || now.year(),
+    });
+
     fetchStock();
   };
 
-  const handleTableChange = (pg) => setCurrent(pg.current);
-
-  // UI reset ฝั่งฟอร์ม (กันกรณีเซ็ตค่าเอง)
   const onValuesChange = (changed) => {
     if (Object.prototype.hasOwnProperty.call(changed, "area_id")) {
-      form.setFieldsValue({ sale_id: undefined, dealer_id: undefined, sub_dealer_id: undefined });
+      form.setFieldsValue({
+        sale_id: undefined,
+        dealer_id: undefined,
+        sub_dealer_id: undefined,
+      });
     }
     if (Object.prototype.hasOwnProperty.call(changed, "sale_id")) {
       form.setFieldsValue({ dealer_id: undefined, sub_dealer_id: undefined });
@@ -379,7 +642,6 @@ export default function ReportStock() {
     <MainLayout loading={loading}>
       <Title prefix="Stock Report" />
 
-      {/* Filters */}
       <Form form={form} layout="vertical" onValuesChange={onValuesChange}>
         <BoxPrimary className="m-1 mb-4">
           <Row gutter={16} align="middle">
@@ -389,7 +651,12 @@ export default function ReportStock() {
                 name="area_id"
                 tooltip="เลือก Area ก่อนเพื่อเปิด Sales"
               >
-                <Select placeholder="Select Area" options={areaList} allowClear />
+                <Select
+                  placeholder="Select Area"
+                  options={areaList}
+                  allowClear
+                  // disabled={isSaleLocked}
+                />
               </Form.Item>
             </Col>
 
@@ -402,8 +669,9 @@ export default function ReportStock() {
                 <Select
                   placeholder="Select Sales"
                   options={salesList}
+                  // allowClear={!isSaleRoleLocked}
                   allowClear
-                  disabled={!selectedArea}
+                  // disabled={!selectedArea || isSaleRoleLocked}
                 />
               </Form.Item>
             </Col>
@@ -438,9 +706,23 @@ export default function ReportStock() {
               </Form.Item>
             </Col>
 
-            <Col md={6}>
+            <Col md={3}>
               <Form.Item label="Month" name="month">
-                <DatePicker picker="month" style={{ width: "100%" }} placeholder="Select month" />
+                <Select
+                  placeholder="Select month"
+                  options={monthOptions}
+                  allowClear={false}
+                />
+              </Form.Item>
+            </Col>
+
+            <Col md={3}>
+              <Form.Item label="Year" name="year">
+                <Select
+                  placeholder="Select year"
+                  options={yearOptions}
+                  allowClear={false}
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -462,58 +744,33 @@ export default function ReportStock() {
             />
             <ExportStockExcelButton
               text="Export Excel"
-              fileName={`Stock_${(form.getFieldValue('month') || dayjs()).format('YYYY-MM')}`}
+              fileName={buildStockReportFileName(form, {
+                areaList,
+                salesList,
+                dealerList,
+                subDealerList,
+              })}
               getPayload={async () => {
-                const v = form.getFieldsValue();
-                return {
-                  date: v.month ? dayjs(v.month).format("YYYY-MM") : dayjs().format("YYYY-MM"),
-                  area_id: v.area_id ?? "",
-                  user_id: v.sale_id || "",
-                  dealer_id: v.dealer_id || "",
-                  sub_dealer_id: v.sub_dealer_id || "",
-                };
+                const payload = buildPayload();
+                return payload;
               }}
-              requestData={(payload) => useServiceAPI.get(paths.pathReportStock, payload)}
+              requestData={(payload) =>
+                useServiceAPI.get(paths.pathReportStock, payload)
+              }
             />
           </div>
         </BoxPrimary>
       </Form>
 
-      {/* Show X entries */}
-      <div className="flex items-center gap-2 mb-2">
-        <span>Show</span>
-        <Select
-          value={pageSize}
-          onChange={(v) => {
-            setPageSize(v);
-            setCurrent(1);
-          }}
-          options={[5, 10, 20, 50].map((n) => ({ value: n, label: n }))}
-          style={{ width: 80 }}
-        />
-        <span>entries</span>
-      </div>
-
-      {/* Table */}
       <BoxPrimary>
-        <TableComponent
+        <TableCustomComponent
           header={header}
           dataSource={dataSource}
           loading={tableLoading}
-          pagination={pagination}
-          onChange={handleTableChange}
-          scroll
+          pagination={false}
+          onChange={undefined}
           footer={footer}
         />
-        <div className="text-sm text-[#6b7280] mt-2">
-          {totalRecords === 0
-            ? "Showing 0 to 0 of 0 entries"
-            : (() => {
-              const start = (current - 1) * pageSize + 1;
-              const end = Math.min(current * pageSize, totalRecords);
-              return `Showing ${start} to ${end} of ${totalRecords} entries`;
-            })()}
-        </div>
       </BoxPrimary>
     </MainLayout>
   );
