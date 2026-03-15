@@ -372,11 +372,13 @@ export default function CreateActivity() {
     const getMaster = async () => {
       setLoading(true);
       try {
+        const saleMasterRequest = isViewMode
+          ? useServiceAPI.get(paths.pathMasterSaleTeam, {})
+          : useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" });
+
         const [activityTypeRes, saleRes, saleAllRes, perceptionRes] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" }),
-          // useServiceAPI.get(paths.pathMasterSaleSingle, {}),
-          // useServiceAPI.get(paths.pathMasterSaleActivity, { status: "all", mode: "all" }),
+          saleMasterRequest,
           useServiceAPI.get(paths.pathMasterSaleDropdown, { status: "all", mode: "all" }),
           useServiceAPI.get(paths.pathMasterPerception, {}),
         ]);

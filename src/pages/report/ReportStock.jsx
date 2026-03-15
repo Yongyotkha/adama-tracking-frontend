@@ -336,7 +336,8 @@ export default function ReportStock() {
 
         form.setFieldsValue({
           area_id: defaultAreaId,
-          sale_id: undefined,
+          // sale_id: undefined,
+          sale_id : form.getFieldValue("sale_id") || "", // ดึงค่าจาก sale 
           dealer_id: undefined,
           sub_dealer_id: undefined,
           month: now.month() + 1,
