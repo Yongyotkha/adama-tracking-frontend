@@ -128,7 +128,7 @@ export default function OrderHistoryDetail() {
   } else if (statusText == 'Reject') {
     statusText = 'ยกเลิกรายการ'
   } else if (statusText == 'Waiting for Approve') {
-    statusText = 'รอการอนุมัติ'
+    statusText = 'รอยืนยันรับ'
   } else if (statusText == 'Waiting for send') {
     statusText = 'รอส่งสินค้า'
   }
