@@ -1,4 +1,3 @@
-// src/pages/report/ReportActivityByType.jsx
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
@@ -21,10 +20,7 @@ dayjs.extend(timezone);
 export default function ReportActivityByType() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { showNotification, userInfo } = useContext(AuthContext);
-
-  const [areaId, setAreaId] = useState();
-  const [roleId, setRoleId] = useState();
+  const { showNotification } = useContext(AuthContext);
 
   const [formCustom] = Form.useForm();
   const selectedArea = Form.useWatch("area_id", formCustom);
@@ -38,7 +34,6 @@ export default function ReportActivityByType() {
 
   const [sales, setSales] = useState([]);
   const [areaList, setAreaList] = useState([]);
-  const [activityList, setActivityList] = useState([]);
   const [territoryList, setTerritoryList] = useState([]);
   const [dataSource, setDataSource] = useState([]);
 
@@ -48,20 +43,12 @@ export default function ReportActivityByType() {
     total_activity_actual: 0,
   });
 
-  const isAdmin = Number(roleId) === 1;
-  const [isSaleLocked, setIsSaleLocked] = useState(false);
-
-  const [isAreaSelected, setIsAreaSelected] = useState(false);
-  const [isSalesSelected, setIsSalesSelected] = useState(false);
-
-  // ✅ disable Sales เฉพาะ role 4,5,6
-  const isSaleRoleLocked = [4, 5, 6].includes(Number(roleId));
-
-  const getLoginSaleId = (u) =>
-    u ? u.sale_id ?? u.user_id ?? u.id ?? null : null;
-
-  const getLoginAreaId = (u) =>
-    u ? u.area_id ?? u.areaId ?? u.area ?? null : null;
+  const [tableParams, setTableParams] = useState({
+    pagination: { current: 1, pageSize: 10 },
+    filters: {},
+    sortOrder: null,
+    sortField: null,
+  });
 
   const mapSalesOptions = (salesList) =>
     (salesList || []).map((sale) => ({
@@ -101,50 +88,11 @@ export default function ReportActivityByType() {
     );
   };
 
-  const [tableParams, setTableParams] = useState({
-    pagination: { current: 1, pageSize: 10 },
-    filters: {},
-    sortOrder: null,
-    sortField: null,
-  });
-
-  // ========= Load user detail =========
-  useEffect(() => {
-    (async () => {
-      try {
-        const response = await useServiceAPI.get(
-          `${paths.pathMasterUsersDetail}/${userInfo.id}`,
-          {},
-          setLoading
-        );
-
-        if (response?.status === 200) {
-          const aId = response.data.area_id;
-          const rId = response.data.role_id;
-
-          setAreaId(aId);
-          setRoleId(rId);
-
-          if (Number(rId) !== 1 && aId != null) {
-            formCustom.setFieldsValue({ area_id: String(aId) });
-            setIsAreaSelected(true);
-          }
-        }
-      } catch (error) {
-        console.log(error);
-        showNotification?.("error", error?.message || "เกิดข้อผิดพลาด");
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // ========= Load masters =========
   const loadMasterData = async () => {
     setLoading(true);
     try {
-      const [yearsRes, activityType, area] = await Promise.all([
+      const [yearsRes, area] = await Promise.all([
         useServiceAPI.get(paths.pathMasterYear),
-        useServiceAPI.get(paths.pathMasterActivityType),
         useServiceAPI.get(paths.pathMasterAreas),
       ]);
 
@@ -162,31 +110,23 @@ export default function ReportActivityByType() {
         setDefaultYear(matched.value);
       }
 
-      // ✅ ไม่มี All แล้ว ใช้ area จริงล้วน
       const areaOpts = (area.data || []).map((x) => ({
         value: String(x.id),
         label: x.name,
       }));
-
       setAreaList(areaOpts);
-      setActivityList(activityType.data || []);
 
-      // admin:
-      // - ถ้ามี area เดียว → auto select
-      // - ถ้ามีหลาย area → ไม่เลือก
-      // non-admin: user detail จะ set area_id ให้เอง
-      if (!formCustom.getFieldValue("area_id")) {
-        if (areaOpts.length === 1) {
-          formCustom.setFieldsValue({ area_id: areaOpts[0].value });
-          setIsAreaSelected(true);
-        }
-      }
+      formCustom.setFieldsValue({
+        area_id: undefined,
+        user_id: undefined,
+        territory: undefined,
+        month: undefined,
+        year_code: initialYearValue,
+      });
 
       if (initialYearValue != null) {
         const initialFilters = { year_code: initialYearValue };
         setTableParams((prev) => ({ ...prev, filters: initialFilters }));
-        formCustom.setFieldsValue({ year_code: initialYearValue });
-
         await fetchData(initialFilters);
       }
     } catch (error) {
@@ -202,7 +142,6 @@ export default function ReportActivityByType() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ========= Load sales by area =========
   const loadSalesByArea = async (area_id) => {
     if (!area_id) {
       setSales([]);
@@ -215,7 +154,8 @@ export default function ReportActivityByType() {
       });
 
       if (res?.status === 200) {
-        const opts = mapSalesOptions(res.data);
+        const raw = res?.data?.data ?? res?.data ?? [];
+        const opts = mapSalesOptions(raw);
         setSales(opts);
         return opts;
       }
@@ -229,89 +169,29 @@ export default function ReportActivityByType() {
     }
   };
 
-  // ========= Auto lock sale =========
-  useEffect(() => {
-    const loginSaleId = getLoginSaleId(userInfo);
-    const loginAreaId = getLoginAreaId(userInfo);
-
-    // ✅ lock เฉพาะ role 4,5,6
-    if (!isSaleRoleLocked) {
-      setIsSaleLocked(false);
-      return;
-    }
-
-    if (!selectedArea) {
-      setIsSaleLocked(false);
-      return;
-    }
-
-    if (!Array.isArray(sales) || sales.length === 0) {
-      setIsSaleLocked(false);
-      return;
-    }
-
-    const foundSale = sales.find((s) => String(s.value) === String(loginSaleId));
-
-    if (foundSale) {
-      if (loginAreaId != null && String(selectedArea) !== String(loginAreaId)) {
-        formCustom.setFieldsValue({ area_id: String(loginAreaId) });
-        return;
-      }
-
-      formCustom.setFieldsValue({
-        user_id: String(foundSale.value),
-        territory: undefined,
-      });
-
-      setIsAreaSelected(true);
-      setIsSalesSelected(true);
-      setIsSaleLocked(true);
-
-      fetchData();
-    } else {
-      setIsSaleLocked(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedArea, sales, userInfo, roleId]);
-
-  // ========= Area change -> load sales =========
   useEffect(() => {
     (async () => {
       if (!selectedArea) {
         setSales([]);
         setTerritoryList([]);
         formCustom.setFieldsValue({ user_id: undefined, territory: undefined });
-        setIsAreaSelected(false);
-        setIsSalesSelected(false);
-        setIsSaleLocked(false);
         return;
       }
 
-      setIsAreaSelected(true);
-      setIsSalesSelected(!!formCustom.getFieldValue("user_id"));
-
-      const salesOpts = await loadSalesByArea(selectedArea);
-
-      if (!isSaleRoleLocked) {
-        setIsSaleLocked(false);
-      } else if (!salesOpts || salesOpts.length === 0) {
-        setIsSaleLocked(false);
-      }
+      setTerritoryList([]);
+      formCustom.setFieldsValue({ user_id: undefined, territory: undefined });
+      await loadSalesByArea(selectedArea);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedArea]);
 
-  // ========= Sales change -> load territory =========
   useEffect(() => {
     (async () => {
       if (!selectedSale) {
         setTerritoryList([]);
         formCustom.setFieldsValue({ territory: undefined });
-        setIsSalesSelected(false);
         return;
       }
-
-      setIsSalesSelected(true);
 
       try {
         const res = await useServiceAPI.get(paths.pathMasterSalesByArea2, {
@@ -335,7 +215,6 @@ export default function ReportActivityByType() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSale]);
 
-  // ========= Fetch data =========
   const fetchData = async (filtersInput = tableParams.filters) => {
     setTableLoading(true);
     const f = filtersInput || {};
@@ -358,12 +237,8 @@ export default function ReportActivityByType() {
       document_date: documentDate,
       page_length: 1,
       page_size: 100,
+      ...(v.area_id ? { area_id: Number(v.area_id) } : {}),
     };
-
-    // ✅ ส่ง area_id เฉพาะเมื่อมีค่าจริงเท่านั้น
-    if (v.area_id) {
-      requestData.area_id = Number(v.area_id);
-    }
 
     try {
       const res = await useServiceAPI.get(paths.pathReportActivityType, requestData);
@@ -394,56 +269,16 @@ export default function ReportActivityByType() {
   const handleClear = async () => {
     const defaultYearValue = defaultYear ?? years?.[0]?.value ?? null;
 
-    if (isSaleLocked) {
-      formCustom.resetFields([
-        "territory",
-        "month",
-        "dealer_id",
-        "crop_id",
-        "year_code",
-      ]);
+    formCustom.setFieldsValue({
+      area_id: undefined,
+      user_id: undefined,
+      territory: undefined,
+      month: undefined,
+      year_code: defaultYearValue,
+    });
 
-      if (defaultYearValue != null) {
-        formCustom.setFieldsValue({ year_code: defaultYearValue });
-      }
-
-      setIsSalesSelected(true);
-      setIsAreaSelected(true);
-
-      setTableParams((prev) => ({
-        ...prev,
-        filters: { year_code: defaultYearValue ?? prev.filters?.year_code },
-        pagination: { current: 1, pageSize: 10 },
-      }));
-
-      await fetchData({
-        year_code: defaultYearValue ?? tableParams.filters?.year_code,
-      });
-      return;
-    }
-
-    const fieldsToReset = isAdmin
-      ? ["area_id", "user_id", "territory", "month", "dealer_id", "crop_id"]
-      : ["user_id", "territory", "month", "dealer_id", "crop_id"];
-
-    formCustom.resetFields(fieldsToReset);
-
-    if (defaultYearValue != null) {
-      formCustom.setFieldsValue({ year_code: defaultYearValue });
-    }
-
+    setSales([]);
     setTerritoryList([]);
-    setIsSalesSelected(false);
-
-    if (!isAdmin && areaId) {
-      formCustom.setFieldsValue({ area_id: String(areaId) });
-      setIsAreaSelected(true);
-      await loadSalesByArea(String(areaId));
-    } else {
-      // ✅ admin ไม่มี All แล้ว
-      setSales([]);
-      setIsAreaSelected(false);
-    }
 
     setTableParams((prev) => ({
       ...prev,
@@ -462,20 +297,14 @@ export default function ReportActivityByType() {
       setTerritoryList([]);
       formCustom.setFieldsValue({ user_id: undefined, territory: undefined });
 
-      setIsAreaSelected(!!newAreaId);
-      setIsSalesSelected(false);
-
       if (newAreaId) {
         await loadSalesByArea(newAreaId);
       }
     }
 
     if (Object.prototype.hasOwnProperty.call(changed, "user_id")) {
-      const newUserId = changed.user_id;
-
       setTerritoryList([]);
       formCustom.setFieldsValue({ territory: undefined });
-      setIsSalesSelected(!!newUserId);
     }
 
     if (Object.prototype.hasOwnProperty.call(changed, "year_code")) {
@@ -535,12 +364,7 @@ export default function ReportActivityByType() {
         <Table.Summary.Cell>
           <b>Total (THB)</b>
         </Table.Summary.Cell>
-
-        {[
-          "total_activity_plan",
-          "total_activity_list",
-          "total_activity_actual",
-        ].map((key) => (
+        {["total_activity_plan", "total_activity_list", "total_activity_actual"].map((key) => (
           <Table.Summary.Cell key={key} align="right">
             <InputNumber
               className="w-full"
@@ -561,8 +385,8 @@ export default function ReportActivityByType() {
     v == null
       ? ""
       : typeof v === "string" || typeof v === "number"
-        ? String(v)
-        : v.name ?? v.label ?? v.value ?? v.code ?? "";
+      ? String(v)
+      : v.name ?? v.label ?? v.value ?? v.code ?? "";
 
   const buildFileName = () => {
     const f = tableParams?.filters || {};
@@ -576,8 +400,7 @@ export default function ReportActivityByType() {
 
     const areaLabel = (areaList.find((x) => x.value === String(v.area_id)) || {}).label;
     const salesLabel = (sales.find((x) => x.value === String(v.user_id)) || {}).label;
-    const terrLabel = (territoryList.find((x) => x.value === String(v.territory)) || {})
-      .label;
+    const terrLabel = (territoryList.find((x) => x.value === String(v.territory)) || {}).label;
 
     const monthText = v.month ? String(v.month).padStart(2, "0") : "";
     const monthLabel = yearText && monthText ? `${yearText}-${monthText}` : "";
@@ -631,12 +454,7 @@ export default function ReportActivityByType() {
           <Row gutter={16} align="middle">
             <Col md={6}>
               <Form.Item label="Area" name="area_id">
-                <Select
-                  placeholder="Select Area"
-                  options={areaList}
-                  disabled={!isAdmin || isSaleLocked}
-                  allowClear={isAdmin && !isSaleLocked}
-                />
+                <Select placeholder="Select Area" options={areaList} allowClear />
               </Form.Item>
             </Col>
 
@@ -645,8 +463,8 @@ export default function ReportActivityByType() {
                 <Select
                   placeholder="Select Sales"
                   options={sales}
-                  allowClear={!isSaleRoleLocked}
-                  disabled={!isAreaSelected || isSaleRoleLocked}
+                  allowClear
+                  disabled={!selectedArea}
                 />
               </Form.Item>
             </Col>
@@ -657,7 +475,7 @@ export default function ReportActivityByType() {
                   placeholder="Select Territory"
                   options={territoryList}
                   allowClear
-                  disabled={!isSalesSelected}
+                  disabled={!selectedSale}
                 />
               </Form.Item>
             </Col>

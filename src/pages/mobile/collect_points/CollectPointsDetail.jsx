@@ -116,6 +116,10 @@ export default function CollectPointsDetail() {
     statusText = 'รอสร้างรายการ'
   } else if (statusText == 'Reject') {
     statusText = 'ยกเลิกรายการ'
+  } else if (statusText == 'Waiting for Approve') {
+    statusText = 'รอการอนุมัติ'
+  } else if (statusText == 'Waiting for send') {
+    statusText = 'รอส่งสินค้า'
   }
 
   const statusTextColor = historydetail?.status_transaction_color || "#0ea5a0";

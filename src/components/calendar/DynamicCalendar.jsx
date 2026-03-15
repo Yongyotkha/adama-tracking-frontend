@@ -600,6 +600,10 @@ const DynamicCalendar = ({ events, fetchEvents, loading, sendData }) => {
                                 </span>
                               </div>
                               <p lang="th" className="text-sm text-gray-600 flex">
+                                <img src="/img/icons/shop.png" className="h-6 w-6 me-2" alt="" />
+                                {!event.dealer_name || event.dealer_name === "N/A" ? "-" : event.dealer_name}
+                              </p>
+                              <p lang="th" className="text-sm text-gray-600 flex">
                                 <img src="/img/icons/location.png" className="h-6 w-6 me-2" alt="" />
                                 {!event.location || event.location === "N/A" ? "-" : event.location}
                               </p>

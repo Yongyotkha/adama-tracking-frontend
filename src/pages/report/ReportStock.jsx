@@ -18,7 +18,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const toComma = (n) =>
-  `${parseInt(Number(n) || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  `${parseInt(Number(n) || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 // --- helpers for export file name ---
 const slug = (s) =>
@@ -33,18 +33,19 @@ const getLabelFrom = (options, value) =>
   (Array.isArray(options) ? options.find((o) => o?.value === value) : null)
     ?.label || "";
 
-// ดึง year_code เป็น string เสมอ (ใช้ร่วมกับ master year)
+// ดึง year_code เป็น string เสมอ
 const getYearCodeFrom = (y) => {
   if (y == null) return "";
   if (typeof y === "string" || typeof y === "number") return String(y);
   return y.year_code ?? y.code ?? y.value ?? y.label ?? y.name ?? y.year ?? "";
 };
 
-// เลือก “ปีล่าสุด” จากลิสต์ปี
+// เลือกปีล่าสุดจาก master year
 const pickLatestYearCode = (yearsArr) => {
   if (!Array.isArray(yearsArr) || yearsArr.length === 0) {
     return dayjs().tz("Asia/Bangkok").format("YYYY");
   }
+
   let best = yearsArr[0];
   for (const cur of yearsArr) {
     const b = Number(getYearCodeFrom(best)) || 0;
@@ -61,7 +62,7 @@ const buildStockReportFileName = (
   const v = form.getFieldsValue();
   const now = dayjs();
   const year = v.year || now.year();
-  const month = v.month || now.month() + 1; // 1-12
+  const month = v.month || now.month() + 1;
   const monthText = `${year}-${String(month).padStart(2, "0")}`;
 
   const area = getLabelFrom(areaList, v.area_id);
@@ -82,7 +83,6 @@ const buildStockReportFileName = (
   return `${parts.join("_")}_${ts}`;
 };
 
-// สร้าง options เดือน
 const monthOptions = [
   { value: 1, label: "January" },
   { value: 2, label: "February" },
@@ -99,7 +99,7 @@ const monthOptions = [
 ];
 
 export default function ReportStock() {
-  const { showNotification, userInfo } = useContext(AuthContext);
+  const { showNotification } = useContext(AuthContext);
   const [form] = Form.useForm();
 
   const [loading, setLoading] = useState(false);
@@ -119,30 +119,12 @@ export default function ReportStock() {
 
   // data
   const [dataSource, setDataSource] = useState([]);
-  const [isSaleLocked, setIsSaleLocked] = useState(false);
-
   const [summary, setSummary] = useState({
     total_current: 0,
     total_last: 0,
     total_in: 0,
     total_out: 0,
   });
-
-  // ✅ เก็บ Area ที่ “ตรงกับ userInfo” เพื่อใช้ disable option
-  const [activeAreaId, setActiveAreaId] = useState(null);
-
-  // ✅ disable Sales เฉพาะ role_id 4, 5, 6
-  const isSaleRoleLocked = [4, 5, 6].includes(Number(userInfo?.role_id));
-
-  const getLoginSaleId = (u) => {
-    if (!u) return null;
-    return u.sale_id ?? u.user_id ?? u.id ?? null;
-  };
-
-  const getLoginAreaId = (u) => {
-    if (!u) return null;
-    return u.area_id ?? u.areaId ?? u.area ?? null;
-  };
 
   const displayZero = (val, emptyText = "-") => {
     const n = Number(val);
@@ -156,7 +138,6 @@ export default function ReportStock() {
     return `${parseInt(n, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
-  // columns
   const header = useMemo(
     () => [
       {
@@ -265,7 +246,6 @@ export default function ReportStock() {
     []
   );
 
-  // Footer
   const footer = useMemo(() => {
     const totals = {
       last_stock: summary?.total_last ?? 0,
@@ -298,7 +278,7 @@ export default function ReportStock() {
     );
   }, [summary]);
 
-  // ---------- Masters (Area + Master Year) ----------
+  // ---------- Masters ----------
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -308,12 +288,13 @@ export default function ReportStock() {
           useServiceAPI.get(paths.pathMasterYear),
         ]);
 
-        // Area
         const areaRaw = Array.isArray(areaRes?.data) ? areaRes.data : [];
-        const areaOpts = areaRaw.map((x) => ({ value: x.id, label: x.name }));
+        const areaOpts = areaRaw.map((x) => ({
+          value: x.id,
+          label: x.name,
+        }));
         setAreaList(areaOpts);
 
-        // Year from master
         const yearRaw = Array.isArray(yearRes?.data) ? yearRes.data : [];
         const yearOpts = yearRaw.map((y) => {
           const yc = getYearCodeFrom(y);
@@ -324,20 +305,9 @@ export default function ReportStock() {
         const now = dayjs();
         const defaultYear = pickLatestYearCode(yearOpts) ?? now.year();
 
-        // เก็บ area จาก userInfo
-        const uArea = getLoginAreaId(userInfo);
-        setActiveAreaId(uArea != null ? String(uArea) : null);
-
-        // ถ้ามี area เดียว → auto select, ถ้ามีหลาย area → ไม่เลือก
-        const defaultAreaId =
-          Array.isArray(areaOpts) && areaOpts.length === 1
-            ? areaOpts[0]?.value
-            : undefined;
-
         form.setFieldsValue({
-          area_id: defaultAreaId,
-          // sale_id: undefined,
-          sale_id : form.getFieldValue("sale_id") || "", // ดึงค่าจาก sale 
+          area_id: undefined,
+          sale_id: undefined,
           dealer_id: undefined,
           sub_dealer_id: undefined,
           month: now.month() + 1,
@@ -345,7 +315,8 @@ export default function ReportStock() {
         });
 
         await fetchStock();
-      } catch {
+      } catch (error) {
+        console.error(error);
         setAreaList([]);
         setYearOptions([]);
         showNotification?.("error", "โหลดข้อมูล Master ไม่สำเร็จ");
@@ -356,14 +327,19 @@ export default function ReportStock() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Cascade: Area → Sales
+  // Cascade: Area -> Sales
   useEffect(() => {
     const areaId = selectedArea;
+
     if (!areaId) {
       setSalesList([]);
       setDealerList([]);
       setSubDealerList([]);
-      form.resetFields(["sale_id", "dealer_id", "sub_dealer_id"]);
+      form.setFieldsValue({
+        sale_id: undefined,
+        dealer_id: undefined,
+        sub_dealer_id: undefined,
+      });
       return;
     }
 
@@ -372,70 +348,52 @@ export default function ReportStock() {
         const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
           area_id: areaId,
         });
-        const list = Array.isArray(res?.data) ? res.data : [];
-        setSalesList(list.map((x) => ({ value: Number(x.id), label: x.name })));
+
+        const raw = Array.isArray(res?.data?.data)
+          ? res.data.data
+          : Array.isArray(res?.data)
+            ? res.data
+            : [];
+
+        setSalesList(
+          raw.map((x) => ({
+            value: Number(x.user_id ?? x.id),
+            label: x.user_name ?? x.name,
+          }))
+        );
+
         setDealerList([]);
         setSubDealerList([]);
-        form.resetFields(["sale_id", "dealer_id", "sub_dealer_id"]);
-      } catch {
+        form.setFieldsValue({
+          sale_id: undefined,
+          dealer_id: undefined,
+          sub_dealer_id: undefined,
+        });
+      } catch (error) {
+        console.error(error);
         setSalesList([]);
         setDealerList([]);
         setSubDealerList([]);
-        form.resetFields(["sale_id", "dealer_id", "sub_dealer_id"]);
+        form.setFieldsValue({
+          sale_id: undefined,
+          dealer_id: undefined,
+          sub_dealer_id: undefined,
+        });
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedArea]);
+  }, [selectedArea, form]);
 
-  // ✅ Lock logic: ทำเฉพาะ role 4,5,6 เท่านั้น
-  useEffect(() => {
-    const loginSaleId = getLoginSaleId(userInfo);
-    const loginAreaId = getLoginAreaId(userInfo);
-
-    if (!isSaleRoleLocked) {
-      setIsSaleLocked(false);
-      return;
-    }
-
-    if (!selectedArea) {
-      setIsSaleLocked(false);
-      return;
-    }
-
-    if (!Array.isArray(salesList) || salesList.length === 0) {
-      setIsSaleLocked(false);
-      return;
-    }
-
-    const foundSale = salesList.find(
-      (s) => String(s.value) === String(loginSaleId)
-    );
-
-    if (foundSale) {
-      if (loginAreaId != null && String(selectedArea) !== String(loginAreaId)) {
-        form.setFieldsValue({ area_id: loginAreaId });
-        return;
-      }
-
-      form.setFieldsValue({
-        sale_id: foundSale.value,
-        dealer_id: undefined,
-        sub_dealer_id: undefined,
-      });
-      setIsSaleLocked(true);
-      fetchStock();
-    } else {
-      setIsSaleLocked(false);
-    }
-  }, [selectedArea, salesList, userInfo, form, isSaleRoleLocked]);
-
-  // Cascade: Sales → Dealer
+  // Cascade: Sales -> Dealer
   useEffect(() => {
     const saleId = selectedSale;
+
     if (!saleId) {
       setDealerList([]);
       setSubDealerList([]);
-      form.resetFields(["dealer_id", "sub_dealer_id"]);
+      form.setFieldsValue({
+        dealer_id: undefined,
+        sub_dealer_id: undefined,
+      });
       return;
     }
 
@@ -444,28 +402,45 @@ export default function ReportStock() {
         const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
           user_id: saleId,
         });
-        const list = Array.isArray(res?.data) ? res.data : [];
+
+        const raw = Array.isArray(res?.data?.data)
+          ? res.data.data
+          : Array.isArray(res?.data)
+            ? res.data
+            : [];
+
         setDealerList(
-          list.map((x) => ({ value: Number(x.id), label: x.name }))
+          raw.map((x) => ({
+            value: Number(x.id),
+            label: x.name,
+          }))
         );
+
         setSubDealerList([]);
-        form.resetFields(["dealer_id", "sub_dealer_id"]);
-      } catch {
+        form.setFieldsValue({
+          dealer_id: undefined,
+          sub_dealer_id: undefined,
+        });
+      } catch (error) {
+        console.error(error);
         setDealerList([]);
         setSubDealerList([]);
-        form.resetFields(["dealer_id", "sub_dealer_id"]);
+        form.setFieldsValue({
+          dealer_id: undefined,
+          sub_dealer_id: undefined,
+        });
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSale]);
+  }, [selectedSale, form]);
 
-  // Cascade: Dealer → SubDealer
+  // Cascade: Dealer -> SubDealer
   useEffect(() => {
     const saleId = selectedSale;
     const dealerId = selectedDealer;
+
     if (!saleId || !dealerId) {
       setSubDealerList([]);
-      form.resetFields(["sub_dealer_id"]);
+      form.setFieldsValue({ sub_dealer_id: undefined });
       return;
     }
 
@@ -475,23 +450,29 @@ export default function ReportStock() {
           user_id: saleId,
           dealer_id: dealerId,
         });
-        const list = Array.isArray(res?.data) ? res.data : [];
+
+        const raw = Array.isArray(res?.data?.data)
+          ? res.data.data
+          : Array.isArray(res?.data)
+            ? res.data
+            : [];
+
         setSubDealerList(
-          list.map((s) => ({
+          raw.map((s) => ({
             value: s.sub_dealer_id,
             label: s.sub_dealer_name,
           }))
         );
-        form.resetFields(["sub_dealer_id"]);
-      } catch {
+
+        form.setFieldsValue({ sub_dealer_id: undefined });
+      } catch (error) {
+        console.error(error);
         setSubDealerList([]);
-        form.resetFields(["sub_dealer_id"]);
+        form.setFieldsValue({ sub_dealer_id: undefined });
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSale, selectedDealer]);
+  }, [selectedSale, selectedDealer, form]);
 
-  // --------- API call ---------
   const buildPayload = () => {
     const v = form.getFieldsValue();
     const now = dayjs();
@@ -501,9 +482,9 @@ export default function ReportStock() {
     return {
       date: `${year}-${String(month).padStart(2, "0")}`,
       area_id: v.area_id ?? "",
-      user_id: v.sale_id || "",
-      dealer_id: v.dealer_id || "",
-      sub_dealer_id: v.sub_dealer_id || "",
+      user_id: v.sale_id ?? "",
+      dealer_id: v.dealer_id ?? "",
+      sub_dealer_id: v.sub_dealer_id ?? "",
     };
   };
 
@@ -513,7 +494,12 @@ export default function ReportStock() {
       const payload = buildPayload();
       const res = await useServiceAPI.get(paths.pathReportStock, payload);
 
-      const items = Array.isArray(res?.data) ? res.data : [];
+      const items = Array.isArray(res?.data)
+        ? res.data
+        : Array.isArray(res?.data?.data)
+          ? res.data.data
+          : [];
+
       const apiSummary = res?.summary || res?.data?.summary || null;
 
       setSummary({
@@ -569,10 +555,12 @@ export default function ReportStock() {
       showNotification?.("warning", "กรุณาเลือก Area ก่อนเลือก Sales");
       return;
     }
+
     if (v.dealer_id && !v.sale_id) {
       showNotification?.("warning", "กรุณาเลือก Sales ก่อนเลือก Dealer");
       return;
     }
+
     if (v.sub_dealer_id && !v.dealer_id) {
       showNotification?.("warning", "กรุณาเลือก Dealer ก่อนเลือก Sub Dealer");
       return;
@@ -585,56 +573,42 @@ export default function ReportStock() {
     const now = dayjs();
     const defaultYear = pickLatestYearCode(yearOptions);
 
-    if (isSaleLocked) {
-      form.resetFields(["dealer_id", "sub_dealer_id", "month", "year"]);
-
-      setSubDealerList([]);
-
-      form.setFieldsValue({
-        dealer_id: undefined,
-        sub_dealer_id: undefined,
-        month: now.month() + 1,
-        year: defaultYear || now.year(),
-      });
-
-      fetchStock();
-      return;
-    }
-
-    form.resetFields([
-      "area_id",
-      "sale_id",
-      "dealer_id",
-      "sub_dealer_id",
-      "month",
-      "year",
-    ]);
+    form.setFieldsValue({
+      area_id: undefined,
+      sale_id: undefined,
+      dealer_id: undefined,
+      sub_dealer_id: undefined,
+      month: now.month() + 1,
+      year: defaultYear || now.year(),
+    });
 
     setSalesList([]);
     setDealerList([]);
     setSubDealerList([]);
 
-    form.setFieldsValue({
-      month: now.month() + 1,
-      year: defaultYear || now.year(),
-    });
-
     fetchStock();
   };
 
   const onValuesChange = (changed) => {
-    if (Object.prototype.hasOwnProperty.call(changed, "area_id")) {
+    if ("area_id" in changed) {
       form.setFieldsValue({
         sale_id: undefined,
         dealer_id: undefined,
         sub_dealer_id: undefined,
       });
     }
-    if (Object.prototype.hasOwnProperty.call(changed, "sale_id")) {
-      form.setFieldsValue({ dealer_id: undefined, sub_dealer_id: undefined });
+
+    if ("sale_id" in changed) {
+      form.setFieldsValue({
+        dealer_id: undefined,
+        sub_dealer_id: undefined,
+      });
     }
-    if (Object.prototype.hasOwnProperty.call(changed, "dealer_id")) {
-      form.setFieldsValue({ sub_dealer_id: undefined });
+
+    if ("dealer_id" in changed) {
+      form.setFieldsValue({
+        sub_dealer_id: undefined,
+      });
     }
   };
 
@@ -655,7 +629,6 @@ export default function ReportStock() {
                   placeholder="Select Area"
                   options={areaList}
                   allowClear
-                  disabled={isSaleLocked}
                 />
               </Form.Item>
             </Col>
@@ -669,8 +642,8 @@ export default function ReportStock() {
                 <Select
                   placeholder="Select Sales"
                   options={salesList}
-                  allowClear={!isSaleRoleLocked}
-                  disabled={!selectedArea || isSaleRoleLocked}
+                  allowClear
+                  disabled={!selectedArea}
                 />
               </Form.Item>
             </Col>

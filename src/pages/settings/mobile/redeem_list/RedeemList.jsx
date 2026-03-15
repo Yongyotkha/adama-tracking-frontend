@@ -13,13 +13,21 @@ import { paths } from "../../../../services/CorsPath";
 const { TabPane } = Tabs;
 
 // 👉 options ของ status ต้องมี key ชื่อ "code" (เพราะ Filter.jsx ใช้เมื่อ key === "status")
+// RFA Pending Shipment
+// RFR Delivered
 const STATUS_OPTIONS_LIST = [
-  { code: "RFA", name: "Approve" },
-  { code: "RFR", name: "Reject" },
+  { code: "RFA", name: "Pending Shipment" },
+  { code: "RFR", name: "Delivered" },
 ];
+
+// STATUS_OPTIONS_REQUEST จะใช้ใน tab "Points Redeem Request List" ซึ่งจะต่างกับ STATUS_OPTIONS_LIST ตรงที่ถ้าไม่ได้เลือก status ให้ใช้ ["RFP","RFW"]; ถ้าเลือกจะเป็น ["<ค่านั้น>"] (ซึ่งจะเป็น filter ไปที่ API ว่าเอาเฉพาะ RFP หรือ RFW)
+// RFA Pending Shipment Waiting for Approve
+// RFR Delivered Complete
+// RFP Waiting for Purchase Reject
+// RFW Waiting for Purchase Waiting for Purchase
 const STATUS_OPTIONS_REQUEST = [
-  { code: "RFP", name: "Pending Purchase" },
-  { code: "RFW", name: "Waiting for Approve" },
+  { code: "RFP", name: "Waiting for Purchase" },
+  { code: "RFA", name: "Pending Shipment" }, 
 ];
 
 export default function RedeemList() {

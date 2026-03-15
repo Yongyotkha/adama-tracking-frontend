@@ -16,7 +16,6 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-// ---------- helpers ----------
 const normalize = (s) =>
   (s ?? "")
     .toString()
@@ -37,15 +36,10 @@ const getYearCodeFrom = (y) => {
   return y.year_code ?? y.code ?? y.value ?? y.label ?? y.name ?? y.year ?? "";
 };
 
-const getLoginSaleId = (u) => (u ? u.sale_id ?? u.user_id ?? u.id ?? null : null);
-const getLoginAreaId = (u) => (u ? u.area_id ?? u.areaId ?? u.area ?? null : null);
-
 export default function ReportSaleByQuarter() {
-  const { showNotification, userInfo } = useContext(AuthContext);
+  const { showNotification } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
-
-  // masters
   const [years, setYears] = useState([]);
   const [defaultYear, setDefaultYear] = useState(null);
   const [areaList, setAreaList] = useState([]);
@@ -53,22 +47,10 @@ export default function ReportSaleByQuarter() {
   const [dealers, setDealers] = useState([]);
   const [products, setProducts] = useState([]);
 
-  // table
   const [itemColumn, setItemColumn] = useState([]);
   const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
 
-  // user
-  const [areaId, setAreaId] = useState();
-  const [roleId, setRoleId] = useState();
-  const isAdmin = Number(roleId) === 1;
-
-  // lock sale
-  const [isSaleLocked, setIsSaleLocked] = useState(false);
-  const isSaleRoleLocked = [4, 5, 6].includes(Number(roleId));
-  const [userLoaded, setUserLoaded] = useState(false);
-
-  // form
   const [formCustom] = Form.useForm();
   const watchedAreaId = Form.useWatch("area_id", formCustom);
   const watchedSaleId = Form.useWatch("sale_id", formCustom);
@@ -80,38 +62,6 @@ export default function ReportSaleByQuarter() {
     sortField: null,
   });
 
-  // ===== load user detail =====
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await useServiceAPI.get(
-          `${paths.pathMasterUsersDetail}/${userInfo.id}`,
-          {},
-          setLoading
-        );
-
-        if (res?.status === 200) {
-          const aId = res.data.area_id;
-          const rId = res.data.role_id;
-
-          setAreaId(aId);
-          setRoleId(rId);
-
-          if (Number(rId) !== 1 && aId != null) {
-            formCustom.setFieldsValue({ area_id: String(aId) });
-          }
-        }
-      } catch (e) {
-        console.log(e);
-        showNotification?.("error", e?.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setUserLoaded(true);
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // ===== helper: load sales by area =====
   const loadSalesByArea = async (area_id) => {
     if (!area_id) {
       setSales([]);
@@ -119,10 +69,7 @@ export default function ReportSaleByQuarter() {
     }
 
     try {
-      const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
-        area_id,
-      });
-
+      const res = await useServiceAPI.get(paths.pathMasterUserByArea, { area_id });
       const raw = res?.data?.data ?? res?.data ?? [];
       const list = Array.isArray(raw) ? raw : [];
 
@@ -141,11 +88,7 @@ export default function ReportSaleByQuarter() {
     }
   };
 
-  // ===== load masters + initial fetch =====
   useEffect(() => {
-    if (!userLoaded) return;
-    if (roleId == null) return;
-
     const getMaster = async () => {
       setLoading(true);
       try {
@@ -183,33 +126,22 @@ export default function ReportSaleByQuarter() {
         const initialYear = getYearCodeFrom(matched) || currentYear;
 
         setDefaultYear(initialYear);
-        formCustom.setFieldsValue({ year_code: initialYear });
-
-        const curArea = formCustom.getFieldValue("area_id");
-
-        if (isAdmin) {
-          if (!curArea && areaOpts.length === 1) {
-            formCustom.setFieldsValue({ area_id: areaOpts[0].value });
-            await loadSalesByArea(areaOpts[0].value);
-          } else if (curArea) {
-            await loadSalesByArea(curArea);
-          }
-        } else if (curArea) {
-          await loadSalesByArea(curArea);
-        }
+        formCustom.setFieldsValue({
+          area_id: undefined,
+          sale_id: undefined,
+          dealer_id: undefined,
+          year_code: initialYear,
+        });
 
         await fetchData({
           year_code: initialYear,
-          user_id : formCustom.getFieldValue("sale_id") || "", // ดึงค่าจาก sale 
+          user_id: "",
           dealer_id: "",
           product_name: "",
           platform: "web",
-          ...(formCustom.getFieldValue("area_id")
-            ? { area_id: formCustom.getFieldValue("area_id") }
-            : {}),
         });
       } catch (error) {
-        showNotification("error", error?.message || "เกิดข้อผิดพลาด");
+        showNotification?.("error", error?.message || "เกิดข้อผิดพลาด");
       } finally {
         setLoading(false);
       }
@@ -217,9 +149,8 @@ export default function ReportSaleByQuarter() {
 
     getMaster();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userLoaded, roleId]);
+  }, []);
 
-  // ===== Area -> load Sales =====
   useEffect(() => {
     let alive = true;
 
@@ -228,7 +159,6 @@ export default function ReportSaleByQuarter() {
         setSales([]);
         setDealers([]);
         formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
-        setIsSaleLocked(false);
         return;
       }
 
@@ -239,7 +169,7 @@ export default function ReportSaleByQuarter() {
       formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
 
       if (!salesOpts || salesOpts.length === 0) {
-        setIsSaleLocked(false);
+        setSales([]);
       }
     };
 
@@ -248,7 +178,6 @@ export default function ReportSaleByQuarter() {
       setSales([]);
       setDealers([]);
       formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
-      setIsSaleLocked(false);
     });
 
     return () => {
@@ -257,49 +186,6 @@ export default function ReportSaleByQuarter() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchedAreaId]);
 
-  // ===== Auto select own sale + lock เฉพาะ role 4,5,6 =====
-  useEffect(() => {
-    const loginSaleId = getLoginSaleId(userInfo);
-    const loginAreaId = getLoginAreaId(userInfo);
-
-    if (!isSaleRoleLocked) {
-      setIsSaleLocked(false);
-      return;
-    }
-
-    if (!watchedAreaId) {
-      setIsSaleLocked(false);
-      return;
-    }
-
-    if (!Array.isArray(sales) || sales.length === 0) {
-      setIsSaleLocked(false);
-      return;
-    }
-
-    const foundSale = sales.find((s) => String(s.value) === String(loginSaleId));
-
-    if (foundSale) {
-      if (loginAreaId != null && String(watchedAreaId) !== String(loginAreaId)) {
-        formCustom.setFieldsValue({ area_id: String(loginAreaId) });
-        return;
-      }
-
-      formCustom.setFieldsValue({
-        sale_id: String(foundSale.value),
-        dealer_id: undefined,
-      });
-
-      setIsSaleLocked(true);
-      fetchData();
-    } else {
-      setIsSaleLocked(false);
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedAreaId, sales, userInfo, roleId]);
-
-  // ===== Sale -> load Dealers =====
   useEffect(() => {
     let alive = true;
 
@@ -319,7 +205,6 @@ export default function ReportSaleByQuarter() {
         const list = Array.isArray(raw) ? raw : [];
 
         if (!alive) return;
-
         setDealers(list.map((it) => ({ value: Number(it.id), label: it.name })));
         formCustom.setFieldsValue({ dealer_id: undefined });
       } catch (e) {
@@ -337,7 +222,6 @@ export default function ReportSaleByQuarter() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchedSaleId]);
 
-  // ===== Table header =====
   const header = [
     {
       title: "Quarter",
@@ -400,11 +284,7 @@ export default function ReportSaleByQuarter() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.workplan_qty))
-                    ? Number(itemData.workplan_qty)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.workplan_qty)) ? Number(itemData.workplan_qty) : 0}
                 formatter={(value) =>
                   `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -434,11 +314,7 @@ export default function ReportSaleByQuarter() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.rolling_qty))
-                    ? Number(itemData.rolling_qty)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.rolling_qty)) ? Number(itemData.rolling_qty) : 0}
                 formatter={(value) =>
                   `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -468,11 +344,7 @@ export default function ReportSaleByQuarter() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.actual_qty))
-                    ? Number(itemData.actual_qty)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.actual_qty)) ? Number(itemData.actual_qty) : 0}
                 formatter={(value) =>
                   `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -502,11 +374,7 @@ export default function ReportSaleByQuarter() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.workplan_value))
-                    ? Number(itemData.workplan_value)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.workplan_value)) ? Number(itemData.workplan_value) : 0}
                 formatter={(value) =>
                   `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -536,11 +404,7 @@ export default function ReportSaleByQuarter() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.rolling_value))
-                    ? Number(itemData.rolling_value)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.rolling_value)) ? Number(itemData.rolling_value) : 0}
                 formatter={(value) =>
                   `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -570,11 +434,7 @@ export default function ReportSaleByQuarter() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.actual_value))
-                    ? Number(itemData.actual_value)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.actual_value)) ? Number(itemData.actual_value) : 0}
                 formatter={(value) =>
                   `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -587,7 +447,6 @@ export default function ReportSaleByQuarter() {
     })),
   ];
 
-  // ===== footer sums =====
   const calculateFooterSums = () => {
     const rows = Array.isArray(dataSource) ? dataSource : [];
 
@@ -613,7 +472,6 @@ export default function ReportSaleByQuarter() {
     });
   };
 
-  // ===== fetch =====
   const fetchData = async (payloadFromCaller) => {
     setTableLoading(true);
     try {
@@ -685,8 +543,6 @@ export default function ReportSaleByQuarter() {
     setTableParams((prev) => ({ ...prev, pagination }));
   };
 
-  const slug = (s) => String(s ?? "").trim().replace(/\s+/g, "_");
-
   return (
     <MainLayout loading={loading} childrenStyle={""}>
       <Title prefix="Sales Report By Quarter" />
@@ -699,16 +555,11 @@ export default function ReportSaleByQuarter() {
                 <Select
                   placeholder="Select Area"
                   options={areaList}
-                  disabled={!isAdmin || isSaleLocked}
-                  allowClear={isAdmin && !isSaleLocked}
+                  allowClear
                   onChange={async (value) => {
-                    if (!isAdmin) return;
-
                     formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
                     setSales([]);
                     setDealers([]);
-                    setIsSaleLocked(false);
-
                     if (value) await loadSalesByArea(value);
                   }}
                 />
@@ -720,8 +571,8 @@ export default function ReportSaleByQuarter() {
                 <Select
                   placeholder="Select Sale"
                   options={sales}
-                  disabled={!watchedAreaId || isSaleRoleLocked}
-                  allowClear={!isSaleRoleLocked}
+                  disabled={!watchedAreaId}
+                  allowClear
                   onChange={() => {
                     formCustom.setFieldsValue({ dealer_id: undefined });
                     setDealers([]);
@@ -766,66 +617,29 @@ export default function ReportSaleByQuarter() {
                 const yearToUse =
                   defaultYear || dayjs().tz("Asia/Bangkok").format("YYYY");
 
-                if (isSaleLocked) {
-                  formCustom.resetFields(["dealer_id", "product_name", "year_code"]);
-                  // setDealers([]);
-                  formCustom.setFieldsValue({ year_code: yearToUse });
+                formCustom.setFieldsValue({
+                  area_id: undefined,
+                  sale_id: undefined,
+                  dealer_id: undefined,
+                  product_name: undefined,
+                  year_code: yearToUse,
+                });
 
-                  setTableParams((prev) => ({
-                    ...prev,
-                    pagination: { ...prev.pagination, current: 1 },
-                  }));
-
-                  const payload = {
-                    year_code: yearToUse,
-                    user_id: formCustom.getFieldValue("sale_id") ?? "",
-                    dealer_id: "",
-                    product_name: "",
-                    platform: "web",
-                    ...(formCustom.getFieldValue("area_id")
-                      ? { area_id: formCustom.getFieldValue("area_id") }
-                      : {}),
-                  };
-
-                  await fetchData(payload);
-                  return;
-                }
-
-                formCustom.resetFields([
-                  "sale_id",
-                  "dealer_id",
-                  "product_name",
-                  "year_code",
-                  ...(isAdmin ? ["area_id"] : []),
-                ]);
-
+                setSales([]);
                 setDealers([]);
+
                 setTableParams((prev) => ({
                   ...prev,
                   pagination: { ...prev.pagination, current: 1 },
                 }));
 
-                if (!isAdmin && areaId != null) {
-                  formCustom.setFieldsValue({ area_id: String(areaId) });
-                  await loadSalesByArea(String(areaId));
-                } else {
-                  setSales([]);
-                }
-
-                formCustom.setFieldsValue({ year_code: yearToUse });
-
-                const payload = {
+                await fetchData({
                   year_code: yearToUse,
                   user_id: "",
                   dealer_id: "",
                   product_name: "",
                   platform: "web",
-                  ...(formCustom.getFieldValue("area_id")
-                    ? { area_id: formCustom.getFieldValue("area_id") }
-                    : {}),
-                };
-
-                await fetchData(payload);
+                });
               }}
               name="btn-clear"
               text="Clear"
@@ -885,64 +699,22 @@ export default function ReportSaleByQuarter() {
                   {footerData.map((q, index) => (
                     <React.Fragment key={`${q.id}_${index}`}>
                       <Table.Summary.Cell align="center">
-                        <InputNumber
-                          className="w-full"
-                          readOnly
-                          value={q.workplan_qty}
-                          formatter={(value) =>
-                            `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                          }
-                        />
+                        <InputNumber className="w-full" readOnly value={q.workplan_qty} formatter={(value) => `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} />
                       </Table.Summary.Cell>
                       <Table.Summary.Cell align="center">
-                        <InputNumber
-                          className="w-full"
-                          readOnly
-                          value={q.rolling_qty}
-                          formatter={(value) =>
-                            `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                          }
-                        />
+                        <InputNumber className="w-full" readOnly value={q.rolling_qty} formatter={(value) => `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} />
                       </Table.Summary.Cell>
                       <Table.Summary.Cell align="center">
-                        <InputNumber
-                          className="w-full"
-                          readOnly
-                          value={q.actual_qty}
-                          formatter={(value) =>
-                            `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                          }
-                        />
+                        <InputNumber className="w-full" readOnly value={q.actual_qty} formatter={(value) => `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} />
                       </Table.Summary.Cell>
                       <Table.Summary.Cell align="center">
-                        <InputNumber
-                          className="w-full"
-                          readOnly
-                          value={q.workplan_value}
-                          formatter={(value) =>
-                            `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                          }
-                        />
+                        <InputNumber className="w-full" readOnly value={q.workplan_value} formatter={(value) => `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} />
                       </Table.Summary.Cell>
                       <Table.Summary.Cell align="center">
-                        <InputNumber
-                          className="w-full"
-                          readOnly
-                          value={q.rolling_value}
-                          formatter={(value) =>
-                            `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                          }
-                        />
+                        <InputNumber className="w-full" readOnly value={q.rolling_value} formatter={(value) => `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} />
                       </Table.Summary.Cell>
                       <Table.Summary.Cell align="center">
-                        <InputNumber
-                          className="w-full"
-                          readOnly
-                          value={q.actual_value}
-                          formatter={(value) =>
-                            `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                          }
-                        />
+                        <InputNumber className="w-full" readOnly value={q.actual_value} formatter={(value) => `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} />
                       </Table.Summary.Cell>
                     </React.Fragment>
                   ))}
