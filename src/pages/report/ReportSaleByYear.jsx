@@ -454,7 +454,7 @@ export default function ReportSaleByYear() {
         // ✅ initial fetch เหมือนหน้าก่อน: โหลดได้เลยโดยไม่ต้องใช้ all
         await fetchData({
           year_code: initialYear,
-          user_id: "",
+          user_id: formCustom.getFieldValue("sale_id") || "", //ตามช่อง sale_id ที่ lock หรือเลือกไว้ (ถ้าไม่มีจะเป็น "")
           dealer_id: "",
           product_name: "",
           platform: "web",
@@ -481,7 +481,7 @@ export default function ReportSaleByYear() {
     }
 
     try {
-      const res = await useServiceAPI.get(paths.pathMasterSaleSingle, {
+      const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
         area_id,
       });
       const raw = res?.data?.data ?? res?.data ?? [];
@@ -855,7 +855,8 @@ export default function ReportSaleByYear() {
 
                 const payload = {
                   year_code: yearToUse,
-                  user_id: "",
+                  // user_id: "",
+                  user_id: formCustom.getFieldValue("sale_id") || "", // ดึงค่าจาก sale 
                   dealer_id: "",
                   product_name: "",
                   platform: "web",
@@ -890,7 +891,7 @@ export default function ReportSaleByYear() {
           dataSource={dataSource}
           pagination={false}
           loading={tableLoading}
-          onChange={() => {}}
+          onChange={() => { }}
           footer={() => {
             const footerData = calculateFooterSums();
             return (

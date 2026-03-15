@@ -323,7 +323,7 @@ export default function ReportActivityByMonth() {
 
     (async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathMasterSaleSingle, {
+        const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
           area_id: aId,
         });
 

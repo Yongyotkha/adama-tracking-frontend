@@ -120,7 +120,7 @@ export default function ReportSaleByMonth() {
     }
 
     try {
-      const res = await useServiceAPI.get(paths.pathMasterSaleSingle, {
+      const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
         area_id,
       });
       const raw = res?.data?.data ?? res?.data ?? [];
@@ -202,7 +202,8 @@ export default function ReportSaleByMonth() {
 
         await fetchData({
           year_code: initialYear,
-          user_id: "",
+          // user_id: "",
+          user_id: formCustom.getFieldValue("sale_id") ?? "",
           dealer_id: "",
           product_name: "",
           platform: "web",
@@ -857,7 +858,8 @@ export default function ReportSaleByMonth() {
 
                 const payload = {
                   year_code: yearToUse,
-                  user_id: "",
+                  // user_id: "",
+                  user_id: formCustom.getFieldValue("sale_id") || "", // ดึงค่าจาก sale 
                   dealer_id: "",
                   product_name: "",
                   platform: "web",
