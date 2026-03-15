@@ -180,7 +180,7 @@ export default function ReportActivityExpense() {
       const areaIdForSales = selectedArea === "__ALL__" ? 'all' : selectedArea;
 
       try {
-        const res = await useServiceAPI.get(paths.pathMasterSaleSingle, {
+        const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
           area_id: areaIdForSales,
         });
 

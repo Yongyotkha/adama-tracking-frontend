@@ -119,7 +119,7 @@ export default function ReportSaleByQuarter() {
     }
 
     try {
-      const res = await useServiceAPI.get(paths.pathMasterSaleSingle, {
+      const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
         area_id,
       });
 

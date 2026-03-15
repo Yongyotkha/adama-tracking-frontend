@@ -481,7 +481,7 @@ export default function ReportSaleByYear() {
     }
 
     try {
-      const res = await useServiceAPI.get(paths.pathMasterSaleSingle, {
+      const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
         area_id,
       });
       const raw = res?.data?.data ?? res?.data ?? [];
