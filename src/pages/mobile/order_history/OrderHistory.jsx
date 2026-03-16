@@ -26,6 +26,24 @@ export default function OrderHistory() {
     // { id: "1", label: "รับสินค้าสำเร็จ", color: "text-green-600", border: "border-green-500" },
     // { id: "2", label: "รับสินค้าไม่สำเร็จ", color: "text-red-600", border: "border-red-500" },
   ];
+  const mapStatusText = (statusText) => {
+    if (statusText === "Waiting for Receive") {
+      return "รอยืนยันรับ";
+    } else if (statusText === "Complete") {
+      return "รับสินค้าสำเร็จ";
+    } else if (statusText === "Draft") {
+      return "แบบร่างรายการ";
+    } else if (statusText === "Waiting for Create") {
+      return "รอสร้างรายการ";
+    } else if (statusText === "Reject") {
+      return "ยกเลิกรายการ";
+    } else if (statusText === "Waiting for Approve") {
+      return "รอยืนยันรับ";
+    } else if (statusText === "Waiting for send") {
+      return "รอส่งสินค้า";
+    }
+    return statusText || "-";
+  };
 
   useEffect(() => {
     const fetchOrderHistory = async () => {
@@ -92,9 +110,10 @@ export default function OrderHistory() {
             ) : orderData.length > 0 ? (
               orderData.map((order, index) => {
                 const isComplete = activeTab == 1;
-                console.log('activeTab : ',activeTab)
-                const statusColor = isComplete ? "text-green-600" : "text-red-500";
+                console.log('activeTab : ', activeTab)
+                // const statusColor = isComplete ? "text-green-600" : "text-red-500";
                 const borderColor = isComplete ? "border-green-500" : "border-red-500";
+                // const borderColor = "border-green-500";
 
                 return (
                   <div
@@ -114,8 +133,14 @@ export default function OrderHistory() {
                     </div>
 
                     <div className="flex flex-col items-end text-right">
-                      <p className={`sarabun-font font-semibold ${statusColor}`}>
+                      {/* <p className={`sarabun-font font-semibold ${statusColor}`}>
                         {isComplete ? "รับสินค้าสำเร็จ" : "รับสินค้าไม่สำเร็จ"}
+                      </p> */}
+                      <p
+                        className="sarabun-font font-semibold"
+                        style={{ color: order.status_transaction_bg_color }}
+                      >
+                        {mapStatusText(order.status_transaction_name)}
                       </p>
                       <p className="text-gray-700 sarabun-font text-xs font-semibold mt-1">
                         {order.line_product} รายการ / คะแนน {Number(order.point ?? 0).toLocaleString()}
