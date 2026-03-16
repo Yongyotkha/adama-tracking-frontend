@@ -77,10 +77,7 @@ export default function EditUserOA() {
     try {
       setLoading(true);
 
-      const response = await useServiceAPI.post(
-        paths.pathUpload,
-        uploadFormData
-      );
+      const response = await useServiceAPI.post(paths.pathUpload, uploadFormData);
 
       const fileUrl =
         response?.data?.file_url ||
@@ -94,6 +91,8 @@ export default function EditUserOA() {
           ...prev,
           profile_image: fileUrl,
         }));
+      } else {
+        setIsFailModalVisible(true);
       }
     } catch (error) {
       console.error("Error uploading image:", error);
@@ -132,6 +131,13 @@ export default function EditUserOA() {
   const handleSave = async () => {
     setLoading(true);
     try {
+      if (formData.profile_image) {
+        await useServiceAPI.put(paths.pathProfileImage, {
+          id: formData.id,
+          profile_image: formData.profile_image,
+        });
+      }
+
       const payload = {
         id: formData.id,
         name_th: formData.name_th || "",
