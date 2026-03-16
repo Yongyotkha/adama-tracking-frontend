@@ -45,7 +45,7 @@ export default function NewsPromotionList() {
     const loadCategories = async () => {
       setLoading(true);
       try {
-        const res = await useServiceAPI.get(paths.pathPromotionBannerCategory, {});
+        const res = await useServiceAPI.get(paths.pathPromotionBannerCategoryฺBanner, {});
         const raw = Array.isArray(res?.data?.data) ? res.data.data : res?.data || [];
         const opts = (raw || []).map((x) => ({
           id: String(x.id),
