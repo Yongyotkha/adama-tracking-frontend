@@ -29,7 +29,6 @@ const Navbar = () => {
   const [activeIndex, setActiveIndex] = useState(0); // Track active index
   const { userInfo, logout } = useContext(AuthContext);
 
-
   const menuItems = userInfo?.menu_permissions?.map((menu) => ({
     label: menu.name,
     icon: `/${menu.icon}`,
@@ -43,7 +42,6 @@ const Navbar = () => {
       }))
       : [], // ใช้ [] หากไม่มี dropdownItems
   })) || [];
-
 
   const CustomDropdownMenu = ({ items }) => {
     return (
