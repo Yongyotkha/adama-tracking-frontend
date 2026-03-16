@@ -175,6 +175,7 @@ export const paths = {
 
   pathMasterActivityType: "master/activity-type",
   pathMasterSaleDropdown: "master/sale",
+  pathMasterSaleExpense: "master/sale-expense",
   pathMasterSaleActivity: "master/sale_activity",
   pathMasterSaleSingle : "master/sale-single",
   pathMasterDealerDropdown: "master/dealer",

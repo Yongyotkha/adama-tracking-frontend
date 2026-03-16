@@ -372,9 +372,14 @@ export default function CreateActivity() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const saleMasterRequest = isViewMode
-          ? useServiceAPI.get(paths.pathMasterSaleTeam, {})
-          : useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" });
+        const isExpensePage =
+          pageCode === "expense_advance" || pageCode === "expense_clearing";
+
+        const saleMasterRequest = isExpensePage
+          ? useServiceAPI.get(paths.pathMasterSaleExpense, {})
+          : isViewMode
+            ? useServiceAPI.get(paths.pathMasterSaleTeam, {})
+            : useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" });
 
         const [activityTypeRes, saleRes, saleAllRes, perceptionRes] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
@@ -382,6 +387,7 @@ export default function CreateActivity() {
           useServiceAPI.get(paths.pathMasterSaleDropdown, { status: "all", mode: "all" }),
           useServiceAPI.get(paths.pathMasterPerception, {}),
         ]);
+
         setActivityList(activityTypeRes.data);
         setSaleList(saleRes.data);
         setSaleAllList(saleAllRes.data);
@@ -390,6 +396,7 @@ export default function CreateActivity() {
         setLoading(false);
       }
     };
+
     getMaster();
   }, []);
 

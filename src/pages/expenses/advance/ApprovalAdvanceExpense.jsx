@@ -112,7 +112,7 @@ export default function ApprovalAdvanceExpense() {
         const [activityType, sale] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
           // useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
-          useServiceAPI.get(paths.pathMasterSaleActivity, { status: "all", mode: "all" }),
+          useServiceAPI.get(paths.pathMasterSaleExpense, { mode: "all" }),
 
         ]);
 
