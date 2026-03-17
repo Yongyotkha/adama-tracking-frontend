@@ -38,6 +38,14 @@ export default function ActionSampleExpense() {
   const [fileList, setFileList] = useState([]);
   const fileUploadRef = useRef(null);
 
+  const [permission, setPermission] = useState({
+    btn_create: false,
+    btn_edit: false,
+    btn_daft: false,
+    btn_save: false,
+    btn_pdf: false,
+  });
+
   const [data, setData] = useState({
     document_number: null,
     document_datetime: dayjs(),
@@ -61,8 +69,12 @@ export default function ActionSampleExpense() {
   const formatSelectOptions = (items = [], valueKeys = [], labelKeys = []) => {
     return items
       .map((item) => {
-        const rawValue = valueKeys.map((k) => item?.[k]).find((v) => v !== undefined && v !== null && v !== "");
-        const rawLabel = labelKeys.map((k) => item?.[k]).find((v) => v !== undefined && v !== null && v !== "");
+        const rawValue = valueKeys
+          .map((k) => item?.[k])
+          .find((v) => v !== undefined && v !== null && v !== "");
+        const rawLabel = labelKeys
+          .map((k) => item?.[k])
+          .find((v) => v !== undefined && v !== null && v !== "");
 
         if (rawValue === undefined || rawValue === null || rawValue === "") return null;
 
@@ -83,11 +95,19 @@ export default function ActionSampleExpense() {
         ]);
 
         setDealers(
-          formatSelectOptions(dealerRes?.data || [], ["id", "dealer_id"], ["name", "dealer_name"])
+          formatSelectOptions(
+            dealerRes?.data || [],
+            ["id", "dealer_id"],
+            ["name", "dealer_name"]
+          )
         );
 
         setSubDealers(
-          formatSelectOptions(subDealerRes?.data || [], ["sub_dealer_id", "id"], ["sub_dealer_name", "name"])
+          formatSelectOptions(
+            subDealerRes?.data || [],
+            ["sub_dealer_id", "id"],
+            ["sub_dealer_name", "name"]
+          )
         );
       } catch (error) {
         showNotification("error", error.message || "เกิดข้อผิดพลาด");
@@ -126,7 +146,16 @@ export default function ActionSampleExpense() {
 
   useEffect(() => {
     const docNo = location?.state?.document_number;
-    if (!docNo || isCreateMode) return;
+
+    if (isCreateMode) {
+      setPermission((prev) => ({
+        ...prev,
+        btn_create: true,
+      }));
+      return;
+    }
+
+    if (!docNo) return;
 
     const getDataSample = async () => {
       try {
@@ -143,6 +172,12 @@ export default function ActionSampleExpense() {
 
         const responseData = response.data?.header;
         const productData = response.data?.items || [];
+        const responsePermission = response.data?.permission || {};
+
+        setPermission((prev) => ({
+          ...prev,
+          ...responsePermission,
+        }));
 
         if (!responseData) {
           showNotification("error", "ข้อมูลไม่ครบถ้วน");
@@ -194,28 +229,28 @@ export default function ActionSampleExpense() {
 
         const mappedFiles = Array.isArray(fileFromApi)
           ? fileFromApi
-              .map((f) => {
-                if (!f) return null;
-                if (typeof f === "string") {
-                  return {
-                    uid: f,
-                    name: f.split("/").pop() || "file",
-                    status: "done",
-                    url: f,
-                  };
-                }
+            .map((f) => {
+              if (!f) return null;
+              if (typeof f === "string") {
                 return {
-                  uid: f.file_key || f.uid || f.file_url || f.url || `${Math.random()}`,
-                  name:
-                    f.file_name ||
-                    f.name ||
-                    (f.file_url || f.url || "").split("/").pop() ||
-                    "file",
+                  uid: f,
+                  name: f.split("/").pop() || "file",
                   status: "done",
-                  url: f.file_url || f.url,
+                  url: f,
                 };
-              })
-              .filter(Boolean)
+              }
+              return {
+                uid: f.file_key || f.uid || f.file_url || f.url || `${Math.random()}`,
+                name:
+                  f.file_name ||
+                  f.name ||
+                  (f.file_url || f.url || "").split("/").pop() ||
+                  "file",
+                status: "done",
+                url: f.file_url || f.url,
+              };
+            })
+            .filter(Boolean)
           : [];
 
         setFileList(mappedFiles);
@@ -402,7 +437,15 @@ export default function ActionSampleExpense() {
     0
   );
 
-  const handleSave = async () => {
+  const canSave = isCreateMode
+    ? (permission?.btn_create ?? true)
+    : (permission?.btn_save ?? permission?.btn_edit ?? false);
+
+  const canSaveDraft = permission?.btn_daft ?? false;
+
+  const canExportPdf = permission?.btn_pdf ?? !isCreateMode;
+
+  const handleSave = async (actionMode = "save") => {
     const documentDate = data?.document_datetime
       ? dayjs(data.document_datetime).format("YYYY-MM-DD")
       : null;
@@ -460,18 +503,21 @@ export default function ActionSampleExpense() {
       foc: 0,
       net_amount: item.value,
       ref_remark: item.remark || null,
+      action_mode: actionMode,
     }));
 
     const productsForEdit = dataSource.map((item) => ({
       product_id: item.productId,
       product_code: item.sku,
       product_name: item.productName,
-      pack_size: item.packSize,
-      qty: Number(item.quantity || 0),
-      value: Number(item.value || 0),
-      remark: item.remark || "",
+      product_unit: item.packSize,
+      quantity: Number(item.quantity || 0),
+      net_amount: item.value,
+      product_unit_thb: Number(item.value || 0),
+      ref_remark: item.remark || "",
       warehouse_send: Number(item.warehouseSend || 0),
       receive: Number(item.receive || 0),
+      action_mode: actionMode,
     }));
 
     try {
@@ -493,10 +539,15 @@ export default function ActionSampleExpense() {
           url_file_list,
           file_name_list,
           remark: data?.remark || "",
+          action_mode: actionMode,
           products: productsForEdit,
         };
 
-        const response = await useServiceAPI.put(paths.pathSampleExpenseUpdate, payload, setLoading);
+        const response = await useServiceAPI.put(
+          paths.pathSampleExpenseUpdate,
+          payload,
+          setLoading
+        );
 
         if (response.status === 200) {
           showNotification(
@@ -514,6 +565,7 @@ export default function ActionSampleExpense() {
           crop_id: data?.crop_id,
           remark: data?.remark || "",
           file_list,
+          action_mode: actionMode,
           products: productsForCreate,
         };
 
@@ -540,6 +592,10 @@ export default function ActionSampleExpense() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSaveDraft = async () => {
+    showNotification("info", "Save Draft is not implemented yet.");
   };
 
   const productHeader = [
@@ -607,9 +663,7 @@ export default function ActionSampleExpense() {
           <InputNumber
             min={0}
             value={record.warehouseSend}
-            onChange={(value) =>
-              handleNumberFieldChange(record.key, "warehouseSend", value)
-            }
+            onChange={(value) => handleNumberFieldChange(record.key, "warehouseSend", value)}
             className="w-full"
           />
         ),
@@ -625,9 +679,7 @@ export default function ActionSampleExpense() {
           <InputNumber
             min={0}
             value={record.receive}
-            onChange={(value) =>
-              handleNumberFieldChange(record.key, "receive", value)
-            }
+            onChange={(value) => handleNumberFieldChange(record.key, "receive", value)}
             className="w-full"
           />
         ),
@@ -671,8 +723,8 @@ export default function ActionSampleExpense() {
         {isCreateMode
           ? "Create Sample Expense"
           : isEditMode
-          ? "Edit Sample Expense"
-          : "View Sample Expense"}
+            ? "Edit Sample Expense"
+            : "View Sample Expense"}
       </div>
 
       <BoxPrimary>
@@ -824,20 +876,28 @@ export default function ActionSampleExpense() {
               min={0}
               value={totalRequestValue}
               formatter={(value) =>
-                `${parseFloat(value || 0).toFixed(2)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                `${parseFloat(value || 0).toFixed(2)}`.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  ","
+                )
               }
               disabled
             />
           </div>
 
           <div className="flex items-center space-x-4">
-            <label className="text-sm font-medium text-gray-700">Total Value Warehouse Send:</label>
+            <label className="text-sm font-medium text-gray-700">
+              Total Value Warehouse Send:
+            </label>
             <InputNumber
               className="w-40 text-right rounded-md"
               min={0}
               value={totalWarehouseValue}
               formatter={(value) =>
-                `${parseFloat(value || 0).toFixed(2)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                `${parseFloat(value || 0).toFixed(2)}`.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  ","
+                )
               }
               disabled
             />
@@ -850,7 +910,10 @@ export default function ActionSampleExpense() {
               min={0}
               value={totalReceiveValue}
               formatter={(value) =>
-                `${parseFloat(value || 0).toFixed(2)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                `${parseFloat(value || 0).toFixed(2)}`.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  ","
+                )
               }
               disabled
             />
@@ -879,12 +942,36 @@ export default function ActionSampleExpense() {
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4 mt-6">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/expenses/sample")} />
-        {!isViewMode && (
+        <ActionButton
+          mode="back"
+          text="Back"
+          onClick={() => navigate("/expenses/sample")}
+        />
+
+        {!isViewMode && (isCreateMode || canSaveDraft) && (
+          <ActionButton
+            mode="saveDraft"
+            text="Save Draft"
+            onClick={() => handleSave("daft")}
+          />
+        )}
+
+        {!isViewMode && canSave && (
           <ActionButton
             mode="save"
             text={isCreateMode ? "Create" : "Save"}
-            onClick={handleSave}
+            onClick={() => handleSave("save")}
+          />
+        )}
+
+        {canExportPdf && data?.document_number && (
+          <ActionButton
+            mode="saveDraft"
+            text="Export PDF"
+            onClick={() => {
+              const targetUrl = `/expenses/sample/pdf?sample_number=${data?.document_number}`;
+              window.open(targetUrl, "_blank");
+            }}
           />
         )}
       </div>
