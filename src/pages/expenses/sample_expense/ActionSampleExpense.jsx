@@ -11,13 +11,16 @@ import { AuthContext } from "../../../contexts/AuthContext";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import dayjs from "dayjs";
-import UploadSection from "../../../components/file_upload/UploadSection";
+// import UploadSection from "../../../components/file_upload/UploadSection";
 
 export default function ActionSampleExpense() {
   const { mode } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+
   const isViewMode = mode === "view";
+  const isEditMode = mode === "edit";
+  const isCreateMode = mode === "create";
 
   const { showNotification, userInfo } = useContext(AuthContext);
 
@@ -32,7 +35,6 @@ export default function ActionSampleExpense() {
 
   const [dataSource, setDataSource] = useState([]);
 
-  // Upload (multiple) like SalesPointCreate
   const [fileList, setFileList] = useState([]);
   const fileUploadRef = useRef(null);
 
@@ -48,78 +50,88 @@ export default function ActionSampleExpense() {
     request_value: 0,
     warehouse_value: 0,
     receive_value: 0,
-    remark: null,
+    remark: "",
   });
 
-  // ===== master dealer/subdealer =====
+  const normalizeId = (value) => {
+    if (value === undefined || value === null || value === "") return null;
+    return String(value);
+  };
+
+  const formatSelectOptions = (items = [], valueKeys = [], labelKeys = []) => {
+    return items
+      .map((item) => {
+        const rawValue = valueKeys.map((k) => item?.[k]).find((v) => v !== undefined && v !== null && v !== "");
+        const rawLabel = labelKeys.map((k) => item?.[k]).find((v) => v !== undefined && v !== null && v !== "");
+
+        if (rawValue === undefined || rawValue === null || rawValue === "") return null;
+
+        return {
+          value: String(rawValue),
+          label: String(rawLabel ?? rawValue),
+        };
+      })
+      .filter(Boolean);
+  };
+
   useEffect(() => {
-    const getMasterDealer = async () => {
+    const loadMasters = async () => {
       try {
-        const [dealer, subDealer] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterDealerAll),
-          useServiceAPI.get(paths.pathMasterSubDealer),
+        const [dealerRes, subDealerRes] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterDealerAllTeam),
+          useServiceAPI.get(paths.pathMasterSubDealerAllTeam),
         ]);
 
-        const formattedDealers = (dealer?.data || []).map((item) => ({
-          value: item.id,
-          label: item.name,
-        }));
+        setDealers(
+          formatSelectOptions(dealerRes?.data || [], ["id", "dealer_id"], ["name", "dealer_name"])
+        );
 
-        const formattedSubDealer = (subDealer?.data || []).map((item) => ({
-          value: item.sub_dealer_id,
-          label: item.sub_dealer_name,
-        }));
-
-        setDealers(formattedDealers);
-        setSubDealers(formattedSubDealer);
+        setSubDealers(
+          formatSelectOptions(subDealerRes?.data || [], ["sub_dealer_id", "id"], ["sub_dealer_name", "name"])
+        );
       } catch (error) {
         showNotification("error", error.message || "เกิดข้อผิดพลาด");
       }
     };
 
-    getMasterDealer();
+    loadMasters();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ===== crops (pathMasterSubDealerCrop ไม่ต้องส่ง param) =====
   useEffect(() => {
-    const getMasterCrop = async () => {
+    const loadCrops = async () => {
       try {
-        const path = isSubDealerDisabled ? paths.pathMasterCrop : paths.pathMasterSubDealerCrop;
+        const path = isSubDealerDisabled
+          ? paths.pathMasterCrop
+          : paths.pathMasterSubDealerCrop;
+
         const res = await useServiceAPI.get(path);
 
         if (res.status === 200) {
-          setCrops((res?.data || []).map((item) => ({ value: item.id, label: item.name })));
+          setCrops(
+            formatSelectOptions(res?.data || [], ["id", "crop_id"], ["name", "crop_name"])
+          );
+        } else {
+          setCrops([]);
         }
       } catch (error) {
+        setCrops([]);
         showNotification("error", error.message || "เกิดข้อผิดพลาด");
       }
     };
 
-    // เวลา toggle: เคลียร์ field ตาม design
-    setCrops([]);
-    setData((prev) => ({
-      ...prev,
-      crop_id: null,
-      crop_name: null,
-      sub_dealer_id: null,
-      sub_dealer_name: null,
-      // ไม่บังคับเคลียร์ dealer เสมอ แต่ตามโค้ดเดิมคุณเคลียร์ไว้ ผมคง behavior เดิม:
-      dealer_id: null,
-      dealer_name: null,
-    }));
-
-    getMasterCrop();
+    loadCrops();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSubDealerDisabled]);
 
-  // ===== load details (edit/view) =====
   useEffect(() => {
     const docNo = location?.state?.document_number;
-    if (!docNo) return;
+    if (!docNo || isCreateMode) return;
 
     const getDataSample = async () => {
       try {
+        setLoading(true);
+
         const response = await useServiceAPI.get(paths.pathSampleExpenseDetailsAndCreate, {
           document_number: docNo,
         });
@@ -137,41 +149,68 @@ export default function ActionSampleExpense() {
           return;
         }
 
-        // ถ้ามีสินค้า -> map ลงตาราง
-        const newProductDataDetails = productData.map((p, index) => ({
-          key: index + 1,
-          no: index + 1,
-          sku: p.product_code,
-          productId: p.product_id,
-          productName: p.product_name,
-          packSize: p.product_unit,
-          quantity: Number(p.quantity || 0),
-          value: Number(p.net_amount || 0),
-          totalValue: Number(p.quantity || 0) * Number(p.net_amount || 0),
-          remark: p.ref_remark || "",
-        }));
+        const newProductDataDetails = productData.map((p, index) => {
+          const qty = Number(p.quantity || 0);
+          const value = Number(p.product_unit_thb || p.net_amount || 0);
+
+          return {
+            key: index + 1,
+            no: index + 1,
+            sku: p.product_code,
+            productId: p.product_id,
+            productName: p.product_name,
+            packSize: p.product_unit,
+            quantity: qty,
+            value,
+            totalValue: qty * value,
+            remark: p.ref_remark || "",
+            warehouseSend: Number(p.warehouse_send || qty || 0),
+            receive: Number(p.receive || qty || 0),
+          };
+        });
 
         setDataSource(newProductDataDetails);
 
-        // คำนวณ total request จากสินค้า (กัน mismatch)
         const totalRequestValue = newProductDataDetails.reduce(
           (acc, item) => acc + Number(item.totalValue || 0),
           0
         );
 
-        // map file_list (ถ้ามี)
-        const fileFromApi = responseData?.file_list || responseData?.url_file_list || [];
-        // รองรับหลายรูปแบบ: array ของ url หรือ array ของ object
+        const totalWarehouseValue = newProductDataDetails.reduce(
+          (acc, item) => acc + Number(item.warehouseSend || 0) * Number(item.value || 0),
+          0
+        );
+
+        const totalReceiveValue = newProductDataDetails.reduce(
+          (acc, item) => acc + Number(item.receive || 0) * Number(item.value || 0),
+          0
+        );
+
+        const fileFromApi =
+          responseData?.file_list ||
+          responseData?.url_file_list ||
+          responseData?.file_image_list ||
+          [];
+
         const mappedFiles = Array.isArray(fileFromApi)
           ? fileFromApi
               .map((f) => {
                 if (!f) return null;
                 if (typeof f === "string") {
-                  return { uid: f, name: f.split("/").pop() || "file", status: "done", url: f };
+                  return {
+                    uid: f,
+                    name: f.split("/").pop() || "file",
+                    status: "done",
+                    url: f,
+                  };
                 }
                 return {
                   uid: f.file_key || f.uid || f.file_url || f.url || `${Math.random()}`,
-                  name: f.file_name || f.name || (f.file_url || f.url || "").split("/").pop() || "file",
+                  name:
+                    f.file_name ||
+                    f.name ||
+                    (f.file_url || f.url || "").split("/").pop() ||
+                    "file",
                   status: "done",
                   url: f.file_url || f.url,
                 };
@@ -181,42 +220,45 @@ export default function ActionSampleExpense() {
 
         setFileList(mappedFiles);
 
-        // set header fields
-        setData((prev) => ({
-          ...prev,
-          document_number: responseData.document_number,
-          document_datetime: responseData.document_datetime ? dayjs(responseData.document_datetime) : dayjs(),
-          dealer_id: responseData.dealer_id || null,
+        const hasSubDealer = !!responseData.sub_dealer_id;
+        setIsSubDealerDisabled(!hasSubDealer);
+
+        setData({
+          document_number: responseData.document_number || null,
+          document_datetime: responseData.document_datetime
+            ? dayjs(responseData.document_datetime)
+            : dayjs(),
+          dealer_id: normalizeId(responseData.dealer_id),
           dealer_name: responseData.dealer_name || null,
-          sub_dealer_id: responseData.sub_dealer_id || null,
+          sub_dealer_id: normalizeId(responseData.sub_dealer_id),
           sub_dealer_name: responseData.sub_dealer_name || null,
-          crop_id: responseData.crop_id || null,
+          crop_id: normalizeId(responseData.crop_id),
           crop_name: responseData.crop_name || null,
-
           request_value: Number(responseData.net_amount || totalRequestValue || 0),
-          warehouse_value: Number(responseData.net_amount_product || 0),
-          receive_value: Number(responseData.quantity_product || 0),
-          remark: responseData.ref_remark || null,
-        }));
-
-        // ถ้ามี sub dealer ในเอกสาร แปลว่าไม่ได้ติ๊ก No Sub Dealer
-        setIsSubDealerDisabled(!responseData.sub_dealer_id);
+          warehouse_value: Number(responseData.net_amount_product || totalWarehouseValue || 0),
+          receive_value: Number(responseData.quantity_product || totalReceiveValue || 0),
+          remark: responseData.ref_remark || "",
+        });
       } catch (error) {
         console.error("Error fetching data:", error);
-        if (error.status === 422) showNotification("error", error.message || "ข้อผิดพลาดในการดึงข้อมูล");
-        else showNotification("error", "เกิดข้อผิดพลาดในการเชื่อมต่อ");
+        if (error.status === 422) {
+          showNotification("error", error.message || "ข้อผิดพลาดในการดึงข้อมูล");
+        } else {
+          showNotification("error", "เกิดข้อผิดพลาดในการเชื่อมต่อ");
+        }
+      } finally {
+        setLoading(false);
       }
     };
 
     getDataSample();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isCreateMode, location?.state?.document_number]);
 
-  // ===== Upload handlers (UploadSection) =====
   const handleUploadClick = () => fileUploadRef.current?.triggerUpload();
 
   const handleUploadSuccess = (response) => {
-    const d = response?.data || response; // เผื่อ component ส่งมาอีกแบบ
+    const d = response?.data || response;
     const file = {
       uid: d.file_key || d.uid || `${Date.now()}`,
       name: d.file_name || d.name || "file",
@@ -230,9 +272,18 @@ export default function ActionSampleExpense() {
     setFileList((prev) => prev.filter((f) => f.uid !== file.uid));
   };
 
-  // ===== table handlers =====
   const handleInputChange = (key, field, value) => {
-    setDataSource((prev) => prev.map((item) => (item.key === key ? { ...item, [field]: value } : item)));
+    setDataSource((prev) =>
+      prev.map((item) => (item.key === key ? { ...item, [field]: value } : item))
+    );
+  };
+
+  const handleNumberFieldChange = (key, field, value) => {
+    setDataSource((prev) =>
+      prev.map((item) =>
+        item.key === key ? { ...item, [field]: Number(value || 0) } : item
+      )
+    );
   };
 
   const handleQuantityChange = (key, newQuantity) => {
@@ -240,37 +291,39 @@ export default function ActionSampleExpense() {
 
     const updatedDataSource = dataSource.map((item) => {
       if (item.key !== key) return item;
-      const newTotalValue = qty * Number(item.value || 0);
-      return { ...item, quantity: qty, totalValue: newTotalValue };
+      return {
+        ...item,
+        quantity: qty,
+        totalValue: qty * Number(item.value || 0),
+      };
     });
 
     setDataSource(updatedDataSource);
-
-    const totalRequestValue = updatedDataSource.reduce((acc, item) => acc + Number(item.totalValue || 0), 0);
-    setData((prev) => ({ ...prev, request_value: totalRequestValue }));
   };
 
   const footerSummary = () => {
     const totalQty = dataSource.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
-    const totalValue = Number(data?.request_value || 0);
+    const totalValue = dataSource.reduce((sum, item) => sum + Number(item.totalValue || 0), 0);
 
     return (
       <tr className="bg-gray-200">
         <td colSpan={10} className="text-right font-semibold">
-          Item: {dataSource.length} &nbsp; QTY: {totalQty} &nbsp; Total: {totalValue.toLocaleString("en-US")}
+          Item: {dataSource.length} &nbsp; QTY: {totalQty} &nbsp; Total:{" "}
+          {totalValue.toLocaleString("en-US", { minimumFractionDigits: 2 })}
         </td>
       </tr>
     );
   };
 
-  // ===== product search/add =====
   const onChangeProduct = (value) => {
     setSearchProductData([]);
 
     const loadProductDetail = async () => {
       setLoading(true);
       try {
-        const productDetail = await useServiceAPI.get(paths.pathMasterProductDetail, { product_id: value });
+        const productDetail = await useServiceAPI.get(paths.pathMasterProductDetail, {
+          product_id: value,
+        });
         const p = productDetail.data;
 
         const existingIndex = dataSource.findIndex((item) => item.sku === p.product_code);
@@ -288,15 +341,19 @@ export default function ActionSampleExpense() {
           packSize: p.packing_list,
           quantity: 1,
           value: Number(p.unit_convert_value || 0),
-          totalValue: 1 * Number(p.unit_convert_value || 0),
+          totalValue: Number(p.unit_convert_value || 0),
           remark: "",
+          warehouseSend: 1,
+          receive: 1,
         };
 
-        const updated = [...dataSource, newRow].map((r, idx) => ({ ...r, key: idx + 1, no: idx + 1 }));
-        setDataSource(updated);
+        const updated = [...dataSource, newRow].map((r, idx) => ({
+          ...r,
+          key: idx + 1,
+          no: idx + 1,
+        }));
 
-        const totalRequestValue = updated.reduce((acc, item) => acc + Number(item.totalValue || 0), 0);
-        setData((prev) => ({ ...prev, request_value: totalRequestValue }));
+        setDataSource(updated);
       } catch (error) {
         console.error("Error loading product detail:", error);
         showNotification("error", error.message || "เกิดข้อผิดพลาด");
@@ -317,7 +374,10 @@ export default function ActionSampleExpense() {
     const loadProducts = async () => {
       try {
         const product = await useServiceAPI.get(paths.pathMasterProducts, { keyword: value });
-        const options = (product?.data || []).map((d) => ({ value: d.id, label: d.name }));
+        const options = (product?.data || []).map((d) => ({
+          value: d.id,
+          label: d.name,
+        }));
         setSearchProductData(options);
       } catch (error) {
         showNotification("error", error.message || "เกิดข้อผิดพลาด");
@@ -327,13 +387,35 @@ export default function ActionSampleExpense() {
     loadProducts();
   };
 
-  // ===== save (create/edit) =====
-  const handleSave = () => {
-    const documentDate = data?.document_datetime ? dayjs(data.document_datetime).format("YYYY-MM-DD") : null;
+  const totalRequestValue = dataSource.reduce(
+    (sum, item) => sum + Number(item.totalValue || 0),
+    0
+  );
+
+  const totalWarehouseValue = dataSource.reduce(
+    (sum, item) => sum + Number(item.warehouseSend || 0) * Number(item.value || 0),
+    0
+  );
+
+  const totalReceiveValue = dataSource.reduce(
+    (sum, item) => sum + Number(item.receive || 0) * Number(item.value || 0),
+    0
+  );
+
+  const handleSave = async () => {
+    const documentDate = data?.document_datetime
+      ? dayjs(data.document_datetime).format("YYYY-MM-DD")
+      : null;
+
     const userId = userInfo?.id;
 
-    if (!documentDate || !userId) {
-      showNotification("error", "Document date and user ID are required.");
+    if (!documentDate) {
+      showNotification("error", "The document date field is required.");
+      return;
+    }
+
+    if (!userId) {
+      showNotification("error", "The user id field is required.");
       return;
     }
 
@@ -357,7 +439,18 @@ export default function ActionSampleExpense() {
       return;
     }
 
-    const formattedProduct = dataSource.map((item) => ({
+    const doneFiles = fileList.filter((f) => f.status === "done");
+
+    const file_list = doneFiles.map((f) => ({
+      file_key: f.uid,
+      file_name: f.name,
+      file_url: f.url,
+    }));
+
+    const url_file_list = doneFiles.map((f) => f.url || "");
+    const file_name_list = doneFiles.map((f) => f.name || "");
+
+    const productsForCreate = dataSource.map((item) => ({
       product_id: item.productId,
       product_code: item.sku,
       product_name: item.productName,
@@ -369,47 +462,84 @@ export default function ActionSampleExpense() {
       ref_remark: item.remark || null,
     }));
 
-    // ส่งไฟล์หลายไฟล์จาก UploadSection
-    const file_list = fileList
-      .filter((f) => f.status === "done")
-      .map((f) => ({
-        file_key: f.uid,
-        file_name: f.name,
-        file_url: f.url,
-      }));
+    const productsForEdit = dataSource.map((item) => ({
+      product_id: item.productId,
+      product_code: item.sku,
+      product_name: item.productName,
+      pack_size: item.packSize,
+      qty: Number(item.quantity || 0),
+      value: Number(item.value || 0),
+      remark: item.remark || "",
+      warehouse_send: Number(item.warehouseSend || 0),
+      receive: Number(item.receive || 0),
+    }));
 
-    const payload = {
-      document_date: documentDate,
-      user_id: userId,
+    try {
+      setLoading(true);
 
-      dealer_id: isSubDealerDisabled ? data?.dealer_id : "",
-      sub_dealer_id: isSubDealerDisabled ? "" : data?.sub_dealer_id,
+      if (isEditMode) {
+        const payload = {
+          platform: "web",
+          document_datetime: documentDate,
+          document_date: documentDate,
+          user_id: userId,
+          document_number: data?.document_number,
+          dealer_id: isSubDealerDisabled ? Number(data?.dealer_id) : null,
+          sub_dealer_id: isSubDealerDisabled ? null : Number(data?.sub_dealer_id),
+          crop_id: Number(data?.crop_id),
+          request_value: totalRequestValue,
+          warehouse_value: totalWarehouseValue,
+          receive_value: totalReceiveValue,
+          url_file_list,
+          file_name_list,
+          remark: data?.remark || "",
+          products: productsForEdit,
+        };
 
-      crop_id: data?.crop_id,
-      remark: data?.remark || "",
+        const response = await useServiceAPI.put(paths.pathSampleExpenseUpdate, payload, setLoading);
 
-      file_list,
-      products: formattedProduct,
-    };
-
-    // ถ้าเป็น edit แล้ว API ต้องการ document_number ให้เปิดใช้บรรทัดนี้
-    if (mode === "edit" && data?.document_number) {
-      payload.document_number = data.document_number;
-    }
-
-    useServiceAPI
-      .post(paths.pathSampleExpenseDetailsAndCreate, payload, setLoading)
-      .then((response) => {
         if (response.status === 200) {
-          showNotification("success", response.data.message, response.data.message_line).then(() =>
-            navigate("/expenses/sample")
-          );
+          showNotification(
+            "success",
+            response.data.message,
+            response.data.message_line
+          ).then(() => navigate("/expenses/sample"));
         }
-      })
-      .catch((error) => {
-        if (error.status === 422) showNotification("error", error.message);
-        else showNotification("error", "เกิดข้อผิดพลาด");
-      });
+      } else {
+        const payload = {
+          document_date: documentDate,
+          user_id: userId,
+          dealer_id: isSubDealerDisabled ? data?.dealer_id : "",
+          sub_dealer_id: isSubDealerDisabled ? "" : data?.sub_dealer_id,
+          crop_id: data?.crop_id,
+          remark: data?.remark || "",
+          file_list,
+          products: productsForCreate,
+        };
+
+        const response = await useServiceAPI.post(
+          paths.pathSampleExpenseDetailsAndCreate,
+          payload,
+          setLoading
+        );
+
+        if (response.status === 200) {
+          showNotification(
+            "success",
+            response.data.message,
+            response.data.message_line
+          ).then(() => navigate("/expenses/sample"));
+        }
+      }
+    } catch (error) {
+      if (error.status === 422) {
+        showNotification("error", error.message);
+      } else {
+        showNotification("error", "เกิดข้อผิดพลาด");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const productHeader = [
@@ -430,20 +560,29 @@ export default function ActionSampleExpense() {
               src="/img/icons/collapse.png"
               alt="decrease"
               className="cursor-pointer w-6 h-6"
-              onClick={() => handleQuantityChange(record.key, Math.max(1, Number(record.quantity || 1) - 1))}
+              onClick={() =>
+                handleQuantityChange(record.key, Math.max(1, Number(record.quantity || 1) - 1))
+              }
             />
             <Input
               inputMode="numeric"
               min={1}
               value={Math.floor(record.quantity || 1)}
-              onChange={(e) => handleQuantityChange(record.key, Math.floor(parseInt(e.target.value, 10)) || 1)}
+              onChange={(e) =>
+                handleQuantityChange(
+                  record.key,
+                  Math.floor(parseInt(e.target.value, 10)) || 1
+                )
+              }
               className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
             />
             <img
               src="/img/icons/expand.png"
               alt="increase"
               className="cursor-pointer w-6 h-6"
-              onClick={() => handleQuantityChange(record.key, Math.min(100, Number(record.quantity || 1) + 1))}
+              onClick={() =>
+                handleQuantityChange(record.key, Math.min(100, Number(record.quantity || 1) + 1))
+              }
             />
           </div>
         ),
@@ -452,7 +591,46 @@ export default function ActionSampleExpense() {
       title: "Value (THB)",
       dataIndex: "value",
       key: "value",
-      render: (v) => Number(v || 0).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+      render: (v) =>
+        Number(v || 0).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+        }),
+    },
+    {
+      title: "Warehouse Send",
+      dataIndex: "warehouseSend",
+      key: "warehouseSend",
+      render: (_, record) =>
+        isViewMode ? (
+          Number(record.warehouseSend || 0)
+        ) : (
+          <InputNumber
+            min={0}
+            value={record.warehouseSend}
+            onChange={(value) =>
+              handleNumberFieldChange(record.key, "warehouseSend", value)
+            }
+            className="w-full"
+          />
+        ),
+    },
+    {
+      title: "Receive",
+      dataIndex: "receive",
+      key: "receive",
+      render: (_, record) =>
+        isViewMode ? (
+          Number(record.receive || 0)
+        ) : (
+          <InputNumber
+            min={0}
+            value={record.receive}
+            onChange={(value) =>
+              handleNumberFieldChange(record.key, "receive", value)
+            }
+            className="w-full"
+          />
+        ),
     },
     {
       title: "Remark",
@@ -462,7 +640,10 @@ export default function ActionSampleExpense() {
         isViewMode ? (
           record.remark
         ) : (
-          <Input value={record.remark} onChange={(e) => handleInputChange(record.key, "remark", e.target.value)} />
+          <Input
+            value={record.remark}
+            onChange={(e) => handleInputChange(record.key, "remark", e.target.value)}
+          />
         ),
     },
     {
@@ -478,9 +659,6 @@ export default function ActionSampleExpense() {
                 .filter((item) => item.key !== record.key)
                 .map((r, idx) => ({ ...r, key: idx + 1, no: idx + 1 }));
               setDataSource(updated);
-
-              const totalRequestValue = updated.reduce((acc, item) => acc + Number(item.totalValue || 0), 0);
-              setData((prev) => ({ ...prev, request_value: totalRequestValue }));
             }}
           />
         ),
@@ -490,10 +668,13 @@ export default function ActionSampleExpense() {
   return (
     <MainLayout loading={loading}>
       <div className="title-page">
-        {mode === "create" ? "Create Sample Expense" : mode === "edit" ? "Edit Sample Expense" : "View Sample Expense"}
+        {isCreateMode
+          ? "Create Sample Expense"
+          : isEditMode
+          ? "Edit Sample Expense"
+          : "View Sample Expense"}
       </div>
 
-      {/* Header Fields */}
       <BoxPrimary>
         <div className="grid gap-4 mb-4 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1">
           <div>
@@ -520,16 +701,16 @@ export default function ActionSampleExpense() {
               <Select
                 disabled={isViewMode || isSubDealerDisabled}
                 placeholder="Select"
-                className="w-full border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
+                className="w-full"
                 options={subDealers}
                 showSearch
                 optionFilterProp="label"
                 onChange={(value) => {
-                  const s = subDealers.find((x) => x.value === value);
+                  const selected = subDealers.find((x) => x.value === value);
                   setData((prev) => ({
                     ...prev,
                     sub_dealer_id: value,
-                    sub_dealer_name: s?.label || "",
+                    sub_dealer_name: selected?.label || "",
                     crop_id: null,
                     crop_name: null,
                   }));
@@ -556,7 +737,6 @@ export default function ActionSampleExpense() {
                   dealer_id: null,
                   dealer_name: null,
                 }));
-                setCrops([]);
               }}
             >
               No Sub Dealer
@@ -568,16 +748,16 @@ export default function ActionSampleExpense() {
             <Select
               disabled={isViewMode || !isSubDealerDisabled}
               placeholder="Dealer"
-              className="w-full border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
+              className="w-full"
               options={dealers}
               showSearch
               optionFilterProp="label"
               onChange={(value) => {
-                const d = dealers.find((x) => x.value === value);
+                const selected = dealers.find((x) => x.value === value);
                 setData((prev) => ({
                   ...prev,
                   dealer_id: value,
-                  dealer_name: d?.label || "",
+                  dealer_name: selected?.label || "",
                   crop_id: null,
                   crop_name: null,
                 }));
@@ -591,16 +771,16 @@ export default function ActionSampleExpense() {
             <Select
               disabled={isViewMode}
               placeholder="Select"
-              className="w-full border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
+              className="w-full"
               showSearch
               optionFilterProp="label"
               options={crops}
               onChange={(value) => {
-                const c = crops.find((x) => x.value === value);
+                const selected = crops.find((x) => x.value === value);
                 setData((prev) => ({
                   ...prev,
                   crop_id: value,
-                  crop_name: c?.label || "",
+                  crop_name: selected?.label || "",
                 }));
               }}
               value={data?.crop_id}
@@ -609,7 +789,6 @@ export default function ActionSampleExpense() {
         </div>
       </BoxPrimary>
 
-      {/* Product Search (hide in view mode) */}
       {!isViewMode && (
         <BoxPrimary title="Product Sample">
           <div className="mb-3 flex justify-end">
@@ -621,26 +800,29 @@ export default function ActionSampleExpense() {
               onChange={onChangeProduct}
               onSearch={onSearchProduct}
               options={searchProductData}
-              value=""
+              value={undefined}
             />
           </div>
         </BoxPrimary>
       )}
 
-      {/* List */}
       <BoxPrimary title="List">
-        <TableComponent header={productHeader} dataSource={dataSource} footer={footerSummary} pagination={false} />
+        <TableComponent
+          header={productHeader}
+          dataSource={dataSource}
+          footer={footerSummary}
+          pagination={false}
+        />
       </BoxPrimary>
 
-      {/* Totals */}
       <BoxPrimary>
         <div className="flex flex-col items-end space-y-4">
           <div className="flex items-center space-x-4">
             <label className="text-sm font-medium text-gray-700">Total Value Request:</label>
             <InputNumber
-              className="w-40 text-right border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
+              className="w-40 text-right rounded-md"
               min={0}
-              value={data.request_value || 0}
+              value={totalRequestValue}
               formatter={(value) =>
                 `${parseFloat(value || 0).toFixed(2)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
@@ -648,12 +830,12 @@ export default function ActionSampleExpense() {
             />
           </div>
 
-          <div className="flex items-center space-x-4 hidden">
+          <div className="flex items-center space-x-4">
             <label className="text-sm font-medium text-gray-700">Total Value Warehouse Send:</label>
             <InputNumber
-              className="w-40 text-right border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
+              className="w-40 text-right rounded-md"
               min={0}
-              value={data.warehouse_value || 0}
+              value={totalWarehouseValue}
               formatter={(value) =>
                 `${parseFloat(value || 0).toFixed(2)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
@@ -661,12 +843,12 @@ export default function ActionSampleExpense() {
             />
           </div>
 
-          <div className="flex items-center space-x-4 h">
+          <div className="flex items-center space-x-4">
             <label className="text-sm font-medium text-gray-700">Total Value Receive:</label>
             <InputNumber
-              className="w-40 text-right border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-md"
+              className="w-40 text-right rounded-md"
               min={0}
-              value={data.receive_value || 0}
+              value={totalReceiveValue}
               formatter={(value) =>
                 `${parseFloat(value || 0).toFixed(2)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
@@ -676,7 +858,6 @@ export default function ActionSampleExpense() {
         </div>
       </BoxPrimary>
 
-      {/* Attach file (multiple) */}
       {/* <UploadSection
         title="Attach File"
         fileUploadRef={fileUploadRef}
@@ -687,10 +868,9 @@ export default function ActionSampleExpense() {
         disabled={isViewMode}
       /> */}
 
-      {/* Remark */}
       <BoxPrimary title="Remark">
         <Input.TextArea
-          placeholder={data?.remark || "Remark"}
+          placeholder="Remark"
           rows={3}
           disabled={isViewMode}
           onChange={(e) => setData((prev) => ({ ...prev, remark: e.target.value }))}
@@ -700,7 +880,13 @@ export default function ActionSampleExpense() {
 
       <div className="flex justify-end space-x-4 mt-6">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/expenses/sample")} />
-        {!isViewMode && <ActionButton mode="save" text={mode === "create" ? "Create" : "Save"} onClick={handleSave} />}
+        {!isViewMode && (
+          <ActionButton
+            mode="save"
+            text={isCreateMode ? "Create" : "Save"}
+            onClick={handleSave}
+          />
+        )}
       </div>
     </MainLayout>
   );

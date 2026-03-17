@@ -68,6 +68,7 @@ export const paths = {
   pathMasterDealerCustomer: "master/dealer/customer",
   pathMasterSubDealer: "master/sub-dealer",
   pathMasterSubDealerAll: "master/sub-dealer-all",
+  pathMasterSubDealerAllTeam: "master/sub-dealer-all-team",
   pathMasterSubDealerSubDealers: "master/dealer-sub-dealers",
   pathMasterDealeretSubDealer: "master/sub-dealer-by-dealer",
   pathMasterSubDealerCustomer: "master/sub-dealer-customer",
@@ -180,6 +181,8 @@ export const paths = {
   pathMasterSaleSingle : "master/sale-single",
   pathMasterDealerDropdown: "master/dealer",
   pathMasterDealerAll: "master/dealer-all",
+  // master/dealer-all-team
+  pathMasterDealerAllTeam: "master/dealer-all-team",
   pathMasterDealerBySale: "master/dealers",
 
   pathMasterSaleByArea: "/master/area_user_sale",
@@ -346,6 +349,7 @@ export const paths = {
   // Expense Sample
   pathSampleExpenseList: "expense/sample/list",
   pathSampleExpenseDetailsAndCreate: "expense/sample/create",
+  pathSampleExpenseUpdate: "expense/sample/update",
   pathSampleGetDealer: "expense/sample/get-dealer-id",
   pathSampleStatus: "expense/sample/status",
 
