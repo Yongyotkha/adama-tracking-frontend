@@ -1,14 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import {
-  Form,
-  Input,
-  Col,
-  Row,
-  Select,
-  Modal,
-  InputNumber
-} from "antd";
+import { Form, Input, Col, Row, Select, InputNumber } from "antd";
 
 import MainLayout from "../../../layouts/MainLayout";
 import ActionButton from "../../../components/button/ActionButton";
@@ -24,10 +16,13 @@ export default function ActionMaterialExpense() {
   const location = useLocation();
   const navigate = useNavigate();
   const { showMsg, showNotification, userInfo } = useContext(AuthContext);
+
   const [formCustom] = Form.useForm();
   const [selectedCropIds, setSelectedCropIds] = useState([]);
   const [selectedProductIds, setSelectedProductIds] = useState([]);
-  const code = new URLSearchParams(location.search).get("documentNumber");
+
+  const code = location.state?.documentNumber || "";
+
   const [loading, setLoading] = useState(false);
   const [productsSearch, setProductsSearch] = useState([]);
   const [productSearchOptions, setProductSearchOptions] = useState([]);
@@ -42,14 +37,18 @@ export default function ActionMaterialExpense() {
 
   const renderTitle = () => {
     switch (mode) {
-      case "create": return "Create Material";
-      case "edit": return "Edit Material";
-      case "view": return "View Material";
-      default: return "Material";
+      case "create":
+        return "Create Material";
+      case "edit":
+        return "Edit Material";
+      case "view":
+        return "View Material";
+      case "transaction":
+        return "Transaction Material";
+      default:
+        return "Material";
     }
   };
-
-  console.log('mode : ', mode)
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -57,83 +56,94 @@ export default function ActionMaterialExpense() {
       try {
         const cropRes = await useServiceAPI.get(paths.pathMasterCrop, {});
 
-        setCrops(cropRes.data.map(item => ({
-          value: item.id,
-          label: item.name,
-        })));
+        setCrops(
+          cropRes.data.map((item) => ({
+            value: item.id,
+            label: item.name,
+          }))
+        );
 
-        if (mode === "edit" || mode === "view") {
+        if (mode === "edit" || mode === "view" || mode === "transaction") {
+          if (!code) {
+            showMsg("error", "ไม่พบ documentNumber");
+            navigate("/expenses/material");
+            return;
+          }
 
           const res = await useServiceAPI.get(paths.pathExpenseMaterialOne, {
             code: code,
             user_id: userInfo.id,
           });
 
-
           if (res.data) {
             const mat = res.data;
 
-            console.log(['mat : ', mat])
+            const cropIds = Array.isArray(mat.crops) ? mat.crops.map(Number) : [];
+            const productIds = Array.isArray(mat.products)
+              ? mat.products.map(Number)
+              : [];
 
-            const cropIds = mat.crops.map(Number);
-            const productIds = mat.products.map(Number);
+            const productRes = await useServiceAPI.get(
+              paths.pathMasterProductByCrop,
+              {
+                crop_list: cropIds,
+              }
+            );
 
-
-            const productRes = await useServiceAPI.get(paths.pathMasterProductByCrop, {
-              crop_list: cropIds,
-            });
-
-            const mappedProducts = productRes.data.map(item => ({
+            const mappedProducts = productRes.data.map((item) => ({
               value: item.id,
-              label: item.product_name,
+              label: `${(item.product_name || "").trim()} (${
+                item.packing_list || "-"
+              })`,
             }));
 
             setProducts(mappedProducts);
-            console.log('cropIds : ', crops)
-            console.log('productIds : ', products)
 
+            getMaterialProduct(productIds);
 
-            if (mode === 'edit' || mode === 'view') {
-              getMaterialProduct(productIds)
-              if (Array.isArray(mat.material_list)) {
-                const mappedMaterialList = mat.material_list.map((item, index) => {
-                  const imageList = (item.images || "").split(",").map(img => img.trim());
-                  const imageFile = imageList.find(url => /\.(jpg|jpeg|png)$/i.test(url));
+            if (Array.isArray(mat.material_list)) {
+              const mappedMaterialList = mat.material_list.map((item, index) => {
+                const imageList = (item.images || "")
+                  .split(",")
+                  .map((img) => img.trim());
+                const imageFile = imageList.find((url) =>
+                  /\.(jpg|jpeg|png)$/i.test(url)
+                );
 
-                  const qty = parseFloat(item.qty || 0);
-                  const price = parseFloat(item.unit_price || 0);
-                  const request = parseInt(item.request || 1);
-                  const warehouseSend = parseInt(item.send || 0);
-                  const receive = parseInt(item.receive || 0);
+                const qty = parseFloat(item.qty || 0);
+                const price = parseFloat(item.unit_price || 0);
+                const request = parseInt(item.request || 1);
+                const warehouseSend = parseInt(item.send || 0);
+                const receive = parseInt(item.receive || 0);
 
-                  return {
-                    id: item.id,
-                    key: index + 1,
-                    no: index + 1,
-                    material_name: item.name,
-                    material_photo: imageFile || "-",
-                    material_code: item.code || `M-${item.id}`,
-                    material_price: price,
-                    material_stcok: qty,
-                    material_request: request,
-                    material_value: price * request,
-                    material_wherehouse_send: warehouseSend,
-                    material_receive: receive,
-                  };
-                });
+                return {
+                  id: item.id,
+                  key: index + 1,
+                  no: index + 1,
+                  material_name: item.name,
+                  material_photo: imageFile || "-",
+                  material_code: item.code || `M-${item.id}`,
+                  material_price: price,
+                  material_stcok: qty,
+                  material_request: request,
+                  material_value: price * request,
+                  material_wherehouse_send: warehouseSend,
+                  material_receive: receive,
+                };
+              });
 
-                setDataSource(mappedMaterialList);
-              }
-
+              setDataSource(mappedMaterialList);
             }
 
-
-            const formattedFiles = (mat.images || "").split(',').map((url, index) => ({
-              uid: `${Date.now()}-${index}`,
-              name: url.trim().split("/").pop(),
-              status: "done",
-              url: url.trim(),
-            })).filter(f => f.url);
+            const formattedFiles = (mat.images || "")
+              .split(",")
+              .map((url, index) => ({
+                uid: `${Date.now()}-${index}`,
+                name: url.trim().split("/").pop(),
+                status: "done",
+                url: url.trim(),
+              }))
+              .filter((f) => f.url);
 
             const setval = {
               expense_material_code: mat.code,
@@ -147,12 +157,9 @@ export default function ActionMaterialExpense() {
               price: mat.unit_price,
               remark: mat.remark,
               photo: formattedFiles,
-            }
-
-            console.log('set val : ', setval)
+            };
 
             formCustom.setFieldsValue(setval);
-
             setFileList(formattedFiles);
           } else {
             showMsg("error", "ไม่พบข้อมูลที่ต้องการแก้ไข");
@@ -168,18 +175,21 @@ export default function ActionMaterialExpense() {
     };
 
     fetchInitialData();
-  }, [mode, code, userInfo.id]);
+  }, [mode, code, userInfo.id, navigate, showMsg, formCustom]);
 
   const handleUploadSuccess = (response) => {
     const file = response?.data;
     if (!file?.file_url) return;
 
-    setFileList(prev => [...prev, {
-      uid: `${file.file_key}-${file.original_name}`,
-      name: file.original_name,
-      status: "done",
-      url: file.file_url,
-    }]);
+    setFileList((prev) => [
+      ...prev,
+      {
+        uid: `${file.file_key}-${file.original_name}`,
+        name: file.original_name,
+        status: "done",
+        url: file.file_url,
+      },
+    ]);
   };
 
   const action = async () => {
@@ -187,11 +197,9 @@ export default function ActionMaterialExpense() {
       const values = await formCustom.validateFields();
 
       const images = fileList
-        .filter(f => f.status === "done" && f.url)
-        .map(f => f.url);
+        .filter((f) => f.status === "done" && f.url)
+        .map((f) => f.url);
 
-      // สร้าง payload หลัก
-      console.log("values:", values);
       const payload = {
         user_id: userInfo.id,
         code: values.expense_material_code || "AUTO",
@@ -208,7 +216,7 @@ export default function ActionMaterialExpense() {
         totalValueRequest: totalValueRequest,
         totalValueWareHoseSend: totalValueWareHoseSend,
         totalValueReceive: totalValueReceive,
-        material_list: dataSource.map(item => ({
+        material_list: dataSource.map((item) => ({
           id: item.id,
           material_code: item.material_code,
           price: item.material_price,
@@ -220,26 +228,18 @@ export default function ActionMaterialExpense() {
         })),
       };
 
-      console.log("Payload:", payload); // ตรวจสอบค่า
-
-      //return false
-
       setLoading(true);
 
       const res = await useServiceAPI.post(
-        mode === "create" ? paths.pathExpenseMaterialCreate : paths.pathExpenseMaterialEdit,
+        mode === "create"
+          ? paths.pathExpenseMaterialCreate
+          : paths.pathExpenseMaterialEdit,
         payload
       );
 
-      console.log('res : ', res)
-
-
       if (res.status === 200) {
         showNotification("success", "บันทึกข้อมูลสำเร็จ", "");
-        //navigate("/expenses/material");
-        if (mode == 'create') {
-          navigate("/expenses/material");
-        }
+        navigate("/expenses/material");
       } else {
         showMsg("error", res.data.message || "ไม่สามารถบันทึกข้อมูลได้");
       }
@@ -260,14 +260,18 @@ export default function ActionMaterialExpense() {
         crop_list: cropIds,
       });
 
-      const loadedOptions = productRes.data.map(item => ({
+      const loadedOptions = productRes.data.map((item) => ({
         value: item.id,
-        label: item.product_name || item.name || `Product ${item.id}`,
+        label: `${(
+          item.product_name ||
+          item.name ||
+          `Product ${item.id}`
+        ).trim()} (${item.packing_list || "-"})`,
       }));
 
       const mergedOptions = selectedIds
-        .filter(id => !loadedOptions.find(opt => opt.value === id))
-        .map(id => ({ value: id, label: `Product ${id}` }));
+        .filter((id) => !loadedOptions.find((opt) => opt.value === id))
+        .map((id) => ({ value: id, label: `Product ${id}` }));
 
       setProducts([...loadedOptions, ...mergedOptions]);
     } catch (err) {
@@ -285,17 +289,17 @@ export default function ActionMaterialExpense() {
         products: selectedProductsIds,
       });
 
-      // แสดงในตาราง
       setProductsSearch(res.data);
 
-      // ใช้ใน select search
       setProductSearchOptions(
-        res.data.map(item => ({
+        res.data.map((item) => ({
           value: item.id,
-          label: item.code + ' : ' + item.name || item.product_name || `Material ${item.id}`
+          label:
+            `${item.code} : ${item.name}` ||
+            item.product_name ||
+            `Material ${item.id}`,
         }))
       );
-
     } catch (err) {
       showMsg("error", err.message || "ไม่สามารถโหลด Products ได้");
     } finally {
@@ -304,8 +308,8 @@ export default function ActionMaterialExpense() {
   };
 
   const handleQuantityChange = (key, newValue) => {
-    setDataSource(prev =>
-      prev.map(item => {
+    setDataSource((prev) =>
+      prev.map((item) => {
         if (item.key === key) {
           const newRequest = Math.max(0, newValue);
           const newValueCalculated = newRequest * (item.material_price || 0);
@@ -325,11 +329,12 @@ export default function ActionMaterialExpense() {
     let sumWarehouseSend = 0;
     let sumReceive = 0;
 
-    dataSource.forEach(item => {
-      console.log('sum : ', dataSource)
+    dataSource.forEach((item) => {
       const req = parseFloat(item.material_value || 0);
-      const send = parseFloat(item.material_wherehouse_send || 0) * item.material_value;
-      const receive = parseFloat(item.material_receive || 0) * item.material_value;
+      const send =
+        parseFloat(item.material_wherehouse_send || 0) * item.material_value;
+      const receive =
+        parseFloat(item.material_receive || 0) * item.material_value;
 
       sumRequest += req;
       sumWarehouseSend += send;
@@ -341,6 +346,8 @@ export default function ActionMaterialExpense() {
     setTotalValueReceive(sumReceive);
   }, [dataSource]);
 
+  const isReadOnly = mode === "view" || mode === "transaction";
+
   const header = [
     { title: "No", dataIndex: "no", key: "no" },
     {
@@ -350,10 +357,14 @@ export default function ActionMaterialExpense() {
       key: "material_photo",
       render: (url) =>
         /\.(jpg|jpeg|png)$/i.test(url) ? (
-          <img src={url} alt="material" style={{ width: 60, height: 60, objectFit: "cover" }} />
+          <img
+            src={url}
+            alt="material"
+            style={{ width: 60, height: 60, objectFit: "cover" }}
+          />
         ) : (
           "-"
-        )
+        ),
     },
     { title: "Code", dataIndex: "material_code", key: "material_code", align: "center" },
     { title: "Name", dataIndex: "material_name", key: "material_name" },
@@ -369,7 +380,9 @@ export default function ActionMaterialExpense() {
           <img
             src="/img/icons/collapse.png"
             alt="decrease"
-            className={`cursor-pointer w-6 h-6 ${mode === "view" ? "opacity-50 pointer-events-none" : ""}`}
+            className={`cursor-pointer w-6 h-6 ${
+              isReadOnly ? "opacity-50 pointer-events-none" : ""
+            }`}
             onClick={() =>
               handleQuantityChange(record.key, (record.material_request || 0) - 1)
             }
@@ -377,16 +390,19 @@ export default function ActionMaterialExpense() {
           <Input
             inputMode="numeric"
             min={0}
+            disabled={isReadOnly}
             value={record.material_request || 0}
             onChange={(e) =>
-              handleQuantityChange(record.key, parseInt(e.target.value) || 0)
+              handleQuantityChange(record.key, parseInt(e.target.value, 10) || 0)
             }
             className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
           />
           <img
             src="/img/icons/expand.png"
             alt="increase"
-            className={`cursor-pointer w-6 h-6 ${mode === "view" ? "opacity-50 pointer-events-none" : ""}`}
+            className={`cursor-pointer w-6 h-6 ${
+              isReadOnly ? "opacity-50 pointer-events-none" : ""
+            }`}
             onClick={() =>
               handleQuantityChange(record.key, (record.material_request || 0) + 1)
             }
@@ -396,17 +412,20 @@ export default function ActionMaterialExpense() {
     },
     { title: "Value", dataIndex: "material_value", key: "material_value" },
     {
-      title: "Warehouse Send", dataIndex: "material_wherehouse_send", key: "material_wherehouse_send", align: "center",
+      title: "Warehouse Send",
+      dataIndex: "material_wherehouse_send",
+      key: "material_wherehouse_send",
+      align: "center",
       render: (_, record) => (
         <Input
-          disabled={true}
+          disabled
           type="number"
           min={0}
           value={record.material_wherehouse_send}
           onChange={(e) => {
-            const val = parseInt(e.target.value) || 0;
-            setDataSource(prev =>
-              prev.map(item =>
+            const val = parseInt(e.target.value, 10) || 0;
+            setDataSource((prev) =>
+              prev.map((item) =>
                 item.key === record.key
                   ? { ...item, material_wherehouse_send: val }
                   : item
@@ -414,20 +433,23 @@ export default function ActionMaterialExpense() {
             );
           }}
         />
-      )
+      ),
     },
     {
-      title: "Receive", dataIndex: "material_receive", key: "material_receive", align: "center",
+      title: "Receive",
+      dataIndex: "material_receive",
+      key: "material_receive",
+      align: "center",
       render: (_, record) => (
         <Input
-          disabled={true}
+          disabled
           type="number"
           min={0}
           value={record.material_receive}
           onChange={(e) => {
-            const val = parseInt(e.target.value) || 0;
-            setDataSource(prev =>
-              prev.map(item =>
+            const val = parseInt(e.target.value, 10) || 0;
+            setDataSource((prev) =>
+              prev.map((item) =>
                 item.key === record.key
                   ? { ...item, material_receive: val }
                   : item
@@ -435,33 +457,33 @@ export default function ActionMaterialExpense() {
             );
           }}
         />
-      )
+      ),
     },
     {
       title: <div className="text-center">Action</div>,
       key: "action",
       render: (_, record) => (
-        <button className="delete-button flex justify-center mx-auto">
+        <button className="delete-button flex justify-center mx-auto" type="button">
           <img
             src="/img/icons/delete.png"
             alt="delete"
-            className="cursor-pointer w-6 h-6"
+            className={`w-6 h-6 ${isReadOnly ? "opacity-50 pointer-events-none" : "cursor-pointer"}`}
             onClick={() => {
-              if (mode === "view") {
-                console.log('what dose')
-              } else {
-                const updated = dataSource.filter(item => item.key !== record.key);
-                const reset = updated.map((item, i) => ({ ...item, key: i + 1, no: i + 1 }));
+              if (isReadOnly) return;
 
-                console.log('del material list : ', reset)
-                setDataSource(reset);
-              }
+              const updated = dataSource.filter((item) => item.key !== record.key);
+              const reset = updated.map((item, i) => ({
+                ...item,
+                key: i + 1,
+                no: i + 1,
+              }));
 
+              setDataSource(reset);
             }}
           />
         </button>
       ),
-    }
+    },
   ];
 
   const formFields = [
@@ -474,15 +496,14 @@ export default function ActionMaterialExpense() {
       value: fileList,
       multiple: true,
       accept: ".pdf,.png,.jpg,.jpeg",
-      disabled: mode === "view"
+      disabled: isReadOnly,
     },
     {
       label: "Remark",
       name: "remark",
       type: "text",
       col: 24,
-      disabled: mode === "view",
-
+      disabled: isReadOnly,
     },
   ];
 
@@ -498,6 +519,7 @@ export default function ActionMaterialExpense() {
                 <Input placeholder="Generate" disabled />
               </Form.Item>
             </Col>
+
             <Col md={6}>
               <Form.Item
                 label="Crop"
@@ -505,7 +527,7 @@ export default function ActionMaterialExpense() {
                 rules={[{ required: true, message: "กรุณาเลือก Crop" }]}
               >
                 <Select
-                  disabled={mode === "view"}
+                  disabled={isReadOnly}
                   mode="multiple"
                   placeholder="Select Crop"
                   options={crops}
@@ -514,6 +536,7 @@ export default function ActionMaterialExpense() {
                 />
               </Form.Item>
             </Col>
+
             <Col md={6}>
               <Form.Item
                 label="Product"
@@ -521,10 +544,11 @@ export default function ActionMaterialExpense() {
                 rules={[{ required: true, message: "กรุณาเลือก Product" }]}
               >
                 <Select
-                  disabled={mode === "view"}
+                  disabled={isReadOnly}
                   mode="multiple"
                   placeholder="Select Product"
                   options={products}
+                  optionFilterProp="label"
                   onChange={(value) => setSelectedProductIds(value)}
                   onBlur={() => getMaterialProduct(selectedProductIds)}
                 />
@@ -537,23 +561,23 @@ export default function ActionMaterialExpense() {
           <div className="mb-3 flex justify-end">
             <Select
               showSearch
-              disabled={mode === "view"}
+              disabled={isReadOnly}
               placeholder="Search Material"
               name="material_search"
               optionFilterProp="label"
               className="w-full"
               options={productSearchOptions}
               onChange={(selectedId) => {
-                const selectedMaterial = productsSearch.find(item => item.id === selectedId);
+                const selectedMaterial = productsSearch.find(
+                  (item) => item.id === selectedId
+                );
 
-                console.log('selectedMaterial : ', selectedMaterial)
                 if (!selectedMaterial) {
                   showMsg("error", "ไม่พบข้อมูล Material ที่เลือก");
                   return;
                 }
 
-                // ป้องกันซ้ำ
-                if (dataSource.some(item => item.id === selectedMaterial.id)) {
+                if (dataSource.some((item) => item.id === selectedMaterial.id)) {
                   showMsg("warning", "Material นี้ถูกเพิ่มในรายการแล้ว");
                   return;
                 }
@@ -564,30 +588,31 @@ export default function ActionMaterialExpense() {
                   no: dataSource.length + 1,
                   material_name: selectedMaterial.name,
                   material_photo: (() => {
-                    const imageList = (selectedMaterial.images || "").split(",").map(img => img.trim());
-                    const imageFile = imageList.find(url => /\.(jpg|jpeg|png)$/i.test(url));
+                    const imageList = (selectedMaterial.images || "")
+                      .split(",")
+                      .map((img) => img.trim());
+                    const imageFile = imageList.find((url) =>
+                      /\.(jpg|jpeg|png)$/i.test(url)
+                    );
                     return imageFile || "-";
                   })(),
                   material_code: selectedMaterial.code || `M-${selectedMaterial.id}`,
                   material_price: selectedMaterial.unit_price || 0,
                   material_stcok: selectedMaterial.qty || 0,
                   material_request: 1,
-                  material_value: (selectedMaterial.unit_price || 0) * 1, // คำนวณทันที
-                  material_wherehouse_send: 0 * 1,
-                  material_receive: 0 * 1
+                  material_value: (selectedMaterial.unit_price || 0) * 1,
+                  material_wherehouse_send: 0,
+                  material_receive: 0,
                 };
 
-                setDataSource(prev => [...prev, newItem]);
+                setDataSource((prev) => [...prev, newItem]);
               }}
             />
           </div>
         </BoxPrimary>
 
         <BoxPrimary title="Material List" className="m-1 mb-4">
-          <TableAction
-            header={header}
-            dataSource={dataSource}
-          />
+          <TableAction header={header} dataSource={dataSource} />
         </BoxPrimary>
 
         <BoxPrimary className="m-1 flex flex-col items-end gap-2 text-right text-[14px]">
@@ -596,10 +621,13 @@ export default function ActionMaterialExpense() {
             <InputNumber
               className="w-[200px]"
               min={0}
-              disabled={true}
+              disabled
               value={totalValueRequest}
               formatter={(value) =>
-                `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                `${parseInt(value || 0, 10)}`.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  ","
+                )
               }
             />
           </div>
@@ -609,10 +637,13 @@ export default function ActionMaterialExpense() {
             <InputNumber
               className="w-[200px]"
               min={0}
-              disabled={true}
+              disabled
               value={totalValueWareHoseSend}
               formatter={(value) =>
-                `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                `${parseInt(value || 0, 10)}`.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  ","
+                )
               }
             />
           </div>
@@ -622,15 +653,17 @@ export default function ActionMaterialExpense() {
             <InputNumber
               className="w-[200px]"
               min={0}
-              disabled={true}
+              disabled
               value={totalValueReceive}
               formatter={(value) =>
-                `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                `${parseInt(value || 0, 10)}`.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  ","
+                )
               }
             />
           </div>
         </BoxPrimary>
-
       </Form>
 
       <FormCustom
@@ -640,24 +673,32 @@ export default function ActionMaterialExpense() {
         onUploadFinish={handleUploadSuccess}
         mode={mode}
       />
+
       <div className="flex justify-end space-x-4 mt-6">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/expenses/material")} />
+        <ActionButton
+          mode="back"
+          text="Back"
+          onClick={() => navigate("/expenses/material")}
+        />
+
         <ActionButton
           mode="saveDraft"
           text="Export PDF"
           onClick={() => {
-            const targetUrl = `/expenses/material/pdf?material_number=${formCustom.getFieldValue("expense_material_code") || ""}`;
+            const targetUrl = `/expenses/material/pdf?material_number=${
+              formCustom.getFieldValue("expense_material_code") || ""
+            }`;
             window.open(targetUrl, "_blank");
           }}
         />
-        {mode !== "view" && (
+
+        {!isReadOnly && (
           <ActionButton
             mode="update"
             text={mode === "create" ? "Create" : "Save"}
             onClick={action}
           />
         )}
-
       </div>
     </MainLayout>
   );

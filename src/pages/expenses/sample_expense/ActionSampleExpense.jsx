@@ -199,27 +199,12 @@ export default function ActionSampleExpense() {
             value,
             totalValue: qty * value,
             remark: p.ref_remark || "",
-            warehouseSend: Number(p.warehouse_send || qty || 0),
-            receive: Number(p.receive || qty || 0),
+            warehouseSend: Number(p.warehouse_qty || p.warehouse_send || qty || 0),
+            receive: Number(p.receive_qty || p.receive || qty || 0),
           };
         });
 
         setDataSource(newProductDataDetails);
-
-        const totalRequestValue = newProductDataDetails.reduce(
-          (acc, item) => acc + Number(item.totalValue || 0),
-          0
-        );
-
-        const totalWarehouseValue = newProductDataDetails.reduce(
-          (acc, item) => acc + Number(item.warehouseSend || 0) * Number(item.value || 0),
-          0
-        );
-
-        const totalReceiveValue = newProductDataDetails.reduce(
-          (acc, item) => acc + Number(item.receive || 0) * Number(item.value || 0),
-          0
-        );
 
         const fileFromApi =
           responseData?.file_list ||
@@ -269,9 +254,9 @@ export default function ActionSampleExpense() {
           sub_dealer_name: responseData.sub_dealer_name || null,
           crop_id: normalizeId(responseData.crop_id),
           crop_name: responseData.crop_name || null,
-          request_value: Number(responseData.net_amount || totalRequestValue || 0),
-          warehouse_value: Number(responseData.net_amount_product || totalWarehouseValue || 0),
-          receive_value: Number(responseData.quantity_product || totalReceiveValue || 0),
+          request_value: Number(responseData.request_value || 0),
+          warehouse_value: Number(responseData.warehouse_value || 0),
+          receive_value: Number(responseData.receive_value || 0),
           remark: responseData.ref_remark || "",
         });
       } catch (error) {
@@ -423,7 +408,7 @@ export default function ActionSampleExpense() {
   };
 
   const totalRequestValue = dataSource.reduce(
-    (sum, item) => sum + Number(item.totalValue || 0),
+    (sum, item) => sum + Number(item.quantity || 0) * Number(item.value || 0),
     0
   );
 
@@ -493,32 +478,46 @@ export default function ActionSampleExpense() {
     const url_file_list = doneFiles.map((f) => f.url || "");
     const file_name_list = doneFiles.map((f) => f.name || "");
 
-    const productsForCreate = dataSource.map((item) => ({
-      product_id: item.productId,
-      product_code: item.sku,
-      product_name: item.productName,
-      product_unit: item.packSize,
-      product_unit_thb: item.value,
-      quantity: item.quantity,
-      foc: 0,
-      net_amount: item.value,
-      ref_remark: item.remark || null,
-      action_mode: actionMode,
-    }));
+    const productsForCreate = dataSource.map((item) => {
+      const quantity = Number(item.quantity || 0);
+      const productUnitThb = Number(item.value || 0);
+      const warehouseSendQty = Number(item.warehouseSend || 0);
+      const receiveQty = Number(item.receive || 0);
 
-    const productsForEdit = dataSource.map((item) => ({
-      product_id: item.productId,
-      product_code: item.sku,
-      product_name: item.productName,
-      product_unit: item.packSize,
-      quantity: Number(item.quantity || 0),
-      net_amount: item.value,
-      product_unit_thb: Number(item.value || 0),
-      ref_remark: item.remark || "",
-      warehouse_send: Number(item.warehouseSend || 0),
-      receive: Number(item.receive || 0),
-      action_mode: actionMode,
-    }));
+      return {
+        product_id: Number(item.productId || 0),
+        product_code: item.sku || "",
+        product_name: item.productName || "",
+        product_unit: item.packSize || "",
+        product_unit_thb: productUnitThb,
+        quantity,
+        warehouse_qty: warehouseSendQty,
+        receive_qty: receiveQty,
+        foc: 0,
+        net_amount: quantity * productUnitThb,
+        ref_remark: item.remark || "",
+        action_mode: actionMode,
+      };
+    });
+
+    const productsForEdit = dataSource.map((item) => {
+      const quantity = Number(item.quantity || 0);
+      const productUnitThb = Number(item.value || 0);
+
+      return {
+        product_id: Number(item.productId || 0),
+        product_code: item.sku || "",
+        product_name: item.productName || "",
+        product_unit: item.packSize || "",
+        quantity,
+        warehouse_qty: Number(item.warehouseSend || 0),
+        receive_qty: Number(item.receive || 0),
+        net_amount: quantity * productUnitThb,
+        product_unit_thb: productUnitThb,
+        ref_remark: item.remark || "",
+        action_mode: actionMode,
+      };
+    });
 
     try {
       setLoading(true);
@@ -558,11 +557,16 @@ export default function ActionSampleExpense() {
         }
       } else {
         const payload = {
+          platform: "web",
+          document_datetime: documentDate,
           document_date: documentDate,
           user_id: userId,
-          dealer_id: isSubDealerDisabled ? data?.dealer_id : "",
-          sub_dealer_id: isSubDealerDisabled ? "" : data?.sub_dealer_id,
-          crop_id: data?.crop_id,
+          dealer_id: isSubDealerDisabled ? Number(data?.dealer_id) : null,
+          sub_dealer_id: isSubDealerDisabled ? null : Number(data?.sub_dealer_id),
+          crop_id: Number(data?.crop_id),
+          request_value: totalRequestValue,
+          warehouse_value: totalWarehouseValue,
+          receive_value: totalReceiveValue,
           remark: data?.remark || "",
           file_list,
           action_mode: actionMode,
@@ -592,10 +596,6 @@ export default function ActionSampleExpense() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSaveDraft = async () => {
-    showNotification("info", "Save Draft is not implemented yet.");
   };
 
   const productHeader = [
@@ -756,6 +756,7 @@ export default function ActionSampleExpense() {
                 className="w-full"
                 options={subDealers}
                 showSearch
+                allowClear
                 optionFilterProp="label"
                 onChange={(value) => {
                   const selected = subDealers.find((x) => x.value === value);
@@ -803,6 +804,7 @@ export default function ActionSampleExpense() {
               className="w-full"
               options={dealers}
               showSearch
+              allowClear
               optionFilterProp="label"
               onChange={(value) => {
                 const selected = dealers.find((x) => x.value === value);
@@ -819,11 +821,12 @@ export default function ActionSampleExpense() {
           </div>
 
           <div>
-            <label className="block mb-1 text-sm">Crop</label>
+            <label className="block mb-1 text-sm">Crop <span className="text-[#f11113]">*</span></label>
             <Select
               disabled={isViewMode}
               placeholder="Select"
               className="w-full"
+              allowClear
               showSearch
               optionFilterProp="label"
               options={crops}

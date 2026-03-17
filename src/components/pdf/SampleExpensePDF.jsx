@@ -47,10 +47,20 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
+  infoBox: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "#000",
+    padding: 8,
+    marginBottom: 5,
+  },
+
   table: {
     width: "100%",
     borderWidth: 1,
     borderColor: "#000",
+    borderBottom: 0,
     marginTop: 4,
   },
   tableRow: {
@@ -101,15 +111,58 @@ const styles = StyleSheet.create({
 
   footer: {
     marginTop: 10,
-    fontSize: 9,
     width: "100%",
     borderWidth: 1,
     borderColor: "#000",
   },
-  footerRow: { flexDirection: "row" },
-  footerSection: { flex: 1, padding: 5, borderRightWidth: 1, borderRightColor: "#000" },
-  footerSectionLast: { flex: 1, padding: 5 },
-  footerLabel: { fontWeight: "bold" },
+  footerRow: {
+    flexDirection: "row",
+  },
+  signBox: {
+    flex: 1,
+    minHeight: 70,
+    borderRightWidth: 1,
+    borderRightColor: "#000",
+    paddingTop: 6,
+    paddingHorizontal: 8,
+    paddingBottom: 6,
+    justifyContent: "space-between",
+  },
+  signBoxLast: {
+    flex: 1,
+    minHeight: 70,
+    paddingTop: 6,
+    paddingHorizontal: 8,
+    paddingBottom: 6,
+    justifyContent: "space-between",
+  },
+  signTitle: {
+    fontSize: 8,
+    textAlign: "center",
+    textDecoration: "underline",
+    fontWeight: "bold",
+  },
+  signSpace: {
+    height: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  signSpaceApproved: {
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  signName: {
+    fontSize: 10,
+    textAlign: "center",
+    fontWeight: "bold",
+    height: 20,
+  },
+  signRole: {
+    fontSize: 8,
+    textAlign: "center",
+    fontWeight: "bold",
+  },
 
   totalBox: {
     borderWidth: 1,
@@ -123,43 +176,33 @@ const SampleExpensePDF = () => {
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
   const getMaterial = searchParams.get("sample_number");
-  const getPageCode = searchParams.get("page_code");
 
   const [dataItems, setDataItems] = useState([]);
   const [dataHeader, setDataHeader] = useState({});
-  const [dataCrop, setDataCrop] = useState([]);
 
   useEffect(() => {
     const loadData = async () => {
+      if (!getMaterial) return;
+
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathExpenseMaterialOne, {
-          code: getMaterial,
+        const response = await useServiceAPI.get(paths.pathSampleExpenseDetailsAndCreate, {
+          document_number: getMaterial,
         });
 
         if (response.status === 200) {
-          setDataItems(response.data.material_list || []);
-          setDataHeader(response.data || {});
-          setDataCrop(response.data.crops || []);
+          setDataItems(response.data?.items || []);
+          setDataHeader(response.data?.header || {});
         }
       } catch (error) {
-        console.error("Error fetching material data:", error.message);
+        console.error("Error fetching sample expense data:", error);
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, [getMaterial, getPageCode]);
-
-  const formatNumber = (val) => {
-    const n = Number(val);
-    if (!Number.isFinite(n)) return "0";
-    return n.toLocaleString("en-US", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    });
-  };
+  }, [getMaterial]);
 
   const formatNumber2 = (val) => {
     const n = Number(val);
@@ -184,20 +227,9 @@ const SampleExpensePDF = () => {
     return value !== undefined && value !== null && value !== "" ? value : fallback;
   };
 
-  const getRowValue = (item, keys = [], fallback = "-") => {
-    for (const key of keys) {
-      const value = item?.[key];
-      if (value !== undefined && value !== null && value !== "") return value;
-    }
-    return fallback;
-  };
-
-  const getNumericRowValue = (item, keys = [], fallback = 0) => {
-    for (const key of keys) {
-      const value = Number(item?.[key]);
-      if (Number.isFinite(value)) return value;
-    }
-    return fallback;
+  const safeRole = (value) => {
+    if (value === undefined || value === null || value === "") return "(-)";
+    return `(${value})`;
   };
 
   return (
@@ -227,27 +259,18 @@ const SampleExpensePDF = () => {
 
           <View style={styles.sectionTop}>
             <Text style={{ fontWeight: "bold" }}>
-              Expense Sample No: {safeVal(dataHeader.code)}
+              Expense Sample No: {safeVal(dataHeader.document_number)}
             </Text>
             <Text style={{ fontWeight: "bold" }}>
-              Date: {formatDate(dataHeader.created_at)}
+              Date: {formatDate(dataHeader.document_date || dataHeader.document_datetime)}
             </Text>
           </View>
 
-          <View
-            style={{
-              ...styles.sectionTop,
-              borderWidth: 1,
-              borderColor: "#000",
-              padding: 8,
-              marginBottom: 5,
-            }}
-          >
+          <View style={styles.infoBox}>
             <Text
               style={{
                 fontWeight: "bold",
                 fontSize: 12,
-                marginRight: "auto",
                 width: "50%",
               }}
             >
@@ -257,11 +280,10 @@ const SampleExpensePDF = () => {
               style={{
                 fontWeight: "bold",
                 fontSize: 12,
-                marginRight: "auto",
                 width: "50%",
               }}
             >
-              Regions: {safeVal(dataHeader.user_region)}
+              Regions: {safeVal(dataHeader.dealer_name || dataHeader.sub_dealer_name)}
             </Text>
           </View>
 
@@ -272,11 +294,11 @@ const SampleExpensePDF = () => {
               <Text style={{ ...styles.cellHeader, width: "7%" }}>QTY{"\n"}KG/LT</Text>
               <Text style={{ ...styles.cellHeader, width: "22%" }}>Product Name</Text>
               <Text style={{ ...styles.cellHeader, width: "7%" }}>Unit{"\n"}/ CT</Text>
-              <Text style={{ ...styles.cellHeader, width: "8%" }}>Total QTY{"\n"}/ CT</Text>
-              <Text style={{ ...styles.cellHeader, width: "8%" }}>Total QTY{"\n"}/ Unit</Text>
-              <Text style={{ ...styles.cellHeader, width: "10%" }}>Prod{"\n"}Code</Text>
-              <Text style={{ ...styles.cellHeader, width: "8%" }}>Price{"\n"}/ Unit</Text>
-              <Text style={{ ...styles.cellHeader, width: "8%" }}>Price{"\n"}/ Kg/Lt</Text>
+              {/* <Text style={{ ...styles.cellHeader, width: "8%" }}>Total QTY{"\n"}/ CT</Text> */}
+              <Text style={{ ...styles.cellHeader, width: "10%" }}>Total QTY{"\n"}/ Unit</Text>
+              <Text style={{ ...styles.cellHeader, width: "14%" }}>Product{"\n"}Code</Text>
+              <Text style={{ ...styles.cellHeader, width: "10%" }}>Price{"\n"}/ Unit</Text>
+              {/* <Text style={{ ...styles.cellHeader, width: "8%" }}>Price{"\n"}Kg/Lt</Text> */}
               <Text style={{ ...styles.cellHeader, width: "12%" }}>Value</Text>
               <Text style={{ ...styles.cellHeader, ...styles.lastCol, width: "10%" }}>
                 Remark
@@ -284,59 +306,41 @@ const SampleExpensePDF = () => {
             </View>
 
             {dataItems.map((item, index) => {
-              const reqUnit = getRowValue(item, ["request", "request_unit", "req_unit"], "-");
-              const qtyKgLt = getNumericRowValue(item, ["qty_kg_lt", "qty", "request_qty"], 0);
-              const productName = getRowValue(item, ["name", "product_name"], "-");
-              const unitPerCt = getNumericRowValue(item, ["unit_per_ct", "unit_ct", "unit"], 0);
-              const totalQtyPerCt = getNumericRowValue(
-                item,
-                ["total_qty_per_ct", "qty_per_ct", "total_ct"],
-                0
-              );
-              const totalQtyPerUnit = getNumericRowValue(
-                item,
-                ["total_qty_per_unit", "qty_per_unit"],
-                0
-              );
-              const prodCode = getRowValue(item, ["product_code", "code"], "-");
-              const pricePerUnit = getNumericRowValue(
-                item,
-                ["price_per_unit", "unit_price"],
-                0
-              );
-              const pricePerKgLt = getNumericRowValue(
-                item,
-                ["price_per_kg_lt", "unit_price_kg_lt"],
-                0
-              );
-              const value = getNumericRowValue(item, ["value"], pricePerUnit * qtyKgLt);
-              const remark = getRowValue(item, ["remark"], "-");
+              const qty = Number(item?.quantity || 0);
+              const unitPrice = Number(item?.product_unit_thb || item?.net_amount || 0);
+              const totalValue = qty * unitPrice;
 
               return (
                 <View style={styles.tableRow} key={index}>
                   <Text style={{ ...styles.cell, width: "4%" }}>{index + 1}</Text>
-                  <Text style={{ ...styles.cell, width: "6%" }}>{safeVal(reqUnit)}</Text>
-                  <Text style={{ ...styles.cell, width: "7%" }}>{formatNumber2(qtyKgLt)}</Text>
+                  <Text style={{ ...styles.cell, width: "6%" }}>Unit</Text>
+                  <Text style={{ ...styles.cell, width: "7%" }}>{formatNumber2(qty)}</Text>
                   <Text style={{ ...styles.cell, ...styles.cellLeft, width: "22%" }}>
-                    {safeVal(productName)}
+                    {safeVal(item?.product_name)}
                   </Text>
-                  <Text style={{ ...styles.cell, width: "7%" }}>{formatNumber(unitPerCt)}</Text>
-                  <Text style={{ ...styles.cell, width: "8%" }}>
-                    {formatNumber(totalQtyPerCt)}
+                  <Text style={{ ...styles.cell, width: "7%" }}>
+                    {safeVal(item?.product_unit)}
                   </Text>
-                  <Text style={{ ...styles.cell, width: "8%" }}>
-                    {formatNumber2(totalQtyPerUnit)}
+                  {/* <Text style={{ ...styles.cell, width: "8%" }}>
+                    {formatNumber2(qty)}
+                  </Text> */}
+                  <Text style={{ ...styles.cell, width: "10%" }}>
+                    {formatNumber2(qty)}
                   </Text>
-                  <Text style={{ ...styles.cell, width: "10%" }}>{safeVal(prodCode)}</Text>
-                  <Text style={{ ...styles.cell, width: "8%" }}>
-                    {formatNumber2(pricePerUnit)}
+                  <Text style={{ ...styles.cell, width: "14%" }}>
+                    {safeVal(item?.product_code)}
                   </Text>
-                  <Text style={{ ...styles.cell, width: "8%" }}>
-                    {formatNumber2(pricePerKgLt)}
+                  <Text style={{ ...styles.cell, width: "10%" }}>
+                    {formatNumber2(unitPrice)}
                   </Text>
-                  <Text style={{ ...styles.cell, width: "12%" }}>{formatNumber2(value)}</Text>
+                  {/* <Text style={{ ...styles.cell, width: "8%" }}>
+                    {formatNumber2(unitPrice)}
+                  </Text> */}
+                  <Text style={{ ...styles.cell, width: "12%" }}>
+                    {formatNumber2(totalValue)}
+                  </Text>
                   <Text style={{ ...styles.cell, ...styles.lastCol, width: "10%" }}>
-                    {safeVal(remark)}
+                    {safeVal(item?.ref_remark)}
                   </Text>
                 </View>
               );
@@ -345,32 +349,67 @@ const SampleExpensePDF = () => {
 
           <View style={styles.totalBox}>
             <Text style={{ fontWeight: "bold" }}>
-              Total (THB): {formatNumber2(dataHeader.request || dataHeader.total || 0)}
+              Total (THB): {formatNumber2(dataHeader.net_amount || 0)}
             </Text>
           </View>
 
           <View style={styles.remarkBox}>
             <Text style={styles.remarkTitle}>Remark:</Text>
-            <Text style={styles.remarkText}>{safeVal(dataHeader.remark)}</Text>
+            <Text style={styles.remarkText}>{safeVal(dataHeader.ref_remark)}</Text>
           </View>
 
           <View style={styles.footer}>
             <View style={styles.footerRow}>
-              <View style={styles.footerSection}>
-                <Text style={styles.footerLabel}>Requested By</Text>
-                <Text>{safeVal(dataHeader.requested_by)}</Text>
+              <View style={styles.signBox}>
+                <Text style={styles.signTitle}>Requested By</Text>
+                <View style={styles.signSpace}>
+                  <Text> </Text>
+                </View>
+                {/* <Text style={styles.signName}>
+                  {safeVal(dataHeader.requested_by_name || dataHeader.created_by)}
+                </Text> */}
+                {/* <Text style={styles.signRole}>
+                  {safeRole(dataHeader.requested_by_role || "Sale / BD")}
+                </Text> */}
               </View>
-              <View style={styles.footerSection}>
-                <Text style={styles.footerLabel}>Agreed By</Text>
-                <Text>{safeVal(dataHeader.agreed_by)}</Text>
+
+              <View style={styles.signBox}>
+                <Text style={styles.signTitle}>Agreed By</Text>
+                <View style={styles.signSpace}>
+                  <Text> </Text>
+                </View>
+                {/* <Text style={styles.signName}>
+                  {safeVal(dataHeader.agreed_by_name)}
+                </Text> */}
+                {/* <Text style={styles.signRole}>
+                  {safeRole(dataHeader.agreed_by_role || "Area Manager")}
+                </Text> */}
               </View>
-              <View style={styles.footerSection}>
-                <Text style={styles.footerLabel}>Approved By</Text>
-                <Text>{safeVal(dataHeader.approved_by)}</Text>
+
+              <View style={styles.signBox}>
+                <Text style={styles.signTitle}>Approved By</Text>
+                <View style={styles.signSpaceApproved}>
+                  <Text> </Text>
+                </View>
+                {/* <Text style={styles.signName}>
+                  {safeVal(dataHeader.approved_by_name)}
+                </Text> */}
+                {/* <Text style={styles.signRole}>
+                  {safeRole(dataHeader.approved_by_role || "Sales Director")}
+                </Text> */}
               </View>
-              <View style={styles.footerSectionLast}>
-                <Text style={styles.footerLabel}>Delivered/Checked By</Text>
-                <Text>{safeVal(dataHeader.delivered_by)}</Text>
+
+              <View style={styles.signBoxLast}>
+                <Text style={styles.signTitle}>Delivered / Checked By</Text>
+                <View style={styles.signSpace}>
+                  <Text> </Text>
+                </View>
+                {/* <Text style={styles.signName}>
+                  {safeVal(dataHeader.delivered_by_name)}
+                </Text> */}
+                {/* <Text style={styles.signRole}>
+                  {safeRole(dataHeader.delivered_by_role)}
+                </Text> */}
               </View>
             </View>
           </View>
