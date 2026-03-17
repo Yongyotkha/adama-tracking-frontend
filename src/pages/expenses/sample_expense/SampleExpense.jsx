@@ -122,8 +122,8 @@ export default function SampleExpense() {
         try {
           setLoading(true);
 
-          const res = await useServiceAPI.delete(
-            paths.pathActivityExpenseDelete,
+          const res = await useServiceAPI.put(
+            paths.pathSampleDelete,
             {
               document_number,
               page_code: 'sample',
@@ -383,7 +383,7 @@ export default function SampleExpense() {
     { title: "Sub Dealer", dataIndex: "sub_dealer_name", align: "left" },
     { title: "Crop", dataIndex: "crop_name", align: "left" },
     { title: "Qty Product", dataIndex: "quantity_product", align: "right" },
-    { title: "Net Amount", dataIndex: "net_amount", align: "right" },
+    { title: "Net Amount", dataIndex: "net_amount_product", align: "right" },
     { title: "Remark", dataIndex: "ref_remark", align: "left" },
     { title: "Status", dataIndex: "status", align: "center" },
     { title: "Action", dataIndex: "action", align: "center" },

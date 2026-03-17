@@ -24,6 +24,7 @@ Font.register({
 
 const styles = StyleSheet.create({
   page: { padding: 15, fontSize: 8, fontFamily: "Sarabun" },
+
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -32,15 +33,87 @@ const styles = StyleSheet.create({
   },
   logo: { width: 50, height: 50 },
   companyDetails: { flex: 1, paddingLeft: 10, fontSize: 8 },
-  title: { textAlign: "center", fontSize: 14, fontWeight: "bold", marginBottom: 10 },
-  sectionTop: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10 },
-  sectionColumn: { width: "50%", borderWidth: 1, borderColor: "#000", padding: 5 },
-  table: { display: "table", width: "100%", borderStyle: "solid", borderWidth: 1, borderColor: "#000", borderRight: 0 },
-  tableRow: { flexDirection: "row", lineHeight: 0.5 },
-  tableCellMainHeader: { borderBottomWidth: 1, padding: 5, fontWeight: "bold", textAlign: "center", borderRightWidth: 1 },
-  tableCellHeader: { borderBottomWidth: 1, padding: 5, fontWeight: "bold", textAlign: "center", flex: 1, borderRightWidth: 1 },
-  tableCell: { padding: 5, flex: 1, textAlign: "center", borderRightWidth: 1 },
-  tableCellLast: { borderRightWidth: 0 },
+
+  title: {
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+
+  sectionTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+
+  table: {
+    display: "table",
+    width: "100%",
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderColor: "#000",
+    marginTop: 4,
+    borderBottom: 0
+  },
+
+  tableRow: {
+    flexDirection: "row",
+    alignItems: "stretch",
+  },
+
+  tableHeaderRow: {
+    flexDirection: "row",
+    alignItems: "stretch",
+    backgroundColor: "#f2f2f2",
+  },
+
+  cellBase: {
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "#000",
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+    justifyContent: "center",
+  },
+
+  cellLast: {
+    borderRightWidth: 0,
+  },
+
+  headerText: {
+    fontSize: 8.5,
+    fontWeight: "bold",
+    textAlign: "center",
+    lineHeight: 1.3,
+  },
+
+  bodyTextCenter: {
+    fontSize: 8.5,
+    textAlign: "center",
+    lineHeight: 1.35,
+  },
+
+  bodyTextLeft: {
+    fontSize: 8.5,
+    textAlign: "left",
+    lineHeight: 1.35,
+  },
+
+  bodyTextRight: {
+    fontSize: 8.5,
+    textAlign: "right",
+    lineHeight: 1.35,
+  },
+
+  totalBox: {
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderColor: "#000",
+    padding: 8,
+  },
+
   RemarkBox: {
     width: "100%",
     borderStyle: "solid",
@@ -51,14 +124,37 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   RemarkTitle: { fontWeight: "bold", marginBottom: 4 },
-  RemarkText: { fontSize: 8, lineHeight: 0.75 },
-  footer: { marginTop: 10, fontSize: 9, display: "table", width: "100%", borderStyle: "solid", borderWidth: 1, borderColor: "#000" },
-  footerRow: { flexDirection: "row", lineHeight: 0.85 },
-  footerSection: { flex: 1, padding: 5, borderRightWidth: 1 },
-  footerSectionLast: { flex: 1, padding: 5 },
-  footerText: { marginBottom: 3 },
+  RemarkText: { fontSize: 8, lineHeight: 1.35 },
+
+  footer: {
+    marginTop: 10,
+    fontSize: 9,
+    display: "table",
+    width: "100%",
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderColor: "#000",
+  },
+
+  footerRow: {
+    flexDirection: "row",
+  },
+
+  footerSection: {
+    flex: 1,
+    padding: 5,
+    borderRightWidth: 1,
+    height: 70,
+    textAlign: "center",
+  },
+
+  footerSectionLast: {
+    flex: 1,
+    textAlign: "center",
+    padding: 5,
+  },
+
   footerLabel: { fontWeight: "bold" },
-  footerContentRow: { flexDirection: "row", justifyContent: "space-between", width: "100%" },
 });
 
 const MaterialExpensePDF = () => {
@@ -98,7 +194,8 @@ const MaterialExpensePDF = () => {
     const n = Number(val);
     if (!Number.isFinite(n)) return "0.00";
     return n.toLocaleString("en-US", {
-      minimumFractionDigits: 0,});
+      minimumFractionDigits: 0,
+    });
   };
 
   const formatNumber2 = (val) => {
@@ -117,6 +214,16 @@ const MaterialExpensePDF = () => {
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
+  };
+
+  const colWidths = {
+    no: "7%",
+    req: "11%",
+    name: "30%",
+    stock: "14%",
+    packing: "14%",
+    price: "12%",
+    value: "12%",
   };
 
   return (
@@ -148,38 +255,78 @@ const MaterialExpensePDF = () => {
 
           {/* Name and Regions */}
           <View style={{ ...styles.sectionTop, borderStyle: "solid", borderWidth: 1, borderColor: "#000", padding: 8, marginBottom: 5 }}>
-            <Text style={{ fontWeight: "bold", fontSize: 12, marginRight: "auto", width: "50%" }}>Name: {dataHeader.user_name || "-"}</Text>
-            <Text style={{ fontWeight: "bold", fontSize: 12, marginRight: 'auto', width: "50%" }}>Regions: {dataHeader.user_region || "-"}</Text>
+            <Text style={{ fontWeight: "bold", fontSize: 12, marginRight: "auto", width: "100%" }}>Name: {dataHeader.user_name || "-"}</Text>
+            {/* <Text style={{ fontWeight: "bold", fontSize: 12, marginRight: 'auto', width: "50%" }}>Regions: {dataHeader.user_region || "-"}</Text> */}
           </View>
 
           {/* Material List */}
           <View style={styles.table}>
-            <View style={styles.tableRow}>
-              <Text style={{ ...styles.tableCellHeader, width: "1%" }}>No</Text>
-              <Text style={{ ...styles.tableCellHeader, width: "1%" }}>Req Unit</Text>
-              <Text style={{ ...styles.tableCellHeader, width: "30%" }}>Materials Name</Text>
-              <Text style={{ ...styles.tableCellHeader, width: "15%" }}>Stock At</Text>
-              <Text style={{ ...styles.tableCellHeader, width: "15%" }}>Pc./Packing</Text>
-              <Text style={{ ...styles.tableCellHeader, width: "15%" }}>Price Per Pc.</Text>
-              <Text style={{ ...styles.tableCellHeader, width: "15%" }}>Value</Text>
+            <View style={styles.tableHeaderRow}>
+              <View style={[styles.cellBase, { width: colWidths.no }]}>
+                <Text style={styles.headerText}>No</Text>
+              </View>
+              <View style={[styles.cellBase, { width: colWidths.req }]}>
+                <Text style={styles.headerText}>Req Unit</Text>
+              </View>
+              <View style={[styles.cellBase, { width: colWidths.name }]}>
+                <Text style={styles.headerText}>Materials Name</Text>
+              </View>
+              <View style={[styles.cellBase, { width: colWidths.stock }]}>
+                <Text style={styles.headerText}>Stock At</Text>
+              </View>
+              <View style={[styles.cellBase, { width: colWidths.packing }]}>
+                <Text style={styles.headerText}>Pc./Packing</Text>
+              </View>
+              <View style={[styles.cellBase, { width: colWidths.price }]}>
+                <Text style={styles.headerText}>Price Per Pc.</Text>
+              </View>
+              <View style={[styles.cellBase, styles.cellLast, { width: colWidths.value }]}>
+                <Text style={styles.headerText}>Value</Text>
+              </View>
             </View>
 
-            {/* Map through the dataItems and display each row */}
-            {dataItems.map((item, index) => (
-              <View style={styles.tableRow} key={index}>
-                <Text style={{ ...styles.tableCell, width: "1%" }}>{index + 1}</Text>
-                <Text style={{ ...styles.tableCell, width: "1" }}>{item.request}</Text>
-                <Text style={{ ...styles.tableCell, width: "30%" }}>{item.name}</Text>
-                <Text style={{ ...styles.tableCell, width: "15%" }}>{formatNumber(item.qty)}</Text>
-                <Text style={{ ...styles.tableCell, width: "15%" }}>{item.size}</Text>
-                <Text style={{ ...styles.tableCell, width: "15%" }}>{formatNumber2(item.unit_price)}</Text>
-                <Text style={{ ...styles.tableCell, width: "15%" }}>{formatNumber2(item.unit_price * item.qty)}</Text>
-              </View>
-            ))}
+            {dataItems.map((item, index) => {
+              const requestQty = Number(item.request || 0);
+              const stockQty = Number(item.qty || 0);
+              const unitPrice = Number(item.unit_price || 0);
+              const totalValue = requestQty * unitPrice;
+
+              return (
+                <View style={styles.tableRow} key={index}>
+                  <View style={[styles.cellBase, { width: colWidths.no }]}>
+                    <Text style={styles.bodyTextCenter}>{index + 1}</Text>
+                  </View>
+
+                  <View style={[styles.cellBase, { width: colWidths.req }]}>
+                    <Text style={styles.bodyTextCenter}>{formatNumber(requestQty)}</Text>
+                  </View>
+
+                  <View style={[styles.cellBase, { width: colWidths.name }]}>
+                    <Text style={styles.bodyTextLeft}>{item.name || "-"}</Text>
+                  </View>
+
+                  <View style={[styles.cellBase, { width: colWidths.stock }]}>
+                    <Text style={styles.bodyTextCenter}>{formatNumber(stockQty)}</Text>
+                  </View>
+
+                  <View style={[styles.cellBase, { width: colWidths.packing }]}>
+                    <Text style={styles.bodyTextCenter}>{item.size || "-"}</Text>
+                  </View>
+
+                  <View style={[styles.cellBase, { width: colWidths.price }]}>
+                    <Text style={styles.bodyTextRight}>{formatNumber2(unitPrice)}</Text>
+                  </View>
+
+                  <View style={[styles.cellBase, styles.cellLast, { width: colWidths.value }]}>
+                    <Text style={styles.bodyTextRight}>{formatNumber2(totalValue)}</Text>
+                  </View>
+                </View>
+              );
+            })}
           </View>
           {/* Remark Section */}
           <View style={{ borderStyle: "solid", borderWidth: 1, borderColor: "#000", padding: 8, marginTop: 0, borderTopWidth: 0 }}>
-            <Text style={styles.RemarkTitle}>Total(THB): {dataHeader.request || "-"}</Text>
+            <Text style={styles.RemarkTitle}>Total(THB): {formatNumber2(dataHeader.request || "-")}</Text>
           </View>
 
 
@@ -194,19 +341,19 @@ const MaterialExpensePDF = () => {
             <View style={styles.footerRow}>
               <View style={styles.footerSection}>
                 <Text style={styles.footerLabel}>Requested By</Text>
-                <Text>{dataHeader.requested_by || "-"}</Text>
+                {/* <Text>{dataHeader.requested_by || "-"}</Text> */}
               </View>
               <View style={styles.footerSection}>
                 <Text style={styles.footerLabel}>Agreed By</Text>
-                <Text>{dataHeader.agreed_by || "-"}</Text>
+                {/* <Text>{dataHeader.agreed_by || "-"}</Text> */}
               </View>
               <View style={styles.footerSection}>
                 <Text style={styles.footerLabel}>Approved By</Text>
-                <Text>{dataHeader.approved_by || "-"}</Text>
+                {/* <Text>{dataHeader.approved_by || "-"}</Text> */}
               </View>
               <View style={styles.footerSectionLast}>
                 <Text style={styles.footerLabel}>Delivered/Checked By</Text>
-                <Text>{dataHeader.delivered_by || "-"}</Text>
+                {/* <Text>{dataHeader.delivered_by || "-"}</Text> */}
               </View>
             </View>
           </View>

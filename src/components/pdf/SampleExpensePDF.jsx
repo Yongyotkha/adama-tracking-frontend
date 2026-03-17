@@ -349,7 +349,7 @@ const SampleExpensePDF = () => {
 
           <View style={styles.totalBox}>
             <Text style={{ fontWeight: "bold" }}>
-              Total (THB): {formatNumber2(dataHeader.net_amount || 0)}
+              Total (THB): {formatNumber2(dataHeader.net_amount_product || 0)}
             </Text>
           </View>
 

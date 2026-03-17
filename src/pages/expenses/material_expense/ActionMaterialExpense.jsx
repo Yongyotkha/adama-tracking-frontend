@@ -34,6 +34,25 @@ export default function ActionMaterialExpense() {
   const [totalValueRequest, setTotalValueRequest] = useState(0);
   const [totalValueWareHoseSend, setToalValueWareHoseSend] = useState(0);
   const [totalValueReceive, setTotalValueReceive] = useState(0);
+  const [permission, setPermission] = useState({
+    btn_create: false,
+    btn_edit: false,
+    btn_daft: false,
+    btn_save: false,
+    btn_pdf: false,
+  });
+
+  const isCreateMode = mode === "create";
+  const isEditMode = mode === "edit";
+  const isViewMode = mode === "view";
+
+  const canSave = isCreateMode
+    ? true // ✅ ไม่ต้องเช็ค permission
+    : (permission?.btn_save ?? permission?.btn_edit ?? false);
+
+  const canSaveDraft = isCreateMode ? true : (permission?.btn_daft ?? false);
+
+  const canExportPdf = permission?.btn_pdf ?? !isCreateMode;
 
   const renderTitle = () => {
     switch (mode) {
@@ -78,6 +97,11 @@ export default function ActionMaterialExpense() {
           if (res.data) {
             const mat = res.data;
 
+            setPermission((prev) => ({
+              ...prev,
+              ...(res.data.permission || {}),
+            }));
+
             const cropIds = Array.isArray(mat.crops) ? mat.crops.map(Number) : [];
             const productIds = Array.isArray(mat.products)
               ? mat.products.map(Number)
@@ -92,9 +116,8 @@ export default function ActionMaterialExpense() {
 
             const mappedProducts = productRes.data.map((item) => ({
               value: item.id,
-              label: `${(item.product_name || "").trim()} (${
-                item.packing_list || "-"
-              })`,
+              label: `${(item.product_name || "").trim()} (${item.packing_list || "-"
+                })`,
             }));
 
             setProducts(mappedProducts);
@@ -380,9 +403,8 @@ export default function ActionMaterialExpense() {
           <img
             src="/img/icons/collapse.png"
             alt="decrease"
-            className={`cursor-pointer w-6 h-6 ${
-              isReadOnly ? "opacity-50 pointer-events-none" : ""
-            }`}
+            className={`cursor-pointer w-6 h-6 ${isReadOnly ? "opacity-50 pointer-events-none" : ""
+              }`}
             onClick={() =>
               handleQuantityChange(record.key, (record.material_request || 0) - 1)
             }
@@ -400,9 +422,8 @@ export default function ActionMaterialExpense() {
           <img
             src="/img/icons/expand.png"
             alt="increase"
-            className={`cursor-pointer w-6 h-6 ${
-              isReadOnly ? "opacity-50 pointer-events-none" : ""
-            }`}
+            className={`cursor-pointer w-6 h-6 ${isReadOnly ? "opacity-50 pointer-events-none" : ""
+              }`}
             onClick={() =>
               handleQuantityChange(record.key, (record.material_request || 0) + 1)
             }
@@ -681,24 +702,36 @@ export default function ActionMaterialExpense() {
           onClick={() => navigate("/expenses/material")}
         />
 
-        <ActionButton
-          mode="saveDraft"
-          text="Export PDF"
-          onClick={() => {
-            const targetUrl = `/expenses/material/pdf?material_number=${
-              formCustom.getFieldValue("expense_material_code") || ""
-            }`;
-            window.open(targetUrl, "_blank");
-          }}
-        />
-
-        {!isReadOnly && (
+        {/* Save Draft */}
+        {!isViewMode && (isCreateMode || canSaveDraft) && (
           <ActionButton
-            mode="update"
-            text={mode === "create" ? "Create" : "Save"}
-            onClick={action}
+            mode="saveDraft"
+            text="Save Draft"
+            onClick={() => action("draft")}
           />
         )}
+
+        {/* Save / Create */}
+        {!isViewMode && canSave && (
+          <ActionButton
+            mode="update"
+            text={isCreateMode ? "Create" : "Save"}
+            onClick={() => action("save")}
+          />
+        )}
+
+        {/* Export PDF */}
+        {/* {canExportPdf && formCustom.getFieldValue("expense_material_code") && ( */}
+          <ActionButton
+            mode="saveDraft"
+            text="Export PDF"
+            onClick={() => {
+              const targetUrl = `/expenses/material/pdf?material_number=${formCustom.getFieldValue("expense_material_code") || ""
+                }`;
+              window.open(targetUrl, "_blank");
+            }}
+          />
+        {/* )} */}
       </div>
     </MainLayout>
   );

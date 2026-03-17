@@ -363,8 +363,8 @@ export default function ActionSampleExpense() {
           value: Number(p.unit_convert_value || 0),
           totalValue: Number(p.unit_convert_value || 0),
           remark: "",
-          warehouseSend: 1,
-          receive: 1,
+          warehouseSend: 0,
+          receive: 0,
         };
 
         const updated = [...dataSource, newRow].map((r, idx) => ({
@@ -662,6 +662,7 @@ export default function ActionSampleExpense() {
         ) : (
           <InputNumber
             min={0}
+            disabled={isCreateMode}
             value={record.warehouseSend}
             onChange={(value) => handleNumberFieldChange(record.key, "warehouseSend", value)}
             className="w-full"
@@ -678,6 +679,7 @@ export default function ActionSampleExpense() {
         ) : (
           <InputNumber
             min={0}
+            disabled={isCreateMode}
             value={record.receive}
             onChange={(value) => handleNumberFieldChange(record.key, "receive", value)}
             className="w-full"
