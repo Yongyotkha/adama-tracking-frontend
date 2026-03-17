@@ -224,9 +224,14 @@ const SampleExpensePDF = () => {
   };
 
   const safeVal = (value, fallback = "-") => {
-    return value !== undefined && value !== null && value !== "" ? value : fallback;
-  };
+    if (value === undefined || value === null || value === "") return fallback;
 
+    return String(value)
+      .replace(/\t/g, " ")      // แทน tab เป็น space
+      .replace(/\s+/g, " ")     // กัน space ซ้อน
+      .trim();
+  };
+  
   const safeRole = (value) => {
     if (value === undefined || value === null || value === "") return "(-)";
     return `(${value})`;
@@ -270,16 +275,16 @@ const SampleExpensePDF = () => {
             <Text
               style={{
                 fontWeight: "bold",
-                fontSize: 12,
+                fontSize: 10,
                 width: "50%",
               }}
             >
-              Name: {safeVal(dataHeader.user_name)}
+              Name: {safeVal(dataHeader.user_name?.replace(/\t/g, " "))}
             </Text>
             <Text
               style={{
                 fontWeight: "bold",
-                fontSize: 12,
+                fontSize: 10,
                 width: "50%",
               }}
             >

@@ -255,7 +255,7 @@ const MaterialExpensePDF = () => {
 
           {/* Name and Regions */}
           <View style={{ ...styles.sectionTop, borderStyle: "solid", borderWidth: 1, borderColor: "#000", padding: 8, marginBottom: 5 }}>
-            <Text style={{ fontWeight: "bold", fontSize: 12, marginRight: "auto", width: "100%" }}>Name: {dataHeader.user_name || "-"}</Text>
+            <Text style={{ fontWeight: "bold", fontSize: 10, marginRight: "auto", width: "100%" }}>Name: {dataHeader.user_name || "-"}</Text>
             {/* <Text style={{ fontWeight: "bold", fontSize: 12, marginRight: 'auto', width: "50%" }}>Regions: {dataHeader.user_region || "-"}</Text> */}
           </View>
 

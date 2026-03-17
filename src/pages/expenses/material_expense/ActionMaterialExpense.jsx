@@ -721,7 +721,7 @@ export default function ActionMaterialExpense() {
         )}
 
         {/* Export PDF */}
-        {/* {canExportPdf && formCustom.getFieldValue("expense_material_code") && ( */}
+        {canExportPdf && formCustom.getFieldValue("expense_material_code") && (
           <ActionButton
             mode="saveDraft"
             text="Export PDF"
@@ -731,7 +731,7 @@ export default function ActionMaterialExpense() {
               window.open(targetUrl, "_blank");
             }}
           />
-        {/* )} */}
+        )}
       </div>
     </MainLayout>
   );

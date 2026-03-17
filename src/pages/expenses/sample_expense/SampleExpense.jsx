@@ -378,7 +378,7 @@ export default function SampleExpense() {
   const header = [
     { title: "Code", dataIndex: "document_number", align: "left" },
     { title: "Date Time", dataIndex: "document_datetime", align: "left" },
-    { title: "Sales", dataIndex: "user_name", align: "left" },
+    { title: "Create By", dataIndex: "created_by", align: "left" },
     { title: "Dealer", dataIndex: "dealer_name", align: "left" },
     { title: "Sub Dealer", dataIndex: "sub_dealer_name", align: "left" },
     { title: "Crop", dataIndex: "crop_name", align: "left" },
