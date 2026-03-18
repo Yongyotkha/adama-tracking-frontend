@@ -47,7 +47,7 @@ export default function SampleExpense() {
     {
       key: "sale",
       type: "select",
-      label: "Sales",
+      label: "Create By",
       placeholder: "All",
       options: saleList,
       moderef: true,

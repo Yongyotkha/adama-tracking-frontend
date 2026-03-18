@@ -59,9 +59,9 @@ const Navbar = () => {
           label: (
             <span
               className={`${location.pathname === `/${item.path}` ||
-                  location.pathname.startsWith(`${item.path}/`)
-                  ? "pointer-events-none font-bold text-[#009845]"
-                  : "text-[#978B87]"
+                location.pathname.startsWith(`${item.path}/`)
+                ? "pointer-events-none font-bold text-[#009845]"
+                : "text-[#978B87]"
                 } py-1`}
             >
               {item.label}
@@ -196,7 +196,8 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-[#009845] flex items-center justify-between px-4 relative w-full shadow-[0_4px_4px_0px_rgba(0,0,0,0.25)]">
+    // <nav className="bg-[#009845] flex items-center justify-between px-4 relative w-full shadow-[0_4px_4px_0px_rgba(0,0,0,0.25)]">
+    <nav className="bg-[#009845] flex items-center justify-between px-4 sticky top-0 z-50 w-full shadow-[0_4px_4px_0px_rgba(0,0,0,0.25)]">
       <div className="flex items-center justify-start w-1/6">
         <Logo width="w-[150px]" />
       </div>

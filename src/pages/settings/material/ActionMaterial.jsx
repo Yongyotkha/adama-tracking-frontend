@@ -21,6 +21,7 @@ export default function ActionMaterial() {
   const [formCustom] = Form.useForm();
   const { showMsg, showNotification, userInfo } = useContext(AuthContext);
   const navigate = useNavigate();
+  const isViewMode = mode === "view";
 
   const renderTitle = () => {
     switch (mode) {
@@ -178,17 +179,25 @@ export default function ActionMaterial() {
   };
 
   const getProductsByCrops = async (selectedCropIds) => {
-    if (!selectedCropIds.length) return;
+    if (isViewMode) return;
+    if (!selectedCropIds?.length) {
+      setProducts([]);
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await useServiceAPI.get(paths.pathMasterProductByCrop, {
         platform: "web",
         crop_list: selectedCropIds,
       });
-      setProducts(res.data.map(item => ({
-        value: item.id,
-        label: item.product_name,
-      })));
+
+      setProducts(
+        (res.data || []).map((item) => ({
+          value: item.id,
+          label: item.product_name,
+        }))
+      );
     } catch (err) {
       showMsg("error", err.message || "ไม่สามารถโหลด products ได้");
     } finally {
@@ -197,20 +206,102 @@ export default function ActionMaterial() {
   };
 
   const formFields = [
-    { label: "Photo", name: "photo", type: "photo", required: true, col: 24, value: fileList, multiple: true, accept: ".pdf,.png,.jpg,.jpeg" },
-    { label: "Material Code", name: "material_code", type: "text", value: "Generate", col: 6, disabled: true },
-    { label: "Material Name", name: "name", type: "text", required: true, col: 6, disabled: mode === "view" },
     {
-      label: "Crop", name: "crop", type: "select", mode: "multiple", options: crops, required: true, col: 6,
-      onBlur: (fieldName, value) => fieldName === "crop" && getProductsByCrops(value),
+      label: "Photo",
+      name: "photo",
+      type: "photo",
+      required: true,
+      col: 24,
+      value: fileList,
+      multiple: true,
+      accept: ".pdf,.png,.jpg,.jpeg",
+      disabled: isViewMode,
     },
-    { label: "Product", name: "product", type: "select", mode: "multiple", options: products, required: true, col: 6 },
-    { label: "Description", name: "description", type: "text-editor", col: 24, disabled: mode === "view" },
-    { label: "Type", name: "type", type: "text", col: 6, disabled: mode === "view" },
-    { label: "Size", name: "size", type: "text", col: 6, disabled: mode === "view" },
-    { label: "QTY", name: "qty", type: "text", required: true, col: 6, disabled: mode === "view" },
-    { label: "Unit Price", name: "price", type: "text", required: true, col: 6, disabled: mode === "view" },
-    { label: "Remark", name: "remark", type: "text", col: 24, disabled: mode === "view" },
+    {
+      label: "Material Code",
+      name: "material_code",
+      type: "text",
+      value: "Generate",
+      col: 6,
+      disabled: true,
+    },
+    {
+      label: "Material Name",
+      name: "name",
+      type: "text",
+      required: true,
+      col: 6,
+      disabled: isViewMode,
+    },
+    {
+      label: "Crop",
+      name: "crop",
+      type: "select",
+      mode: "multiple",
+      options: crops,
+      required: true,
+      col: 6,
+      disabled: isViewMode,
+      onBlur: (fieldName, value) => {
+        if (!isViewMode && fieldName === "crop") {
+          getProductsByCrops(value);
+        }
+      },
+    },
+    {
+      label: "Product",
+      name: "product",
+      type: "select",
+      mode: "multiple",
+      options: products,
+      required: true,
+      col: 6,
+      disabled: isViewMode,
+    },
+    {
+      label: "Description",
+      name: "description",
+      type: "text-editor",
+      col: 24,
+      disabled: isViewMode,
+    },
+    {
+      label: "Type",
+      name: "type",
+      type: "text",
+      col: 6,
+      disabled: isViewMode,
+    },
+    {
+      label: "Size",
+      name: "size",
+      type: "text",
+      col: 6,
+      disabled: isViewMode,
+    },
+    {
+      label: "QTY",
+      name: "qty",
+      type: "text",
+      required: true,
+      col: 6,
+      disabled: isViewMode,
+    },
+    {
+      label: "Unit Price",
+      name: "price",
+      type: "text",
+      required: true,
+      col: 6,
+      disabled: isViewMode,
+    },
+    {
+      label: "Remark",
+      name: "remark",
+      type: "text",
+      col: 24,
+      disabled: isViewMode,
+    },
   ];
 
   return (
@@ -219,7 +310,11 @@ export default function ActionMaterial() {
       <FormCustom
         fields={formFields}
         form={formCustom}
-        onChange={(field, value) => field === "crop" && getProductsByCrops(value)}
+        onChange={(field, value) => {
+          if (!isViewMode && field === "crop") {
+            getProductsByCrops(value);
+          }
+        }}
         onUploadFinish={handleUploadSuccess}
       />
       <div className="flex justify-end space-x-4 mt-6">

@@ -157,6 +157,7 @@ const styles = StyleSheet.create({
   footerLabel: { fontWeight: "bold" },
 });
 
+
 const MaterialExpensePDF = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
@@ -218,14 +219,18 @@ const MaterialExpensePDF = () => {
 
   const colWidths = {
     no: "7%",
-    req: "11%",
-    name: "30%",
-    stock: "14%",
-    packing: "14%",
-    price: "12%",
+    req: "10%",
+    name: "28%",
+    size: "10%",
+    stock: "13%",
+    packing: "10%",
+    price: "10%",
     value: "12%",
   };
-
+  const hasStockAt = Array.isArray(dataItems)
+    ? dataItems.some((item) => item?.stock_at !== undefined && item?.stock_at !== null && item?.stock_at !== "")
+    : false;
+    
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
       <Document>
@@ -255,8 +260,8 @@ const MaterialExpensePDF = () => {
 
           {/* Name and Regions */}
           <View style={{ ...styles.sectionTop, borderStyle: "solid", borderWidth: 1, borderColor: "#000", padding: 8, marginBottom: 5 }}>
-            <Text style={{ fontWeight: "bold", fontSize: 10, marginRight: "auto", width: "100%" }}>Name: {dataHeader.user_name || "-"}</Text>
-            {/* <Text style={{ fontWeight: "bold", fontSize: 12, marginRight: 'auto', width: "50%" }}>Regions: {dataHeader.user_region || "-"}</Text> */}
+            <Text style={{ fontWeight: "bold", fontSize: 10, marginRight: "auto", width: "50%" }}>Name: {dataHeader.user_name || "-"}</Text>
+            <Text style={{ fontWeight: "bold", fontSize: 12, marginRight: 'auto', width: "50%" }}>Regions: {dataHeader.area_name || "-"}</Text>
           </View>
 
           {/* Material List */}
@@ -271,11 +276,14 @@ const MaterialExpensePDF = () => {
               <View style={[styles.cellBase, { width: colWidths.name }]}>
                 <Text style={styles.headerText}>Materials Name</Text>
               </View>
+              <View style={[styles.cellBase, { width: colWidths.size }]}>
+                <Text style={styles.headerText}>Size</Text>
+              </View>
               <View style={[styles.cellBase, { width: colWidths.stock }]}>
-                <Text style={styles.headerText}>Stock At</Text>
+                <Text style={styles.headerText}>{hasStockAt ? "Stock At" : "Stock"}</Text>
               </View>
               <View style={[styles.cellBase, { width: colWidths.packing }]}>
-                <Text style={styles.headerText}>Pc./Packing</Text>
+                <Text style={styles.headerText}>Type</Text>
               </View>
               <View style={[styles.cellBase, { width: colWidths.price }]}>
                 <Text style={styles.headerText}>Price Per Pc.</Text>
@@ -287,7 +295,11 @@ const MaterialExpensePDF = () => {
 
             {dataItems.map((item, index) => {
               const requestQty = Number(item.request || 0);
-              const stockQty = Number(item.qty || 0);
+              const stockQty = Number(
+                hasStockAt
+                  ? (item.stock_at ?? item.qty ?? 0)
+                  : (item.qty ?? 0)
+              );
               const unitPrice = Number(item.unit_price || 0);
               const totalValue = requestQty * unitPrice;
 
@@ -305,12 +317,16 @@ const MaterialExpensePDF = () => {
                     <Text style={styles.bodyTextLeft}>{item.name || "-"}</Text>
                   </View>
 
+                  <View style={[styles.cellBase, { width: colWidths.size }]}>
+                    <Text style={styles.bodyTextCenter}>{item.size || "-"}</Text>
+                  </View>
+
                   <View style={[styles.cellBase, { width: colWidths.stock }]}>
                     <Text style={styles.bodyTextCenter}>{formatNumber(stockQty)}</Text>
                   </View>
 
                   <View style={[styles.cellBase, { width: colWidths.packing }]}>
-                    <Text style={styles.bodyTextCenter}>{item.size || "-"}</Text>
+                    <Text style={styles.bodyTextCenter}>{item.type || "-"}</Text>
                   </View>
 
                   <View style={[styles.cellBase, { width: colWidths.price }]}>

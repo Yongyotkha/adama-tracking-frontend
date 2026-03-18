@@ -24,6 +24,7 @@ export default function MaterialExpense() {
   const [materialList, setMaterialList] = useState([]);
   const [headerModal, setHeaderModal] = useState([]);
   const [bodyModal, setBodyModal] = useState([]);
+  const [modalTitle, setModalTitle] = useState("Detail");
   const navigate = useNavigate();
   const { showMsg, showNotification, userInfo } = useContext(AuthContext);
 
@@ -84,11 +85,11 @@ export default function MaterialExpense() {
   const header = [
     { title: "#", dataIndex: "index", align: "left" },
     { title: "Code", dataIndex: "code", align: "left" },
-    { title: "Crop", dataIndex: "crop", align: "left" },
-    { title: "Product", dataIndex: "product", align: "left" },
-    { title: "Material Item", dataIndex: "material", align: "left" },
+    { title: "Crop", dataIndex: "crop", align: "center" },
+    { title: "Product", dataIndex: "product", align: "center" },
+    { title: "Material Item", dataIndex: "material", align: "center" },
     { title: "Total Value Request", dataIndex: "request", align: "left" },
-    { title: "Total Value Wherehouse Send", dataIndex: "send", align: "left" },
+    { title: "Total Value Warehouse Send", dataIndex: "send", align: "left" },
     { title: "Total Value Receive", dataIndex: "receive", align: "left" },
     { title: "Date", dataIndex: "date", align: "center" },
     { title: "Create By", dataIndex: "create_by", align: "left" },
@@ -183,10 +184,33 @@ export default function MaterialExpense() {
     setLoading(true);
 
     try {
-      setHeaderModal([
-        { title: "No", dataIndex: "key", key: "key", width: 100 },
-        { title: "Name", dataIndex: "name", key: "name" },
-      ]);
+      if (type === "crop") {
+        setModalTitle("Crop Detail");
+        setHeaderModal([
+          { title: "No", dataIndex: "key", key: "key", width: 100 },
+          { title: "Name", dataIndex: "name", key: "name" },
+        ]);
+      } else if (type === "product") {
+        setModalTitle("Product Detail");
+        setHeaderModal([
+          { title: "No", dataIndex: "key", key: "key", width: 100 },
+          { title: "Name", dataIndex: "name", key: "name" },
+        ]);
+      } else if (type === "material") {
+        setModalTitle("Materials Detail");
+        setHeaderModal([
+          { title: "No", dataIndex: "key", key: "key", width: 100 },
+          { title: "Name", dataIndex: "name", key: "name" },
+          { title: "Price", dataIndex: "unit_price", key: "unit_price" },
+          { title: "Request Unit", dataIndex: "qty", key: "qty" },
+        ]);
+      } else {
+        setModalTitle("Detail");
+        setHeaderModal([
+          { title: "No", dataIndex: "key", key: "key", width: 100 },
+          { title: "Name", dataIndex: "name", key: "name" },
+        ]);
+      }
 
       const response = await useServiceAPI.get(paths.pathExpenseMaterialItem, {
         code: code,
@@ -197,24 +221,17 @@ export default function MaterialExpense() {
         let body = [];
 
         if (type === "crop") {
-          body = response.data.data.map((item, index) => ({
+          body = (response.data.data || []).map((item, index) => ({
             key: index + 1,
             name: item.name,
           }));
         } else if (type === "product") {
-          body = response.data.data.map((item, index) => ({
+          body = (response.data.data || []).map((item, index) => ({
             key: index + 1,
             name: `${(item.product_name || "").trim()} (${item.packing_list || "-"})`,
           }));
         } else if (type === "material") {
-          setHeaderModal([
-            { title: "No", dataIndex: "key", key: "key", width: 100 },
-            { title: "Name", dataIndex: "name", key: "name" },
-            { title: "Price", dataIndex: "unit_price", key: "unit_price" },
-            { title: "QTY", dataIndex: "qty", key: "qty" },
-          ]);
-
-          body = response.data.data.map((item, index) => ({
+          body = (response.data.data || []).map((item, index) => ({
             key: index + 1,
             name: item.name,
             unit_price: new Intl.NumberFormat("th-TH").format(item.unit_price),
@@ -384,7 +401,7 @@ export default function MaterialExpense() {
       </BoxPrimary>
 
       <DynamicModal
-        title="Product Detail"
+        title={modalTitle}
         isVisible={isTerritoryModalVisible}
         onClose={() => setIsTerritoryModalVisible(false)}
         header={headerModal}

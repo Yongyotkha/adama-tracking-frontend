@@ -66,6 +66,16 @@ export default function ActionSampleExpense() {
     return String(value);
   };
 
+  const toNumber = (value) => {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  // ใช้คำนวณ QTY KG/LT = packing_unit_size * quantity
+  const calcSumUnitQty = (packingUnitSize, quantity) => {
+    return toNumber(packingUnitSize) * toNumber(quantity);
+  };
+
   const formatSelectOptions = (items = [], valueKeys = [], labelKeys = []) => {
     return items
       .map((item) => {
@@ -185,8 +195,14 @@ export default function ActionSampleExpense() {
         }
 
         const newProductDataDetails = productData.map((p, index) => {
-          const qty = Number(p.quantity || 0);
-          const value = Number(p.product_unit_thb || p.net_amount || 0);
+          const qty = toNumber(p.quantity || 0);
+          const value = toNumber(p.product_unit_thb ?? p.net_price ?? 0);
+          const packingUnitSize = toNumber(
+            p.packing_unit_size ?? p.product_packing_unit_size ?? p.unit_size ?? 0
+          );
+          const sumUnitQty = toNumber(
+            p.sum_unit_qty ?? calcSumUnitQty(packingUnitSize, qty)
+          );
 
           return {
             key: index + 1,
@@ -195,12 +211,15 @@ export default function ActionSampleExpense() {
             productId: p.product_id,
             productName: p.product_name,
             packSize: p.product_unit,
+            pricePerKgLt: toNumber(p.bath_ltkg || 0),
             quantity: qty,
+            packing_unit_size: packingUnitSize,
+            sum_unit_qty: sumUnitQty,
             value,
             totalValue: qty * value,
             remark: p.ref_remark || "",
-            warehouseSend: Number(p.warehouse_qty || p.warehouse_send || qty || 0),
-            receive: Number(p.receive_qty || p.receive || qty || 0),
+            warehouseSend: toNumber(p.warehouse_qty || p.warehouse_send || qty || 0),
+            receive: toNumber(p.receive_qty || p.receive || qty || 0),
           };
         });
 
@@ -254,9 +273,9 @@ export default function ActionSampleExpense() {
           sub_dealer_name: responseData.sub_dealer_name || null,
           crop_id: normalizeId(responseData.crop_id),
           crop_name: responseData.crop_name || null,
-          request_value: Number(responseData.request_value || 0),
-          warehouse_value: Number(responseData.warehouse_value || 0),
-          receive_value: Number(responseData.receive_value || 0),
+          request_value: toNumber(responseData.request_value || 0),
+          warehouse_value: toNumber(responseData.warehouse_value || 0),
+          receive_value: toNumber(responseData.receive_value || 0),
           remark: responseData.ref_remark || "",
         });
       } catch (error) {
@@ -311,9 +330,13 @@ export default function ActionSampleExpense() {
 
     const updatedDataSource = dataSource.map((item) => {
       if (item.key !== key) return item;
+
+      const sumUnitQty = calcSumUnitQty(item.packing_unit_size, qty);
+
       return {
         ...item,
         quantity: qty,
+        sum_unit_qty: sumUnitQty,
         totalValue: qty * Number(item.value || 0),
       };
     });
@@ -323,12 +346,21 @@ export default function ActionSampleExpense() {
 
   const footerSummary = () => {
     const totalQty = dataSource.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+    const totalSumUnitQty = dataSource.reduce(
+      (sum, item) => sum + Number(item.sum_unit_qty || 0),
+      0
+    );
     const totalValue = dataSource.reduce((sum, item) => sum + Number(item.totalValue || 0), 0);
 
     return (
       <tr className="bg-gray-200">
-        <td colSpan={10} className="text-right font-semibold">
-          Item: {dataSource.length} &nbsp; QTY: {totalQty} &nbsp; Total:{" "}
+        <td colSpan={15} className="text-right font-semibold">
+          Item: {dataSource.length} &nbsp; QTY: {totalQty} &nbsp; QTY KG/LT:{" "}
+          {totalSumUnitQty.toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+          &nbsp; Total:{" "}
           {totalValue.toLocaleString("en-US", { minimumFractionDigits: 2 })}
         </td>
       </tr>
@@ -344,33 +376,46 @@ export default function ActionSampleExpense() {
         const productDetail = await useServiceAPI.get(paths.pathMasterProductDetail, {
           product_id: value,
         });
-        const p = productDetail.data;
 
-        const existingIndex = dataSource.findIndex((item) => item.sku === p.product_code);
+        const p = productDetail?.data || {};
+
+        const existingIndex = dataSource.findIndex(
+          (item) => String(item.sku) === String(p.product_code)
+        );
+
         if (existingIndex !== -1) {
           showNotification("error", "Existing Product", [], 2);
           return;
         }
 
+        const packingUnitSize = toNumber(p.packing_unit_size ?? 0);
+        const quantity = 1;
+        const unitPrice = toNumber(p.net_price ?? 0); // Price Per Unit
+        const pricePerKgLt = toNumber(p.bath_ltkg ?? 0); // Price Per Kg/Lt
+        const sumUnitQty = calcSumUnitQty(packingUnitSize, quantity);
+
         const newRow = {
           key: dataSource.length + 1,
           no: dataSource.length + 1,
-          sku: p.product_code,
-          productId: p.id,
-          productName: p.product_name,
-          packSize: p.packing_list,
-          quantity: 1,
-          value: Number(p.unit_convert_value || 0),
-          totalValue: Number(p.unit_convert_value || 0),
+          sku: p.product_code || "",
+          productId: p.id || null,
+          productName: p.product_name || "",
+          packSize: p.packing_list || "",
+          quantity,
+          packing_unit_size: packingUnitSize,
+          sum_unit_qty: sumUnitQty,
+          value: unitPrice,
+          pricePerKgLt,
+          totalValue: quantity * unitPrice,
           remark: "",
           warehouseSend: 0,
           receive: 0,
         };
 
-        const updated = [...dataSource, newRow].map((r, idx) => ({
-          ...r,
-          key: idx + 1,
-          no: idx + 1,
+        const updated = [...dataSource, newRow].map((row, index) => ({
+          ...row,
+          key: index + 1,
+          no: index + 1,
         }));
 
         setDataSource(updated);
@@ -483,6 +528,8 @@ export default function ActionSampleExpense() {
       const productUnitThb = Number(item.value || 0);
       const warehouseSendQty = Number(item.warehouseSend || 0);
       const receiveQty = Number(item.receive || 0);
+      const packingUnitSize = Number(item.packing_unit_size || 0);
+      const sumUnitQty = calcSumUnitQty(packingUnitSize, quantity);
 
       return {
         product_id: Number(item.productId || 0),
@@ -491,6 +538,8 @@ export default function ActionSampleExpense() {
         product_unit: item.packSize || "",
         product_unit_thb: productUnitThb,
         quantity,
+        packing_unit_size: packingUnitSize,
+        sum_unit_qty: sumUnitQty,
         warehouse_qty: warehouseSendQty,
         receive_qty: receiveQty,
         foc: 0,
@@ -503,6 +552,8 @@ export default function ActionSampleExpense() {
     const productsForEdit = dataSource.map((item) => {
       const quantity = Number(item.quantity || 0);
       const productUnitThb = Number(item.value || 0);
+      const packingUnitSize = Number(item.packing_unit_size || 0);
+      const sumUnitQty = calcSumUnitQty(packingUnitSize, quantity);
 
       return {
         product_id: Number(item.productId || 0),
@@ -510,6 +561,8 @@ export default function ActionSampleExpense() {
         product_name: item.productName || "",
         product_unit: item.packSize || "",
         quantity,
+        packing_unit_size: packingUnitSize,
+        sum_unit_qty: sumUnitQty,
         warehouse_qty: Number(item.warehouseSend || 0),
         receive_qty: Number(item.receive || 0),
         net_amount: quantity * productUnitThb,
@@ -604,12 +657,22 @@ export default function ActionSampleExpense() {
     { title: "Product Name", dataIndex: "productName", key: "productName" },
     { title: "Pack Size", dataIndex: "packSize", key: "packSize" },
     {
-      title: <div className="text-center">QTY (unit)</div>,
+      title: <div className="text-center">QTY / Unit</div>,
+      dataIndex: "packing_unit_size",
+      key: "packing_unit_size",
+      render: (v) =>
+        Number(v || 0).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+    },
+    {
+      title: <div className="text-center">Request (unit)</div>,
       dataIndex: "quantity",
       key: "quantity",
       render: (_, record) =>
         isViewMode ? (
-          record.quantity
+          Number(record.quantity || 0)
         ) : (
           <div className="quantity-control flex justify-center items-center">
             <img
@@ -617,19 +680,23 @@ export default function ActionSampleExpense() {
               alt="decrease"
               className="cursor-pointer w-6 h-6"
               onClick={() =>
-                handleQuantityChange(record.key, Math.max(1, Number(record.quantity || 1) - 1))
+                handleQuantityChange(
+                  record.key,
+                  Math.max(0, Number(record.quantity || 0) - 1)
+                )
               }
             />
             <Input
               inputMode="numeric"
-              min={1}
-              value={Math.floor(record.quantity || 1)}
-              onChange={(e) =>
+              value={record.quantity}
+              onChange={(e) => {
+                const raw = e.target.value;
+                const cleaned = String(raw).replace(/[^\d]/g, "");
                 handleQuantityChange(
                   record.key,
-                  Math.floor(parseInt(e.target.value, 10)) || 1
-                )
-              }
+                  cleaned === "" ? 0 : Number(cleaned)
+                );
+              }}
               className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
             />
             <img
@@ -637,19 +704,50 @@ export default function ActionSampleExpense() {
               alt="increase"
               className="cursor-pointer w-6 h-6"
               onClick={() =>
-                handleQuantityChange(record.key, Math.min(100, Number(record.quantity || 1) + 1))
+                handleQuantityChange(record.key, Number(record.quantity || 0) + 1)
               }
             />
           </div>
         ),
     },
     {
-      title: "Value (THB)",
+      title: <div className="text-center">QTY KG/LT</div>,
+      dataIndex: "sum_unit_qty",
+      key: "sum_unit_qty",
+      render: (_, record) =>
+        Number(record.sum_unit_qty || 0).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+    },
+    {
+      title: "Price Per Unit",
       dataIndex: "value",
       key: "value",
       render: (v) =>
         Number(v || 0).toLocaleString("en-US", {
           minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+    },
+    {
+      title: "Price Per Kg/Lt",
+      dataIndex: "pricePerKgLt",
+      key: "pricePerKgLt",
+      render: (v) =>
+        Number(v || 0).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+    },
+    {
+      title: "Value",
+      dataIndex: "totalValue",
+      key: "totalValue",
+      render: (_, record) =>
+        Number(record.totalValue || 0).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
         }),
     },
     {
@@ -664,7 +762,9 @@ export default function ActionSampleExpense() {
             min={0}
             disabled={isCreateMode}
             value={record.warehouseSend}
-            onChange={(value) => handleNumberFieldChange(record.key, "warehouseSend", value)}
+            onChange={(value) =>
+              handleNumberFieldChange(record.key, "warehouseSend", value)
+            }
             className="w-full"
           />
         ),
@@ -681,7 +781,9 @@ export default function ActionSampleExpense() {
             min={0}
             disabled={isCreateMode}
             value={record.receive}
-            onChange={(value) => handleNumberFieldChange(record.key, "receive", value)}
+            onChange={(value) =>
+              handleNumberFieldChange(record.key, "receive", value)
+            }
             className="w-full"
           />
         ),
@@ -696,7 +798,9 @@ export default function ActionSampleExpense() {
         ) : (
           <Input
             value={record.remark}
-            onChange={(e) => handleInputChange(record.key, "remark", e.target.value)}
+            onChange={(e) =>
+              handleInputChange(record.key, "remark", e.target.value)
+            }
           />
         ),
     },
@@ -711,7 +815,11 @@ export default function ActionSampleExpense() {
             onClick={() => {
               const updated = dataSource
                 .filter((item) => item.key !== record.key)
-                .map((r, idx) => ({ ...r, key: idx + 1, no: idx + 1 }));
+                .map((row, index) => ({
+                  ...row,
+                  key: index + 1,
+                  no: index + 1,
+                }));
               setDataSource(updated);
             }}
           />
@@ -823,7 +931,9 @@ export default function ActionSampleExpense() {
           </div>
 
           <div>
-            <label className="block mb-1 text-sm">Crop <span className="text-[#f11113]">*</span></label>
+            <label className="block mb-1 text-sm">
+              Crop <span className="text-[#f11113]">*</span>
+            </label>
             <Select
               disabled={isViewMode}
               placeholder="Select"
