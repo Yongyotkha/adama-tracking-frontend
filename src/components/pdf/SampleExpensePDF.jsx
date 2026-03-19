@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     borderColor: "#000",
     padding: 8,
-    fontSize:10,
+    fontSize: 10,
   },
 });
 
@@ -236,6 +236,12 @@ const SampleExpensePDF = () => {
       .trim();
   };
 
+  const truncateText = (value, maxLength = 12) => {
+    const text = safeVal(value, "");
+    if (!text) return "";
+    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+  };
+
   const normalizedItems = dataItems.map((item, index) => {
     const quantity = toNumber(item?.quantity || 0);
     const packingUnitSize = toNumber(
@@ -262,6 +268,7 @@ const SampleExpensePDF = () => {
       pricePerUnit: unitPrice,
       pricePerKgLt,
       value: totalValue,
+      ref_remark: safeVal(item?.ref_remark, ""),
     };
   });
 
@@ -332,11 +339,11 @@ const SampleExpensePDF = () => {
           <View style={styles.table}>
             <View style={styles.headerRow}>
               <Text style={{ ...styles.cellHeader, width: "4%" }}>No</Text>
-              <Text style={{ ...styles.cellHeader, width: "8%" }}>Req Unit</Text>
-              <Text style={{ ...styles.cellHeader, width: "8%" }}>QTY Kg/Lt</Text>
+              <Text style={{ ...styles.cellHeader, width: "5%" }}>Req Unit</Text>
+              <Text style={{ ...styles.cellHeader, width: "7%" }}>QTY Kg/Lt</Text>
               <Text style={{ ...styles.cellHeader, width: "12%" }}>Prod. Code</Text>
               <Text style={{ ...styles.cellHeader, width: "18%" }}>Product Name</Text>
-              <Text style={{ ...styles.cellHeader, width: "10%" }}>Pack Size</Text>
+              {/* <Text style={{ ...styles.cellHeader, width: "10%" }}>Pack Size</Text> */}
               <Text style={{ ...styles.cellHeader, width: "7%" }}>Unit / CT</Text>
               <Text style={{ ...styles.cellHeader, width: "7%" }}>QTY / CT</Text>
               <Text style={{ ...styles.cellHeader, width: "7%" }}>QTY / Unit</Text>
@@ -349,17 +356,17 @@ const SampleExpensePDF = () => {
             {normalizedItems.map((item) => (
               <View style={styles.tableRow} key={item.key}>
                 <Text style={{ ...styles.cell, width: "4%" }}>{item.no}</Text>
-                <Text style={{ ...styles.cell, width: "8%" }}>
+                <Text style={{ ...styles.cell, width: "5%" }}>
                   {formatInteger(item.requestUnit)}
                 </Text>
-                <Text style={{ ...styles.cell, width: "8%" }}>
+                <Text style={{ ...styles.cell, width: "7%" }}>
                   {formatNumber2(item.qtyKgLt)}
                 </Text>
                 <Text style={{ ...styles.cell, width: "12%" }}>{item.sku}</Text>
                 <Text style={{ ...styles.cell, ...styles.cellLeft, width: "18%" }}>
-                  {item.productName}
+                  {item.productName} ({item.packSize})
                 </Text>
-                <Text style={{ ...styles.cell, width: "10%" }}>{item.packSize}</Text>
+                {/* <Text style={{ ...styles.cell, width: "10%" }}>{item.packSize}</Text> */}
                 <Text style={{ ...styles.cell, width: "7%" }}>
                   {formatNumber2(item.unitPerCt)}
                 </Text>
@@ -380,7 +387,7 @@ const SampleExpensePDF = () => {
                   {formatNumber2(item.value)}
                 </Text>
                 <Text style={{ ...styles.cell, ...styles.lastCol, width: "10%" }}>
-                  {(item.ref_remark)}
+                  {truncateText(item.ref_remark, 12)}
                 </Text>
               </View>
             ))}
@@ -388,9 +395,9 @@ const SampleExpensePDF = () => {
 
           <View style={styles.totalBox}>
             <Text style={{ fontWeight: "bold" }}>
-              Item: {normalizedItems.length}
-              {"  |  "}
-              QTY: {formatInteger(totalQty)}
+              {/* Item: {normalizedItems.length}
+              {"  |  "} */}
+              Req Unit QTY: {formatInteger(totalQty)}
               {"  |  "}
               QTY Kg/Lt: {formatNumber2(totalQtyKgLt)}
               {"  |  "}
