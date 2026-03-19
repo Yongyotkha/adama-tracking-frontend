@@ -316,7 +316,7 @@ const SampleExpensePDF = () => {
                 width: "50%",
               }}
             >
-              Name: {safeVal(dataHeader.created_by)}
+              Name: {safeVal(dataHeader.created_by_name)}
             </Text>
             <Text
               style={{
@@ -325,7 +325,7 @@ const SampleExpensePDF = () => {
                 width: "50%",
               }}
             >
-              Regions: {safeVal(dataHeader.area_name)}
+              Regions: {safeVal(dataHeader.created_area_name)}
             </Text>
           </View>
 
