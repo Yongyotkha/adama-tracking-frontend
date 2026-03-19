@@ -36,6 +36,7 @@ export default function CustomerStock() {
 
   // ✅ UI filter draft (onChange)
   const [filterValues, setFilterValues] = useState({});
+  const [saleList, setSaleList] = useState([]);
 
   // ✅ table state (Search/Clear จะมาเปลี่ยนตรงนี้)
   const [tableParams, setTableParams] = useState({
@@ -55,6 +56,7 @@ export default function CustomerStock() {
 
   const header = [
     { title: "Date", width: 150, dataIndex: "document_date", align: "center" },
+    { title: "Sales", width: 200, dataIndex: "sale_name", align: "left" },
     { title: "Dealer", width: 200, dataIndex: "dealer", align: "left" },
     { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
     { title: "Product", width: 150, dataIndex: "product", align: "center" },
@@ -63,7 +65,6 @@ export default function CustomerStock() {
     { title: "Create By", width: 150, dataIndex: "createdBy", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
-
   const getId = (v) => {
     if (!v) return "";
     if (typeof v === "object") return v.value ?? v.id ?? "";
@@ -77,6 +78,7 @@ export default function CustomerStock() {
 
   // ✅ Filters (เหมือนเดิม แค่ options Dealer/SubDealer เป็น All)
   const filters = [
+    { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
     { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dealerList, moderef: true },
     { key: "sub_dealer", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerList },
     { key: "stock_created", type: "select", label: "Create By", placeholder: "All", options: stockCreated },
@@ -88,13 +90,13 @@ export default function CustomerStock() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [statusRes, dealerRes, subDealerRes, stockCreatedRes] = await Promise.all([
+        const [statusRes, saleRes, dealerRes, subDealerRes, stockCreatedRes] = await Promise.all([
           useServiceAPI.get(paths.pathMasterStatus, { status_type: "order" }),
+          useServiceAPI.get(paths.pathMasterSaleTeam, {}),
           useServiceAPI.get(paths.pathMasterDealerAll, { user_id: userInfo?.id }),
-          useServiceAPI.get(paths.pathMasterSubDealerAll, {}), // ✅ NEW: subdealer all
+          useServiceAPI.get(paths.pathMasterSubDealerAll, {}),
           useServiceAPI.get(paths.pathStockCreated, {}),
         ]);
-
         // ✅ Dealer options (map เผื่อรูปแบบไม่เหมือนกัน)
         setDealerList(
           (dealerRes?.data || []).map((d) => ({
@@ -112,6 +114,8 @@ export default function CustomerStock() {
         );
 
         setStockCreated(stockCreatedRes?.data || []);
+
+        setSaleList(saleRes?.data || []);
 
         // ✅ month options ของคุณ (เดิมคุณเอามาจาก status)
         setDataStatus(
@@ -166,6 +170,7 @@ export default function CustomerStock() {
     const requestData = {
       document_date_month: getId(f.document_date) || "",
       user_create: getId(f.stock_created) || "",
+      sale_id: getId(f.sale) || "",
       dealer_id: getId(f.dealer) || "",
       sub_dealer_id: getId(f.sub_dealer) || "",
 
@@ -249,8 +254,9 @@ export default function CustomerStock() {
           (data || []).map((stock, index) => ({
             key: index + 1 + (current - 1) * pageSize,
             document_date: stock.document_date,
-            dealer: stock.dealer_name,
-            sub_dealer: stock.sub_dealer_name,
+            sale_name: stock.sale_name || "-",
+            dealer: stock.dealer_name || "-",
+            sub_dealer: stock.sub_dealer_name || "-",
             product: (
               <BadgeStatus
                 text={stock.line_product}
@@ -264,7 +270,7 @@ export default function CustomerStock() {
             ),
             qty: parseInt(stock.quantity_product || 0, 10),
             total_value: formatNumber2(stock.net_amount),
-            createdBy: stock.created_by,
+            createdBy: stock.created_by || "-",
             action: (
               <Dropdown
                 menu={{ items: btn_action(stock.document_number, stock.action) }}
@@ -279,7 +285,6 @@ export default function CustomerStock() {
                 </a>
               </Dropdown>
             ),
-
           }))
         );
 

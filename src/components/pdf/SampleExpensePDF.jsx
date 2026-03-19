@@ -401,7 +401,7 @@ const SampleExpensePDF = () => {
               {"  |  "}
               QTY Kg/Lt: {formatNumber2(totalQtyKgLt)}
               {"  |  "}
-              Total: {formatNumber2(totalValue)}
+              Total (THB): {formatNumber2(totalValue)}
             </Text>
           </View>
 

@@ -372,8 +372,8 @@ const MaterialExpensePDF = () => {
             }}
           >
             <Text style={{ ...styles.RemarkTitle, fontSize: 10, marginBottom: 0 }}>
-              Item: {formatNumber(totalItems)} {"  |  "}
-              Req QTY: {formatNumber(totalReqQty)} {"  |  "}
+              {/* Item: {formatNumber(totalItems)} {"  |  "} */}
+              Req Unit QTY: {formatNumber(totalReqQty)} {"  |  "}
               Total (THB): {formatNumber2(totalAmount)}
             </Text>
           </View>
