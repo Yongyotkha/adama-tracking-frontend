@@ -32,21 +32,24 @@ export default function EditProduct() {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [profileImage, setProfileImage] = useState("/img/Image-not-found.png"); // Default value
   const [permission, setPermission] = useState({});
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         await fetchProductDetails(location.state.id);
 
-        const [positions, roles, crops] = await Promise.all([
+        const [positions, productGroups, productCategories, crops] = await Promise.all([
           useServiceAPI.get(paths.pathMasterProductTypes, {}),
+          useServiceAPI.get(paths.pathMasterProductGroups, {}),
           useServiceAPI.get(paths.pathMasterProductCategorys, {}),
           useServiceAPI.get(paths.pathMasterCrop, {}),
         ]);
 
-        setPosition(positions.data);
-        setRoles(roles.data);
-        setCropOptions(crops.data);
+        setPosition(positions.data || []);
+        setRoles(productGroups.data || []);
+        setCategories(productCategories.data || []);
+        setCropOptions(crops.data || []);
         setCropList(crops.data || []);
 
         setIsDataLoaded(true);
@@ -121,7 +124,16 @@ export default function EditProduct() {
     { label: "Common Name", name: "ai_content", type: "text", required: false, col: 12, disabled: true, value: userinfo.ai_and_content },
     { label: "Product Type", name: "product_type", type: "select", required: false, col: 6, disabled: mode === "view", options: position, value: userinfo.product_type },
     { label: "Product Group", name: "product_group", type: "select", required: false, col: 6, disabled: mode === "view", options: roles, value: userinfo.product_group },
-    { label: "Category", name: "category", type: "text", required: false, col: 6, disabled: true, value: userinfo.product_category },
+    {
+      label: "Category",
+      name: "category",
+      type: "select",
+      required: false,
+      col: 6,
+      disabled: mode === "view",
+      options: categories,
+      value: userinfo.product_category,
+    },
     { label: "Packing list", name: "packing_list", type: "text", required: false, col: 6, disabled: true, value: userinfo.packing_list },
     { label: "Packing unit size (lt,kg)", name: "packing_unit_size", type: "text", required: false, col: 6, disabled: true, value: userinfo.packing_unit_size },
     { label: "Net Price", name: "net_price", type: "text", required: false, col: 6, disabled: true, value: userinfo.net_price },
@@ -134,7 +146,7 @@ export default function EditProduct() {
       value: userinfo.use_flag === "1" ? "Active" : "Inactive",
       disabled: mode === "view",
     },
-  ], [userinfo, position, roles]);
+  ], [userinfo, position, roles, categories, mode]);
 
   // const updatedFields = [
   //   { label: "", name: "profile", type: "picture", required: false, col: 24, value: userinfo.product_image},
@@ -175,9 +187,11 @@ export default function EditProduct() {
         const dataToSend = {
           ...values,
           id: location.state.id,
-          use_flag: useFlagValue, // ส่งค่า use_flag เป็น 1 หรือ 0
-          crop_list: defaultSelectedCrops, // ส่ง crop_list
+          use_flag: useFlagValue,
+          crop_list: defaultSelectedCrops,
           product_image: product_image,
+          product_category: values.category,
+          category: values.category,
         };
 
         useServiceAPI

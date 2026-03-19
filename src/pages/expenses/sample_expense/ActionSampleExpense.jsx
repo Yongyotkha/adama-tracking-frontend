@@ -667,7 +667,7 @@ export default function ActionSampleExpense() {
     { title: "Product Name", dataIndex: "productName", key: "productName" },
     { title: "Pack Size", dataIndex: "packSize", key: "packSize" },
     {
-      title: <div className="text-center">Request (unit)</div>,
+      title: <div className="text-center">Request</div>,
       dataIndex: "quantity",
       align: "center",
       key: "quantity",
@@ -712,7 +712,7 @@ export default function ActionSampleExpense() {
         ),
     },
     {
-      title: <div className="text-center">QTY KG/LT</div>,
+      title: <div className="text-center">QTY Kg/Lt</div>,
       dataIndex: "sum_unit_qty",
       key: "sum_unit_qty",
       render: (_, record) =>

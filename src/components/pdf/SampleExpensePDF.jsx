@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   signTitle: {
-    fontSize: 8,
+    fontSize: 9,
     textAlign: "center",
     textDecoration: "underline",
     fontWeight: "bold",
@@ -158,6 +158,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     borderColor: "#000",
     padding: 8,
+    fontSize:10,
   },
 });
 
@@ -275,7 +276,7 @@ const SampleExpensePDF = () => {
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
       <Document>
-        <Page size="A4" orientation="landscape" style={styles.page}>
+        <Page size="A4" orientation="" style={styles.page}>
           <View style={styles.header}>
             <Image style={styles.logo} src="/favicon.png" />
             <View style={styles.companyDetails}>
@@ -331,9 +332,9 @@ const SampleExpensePDF = () => {
           <View style={styles.table}>
             <View style={styles.headerRow}>
               <Text style={{ ...styles.cellHeader, width: "4%" }}>No</Text>
-              <Text style={{ ...styles.cellHeader, width: "8%" }}>Request{"\n"}(unit)</Text>
-              <Text style={{ ...styles.cellHeader, width: "8%" }}>QTY KG/LT</Text>
-              <Text style={{ ...styles.cellHeader, width: "10%" }}>SKU</Text>
+              <Text style={{ ...styles.cellHeader, width: "8%" }}>Req Unit</Text>
+              <Text style={{ ...styles.cellHeader, width: "8%" }}>QTY Kg/Lt</Text>
+              <Text style={{ ...styles.cellHeader, width: "12%" }}>Prod. Code</Text>
               <Text style={{ ...styles.cellHeader, width: "18%" }}>Product Name</Text>
               <Text style={{ ...styles.cellHeader, width: "10%" }}>Pack Size</Text>
               <Text style={{ ...styles.cellHeader, width: "7%" }}>Unit / CT</Text>
@@ -354,7 +355,7 @@ const SampleExpensePDF = () => {
                 <Text style={{ ...styles.cell, width: "8%" }}>
                   {formatNumber2(item.qtyKgLt)}
                 </Text>
-                <Text style={{ ...styles.cell, width: "10%" }}>{item.sku}</Text>
+                <Text style={{ ...styles.cell, width: "12%" }}>{item.sku}</Text>
                 <Text style={{ ...styles.cell, ...styles.cellLeft, width: "18%" }}>
                   {item.productName}
                 </Text>
@@ -391,7 +392,7 @@ const SampleExpensePDF = () => {
               {"  |  "}
               QTY: {formatInteger(totalQty)}
               {"  |  "}
-              QTY KG/LT: {formatNumber2(totalQtyKgLt)}
+              QTY Kg/Lt: {formatNumber2(totalQtyKgLt)}
               {"  |  "}
               Total: {formatNumber2(totalValue)}
             </Text>

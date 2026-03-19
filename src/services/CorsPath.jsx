@@ -166,7 +166,6 @@ export const paths = {
   pathMasterTime: "master/time",
   pathMasterProducts: "master/product",
   pathMasterProductDetail: "master/product/detail",
-
   pathMasterPromotionList: "master/promotion",
   pathMasterPromotionDetail: "master/promotion/detail",
 

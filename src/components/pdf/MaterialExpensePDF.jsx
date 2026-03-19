@@ -234,7 +234,18 @@ const MaterialExpensePDF = () => {
   const hasStockAt = Array.isArray(dataItems)
     ? dataItems.some((item) => item?.stock_at !== undefined && item?.stock_at !== null && item?.stock_at !== "")
     : false;
+  const totalItems = Array.isArray(dataItems) ? dataItems.length : 0;
 
+  const totalReqQty = Array.isArray(dataItems)
+    ? dataItems.reduce((sum, item) => sum + Number(item.request || 0), 0)
+    : 0;
+
+  const totalAmount = Array.isArray(dataItems)
+    ? dataItems.reduce(
+      (sum, item) => sum + Number(item.request || 0) * Number(item.unit_price || 0),
+      0
+    )
+    : 0;
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
       <Document>
@@ -243,15 +254,20 @@ const MaterialExpensePDF = () => {
           <View style={styles.header}>
             <Image style={styles.logo} src="/favicon.png" />
             <View style={styles.companyDetails}>
-              <Text style={{ fontWeight: "bold", fontSize: 10, lineHeight: 1.5 }}>บริษัท อดามา (ประเทศไทย) จำกัด </Text>
-              <Text style={{ fontWeight: "bold", fontSize: 10, lineHeight: 1.5 }}>ADAMA (Thailand) Limited</Text>
-              <Text style={{ fontSize: 8, lineHeight: 1.5 }} >
-                127/33  อาคารปัญจธานี ทาวเวอร์ ชั้น 28 ถนนนนทรี  แขวงช่องนนทรี เขตยานนาวา กรุงเทพฯ 10120
+              <Text style={{ fontWeight: "bold", fontSize: 10, lineHeight: 1.5 }}>
+                บริษัท อดามา (ประเทศไทย) จำกัด </Text>
+              <Text style={{ fontWeight: "bold", fontSize: 10, lineHeight: 1.5 }}>
+                ADAMA (Thailand) Limited
+              </Text>
+              <Text style={{ fontSize: 8, lineHeight: 1.5 }}>
+                127/33 อาคารปัญจธานี ทาวเวอร์ ชั้น 28 ถนนนนทรี แขวงช่องนนทรี เขตยานนาวา กรุงเทพฯ 10120
               </Text>
               <Text style={{ fontSize: 8, lineHeight: 1.5 }}>
                 127/33 Panjathani Tower Building 28 floor, Nonsi Rd, Yannawa, Bangkok 10120
               </Text>
-              <Text style={{ fontSize: 8, lineHeight: 1.5 }}>Tel: +66 2 681 1979 Fax: +66 2 681 1977</Text>
+              <Text style={{ fontSize: 8, lineHeight: 1.5 }}>
+                Tel: +66 2 681 1979 Fax: +66 2 681 1977
+              </Text>
             </View>
           </View>
           <Text style={styles.title}>PROD/MKT REQUISITION FORM</Text>
@@ -265,7 +281,7 @@ const MaterialExpensePDF = () => {
           {/* Name and Regions */}
           <View style={{ ...styles.sectionTop, borderStyle: "solid", borderWidth: 1, borderColor: "#000", padding: 8, marginBottom: 5 }}>
             <Text style={{ fontWeight: "bold", fontSize: 10, marginRight: "auto", width: "50%" }}>Name: {dataHeader.user_name || "-"}</Text>
-            <Text style={{ fontWeight: "bold", fontSize: 12, marginRight: 'auto', width: "50%" }}>Regions: {dataHeader.area_name || "-"}</Text>
+            <Text style={{ fontWeight: "bold", fontSize: 10, marginRight: 'auto', width: "50%" }}>Regions: {dataHeader.area_name || "-"}</Text>
           </View>
 
           {/* Material List */}
@@ -290,7 +306,7 @@ const MaterialExpensePDF = () => {
                 <Text style={styles.headerText}>Type</Text>
               </View>
               <View style={[styles.cellBase, { width: colWidths.price }]}>
-                <Text style={styles.headerText}>Price Per Pc.</Text>
+                <Text style={styles.headerText}>Price / Pc.</Text>
               </View>
               <View style={[styles.cellBase, styles.cellLast, { width: colWidths.value }]}>
                 <Text style={styles.headerText}>Value</Text>
@@ -345,8 +361,21 @@ const MaterialExpensePDF = () => {
             })}
           </View>
           {/* Remark Section */}
-          <View style={{ borderStyle: "solid", borderWidth: 1, borderColor: "#000", padding: 8, marginTop: 0, borderTopWidth: 0 }}>
-            <Text style={{ ...styles.RemarkTitle, fontSize:10}}>Total (THB) : {formatNumber2(dataHeader.request || "-")}</Text>
+          <View
+            style={{
+              borderStyle: "solid",
+              borderWidth: 1,
+              borderColor: "#000",
+              padding: 8,
+              marginTop: 0,
+              borderTopWidth: 0,
+            }}
+          >
+            <Text style={{ ...styles.RemarkTitle, fontSize: 10, marginBottom: 0 }}>
+              Item: {formatNumber(totalItems)} {"  |  "}
+              Req QTY: {formatNumber(totalReqQty)} {"  |  "}
+              Total (THB): {formatNumber2(totalAmount)}
+            </Text>
           </View>
 
 
