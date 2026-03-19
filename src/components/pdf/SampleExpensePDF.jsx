@@ -226,7 +226,7 @@ const SampleExpensePDF = () => {
     return `${day}-${month}-${year}`;
   };
 
-  const safeVal = (value, fallback = "-") => {
+  const safeVal = (value, fallback = "  ") => {
     if (value === undefined || value === null || value === "") return fallback;
 
     return String(value)
@@ -341,7 +341,8 @@ const SampleExpensePDF = () => {
               <Text style={{ ...styles.cellHeader, width: "7%" }}>QTY / Unit</Text>
               <Text style={{ ...styles.cellHeader, width: "8%" }}>Price / Unit</Text>
               <Text style={{ ...styles.cellHeader, width: "8%" }}>Price /{"\n"}(Kg/Lt)</Text>
-              <Text style={{ ...styles.cellHeader, ...styles.lastCol, width: "10%" }}>Value</Text>
+              <Text style={{ ...styles.cellHeader, width: "10%" }}>Value</Text>
+              <Text style={{ ...styles.cellHeader, ...styles.lastCol, width: "10%" }}>Remark</Text>
             </View>
 
             {normalizedItems.map((item) => (
@@ -374,8 +375,11 @@ const SampleExpensePDF = () => {
                 <Text style={{ ...styles.cell, width: "8%" }}>
                   {formatNumber2(item.pricePerKgLt)}
                 </Text>
-                <Text style={{ ...styles.cell, ...styles.lastCol, width: "10%" }}>
+                <Text style={{ ...styles.cell, width: "10%" }}>
                   {formatNumber2(item.value)}
+                </Text>
+                <Text style={{ ...styles.cell, ...styles.lastCol, width: "10%" }}>
+                  {(item.ref_remark)}
                 </Text>
               </View>
             ))}

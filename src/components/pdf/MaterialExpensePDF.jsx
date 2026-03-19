@@ -353,7 +353,7 @@ const MaterialExpensePDF = () => {
           {/* Remark Section */}
           <View style={styles.RemarkBox}>
             <Text style={styles.RemarkTitle}>Remark:</Text>
-            <Text style={styles.RemarkText}>{dataHeader.remark || "-"}</Text>
+            <Text style={styles.RemarkText}>{dataHeader.remark || " "}</Text>
           </View>
 
           {/* Footer */}
