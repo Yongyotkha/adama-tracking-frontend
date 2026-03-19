@@ -146,12 +146,16 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     height: 70,
     textAlign: "center",
+    textDecoration: "underline",
+    fontWeight: "bold",
   },
 
   footerSectionLast: {
     flex: 1,
     textAlign: "center",
     padding: 5,
+    textDecoration: "underline",
+    fontWeight: "bold",
   },
 
   footerLabel: { fontWeight: "bold" },
@@ -230,7 +234,7 @@ const MaterialExpensePDF = () => {
   const hasStockAt = Array.isArray(dataItems)
     ? dataItems.some((item) => item?.stock_at !== undefined && item?.stock_at !== null && item?.stock_at !== "")
     : false;
-    
+
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
       <Document>
@@ -254,7 +258,7 @@ const MaterialExpensePDF = () => {
 
           {/* Expense Information */}
           <View style={styles.sectionTop}>
-            <Text style={{ fontWeight: "bold" }}>Expense Materials No: {dataHeader.code}</Text>
+            <Text style={{ fontWeight: "bold" }}>Expense Material No: {dataHeader.code}</Text>
             <Text style={{ fontWeight: "bold" }}>Date: {formatDate(dataHeader.created_at)}</Text>
           </View>
 
@@ -342,7 +346,7 @@ const MaterialExpensePDF = () => {
           </View>
           {/* Remark Section */}
           <View style={{ borderStyle: "solid", borderWidth: 1, borderColor: "#000", padding: 8, marginTop: 0, borderTopWidth: 0 }}>
-            <Text style={styles.RemarkTitle}>Total(THB): {formatNumber2(dataHeader.request || "-")}</Text>
+            <Text style={{ ...styles.RemarkTitle, fontSize:10}}>Total (THB) : {formatNumber2(dataHeader.request || "-")}</Text>
           </View>
 
 

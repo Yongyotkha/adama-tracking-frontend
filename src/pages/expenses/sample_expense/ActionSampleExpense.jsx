@@ -198,8 +198,10 @@ export default function ActionSampleExpense() {
           const qty = toNumber(p.quantity || 0);
           const value = toNumber(p.product_unit_thb ?? p.net_price ?? 0);
           const packingUnitSize = toNumber(
-            p.packing_unit_size ?? p.product_packing_unit_size ?? p.unit_size ?? 0
+            p.packing_unit_size ?? p.product_packing_unit_size ?? 0
           );
+          const unitSize = toNumber(p.unit_size ?? 0);
+          const qtyUnitSize = toNumber(p.qty_unit_size ?? 0);
           const sumUnitQty = toNumber(
             p.sum_unit_qty ?? calcSumUnitQty(packingUnitSize, qty)
           );
@@ -214,6 +216,8 @@ export default function ActionSampleExpense() {
             pricePerKgLt: toNumber(p.bath_ltkg || 0),
             quantity: qty,
             packing_unit_size: packingUnitSize,
+            unit_size: unitSize,
+            qty_unit_size: qtyUnitSize,
             sum_unit_qty: sumUnitQty,
             value,
             totalValue: qty * value,
@@ -354,7 +358,7 @@ export default function ActionSampleExpense() {
 
     return (
       <tr className="bg-gray-200">
-        <td colSpan={15} className="text-right font-semibold">
+        <td colSpan={17} className="text-right font-semibold">
           Item: {dataSource.length} &nbsp; QTY: {totalQty} &nbsp; QTY KG/LT:{" "}
           {totalSumUnitQty.toLocaleString("en-US", {
             minimumFractionDigits: 2,
@@ -390,8 +394,8 @@ export default function ActionSampleExpense() {
 
         const packingUnitSize = toNumber(p.packing_unit_size ?? 0);
         const quantity = 1;
-        const unitPrice = toNumber(p.net_price ?? 0); // Price Per Unit
-        const pricePerKgLt = toNumber(p.bath_ltkg ?? 0); // Price Per Kg/Lt
+        const unitPrice = toNumber(p.net_price ?? 0); // Price / Unit
+        const pricePerKgLt = toNumber(p.bath_ltkg ?? 0); // Price / Kg/Lt
         const sumUnitQty = calcSumUnitQty(packingUnitSize, quantity);
 
         const newRow = {
@@ -400,9 +404,11 @@ export default function ActionSampleExpense() {
           sku: p.product_code || "",
           productId: p.id || null,
           productName: p.product_name || "",
-          packSize: p.packing_list || "",
+          packSize: p.product_unit || p.packing_list || "",
           quantity,
           packing_unit_size: packingUnitSize,
+          unit_size: toNumber(p.unit_size ?? 0),
+          qty_unit_size: toNumber(p.qty_unit_size ?? 0),
           sum_unit_qty: sumUnitQty,
           value: unitPrice,
           pricePerKgLt,
@@ -539,6 +545,8 @@ export default function ActionSampleExpense() {
         product_unit_thb: productUnitThb,
         quantity,
         packing_unit_size: packingUnitSize,
+        unit_size: Number(item.unit_size || 0),
+        qty_unit_size: Number(item.qty_unit_size || 0),
         sum_unit_qty: sumUnitQty,
         warehouse_qty: warehouseSendQty,
         receive_qty: receiveQty,
@@ -562,6 +570,8 @@ export default function ActionSampleExpense() {
         product_unit: item.packSize || "",
         quantity,
         packing_unit_size: packingUnitSize,
+        unit_size: Number(item.unit_size || 0),
+        qty_unit_size: Number(item.qty_unit_size || 0),
         sum_unit_qty: sumUnitQty,
         warehouse_qty: Number(item.warehouseSend || 0),
         receive_qty: Number(item.receive || 0),
@@ -657,18 +667,9 @@ export default function ActionSampleExpense() {
     { title: "Product Name", dataIndex: "productName", key: "productName" },
     { title: "Pack Size", dataIndex: "packSize", key: "packSize" },
     {
-      title: <div className="text-center">QTY / Unit</div>,
-      dataIndex: "packing_unit_size",
-      key: "packing_unit_size",
-      render: (v) =>
-        Number(v || 0).toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }),
-    },
-    {
       title: <div className="text-center">Request (unit)</div>,
       dataIndex: "quantity",
+      align: "center",
       key: "quantity",
       render: (_, record) =>
         isViewMode ? (
@@ -721,7 +722,37 @@ export default function ActionSampleExpense() {
         }),
     },
     {
-      title: "Price Per Unit",
+      title: <div className="text-center">Unit / CT</div>,
+      dataIndex: "unit_size",
+      key: "unit_size",
+      render: (v) =>
+        Number(v || 0).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+    },
+    {
+      title: <div className="text-center">QTY / CT</div>,
+      dataIndex: "qty_unit_size",
+      key: "qty_unit_size",
+      render: (v) =>
+        Number(v || 0).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+    },
+    {
+      title: <div className="text-center">QTY / Unit</div>,
+      dataIndex: "packing_unit_size",
+      key: "packing_unit_size",
+      render: (v) =>
+        Number(v || 0).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+    },
+    {
+      title: "Price / Unit",
       dataIndex: "value",
       key: "value",
       render: (v) =>
@@ -731,7 +762,7 @@ export default function ActionSampleExpense() {
         }),
     },
     {
-      title: "Price Per Kg/Lt",
+      title: "Price / (Kg/Lt)",
       dataIndex: "pricePerKgLt",
       key: "pricePerKgLt",
       render: (v) =>
