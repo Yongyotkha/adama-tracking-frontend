@@ -164,15 +164,17 @@ export default function SalesPointsList() {
         />
       ),
     });
-    items.push({
-      key: "refund",
-      label: (
-        <ItemDropDown
-          mode="refund"
-          onClick={() => handleRefund(record.document_number)}
-        />
-      ),
-    });
+    if (record.status_code === "ODC") {
+      items.push({
+        key: "refund_point",
+        label: (
+          <ItemDropDown
+            mode="refund_point"
+            onClick={() => handleRefund(record.document_number)}
+          />
+        ),
+      });
+    }
 
     return (
       <Dropdown menu={{ items }} placement="bottom">
@@ -270,16 +272,16 @@ export default function SalesPointsList() {
                       />
                     ),
                   },
-                  {
-                    key: 4,
+                  order.status_code === "ODC" && {
+                    key: "refund_point",
                     label: (
                       <ItemDropDown
-                        mode="refund"
+                        mode="refund_point"
                         onClick={() => handleRefund(order.document_number)}
                       />
                     ),
                   },
-                ],
+                ].filter(Boolean),
               }}
               placement="bottom"
             >
@@ -354,6 +356,7 @@ export default function SalesPointsList() {
                 textColor={item.status_transaction_color}
               />
             ),
+            status_code: item.status_code,
             apiActions: item.action,
           };
         });

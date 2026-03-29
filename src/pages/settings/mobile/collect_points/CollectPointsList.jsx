@@ -180,16 +180,16 @@ export default function CollectPointsList() {
                           />
                         ),
                     })),
-                    {
-                        key: "refund",
+                    row.status_transaction_code === "ODC" && {
+                        key: "refund_point",
                         label: (
                           <ItemDropDown
-                            mode="refund"
+                            mode="refund_point"
                             onClick={() => handleRefund(row.document_number)}
                           />
                         ),
                     },
-                ],
+                ].filter(Boolean),
               }}
               placement="bottom"
             >

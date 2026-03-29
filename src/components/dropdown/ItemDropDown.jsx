@@ -131,8 +131,24 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
         </a>
       )}
 
+      {mode === "refund_point" && (
+        <a
+          rel="noopener noreferrer"
+          href={link}
+          onClick={onClick}
+          className="block gap-1"
+        >
+          <img
+            src="/img/icons/return.png"
+            alt="Refund Point icon"
+            className="inline-block h-4 m-auto"
+          />
+          <span className="text-[#978B87] ms-3">{text || "Refund Point"}</span>
+        </a>
+      )}
+
       {/* For any mode that doesn't match the above, display as View */}
-      {!["edit", "delete", "view", "history", "create", "approve", "reject", "refund"].includes(mode) && (
+      {!["edit", "delete", "view", "history", "create", "approve", "reject", "refund", "refund_point"].includes(mode) && (
         <a
           rel="noopener noreferrer"
           href={link}
