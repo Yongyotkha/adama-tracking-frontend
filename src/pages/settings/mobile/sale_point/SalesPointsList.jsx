@@ -9,7 +9,7 @@ import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import ItemDropDown from "../../../../components/dropdown/ItemDropDown";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../../components/button/ActionButton";
-import useServiceAPI from "../../../../services/corsService";
+import useServiceAPI from "../../../../services/CorsService";
 import { paths } from "../../../../services/CorsPath";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import { ExclamationCircleFilled } from "@ant-design/icons";
@@ -164,6 +164,15 @@ export default function SalesPointsList() {
         />
       ),
     });
+    items.push({
+      key: "refund",
+      label: (
+        <ItemDropDown
+          mode="refund"
+          onClick={() => handleRefund(record.document_number)}
+        />
+      ),
+    });
 
     return (
       <Dropdown menu={{ items }} placement="bottom">
@@ -258,6 +267,15 @@ export default function SalesPointsList() {
                       <ItemDropDown
                         mode="delete"
                         onClick={() => handleDelete(order.document_number)}
+                      />
+                    ),
+                  },
+                  {
+                    key: 4,
+                    label: (
+                      <ItemDropDown
+                        mode="refund"
+                        onClick={() => handleRefund(order.document_number)}
                       />
                     ),
                   },
@@ -572,6 +590,63 @@ export default function SalesPointsList() {
         } catch (error) {
           const msg = error?.response?.data?.data?.Message;
           await showNotification("warning", msg?.Message_Header || "Notification", msg?.Message_Line || ["Data not found"]);
+
+          if (activeTab === "request") fetchRequests();
+          else fetchData();
+        }
+      },
+    });
+  };
+  const handleRefund = (documentNumber) => {
+    let remark = "";
+    confirm({
+      title: "Refund Order ?",
+      icon: <ExclamationCircleFilled />,
+      content: (
+        <div className="mt-4">
+          <div className="mb-2 text-sm font-medium text-gray-700">หมายเหตุ <span className="text-red-500">*</span></div>
+          <textarea
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows="3"
+            placeholder="กรุณาใส่หมายเหตุ"
+            onChange={(e) => {
+              remark = e.target.value;
+            }}
+          />
+        </div>
+      ),
+      centered: true,
+      async onOk() {
+        if (!remark || remark.trim() === "") {
+          showMsg?.("warning", "กรุณาใส่หมายเหตุ");
+          return Promise.reject();
+        }
+        try {
+          const res = await useServiceAPI.put(paths.pathSalePointRefund, {
+            document_number: documentNumber,
+            remark: remark,
+          });
+          const ok = res?.status === 200 || res?.status === "200";
+          const header =
+            res?.data?.data?.Message?.Message_Header ||
+            res?.data?.message ||
+            (ok ? "Refund successful" : "Notification");
+          const lines =
+            res?.data?.data?.Message?.Message_Line ||
+            res?.data?.message_line ||
+            [ok ? "Refund successful" : "Please try again."];
+
+          await showNotification(ok ? "success" : "warning", header, lines);
+
+          if (activeTab === "request") fetchRequests();
+          else fetchData();
+        } catch (error) {
+          const msg = error?.response?.data?.data?.Message;
+          await showNotification(
+            "warning",
+            msg?.Message_Header || "Notification",
+            msg?.Message_Line || ["Refund failed"]
+          );
 
           if (activeTab === "request") fetchRequests();
           else fetchData();

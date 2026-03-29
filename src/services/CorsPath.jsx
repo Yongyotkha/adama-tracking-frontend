@@ -302,6 +302,7 @@ export const paths = {
 
   // Sale Point Order
   pathSalePointOrderList: "/sale-point/list",
+  pathSalePointRefund: "/sale-point/refund",
   pathSalePointOrderCreate: "/sale-point/create",
   pathSalePointOrderUpdate: "/sale-point/update",
   pathSalePointOrderDetail: "/sale-point/detail",

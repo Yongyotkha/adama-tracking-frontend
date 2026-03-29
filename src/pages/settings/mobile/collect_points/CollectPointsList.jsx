@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Dropdown } from "antd";
+import { Dropdown, Modal } from "antd";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 import MainLayout from "../../../../layouts/MainLayout";
 import Filter from "../../../../components/filter/Filter";
 import TableComponent from "../../../../components/table/TableComponent";
@@ -7,13 +8,13 @@ import BadgeStatus from "../../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import ItemDropDown from "../../../../components/dropdown/ItemDropDown";
 import { useNavigate } from "react-router-dom";
-import useServiceAPI from "../../../../services/corsService";
+import useServiceAPI from "../../../../services/CorsService";
 import { paths } from "../../../../services/CorsPath";
 import { AuthContext } from "../../../../contexts/AuthContext";
 
 export default function CollectPointsList() {
   const navigate = useNavigate();
-  const { showMsg } = useContext(AuthContext);
+  const { showMsg, showNotification } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
 
@@ -55,6 +56,64 @@ export default function CollectPointsList() {
     { title: "Status", width: 150, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
+
+  const { confirm } = Modal;
+
+  const handleRefund = (documentNumber) => {
+    let remark = "";
+    confirm({
+      title: "Refund Order ?",
+      icon: <ExclamationCircleFilled />,
+      content: (
+        <div className="mt-4">
+          <div className="mb-2 text-sm font-medium text-gray-700">หมายเหตุ <span className="text-red-500">*</span></div>
+          <textarea
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows="3"
+            placeholder="กรุณาใส่หมายเหตุ"
+            onChange={(e) => {
+              remark = e.target.value;
+            }}
+          />
+        </div>
+      ),
+      centered: true,
+      async onOk() {
+        if (!remark || remark.trim() === "") {
+          showMsg?.("warning", "กรุณาใส่หมายเหตุ");
+          return Promise.reject();
+        }
+        try {
+          const res = await useServiceAPI.put(paths.pathSalePointRefund, {
+            document_number: documentNumber,
+            remark: remark,
+          });
+          const ok = res?.status === 200 || res?.status === "200";
+          const header =
+            res?.data?.data?.Message?.Message_Header ||
+            res?.data?.message ||
+            (ok ? "Refund successful" : "Notification");
+          const lines =
+            res?.data?.data?.Message?.Message_Line ||
+            res?.data?.message_line ||
+            [ok ? "Refund successful" : "Please try again."];
+
+          await showNotification(ok ? "success" : "warning", header, lines);
+
+          fetchData();
+        } catch (error) {
+          const msg = error?.response?.data?.data?.Message;
+          await showNotification(
+            "warning",
+            msg?.Message_Header || "Notification",
+            msg?.Message_Line || ["Refund failed"]
+          );
+
+          fetchData();
+        }
+      },
+    });
+  };
 
   // ---------- fetch data ----------
   const fetchData = async () => {
@@ -107,19 +166,30 @@ export default function CollectPointsList() {
           action: (
             <Dropdown
               menu={{
-                items: (row.action || []).map((a, i) => ({
-                  key: i,
-                  label: (
-                    <ItemDropDown
-                      mode={String(a.action).toLowerCase()}
-                      onClick={() =>
-                        navigate("/points/line/collect-points-list/view", {
-                          state: { document_number: row.document_number },
-                        })
-                      }
-                    />
-                  ),
-                })),
+                items: [
+                    ...(row.action || []).map((a, i) => ({
+                        key: i,
+                        label: (
+                          <ItemDropDown
+                            mode={String(a.action).toLowerCase()}
+                            onClick={() =>
+                              navigate("/points/line/collect-points-list/view", {
+                                state: { document_number: row.document_number },
+                              })
+                            }
+                          />
+                        ),
+                    })),
+                    {
+                        key: "refund",
+                        label: (
+                          <ItemDropDown
+                            mode="refund"
+                            onClick={() => handleRefund(row.document_number)}
+                          />
+                        ),
+                    },
+                ],
               }}
               placement="bottom"
             >
