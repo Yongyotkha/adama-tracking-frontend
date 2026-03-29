@@ -164,7 +164,7 @@ export default function SalesPointsList() {
         />
       ),
     });
-    if (record.status_code === "ODC") {
+    if (actions.includes("refund") || actions.includes("refund point")) {
       items.push({
         key: "refund_point",
         label: (
@@ -272,7 +272,7 @@ export default function SalesPointsList() {
                       />
                     ),
                   },
-                  order.status_code === "ODC" && {
+                  ((order.action || []).some(a => ["refund", "refund point"].includes(String(a.action).toLowerCase()))) && {
                     key: "refund_point",
                     label: (
                       <ItemDropDown

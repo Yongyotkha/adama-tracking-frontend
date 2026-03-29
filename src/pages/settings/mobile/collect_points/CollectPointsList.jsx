@@ -167,7 +167,9 @@ export default function CollectPointsList() {
             <Dropdown
               menu={{
                 items: [
-                    ...(row.action || []).map((a, i) => ({
+                    ...(row.action || [])
+                      .filter(a => !["refund", "refund point"].includes(String(a.action).toLowerCase()))
+                      .map((a, i) => ({
                         key: i,
                         label: (
                           <ItemDropDown
@@ -180,7 +182,7 @@ export default function CollectPointsList() {
                           />
                         ),
                     })),
-                    row.status_transaction_code === "ODC" && {
+                    ((row.action || []).some(a => ["refund", "refund point"].includes(String(a.action).toLowerCase()))) && {
                         key: "refund_point",
                         label: (
                           <ItemDropDown
