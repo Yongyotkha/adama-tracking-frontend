@@ -209,16 +209,19 @@ export default function PointHistoryDetail() {
                     {/* คะแนนต่อบรรทัด */}
                     {/* คะแนนต่อบรรทัด — UPDATED: ไม่แบ่งครึ่ง, ชิดซ้าย */}
                     <div className="mt-2 space-y-1 text-[12px] text-gray-600 sarabun-font">
+
                       <div className="flex justify-between">
                         <span>คะแนน</span>
                         <span className="font-medium">{nf(item.master_point)}</span>
                       </div>
+
                       {item.x_point > 0 && (
                         <div className="flex justify-between">
                           <span>คะแนนโบนัส</span>
                           <span className="font-medium">{nf(item.x_point)}</span>
                         </div>
                       )}
+                      
                       {item.extra_point > 0 && (
                         <div className="flex justify-between">
                           <span>Extra (Point)</span>
