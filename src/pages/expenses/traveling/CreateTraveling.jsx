@@ -55,8 +55,8 @@ export default function CreateTraveling() {
       setLoading(true);
       try {
         const [sale, year, month] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterUserAll),
-          // useServiceAPI.get(paths.pathMasterSaleExpense, { mode: "all" }),
+          // useServiceAPI.get(paths.pathMasterUserAll),
+          useServiceAPI.get(paths.pathMasterSaleExpense, { mode: "all" }),
 
           useServiceAPI.get(paths.pathMasterYear, {}),
           useServiceAPI.get(paths.pathMasterMonths, {}),
@@ -65,7 +65,7 @@ export default function CreateTraveling() {
         setDataSale(sale.data)
         setDataYear(year.data);
         setDataMonth(month.data);
-        
+
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -78,7 +78,7 @@ export default function CreateTraveling() {
 
   const handleMonthChange = (filter, value) => {
     console.log(value);
-    
+
     if (filter == 'sale') {
       setSaleId(value);
 
@@ -112,7 +112,7 @@ export default function CreateTraveling() {
 
           const dataItems = traveling.data.data_items;
           console.log(dataItems);
-          const transformedData = dataItems.map((item, index) => ({            
+          const transformedData = dataItems.map((item, index) => ({
             key: `${index + 1}`,
             date: item.date || "",
             from: item.traveling_from || "",
@@ -127,7 +127,7 @@ export default function CreateTraveling() {
             // others: formatNumber(item.others) == 0 ? "0" : formatNumber(item.others)|| "", 
             // total: formatNumber(item.total) == 0 ? "0" : formatNumber(item.total) || "", 
             remark: item.remark || "",
-            
+
             petrol: item.petrol == 0.00 ? 0 : item.petrol || "",
             cashPetrol: item.cash_petrol == 0.00 ? 0 : item.cash_petrol || "",
             hotel: item.hotel == 0.00 ? 0 : item.hotel || "",
@@ -136,7 +136,7 @@ export default function CreateTraveling() {
             entertain: item.entertain == 0.00 ? 0 : item.entertain || "",
             others: item.others == 0.00 ? 0 : item.others || "",
             total: item.total == 0.00 ? 0 : item.total || "",
-            
+
           }));
 
           // ตั้งค่า state

@@ -42,8 +42,8 @@ export default function Traveling() {
       setLoading(true);
       try {
         const [sale, year, month, status] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" }),
-          // useServiceAPI.get(paths.pathMasterSaleExpense, { mode: "all" }),
+          // useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" }),
+          useServiceAPI.get(paths.pathMasterSaleExpense, { mode: "all" }),
           useServiceAPI.get(paths.pathMasterYear, {}),
           useServiceAPI.get(paths.pathMasterMonths, {}),
           useServiceAPI.get(paths.pathMasterStatus, {
