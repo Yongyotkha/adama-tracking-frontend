@@ -27,6 +27,32 @@ const formatNumberLocal = (input, digi = 2) => {
   return "0.00";
 };
 
+const EditableFormattedNumericInput = ({ value, onChange, style, disabled }) => {
+  const [isFocused, setIsFocused] = useState(false);
+
+  const handleChange = (e) => {
+    const rawValue = e.target.value;
+    const numericValue = rawValue.replace(/,/g, "");
+    if (/^\d*\.?\d*$/.test(numericValue)) {
+      onChange(numericValue);
+    }
+  };
+
+  const displayValue = isFocused ? value : formatNumberLocal(value);
+
+  return (
+    <Input
+      style={{ textAlign: "right", ...style }}
+      value={displayValue ?? ""}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
+      onChange={handleChange}
+      disabled={disabled}
+      placeholder="0.00"
+    />
+  );
+};
+
 export default function CreateTraveling() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -252,9 +278,9 @@ export default function CreateTraveling() {
       dataIndex: "mileage",
       key: "mileage",
       render: (value, record) => (
-        <NumericInput
-          style={{ width: 100, textAlign: "right" }}
-          value={value ?? ""}
+        <EditableFormattedNumericInput
+          style={{ width: 100 }}
+          value={value}
           onChange={(val) => updateField(record.key, 'mileage', val)}
         />
       ),
@@ -264,9 +290,9 @@ export default function CreateTraveling() {
       dataIndex: "petrol",
       key: "petrol",
       render: (value, record) => (
-        <NumericInput
-          style={{ width: 100, textAlign: "right" }}
-          value={value ?? ""}
+        <EditableFormattedNumericInput
+          style={{ width: 100 }}
+          value={value}
           onChange={(val) => updateField(record.key, 'petrol', val)}
         />
       ),
@@ -276,9 +302,9 @@ export default function CreateTraveling() {
       dataIndex: "cashPetrol",
       key: "cashPetrol",
       render: (value, record) => (
-        <NumericInput
-          style={{ width: 100, textAlign: "right" }}
-          value={value ?? ""}
+        <EditableFormattedNumericInput
+          style={{ width: 100 }}
+          value={value}
           onChange={(val) => updateField(record.key, 'cashPetrol', val)}
         />
       ),
@@ -288,9 +314,9 @@ export default function CreateTraveling() {
       dataIndex: "hotel",
       key: "hotel",
       render: (value, record) => (
-        <NumericInput
-          style={{ width: 100, textAlign: "right" }}
-          value={value ?? ""}
+        <EditableFormattedNumericInput
+          style={{ width: 100 }}
+          value={value}
           onChange={(val) => updateField(record.key, 'hotel', val)}
         />
       ),
@@ -300,9 +326,9 @@ export default function CreateTraveling() {
       dataIndex: "allowance",
       key: "allowance",
       render: (value, record) => (
-        <NumericInput
-          style={{ width: 100, textAlign: "right" }}
-          value={value ?? ""}
+        <EditableFormattedNumericInput
+          style={{ width: 100 }}
+          value={value}
           onChange={(val) => updateField(record.key, 'allowance', val)}
         />
       ),
@@ -312,9 +338,9 @@ export default function CreateTraveling() {
       dataIndex: "tollFee",
       key: "tollFee",
       render: (value, record) => (
-        <NumericInput
-          style={{ width: 100, textAlign: "right" }}
-          value={value ?? ""}
+        <EditableFormattedNumericInput
+          style={{ width: 100 }}
+          value={value}
           onChange={(val) => updateField(record.key, 'tollFee', val)}
         />
       ),
@@ -324,9 +350,9 @@ export default function CreateTraveling() {
       dataIndex: "entertain",
       key: "entertain",
       render: (value, record) => (
-        <NumericInput
-          style={{ width: 100, textAlign: "right" }}
-          value={value ?? ""}
+        <EditableFormattedNumericInput
+          style={{ width: 100 }}
+          value={value}
           onChange={(val) => updateField(record.key, 'entertain', val)}
         />
       ),
@@ -336,9 +362,9 @@ export default function CreateTraveling() {
       dataIndex: "others",
       key: "others",
       render: (value, record) => (
-        <NumericInput
-          style={{ width: 100, textAlign: "right" }}
-          value={value ?? ""}
+        <EditableFormattedNumericInput
+          style={{ width: 100 }}
+          value={value}
           onChange={(val) => updateField(record.key, 'others', val)}
         />
       ),
@@ -348,9 +374,9 @@ export default function CreateTraveling() {
       dataIndex: "total",
       key: "total",
       render: (value, record) => (
-        <NumericInput
-          style={{ width: 100, textAlign: "right" }}
-          value={formatNumberLocal(value)}
+        <EditableFormattedNumericInput
+          style={{ width: 100 }}
+          value={value}
           onChange={(val) => updateField(record.key, 'total', val)}
           disabled
         />
