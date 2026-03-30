@@ -27,23 +27,40 @@ const formatNumberLocal = (input, digi = 2) => {
 
 const EditableFormattedNumericInput = ({ value, onChange, style, disabled }) => {
   const [isFocused, setIsFocused] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+
+  const formatWithCommas = (val) => {
+    const s = String(val).replace(/,/g, "");
+    const parts = s.split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return parts.join(".");
+  };
+
+  useEffect(() => {
+    if (!isFocused) {
+      setInputValue(formatNumberLocal(value));
+    }
+  }, [value, isFocused]);
 
   const handleChange = (e) => {
-    const rawValue = e.target.value;
-    const numericValue = rawValue.replace(/,/g, "");
-    if (/^\d*\.?\d*$/.test(numericValue)) {
-      onChange(numericValue);
+    const val = e.target.value.replace(/,/g, "");
+    if (/^\d*\.?\d*$/.test(val)) {
+      setInputValue(e.target.value);
+      onChange(val);
     }
   };
 
-  const displayValue = isFocused ? value : formatNumberLocal(value);
-
   return (
     <Input
-      style={{ textAlign: "right", ...style }}
-      value={displayValue ?? ""}
-      onFocus={() => setIsFocused(true)}
-      onBlur={() => setIsFocused(false)}
+      style={{ textAlign: "right", width: "100%", ...style }}
+      value={isFocused ? inputValue : formatNumberLocal(value)}
+      onFocus={() => {
+        setIsFocused(true);
+        setInputValue(String(value || "").replace(/,/g, ""));
+      }}
+      onBlur={() => {
+        setIsFocused(false);
+      }}
       onChange={handleChange}
       disabled={disabled}
       placeholder="0.00"
@@ -655,25 +672,22 @@ export default function EditTraveling() {
       <BoxPrimary>
         <div className="grid grid-cols-2 gap-4">
           <div className="flex justify-end">Total Advanced:</div>
-          <NumericInput
-            style={{ textAlign: "right" }}
-            value={formatNumberLocal(dataTotalAdvanced)}
-            // onChange={(value) => setDataTotalAdvanced(parseFloat(value) || 0) }
-            onChange={(value) => {
-              const parsedValue = parseFloat(value) || 0;
-              console.log("setDataTotalAdvanced:", parsedValue);
-              setDataTotalAdvanced(parsedValue);
+          <EditableFormattedNumericInput
+            value={dataTotalAdvanced}
+            onChange={(val) => {
+              // Store as string to allow typing decimals
+              setDataTotalAdvanced(val);
             }}
           />
 
           <div className="flex justify-end">Total Expenses:</div>
-          <NumericInput style={{ textAlign: "right" }} value={formatNumberLocal(dataTotalExpenses)} disabled />
+          <Input style={{ textAlign: "right" }} value={formatNumberLocal(dataTotalExpenses)} disabled />
 
           <div className="flex justify-end">Return to Company:</div>
-          <NumericInput style={{ textAlign: "right" }} value={formatNumberLocal(returnToCompany)} disabled />
+          <Input style={{ textAlign: "right" }} value={formatNumberLocal(returnToCompany)} disabled />
 
           <div className="flex justify-end">Return to Staff:</div>
-          <NumericInput style={{ textAlign: "right" }} value={formatNumberLocal(returnToStaff)} disabled />
+          <Input style={{ textAlign: "right" }} value={formatNumberLocal(returnToStaff)} disabled />
         </div>
       </BoxPrimary>
 
