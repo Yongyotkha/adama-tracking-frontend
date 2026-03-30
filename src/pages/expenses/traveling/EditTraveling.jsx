@@ -60,7 +60,7 @@ export default function EditTraveling() {
       try {
         const [sale, year, month] = await Promise.all([
           useServiceAPI.get(paths.pathMasterUserAll),
-
+          // useServiceAPI.get(paths.pathMasterSaleExpense, { mode: "all" }),
           useServiceAPI.get(paths.pathMasterYear, {}),
           useServiceAPI.get(paths.pathMasterMonths, {}),
         ]);
