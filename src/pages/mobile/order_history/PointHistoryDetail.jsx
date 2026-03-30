@@ -222,7 +222,7 @@ export default function PointHistoryDetail() {
                         </div>
                       )}
                       
-                      {item.extra_point > 0 && (
+                      {/* {item.extra_point > 0 && (
                         <div className="flex justify-between">
                           <span>Extra (Point)</span>
                           <span className="font-medium">{nf(item.extra_point)}</span>
@@ -233,7 +233,7 @@ export default function PointHistoryDetail() {
                           <span>Extra (Value)</span>
                           <span className="font-medium">{nf(item.extra_value)}</span>
                         </div>
-                      )}
+                      )} */}
                       {/* {Number(item?.points?.check_point ?? 0) > 0 && (
                         <div className="flex justify-between">
                           <span>Check Point</span>
