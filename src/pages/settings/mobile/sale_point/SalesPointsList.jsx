@@ -120,71 +120,6 @@ export default function SalesPointsList() {
     { title: "Action", width: 120, dataIndex: "action", align: "center" },
   ];
 
-  const getActionForRequest = (record) => {
-    const apiActions = Array.isArray(record.apiActions)
-      ? record.apiActions.map((a) => (a?.action || "").toLowerCase())
-      : [];
-    const actions = apiActions.length ? apiActions : ["view"];
-
-    const items = [];
-    if (actions.includes("view")) {
-      items.push({
-        key: "view",
-        label: (
-          <ItemDropDown
-            mode="view"
-            onClick={() =>
-              navigate("/points/line/sales-points-list/view", {
-                state: { document_number: record.document_number },
-              })
-            }
-          />
-        ),
-      });
-    }
-    items.push({
-      key: "edit",
-      label: (
-        <ItemDropDown
-          mode="edit"
-          onClick={() =>
-            navigate("/points/line/sales-points-list/edit", {
-              state: { document_number: record.document_number },
-            })
-          }
-        />
-      ),
-    });
-    items.push({
-      key: "delete",
-      label: (
-        <ItemDropDown
-          mode="delete"
-          onClick={() => handleDelete(record.document_number)}
-        />
-      ),
-    });
-    if (actions.includes("refund") || actions.includes("refund point")) {
-      items.push({
-        key: "refund_point",
-        label: (
-          <ItemDropDown
-            mode="refund_point"
-            onClick={() => handleRefund(record.document_number)}
-          />
-        ),
-      });
-    }
-
-    return (
-      <Dropdown menu={{ items }} placement="bottom">
-        <a onClick={(e) => e.preventDefault()}>
-          <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
-        </a>
-      </Dropdown>
-    );
-  };
-
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -236,52 +171,62 @@ export default function SalesPointsList() {
           action: (
             <Dropdown
               menu={{
-                items: [
-                  {
-                    key: 1,
-                    label: (
-                      <ItemDropDown
-                        mode="view"
-                        onClick={() =>
-                          navigate("/points/line/sales-points-list/view", {
-                            state: { document_number: order.document_number },
-                          })
-                        }
-                      />
-                    ),
-                  },
-                  {
-                    key: 2,
-                    label: (
-                      <ItemDropDown
-                        mode="edit"
-                        onClick={() =>
-                          navigate("/points/line/sales-points-list/edit", {
-                            state: { document_number: order.document_number },
-                          })
-                        }
-                      />
-                    ),
-                  },
-                  {
-                    key: 3,
-                    label: (
-                      <ItemDropDown
-                        mode="delete"
-                        onClick={() => handleDelete(order.document_number)}
-                      />
-                    ),
-                  },
-                  ((order.action || []).some(a => ["refund", "refund point"].includes(String(a.action).toLowerCase()))) && {
-                    key: "refund_point",
-                    label: (
-                      <ItemDropDown
-                        mode="refund_point"
-                        onClick={() => handleRefund(order.document_number)}
-                      />
-                    ),
-                  },
-                ].filter(Boolean),
+                items: (order.action || []).map((a, i) => {
+                  const actionName = String(a.action).toLowerCase();
+                  if (actionName === "view") {
+                    return {
+                      key: `view-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="view"
+                          onClick={() =>
+                            navigate("/points/line/sales-points-list/view", {
+                              state: { document_number: order.document_number },
+                            })
+                          }
+                        />
+                      ),
+                    };
+                  }
+                  if (actionName === "edit") {
+                    return {
+                      key: `edit-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="edit"
+                          onClick={() =>
+                            navigate("/points/line/sales-points-list/edit", {
+                              state: { document_number: order.document_number },
+                            })
+                          }
+                        />
+                      ),
+                    };
+                  }
+                  if (actionName === "delete") {
+                    return {
+                      key: `delete-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="delete"
+                          onClick={() => handleDelete(order.document_number)}
+                        />
+                      ),
+                    };
+                  }
+                  if (["refund", "refund point"].includes(actionName)) {
+                    return {
+                      key: `refund_point-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="refund_point"
+                          onClick={() => handleRefund(order.document_number)}
+                        />
+                      ),
+                    };
+                  }
+                  return null;
+                }).filter(Boolean),
               }}
               placement="bottom"
             >
@@ -357,11 +302,77 @@ export default function SalesPointsList() {
               />
             ),
             status_code: item.status_code,
-            apiActions: item.action,
+            action: (
+              <Dropdown
+                menu={{
+                  items: (item.action || []).map((a, i) => {
+                    const actionName = String(a.action).toLowerCase();
+                    if (actionName === "view") {
+                      return {
+                        key: `view-${i}`,
+                        label: (
+                          <ItemDropDown
+                            mode="view"
+                            onClick={() =>
+                              navigate("/points/line/sales-points-list/view", {
+                                state: { document_number: item.document_number },
+                              })
+                            }
+                          />
+                        ),
+                      };
+                    }
+                    if (actionName === "edit") {
+                      return {
+                        key: `edit-${i}`,
+                        label: (
+                          <ItemDropDown
+                            mode="edit"
+                            onClick={() =>
+                              navigate("/points/line/sales-points-list/edit", {
+                                state: { document_number: item.document_number },
+                              })
+                            }
+                          />
+                        ),
+                      };
+                    }
+                    if (actionName === "delete") {
+                      return {
+                        key: `delete-${i}`,
+                        label: (
+                          <ItemDropDown
+                            mode="delete"
+                            onClick={() => handleDelete(item.document_number)}
+                          />
+                        ),
+                      };
+                    }
+                    if (["refund", "refund point"].includes(actionName)) {
+                      return {
+                        key: `refund_point-${i}`,
+                        label: (
+                          <ItemDropDown
+                            mode="refund_point"
+                            onClick={() => handleRefund(item.document_number)}
+                          />
+                        ),
+                      };
+                    }
+                    return null;
+                  }).filter(Boolean),
+                }}
+                placement="bottom"
+              >
+                <a onClick={(e) => e.preventDefault()}>
+                  <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
+                </a>
+              </Dropdown>
+            ),
           };
         });
 
-        setRequestDataSource(mapped.map((row) => ({ ...row, action: getActionForRequest(row) })));
+        setRequestDataSource(mapped);
 
         setRequestTableParams((prev) => ({
           ...prev,

@@ -115,6 +115,36 @@ export default function CollectPointsList() {
     });
   };
 
+  const handleDelete = (documentNumber) => {
+    confirm({
+      title: "Do you want to delete ?",
+      icon: <ExclamationCircleFilled />,
+      content: [],
+      centered: true,
+      async onOk() {
+        try {
+          const res = await useServiceAPI.delete(paths.pathSalePointOrderDelete, { document_number: documentNumber });
+          const ok = res?.status === 200;
+          const header =
+            res?.data?.data?.Message?.Message_Header ||
+            res?.data?.message ||
+            (ok ? "Delete successful" : "Notification");
+          const lines =
+            res?.data?.data?.Message?.Message_Line ||
+            res?.data?.message_line ||
+            [ok ? "Delete successful" : "Please try again."];
+
+          await showNotification(ok ? "success" : "warning", header, lines);
+          fetchData();
+        } catch (error) {
+          const msg = error?.response?.data?.data?.Message;
+          await showNotification("warning", msg?.Message_Header || "Notification", msg?.Message_Line || ["Data not found"]);
+          fetchData();
+        }
+      },
+    });
+  };
+
   // ---------- fetch data ----------
   const fetchData = async () => {
     setTableLoading(true);
@@ -166,32 +196,62 @@ export default function CollectPointsList() {
           action: (
             <Dropdown
               menu={{
-                items: [
-                    ...(row.action || [])
-                      .filter(a => !["refund", "refund point"].includes(String(a.action).toLowerCase()))
-                      .map((a, i) => ({
-                        key: i,
-                        label: (
-                          <ItemDropDown
-                            mode={String(a.action).toLowerCase()}
-                            onClick={() =>
-                              navigate("/points/line/collect-points-list/view", {
-                                state: { document_number: row.document_number },
-                              })
-                            }
-                          />
-                        ),
-                    })),
-                    ((row.action || []).some(a => ["refund", "refund point"].includes(String(a.action).toLowerCase()))) && {
-                        key: "refund_point",
-                        label: (
-                          <ItemDropDown
-                            mode="refund_point"
-                            onClick={() => handleRefund(row.document_number)}
-                          />
-                        ),
-                    },
-                ].filter(Boolean),
+                items: (row.action || []).map((a, i) => {
+                  const actionName = String(a.action).toLowerCase();
+                  if (actionName === "view") {
+                    return {
+                      key: `view-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="view"
+                          onClick={() =>
+                            navigate("/points/line/collect-points-list/view", {
+                              state: { document_number: row.document_number },
+                            })
+                          }
+                        />
+                      ),
+                    };
+                  }
+                  if (actionName === "edit") {
+                    return {
+                      key: `edit-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="edit"
+                          onClick={() =>
+                            navigate("/points/line/collect-points-list/view", {
+                              state: { document_number: row.document_number },
+                            })
+                          }
+                        />
+                      ),
+                    };
+                  }
+                  if (actionName === "delete") {
+                    return {
+                      key: `delete-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="delete"
+                          onClick={() => handleDelete(row.document_number)}
+                        />
+                      ),
+                    };
+                  }
+                  if (["refund", "refund point"].includes(actionName)) {
+                    return {
+                      key: `refund_point-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="refund_point"
+                          onClick={() => handleRefund(row.document_number)}
+                        />
+                      ),
+                    };
+                  }
+                  return null;
+                }).filter(Boolean),
               }}
               placement="bottom"
             >
