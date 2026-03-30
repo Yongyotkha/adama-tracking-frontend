@@ -273,7 +273,7 @@ export default function EditTraveling() {
   // Calculate total for each row
   const calculateTotal = (item) => (
     [
-      "petrol",
+      // "petrol",
       "cashPetrol",
       "hotel",
       "allowance",
