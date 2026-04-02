@@ -351,12 +351,12 @@ export default function SalesPointCreate() {
           product_code: data.product_code,
           product_name: data.product_name,
           product_unit: data.packing_list,
-          product_unit_thb: data.bath_unit_sale_point,
+          product_unit_thb: data.bath_unit,
           product_campaign_order_min_foc: data.product_campaign_order_min_foc,
           product_campaign_foc: data.product_campaign_foc,
           quantity: 1,
           foc: parseInt(1 / data.product_campaign_order_min_foc),
-          net_amount: (1 * parseFloat(String(data.bath_unit_sale_point).replace(/,/g, ""))).toFixed(2),
+          net_amount: (1 * parseFloat(String(data.bath_unit).replace(/,/g, ""))).toFixed(2),
           point: data.point,
         };
         const next = [...dataSource, newRow].map((i, idx) => ({ ...i, key: idx + 1, no: idx + 1 }));
