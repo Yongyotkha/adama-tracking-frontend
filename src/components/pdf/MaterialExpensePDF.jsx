@@ -70,25 +70,25 @@ const styles = StyleSheet.create({
   },
 
   infoLabel: {
-    width: "18%",
+    width: "10%",
     fontSize: 8,
   },
 
   infoValue: {
-    width: "82%",
+    width: "90%",
     fontSize: 8,
   },
 
   infoTopLabel: {
     fontWeight: "bold",
     fontSize: 10,
-    width: "14%",
+    width: "8%",
   },
 
   infoTopValue: {
     fontWeight: "bold",
     fontSize: 10,
-    width: "36%",
+    width: "42%",
   },
 
   table: {
@@ -326,12 +326,12 @@ const MaterialExpensePDF = () => {
 
   const cropNames = Array.isArray(dataCrop)
     ? dataCrop
-        .map((cropId) => {
-          const crop = masterCrop.find((item) => String(item.id) === String(cropId));
-          return crop?.name || null;
-        })
-        .filter(Boolean)
-        .join(", ")
+      .map((cropId) => {
+        const crop = masterCrop.find((item) => String(item.id) === String(cropId));
+        return crop?.name || null;
+      })
+      .filter(Boolean)
+      .join(", ")
     : "-";
 
   const colWidths = {
@@ -357,10 +357,13 @@ const MaterialExpensePDF = () => {
 
   const totalAmount = Array.isArray(dataItems)
     ? dataItems.reduce(
-        (sum, item) => sum + Number(item.request || 0) * Number(item.unit_price || 0),
-        0
-      )
+      (sum, item) => sum + Number(item.request || 0) * Number(item.unit_price || 0),
+      0
+    )
     : 0;
+  const dealerName = safeVal(dataHeader.dealer_name, "");
+  const subDealerName = safeVal(dataHeader.sub_dealer_name, "");
+  const cropDisplay = cropNames || "";
 
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
@@ -369,9 +372,7 @@ const MaterialExpensePDF = () => {
           <View style={styles.header}>
             <Image style={styles.logo} src="/favicon.png" />
             <View style={styles.companyDetails}>
-              <Text style={{ fontWeight: "bold", fontSize: 10, lineHeight: 1.5 }}>
-                บริษัท อดามา (ประเทศไทย) จำกัด
-              </Text>
+              <Text style={{ fontWeight: "bold", fontSize: 10, lineHeight: 1.5 }}>บริษัท อดามา (ประเทศไทย) จำกัด </Text>
               <Text style={{ fontWeight: "bold", fontSize: 10, lineHeight: 1.5 }}>
                 ADAMA (Thailand) Limited
               </Text>
@@ -403,20 +404,27 @@ const MaterialExpensePDF = () => {
               <Text style={styles.infoTopValue}>{safeVal(dataHeader.area_name)}</Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Dealer Name :</Text>
-              <Text style={styles.infoValue}>{safeVal(dataHeader.dealer_name)}</Text>
-            </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Sub Dealer Name :</Text>
-              <Text style={styles.infoValue}>{safeVal(dataHeader.sub_dealer_name)}</Text>
-            </View>
+            {!!dealerName && (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Dealer Name :</Text>
+                <Text style={styles.infoValue}>{dealerName}</Text>
+              </View>
+            )}
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Crop :</Text>
-              <Text style={styles.infoValue}>{cropNames || "-"}</Text>
-            </View>
+            {!!subDealerName && (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Sub Dealer Name :</Text>
+                <Text style={styles.infoValue}>{subDealerName}</Text>
+              </View>
+            )}
+
+            {!!cropDisplay && (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Crop :</Text>
+                <Text style={styles.infoValue}>{cropDisplay}</Text>
+              </View>
+            )}
           </View>
 
           <View style={styles.table}>

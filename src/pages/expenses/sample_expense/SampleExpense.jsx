@@ -13,9 +13,7 @@ import useServiceAPI from "../../../services/CorsService";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import { AuthContext } from "../../../contexts/AuthContext";
 
-// ถ้ามี helper พวกนี้ใช้อยู่ในโปรเจกต์ ให้ import เพิ่มตาม path จริง
-// import { showNotification, showMsg } from "../../../utils/notification";
-// import { getUserInfo } from "../../../utils/auth";
+
 
 export default function SampleExpense() {
   const { confirm } = Modal;
@@ -37,11 +35,8 @@ export default function SampleExpense() {
   const [subDealerList, setSubDealerList] = useState([]);
   const [cropList, setCropList] = useState([]);
   const navigate = useNavigate();
-  const { showMsg, showNotification } = useContext(AuthContext);
+  const { showMsg, showNotification, userInfo } = useContext(AuthContext);
 
-
-  // สมมติว่ามี userInfo ใช้อยู่แล้วในโปรเจกต์
-  // const userInfo = getUserInfo();
 
   const filters = [
     {
@@ -146,6 +141,29 @@ export default function SampleExpense() {
       },
     });
   };
+  const formatNumberDisplay = (value, digits = 2) => {
+    const n = Number(value);
+    if (!Number.isFinite(n)) {
+      return Number(0).toLocaleString("en-US", {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits,
+      });
+    }
+
+    return n.toLocaleString("en-US", {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    });
+  };
+
+  const formatIntegerDisplay = (value) => {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return "0";
+    return n.toLocaleString("en-US", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+  };
 
   const fetchData = async () => {
     setTableLoading(true);
@@ -198,15 +216,15 @@ export default function SampleExpense() {
           crop_id: row.crop_id || "-",
           crop_name: row.crop_name || "-",
 
-          quantity_product: row.quantity_product || "0.00",
-          quantity_product_foc: row.quantity_product_foc || "0.00",
-          quantity_other: row.quantity_other || "0.00",
-          line_product: row.line_product || "0",
-          line_other: row.line_other || "0",
-          net_amount_product: row.net_amount_product || "0.00",
-          net_amount_other: row.net_amount_other || "0.00",
-          net_amount: row.net_amount || "0.00",
-          net_amount_display: row.net_amount_display || "0",
+          quantity_product: formatNumberDisplay(row.quantity_product, 2),
+          quantity_product_foc: formatNumberDisplay(row.quantity_product_foc, 2),
+          quantity_other: formatNumberDisplay(row.quantity_other, 2),
+          line_product: formatIntegerDisplay(row.line_product),
+          line_other: formatIntegerDisplay(row.line_other),
+          net_amount_product: formatNumberDisplay(row.net_amount_product, 2),
+          net_amount_other: formatNumberDisplay(row.net_amount_other, 2),
+          net_amount: formatNumberDisplay(row.net_amount, 2),
+          net_amount_display: formatNumberDisplay(row.net_amount_display, 2),
 
           ref_remark: row.ref_remark || "-",
           use_flag: row.use_flag || "-",

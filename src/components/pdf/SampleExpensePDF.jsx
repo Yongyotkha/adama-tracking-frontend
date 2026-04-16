@@ -183,25 +183,25 @@ const styles = StyleSheet.create({
   },
 
   infoLabel: {
-    width: "18%",
+    width: "15%",
     fontSize: 8,
   },
 
   infoValue: {
-    width: "32%",
+    width: "25%",
     fontSize: 8,
   },
 
   infoTopLabel: {
     fontWeight: "bold",
     fontSize: 10,
-    width: "14%",
+    width: "8%",
   },
 
   infoTopValue: {
     fontWeight: "bold",
     fontSize: 10,
-    width: "36%",
+    width: "42%",
   },
 
   sentByBox: {
@@ -412,20 +412,26 @@ const SampleExpensePDF = () => {
               <Text style={styles.infoTopValue}>{safeVal(dataHeader.created_area_name)}</Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Dealer Name :</Text>
-              <Text style={styles.infoValue}>{safeVal(dataHeader.dealer_name, "-")}</Text>
-            </View>
+            {!!safeVal(dataHeader.dealer_name, "") && (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Dealer Name :</Text>
+                <Text style={styles.infoValue}>{safeVal(dataHeader.dealer_name, "")}</Text>
+              </View>
+            )}
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Sub Dealer Name :</Text>
-              <Text style={styles.infoValue}>{safeVal(dataHeader.sub_dealer_name, "-")}</Text>
-            </View>
+            {!!safeVal(dataHeader.sub_dealer_name, "") && (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Sub Dealer Name :</Text>
+                <Text style={styles.infoValue}>{safeVal(dataHeader.sub_dealer_name, "")}</Text>
+              </View>
+            )}
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Crop :</Text>
-              <Text style={styles.infoValue}>{safeVal(dataHeader.crop_name, "-")}</Text>
-            </View>
+            {!!safeVal(dataHeader.crop_name, "") && (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Crop :</Text>
+                <Text style={styles.infoValue}>{safeVal(dataHeader.crop_name, "")}</Text>
+              </View>
+            )}
           </View>
 
           <View style={styles.table}>
@@ -557,7 +563,7 @@ const SampleExpensePDF = () => {
                   <Text> </Text>
                 </View>
               </View>
-              
+
               <View style={styles.signBox}>
                 <Text style={styles.signTitle}>Approved By</Text>
                 <View style={styles.signSpaceApproved}>
