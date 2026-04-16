@@ -47,6 +47,50 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
+  infoSection: {
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#000",
+    marginBottom: 5,
+  },
+
+  infoRowTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#000",
+  },
+
+  infoRow: {
+    flexDirection: "row",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+
+  infoLabel: {
+    width: "18%",
+    fontSize: 8,
+  },
+
+  infoValue: {
+    width: "82%",
+    fontSize: 8,
+  },
+
+  infoTopLabel: {
+    fontWeight: "bold",
+    fontSize: 10,
+    width: "14%",
+  },
+
+  infoTopValue: {
+    fontWeight: "bold",
+    fontSize: 10,
+    width: "36%",
+  },
+
   table: {
     display: "table",
     width: "100%",
@@ -206,29 +250,37 @@ const styles = StyleSheet.create({
   },
 });
 
-
 const MaterialExpensePDF = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
-  const getMaterial = searchParams.get("material_number"); // Fetch material number from query params
+  const getMaterial = searchParams.get("material_number");
   const getPageCode = searchParams.get("page_code");
+
   const [dataItems, setDataItems] = useState([]);
-  const [dataHeader, setDataHeader] = useState([]);
+  const [dataHeader, setDataHeader] = useState({});
   const [dataCrop, setDataCrop] = useState([]);
+  const [masterCrop, setMasterCrop] = useState([]);
 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathExpenseMaterialOne, {
-          code: getMaterial,
-        });
+        const [materialResponse, cropResponse] = await Promise.all([
+          useServiceAPI.get(paths.pathExpenseMaterialOne, {
+            code: getMaterial,
+          }),
+          useServiceAPI.get(paths.pathMasterCrop, {}),
+        ]);
 
-        if (response.status === 200) {
-          setDataItems(response.data.material_list); // Assign material list data
-          setDataHeader(response.data);
-          setDataCrop(response.data.crops);
+        if (materialResponse.status === 200) {
+          setDataItems(materialResponse.data?.material_list || []);
+          setDataHeader(materialResponse.data || {});
+          setDataCrop(materialResponse.data?.crops || []);
+        }
+
+        if (cropResponse.status === 200) {
+          setMasterCrop(cropResponse.data || []);
         }
       } catch (error) {
         console.error("Error fetching material data:", error.message);
@@ -239,6 +291,11 @@ const MaterialExpensePDF = () => {
 
     loadData();
   }, [getMaterial, getPageCode]);
+
+  const safeVal = (val, fallback = "-") => {
+    if (val === undefined || val === null || val === "") return fallback;
+    return String(val);
+  };
 
   const formatNumber = (val) => {
     const n = Number(val);
@@ -257,14 +314,25 @@ const MaterialExpensePDF = () => {
     });
   };
 
-
   const formatDate = (dateString) => {
+    if (!dateString) return "-";
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return "-";
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
   };
+
+  const cropNames = Array.isArray(dataCrop)
+    ? dataCrop
+        .map((cropId) => {
+          const crop = masterCrop.find((item) => String(item.id) === String(cropId));
+          return crop?.name || null;
+        })
+        .filter(Boolean)
+        .join(", ")
+    : "-";
 
   const colWidths = {
     no: "7%",
@@ -276,9 +344,11 @@ const MaterialExpensePDF = () => {
     price: "10%",
     value: "12%",
   };
+
   const hasStockAt = Array.isArray(dataItems)
     ? dataItems.some((item) => item?.stock_at !== undefined && item?.stock_at !== null && item?.stock_at !== "")
     : false;
+
   const totalItems = Array.isArray(dataItems) ? dataItems.length : 0;
 
   const totalReqQty = Array.isArray(dataItems)
@@ -287,20 +357,21 @@ const MaterialExpensePDF = () => {
 
   const totalAmount = Array.isArray(dataItems)
     ? dataItems.reduce(
-      (sum, item) => sum + Number(item.request || 0) * Number(item.unit_price || 0),
-      0
-    )
+        (sum, item) => sum + Number(item.request || 0) * Number(item.unit_price || 0),
+        0
+      )
     : 0;
+
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
       <Document>
         <Page size="A4" style={styles.page}>
-          {/* Header */}
           <View style={styles.header}>
             <Image style={styles.logo} src="/favicon.png" />
             <View style={styles.companyDetails}>
               <Text style={{ fontWeight: "bold", fontSize: 10, lineHeight: 1.5 }}>
-                บริษัท อดามา (ประเทศไทย) จำกัด </Text>
+                บริษัท อดามา (ประเทศไทย) จำกัด
+              </Text>
               <Text style={{ fontWeight: "bold", fontSize: 10, lineHeight: 1.5 }}>
                 ADAMA (Thailand) Limited
               </Text>
@@ -315,21 +386,39 @@ const MaterialExpensePDF = () => {
               </Text>
             </View>
           </View>
+
           <Text style={styles.title}>PROD/MKT REQUISITION FORM</Text>
 
-          {/* Expense Information */}
           <View style={styles.sectionTop}>
-            <Text style={{ fontWeight: "bold" }}>Expense Material No: {dataHeader.code}</Text>
+            <Text style={{ fontWeight: "bold" }}>Expense Material No: {dataHeader.code || "-"}</Text>
             <Text style={{ fontWeight: "bold" }}>Date: {formatDate(dataHeader.created_at)}</Text>
           </View>
 
-          {/* Name and Regions */}
-          <View style={{ ...styles.sectionTop, borderStyle: "solid", borderWidth: 1, borderColor: "#000", padding: 8, marginBottom: 5 }}>
-            <Text style={{ fontWeight: "bold", fontSize: 10, marginRight: "auto", width: "50%" }}>Name: {dataHeader.user_name || "-"}</Text>
-            <Text style={{ fontWeight: "bold", fontSize: 10, marginRight: 'auto', width: "50%" }}>Regions: {dataHeader.area_name || "-"}</Text>
+          <View style={styles.infoSection}>
+            <View style={styles.infoRowTop}>
+              <Text style={styles.infoTopLabel}>Name :</Text>
+              <Text style={styles.infoTopValue}>{safeVal(dataHeader.user_name)}</Text>
+
+              <Text style={styles.infoTopLabel}>Regions :</Text>
+              <Text style={styles.infoTopValue}>{safeVal(dataHeader.area_name)}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Dealer Name :</Text>
+              <Text style={styles.infoValue}>{safeVal(dataHeader.dealer_name)}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Sub Dealer Name :</Text>
+              <Text style={styles.infoValue}>{safeVal(dataHeader.sub_dealer_name)}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Crop :</Text>
+              <Text style={styles.infoValue}>{cropNames || "-"}</Text>
+            </View>
           </View>
 
-          {/* Material List */}
           <View style={styles.table}>
             <View style={styles.tableHeaderRow}>
               <View style={[styles.cellBase, { width: colWidths.no }]}>
@@ -361,9 +450,7 @@ const MaterialExpensePDF = () => {
             {dataItems.map((item, index) => {
               const requestQty = Number(item.request || 0);
               const stockQty = Number(
-                hasStockAt
-                  ? (item.stock_at ?? item.qty ?? 0)
-                  : (item.qty ?? 0)
+                hasStockAt ? (item.stock_at ?? item.qty ?? 0) : (item.qty ?? 0)
               );
               const unitPrice = Number(item.unit_price || 0);
               const totalValue = requestQty * unitPrice;
@@ -405,7 +492,7 @@ const MaterialExpensePDF = () => {
               );
             })}
           </View>
-          {/* Remark Section */}
+
           <View
             style={{
               borderStyle: "solid",
@@ -417,14 +504,11 @@ const MaterialExpensePDF = () => {
             }}
           >
             <Text style={{ ...styles.RemarkTitle, fontSize: 10, marginBottom: 0 }}>
-              {/* Item: {formatNumber(totalItems)} {"  |  "} */}
               Req Unit QTY: {formatNumber(totalReqQty)} {"  |  "}
               Total (THB): {formatNumber2(totalAmount)}
             </Text>
           </View>
 
-
-          {/* Remark Section */}
           <View style={styles.RemarkBox}>
             <Text style={styles.RemarkTitle}>Remark:</Text>
             <Text style={styles.RemarkText}>{dataHeader.remark || " "}</Text>
@@ -468,24 +552,22 @@ const MaterialExpensePDF = () => {
             </View>
           </View>
 
-          {/* Footer */}
           <View style={styles.footer}>
             <View style={styles.footerRow}>
               <View style={styles.footerSection}>
                 <Text style={styles.footerLabel}>Requested By</Text>
-                {/* <Text>{dataHeader.requested_by || "-"}</Text> */}
               </View>
               <View style={styles.footerSection}>
                 <Text style={styles.footerLabel}>Agreed By</Text>
-                {/* <Text>{dataHeader.agreed_by || "-"}</Text> */}
               </View>
               <View style={styles.footerSection}>
                 <Text style={styles.footerLabel}>Approved By</Text>
-                {/* <Text>{dataHeader.approved_by || "-"}</Text> */}
+              </View>
+              <View style={styles.footerSection}>
+                <Text style={styles.footerLabel}>Approved By</Text>
               </View>
               <View style={styles.footerSectionLast}>
                 <Text style={styles.footerLabel}>Delivered/Checked By</Text>
-                {/* <Text>{dataHeader.delivered_by || "-"}</Text> */}
               </View>
             </View>
           </View>

@@ -160,6 +160,50 @@ const styles = StyleSheet.create({
     padding: 8,
     fontSize: 10,
   },
+  infoSection: {
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#000",
+    marginBottom: 5,
+  },
+
+  infoRowTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#000",
+  },
+
+  infoRow: {
+    flexDirection: "row",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+
+  infoLabel: {
+    width: "18%",
+    fontSize: 8,
+  },
+
+  infoValue: {
+    width: "32%",
+    fontSize: 8,
+  },
+
+  infoTopLabel: {
+    fontWeight: "bold",
+    fontSize: 10,
+    width: "14%",
+  },
+
+  infoTopValue: {
+    fontWeight: "bold",
+    fontSize: 10,
+    width: "36%",
+  },
+
   sentByBox: {
     width: "100%",
     borderWidth: 1,
@@ -359,25 +403,29 @@ const SampleExpensePDF = () => {
             </Text>
           </View>
 
-          <View style={styles.infoBox}>
-            <Text
-              style={{
-                fontWeight: "bold",
-                fontSize: 10,
-                width: "50%",
-              }}
-            >
-              Name: {safeVal(dataHeader.created_by_name)}
-            </Text>
-            <Text
-              style={{
-                fontWeight: "bold",
-                fontSize: 10,
-                width: "50%",
-              }}
-            >
-              Regions: {safeVal(dataHeader.created_area_name)}
-            </Text>
+          <View style={styles.infoSection}>
+            <View style={styles.infoRowTop}>
+              <Text style={styles.infoTopLabel}>Name :</Text>
+              <Text style={styles.infoTopValue}>{safeVal(dataHeader.created_by_name)}</Text>
+
+              <Text style={styles.infoTopLabel}>Regions :</Text>
+              <Text style={styles.infoTopValue}>{safeVal(dataHeader.created_area_name)}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Dealer Name :</Text>
+              <Text style={styles.infoValue}>{safeVal(dataHeader.dealer_name, "-")}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Sub Dealer Name :</Text>
+              <Text style={styles.infoValue}>{safeVal(dataHeader.sub_dealer_name, "-")}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Crop :</Text>
+              <Text style={styles.infoValue}>{safeVal(dataHeader.crop_name, "-")}</Text>
+            </View>
           </View>
 
           <View style={styles.table}>
@@ -463,27 +511,22 @@ const SampleExpensePDF = () => {
                   <View style={styles.checkbox} />
                   <Text style={styles.sentByText}>Express / post office</Text>
                 </View>
-
                 <View style={styles.sentByItem}>
                   <View style={styles.checkbox} />
                   <Text style={styles.sentByText}>Staff</Text>
                 </View>
-
                 <View style={styles.sentByItem}>
                   <View style={styles.checkbox} />
                   <Text style={styles.sentByText}>Adama Transportation</Text>
                 </View>
-
                 <View style={styles.sentByItem}>
                   <View style={styles.checkbox} />
                   <Text style={styles.sentByText}>Yourself</Text>
                 </View>
-
                 <View style={styles.sentByItem}>
                   <View style={styles.checkbox} />
                   <Text style={styles.sentByText}>Vouchers</Text>
                 </View>
-
                 <View style={styles.sentByItem}>
                   <View style={styles.checkbox} />
                   <Text style={styles.sentByText}>Etc.</Text>
@@ -508,6 +551,13 @@ const SampleExpensePDF = () => {
                 </View>
               </View>
 
+              <View style={styles.signBox}>
+                <Text style={styles.signTitle}>Approved By</Text>
+                <View style={styles.signSpaceApproved}>
+                  <Text> </Text>
+                </View>
+              </View>
+              
               <View style={styles.signBox}>
                 <Text style={styles.signTitle}>Approved By</Text>
                 <View style={styles.signSpaceApproved}>

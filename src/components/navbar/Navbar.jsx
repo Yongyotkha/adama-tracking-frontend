@@ -271,7 +271,7 @@ const Navbar = () => {
           <img
             src={userInfo?.profile_image || "/img/icons/dashboard.png"} // Fallback image
             alt="User Avatar"
-            className="rounded-full h-10 w-10 mx-2 cursor-pointer"
+            className="rounded-full h-10 w-10 mx-2 cursor-pointer object-cover"
           />
         </Dropdown>
       </div>
