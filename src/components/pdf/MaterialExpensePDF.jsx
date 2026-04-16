@@ -159,6 +159,51 @@ const styles = StyleSheet.create({
   },
 
   footerLabel: { fontWeight: "bold" },
+
+  sentByBox: {
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#000",
+    marginTop: 5,
+  },
+
+  sentByRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    minHeight: 28,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+  },
+
+  sentByLabel: {
+    width: 58,
+    fontSize: 8,
+  },
+
+  sentByItems: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    flex: 1,
+  },
+
+  sentByItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 14,
+  },
+
+  checkbox: {
+    width: 10,
+    height: 10,
+    borderWidth: 1,
+    borderColor: "#000",
+    marginRight: 4,
+  },
+
+  sentByText: {
+    fontSize: 7.5,
+  },
 });
 
 
@@ -383,6 +428,44 @@ const MaterialExpensePDF = () => {
           <View style={styles.RemarkBox}>
             <Text style={styles.RemarkTitle}>Remark:</Text>
             <Text style={styles.RemarkText}>{dataHeader.remark || " "}</Text>
+          </View>
+
+          <View style={styles.sentByBox}>
+            <View style={styles.sentByRow}>
+              <Text style={styles.sentByLabel}>Sent by :</Text>
+
+              <View style={styles.sentByItems}>
+                <View style={styles.sentByItem}>
+                  <View style={styles.checkbox} />
+                  <Text style={styles.sentByText}>Express / post office</Text>
+                </View>
+
+                <View style={styles.sentByItem}>
+                  <View style={styles.checkbox} />
+                  <Text style={styles.sentByText}>Staff</Text>
+                </View>
+
+                <View style={styles.sentByItem}>
+                  <View style={styles.checkbox} />
+                  <Text style={styles.sentByText}>Adama Transportation</Text>
+                </View>
+
+                <View style={styles.sentByItem}>
+                  <View style={styles.checkbox} />
+                  <Text style={styles.sentByText}>Yourself</Text>
+                </View>
+
+                <View style={styles.sentByItem}>
+                  <View style={styles.checkbox} />
+                  <Text style={styles.sentByText}>Vouchers</Text>
+                </View>
+
+                <View style={styles.sentByItem}>
+                  <View style={styles.checkbox} />
+                  <Text style={styles.sentByText}>Etc.</Text>
+                </View>
+              </View>
+            </View>
           </View>
 
           {/* Footer */}
