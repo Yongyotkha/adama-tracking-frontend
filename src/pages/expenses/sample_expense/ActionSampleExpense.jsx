@@ -543,6 +543,7 @@ export default function ActionSampleExpense() {
         product_name: item.productName || "",
         product_unit: item.packSize || "",
         product_unit_thb: productUnitThb,
+        bath_ltkg: Number(item.pricePerKgLt || 0),
         quantity,
         packing_unit_size: packingUnitSize,
         unit_size: Number(item.unit_size || 0),
@@ -577,6 +578,7 @@ export default function ActionSampleExpense() {
         receive_qty: Number(item.receive || 0),
         net_amount: quantity * productUnitThb,
         product_unit_thb: productUnitThb,
+        bath_ltkg: Number(item.pricePerKgLt || 0),
         ref_remark: item.remark || "",
         action_mode: actionMode,
       };

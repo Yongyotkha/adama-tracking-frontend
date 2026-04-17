@@ -6,6 +6,6 @@ import { AuthContext } from "../../contexts/AuthContext";
 export default function PDFMaterialExpense() {
   const { userInfo } = useContext(AuthContext);
 
-  console.log(userInfo);
+  // console.log(userInfo);
   return <PDF title="Material Expense Report" userInfo={userInfo} />;
 }
