@@ -594,9 +594,7 @@ export default function ReportStock() {
 
       setDataSource(rows);
 
-      if (payload.sub_dealer_id == "") {
-        fetchSellOut();
-      } else {
+      if (payload.dealer_id != "" || payload.sub_dealer_id != "") {
         const apiSummary = res?.summary || res?.data?.summary || null;
 
         setSummary({
@@ -610,6 +608,8 @@ export default function ReportStock() {
           total_out:
             Number(String(apiSummary?.total_out ?? 0).replace(/,/g, "")) || 0,
         });
+      } else {
+        fetchSellOut();
       }
     } catch (e) {
       console.error(e);
