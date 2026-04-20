@@ -57,7 +57,7 @@ const pickLatestYearCode = (yearsArr) => {
 
 const buildStockReportFileName = (
   form,
-  { areaList, salesList, dealerList, subDealerList }
+  { areaList, salesList, dealerList, subDealerList },
 ) => {
   const v = form.getFieldsValue();
   const now = dayjs();
@@ -243,7 +243,7 @@ export default function ReportStock() {
         ),
       },
     ],
-    []
+    [],
   );
 
   const footer = useMemo(() => {
@@ -359,7 +359,7 @@ export default function ReportStock() {
           raw.map((x) => ({
             value: Number(x.user_id ?? x.id),
             label: x.user_name ?? x.name,
-          }))
+          })),
         );
 
         setDealerList([]);
@@ -413,7 +413,7 @@ export default function ReportStock() {
           raw.map((x) => ({
             value: Number(x.id),
             label: x.name,
-          }))
+          })),
         );
 
         setSubDealerList([]);
@@ -461,7 +461,7 @@ export default function ReportStock() {
           raw.map((s) => ({
             value: s.sub_dealer_id,
             label: s.sub_dealer_name,
-          }))
+          })),
         );
 
         form.setFieldsValue({ sub_dealer_id: undefined });
@@ -488,9 +488,82 @@ export default function ReportStock() {
     };
   };
 
+  const buildPayloadOut = () => {
+    const v = form.getFieldsValue();
+    const now = dayjs();
+    const year = v.year || now.year();
+    const month = v.month || now.month() + 1;
+
+    return {
+      year: year,
+      month: month,
+      area_id: v.area_id ?? "",
+      user_id: v.sale_id ?? "",
+      dealer_id: v.dealer_id ?? "",
+      sub_dealer_id: v.sub_dealer_id ?? "",
+    };
+  };
+
+  const fetchSellOut = async () => {
+    setTableLoading(true);
+    try {
+      const payload = buildPayloadOut();
+
+      const res = await useServiceAPI.get(paths.pathReportSellOut, payload);
+
+      console.log("payload : ", payload);
+      console.log("res : ", res);
+      var test = 1000;
+
+      let total_current = 0;
+      let total_last = 0;
+      let total_in = 0;
+      let total_out = 0;
+
+      if (payload.sub_dealer_id != "") {
+        test = 2000;
+      } else if (payload.dealer_id != "") {
+        test = 3000;
+      } else if (payload.user_id != "") {
+        test = 4000;
+      } else if (payload.area_id != "") {
+        test = 5000;
+      } else {
+        test = 6000;
+      }
+
+      res.data.forEach((element) => {
+        console.log(element.months[payload.month]);
+        total_current += element.months[payload.month].current;
+        total_last += element.months[payload.month].last;
+        total_in += element.months[payload.month].in;
+        total_out += element.months[payload.month].out;
+      });
+      setSummary({
+        total_current:
+          Number(String(total_current ?? 0).replace(/,/g, "")) || 0,
+        total_last: Number(String(total_last ?? 0).replace(/,/g, "")) || 0,
+        total_in: Number(String(total_in ?? 0).replace(/,/g, "")) || 0,
+        total_out: Number(String(total_out ?? 0).replace(/,/g, "")) || 0,
+      });
+    } catch (err) {
+      console.error(err);
+
+      showNotification?.("error", "โหลดรายงาน Sell Out ไม่สำเร็จ");
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
   const fetchStock = async () => {
     setTableLoading(true);
     try {
+      setSummary({
+        total_current: "-",
+        total_last: "-",
+        total_in: "-",
+        total_out: "-",
+      });
       const payload = buildPayload();
       const res = await useServiceAPI.get(paths.pathReportStock, payload);
 
@@ -500,18 +573,23 @@ export default function ReportStock() {
           ? res.data.data
           : [];
 
-      const apiSummary = res?.summary || res?.data?.summary || null;
+      if (payload.sub_dealer_id == "") {
+        fetchSellOut();
+      } else {
+        const apiSummary = res?.summary || res?.data?.summary || null;
 
-      setSummary({
-        total_current:
-          Number(String(apiSummary?.total_current ?? 0).replace(/,/g, "")) || 0,
-        total_last:
-          Number(String(apiSummary?.total_last ?? 0).replace(/,/g, "")) || 0,
-        total_in:
-          Number(String(apiSummary?.total_in ?? 0).replace(/,/g, "")) || 0,
-        total_out:
-          Number(String(apiSummary?.total_out ?? 0).replace(/,/g, "")) || 0,
-      });
+        setSummary({
+          total_current:
+            Number(String(apiSummary?.total_current ?? 0).replace(/,/g, "")) ||
+            0,
+          total_last:
+            Number(String(apiSummary?.total_last ?? 0).replace(/,/g, "")) || 0,
+          total_in:
+            Number(String(apiSummary?.total_in ?? 0).replace(/,/g, "")) || 0,
+          total_out:
+            Number(String(apiSummary?.total_out ?? 0).replace(/,/g, "")) || 0,
+        });
+      }
 
       const rows = items.map((it, idx) => ({
         key: it.product_id ?? idx,
@@ -528,7 +606,7 @@ export default function ReportStock() {
           Number(String(it.total_current || 0).replace(/,/g, "")) || 0,
         total_out: Number(String(it.total_out || 0).replace(/,/g, "")) || 0,
         unit_convert_value: parseFloat(
-          String(it.unit_convert_value || "0").replace(/,/g, "")
+          String(it.unit_convert_value || "0").replace(/,/g, ""),
         ),
       }));
 
