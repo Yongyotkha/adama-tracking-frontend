@@ -236,7 +236,7 @@ export default function OrderHistoryDetail() {
                           </p>
                         )}
 
-                        {(item.points?.point_extra_point?.length ?? 0) > 0 && (
+                        {/* {(item.points?.point_extra_point?.length ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
                             Extra Point : {(item.points?.point_extra_point || []).reduce((a, b) => a + b, 0)}
                           </p>
@@ -246,7 +246,7 @@ export default function OrderHistoryDetail() {
                           <p className="text-xs text-gray-500">
                             Extra Value : {(item.points?.point_extra_value || []).reduce((a, b) => a + b, 0)}
                           </p>
-                        )}
+                        )} */}
                       </div>
                     </div>
                     {/* <p className="w-20 text-right">{item.amount_display}</p> */}
