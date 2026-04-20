@@ -573,24 +573,6 @@ export default function ReportStock() {
           ? res.data.data
           : [];
 
-      if (payload.sub_dealer_id == "") {
-        fetchSellOut();
-      } else {
-        const apiSummary = res?.summary || res?.data?.summary || null;
-
-        setSummary({
-          total_current:
-            Number(String(apiSummary?.total_current ?? 0).replace(/,/g, "")) ||
-            0,
-          total_last:
-            Number(String(apiSummary?.total_last ?? 0).replace(/,/g, "")) || 0,
-          total_in:
-            Number(String(apiSummary?.total_in ?? 0).replace(/,/g, "")) || 0,
-          total_out:
-            Number(String(apiSummary?.total_out ?? 0).replace(/,/g, "")) || 0,
-        });
-      }
-
       const rows = items.map((it, idx) => ({
         key: it.product_id ?? idx,
         product_name: `${it.product_name}${
@@ -611,6 +593,24 @@ export default function ReportStock() {
       }));
 
       setDataSource(rows);
+
+      if (payload.sub_dealer_id == "") {
+        fetchSellOut();
+      } else {
+        const apiSummary = res?.summary || res?.data?.summary || null;
+
+        setSummary({
+          total_current:
+            Number(String(apiSummary?.total_current ?? 0).replace(/,/g, "")) ||
+            0,
+          total_last:
+            Number(String(apiSummary?.total_last ?? 0).replace(/,/g, "")) || 0,
+          total_in:
+            Number(String(apiSummary?.total_in ?? 0).replace(/,/g, "")) || 0,
+          total_out:
+            Number(String(apiSummary?.total_out ?? 0).replace(/,/g, "")) || 0,
+        });
+      }
     } catch (e) {
       console.error(e);
       setDataSource([]);
