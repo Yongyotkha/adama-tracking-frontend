@@ -29,10 +29,12 @@ export default function ActionMaterialExpense() {
 
   const [crops, setCrops] = useState([]);
   const [products, setProducts] = useState([]);
+  const [cropMaterials, setCropMaterials] = useState([]);
   const [productsSearch, setProductsSearch] = useState([]);
   const [productSearchOptions, setProductSearchOptions] = useState([]);
 
   const [fileList, setFileList] = useState([]);
+  const [warehouseConfirmFileList, setWarehouseConfirmFileList] = useState([]);
   const [dataSource, setDataSource] = useState([]);
 
   const [totalValueRequest, setTotalValueRequest] = useState(0);
@@ -61,7 +63,14 @@ export default function ActionMaterialExpense() {
   const canExportPdf = permission?.btn_pdf ?? !isCreateMode;
 
   const hasCropSelected = selectedCropIds.length > 0;
-  const hasProductSelected = selectedProductIds.length > 0;
+  const isWarehouseUser = [
+    userInfo?.role_name,
+    userInfo?.department_name,
+    userInfo?.position_name,
+  ]
+    .filter(Boolean)
+    .some((value) => String(value).toLowerCase().includes("warehouse"));
+  const canEditWarehouseConfirmPhoto = isWarehouseUser && isTransactionMode;
 
   const renderTitle = () => {
     switch (mode) {
@@ -83,7 +92,45 @@ export default function ActionMaterialExpense() {
     return Number.isFinite(parsed) ? parsed : defaultValue;
   };
 
+  const sortByDisplayName = (items = [], getLabel) =>
+    [...items].sort((a, b) =>
+      String(getLabel(a) || "").localeCompare(String(getLabel(b) || ""), "th")
+    );
+
+  const getProductOptionLabel = (item) =>
+    (
+      item.product_group ||
+      item.product_group_name ||
+      item.group_name ||
+      item.name ||
+      item.product_name ||
+      `Product ${item.id}`
+    ).trim();
+
+  const getMaterialProductIds = (item) =>
+    [
+      item?.product_id,
+      item?.products_id,
+      item?.product?.id,
+      ...(Array.isArray(item?.products) ? item.products : []),
+      ...(Array.isArray(item?.product_ids) ? item.product_ids : []),
+    ]
+      .map((value) => Number(value))
+      .filter((value) => Number.isFinite(value));
+
+  const mapUploadedFiles = (rawValue = "") =>
+    String(rawValue || "")
+      .split(",")
+      .map((url, index) => ({
+        uid: `${Date.now()}-${index}`,
+        name: url.trim().split("/").pop(),
+        status: "done",
+        url: url.trim(),
+      }))
+      .filter((file) => file.url);
+
   const resetMaterialState = useCallback(({ clearTable = true } = {}) => {
+    setCropMaterials([]);
     setProductsSearch([]);
     setProductSearchOptions([]);
     setSelectedMaterialId(null);
@@ -103,6 +150,48 @@ export default function ActionMaterialExpense() {
     [formCustom, resetMaterialState]
   );
 
+  const syncMaterialOptions = useCallback((materials = [], productIds = []) => {
+    const safeProductIds = Array.isArray(productIds) ? productIds.map(Number) : [];
+    const nextMaterials =
+      safeProductIds.length > 0
+        ? materials.filter((item) => {
+          const materialProductIds = getMaterialProductIds(item);
+          return materialProductIds.some((id) => safeProductIds.includes(id));
+        })
+        : materials;
+
+    const sortedMaterials = sortByDisplayName(
+      nextMaterials,
+      (item) => item.name || item.product_name || item.code
+    );
+
+    setProductsSearch(sortedMaterials);
+    setProductSearchOptions(
+      sortedMaterials.map((item) => ({
+        value: item.id,
+        label: `${item.code || "-"} : ${item.name || item.product_name || `Material ${item.id}`}`,
+      }))
+    );
+
+    const validMaterialIds = sortedMaterials.map((item) => item.id);
+
+    setDataSource((prev) =>
+      prev
+        .filter((item) => validMaterialIds.includes(item.id))
+        .map((item, index) => ({
+          ...item,
+          key: index + 1,
+          no: index + 1,
+        }))
+    );
+
+    setSelectedMaterialId((prev) =>
+      prev && validMaterialIds.includes(prev) ? prev : null
+    );
+
+    return sortedMaterials;
+  }, []);
+
   const loadProductsByCrop = useCallback(
     async (cropIds) => {
       if (!Array.isArray(cropIds) || !cropIds.length) {
@@ -116,13 +205,12 @@ export default function ActionMaterialExpense() {
           crop_list: cropIds,
         });
 
-        const loadedOptions = (productRes.data || []).map((item) => ({
+        const loadedOptions = sortByDisplayName(
+          productRes.data || [],
+          getProductOptionLabel
+        ).map((item) => ({
           value: item.id,
-          label: `${(
-            item.product_name ||
-            item.name ||
-            `Product ${item.id}`
-          ).trim()} (${item.packing_list || "-"})`,
+          label: getProductOptionLabel(item),
         }));
 
         setProducts(loadedOptions);
@@ -192,6 +280,36 @@ export default function ActionMaterialExpense() {
     [resetMaterialState, showMsg]
   );
 
+  const loadMaterialsByCrop = useCallback(
+    async (cropIds, productIds = []) => {
+      const safeCropIds = Array.isArray(cropIds) ? cropIds : [];
+      const safeProductIds = Array.isArray(productIds) ? productIds : [];
+
+      if (!safeCropIds.length || !safeProductIds.length) {
+        resetMaterialState({ clearTable: true });
+        return [];
+      }
+
+      setLoading(true);
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterMaterialProduct, {
+          products: safeProductIds,
+          crop_list: safeCropIds,
+        });
+
+        const materialData = Array.isArray(res.data) ? res.data : [];
+        setCropMaterials(materialData);
+        return syncMaterialOptions(materialData, productIds);
+      } catch (err) {
+        showMsg("error", err.message || "à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¹‚à¸«à¸¥à¸” Material à¹„à¸”à¹‰");
+        return [];
+      } finally {
+        setLoading(false);
+      }
+    },
+    [resetMaterialState, showMsg, syncMaterialOptions]
+  );
+
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading(true);
@@ -243,8 +361,15 @@ export default function ActionMaterialExpense() {
         const validProductIds = productIds.filter((id) =>
           loadedProductOptions.some((opt) => opt.value === id)
         );
+        const productIdsForMaterialLoad =
+          validProductIds.length > 0
+            ? validProductIds
+            : loadedProductOptions.map((opt) => opt.value);
 
-        const materialData = await loadMaterialsByProduct(validProductIds, cropIds);
+        const materialData = await loadMaterialsByCrop(
+          cropIds,
+          productIdsForMaterialLoad
+        );
 
         const validMaterialIds = materialData.map((item) => item.id);
 
@@ -292,15 +417,12 @@ export default function ActionMaterialExpense() {
           setDataSource(mappedMaterialList);
         }
 
-        const formattedFiles = String(mat.images || "")
-          .split(",")
-          .map((url, index) => ({
-            uid: `${Date.now()}-${index}`,
-            name: url.trim().split("/").pop(),
-            status: "done",
-            url: url.trim(),
-          }))
-          .filter((f) => f.url);
+        const formattedFiles = mapUploadedFiles(mat.images);
+        const formattedWarehouseConfirmFiles = mapUploadedFiles(
+          mat.warehouse_confirm_images ||
+          mat.warehouse_confirm_photo ||
+          mat.warehouse_confirm_photos
+        );
 
         formCustom.setFieldsValue({
           expense_material_code: mat.code,
@@ -314,9 +436,11 @@ export default function ActionMaterialExpense() {
           price: mat.unit_price,
           remark: mat.remark,
           photo: formattedFiles,
+          warehouse_confirm_photo: formattedWarehouseConfirmFiles,
         });
 
         setFileList(formattedFiles);
+        setWarehouseConfirmFileList(formattedWarehouseConfirmFiles);
       } catch (err) {
         showMsg("error", err.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -328,7 +452,7 @@ export default function ActionMaterialExpense() {
   }, [
     code,
     formCustom,
-    loadMaterialsByProduct,
+    loadMaterialsByCrop,
     loadProductsByCrop,
     mode,
     navigate,
@@ -357,20 +481,7 @@ export default function ActionMaterialExpense() {
     setTotalValueReceive(sumReceive);
   }, [dataSource]);
 
-  const handleUploadSuccess = (response) => {
-    const file = response?.data;
-    if (!file?.file_url) return;
-
-    setFileList((prev) => [
-      ...prev,
-      {
-        uid: `${file.file_key}-${file.original_name}`,
-        name: file.original_name,
-        status: "done",
-        url: file.file_url,
-      },
-    ]);
-  };
+  const handleUploadSuccess = (response) => response;
 
   const handleCropChange = async (value) => {
     const nextCropIds = Array.isArray(value) ? value : [];
@@ -388,19 +499,29 @@ export default function ActionMaterialExpense() {
     const validProducts = currentSelectedProducts.filter((id) =>
       nextProductOptions.some((opt) => opt.value === id)
     );
+    const productIdsForMaterialLoad =
+      validProducts.length > 0
+        ? validProducts
+        : nextProductOptions.map((opt) => opt.value);
 
     formCustom.setFieldsValue({ product: validProducts });
     setSelectedProductIds(validProducts);
 
-    await loadMaterialsByProduct(validProducts, nextCropIds);
+    await loadMaterialsByCrop(nextCropIds, productIdsForMaterialLoad);
   };
 
-  const handleProductChange = async (value) => {
+  const handleProductChange = (value) => {
     const nextProductIds = Array.isArray(value) ? value : [];
     const currentCropIds = formCustom.getFieldValue("crop") || [];
 
     setSelectedProductIds(nextProductIds);
-    await loadMaterialsByProduct(nextProductIds, currentCropIds);
+
+    if (!nextProductIds.length) {
+      syncMaterialOptions(cropMaterials, []);
+      return;
+    }
+
+    loadMaterialsByProduct(nextProductIds, currentCropIds);
   };
 
   const handleQuantityChange = (key, newValue) => {
@@ -495,14 +616,25 @@ export default function ActionMaterialExpense() {
 
   const action = async (actionMode = "save") => {
     try {
-      const values = await formCustom.validateFields();
+      const values = formCustom.getFieldsValue(true);
+      const images = (values.photo || [])
+        .filter((f) => f.status === "done" && f.url)
+        .map((f) => f.url);
+      const warehouseConfirmImages = (values.warehouse_confirm_photo || [])
+        .filter((f) => f.status === "done" && f.url)
+        .map((f) => f.url);
+
+      if (canEditWarehouseConfirmPhoto && !warehouseConfirmImages.length) {
+        showMsg("error", "Please upload warehouse confirm photo");
+        return;
+      }
 
       if (!values.crop?.length) {
         showMsg("error", "กรุณาเลือก Crop");
         return;
       }
 
-      if (!values.product?.length) {
+      if (false && !values.product?.length) {
         showMsg("error", "กรุณาเลือก Product");
         return;
       }
@@ -512,16 +644,22 @@ export default function ActionMaterialExpense() {
         return;
       }
 
-      const images = fileList
-        .filter((f) => f.status === "done" && f.url)
-        .map((f) => f.url);
+      const derivedProductIds = Array.from(
+        new Set(dataSource.flatMap((item) => getMaterialProductIds(item)))
+      );
+      const payloadProductIds =
+        Array.isArray(values.product) && values.product.length
+          ? values.product
+          : selectedProductIds.length
+            ? selectedProductIds
+            : derivedProductIds;
 
       const payload = {
         user_id: userInfo.id,
         code: values.expense_material_code || "AUTO",
         name: values.name,
         crops: values.crop,
-        products: values.product,
+        products: payloadProductIds,
         description: values.description || "",
         type: values.type || "",
         size: values.size || "",
@@ -529,6 +667,7 @@ export default function ActionMaterialExpense() {
         unit_price: values.price || "",
         remark: values.remark || "",
         images: images.join(","),
+        warehouse_confirm_images: warehouseConfirmImages.join(","),
         totalValueRequest,
         totalValueWareHoseSend: totalValueWarehouseSend,
         totalValueReceive,
@@ -690,13 +829,28 @@ export default function ActionMaterialExpense() {
       label: "Photo",
       name: "photo",
       type: "photo",
-      required: true,
+      required: false,
       col: 24,
       value: fileList,
       multiple: true,
       accept: ".pdf,.png,.jpg,.jpeg",
-      disabled: isReadOnly,
+      disabled: isViewMode || isTransactionMode,
     },
+    ...(isWarehouseUser
+      ? [
+        {
+          label: "Warehouse Confirm Photo",
+          name: "warehouse_confirm_photo",
+          type: "photo",
+          required: canEditWarehouseConfirmPhoto,
+          col: 24,
+          value: warehouseConfirmFileList,
+          multiple: true,
+          accept: ".pdf,.png,.jpg,.jpeg",
+          disabled: !canEditWarehouseConfirmPhoto,
+        },
+      ]
+      : []),
     {
       label: "Remark",
       name: "remark",
@@ -744,7 +898,7 @@ export default function ActionMaterialExpense() {
                 <Select
                   disabled={isReadOnly || !hasCropSelected}
                   mode="multiple"
-                  placeholder={hasCropSelected ? "Select Product" : "Please select crop first"}
+                  placeholder={hasCropSelected ? "Select Product Group" : "Please select crop first"}
                   options={products}
                   optionFilterProp="label"
                   onChange={handleProductChange}
@@ -758,8 +912,8 @@ export default function ActionMaterialExpense() {
           <div className="mb-3 flex justify-end">
             <Select
               showSearch
-              disabled={isReadOnly || !hasProductSelected}
-              placeholder={hasProductSelected ? "Search Material" : "Please select product first"}
+              disabled={isReadOnly || !hasCropSelected}
+              placeholder={hasCropSelected ? "Search Material" : "Please select crop first"}
               name="material_search"
               optionFilterProp="label"
               className="w-full"
