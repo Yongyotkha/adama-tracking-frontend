@@ -281,11 +281,13 @@ export default function ActionMaterialExpense() {
   );
 
   const loadMaterialsByCrop = useCallback(
-    async (cropIds, productIds = []) => {
+    async (cropIds, requestProductIds = [], filterProductIds = []) => {
       const safeCropIds = Array.isArray(cropIds) ? cropIds : [];
-      const safeProductIds = Array.isArray(productIds) ? productIds : [];
+      const safeRequestProductIds = Array.isArray(requestProductIds)
+        ? requestProductIds
+        : [];
 
-      if (!safeCropIds.length || !safeProductIds.length) {
+      if (!safeCropIds.length || !safeRequestProductIds.length) {
         resetMaterialState({ clearTable: true });
         return [];
       }
@@ -293,13 +295,13 @@ export default function ActionMaterialExpense() {
       setLoading(true);
       try {
         const res = await useServiceAPI.get(paths.pathMasterMaterialProduct, {
-          products: safeProductIds,
+          products: safeRequestProductIds,
           crop_list: safeCropIds,
         });
 
         const materialData = Array.isArray(res.data) ? res.data : [];
         setCropMaterials(materialData);
-        return syncMaterialOptions(materialData, productIds);
+        return syncMaterialOptions(materialData, filterProductIds);
       } catch (err) {
         showMsg("error", err.message || "à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¹‚à¸«à¸¥à¸” Material à¹„à¸”à¹‰");
         return [];
@@ -368,7 +370,8 @@ export default function ActionMaterialExpense() {
 
         const materialData = await loadMaterialsByCrop(
           cropIds,
-          productIdsForMaterialLoad
+          productIdsForMaterialLoad,
+          validProductIds
         );
 
         const validMaterialIds = materialData.map((item) => item.id);
@@ -507,10 +510,14 @@ export default function ActionMaterialExpense() {
     formCustom.setFieldsValue({ product: validProducts });
     setSelectedProductIds(validProducts);
 
-    await loadMaterialsByCrop(nextCropIds, productIdsForMaterialLoad);
+    await loadMaterialsByCrop(
+      nextCropIds,
+      productIdsForMaterialLoad,
+      validProducts
+    );
   };
 
-  const handleProductChange = (value) => {
+  const handleProductChange = async (value) => {
     const nextProductIds = Array.isArray(value) ? value : [];
     const currentCropIds = formCustom.getFieldValue("crop") || [];
 
@@ -521,7 +528,7 @@ export default function ActionMaterialExpense() {
       return;
     }
 
-    loadMaterialsByProduct(nextProductIds, currentCropIds);
+    await loadMaterialsByProduct(nextProductIds, currentCropIds);
   };
 
   const handleQuantityChange = (key, newValue) => {
@@ -893,7 +900,7 @@ export default function ActionMaterialExpense() {
               <Form.Item
                 label="Product"
                 name="product"
-                rules={[{ required: true, message: "กรุณาเลือก Product" }]}
+                required={false}
               >
                 <Select
                   disabled={isReadOnly || !hasCropSelected}
