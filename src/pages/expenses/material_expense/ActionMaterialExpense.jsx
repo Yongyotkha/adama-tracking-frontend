@@ -97,15 +97,19 @@ export default function ActionMaterialExpense() {
       String(getLabel(a) || "").localeCompare(String(getLabel(b) || ""), "th")
     );
 
-  const getProductOptionLabel = (item) =>
-    (
+  const getProductOptionLabel = (item) => {
+    const productName = (
+      item.product_name ||
+      item.name ||
       item.product_group ||
       item.product_group_name ||
       item.group_name ||
-      item.name ||
-      item.product_name ||
       `Product ${item.id}`
     ).trim();
+    const packingList = String(item.packing_list || "").trim();
+
+    return packingList ? `${productName} ${packingList}` : productName;
+  };
 
   const getMaterialProductIds = (item) =>
     [
@@ -368,13 +372,11 @@ export default function ActionMaterialExpense() {
             ? validProductIds
             : loadedProductOptions.map((opt) => opt.value);
 
-        const materialData = await loadMaterialsByCrop(
+        await loadMaterialsByCrop(
           cropIds,
           productIdsForMaterialLoad,
           validProductIds
         );
-
-        const validMaterialIds = materialData.map((item) => item.id);
 
         if (Array.isArray(mat.material_list)) {
           const mappedMaterialList = mat.material_list
@@ -395,7 +397,8 @@ export default function ActionMaterialExpense() {
               const receive = normalizeNumber(item.receive);
 
               return {
-                id: item.id,
+                id: Number(item.reference_id || item.id),
+                mapping_id: Number(item.id),
                 key: index + 1,
                 no: index + 1,
                 material_name: item.name,
@@ -410,7 +413,6 @@ export default function ActionMaterialExpense() {
                 material_receive: receive,
               };
             })
-            .filter((item) => validMaterialIds.includes(item.id))
             .map((item, index) => ({
               ...item,
               key: index + 1,
