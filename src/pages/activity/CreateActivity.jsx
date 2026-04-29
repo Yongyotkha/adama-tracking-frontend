@@ -844,11 +844,6 @@ export default function CreateActivity() {
 
           if (!value) {
             setDealerCustomer([]);
-
-            const saleId = activityDetail.user_id || formCustom.getFieldValue("user_id");
-            if (saleId) {
-              await setupDealer(saleId); // ✅ โหลด shop option ตาม sale เดิมกลับมา
-            }
           }
         } else if (attribue === "crop_id_list") {
           if (!value || value.length === 0) {
