@@ -866,23 +866,40 @@ const DynamicCalendar = ({ events, fetchEvents, loading, sendData }) => {
         onClose={() => setIsMappingModalVisible(false)}
         onOk={(data) => {
           const body = {
+            id: data.id,
             document_number: data.document_number,
             location_longitude: data.location_longitude,
             location_latitude: data.location_latitude,
             location_address: data.location_address,
             perception_id: data.perception_id,
-            remark: data.remark,
-            image_list: data.image_list || ["defaultImage"],
+            remark: data.remark || "",
+            image_list: data.image_list || [],
+
+            follow_image_list: data.follow_image_list || [],
+            follow_remark: data.follow_remark || "",
           };
+
+          console.log("Mapping payload:", body);
 
           useServiceAPI
             .put(paths.pathActivityMappingStatusDetailUpdate, body)
             .then((res) => {
               setIsMappingModalVisible(false);
-              console.log("Mapping updated:", res);
+
+              showNotification(
+                "success",
+                res?.data?.message || res?.message || "Notification",
+                res?.data?.message_line || ["Update successful"]
+              ).then(() => {
+                fetchEvents(currentDate.getMonth() + 1, currentDate.getFullYear());
+              });
             })
             .catch((err) => {
               console.error("Mapping update failed:", err);
+
+              showNotification("error", "Update failed", [
+                err?.message || "Please try again later.",
+              ]);
             });
         }}
         title="Mapping"

@@ -54,6 +54,10 @@ export default function ActivityCalendar() {
           },
           document_number: item.document_number,
           dealer_name: item.dealer_name,
+
+          // ✅ เพิ่มตัวนี้
+          status_code: item.status_code,
+
           status_mapping: {
             name: item.status_mapping_name,
             color: item.status_mapping_color,
