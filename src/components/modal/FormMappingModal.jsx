@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Modal, Input, Button, Select, Upload } from "antd";
+import { Modal, Input, Button, Select, Upload, Image } from "antd";
 import {
   CameraOutlined,
   EnvironmentOutlined,
@@ -27,6 +27,9 @@ const FormMappingModal = ({
   const [permission, setPermission] = useState({});
   const webcamRef = useRef(null);
 
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(0);
+
   const [photoError, setPhotoError] = useState("");
   const [perceptionError, setPerceptionError] = useState("");
   const [isCameraOn, setIsCameraOn] = useState(false);
@@ -45,6 +48,16 @@ const FormMappingModal = ({
 
   const isFollowUpMode = statusCode === "ODC" || statusName === "COMPLETE";
   const canShowSaveButton = Boolean(permission.edit || isFollowUpMode);
+
+  const getFileUrl = (file) => {
+    return (
+      file?.url ||
+      file?.thumbUrl ||
+      file?.response?.url ||
+      file?.response?.file_url ||
+      file?.response?.fileUrl
+    );
+  };
 
   useEffect(() => {
     if (
@@ -68,6 +81,7 @@ const FormMappingModal = ({
   const handleClose = () => {
     stopWebcam();
     setIsCameraOn(false);
+    setPreviewOpen(false);
     onClose();
   };
 
@@ -77,12 +91,15 @@ const FormMappingModal = ({
       setFollowFileList([]);
       setPhotoError("");
       setPerceptionError("");
+      setPreviewOpen(false);
+      setPreviewIndex(0);
       setIsCameraOn(false);
       fetchActivityListDetails();
       setTimeout(() => setIsCameraOn(true), 300);
     } else {
       stopWebcam();
       setIsCameraOn(false);
+      setPreviewOpen(false);
     }
   }, [isVisible]);
 
@@ -263,12 +280,7 @@ const FormMappingModal = ({
 
   const handleFollowFileChange = ({ fileList }) => {
     const limitedFileList = fileList.slice(0, 10).map((file) => {
-      const url =
-        file.url ||
-        file.thumbUrl ||
-        file.response?.url ||
-        file.response?.file_url ||
-        file.response?.fileUrl;
+      const url = getFileUrl(file);
 
       return {
         ...file,
@@ -290,12 +302,7 @@ const FormMappingModal = ({
   };
 
   const handleFollowFileRemove = (file) => {
-    const removeUrl =
-      file.url ||
-      file.thumbUrl ||
-      file.response?.url ||
-      file.response?.file_url ||
-      file.response?.fileUrl;
+    const removeUrl = getFileUrl(file);
 
     setFormData((prev) => ({
       ...prev,
@@ -303,6 +310,10 @@ const FormMappingModal = ({
         (url) => url !== removeUrl
       ),
     }));
+
+    setFollowFileList((prev) =>
+      prev.filter((item) => item.uid !== file.uid)
+    );
 
     return true;
   };
@@ -323,6 +334,22 @@ const FormMappingModal = ({
     }
 
     return true;
+  };
+
+  const handlePreviewFollowImage = (file) => {
+    const imageUrl = getFileUrl(file);
+
+    if (!imageUrl) return;
+
+    const imageList = followFileList
+      .map((item) => getFileUrl(item))
+      .filter(Boolean);
+
+    const currentUrl = imageUrl;
+    const index = imageList.findIndex((url) => url === currentUrl);
+
+    setPreviewIndex(index >= 0 ? index : 0);
+    setPreviewOpen(true);
   };
 
   const handleSubmit = () => {
@@ -373,6 +400,10 @@ const FormMappingModal = ({
       console.error("No latitude and longitude data available.");
     }
   };
+
+  const previewImages = followFileList
+    .map((file) => getFileUrl(file))
+    .filter(Boolean);
 
   return (
     <Modal
@@ -572,25 +603,41 @@ const FormMappingModal = ({
                 Follow Up Photo
               </label>
 
-              <Upload
-                multiple
-                accept=".jpg,.jpeg,.png"
-                maxCount={10}
-                disabled={!isFollowUpMode}
-                customRequest={handleFollowImageUpload}
-                beforeUpload={beforeFollowUpload}
-                fileList={followFileList}
-                onChange={handleFollowFileChange}
-                onRemove={handleFollowFileRemove}
-                listType="picture-card"
+              <Image.PreviewGroup
+                preview={{
+                  visible: previewOpen,
+                  current: previewIndex,
+                  onVisibleChange: (visible) => setPreviewOpen(visible),
+                  onChange: (current) => setPreviewIndex(current),
+                }}
               >
-                {followFileList.length >= 10 ? null : (
-                  <div>
-                    <PlusOutlined />
-                    <div style={{ marginTop: 8 }}>Upload</div>
-                  </div>
-                )}
-              </Upload>
+                <Upload
+                  multiple
+                  accept=".jpg,.jpeg,.png"
+                  maxCount={10}
+                  disabled={!isFollowUpMode}
+                  customRequest={handleFollowImageUpload}
+                  beforeUpload={beforeFollowUpload}
+                  fileList={followFileList}
+                  onChange={handleFollowFileChange}
+                  onRemove={handleFollowFileRemove}
+                  onPreview={handlePreviewFollowImage}
+                  listType="picture-card"
+                >
+                  {followFileList.length >= 10 ? null : (
+                    <div>
+                      <PlusOutlined />
+                      <div style={{ marginTop: 8 }}>Upload</div>
+                    </div>
+                  )}
+                </Upload>
+
+                <div style={{ display: "none" }}>
+                  {previewImages.map((url, index) => (
+                    <Image key={`${url}-${index}`} src={url} />
+                  ))}
+                </div>
+              </Image.PreviewGroup>
 
               <div className="text-xs text-gray-400 mt-1">
                 JPEG, PNG / Limited 10 images

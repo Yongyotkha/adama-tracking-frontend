@@ -875,7 +875,6 @@ const DynamicCalendar = ({ events, fetchEvents, loading, sendData }) => {
             remark: data.remark || "",
             image_list: data.image_list || [],
 
-            // ✅ เพิ่มส่ง follow up ไปหลังบ้าน
             follow_image_list: data.follow_image_list || [],
             follow_remark: data.follow_remark || "",
           };
@@ -886,12 +885,21 @@ const DynamicCalendar = ({ events, fetchEvents, loading, sendData }) => {
             .put(paths.pathActivityMappingStatusDetailUpdate, body)
             .then((res) => {
               setIsMappingModalVisible(false);
-              console.log("Mapping updated:", res);
 
-              fetchEvents(currentDate.getMonth() + 1, currentDate.getFullYear());
+              showNotification(
+                "success",
+                res?.data?.message || res?.message || "Notification",
+                res?.data?.message_line || ["Update successful"]
+              ).then(() => {
+                fetchEvents(currentDate.getMonth() + 1, currentDate.getFullYear());
+              });
             })
             .catch((err) => {
               console.error("Mapping update failed:", err);
+
+              showNotification("error", "Update failed", [
+                err?.message || "Please try again later.",
+              ]);
             });
         }}
         title="Mapping"

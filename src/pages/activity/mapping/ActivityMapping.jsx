@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useContext } from "react";
+import { AuthContext } from "../../../contexts/AuthContext";
 import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/api";
 import { Layout, Checkbox, Button, Collapse } from "antd";
 import { UpOutlined, DownOutlined } from "@ant-design/icons";
@@ -17,7 +18,7 @@ export default function ActivityMapping() {
   const [isFilterCollapsed, setIsFilterCollapsed] = useState(false);
   const [checkedFilters, setCheckedFilters] = useState({});
   const [isAllChecked, setIsAllChecked] = useState(true);
-
+  const { showNotification, showMsg } = useContext(AuthContext);
   const [dataApiKey] = useState("AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik");
 
   const [dataMapping, setDataMapping] = useState([]);
@@ -443,24 +444,23 @@ export default function ActivityMapping() {
     try {
       setLoading(true);
 
-      await useServiceAPI.put(paths.pathActivityMappingStatusDetailUpdate, body);
+      const res = await useServiceAPI.put(
+        paths.pathActivityMappingStatusDetailUpdate,
+        body
+      );
 
       setIsMappingModalVisible(false);
       setlocationWindowInfo(null);
 
-      const mapping = await useServiceAPI.post(paths.pathActivityMapList, {
-        keyword: "",
-        activity_type: [],
-        dealer: [],
-        area: [],
-        year: [],
-        sub_dealers: [],
-        month: [],
-      });
+      await showNotification(
+        "success",
+        res?.data?.message || res?.message || "Notification",
+        res?.data?.message_line || ["Update successful"]
+      );
 
-      setDataMapping(mapping.data || []);
     } catch (err) {
       console.error("Mapping update failed:", err);
+      showMsg("error", err?.message || "เกิดข้อผิดพลาด");
     } finally {
       setLoading(false);
     }
