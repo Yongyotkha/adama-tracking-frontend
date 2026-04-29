@@ -40,21 +40,30 @@ export default function CreateActivity() {
   const documentNumberFromUrl = qs.get("documentNumber") || undefined;
   const pageCodeFromUrl = qs.get("pageCode") || undefined;
   const fromFromUrl = qs.get("from") || undefined;
+  const pageModeFromUrl = qs.get("page_mode") || undefined;
 
   const documentNumberState = locationParam?.state?.documentNumber;
   const pageCodeState = locationParam?.state?.pageCode;
   const pageModeState = locationParam?.state?.page_mode;
 
   const [documentNumber, setDocumentNumber] = useState(documentNumberState || documentNumberFromUrl);
-  const [pageMode, setPageMode] = useState(pageModeState);
+  const [pageMode, setPageMode] = useState(pageModeState || pageModeFromUrl);
 
-  // ✅ เดิมเป็น const จาก state อย่างเดียว -> ต้อง fallback จาก URL
   const pageCode = pageCodeState || pageCodeFromUrl;
 
   // ✅ flag: เปิดมาจาก mapping?
   const fromMapping = locationParam?.state?.from === "mapping" || fromFromUrl === "mapping";
-  const forceReadOnly = fromMapping; // ✅ ใช้บังคับ readonly ใน Advance Expense
+  const fromCalendar = locationParam?.state?.from === "calendar" || fromFromUrl === "calendar";
 
+  // เปิดจาก mapping หรือ calendar => readonly
+  const forceReadOnly = fromMapping || fromCalendar;
+
+  const pageModeLower = String(pageMode || "").toLowerCase();
+  const isPageView = pageModeLower === "view";
+  const isPageEdit = pageModeLower === "edit";
+  const isPageCreate = pageModeLower === "create" || !pageModeLower;
+
+  const canEdit = (isPageEdit || isPageCreate) && !forceReadOnly;
   // =========================================================
 
   const viewSegment = mode === "view";
@@ -65,7 +74,7 @@ export default function CreateActivity() {
   const [loading, setLoading] = useState(false);
   const [firstCallData, setFirstCallData] = useState(true);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
-
+  const [isRefLocked, setIsRefLocked] = useState(false);
   const [activityList, setActivityList] = useState([]);
   const [saleList, setSaleList] = useState([]);
   const [saleAllList, setSaleAllList] = useState([]);
@@ -89,6 +98,7 @@ export default function CreateActivity() {
   const [isBtnExpenseActive, setIsBtnExpenseActive] = useState(false);
 
   const [activityDetail, setActivityDetail] = useState({
+    document_number_referrent: "",
     product_list: [],
     crop_id_list: [],
     expense_product_data_list: [],
@@ -96,6 +106,8 @@ export default function CreateActivity() {
   });
 
   const { showNotification, userInfo } = useContext(AuthContext);
+
+  const isAutoSelectMySale = [5, 6].includes(Number(userInfo?.role_id));
 
   const [actualParticipantCount, setActualParticipantCount] = useState("0");
   const [participants, setParticipants] = useState([]);
@@ -112,6 +124,22 @@ export default function CreateActivity() {
     const n = parseFloat(normalized);
     return Number.isFinite(n) ? n : fallback;
   };
+
+  const moneyFormatter = (value) => {
+    const num = Number(value ?? 0);
+    return num.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const moneyParser = (value) => value?.replace(/,/g, "") || "0";
+
+  useEffect(() => {
+    if (!pageMode && pageModeFromUrl) {
+      setPageMode(pageModeFromUrl);
+    }
+  }, [pageMode, pageModeFromUrl]);
 
   // ✅ หากเปิดด้วย URL แล้ว state ไม่มา
   useEffect(() => {
@@ -138,16 +166,38 @@ export default function CreateActivity() {
     btn_reject = "Cancel";
   }
 
+  // useEffect(() => {
+  //   if (!documentNumber) {
+  //     const exists = saleList.some((item) => item.id === userInfo.id);
+  //     if (exists) {
+  //       handleChange("user_id", userInfo.user_data_id);
+  //       handleChange("assing_user_list", [userInfo.user_data_id]);
+  //     }
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [saleList]);
   useEffect(() => {
-    if (!documentNumber) {
-      const exists = saleList.some((item) => item.id === userInfo.id);
-      if (exists) {
-        handleChange("user_id", userInfo.user_data_id);
-        handleChange("assing_user_list", [userInfo.user_data_id]);
-      }
-    }
+    if (!isAutoSelectMySale || documentNumber || saleList.length === 0) return;
+
+    const mySaleId = Number(userInfo?.user_data_id ?? userInfo?.id);
+    const mySale = saleList.find((item) => Number(item.id) === mySaleId);
+
+    if (!mySale) return;
+
+    setActivityDetail((prev) => ({
+      ...prev,
+      user_id: mySaleId,
+      assing_user_list: [mySaleId],
+    }));
+
+    formCustom.setFieldsValue({
+      user_id: mySaleId,
+      assing_user_list: [mySaleId],
+    });
+
+    setupDealer(mySaleId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [saleList]);
+  }, [saleList, documentNumber, isAutoSelectMySale]);
 
   useEffect(() => {
     if (documentNumber && isBtnExpenseActive && pageCode == "activity_transaction") {
@@ -155,6 +205,7 @@ export default function CreateActivity() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isBtnExpenseActive]);
+  console.log(pageCode);
 
   const menuTitle =
     pageCode == "expense_advance"
@@ -172,6 +223,18 @@ export default function CreateActivity() {
 
   const SaleOptions = saleList.map((sale) => ({ id: sale.id, name: sale.name, selected: false }));
 
+  // const baseFieldDisabled = isViewMode || isApproveMode || (!isCreate && !canEdit);
+  const baseFieldDisabled = isViewMode || isApproveMode || (!isCreate && !canEdit) || isRefLocked;
+  const selectedDealerId =
+    pageCode === "activity_transaction"
+      ? activityDetail.dealer_id
+      : activityDetail.sub_dealer_id;
+  const salesFieldDisabled = baseFieldDisabled || (isCreate && !activityDetail.activity_type_id);
+  const shopFieldDisabled = baseFieldDisabled || (isCreate && !activityDetail.user_id);
+  const cropFieldDisabled = baseFieldDisabled || (isCreate && !selectedDealerId);
+  const productFieldDisabled =
+    baseFieldDisabled ||
+    (isCreate && (!selectedDealerId || !(activityDetail.crop_id_list || []).length));
   // =========================================================
   // ✅ IMPORTANT: disabled ใน field เดิม (เพิ่ม forceReadOnly ได้ถ้าต้อง lock ทั้งหน้า)
   // =========================================================
@@ -188,12 +251,12 @@ export default function CreateActivity() {
     },
     {
       label: "Activity Reference",
-      name: "activity_reference",
+      name: "document_number_referrent",
       type: pageCode !== "activity_transaction" ? (viewSegment ? "hidden" : "search") : "hidden",
-      disabled: isViewMode || isApproveMode || (!isCreate && !activityDetail?.permission?.edit),
+      disabled: baseFieldDisabled,
       required: false,
       col: 24,
-      value: "",
+      value: activityDetail.document_number_referrent ?? "",
     },
     {
       label: "Activity Type",
@@ -201,10 +264,10 @@ export default function CreateActivity() {
       type: "select",
       typeMode: "string",
       options: activityList,
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      disabled: baseFieldDisabled,
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
-      value: activityDetail.activity_type_id ?? "",
+      value: activityDetail.activity_type_id ?? undefined,
     },
     {
       label: "Sales",
@@ -212,7 +275,7 @@ export default function CreateActivity() {
       type: "select",
       typeMode: "number",
       options: SaleOptions,
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      disabled: salesFieldDisabled,
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
       value: activityDetail.user_id != null ? Number(activityDetail.user_id) : undefined,
@@ -230,7 +293,7 @@ export default function CreateActivity() {
         const exists = dealerList.some((d) => Number(d.id) === currentId);
         return exists ? dealerList : [...dealerList, { id: currentId, name: currentName }];
       })(),
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      disabled: shopFieldDisabled,
       required: true,
       col: pageCode !== "activity_transaction" ? 8 : 6,
       value:
@@ -250,10 +313,11 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: cropList,
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      disabled: cropFieldDisabled,
       required: true,
       col: 6,
       value: activityDetail.crop_id_list,
+      moderef: true,
     },
     {
       label: "Product",
@@ -262,7 +326,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: productList,
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      disabled: productFieldDisabled,
       required: true,
       col: pageCode != "activity_transaction" ? 18 : 24,
       value: activityDetail.product_list,
@@ -271,7 +335,7 @@ export default function CreateActivity() {
       label: "Date",
       name: "document_date",
       type: "date",
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      disabled: baseFieldDisabled,
       required: true,
       col: pageCode != "activity_transaction" ? 6 : 8,
       value: activityDetail.document_date,
@@ -280,7 +344,7 @@ export default function CreateActivity() {
       label: "Location",
       name: "location_address",
       type: "text",
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      disabled: baseFieldDisabled,
       required: false,
       col: 24,
       value: activityDetail.location_address ?? "",
@@ -291,7 +355,7 @@ export default function CreateActivity() {
       label: "Description",
       name: "description",
       type: "text-editor",
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      disabled: baseFieldDisabled,
       required: false,
       col: 24,
       placeholder: "Add description",
@@ -304,7 +368,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: saleAllList,
-      disabled: isViewMode || (isCreate ? false : !activityDetail?.permission?.edit),
+      disabled: baseFieldDisabled,
       required: false,
       col: 24,
       value: activityDetail.assing_user_list,
@@ -318,12 +382,22 @@ export default function CreateActivity() {
     const getMaster = async () => {
       setLoading(true);
       try {
+        const isExpensePage =
+          pageCode === "expense_advance" || pageCode === "expense_clearing";
+
+        const saleMasterRequest = isExpensePage
+          ? useServiceAPI.get(paths.pathMasterSaleExpense, {})
+          : isViewMode
+            ? useServiceAPI.get(paths.pathMasterSaleTeam, {})
+            : useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" });
+
         const [activityTypeRes, saleRes, saleAllRes, perceptionRes] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" }),
+          saleMasterRequest,
           useServiceAPI.get(paths.pathMasterSaleDropdown, { status: "all", mode: "all" }),
           useServiceAPI.get(paths.pathMasterPerception, {}),
         ]);
+
         setActivityList(activityTypeRes.data);
         setSaleList(saleRes.data);
         setSaleAllList(saleAllRes.data);
@@ -332,6 +406,7 @@ export default function CreateActivity() {
         setLoading(false);
       }
     };
+
     getMaster();
   }, []);
 
@@ -429,6 +504,7 @@ export default function CreateActivity() {
         setActivityDetail((prev) => ({
           ...prev,
           ...normalized,
+          document_number_referrent: normalized.document_number_referrent || "",
           crop_id_list: cropListIds,
           product_list: productListIds,
           assing_user_list: userListIds,
@@ -458,21 +534,364 @@ export default function CreateActivity() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // const resetActivityRefDetail = () => {
+  //   setCropList([]);
+  //   setProductList([]);
+  //   setDealerList([]);
+  //   setDealerCustomer([]);
+  //   setParticipants([]);
+  //   setFileList([]);
+
+  //   setActivityDetail((prev) => ({
+  //     ...prev,
+  //     document_number: "",
+  //     activity_type_id: undefined,
+  //     user_id: undefined,
+  //     dealer_id: undefined,
+  //     sub_dealer_id: undefined,
+  //     dealer_name: "",
+  //     sub_dealer_name: "",
+  //     crop_id_list: [],
+  //     product_list: [],
+  //     assing_user_list: [],
+  //     location_address: "",
+  //     description: "",
+  //     expense_product_data_list: [],
+  //     expense_product_total_estimate_sale: 0,
+  //     expense_product_total_acutal_sale: 0,
+  //     expense_actual_exp: 0,
+  //     expense_actual_sale: 0,
+  //     expense_expense_actual_exp: 0,
+  //     expense_expense_actual_sale: 0,
+  //     expense_participant_estimate: 0,
+  //     expense_particapant_actual: 0,
+  //     expense_advance: 0,
+  //     expense_actual: 0,
+  //   }));
+
+  //   expenseForm.resetFields();
+  //   participantForm.resetFields();
+  // };
+
+  const mergeOptionsById = (oldOptions = [], newOptions = []) => {
+    const map = new Map();
+
+    [...oldOptions, ...newOptions].forEach((item) => {
+      if (!item) return;
+      const key = String(item.id);
+      if (!map.has(key)) {
+        map.set(key, item);
+      }
+    });
+
+    return Array.from(map.values());
+  };
+
+  const loadActivityReferenceDetail = async (refNo) => {
+    if (!refNo) return;
+
+    setLoading(true);
+    try {
+      const response = await useServiceAPI.get(paths.pathActivityDetail, {
+        document_number: refNo,
+      });
+
+      const d = response.data || {};
+
+      const productListIds = (d?.product_list || []).map((p) => p.id);
+      const userListIds = (d?.assing_user_list || []).map((p) => p.id);
+      const cropListIds = (d?.crop_id_list || []).map((p) => p.id);
+
+      const cropOptions = (d?.crop_id_list || []).map((item) => ({
+        id: item.id,
+        name: item.name,
+      }));
+
+      const productOptions = (d?.product_list || []).map((item) => ({
+        id: item.id,
+        name: item.name ?? item.product_name ?? `${item.product_name || ""} ${item.packing_list ? `(${item.packing_list})` : ""}`.trim(),
+      }));
+
+      // โหลด dealer ตาม user เพื่อให้ dropdown ยังแก้ได้ตามปกติ
+      if (d?.user_id) {
+        await setupDealer(d.user_id);
+      }
+
+      // merge options เพื่อไม่ให้ dropdown ถูกจำกัดอยู่แค่ค่าจาก ref
+      setCropList((prev) => mergeOptionsById(prev, cropOptions));
+      setProductList((prev) => mergeOptionsById(prev, productOptions));
+
+      setIsBtnExpenseActive(!!d.is_expense);
+
+      setActivityDetail((prev) => ({
+        ...prev,
+        ...d,
+        document_number: "",
+        document_number_referrent: refNo,
+        crop_id_list: cropListIds,
+        product_list: productListIds,
+        assing_user_list: userListIds,
+        expense_product_data_list: d?.expense_product_data_list || [],
+      }));
+
+      formCustom.setFieldsValue({
+        document_number_referrent: refNo,
+        activity_type_id: d?.activity_type_id,
+        user_id: d?.user_id != null ? Number(d.user_id) : undefined,
+        dealer_id: d?.dealer_id != null ? Number(d.dealer_id) : undefined,
+        sub_dealer_id: d?.sub_dealer_id != null ? Number(d.sub_dealer_id) : undefined,
+        crop_id_list: cropListIds,
+        product_list: productListIds,
+        assing_user_list: userListIds,
+        location_address: d?.location_address || "",
+        description: d?.description || "",
+        document_date: d?.document_date ? dayjs(d.document_date) : undefined,
+      });
+
+      expenseForm.setFieldsValue({
+        advance_expense: toNumber(d?.expense_advance, 0),
+        actual_expense: toNumber(d?.expense_actual, 0),
+      });
+
+      participantForm.setFieldsValue({
+        estimate_participant: toNumber(d?.expense_participant_estimate, 0),
+        actual_participant: toNumber(d?.expense_particapant_actual, 0),
+      });
+
+      setIsRefLocked(true);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClearReference = () => {
+    setIsRefLocked(false);
+    setIsBtnExpenseActive(false);
+    setCropList([]);
+    setProductList([]);
+    setDealerList([]);
+    setDealerCustomer([]);
+    setParticipants([]);
+    setFileList([]);
+
+    const defaultDate = locationParam?.state?.dateCalendar || dayjs();
+
+    const resetState = {
+      document_number: "",
+      document_number_referrent: "",
+      activity_type_id: undefined,
+      user_id: undefined,
+      dealer_id: undefined,
+      sub_dealer_id: undefined,
+      dealer_name: "",
+      sub_dealer_name: "",
+      crop_id_list: [],
+      product_list: [],
+      assing_user_list: [],
+      location_address: "",
+      description: "",
+      expense_product_data_list: [],
+      expense_product_total_estimate_sale: 0,
+      expense_product_total_acutal_sale: 0,
+      expense_actual_exp: 0,
+      expense_actual_sale: 0,
+      expense_expense_actual_exp: 0,
+      expense_expense_actual_sale: 0,
+      expense_participant_estimate: 0,
+      expense_particapant_actual: 0,
+      expense_advance: 0,
+      expense_actual: 0,
+      document_date: defaultDate,
+    };
+
+    setActivityDetail((prev) => ({
+      ...prev,
+      ...resetState,
+    }));
+
+    formCustom.setFieldsValue({
+      document_number: "",
+      document_number_referrent: "",
+      activity_type_id: undefined,
+      user_id: undefined,
+      dealer_id: undefined,
+      sub_dealer_id: undefined,
+      crop_id_list: [],
+      product_list: [],
+      assing_user_list: [],
+      location_address: "",
+      description: "",
+      document_date: defaultDate,
+    });
+
+    expenseForm.setFieldsValue({
+      advance_expense: 0,
+      actual_expense: 0,
+    });
+
+    participantForm.setFieldsValue({
+      estimate_participant: 0,
+      actual_participant: 0,
+    });
+
+    if (isAutoSelectMySale) {
+      const mySaleId = Number(userInfo?.user_data_id ?? userInfo?.id);
+      const mySale = saleList.find((item) => Number(item.id) === mySaleId);
+
+      if (mySale) {
+        setActivityDetail((prev) => ({
+          ...prev,
+          user_id: mySaleId,
+          assing_user_list: [mySaleId],
+        }));
+
+        formCustom.setFieldsValue({
+          user_id: mySaleId,
+          assing_user_list: [mySaleId],
+        });
+
+        setupDealer(mySaleId);
+      }
+    }
+  };
+
   // =======================
   // handleChange
   // =======================
   const handleChange = (attribue, value) => {
     const run = async () => {
       try {
+        const resetCropAndProductState = () => {
+          setCropList([]);
+          setProductList([]);
+
+          setActivityDetail((prev) => ({
+            ...prev,
+            crop_id_list: [],
+            product_list: [],
+            expense_product_data_list: [],
+            expense_product_total_estimate_sale: 0,
+            expense_product_total_acutal_sale: 0,
+            expense_actual_exp: 0,
+            expense_actual_sale: 0,
+            expense_expense_actual_exp: 0,
+            expense_expense_actual_sale: 0,
+          }));
+
+          formCustom.setFieldsValue({
+            crop_id_list: [],
+            product_list: [],
+          });
+        };
+
+        const resetSalesChainState = () => {
+          setDealerList([]);
+          setDealerCustomer([]);
+          resetCropAndProductState();
+
+          setActivityDetail((prev) => ({
+            ...prev,
+            dealer_id: undefined,
+            sub_dealer_id: undefined,
+            dealer_name: "",
+            sub_dealer_name: "",
+          }));
+
+          formCustom.setFieldsValue({
+            dealer_id: undefined,
+            crop_id_list: [],
+            product_list: [],
+          });
+        };
+
         if (attribue === "user_id") {
-          setActivityDetail((prev) => ({ ...prev, user_id: value }));
+          if (!value) {
+            resetSalesChainState();
+            setActivityDetail((prev) => ({
+              ...prev,
+              user_id: undefined,
+              assing_user_list: [],
+            }));
+
+            formCustom.setFieldsValue({
+              user_id: undefined,
+              assing_user_list: [],
+              dealer_id: undefined,
+              crop_id_list: [],
+              product_list: [],
+            });
+            return;
+          }
+
+          resetSalesChainState();
+          setActivityDetail((prev) => ({
+            ...prev,
+            user_id: value,
+            dealer_id: undefined,
+            sub_dealer_id: undefined,
+          }));
           await setupDealer(value);
         } else if (attribue === "dealer_id") {
-          if (pageCode === "activity_transaction") setActivityDetail((prev) => ({ ...prev, dealer_id: value }));
-          else setActivityDetail((prev) => ({ ...prev, sub_dealer_id: value }));
+          resetCropAndProductState();
+
+          if (pageCode === "activity_transaction") {
+            setActivityDetail((prev) => ({ ...prev, dealer_id: value }));
+          } else {
+            setActivityDetail((prev) => ({ ...prev, sub_dealer_id: value }));
+          }
+
+          if (!value) {
+            setDealerCustomer([]);
+          }
         } else if (attribue === "crop_id_list") {
-          setActivityDetail((prev) => ({ ...prev, crop_id_list: value }));
+          if (!value || value.length === 0) {
+            setProductList([]);
+
+            setActivityDetail((prev) => ({
+              ...prev,
+              crop_id_list: [],
+              product_list: [],
+              expense_product_data_list: [],
+              expense_product_total_estimate_sale: 0,
+              expense_product_total_acutal_sale: 0,
+              expense_actual_exp: 0,
+              expense_actual_sale: 0,
+              expense_expense_actual_exp: 0,
+              expense_expense_actual_sale: 0,
+            }));
+
+            formCustom.setFieldsValue({
+              crop_id_list: [],
+              product_list: [],
+            });
+          } else {
+            setActivityDetail((prev) => ({ ...prev, crop_id_list: value }));
+          }
         } else if (attribue === "activity_type_id") {
+          if (!value && isCreate) {
+            resetSalesChainState();
+            setActivityDetail((prev) => ({
+              ...prev,
+              activity_type_id: value,
+              user_id: undefined,
+              assing_user_list: [],
+              dealer_id: undefined,
+              sub_dealer_id: undefined,
+            }));
+
+            formCustom.setFieldsValue({
+              activity_type_id: value,
+              user_id: undefined,
+              assing_user_list: [],
+              dealer_id: undefined,
+              crop_id_list: [],
+              product_list: [],
+            });
+            return;
+          }
+
           setActivityDetail((prev) => ({ ...prev, activity_type_id: value }));
         } else if (attribue === "product_list") {
           setActivityDetail((prev) => ({ ...prev, product_list: value }));
@@ -484,28 +903,17 @@ export default function CreateActivity() {
           setActivityDetail((prev) => ({ ...prev, description: value }));
         } else if (attribue === "document_date") {
           setActivityDetail((prev) => ({ ...prev, document_date: value }));
-        } else if (attribue === "activity_reference") {
-          setLoading(true);
-          try {
-            const response = await useServiceAPI.get(paths.pathActivityDetail, { document_number: value });
-            const d = response.data;
+        } else if (attribue === "document_number_referrent") {
+          setActivityDetail((prev) => ({
+            ...prev,
+            document_number_referrent: value,
+          }));
 
-            const productListIds = d?.product_list?.map((p) => p.id);
-            const userListIds = d.assing_user_list.map((p) => p.id);
-            const cropListIds = d.crop_id_list.map((p) => p.id);
+          formCustom.setFieldsValue({
+            document_number_referrent: value,
+          });
 
-            setIsBtnExpenseActive(d.is_expense);
-            setActivityDetail((prev) => ({
-              ...prev,
-              ...d,
-              crop_id_list: cropListIds,
-              product_list: productListIds,
-              assing_user_list: userListIds,
-              document_number: "",
-            }));
-          } finally {
-            setLoading(false);
-          }
+          await loadActivityReferenceDetail(value);
         }
       } catch (e) {
         console.log(e);
@@ -522,6 +930,7 @@ export default function CreateActivity() {
     else {
       setActivityDetail((prev) => ({ ...prev, expense_product_data_list: [], product_list: [] }));
       setProductList([]);
+      formCustom.setFieldsValue({ product_list: [] });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activityDetail.crop_id_list]);
@@ -539,6 +948,11 @@ export default function CreateActivity() {
     };
 
     if (effectiveDealerId) setupCropAndDealerCustomer(effectiveDealerId);
+    else {
+      setCropList([]);
+      setProductList([]);
+      setDealerCustomer([]);
+    }
   }, [effectiveDealerId]);
 
   const setupDealer = async (value) => {
@@ -591,7 +1005,7 @@ export default function CreateActivity() {
   if (pageCode !== "expense_clearing") isDisabled = true;
   else {
     if (mode === "create") isDisabled = false;
-    else isDisabled = !activityDetail?.permission?.edit;
+    // else isDisabled = !canEdit;
   }
 
   // =========================================================
@@ -610,14 +1024,7 @@ export default function CreateActivity() {
           className="w-full"
           min={0}
           value={record.estimate_sale_qty}
-          disabled={
-            forceReadOnly || mode === "view" ||
-            (pageCode == "expense_clearing"
-              ? true
-              : mode === "create"
-                ? false
-                : !activityDetail?.permission?.edit)
-          }
+          disabled={!canEdit || pageCode === "expense_clearing"}
           onChange={(value) => handleInputChange(value, record.key, "estimate_sale_qty", record.bath_ltkg, record)}
           formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
         />
@@ -633,7 +1040,7 @@ export default function CreateActivity() {
           className="w-full"
           min={0}
           value={record.acutal_sale_qty}
-          disabled={forceReadOnly || isDisabled}
+          disabled={!canEdit || pageCode === "expense_advance"}
           onChange={(value) => handleInputChange(value, record.key, "acutal_sale_qty", record.bath_ltkg, record)}
           formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
         />
@@ -667,12 +1074,12 @@ export default function CreateActivity() {
     });
   };
 
-  const calculateGrandTotal = (field) => {
-    const number = productCropList
-      .reduce((sum, item) => sum + (item[field] || 0) * item.bath_ltkg, 0)
-      .toFixed(2);
-    return NumberFormatter(number);
-  };
+  // const calculateGrandTotal = (field) => {
+  //   const number = productCropList
+  //     .reduce((sum, item) => sum + (item[field] || 0) * item.bath_ltkg, 0)
+  //     .toFixed(2);
+  //   return NumberFormatter(number);
+  // };
 
   const footerOrderList = () => (
     <tr className="bg-[#978B87]">
@@ -719,7 +1126,7 @@ export default function CreateActivity() {
       render: (_, record) => (
         <Input
           value={record.name}
-          disabled={forceReadOnly}
+          disabled={!canEdit}
           onChange={(e) => handleInputParticipantChange(record.key, "name", e.target.value)}
         />
       ),
@@ -732,7 +1139,7 @@ export default function CreateActivity() {
       render: (_, record) => (
         <Input
           value={record.address}
-          disabled={forceReadOnly}
+          disabled={!canEdit}
           onChange={(e) => handleInputParticipantChange(record.key, "address", e.target.value)}
         />
       ),
@@ -745,7 +1152,7 @@ export default function CreateActivity() {
       render: (_, record) => (
         <Input
           value={record.phone}
-          disabled={forceReadOnly}
+          disabled={!canEdit}
           onChange={(e) => handleInputParticipantChange(record.key, "phone", e.target.value)}
         />
       ),
@@ -758,7 +1165,7 @@ export default function CreateActivity() {
         <DynamicButton
           iconSrc="/img/icons/delete.png"
           onClick={() => removeParticipant(record.key)}
-          disabled={forceReadOnly}
+          disabled={!canEdit}
         />
       ),
     },
@@ -835,11 +1242,35 @@ export default function CreateActivity() {
 
       let expenseParticapantUserList = participantUsers.map((x) => x.id);
       let particapantList = participants.map((x) => ({ name: x.name, address: x.address, phone: x.phone }));
+      const hasActivityRef =
+        !!(
+          activityDetail.document_number_referrent ||
+          formCustom.getFieldValue("document_number_referrent")
+        );
+
+      let userID = "";
+
+      if (pageCode === "activity_transaction") {
+        userID = activityDetail.dealer_id;
+      } else if (hasActivityRef) {
+        userID = activityDetail.dealer_id;
+        if (modeSave === "convert_clearing") {
+          userID = activityDetail.sub_dealer_id;
+        }
+      } else {
+        userID = activityDetail.sub_dealer_id;
+      }
+
+      // console.log(userID);
 
       const body = {
         ...activityDetail,
+        document_number_referrent:
+          activityDetail.document_number_referrent ||
+          formCustom.getFieldValue("document_number_referrent") ||
+          "",
         page_code: pageCode,
-        dealer_id: activityDetail.sub_dealer_id,
+        dealer_id: userID,
         action_code: modeSave,
         image_list: imageLists,
         is_expense: isExpense,
@@ -943,24 +1374,34 @@ export default function CreateActivity() {
           {mode} {menuTitle}
         </div>
 
-        {mode !== "view" && pageCode !== "expense_advance" && pageCode !== "expense_clearing" ? (
-          !isBtnExpenseActive ? (
+        <div className="flex items-center gap-2">
+          {isRefLocked && (
             <ActionButton
-              mode="create"
-              text="Add Advance Expense"
-              onClick={() => setIsBtnExpenseActive(!isBtnExpenseActive)}
-              disabled={forceReadOnly}
+              mode="reject"
+              text="Clear Ref"
+              onClick={handleClearReference}
+              disabled={isViewMode || isApproveMode}
             />
-          ) : (
-            <ActionButton
-              mode="hide"
-              text="Hide Advance Expense"
-              onClick={() => setIsBtnExpenseActive(!isBtnExpenseActive)}
-              disabled={forceReadOnly}
-            />
-          )
-        ) : null}
+          )}
 
+          {mode !== "view" && pageCode !== "expense_advance" && pageCode !== "expense_clearing" ? (
+            !isBtnExpenseActive ? (
+              <ActionButton
+                mode="create"
+                text="Add Advance Expense"
+                onClick={() => setIsBtnExpenseActive(!isBtnExpenseActive)}
+                disabled={!canEdit}
+              />
+            ) : (
+              <ActionButton
+                mode="hide"
+                text="Hide Advance Expense"
+                onClick={() => setIsBtnExpenseActive(!isBtnExpenseActive)}
+                disabled={!canEdit}
+              />
+            )
+          ) : null}
+        </div>
       </div>
 
       <FormCustom fields={formFields} form={formCustom} onChange={handleChange} mode={documentNumber ? "edit" : "create"} />
@@ -999,11 +1440,12 @@ export default function CreateActivity() {
                       placeholder="Advance expense"
                       className="w-full"
                       min={0}
-                      formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      // formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      formatter={moneyFormatter}
                       value={toNumber(activityDetail.expense_advance, 0)}
                       onChange={(value) => setActivityDetail({ ...activityDetail, expense_advance: toNumber(value, 0) })}
                       disabled={
-                        forceReadOnly ||
+                        !canEdit ||
                         mode === "view" ||
                         mode === "approve" ||
                         (mode === "create" && pageCode === "expense_clearing") ||
@@ -1019,15 +1461,16 @@ export default function CreateActivity() {
                       placeholder="Actual Expense"
                       className="w-full"
                       min={0}
-                      formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      // formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      formatter={moneyFormatter}
                       value={toNumber(activityDetail.expense_actual, 0)}
                       onChange={(value) => setActivityDetail({ ...activityDetail, expense_actual: toNumber(value, 0) })}
 
                       disabled={
-                        forceReadOnly ||
+                        !canEdit ||
                         (pageCode != "expense_clearing" || mode === "create"
                           ? pageCode !== "expense_clearing"
-                          : !activityDetail?.permission?.edit)
+                          : !canEdit)
                       }
                     />
                   </Form.Item>
@@ -1105,13 +1548,13 @@ export default function CreateActivity() {
                   mode="add"
                   text="Upload File"
                   onClick={handleUploadClick}
-                  disabled={forceReadOnly || (mode === "create" ? false : !activityDetail?.permission?.edit)}
+                  disabled={!canEdit || (mode === "create" ? false : !canEdit)}
                 />
               </div>
 
               <FileUploadComponent
                 ref={fileUploadRef}
-                mode={mode === "create" ? false : !activityDetail?.permission?.edit ? "view" : "edit"}
+                mode={mode === "create" ? false : (canEdit ? "edit" : "view")}
                 dataFile={fileList}
                 modeUpload={pageCode}
                 onUploadSuccess={handleUploadSuccess}
@@ -1125,7 +1568,7 @@ export default function CreateActivity() {
               <div className="text-[#00783F] text-lg font-semibold mb-3">Participant</div>
 
               {pageCode === "expense_clearing" && !viewSegment && userInfo.role_id != 2 ? (
-                <ActionButton mode="add" text="Add" onClick={handleAddSelectedRows} disabled={forceReadOnly} />
+                <ActionButton mode="add" text="Add" onClick={handleAddSelectedRows} disabled={isApproveMode || isViewMode} />
               ) : null}
             </div>
 
@@ -1138,12 +1581,12 @@ export default function CreateActivity() {
                       min={0}
                       placeholder="0"
                       disabled={
-                        forceReadOnly || mode === "view" ||
+                        !canEdit || mode === "view" ||
                         (pageCode == "expense_clearing"
                           ? true
                           : mode === "create"
                             ? false
-                            : !activityDetail?.permission?.edit)
+                            : !canEdit)
                       }
                       formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                       value={toNumber(activityDetail?.expense_participant_estimate, 0)}
@@ -1158,7 +1601,7 @@ export default function CreateActivity() {
                       className="w-full"
                       min={0}
                       placeholder="0"
-                      disabled={forceReadOnly || mode === "approve" || mode === "view" || pageCode !== "expense_clearing"}
+                      disabled={!canEdit || mode === "approve" || mode === "view" || pageCode !== "expense_clearing"}
                       formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                       value={activityDetail?.expense_particapant_actual}
                       onChange={(value) => setActivityDetail({ ...activityDetail, expense_particapant_actual: value })}
@@ -1180,9 +1623,9 @@ export default function CreateActivity() {
         {/* ✅ NEW: ถ้ามาจาก mapping -> Close + ปิดแท็บ */}
         <ActionButton
           mode="back"
-          text={fromMapping ? "Close" : "Back"}
+          text={fromMapping || fromCalendar ? "Close" : "Back"}
           onClick={() => {
-            if (fromMapping) {
+            if (fromMapping || fromCalendar) {
               window.close();
               return;
             }
@@ -1191,18 +1634,18 @@ export default function CreateActivity() {
         />
 
         {activityDetail?.permission?.btn_convert && (
-          <ActionButton mode="saveDraft" text="Convert to Clearing" onClick={() => handleSave("convert_clearing")} disabled={forceReadOnly} />
+          <ActionButton mode="saveDraft" text="Convert to Clearing" onClick={() => handleSave("convert_clearing")} />
         )}
 
         {(activityDetail?.permission?.btn_draft || mode === "create") && (
-          <ActionButton mode="saveDraft" text="Draft" onClick={() => handleSave("draft")} disabled={forceReadOnly} />
+          <ActionButton mode="saveDraft" text="Draft" onClick={() => handleSave("draft")} />
         )}
 
         {(activityDetail?.permission?.btn_save || mode === "create") && mode !== "view" && (
-          <ActionButton mode="save" text="Save" onClick={() => handleSave("save")} disabled={forceReadOnly} />
+          <ActionButton mode="save" text="Save" onClick={() => handleSave("save")} />
         )}
 
-        {activityDetail?.permission?.btn_pdf && (
+        {(activityDetail?.permission?.btn_export || activityDetail?.permission?.btn_pdf) && (
           <ActionButton
             mode="saveDraft"
             text="Export PDF"
@@ -1213,12 +1656,14 @@ export default function CreateActivity() {
           />
         )}
 
-        {activityDetail?.permission?.btn_reject && activityDetail?.transaction_status_name !== "Convert" && mode !== "approve" && (
-          <ActionButton mode="reject" text={btn_reject} onClick={() => handleApproval("reject")} disabled={forceReadOnly} />
+        {/* {activityDetail?.permission?.btn_reject && activityDetail?.transaction_status_name !== "Convert" && mode !== "approve" && ( */}
+        {activityDetail?.permission?.btn_reject && activityDetail?.transaction_status_name !== "Convert" && (
+          <ActionButton mode="reject" text={btn_reject} onClick={() => handleApproval("reject")} />
         )}
 
-        {activityDetail?.permission?.btn_approved && activityDetail?.transaction_status_name !== "Convert" && mode !== "approve" && (
-          <ActionButton mode="save" text={btn_approve} onClick={() => handleApproval("approved")} disabled={forceReadOnly} />
+        {/* {activityDetail?.permission?.btn_approved && activityDetail?.transaction_status_name !== "Convert" && mode !== "approve" && ( */}
+        {activityDetail?.permission?.btn_approved && activityDetail?.transaction_status_name !== "Convert" && (
+          <ActionButton mode="save" text={btn_approve} onClick={() => handleApproval("approved")} />
         )}
       </div>
 

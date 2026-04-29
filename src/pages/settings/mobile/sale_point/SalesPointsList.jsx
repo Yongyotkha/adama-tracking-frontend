@@ -9,25 +9,19 @@ import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import ItemDropDown from "../../../../components/dropdown/ItemDropDown";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../../../components/button/ActionButton";
-import useServiceAPI from "../../../../services/corsService";
+import useServiceAPI from "../../../../services/CorsService";
 import { paths } from "../../../../services/CorsPath";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 
 const { TabPane } = Tabs;
 
-/**
- * ✅ ปรับชุดตัวเลือกของสถานะสำหรับแท็บ List (fetchData)
- * - เอา ODI ออก
- * - ใช้ key = status_code ใน Filter
- */
 const STATUS_OPTIONS_LIST = [
   { id: "ODC", name: "Complete" },
   { id: "ODW", name: "Waiting for Approve" },
   { id: "ODI", name: "Waiting for Create" },
   { id: "ODD", name: "Draft" },
   { id: "ODR", name: "Reject" },
-  
 ];
 
 export default function SalesPointsList() {
@@ -37,7 +31,6 @@ export default function SalesPointsList() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("list");
 
-  // ----------- List tab states -----------
   const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const [tableParams, setTableParams] = useState({
@@ -48,21 +41,16 @@ export default function SalesPointsList() {
   });
   const [filterValues, setFilterValues] = useState({});
 
-  // ----------- Request tab states -----------
   const [requestDataSource, setRequestDataSource] = useState([]);
   const [requestTableLoading, setRequestTableLoading] = useState(false);
-  // ---------- Default params ----------
   const [requestTableParams, setRequestTableParams] = useState({
     pagination: { current: 1, pageSize: 50 },
     filters: {},
-
-    // 👇 Default sort ต้องเป็น document_date
     sortOrder: "desc",
     sortField: "document_date",
   });
   const [requestFiltersValues, setRequestFiltersValues] = useState({});
 
-  // ----------- masters -----------
   const [saleList, setSaleList] = useState([]);
   const [dataDealer, setDataDealer] = useState([]);
   const [subDealerOptions, setSubDealerOptions] = useState([]);
@@ -70,8 +58,28 @@ export default function SalesPointsList() {
 
   const { confirm } = Modal;
 
-  // ---------- Filters (LIST) ----------
-  // ✅ ใช้ key = status_code และชุด STATUS_OPTIONS_LIST ที่อัปเดตแล้ว
+  const normalizeFilters = (raw = {}) => {
+    const next = { ...raw };
+
+    if (
+      !next.dater ||
+      (Array.isArray(next.dater) && next.dater.length === 0) ||
+      (Array.isArray(next.dater) && next.dater.every((v) => !v))
+    ) {
+      delete next.dater;
+    }
+
+    return next;
+  };
+
+  const hasValidDater = (dater) => {
+    return (
+      dater &&
+      (!Array.isArray(dater) ||
+        (Array.isArray(dater) && dater.length > 0 && dater.some((v) => v)))
+    );
+  };
+
   const filters = [
     { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
     { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dataDealer, moderef: true },
@@ -81,8 +89,6 @@ export default function SalesPointsList() {
     { key: "dater", type: "dater", label: "Date", placeholder: "Date" },
   ];
 
-  // ---------- Filters (REQUEST) ----------
-  // ✅ ซ่อนช่อง Order No และ Status; เพิ่ม Sub Dealer + Date
   const requestFilters = [
     { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
     { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dataDealer, moderef: true },
@@ -90,7 +96,6 @@ export default function SalesPointsList() {
     { key: "dater", type: "dater", label: "Date", placeholder: "Date" },
   ];
 
-  // ---------- Table headers ----------
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
     { title: "Order No", width: 150, dataIndex: "orderNo", align: "left" },
@@ -103,79 +108,18 @@ export default function SalesPointsList() {
     { title: "Status", width: 150, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
+
   const headerRequest = [
     { title: "No", width: 60, dataIndex: "key", align: "center" },
     { title: "Order No", width: 150, dataIndex: "document_number", align: "left" },
     { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
     { title: "Dealer", width: 220, dataIndex: "dealer", align: "left" },
     { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
-
-    // 👇 ใช้ key document_date เพื่อให้ sort ตรงกับวันที่จริง
     { title: "Request Date", width: 160, dataIndex: "document_date", align: "center" },
-
     { title: "Status", width: 160, dataIndex: "status", align: "center" },
     { title: "Action", width: 120, dataIndex: "action", align: "center" },
   ];
 
-
-  // ---------- ACTION in Request ----------
-  const getActionForRequest = (record) => {
-    const apiActions = Array.isArray(record.apiActions)
-      ? record.apiActions.map((a) => (a?.action || "").toLowerCase())
-      : [];
-    const actions = apiActions.length ? apiActions : ["view"];
-
-    const items = [];
-    if (actions.includes("view")) {
-      items.push({
-        key: "view",
-        label: (
-          <ItemDropDown
-            mode="view"
-            onClick={() =>
-              navigate("/points/line/sales-points-list/view", {
-                state: { document_number: record.document_number },
-              })
-            }
-          />
-        ),
-      });
-    }
-    items.push({
-      key: "edit",
-      label: (
-        <ItemDropDown
-          mode="edit"
-          onClick={() =>
-            navigate("/points/line/sales-points-list/edit", {
-              state: { document_number: record.document_number },
-            })
-          }
-        />
-      ),
-    });
-    items.push({
-      key: "delete",
-      label: (
-        <ItemDropDown
-          mode="delete"
-          onClick={() => handleDelete(record.document_number)}
-        />
-      ),
-    });
-
-    return (
-      <Dropdown menu={{ items }} placement="bottom">
-        <a onClick={(e) => e.preventDefault()}>
-          <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
-        </a>
-      </Dropdown>
-    );
-  };
-
-  // =========================================
-  // ========== FETCH LIST (ODW default) =====
-  // =========================================
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -184,12 +128,11 @@ export default function SalesPointsList() {
     const sortField = tableParams.sortField || "document_number";
 
     const requestData = {
-      user_id: filters.sale || "",                 // sale id
-      dealer_id: filters.dealer || "",             // dealer id
-      sub_dealer_id: filters.sub_dealer || "",     // sub dealer id
-      keyword: filters.order_no || "",             // find document_number
-      status_code: filters.status_code || " ",     // ✅ ใช้ status_code ใหม่
-      dater: filters.dater || [],                  // ["YYYY-MM-DD","YYYY-MM-DD"]
+      user_id: filters.sale || "",
+      dealer_id: filters.dealer || "",
+      sub_dealer_id: filters.sub_dealer || "",
+      keyword: filters.order_no || "",
+      status_code: filters.status_code || " ",
       page: "all",
       use_flag: 1,
       orderby_column: sortField || "document_number",
@@ -198,6 +141,10 @@ export default function SalesPointsList() {
       page_length: current,
       page_size: pageSize,
     };
+
+    if (hasValidDater(filters.dater)) {
+      requestData.dater = filters.dater;
+    }
 
     try {
       const response = await useServiceAPI.get(paths.pathSalePointOrderList, requestData);
@@ -224,43 +171,62 @@ export default function SalesPointsList() {
           action: (
             <Dropdown
               menu={{
-                items: [
-                  {
-                    key: 1,
-                    label: (
-                      <ItemDropDown
-                        mode="view"
-                        onClick={() =>
-                          navigate("/points/line/sales-points-list/view", {
-                            state: { document_number: order.document_number },
-                          })
-                        }
-                      />
-                    ),
-                  },
-                  {
-                    key: 2,
-                    label: (
-                      <ItemDropDown
-                        mode="edit"
-                        onClick={() =>
-                          navigate("/points/line/sales-points-list/edit", {
-                            state: { document_number: order.document_number },
-                          })
-                        }
-                      />
-                    ),
-                  },
-                  {
-                    key: 3,
-                    label: (
-                      <ItemDropDown
-                        mode="delete"
-                        onClick={() => handleDelete(order.document_number)}
-                      />
-                    ),
-                  },
-                ],
+                items: (order.action || []).map((a, i) => {
+                  const actionName = String(a.action).toLowerCase();
+                  if (actionName === "view") {
+                    return {
+                      key: `view-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="view"
+                          onClick={() =>
+                            navigate("/points/line/sales-points-list/view", {
+                              state: { document_number: order.document_number },
+                            })
+                          }
+                        />
+                      ),
+                    };
+                  }
+                  if (actionName === "edit") {
+                    return {
+                      key: `edit-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="edit"
+                          onClick={() =>
+                            navigate("/points/line/sales-points-list/edit", {
+                              state: { document_number: order.document_number },
+                            })
+                          }
+                        />
+                      ),
+                    };
+                  }
+                  if (actionName === "delete") {
+                    return {
+                      key: `delete-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="delete"
+                          onClick={() => handleDelete(order.document_number)}
+                        />
+                      ),
+                    };
+                  }
+                  if (["refund", "refund point"].includes(actionName)) {
+                    return {
+                      key: `refund_point-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="refund_point"
+                          onClick={() => handleRefund(order.document_number)}
+                        />
+                      ),
+                    };
+                  }
+                  return null;
+                }).filter(Boolean),
               }}
               placement="bottom"
             >
@@ -284,16 +250,11 @@ export default function SalesPointsList() {
     }
   };
 
-  // =========================================
-  // ====== FETCH REQUEST (ODI default) ======
-  // =========================================
   const fetchRequests = async () => {
     setRequestTableLoading(true);
     const { current, pageSize } = requestTableParams.pagination;
     const filters = requestTableParams.filters || {};
     const sortOrder = requestTableParams.sortOrder || "desc";
-
-    // 👇 default sort field = document_date
     const sortField = requestTableParams.sortField || "document_date";
 
     const payload = {
@@ -302,15 +263,18 @@ export default function SalesPointsList() {
       sub_dealer_id: filters.sub_dealer || "",
       keyword: "",
       status_code: "ODI",
-      dater: filters.dater || [],
       page: "all",
       use_flag: 1,
-      orderby_column: sortField, // 👈 ส่ง document_date
+      orderby_column: sortField,
       orderby: sortOrder,
       platform: "web",
       page_length: current,
       page_size: pageSize,
     };
+
+    if (hasValidDater(filters.dater)) {
+      payload.dater = filters.dater;
+    }
 
     try {
       const res = await useServiceAPI.get(paths.pathSalePointOrderList, payload);
@@ -329,10 +293,7 @@ export default function SalesPointsList() {
             dealer: item.dealer_name ?? "-",
             sub_dealer: item.sub_dealer_name ?? "-",
             sale: item.sale_name ?? "-",
-
-            // 👇 ต้องใช้ document_date ให้ตรงกับ headerRequest
             document_date: requestDate,
-
             status: (
               <BadgeStatus
                 text={item.status_transaction_name}
@@ -340,11 +301,78 @@ export default function SalesPointsList() {
                 textColor={item.status_transaction_color}
               />
             ),
-            apiActions: item.action,
+            status_code: item.status_code,
+            action: (
+              <Dropdown
+                menu={{
+                  items: (item.action || []).map((a, i) => {
+                    const actionName = String(a.action).toLowerCase();
+                    if (actionName === "view") {
+                      return {
+                        key: `view-${i}`,
+                        label: (
+                          <ItemDropDown
+                            mode="view"
+                            onClick={() =>
+                              navigate("/points/line/sales-points-list/view", {
+                                state: { document_number: item.document_number },
+                              })
+                            }
+                          />
+                        ),
+                      };
+                    }
+                    if (actionName === "edit") {
+                      return {
+                        key: `edit-${i}`,
+                        label: (
+                          <ItemDropDown
+                            mode="edit"
+                            onClick={() =>
+                              navigate("/points/line/sales-points-list/edit", {
+                                state: { document_number: item.document_number },
+                              })
+                            }
+                          />
+                        ),
+                      };
+                    }
+                    if (actionName === "delete") {
+                      return {
+                        key: `delete-${i}`,
+                        label: (
+                          <ItemDropDown
+                            mode="delete"
+                            onClick={() => handleDelete(item.document_number)}
+                          />
+                        ),
+                      };
+                    }
+                    if (["refund", "refund point"].includes(actionName)) {
+                      return {
+                        key: `refund_point-${i}`,
+                        label: (
+                          <ItemDropDown
+                            mode="refund_point"
+                            onClick={() => handleRefund(item.document_number)}
+                          />
+                        ),
+                      };
+                    }
+                    return null;
+                  }).filter(Boolean),
+                }}
+                placement="bottom"
+              >
+                <a onClick={(e) => e.preventDefault()}>
+                  <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
+                </a>
+              </Dropdown>
+            ),
           };
         });
 
-        setRequestDataSource(mapped.map((row) => ({ ...row, action: getActionForRequest(row) })));
+        setRequestDataSource(mapped);
 
         setRequestTableParams((prev) => ({
           ...prev,
@@ -364,18 +392,18 @@ export default function SalesPointsList() {
     }
   };
 
-
-  // =========================================
-  // ============ FILTER HANDLERS ============
-  // =========================================
   const handleSearch = (filters) => {
+    const cleanedFilters = normalizeFilters(filters);
+
     setTableParams((prev) => ({
       ...prev,
-      filters,
+      filters: cleanedFilters,
       pagination: { ...prev.pagination, current: 1 },
     }));
   };
+
   const handleClear = () => {
+    setFilterValues({});
     setTableParams((prev) => ({
       ...prev,
       filters: {},
@@ -384,16 +412,16 @@ export default function SalesPointsList() {
     setDataDealer([]);
     setSubDealerOptions([]);
   };
+
   const handleTableChange = (pagination, _filters, sorter) => {
     setTableParams((prev) => ({
       ...prev,
       pagination,
-      sortOrder: sorter.order === "desc",
-      sortField: sorter.field || prev.sortField,
+      sortOrder: sorter?.order === "descend" ? "desc" : "asc",
+      sortField: sorter?.field || prev.sortField,
     }));
   };
 
-  // โหลดลูกโซ่ (sales → dealer → sub dealer)
   const handleChange = (filters) => {
     setFilterValues(filters);
 
@@ -434,15 +462,18 @@ export default function SalesPointsList() {
     }
   };
 
-  // -------- Request handlers --------
   const handleSearchRequest = (filters) => {
+    const cleanedFilters = normalizeFilters(filters);
+
     setRequestTableParams((prev) => ({
       ...prev,
-      filters,
+      filters: cleanedFilters,
       pagination: { ...prev.pagination, current: 1 },
     }));
   };
+
   const handleClearRequest = () => {
+    setRequestFiltersValues({});
     setRequestTableParams((prev) => ({
       ...prev,
       filters: {},
@@ -451,23 +482,28 @@ export default function SalesPointsList() {
     setDataDealer([]);
     setSubDealerOptions([]);
   };
+
   const handleTableChangeRequest = (pagination, _filters, sorter) => {
     setRequestTableParams((prev) => ({
       ...prev,
       pagination,
-      sortOrder: sorter.order === "desc",
-      sortField: sorter.field || prev.sortField,
+      sortOrder: sorter?.order === "descend" ? "desc" : "asc",
+      sortField: sorter?.field || prev.sortField,
     }));
   };
+
   const handleChangeRequestFilters = (filters) => {
     setRequestFiltersValues(filters);
 
-    if (filters.dealer) {
+    const saleId = typeof filters.sale === "object" ? filters.sale.value : filters.sale;
+    const dealerId = typeof filters.dealer === "object" ? filters.dealer.value : filters.dealer;
+
+    if (dealerId) {
       (async () => {
         try {
           const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
-            user_id: filters.sale,
-            dealer_id: filters.dealer,
+            user_id: saleId || "",
+            dealer_id: dealerId,
           });
           const set_sub_dealer = (res?.data || []).map((item) => ({
             name: item.sub_dealer_name,
@@ -478,11 +514,11 @@ export default function SalesPointsList() {
           showMsg?.("error", error.message || "เกิดข้อผิดพลาดในการโหลด Sub Dealer");
         }
       })();
-    } else if (filters.sale) {
+    } else if (saleId) {
       (async () => {
         try {
           const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
-            user_id: filters.sale,
+            user_id: saleId,
           });
           setDataDealer(res?.data || []);
           setSubDealerOptions([]);
@@ -496,12 +532,11 @@ export default function SalesPointsList() {
     }
   };
 
-  // ---------- Load sales master ----------
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const sale = await useServiceAPI.get(paths.pathMasterSaleDropdown, {});
+        const sale = await useServiceAPI.get(paths.pathMasterSaleSingle, {});
         setSaleList(sale.data || []);
       } catch (error) {
         showMsg?.("error", error.message || "เกิดข้อผิดพลาด");
@@ -513,14 +548,12 @@ export default function SalesPointsList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ---------- switch tabs → fetch ----------
   useEffect(() => {
     if (activeTab === "request") fetchRequests();
     else fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
-  // ---------- list tab dependencies ----------
   useEffect(() => {
     if (activeTab === "list") fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -533,7 +566,6 @@ export default function SalesPointsList() {
     JSON.stringify(tableParams.filters),
   ]);
 
-  // ---------- request tab dependencies ----------
   useEffect(() => {
     if (activeTab === "request") fetchRequests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -566,11 +598,72 @@ export default function SalesPointsList() {
             [ok ? "Delete successful" : "Please try again."];
 
           await showNotification(ok ? "success" : "warning", header, lines);
-          fetchData();
+
+          if (activeTab === "request") fetchRequests();
+          else fetchData();
         } catch (error) {
           const msg = error?.response?.data?.data?.Message;
           await showNotification("warning", msg?.Message_Header || "Notification", msg?.Message_Line || ["Data not found"]);
-          fetchData();
+
+          if (activeTab === "request") fetchRequests();
+          else fetchData();
+        }
+      },
+    });
+  };
+  const handleRefund = (documentNumber) => {
+    let remark = "";
+    confirm({
+      title: "Refund Order ?",
+      icon: <ExclamationCircleFilled />,
+      content: (
+        <div className="mt-4">
+          <div className="mb-2 text-sm font-medium text-gray-700">หมายเหตุ <span className="text-red-500">*</span></div>
+          <textarea
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows="3"
+            placeholder="กรุณาใส่หมายเหตุ"
+            onChange={(e) => {
+              remark = e.target.value;
+            }}
+          />
+        </div>
+      ),
+      centered: true,
+      async onOk() {
+        if (!remark || remark.trim() === "") {
+          showMsg?.("warning", "กรุณาใส่หมายเหตุ");
+          return Promise.reject();
+        }
+        try {
+          const res = await useServiceAPI.put(paths.pathSalePointRefund, {
+            document_number: documentNumber,
+            remark: remark,
+          });
+          const ok = res?.status === 200 || res?.status === "200";
+          const header =
+            res?.data?.data?.Message?.Message_Header ||
+            res?.data?.message ||
+            (ok ? "Refund successful" : "Notification");
+          const lines =
+            res?.data?.data?.Message?.Message_Line ||
+            res?.data?.message_line ||
+            [ok ? "Refund successful" : "Please try again."];
+
+          await showNotification(ok ? "success" : "warning", header, lines);
+
+          if (activeTab === "request") fetchRequests();
+          else fetchData();
+        } catch (error) {
+          const msg = error?.response?.data?.data?.Message;
+          await showNotification(
+            "warning",
+            msg?.Message_Header || "Notification",
+            msg?.Message_Line || ["Refund failed"]
+          );
+
+          if (activeTab === "request") fetchRequests();
+          else fetchData();
         }
       },
     });
@@ -598,6 +691,7 @@ export default function SalesPointsList() {
             onClear={handleClear}
             onChange={handleChange}
             filters={filters}
+            values={filterValues}
           />
           <br />
           <BoxPrimary>
@@ -616,7 +710,8 @@ export default function SalesPointsList() {
             onSearch={handleSearchRequest}
             onClear={handleClearRequest}
             onChange={handleChangeRequestFilters}
-            filters={requestFilters} // ✅ ไม่มี Order No และ Status แล้ว
+            filters={requestFilters}
+            values={requestFiltersValues}
           />
           <br />
           <BoxPrimary>

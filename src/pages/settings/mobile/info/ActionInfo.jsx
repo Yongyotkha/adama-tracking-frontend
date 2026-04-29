@@ -27,7 +27,7 @@ export default function ActionInfo() {
     modeFromParams ??
     modeFromState ??
     (isEditPath ? "edit" : isViewPath ? "view" : "create");
-
+  const selectedType = Form.useWatch("type", form);
   const idFromState = location.state?.id;
   const idFromQuery = new URLSearchParams(location.search).get("id");
   const recordId =
@@ -40,8 +40,8 @@ export default function ActionInfo() {
   const pageTitle = isCreate
     ? "Create Info"
     : isEdit
-    ? "Edit Info"
-    : "View Info";
+      ? "Edit Info"
+      : "View Info";
   const formDisabled = isView;
 
   // ====== Upload (file url -> form.file) ======
@@ -87,6 +87,15 @@ export default function ActionInfo() {
     return `${paths.pathInfoDetail}/${id}`;
   };
 
+  useEffect(() => {
+    if (selectedType === 1) {
+      form.setFieldValue("path", "");
+    } else if (selectedType === 2) {
+      setFileList([]);
+      form.setFieldValue("file", "");
+    }
+  }, [selectedType]);
+
   // ====== fetch detail เมื่อ edit/view ======
   useEffect(() => {
     if (isCreate) {
@@ -120,6 +129,7 @@ export default function ActionInfo() {
         if (cancelled) return;
 
         form.setFieldsValue({
+          path: data?.path ?? "",
           name: data?.name ?? "",
           type: Number(data?.type ?? 1), // "1" -> 1
           use_flag: String(data?.use_flag ?? "1"),
@@ -130,13 +140,13 @@ export default function ActionInfo() {
         setFileList(
           url
             ? [
-                {
-                  uid: String(data?.id ?? Date.now()),
-                  name: "file",
-                  status: "done",
-                  url,
-                },
-              ]
+              {
+                uid: String(data?.id ?? Date.now()),
+                name: "file",
+                status: "done",
+                url,
+              },
+            ]
             : []
         );
       } catch (e) {
@@ -164,10 +174,18 @@ export default function ActionInfo() {
       const payload = {
         platform: "web",
         name: (values.name || "").trim(),
-        type: Number(values.type), // 1/2
-        use_flag: String(values.use_flag), // "1"/"0"
-        file: fileList?.[0]?.url || values.file || "",
+        type: Number(values.type),
+        use_flag: String(values.use_flag),
       };
+
+      // 🔥 conditional send
+      if (values.type === 1) {
+        payload.file = fileList?.[0]?.url || "";
+        payload.path = "";
+      } else {
+        payload.path = values.path || "";
+        payload.file = "";
+      }
 
       setLoading(true);
 
@@ -185,7 +203,7 @@ export default function ActionInfo() {
         showNotification?.(
           "success",
           res?.data?.message ||
-            (isEdit ? "Update successful" : "Save successfully")
+          (isEdit ? "Update successful" : "Save successfully")
         );
         navigate(-1);
       } else {
@@ -207,28 +225,29 @@ export default function ActionInfo() {
       <div className="title-page">{pageTitle}</div>
 
       {/* Upload */}
-      <BoxPrimary>
-        <div className="flex items-center justify-between">
-          <label title="Upload">Upload File / Video</label>
+      {selectedType === 1 && (
+        <BoxPrimary>
+          <div className="flex items-center justify-between">
+            <label>Upload File</label>
 
-          {!isView && (
-            <ActionButton
-              mode="add"
-              text="Upload File"
-              onClick={() => {
-                fileUploadRef.current?.triggerUpload();
-              }}
-            />
-          )}
-        </div>
+            {!isView && (
+              <ActionButton
+                mode="add"
+                text="Upload File"
+                onClick={() => fileUploadRef.current?.triggerUpload()}
+              />
+            )}
+          </div>
 
-        <FileUploadComponent
-          ref={fileUploadRef}
-          dataFile={fileList}
-          onUploadSuccess={handleUploadSuccess}
-          mode={isView ? "view" : "edit"}
-        />
-      </BoxPrimary>
+          <FileUploadComponent
+            ref={fileUploadRef}
+            dataFile={fileList}
+            onUploadSuccess={handleUploadSuccess}
+            mode={isView ? "view" : "edit"}
+          />
+        </BoxPrimary>
+      )}
+
 
       {/* Form */}
       <BoxPrimary>
@@ -239,6 +258,17 @@ export default function ActionInfo() {
           initialValues={{ use_flag: "1", type: 1 }}
         >
           <Row gutter={24}>
+            {selectedType === 2 && (
+              <Col xs={24}>
+                <Form.Item
+                  label="Youtube Path"
+                  name="path"
+                  rules={[{ required: true, message: "Please enter youtube path" }]}
+                >
+                  <Input placeholder="Enter youtube url" />
+                </Form.Item>
+              </Col>
+            )}
             <Col xs={24} md={12}>
               <Form.Item
                 label="Info Name"

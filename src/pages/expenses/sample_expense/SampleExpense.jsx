@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import TableComponent from "../../../components/table/TableComponent";
@@ -11,6 +11,9 @@ import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
+import { AuthContext } from "../../../contexts/AuthContext";
+
+
 
 export default function SampleExpense() {
   const { confirm } = Modal;
@@ -32,12 +35,14 @@ export default function SampleExpense() {
   const [subDealerList, setSubDealerList] = useState([]);
   const [cropList, setCropList] = useState([]);
   const navigate = useNavigate();
+  const { showMsg, showNotification, userInfo } = useContext(AuthContext);
+
 
   const filters = [
     {
       key: "sale",
       type: "select",
-      label: "Sales",
+      label: "Create By",
       placeholder: "All",
       options: saleList,
       moderef: true,
@@ -63,19 +68,19 @@ export default function SampleExpense() {
       type: "select",
       label: "Crop",
       placeholder: "All",
-      options: cropList, // Added for Crop
+      options: cropList,
     },
     {
       key: "status_transaction_code",
       type: "select",
       label: "Status",
       placeholder: "All",
-      options: statusOptions, // Added for Status
+      options: statusOptions,
     },
     {
       key: "document_number",
       type: "text",
-      label: "Document Number",
+      label: "Code",
       placeholder: "All",
     },
     {
@@ -86,13 +91,16 @@ export default function SampleExpense() {
     },
   ];
 
+  useEffect(() => {
+    fetchStatusOptions();
+    fetchSales();
+    fetchDealers();
+    fetchSubDealers();
+    fetchCrop();
+  }, []);
 
   useEffect(() => {
     fetchData();
-    fetchStatusOptions();
-    fetchSales(); // Fetch sales data
-    fetchCrop(); // Fetch crop data
-    fetchStatus(); // Fetch status data
   }, [
     tableParams.pagination.current,
     tableParams.pagination.pageSize,
@@ -101,60 +109,162 @@ export default function SampleExpense() {
     JSON.stringify(tableParams.filters),
   ]);
 
+  const handleDelete = (document_number) => {
+    confirm({
+      title: "Do you want to delete this sample expense?",
+      icon: <ExclamationCircleFilled />,
+      onOk: async () => {
+        try {
+          setLoading(true);
+
+          const res = await useServiceAPI.put(
+            paths.pathSampleDelete,
+            {
+              document_number,
+              page_code: 'sample',
+            }
+          );
+
+          if (res.status === 200) {
+            showNotification("success", "ลบข้อมูลเรียบร้อยแล้ว");
+            fetchData();
+          } else {
+            showMsg("error", res.data.message || "ไม่สามารถลบข้อมูลได้");
+            console.error(res.data.message || "ไม่สามารถลบข้อมูลได้");
+          }
+        } catch (err) {
+          showMsg("error", err.message || "เกิดข้อผิดพลาดในการลบ");
+          console.error(err.message || "เกิดข้อผิดพลาดในการลบ");
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+  const formatNumberDisplay = (value, digits = 2) => {
+    const n = Number(value);
+    if (!Number.isFinite(n)) {
+      return Number(0).toLocaleString("en-US", {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits,
+      });
+    }
+
+    return n.toLocaleString("en-US", {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    });
+  };
+
+  const formatIntegerDisplay = (value) => {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return "0";
+    return n.toLocaleString("en-US", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+  };
 
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
 
-    // Prepare request data
     const requestData = {
       document_number: filters.document_number || "",
       document_date: filters.document_date || "",
-      use_flag: "1",  // Not displayed on filter
-      user_id: filters.sale || "",
-      dealer_id: filters.dealer || "",  // Include dealer_id
-      sub_dealer_id: filters.sub_dealer || "",  // Include sub_dealer_id if available
-      crop_id: filters.crop || "", // Add crop_id
-      status_transaction_code: filters.status_transaction_code || "", // Add status code
-      page: "all",  // Fixed page value
+      use_flag: "1",
+      // user_id: filters.sale || "",
+      created_by: filters.sale || "",
+      dealer_id: filters.dealer || "",
+      sub_dealer_id: filters.sub_dealer || "",
+      crop_id: filters.crop || "",
+      status_transaction_code: filters.status_transaction_code || "",
+      page: "all",
       page_length: current,
       page_size: pageSize,
     };
 
-    // If both dealer_id and sub_dealer_id exist, send them both in the body
     if (filters.dealer || filters.sub_dealer) {
       requestData.dealer_id = filters.dealer || "";
       requestData.sub_dealer_id = filters.sub_dealer || "";
     }
 
     try {
-      // Call the API for sample expenses (include dealer_id and sub_dealer_id in the request)
       const response = await useServiceAPI.get(paths.pathSampleExpenseList, requestData);
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
 
         const newDataSource = data.map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-          document_number: row.document_number,
-          document_datetime: row.document_datetime,
-          sub_dealer_name: row.sub_dealer_name,
-          dealer_name: row.dealer_name,
-          value: row.net_amount_display,
-          crop_name: row.crop_name,
+
+          document_number: row.document_number || "-",
+          document_type: row.document_type || "-",
+          document_datetime: row.document_datetime || "-",
+          document_date: row.document_date || "-",
+
+          user_id: row.user_id || "-",
+          user_name: row.user_name || "-",
+
+          area_id: row.area_id || "-",
+
+          dealer_id: row.dealer_id || "-",
+          dealer_name: row.dealer_name || "-",
+          sub_dealer_id: row.sub_dealer_id || "-",
+          sub_dealer_name: row.sub_dealer_name || "-",
+
+          crop_id: row.crop_id || "-",
+          crop_name: row.crop_name || "-",
+
+          quantity_product: formatNumberDisplay(row.quantity_product, 2),
+          quantity_product_foc: formatNumberDisplay(row.quantity_product_foc, 2),
+          quantity_other: formatNumberDisplay(row.quantity_other, 2),
+          line_product: formatIntegerDisplay(row.line_product),
+          line_other: formatIntegerDisplay(row.line_other),
+          net_amount_product: formatNumberDisplay(row.net_amount_product, 2),
+          net_amount_other: formatNumberDisplay(row.net_amount_other, 2),
+          net_amount: formatNumberDisplay(row.net_amount, 2),
+          net_amount_display: formatNumberDisplay(row.net_amount_display, 2),
+
+          ref_remark: row.ref_remark || "-",
+          use_flag: row.use_flag || "-",
+
+          created_at: row.created_at || "-",
+          created_by: row.created_by || "-",
+          updated_at: row.updated_at || "-",
+          updated_by: row.updated_by || "-",
+
+          status_name: row.status_name || "-",
+          status_transaction_name: row.status_transaction_name || "-",
+
+          status: (
+            <BadgeStatus
+              text={row.status_transaction_name || "-"}
+              bgColor={row.status_transaction_bg_color || "#d9d9d9"}
+              textColor={row.status_transaction_color || "#000000"}
+            />
+          ),
+
           action: (
             <Dropdown
               menu={{
-                items: row.action.map((actionItem, actionIndex) => ({
+                items: (row.action || []).map((actionItem, actionIndex) => ({
                   key: actionIndex,
                   label: (
                     <ItemDropDown
                       mode={actionItem.action.toLowerCase()}
-                      onClick={() =>
-                        navigate(`/expenses/sample/${actionItem.action.toLowerCase()}`, {
+                      onClick={() => {
+                        const action = actionItem.action.toLowerCase();
+
+                        if (action === "delete") {
+                          handleDelete(row.document_number);
+                          return;
+                        }
+
+                        navigate(`/expenses/sample/${action}`, {
                           state: { document_number: row.document_number },
-                        })
-                      }
+                        });
+                      }}
                     />
                   ),
                 })),
@@ -170,23 +280,16 @@ export default function SampleExpense() {
               </a>
             </Dropdown>
           ),
-          status: (
-            <BadgeStatus
-              text={row.status_transaction_name}
-              bgColor={row.status_transaction_bg_color}
-              textColor={row.status_transaction_color}
-            />
-          ),
         }));
 
         setDataSource(newDataSource);
-        setTableParams({
-          ...tableParams,
+        setTableParams((prev) => ({
+          ...prev,
           pagination: {
-            ...tableParams.pagination,
+            ...prev.pagination,
             total: records_filtered,
           },
-        });
+        }));
       }
     } catch (error) {
       console.error(error);
@@ -198,21 +301,26 @@ export default function SampleExpense() {
   const fetchStatusOptions = async () => {
     try {
       const response = await useServiceAPI.get(paths.pathSampleStatus);
-      if (response.status === 200 && response.data) {
-        const options = response.data.items.map((statusItem) => ({
-          value: statusItem.status_transaction_code,
-          label: statusItem.status_transaction_name,
+
+      if (response.status === 200 && Array.isArray(response.data)) {
+        const options = response.data.map((statusItem) => ({
+          id: statusItem.code,
+          name: statusItem.name,
         }));
+
         setStatusOptions(options);
+      } else {
+        setStatusOptions([]);
       }
     } catch (error) {
       console.error("Failed to fetch status options:", error);
+      setStatusOptions([]);
     }
   };
 
   const fetchSales = async () => {
     try {
-      const response = await useServiceAPI.get(paths.pathMasterSaleDropdown);
+      const response = await useServiceAPI.get(paths.pathMasterSaleTeam);
       if (response.status === 200) {
         setSaleList(response.data);
       }
@@ -221,9 +329,9 @@ export default function SampleExpense() {
     }
   };
 
-  const fetchDealers = async (saleId) => {
+  const fetchDealers = async () => {
     try {
-      const response = await useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: saleId });
+      const response = await useServiceAPI.get(paths.pathMasterDealerAllTeam);
       if (response.status === 200) {
         setDealerList(response.data);
       }
@@ -232,15 +340,15 @@ export default function SampleExpense() {
     }
   };
 
-  const fetchSubDealers = async (dealerId) => {
+  const fetchSubDealers = async () => {
     try {
-      const response = await useServiceAPI.get(paths.pathMasterSubDealerAll, { dealer_id: dealerId });
+      const response = await useServiceAPI.get(paths.pathMasterSubDealerAllTeam);
       if (response.status === 200) {
         const set_sub_dealer = response.data.map((item) => ({
-          name: item.sub_dealer_name,  // Use sub_dealer_name for label
-          id: item.sub_dealer_id,    // Use sub_dealer_id for value
+          id: item.sub_dealer_id,
+          name: item.sub_dealer_name,
         }));
-        setSubDealerList(set_sub_dealer);  // Now subDealerList will have the correct format
+        setSubDealerList(set_sub_dealer);
       }
     } catch (error) {
       console.error("Failed to fetch sub-dealers:", error);
@@ -253,64 +361,49 @@ export default function SampleExpense() {
       if (response.status === 200) {
         const options = response.data.map((crop) => ({
           id: crop.id,
-          name: crop.name, // Display name of the crop
+          name: crop.name,
         }));
-        setCropList(options); // Set crop options
+        setCropList(options);
       }
     } catch (error) {
       console.error("Failed to fetch crops:", error);
     }
   };
 
-  const fetchStatus = async () => {
-    try {
-      const response = await useServiceAPI.get(paths.pathSampleStatus);
-      if (response.status === 200) {
-        const options = response.data.map((status) => ({
-          id: status.code, // We will use the status code
-          name: status.name, // Display status name
-        }));
-        setStatusOptions(options); // Set status options
-      }
-    } catch (error) {
-      console.error("Failed to fetch status options:", error);
-    }
-  };
-
   const handleSearch = (filters) => {
-    setTableParams({
-      ...tableParams,
+    setTableParams((prev) => ({
+      ...prev,
       filters,
       pagination: {
+        ...prev.pagination,
         current: 1,
-        pageSize: 10,
       },
-    });
+    }));
   };
 
   const handleClear = () => {
-    setTableParams({
-      ...tableParams,
+    setTableParams((prev) => ({
+      ...prev,
       filters: {},
-    });
+      pagination: {
+        ...prev.pagination,
+        current: 1,
+      },
+    }));
   };
 
-  const handleFilterChange = (filter) => {
-    if (filter.sale) {
-      fetchDealers(filter.sale); // Fetch dealers when sale is selected
-    }
-    if (filter.dealer) {
-      fetchSubDealers(filter.dealer); // Fetch sub-dealers when dealer is selected
-    }
-  };
+  const handleFilterChange = () => { };
 
   const header = [
     { title: "Code", dataIndex: "document_number", align: "left" },
-    { title: "Date", dataIndex: "document_datetime", align: "left" },
-    { title: "Sub Dealer", dataIndex: "sub_dealer_name", align: "left" },
+    { title: "Date Time", dataIndex: "document_datetime", align: "left" },
+    { title: "Create By", dataIndex: "created_by", align: "left" },
     { title: "Dealer", dataIndex: "dealer_name", align: "left" },
-    { title: "Crop", dataIndex: "crop_name", align: "center" },
-    { title: "Value", dataIndex: "value", align: "right" },
+    { title: "Sub Dealer", dataIndex: "sub_dealer_name", align: "left" },
+    { title: "Crop", dataIndex: "crop_name", align: "left" },
+    { title: "Qty Product", dataIndex: "quantity_product", align: "right" },
+    { title: "Net Amount", dataIndex: "net_amount_product", align: "right" },
+    { title: "Remark", dataIndex: "ref_remark", align: "left" },
     { title: "Status", dataIndex: "status", align: "center" },
     { title: "Action", dataIndex: "action", align: "center" },
   ];

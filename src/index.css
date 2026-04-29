@@ -106,6 +106,9 @@
     border-top: 10px solid #00783f !important;
 }
 
+.ant-picker-range {
+  width: 100%;
+}
 /* ฟอนต์ Anuphan สำหรับข้อความภาษาไทย */
 *:lang(th) {
     font-family: "Anuphan", sans-serif !important;

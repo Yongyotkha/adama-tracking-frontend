@@ -1,4 +1,3 @@
-// src/pages/report/ReportSaleByQuarter.jsx
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
@@ -17,7 +16,6 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-// ---------- helpers ----------
 const normalize = (s) =>
   (s ?? "")
     .toString()
@@ -32,76 +30,30 @@ const toNum = (v) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-// ดึง year_code เป็น string เสมอ
 const getYearCodeFrom = (y) => {
   if (y == null) return "";
   if (typeof y === "string" || typeof y === "number") return String(y);
   return y.year_code ?? y.code ?? y.value ?? y.label ?? y.name ?? y.year ?? "";
 };
 
-// --------------------------------
-
 export default function ReportSaleByQuarter() {
-  const [loading, setLoading] = useState(false);
-  const [years, setYears] = useState([]); // [{ value, label }]
-  const [defaultYear, setDefaultYear] = useState(null);
+  const { showNotification } = useContext(AuthContext);
 
+  const [loading, setLoading] = useState(false);
+  const [years, setYears] = useState([]);
+  const [defaultYear, setDefaultYear] = useState(null);
   const [areaList, setAreaList] = useState([]);
   const [sales, setSales] = useState([]);
   const [dealers, setDealers] = useState([]);
   const [products, setProducts] = useState([]);
 
-  const [itemColumn, setItemColumn] = useState([]); // quarters
-  const [dataSource, setDataSource] = useState([]); // rows
+  const [itemColumn, setItemColumn] = useState([]);
+  const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
-  const { showNotification, userInfo } = useContext(AuthContext);
-  const [areaId, setAreaId] = useState();
-  const [roleId, setRoleId] = useState();
+
   const [formCustom] = Form.useForm();
   const watchedAreaId = Form.useWatch("area_id", formCustom);
   const watchedSaleId = Form.useWatch("sale_id", formCustom);
-
-  const isAdmin = Number(roleId) === 1;
-  useEffect(() => {
-    if (roleId == null || areaId == null) return;
-
-    if (Number(roleId) !== 1) {
-      formCustom.setFieldsValue({ area_id: areaId });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roleId, areaId]);
-  //load user detail to get area_id and role_id
-  useEffect(() => {
-    useServiceAPI
-      .get(`${paths.pathMasterUsersDetail}/${userInfo.id}`, {}, setLoading)
-      .then((response) => {
-        if (response.status === 200) {
-          const aId = response.data.area_id;
-          const rId = response.data.role_id;
-
-          setAreaId(aId);
-          setRoleId(rId);
-
-          // ✅ สำคัญมาก: set ลง form เพื่อ trigger โหลด sales
-          formCustom.setFieldsValue({ area_id: aId });
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-        if (error.status === 422) {
-          showNotification("error", error.message);
-        } else {
-          showNotification("error", "เกิดข้อผิดพลาด");
-        }
-      });
-
-    // ❗ แนะนำ: อย่าเรียก fetchData() ทันที เพราะมันใช้ค่าจากฟอร์มที่ยังไม่พร้อม
-    // fetchData();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-
 
   const [tableParams, setTableParams] = useState({
     pagination: { current: 1, pageSize: 10 },
@@ -110,7 +62,166 @@ export default function ReportSaleByQuarter() {
     sortField: null,
   });
 
-  // header
+  const loadSalesByArea = async (area_id) => {
+    if (!area_id) {
+      setSales([]);
+      return [];
+    }
+
+    try {
+      const res = await useServiceAPI.get(paths.pathMasterUserByArea, { area_id });
+      const raw = res?.data?.data ?? res?.data ?? [];
+      const list = Array.isArray(raw) ? raw : [];
+
+      const options = list.map((it) => ({
+        value: String(it.user_id ?? it.id),
+        label: it.user_name ?? it.name,
+      }));
+
+      setSales(options);
+      return options;
+    } catch (e) {
+      console.log(e);
+      setSales([]);
+      showNotification?.("error", "โหลด Sales ไม่สำเร็จ");
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const [yearsRes, productsRes, areasRes] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterYear),
+          useServiceAPI.get(paths.pathReportProducts),
+          useServiceAPI.get(paths.pathMasterAreas),
+        ]);
+
+        const yearRaw = Array.isArray(yearsRes?.data) ? yearsRes.data : [];
+        const yearOptions = yearRaw.map((y) => {
+          const yc = getYearCodeFrom(y);
+          return { value: yc, label: yc };
+        });
+        setYears(yearOptions);
+
+        setProducts(
+          (productsRes?.data || []).map((x) => ({
+            value: x.product_name,
+            label: x.product_name,
+          }))
+        );
+
+        const areaOpts = (areasRes?.data || []).map((x) => ({
+          value: String(x.id),
+          label: x.name,
+        }));
+        setAreaList(areaOpts);
+
+        const currentYear = dayjs().tz("Asia/Bangkok").format("YYYY");
+        const matched =
+          yearOptions.find((y) => getYearCodeFrom(y) === currentYear) ||
+          yearOptions[0];
+
+        const initialYear = getYearCodeFrom(matched) || currentYear;
+
+        setDefaultYear(initialYear);
+        formCustom.setFieldsValue({
+          area_id: undefined,
+          sale_id: undefined,
+          dealer_id: undefined,
+          year_code: initialYear,
+        });
+
+        await fetchData({
+          year_code: initialYear,
+          user_id: "",
+          dealer_id: "",
+          product_name: "",
+          platform: "web",
+        });
+      } catch (error) {
+        showNotification?.("error", error?.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMaster();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+
+    const run = async () => {
+      if (!watchedAreaId) {
+        setSales([]);
+        setDealers([]);
+        formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
+        return;
+      }
+
+      const salesOpts = await loadSalesByArea(watchedAreaId);
+      if (!alive) return;
+
+      setDealers([]);
+      formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
+
+      if (!salesOpts || salesOpts.length === 0) {
+        setSales([]);
+      }
+    };
+
+    run().catch(() => {
+      if (!alive) return;
+      setSales([]);
+      setDealers([]);
+      formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
+    });
+
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedAreaId]);
+
+  useEffect(() => {
+    let alive = true;
+
+    const loadDealers = async () => {
+      if (!watchedSaleId) {
+        setDealers([]);
+        formCustom.setFieldsValue({ dealer_id: undefined });
+        return;
+      }
+
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
+          user_id: watchedSaleId,
+        });
+
+        const raw = res?.data?.data ?? res?.data ?? [];
+        const list = Array.isArray(raw) ? raw : [];
+
+        if (!alive) return;
+        setDealers(list.map((it) => ({ value: Number(it.id), label: it.name })));
+        formCustom.setFieldsValue({ dealer_id: undefined });
+      } catch (e) {
+        console.log(e);
+        if (!alive) return;
+        setDealers([]);
+        formCustom.setFieldsValue({ dealer_id: undefined });
+      }
+    };
+
+    loadDealers();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedSaleId]);
+
   const header = [
     {
       title: "Quarter",
@@ -142,7 +253,7 @@ export default function ReportSaleByQuarter() {
     },
     ...itemColumn.map((q, index) => ({
       title: q.name,
-      key: index,
+      key: `q_${index}`,
       onHeaderCell: () => ({
         style: {
           backgroundColor: index % 2 === 1 ? "#00783F" : "#009845",
@@ -173,16 +284,9 @@ export default function ReportSaleByQuarter() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.workplan_qty))
-                    ? Number(itemData.workplan_qty)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.workplan_qty)) ? Number(itemData.workplan_qty) : 0}
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
                 disabled
               />
@@ -210,16 +314,9 @@ export default function ReportSaleByQuarter() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.rolling_qty))
-                    ? Number(itemData.rolling_qty)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.rolling_qty)) ? Number(itemData.rolling_qty) : 0}
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
                 disabled
               />
@@ -247,16 +344,9 @@ export default function ReportSaleByQuarter() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.actual_qty))
-                    ? Number(itemData.actual_qty)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.actual_qty)) ? Number(itemData.actual_qty) : 0}
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
                 disabled
               />
@@ -284,16 +374,9 @@ export default function ReportSaleByQuarter() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.workplan_value))
-                    ? Number(itemData.workplan_value)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.workplan_value)) ? Number(itemData.workplan_value) : 0}
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
                 disabled
               />
@@ -321,16 +404,9 @@ export default function ReportSaleByQuarter() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.rolling_value))
-                    ? Number(itemData.rolling_value)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.rolling_value)) ? Number(itemData.rolling_value) : 0}
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
                 disabled
               />
@@ -358,16 +434,9 @@ export default function ReportSaleByQuarter() {
               <InputNumber
                 className="w-full"
                 min={0}
-                value={
-                  Number.isFinite(Number(itemData.actual_value))
-                    ? Number(itemData.actual_value)
-                    : 0
-                }
+                value={Number.isFinite(Number(itemData.actual_value)) ? Number(itemData.actual_value) : 0}
                 formatter={(value) =>
-                  `${parseInt(value || 0, 10)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
                 disabled
               />
@@ -378,18 +447,12 @@ export default function ReportSaleByQuarter() {
     })),
   ];
 
-  // รวม footer “เฉพาะแถวที่แสดงจริง”
   const calculateFooterSums = () => {
     const rows = Array.isArray(dataSource) ? dataSource : [];
 
     return itemColumn.map((q) => {
-      const list = Array.isArray(q?.workplan_data_items)
-        ? q.workplan_data_items
-        : [];
-
-      const byProduct = new Map(
-        list.map((p) => [normalize(p.product_name), p])
-      );
+      const list = Array.isArray(q?.workplan_data_items) ? q.workplan_data_items : [];
+      const byProduct = new Map(list.map((p) => [normalize(p.product_name), p]));
 
       const sumField = (field) =>
         rows.reduce((acc, row) => {
@@ -409,144 +472,6 @@ export default function ReportSaleByQuarter() {
     });
   };
 
-  // ---------- init masters ----------
-  useEffect(() => {
-    const getMaster = async () => {
-      setLoading(true);
-      try {
-        const [yearsRes, productsRes, areasRes] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterYear),
-          useServiceAPI.get(paths.pathReportProducts),
-          useServiceAPI.get(paths.pathMasterAreas),
-        ]);
-
-        // map Year → options
-        const yearRaw = Array.isArray(yearsRes?.data) ? yearsRes.data : [];
-        const yearOptions = yearRaw.map((y) => {
-          const yc = getYearCodeFrom(y);
-          return { value: yc, label: yc };
-        });
-        setYears(yearOptions);
-
-        setProducts(
-          (productsRes.data || []).map((x) => ({
-            value: x.product_name,
-            label: x.product_name,
-          }))
-        );
-        setAreaList(
-          (areasRes.data || []).map((x) => ({ value: String(x.id), label: x.name }))
-        );
-
-        // default = current year from master (fallback เป็น option แรก)
-        if (yearOptions.length > 0) {
-          const currentYear = dayjs().tz("Asia/Bangkok").format("YYYY");
-
-          const matched =
-            yearOptions.find((y) => getYearCodeFrom(y) === currentYear) ||
-            yearOptions[0];
-
-          const initialYear = getYearCodeFrom(matched);
-
-          setDefaultYear(initialYear);
-          formCustom.setFieldsValue({ year_code: initialYear });
-
-          // initial fetch
-          await fetchData({
-            area_id: "",                // ✅ เพิ่ม
-            year_code: initialYear,
-            user_id: "",
-            dealer_id: "",
-            product_name: "",
-            platform: "web",
-          });
-        }
-
-      } catch (error) {
-        showNotification("error", error.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
-    getMaster();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // เปลี่ยน Area → โหลด Sales
-  useEffect(() => {
-    if (!watchedAreaId) {
-      setSales([]);
-      formCustom.resetFields(["sale_id", "dealer_id"]);
-      setDealers([]);
-      return;
-    }
-
-    (async () => {
-      try {
-        const res = await useServiceAPI.get(paths.pathMasterSaleReport, {
-          area_id: watchedAreaId,
-        });
-        const list = Array.isArray(res?.data) ? res.data : [];
-        setSales(list.map((it) => ({ value: Number(it.id), label: it.name })));
-
-        formCustom.resetFields(["sale_id", "dealer_id"]);
-        setDealers([]);
-      } catch {
-        setSales([]);
-        setDealers([]);
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedAreaId]);
-
-
-  // เปลี่ยน Sale → โหลด Dealers
-  useEffect(() => {
-    if (!watchedSaleId) {
-      setDealers([]);
-      formCustom.resetFields(["dealer_id"]);
-      return;
-    }
-
-    (async () => {
-      try {
-        const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
-          user_id: watchedSaleId,
-        });
-        const list = Array.isArray(res?.data) ? res.data : [];
-        setDealers(list.map((it) => ({ value: Number(it.id), label: it.name })));
-
-        formCustom.resetFields(["dealer_id"]);
-      } catch {
-        setDealers([]);
-        formCustom.resetFields(["dealer_id"]);
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedSaleId]);
-
-
-  // ❌ ไม่ auto-fetch ตาม year อีกต่อไป → ใช้เฉพาะ Search / Clear
-
-  const handleSearch = async () => {
-    const values = await formCustom.validateFields().catch(() => ({}));
-    const yearFromForm =
-      getYearCodeFrom(values?.year_code) ||
-      defaultYear ||
-      dayjs().tz("Asia/Bangkok").format("YYYY");
-
-    const payload = {
-      area_id: values?.area_id ?? "",     // ✅ เพิ่ม
-      year_code: yearFromForm,
-      user_id: values?.sale_id ?? "",
-      dealer_id: values?.dealer_id ?? "",
-      product_name: values?.product_name ?? "",
-      platform: "web",
-    };
-
-    await fetchData(payload);
-  };
-
   const fetchData = async (payloadFromCaller) => {
     setTableLoading(true);
     try {
@@ -557,13 +482,14 @@ export default function ReportSaleByQuarter() {
         dayjs().tz("Asia/Bangkok").format("YYYY");
 
       const fallbackPayload = {
-        area_id: values?.area_id ?? "",     // ✅ เพิ่ม
         year_code: yearFromForm,
         user_id: values?.sale_id ?? "",
         dealer_id: values?.dealer_id ?? "",
         product_name: values?.product_name ?? "",
         platform: "web",
+        ...(values?.area_id ? { area_id: values.area_id } : {}),
       };
+
       const payload = payloadFromCaller || fallbackPayload;
 
       const response = await useServiceAPI.get(
@@ -575,275 +501,229 @@ export default function ReportSaleByQuarter() {
         const root = response?.data?.data ?? response?.data ?? {};
         const { data_items = [], items = [] } = root;
 
-        const rows = data_items.map((row, index) => ({
+        const rows = (data_items || []).map((row, index) => ({
           key: index + 1,
           productName: row.product_name,
           packSize: row.pack_size,
           productId: row.product_id,
         }));
 
-        setItemColumn(items);
+        setItemColumn(items || []);
         setDataSource(rows);
       }
     } catch (error) {
       console.error(error);
+      setItemColumn([]);
+      setDataSource([]);
     } finally {
       setTableLoading(false);
     }
   };
 
-  const handleTableChange = (pagination) => {
-    setTableParams((prev) => ({
-      ...prev,
-      pagination,
-    }));
+  const handleSearch = async () => {
+    const values = await formCustom.validateFields().catch(() => ({}));
+    const yearFromForm =
+      getYearCodeFrom(values?.year_code) ||
+      defaultYear ||
+      dayjs().tz("Asia/Bangkok").format("YYYY");
+
+    const payload = {
+      year_code: yearFromForm,
+      user_id: values?.sale_id ?? "",
+      dealer_id: values?.dealer_id ?? "",
+      product_name: values?.product_name ?? "",
+      platform: "web",
+      ...(values?.area_id ? { area_id: values.area_id } : {}),
+    };
+
+    await fetchData(payload);
   };
 
+  const handleTableChange = (pagination) => {
+    setTableParams((prev) => ({ ...prev, pagination }));
+  };
 
   return (
-    <>
-      <MainLayout loading={loading} childrenStyle={""}>
-        <Title prefix="Sales Report By Quarter" />
+    <MainLayout loading={loading} childrenStyle={""}>
+      <Title prefix="Sales Report By Quarter" />
 
-        <Form form={formCustom} layout="vertical">
-          <BoxPrimary className="m-1 mb-4">
-            <Row gutter={16} align="middle">
-              <Col md={6}>
-                <Form.Item label="Area" name="area_id">
-                  <Select
-                    placeholder="Select Area"
-                    options={areaList}
-                    disabled={Number(roleId) !== 1}
-                    allowClear={Number(roleId) === 1}
-                    onChange={() => {
-                      formCustom.resetFields(["sale_id", "dealer_id"]);
-                      setSales([]);
-                      setDealers([]);
-                    }}
-                  />
-
-                </Form.Item>
-              </Col>
-
-              <Col md={6}>
-                <Form.Item label="Sales" name="sale_id">
-                  <Select
-                    placeholder="Select Sale"
-                    options={sales}
-                    disabled={!formCustom.getFieldValue("area_id")}
-                    onChange={() => {
-                      formCustom.resetFields(["dealer_id"]);
-                      setDealers([]);
-                    }}
-                    allowClear
-                  />
-                </Form.Item>
-              </Col>
-
-              <Col md={6}>
-                <Form.Item label="Dealers" name="dealer_id">
-                  <Select
-                    placeholder="Select Dealers"
-                    options={dealers}
-                    disabled={!formCustom.getFieldValue("sale_id")}
-                    allowClear
-                  />
-                </Form.Item>
-              </Col>
-
-              {/* Year filter จาก master year (ไม่มี onChange → ใช้ตอน Search/Clear เท่านั้น) */}
-              <Col md={6}>
-                <Form.Item label="Year" name="year_code">
-                  <Select
-                    placeholder="Select Year"
-                    options={years}
-                    allowClear={false}
-                  />
-                </Form.Item>
-              </Col>
-
-              {/* ซ่อน product name ถ้าต้องการใช้เป็น filter เพิ่ม */}
-              <Form.Item name="product_name" hidden>
-                <Select options={products} />
+      <Form form={formCustom} layout="vertical">
+        <BoxPrimary className="m-1 mb-4">
+          <Row gutter={16} align="middle">
+            <Col md={6}>
+              <Form.Item label="Area" name="area_id">
+                <Select
+                  placeholder="Select Area"
+                  options={areaList}
+                  allowClear
+                  onChange={async (value) => {
+                    formCustom.setFieldsValue({ sale_id: undefined, dealer_id: undefined });
+                    setSales([]);
+                    setDealers([]);
+                    if (value) await loadSalesByArea(value);
+                  }}
+                />
               </Form.Item>
-            </Row>
+            </Col>
 
-            <div className="flex justify-end gap-4 px-4 pt-5">
-              <DynamicButton
-                onClick={handleSearch}
-                name="btn-search"
-                text="Search"
-                iconSrc="/img/icons/search.png"
-                className="text-white px-4 py-3 rounded-[4px] bg-[#7DB41E]"
-              />
-              <DynamicButton
-                onClick={async () => {
-                  formCustom.resetFields(["product_name", "dealer_id", "year_code"]);
+            <Col md={6}>
+              <Form.Item label="Sales" name="sale_id">
+                <Select
+                  placeholder="Select Sale"
+                  options={sales}
+                  disabled={!watchedAreaId}
+                  allowClear
+                  onChange={() => {
+                    formCustom.setFieldsValue({ dealer_id: undefined });
+                    setDealers([]);
+                  }}
+                />
+              </Form.Item>
+            </Col>
 
-                  // ✅ อย่าล้าง sales ไม่งั้น dropdown ว่าง
-                  // setSales([]);
-                  setDealers([]); // dealer ต้องล้าง เพราะขึ้นกับ sale
+            <Col md={6}>
+              <Form.Item label="Dealers" name="dealer_id">
+                <Select
+                  placeholder="Select Dealers"
+                  options={dealers}
+                  disabled={!watchedSaleId}
+                  allowClear
+                />
+              </Form.Item>
+            </Col>
 
-                  const yearToUse = defaultYear || dayjs().tz("Asia/Bangkok").format("YYYY");
-                  if (yearToUse) formCustom.setFieldsValue({ year_code: yearToUse });
+            <Col md={6}>
+              <Form.Item label="Year" name="year_code">
+                <Select placeholder="Select Year" options={years} allowClear={false} />
+              </Form.Item>
+            </Col>
 
-                  setTableParams((prev) => ({
-                    ...prev,
-                    pagination: { ...prev.pagination, current: 1 },
-                  }));
+            <Form.Item name="product_name" hidden>
+              <Select options={products} />
+            </Form.Item>
+          </Row>
 
-                  await fetchData({
-                    year_code: yearToUse,
-                    user_id: "",
-                    dealer_id: "",
-                    product_name: "",
-                    platform: "web",
-                  });
-                }}
+          <div className="flex justify-end gap-4 px-4 pt-5">
+            <DynamicButton
+              onClick={handleSearch}
+              name="btn-search"
+              text="Search"
+              iconSrc="/img/icons/search.png"
+              className="text-white px-4 py-3 rounded-[4px] bg-[#7DB41E]"
+            />
 
-                name="btn-clear"
-                text="Clear"
-                iconSrc="/img/icons/trash.png"
-                className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
-              />
+            <DynamicButton
+              onClick={async () => {
+                const yearToUse =
+                  defaultYear || dayjs().tz("Asia/Bangkok").format("YYYY");
 
-              <ExportPeriodExcelButton
-                text="Export Excel"
-                leftTopTitle="Quarter"
-                fileName={`Sales_Report_By_Quarter`}
-                getPayload={async () => {
-                  const values = await formCustom
-                    .validateFields()
-                    .catch(() => ({}));
-                  const yearFromForm =
-                    getYearCodeFrom(values?.year_code) ||
-                    defaultYear ||
-                    dayjs().tz("Asia/Bangkok").format("YYYY");
-                  return {
-                    area_id: values?.area_id ?? "",
-                    year_code: yearFromForm,
-                    user_id: values?.sale_id ?? "",
-                    dealer_id: values?.dealer_id ?? "",
-                    product_name: values?.product_name ?? "",
-                    platform: "web",
-                  };
-                }}
-                requestData={(payload) =>
-                  useServiceAPI.get(
-                    paths.pathReportRollingWorkPlanQuarter,
-                    payload
-                  )
-                }
-              />
-            </div>
-          </BoxPrimary>
-        </Form>
+                formCustom.setFieldsValue({
+                  area_id: undefined,
+                  sale_id: undefined,
+                  dealer_id: undefined,
+                  product_name: undefined,
+                  year_code: yearToUse,
+                });
 
-        <BoxPrimary>
-          <TableCustomComponent
-            header={header}
-            dataSource={dataSource}
-            pagination={false}
-            loading={tableLoading}
-            onChange={handleTableChange}
-            scrollY={true}
-            footer={() => {
-              const footerData = calculateFooterSums();
-              return (
-                <Table.Summary fixed>
-                  <Table.Summary.Row className="bg-[#978B87]">
-                    <Table.Summary.Cell index={0}>
-                      Total (THB)
-                    </Table.Summary.Cell>
-                    {footerData.map((q, index) => (
-                      <React.Fragment key={`${q.id}_${index}`}>
-                        <Table.Summary.Cell align="center">
-                          <InputNumber
-                            className="w-full"
-                            readOnly
-                            value={q.workplan_qty}
-                            formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                          />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell align="center">
-                          <InputNumber
-                            className="w-full"
-                            readOnly
-                            value={q.rolling_qty}
-                            formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                          />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell align="center">
-                          <InputNumber
-                            className="w-full"
-                            readOnly
-                            value={q.actual_qty}
-                            formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                          />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell align="center">
-                          <InputNumber
-                            className="w-full"
-                            readOnly
-                            value={q.workplan_value}
-                            formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                          />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell align="center">
-                          <InputNumber
-                            className="w-full"
-                            readOnly
-                            value={q.rolling_value}
-                            formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                          />
-                        </Table.Summary.Cell>
-                        <Table.Summary.Cell align="center">
-                          <InputNumber
-                            className="w-full"
-                            readOnly
-                            value={q.actual_value}
-                            formatter={(value) =>
-                              `${parseInt(value || 0, 10)}`.replace(
-                                /\B(?=(\d{3})+(?!\d))/g,
-                                ","
-                              )
-                            }
-                          />
-                        </Table.Summary.Cell>
-                      </React.Fragment>
-                    ))}
-                  </Table.Summary.Row>
-                </Table.Summary>
-              );
-            }}
-          />
+                setSales([]);
+                setDealers([]);
+
+                setTableParams((prev) => ({
+                  ...prev,
+                  pagination: { ...prev.pagination, current: 1 },
+                }));
+
+                await fetchData({
+                  year_code: yearToUse,
+                  user_id: "",
+                  dealer_id: "",
+                  product_name: "",
+                  platform: "web",
+                });
+              }}
+              name="btn-clear"
+              text="Clear"
+              iconSrc="/img/icons/trash.png"
+              className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]"
+            />
+
+            <ExportPeriodExcelButton
+              text="Export Excel"
+              leftTopTitle="Quarter"
+              fileName={`Sales_Report_By_Quarter_${
+                getYearCodeFrom(formCustom.getFieldValue("year_code")) ||
+                defaultYear ||
+                dayjs().tz("Asia/Bangkok").format("YYYY")
+              }_${dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD_HHmm")}`}
+              getPayload={async () => {
+                const values = await formCustom.validateFields().catch(() => ({}));
+                const yearFromForm =
+                  getYearCodeFrom(values?.year_code) ||
+                  defaultYear ||
+                  dayjs().tz("Asia/Bangkok").format("YYYY");
+
+                const payload = {
+                  year_code: yearFromForm,
+                  user_id: values?.sale_id ?? "",
+                  dealer_id: values?.dealer_id ?? "",
+                  product_name: values?.product_name ?? "",
+                  platform: "web",
+                };
+
+                if (values?.area_id) payload.area_id = values.area_id;
+
+                return payload;
+              }}
+              requestData={(payload) =>
+                useServiceAPI.get(paths.pathReportRollingWorkPlanQuarter, payload)
+              }
+            />
+          </div>
         </BoxPrimary>
-      </MainLayout>
-    </>
+      </Form>
+
+      <BoxPrimary>
+        <TableCustomComponent
+          header={header}
+          dataSource={dataSource}
+          pagination={false}
+          loading={tableLoading}
+          onChange={handleTableChange}
+          scrollY={true}
+          footer={() => {
+            const footerData = calculateFooterSums();
+            return (
+              <Table.Summary fixed>
+                <Table.Summary.Row className="bg-[#978B87]">
+                  <Table.Summary.Cell index={0}>Total (THB)</Table.Summary.Cell>
+                  {footerData.map((q, index) => (
+                    <React.Fragment key={`${q.id}_${index}`}>
+                      <Table.Summary.Cell align="center">
+                        <InputNumber className="w-full" readOnly value={q.workplan_qty} formatter={(value) => `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} />
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell align="center">
+                        <InputNumber className="w-full" readOnly value={q.rolling_qty} formatter={(value) => `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} />
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell align="center">
+                        <InputNumber className="w-full" readOnly value={q.actual_qty} formatter={(value) => `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} />
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell align="center">
+                        <InputNumber className="w-full" readOnly value={q.workplan_value} formatter={(value) => `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} />
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell align="center">
+                        <InputNumber className="w-full" readOnly value={q.rolling_value} formatter={(value) => `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} />
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell align="center">
+                        <InputNumber className="w-full" readOnly value={q.actual_value} formatter={(value) => `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} />
+                      </Table.Summary.Cell>
+                    </React.Fragment>
+                  ))}
+                </Table.Summary.Row>
+              </Table.Summary>
+            );
+          }}
+        />
+      </BoxPrimary>
+    </MainLayout>
   );
 }

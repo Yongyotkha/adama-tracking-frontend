@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import MainLayout from "../../../layouts/MainLayout";
-import FormCustom from "../../../components/form_custom/FormCustom";
 import { useNavigate, useLocation } from "react-router-dom";
 import ActionButton from "../../../components/button/ActionButton";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
@@ -10,69 +9,65 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import formatNumber from "../../../utils/number";
 import { AuthContext } from "../../../contexts/AuthContext";
 import FileUploadComponent from "../../../components/file_upload/FileUploadComponent";
 import FormUser from "../../../components/form_user/FormUser";
+
 dayjs.extend(customParseFormat);
 
 export default function CustomerStockEdit() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { showMsg, showNotification } = useContext(AuthContext);
+  const { showMsg } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
 
-  const [dealers, setDalers] = useState([]);
   const [searchProductData, setSearchProductData] = useState([]);
   const [formCustom] = Form.useForm();
   const [fileList, setFileList] = useState([]);
-  const fileUploadRef = useRef(null); // Reference for FileUploadComponent
+  const fileUploadRef = useRef(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [documentNumber] = useState(location.state.document_number);
 
-  const [documentNumber, setDocumentNumber] = useState(
-    location.state.document_number
-  );
-
-  const [dataDetail, setDataDetail] = useState([]);
-  const [getUserId, setGetUserId] = useState("");
-  const [getDealerId, setGetDealerId] = useState("");
+  const [dataDetail, setDataDetail] = useState({});
   const [inputRemark, setInputRemark] = useState("");
   const [dataSource, setDataSource] = useState([]);
   const [dataSourceOther, setDataSourceOther] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
 
-  // useEffect(() => {
-  //   const total = dataSource.reduce(
-  //     (sum, item) => sum + parseFloat(item.net_amount || 0),
-  //     0
-  //   );
-  //   console.log(total);
-  //   setTotalValue(total);
-  // }, [dataSource]);
+  // ✅ ปัดลงเป็น int ทุกกรณี (string / ",")
+  const toIntFloor = (val) => {
+    const n = Number(String(val ?? "0").replace(/,/g, ""));
+    return Number.isFinite(n) ? Math.floor(n) : 0;
+  };
 
-  function formatNumber(value) {
-    if (!value) return "0";
-    return parseFloat(value).toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  }
-
+  // ✅ Total Value (Edit) = SUM(unit_convert_order_value * quantity) (ปัดลงแบบ int)
   useEffect(() => {
-    console.log("user effect : ", documentNumber);
-    const loadDataStockDetail = async () => {
-      console.log("---------loadDataStockDetail------------");
-      setLoading(true);
+    const total = dataSource.reduce((sum, item) => {
+      const unitValue = toIntFloor(item.unit_convert_order_value);
+      const qty = toIntFloor(item.quantity);
+      return sum + unitValue * qty;
+    }, 0);
 
+    setTotalValue(total); // int ชัวร์
+  }, [dataSource]);
+
+  const getFileNameWithExtension = (url) => {
+    const parts = String(url || "").split("/");
+    return parts.pop();
+  };
+
+  // ✅ โหลดรายละเอียดเอกสาร + map ให้พร้อมสูตรใหม่ (เหมือน Create)
+  useEffect(() => {
+    const loadDataStockDetail = async () => {
+      setLoading(true);
       try {
-        console.log("try");
-        const [stockDetail] = await Promise.all([
-          useServiceAPI.get(paths.pathStockDetail, {
-            document_number: documentNumber,
-          }),
-        ]);
-        console.log("try : ", stockDetail);
-        let imageList = [];
-        stockDetail.data.file_image_list.forEach((element, key) => {
+        const stockDetail = await useServiceAPI.get(paths.pathStockDetail, {
+          document_number: documentNumber,
+        });
+
+        // file list
+        const imageList = [];
+        (stockDetail.data.file_image_list || []).forEach((element, key) => {
           imageList.push({
             uid: key,
             name: getFileNameWithExtension(element),
@@ -80,109 +75,65 @@ export default function CustomerStockEdit() {
             url: element,
           });
         });
-
         setFileList(imageList);
 
-        setDataDetail(stockDetail.data);
-        setGetUserId(stockDetail.data.user_id);
-        setGetDealerId(stockDetail.data.dealer_id);
-        setInputRemark(stockDetail.data.ref_remark);
+        setDataDetail(stockDetail.data || {});
+        setInputRemark(stockDetail.data?.ref_remark || "");
 
-        // function mergeNewProducts(prev, newProducts) {
+        // ✅ IMPORTANT: ถึง API จะส่ง net_amount เดิมมา แต่เรา "ไม่ใช้"
+        // เราจะใช้ unit_convert_order_value เป็นตัวคำนวณจริงเสมอ
+        const mappedProducts = (stockDetail.data.products || []).map(
+          (item, index) => {
+            const qty = toIntFloor(item.quantity);
 
-        //   const filteredProducts = newProducts.filter(
-        //     (newItem) => !prev.some((prevItem) => prevItem.product_code === newItem.product_code)
-        //   );
+            const unitConvert = toIntFloor(item.unit_convert_order_value);
+            // fallback กันพัง ถ้าบางตัวไม่มี unit_convert_order_value
+            const fallbackUnit = toIntFloor(item.product_unit_thb);
+            const unitValue = unitConvert > 0 ? unitConvert : fallbackUnit;
 
-        //   return [
-        //     ...prev,
-        //     ...filteredProducts.map((item, index) => ({
-        //       ...item,
-        //       no: prev.length + index + 1,
-        //       key: prev.length + index + 1,
-        //       quantity: parseInt(item.quantity),
-        //     })),
-        //   ];
-        // }
+            const minFoc = Number(item.product_campaign_order_min_foc || 0);
+            const foc = minFoc > 0 ? parseInt(qty / minFoc, 10) : 0;
 
-        // setDataSource((prev) => mergeNewProducts(prev, stockDetail.data.products));
-
-        // console.log('dataSource : ',dataSource)
-
-        setDataSource((prev) => {
-          const newProducts = stockDetail.data.products.filter(
-            (newItem) =>
-              !prev.some(
-                (prevItem) => prevItem.product_code === newItem.product_code
-              )
-          );
-
-          return [
-            ...prev,
-            ...newProducts.map((item, index) => ({
+            return {
               ...item,
-              no: prev.length + index + 1,
-              key: prev.length + index + 1,
-              quantity: parseInt(item.quantity),
-            })),
-          ];
-        });
+              key: index + 1,
+              no: index + 1,
+              quantity: qty,
+              foc,
 
-        setDataSourceOther((prev) => {
-          const newOthers = stockDetail.data.others.filter(
-            (newItem) =>
-              !prev.some(
-                (prevItem) => prevItem.product_code === newItem.product_code
-              )
-          );
+              // ✅ เก็บราคาอ้างอิงไว้
+              product_unit_thb: toIntFloor(item.product_unit_thb),
 
-          return [
-            ...prev,
-            ...newOthers.map((item, index) => ({
-              ...item,
-              no: prev.length + index + 1,
-              key: prev.length + index + 1,
-              product_unit: item.product_unit,
-              quantity: parseInt(item.quantity),
-            })),
-          ];
-        });
-        console.log("stockDetail.data.net_amount_display : ", stockDetail.data.net_amount_display);
-        setTotalValue(stockDetail.data.net_amount_display);
+              // ✅ เก็บ unit_convert_order_value เป็น "unit price" ที่ใช้คำนวณจริง
+              unit_convert_order_value: unitValue,
+
+              // ❌ ไม่ต้องพึ่ง net_amount เดิมจาก API
+              // net_amount จะคำนวณตอนส่ง PUT เสมอ
+            };
+          },
+        );
+
+        setDataSource(mappedProducts);
+
+        // others
+        const mappedOthers = (stockDetail.data.others || []).map(
+          (item, index) => ({
+            ...item,
+            key: index + 1,
+            no: index + 1,
+            quantity: toIntFloor(item.quantity),
+          }),
+        );
+        setDataSourceOther(mappedOthers);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
         setLoading(false);
       }
-      console.log("------exit loadDataStockDetail------------");
     };
 
     loadDataStockDetail();
-  }, []);
-
-  useEffect(() => {
-    const getMaster = async () => {
-      setLoading(true);
-      try {
-        const [dealer] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterDealerAll),
-        ]);
-
-        setDalers(dealer.data);
-      } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getMaster();
-  }, []);
-
-  const getFileNameWithExtension = (url) => {
-    const parts = url.split("/");
-    return parts.pop(); // Get the last part of the URL
-  };
+  }, [documentNumber, showMsg]);
 
   const handleUploadClick = async () => {
     if (fileUploadRef.current) {
@@ -198,8 +149,22 @@ export default function CustomerStockEdit() {
       status: "done",
       url: data.file_url,
     };
+    setFileList((prev) => [...prev, fileUpload]);
+  };
 
-    setFileList((prevFileList) => [...prevFileList, fileUpload]);
+  // ✅ เปลี่ยน QTY: ปรับ qty + foc (ไม่ต้องแตะ net_amount เพราะเราส่งคำนวณใหม่ตอน PUT)
+  const handleQuantityChange = (key, newQuantity) => {
+    setDataSource((prev) =>
+      prev.map((item) => {
+        if (item.key !== key) return item;
+
+        const qty = Math.max(0, toIntFloor(newQuantity));
+        const minFoc = Number(item.product_campaign_order_min_foc || 0);
+        const foc = minFoc > 0 ? parseInt(qty / minFoc, 10) : 0;
+
+        return { ...item, quantity: qty, foc };
+      }),
+    );
   };
 
   const formFiieldData = [
@@ -228,29 +193,6 @@ export default function CustomerStockEdit() {
       value: dataDetail.document_date,
     },
   ];
-  // console.log("dataDetail : ", dataDetail);
-  // console.log("formFiieldData : ", formFiieldData);
-  // console.log('------------------------------------------')
-
-  const handleChange = (filter, value) => {
-    console.log("filter", filter, "value", value);
-  };
-
-  const handleQuantityChange = (key, newQuantity) => {
-    setDataSource((prevData) =>
-      prevData.map((item) => {
-        if (item.key === key) {
-          const quantity = Math.max(0, newQuantity); // Prevent negative quantities
-          const net_amount = (
-            quantity * parseFloat(item.product_unit_thb.replace(/,/g, ""))
-          ).toFixed(2); // Calculate new net_amount
-          const foc = parseInt(quantity / item.product_campaign_order_min_foc);
-          return { ...item, quantity, net_amount, foc };
-        }
-        return item;
-      })
-    );
-  };
 
   const header = [
     { title: "No", dataIndex: "no", key: "no" },
@@ -276,7 +218,10 @@ export default function CustomerStockEdit() {
             min={0}
             value={record.quantity}
             onChange={(e) =>
-              handleQuantityChange(record.key, parseInt(e.target.value) || 0)
+              handleQuantityChange(
+                record.key,
+                parseInt(e.target.value, 10) || 0,
+              )
             }
             className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
           />
@@ -301,18 +246,13 @@ export default function CustomerStockEdit() {
             alt="delete"
             className="cursor-pointer w-6 h-6"
             onClick={() => {
-              const updatedDataSource = dataSource.filter(
-                (item) => item.key !== record.key
-              );
-
-              // Reset keys and no after deletion
-              const resetDataSource = updatedDataSource.map((item, index) => ({
-                ...item,
-                key: index + 1,
-                no: index + 1,
+              const updated = dataSource.filter((x) => x.key !== record.key);
+              const reset = updated.map((x, idx) => ({
+                ...x,
+                key: idx + 1,
+                no: idx + 1,
               }));
-
-              setDataSource(resetDataSource);
+              setDataSource(reset);
             }}
           />
         </button>
@@ -322,8 +262,8 @@ export default function CustomerStockEdit() {
 
   const footerOrderList = () => {
     const totalQuantity = dataSource.reduce(
-      (total, item) => total + parseFloat(item.quantity),
-      0
+      (total, item) => total + toIntFloor(item.quantity),
+      0,
     );
 
     return (
@@ -335,78 +275,69 @@ export default function CustomerStockEdit() {
     );
   };
 
+  // ✅ เพิ่มสินค้าใหม่: ต้องดึง unit_convert_order_value มาเก็บ และให้ qty=1
   const onChangeProduct = (value) => {
-    // Set Empty
     setSearchProductData([]);
 
     const loadProductDetail = async () => {
       setLoading(true);
       try {
-        const [productDetail] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterProductDetail, {
-            product_id: value,
-          }),
-        ]);
-
+        const productDetail = await useServiceAPI.get(
+          paths.pathMasterProductDetail,
+          { product_id: value },
+        );
         const data = productDetail.data;
 
-        // Check for duplicate product_code
-        const existingProductIndex = dataSource.findIndex(
-          (item) => item.product_code === data.product_code
+        const existingIndex = dataSource.findIndex(
+          (item) => item.product_code === data.product_code,
         );
 
-        if (existingProductIndex !== -1) {
-          // If product_code exists, update the quantity
-          const updatedDataSource = dataSource.map((item, index) => {
-            if (index === existingProductIndex) {
-              const updatedQuantity = item.quantity + 1; // Increment quantity
-              const updatedNetAmount = (
-                updatedQuantity *
-                parseFloat(item.product_unit_thb.replace(/,/g, ""))
-              ).toFixed(2); // Recalculate net_amount
+        // ✅ unit_convert_order_value เป็นตัวจริง ถ้าไม่มีให้ fallback bath_unit
+        const unitValue =
+          toIntFloor(data.unit_convert_order_value) ||
+          toIntFloor(data.net_amount) ||
+          toIntFloor(data.bath_unit);
 
-              return {
-                ...item,
-                // quantity: item.quantity + 1, // Increment quantity
-                quantity: updatedQuantity,
-                net_amount: updatedNetAmount, // Update net_amount
-              };
-            }
-            return item;
+        if (existingIndex !== -1) {
+          // เพิ่ม qty (และ foc) — unitValue ไม่เปลี่ยน
+          const updated = dataSource.map((item, idx) => {
+            if (idx !== existingIndex) return item;
+
+            const newQty = toIntFloor(item.quantity) + 1;
+            const minFoc = Number(item.product_campaign_order_min_foc || 0);
+            const foc = minFoc > 0 ? parseInt(newQty / minFoc, 10) : 0;
+
+            return { ...item, quantity: newQty, foc };
           });
-
-          setDataSource(updatedDataSource);
+          setDataSource(updated);
         } else {
-          // If product_code does not exist, add a new entry
-          const newProductDataDetail = {
+          const qty = 1;
+          const minFoc = Number(data.product_campaign_order_min_foc || 0);
+          const foc = minFoc > 0 ? parseInt(qty / minFoc, 10) : 0;
+
+          const newItem = {
             key: dataSource.length + 1,
             no: dataSource.length + 1,
             product_id: data.id,
             product_code: data.product_code,
             product_name: data.product_name,
             product_unit: data.packing_list,
-            product_unit_thb: data.bath_unit,
+            product_unit_thb: toIntFloor(data.bath_unit),
             product_campaign_order_min_foc: data.product_campaign_order_min_foc,
             product_campaign_foc: data.product_campaign_foc,
-            quantity: 1, // Set initial quantity to 1
-            foc: parseInt(1 / data.product_campaign_order_min_foc),
-            // foc: data.product_campaign_foc,
-            // net_amount: data.bath_unit,
-            net_amount: (
-              1 * parseFloat(data.bath_unit.replace(/,/g, ""))
-            ).toFixed(2), // Calculate net_amount based on quantity 1
+            quantity: qty,
+            foc,
+
+            // ✅ ใช้สูตรเดียวกับ Create
+            unit_convert_order_value: unitValue,
           };
 
-          const updatedDataSource = [...dataSource, newProductDataDetail];
-
-          // Reset the keys to ensure proper sequencing
-          const resetDataSource = updatedDataSource.map((item, index) => ({
-            ...item,
-            key: index + 1,
-            no: index + 1,
+          const updated = [...dataSource, newItem].map((x, idx) => ({
+            ...x,
+            key: idx + 1,
+            no: idx + 1,
           }));
-
-          setDataSource(resetDataSource);
+          setDataSource(updated);
         }
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -423,22 +354,14 @@ export default function CustomerStockEdit() {
       const loadProducts = async () => {
         setLoading(true);
         try {
-          const [product] = await Promise.all([
-            useServiceAPI.get(paths.pathMasterProducts, {
-              keyword: value,
-            }),
-          ]);
-
-          const newProductData = [];
-          product.data.map((data, index) => {
-            newProductData.push({
-              value: data.id,
-              label: data.name,
-            });
+          const product = await useServiceAPI.get(paths.pathMasterProducts, {
+            keyword: value,
           });
-
-          // Set Data
-          setSearchProductData(newProductData);
+          const options = (product.data || []).map((d) => ({
+            value: d.id,
+            label: d.name,
+          }));
+          setSearchProductData(options);
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
         } finally {
@@ -450,47 +373,59 @@ export default function CustomerStockEdit() {
     }
   };
 
+  // ✅ PUT Update: คำนวณ net_amount ใหม่ทุกครั้ง = unit_convert_order_value * quantity (ปัดลงแล้วเป็น int)
   const handleNavigateToOrderView = async () => {
+    if (submitting) return;
     try {
-      const values = await formCustom.validateFields();
+      setSubmitting(true); // 🔒 ล็อกปุ่มทันที
+
+      await formCustom.validateFields();
+
       const payload = {
         platform: "web",
         document_number: documentNumber,
         document_date: dayjs().format("YYYY-MM-DD"),
-        user_id: dataDetail.user_id, // เปลี่ยนตามระบบ auth ถ้ามี
+        user_id: dataDetail.user_id,
         dealer_id: dataDetail.dealer_id,
         sub_dealer_id: dataDetail.sub_dealer_id,
         remark: inputRemark,
-        file_list: fileList.map((file) => file.url),
-        products: dataSource.map((item) => ({
-          product_id: item.product_id,
-          product_code: item.product_code,
-          product_name: item.product_name,
-          product_unit: item.product_unit,
-          product_unit_thb: parseFloat(item.product_unit_thb),
-          product_campaign_order_min_foc: item.product_campaign_order_min_foc,
-          product_campaign_foc: item.product_campaign_foc,
-          quantity: item.quantity,
-          foc: item.foc,
-          net_amount: parseFloat(item.net_amount),
-        })),
+        file_list: fileList.map((f) => f.url),
+        products: dataSource.map((item) => {
+          const qty = toIntFloor(item.quantity);
+          const unitValue = toIntFloor(item.unit_convert_order_value);
+
+          // ✅ ยอดต่อบรรทัด "ต้องเท่ากับ preview"
+          const lineNet = unitValue * qty;
+
+          const minFoc = Number(item.product_campaign_order_min_foc || 0);
+          const foc = minFoc > 0 ? parseInt(qty / minFoc, 10) : 0;
+
+          return {
+            product_id: item.product_id,
+            product_code: item.product_code,
+            product_name: item.product_name,
+            product_unit: item.product_unit,
+            product_unit_thb: toIntFloor(item.product_unit_thb),
+            unit_convert_order_value: unitValue, // ✅ ส่งไปด้วย (กันหลังบ้าน/flow อื่นใช้)
+            product_campaign_order_min_foc: item.product_campaign_order_min_foc,
+            product_campaign_foc: item.product_campaign_foc,
+            quantity: qty,
+            foc,
+            net_amount: lineNet, // ✅ NEW ทุกครั้ง
+          };
+        }),
         others: [],
       };
 
       const response = await useServiceAPI.put(paths.pathStockUpdate, payload);
 
-      console.log("response", response);
-
-      if (response.message == "Update successful") {
-        console.log("save success");
+      if (response.message === "Update successful") {
         showMsg("success", "ส่งข้อมูลสำเร็จ");
         navigate("/customer-stock/list");
       } else {
         showMsg("error", response.message || "เกิดข้อผิดพลาด");
       }
     } catch (error) {
-      console.log("Validation or submission error : ", error);
-
       showMsg("error", error.message || "กรุณากรอกข้อมูลให้ครบถ้วน");
     }
   };
@@ -499,11 +434,7 @@ export default function CustomerStockEdit() {
     <MainLayout loading={loading}>
       <div className="title-page">Edit Customer Stock</div>
 
-      <FormUser
-        fields={formFiieldData}
-        form={formCustom}
-        onChange={handleChange}
-      />
+      <FormUser fields={formFiieldData} form={formCustom} onChange={() => {}} />
 
       <BoxPrimary title="Product">
         <div className="mb-3 flex justify-end">
@@ -525,7 +456,6 @@ export default function CustomerStockEdit() {
           header={header}
           dataSource={dataSource}
           pagination={false}
-          // pageSize={10}
           footer={footerOrderList}
         />
       </BoxPrimary>
@@ -537,9 +467,9 @@ export default function CustomerStockEdit() {
           min={0}
           disabled={true}
           value={totalValue}
-          // formatter={(value) =>
-          //   `${parseInt(value || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          // }
+          formatter={(value) =>
+            `${parseInt(value || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
         />
       </BoxPrimary>
 
@@ -579,8 +509,9 @@ export default function CustomerStockEdit() {
         />
         <ActionButton
           mode="save"
-          text="Confirm"
-          onClick={() => handleNavigateToOrderView()}
+          text={submitting ? "Processing..." : "Confirm"}
+          disabled={submitting}
+          onClick={handleNavigateToOrderView}
         />
       </div>
     </MainLayout>

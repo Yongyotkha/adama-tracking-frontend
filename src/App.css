@@ -184,9 +184,10 @@ span.ant-popconfirm-message-icon {
   display: none !important;
 }
 
-.ant-input-number-disabled {
+.ant-input-number-disabled ,.ant-input-disabled{
   color: black !important; /* เปลี่ยนสีข้อความ */
   background-color: #5F504D ; 
+  
   /* border-color: #5F504D !important; */
 }
 

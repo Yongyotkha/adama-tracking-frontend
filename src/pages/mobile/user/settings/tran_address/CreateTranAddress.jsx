@@ -111,7 +111,7 @@ export default function CreateTranAddress() {
         <DynamicPopUp
           visible={isSuccessModalVisible}
           onConfirm={() => navigate("/mobile/tran-address")}
-          src="/logo/Logo-Adama-Smile-2-New 1.png"
+          src="/img/icons/check-circle.png"
           text="<p class='text-[#978B87] text-center sarabun-font'>สร้างที่อยู่สำเร็จ</p>"
           confirmText="ตกลง"
         />

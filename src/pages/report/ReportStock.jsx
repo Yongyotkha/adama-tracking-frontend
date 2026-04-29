@@ -1,3 +1,4 @@
+// src/pages/report/ReportStock.jsx
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Form, Row, Col, Select, InputNumber, Table } from "antd";
 import dayjs from "dayjs";
@@ -12,11 +13,12 @@ import ExportStockExcelButton from "../../components/export/ExportStockExcelButt
 import TableCustomComponent from "../../components/table/TableCustomComponent";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const toComma = (n) =>
-  `${parseInt(Number(n) || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  `${parseInt(Number(n) || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 // --- helpers for export file name ---
 const slug = (s) =>
@@ -31,18 +33,19 @@ const getLabelFrom = (options, value) =>
   (Array.isArray(options) ? options.find((o) => o?.value === value) : null)
     ?.label || "";
 
-// ดึง year_code เป็น string เสมอ (ใช้ร่วมกับ master year)
+// ดึง year_code เป็น string เสมอ
 const getYearCodeFrom = (y) => {
   if (y == null) return "";
   if (typeof y === "string" || typeof y === "number") return String(y);
   return y.year_code ?? y.code ?? y.value ?? y.label ?? y.name ?? y.year ?? "";
 };
 
-// เลือก “ปีล่าสุด” จากลิสต์ปี
+// เลือกปีล่าสุดจาก master year
 const pickLatestYearCode = (yearsArr) => {
   if (!Array.isArray(yearsArr) || yearsArr.length === 0) {
     return dayjs().tz("Asia/Bangkok").format("YYYY");
   }
+
   let best = yearsArr[0];
   for (const cur of yearsArr) {
     const b = Number(getYearCodeFrom(best)) || 0;
@@ -54,12 +57,12 @@ const pickLatestYearCode = (yearsArr) => {
 
 const buildStockReportFileName = (
   form,
-  { areaList, salesList, dealerList, subDealerList }
+  { areaList, salesList, dealerList, subDealerList },
 ) => {
   const v = form.getFieldsValue();
   const now = dayjs();
   const year = v.year || now.year();
-  const month = v.month || now.month() + 1; // 1-12
+  const month = v.month || now.month() + 1;
   const monthText = `${year}-${String(month).padStart(2, "0")}`;
 
   const area = getLabelFrom(areaList, v.area_id);
@@ -80,7 +83,6 @@ const buildStockReportFileName = (
   return `${parts.join("_")}_${ts}`;
 };
 
-// สร้าง options เดือน
 const monthOptions = [
   { value: 1, label: "January" },
   { value: 2, label: "February" },
@@ -97,7 +99,7 @@ const monthOptions = [
 ];
 
 export default function ReportStock() {
-  const { showNotification } = useContext(AuthContext) || {};
+  const { showNotification } = useContext(AuthContext);
   const [form] = Form.useForm();
 
   const [loading, setLoading] = useState(false);
@@ -108,7 +110,7 @@ export default function ReportStock() {
   const [salesList, setSalesList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
-  const [yearOptions, setYearOptions] = useState([]); // << ใช้ master year
+  const [yearOptions, setYearOptions] = useState([]);
 
   // watch
   const selectedArea = Form.useWatch("area_id", form);
@@ -117,8 +119,25 @@ export default function ReportStock() {
 
   // data
   const [dataSource, setDataSource] = useState([]);
+  const [summary, setSummary] = useState({
+    total_current: 0,
+    total_last: 0,
+    total_in: 0,
+    total_out: 0,
+  });
 
-  // columns
+  const displayZero = (val, emptyText = "-") => {
+    const n = Number(val);
+    if (!Number.isFinite(n) || n === 0) return emptyText;
+    return n;
+  };
+
+  const formatterZeroAsDash = (v) => {
+    const n = Number(String(v ?? "").replace(/,/g, ""));
+    if (!Number.isFinite(n) || n === 0) return "-";
+    return `${parseInt(n, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
   const header = useMemo(
     () => [
       {
@@ -152,11 +171,10 @@ export default function ReportStock() {
           <InputNumber
             className="w-full"
             readOnly
-            value={displayZero(val, null)}   // ส่ง null ให้ InputNumber ว่าง
-            formatter={formatterZeroAsDash}  // หรืออยากให้เป็น "" ก็เปลี่ยนใน formatter
+            value={displayZero(val, null)}
+            formatter={formatterZeroAsDash}
           />
         ),
-
       },
       {
         title: "Sell In (ctn)",
@@ -175,8 +193,8 @@ export default function ReportStock() {
           <InputNumber
             className="w-full"
             readOnly
-            value={displayZero(val, null)}   // ส่ง null ให้ InputNumber ว่าง
-            formatter={formatterZeroAsDash}  // หรืออยากให้เป็น "" ก็เปลี่ยนใน formatter
+            value={displayZero(val, null)}
+            formatter={formatterZeroAsDash}
           />
         ),
       },
@@ -197,8 +215,8 @@ export default function ReportStock() {
           <InputNumber
             className="w-full"
             readOnly
-            value={displayZero(val, null)}   // ส่ง null ให้ InputNumber ว่าง
-            formatter={formatterZeroAsDash}  // หรืออยากให้เป็น "" ก็เปลี่ยนใน formatter
+            value={displayZero(val, null)}
+            formatter={formatterZeroAsDash}
           />
         ),
       },
@@ -219,38 +237,21 @@ export default function ReportStock() {
           <InputNumber
             className="w-full"
             readOnly
-            value={displayZero(val, null)}   // ส่ง null ให้ InputNumber ว่าง
-            formatter={formatterZeroAsDash}  // หรืออยากให้เป็น "" ก็เปลี่ยนใน formatter
+            value={displayZero(val, null)}
+            formatter={formatterZeroAsDash}
           />
         ),
       },
     ],
-    []
+    [],
   );
 
-  // ✅ Footer: ใช้ตัวแปร total_* จาก API โดยตรง (Total (THB))
   const footer = useMemo(() => {
-    const safeNum = (v) => Number(String(v || 0).replace(/,/g, "")) || 0;
-
-    // mapping: columnKey -> field total_* ใน data
-    const totalKeyByColumn = {
-      last_stock: "total_last",
-      sell_in: "total_in",
-      current_stock: "total_current",
-      sell_out: "total_out",
-    };
-
-    const sumByTotalKey = (totalKey) =>
-      (dataSource || []).reduce(
-        (acc, r) => acc + safeNum(r[totalKey]),
-        0
-      );
-
     const totals = {
-      last_stock: sumByTotalKey(totalKeyByColumn.last_stock),
-      sell_in: sumByTotalKey(totalKeyByColumn.sell_in),
-      current_stock: sumByTotalKey(totalKeyByColumn.current_stock),
-      sell_out: sumByTotalKey(totalKeyByColumn.sell_out),
+      last_stock: summary?.total_last ?? 0,
+      sell_in: summary?.total_in ?? 0,
+      current_stock: summary?.total_current ?? 0,
+      sell_out: summary?.total_out ?? 0,
     };
 
     const keys = ["last_stock", "sell_in", "current_stock", "sell_out"];
@@ -275,9 +276,9 @@ export default function ReportStock() {
         </Table.Summary.Row>
       </Table.Summary>
     );
-  }, [dataSource]);
+  }, [summary]);
 
-  // ---------- Masters (Area + Master Year) ----------
+  // ---------- Masters ----------
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -287,11 +288,13 @@ export default function ReportStock() {
           useServiceAPI.get(paths.pathMasterYear),
         ]);
 
-        // Area
         const areaRaw = Array.isArray(areaRes?.data) ? areaRes.data : [];
-        setAreaList(areaRaw.map((x) => ({ value: x.id, label: x.name })));
+        const areaOpts = areaRaw.map((x) => ({
+          value: x.id,
+          label: x.name,
+        }));
+        setAreaList(areaOpts);
 
-        // Year from master
         const yearRaw = Array.isArray(yearRes?.data) ? yearRes.data : [];
         const yearOpts = yearRaw.map((y) => {
           const yc = getYearCodeFrom(y);
@@ -299,21 +302,21 @@ export default function ReportStock() {
         });
         setYearOptions(yearOpts);
 
-        // set default filters
         const now = dayjs();
-        const firstYear = yearOpts[0]?.value ?? now.year();
+        const defaultYear = pickLatestYearCode(yearOpts) ?? now.year();
+
         form.setFieldsValue({
           area_id: undefined,
           sale_id: undefined,
           dealer_id: undefined,
           sub_dealer_id: undefined,
-          month: now.month() + 1, // 1-12
-          year: firstYear,
+          month: now.month() + 1,
+          year: defaultYear,
         });
 
-        // first fetch
         await fetchStock();
-      } catch {
+      } catch (error) {
+        console.error(error);
         setAreaList([]);
         setYearOptions([]);
         showNotification?.("error", "โหลดข้อมูล Master ไม่สำเร็จ");
@@ -324,148 +327,299 @@ export default function ReportStock() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Cascade: Area → Sales
+  // Cascade: Area -> Sales
   useEffect(() => {
-    const areaId = form.getFieldValue("area_id");
+    const areaId = selectedArea;
+
     if (!areaId) {
       setSalesList([]);
       setDealerList([]);
       setSubDealerList([]);
-      form.resetFields(["sale_id", "dealer_id", "sub_dealer_id"]);
+      form.setFieldsValue({
+        sale_id: undefined,
+        dealer_id: undefined,
+        sub_dealer_id: undefined,
+      });
       return;
     }
+
     (async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathMasterSaleReport, {
+        const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
           area_id: areaId,
         });
-        const list = Array.isArray(res?.data) ? res.data : [];
+
+        const raw = Array.isArray(res?.data?.data)
+          ? res.data.data
+          : Array.isArray(res?.data)
+            ? res.data
+            : [];
+
         setSalesList(
-          list.map((x) => ({ value: Number(x.id), label: x.name }))
+          raw.map((x) => ({
+            value: Number(x.user_id ?? x.id),
+            label: x.user_name ?? x.name,
+          })),
         );
+
         setDealerList([]);
         setSubDealerList([]);
-        form.resetFields(["sale_id", "dealer_id", "sub_dealer_id"]);
-      } catch {
+        form.setFieldsValue({
+          sale_id: undefined,
+          dealer_id: undefined,
+          sub_dealer_id: undefined,
+        });
+      } catch (error) {
+        console.error(error);
         setSalesList([]);
         setDealerList([]);
         setSubDealerList([]);
-        form.resetFields(["sale_id", "dealer_id", "sub_dealer_id"]);
+        form.setFieldsValue({
+          sale_id: undefined,
+          dealer_id: undefined,
+          sub_dealer_id: undefined,
+        });
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.getFieldValue("area_id")]);
+  }, [selectedArea, form]);
 
-  // Cascade: Sales → Dealer
+  // Cascade: Sales -> Dealer
   useEffect(() => {
-    const saleId = form.getFieldValue("sale_id");
+    const saleId = selectedSale;
+
     if (!saleId) {
       setDealerList([]);
       setSubDealerList([]);
-      form.resetFields(["dealer_id", "sub_dealer_id"]);
+      form.setFieldsValue({
+        dealer_id: undefined,
+        sub_dealer_id: undefined,
+      });
       return;
     }
+
     (async () => {
       try {
         const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
           user_id: saleId,
         });
-        const list = Array.isArray(res?.data) ? res.data : [];
+
+        const raw = Array.isArray(res?.data?.data)
+          ? res.data.data
+          : Array.isArray(res?.data)
+            ? res.data
+            : [];
+
         setDealerList(
-          list.map((x) => ({ value: Number(x.id), label: x.name }))
+          raw.map((x) => ({
+            value: Number(x.id),
+            label: x.name,
+          })),
         );
+
         setSubDealerList([]);
-        form.resetFields(["dealer_id", "sub_dealer_id"]);
-      } catch {
+        form.setFieldsValue({
+          dealer_id: undefined,
+          sub_dealer_id: undefined,
+        });
+      } catch (error) {
+        console.error(error);
         setDealerList([]);
         setSubDealerList([]);
-        form.resetFields(["dealer_id", "sub_dealer_id"]);
+        form.setFieldsValue({
+          dealer_id: undefined,
+          sub_dealer_id: undefined,
+        });
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.getFieldValue("sale_id")]);
+  }, [selectedSale, form]);
 
-  // Cascade: Dealer → SubDealer
+  // Cascade: Dealer -> SubDealer
   useEffect(() => {
-    const saleId = form.getFieldValue("sale_id");
-    const dealerId = form.getFieldValue("dealer_id");
+    const saleId = selectedSale;
+    const dealerId = selectedDealer;
+
     if (!saleId || !dealerId) {
       setSubDealerList([]);
-      form.resetFields(["sub_dealer_id"]);
+      form.setFieldsValue({ sub_dealer_id: undefined });
       return;
     }
+
     (async () => {
       try {
         const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
           user_id: saleId,
           dealer_id: dealerId,
         });
-        const list = Array.isArray(res?.data) ? res.data : [];
+
+        const raw = Array.isArray(res?.data?.data)
+          ? res.data.data
+          : Array.isArray(res?.data)
+            ? res.data
+            : [];
+
         setSubDealerList(
-          list.map((s) => ({
+          raw.map((s) => ({
             value: s.sub_dealer_id,
             label: s.sub_dealer_name,
-          }))
+          })),
         );
-        form.resetFields(["sub_dealer_id"]);
-      } catch {
+
+        form.setFieldsValue({ sub_dealer_id: undefined });
+      } catch (error) {
+        console.error(error);
         setSubDealerList([]);
-        form.resetFields(["sub_dealer_id"]);
+        form.setFieldsValue({ sub_dealer_id: undefined });
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.getFieldValue("dealer_id")]);
+  }, [selectedSale, selectedDealer, form]);
 
-  // --------- API call ---------
   const buildPayload = () => {
     const v = form.getFieldsValue();
     const now = dayjs();
     const year = v.year || now.year();
     const month = v.month || now.month() + 1;
+
     return {
-      date: `${year}-${String(month).padStart(2, "0")}`, // YYYY-MM
+      date: `${year}-${String(month).padStart(2, "0")}`,
       area_id: v.area_id ?? "",
-      user_id: v.sale_id || "",
-      dealer_id: v.dealer_id || "",
-      sub_dealer_id: v.sub_dealer_id || "",
+      user_id: v.sale_id ?? "",
+      dealer_id: v.dealer_id ?? "",
+      sub_dealer_id: v.sub_dealer_id ?? "",
     };
+  };
+
+  const buildPayloadOut = () => {
+    const v = form.getFieldsValue();
+    const now = dayjs();
+    const year = v.year || now.year();
+    const month = v.month || now.month() + 1;
+
+    return {
+      year: year,
+      month: month,
+      area_id: v.area_id ?? "",
+      user_id: v.sale_id ?? "",
+      dealer_id: v.dealer_id ?? "",
+      sub_dealer_id: v.sub_dealer_id ?? "",
+    };
+  };
+
+  const fetchSellOut = async () => {
+    setTableLoading(true);
+    try {
+      const payload = buildPayloadOut();
+
+      const res = await useServiceAPI.get(paths.pathReportSellOut, payload);
+
+      console.log("payload : ", payload);
+      console.log("res : ", res);
+      var test = 1000;
+
+      let total_current = 0;
+      let total_last = 0;
+      let total_in = 0;
+      let total_out = 0;
+
+      if (payload.sub_dealer_id != "") {
+        test = 2000;
+      } else if (payload.dealer_id != "") {
+        test = 3000;
+      } else if (payload.user_id != "") {
+        test = 4000;
+      } else if (payload.area_id != "") {
+        test = 5000;
+      } else {
+        test = 6000;
+      }
+
+      res.data.forEach((element) => {
+        console.log(element.months[payload.month]);
+        total_current += element.months[payload.month].current;
+        total_last += element.months[payload.month].last;
+        total_in += element.months[payload.month].in;
+        total_out += element.months[payload.month].out;
+      });
+      setSummary({
+        total_current:
+          Number(String(total_current ?? 0).replace(/,/g, "")) || 0,
+        total_last: Number(String(total_last ?? 0).replace(/,/g, "")) || 0,
+        total_in: Number(String(total_in ?? 0).replace(/,/g, "")) || 0,
+        total_out: Number(String(total_out ?? 0).replace(/,/g, "")) || 0,
+      });
+    } catch (err) {
+      console.error(err);
+
+      showNotification?.("error", "โหลดรายงาน Sell Out ไม่สำเร็จ");
+    } finally {
+      setTableLoading(false);
+    }
   };
 
   const fetchStock = async () => {
     setTableLoading(true);
     try {
+      setSummary({
+        total_current: "-",
+        total_last: "-",
+        total_in: "-",
+        total_out: "-",
+      });
       const payload = buildPayload();
       const res = await useServiceAPI.get(paths.pathReportStock, payload);
-      const items = res?.data || [];
+
+      const items = Array.isArray(res?.data)
+        ? res.data
+        : Array.isArray(res?.data?.data)
+          ? res.data.data
+          : [];
 
       const rows = items.map((it, idx) => ({
         key: it.product_id ?? idx,
-        product_name: `${it.product_name}${it.product_size ? ` (${it.product_size})` : ""
-          }`,
-
-        // qty (ctn)
+        product_name: `${it.product_name}${
+          it.product_size ? ` (${it.product_size})` : ""
+        }`,
         last_stock: Number(it.last) || 0,
         sell_in: Number(it.in) || 0,
         current_stock: Number(it.current) || 0,
         sell_out: Number(it.out) || 0,
-
-        // ✅ total ใหม่ จาก backend (THB)
         total_last: Number(String(it.total_last || 0).replace(/,/g, "")) || 0,
         total_in: Number(String(it.total_in || 0).replace(/,/g, "")) || 0,
         total_current:
           Number(String(it.total_current || 0).replace(/,/g, "")) || 0,
         total_out: Number(String(it.total_out || 0).replace(/,/g, "")) || 0,
-
-        // unit price (ถ้าจะใช้ต่อ)
         unit_convert_value: parseFloat(
-          String(it.unit_convert_value || "0").replace(/,/g, "")
+          String(it.unit_convert_value || "0").replace(/,/g, ""),
         ),
       }));
 
       setDataSource(rows);
+
+      if (payload.dealer_id != "" || payload.sub_dealer_id != "") {
+        const apiSummary = res?.summary || res?.data?.summary || null;
+
+        setSummary({
+          total_current:
+            Number(String(apiSummary?.total_current ?? 0).replace(/,/g, "")) ||
+            0,
+          total_last:
+            Number(String(apiSummary?.total_last ?? 0).replace(/,/g, "")) || 0,
+          total_in:
+            Number(String(apiSummary?.total_in ?? 0).replace(/,/g, "")) || 0,
+          total_out:
+            Number(String(apiSummary?.total_out ?? 0).replace(/,/g, "")) || 0,
+        });
+      } else {
+        fetchSellOut();
+      }
     } catch (e) {
       console.error(e);
       setDataSource([]);
+      setSummary({
+        total_current: 0,
+        total_last: 0,
+        total_in: 0,
+        total_out: 0,
+      });
       showNotification?.("error", "โหลดข้อมูลไม่สำเร็จ");
     } finally {
       setTableLoading(false);
@@ -474,78 +628,72 @@ export default function ReportStock() {
 
   const handleSearch = () => {
     const v = form.getFieldsValue();
+
     if (v.sale_id && !v.area_id) {
       showNotification?.("warning", "กรุณาเลือก Area ก่อนเลือก Sales");
       return;
     }
+
     if (v.dealer_id && !v.sale_id) {
       showNotification?.("warning", "กรุณาเลือก Sales ก่อนเลือก Dealer");
       return;
     }
+
     if (v.sub_dealer_id && !v.dealer_id) {
       showNotification?.("warning", "กรุณาเลือก Dealer ก่อนเลือก Sub Dealer");
       return;
     }
+
     fetchStock();
   };
 
   const handleClear = () => {
     const now = dayjs();
-    form.resetFields([
-      "area_id",
-      "sale_id",
-      "dealer_id",
-      "sub_dealer_id",
-      "month",
-      "year",
-    ]);
+    const defaultYear = pickLatestYearCode(yearOptions);
+
+    form.setFieldsValue({
+      area_id: undefined,
+      sale_id: undefined,
+      dealer_id: undefined,
+      sub_dealer_id: undefined,
+      month: now.month() + 1,
+      year: defaultYear || now.year(),
+    });
+
     setSalesList([]);
     setDealerList([]);
     setSubDealerList([]);
 
-    const defaultYear = pickLatestYearCode(yearOptions);
-
-    form.setFieldsValue({
-      month: now.month() + 1,
-      year: defaultYear || now.year(),
-    });
     fetchStock();
   };
 
   const onValuesChange = (changed) => {
-    if (Object.prototype.hasOwnProperty.call(changed, "area_id")) {
+    if ("area_id" in changed) {
       form.setFieldsValue({
         sale_id: undefined,
         dealer_id: undefined,
         sub_dealer_id: undefined,
       });
     }
-    if (Object.prototype.hasOwnProperty.call(changed, "sale_id")) {
-      form.setFieldsValue({ dealer_id: undefined, sub_dealer_id: undefined });
+
+    if ("sale_id" in changed) {
+      form.setFieldsValue({
+        dealer_id: undefined,
+        sub_dealer_id: undefined,
+      });
     }
-    if (Object.prototype.hasOwnProperty.call(changed, "dealer_id")) {
-      form.setFieldsValue({ sub_dealer_id: undefined });
+
+    if ("dealer_id" in changed) {
+      form.setFieldsValue({
+        sub_dealer_id: undefined,
+      });
     }
   };
-
-  const displayZero = (val, emptyText = "-") => {
-    const n = Number(val);
-    if (!Number.isFinite(n) || n === 0) return emptyText; // 0 / null / undefined / NaN
-    return n;
-  };
-
-  const formatterZeroAsDash = (v) => {
-    const n = Number(String(v ?? "").replace(/,/g, ""));
-    if (!Number.isFinite(n) || n === 0) return "-";
-    return `${parseInt(n)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  };
-
 
   return (
     <MainLayout loading={loading}>
       <Title prefix="Stock Report" />
 
-      {/* Filters */}
       <Form form={form} layout="vertical" onValuesChange={onValuesChange}>
         <BoxPrimary className="m-1 mb-4">
           <Row gutter={16} align="middle">
@@ -562,6 +710,7 @@ export default function ReportStock() {
                 />
               </Form.Item>
             </Col>
+
             <Col md={6}>
               <Form.Item
                 label="Sales"
@@ -576,6 +725,7 @@ export default function ReportStock() {
                 />
               </Form.Item>
             </Col>
+
             <Col md={6}>
               <Form.Item
                 label="Dealer"
@@ -590,6 +740,7 @@ export default function ReportStock() {
                 />
               </Form.Item>
             </Col>
+
             <Col md={6}>
               <Form.Item
                 label="Sub Dealer"
@@ -605,7 +756,6 @@ export default function ReportStock() {
               </Form.Item>
             </Col>
 
-            {/* แยก Month / Year */}
             <Col md={3}>
               <Form.Item label="Month" name="month">
                 <Select
@@ -615,11 +765,12 @@ export default function ReportStock() {
                 />
               </Form.Item>
             </Col>
+
             <Col md={3}>
               <Form.Item label="Year" name="year">
                 <Select
                   placeholder="Select year"
-                  options={yearOptions} // << ใช้ master year
+                  options={yearOptions}
                   allowClear={false}
                 />
               </Form.Item>
@@ -661,7 +812,6 @@ export default function ReportStock() {
         </BoxPrimary>
       </Form>
 
-      {/* Table — ไม่มี pagination แล้ว */}
       <BoxPrimary>
         <TableCustomComponent
           header={header}

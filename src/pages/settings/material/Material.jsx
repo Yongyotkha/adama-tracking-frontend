@@ -21,6 +21,7 @@ export default function Material() {
   const [materialList, setMaterialList] = useState([]);
   const navigate = useNavigate();
   const { showMsg, showNotification, userInfo } = useContext(AuthContext);
+  const [filterValues, setFilterValues] = useState({});
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -164,7 +165,7 @@ export default function Material() {
         const { data, records_filtered } = response.data;
         console.log('data : ', data)
         const formatted = data.map((item, index) => ({
-          index: (index + 1),
+          index: (current - 1) * pageSize + index + 1,
           code: item.code,
           name: item.name,
           size: item.size,
@@ -175,13 +176,20 @@ export default function Material() {
         console.log('formatted : ', formatted)
         setDataSource(formatted);
         setMaterialList(data.map((m) => ({ id: m.id, name: m.name })));
-        setTableParams({
-          ...tableParams,
+        // setTableParams({
+        //   ...tableParams,
+        //   pagination: {
+        //     ...tableParams.pagination,
+        //     total: records_filtered,
+        //   },
+        // });
+        setTableParams((prev) => ({
+          ...prev,
           pagination: {
-            ...tableParams.pagination,
+            ...prev.pagination,
             total: records_filtered,
           },
-        });
+        }));
       }
     } catch (error) {
       console.error("Failed to fetch materials:", error);
@@ -199,10 +207,6 @@ export default function Material() {
     tableParams.sortField,
     JSON.stringify(tableParams.filters),
   ]);
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const handleTableChange = (pagination, filters, sorter) => {
     setTableParams({

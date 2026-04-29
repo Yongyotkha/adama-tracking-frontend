@@ -34,12 +34,18 @@ export default function NewsPromotionList() {
     filters: {},
   });
 
+  const hasValidDateRange = (dater) =>
+    Array.isArray(dater) &&
+    dater.length === 2 &&
+    dater[0] &&
+    dater[1];
+
   // ---------- Load Category Master (Promotion banner) ----------
   useEffect(() => {
     const loadCategories = async () => {
       setLoading(true);
       try {
-        const res = await useServiceAPI.get(paths.pathPromotionBannerCategory, {});
+        const res = await useServiceAPI.get(paths.pathPromotionBannerCategoryฺBanner, {});
         const raw = Array.isArray(res?.data?.data) ? res.data.data : res?.data || [];
         const opts = (raw || []).map((x) => ({
           id: String(x.id),
@@ -111,6 +117,7 @@ export default function NewsPromotionList() {
       code: f.code ?? "",
       category_id: f.category_id ?? "",
       dater: Array.isArray(f.dater) ? f.dater : [],
+      ...(hasValidDateRange(f.dater) ? { dater: f.dater } : {}),
       status: f.status ?? "",
       page_size: pageSize,
       page_length: current,

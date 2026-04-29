@@ -41,7 +41,7 @@ export default function EditOrViewRegisteredCustomer() {
         setFields([
           { label: "", name: "profile", type: "picture", col: 24, value: profile },
           { name: "customer_id", label: "Customer ID", type: "text", col: 6, disabled: true, value: d.user_code },
-          { name: "shop_name", label: "Customer Name", type: "text", col: 6, disabled: true, value: d.shop_name },
+          { name: "shop_name", label: "Sub Dealer Name", type: "text", col: 6, disabled: true, value: d.shop_name },
           {
             name: "customer_name",
             label: "Contact Name",

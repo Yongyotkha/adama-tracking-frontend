@@ -1,9 +1,9 @@
-import React, { useEffect } from "react";
+import React from "react";
 
 export default function ItemDropDown({ text, link, onClick, mode }) {
   return (
     <>
-      {(mode == "edit" || mode == "rolling forecast (summary)" || mode == "sub dealer by dealer") && (
+      {(mode === "edit" || mode === "rolling forecast (summary)" || mode === "sub dealer by dealer") && (
         <a
           rel="noopener noreferrer"
           href={link}
@@ -19,7 +19,7 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
         </a>
       )}
 
-      {mode == "delete" && (
+      {mode === "delete" && (
         <a
           rel="noopener noreferrer"
           href={link}
@@ -35,7 +35,8 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
         </a>
       )}
 
-      {(mode == "view" || mode == "approved_area" || mode == "approved_head" || mode == "approved_accounting" ) && (
+      {/* {(mode === "view" || mode === "approved_area" || mode === "approved_head" || mode === "approved_accounting") && ( */}
+      {(mode === "view") && (
         <a
           rel="noopener noreferrer"
           href={link}
@@ -44,14 +45,14 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
         >
           <img
             src="/img/icons/view.png"
-            alt="Delete icon"
+            alt="View icon"
             className="inline-block h-4 m-auto"
           />
           <span className="text-[#978B87] ms-3">{text || "View"}</span>
         </a>
       )}
 
-      {mode == "history" && (
+      {mode === "history" && (
         <a
           rel="noopener noreferrer"
           href={link}
@@ -60,14 +61,14 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
         >
           <img
             src="/img/icons/view.png"
-            alt="Delete icon"
+            alt="History icon"
             className="inline-block h-4 m-auto"
           />
           <span className="text-[#978B87] ms-3">{text || "History"}</span>
         </a>
       )}
 
-      {(mode == "create" || mode == "rolling forecast (dealer)") && (
+      {(mode === "create" || mode === "rolling forecast (dealer)") && (
         <a
           rel="noopener noreferrer"
           href={link}
@@ -83,7 +84,7 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
         </a>
       )}
 
-      {mode == "approve" && (
+      {mode === "approve" && (
         <a
           rel="noopener noreferrer"
           href={link}
@@ -99,7 +100,7 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
         </a>
       )}
 
-      {!mode && (
+      {mode === "reject" && (
         <a
           rel="noopener noreferrer"
           href={link}
@@ -107,11 +108,59 @@ export default function ItemDropDown({ text, link, onClick, mode }) {
           className="block gap-1"
         >
           <img
-            src="/img/icons/edit.png"
-            alt="Approve icon"
+            src="/img/icons/reject.png"
+            alt="Reject icon"
+            className="inline-block h-3 m-auto"
+          />
+          <span className="text-[#978B87] ms-3">{text || "Reject"}</span>
+        </a>
+      )}
+      {mode === "refund" && (
+        <a
+          rel="noopener noreferrer"
+          href={link}
+          onClick={onClick}
+          className="block gap-1"
+        >
+          <img
+            src="/img/icons/return.png"
+            alt="Refund icon"
             className="inline-block h-4 m-auto"
           />
-          <span className="text-[#978B87] ms-3">{text}</span>
+          <span className="text-[#978B87] ms-3">{text || "Refund"}</span>
+        </a>
+      )}
+
+      {mode === "refund_point" && (
+        <a
+          rel="noopener noreferrer"
+          href={link}
+          onClick={onClick}
+          className="block gap-1"
+        >
+          <img
+            src="/img/icons/return.png"
+            alt="Refund Point icon"
+            className="inline-block h-4 m-auto"
+          />
+          <span className="text-[#978B87] ms-3">{text || "Refund Point"}</span>
+        </a>
+      )}
+
+      {/* For any mode that doesn't match the above, display as View */}
+      {!["edit", "delete", "view", "history", "create", "approve", "reject", "refund", "refund_point"].includes(mode) && (
+        <a
+          rel="noopener noreferrer"
+          href={link}
+          onClick={onClick}
+          className="block gap-1"
+        >
+          <img
+            src="/img/icons/view.png"
+            alt="Generic icon"
+            className="inline-block h-4 m-auto"
+          />
+          <span className="text-[#978B87] ms-3">{text || "View"}</span>
         </a>
       )}
     </>

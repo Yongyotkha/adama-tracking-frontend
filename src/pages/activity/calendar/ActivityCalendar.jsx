@@ -80,14 +80,17 @@ export default function ActivityCalendar() {
 
   const receiveData = (data) => {
     if (data.saleId !== undefined) {
-      setUserId(data.saleId);
+      setUserId(data.saleId || "");
     }
 
     if (data.shopId !== undefined) {
-      setDealerId(data.shopId);
+      setDealerId(data.shopId || "");
     }
 
-    console.log("Updated data:", { saleId: data.saleId, shopId: data.shopId });
+    console.log("Updated data:", {
+      saleId: data.saleId,
+      shopId: data.shopId,
+    });
   };
 
   useEffect(() => {
@@ -110,13 +113,10 @@ export default function ActivityCalendar() {
         fetchEvents={(month, year) => {
           setCurrentMonth(month);
           setCurrentYear(year);
-          fetchEvents(month, year); // Trigger fetch with updated parameters
+          fetchEvents(month, year);
         }}
         loading={loading}
-        sendData={(data) => {
-          setUserId(data.saleId || ""); // Handle empty or undefined saleId
-          setDealerId(data.shopId || ""); // Handle empty or undefined shopId
-        }}
+        sendData={receiveData}
       />
 
     </MainLayout>

@@ -74,10 +74,19 @@ export default function SalesPointCreate() {
         const sales = res?.data || [];
         setDataSale(sales);
 
-        // ตั้งต้นจาก user login ถ้ายังไม่ได้มาจาก state
+        // ไม่ auto select sale แล้ว ให้เลือกเองทุก role
         if (!location.state?.data) {
-          const existing = sales.find((s) => String(s.id) === String(userInfo?.id));
-          if (existing) setDataSaleId(Number(userInfo.id));
+          setDataSaleId(undefined);
+          setDealerId(undefined);
+          setSubDealerId(undefined);
+          setDataDealer([]);
+          setSubDataDealer([]);
+
+          formCustom.setFieldsValue({
+            sale: undefined,
+            dealer: undefined,
+            sub_dealer: undefined,
+          });
         }
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -204,16 +213,24 @@ export default function SalesPointCreate() {
   // ===== Cascading onChange =====
   const handleChange = (field, value) => {
     if (field === "sale") {
-      // เลือก sale ใหม่ -> ล้าง dealer/subDealer & options ถัดไป
       setDataSaleId(value || undefined);
       setDealerId(undefined);
       setSubDealerId(undefined);
       setDataDealer([]);
       setSubDataDealer([]);
+
+      formCustom.setFieldsValue({
+        dealer: undefined,
+        sub_dealer: undefined,
+      });
     } else if (field === "dealer") {
       setDealerId(value || undefined);
       setSubDealerId(undefined);
       setSubDataDealer([]);
+
+      formCustom.setFieldsValue({
+        sub_dealer: undefined,
+      });
     } else if (field === "sub_dealer") {
       setSubDealerId(value || undefined);
     }
@@ -351,12 +368,12 @@ export default function SalesPointCreate() {
           product_code: data.product_code,
           product_name: data.product_name,
           product_unit: data.packing_list,
-          product_unit_thb: data.bath_unit_sale_point,
+          product_unit_thb: data.bath_unit,
           product_campaign_order_min_foc: data.product_campaign_order_min_foc,
           product_campaign_foc: data.product_campaign_foc,
           quantity: 1,
           foc: parseInt(1 / data.product_campaign_order_min_foc),
-          net_amount: (1 * parseFloat(String(data.bath_unit_sale_point).replace(/,/g, ""))).toFixed(2),
+          net_amount: (1 * parseFloat(String(data.bath_unit).replace(/,/g, ""))).toFixed(2),
           point: data.point,
         };
         const next = [...dataSource, newRow].map((i, idx) => ({ ...i, key: idx + 1, no: idx + 1 }));
@@ -387,6 +404,11 @@ export default function SalesPointCreate() {
     formCustom
       .validateFields()
       .then((values) => {
+        if (!fileList || fileList.length === 0) {
+          showMsg("error", "กรุณาแนบไฟล์หรือรูปภาพอย่างน้อย 1 รายการ");
+          return;
+        }
+
         const body = {
           document_date: values.order_date,
           user_id: dataSaleId,
@@ -398,7 +420,10 @@ export default function SalesPointCreate() {
           fileList,
           fileListReceive,
         };
-        navigate("/points/line/sales-points-list/detail", { state: { data: body } });
+
+        navigate("/points/line/sales-points-list/detail", {
+          state: { data: body },
+        });
       })
       .catch((e) => console.error("Validation Failed:", e));
   };
@@ -414,17 +439,19 @@ export default function SalesPointCreate() {
       type: "select",
       options: dataSale,
       disabled: false,
+      required: true,
       placeholder: "Select sales",
       moderef: true,
-      value: dataSaleId ?? undefined, // ใช้ undefined ถ้ายังไม่เลือก (กัน NaN)
+      value: dataSaleId ?? undefined,
     },
     {
       label: "Dealer",
       name: "dealer",
       type: "select",
       options: dataDealer,
-      disabled: !dataSaleId, // ต้องเลือก Sales ก่อน
-      placeholder: "Select dealer",
+      disabled: !dataSaleId,
+      required: true,
+      placeholder: dataSaleId ? "Select dealer" : "Please select sales first",
       moderef: false,
       value: dealerId ?? undefined,
     },
@@ -433,8 +460,9 @@ export default function SalesPointCreate() {
       name: "sub_dealer",
       type: "select",
       options: dataSubDealer,
-      disabled: !dealerId, // ต้องเลือก Dealer ก่อน
-      placeholder: "Select sub dealer",
+      disabled: !dealerId,
+      required: true,
+      placeholder: dealerId ? "Select sub dealer" : "Please select dealer first",
       moderef: false,
       value: subDealerId ?? undefined,
     },
@@ -492,6 +520,7 @@ export default function SalesPointCreate() {
         handleUploadClick={handleUploadClick}
         handleUploadSuccess={handleUploadSuccess}
         handleFileRemove={handleFileRemove}
+        required={true}
       />
 
       <UploadSection

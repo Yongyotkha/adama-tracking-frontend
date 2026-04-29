@@ -57,24 +57,34 @@ const FileUploadComponent = forwardRef((props, ref) => {
       <Upload
         listType="picture-card"
         fileList={fileList}
-        onPreview={handlePreview}
+        onPreview={mode === "view" ? handlePreview : handlePreview} // ถ้าจะปิด preview ทั้งหมด ดูข้อ (3)
         onChange={handleChange}
         showUploadList={{
           showRemoveIcon: mode !== "view",
+          showPreviewIcon: true, // ถ้าจะปิด preview ทั้งหมด ดูข้อ (3)
         }}
         onRemove={(file) => {
-          // Remove file from local state
-          setFileList((prev) => prev.filter((item) => item.uid !== file.uid));
+          // ✅ ไม่ให้เด้ง preview ค้าง
+          setPreviewOpen(false);
+          setPreviewImage("");
 
-          // Call parent callback to update parent state
-          if (onRemove && typeof onRemove === "function") {
-            onRemove(file);
+          // ✅ revoke object url (ไฟล์ที่มาจาก URL.createObjectURL)
+          if (file?.url?.startsWith("blob:")) {
+            URL.revokeObjectURL(file.url);
           }
 
-          return true; // Return true to remove the file from the UI
+          // ✅ อัปเดต local
+          setFileList((prev) => prev.filter((item) => item.uid !== file.uid));
+
+          // ✅ อัปเดต parent (สำคัญที่สุด)
+          if (typeof onRemove === "function") onRemove(file);
+
+          // ✅ ไม่ต้อง post อะไรตอนลบ (ไม่มีอยู่แล้ว)
+          return true;
         }}
         openFileDialogOnClick={false}
       />
+
       <input
         type="file"
         ref={hiddenFileInputRef}

@@ -37,7 +37,24 @@ export default function CollectPoints() {
     { id: "in_progress", label: "สินค้ารอยืนยันรับ", color: "border-orange-500" },
     { id: "pre_receive", label: "รับสินค้าล่วงหน้า", color: "border-green-500" },
   ];
-
+  const mapStatusText = (statusText) => {
+    if (statusText === "Waiting for Receive") {
+      return "รอยืนยันรับ";
+    } else if (statusText === "Complete") {
+      return "รับสินค้าสำเร็จ";
+    } else if (statusText === "Draft") {
+      return "แบบร่างรายการ";
+    } else if (statusText === "Waiting for Create") {
+      return "รอสร้างรายการ";
+    } else if (statusText === "Reject") {
+      return "ยกเลิกรายการ";
+    } else if (statusText === "Waiting for Approve") {
+      return "รอยืนยันรับ";
+    } else if (statusText === "Waiting for send") {
+      return "รอส่งสินค้า";
+    }
+    return statusText || "-";
+  };
   // -------------------- Fetch: IN PROGRESS (API เดิม) --------------------
   const fetchInProgress = async (setAsActiveList = false) => {
     setLoading(true);
@@ -74,11 +91,12 @@ export default function CollectPoints() {
         line_product: Number(item.line_product || 0),
         status_code: item.status_code,
         status_transaction_name: item.status_transaction_name,
+        status_transaction_bg_color: item.status_transaction_bg_color,
+        status_transaction_color: item.status_transaction_color,
         status_interface_name: item.status_interface_name,
         dealer_name: item.dealer_name,
         sub_dealer_name: item.sub_dealer_name,
         status_payment_name: item.status_payment_name,
-
       }));
       console.log('mapped : ', mapped)
       // ตามโจทย์: in_progress ใส่ข้อมูลทั้งหมด ไม่ต้องกรอง status_code
@@ -298,8 +316,8 @@ export default function CollectPoints() {
 
                       </div>
                       <div className="flex flex-col items-end text-right">
-                        <p className="sarabun-font text-sm font-semibold" style={{ color: "rgb(117, 33, 87)" }}>
-                          รอยืนยันรับ
+                        <p className="sarabun-font text-sm font-semibold" style={{ color: order.status_transaction_bg_color }}>
+                          {mapStatusText(order.status_transaction_name)}
                         </p>
                         <p className="text-gray-700 sarabun-font text-xs font-semibold mt-1">
                           {order.line_product} รายการ

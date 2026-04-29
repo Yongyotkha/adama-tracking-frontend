@@ -29,7 +29,7 @@ export default function EditOrder() {
   const [getUserId, setGetUserId] = useState("");
   const [getDealerId, setGetDealerId] = useState("");
   const [inputRemark, setInputRemark] = useState("");
-
+  const [editingPriceKeys, setEditingPriceKeys] = useState({});
   const [formCustom] = Form.useForm();
 
   // Get Data
@@ -60,7 +60,8 @@ export default function EditOrder() {
               no: prev.length + index + 1,
               key: prev.length + index + 1,
               quantity: parseInt(item.quantity),
-            })),
+              action: Array.isArray(item.action) ? item.action : [], // ✅ เพิ่มบรรทัดนี้
+            }))
           ];
         });
 
@@ -80,7 +81,7 @@ export default function EditOrder() {
             })),
           ];
         });
-        
+
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -90,6 +91,39 @@ export default function EditOrder() {
 
     loadDataOrderDetail();
   }, [])
+
+  const hasAction = (record, actionName) => {
+    return record?.action?.some(
+      (item) =>
+        String(item.action).toLowerCase() === actionName.toLowerCase()
+    );
+  };
+  const handleEditPrice = (key) => {
+    setEditingPriceKeys((prev) => ({
+      ...prev,
+      [key]: true,
+    }));
+  };
+
+  const handleUnitPriceChange = (key, value) => {
+    setDataSource((prev) =>
+      prev.map((item) => {
+        if (item.key === key) {
+          const quantity = item.quantity || 0;
+          const net_amount = (
+            quantity * parseFloat(value || 0)
+          ).toFixed(2);
+
+          return {
+            ...item,
+            product_unit_thb: value,
+            net_amount,
+          };
+        }
+        return item;
+      })
+    );
+  };
 
   // Open Modal
   const handleOpenTeamModal = () => {
@@ -109,12 +143,12 @@ export default function EditOrder() {
         // State for Order List table data
         const productData = [];
         otherProduct.data.data.map((data, index) => {
-          productData.push({ 
-            key: data.id, 
-            no: index + 1, 
-            name: data.name, 
-            unit: data.unit, 
-            value: data.value 
+          productData.push({
+            key: data.id,
+            no: index + 1,
+            name: data.name,
+            unit: data.unit,
+            value: data.value
           });
         })
 
@@ -145,10 +179,10 @@ export default function EditOrder() {
       const newRows = selectedRows.filter(
         (row) => !prev.some((getOtherProductData) => getOtherProductData.key === row.key)
       );
-      
+
       return [...prev, ...newRows];
     });
-    
+
     selectedRows.map((data, index) => {
       // State for Other table data
       const loadOtherProductDetail = async () => {
@@ -175,7 +209,7 @@ export default function EditOrder() {
               net_amount: otherProduct.data.value,
             },
           ]);
-          
+
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
         } finally {
@@ -191,7 +225,7 @@ export default function EditOrder() {
   const removeParticipant = (key) => {
     setGetOtherProductData(getOtherProductData.filter(item => item.key !== key));
   };
-  
+
   const formFieldData = [
     {
       label: "Sales",
@@ -253,7 +287,7 @@ export default function EditOrder() {
       })
     );
   };
-  
+
   const handleDeleteOtherRow = (key) => {
     setDataSourceOther(dataSourceOther.filter(item => item.key !== key));
   };
@@ -269,7 +303,33 @@ export default function EditOrder() {
     { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
     {
       title: "THB/Unit", dataIndex: "product_unit_thb", key: "product_unit_thb",
-      render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+      // render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+      render: (text, record) => {
+        const canEdit = hasAction(record, "Edit");
+        const isEditing = editingPriceKeys[record.key];
+
+        if (canEdit && isEditing) {
+          return (
+            <Input
+              value={record.product_unit_thb}
+              onChange={(e) =>
+                handleUnitPriceChange(record.key, e.target.value)
+              }
+              onBlur={() =>
+                setEditingPriceKeys((prev) => ({
+                  ...prev,
+                  [record.key]: false,
+                }))
+              }
+              className="border border-solid border-[#00783F] text-[#00783F] text-right w-28"
+            />
+          );
+        }
+
+        return parseFloat(text || 0).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+        });
+      }
     },
     {
       title: <div className="text-center">QTY (ctn)</div>,
@@ -307,15 +367,30 @@ export default function EditOrder() {
       render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 }),
     },
     {
-      title: <div className="text-center">Action</div>, key: "action", render: (_, record) =>
-        <button className="delete-button flex justify-center mx-auto">
-          <img
-            src="/img/icons/delete.png"
-            alt="delete"
-            className="cursor-pointer w-6 h-6"
-            onClick={() => setDataSource(dataSource.filter((item) => item.key !== record.key))}
-          />
-        </button>
+      title: <div className="text-center">Action</div>, key: "action",
+      render: (_, record) => (
+        <div className="flex justify-center items-center gap-3">
+          {hasAction(record, "Delete") && (
+            <img
+              src="/img/icons/delete.png"
+              alt="delete"
+              className="cursor-pointer w-6 h-6"
+              onClick={() =>
+                setDataSource(dataSource.filter((item) => item.key !== record.key))
+              }
+            />
+          )}
+
+          {hasAction(record, "Edit") && (
+            <img
+              src="/img/icons/edit.png"
+              alt="edit"
+              className="cursor-pointer w-6 h-6"
+              onClick={() => handleEditPrice(record.key)}
+            />
+          )}
+        </div>
+      )
     },
   ];
 
@@ -480,7 +555,7 @@ export default function EditOrder() {
           setLoading(false);
         }
       };
-  
+
       loadProducts();
     }
   };
@@ -504,8 +579,8 @@ export default function EditOrder() {
     //   others: dataSourceOther,
     // };
     formCustom
-    .validateFields()
-    .then((values) => {
+      .validateFields()
+      .then((values) => {
         // แปลงวันที่โดยใช้ฟังก์ชัน formatDate
         const formattedDate = formatDate(values.order_date);
         const body = {
@@ -556,16 +631,16 @@ export default function EditOrder() {
 
       <BoxPrimary title="Product">
         <div className="mb-3 flex justify-end">
-        <Select
-          showSearch
-          placeholder="Search Product"
-          optionFilterProp="label"
-          className="w-full"
-          value=""
-          onChange={onChangeProduct}
-          onSearch={onSearchProduct}
-          options={searchProductData}
-        />
+          <Select
+            showSearch
+            placeholder="Search Product"
+            optionFilterProp="label"
+            className="w-full"
+            value=""
+            onChange={onChangeProduct}
+            onSearch={onSearchProduct}
+            options={searchProductData}
+          />
         </div>
       </BoxPrimary>
 

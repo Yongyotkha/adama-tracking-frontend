@@ -10,7 +10,7 @@ import BadgeStatus from "../../../components/badge/BadgeStatus";
 import TableExpand from "../../../components/table/TableExpand";
 import { AuthContext } from "../../../contexts/AuthContext";
 import useServiceAPI from "../../../services/CorsService";
-import { paths } from "../../../services/CorsPath";
+import { paths, isUAT } from "../../../services/CorsPath";
 import TableCustomComponent from "../../../components/table/TableCustomComponent";
 import TableComponent from "../../../components/table/TableComponent";
 
@@ -38,8 +38,7 @@ export default function ActivityPlanList() {
     sortField: null,
   });
 
-  const endPoint = import.meta.env.VITE_API_BASE_URL;
-  const isUAT = endPoint === "https://api-uat.adama.co.th/api";
+
 
 
   const select_sale = (value) => {
@@ -90,8 +89,16 @@ export default function ActivityPlanList() {
             value: item.id,
             label: item.name,
           }));
+
+          // ✅ เลือกปีล่าสุดจาก label
+          const latest = [...formattedYearsOptions].sort((a, b) => {
+            const ay = Number(String(a.label).replace(/\D/g, "")) || 0;
+            const by = Number(String(b.label).replace(/\D/g, "")) || 0;
+            return by - ay;
+          })[0];
+
           setYears(formattedYearsOptions);
-          setSelectedYear(formattedYearsOptions[0].value);
+          setSelectedYear(latest?.value ?? null);
         }
         setStatus(status.data);
         setDealer(dealer.data);

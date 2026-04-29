@@ -32,8 +32,11 @@ export default function ActivityMapping() {
   const [locationMarkerIcon, setLocationMarkerIcon] = useState([]);
   const [locationWindowInfo, setlocationWindowInfo] = useState(null);
 
-  const [dataMapZoom, setDataMapZoom] = useState(10);
-  const [currentLocation, setCurrentLocation] = useState({ lat: 0.0, lng: 0.0 });
+  const [dataMapZoom, setDataMapZoom] = useState(6);
+  const [currentLocation, setCurrentLocation] = useState({
+    lat: 15.33899,
+    lng: 101.09336,
+  });
   const [currentLocationAddress] = useState("");
 
   const [searchOptions, setSearchOptions] = useState([]);
@@ -41,9 +44,41 @@ export default function ActivityMapping() {
 
   const mapContainerStyle = useMemo(() => ({ width: "100%", height: "100vh" }), []);
 
-  // -----------------------------
-  // ✅ Filters model (ประกาศก่อนใช้)
-  // -----------------------------
+  const toNumber = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const uniqById = (arr = []) =>
+    [...new Map(arr.map((item) => [String(item.id), item])).values()];
+
+  const getSaleTeamIds = (user) => {
+    if (!user) return [];
+
+    const saleTeam = Array.isArray(user.sale_team) ? user.sale_team : [];
+    const flatTeamIds = saleTeam.flatMap((group) =>
+      Array.isArray(group)
+        ? group.map((id) => Number(id)).filter(Boolean)
+        : [Number(group)].filter(Boolean)
+    );
+
+    const selfId = Number(user.sale_id);
+
+    return [...new Set([selfId, ...flatTeamIds].filter(Boolean))];
+  };
+
+  const getExpandedSelectedSales = (selectedSales = [], userStructure = []) => {
+    const selectedSaleNums = selectedSales.map((id) => Number(id)).filter(Boolean);
+
+    return [
+      ...new Set(
+        userStructure
+          .filter((user) => selectedSaleNums.includes(Number(user.sale_id)))
+          .flatMap((user) => getSaleTeamIds(user))
+      ),
+    ];
+  };
+
   const mockFilters = useMemo(
     () => [
       { key: 1, filter_type: "activity_type", filter_type_name: "Activity Type", data: activityType },
@@ -56,58 +91,55 @@ export default function ActivityMapping() {
     [activityType, dataSales, dataDealer, dataSubDealer, dataYear, dataMonths]
   );
 
-  // -----------------------------
-  // ✅ Auto-sync: Sales -> Dealer (จาก dataUserStructure)
-  // -----------------------------
   useEffect(() => {
     if (!dataUserStructure?.length) return;
 
-    const selectedSales = checkedFilters.sales || [];
-    const matchedDealers = dataUserStructure
-      .filter((user) => selectedSales.includes(user.sale_id))
-      .flatMap((user) => user.dealers.map((d) => ({ id: d.dealer_id, name: d.name })));
+    const expandedSaleIds = getExpandedSelectedSales(checkedFilters.sales || [], dataUserStructure);
 
-    const uniqueDealers = [...new Map(matchedDealers.map((d) => [d.id, d])).values()].sort((a, b) =>
-      a.name.localeCompare(b.name)
-    );
+    const matchedDealers = dataUserStructure
+      .filter((user) => expandedSaleIds.includes(Number(user.sale_id)))
+      .flatMap((user) =>
+        (user.dealers || []).map((d) => ({
+          id: d.dealer_id,
+          name: d.name,
+        }))
+      );
+
+    const uniqueDealers = uniqById(matchedDealers).sort((a, b) => a.name.localeCompare(b.name));
 
     setDataDealer(uniqueDealers);
 
-    // ✅ Auto-select dealer ตาม sales
     setCheckedFilters((prev) => ({
       ...prev,
       dealer: uniqueDealers.map((d) => d.id),
     }));
   }, [checkedFilters.sales, dataUserStructure]);
 
-  // -----------------------------
-  // ✅ Auto-sync: Dealer -> SubDealer (จาก dataUserStructure)
-  // -----------------------------
   useEffect(() => {
     if (!dataUserStructure?.length) return;
 
-    const selectedDealers = checkedFilters.dealer || [];
-    const matchedSubDealers = dataUserStructure
-      .flatMap((u) => u.dealers)
-      .filter((d) => selectedDealers.includes(d.dealer_id))
-      .flatMap((d) => d.sub_dealer.map((s) => ({ id: s.id, name: s.name })));
+    const selectedDealers = (checkedFilters.dealer || []).map(String);
 
-    const uniqueSubs = [...new Map(matchedSubDealers.map((s) => [s.id, s])).values()].sort((a, b) =>
-      a.name.localeCompare(b.name)
-    );
+    const matchedSubDealers = dataUserStructure
+      .flatMap((u) => u.dealers || [])
+      .filter((d) => selectedDealers.includes(String(d.dealer_id)))
+      .flatMap((d) =>
+        (d.sub_dealer || []).map((s) => ({
+          id: s.id,
+          name: s.name,
+        }))
+      );
+
+    const uniqueSubs = uniqById(matchedSubDealers).sort((a, b) => a.name.localeCompare(b.name));
 
     setDataSubDealer(uniqueSubs);
 
-    // ✅ Auto-select sub_dealer ตาม dealer
     setCheckedFilters((prev) => ({
       ...prev,
       sub_dealers: uniqueSubs.map((s) => s.id),
     }));
   }, [checkedFilters.dealer, dataUserStructure]);
 
-  // -----------------------------
-  // ✅ First load: fetch masters + mapping list
-  // -----------------------------
   useEffect(() => {
     const loadFirst = async () => {
       setLoading(true);
@@ -129,45 +161,60 @@ export default function ActivityMapping() {
           useServiceAPI.get(paths.pathMasterMonths, {}),
         ]);
 
+        const userStructure = userStruck.data || [];
+
         setDataMapping(mapping.data || []);
         setActivityType(activity.data || []);
-        setDataUserStructure(userStruck.data || []);
+        setDataUserStructure(userStructure);
         setDataArea(areas.data || []);
         setDataYear(years.data || []);
         setDataMonths(months.data || []);
 
-        // sales/dealer/subdealer จาก userStruck
-        const salesList = (userStruck.data || []).map((u, idx) => ({
+        const salesList = userStructure.map((u, idx) => ({
           key: idx,
           id: u.sale_id,
           name: u.name,
         }));
 
-        const dealerList = (userStruck.data || []).flatMap((u) =>
-          u.dealers.map((d) => ({ id: d.dealer_id, name: d.name }))
+        const dealerList = userStructure.flatMap((u) =>
+          (u.dealers || []).map((d) => ({
+            id: d.dealer_id,
+            name: d.name,
+          }))
         );
 
-        const subDealerList = (userStruck.data || []).flatMap((u) =>
-          u.dealers.flatMap((d) => d.sub_dealer.map((s) => ({ id: s.id, name: s.name })))
+        const subDealerList = userStructure.flatMap((u) =>
+          (u.dealers || []).flatMap((d) =>
+            (d.sub_dealer || []).map((s) => ({
+              id: s.id,
+              name: s.name,
+            }))
+          )
         );
 
-        const uniqDealer = [...new Map(dealerList.map((x) => [x.id, x])).values()].sort((a, b) =>
-          a.name.localeCompare(b.name)
-        );
-        const uniqSub = [...new Map(subDealerList.map((x) => [x.id, x])).values()].sort((a, b) =>
-          a.name.localeCompare(b.name)
-        );
+        const uniqDealer = uniqById(dealerList).sort((a, b) => a.name.localeCompare(b.name));
+        const uniqSub = uniqById(subDealerList).sort((a, b) => a.name.localeCompare(b.name));
 
         setDataSales(salesList);
         setDataDealer(uniqDealer);
         setDataSubDealer(uniqSub);
 
+        const yearList = years.data || [];
+        const latestYearId =
+          yearList.length > 0
+            ? [...yearList].sort((a, b) => {
+                const ay = Number(String(a.name ?? a.id).replace(/\D/g, "")) || 0;
+                const by = Number(String(b.name ?? b.id).replace(/\D/g, "")) || 0;
+                return by - ay;
+              })[0]?.id
+            : null;
+
         const initialFilters = {
           activity_type: (activity.data || []).map((i) => i.id),
           sales: salesList.map((i) => i.id),
-          dealer: dealerList.map((i) => i.id),
-          sub_dealers: subDealerList.map((i) => i.id),
-          year: (years.data || []).length > 0 ? [years.data[0].id] : [],
+          dealer: uniqDealer.map((i) => i.id),
+          sub_dealers: uniqSub.map((i) => i.id),
+          year: latestYearId ? [latestYearId] : [],
           month: (months.data || []).map((i) => i.id),
           area: (areas.data || []).map((i) => i.id),
         };
@@ -183,35 +230,40 @@ export default function ActivityMapping() {
     loadFirst();
   }, []);
 
-  // -----------------------------
-  // ✅ Load mapping by filters (client-side filter)
-  // -----------------------------
   const loadDataMappingList = async (filters) => {
     setLoading(true);
     try {
       const activityTypeIds = Array.isArray(filters.activity_type) ? filters.activity_type : [];
+      const selectedSales = Array.isArray(filters.sales) ? filters.sales : [];
       const subDealerIds = Array.isArray(filters.sub_dealers) ? filters.sub_dealers : [];
       const yearIds = Array.isArray(filters.year) ? filters.year.map(String) : [];
       const monthIds = Array.isArray(filters.month) ? filters.month.map(String) : [];
 
-      // ✅ Priority 1: ถ้าไม่เลือก Activity Type → ไม่แสดง
       if (activityTypeIds.length === 0) {
         setLocations([]);
         setlocationWindowInfo(null);
         return;
       }
 
-      // ✅ Priority 2: ถ้าไม่เลือก Year → ไม่แสดง
       if (yearIds.length === 0) {
         setLocations([]);
         setlocationWindowInfo(null);
         return;
       }
 
+      const expandedSaleIds = getExpandedSelectedSales(selectedSales, dataUserStructure);
 
-      let filtered = dataMapping;
+      let filtered = dataMapping || [];
 
-      // YEAR ก่อน
+      if (expandedSaleIds.length > 0) {
+        filtered = filtered.filter((item) => {
+          const itemSaleId = Number(item.sale_id ?? item.user_id);
+          return expandedSaleIds.includes(itemSaleId);
+        });
+      } else {
+        filtered = [];
+      }
+
       if (yearIds.length > 0) {
         filtered = filtered.filter((item) => {
           const itemYear = String(item.year ?? new Date(item.document_date).getFullYear());
@@ -219,15 +271,14 @@ export default function ActivityMapping() {
         });
       }
 
-      // sub dealer
       if (subDealerIds.length > 0) {
-        filtered = filtered.filter((item) => subDealerIds.includes(item.sub_dealer_id));
+        filtered = filtered.filter((item) => subDealerIds.map(String).includes(String(item.sub_dealer_id)));
       }
 
-      // ✅ activity type (ตอนนี้บังคับแล้วว่า length > 0 เสมอ)
-      filtered = filtered.filter((item) => activityTypeIds.includes(item.activity_type_id));
+      filtered = filtered.filter((item) =>
+        activityTypeIds.map(String).includes(String(item.activity_type_id))
+      );
 
-      // month หลัง year
       if (monthIds.length > 0) {
         filtered = filtered.filter((item) => {
           const docMonth = new Date(item.document_date).getMonth() + 1;
@@ -259,6 +310,7 @@ export default function ActivityMapping() {
           assing_user_list: d.assing_user_list ?? [],
           sub_dealer_id: d.sub_dealer_id,
           sub_dealer_name: d.sub_dealer_name,
+          sale_id: d.sale_id ?? d.user_id,
         }))
       );
     } finally {
@@ -266,7 +318,6 @@ export default function ActivityMapping() {
     }
   };
 
-  // โหลดเมื่อ filter พร้อม + เปลี่ยนค่า
   useEffect(() => {
     const filtersReady = mockFilters.every((f) => Array.isArray(f.data) && f.data.length > 0);
     if (!filtersReady) {
@@ -279,40 +330,31 @@ export default function ActivityMapping() {
     }
     loadDataMappingList(checkedFilters);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [checkedFilters, mockFilters, dataMapping]);
+  }, [checkedFilters, mockFilters, dataMapping, dataUserStructure]);
 
-  // -----------------------------
-  // ✅ Markers state
-  // -----------------------------
   useEffect(() => {
     if (locations.length > 0) {
       setLocationMarkerIcon(
         locations.map((d, idx) => ({
           key: idx + 1,
           document_number: d.document_number,
-
           lat: d.lat,
           lng: d.lng,
-
           address: d.address,
           remark: d.remark,
           description: d.description,
-
           activity_type_name: d.activity_type_name,
           dealer_name: d.dealer_name,
           dealer_id: d.dealer_id,
           area_name: d.area_name,
-
           activity_image: d.activity_image,
           activity_image_location: d.activity_image_location,
-
           crop_id_list: d.crop_id_list,
           document_date_display: d.document_date_display,
           assing_user_list: d.assing_user_list,
-
-          // ✅ เพิ่ม
           sub_dealer_id: d.sub_dealer_id,
           sub_dealer_name: d.sub_dealer_name,
+          sale_id: d.sale_id,
         }))
       );
     } else {
@@ -320,25 +362,6 @@ export default function ActivityMapping() {
     }
   }, [locations]);
 
-  // -----------------------------
-  // ✅ Current GPS location
-  // -----------------------------
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = parseFloat(pos.coords.latitude);
-        const lng = parseFloat(pos.coords.longitude);
-        setCurrentLocation({ lat, lng });
-      },
-      (err) => console.error("Error getting current location:", err)
-    );
-  }, [dataMapping]);
-
-  // -----------------------------
-  // ✅ Master "Check All"
-  // -----------------------------
   const toggleAll = (isChecked) => {
     if (!isChecked) {
       setCheckedFilters({});
@@ -358,7 +381,6 @@ export default function ActivityMapping() {
     setIsAllChecked(true);
   };
 
-  // update isAllChecked
   useEffect(() => {
     const allSelected = mockFilters.every((cat) => {
       const total = (cat.data || []).map((x) => x.id);
@@ -369,9 +391,6 @@ export default function ActivityMapping() {
     setIsAllChecked(allSelected);
   }, [checkedFilters, mockFilters]);
 
-  // -----------------------------
-  // ✅ Search box
-  // -----------------------------
   const handleSearch = (text) => {
     if (!text) {
       setSearchOptions([]);
@@ -393,16 +412,13 @@ export default function ActivityMapping() {
     setDataMapZoom(15);
   };
 
-  // -----------------------------
-  // ✅ Render
-  // -----------------------------
   return (
     <MainLayout loading={loading}>
       <Layout>
-        {/* Filter */}
         <div
-          className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${isFilterCollapsed ? "max-h-12" : "max-h-[600px] overflow-y-auto"
-            }`}
+          className={`absolute z-20 left-5 top-[8.5rem] bg-white shadow-lg rounded-md transition-all duration-300 overflow-hidden ${
+            isFilterCollapsed ? "max-h-12" : "max-h-[600px] overflow-y-auto"
+          }`}
           style={{ width: "300px" }}
         >
           <div
@@ -416,7 +432,6 @@ export default function ActivityMapping() {
             <Button type="text" icon={isFilterCollapsed ? <DownOutlined /> : <UpOutlined />} />
           </div>
 
-          {/* Search */}
           <div className="w-full my-2 px-2">
             <DynamicAutoComplete
               options={searchOptions}
@@ -435,7 +450,6 @@ export default function ActivityMapping() {
               </Checkbox>
             </div>
 
-            {/* ✅ ทุกหัวข้อมี check all */}
             <Collapse defaultActiveKey={["Activity Type"]} className="rounded-lg border-0">
               {mockFilters.map((category) => {
                 const selected = checkedFilters[category.filter_type] || [];
@@ -479,7 +493,6 @@ export default function ActivityMapping() {
           </div>
         </div>
 
-        {/* Map */}
         <Layout>
           <Content>
             <LoadScript googleMapsApiKey={dataApiKey}>
@@ -511,8 +524,6 @@ export default function ActivityMapping() {
                         remark: loc.remark,
                         address: loc.address,
                         document_number: loc.document_number,
-
-                        // ✅ เพิ่ม
                         sub_dealer_id: loc.sub_dealer_id,
                         sub_dealer_name: loc.sub_dealer_name,
                       });
@@ -527,7 +538,6 @@ export default function ActivityMapping() {
                     options={{ pixelOffset: new window.google.maps.Size(0, -30) }}
                   >
                     <div>
-                      {/* Header + View icon (new tab) */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img src={locationWindowInfo.url_img} className="w-6 h-6" alt="" />
                         {locationWindowInfo.title}
@@ -546,19 +556,16 @@ export default function ActivityMapping() {
                         />
                       </div>
 
-                      {/* Dealer */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img src="/img/icons/shop.png" className="w-6 h-6" alt="" />
                         {locationWindowInfo.dealer_name || "No Dealer Name"}
                       </div>
 
-                      {/* ✅ SubDealer แทน Address */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img src="/img/icons/location.png" className="w-6 h-6" alt="" />
                         {locationWindowInfo.sub_dealer_name || "No Sub Dealer"}
                       </div>
 
-                      {/* Crops */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img src="/img/icons/crops.png" className="w-6 h-6" alt="" />
                         {Array.isArray(locationWindowInfo.crop_list) && locationWindowInfo.crop_list.length > 0
@@ -566,22 +573,19 @@ export default function ActivityMapping() {
                           : "No Crops Listed"}
                       </div>
 
-                      {/* Date */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img src="/img/icons/calendar.png" className="w-6 h-6" alt="" />
                         {locationWindowInfo.document_date_display || "No Date Available"}
                       </div>
 
-                      {/* Description */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <img src="/img/icons/details.png" className="w-6 h-6" alt="" />
                         {locationWindowInfo.remark || "No Description"}
                       </div>
 
-                      {/* Assigned users */}
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         {Array.isArray(locationWindowInfo.assing_user_list) &&
-                          locationWindowInfo.assing_user_list.length > 0 ? (
+                        locationWindowInfo.assing_user_list.length > 0 ? (
                           locationWindowInfo.assing_user_list.map((user) => (
                             <div key={user.id} className="flex items-center gap-2">
                               <img

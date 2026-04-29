@@ -18,13 +18,10 @@ export default function FarmerList() {
   const navigate = useNavigate();
   const [tableLoading, setTableLoading] = useState(false);
   const [Status, setStatus] = useState([]);
-  const [Position, setPosition] = useState([]); // ยังไม่ใช้ แต่คงไว้ตามโค้ดเดิม
   const { showMsg, showNotification, userInfo } = useContext(AuthContext);
+
   const [tableParams, setTableParams] = useState({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-    },
+    pagination: { current: 1, pageSize: 10, total: 0 },
     filters: {},
     sortOrder: null,
     sortField: null,
@@ -34,51 +31,47 @@ export default function FarmerList() {
   const [dealerList, setDataDealer] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
   const [farmList, setFarmList] = useState([]);
+  const [targetList, setTargetList] = useState([]); // ✅ NEW
+
   const [filterValues, setFilterValues] = useState({});
 
-  // ---------- Load masters: Status, Sales, DealerAll, SubDealerAll, FarmerAll ----------
+  // ---------- Load masters ----------
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [
-          dataStatus,
-          sales,
-          dealerRes,
-          subDealerRes,
-          farmerRes,
-        ] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterStatus, {
-            status_type: "status",
-          }),
+        const [dataStatus, sales, dealerRes, subDealerRes, farmerRes, targetRes] = await Promise.all([
+          useServiceAPI.get(paths.pathMasterStatus, { status_type: "status" }),
           useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
           useServiceAPI.get(paths.pathMasterDealerAll, {}),
           useServiceAPI.get(paths.pathMasterSubDealerAll, {}),
-          useServiceAPI.get(paths.pathMasterFarmer, {}),   // <-- ดึง Farmer ทั้งหมด
+          useServiceAPI.get(paths.pathMasterFarmer, {}),
+          useServiceAPI.get(paths.pathMasterTarget, { user_type: 3 }), // ✅ NEW
         ]);
 
-        const StatusArr = (dataStatus.data || []).map((data) => ({
-          id: data.code,
-          name: data.name,
+        setStatus((dataStatus?.data || []).map((d) => ({ id: d.code, name: d.name })));
+        setSaleList(sales?.data || []);
+        setDataDealer(dealerRes?.data || []);
+
+        setSubDealerList(
+          (subDealerRes?.data || []).map((item) => ({
+            name: item.sub_dealer_name,
+            id: item.sub_dealer_id,
+          }))
+        );
+
+        setFarmList(
+          (farmerRes?.data || []).map((item) => ({
+            id: item.farmer_id,
+            name: item.farmer_name || item.farmer_id,
+          }))
+        );
+
+        const targets = (targetRes?.data || []).map((x) => ({
+          id: x.id ?? x.target_group_id ?? x.code,
+          name: x.name ?? x.target_group_name ?? x.title,
         }));
-        setStatus(StatusArr);
-
-        setSaleList(sales.data || []);
-        setDataDealer(dealerRes.data || []);
-
-        const formattedSubDealer = (subDealerRes.data || []).map((item) => ({
-          name: item.sub_dealer_name,
-          id: item.sub_dealer_id,
-        }));
-        setSubDealerList(formattedSubDealer);
-
-        // 👇 สำคัญ: map ให้ name = farmer_name
-        const formattedFarmers = (farmerRes.data || []).map((item) => ({
-          id: item.farmer_id,
-          name: item.farmer_name || item.farmer_id, // กันกรณีชื่อว่าง
-        }));
-        setFarmList(formattedFarmers);
-
+        setTargetList(targets);
       } catch (error) {
         console.log(error);
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -107,28 +100,11 @@ export default function FarmerList() {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
-    console.log("filterValues : ", filterValues);
 
-    // ✅ แปลงค่าจาก Filter เผื่อเป็น object { value, label }
-    const sale =
-      typeof filterValues.sale === "object" && filterValues.sale?.value
-        ? filterValues.sale.value
-        : filterValues.sale;
-
-    const dealer =
-      typeof filterValues.dealers === "object" && filterValues.dealers?.value
-        ? filterValues.dealers.value
-        : filterValues.dealers;
-
-    const shop =
-      typeof filterValues.shop === "object" && filterValues.shop?.value
-        ? filterValues.shop.value
-        : filterValues.shop;
-
-    const farmer =
-      typeof filterValues.farmers === "object" && filterValues.farmers?.value
-        ? filterValues.farmers.value
-        : filterValues.farmers;
+    const sale = typeof filterValues.sale === "object" && filterValues.sale?.value ? filterValues.sale.value : filterValues.sale;
+    const dealer = typeof filterValues.dealers === "object" && filterValues.dealers?.value ? filterValues.dealers.value : filterValues.dealers;
+    const shop = typeof filterValues.shop === "object" && filterValues.shop?.value ? filterValues.shop.value : filterValues.shop;
+    const farmer = typeof filterValues.farmers === "object" && filterValues.farmers?.value ? filterValues.farmers.value : filterValues.farmers;
 
     const requestData = {
       keyword: filters.keyword || "",
@@ -137,68 +113,49 @@ export default function FarmerList() {
       sale_id: sale || "",
       dealer_id: dealer || "",
       sub_dealer_id: shop || "",
-      farmer_id: farmer || "",          // ✅ ส่งเป็น id ตามเดิม
+      farmer_id: farmer || "",
+      target_group_id: filters.target_group_id || "", // ✅ NEW
       page_length: current,
       page_size: pageSize,
       user_id: userInfo.id,
     };
 
-    console.log("requestData : ", requestData);
-
     try {
-      const response = await useServiceAPI.get(
-        paths.pathCustomerFarmers,
-        requestData
-      );
+      const response = await useServiceAPI.get(paths.pathCustomerFarmers, requestData);
 
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
-        const newDataSource = data.map((data, index) => ({
+
+        const newDataSource = (data || []).map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-          code: data.dealer_code || "-",
-          dealerName: data.dealer_name_en || "-",
-          sub_dealer_name: data.sub_dealer_name || "-",
-          Name: data.name || "-",
-          address: data.address,
-          contactName: data.contact_name,
-          mobilePhone: data.mobile_phone || "-",
-          groupCode: data.group_code,
+          code: row.dealer_code || "-",
+          dealerName: row.dealer_name_en || "-",
+          sub_dealer_name: row.sub_dealer_name || "-",
+          Name: row.name || "-",
+          address: row.address,
+          contactName: row.contact_name,
+          mobilePhone: row.mobile_phone || "-",
+          groupCode: row.group_code,
+          targetGroupName: row.target_group_name || "-", // ✅ NEW
           status: (
-            <BadgeStatus
-              text={data.status_name}
-              bgColor={data.status_bg_color}
-              textColor={data.status_color}
-            />
+            <BadgeStatus text={row.status_name} bgColor={row.status_bg_color} textColor={row.status_color} />
           ),
           action: (
             <Dropdown
               menu={{
-                items: data.action.map((actionItem, actionIndex) => ({
+                items: (row.action || []).map((actionItem, actionIndex) => ({
                   key: actionIndex,
                   label: (
                     <ItemDropDown
                       mode={actionItem.action.toLowerCase()}
                       onClick={() => {
-                        if (actionItem.action.toLowerCase() === "edit") {
+                        const mode = actionItem.action.toLowerCase();
+                        if (mode === "edit" || mode === "view") {
                           navigate("/customer/farmers/create", {
-                            state: {
-                              id: data.id,
-                              mod: actionItem.action,
-                            },
+                            state: { id: row.id, mod: actionItem.action },
                           });
-                        } else if (
-                          actionItem.action.toLowerCase() === "view"
-                        ) {
-                          navigate("/customer/farmers/create", {
-                            state: {
-                              id: data.id,
-                              mod: actionItem.action,
-                            },
-                          });
-                        } else if (
-                          actionItem.action.toLowerCase() === "delete"
-                        ) {
-                          handleDeleteItem(data.id);
+                        } else if (mode === "delete") {
+                          handleDeleteItem(row.id);
                         }
                       }}
                     />
@@ -208,11 +165,7 @@ export default function FarmerList() {
               placement="bottom"
             >
               <a onClick={(e) => e.preventDefault()}>
-                <img
-                  src="/img/icons/action.png"
-                  alt="button icon"
-                  className="inline-block w-5 h-5 mr-2"
-                />
+                <img src="/img/icons/action.png" alt="button icon" className="inline-block w-5 h-5 mr-2" />
               </a>
             </Dropdown>
           ),
@@ -221,10 +174,7 @@ export default function FarmerList() {
         setDataSource(newDataSource);
         setTableParams((prev) => ({
           ...prev,
-          pagination: {
-            ...prev.pagination,
-            total: records_filtered,
-          },
+          pagination: { ...prev.pagination, total: records_filtered || 0 },
         }));
       }
     } catch (error) {
@@ -234,59 +184,26 @@ export default function FarmerList() {
     }
   };
 
-  const filters = [
+  const filtersUI = [
+    { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
+    { key: "dealers", type: "select", label: "Dealer", placeholder: "All", options: dealerList, moderef: true },
+    { key: "shop", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerList },
+    { key: "farmers", type: "select", label: "Farmer", placeholder: "All", options: farmList, moderef: true },
     {
-      key: "sale",
+      key: "target_group_id", // ✅ NEW
       type: "select",
-      label: "Sales",
+      label: "Target",
       placeholder: "All",
-      options: saleList,
-      moderef: true,
+      options: targetList,
     },
-    {
-      key: "dealers",
-      type: "select",
-      label: "Dealer",
-      placeholder: "All",
-      options: dealerList,
-      moderef: true,
-    },
-    {
-      key: "shop",
-      type: "select",
-      label: "Sub Dealer",
-      placeholder: "All",
-      options: subDealerList,
-    },
-    {
-      key: "farmers",
-      type: "select",
-      label: "Farmer",
-      placeholder: "All",
-      options: farmList,
-      moderef: true,
-    },
-    {
-      key: "use_flag",
-      label: "Status",
-      type: "select",
-      options: Status,
-    },
+    { key: "use_flag", label: "Status", type: "select", placeholder: "All", options: Status },
   ];
 
   const handleSearch = (filtersFromUI) => {
     setTableParams((prev) => ({
       ...prev,
-      pagination: {
-        ...prev.pagination,
-        current: 1,
-        pageSize: 10,
-      },
-      filters: {
-        ...filtersFromUI,
-        page_length: 1,
-        page_size: 10,
-      },
+      pagination: { ...prev.pagination, current: 1, pageSize: 10 },
+      filters: { ...filtersFromUI, page_length: 1, page_size: 10 },
     }));
     setFilterValues(filtersFromUI);
   };
@@ -296,82 +213,51 @@ export default function FarmerList() {
     setTableParams((prev) => ({
       ...prev,
       filters: {},
-      pagination: {
-        ...prev.pagination,
-        current: 1,
-      },
+      pagination: { ...prev.pagination, current: 1 },
     }));
   };
 
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
-    {
-      title: "Dealer Name",
-      width: 200,
-      dataIndex: "dealerName",
-      align: "left",
-    },
-    {
-      title: "Sub Dealer Name",
-      width: 200,
-      dataIndex: "sub_dealer_name",
-      align: "left",
-    },
+    { title: "Dealer Name", width: 200, dataIndex: "dealerName", align: "left" },
+    { title: "Sub Dealer Name", width: 200, dataIndex: "sub_dealer_name", align: "left" },
     { title: "Farmer Name", width: 200, dataIndex: "Name", align: "left" },
-    {
-      title: "Contact Name",
-      width: 200,
-      dataIndex: "contactName",
-      align: "left",
-    },
-    {
-      title: "Contact Number",
-      width: 150,
-      dataIndex: "mobilePhone",
-      align: "center",
-    },
+    { title: "Contact Name", width: 200, dataIndex: "contactName", align: "left" },
+    { title: "Contact Number", width: 150, dataIndex: "mobilePhone", align: "center" },
     { title: "Address", width: 300, dataIndex: "address", align: "left" },
+    { title: "Group Code", width: 150, dataIndex: "groupCode", align: "center" },
+    { title: "Target Group", width: 180, dataIndex: "targetGroupName", align: "left" }, // ✅ NEW
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
-  const handleTableChange = (pagination, filters, sorter) => {
+  const handleTableChange = (pagination, _filters, sorter) => {
     setTableParams((prev) => ({
       ...prev,
       pagination,
       filters: prev.filters,
-      sortOrder: sorter.order === "descend" ? "desc" : "asc",
-      sortField: sorter.field,
+      sortOrder: sorter?.order === "descend" ? "desc" : "asc",
+      sortField: sorter?.field,
     }));
   };
 
-  const handleDeleteItem = async (record) => {
+  const handleDeleteItem = async (id) => {
     try {
-      const requestData = {
-        id: record,
-      };
-
-      const response = await useServiceAPI.delete(
-        paths.pathCustomerFarmersDelete,
-        requestData
-      );
+      const response = await useServiceAPI.delete(paths.pathCustomerFarmersDelete, { id });
 
       if (response.status === 200) {
         fetchData();
         showNotification("success", response.message, response.message_line);
       } else {
-        console.error("Failed to delete record:", response.message);
         showNotification("error", response.message, response.message_line);
       }
     } catch (error) {
-      console.error("Error deleting record:", error);
       showNotification("error", error.message, error.message_line);
     }
   };
 
-  const handleChange = (filter) => {
-    console.log("filter : ", filter);
-    setFilterValues(filter);
+  const handleChange = (vals) => {
+    setFilterValues(vals);
   };
 
   return (
@@ -381,22 +267,11 @@ export default function FarmerList() {
         <ActionButton
           text="Create"
           mode="create"
-          onClick={() =>
-            navigate("/customer/farmers/create", {
-              state: {
-                mod: "create",
-              },
-            })
-          }
+          onClick={() => navigate("/customer/farmers/create", { state: { mod: "create" } })}
         />
       </div>
 
-      <Filter
-        onSearch={handleSearch}
-        onClear={handleClear}
-        onChange={handleChange}
-        filters={filters}
-      />
+      <Filter onSearch={handleSearch} onClear={handleClear} onChange={handleChange} filters={filtersUI} />
 
       <BoxPrimary>
         <TableComponent

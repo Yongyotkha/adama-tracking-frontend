@@ -107,7 +107,7 @@ export default function PointHistoryDetail() {
         qty,
         product_name: p?.product_name ?? "-",
         product_code: p?.product_code ?? "-",
-        packing_list: p?.packing_list ?? "-",
+        product_unit: p?.product_unit ?? "-",
         amount,
         amount_display: nf(amount),
         points: p?.points ?? {},
@@ -200,7 +200,7 @@ export default function PointHistoryDetail() {
                           {item.qty} × {item.product_name}
                         </p>
                         <p className="text-[11px] text-gray-500 sarabun-font mt-0.5">
-                          บรรจุ: {item.packing_list}
+                          บรรจุ: {item.product_unit}
                         </p>
                       </div>
 
@@ -209,17 +209,20 @@ export default function PointHistoryDetail() {
                     {/* คะแนนต่อบรรทัด */}
                     {/* คะแนนต่อบรรทัด — UPDATED: ไม่แบ่งครึ่ง, ชิดซ้าย */}
                     <div className="mt-2 space-y-1 text-[12px] text-gray-600 sarabun-font">
+
                       <div className="flex justify-between">
                         <span>คะแนน</span>
                         <span className="font-medium">{nf(item.master_point)}</span>
                       </div>
+
                       {item.x_point > 0 && (
                         <div className="flex justify-between">
                           <span>คะแนนโบนัส</span>
                           <span className="font-medium">{nf(item.x_point)}</span>
                         </div>
                       )}
-                      {item.extra_point > 0 && (
+                      
+                      {/* {item.extra_point > 0 && (
                         <div className="flex justify-between">
                           <span>Extra (Point)</span>
                           <span className="font-medium">{nf(item.extra_point)}</span>
@@ -230,7 +233,7 @@ export default function PointHistoryDetail() {
                           <span>Extra (Value)</span>
                           <span className="font-medium">{nf(item.extra_value)}</span>
                         </div>
-                      )}
+                      )} */}
                       {/* {Number(item?.points?.check_point ?? 0) > 0 && (
                         <div className="flex justify-between">
                           <span>Check Point</span>

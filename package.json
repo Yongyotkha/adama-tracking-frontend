@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node -e \"require('fs').writeFileSync('dist/version.json', JSON.stringify({version: new Date().toLocaleString('sv').replace(/[^0-9]/g, '').slice(0, 12)}))\"",
     "lint": "eslint .",
     "preview": "vite preview"
   },

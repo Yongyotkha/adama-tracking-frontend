@@ -9,6 +9,7 @@ import { paths } from "../../../../services/CorsPath";
 import ActionButton from "../../../../components/button/ActionButton";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../../../contexts/AuthContext";
+import TableComponent from "../../../../components/table/TableComponent";
 
 export default function ViewOrEditTargetGroup() {
   const navigate = useNavigate();
@@ -370,11 +371,15 @@ export default function ViewOrEditTargetGroup() {
             </div>
           )}
         </div>
-        <TableCheckbox
+        <TableComponent
           header={getColumns()}
           dataSource={dataSource}
           rowSelection={rowSelection}
-          pageSize={10}
+          // pageSize={10}
+          pagination={false}           // ✅ ไม่แบ่งหน้า
+          scroll                         // หรือไม่ใส่ก็ได้ถ้าจะใช้ scrollX default
+          scrollY="45vh"                 // ✅ เปิด scroll แนวตั้ง
+          scrollX={true}                 // แนวนอน (optional)
         />
       </BoxPrimary>
 

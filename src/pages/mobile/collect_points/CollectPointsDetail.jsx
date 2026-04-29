@@ -66,7 +66,7 @@ export default function CollectPointsDetail() {
       qty: Number(p?.quantity ?? 0),
       product_name: p?.product_name ?? "-",
       product_code: p?.product_code ?? "-",
-      packing_list: p?.packing_list ?? "-",
+      product_unit: p?.product_unit ?? "-",
       points: p?.points ?? [],
       point: p?.point ?? "-",
       amount: Number(p?.net_amount ?? 0),
@@ -79,6 +79,14 @@ export default function CollectPointsDetail() {
     }))
     : [];
 
+  // คะแนนสะสมจาก Extra (point + value) ของทั้งบิล
+  const totalExtraAccum = products.reduce((sum, item) => {
+    const extraPoint = (item.points?.point_extra_point || []).reduce((a, b) => a + Number(b || 0), 0);
+    const extraValue = (item.points?.point_extra_value || []).reduce((a, b) => a + Number(b || 0), 0);
+    return sum + extraPoint + extraValue;
+  }, 0);
+
+  const totalExtraAccumDisplay = Number(totalExtraAccum).toLocaleString("th-TH");
 
   const totalQtyPoint = products.reduce(
     (sum, item) => sum + item.points.check_point,
@@ -116,6 +124,10 @@ export default function CollectPointsDetail() {
     statusText = 'รอสร้างรายการ'
   } else if (statusText == 'Reject') {
     statusText = 'ยกเลิกรายการ'
+  } else if (statusText == 'Waiting for Approve') {
+    statusText = 'รอยืนยันรับ'
+  } else if (statusText == 'Waiting for send') {
+    statusText = 'รอส่งสินค้า'
   }
 
   const statusTextColor = historydetail?.status_transaction_color || "#0ea5a0";
@@ -202,7 +214,7 @@ export default function CollectPointsDetail() {
 
                       <div className="flex-1">
                         <p>{item.qty} x {item.product_name}</p>
-                        <p className="text-xs text-gray-500">บรรจุ : {item.packing_list}</p>
+                        <p className="text-xs text-gray-500">บรรจุ : {item.product_unit}</p>
 
                         {(item.points.standard_point) > 0 && (
                           <p className="text-xs text-gray-500">
@@ -216,7 +228,7 @@ export default function CollectPointsDetail() {
                           </p>
                         )}
 
-                        {(item.points?.point_extra_value?.length ?? 0) > 0 && (
+                        {/* {(item.points?.point_extra_value?.length ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
                             Extra Value : {(item.points?.point_extra_value || []).reduce((a, b) => a + b, 0)}
                           </p>
@@ -226,7 +238,7 @@ export default function CollectPointsDetail() {
                           <p className="text-xs text-gray-500">
                             Extra Point : {(item.points?.point_extra_point || []).reduce((a, b) => a + b, 0)}
                           </p>
-                        )}
+                        )} */}
                       </div>
                     </div>
                     {/* <p className="w-20 text-right">{item.amount_display}</p> */}
@@ -296,7 +308,10 @@ export default function CollectPointsDetail() {
                 <p className="sarabun-font">คะแนนโบนัส</p>
                 <p>{Number((totalQtyPoint ?? 0)).toLocaleString("th-TH")}</p>
               </div>
-
+              <div className="flex justify-between font-semibold mt-1">
+                <p className="sarabun-font">ปิดแคมเปญ</p>
+                <p>{Number((totalExtraAccumDisplay ?? 0)).toLocaleString("th-TH")}</p>
+              </div>
               <div className="flex justify-between font-semibold text-lg text-green-700 mt-1 hidden">
                 <p className="sarabun-font">ยอดรวมสุทธิ (บาท)</p>
                 <p>{totalPriceDisplay}</p>

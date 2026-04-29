@@ -15,7 +15,7 @@ import ActionButton from "../button/ActionButton";
 import BadgeStatus from "../badge/BadgeStatus";
 import FormMappingModal from "../modal/FormMappingModal";
 
-const Calendar = ({ events, fetchEvents, loading, sendData }) => {
+const DynamicCalendar = ({ events, fetchEvents, loading, sendData }) => {
   const [view, setView] = useState("month");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
@@ -34,6 +34,11 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
         pageCode: 'activity_transaction',
       },
     });
+  };
+
+  const handleViewNewTab = (documentNumber) => {
+    const targetUrl = `/activity/view?documentNumber=${encodeURIComponent(documentNumber)}&pageCode=activity_transaction&page_mode=view&from=calendar`;
+    window.open(targetUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleDelete = async (documentNumber) => {
@@ -96,7 +101,7 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
             mode: "all",
           }
         }
-        const response = await useServiceAPI.get(paths.pathMasterSaleDropdown, send_sale);
+        const response = await useServiceAPI.get(paths.pathMasterSaleTeamGroup, send_sale);
 
         const saleList = response.data.map((item) => ({
           label: item.name,
@@ -108,25 +113,26 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
         setSaleOptions(saleList);
 
         // 👇 หาก role_id === 4 ให้ set ค่า default เป็น userInfo.id
-        if (userInfo.role_id == 4) {
+        // if (userInfo.role_id == 4) {
 
-          setSelectedSale(userInfo.id);
-          handleSaleChange(userInfo.id);
-          console.log('selected sale : ', userInfo.id)
-        } else if (userInfo.role_id == 5 || userInfo.role_id == 6) {
-          console.log('userInfo : ', userInfo)
+        //   setSelectedSale(userInfo.id);
+        //   handleSaleChange(userInfo.id);
+        //   console.log('selected sale : ', userInfo.id)
+        // } 
+        // else if (userInfo.role_id == 5 || userInfo.role_id == 6) {
+        //   console.log('userInfo : ', userInfo)
 
-          const headerResponse = await useServiceAPI.get(paths.pathMasterGetSaleHeader, {
-            status: "all",
-            user_id: userInfo.id,
-          });
-          console.log('header sale : ', headerResponse)
-          const sale_header_id = parseInt(headerResponse.data.header_user_id)
-          setSelectedSale(sale_header_id)
-          handleSaleChange(sale_header_id)
-          console.log('selected sale : ', sale_header_id)
+        //   const headerResponse = await useServiceAPI.get(paths.pathMasterGetSaleHeader, {
+        //     status: "all",
+        //     user_id: userInfo.id,
+        //   });
+        //   console.log('header sale : ', headerResponse)
+        //   const sale_header_id = parseInt(headerResponse.data.header_user_id)
+        //   setSelectedSale(sale_header_id)
+        //   handleSaleChange(sale_header_id)
+        //   console.log('selected sale : ', sale_header_id)
 
-        }
+        // }
 
       } catch (error) {
         console.error("Error fetching Sale options:", error);
@@ -137,23 +143,25 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   }, [userInfo]);
 
   const handleSaleChange = async (saleId) => {
-    // ✅ กด clear (saleId จะเป็น undefined)
+    // clear sale
     if (!saleId) {
       setSelectedSale(null);
       setSelectedShop(null);
       setShopOptions([]);
 
-      // fetch all
-      sendData({ saleId: "", shopId: "" });
+      sendData({
+        saleId: "",
+        shopId: "",
+      });
       return;
     }
 
     setSelectedSale(saleId);
 
-    // โหลด shop ตาม sale
     try {
       const response = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
         user_id: saleId,
+        platform: "web",
       });
 
       if (response.result) {
@@ -170,7 +178,6 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
       setShopOptions([]);
     }
 
-    // reset shop เมื่อเปลี่ยน sale
     setSelectedShop(null);
 
     sendData({
@@ -180,17 +187,25 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   };
 
   const handleShopChange = (shopId) => {
-    // ✅ กด clear (shopId จะเป็น undefined)
+    // clear sub-dealer
     if (!shopId) {
       setSelectedShop(null);
 
-      // fetch all ของ shop ภายใต้ sale เดิม (หรือถ้าอยาก all ทั้งหมดให้ส่ง saleId ด้วยเป็น "")
-      sendData({ shopId: "" });
+      // ✅ คง sale เดิมไว้ และล้างเฉพาะ dealer_id
+      sendData({
+        saleId: selectedSale || "",
+        shopId: "",
+      });
       return;
     }
 
     setSelectedShop(shopId);
-    sendData({ shopId });
+
+    // ✅ ส่ง sale เดิมกลับไปด้วยเสมอ
+    sendData({
+      saleId: selectedSale || "",
+      shopId,
+    });
   };
 
   const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -488,37 +503,43 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
         {/* Right Side: Event Details */}
         <div className="col-span-1 md:col-span-1 lg:col-span-3 bg-[#F5F3F3] mb-5">
           <div className="flex justify-end items-center gap-4 pb-4">
-            <Select
-              lang="th"
-              name="select_sale"
-              className="min-w-[150px]"
-              placeholder="Select a Sale Territory"
-              options={[{ label: "All", value: "" }, ...saleOptions]}
-              value={selectedSale}
-              onChange={handleSaleChange}
-              showSearch
-              allowClear
-              optionFilterProp="label"
-              filterOption={(input, option) =>
-                (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-              }
-            />
+            <Tooltip title="Select Sale Territory" placement="bottom">
 
-            <Select
-              lang="th"
-              className="min-w-[150px]"
-              placeholder="Select a Shop"
-              options={[{ label: "All", value: "" }, ...shopOptions]}
-              value={selectedShop}
-              onChange={handleShopChange}
-              disabled={!selectedSale}   // ✅ clear แล้วจะ disabled
-              showSearch
-              allowClear
-              optionFilterProp="label"
-              filterOption={(input, option) =>
-                (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-              }
-            />
+              <Select
+                lang="th"
+                name="select_sale"
+                className="min-w-[150px]"
+                // placeholder="Select a Sale Territory"
+                placeholder="All"
+                options={[{ label: "All", value: "" }, ...saleOptions]}
+                value={selectedSale}
+                onChange={handleSaleChange}
+                showSearch
+                allowClear
+                optionFilterProp="label"
+                filterOption={(input, option) =>
+                  (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                }
+              />
+            </Tooltip>
+            <Tooltip title="Select Shop" placement="bottom">
+
+              <Select
+                lang="th"
+                className="min-w-[150px]"
+                placeholder="All"
+                options={[{ label: "All", value: "" }, ...shopOptions]}
+                value={selectedShop}
+                onChange={handleShopChange}
+                disabled={!selectedSale}   // ✅ clear แล้วจะ disabled
+                showSearch
+                allowClear
+                optionFilterProp="label"
+                filterOption={(input, option) =>
+                  (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                }
+              />
+            </Tooltip>
           </div>
           {selectedDate ? (
             <>
@@ -578,6 +599,10 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                   {event.time}
                                 </span>
                               </div>
+                              <p lang="th" className="text-sm text-gray-600 flex">
+                                <img src="/img/icons/shop.png" className="h-6 w-6 me-2" alt="" />
+                                {!event.dealer_name || event.dealer_name === "N/A" ? "-" : event.dealer_name}
+                              </p>
                               <p lang="th" className="text-sm text-gray-600 flex">
                                 <img src="/img/icons/location.png" className="h-6 w-6 me-2" alt="" />
                                 {!event.location || event.location === "N/A" ? "-" : event.location}
@@ -642,6 +667,24 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
                                             {/* {event.time || "-"} */}
                                           </p>
 
+                                          <p
+                                            className="flex gap-1 mb-2 items-center mt-2"
+                                          >
+                                            <img
+                                              src="/img/icons/details.png"
+                                              className="h-6 w-6 me-2"
+                                              alt=""
+                                            />
+                                            <a
+                                              href={`/activity/view?documentNumber=${encodeURIComponent(event.document_number)}&pageCode=activity_transaction&page_mode=view&from=calendar`}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-[#00783F] font-semibold underline"
+                                              onClick={(e) => e.stopPropagation()}
+                                            >
+                                              {event.document_number || "-"}
+                                            </a>
+                                          </p>
                                           <p
                                             lang="th"
                                             className="flex gap-1 mb-2 items-center"
@@ -851,4 +894,4 @@ const Calendar = ({ events, fetchEvents, loading, sendData }) => {
   );
 };
 
-export default Calendar;
+export default DynamicCalendar;

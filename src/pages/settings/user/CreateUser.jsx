@@ -39,7 +39,6 @@ export default function CreateUser() {
             useServiceAPI.get(paths.pathMasterTerritory, {}),
             useServiceAPI.get(paths.pathMasterAreas, {}),
             useServiceAPI.get(paths.pathMasterRoles, {}),
-            useServiceAPI.get(paths.pathMasterRoles, {}),
             useServiceAPI.get(paths.pathMasterPermission, {}),
           ]);
 
@@ -66,17 +65,22 @@ export default function CreateUser() {
       .validateFields()
       .then((values) => {
         if (values.date_of_joining) {
-          values.date_of_joining = dayjs(values.date_of_joining).format(
-            "YYYY-MM-DD"
-          );
+          values.date_of_joining = dayjs(values.date_of_joining).format("YYYY-MM-DD");
         }
 
+        const payload = {
+          ...values,
+          car_no: values.carno,   // ✅ map ชื่อใหม่
+        };
+
+        delete payload.carno;    // (ถ้า backend ไม่อยากได้ carno)
+
         useServiceAPI
-          .post(paths.pathMasterUsersCreate, values, setLoading)
+          .post(paths.pathMasterUsersCreate, payload, setLoading)
           .then((response) => {
-            if (response.status == 201) {
+            if (response.status === 201) {
               showNotification("success", response.data.message).then(() => {
-                navigate("/setting/user"); // นำทางไปยังหน้าล็อกอิน
+                navigate("/setting/user");
               });
             }
           })
@@ -84,9 +88,9 @@ export default function CreateUser() {
             console.log(error.response.data.data.message);
             if (error.status == 422) {
               // showMsg("error", error.message);
-              showNotification("error",error.response.data.data.message);
+              showNotification("error", error.response.data.data.message);
             } else if (error.status == 500) {
-              showNotification("error",error.response.data.data.message);
+              showNotification("error", error.response.data.data.message);
             } else {
               showNotification("error", "เกิดข้อผิดพลาด");
             }
@@ -97,7 +101,7 @@ export default function CreateUser() {
       });
   };
 
-  
+
 
   const formFields = [
     {
@@ -129,6 +133,14 @@ export default function CreateUser() {
       col: 6,
       // disabled: true,
     },
+    {
+      label: "Car No",
+      name: "carno",
+      type: "text",
+      required: true, // ถ้าไม่บังคับเปลี่ยนเป็น false ได้
+      col: 6,
+    },
+
     {
       label: "Contact Number",
       name: "contact_number",

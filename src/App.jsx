@@ -190,6 +190,8 @@ import ReportSellOutBySales from "./pages/report/ReportSellOutBySales";
 import ReportSellOutByDealer from "./pages/report/ReportSellOutByDealer";
 import ReportSellOutBySubDealer from "./pages/report/ReportSellOutBySubDealer";
 import ReportSellOut from "./pages/report/ReportSellOut";
+import PDFMaterialExpense from "./pages/pdf/PDFMaterialExpense";
+import PDFSampleExpense from "./pages/pdf/PDFSampleExpense";
 
 const App = () => {
   return (
@@ -330,6 +332,10 @@ const App = () => {
               path="/expenses/advance/pdf"
               element={<PdfAdvanceExpense />}
             />
+            
+            <Route path="/expenses/material/pdf" element={<PDFMaterialExpense />} />
+            <Route path="/expenses/sample/pdf" element={<PDFSampleExpense />} />
+
             <Route
               path="/expenses/product-claim-list"
               element={<ProductClaim />}

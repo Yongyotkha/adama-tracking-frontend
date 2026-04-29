@@ -16,6 +16,53 @@ import { convertLegacyProps } from "antd/es/button";
 import TableComponentTraveling from "../../../components/table/TableComponentTraveling";
 import formatNumber from "../../../utils/number";
 
+const formatNumberLocal = (input, digi = 2) => {
+  const number = parseFloat(typeof input === "string" ? input.replace(/,/g, "") : input);
+  if (!isNaN(number)) {
+    return number.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: digi,
+    });
+  }
+  return "0.00";
+};
+
+const EditableFormattedNumericInput = ({ value, onChange, style, disabled }) => {
+  const [isFocused, setIsFocused] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+
+  useEffect(() => {
+    if (!isFocused) {
+      setInputValue(formatNumberLocal(value));
+    }
+  }, [value, isFocused]);
+
+  const handleChange = (e) => {
+    const val = e.target.value.replace(/,/g, "");
+    if (/^\d*\.?\d*$/.test(val)) {
+      setInputValue(e.target.value);
+      onChange(val);
+    }
+  };
+
+  return (
+    <Input
+      style={{ textAlign: "right", width: "100%", ...style }}
+      value={isFocused ? inputValue : formatNumberLocal(value)}
+      onFocus={() => {
+        setIsFocused(true);
+        setInputValue(String(value || "").replace(/,/g, ""));
+      }}
+      onBlur={() => {
+        setIsFocused(false);
+      }}
+      onChange={handleChange}
+      disabled={disabled}
+      placeholder="0.00"
+    />
+  );
+};
+
 export default function CreateTraveling() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -44,7 +91,8 @@ export default function CreateTraveling() {
       setLoading(true);
       try {
         const [sale, year, month] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterUserAll),
+          // useServiceAPI.get(paths.pathMasterUserAll),
+          useServiceAPI.get(paths.pathMasterSaleExpense, { mode: "all" }),
 
           useServiceAPI.get(paths.pathMasterYear, {}),
           useServiceAPI.get(paths.pathMasterMonths, {}),
@@ -53,7 +101,7 @@ export default function CreateTraveling() {
         setDataSale(sale.data)
         setDataYear(year.data);
         setDataMonth(month.data);
-        
+
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -66,7 +114,7 @@ export default function CreateTraveling() {
 
   const handleMonthChange = (filter, value) => {
     console.log(value);
-    
+
     if (filter == 'sale') {
       setSaleId(value);
 
@@ -100,7 +148,7 @@ export default function CreateTraveling() {
 
           const dataItems = traveling.data.data_items;
           console.log(dataItems);
-          const transformedData = dataItems.map((item, index) => ({            
+          const transformedData = dataItems.map((item, index) => ({
             key: `${index + 1}`,
             date: item.date || "",
             from: item.traveling_from || "",
@@ -115,7 +163,7 @@ export default function CreateTraveling() {
             // others: formatNumber(item.others) == 0 ? "0" : formatNumber(item.others)|| "", 
             // total: formatNumber(item.total) == 0 ? "0" : formatNumber(item.total) || "", 
             remark: item.remark || "",
-            
+
             petrol: item.petrol == 0.00 ? 0 : item.petrol || "",
             cashPetrol: item.cash_petrol == 0.00 ? 0 : item.cash_petrol || "",
             hotel: item.hotel == 0.00 ? 0 : item.hotel || "",
@@ -124,7 +172,7 @@ export default function CreateTraveling() {
             entertain: item.entertain == 0.00 ? 0 : item.entertain || "",
             others: item.others == 0.00 ? 0 : item.others || "",
             total: item.total == 0.00 ? 0 : item.total || "",
-            
+
           }));
 
           // ตั้งค่า state
@@ -240,11 +288,10 @@ export default function CreateTraveling() {
       dataIndex: "mileage",
       key: "mileage",
       render: (value, record) => (
-        <NumericInput
+        <EditableFormattedNumericInput
           style={{ width: 100 }}
           value={value}
           onChange={(val) => updateField(record.key, 'mileage', val)}
-          disabled
         />
       ),
     },
@@ -253,8 +300,8 @@ export default function CreateTraveling() {
       dataIndex: "petrol",
       key: "petrol",
       render: (value, record) => (
-        <NumericInput
-          style={{width: 100 }}
+        <EditableFormattedNumericInput
+          style={{ width: 100 }}
           value={value}
           onChange={(val) => updateField(record.key, 'petrol', val)}
         />
@@ -265,7 +312,7 @@ export default function CreateTraveling() {
       dataIndex: "cashPetrol",
       key: "cashPetrol",
       render: (value, record) => (
-        <NumericInput
+        <EditableFormattedNumericInput
           style={{ width: 100 }}
           value={value}
           onChange={(val) => updateField(record.key, 'cashPetrol', val)}
@@ -277,7 +324,7 @@ export default function CreateTraveling() {
       dataIndex: "hotel",
       key: "hotel",
       render: (value, record) => (
-        <NumericInput
+        <EditableFormattedNumericInput
           style={{ width: 100 }}
           value={value}
           onChange={(val) => updateField(record.key, 'hotel', val)}
@@ -289,7 +336,7 @@ export default function CreateTraveling() {
       dataIndex: "allowance",
       key: "allowance",
       render: (value, record) => (
-        <NumericInput
+        <EditableFormattedNumericInput
           style={{ width: 100 }}
           value={value}
           onChange={(val) => updateField(record.key, 'allowance', val)}
@@ -301,7 +348,7 @@ export default function CreateTraveling() {
       dataIndex: "tollFee",
       key: "tollFee",
       render: (value, record) => (
-        <NumericInput
+        <EditableFormattedNumericInput
           style={{ width: 100 }}
           value={value}
           onChange={(val) => updateField(record.key, 'tollFee', val)}
@@ -313,7 +360,7 @@ export default function CreateTraveling() {
       dataIndex: "entertain",
       key: "entertain",
       render: (value, record) => (
-        <NumericInput
+        <EditableFormattedNumericInput
           style={{ width: 100 }}
           value={value}
           onChange={(val) => updateField(record.key, 'entertain', val)}
@@ -325,7 +372,7 @@ export default function CreateTraveling() {
       dataIndex: "others",
       key: "others",
       render: (value, record) => (
-        <NumericInput
+        <EditableFormattedNumericInput
           style={{ width: 100 }}
           value={value}
           onChange={(val) => updateField(record.key, 'others', val)}
@@ -337,9 +384,9 @@ export default function CreateTraveling() {
       dataIndex: "total",
       key: "total",
       render: (value, record) => (
-        <NumericInput
+        <EditableFormattedNumericInput
           style={{ width: 100 }}
-          value={formatNumber(value)}
+          value={value}
           onChange={(val) => updateField(record.key, 'total', val)}
           disabled
         />
@@ -362,31 +409,23 @@ export default function CreateTraveling() {
 
   // Update individual cell values
   const updateField = (key, field, value) => {
-    if (field !== 'mileage' || field !== 'petrol') {
-      // setDataSource((prevData) =>
-      //   prevData.map((item) =>
-      //     item.key === key ? { ...item, [field]: value, total: calculateTotal(item) } : item
-      //   )
-      // );
-      setDataSource((prevData) =>
-        prevData.map((item) =>
-          item.key === key
-            ? {
-              ...item,
-              [field]: value, // อัพเดตฟิลด์ที่ถูกเลือก
-              total: calculateTotal({ ...item, [field]: value }) // คำนวณค่า total ใหม่
-            }
-            : item
-        )
-      );
-    }
+    setDataSource((prevData) =>
+      prevData.map((item) =>
+        item.key === key
+          ? {
+            ...item,
+            [field]: value,
+            total: calculateTotal({ ...item, [field]: value })
+          }
+          : item
+      )
+    );
   };
 
   // Calculate total for each row
   const calculateTotal = (item) => (
     [
-      // "mileage", 
-      // "petrol", 
+      // "petrol",
       "cashPetrol",
       "hotel",
       "allowance",
@@ -394,11 +433,17 @@ export default function CreateTraveling() {
       "entertain",
       "others"
     ]
-  ).reduce((acc, field) => acc + parseFloat(item[field] || 0), 0);
+  ).reduce((acc, field) => {
+    const val = typeof item[field] === "string" ? item[field].replace(/,/g, "") : item[field];
+    return acc + (parseFloat(val) || 0);
+  }, 0);
 
   // Calculate total for the footer
   const calculateFooterTotal = (field) => {
-    return dataSource.reduce((acc, item) => acc + parseFloat(item[field] || 0), 0);
+    return dataSource.reduce((acc, item) => {
+      const val = typeof item[field] === "string" ? item[field].replace(/,/g, "") : item[field];
+      return acc + (parseFloat(val) || 0);
+    }, 0);
   };
 
   // Update Footer Totals when Data Source Changes
@@ -434,15 +479,15 @@ export default function CreateTraveling() {
   const footerOrderList = () => (
     <tr className="bg-[#978B87] text-white text-start">
       <td colSpan={3}>Total (THB)</td>
-      <td><Input style={{ width: 100 }} value={calculateFooterTotal("mileage")} readOnly hidden /></td>
-      <td><Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("petrol")) } readOnly /></td>
-      <td><Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("cashPetrol"))} readOnly /></td>
-      <td><Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("hotel"))} readOnly /></td>
-      <td><Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("allowance"))} readOnly /></td>
-      <td><Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("tollFee"))} readOnly /></td>
-      <td><Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("entertain"))} readOnly /></td>
-      <td><Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("others"))} readOnly /></td>
-      <td><Input style={{ width: 100 }} value={formatNumber(calculateFooterTotal("total"))} readOnly /></td>
+      <td><Input style={{ width: 100, textAlign: "right" }} value={formatNumber(calculateFooterTotal("mileage"), 0)} readOnly hidden /></td>
+      <td><Input style={{ width: 100, textAlign: "right" }} value={formatNumberLocal(calculateFooterTotal("petrol"))} readOnly /></td>
+      <td><Input style={{ width: 100, textAlign: "right" }} value={formatNumberLocal(calculateFooterTotal("cashPetrol"))} readOnly /></td>
+      <td><Input style={{ width: 100, textAlign: "right" }} value={formatNumberLocal(calculateFooterTotal("hotel"))} readOnly /></td>
+      <td><Input style={{ width: 100, textAlign: "right" }} value={formatNumberLocal(calculateFooterTotal("allowance"))} readOnly /></td>
+      <td><Input style={{ width: 100, textAlign: "right" }} value={formatNumberLocal(calculateFooterTotal("tollFee"))} readOnly /></td>
+      <td><Input style={{ width: 100, textAlign: "right" }} value={formatNumberLocal(calculateFooterTotal("entertain"))} readOnly /></td>
+      <td><Input style={{ width: 100, textAlign: "right" }} value={formatNumberLocal(calculateFooterTotal("others"))} readOnly /></td>
+      <td><Input style={{ width: 100, textAlign: "right" }} value={formatNumberLocal(calculateFooterTotal("total"))} readOnly /></td>
       <td></td>
     </tr>
   );
@@ -547,20 +592,38 @@ export default function CreateTraveling() {
       {/* Total Expense Summary */}
       <BoxPrimary>
         <div className="grid grid-cols-2 gap-4">
-          <div className="flex justify-end">Total Advanced:</div>
-          {/* <NumericInput value={dataTotalAdvanced} disabled /> */}
-          <NumericInput
-            value = {formatNumber(dataTotalAdvanced)}
-            onChange={(value) => setDataTotalAdvanced(parseFloat(value) || 0)}
+          <div className="flex justify-end font-medium">Total Advanced:</div>
+          <EditableFormattedNumericInput
+            value={dataTotalAdvanced}
+            onChange={(val) => {
+              // Store as string to allow typing decimals
+              setDataTotalAdvanced(val);
+            }}
           />
-          <div className="flex justify-end">Total Expenses:</div>
-          <NumericInput value={formatNumber(dataTotalExpenses)} disabled />
 
-          <div className="flex justify-end">Return to Company:</div>
-          <NumericInput value={formatNumber(returnToCompany)} disabled />
+          <div className="flex justify-end font-medium">Total Expenses:</div>
+          <Input
+            style={{ textAlign: "right" }}
+            value={formatNumberLocal(dataTotalExpenses)}
+            disabled
+            className="bg-gray-50"
+          />
 
-          <div className="flex justify-end">Return to Staff:</div>
-          <NumericInput value={formatNumber (returnToStaff)} disabled />
+          <div className="flex justify-end font-medium">Return to Company:</div>
+          <Input
+            style={{ textAlign: "right" }}
+            value={formatNumberLocal(returnToCompany)}
+            disabled
+            className="bg-gray-50"
+          />
+
+          <div className="flex justify-end font-medium">Return to Staff:</div>
+          <Input
+            style={{ textAlign: "right" }}
+            value={formatNumberLocal(returnToStaff)}
+            disabled
+            className="bg-gray-50"
+          />
         </div>
       </BoxPrimary>
 

@@ -48,6 +48,8 @@ export default function Dashboard() {
 
   // selectedSale (จะได้จาก salesByArea)
   const [selectedSale, setSelectedSale] = useState(null);
+  const [activeSaleId, setActiveSaleId] = useState(null);
+
   const { showNotification, userInfo } = useContext(AuthContext);
 
   const [selectedSalesByDealer, setSelectedSalesByDealer] = useState(null);
@@ -72,7 +74,15 @@ export default function Dashboard() {
     useState(null);
 
   const [selectedSubdealerPlan, setSelectedSubdealerPlan] = useState(null);
+  // Sub Dealer by Dealer
   const [selectedSdByD, setSelectedSdByD] = useState(null);
+
+  // Point Users (แยก state)
+  const [selectedSdByPointUser, setSelectedSdByPointUser] = useState("");
+
+  // ✅ Point Users
+  const [pointUsersData, setPointUsersData] = useState([]);
+  const [totalPointUsers, setTotalPointUsers] = useState(0);
 
   const [calPercentage, setCalPercentage] = useState({
     plan: "",
@@ -81,10 +91,55 @@ export default function Dashboard() {
 
   const [isSaleLocked, setIsSaleLocked] = useState(false);
 
+  const isAutoLockRole =
+    String(userInfo?.role_id) === "4" ||
+    String(userInfo?.role_id) === "5" ||
+    String(userInfo?.role_id) === "6";
+
   const valueFormatterMB = (value) => {
     if (typeof value !== "number" || isNaN(value)) return "0.0 M THB";
     return `${(value / 1_000_000).toFixed(1)} M THB`;
   };
+
+  useEffect(() => {
+    const resolveActiveSale = async () => {
+      try {
+        if (!userInfo) {
+          setActiveSaleId(null);
+          return;
+        }
+
+        // role 4 = ใช้ตัวเอง
+        if (String(userInfo.role_id) === "4") {
+          setActiveSaleId(Number(userInfo.id) || null);
+          return;
+        }
+
+        // role 5,6 = ใช้ head sale
+        if (String(userInfo.role_id) === "5" || String(userInfo.role_id) === "6") {
+          const headerResponse = await useServiceAPI.get(
+            paths.pathMasterGetSaleHeader,
+            {
+              status: "all",
+              user_id: userInfo.id,
+            }
+          );
+
+          const saleHeaderId = Number(headerResponse?.data?.header_user_id) || null;
+          setActiveSaleId(saleHeaderId);
+          return;
+        }
+
+        // role อื่น = default all
+        setActiveSaleId(null);
+      } catch (error) {
+        console.error("Error resolving active sale:", error);
+        setActiveSaleId(null);
+      }
+    };
+
+    resolveActiveSale();
+  }, [userInfo]);
 
   // ===============================
   // ✅ Load Masters (Year/Month/SubDealer/DealerAll/SalesAll/Areas)
@@ -100,13 +155,23 @@ export default function Dashboard() {
             useServiceAPI.get(paths.pathMasterSubDealer),
             useServiceAPI.get(paths.pathMasterDealerAll),
             useServiceAPI.get(paths.pathMasterSaleDropdown),
-            useServiceAPI.get(paths.pathMasterAreas), // ✅ NEW
+            useServiceAPI.get(paths.pathMasterAreas),
           ]);
 
         // Years
         if (yearsRes?.data?.length > 0) {
-          setYears(yearsRes.data);
-          setSelectedYear(yearsRes.data[0]?.id);
+          if (yearsRes?.data?.length > 0) {
+            const list = yearsRes.data;
+
+            const latest = [...list].sort((a, b) => {
+              const ay = Number(String(a.name ?? a.year ?? a.id).replace(/\D/g, "")) || 0;
+              const by = Number(String(b.name ?? b.year ?? b.id).replace(/\D/g, "")) || 0;
+              return by - ay;
+            })[0];
+
+            setYears(list);
+            setSelectedYear(latest?.id ?? null);
+          }
         }
 
         // Months
@@ -136,7 +201,8 @@ export default function Dashboard() {
             label: item.name,
           }));
           setDealer(formattedDealers);
-          setSelectedSdByD(formattedDealers[0]?.value);
+
+          setSelectedSdByD(formattedDealers[0]?.value ?? null);
         }
 
         // Sales All (เก็บไว้เฉย ๆ ถ้าอยากใช้ที่อื่น)
@@ -164,10 +230,8 @@ export default function Dashboard() {
             setSelectedArea(areaOptions[0].value);
           }
         }
-
       } catch (error) {
         console.error("Error fetching data:", error);
-        // showNotification?.("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
         setLoading(false);
       }
@@ -203,7 +267,7 @@ export default function Dashboard() {
 
       setLoading(true);
       try {
-        const res = await useServiceAPI.get(paths.pathMasterSaleReport, {
+        const res = await useServiceAPI.get(paths.pathMasterSaleSingle, {
           area_id: selectedArea,
         });
 
@@ -248,47 +312,58 @@ export default function Dashboard() {
   }, [selectedArea]);
 
   useEffect(() => {
-    const loginSaleId = getLoginSaleId(userInfo);
     if (!selectedArea) {
       setIsSaleLocked(false);
+      setSelectedSale(null);
+      setSelectedSaleByCrop(null);
+      setSelectedSaleActivity(null);
       return;
     }
 
-    // ต้องมี list sales ก่อน
     if (!Array.isArray(salesByArea) || salesByArea.length === 0) {
       setIsSaleLocked(false);
+      setSelectedSale(null);
+      setSelectedSaleByCrop(null);
+      setSelectedSaleActivity(null);
       return;
     }
 
-    // หา sale ของคน login ว่ามีอยู่ใน options นี้ไหม
+    // role อื่นที่ไม่ใช่ 4/5/6 => default all, ไม่ล็อค, เลือกเองได้
+    if (!isAutoLockRole) {
+      setIsSaleLocked(false);
+      setSelectedSale(null);
+      setSelectedSaleByCrop(null);
+      setSelectedSaleActivity(null);
+      return;
+    }
+
+    // role 4/5/6 แต่ resolve sale ไม่ได้
+    if (!activeSaleId) {
+      setIsSaleLocked(false);
+      setSelectedSale(null);
+      setSelectedSaleByCrop(null);
+      setSelectedSaleActivity(null);
+      return;
+    }
+
     const found = salesByArea.find(
-      (s) => String(s.value) === String(loginSaleId)
+      (s) => String(s.value) === String(activeSaleId)
     );
 
     if (found) {
-      // ✅ ล็อคเป็นตัวเอง
+      // role 4/5/6 และเจอ sale ใน option => auto select + lock
       setSelectedSale(found.value);
       setSelectedSaleByCrop(found.value);
       setSelectedSaleActivity(found.value);
-
       setIsSaleLocked(true);
     } else {
-      // ✅ ถ้าไม่เจอใน list ของ area นี้ ให้เลือกเองได้
+      // role 4/5/6 แต่ไม่เจอใน area นี้ => ไม่ล็อค ให้เลือกเอง
+      setSelectedSale(null);
+      setSelectedSaleByCrop(null);
+      setSelectedSaleActivity(null);
       setIsSaleLocked(false);
     }
-  }, [selectedArea, salesByArea, userInfo]);
-
-  const getLoginSaleId = (u) => {
-    if (!u) return null;
-
-    // ✅ ใช้อันที่โปรเจคคุณมีจริง (เลือก 1)
-    return (
-      u.sale_id ??         // กรณีมี sale_id
-      u.user_id ??         // กรณีใช้ user_id
-      u.id ??              // ตอนอื่นคุณใช้ userInfo.id
-      null
-    );
-  };
+  }, [selectedArea, salesByArea, activeSaleId, isAutoLockRole]);
 
   // ===============================
   // ✅ Cascade: Sale -> Dealer (ใช้ของเดิม)
@@ -321,7 +396,9 @@ export default function Dashboard() {
           }));
 
           setDealer(formattedDealers);
-          setSelectedSdByD(formattedDealers[0]?.value);
+          setSelectedSdByD(formattedDealers[0]?.value ?? null);
+
+          // setSelectedSdByD(null);
         } else {
           setDealer([]);
           setSelectedSdByD(null);
@@ -332,7 +409,6 @@ export default function Dashboard() {
         }
       } catch (error) {
         console.error("Error fetching dealers by sale:", error);
-        // showNotification?.("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer");
       } finally {
         setLoading(false);
       }
@@ -348,10 +424,16 @@ export default function Dashboard() {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathDashBordCustomer, {
+        const payload = {
           year_code: selectedYear,
-          sale_id: selectedSale,
-        });
+          area_id: selectedArea,
+        };
+
+        if (selectedSale) {
+          payload.sale_id = selectedSale;
+        }
+
+        const response = await useServiceAPI.get(paths.pathDashBordCustomer, payload);
 
         if (response.status === 200) {
           const data = response.data || {};
@@ -370,7 +452,7 @@ export default function Dashboard() {
     };
 
     if (selectedYear) fetchDashboardData();
-  }, [selectedYear, selectedSale]);
+  }, [selectedYear, selectedSale, selectedArea]);
 
   // ===============================
   // ✅ Expense
@@ -378,11 +460,17 @@ export default function Dashboard() {
   const fetchDashboardDataExpense = async () => {
     setLoading(true);
     try {
-      const response = await useServiceAPI.get(paths.pathDashBordExpense, {
+      const payload = {
         year_code: selectedYear,
         month_id: selectedMonthsExpense,
-        sale_id: selectedSale,
-      });
+        area_id: selectedArea,
+      };
+
+      if (selectedSale) {
+        payload.sale_id = selectedSale;
+      }
+
+      const response = await useServiceAPI.get(paths.pathDashBordExpense, payload);
 
       if (response.status === 200) {
         const data = response.data || {};
@@ -403,7 +491,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (selectedYear) fetchDashboardDataExpense();
-  }, [selectedYear, selectedMonthsExpense, selectedSale]);
+  }, [selectedYear, selectedMonthsExpense, selectedSale, selectedArea]);
 
   // ===============================
   // ✅ Sales by Dealer
@@ -412,12 +500,19 @@ export default function Dashboard() {
     const fetchDashboardDataSalesByDealer = async () => {
       try {
         setLoading(true);
-        const response = await useServiceAPI.get(paths.pathDashBordSaleByDealer, {
+
+        const payload = {
           year_code: selectedYear,
           dealer_id: selectedSalesByDealer,
           month_id: selectedMonthsSalesByDealer,
-          sale_id: selectedSale,
-        });
+          area_id: selectedArea,
+        };
+
+        if (selectedSale) {
+          payload.sale_id = selectedSale;
+        }
+
+        const response = await useServiceAPI.get(paths.pathDashBordSaleByDealer, payload);
 
         if (response.status === 200) {
           const data = response.data || {};
@@ -434,7 +529,13 @@ export default function Dashboard() {
     };
 
     if (selectedYear) fetchDashboardDataSalesByDealer();
-  }, [selectedYear, selectedSalesByDealer, selectedMonthsSalesByDealer, selectedSale]);
+  }, [
+    selectedYear,
+    selectedSalesByDealer,
+    selectedMonthsSalesByDealer,
+    selectedSale,
+    selectedArea,
+  ]);
 
   // ===============================
   // ✅ Cal percentage
@@ -469,12 +570,18 @@ export default function Dashboard() {
     const fetchDealerPlanData = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathDashBordPlan, {
+        const payload = {
           year_code: selectedYear,
           dealer_id: selectedDealerPlan,
           month_id: selectedMonthsDealerPlan,
-          sale_id: selectedSale,
-        });
+          area_id: selectedArea,
+        };
+
+        if (selectedSale) {
+          payload.sale_id = selectedSale;
+        }
+
+        const response = await useServiceAPI.get(paths.pathDashBordPlan, payload);
 
         if (response.status === 200 && response.data) {
           const data = response.data.map((item) => ({
@@ -493,7 +600,7 @@ export default function Dashboard() {
     };
 
     if (selectedYear) fetchDealerPlanData();
-  }, [selectedYear, selectedDealerPlan, selectedMonthsDealerPlan, selectedSale]);
+  }, [selectedYear, selectedDealerPlan, selectedMonthsDealerPlan, selectedSale, selectedArea]);
 
   // ===============================
   // ✅ Top Activity
@@ -502,12 +609,18 @@ export default function Dashboard() {
     const fetchTopActivityData = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathDashBordTopActivity, {
+        const payload = {
           year_code: selectedYear,
           dealer_id: selectedDealerTopActivity,
           month_id: selectedMonthsTopActivity,
-          sale_id: selectedSale,
-        });
+          area_id: selectedArea,
+        };
+
+        if (selectedSale) {
+          payload.sale_id = selectedSale;
+        }
+
+        const response = await useServiceAPI.get(paths.pathDashBordTopActivity, payload);
 
         if (response.status === 200 && response.data) {
           const data = response.data.map((item) => ({
@@ -528,7 +641,7 @@ export default function Dashboard() {
     };
 
     if (selectedYear) fetchTopActivityData();
-  }, [selectedYear, selectedDealerTopActivity, selectedMonthsTopActivity, selectedSale]);
+  }, [selectedYear, selectedDealerTopActivity, selectedMonthsTopActivity, selectedSale, selectedArea]);
 
   // ===============================
   // ✅ Sub Dealer Plan
@@ -537,11 +650,17 @@ export default function Dashboard() {
     const fetchSubDealerPlanData = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathDashBordSubDealerPlan, {
+        const payload = {
           year_code: selectedYear,
           sub_dealer_id: selectedSubdealerPlan,
-          sale_id: selectedSale,
-        });
+          area_id: selectedArea,
+        };
+
+        if (selectedSale) {
+          payload.sale_id = selectedSale;
+        }
+
+        const response = await useServiceAPI.get(paths.pathDashBordSubDealerPlan, payload);
 
         if (response.status === 200 && response.data) {
           const data = response.data.map((item) => ({
@@ -559,7 +678,7 @@ export default function Dashboard() {
     };
 
     if (selectedYear) fetchSubDealerPlanData();
-  }, [selectedYear, selectedSubdealerPlan, selectedSale]);
+  }, [selectedYear, selectedSubdealerPlan, selectedSale, selectedArea]);
 
   // ===============================
   // ✅ Sub Dealer by Dealer
@@ -568,23 +687,38 @@ export default function Dashboard() {
     const fetchSubDealerByDealerData = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathDashBoardSubDealerByDealer, {
+        const payload = {
           year_code: selectedYear,
-          dealer_id: selectedSdByD,
-          sale_id: selectedSale,
-        });
+          area_id: selectedArea,
+        };
+
+        if (selectedSale) {
+          payload.sale_id = selectedSale;
+        }
+
+        if (selectedSdByD) {
+          payload.dealer_id = selectedSdByD;
+        }
+
+        const response = await useServiceAPI.get(
+          paths.pathDashBoardSubDealerByDealer,
+          payload
+        );
 
         if (response.status === 200 && response.data) {
           const data = response?.data?.items
             ?.sort((a, b) => {
-              const aValue = parseFloat(String(a.total_amount_target || "0").replace(/,/g, "")) || 0;
-              const bValue = parseFloat(String(b.total_amount_target || "0").replace(/,/g, "")) || 0;
+              const aValue =
+                parseFloat(String(a.total_amount_target || "0").replace(/,/g, "")) || 0;
+              const bValue =
+                parseFloat(String(b.total_amount_target || "0").replace(/,/g, "")) || 0;
               return bValue - aValue;
             })
             ?.map((item) => {
               const isOther = item.sub_dealer_name === "Other";
               return {
-                value: parseFloat(String(item.total_amount_target || "0").replace(/,/g, "")) || 0,
+                value:
+                  parseFloat(String(item.total_amount_target || "0").replace(/,/g, "")) || 0,
                 label: item.sub_dealer_name,
                 percentage: item.percentage,
                 color: isOther ? "#e61e1e" : "#009845",
@@ -592,16 +726,19 @@ export default function Dashboard() {
             });
 
           setSubdealerByDealerData(data || []);
+        } else {
+          setSubdealerByDealerData([]);
         }
       } catch (error) {
         console.error("Error fetching Sub Dealer By Dealer data:", error);
+        setSubdealerByDealerData([]);
       } finally {
         setLoading(false);
       }
     };
 
-    if (selectedYear && selectedSdByD) fetchSubDealerByDealerData();
-  }, [selectedYear, selectedSdByD, selectedSale]);
+    if (selectedYear) fetchSubDealerByDealerData();
+  }, [selectedYear, selectedSdByD, selectedSale, selectedArea]);
 
   // ===============================
   // ✅ Sales by Crop
@@ -610,12 +747,18 @@ export default function Dashboard() {
     const fetchSaleCropData = async () => {
       setLoading(true);
       try {
-        const response = await useServiceAPI.get(paths.pathDashBordSaleCrop, {
+        const payload = {
           year_code: selectedYear,
           dealer_id: selectedSaleByCrop,
           month_id: selectedMonthsSaleByCrop,
-          sale_id: selectedSale,
-        });
+          area_id: selectedArea,
+        };
+
+        if (selectedSale) {
+          payload.sale_id = selectedSale;
+        }
+
+        const response = await useServiceAPI.get(paths.pathDashBordSaleCrop, payload);
 
         if (response.status === 200 && response.data) {
           const data = response.data
@@ -646,7 +789,13 @@ export default function Dashboard() {
     };
 
     if (selectedYear) fetchSaleCropData();
-  }, [selectedYear, selectedSaleByCrop, selectedMonthsSaleByCrop, selectedSale]);
+  }, [
+    selectedYear,
+    selectedSaleByCrop,
+    selectedMonthsSaleByCrop,
+    selectedSale,
+    selectedArea,
+  ]);
 
   // ===============================
   // ✅ List Activity
@@ -657,10 +806,14 @@ export default function Dashboard() {
       try {
         const payload = {
           year_code: selectedYear,
-          sale_id: selectedSale,
           month_id: selectedMonthsActivity,
           dealer: selectedDealerActivity,
+          area_id: selectedArea,
         };
+
+        if (selectedSale) {
+          payload.sale_id = selectedSale;
+        }
 
         const response = await useServiceAPI.get(paths.pathDashBordListActivity, payload);
 
@@ -684,7 +837,58 @@ export default function Dashboard() {
     };
 
     if (selectedYear) fetchListActivityData();
-  }, [selectedYear, selectedSale, selectedMonthsActivity, selectedDealerActivity]);
+  }, [selectedYear, selectedSale, selectedMonthsActivity, selectedDealerActivity, selectedArea]);
+
+  // ===============================
+  // ✅ Point Users (ใช้ dealer เดียวกับ Sub Dealer By Dealer)
+  // ===============================
+  useEffect(() => {
+    let alive = true;
+
+    const fetchPointUsers = async () => {
+      setLoading(true);
+      try {
+        const response = await useServiceAPI.get(paths.pathDashBoardPointUsers, {
+          sub_dealer_id: "",
+          dealer_id: selectedSdByPointUser || "",
+          sale_id: selectedSale || "",
+          area_id: selectedArea || "",
+        });
+
+        const payload = response?.data?.data ?? response?.data ?? {};
+        const items = Array.isArray(payload?.items) ? payload.items : [];
+        const total = Number(payload?.total_point ?? 0) || 0;
+
+        const mapped = items.map((it) => {
+          const isOther = it.sub_dealer_name === "Other";
+          return {
+            value: Number(it.total_point ?? 0) || 0,
+            total_value: Number(it.total_value ?? 0) || 0,
+            label: it.sub_dealer_name || "Other",
+            percentage: it.percentage,
+            color: isOther ? "#e61e1e" : "#009845",
+          };
+        });
+
+        if (!alive) return;
+        setPointUsersData(mapped);
+        setTotalPointUsers(total);
+      } catch (error) {
+        if (!alive) return;
+        console.error("Error fetching Point Users:", error);
+        setPointUsersData([]);
+        setTotalPointUsers(0);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    };
+
+    if (selectedYear) fetchPointUsers();
+
+    return () => {
+      alive = false;
+    };
+  }, [selectedYear, selectedSdByPointUser, selectedSale, selectedArea]);
 
   return (
     <MainLayout loading={loading}>
@@ -693,7 +897,6 @@ export default function Dashboard() {
         <div className="title-page">Dashboard</div>
 
         <div className="flex gap-2 items-center flex-wrap">
-          {/* <Tooltip title="เลือก Area ก่อนเพื่อเปิด Sales" placement="top"> */}
           <Select
             className="w-full md:w-48"
             value={selectedArea}
@@ -705,16 +908,15 @@ export default function Dashboard() {
             allowClear
             optionFilterProp="label"
           />
-          {/* </Tooltip> */}
 
           <Tooltip title="เลือก Sales หลังจากเลือก Area" placement="top">
             <Select
               className="w-full md:w-48"
               value={selectedSale}
               onChange={(value) => {
-                setSelectedSale(value);
-                setSelectedSaleByCrop(value);
-                setSelectedSaleActivity(value);
+                setSelectedSale(value ?? null);
+                setSelectedSaleByCrop(value ?? null);
+                setSelectedSaleActivity(value ?? null);
               }}
               placeholder={
                 loading ? "Loading..." : !selectedArea ? "Select Area first" : "Select Sale"
@@ -754,7 +956,7 @@ export default function Dashboard() {
               <div>
                 <h3 className="text-lg font-bold text-[#00783F]">Dealer</h3>
                 <div className="text-4xl font-bold text-[#00783F]">
-                  {dashboardData.dealer_count}
+                  {Number(dashboardData.dealer_count || 0).toLocaleString()}
                 </div>
               </div>
               <div>
@@ -776,7 +978,7 @@ export default function Dashboard() {
               <div>
                 <h3 className="text-lg font-bold text-[#00783F]">Sub Dealer</h3>
                 <div className="text-4xl font-bold text-[#00783F]">
-                  {dashboardData.sub_dealer_count}
+                  {Number(dashboardData.sub_dealer_count || 0).toLocaleString()}
                 </div>
               </div>
               <div>
@@ -1228,8 +1430,8 @@ export default function Dashboard() {
               <div className="flex flex-wrap gap-2">
                 <Select
                   className="mb-4 w-36"
-                  value={selectedSdByD}
-                  onChange={(value) => setSelectedSdByD(value)}
+                  value={selectedSdByD || undefined}
+                  onChange={(value) => setSelectedSdByD(value ?? null)}
                   placeholder={loading ? "Loading..." : "Select by Dealer"}
                   disabled={loading}
                   showSearch
@@ -1285,6 +1487,34 @@ export default function Dashboard() {
                 <div className="relative" />
                 <DoughnutChartComponent data={saleCropData} />
               </div>
+            </div>
+          </Card>
+        </Col>
+
+        {/* Point Users */}
+        <Col xs={24} lg={24} xl={12}>
+          <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
+            <div className="flex flex-wrap items-center justify-between">
+              <h3 className="text-[#00783F] text-lg font-semibold mb-3">
+                Point Users
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                <Select
+                  className="mb-4 w-36"
+                  value={selectedSdByPointUser || undefined}
+                  onChange={(v) => setSelectedSdByPointUser(v ?? "")}
+                  placeholder={loading ? "Loading..." : "All"}
+                  disabled={loading}
+                  showSearch
+                  allowClear
+                  optionFilterProp="label"
+                  options={dealer}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-center items-center">
+              <DoughnutChartComponent data={pointUsersData} tooltipMode="pointUsers" />
             </div>
           </Card>
         </Col>

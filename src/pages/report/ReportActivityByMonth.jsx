@@ -1,4 +1,3 @@
-// src/pages/report/ReportActivityByMonth.jsx
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
@@ -13,88 +12,43 @@ import ExportActivityByMonthExcelButton from "../../components/export/ExportActi
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-// ===== helpers year =====
 const getYearCodeFrom = (y) => {
   if (y == null) return "";
   if (typeof y === "string" || typeof y === "number") return String(y);
-  return (
-    y.year_code ??
-    y.code ??
-    y.value ??
-    y.label ??
-    y.name ??
-    y.year ??
-    ""
-  );
+  return y.year_code ?? y.code ?? y.value ?? y.label ?? y.name ?? y.year ?? "";
 };
 
-export default function ReportSaleByMonth() {
+export default function ReportActivityByMonth() {
   const [loading, setLoading] = useState(false);
-  const [years, setYears] = useState([]);        // year codes string[]
+  const [years, setYears] = useState([]);
   const [defaultYear, setDefaultYear] = useState(null);
 
   const [sales, setSales] = useState([]);
   const [subDealers, setSubDealers] = useState([]);
   const [itemColumn, setItemColumn] = useState([]);
-  const [dataSource, setDataSource] = useState(false);
+  const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
-  const { showNotification, userInfo } = useContext(AuthContext);
-  const [areaId, setAreaId] = useState();
-  const [roleId, setRoleId] = useState();
+
+  const { showNotification } = useContext(AuthContext);
   const [formCustom] = Form.useForm();
   const watchedAreaId = Form.useWatch("area_id", formCustom);
   const watchedSaleId = Form.useWatch("sale_id", formCustom);
 
-  // watch สำหรับ disable ตามลำดับ step
   const selectedArea = Form.useWatch("area_id", formCustom);
   const selectedSale = Form.useWatch("sale_id", formCustom);
 
-
   const [areaList, setAreaList] = useState([]);
 
-  useEffect(() => {
-    if (!roleId || !areaId) return;
-
-    // ถ้าไม่ใช่ admin ให้ fix area ตาม user
-    if (Number(roleId) !== 1) {
-      formCustom.setFieldsValue({
-        area_id: areaId,
-        sale_id: undefined,
-        sub_dealer_id: undefined,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roleId, areaId]);
-
-  // watch สำหรับ disable ตามลำดับ step
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await useServiceAPI.get(
-          `${paths.pathMasterUsersDetail}/${userInfo.id}`,
-          {},
-          setLoading
-        );
-
-        if (res?.status === 200) {
-          const aId = res.data.area_id;
-          const rId = res.data.role_id;
-
-          setAreaId(aId);
-          setRoleId(rId);
-
-        }
-      } catch (e) {
-        showNotification("error", e?.message || "เกิดข้อผิดพลาด");
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+  const [tableParams, setTableParams] = useState({
+    pagination: { current: 1, pageSize: 10 },
+    filters: {},
+    sortOrder: null,
+    sortField: null,
+  });
 
   const header = [
     {
@@ -151,12 +105,9 @@ export default function ReportSaleByMonth() {
           }),
           render: (_, record) => {
             const itemData =
-              month.product.find(
-                (p) => p.product_name === record.productName
-              ) || {};
+              month.product.find((p) => p.product_name === record.productName) || {};
             const val =
-              isNaN(itemData.workplan_value) ||
-                itemData.workplan_value == null
+              isNaN(itemData.workplan_value) || itemData.workplan_value == null
                 ? 0
                 : itemData.workplan_value;
             return (
@@ -165,10 +116,7 @@ export default function ReportSaleByMonth() {
                 min={0}
                 value={val}
                 formatter={(v) =>
-                  `${parseInt(v || 0, 10)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(v || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
                 disabled
               />
@@ -189,12 +137,9 @@ export default function ReportSaleByMonth() {
           }),
           render: (_, record) => {
             const itemData =
-              month.product.find(
-                (p) => p.product_name === record.productName
-              ) || {};
+              month.product.find((p) => p.product_name === record.productName) || {};
             const val =
-              isNaN(itemData.actual_value) ||
-                itemData.actual_value == null
+              isNaN(itemData.actual_value) || itemData.actual_value == null
                 ? 0
                 : itemData.actual_value;
             return (
@@ -203,10 +148,7 @@ export default function ReportSaleByMonth() {
                 min={0}
                 value={val}
                 formatter={(v) =>
-                  `${parseInt(v || 0, 10)}`.replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ","
-                  )
+                  `${parseInt(v || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
                 disabled
               />
@@ -217,14 +159,6 @@ export default function ReportSaleByMonth() {
     })),
   ];
 
-  const [tableParams, setTableParams] = useState({
-    pagination: { current: 1, pageSize: 10 },
-    filters: {},
-    sortOrder: null,
-    sortField: null,
-  });
-
-  // ===== Masters =====
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
@@ -235,16 +169,11 @@ export default function ReportSaleByMonth() {
         ]);
 
         const yearRaw = yearsRes.data || [];
-        const yearCodes = yearRaw
-          .map((y) => getYearCodeFrom(y))
-          .filter(Boolean);
+        const yearCodes = yearRaw.map((y) => getYearCodeFrom(y)).filter(Boolean);
 
         setYears(yearCodes);
 
-        // ✅ default = option แรก
         const currentYear = dayjs().tz("Asia/Bangkok").format("YYYY");
-
-        // ถ้ามีปีปัจจุบันใน master ให้ใช้ปีนั้น
         const yearToUse = yearCodes.includes(currentYear)
           ? currentYear
           : yearCodes[0];
@@ -256,14 +185,20 @@ export default function ReportSaleByMonth() {
           filters: { ...prev.filters, year_code: yearToUse },
         }));
 
-        formCustom.setFieldsValue({ year_code: yearToUse });
-        console.log(resArea.data);
-        setAreaList(
-          (resArea.data || []).map((x) => ({
-            value: String(x.id),
-            label: x.name,
-          }))
-        );
+        formCustom.setFieldsValue({
+          area_id: undefined,
+          sale_id: undefined,
+          sub_dealer_id: undefined,
+          year_code: yearToUse,
+        });
+
+        const areaOpts = (resArea.data || []).map((x) => ({
+          value: String(x.id),
+          label: x.name,
+        }));
+
+        setAreaList(areaOpts);
+        await fetchData();
       } catch (error) {
         showNotification?.("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -274,7 +209,6 @@ export default function ReportSaleByMonth() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Area → Sales
   useEffect(() => {
     const aId = watchedAreaId;
 
@@ -287,11 +221,13 @@ export default function ReportSaleByMonth() {
 
     (async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathMasterSaleReport, {
+        const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
           area_id: aId,
         });
 
-        const list = Array.isArray(res?.data) ? res.data : [];
+        const raw = res?.data?.data ?? res?.data ?? [];
+        const list = Array.isArray(raw) ? raw : [];
+
         setSales(
           list.map((s) => ({
             value: Number(s.user_id ?? s.id),
@@ -299,7 +235,6 @@ export default function ReportSaleByMonth() {
           }))
         );
 
-        // reset downstream
         setSubDealers([]);
         formCustom.resetFields(["sale_id", "sub_dealer_id"]);
       } catch {
@@ -311,8 +246,6 @@ export default function ReportSaleByMonth() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchedAreaId]);
 
-
-  // Sales → Sub Dealer
   useEffect(() => {
     const sId = watchedSaleId;
 
@@ -346,7 +279,6 @@ export default function ReportSaleByMonth() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchedSaleId]);
 
-
   useEffect(() => {
     if (years.length > 0 && tableParams.filters.year_code) {
       fetchData();
@@ -368,49 +300,31 @@ export default function ReportSaleByMonth() {
 
       const payload = {
         sale_id: values.sale_id || null,
-        sub_dealer_id: values.sub_dealer_id || null, // ⬅️ ใช้ sub dealer
+        sub_dealer_id: values.sub_dealer_id || null,
         area_id: values.area_id || null,
         year_code: yearCode,
       };
 
-      const response = await useServiceAPI.get(
-        paths.pathReportActivityExpense,
-        payload
-      );
+      const response = await useServiceAPI.get(paths.pathReportActivityExpense, payload);
 
       if (response.status === 200) {
         const { item: activityTypes, month: monthList } = response.data;
 
-        // columns per month
         const itemColumnData = monthList.map((month) => {
           const monthId = month.id;
           const productData = activityTypes.map((activity) => {
-            const matchingMonthItem = activity.item.find(
-              (i) => i.month_id === monthId
-            );
+            const matchingMonthItem = activity.item.find((i) => i.month_id === monthId);
             return {
               product_name: activity.activity_type_name,
               workplan_qty:
-                Number(
-                  (matchingMonthItem?.total_activity_plan_count || "0")
-                    .toString()
-                    .replace(/,/g, "")
-                ) || 0,
+                Number((matchingMonthItem?.total_activity_plan_count || "0").toString().replace(/,/g, "")) || 0,
               rolling_qty: 0,
               actual_qty: 0,
               workplan_value:
-                Number(
-                  (matchingMonthItem?.total_activity_plan_value || "0")
-                    .toString()
-                    .replace(/,/g, "")
-                ) || 0,
+                Number((matchingMonthItem?.total_activity_plan_value || "0").toString().replace(/,/g, "")) || 0,
               rolling_value: 0,
               actual_value:
-                Number(
-                  (matchingMonthItem?.expense_actual || "0")
-                    .toString()
-                    .replace(/,/g, "")
-                ) || 0,
+                Number((matchingMonthItem?.expense_actual || "0").toString().replace(/,/g, "")) || 0,
             };
           });
           return { ...month, product: productData };
@@ -433,16 +347,13 @@ export default function ReportSaleByMonth() {
       }
     } catch (error) {
       console.error("Error fetching report data:", error);
-      showNotification?.(
-        "error",
-        error.message || "ไม่สามารถโหลดข้อมูลรายงานได้"
-      );
+      showNotification?.("error", error.message || "ไม่สามารถโหลดข้อมูลรายงานได้");
     } finally {
       setTableLoading(false);
     }
   };
 
-  const handleTableChange = (pagination, filters, sorter) => {
+  const handleTableChange = (pagination) => {
     setTableParams({ pagination, filters: tableParams.filters });
   };
 
@@ -463,8 +374,8 @@ export default function ReportSaleByMonth() {
     v == null
       ? ""
       : typeof v === "string" || typeof v === "number"
-        ? String(v)
-        : v.name ?? v.label ?? v.value ?? v.code ?? "";
+      ? String(v)
+      : v.name ?? v.label ?? v.value ?? v.code ?? "";
 
   const buildFileName = () => {
     const ts = dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD_HHmm");
@@ -472,13 +383,10 @@ export default function ReportSaleByMonth() {
       toText(tableParams?.filters?.year_code) ||
       dayjs().tz("Asia/Bangkok").format("YYYY");
     const fVals = formCustom.getFieldsValue();
-    const areaLabel = (areaList.find((x) => x.value === fVals.area_id) || {})
-      .label;
-    const salesLabel = (sales.find((x) => x.value === fVals.sale_id) || {})
-      .label;
-    const subDealerLabel = (
-      subDealers.find((x) => x.value === fVals.sub_dealer_id) || {}
-    ).label;
+    const areaLabel = (areaList.find((x) => x.value === fVals.area_id) || {}).label;
+    const salesLabel = (sales.find((x) => x.value === fVals.sale_id) || {}).label;
+    const subDealerLabel = (subDealers.find((x) => x.value === fVals.sub_dealer_id) || {}).label;
+
     return [
       `Activity_Expenses_By_Month_${yearText}`,
       areaLabel && `Area_${areaLabel}`,
@@ -500,35 +408,31 @@ export default function ReportSaleByMonth() {
         form={formCustom}
         layout="vertical"
         onValuesChange={(chg) => {
-          if ("area_id" in chg)
+          if ("area_id" in chg) {
             formCustom.setFieldsValue({
               sale_id: undefined,
               sub_dealer_id: undefined,
             });
-          if ("sale_id" in chg)
+          }
+          if ("sale_id" in chg) {
             formCustom.setFieldsValue({ sub_dealer_id: undefined });
+          }
         }}
       >
         <BoxPrimary className="m-1 mb-4">
           <Row gutter={16} align="middle">
-
             <Col md={6}>
               <Form.Item label="Area" name="area_id" tooltip="เลือก Area ก่อนเพื่อเปิด Sales">
                 <Select
                   placeholder="Select Area"
                   options={areaList}
-                  allowClear={Number(roleId) === 1}
-                  disabled={roleId != null && Number(roleId) !== 1}
+                  allowClear
                 />
-
               </Form.Item>
             </Col>
+
             <Col md={6}>
-              <Form.Item
-                label="Sales"
-                name="sale_id"
-                tooltip="เลือก Sales หลังจากเลือก Area"
-              >
+              <Form.Item label="Sales" name="sale_id" tooltip="เลือก Sales หลังจากเลือก Area">
                 <Select
                   placeholder="Select Sales"
                   options={sales}
@@ -537,6 +441,7 @@ export default function ReportSaleByMonth() {
                 />
               </Form.Item>
             </Col>
+
             <Col md={6}>
               <Form.Item
                 label="Sub Dealer"
@@ -552,7 +457,6 @@ export default function ReportSaleByMonth() {
               </Form.Item>
             </Col>
 
-            {/* Year filter */}
             <Col md={6}>
               <Form.Item label="Year" name="year_code">
                 <Select
@@ -580,32 +484,27 @@ export default function ReportSaleByMonth() {
             />
             <DynamicButton
               onClick={() => {
-                formCustom.resetFields(["sale_id", "sub_dealer_id", "year_code"]);
-
-                // area: admin เคลียร์ได้ / non-admin fix ตาม areaId
-                if (roleId != null && Number(roleId) !== 1) {
-                  formCustom.setFieldsValue({ area_id: areaId });
-                } else {
-                  formCustom.resetFields(["area_id"]);
-                }
-
-                //setSales([]);
-                setSubDealers([]);
-
                 const yearToUse =
                   defaultYear || years[0] || dayjs().tz("Asia/Bangkok").format("YYYY");
 
-                if (yearToUse) {
-                  formCustom.setFieldsValue({ year_code: yearToUse });
-                }
+                formCustom.setFieldsValue({
+                  area_id: undefined,
+                  sale_id: undefined,
+                  sub_dealer_id: undefined,
+                  year_code: yearToUse,
+                });
+
+                setSales([]);
+                setSubDealers([]);
 
                 setTableParams((prev) => ({
                   ...prev,
                   filters: { ...prev.filters, year_code: yearToUse },
                   pagination: { ...prev.pagination, current: 1 },
                 }));
-              }}
 
+                fetchData();
+              }}
               name="btn-clear"
               text="Clear"
               iconSrc="/img/icons/trash.png"
@@ -634,10 +533,7 @@ export default function ReportSaleByMonth() {
                 };
               }}
               requestData={(payload) =>
-                useServiceAPI.get(
-                  paths.pathReportActivityExpense,
-                  payload
-                )
+                useServiceAPI.get(paths.pathReportActivityExpense, payload)
               }
             />
           </div>
@@ -668,10 +564,7 @@ export default function ReportSaleByMonth() {
                           readOnly
                           value={month.workplan_value}
                           formatter={(v) =>
-                            `${parseInt(v || 0, 10)}`.replace(
-                              /\B(?=(\d{3})+(?!\d))/g,
-                              ","
-                            )
+                            `${parseInt(v || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                           }
                         />
                       </Table.Summary.Cell>
@@ -681,10 +574,7 @@ export default function ReportSaleByMonth() {
                           readOnly
                           value={month.actual_value}
                           formatter={(v) =>
-                            `${parseInt(v || 0, 10)}`.replace(
-                              /\B(?=(\d{3})+(?!\d))/g,
-                              ","
-                            )
+                            `${parseInt(v || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                           }
                         />
                       </Table.Summary.Cell>

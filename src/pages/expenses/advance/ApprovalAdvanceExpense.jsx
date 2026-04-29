@@ -1,9 +1,7 @@
-// src/pages/expenses/advance/ApprovalAdvanceExpense.jsx
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
-import { Dropdown, Modal } from "antd";
-import ActionButton from "../../../components/button/ActionButton";
+import { Dropdown, Modal, Input } from "antd";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
@@ -13,36 +11,31 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { ExclamationCircleFilled } from "@ant-design/icons";
-import { trim } from "lodash";
 
 export default function ApprovalAdvanceExpense() {
   const navigate = useNavigate();
   const location = useLocation();
   const { role } = useParams();
   const { confirm } = Modal;
-  const { showNotification } = useContext(AuthContext);
+  const { TextArea } = Input;
+  const { showNotification, userInfo } = useContext(AuthContext);
 
-  // Loading + Table
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
 
-  // Master
   const [activityList, setActivityList] = useState([]);
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
 
-  // ค่า filter ปัจจุบัน
   const [filterValues, setFilterValues] = useState({});
 
-  // Table params
   const [tableParams, setTableParams] = useState({
     pagination: { current: 1, pageSize: 10, total: 0 },
     filters: {},
   });
 
-  // ---------- Filter UI ----------
   const filters = [
     {
       key: "sale",
@@ -94,14 +87,33 @@ export default function ApprovalAdvanceExpense() {
     },
   ];
 
-  // ---------- Master ----------
+  const getApproveRejectText = () => {
+    let approveText = "Approve";
+    let rejectText = "Reject";
+
+    if (userInfo?.role_id == 8) {
+      approveText = "Confirm";
+      rejectText = "Cancel";
+    }
+
+    return { approveText, rejectText };
+  };
+
+  const getId = (v) => {
+    if (!v) return "";
+    if (typeof v === "object") return v.value ?? v.id ?? "";
+    return v;
+  };
+
   useEffect(() => {
     const loadMaster = async () => {
       setLoading(true);
       try {
         const [activityType, sale] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          // useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+          useServiceAPI.get(paths.pathMasterSaleExpense, { mode: "all" }),
+
         ]);
 
         setActivityList(activityType.data || []);
@@ -116,7 +128,6 @@ export default function ApprovalAdvanceExpense() {
     loadMaster();
   }, []);
 
-  // ---------- Sales → Dealer ----------
   useEffect(() => {
     const sale = filterValues.sale;
 
@@ -140,7 +151,6 @@ export default function ApprovalAdvanceExpense() {
     getDealer();
   }, [filterValues.sale]);
 
-  // ---------- Dealer → Sub Dealer ----------
   useEffect(() => {
     const sale = filterValues.sale;
     const dealer = filterValues.dealer;
@@ -157,7 +167,7 @@ export default function ApprovalAdvanceExpense() {
           dealer_id: dealer,
         });
 
-        const formatted = res.data.map((d) => ({
+        const formatted = (res.data || []).map((d) => ({
           id: d.sub_dealer_id,
           name: d.sub_dealer_name,
         }));
@@ -171,7 +181,92 @@ export default function ApprovalAdvanceExpense() {
     getSubDealer();
   }, [filterValues.dealer, filterValues.sale]);
 
-  // ---------- Fetch Data ----------
+  const handleOpenPage = (row, mode = "view") => {
+    navigate("/activity/approve", {
+      state: {
+        documentNumber: row.document_number,
+        pageCode: row.page_code,
+        page_mode: mode,
+      },
+    });
+  };
+
+  const handleApprovalAction = async (row, action) => {
+    let remark = "";
+    const { approveText, rejectText } = getApproveRejectText();
+
+    confirm({
+      title: `Do you want to ${action === "approved" ? approveText : rejectText} ?`,
+      icon: <ExclamationCircleFilled />,
+      content:
+        action === "reject" ? (
+          <TextArea
+            placeholder="Please enter remark"
+            onChange={(e) => {
+              remark = e.target.value;
+            }}
+          />
+        ) : null,
+      centered: true,
+      async onOk() {
+        try {
+          const result = await useServiceAPI.put(paths.pathAdvanceApproval, {
+            document_number: row.document_number,
+            page_mode: "approve",
+            remark,
+            action_code: action,
+          });
+
+          await showNotification(
+            "success",
+            result?.data?.Message?.Message_Header || result?.data?.message || "Success",
+            result?.data?.Message?.Message_Line || result?.data?.message_line || ["Transaction completed"],
+            2
+          );
+
+          fetchData();
+        } catch (error) {
+          console.error(error);
+          showNotification("error", "Transaction failed", ["Please try again later."]);
+        }
+      },
+    });
+  };
+
+  const buildActionMenuItems = (row) => {
+    return (row.action || []).map((actionItem, actionIndex) => {
+      const rawMode = String(actionItem.action || "").toLowerCase().trim();
+
+      let itemMode = rawMode;
+      let itemText = actionItem.action;
+      let onClickHandler = null;
+
+      if (rawMode === "view") {
+        itemMode = "view";
+        onClickHandler = () => handleOpenPage(row, "view");
+      } else if (rawMode === "edit") {
+        itemMode = "edit";
+        onClickHandler = () => handleOpenPage(row, "edit");
+      } else if (rawMode === "approve") {
+        itemMode = "approve";
+        itemText = getApproveRejectText().approveText;
+        onClickHandler = () => handleApprovalAction(row, "approved");
+      } else if (rawMode === "reject") {
+        itemMode = "reject";
+        itemText = getApproveRejectText().rejectText;
+        onClickHandler = () => handleApprovalAction(row, "reject");
+      } else {
+        itemMode = "view";
+        onClickHandler = () => handleOpenPage(row, "view");
+      }
+
+      return {
+        key: actionIndex,
+        label: <ItemDropDown mode={itemMode} onClick={onClickHandler} text={itemText} />,
+      };
+    });
+  };
+
   const fetchData = async () => {
     setTableLoading(true);
 
@@ -180,13 +275,13 @@ export default function ApprovalAdvanceExpense() {
 
     const req = {
       page_code: "expense_advance",
-      keyword: filters.expense_no || "", // Expense No
+      keyword: filters.expense_no || "",
       use_flag: "1",
-      user_id: filters.sale,
-      dealer_id: filters.dealer,
-      sub_dealer_id: filters.customer,
-      activity_type_id: filters.type_of_meeting,
-      document_number_referrent: filters.activity_reference,
+      user_id: getId(filters.sale),
+      dealer_id: getId(filters.dealer),
+      sub_dealer_id: getId(filters.customer),
+      activity_type_id: getId(filters.type_of_meeting),
+      document_number_referrent: filters.activity_reference || "",
       date: filters.date || "",
       page: "all",
       page_mode: "waiting_" + role,
@@ -202,13 +297,19 @@ export default function ApprovalAdvanceExpense() {
       if (res.status === 200) {
         const { data, records_filtered } = res.data;
 
-        const formatted = data.map((row, index) => ({
+        const formatted = (data || []).map((row, index) => ({
           key: index + 1 + (current - 1) * pageSize,
+          raw: row,
           customer: row.sub_dealer_name,
           dealer: row.dealer_name,
           expenseNo: row.document_number,
+          advanceExp: Number(row.expense_advance || 0).toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
           activityReference: row.document_number_referrent,
           typeOfMeeting: row.activity_type_name,
+          sale: row.user_name,
           date: row.document_date,
           status: (
             <BadgeStatus
@@ -217,41 +318,7 @@ export default function ApprovalAdvanceExpense() {
               textColor={row.transaction_status_color}
             />
           ),
-
-          action: (
-            <Dropdown
-              menu={{
-                items: [
-                  {
-                    key: "view",
-                    label: (
-                      <ItemDropDown
-                        mode="view"
-                        text="View"
-                        onClick={() =>
-                          navigate("/activity/approve", {
-                            state: {
-                              documentNumber: row.document_number,
-                              pageCode: row.page_code,
-                              page_mode: "view",
-                            },
-                          })
-                        }
-                      />
-                    ),
-                  },
-                ],
-              }}
-            >
-              <a onClick={(e) => e.preventDefault()}>
-                <img
-                  src="/img/icons/action.png"
-                  alt="Actions icon"
-                  className="inline-block w-5 h-5"
-                />
-              </a>
-            </Dropdown>
-          ),
+          action: row.action || [],
         }));
 
         setDataSource(formatted);
@@ -269,6 +336,7 @@ export default function ApprovalAdvanceExpense() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     location.pathname,
     tableParams.pagination.current,
@@ -276,7 +344,6 @@ export default function ApprovalAdvanceExpense() {
     JSON.stringify(tableParams.filters),
   ]);
 
-  // ---------- Search ----------
   const handleSearch = (values) => {
     setFilterValues(values);
 
@@ -287,7 +354,6 @@ export default function ApprovalAdvanceExpense() {
     }));
   };
 
-  // ---------- Clear ----------
   const handleClear = () => {
     setFilterValues({});
     setDealerList([]);
@@ -321,11 +387,32 @@ export default function ApprovalAdvanceExpense() {
             { title: "Sub Dealer", dataIndex: "customer" },
             { title: "Dealer", dataIndex: "dealer" },
             { title: "Expense No", dataIndex: "expenseNo" },
+            {
+              title: "Advance Exp",
+              dataIndex: "advanceExp",
+              align: "right",
+            },
             { title: "Activity Reference", dataIndex: "activityReference" },
             { title: "Type of Meeting", dataIndex: "typeOfMeeting" },
+            { title: "Sales", dataIndex: "sale", width: "200px" },
             { title: "Date", dataIndex: "date" },
             { title: "Status", dataIndex: "status", align: "center" },
-            { title: "Action", dataIndex: "action", align: "center" },
+            {
+              title: "Action",
+              dataIndex: "action",
+              align: "center",
+              render: (_, record) => (
+                <Dropdown menu={{ items: buildActionMenuItems(record.raw) }} placement="bottom">
+                  <a onClick={(e) => e.preventDefault()}>
+                    <img
+                      src="/img/icons/action.png"
+                      alt="Actions icon"
+                      className="inline-block w-5 h-5"
+                    />
+                  </a>
+                </Dropdown>
+              ),
+            },
           ]}
           dataSource={dataSource}
           pagination={tableParams.pagination}

@@ -29,7 +29,6 @@ const Navbar = () => {
   const [activeIndex, setActiveIndex] = useState(0); // Track active index
   const { userInfo, logout } = useContext(AuthContext);
 
-
   const menuItems = userInfo?.menu_permissions?.map((menu) => ({
     label: menu.name,
     icon: `/${menu.icon}`,
@@ -43,7 +42,6 @@ const Navbar = () => {
       }))
       : [], // ใช้ [] หากไม่มี dropdownItems
   })) || [];
-
 
   const CustomDropdownMenu = ({ items }) => {
     return (
@@ -61,9 +59,9 @@ const Navbar = () => {
           label: (
             <span
               className={`${location.pathname === `/${item.path}` ||
-                  location.pathname.startsWith(`${item.path}/`)
-                  ? "pointer-events-none font-bold text-[#009845]"
-                  : "text-[#978B87]"
+                location.pathname.startsWith(`${item.path}/`)
+                ? "pointer-events-none font-bold text-[#009845]"
+                : "text-[#978B87]"
                 } py-1`}
             >
               {item.label}
@@ -198,7 +196,8 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-[#009845] flex items-center justify-between px-4 relative w-full shadow-[0_4px_4px_0px_rgba(0,0,0,0.25)]">
+    // <nav className="bg-[#009845] flex items-center justify-between px-4 relative w-full shadow-[0_4px_4px_0px_rgba(0,0,0,0.25)]">
+    <nav className="bg-[#009845] flex items-center justify-between px-4 sticky top-0 z-50 w-full shadow-[0_4px_4px_0px_rgba(0,0,0,0.25)]">
       <div className="flex items-center justify-start w-1/6">
         <Logo width="w-[150px]" />
       </div>
@@ -272,7 +271,7 @@ const Navbar = () => {
           <img
             src={userInfo?.profile_image || "/img/icons/dashboard.png"} // Fallback image
             alt="User Avatar"
-            className="rounded-full h-10 w-10 mx-2 cursor-pointer"
+            className="rounded-full h-10 w-10 mx-2 cursor-pointer object-cover"
           />
         </Dropdown>
       </div>

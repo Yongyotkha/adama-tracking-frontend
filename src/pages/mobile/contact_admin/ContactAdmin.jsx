@@ -190,7 +190,7 @@ export default function ContactAdmin() {
           setIsConfirmationVisible(false);
           navigate("/mobile/verify"); // ✅ Navigate ไปยังหน้าถัดไป
         }}
-        src="/img/icon/check-circle.png"
+        src="/img/icons/check-circle.png"
         text={`<p class='text-[#978B87] text-center sarabun-font'>${popupMessage}</p>`} // ✅ ทำให้ข้อความใน Popup เป็นแบบไดนามิก
         confirmText="ตกลง"
       />

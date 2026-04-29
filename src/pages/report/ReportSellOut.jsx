@@ -1,6 +1,6 @@
 // src/pages/report/ReportSellOut.jsx
 import React, { useMemo, useState, useEffect, useContext } from "react";
-import { Form, Row, Col, Select, InputNumber, Table } from "antd"; // 🔁 เอา DatePicker ออก
+import { Form, Row, Col, Select, InputNumber, Table } from "antd";
 import MainLayout from "../../layouts/MainLayout";
 import Title from "../../components/title/Title";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
@@ -13,6 +13,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import ExportSellOutExcelButton from "../../components/export/ExportSellOutExcelButton";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -33,6 +34,7 @@ const monthsEN = [
   "Nov",
   "Dec",
 ];
+
 const subCols = [
   { title: "Last Stock", key: "last_stock" },
   { title: "Sell In", key: "sell_in" },
@@ -41,15 +43,14 @@ const subCols = [
 ];
 
 const fmt = (n) =>
-  `${parseInt(Number(n) || 0)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  `${parseInt(Number(n) || 0, 10)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-// -------- helpers for export file name ----------
 const slug = (s) =>
   String(s ?? "")
     .normalize("NFKC")
     .replace(/\s+/g, " ")
     .trim()
-    .replace(/[\\/:*?"<>|]+/g, "-") // กันอักขระต้องห้าม
+    .replace(/[\\/:*?"<>|]+/g, "-")
     .replace(/\s+/g, "_");
 
 const getLabelFrom = (options, value) =>
@@ -79,26 +80,21 @@ const buildSellOutReportFileName = (form, { areaList, sales, dealers }) => {
 export default function ReportSellOut() {
   const [form] = Form.useForm();
   const { showNotification } = useContext(AuthContext) || {};
-
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
 
-  // masters from API
   const [areaList, setAreaList] = useState([]);
   const [sales, setSales] = useState([]);
   const [dealers, setDealers] = useState([]);
   const [yearList, setYearList] = useState([]);
   const [defaultYear, setDefaultYear] = useState(null);
 
-  // table data + page size
   const [data, setData] = useState([]);
   const [pageSize, setPageSize] = useState(5);
 
-  // watch step values -> disable next steps
   const selectedArea = Form.useWatch("area_id", form);
   const selectedSales = Form.useWatch("sales_id", form);
 
-  // ---------- columns ----------
   const header = useMemo(() => {
     const firstBlock = {
       title: "Month",
@@ -168,9 +164,9 @@ export default function ReportSellOut() {
     return [firstBlock, ...monthBlocks];
   }, []);
 
-  // ---------- footer ----------
   const footer = useMemo(() => {
     const sum = (k) => (data || []).reduce((s, r) => s + (Number(r[k]) || 0), 0);
+
     return () => (
       <Table.Summary fixed>
         <Table.Summary.Row className="bg-[#978B87]">
@@ -202,7 +198,6 @@ export default function ReportSellOut() {
     );
   }, [data]);
 
-  // ---------- API: masters (Area + Year) ----------
   useEffect(() => {
     const loadMasters = async () => {
       setLoading(true);
@@ -212,29 +207,38 @@ export default function ReportSellOut() {
           useServiceAPI.get(paths.pathMasterYear),
         ]);
 
-        // Area
         const areaRaw = Array.isArray(areaRes?.data) ? areaRes.data : [];
-        setAreaList(areaRaw.map((x) => ({ value: x.id, label: x.name })));
+        const areaOpts = areaRaw.map((x) => ({ value: x.id, label: x.name }));
+        setAreaList(areaOpts);
 
-        // Year
         const yearRaw = Array.isArray(yearRes?.data) ? yearRes.data : [];
         const yearOptions = yearRaw.map((y) => ({
-          value: y.id, // id = 2025, 2026
+          value: y.id,
           label: y.name,
         }));
         setYearList(yearOptions);
 
-        // set default year (ถ้ามีปีปัจจุบันใน list ใช้อันนั้น, ไม่มีก็เอาอันแรก)
+        let initYear = null;
         if (yearOptions.length > 0) {
           const currentYear = dayjs().year();
           const matched =
             yearOptions.find((y) => Number(y.value) === currentYear) ||
             yearOptions[0];
-
+          initYear = matched.value;
           setDefaultYear(matched.value);
-          form.setFieldsValue({ year: matched.value });
         }
+
+        form.setFieldsValue({
+          area_id: undefined,
+          sales_id: undefined,
+          dealer_id: undefined,
+          sub_dealer_id: undefined,
+          year: initYear,
+        });
+
+        await fetchSellOut();
       } catch (e) {
+        console.error(e);
         setAreaList([]);
         setYearList([]);
         showNotification?.("error", "โหลดข้อมูลตัวกรองไม่สำเร็จ");
@@ -242,69 +246,106 @@ export default function ReportSellOut() {
         setLoading(false);
       }
     };
+
     loadMasters();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // เปลี่ยน Area → โหลด Sales
+  // Area -> Sales
   useEffect(() => {
-    const areaId = form.getFieldValue("area_id");
+    const areaId = selectedArea;
+
     if (!areaId) {
       setSales([]);
-      form.resetFields(["sales_id", "dealer_id"]);
       setDealers([]);
+      form.setFieldsValue({
+        sales_id: undefined,
+        dealer_id: undefined,
+      });
       return;
     }
+
     (async () => {
       try {
-        const res = await useServiceAPI.get(paths.pathMasterSaleReport, {
+        const res = await useServiceAPI.get(paths.pathMasterUserByArea, {
           area_id: areaId,
         });
-        const list = Array.isArray(res?.data) ? res.data : [];
-        setSales(list.map((x) => ({ value: Number(x.id), label: x.name })));
-        form.resetFields(["sales_id", "dealer_id"]);
+
+        const raw = Array.isArray(res?.data?.data)
+          ? res.data.data
+          : Array.isArray(res?.data)
+            ? res.data
+            : [];
+
+        setSales(
+          raw.map((x) => ({
+            value: Number(x.user_id ?? x.id),
+            label: x.user_name ?? x.name,
+          }))
+        );
+
         setDealers([]);
-      } catch {
+        form.setFieldsValue({
+          sales_id: undefined,
+          dealer_id: undefined,
+        });
+      } catch (e) {
+        console.error(e);
         setSales([]);
         setDealers([]);
-        form.resetFields(["sales_id", "dealer_id"]);
+        form.setFieldsValue({
+          sales_id: undefined,
+          dealer_id: undefined,
+        });
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.getFieldValue("area_id")]);
+  }, [selectedArea, form]);
 
-  // เปลี่ยน Sales → โหลด Dealer
+  // Sales -> Dealer
   useEffect(() => {
-    const salesId = form.getFieldValue("sales_id");
+    const salesId = selectedSales;
+
     if (!salesId) {
       setDealers([]);
-      form.resetFields(["dealer_id"]);
+      form.setFieldsValue({ dealer_id: undefined });
       return;
     }
+
     (async () => {
       try {
         const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
           user_id: salesId,
         });
-        const list = Array.isArray(res?.data) ? res.data : [];
-        setDealers(list.map((x) => ({ value: Number(x.id), label: x.name })));
-        form.resetFields(["dealer_id"]);
-      } catch {
+
+        const raw = Array.isArray(res?.data?.data)
+          ? res.data.data
+          : Array.isArray(res?.data)
+            ? res.data
+            : [];
+
+        setDealers(
+          raw.map((x) => ({
+            value: Number(x.id),
+            label: x.name,
+          }))
+        );
+
+        form.setFieldsValue({ dealer_id: undefined });
+      } catch (e) {
+        console.error(e);
         setDealers([]);
-        form.resetFields(["dealer_id"]);
+        form.setFieldsValue({ dealer_id: undefined });
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.getFieldValue("sales_id")]);
+  }, [selectedSales, form]);
 
-  // ---------- helpers ----------
   const buildPayload = () => {
     const v = form.getFieldsValue();
     const rawYear = v.year ?? defaultYear ?? dayjs().year();
-    const year = String(rawYear); // ✅ ส่งเป็น id ปี
+    const year = String(rawYear);
 
     return {
-      year, // ex. "2025"
+      year,
       area_id: v.area_id ?? "",
       user_id: v.sales_id ?? "",
       dealer_id: v.dealer_id ?? "",
@@ -313,12 +354,12 @@ export default function ReportSellOut() {
   };
 
   const mapApiToRows = (apiData = []) => {
-    // apiData: [{ group_id, group_name, months: {"1":{...},...,"12":{...}} }]
     return apiData.map((g, idx) => {
       const row = {
         key: g.group_id || idx + 1,
         sub_dealer_name: g.group_name || "All",
       };
+
       for (let i = 1; i <= 12; i++) {
         const mObj = g.months?.[String(i)] || g.months?.[i] || {};
         const mName = monthsEN[i - 1];
@@ -327,6 +368,7 @@ export default function ReportSellOut() {
         row[`${mName}_current_stock`] = Number(mObj.current) || 0;
         row[`${mName}_sell_out`] = Number(mObj.out) || 0;
       }
+
       return row;
     });
   };
@@ -336,7 +378,11 @@ export default function ReportSellOut() {
     try {
       const payload = buildPayload();
       const res = await useServiceAPI.get(paths.pathReportSellOut, payload);
-      const groups = res?.data || [];
+      const groups = Array.isArray(res?.data)
+        ? res.data
+        : Array.isArray(res?.data?.data)
+          ? res.data.data
+          : [];
       setData(mapApiToRows(groups));
     } catch (err) {
       console.error(err);
@@ -347,54 +393,42 @@ export default function ReportSellOut() {
     }
   };
 
-  // ---------- first load ----------
-  useEffect(() => {
+  const onValuesChange = (changed) => {
+    if ("area_id" in changed) {
+      form.setFieldsValue({
+        sales_id: undefined,
+        dealer_id: undefined,
+      });
+    }
+
+    if ("sales_id" in changed) {
+      form.setFieldsValue({
+        dealer_id: undefined,
+      });
+    }
+  };
+
+  const handleSearch = async () => {
+    await fetchSellOut();
+  };
+
+  const handleClear = () => {
+    const rawYear = defaultYear ?? dayjs().year();
+
     form.setFieldsValue({
       area_id: undefined,
       sales_id: undefined,
       dealer_id: undefined,
       sub_dealer_id: undefined,
+      year: rawYear,
     });
-    fetchSellOut(); // โหลดครั้งแรก (ใช้ปี default / ปีปัจจุบัน)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
-  // ---------- cascade reset (UI only) ----------
-  const onValuesChange = (changed) => {
-    if (Object.prototype.hasOwnProperty.call(changed, "area_id")) {
-      form.setFieldsValue({ sales_id: undefined, dealer_id: undefined });
-    }
-    if (Object.prototype.hasOwnProperty.call(changed, "sales_id")) {
-      form.setFieldsValue({ dealer_id: undefined });
-    }
-  };
-
-  // ---------- actions ----------
-  const handleSearch = async () => {
-    const v = form.getFieldsValue();
-    if (v.sales_id && !v.area_id) {
-      showNotification?.("warning", "กรุณาเลือก Area ก่อนเลือก Sales");
-      return;
-    }
-    await fetchSellOut();
-  };
-
-  const handleClear = () => {
-    form.resetFields([
-      "area_id",
-      "sales_id",
-      "dealer_id",
-      "sub_dealer_id",
-      "year",
-    ]);
-    const rawYear = defaultYear ?? dayjs().year();
-    form.setFieldsValue({ year: rawYear });
     setSales([]);
     setDealers([]);
+
     fetchSellOut();
   };
 
-  // ---------- UI ----------
   return (
     <MainLayout loading={loading}>
       <Title prefix="Sell Out Report" />
@@ -446,13 +480,11 @@ export default function ReportSellOut() {
               </Form.Item>
             </Col>
 
-            {/* 🔁 เปลี่ยนจาก DatePicker เป็น Select Year */}
             <Col md={6}>
               <Form.Item label="Year" name="year">
                 <Select
                   placeholder="Select year"
                   options={yearList}
-                  // ถ้าอยากให้เคลียร์ไม่ได้ ให้เอา allowClear ออก
                   allowClear={false}
                 />
               </Form.Item>
@@ -486,6 +518,7 @@ export default function ReportSellOut() {
                 const v = form.getFieldsValue();
                 const rawYear = v.year ?? defaultYear ?? dayjs().year();
                 const year = String(rawYear);
+
                 return {
                   year,
                   area_id: v.area_id ?? "",
@@ -502,7 +535,6 @@ export default function ReportSellOut() {
         </BoxPrimary>
       </Form>
 
-      {/* Show X entries */}
       <div className="flex items-center gap-2 mb-2">
         <span>Show</span>
         <Select

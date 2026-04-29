@@ -13,6 +13,7 @@ import useServiceAPI from "../../../../services/corsService";
 import { paths } from "../../../../services/CorsPath";
 import dayjs from "dayjs";
 import { AuthContext } from "../../../../contexts/AuthContext";
+import DynamicModal from "../../../../components/modal/DynamicModal";
 
 export default function RewardCampaignList() {
   const navigate = useNavigate();
@@ -22,6 +23,11 @@ export default function RewardCampaignList() {
   const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [categories, setCategories] = useState([]);
+
+  // Modal: Point By Customer Group
+  const [isPointModalVisible, setIsPointModalVisible] = useState(false);
+  const [pointRows, setPointRows] = useState([]);
+  const [pointTitle, setPointTitle] = useState("Point By Customer Group");
 
   const [tableParams, setTableParams] = useState({
     pagination: {
@@ -33,6 +39,14 @@ export default function RewardCampaignList() {
     },
     filters: {},
   });
+
+  const pointColumns = [
+    { title: "No", dataIndex: "key", key: "key", width: 60, align: "center" },
+    { title: "Customer Name", dataIndex: "customer_name", key: "customer_name" },
+    { title: "Type Name", dataIndex: "type_name", key: "type_name" },
+    { title: "Point", dataIndex: "point", key: "point", align: "right" },
+    { title: "Value (THB)", dataIndex: "value", key: "value", align: "right" },
+  ];
 
   // ---------- Load Category Master ----------
   useEffect(() => {
@@ -63,9 +77,9 @@ export default function RewardCampaignList() {
       key: "category_id",
       type: "select",
       label: "Category",
-      options: categories, // from paths.pathPromotionCategory
+      options: categories,
     },
-    { key: "dater", type: "dater", label: "Period" }, // ["YYYY-MM-DD","YYYY-MM-DD"]
+    { key: "dater", type: "dater", label: "Period" },
     {
       key: "status",
       type: "select",
@@ -76,6 +90,23 @@ export default function RewardCampaignList() {
       ],
     },
   ];
+
+  // ---------- Helpers ----------
+  const formatDate = (dateStr) => (dateStr ? dayjs(dateStr).format("YYYY-MM-DD") : "-");
+
+  const openPointModal = (rewardName, customerGroup = []) => {
+    const rows = (Array.isArray(customerGroup) ? customerGroup : []).map((g, idx) => ({
+      key: idx + 1,
+      customer_name: g?.customer_type ?? "-",
+      type_name: g?.name ?? "-",
+      point: g?.point ?? "-",
+      value: g?.value ?? "-",
+    }));
+
+    setPointTitle(`Point By Customer Group : ${rewardName || ""}`);
+    setPointRows(rows);
+    setIsPointModalVisible(true);
+  };
 
   // ---------- Table Header ----------
   const header = [
@@ -90,13 +121,17 @@ export default function RewardCampaignList() {
     { title: "Reward Code", dataIndex: "code" },
     { title: "Category", dataIndex: "category_name" },
     { title: "Reward Name", dataIndex: "name" },
+
+    // ✅ Column: Point (count) -> click to open modal
+    { title: "Point", dataIndex: "point_count", align: "center", width: 90 },
+
     { title: "Stock", dataIndex: "value_display" },
     { title: "Period", dataIndex: "period" },
     { title: "Status", dataIndex: "status" },
     { title: "Action", dataIndex: "action", align: "center", width: 50 },
   ];
 
-  // ---------- Fetch List (new filter spec) ----------
+  // ---------- Fetch List ----------
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -117,92 +152,107 @@ export default function RewardCampaignList() {
       const payload = res?.data || {};
       const list = payload?.data || [];
 
-      const formatted = list.map((item, index) => ({
-        key: index + 1 + (current - 1) * pageSize,
-        image: item.image,
-        code: item.code,
-        category_name: item.category_name,
-        name: item.name,
-        value_display: item.value_display,
-        period: `${formatDate(item.date_start)} - ${formatDate(item.date_end)}`,
-        status: (
-          <BadgeStatus
-            text={item.status_name}
-            bgColor={item.status_bg_color}
-            textColor={item.status_color}
-          />
-        ),
-        action: (
-          <Dropdown
-            menu={{
-              items: (item.action || []).map((act, i) => {
-                const mode = String(act.action || "").toLowerCase();
-                if (mode === "view") {
+      const formatted = list.map((item, index) => {
+        const cg = Array.isArray(item.customer_group) ? item.customer_group : [];
+        const count = cg.length;
+
+        return {
+          key: index + 1 + (current - 1) * pageSize,
+          image: item.image,
+          code: item.code,
+          category_name: item.category_name,
+          name: item.name,
+
+          point_count: (
+            <BadgeStatus
+              text={count}
+              bgColor={item.status_bg_color || "#00783F"}
+              textColor={item.status_color || "#FFFFFF"}
+              onClick={() => openPointModal(item.name, cg)}
+            />
+          ),
+
+          value_display: item.value_display,
+          period: `${formatDate(item.date_start)} - ${formatDate(item.date_end)}`,
+          status: (
+            <BadgeStatus
+              text={item.status_name}
+              bgColor={item.status_bg_color}
+              textColor={item.status_color}
+            />
+          ),
+          action: (
+            <Dropdown
+              menu={{
+                items: (item.action || []).map((act, i) => {
+                  const mode = String(act.action || "").toLowerCase();
+
+                  if (mode === "view") {
+                    return {
+                      key: `view-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="view"
+                          onClick={() =>
+                            navigate(`/setting/line/reward-campaign/view`, {
+                              state: { id: item.id },
+                            })
+                          }
+                        />
+                      ),
+                    };
+                  }
+
+                  if (mode === "delete") {
+                    return {
+                      key: `delete-${i}`,
+                      label: (
+                        <Popconfirm
+                          title="ยืนยันการลบ?"
+                          description={`คุณต้องการลบรางวัล "${item.name}" หรือไม่`}
+                          okText="ลบ"
+                          cancelText="ยกเลิก"
+                          okButtonProps={{ danger: true }}
+                          onConfirm={() => handleDeleteReward(item.id)}
+                        >
+                          <div>
+                            <ItemDropDown mode="delete" />
+                          </div>
+                        </Popconfirm>
+                      ),
+                    };
+                  }
+
                   return {
-                    key: `view-${i}`,
+                    key: `${mode}-${i}`,
                     label: (
                       <ItemDropDown
-                        mode="view"
+                        mode={mode}
                         onClick={() =>
-                          navigate(`/setting/line/reward-campaign/view`, {
+                          navigate(`/setting/line/reward-campaign/${mode}`, {
                             state: { id: item.id },
                           })
                         }
                       />
                     ),
                   };
-                }
-                if (mode === "delete") {
-                  return {
-                    key: `delete-${i}`,
-                    label: (
-                      <Popconfirm
-                        title="ยืนยันการลบ?"
-                        description={`คุณต้องการลบรางวัล "${item.name}" หรือไม่`}
-                        okText="ลบ"
-                        cancelText="ยกเลิก"
-                        okButtonProps={{ danger: true }}
-                        onConfirm={() => handleDeleteReward(item.id)}
-                      >
-                        <div>
-                          <ItemDropDown mode="delete" />
-                        </div>
-                      </Popconfirm>
-                    ),
-                  };
-                }
-                return {
-                  key: `${mode}-${i}`,
-                  label: (
-                    <ItemDropDown
-                      mode={mode}
-                      onClick={() =>
-                        navigate(`/setting/line/reward-campaign/${mode}`, {
-                          state: { id: item.id },
-                        })
-                      }
-                    />
-                  ),
-                };
-              }),
-            }}
-          >
-            <a onClick={(e) => e.preventDefault()}>
-              <img src="/img/icons/action.png" alt="action" className="w-5 h-5" />
-            </a>
-          </Dropdown>
-        ),
-      }));
+                }),
+              }}
+            >
+              <a onClick={(e) => e.preventDefault()}>
+                <img src="/img/icons/action.png" alt="action" className="w-5 h-5" />
+              </a>
+            </Dropdown>
+          ),
+        };
+      });
 
       setDataSource(formatted);
       setTableParams((prev) => ({
         ...prev,
         pagination: {
           ...prev.pagination,
-          total:
-            payload?.records_filtered ??
-            payload?.records_total ??
-            formatted.length,
+          total: payload?.records_filtered ?? payload?.records_total ?? formatted.length,
         },
       }));
     } catch (err) {
@@ -258,9 +308,6 @@ export default function RewardCampaignList() {
     }));
   };
 
-  const formatDate = (dateStr) =>
-    dateStr ? dayjs(dateStr).format("YYYY-MM-DD") : "-";
-
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
@@ -284,6 +331,16 @@ export default function RewardCampaignList() {
           }
         />
       </BoxPrimary>
+
+      {/* ✅ Modal: Point By Customer Group */}
+      <DynamicModal
+        title={pointTitle}
+        isVisible={isPointModalVisible}
+        onClose={() => setIsPointModalVisible(false)}
+        header={pointColumns}
+        dataSource={pointRows}
+        width="1200px"
+      />
     </MainLayout>
   );
 }

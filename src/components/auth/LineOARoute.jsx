@@ -3,7 +3,7 @@ import { useContext, useEffect, useState } from "react";
 import liff from "@line/liff";
 import MessageLayout from "../../layouts/MessageLayout";
 import { AuthContext } from "../../contexts/AuthContext";
-const LIFF_ID = import.meta.env.VITE_LIFF_ID;
+import { liffId as LIFF_ID } from "../../services/CorsPath";
 const LineOARoute = () => {
   const location = useLocation();
   const [isLineLoggedIn, setIsLineLoggedIn] = useState(false);
