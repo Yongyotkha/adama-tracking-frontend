@@ -177,7 +177,7 @@ export const paths = {
   pathMasterSaleDropdown: "master/sale",
   pathMasterSaleExpense: "master/sale-expense",
   pathMasterSaleActivity: "master/sale_activity",
-  pathMasterSaleSingle : "master/sale-single",
+  pathMasterSaleSingle: "master/sale-single",
   pathMasterDealerDropdown: "master/dealer",
   pathMasterDealerAll: "master/dealer-all",
   // master/dealer-all-team
@@ -305,6 +305,7 @@ export const paths = {
   pathSalePointRefund: "/sale-point/refund",
   pathSalePointOrderCreate: "/sale-point/create",
   pathSalePointOrderUpdate: "/sale-point/update",
+  pathSalePointOrderUpdateAdmin: "/sale-point-receive/update_admin",
   pathSalePointOrderDetail: "/sale-point/detail",
   pathSalePointOrderStatus: "/sale-point/status",
   pathSalePointOrderDelete: "/sale-point/delete",
@@ -352,7 +353,7 @@ export const paths = {
   pathSampleExpenseUpdate: "expense/sample/update",
   pathSampleGetDealer: "expense/sample/get-dealer-id",
   pathSampleStatus: "expense/sample/status",
-  pathSampleDelete : "expense/sample/delete",
+  pathSampleDelete: "expense/sample/delete",
 
   // Claim
   pathClaimList: "claim/list",
