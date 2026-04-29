@@ -233,8 +233,6 @@ export default function CreateOrder() {
   };
 
   const handleDeleteProductRow = (key) => {
-    if (!canEditProduct) return;
-
     setDataSource((prev) =>
       prev
         .filter((item) => item.key !== key)
@@ -472,22 +470,20 @@ export default function CreateOrder() {
       key: "action",
       render: (_, record) => (
         <div className="flex justify-center items-center gap-3">
-          {canEditProduct && (
-            <>
-              <img
-                src="/img/icons/delete.png"
-                alt="delete"
-                className="cursor-pointer w-6 h-6"
-                onClick={() => handleDeleteProductRow(record.key)}
-              />
+          <img
+            src="/img/icons/delete.png"
+            alt="delete"
+            className="cursor-pointer w-6 h-6"
+            onClick={() => handleDeleteProductRow(record.key)}
+          />
 
-              <img
-                src="/img/icons/edit.png"
-                alt="edit"
-                className="cursor-pointer w-6 h-6"
-                onClick={() => handleEditPrice(record.key)}
-              />
-            </>
+          {canEditProduct && (
+            <img
+              src="/img/icons/edit.png"
+              alt="edit"
+              className="cursor-pointer w-6 h-6"
+              onClick={() => handleEditPrice(record.key)}
+            />
           )}
         </div>
       ),
