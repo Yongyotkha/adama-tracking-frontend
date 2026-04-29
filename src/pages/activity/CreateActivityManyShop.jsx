@@ -217,6 +217,25 @@ export default function CreateActivityManyShop() {
     selected: false, // default value is false
   }));
 
+  const resetCropAndProductForShop = (shop) => ({
+    ...shop,
+    crop_id_list: [],
+    product_list: [],
+  });
+
+  const resetProductForShop = (shop) => ({
+    ...shop,
+    product_list: [],
+  });
+
+  const normalizeShopsForForm = (shops = []) =>
+    shops.map((shop) => ({
+      ...shop,
+      document_date: shop?.document_date ? dayjs(shop.document_date) : dayjs(),
+      crop_id_list: Array.isArray(shop?.crop_id_list) ? shop.crop_id_list : [],
+      product_list: Array.isArray(shop?.product_list) ? shop.product_list : [],
+    }));
+
   const handleContactChange = (index, field, value) => {
     // console.log("index : ", index);
     // console.log("field : ", field);
@@ -262,8 +281,21 @@ export default function CreateActivityManyShop() {
     }
 
     const update = [...multiShop];
-    update[index][field] = value;
+    if (field === "dealer_id") {
+      update[index] = {
+        ...resetCropAndProductForShop(update[index]),
+        dealer_id: value || "",
+      };
+    } else if (field === "crop_id_list") {
+      update[index] = {
+        ...resetProductForShop(update[index]),
+        crop_id_list: value || [],
+      };
+    } else {
+      update[index][field] = value;
+    }
     setMultiShop(update);
+    formMulti.setFieldsValue({ shops: normalizeShopsForForm(update) });
   };
 
   const handleRemoveContact = (index) => {
@@ -271,12 +303,7 @@ export default function CreateActivityManyShop() {
       const updated = prev.filter((_, i) => i !== index);
 
       // แปลง document_date เป็น dayjs object
-      const normalized = updated.map((shop) => ({
-        ...shop,
-        document_date: dayjs(shop.document_date),
-      }));
-
-      formMulti.setFieldsValue({ shops: normalized });
+      formMulti.setFieldsValue({ shops: normalizeShopsForForm(updated) });
 
       return updated;
     });
@@ -307,7 +334,7 @@ export default function CreateActivityManyShop() {
               name={["shops", index, "document_number"]}
             >
               <Input
-                disabled="true"
+                disabled={true}
                 placeholder="Generate"
                 value={item.document_number || ""}
                 onChange={(e) =>
@@ -359,7 +386,7 @@ export default function CreateActivityManyShop() {
                 }
                 disabled={
                   isViewMode ||
-                  (isCreate ? false : !activityDetail?.permission?.edit)
+                  (isCreate ? !activityDetail.user_id : !activityDetail?.permission?.edit)
                 }
                 placeholder="Select shop"
                 value={multiShop[index]?.dealer_id || null}
@@ -379,7 +406,7 @@ export default function CreateActivityManyShop() {
               <Select
                 disabled={
                   isViewMode ||
-                  (isCreate ? false : !activityDetail?.permission?.edit)
+                  (isCreate ? !multiShop[index]?.dealer_id : !activityDetail?.permission?.edit)
                 }
                 placeholder="Select shop"
                 options={optionsCropList}
@@ -398,7 +425,9 @@ export default function CreateActivityManyShop() {
               <Select
                 disabled={
                   isViewMode ||
-                  (isCreate ? false : !activityDetail?.permission?.edit)
+                  (isCreate
+                    ? !multiShop[index]?.dealer_id || !(multiShop[index]?.crop_id_list?.length)
+                    : !activityDetail?.permission?.edit)
                 }
                 placeholder="Select shop"
                 options={optionsProductList}
@@ -605,7 +634,51 @@ export default function CreateActivityManyShop() {
     const getMasterSelect = async () => {
       try {
         if (attribue === "user_id") {
+          if (!value) {
+            setDealerList([]);
+            setCropList([]);
+            setProductList([]);
+            setDealerCustomer([]);
+            setActivityDetail((prevState) => ({
+              ...prevState,
+              user_id: undefined,
+              dealer_id: undefined,
+              crop_id_list: [],
+              product_list: [],
+              expense_product_data_list: [],
+              expense_product_total_acutal_sale: 0,
+              expense_product_total_estimate_sale: 0,
+              expense_expense_actual_exp: 0,
+              expense_expense_actual_sale: 0,
+              expense_actual_sale: 0,
+              expense_actual_exp: 0,
+            }));
+            const resetMultiShop = multiShop.map((shop) => ({
+              ...shop,
+              dealer_id: "",
+              crop_id_list: [],
+              product_list: [],
+            }));
+            setMultiShop(resetMultiShop);
+            formMulti.setFieldsValue({
+              user_id: undefined,
+              shops: normalizeShopsForForm(resetMultiShop),
+            });
+            return;
+          }
+
           setActivityDetail((prevState) => ({ ...prevState, user_id: value }));
+          const resetMultiShop = multiShop.map((shop) => ({
+            ...shop,
+            dealer_id: "",
+            crop_id_list: [],
+            product_list: [],
+          }));
+          setMultiShop(resetMultiShop);
+          formMulti.setFieldsValue({ shops: normalizeShopsForForm(resetMultiShop) });
+          setCropList([]);
+          setProductList([]);
+          setDealerCustomer([]);
           await setupDealer(value);
         } else if (attribue === "dealer_id") {
           setActivityDetail((prevState) => ({
@@ -618,6 +691,40 @@ export default function CreateActivityManyShop() {
             crop_id_list: value,
           }));
         } else if (attribue === "activity_type_id") {
+          if (!value) {
+            setDealerList([]);
+            setCropList([]);
+            setProductList([]);
+            setDealerCustomer([]);
+            setActivityDetail((prevState) => ({
+              ...prevState,
+              activity_type_id: undefined,
+              user_id: undefined,
+              dealer_id: undefined,
+              crop_id_list: [],
+              product_list: [],
+              expense_product_data_list: [],
+              expense_product_total_acutal_sale: 0,
+              expense_product_total_estimate_sale: 0,
+              expense_expense_actual_exp: 0,
+              expense_expense_actual_sale: 0,
+              expense_actual_sale: 0,
+              expense_actual_exp: 0,
+            }));
+            const resetMultiShop = multiShop.map((shop) => ({
+              ...shop,
+              dealer_id: "",
+              crop_id_list: [],
+              product_list: [],
+            }));
+            setMultiShop(resetMultiShop);
+            formMulti.setFieldsValue({
+              activity_type_id: undefined,
+              user_id: undefined,
+              shops: normalizeShopsForForm(resetMultiShop),
+            });
+            return;
+          }
           setActivityDetail((prevState) => ({
             ...prevState,
             activity_type_id: value,
@@ -1311,7 +1418,7 @@ export default function CreateActivityManyShop() {
                 <Select
                   disabled={
                     isViewMode ||
-                    (isCreate ? false : !activityDetail?.permission?.edit)
+                    (isCreate ? !activityDetail.activity_type_id : !activityDetail?.permission?.edit)
                   }
                   placeholder="Select Sales"
                   options={optionsSale}

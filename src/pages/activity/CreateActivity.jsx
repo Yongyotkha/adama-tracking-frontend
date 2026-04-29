@@ -225,6 +225,16 @@ export default function CreateActivity() {
 
   // const baseFieldDisabled = isViewMode || isApproveMode || (!isCreate && !canEdit);
   const baseFieldDisabled = isViewMode || isApproveMode || (!isCreate && !canEdit) || isRefLocked;
+  const selectedDealerId =
+    pageCode === "activity_transaction"
+      ? activityDetail.dealer_id
+      : activityDetail.sub_dealer_id;
+  const salesFieldDisabled = baseFieldDisabled || (isCreate && !activityDetail.activity_type_id);
+  const shopFieldDisabled = baseFieldDisabled || (isCreate && !activityDetail.user_id);
+  const cropFieldDisabled = baseFieldDisabled || (isCreate && !selectedDealerId);
+  const productFieldDisabled =
+    baseFieldDisabled ||
+    (isCreate && (!selectedDealerId || !(activityDetail.crop_id_list || []).length));
   // =========================================================
   // ✅ IMPORTANT: disabled ใน field เดิม (เพิ่ม forceReadOnly ได้ถ้าต้อง lock ทั้งหน้า)
   // =========================================================
@@ -257,7 +267,7 @@ export default function CreateActivity() {
       disabled: baseFieldDisabled,
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
-      value: activityDetail.activity_type_id ?? "",
+      value: activityDetail.activity_type_id ?? undefined,
     },
     {
       label: "Sales",
@@ -265,7 +275,7 @@ export default function CreateActivity() {
       type: "select",
       typeMode: "number",
       options: SaleOptions,
-      disabled: baseFieldDisabled,
+      disabled: salesFieldDisabled,
       required: true,
       col: pageCode != "activity_transaction" ? 8 : 6,
       value: activityDetail.user_id != null ? Number(activityDetail.user_id) : undefined,
@@ -283,7 +293,7 @@ export default function CreateActivity() {
         const exists = dealerList.some((d) => Number(d.id) === currentId);
         return exists ? dealerList : [...dealerList, { id: currentId, name: currentName }];
       })(),
-      disabled: baseFieldDisabled,
+      disabled: shopFieldDisabled,
       required: true,
       col: pageCode !== "activity_transaction" ? 8 : 6,
       value:
@@ -303,7 +313,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: cropList,
-      disabled: baseFieldDisabled,
+      disabled: cropFieldDisabled,
       required: true,
       col: 6,
       value: activityDetail.crop_id_list,
@@ -316,7 +326,7 @@ export default function CreateActivity() {
       typeMode: "string",
       mode: "multiple",
       options: productList,
-      disabled: baseFieldDisabled,
+      disabled: productFieldDisabled,
       required: true,
       col: pageCode != "activity_transaction" ? 18 : 24,
       value: activityDetail.product_list,
@@ -753,15 +763,135 @@ export default function CreateActivity() {
   const handleChange = (attribue, value) => {
     const run = async () => {
       try {
+        const resetCropAndProductState = () => {
+          setCropList([]);
+          setProductList([]);
+
+          setActivityDetail((prev) => ({
+            ...prev,
+            crop_id_list: [],
+            product_list: [],
+            expense_product_data_list: [],
+            expense_product_total_estimate_sale: 0,
+            expense_product_total_acutal_sale: 0,
+            expense_actual_exp: 0,
+            expense_actual_sale: 0,
+            expense_expense_actual_exp: 0,
+            expense_expense_actual_sale: 0,
+          }));
+
+          formCustom.setFieldsValue({
+            crop_id_list: [],
+            product_list: [],
+          });
+        };
+
+        const resetSalesChainState = () => {
+          setDealerList([]);
+          setDealerCustomer([]);
+          resetCropAndProductState();
+
+          setActivityDetail((prev) => ({
+            ...prev,
+            dealer_id: undefined,
+            sub_dealer_id: undefined,
+            dealer_name: "",
+            sub_dealer_name: "",
+          }));
+
+          formCustom.setFieldsValue({
+            dealer_id: undefined,
+            crop_id_list: [],
+            product_list: [],
+          });
+        };
+
         if (attribue === "user_id") {
-          setActivityDetail((prev) => ({ ...prev, user_id: value }));
+          if (!value) {
+            resetSalesChainState();
+            setActivityDetail((prev) => ({
+              ...prev,
+              user_id: undefined,
+              assing_user_list: [],
+            }));
+
+            formCustom.setFieldsValue({
+              user_id: undefined,
+              assing_user_list: [],
+              dealer_id: undefined,
+              crop_id_list: [],
+              product_list: [],
+            });
+            return;
+          }
+
+          resetSalesChainState();
+          setActivityDetail((prev) => ({
+            ...prev,
+            user_id: value,
+            dealer_id: undefined,
+            sub_dealer_id: undefined,
+          }));
           await setupDealer(value);
         } else if (attribue === "dealer_id") {
-          if (pageCode === "activity_transaction") setActivityDetail((prev) => ({ ...prev, dealer_id: value }));
-          else setActivityDetail((prev) => ({ ...prev, sub_dealer_id: value }));
+          resetCropAndProductState();
+
+          if (pageCode === "activity_transaction") {
+            setActivityDetail((prev) => ({ ...prev, dealer_id: value }));
+          } else {
+            setActivityDetail((prev) => ({ ...prev, sub_dealer_id: value }));
+          }
+
+          if (!value) {
+            setDealerCustomer([]);
+          }
         } else if (attribue === "crop_id_list") {
-          setActivityDetail((prev) => ({ ...prev, crop_id_list: value }));
+          if (!value || value.length === 0) {
+            setProductList([]);
+
+            setActivityDetail((prev) => ({
+              ...prev,
+              crop_id_list: [],
+              product_list: [],
+              expense_product_data_list: [],
+              expense_product_total_estimate_sale: 0,
+              expense_product_total_acutal_sale: 0,
+              expense_actual_exp: 0,
+              expense_actual_sale: 0,
+              expense_expense_actual_exp: 0,
+              expense_expense_actual_sale: 0,
+            }));
+
+            formCustom.setFieldsValue({
+              crop_id_list: [],
+              product_list: [],
+            });
+          } else {
+            setActivityDetail((prev) => ({ ...prev, crop_id_list: value }));
+          }
         } else if (attribue === "activity_type_id") {
+          if (!value && isCreate) {
+            resetSalesChainState();
+            setActivityDetail((prev) => ({
+              ...prev,
+              activity_type_id: value,
+              user_id: undefined,
+              assing_user_list: [],
+              dealer_id: undefined,
+              sub_dealer_id: undefined,
+            }));
+
+            formCustom.setFieldsValue({
+              activity_type_id: value,
+              user_id: undefined,
+              assing_user_list: [],
+              dealer_id: undefined,
+              crop_id_list: [],
+              product_list: [],
+            });
+            return;
+          }
+
           setActivityDetail((prev) => ({ ...prev, activity_type_id: value }));
         } else if (attribue === "product_list") {
           setActivityDetail((prev) => ({ ...prev, product_list: value }));
@@ -800,6 +930,7 @@ export default function CreateActivity() {
     else {
       setActivityDetail((prev) => ({ ...prev, expense_product_data_list: [], product_list: [] }));
       setProductList([]);
+      formCustom.setFieldsValue({ product_list: [] });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activityDetail.crop_id_list]);
@@ -817,6 +948,11 @@ export default function CreateActivity() {
     };
 
     if (effectiveDealerId) setupCropAndDealerCustomer(effectiveDealerId);
+    else {
+      setCropList([]);
+      setProductList([]);
+      setDealerCustomer([]);
+    }
   }, [effectiveDealerId]);
 
   const setupDealer = async (value) => {
