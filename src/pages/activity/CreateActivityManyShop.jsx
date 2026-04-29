@@ -286,6 +286,15 @@ export default function CreateActivityManyShop() {
         ...resetCropAndProductForShop(update[index]),
         dealer_id: value || "",
       };
+
+      if (!value) {
+        setDealerCustomer([]);
+
+        const saleId = activityDetail.user_id || formMulti.getFieldValue("user_id");
+        if (saleId) {
+          setupDealer(saleId); // ✅ โหลด shop option ตาม sale เดิมกลับมา
+        }
+      }
     } else if (field === "crop_id_list") {
       update[index] = {
         ...resetProductForShop(update[index]),
