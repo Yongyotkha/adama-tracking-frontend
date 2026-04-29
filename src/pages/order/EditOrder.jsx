@@ -209,7 +209,7 @@ export default function EditOrder() {
       loadOtherProductDetail();
     });
   };
-
+  
   const formFieldData = [
     {
       label: "Sales",
@@ -287,7 +287,7 @@ export default function EditOrder() {
       })
     );
   };
-
+  
   const handleDeleteOtherRow = (key) => {
     setDataSourceOther((prev) =>
       prev
