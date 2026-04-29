@@ -148,8 +148,8 @@ export default function SalesPointDetail() {
       render: (_, record) =>
         (parseFloat(record.point || 0) * parseFloat(record.quantity || 0)).toLocaleString("en-US", {
           minimumFractionDigits: 0,
-        }),
-    },
+    }),
+},
 
   ];
 
@@ -191,7 +191,7 @@ export default function SalesPointDetail() {
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
-          Item: {dataSource.length} &nbsp;| QTY (ctn): {totalQuantity} &nbsp; | Total:
+          Item: {dataSource.length} &nbsp;| QTY (ctn): {totalQuantity} &nbsp; | Total: 
           {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} |
           Total Point: {dataSource.reduce((total, item) => total + (parseFloat(item.point || 0) * parseFloat(item.quantity || 0)), 0).toLocaleString("en-US")}
         </td>
@@ -312,53 +312,6 @@ export default function SalesPointDetail() {
     }
   };
 
-  const handleSaveOrderComplete = () => {
-    const formattedDate = formatDate(getDocumentDate);
-
-    const body = {
-      document_date: formattedDate,
-      user_id: getUserId,
-      status_code: "ODC", // ✅ Receive ส่ง ODW
-      dealer_id: getDealerId,
-      sub_dealer_id: getSubDealerId,
-      remark: getRemark,
-      products: dataSource,
-      others: dataSourceOther,
-      request_id,
-      bill: fileList.map((f) => f.url),
-      product: fileListReceive.map((f) => f.url),
-      platform: "web",
-    };
-
-    if (dataSource.length > 0) {
-      const saveOrder = async () => {
-        setLoading(true);
-        try {
-          const response = await useServiceAPI.post(
-            paths.pathSalePointOrderCreate,
-            body
-          );
-
-          showNotification(
-            "success",
-            response.data.message,
-            response.data.message_line
-          ).then(() => {
-            navigate("/points/line/sales-points-list");
-          });
-        } catch (error) {
-          showMsg("error", error.message || "เกิดข้อผิดพลาด");
-          console.log(error);
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      saveOrder();
-    } else {
-      showNotification("warning", "โปรดเลือกรายการ อย่างน้อย 1 รายการ", "");
-    }
-  };
 
   return (
     <MainLayout loading={loading}>
@@ -415,8 +368,6 @@ export default function SalesPointDetail() {
           }
         />
         <ActionButton mode="save" text="Order" onClick={handleSaveOrder} />
-        {/* <ActionButton mode="saveDraft" text="Receive" onClick={handleSaveOrderComplete} /> */}
-        {/* <ActionButton mode="saveDraft" text="Receive" onClick={handleSaveOrderComplete} /> */}
       </div>
     </MainLayout>
   );
