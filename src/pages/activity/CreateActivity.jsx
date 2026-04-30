@@ -1242,30 +1242,15 @@ export default function CreateActivity() {
 
   const freeKeySummary = () => (
     <tr className="bg-white">
-      <td
-        colSpan={2}
-        className="text-right font-semibold text-[#4B5563]"
-        style={{
-          padding: "14px 16px",
-          verticalAlign: "middle",
-          borderTop: "1px solid #f0f0f0",
-        }}
-      >
-        <span style={{ display: "inline-block", marginRight: "18px" }}>Total</span>
+      <td colSpan={2} className="text-right pr-4 font-semibold text-[#4B5563]">
+        Total
       </td>
-      <td
-        className="px-4 py-2"
-        style={{
-          padding: "10px 16px 14px 8px",
-          verticalAlign: "middle",
-          borderTop: "1px solid #f0f0f0",
-        }}
-      >
+      <td className="px-4 py-2">
         <InputNumber
           className="w-full h-[42px]"
           min={0}
           value={freeKeyTotal}
-          disabled
+          readOnly
           formatter={moneyFormatter}
         />
       </td>
