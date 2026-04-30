@@ -436,7 +436,7 @@ const AdvanceExpensePDF = () => {
               {freeKeyItems.map((item, index) => (
                 <View style={styles.tableRow} key={`freekey-${index}`}>
                   <Text style={[styles.tableCell, { flex: 4, textAlign: "left" }]}>
-                    {item.list || "-"}
+                    {item.list + " " || "-"}
                   </Text>
                   <Text style={[styles.tableCell, styles.tableCellLast, { flex: 1 }]}>
                     {formatNumber2(item.value)}
