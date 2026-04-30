@@ -1198,6 +1198,80 @@ export default function CreateActivity() {
     </tr>
   );
 
+  const freeKeyHeader = [
+    {
+      title: "No",
+      dataIndex: "line",
+      key: "line",
+      width: 80,
+      render: (value) => <span className="text-[#4B5563]">{value}</span>,
+    },
+    {
+      title: "List",
+      dataIndex: "list",
+      key: "list",
+      render: (_, record, index) => (
+        <Input
+          placeholder=""
+          value={record.list}
+          disabled={!canEdit || isViewMode || isApproveMode}
+          onChange={(e) => handleFreeKeyChange(index, "list", e.target.value)}
+          className="h-[42px] rounded-xl"
+        />
+      ),
+    },
+    {
+      title: "Value (THB)",
+      dataIndex: "value",
+      key: "value",
+      width: 320,
+      render: (_, record, index) => (
+        <InputNumber
+          className="w-full h-[42px]"
+          min={0}
+          placeholder=""
+          value={record.value}
+          disabled={!canEdit || isViewMode || isApproveMode}
+          formatter={moneyFormatter}
+          parser={moneyParser}
+          onChange={(value) => handleFreeKeyChange(index, "value", value)}
+        />
+      ),
+    },
+  ];
+
+  const freeKeySummary = () => (
+    <tr className="bg-white">
+      <td
+        colSpan={2}
+        className="text-right font-semibold text-[#4B5563]"
+        style={{
+          padding: "14px 16px",
+          verticalAlign: "middle",
+          borderTop: "1px solid #f0f0f0",
+        }}
+      >
+        <span style={{ display: "inline-block", marginRight: "18px" }}>Total</span>
+      </td>
+      <td
+        className="px-4 py-2"
+        style={{
+          padding: "10px 16px 14px 8px",
+          verticalAlign: "middle",
+          borderTop: "1px solid #f0f0f0",
+        }}
+      >
+        <InputNumber
+          className="w-full h-[42px]"
+          min={0}
+          value={freeKeyTotal}
+          disabled
+          formatter={moneyFormatter}
+        />
+      </td>
+    </tr>
+  );
+
   const handleInputParticipantChange = (key, field, value) => {
     const updatedParticipants = participants.map((p) => (p.key === key ? { ...p, [field]: value } : p));
     setParticipants(updatedParticipants);
@@ -1631,56 +1705,17 @@ export default function CreateActivity() {
           {pageCode === "expense_clearing" && (
             <BoxPrimary>
               <div className="text-[#00783F] text-lg font-semibold mb-3">Other Clearing</div>
-
-              <div className="overflow-x-auto">
-                <div className="min-w-[760px]">
-                  <div className="grid grid-cols-[72px_minmax(0,1fr)_minmax(260px,38%)] bg-[#00783F] text-white rounded-t-md">
-                    <div className="px-5 py-3 text-lg">No</div>
-                    <div className="px-5 py-3 text-lg">List</div>
-                    <div className="px-5 py-3 text-lg">Value (THB)</div>
-                  </div>
-
-                  <div className="border border-t-0 border-[#E5E7EB] rounded-b-md px-5 py-2">
-                    {ensureFreeKeyRows(activityDetail.freekey).map((row, index) => (
-                      <div
-                        key={`freekey-${index}`}
-                        className="grid grid-cols-[72px_minmax(0,1fr)_minmax(260px,38%)] gap-10 items-center py-2"
-                      >
-                        <div className="text-[16px] leading-none text-[#4B5563] pl-1">{row.line}</div>
-                        <Input
-                          placeholder=""
-                          value={row.list}
-                          disabled={!canEdit || isViewMode || isApproveMode}
-                          onChange={(e) => handleFreeKeyChange(index, "list", e.target.value)}
-                          className="h-[42px] rounded-xl"
-                        />
-                        <InputNumber
-                          className="w-full h-[42px]"
-                          min={0}
-                          placeholder=""
-                          value={row.value}
-                          disabled={!canEdit || isViewMode || isApproveMode}
-                          formatter={moneyFormatter}
-                          parser={moneyParser}
-                          onChange={(value) => handleFreeKeyChange(index, "value", value)}
-                        />
-                      </div>
-                    ))}
-
-                    <div className="grid grid-cols-[72px_minmax(0,1fr)_minmax(260px,38%)] gap-10 items-center py-2">
-                      <div />
-                      <div className="text-right font-semibold text-[#4B5563]">Total</div>
-                      <InputNumber
-                        className="w-full h-[42px]"
-                        min={0}
-                        value={freeKeyTotal}
-                        disabled
-                        formatter={moneyFormatter}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <TableComponent
+                header={freeKeyHeader}
+                dataSource={ensureFreeKeyRows(activityDetail.freekey).map((row, index) => ({
+                  ...row,
+                  key: `freekey-${index}`,
+                }))}
+                pagination={false}
+                pageSize={10}
+                footer={freeKeySummary}
+                scroll={false}
+              />
             </BoxPrimary>
           )}
 
