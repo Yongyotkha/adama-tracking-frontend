@@ -189,7 +189,8 @@ const AdvanceExpensePDF = () => {
   };
 
   const descriptionText = stripHtml(dataHeader?.description);
-  const freeKeyItems = (Array.isArray(dataHeader?.freekey) ? dataHeader.freekey : [])
+  const rawFreeKeyItems = dataHeader?.expense_clearing_freekey ?? dataHeader?.freekey ?? [];
+  const freeKeyItems = (Array.isArray(rawFreeKeyItems) ? rawFreeKeyItems : [])
     .filter((item) => String(item?.list ?? "").trim() !== "" || Number(item?.value || 0) !== 0)
     .map((item, index) => ({
       line: Number(item?.line) || index + 1,
