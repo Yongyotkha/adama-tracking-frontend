@@ -103,6 +103,7 @@ export default function CreateActivity() {
     crop_id_list: [],
     expense_product_data_list: [],
     assing_user_list: [],
+    freekey: [],
   });
 
   const { showNotification, userInfo } = useContext(AuthContext);
@@ -112,6 +113,7 @@ export default function CreateActivity() {
   const [actualParticipantCount, setActualParticipantCount] = useState("0");
   const [participants, setParticipants] = useState([]);
   const [participantUsers, setParticipantUsers] = useState([]);
+  const defaultFreeKeyRowCount = 6;
 
   const toNumber = (v, fallback = 0) => {
     if (v === null || v === undefined || v === "") return fallback;
@@ -134,6 +136,74 @@ export default function CreateActivity() {
   };
 
   const moneyParser = (value) => value?.replace(/,/g, "") || "0";
+
+  const createFreeKeyRow = (line = 1) => ({
+    line,
+    list: "",
+    value: null,
+  });
+
+  const ensureFreeKeyRows = (rows = [], minRows = defaultFreeKeyRowCount) => {
+    const normalizedRows = normalizeFreeKeyRows(rows);
+    const nextRows = [...normalizedRows];
+
+    while (nextRows.length < minRows) {
+      nextRows.push(createFreeKeyRow(nextRows.length + 1));
+    }
+
+    return nextRows.map((row, index) => ({
+      ...row,
+      line: index + 1,
+    }));
+  };
+
+  const normalizeFreeKeyRows = (rows = []) =>
+    (Array.isArray(rows) ? rows : []).map((row, index) => ({
+      line: Number(row?.line) || index + 1,
+      list: row?.list ?? "",
+      value:
+        row?.value === null || row?.value === undefined || row?.value === ""
+          ? null
+          : toNumber(row.value, 0),
+    }));
+
+  const buildFreeKeyPayload = (rows = []) =>
+    ensureFreeKeyRows(rows)
+      .slice(0, defaultFreeKeyRowCount)
+      .map((row, index) => ({
+        line: index + 1,
+        list: String(row.list ?? "").trim(),
+        value: toNumber(row.value, 0),
+      }));
+
+  const freeKeyTotal = normalizeFreeKeyRows(activityDetail.freekey).reduce(
+    (sum, row) => sum + toNumber(row.value, 0),
+    0
+  );
+
+  const handleFreeKeyChange = (index, field, value) => {
+    setActivityDetail((prev) => {
+      const rows = normalizeFreeKeyRows(prev.freekey);
+      const nextRows = rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+            ...row,
+            [field]: field === "value" ? (value === null || value === undefined ? null : toNumber(value, 0)) : value,
+          }
+          : row
+      );
+
+      return {
+        ...prev,
+        freekey: ensureFreeKeyRows(
+          nextRows.map((row, rowIndex) => ({
+            ...row,
+            line: rowIndex + 1,
+          }))
+        ),
+      };
+    });
+  };
 
   useEffect(() => {
     if (!pageMode && pageModeFromUrl) {
@@ -429,6 +499,9 @@ export default function CreateActivity() {
 
 
         // ✅ normalize numeric fields
+        const clearingFreeKeyRows =
+          d?.expense_clearing_freekey ?? d?.freekey ?? [];
+
         const normalized = {
           ...d,
           expense_advance: toNumber(d.expense_advance, 0),
@@ -457,6 +530,7 @@ export default function CreateActivity() {
             product_id: el.product_id,
             id: el.id ?? el.product_id,
           })),
+          freekey: ensureFreeKeyRows(clearingFreeKeyRows),
         };
 
         const productListIds = d.product_list.map((p) => p.id);
@@ -530,6 +604,12 @@ export default function CreateActivity() {
     } else {
       handleChange("document_date", locationParam?.state?.dateCalendar || dayjs());
       formCustom.setFieldsValue({ document_date: locationParam?.state?.dateCalendar || dayjs() });
+      if (pageCode === "expense_clearing") {
+        setActivityDetail((prev) => ({
+          ...prev,
+          freekey: ensureFreeKeyRows([]),
+        }));
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -632,6 +712,7 @@ export default function CreateActivity() {
         product_list: productListIds,
         assing_user_list: userListIds,
         expense_product_data_list: d?.expense_product_data_list || [],
+        freekey: ensureFreeKeyRows([]),
       }));
 
       formCustom.setFieldsValue({
@@ -704,6 +785,7 @@ export default function CreateActivity() {
       expense_advance: 0,
       expense_actual: 0,
       document_date: defaultDate,
+      freekey: pageCode === "expense_clearing" ? ensureFreeKeyRows([]) : [],
     };
 
     setActivityDetail((prev) => ({
@@ -1283,6 +1365,7 @@ export default function CreateActivity() {
         expense_particapant_user_list: expenseParticapantUserList,
         particapant_list: particapantList,
         document_date: allValuesBasic.document_date,
+        freekey: buildFreeKeyPayload(activityDetail.freekey),
       };
 
       if (documentNumber) {
@@ -1544,6 +1627,62 @@ export default function CreateActivity() {
               </Row>
             </Form>
           </BoxPrimary>
+
+          {pageCode === "expense_clearing" && (
+            <BoxPrimary>
+              <div className="text-[#00783F] text-lg font-semibold mb-3">Other Clearing</div>
+
+              <div className="overflow-x-auto">
+                <div className="min-w-[760px]">
+                  <div className="grid grid-cols-[72px_minmax(0,1fr)_minmax(260px,38%)] bg-[#00783F] text-white rounded-t-md">
+                    <div className="px-5 py-3 text-lg">No</div>
+                    <div className="px-5 py-3 text-lg">List</div>
+                    <div className="px-5 py-3 text-lg">Value (THB)</div>
+                  </div>
+
+                  <div className="border border-t-0 border-[#E5E7EB] rounded-b-md px-5 py-2">
+                    {ensureFreeKeyRows(activityDetail.freekey).map((row, index) => (
+                      <div
+                        key={`freekey-${index}`}
+                        className="grid grid-cols-[72px_minmax(0,1fr)_minmax(260px,38%)] gap-10 items-center py-2"
+                      >
+                        <div className="text-[16px] leading-none text-[#4B5563] pl-1">{row.line}</div>
+                        <Input
+                          placeholder=""
+                          value={row.list}
+                          disabled={!canEdit || isViewMode || isApproveMode}
+                          onChange={(e) => handleFreeKeyChange(index, "list", e.target.value)}
+                          className="h-[42px] rounded-xl"
+                        />
+                        <InputNumber
+                          className="w-full h-[42px]"
+                          min={0}
+                          placeholder=""
+                          value={row.value}
+                          disabled={!canEdit || isViewMode || isApproveMode}
+                          formatter={moneyFormatter}
+                          parser={moneyParser}
+                          onChange={(value) => handleFreeKeyChange(index, "value", value)}
+                        />
+                      </div>
+                    ))}
+
+                    <div className="grid grid-cols-[72px_minmax(0,1fr)_minmax(260px,38%)] gap-10 items-center py-2">
+                      <div />
+                      <div className="text-right font-semibold text-[#4B5563]">Total</div>
+                      <InputNumber
+                        className="w-full h-[42px]"
+                        min={0}
+                        value={freeKeyTotal}
+                        disabled
+                        formatter={moneyFormatter}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </BoxPrimary>
+          )}
 
           {pageCode == "expense_clearing" ? (
             <BoxPrimary>

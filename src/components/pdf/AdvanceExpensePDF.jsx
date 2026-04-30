@@ -189,6 +189,14 @@ const AdvanceExpensePDF = () => {
   };
 
   const descriptionText = stripHtml(dataHeader?.description);
+  const freeKeyItems = (Array.isArray(dataHeader?.freekey) ? dataHeader.freekey : [])
+    .filter((item) => String(item?.list ?? "").trim() !== "" || Number(item?.value || 0) !== 0)
+    .map((item, index) => ({
+      line: Number(item?.line) || index + 1,
+      list: String(item?.list ?? "").trim(),
+      value: Number(item?.value || 0),
+    }));
+  const freeKeyTotal = freeKeyItems.reduce((sum, item) => sum + Number(item.value || 0), 0);
 
 
   return (
@@ -416,6 +424,35 @@ const AdvanceExpensePDF = () => {
               <Text style={[styles.tableCell, styles.tableCellLast]}> {formatNumber2(dataHeader.expense_actual_sale || 0)} </Text>
             </View>
           </View>
+
+          {getPageCode === "expense_clearing" && freeKeyItems.length > 0 && (
+            <View style={[styles.table, { marginTop: 5 }]}>
+              <View style={styles.tableRow}>
+                <Text style={[styles.tableCellHeader, { flex: 4, textAlign: "left" }]}>Other Clearing</Text>
+                <Text style={[styles.tableCellHeader, { flex: 1, borderRightWidth: 0 }]}>Value (THB)</Text>
+              </View>
+
+              {freeKeyItems.map((item, index) => (
+                <View style={styles.tableRow} key={`freekey-${index}`}>
+                  <Text style={[styles.tableCell, { flex: 4, textAlign: "left" }]}>
+                    {item.list || "-"}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.tableCellLast, { flex: 1 }]}>
+                    {formatNumber2(item.value)}
+                  </Text>
+                </View>
+              ))}
+
+              <View style={[styles.tableRow, { borderTopWidth: 1 }]}>
+                <Text style={[styles.tableCell, { flex: 4, textAlign: "left", fontWeight: "bold" }]}>
+                  Total (THB)
+                </Text>
+                <Text style={[styles.tableCell, styles.tableCellLast, { flex: 1 }]}>
+                  {formatNumber2(freeKeyTotal)}
+                </Text>
+              </View>
+            </View>
+          )}
 
           {/* Description (ต่อจาก Products ก่อน Footer) */}
           <View style={styles.descriptionBox}>
