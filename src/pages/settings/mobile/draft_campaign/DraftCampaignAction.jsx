@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import MainLayout from "../../../../layouts/MainLayout";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import ActionButton from "../../../../components/button/ActionButton";
+import TableComponent from "../../../../components/table/TableComponent";
 import {
   createDraftCampaignTemplate,
   draftCampaignDealerOptions,
@@ -127,6 +128,118 @@ export default function DraftCampaignAction() {
 
   const readOnly = isView;
 
+  const renderStepperInput = (index, key, value) => (
+    <div className="flex items-center justify-center gap-2">
+      {!readOnly && (
+        <button
+          type="button"
+          className="text-[#978B87]"
+          onClick={() => updateRow(index, key, Number(value || 0) - 1)}
+        >
+          <MinusCircleOutlined className="text-[22px]" />
+        </button>
+      )}
+      <Input
+        value={value}
+        disabled={readOnly}
+        onChange={(event) => updateRow(index, key, event.target.value)}
+        className="max-w-[90px] text-center"
+      />
+      {!readOnly && (
+        <button
+          type="button"
+          className="text-[#009845]"
+          onClick={() => updateRow(index, key, Number(value || 0) + 1)}
+        >
+          <PlusCircleOutlined className="text-[22px]" />
+        </button>
+      )}
+    </div>
+  );
+
+  const productColumns = [
+    {
+      title: "No",
+      dataIndex: "no",
+      width: 70,
+      align: "center",
+      render: (_, __, index) => index + 1,
+    },
+    { title: "SKU", dataIndex: "sku", width: 140 },
+    { title: "Product Name", dataIndex: "productName", width: 220 },
+    { title: "Unit", dataIndex: "unit", width: 120 },
+    {
+      title: "THB/Unit",
+      dataIndex: "thbPerUnit",
+      width: 130,
+      align: "right",
+      render: (value) => formatNumber(value, 2),
+    },
+    {
+      title: "Point/Ctn",
+      dataIndex: "pointPerCtn",
+      width: 120,
+      align: "center",
+      render: (value) => formatNumber(value),
+    },
+    {
+      title: "QTY (ctn)",
+      dataIndex: "qty",
+      width: 180,
+      align: "center",
+      render: (value, _, index) => renderStepperInput(index, "qty", value),
+    },
+    {
+      title: "X Point",
+      dataIndex: "xPoint",
+      width: 180,
+      align: "center",
+      render: (value, _, index) => renderStepperInput(index, "xPoint", value),
+    },
+    {
+      title: "Point",
+      dataIndex: "point",
+      width: 120,
+      align: "right",
+      render: (value) => formatNumber(value),
+    },
+    {
+      title: "Sub Total (THB)",
+      dataIndex: "subTotal",
+      width: 150,
+      align: "right",
+      render: (value) => formatNumber(value, 2),
+    },
+    {
+      title: "Action",
+      dataIndex: "action",
+      width: 90,
+      align: "center",
+      render: (_, __, index) =>
+        !readOnly ? (
+          <button
+            type="button"
+            className="text-[#978B87]"
+            onClick={() =>
+              setRows((prev) => prev.filter((_, rowIndex) => rowIndex !== index))
+            }
+          >
+            <DeleteOutlined className="text-[20px]" />
+          </button>
+        ) : null,
+    },
+  ];
+
+  const productFooter = () => (
+    <tr className="bg-[#978B87]">
+      <td colSpan={11} className="text-right pr-4 py-3 text-white">
+        Item : {rows.length} | QTY (ctn): {formatNumber(totals.qty)} | Total Point :
+        {" "}
+        {formatNumber(totals.point)} | Total: {formatNumber(totals.value, 2)}
+      </td>
+    </tr>
+  );
+
   return (
     <MainLayout loading={false}>
       <div className="title-page">{pageTitle}</div>
@@ -236,114 +349,17 @@ export default function DraftCampaignAction() {
           </div>
         </BoxPrimary>
 
-        <BoxPrimary title="Product List" className="overflow-x-auto">
-          <div className="min-w-[1100px]">
-            <table className="w-full border-separate border-spacing-0 overflow-hidden rounded-[4px]">
-              <thead>
-                <tr className="bg-[#00783F] text-white">
-                  <th className="text-left p-4 font-medium">No</th>
-                  <th className="text-left p-4 font-medium">SKU</th>
-                  <th className="text-left p-4 font-medium">Product Name</th>
-                  <th className="text-left p-4 font-medium">Unit</th>
-                  <th className="text-right p-4 font-medium">THB/Unit</th>
-                  <th className="text-center p-4 font-medium">Point/Ctn</th>
-                  <th className="text-center p-4 font-medium">QTY (ctn)</th>
-                  <th className="text-center p-4 font-medium">X Point</th>
-                  <th className="text-right p-4 font-medium">Point</th>
-                  <th className="text-right p-4 font-medium">Sub Total (THB)</th>
-                  <th className="text-center p-4 font-medium">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row, index) => (
-                  <tr key={`${row.sku}-${index}`} className="bg-[#F7F3F3] border-b border-[#E5DEDC]">
-                    <td className="p-4">{index + 1}</td>
-                    <td className="p-4">{row.sku}</td>
-                    <td className="p-4">{row.productName}</td>
-                    <td className="p-4">{row.unit}</td>
-                    <td className="p-4 text-right">{formatNumber(row.thbPerUnit, 2)}</td>
-                    <td className="p-4 text-center">{formatNumber(row.pointPerCtn)}</td>
-                    <td className="p-4">
-                      <div className="flex items-center justify-center gap-2">
-                        {!readOnly && (
-                          <button
-                            type="button"
-                            className="text-[#978B87]"
-                            onClick={() => updateRow(index, "qty", Number(row.qty || 0) - 1)}
-                          >
-                            <MinusCircleOutlined className="text-[22px]" />
-                          </button>
-                        )}
-                        <Input
-                          value={row.qty}
-                          disabled={readOnly}
-                          onChange={(event) => updateRow(index, "qty", event.target.value)}
-                          className="max-w-[90px] text-center"
-                        />
-                        {!readOnly && (
-                          <button
-                            type="button"
-                            className="text-[#009845]"
-                            onClick={() => updateRow(index, "qty", Number(row.qty || 0) + 1)}
-                          >
-                            <PlusCircleOutlined className="text-[22px]" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center justify-center gap-2">
-                        {!readOnly && (
-                          <button
-                            type="button"
-                            className="text-[#978B87]"
-                            onClick={() => updateRow(index, "xPoint", Number(row.xPoint || 0) - 1)}
-                          >
-                            <MinusCircleOutlined className="text-[22px]" />
-                          </button>
-                        )}
-                        <Input
-                          value={row.xPoint}
-                          disabled={readOnly}
-                          onChange={(event) => updateRow(index, "xPoint", event.target.value)}
-                          className="max-w-[90px] text-center"
-                        />
-                        {!readOnly && (
-                          <button
-                            type="button"
-                            className="text-[#009845]"
-                            onClick={() => updateRow(index, "xPoint", Number(row.xPoint || 0) + 1)}
-                          >
-                            <PlusCircleOutlined className="text-[22px]" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-4 text-right">{formatNumber(row.point)}</td>
-                    <td className="p-4 text-right">{formatNumber(row.subTotal, 2)}</td>
-                    <td className="p-4 text-center">
-                      {!readOnly && (
-                        <button
-                          type="button"
-                          className="text-[#978B87]"
-                          onClick={() => setRows((prev) => prev.filter((_, rowIndex) => rowIndex !== index))}
-                        >
-                          <DeleteOutlined className="text-[20px]" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr className="bg-[#978B87] text-white">
-                  <td colSpan={11} className="p-4 text-right">
-                    Item : {rows.length} | QTY (ctn): {formatNumber(totals.qty)} | Total Point : {formatNumber(totals.point)} | Total: {formatNumber(totals.value, 2)}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
+        <BoxPrimary title="Product List">
+          <TableComponent
+            header={productColumns}
+            dataSource={rows.map((row, index) => ({
+              key: `${row.sku}-${index}`,
+              ...row,
+            }))}
+            pagination={false}
+            footer={productFooter}
+            scroll
+          />
         </BoxPrimary>
 
         <div className="flex justify-end gap-4 mt-4">
