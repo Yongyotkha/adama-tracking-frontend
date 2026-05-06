@@ -167,6 +167,8 @@ import PointCampaignList from "./pages/settings/mobile/point_campaign/PointCampa
 import CreatePointCampaign from "./pages/settings/mobile/point_campaign/CreatePointCampaign";
 import RewardCampaignList from "./pages/settings/mobile/reward_campaign/RewardCampaignList";
 import CreateRewardCampaign from "./pages/settings/mobile/reward_campaign/CreateRewardCampaign";
+import DraftCampaignList from "./pages/settings/mobile/draft_campaign/DraftCampaignList";
+import DraftCampaignAction from "./pages/settings/mobile/draft_campaign/DraftCampaignAction";
 import ViewOrEditTargetGroup from "./pages/settings/mobile/target_group/ViewOrEditTargetGroup";
 import CollectPointsDetail from "./pages/mobile/collect_points/CollectPointsDetail";
 import CollectPointsList from "./pages/settings/mobile/collect_points/CollectPointsList";
@@ -584,6 +586,15 @@ const App = () => {
             <Route
               path="/setting/line/reward-campaign/:mode"
               element={<CreateRewardCampaign />}
+            />
+
+            <Route
+              path="/setting/line/draft-campaign"
+              element={<DraftCampaignList />}
+            />
+            <Route
+              path="/setting/line/draft-campaign/:mode"
+              element={<DraftCampaignAction />}
             />
 
             <Route
