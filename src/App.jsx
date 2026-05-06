@@ -194,6 +194,7 @@ import ReportSellOutBySubDealer from "./pages/report/ReportSellOutBySubDealer";
 import ReportSellOut from "./pages/report/ReportSellOut";
 import PDFMaterialExpense from "./pages/pdf/PDFMaterialExpense";
 import PDFSampleExpense from "./pages/pdf/PDFSampleExpense";
+import ViewDraftCampaignPDF from "./pages/pdf/DraftCampaignPDF";
 
 const App = () => {
   return (
@@ -595,6 +596,10 @@ const App = () => {
             <Route
               path="/setting/line/draft-campaign/:mode"
               element={<DraftCampaignAction />}
+            />
+            <Route
+              path="/setting/line/draft-campaign/pdf"
+              element={<ViewDraftCampaignPDF />}
             />
 
             <Route

@@ -63,6 +63,7 @@ const calculateLine = (product, qty, xPoint) => ({
 });
 
 export const createDraftCampaignTemplate = () => ({
+  documentNo: "2025010073",
   rewardCode: "DC-2025-001",
   rewardName: "North Rice Booster",
   category: draftCampaignCategoryOptions[0]?.id,
@@ -96,6 +97,7 @@ export const draftCampaignList = [
     name: "Dealer Growth Push",
     rewardCode: "DC-2025-002",
     rewardName: "Dealer Growth Push",
+    documentNo: "2025010074",
     category: draftCampaignCategoryOptions[1]?.id,
     sale: draftCampaignSalesOptions[1]?.id,
     dealer: "รุ่งเรืองเกษตร",

@@ -352,6 +352,21 @@ export default function DraftCampaignAction() {
             text="Back"
             onClick={() => navigate("/setting/line/draft-campaign")}
           />
+          {isView && (
+            <ActionButton
+              mode="custom"
+              text="PDF"
+              className="bg-[#F89E18]"
+              onClick={() =>
+                window.open(
+                  `/setting/line/draft-campaign/pdf?id=${encodeURIComponent(
+                    selectedCampaign?.id || initialData.id || "dc-001"
+                  )}`,
+                  "_blank"
+                )
+              }
+            />
+          )}
           {!isView && (
             <ActionButton
               mode={isEdit ? "update" : "save"}
