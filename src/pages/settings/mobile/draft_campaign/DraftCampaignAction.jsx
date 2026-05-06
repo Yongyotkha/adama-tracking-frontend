@@ -133,7 +133,7 @@ export default function DraftCampaignAction() {
       {!readOnly && (
         <button
           type="button"
-          className="text-[#978B87]"
+          className="text-[#978B87] transition duration-150 ease-out hover:scale-110 hover:text-[#6F625E] active:scale-95"
           onClick={() => updateRow(index, key, Number(value || 0) - 1)}
         >
           <MinusCircleOutlined className="text-[22px]" />
@@ -148,7 +148,7 @@ export default function DraftCampaignAction() {
       {!readOnly && (
         <button
           type="button"
-          className="text-[#009845]"
+          className="text-[#009845] transition duration-150 ease-out hover:scale-110 hover:text-[#00B050] active:scale-95"
           onClick={() => updateRow(index, key, Number(value || 0) + 1)}
         >
           <PlusCircleOutlined className="text-[22px]" />
@@ -219,7 +219,7 @@ export default function DraftCampaignAction() {
         !readOnly ? (
           <button
             type="button"
-            className="text-[#978B87]"
+            className="text-[#978B87] transition duration-150 ease-out hover:scale-110 hover:text-[#D4380D] active:scale-95"
             onClick={() =>
               setRows((prev) => prev.filter((_, rowIndex) => rowIndex !== index))
             }
