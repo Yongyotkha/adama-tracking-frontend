@@ -452,6 +452,8 @@ export const paths = {
 
   pathDraftCampaignList: "draft-campaign/list",
   pathDraftCampaignDetail: "draft-campaign/detail",
+  pathDraftCampaignCreate: "draft-campaign/create",
+  pathDraftCampaignUpdate: "draft-campaign/update",
   pathDraftCampaignDelete: "draft-campaign/delete",
   pathDraftCampaignUserInfo: "draft-campaign/user-info",
 };

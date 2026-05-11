@@ -65,6 +65,7 @@ export default function DraftCampaignAction() {
   const [salesOptions, setSalesOptions] = useState([]);
   const [dealerOptions, setDealerOptions] = useState([]);
   const [subDealerOptions, setSubDealerOptions] = useState([]);
+  const [allFarmerOptions, setAllFarmerOptions] = useState([]);
   const [farmerOptions, setFarmerOptions] = useState([]);
   const [productOptions, setProductOptions] = useState([]);
   const [productSelection, setProductSelection] = useState(undefined);
@@ -148,31 +149,33 @@ export default function DraftCampaignAction() {
     }
   };
 
-  const loadFarmers = async (dealerId, subDealerId) => {
+  const loadFarmerMaster = async () => {
     try {
       const res = await useServiceAPI.get(paths.pathMasterFarmer, {});
-      const list = Array.isArray(res?.data) ? res.data : [];
-      const normalized = list
-        .map((item) => ({
-          ...normalizeOption(item, {
-            valueKey: "farmer_id",
-            labelKey: "farmer_name",
-          }),
-          raw: item,
-        }))
-        .filter((item) => {
-          if (subDealerId) {
-            return String(item.raw?.sub_dealer_id ?? "") === String(subDealerId);
-          }
-          if (dealerId) {
-            return String(item.raw?.dealer_id ?? "") === String(dealerId);
-          }
-          return true;
-        });
-      setFarmerOptions(normalized);
+      const list = Array.isArray(res?.data?.data)
+        ? res.data.data
+        : Array.isArray(res?.data)
+          ? res.data
+          : [];
+
+      const normalized = list.map((item) => ({
+        id: String(item?.farmer_id ?? ""),
+        name:
+          String(item?.farmer_name || "").trim() ||
+          String(item?.farmer_id || "-"),
+        raw: item,
+      }));
+
+      setAllFarmerOptions(normalized);
+      return normalized;
     } catch (_) {
-      setFarmerOptions([]);
+      setAllFarmerOptions([]);
+      return [];
     }
+  };
+
+  const applyFarmerOptions = (source = allFarmerOptions) => {
+    setFarmerOptions(source);
   };
 
   const loadCurrentPoint = async (values) => {
@@ -213,7 +216,7 @@ export default function DraftCampaignAction() {
       form.setFieldsValue({
         document_number: "",
         document_date: dayjs(),
-        user_id: userInfo?.id ? String(userInfo.id) : undefined,
+        user_id: undefined,
         dealer_id: undefined,
         sub_dealer_id: undefined,
         farmer_id: undefined,
@@ -258,7 +261,7 @@ export default function DraftCampaignAction() {
 
     await loadDealers(mapped.user_id, mapped.dealer_id);
     await loadSubDealers(mapped.user_id, mapped.dealer_id, mapped.sub_dealer_id);
-    await loadFarmers(mapped.dealer_id, mapped.sub_dealer_id);
+    applyFarmerOptions();
   };
 
   useEffect(() => {
@@ -275,6 +278,7 @@ export default function DraftCampaignAction() {
             })
           )
         );
+        await loadFarmerMaster();
         await loadDetail();
       } catch (error) {
         showNotification?.(
@@ -315,7 +319,7 @@ export default function DraftCampaignAction() {
       return;
     }
     loadSubDealers(watchSaleId, watchDealerId, form.getFieldValue("sub_dealer_id"));
-    loadFarmers(watchDealerId, form.getFieldValue("sub_dealer_id"));
+    applyFarmerOptions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchDealerId]);
 
@@ -323,10 +327,10 @@ export default function DraftCampaignAction() {
     if (!watchSubDealerId) {
       form.setFieldValue("farmer_id", undefined);
       loadCurrentPoint({ dealer_id: watchDealerId });
-      loadFarmers(watchDealerId, undefined);
+      applyFarmerOptions();
       return;
     }
-    loadFarmers(watchDealerId, watchSubDealerId);
+    applyFarmerOptions();
     loadCurrentPoint({ sub_dealer_id: watchSubDealerId });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchSubDealerId]);
@@ -549,8 +553,8 @@ export default function DraftCampaignAction() {
       });
 
       const res = isEdit
-        ? await useServiceAPI.put(paths.pathDraftCampaignDetail, payload)
-        : await useServiceAPI.post(paths.pathDraftCampaignDetail, payload);
+        ? await useServiceAPI.put(paths.pathDraftCampaignUpdate, payload)
+        : await useServiceAPI.post(paths.pathDraftCampaignCreate, payload);
 
       const lines = res?.data?.message_line || [res?.message || "Save successful"];
       await showNotification?.(
@@ -593,6 +597,8 @@ export default function DraftCampaignAction() {
                 options={salesOptions.map((item) => ({ label: item.name, value: item.id }))}
                 disabled={readOnly}
                 placeholder="Select"
+                showSearch
+                optionFilterProp="label"
                 onChange={() => {
                   form.setFieldValue("dealer_id", undefined);
                   form.setFieldValue("sub_dealer_id", undefined);
@@ -610,6 +616,8 @@ export default function DraftCampaignAction() {
                 options={dealerOptions.map((item) => ({ label: item.name, value: item.id }))}
                 disabled={readOnly || !watchSaleId}
                 placeholder="Select"
+                showSearch
+                optionFilterProp="label"
                 onChange={() => {
                   form.setFieldValue("sub_dealer_id", undefined);
                   form.setFieldValue("farmer_id", undefined);
@@ -626,6 +634,8 @@ export default function DraftCampaignAction() {
                 options={subDealerOptions.map((item) => ({ label: item.name, value: item.id }))}
                 disabled={readOnly || !watchDealerId}
                 placeholder="Select"
+                showSearch
+                optionFilterProp="label"
                 onChange={() => form.setFieldValue("farmer_id", undefined)}
               />
             </Form.Item>
@@ -639,6 +649,13 @@ export default function DraftCampaignAction() {
                 options={farmerOptions.map((item) => ({ label: item.name, value: item.id }))}
                 disabled={readOnly || !watchSubDealerId}
                 placeholder="Select"
+                showSearch
+                optionFilterProp="label"
+                filterOption={(input, option) =>
+                  String(option?.label || "")
+                    .toLowerCase()
+                    .includes(String(input || "").toLowerCase())
+                }
                 onChange={() => loadCurrentPoint()}
               />
             </Form.Item>

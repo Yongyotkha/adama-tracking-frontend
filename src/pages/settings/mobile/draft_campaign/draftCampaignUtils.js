@@ -1,5 +1,14 @@
 import dayjs from "dayjs";
 
+const firstNonEmpty = (...values) => {
+  for (const value of values) {
+    if (value === null || value === undefined) continue;
+    const text = String(value).trim();
+    if (text) return text;
+  }
+  return "";
+};
+
 export const toNumber = (value) => {
   const normalized = String(value ?? "")
     .replace(/,/g, "")
@@ -25,7 +34,7 @@ export const getListPayload = (response) => response?.data?.data || {};
 export const getDetailPayload = (response) => response?.data || {};
 
 export const normalizeOption = (item, config = {}) => {
-  const value =
+  const rawValue =
     item?.[config.valueKey || "id"] ??
     item?.id ??
     item?.user_id ??
@@ -36,24 +45,27 @@ export const normalizeOption = (item, config = {}) => {
     item?.customer_id ??
     item?.code;
 
-  const label =
-    item?.[config.labelKey || "name"] ??
-    item?.name ??
-    item?.name_en ??
-    item?.dealer_name ??
-    item?.sub_dealer_name ??
-    item?.farmer_name ??
-    item?.farm_name ??
-    item?.title ??
-    item?.product_name ??
-    item?.target ??
-    item?.customer_name ??
-    item?.product_code ??
-    "-";
+  const value = String(rawValue ?? "");
+  const label = firstNonEmpty(
+    item?.[config.labelKey || "name"],
+    item?.name,
+    item?.name_en,
+    item?.dealer_name,
+    item?.sub_dealer_name,
+    item?.farmer_name,
+    item?.farm_name,
+    item?.farmer_contact_name,
+    item?.title,
+    item?.product_name,
+    item?.target,
+    item?.customer_name,
+    item?.product_code,
+    value
+  );
 
   return {
-    id: String(value ?? ""),
-    name: String(label ?? "-"),
+    id: value,
+    name: label || "-",
     raw: item,
   };
 };
